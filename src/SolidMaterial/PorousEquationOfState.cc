@@ -3,19 +3,15 @@
 // 
 // See header for references and such.
 //----------------------------------------------------------------------------//
-
 #include "PorousEquationOfState.hh"
 #include "Field/Field.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -228,7 +224,7 @@ solidEOS() const {
 // Access the alpha field.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 PorousEquationOfState<Dimension>::
 alpha() const {
   return *mAlphaPtr;
@@ -237,7 +233,7 @@ alpha() const {
 template<typename Dimension>
 void
 PorousEquationOfState<Dimension>::
-alpha(const FieldSpace::Field<Dimension, typename Dimension::Scalar>& x) {
+alpha(const Field<Dimension, typename Dimension::Scalar>& x) {
   mAlphaPtr = &x;
 }
 
@@ -276,5 +272,3 @@ c0(const typename Dimension::Scalar x) {
 }
 
 }
-}
-

@@ -7,22 +7,20 @@
 //
 // Created by JMO, Thu May  5 16:07:36 PDT 2005
 //----------------------------------------------------------------------------//
-#include <iostream>
-using namespace std;
-
 #include "LinearPolynomialEquationOfState.hh"
 #include "Field/Field.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
+#include <iostream>
+using namespace std;
+
 namespace Spheral {
-namespace SolidMaterial {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Construct with the given coefficients.
@@ -336,5 +334,3 @@ LinearPolynomialEquationOfState<Dimension>::valid() const {
 }
 
 }
-}
-

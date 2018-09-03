@@ -7,23 +7,21 @@
 //
 // Created by JMO, Wed Mar 16 23:31:17 PDT 2011
 //----------------------------------------------------------------------------//
-#include <iostream>
-using namespace std;
-
 #include "TillotsonEquationOfState.hh"
 #include "Field/Field.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
+#include <iostream>
+using namespace std;
+
 namespace Spheral {
-namespace SolidMaterial {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Construct with the given coefficients.
@@ -441,5 +439,3 @@ computeDPDrho(const Scalar massDensity,
 }
 
 }
-}
-

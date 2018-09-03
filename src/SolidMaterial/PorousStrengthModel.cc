@@ -8,14 +8,11 @@
 #include "Field/Field.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -98,11 +95,11 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
 template<typename Dimension>
 void
 PorousStrengthModel<Dimension>::
-soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
-           const FieldSpace::Field<Dimension, Scalar>& density,
-           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-           const FieldSpace::Field<Dimension, Scalar>& pressure,
-           const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const {
+soundSpeed(Field<Dimension, Scalar>& soundSpeed,
+           const Field<Dimension, Scalar>& density,
+           const Field<Dimension, Scalar>& specificThermalEnergy,
+           const Field<Dimension, Scalar>& pressure,
+           const Field<Dimension, Scalar>& fluidSoundSpeed) const {
   mSolidStrength.soundSpeed(soundSpeed, density, specificThermalEnergy, pressure, fluidSoundSpeed);
 }
 
@@ -112,9 +109,9 @@ soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
 template<typename Dimension>
 void
 PorousStrengthModel<Dimension>::
-bulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
-            const FieldSpace::Field<Dimension, Scalar>& density,
-            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const {
+bulkModulus(Field<Dimension, Scalar>& bulkModulus,
+            const Field<Dimension, Scalar>& density,
+            const Field<Dimension, Scalar>& specificThermalEnergy) const {
   mSolidStrength.bulkModulus(bulkModulus, density, specificThermalEnergy);
 }
 
@@ -124,9 +121,9 @@ bulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
 template<typename Dimension>
 void
 PorousStrengthModel<Dimension>::
-meltSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
-                   const FieldSpace::Field<Dimension, Scalar>& density,
-                   const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const {
+meltSpecificEnergy(Field<Dimension, Scalar>& meltSpecificEnergy,
+                   const Field<Dimension, Scalar>& density,
+                   const Field<Dimension, Scalar>& specificThermalEnergy) const {
   mSolidStrength.meltSpecificEnergy(meltSpecificEnergy, density, specificThermalEnergy);
 }
 
@@ -136,9 +133,9 @@ meltSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
 template<typename Dimension>
 void
 PorousStrengthModel<Dimension>::
-coldSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& coldSpecificEnergy,
-                   const FieldSpace::Field<Dimension, Scalar>& density,
-                   const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const {
+coldSpecificEnergy(Field<Dimension, Scalar>& coldSpecificEnergy,
+                   const Field<Dimension, Scalar>& density,
+                   const Field<Dimension, Scalar>& specificThermalEnergy) const {
   mSolidStrength.coldSpecificEnergy(coldSpecificEnergy, density, specificThermalEnergy);
 }
 
@@ -156,7 +153,7 @@ solidStrength() const {
 // Access the alpha field.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 PorousStrengthModel<Dimension>::
 alpha() const {
   return *mAlphaPtr;
@@ -165,10 +162,8 @@ alpha() const {
 template<typename Dimension>
 void
 PorousStrengthModel<Dimension>::
-alpha(const FieldSpace::Field<Dimension, typename Dimension::Scalar>& x) {
+alpha(const Field<Dimension, typename Dimension::Scalar>& x) {
   mAlphaPtr = &x;
 }
 
 }
-}
-

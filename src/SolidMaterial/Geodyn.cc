@@ -1,6 +1,3 @@
-#include <iostream>
-using namespace std;
-
 #include "Geodyn.hh"
 #include "Field/Field.hh"
 #include "Utilities/bisectSearch.hh"
@@ -8,15 +5,15 @@ using namespace std;
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
+#include <iostream>
+using namespace std;
+
 namespace Spheral {
-namespace SolidMaterial {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-using FieldSpace::Field;
-using DataBaseSpace::DataBase;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -206,7 +203,7 @@ void
 Geodyn<Dimension>::
 evaluateDerivatives(const Scalar time,
                     const Scalar dt,
-                    const DataBaseSpace::DataBase<Dimension>& dataBase,
+                    const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
 }
@@ -217,7 +214,7 @@ evaluateDerivatives(const Scalar time,
 template<typename Dimension>
 typename Geodyn<Dimension>::TimeStepType
 Geodyn<Dimension>::
-dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+dt(const DataBase<Dimension>& dataBase, 
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
    const Scalar currentTime) const {
@@ -252,7 +249,7 @@ void
 Geodyn<Dimension>::
 initialize(const Scalar time, 
            const Scalar dt,
-           const DataBaseSpace::DataBase<Dimension>& dataBase, 
+           const DataBase<Dimension>& dataBase, 
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
 }
@@ -265,11 +262,9 @@ void
 Geodyn<Dimension>::
 finalize(const Scalar time, 
          const Scalar dt,
-         DataBaseSpace::DataBase<Dimension>& dataBase, 
+         DataBase<Dimension>& dataBase, 
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
 }
 
 }
-}
-

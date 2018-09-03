@@ -16,20 +16,19 @@
 #ifndef __Spheral_PhysicsEvolvingMaterialLibrary_hh__
 #define __Spheral_PhysicsEvolvingMaterialLibrary_hh__
 
-#include "boost/multi_array.hpp"
-
 #include "SolidMaterial/SolidEquationOfState.hh"
 #include "SolidMaterial/StrengthModel.hh"
 #include "Physics/Physics.hh"
 
+#include "boost/multi_array.hpp"
+
 namespace Spheral {
-namespace SolidMaterial {
 
 template<typename Dimension>
 class PhysicsEvolvingMaterialLibrary: 
-    public PhysicsSpace::Physics<Dimension>,
-    public SolidMaterial::SolidEquationOfState<Dimension>,
-    public SolidMaterial::StrengthModel<Dimension> {
+    public Physics<Dimension>,
+    public SolidEquationOfState<Dimension>,
+    public StrengthModel<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -48,15 +47,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class PhysicsEvolvingMaterialLibrary;
-  }
+  template<typename Dimension> class PhysicsEvolvingMaterialLibrary;
 }
 
 #endif

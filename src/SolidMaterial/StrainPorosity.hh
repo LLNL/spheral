@@ -31,18 +31,18 @@
 #ifndef __Spheral_StrainPorosity__
 #define __Spheral_StrainPorosity__
 
-#include <limits>
 #include "PorousEquationOfState.hh"
 #include "PorousStrengthModel.hh"
 #include "Physics/Physics.hh"
 #include "DataOutput/registerWithRestart.hh"
 
+#include <limits>
+
 namespace Spheral {
-namespace SolidMaterial {
 
 template<typename Dimension>
 class StrainPorosity: 
-    public PhysicsSpace::Physics<Dimension> {
+    public Physics<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -50,12 +50,12 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename PhysicsSpace::Physics<Dimension>::TimeStepType TimeStepType;
+  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   // Constructors, destructors.
   StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,     // Porous EOS we're going to modify
                  PorousStrengthModel<Dimension>& porousStrength,  // Porous strength model we're going to modify
-                 const NodeSpace::NodeList<Dimension>& nodeList,  // The NodeList we're going apply to
+                 const NodeList<Dimension>& nodeList,  // The NodeList we're going apply to
                  const double phi0,                               // Initial porosity
                  const double epsE,                               // Elastic-plastic transition strain
                  const double epsX,                               // Threshold strain between compaction regimes
@@ -71,33 +71,33 @@ public:
   virtual 
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const;
 
   // Vote on a time step.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
 
   // Register our state.
-  virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state);
 
   // Register the derivatives/change fields for updating state.
-  virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerDerivatives(DataBase<Dimension>& dataBase,
                                    StateDerivatives<Dimension>& derivs);
 
   // Do any required one-time initializations on problem start up.
-  virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase);
   //............................................................................
 
   //............................................................................
   // Methods required for restarting.
   virtual std::string label() const { return "StrainPorosity " + mNodeList.name(); }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //............................................................................
 
   // Access the material parameters.
@@ -112,19 +112,19 @@ public:
   double c0() const;
   const PorousEquationOfState<Dimension>& porousEOS() const;
   const PorousStrengthModel<Dimension>& porousStrength() const;
-  const NodeSpace::NodeList<Dimension>& nodeList() const;
-  const FieldSpace::Field<Dimension, Scalar>& alpha() const;
-  const FieldSpace::Field<Dimension, Scalar>& DalphaDt() const;
-  const FieldSpace::Field<Dimension, Scalar>& strain() const;
-  const FieldSpace::Field<Dimension, Scalar>& DstrainDt() const;
+  const NodeList<Dimension>& nodeList() const;
+  const Field<Dimension, Scalar>& alpha() const;
+  const Field<Dimension, Scalar>& DalphaDt() const;
+  const Field<Dimension, Scalar>& strain() const;
+  const Field<Dimension, Scalar>& DstrainDt() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   double mAlpha0, mEpsE, mEpsX, mKappa, mEpsC, mGammaS0, mcS0, mc0;
   PorousEquationOfState<Dimension>& mPorousEOS;
   PorousStrengthModel<Dimension>& mPorousStrength;
-  const NodeSpace::NodeList<Dimension>& mNodeList;
-  FieldSpace::Field<Dimension, Scalar> mAlpha,  mDalphaDt, mStrain, mDstrainDt;
+  const NodeList<Dimension>& mNodeList;
+  Field<Dimension, Scalar> mAlpha,  mDalphaDt, mStrain, mDstrainDt;
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
@@ -134,7 +134,6 @@ private:
 };
 
 }
-}
 
 #include "StrainPorosityInline.hh"
 
@@ -142,9 +141,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class StrainPorosity;
-  }
+  template<typename Dimension> class StrainPorosity;
 }
 
 #endif

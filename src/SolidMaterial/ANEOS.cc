@@ -7,15 +7,15 @@
 //
 // Created by JMO, Tue Apr 23 14:55:28 PDT 2013
 //----------------------------------------------------------------------------//
-#include <iostream>
-using namespace std;
-
 #include "ANEOS.hh"
 #include "Field/Field.hh"
 #include "Utilities/bisectSearch.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
+
+#include <iostream>
+using namespace std;
 
 // Fortran baby!
 extern "C" {
@@ -27,13 +27,11 @@ extern "C" {
 }
 
 namespace Spheral {
-namespace SolidMaterial {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-using FieldSpace::Field;
 
 // //------------------------------------------------------------------------------
 // // Define an inline common method to handle calling ANEOS1.
@@ -530,6 +528,5 @@ atomicWeight() const {
   return mAtomicWeight;
 }
 
-}
 }
 

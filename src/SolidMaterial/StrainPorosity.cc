@@ -11,22 +11,14 @@
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/IncrementFieldList.hh"
-
 #include "StrainPorosity.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::Field;
-using NodeSpace::NodeList;
-using PhysicsSpace::Physics;
-using DataBaseSpace::DataBase;
-using FileIOSpace::FileIO;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -219,5 +211,3 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
-

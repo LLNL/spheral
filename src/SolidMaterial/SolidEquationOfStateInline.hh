@@ -2,7 +2,6 @@
 #include "Utilities/SpheralFunctions.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -115,5 +114,4 @@ valid() const {
           mEtaMin <= mEtaMax);
 }
 
-}
 }

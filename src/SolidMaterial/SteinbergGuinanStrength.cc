@@ -11,14 +11,11 @@
 #include "Field/Field.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
 using namespace std;
 using std::abs;
 using std::min;
 using std::max;
-
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -101,10 +98,10 @@ SteinbergGuinanStrength<Dimension>::
 template<typename Dimension>
 void
 SteinbergGuinanStrength<Dimension>::
-shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
-             const FieldSpace::Field<Dimension, Scalar>& density,
-             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-             const FieldSpace::Field<Dimension, Scalar>& pressure) const {
+shearModulus(Field<Dimension, Scalar>& shearModulus,
+             const Field<Dimension, Scalar>& density,
+             const Field<Dimension, Scalar>& specificThermalEnergy,
+             const Field<Dimension, Scalar>& pressure) const {
   if ((mG0 > 0.0) &&
       (mA == 0.0) &&
       (mB == 0.0) &&
@@ -136,12 +133,12 @@ shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
 template<typename Dimension>
 void
 SteinbergGuinanStrength<Dimension>::
-yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
-              const FieldSpace::Field<Dimension, Scalar>& density,
-              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-              const FieldSpace::Field<Dimension, Scalar>& pressure,
-              const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
-              const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const {
+yieldStrength(Field<Dimension, Scalar>& yieldStrength,
+              const Field<Dimension, Scalar>& density,
+              const Field<Dimension, Scalar>& specificThermalEnergy,
+              const Field<Dimension, Scalar>& pressure,
+              const Field<Dimension, Scalar>& plasticStrain,
+              const Field<Dimension, Scalar>& plasticStrainRate) const {
   if ((mG0 > 0.0) &&
       (mA == 0.0) &&
       (mB == 0.0) &&
@@ -168,11 +165,11 @@ yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
 template<typename Dimension>
 void
 SteinbergGuinanStrength<Dimension>::
-soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
-           const FieldSpace::Field<Dimension, Scalar>& density,
-           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-           const FieldSpace::Field<Dimension, Scalar>& pressure,
-           const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const {
+soundSpeed(Field<Dimension, Scalar>& soundSpeed,
+           const Field<Dimension, Scalar>& density,
+           const Field<Dimension, Scalar>& specificThermalEnergy,
+           const Field<Dimension, Scalar>& pressure,
+           const Field<Dimension, Scalar>& fluidSoundSpeed) const {
   Field<Dimension, Scalar> mu("shear modulus", density.nodeList());
   this->shearModulus(mu, density, specificThermalEnergy, pressure);
   const auto n = density.numInternalElements();
@@ -191,9 +188,9 @@ soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
 template<typename Dimension>
 void
 SteinbergGuinanStrength<Dimension>::
-meltSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
-                   const FieldSpace::Field<Dimension, Scalar>& density,
-                   const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const {
+meltSpecificEnergy(Field<Dimension, Scalar>& meltSpecificEnergy,
+                   const Field<Dimension, Scalar>& density,
+                   const Field<Dimension, Scalar>& specificThermalEnergy) const {
   const auto rho0 = mEOSPtr->referenceDensity();
   CHECK(rho0 > 0.0);
   const auto n = meltSpecificEnergy.numInternalElements();
@@ -211,9 +208,9 @@ meltSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
 template<typename Dimension>
 void
 SteinbergGuinanStrength<Dimension>::
-coldSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& coldSpecificEnergy,
-                   const FieldSpace::Field<Dimension, Scalar>& density,
-                   const FieldSpace::Field<Dimension, Scalar>& specificEnergy) const {
+coldSpecificEnergy(Field<Dimension, Scalar>& coldSpecificEnergy,
+                   const Field<Dimension, Scalar>& density,
+                   const Field<Dimension, Scalar>& specificEnergy) const {
   const auto rho0 = mEOSPtr->referenceDensity();
   CHECK(rho0 > 0.0);
   const auto n = coldSpecificEnergy.numInternalElements();
@@ -256,9 +253,9 @@ meltAttenuation(const double density, const double specificThermalEnergy) const 
 template<typename Dimension>
 void
 SteinbergGuinanStrength<Dimension>::
-computeTemperature(FieldSpace::Field<Dimension, Scalar>& temperature,
-                   const FieldSpace::Field<Dimension, Scalar>& density,
-                   const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const {
+computeTemperature(Field<Dimension, Scalar>& temperature,
+                   const Field<Dimension, Scalar>& density,
+                   const Field<Dimension, Scalar>& specificThermalEnergy) const {
   Field<Dimension, Scalar> eps1("new energy", density.nodeList());
   const auto rho0 = mEOSPtr->referenceDensity();
   const auto n = density.numInternalElements();
@@ -372,5 +369,3 @@ meltEnergyFit() const {
 }
 
 }
-}
-

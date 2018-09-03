@@ -12,7 +12,7 @@ dims = spheralDimensions()
 
 for dim in dims:
     exec("""
-from SpheralModules.Spheral.SolidMaterial import ConstantStrength%(dim)sd as RealConstantStrength%(dim)sd
+from SpheralModules.Spheral import ConstantStrength%(dim)sd as RealConstantStrength%(dim)sd
 """ % {"dim" : dim})
 
 #-------------------------------------------------------------------------------

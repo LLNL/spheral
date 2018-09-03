@@ -1,6 +1,3 @@
-#include <iostream>
-using namespace std;
-
 #include "PhysicsEvolvingMaterialLibrary.hh"
 #include "Field/Field.hh"
 #include "Utilities/bisectSearch.hh"
@@ -8,15 +5,15 @@ using namespace std;
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
+#include <iostream>
+using namespace std;
+
 namespace Spheral {
-namespace SolidMaterial {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-using FieldSpace::Field;
-using DataBaseSpace::DataBase;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -30,15 +27,15 @@ PhysicsEvolvingMaterialLibrary(const double referenceDensity,
                                const double minimumPressure,
                                const double maximumPressure,
                                const Material::MaterialPressureMinType minPressureType):
-  PhysicsSpace::Physics<Dimension>(),
-  SolidMaterial::SolidEquationOfState<Dimension>(referenceDensity,
-                                                 etamin,
-                                                 etamax,
-                                                 constants,
-                                                 minimumPressure,
-                                                 maximumPressure,
-                                                 minPressureType),
-  SolidMaterial::StrengthModel<Dimension>() {
+  Physics<Dimension>(),
+  SolidEquationOfState<Dimension>(referenceDensity,
+                                  etamin,
+                                  etamax,
+                                  constants,
+                                  minimumPressure,
+                                  maximumPressure,
+                                  minPressureType),
+  StrengthModel<Dimension>() {
 }
 
 //------------------------------------------------------------------------------
@@ -50,5 +47,3 @@ PhysicsEvolvingMaterialLibrary<Dimension>::
 }
 
 }
-}
-

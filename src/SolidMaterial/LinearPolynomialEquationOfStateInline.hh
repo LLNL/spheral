@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace SolidMaterial {
 
 //------------------------------------------------------------------------------
 // Access the polynomial coefficients. (A0)
@@ -172,5 +171,4 @@ externalPressure(const double val) {
   mExternalPressure = val;
 }
 
-}
 }

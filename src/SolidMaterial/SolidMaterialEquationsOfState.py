@@ -14,11 +14,11 @@ dims = spheralDimensions()
 
 for dim in dims:
     exec("""
-from SpheralModules.Spheral.SolidMaterial import (LinearPolynomialEquationOfState%(dim)sd,
-                                                  GruneisenEquationOfState%(dim)sd,
-                                                  MurnahanEquationOfState%(dim)sd,
-                                                  TillotsonEquationOfState%(dim)sd,
-                                                  SteinbergGuinanStrength%(dim)sd)
+from SpheralModules.Spheral import (LinearPolynomialEquationOfState%(dim)sd,
+                                    GruneisenEquationOfState%(dim)sd,
+                                    MurnahanEquationOfState%(dim)sd,
+                                    TillotsonEquationOfState%(dim)sd,
+                                    SteinbergGuinanStrength%(dim)sd)
 """ % {"dim" : dim})
 
 EOSFactoryString = """

@@ -8,14 +8,11 @@
 #include "Field/Field.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Construct with the given Osborne constants.
@@ -249,5 +246,3 @@ OsborneEquationOfState<Dimension>::valid() const {
 }
 
 }
-}
-

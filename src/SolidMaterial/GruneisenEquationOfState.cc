@@ -10,14 +10,11 @@
 #include "Field/Field.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Construct with the given Gruneisen constants.
@@ -375,6 +372,6 @@ GruneisenEquationOfState<Dimension>::valid() const {
           mS1 > 0.0 &&
           mCv > 0.0);
 }
-}
+
 }
 

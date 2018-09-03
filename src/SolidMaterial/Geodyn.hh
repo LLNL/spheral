@@ -20,13 +20,8 @@
 
 // Forward declarations.
 namespace Spheral {
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-  }
-}
 
-namespace Spheral {
-namespace SolidMaterial {
+template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
 class Geodyn: public PhysicsEvolvingMaterialLibrary<Dimension> {
@@ -37,7 +32,7 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename PhysicsSpace::Physics<Dimension>::TimeStepType TimeStepType;
+  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   // Constructors, destructors.
   // We should add arguments to the constructor to specify the Geodyn model
@@ -48,79 +43,79 @@ public:
   ~Geodyn();
 
   // .............................. EquationOfState interface ..............................
-  virtual void setPressure(FieldSpace::Field<Dimension, Scalar>& Pressure,
-                           const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setPressure(Field<Dimension, Scalar>& Pressure,
+                           const Field<Dimension, Scalar>& massDensity,
+                           const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setTemperature(FieldSpace::Field<Dimension, Scalar>& temperature,
-                              const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setTemperature(Field<Dimension, Scalar>& temperature,
+                              const Field<Dimension, Scalar>& massDensity,
+                              const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setSpecificThermalEnergy(FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                                        const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                                        const FieldSpace::Field<Dimension, Scalar>& temperature) const;
+  virtual void setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
+                                        const Field<Dimension, Scalar>& massDensity,
+                                        const Field<Dimension, Scalar>& temperature) const;
 
-  virtual void setSpecificHeat(FieldSpace::Field<Dimension, Scalar>& specificHeat,
-                               const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                               const FieldSpace::Field<Dimension, Scalar>& temperature) const;
+  virtual void setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
+                               const Field<Dimension, Scalar>& massDensity,
+                               const Field<Dimension, Scalar>& temperature) const;
 
-  virtual void setSoundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
-                             const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
+                             const Field<Dimension, Scalar>& massDensity,
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setGammaField(FieldSpace::Field<Dimension, Scalar>& gamma,
-			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
-			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setGammaField(Field<Dimension, Scalar>& gamma,
+                             const Field<Dimension, Scalar>& massDensity,
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setBulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
-			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
-			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
+                             const Field<Dimension, Scalar>& massDensity,
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setEntropy(FieldSpace::Field<Dimension, Scalar>& entropy,
-                          const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setEntropy(Field<Dimension, Scalar>& entropy,
+                          const Field<Dimension, Scalar>& massDensity,
+                          const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
   virtual bool valid() const;
 
   // .............................. StrengthModel interface ..............................
-  virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
-                            const FieldSpace::Field<Dimension, Scalar>& density,
-                            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                            const FieldSpace::Field<Dimension, Scalar>& pressure) const;
+  virtual void shearModulus(Field<Dimension, Scalar>& shearModulus,
+                            const Field<Dimension, Scalar>& density,
+                            const Field<Dimension, Scalar>& specificThermalEnergy,
+                            const Field<Dimension, Scalar>& pressure) const;
 
-  virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
-                             const FieldSpace::Field<Dimension, Scalar>& density,
-                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                             const FieldSpace::Field<Dimension, Scalar>& pressure,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const;
+  virtual void yieldStrength(Field<Dimension, Scalar>& yieldStrength,
+                             const Field<Dimension, Scalar>& density,
+                             const Field<Dimension, Scalar>& specificThermalEnergy,
+                             const Field<Dimension, Scalar>& pressure,
+                             const Field<Dimension, Scalar>& plasticStrain,
+                             const Field<Dimension, Scalar>& plasticStrainRate) const;
 
-  virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
-                          const FieldSpace::Field<Dimension, Scalar>& density,
-                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                          const FieldSpace::Field<Dimension, Scalar>& pressure,
-                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const;
+  virtual void soundSpeed(Field<Dimension, Scalar>& soundSpeed,
+                          const Field<Dimension, Scalar>& density,
+                          const Field<Dimension, Scalar>& specificThermalEnergy,
+                          const Field<Dimension, Scalar>& pressure,
+                          const Field<Dimension, Scalar>& fluidSoundSpeed) const;
 
   // .............................. Physics interface ..............................
   virtual void evaluateDerivatives(const Scalar time,
                                    const Scalar dt,
-                                   const DataBaseSpace::DataBase<Dimension>& dataBase,
+                                   const DataBase<Dimension>& dataBase,
                                    const State<Dimension>& state,
                                    StateDerivatives<Dimension>& derivatives) const;
 
   // Vote on a time step.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
 
   // Register the state you want carried around (and potentially evolved), as
   // well as the policies for such evolution.
-  virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state);
 
   // Register the derivatives/change fields for updating state.
-  virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerDerivatives(DataBase<Dimension>& dataBase,
                                    StateDerivatives<Dimension>& derivs);
 
   // It's useful to have labels for Physics packages.  We'll require this to have
@@ -131,14 +126,14 @@ public:
   // evaluateDerivatives() method is called.
   virtual void initialize(const Scalar time, 
                           const Scalar dt,
-                          const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                          const DataBase<Dimension>& dataBase, 
                           State<Dimension>& state,
                           StateDerivatives<Dimension>& derivs);
 
   // Similarly packages might want a hook to do some post-step finalizations.
   virtual void finalize(const Scalar time, 
                         const Scalar dt,
-                        DataBaseSpace::DataBase<Dimension>& dataBase, 
+                        DataBase<Dimension>& dataBase, 
                         State<Dimension>& state,
                         StateDerivatives<Dimension>& derivs);
 private:
@@ -159,15 +154,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class Geodyn;
-  }
+  template<typename Dimension> class Geodyn;
 }
 
 #endif
