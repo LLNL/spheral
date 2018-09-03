@@ -16,25 +16,11 @@
 #include "DataBase/IncrementState.hh"
 
 namespace Spheral {
-namespace MHDSpace {
 
 using namespace std;
 using std::abs;
 using std::min;
 using std::max;
-
-using ArtificialViscositySpace::ArtificialViscosity;
-using DataOutput::Restart;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NeighborSpace::Neighbor;
-using Material::EquationOfState;
-using BoundarySpace::Boundary;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
 
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
@@ -67,7 +53,7 @@ PriceMonaghanDissipation::
 //------------------------------------------------------------------------------
 void
 PriceMonaghanDissipation::
-viscousEffects(const DataBaseSpace::DataBase<Dim<3> >& dataBase,
+viscousEffects(const DataBase<Dim<3> >& dataBase,
                const ConnectivityMap<Dim<3> >& connectivityMap,
                const State<Dim<3> >& state,
                StateDerivatives<Dim<3> >& derivatives) const {
@@ -433,7 +419,7 @@ else if ((j == 1753) && (abs(gradWij.x()) == 0.) && (abs(gradWij.y()) > 1e-8) &&
 //------------------------------------------------------------------------------
 ArtificialViscosity<Dim<3> >::TimeStepType
 PriceMonaghanDissipation::
-dt(const DataBaseSpace::DataBase<Dim<3> >& dataBase, 
+dt(const DataBase<Dim<3> >& dataBase, 
    const State<Dim<3> >& state,
    const StateDerivatives<Dim<3> >& derivs,
    const Scalar currentTime) const
@@ -452,5 +438,3 @@ PriceMonaghanDissipation::valid() const {
 }
 
 }
-}
-

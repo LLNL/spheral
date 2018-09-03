@@ -10,14 +10,7 @@
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
 
-
 namespace Spheral {
-
-namespace MHDSpace {
-
-using Spheral::FieldSpace::Field;
-using Spheral::FieldSpace::FieldList;
-using Spheral::NodeSpace::FluidNodeList;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -124,6 +117,3 @@ operator==(const Spheral::UpdatePolicyBase<Dim<3>, Field<Dim<3>, Dim<3>::Scalar>
 //----------------------------------------------------------------------------
 
 }
-}
-
-

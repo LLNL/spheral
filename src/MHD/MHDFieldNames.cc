@@ -1,7 +1,6 @@
 #include "MHD/MHDFieldNames.hh"
 
 namespace Spheral {
-namespace MHDFieldNames {
 
 const std::string magneticInduction("magnetic induction");
 const std::string magneticDivergence("magnetic divergence");
@@ -10,7 +9,4 @@ const std::string resistivity("resistivity");
 const std::string totalSpecificEnergy("total specific energy");
 const std::string hyperbolicCleaning("hyperbolic divergence cleaning potential");
 
-
 }
-}
-

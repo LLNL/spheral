@@ -13,17 +13,7 @@
 
 namespace Spheral {
 
-namespace MHDSpace {
-
 using namespace std;
-using Spheral::FieldSpace::Field;
-using Spheral::FieldSpace::FieldList;
-using Spheral::NodeSpace::FluidNodeList;
-using DataBaseSpace::DataBase;
-using Spheral::NodeSpace::FluidNodeList;
-using Spheral::NodeSpace::NodeList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -155,6 +145,3 @@ operator==(const Spheral::UpdatePolicyBase<Dim<3>, Field<Dim<3>, Dim<3>::Vector>
 //----------------------------------------------------------------------------
 
 }
-}
-
-
