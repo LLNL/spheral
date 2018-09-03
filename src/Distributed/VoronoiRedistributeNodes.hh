@@ -52,9 +52,9 @@ public:
 
   // Given a Spheral++ data base of NodeLists, repartition it among the processors.
   // This is the method required of all descendent classes.
-  virtual void redistributeNodes(DataBaseSpace::DataBase<Dimension>& dataBase,
-                                 std::vector<BoundarySpace::Boundary<Dimension>*> boundaries =
-                                 std::vector<BoundarySpace::Boundary<Dimension>*>()) override;
+  virtual void redistributeNodes(DataBase<Dimension>& dataBase,
+                                 std::vector<Boundary<Dimension>*> boundaries =
+                                 std::vector<Boundary<Dimension>*>()) override;
 
   // Given the set of DomainNodes with their domain assignments, compute the 
   // (work weighted) domain centroids.
@@ -119,9 +119,7 @@ private:
 #else
 // Forward declare the VoronoiRedistributeNodes class.
 namespace Spheral {
-  namespace PartitionSpace {
-    template<typename Dimension> class VoronoiRedistributeNodes;
-  }
+  template<typename Dimension> class VoronoiRedistributeNodes;
 }
 
 #endif

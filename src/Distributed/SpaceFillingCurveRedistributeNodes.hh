@@ -50,14 +50,14 @@ public:
 
   // This is the required method for all descendant classes.
   virtual
-  FieldSpace::FieldList<Dimension, Key> 
-  computeHashedIndices(const DataBaseSpace::DataBase<Dimension>& dataBase) const = 0;
+  FieldList<Dimension, Key> 
+  computeHashedIndices(const DataBase<Dimension>& dataBase) const = 0;
 
   // Given a Spheral++ data base of NodeLists, repartition it among the processors.
   // This is the method required of all descendent classes.
-  virtual void redistributeNodes(DataBaseSpace::DataBase<Dimension>& dataBase,
-                                 std::vector<BoundarySpace::Boundary<Dimension>*> boundaries =
-                                 std::vector<BoundarySpace::Boundary<Dimension>*>()) override;
+  virtual void redistributeNodes(DataBase<Dimension>& dataBase,
+                                 std::vector<Boundary<Dimension>*> boundaries =
+                                 std::vector<Boundary<Dimension>*>()) override;
 
   // Compute the cell size in each dimension.
   Vector computeStepSize(const std::pair<Vector, Vector>& box) const;
@@ -65,7 +65,7 @@ public:
   // Stitch together the given indices and DomainNode list.
   // This returns the set sorted by the index.
   std::vector<std::pair<Key, DomainNode<Dimension> > >
-  buildIndex2IDPairs(const FieldSpace::FieldList<Dimension, Key>& indices,
+  buildIndex2IDPairs(const FieldList<Dimension, Key>& indices,
                      const std::vector<DomainNode<Dimension> >& domainNodes) const;
 
   // Find the hashed index the given amount of work above the specified lower bound.
