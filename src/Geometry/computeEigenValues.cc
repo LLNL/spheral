@@ -10,8 +10,6 @@
 
 namespace Spheral {
 
-using FieldSpace::Field;
-
 template<typename Dimension>
 void
 computeEigenValues(const Field<Dimension, typename Dimension::SymTensor>& field,
