@@ -36,14 +36,14 @@ public:
   // Initialize the artificial viscosity for all FluidNodeLists in the given
   // DataBase.
   virtual 
-  void initialize(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  void initialize(const DataBase<Dimension>& dataBase,
                   const State<Dimension>& state,
                   const StateDerivatives<Dimension>& derivs,
                   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
                   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
                   const Scalar time,
                   const Scalar dt,
-                  const KernelSpace::TableKernel<Dimension>& W);
+                  const TableKernel<Dimension>& W);
 
   // Require all descendents to return the artificial viscous Pi = P/rho^2 as a tensor.
   // Scalar viscosities should just return a diagonal tensor with their value along the diagonal.

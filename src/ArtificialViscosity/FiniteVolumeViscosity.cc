@@ -35,7 +35,7 @@ FiniteVolumeViscosity(const Scalar Clinear,
                       const bool scalar):
   ArtificialViscosity<Dimension>(Clinear, Cquadratic),
   mScalar(scalar),
-  mDvDx(FieldSpace::FieldStorageType::CopyFields) {
+  mDvDx(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------

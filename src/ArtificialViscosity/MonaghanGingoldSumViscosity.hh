@@ -21,8 +21,6 @@ namespace Spheral {
 
 namespace Spheral {
 
-using Spheral::FieldSpace::FieldList;
-
 template<typename Dimension>
 class MonaghanGingoldSumViscosity: public MonaghanGingoldViscosity<Dimension> {
 public:

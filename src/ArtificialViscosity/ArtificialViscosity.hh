@@ -52,26 +52,26 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename std::pair<double, std::string> TimeStepType;
 
-  typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
+  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
   // Constructors.
   ArtificialViscosity(const Scalar Clinear,
                       const Scalar Cquadratic,
-                      const CRKSPHSpace::CRKOrder QcorrectionOrder = CRKSPHSpace::CRKOrder::LinearOrder);
+                      const CRKOrder QcorrectionOrder = CRKOrder::LinearOrder);
 
   // Destructor.
   virtual ~ArtificialViscosity();
 
   // Initialize the artificial viscosity for all FluidNodeLists in the given
   // DataBase.
-  virtual void initialize(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void initialize(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           ConstBoundaryIterator boundaryBegin,
                           ConstBoundaryIterator boundaryEnd,
                           const Scalar time,
                           const Scalar dt,
-                          const KernelSpace::TableKernel<Dimension>& W);
+                          const TableKernel<Dimension>& W);
 
   // Require all descendents to return the artificial viscous Pi = P/rho^2 as a tensor.
   // Scalar viscosities should just return a diagonal tensor with their value along the diagonal.
@@ -98,8 +98,8 @@ public:
   void Cq(Scalar Cq);
 
   //Allow access to the Q correction order.
-  CRKSPHSpace::CRKOrder QcorrectionOrder() const;
-  void QcorrectionOrder(CRKSPHSpace::CRKOrder order);
+  CRKOrder QcorrectionOrder() const;
+  void QcorrectionOrder(CRKOrder order);
 
   // Toggle for the Balsara shear correction.
   bool balsaraShearCorrection() const;
@@ -109,20 +109,20 @@ public:
   Scalar curlVelocityMagnitude(const Tensor& DvDx) const;
 
   // Access the FieldList of multiplicative corrections.
-  FieldSpace::FieldList<Dimension, Scalar>& ClMultiplier();
-  FieldSpace::FieldList<Dimension, Scalar>& CqMultiplier();
-  FieldSpace::FieldList<Dimension, Scalar>& shearCorrection();
-  const FieldSpace::FieldList<Dimension, Scalar>& ClMultiplier() const;
-  const FieldSpace::FieldList<Dimension, Scalar>& CqMultiplier() const;
-  const FieldSpace::FieldList<Dimension, Scalar>& shearCorrection() const;
+  FieldList<Dimension, Scalar>& ClMultiplier();
+  FieldList<Dimension, Scalar>& CqMultiplier();
+  FieldList<Dimension, Scalar>& shearCorrection();
+  const FieldList<Dimension, Scalar>& ClMultiplier() const;
+  const FieldList<Dimension, Scalar>& CqMultiplier() const;
+  const FieldList<Dimension, Scalar>& shearCorrection() const;
 
   // Access the internally computed estimate of sigma:
   // sig^ab = \partial v^a / \partial x^b.
-  const FieldSpace::FieldList<Dimension, Tensor>& sigma() const;
+  const FieldList<Dimension, Tensor>& sigma() const;
 
   // Access the internally computed estimate of the velocity gradient and
   // grad div velocity.
-  const FieldSpace::FieldList<Dimension, Vector>& gradDivVelocity() const;
+  const FieldList<Dimension, Vector>& gradDivVelocity() const;
 
   // Switch to turn the del^2 v limiter on/off.
   bool limiter() const;
@@ -180,8 +180,8 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "ArtificialViscosity"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 protected:
@@ -192,13 +192,13 @@ protected:
 
   Scalar mClinear;
   Scalar mCquadratic;
-  CRKSPHSpace::CRKOrder mQcorrectionOrder;
+  CRKOrder mQcorrectionOrder;
 
   // Switch for the Balsara shear correction.
   bool mBalsaraShearCorrection;
 
   // Generic multipliers for the linear and quadratic terms.
-  FieldSpace::FieldList<Dimension, Scalar> mClMultiplier, mCqMultiplier, mShearCorrection;
+  FieldList<Dimension, Scalar> mClMultiplier, mCqMultiplier, mShearCorrection;
 
   // Parameters for the Q limiter.
   bool mCalculateSigma;
@@ -207,17 +207,17 @@ protected:
   Scalar mNegligibleSoundSpeed;
   Scalar mCsMultiplier;
   Scalar mEnergyMultiplier;
-  FieldSpace::FieldList<Dimension, Tensor> mSigma;
-  FieldSpace::FieldList<Dimension, Vector> mGradDivVelocity;
+  FieldList<Dimension, Tensor> mSigma;
+  FieldList<Dimension, Vector> mGradDivVelocity;
     
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
 
   // Protected methods.
-  virtual void calculateSigmaAndGradDivV(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
                                          const State<Dimension>& state,
                                          const StateDerivatives<Dimension>& derivs,
-                                         const KernelSpace::TableKernel<Dimension>& W,
+                                         const TableKernel<Dimension>& W,
                                          ConstBoundaryIterator boundaryBegin,
                                          ConstBoundaryIterator boundaryEnd);
 

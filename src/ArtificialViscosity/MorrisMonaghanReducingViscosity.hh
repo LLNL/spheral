@@ -17,16 +17,16 @@
 namespace Spheral {
     
 template<typename Dimension>
-    class MorrisMonaghanReducingViscosity: public PhysicsSpace::Physics<Dimension>{
+    class MorrisMonaghanReducingViscosity: public Physics<Dimension>{
 public:
     //--------------------------- Public Interface ---------------------------//
     typedef typename Dimension::Scalar Scalar;
     typedef typename Dimension::Vector Vector;
     typedef typename Dimension::Tensor Tensor;
     typedef typename Dimension::SymTensor SymTensor;
-    typedef typename PhysicsSpace::Physics<Dimension>::TimeStepType TimeStepType;
+    typedef typename Physics<Dimension>::TimeStepType TimeStepType;
         
-    typedef typename PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+    typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
     
     // Constructors & Destructors
     MorrisMonaghanReducingViscosity(ArtificialViscosity<Dimension>& q,
@@ -42,37 +42,37 @@ public:
     virtual
     void evaluateDerivatives(const Scalar time,
                              const Scalar dt,
-                             const DataBaseSpace::DataBase<Dimension>& dataBase,
+                             const DataBase<Dimension>& dataBase,
                              const State<Dimension>& state,
                              StateDerivatives<Dimension>& derivatives) const;
         
     // Vote on a time step.
-    virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase,
+    virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
                             const State<Dimension>& state,
                             const StateDerivatives<Dimension>& derivs,
                             const Scalar currentTime) const;
     
     // Register our state.
-    virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+    virtual void registerState(DataBase<Dimension>& dataBase,
                                State<Dimension>& state);
     
     // Register the derivatives/change fields for updating state.
-    virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+    virtual void registerDerivatives(DataBase<Dimension>& dataBase,
                                      StateDerivatives<Dimension>& derivs);
     
     // Do any required one-time initializations on problem start up.
-    virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+    virtual void initializeProblemStartup(DataBase<Dimension>& dataBase);
     //............................................................................
     
     // Restart methods.
     virtual std::string label() const { return "MorrisMonaghanReducingViscosity"; }
-    virtual void dumpState(FileIOSpace::FileIO& file, std::string pathName) const;
-    virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
+    virtual void dumpState(FileIO& file, std::string pathName) const;
+    virtual void restoreState(const FileIO& file, std::string pathName);
         
         
     // Access the FieldList of Reducing Viscosity multiplicative correction.
-    const FieldSpace::FieldList<Dimension, Scalar>& DrvAlphaDtQ() const;
-    const FieldSpace::FieldList<Dimension, Scalar>& DrvAlphaDtL() const;
+    const FieldList<Dimension, Scalar>& DrvAlphaDtQ() const;
+    const FieldList<Dimension, Scalar>& DrvAlphaDtL() const;
 
     Scalar nhQ() const;
     Scalar nhL() const;
@@ -94,8 +94,8 @@ private:
     MorrisMonaghanReducingViscosity& operator=(const MorrisMonaghanReducingViscosity&) const;
     
     Scalar mnhQ,mnhL,maMin,maMax;
-    FieldSpace::FieldList<Dimension, Scalar> mDrvAlphaDtQ;
-    FieldSpace::FieldList<Dimension, Scalar> mDrvAlphaDtL;
+    FieldList<Dimension, Scalar> mDrvAlphaDtQ;
+    FieldList<Dimension, Scalar> mDrvAlphaDtL;
     ArtificialViscosity<Dimension>& myq;
 };
     

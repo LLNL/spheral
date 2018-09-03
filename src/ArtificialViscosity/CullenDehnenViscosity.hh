@@ -26,20 +26,20 @@ namespace Spheral {
 namespace Spheral {
     
 template<typename Dimension>
-class CullenDehnenViscosity: public PhysicsSpace::Physics<Dimension>{
+class CullenDehnenViscosity: public Physics<Dimension>{
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename PhysicsSpace::Physics<Dimension>::TimeStepType TimeStepType;
+  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
         
-  typedef typename PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
     
   // Constructors & Destructors
   CullenDehnenViscosity(ArtificialViscosity<Dimension>& q,
-                        const KernelSpace::TableKernel<Dimension>& W,
+                        const TableKernel<Dimension>& W,
                         const Scalar alphMax,
                         const Scalar alphMin,
                         const Scalar betaC,
@@ -55,19 +55,19 @@ public:
   virtual
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const;
   virtual
   void finalizeDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const;
   virtual
   void finalize(const Scalar time,
                 const Scalar dt,
-                DataBaseSpace::DataBase<Dimension>& dataBase,
+                DataBase<Dimension>& dataBase,
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivs);
   virtual   
@@ -79,27 +79,27 @@ public:
 
     
   // Vote on a time step.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
     
   // Register our state.
-  virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state);
     
   // Register the derivatives/change fields for updating state.
-  virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerDerivatives(DataBase<Dimension>& dataBase,
                                    StateDerivatives<Dimension>& derivs);
     
   // Do any required one-time initializations on problem start up.
-  virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase);
   //............................................................................
     
   // Restart methods.
   virtual std::string label() const { return "CullenDehnenViscosity"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, std::string pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
+  virtual void dumpState(FileIO& file, std::string pathName) const;
+  virtual void restoreState(const FileIO& file, std::string pathName);
 
   Scalar alphMax() const;
   Scalar alphMin() const;
@@ -118,15 +118,15 @@ public:
   void boolHopkins(bool val);
 
   // Access the stored interpolation kernels.
-  const KernelSpace::TableKernel<Dimension>& kernel() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    PrevDvDt() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    PrevDivV() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    CullAlpha() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    PrevDivV2() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    CullAlpha2() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    DalphaDt() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    alphaLocal() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    alpha0() const;
+  const TableKernel<Dimension>& kernel() const;
+  const FieldList<Dimension, Vector>&    PrevDvDt() const;
+  const FieldList<Dimension, Scalar>&    PrevDivV() const;
+  const FieldList<Dimension, Scalar>&    CullAlpha() const;
+  const FieldList<Dimension, Scalar>&    PrevDivV2() const;
+  const FieldList<Dimension, Scalar>&    CullAlpha2() const;
+  const FieldList<Dimension, Scalar>&    DalphaDt() const;
+  const FieldList<Dimension, Scalar>&    alphaLocal() const;
+  const FieldList<Dimension, Scalar>&    alpha0() const;
     
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -141,16 +141,16 @@ private:
   Scalar malphMax, malphMin, mbetaE, mbetaD, mbetaC, mfKern;
   bool mboolHopkins;//Use Hopkins Reformulation
   ArtificialViscosity<Dimension>& myq;
-  const KernelSpace::TableKernel<Dimension>& mKernel;
-  FieldSpace::FieldList<Dimension, Vector>    mPrevDvDt;//Will enroll as state fields
-  FieldSpace::FieldList<Dimension, Scalar>    mPrevDivV;
-  FieldSpace::FieldList<Dimension, Scalar>    mCullAlpha;
-  FieldSpace::FieldList<Dimension, Scalar>    mPrevDivV2;//Will enroll as derivative fields so that we can store the previous time step value.
-  FieldSpace::FieldList<Dimension, Scalar>    mCullAlpha2;
+  const TableKernel<Dimension>& mKernel;
+  FieldList<Dimension, Vector>    mPrevDvDt;//Will enroll as state fields
+  FieldList<Dimension, Scalar>    mPrevDivV;
+  FieldList<Dimension, Scalar>    mCullAlpha;
+  FieldList<Dimension, Scalar>    mPrevDivV2;//Will enroll as derivative fields so that we can store the previous time step value.
+  FieldList<Dimension, Scalar>    mCullAlpha2;
 
-  FieldSpace::FieldList<Dimension, Scalar>    mDalphaDt;     // Time derivative of alpha
-  FieldSpace::FieldList<Dimension, Scalar>    mAlphaLocal;   // Alpha local to be filled in derivatives
-  FieldSpace::FieldList<Dimension, Scalar>    mAlpha0;       // The Hopkins form actually evolves alpha0
+  FieldList<Dimension, Scalar>    mDalphaDt;     // Time derivative of alpha
+  FieldList<Dimension, Scalar>    mAlphaLocal;   // Alpha local to be filled in derivatives
+  FieldList<Dimension, Scalar>    mAlpha0;       // The Hopkins form actually evolves alpha0
 };
     
 }

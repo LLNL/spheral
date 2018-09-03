@@ -19,7 +19,7 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
+  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
   // Constructors.
   TensorSVPHViscosity(Scalar Clinear, Scalar Cquadratic, Scalar fslice);
@@ -29,14 +29,14 @@ public:
 
   // Initialize the artificial viscosity for all FluidNodeLists in the given
   // DataBase.
-  virtual void initialize(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void initialize(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           ConstBoundaryIterator boundaryBegin,
                           ConstBoundaryIterator boundaryEnd,
                           const Scalar time, 
                           const Scalar dt,
-                          const KernelSpace::TableKernel<Dimension>& W);
+                          const TableKernel<Dimension>& W);
 
   // Required method to compute the tensor viscous P/rho^2.
   virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 

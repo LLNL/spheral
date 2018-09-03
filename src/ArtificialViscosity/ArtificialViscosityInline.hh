@@ -48,7 +48,7 @@ Cq(typename Dimension::Scalar Cq) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-CRKSPHSpace::CRKOrder
+CRKOrder
 ArtificialViscosity<Dimension>::QcorrectionOrder() const {
   return mQcorrectionOrder;
 }
@@ -57,7 +57,7 @@ template<typename Dimension>
 inline
 void
 ArtificialViscosity<Dimension>::
-QcorrectionOrder(const CRKSPHSpace::CRKOrder order) {
+QcorrectionOrder(const CRKOrder order) {
   mQcorrectionOrder = order;
 }
 
@@ -67,7 +67,7 @@ QcorrectionOrder(const CRKSPHSpace::CRKOrder order) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 ArtificialViscosity<Dimension>::
 sigma() const {
   return mSigma;
@@ -97,7 +97,7 @@ balsaraShearCorrection(bool value) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialViscosity<Dimension>::
 ClMultiplier() {
   return mClMultiplier;
@@ -105,7 +105,7 @@ ClMultiplier() {
     
 template<typename Dimension>
 inline
-FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialViscosity<Dimension>::
 CqMultiplier() {
   return mCqMultiplier;
@@ -113,7 +113,7 @@ CqMultiplier() {
     
 template<typename Dimension>
 inline
-FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialViscosity<Dimension>::
 shearCorrection() {
   return mShearCorrection;
@@ -121,7 +121,7 @@ shearCorrection() {
     
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialViscosity<Dimension>::
 ClMultiplier() const {
   return mClMultiplier;
@@ -129,7 +129,7 @@ ClMultiplier() const {
     
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialViscosity<Dimension>::
 CqMultiplier() const {
   return mCqMultiplier;
@@ -137,7 +137,7 @@ CqMultiplier() const {
     
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialViscosity<Dimension>::
 shearCorrection() const {
   return mShearCorrection;
@@ -177,7 +177,7 @@ curlVelocityMagnitude(const Dim<3>::Tensor& DvDx) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 ArtificialViscosity<Dimension>::
 gradDivVelocity() const {
   return mGradDivVelocity;

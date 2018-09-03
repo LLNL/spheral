@@ -44,13 +44,13 @@ CullenDehnenViscosity(ArtificialViscosity<Dimension>& q,
                       const Scalar fKern, //Parameter = 1/3 Hopkins 2014 for quinitc spline
                       const bool boolHopkins): //use Hopkins Reformulation
   Physics<Dimension>(),
-  mPrevDvDt(FieldSpace::FieldStorageType::CopyFields),
-  mPrevDivV(FieldSpace::FieldStorageType::CopyFields),
-  mCullAlpha(FieldSpace::FieldStorageType::CopyFields),
-  mPrevDivV2(FieldSpace::FieldStorageType::CopyFields),
-  mCullAlpha2(FieldSpace::FieldStorageType::CopyFields),
-  mDalphaDt(FieldSpace::FieldStorageType::CopyFields),
-  mAlphaLocal(FieldSpace::FieldStorageType::CopyFields),
+  mPrevDvDt(FieldStorageType::CopyFields),
+  mPrevDivV(FieldStorageType::CopyFields),
+  mCullAlpha(FieldStorageType::CopyFields),
+  mPrevDivV2(FieldStorageType::CopyFields),
+  mCullAlpha2(FieldStorageType::CopyFields),
+  mDalphaDt(FieldStorageType::CopyFields),
+  mAlphaLocal(FieldStorageType::CopyFields),
   malphMax(alphMax),
   malphMin(alphMin),
   mbetaC(betaC),
@@ -134,42 +134,42 @@ boolHopkins(bool val)
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const KernelSpace::TableKernel<Dimension>&
+const TableKernel<Dimension>&
 CullenDehnenViscosity<Dimension>::kernel() const {
   return mKernel;
 }
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 CullenDehnenViscosity<Dimension>::PrevDvDt() const {
    return mPrevDvDt;
 }
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CullenDehnenViscosity<Dimension>::PrevDivV() const {
    return mPrevDivV;
 }
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CullenDehnenViscosity<Dimension>::PrevDivV2() const {
    return mPrevDivV2;
 }
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CullenDehnenViscosity<Dimension>::CullAlpha() const {
    return mCullAlpha;
 }
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CullenDehnenViscosity<Dimension>::CullAlpha2() const {
    return mCullAlpha2;
 }

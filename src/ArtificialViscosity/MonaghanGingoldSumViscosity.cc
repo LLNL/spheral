@@ -16,10 +16,7 @@ template<typename Dimension>
 MonaghanGingoldSumViscosity<Dimension>::
 MonaghanGingoldSumViscosity():
   MonaghanGingoldViscosity<Dimension>(),
-  mViscousEnergy(FieldSpace::FieldStorageType::CopyFields) {
-#ifdef DEBUG
-  cerr << "MonaghanGingoldSumViscosity::MonaghanGingoldSumViscosity()" << endl;
-#endif
+  mViscousEnergy(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -29,10 +26,7 @@ template<typename Dimension>
 MonaghanGingoldSumViscosity<Dimension>::
 MonaghanGingoldSumViscosity(Scalar Clinear, Scalar Cquadratic):
   MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic),
-  mViscousEnergy(FieldSpace::FieldStorageType::CopyFields) {
-#ifdef DEBUG
-  cerr << "MonaghanGingoldSumViscosity::MonaghanGingoldSumViscosity(Cl, Cq)" << endl;
-#endif
+  mViscousEnergy(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -41,9 +35,6 @@ MonaghanGingoldSumViscosity(Scalar Clinear, Scalar Cquadratic):
 template<typename Dimension>
 MonaghanGingoldSumViscosity<Dimension>::
 ~MonaghanGingoldSumViscosity() {
-#ifdef DEBUG
-  cerr << "MonaghanGingoldSumViscosity::~MonaghanGingoldSumViscosity()" << endl;
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -55,12 +46,9 @@ MonaghanGingoldSumViscosity<Dimension>::
 initialize(const DataBase<Dimension>& dataBase,
            typename vector<Boundary<Dimension>*>::const_iterator boundaryBegin,
            typename vector<Boundary<Dimension>*>::const_iterator boundaryEnd,
-	   const typename Dimension::Scalar time,
-	   const typename Dimension::Scalar dt,
+           const typename Dimension::Scalar time,
+           const typename Dimension::Scalar dt,
            const TableKernel<Dimension>& W) {
-#ifdef DEBUG
-  cerr << "MonaghanGingoldSumViscosity::initialize()" << endl;
-#endif
 
   typedef typename ArtificialViscosity<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
   typedef NodeIDIterator<Dimension> IDIterator;
@@ -68,7 +56,7 @@ initialize(const DataBase<Dimension>& dataBase,
   // Verify that the internal pressure field is properly initialized for this
   // set of fluid node lists.
   if (mViscousEnergy.numFields() != dataBase.numFluidNodeLists()) {
-    FieldList<Dimension, Scalar> thpt(FieldSpace::FieldStorageType::CopyFields);
+    FieldList<Dimension, Scalar> thpt(FieldStorageType::CopyFields);
     for (typename DataBase<Dimension>::ConstFluidNodeListIterator fluidNodeListItr = 
            dataBase.fluidNodeListBegin();
          fluidNodeListItr < dataBase.fluidNodeListEnd();

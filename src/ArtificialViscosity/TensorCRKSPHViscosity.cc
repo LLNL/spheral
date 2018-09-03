@@ -30,7 +30,7 @@ using std::vector;
 template<typename Dimension>
 TensorCRKSPHViscosity<Dimension>::
 TensorCRKSPHViscosity(Scalar Clinear, Scalar Cquadratic):
-  mGradVel(FieldSpace::FieldStorageType::CopyFields),
+  mGradVel(FieldStorageType::CopyFields),
   TensorMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic) {
 }
 
@@ -187,7 +187,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
 
   // Compute the basic velocity gradient.
   const FieldList<Dimension, Scalar> vol = mass/rho;
-  mGradVel = CRKSPHSpace::gradientCRKSPH(velocity, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, ArtificialViscosity<Dimension>::QcorrectionOrder(), W, NodeCoupling());
+  mGradVel = gradientCRKSPH(velocity, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, ArtificialViscosity<Dimension>::QcorrectionOrder(), W, NodeCoupling());
   sigma = mGradVel;
   sigma.copyFields();
 
@@ -223,7 +223,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // Compute the gradient of div vel.
-  gradDivVelocity = CRKSPHSpace::gradientCRKSPH(divVel, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, ArtificialViscosity<Dimension>::QcorrectionOrder(), W, NodeCoupling());
+  gradDivVelocity = gradientCRKSPH(divVel, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, ArtificialViscosity<Dimension>::QcorrectionOrder(), W, NodeCoupling());
 
   // Apply boundary conditions.
   for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
