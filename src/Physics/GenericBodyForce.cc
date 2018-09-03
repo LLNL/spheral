@@ -4,19 +4,16 @@
 //
 // Created by JMO, Wed May 24 14:23:10 PDT 2000
 //----------------------------------------------------------------------------//
-#include <string>
-
 #include "GenericBodyForce.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
 
+#include <string>
+
 namespace Spheral {
-namespace PhysicsSpace {
 
 using namespace std;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Default constructor
@@ -25,8 +22,8 @@ template<typename Dimension>
 GenericBodyForce<Dimension>::
 GenericBodyForce():
   Physics<Dimension>(),
-  mDxDt(FieldSpace::FieldStorageType::CopyFields),
-  mDvDt(FieldSpace::FieldStorageType::CopyFields) {
+  mDxDt(FieldStorageType::CopyFields),
+  mDvDt(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -85,19 +82,17 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 // Our derivative fields.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 GenericBodyForce<Dimension>::
 DxDt() const {
   return mDxDt;
 }
 
 template<typename Dimension>
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 GenericBodyForce<Dimension>::
 DvDt() const {
   return mDvDt;
 }
 
 }
-}
-

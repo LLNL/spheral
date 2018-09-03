@@ -8,11 +8,8 @@
 #include "Boundary/Boundary.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 using namespace std;
-using DataBaseSpace::DataBase;
-using BoundarySpace::Boundary;
 
 //------------------------------------------------------------------------------
 // Default constructor
@@ -168,7 +165,7 @@ void
 Physics<Dimension>::
 postStateUpdate(const Scalar time, 
                 const Scalar dt,
-                const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                const DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivatives) {
 }
@@ -221,10 +218,8 @@ extraMomentum() const {
 template<typename Dimension>
 void
 Physics<Dimension>::
-registerAdditionalVisualizationState(DataBaseSpace::DataBase<Dimension>& dataBase,
+registerAdditionalVisualizationState(DataBase<Dimension>& dataBase,
                                      State<Dimension>& state) {
 }
 
 }
-}
-

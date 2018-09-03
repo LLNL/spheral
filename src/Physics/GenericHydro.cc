@@ -25,16 +25,6 @@
 using namespace std;
 
 namespace Spheral {
-namespace PhysicsSpace {
-
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using NeighborSpace::ConnectivityMap;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
 
 namespace {
 
@@ -326,5 +316,3 @@ dt(const DataBase<Dimension>& dataBase,
 }
 
 }
-}
-

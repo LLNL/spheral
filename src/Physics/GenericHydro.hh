@@ -8,25 +8,13 @@
 
 #include "Physics.hh"
 #include "Geometry/Dimension.hh"
-
-#ifndef __GCCXML__
 #include "Kernel/TableKernel.hh"
-#endif
 
 namespace Spheral {
-  namespace ArtificialViscositySpace {
-    template<typename Dimension> class ArtificialViscosity;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-}
 
-namespace Spheral {
-namespace PhysicsSpace {
+template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class DataBase;
+template<typename Dimension> class TableKernel;
 
 // Many hydro algorithms have these sorts of choices for the mass density and H.
 enum class MassDensityType {
@@ -56,9 +44,9 @@ public:
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   // Constructors.
-  GenericHydro(const KernelSpace::TableKernel<Dimension>& W,
-               const KernelSpace::TableKernel<Dimension>& WPi,
-               ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
+  GenericHydro(const TableKernel<Dimension>& W,
+               const TableKernel<Dimension>& WPi,
+               ArtificialViscosity<Dimension>& Q,
                const double cfl,
                const bool useVelocityMagnitudeForDt);
 
@@ -67,17 +55,17 @@ public:
 
   // We require all Physics packages to provide a method returning their vote
   // for the next time step.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
 
   // Allow access to the artificial viscosity.
-  ArtificialViscositySpace::ArtificialViscosity<Dimension>& artificialViscosity() const;
+  ArtificialViscosity<Dimension>& artificialViscosity() const;
 
   // Access the stored interpolation kernels.
-  const KernelSpace::TableKernel<Dimension>& kernel() const;
-  const KernelSpace::TableKernel<Dimension>& PiKernel() const;
+  const TableKernel<Dimension>& kernel() const;
+  const TableKernel<Dimension>& PiKernel() const;
 
   // Also allow access to the CFL timestep safety criteria.
   Scalar cfl() const;
@@ -114,9 +102,9 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  ArtificialViscositySpace::ArtificialViscosity<Dimension>& mArtificialViscosity;
-  const KernelSpace::TableKernel<Dimension>& mKernel;
-  const KernelSpace::TableKernel<Dimension>& mPiKernel;
+  ArtificialViscosity<Dimension>& mArtificialViscosity;
+  const TableKernel<Dimension>& mKernel;
+  const TableKernel<Dimension>& mPiKernel;
   Scalar mCfl;
   bool mUseVelocityMagnitudeForDt;
 
@@ -136,19 +124,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "GenericHydroInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace PhysicsSpace {
-    template<typename Dimension> class GenericHydro;
-  }
+  template<typename Dimension> class GenericHydro;
 }
 
 #endif
