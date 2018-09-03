@@ -23,11 +23,6 @@ namespace Spheral {
 
 using namespace std;
 
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::SolidNodeList;
-
 //------------------------------------------------------------------------------
 // Helper method to compute the J2 constant from the deviatoric stress.
 //------------------------------------------------------------------------------

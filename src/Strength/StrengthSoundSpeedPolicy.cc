@@ -19,12 +19,6 @@
 
 namespace Spheral {
 
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NodeSpace::SolidNodeList;
-using FieldSpace::FieldList;
-using SolidMaterial::StrengthModel;
-
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
