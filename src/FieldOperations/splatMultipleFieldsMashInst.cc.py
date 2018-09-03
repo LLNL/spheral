@@ -19,7 +19,7 @@ splatMultipleFieldsMash< Dim< %(ndim)s > >(const FieldListSet< Dim< %(ndim)s > >
                                   const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>& samplePositions,
                                   const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>& sampleWeight,
                                   const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>& sampleHfield,
-                                  const std::vector<BoundarySpace::Boundary<Dim< %(ndim)s > >*>& boundaries);
+                                  const std::vector<Boundary<Dim< %(ndim)s > >*>& boundaries);
 
 }
 """
