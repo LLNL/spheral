@@ -3,16 +3,15 @@
 //
 // Created by JMO, Thu Jan  6 09:12:50 PST 2011
 //----------------------------------------------------------------------------//
-#include <vector>
-#include <algorithm>
-
 #include "Mesh.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/DBC.hh"
 
+#include <vector>
+#include <algorithm>
+
 namespace Spheral {
-namespace MeshSpace {
 
 using namespace std;
 using std::min;
@@ -120,5 +119,4 @@ volume() const {
   return result;
 }
 
-}
 }

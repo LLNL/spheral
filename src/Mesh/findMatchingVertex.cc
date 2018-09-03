@@ -1,7 +1,6 @@
 #include "findMatchingVertex.hh"
 
 namespace Spheral {
-namespace MeshSpace {
 
 using namespace std;
 
@@ -68,5 +67,4 @@ findMatchingVertex(const std::vector<Dim<3>::Vector>& verticesi,
   return j;
 }
 
-}
 }

@@ -3,14 +3,13 @@
 //
 // Created by JMO, Tue Oct 12 23:07:22 PDT 2010
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
 #include "Mesh.hh"
 #include "Geometry/Dimension.hh"
 #include "Utilities/DBC.hh"
 
+#include <algorithm>
+
 namespace Spheral {
-namespace MeshSpace {
 
 using namespace std;
 using std::abs;
@@ -34,5 +33,4 @@ Edge(const Mesh<Dim<1> >& mesh,
   REQUIRE(node1ID == node2ID);
 }
 
-}
 }

@@ -3,15 +3,14 @@
 //
 // Created by JMO, Wed Jan  5 21:09:11 PST 2011
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
 #include "Mesh.hh"
 #include "Utilities/DBC.hh"
+
+#include <algorithm>
 
 using namespace std;
 
 namespace Spheral {
-namespace MeshSpace {
 
 //------------------------------------------------------------------------------
 // Mesh::Face(...)
@@ -119,5 +118,4 @@ unitNormal() const {
   return result.unitVector();
 }
 
-}
 }

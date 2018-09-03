@@ -1,7 +1,6 @@
 #include "findMatchingVertex.hh"
 
 namespace Spheral {
-namespace MeshSpace {
 
 using namespace std;
 
@@ -50,5 +49,4 @@ findMatchingVertex(const Vector& target,
   return indicesj[result];
 }
 
-}
 }

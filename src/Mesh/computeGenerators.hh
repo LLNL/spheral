@@ -11,18 +11,16 @@
 #include <vector>
 
 namespace Spheral {
-  namespace MeshSpace {
-    template<typename Dimension, typename NodeListIterator, typename BoundaryIterator>
-    void
-    computeGenerators(NodeListIterator nodeListBegin,
-                      NodeListIterator nodeListEnd,
-                      BoundaryIterator boundaryBegin,
-                      BoundaryIterator boundaryEnd,
-                      const bool meshGhostNodes,
-                      const typename Dimension::Vector& xmin,
-                      const typename Dimension::Vector& xmax,
-                      std::vector<typename Dimension::Vector>& positions,
-                      std::vector<typename Dimension::SymTensor>& Hs,
-                      std::vector<unsigned>& offsets);
-  }
+template<typename Dimension, typename NodeListIterator, typename BoundaryIterator>
+void
+computeGenerators(NodeListIterator nodeListBegin,
+                  NodeListIterator nodeListEnd,
+                  BoundaryIterator boundaryBegin,
+                  BoundaryIterator boundaryEnd,
+                  const bool meshGhostNodes,
+                  const typename Dimension::Vector& xmin,
+                  const typename Dimension::Vector& xmax,
+                  std::vector<typename Dimension::Vector>& positions,
+                  std::vector<typename Dimension::SymTensor>& Hs,
+                  std::vector<unsigned>& offsets);
 }

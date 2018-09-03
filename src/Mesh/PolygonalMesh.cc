@@ -3,10 +3,6 @@
 //
 // Created by JMO, Tue Nov 16 14:18:20 PST 2010
 //----------------------------------------------------------------------------//
-#include <limits>
-#include <set>
-#include <sstream>
-
 #ifndef NOPOLYTOPE
 #include "polytope/polytope.hh"
 #endif
@@ -17,8 +13,11 @@
 
 #include "Utilities/timingUtilities.hh"
 
+#include <limits>
+#include <set>
+#include <sstream>
+
 namespace Spheral {
-namespace MeshSpace {
 
 using namespace std;
 using namespace boost;
@@ -665,10 +664,9 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
 }
 
 }
-}
 
 //------------------------------------------------------------------------------
 // Instantiate the generic mesh non-inlined methods.
 //------------------------------------------------------------------------------
 #include "Mesh.cc"
-template class Spheral::MeshSpace::Mesh<Spheral::Dim<2> >;
+template class Spheral::Mesh<Spheral::Dim<2> >;

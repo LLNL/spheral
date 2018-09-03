@@ -12,7 +12,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace MeshSpace {
 
 using namespace std;
 using std::min;
@@ -190,5 +189,4 @@ volume() const {
   return result;
 }
 
-}
 }

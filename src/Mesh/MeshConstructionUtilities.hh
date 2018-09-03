@@ -5,13 +5,6 @@
 #ifndef __Spheral_MeshConstructionUtilities__
 #define __Spheral_MeshConstructionUtilities__
 
-#include <stdint.h>
-#include <iostream>
-#include <vector>
-#include <set>
-#include "boost/tuple/tuple.hpp"
-#include "boost/functional/hash.hpp"
-
 #include "Utilities/boundPointWithinBox.hh"
 #include "Utilities/lineSegmentIntersections.hh"
 #include "Utilities/testBoxIntersection.hh"
@@ -22,8 +15,14 @@
 #include "mpi.h"
 #endif
 
+#include <stdint.h>
+#include <iostream>
+#include <vector>
+#include <set>
+#include "boost/tuple/tuple.hpp"
+#include "boost/functional/hash.hpp"
+
 namespace Spheral {
-namespace MeshSpace {
 
 //------------------------------------------------------------------------------
 // A trait class to hold some specializations per mesh dimension.
@@ -786,7 +785,6 @@ hashEdge(const boost::tuple<T, T, T>& hashi,
 }
 
 }
-}
 
 //------------------------------------------------------------------------------
 // Hash the Key.
@@ -832,7 +830,7 @@ namespace std {
   inline
   bool operator==(const ::boost::tuple<T, T, T>& lhs,
                   const ::boost::tuple<T, T, T>& rhs) {
-    return (Spheral::MeshSpace::compare(lhs, rhs) == 0);
+    return (Spheral::compare(lhs, rhs) == 0);
   }
 
   // operator!=
@@ -840,7 +838,7 @@ namespace std {
   inline
   bool operator!=(const ::boost::tuple<T, T, T>& lhs,
                   const ::boost::tuple<T, T, T>& rhs) {
-    return (Spheral::MeshSpace::compare(lhs, rhs) != 0);
+    return (Spheral::compare(lhs, rhs) != 0);
   }
 
   // operator<
@@ -848,7 +846,7 @@ namespace std {
   inline
   bool operator<(const ::boost::tuple<T, T, T>& lhs,
                  const ::boost::tuple<T, T, T>& rhs) {
-    return (Spheral::MeshSpace::compare(lhs, rhs) == -1);
+    return (Spheral::compare(lhs, rhs) == -1);
   }
 
   // operator<<
@@ -869,7 +867,7 @@ namespace std {
   inline
   bool operator==(const ::boost::tuple<T, T, T, T, T, T>& lhs,
                   const ::boost::tuple<T, T, T, T, T, T>& rhs) {
-    return (Spheral::MeshSpace::compare(lhs, rhs) == 0);
+    return (Spheral::compare(lhs, rhs) == 0);
   }
 
   // operator!=
@@ -877,7 +875,7 @@ namespace std {
   inline
   bool operator!=(const ::boost::tuple<T, T, T, T, T, T>& lhs,
                   const ::boost::tuple<T, T, T, T, T, T>& rhs) {
-    return (Spheral::MeshSpace::compare(lhs, rhs) != 0);
+    return (Spheral::compare(lhs, rhs) != 0);
   }
 
   // operator<
@@ -885,7 +883,7 @@ namespace std {
   inline
   bool operator<(const ::boost::tuple<T, T, T, T, T, T>& lhs,
                  const ::boost::tuple<T, T, T, T, T, T>& rhs) {
-    return (Spheral::MeshSpace::compare(lhs, rhs) == -1);
+    return (Spheral::compare(lhs, rhs) == -1);
   }
 
   // operator<<

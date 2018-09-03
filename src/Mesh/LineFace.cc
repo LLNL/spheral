@@ -3,14 +3,13 @@
 //
 // Created by JMO, Thu Oct 14 21:21:02 PDT 2010
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
 #include "Mesh.hh"
 #include "Geometry/Dimension.hh"
 #include "Utilities/DBC.hh"
 
+#include <algorithm>
+
 namespace Spheral {
-namespace MeshSpace {
 
 using namespace std;
 
@@ -65,5 +64,4 @@ unitNormal() const {
   return Vector(1.0);
 }
 
-}
 }

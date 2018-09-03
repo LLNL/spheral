@@ -1,8 +1,6 @@
 //------------------------------------------------------------------------------
 // Generate a mesh for the given set of NodeLists.
 //------------------------------------------------------------------------------
-#include <algorithm>
-
 #include "generateMesh.hh"
 #include "computeGenerators.hh"
 #include "Mesh.hh"
@@ -12,17 +10,14 @@
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/timingUtilities.hh"
 
+#include <algorithm>
+
 namespace Spheral {
-namespace MeshSpace {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using BoundarySpace::Boundary;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
 
 template<typename Dimension, typename NodeListIterator, typename BoundaryIterator>
 void
@@ -93,7 +88,7 @@ generateMesh(const NodeListIterator nodeListBegin,
       nPerh = (**itr).nodesPerSmoothingScale();
     }
     mesh.generateParallelRind(generators, Hs);
-    NodeSpace::generateVoidNodes(generators, Hs, mesh, xmin, xmax, numInternal, nPerh, voidThreshold, voidNodes);
+    generateVoidNodes(generators, Hs, mesh, xmin, xmax, numInternal, nPerh, voidThreshold, voidNodes);
 
     // if (Process::getRank() == 0) cerr << "Recomputing generators with void." << endl;
     computeGenerators<Dimension, NodeListIterator, BoundaryIterator>(nodeListBegin, nodeListEnd, 
@@ -161,5 +156,4 @@ generateMesh(const NodeListIterator nodeListBegin,
   // That's it.
 }
 
-}
 }

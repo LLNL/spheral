@@ -7,7 +7,6 @@
 #define __Spheral_Mesh_Face__
 
 namespace Spheral {
-namespace MeshSpace {
 
 template<typename Dimension>
 class Mesh<Dimension>::Face {
@@ -65,7 +64,6 @@ private:
   friend class Mesh<Dimension>;
 };
 
-}
 }
 
 #include "FaceInline.hh"

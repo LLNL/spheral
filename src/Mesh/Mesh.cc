@@ -3,10 +3,6 @@
 //
 // Created by JMO, Tue Oct 12 23:07:22 PDT 2010
 //----------------------------------------------------------------------------//
-#include <limits>
-#include <numeric>
-#include <list>
-
 #include "boost/unordered_map.hpp"
 #include "boost/tuple/tuple_comparison.hpp"
 #include "boost/functional/hash.hpp"
@@ -25,8 +21,11 @@
 #include "Utilities/packElement.hh"
 #endif
 
+#include <limits>
+#include <numeric>
+#include <list>
+
 namespace Spheral {
-namespace MeshSpace {
 
 using namespace std;
 using namespace boost;
@@ -35,7 +34,6 @@ using std::min;
 using std::max;
 using std::abs;
 
-using NodeSpace::NodeList;
 namespace { // anonymous
 
 #ifdef USE_MPI
@@ -1738,5 +1736,5 @@ validDomainInfo(const typename Dimension::Vector& xmin,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 const unsigned Mesh<Dimension>::UNSETID = numeric_limits<int>::max();
-}
+
 }

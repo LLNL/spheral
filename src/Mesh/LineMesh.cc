@@ -3,9 +3,6 @@
 //
 // Created by JMO, Tue Oct 12 23:07:22 PDT 2010
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <limits>
-
 #include "Mesh.hh"
 #include "Geometry/Dimension.hh"
 #include "Utilities/bisectSearch.hh"
@@ -17,8 +14,10 @@
 #include "mpi.h"
 #endif
 
+#include <algorithm>
+#include <limits>
+
 namespace Spheral {
-namespace MeshSpace {
 
 using namespace std;
 
@@ -397,10 +396,9 @@ template<> const unsigned Mesh<Dim<1> >::minEdgesPerFace = 1;
 template<> const unsigned Mesh<Dim<1> >::minNodesPerFace = 1;
 
 }
-}
 
 //------------------------------------------------------------------------------
 // Instantiate the generic mesh non-inlined methods.
 //------------------------------------------------------------------------------
 #include "Mesh.cc"
-template class Spheral::MeshSpace::Mesh<Spheral::Dim<1> >;
+template class Spheral::Mesh<Spheral::Dim<1> >;

@@ -9,7 +9,6 @@
 using namespace std;
 
 namespace Spheral {
-namespace MeshSpace {
 
 //------------------------------------------------------------------------------
 // Mesh::Face(...)
@@ -78,5 +77,4 @@ unitNormal() const {
   return Vector(dx.y(), -(dx.x()));
 }
 
-}
 }

@@ -10,7 +10,6 @@
 #include "computeElementOwner.hh"
 
 namespace Spheral {
-namespace MeshSpace {
 
 using namespace std;
 
@@ -41,5 +40,4 @@ computeElementOwner(const unsigned numElements,
   return result;
 }
 
-}
 }
