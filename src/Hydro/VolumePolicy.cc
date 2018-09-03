@@ -17,9 +17,6 @@
 namespace Spheral {
 
 using namespace std;
-using NodeSpace::NodeList;
-using FieldSpace::FieldList;
-using MeshSpace::Mesh;
 
 //------------------------------------------------------------------------------
 // Constructor.

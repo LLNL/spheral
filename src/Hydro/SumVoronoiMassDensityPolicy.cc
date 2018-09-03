@@ -23,13 +23,6 @@
 namespace Spheral {
 
 using namespace std;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using PhysicsSpace::Physics;
-using BoundarySpace::Boundary;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -177,8 +170,8 @@ updateAsIncrement(const KeyType& key,
 
   // Find the matching derivative field from the StateDerivatives.
   KeyType incrementKey = IncrementFieldList<Dimension, Scalar>::prefix() + fieldKey;
-  FieldSpace::FieldList<Dimension, Scalar> f = state.fields(fieldKey, 0.0);
-  const FieldSpace::FieldList<Dimension, Scalar> df = derivs.fields(incrementKey, 0.0);
+  FieldList<Dimension, Scalar> f = state.fields(fieldKey, 0.0);
+  const FieldList<Dimension, Scalar> df = derivs.fields(incrementKey, 0.0);
 
   // Loop over the internal values of the field.
   const unsigned numFields = f.numFields();

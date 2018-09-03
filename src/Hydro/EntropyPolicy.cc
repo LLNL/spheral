@@ -20,10 +20,6 @@
 namespace Spheral {
 
 using namespace std;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
 // Constructor.

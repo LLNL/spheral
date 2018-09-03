@@ -35,12 +35,6 @@
 namespace Spheral {
 
 using namespace std;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NeighborSpace::ConnectivityMap;
 
 // namespace {
 
