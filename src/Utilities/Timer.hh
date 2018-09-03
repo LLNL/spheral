@@ -35,7 +35,6 @@ extern "C" {
 #define TIMER_COUNTER 0
 #endif
 
-using namespace std;
 
 #define DIAGNOSTIC false 
 
@@ -110,7 +109,6 @@ private:
 // stub Timer class
 #include <string>
 #include <iostream>
-using namespace std;
 
 #define DIAGNOSTIC false
 

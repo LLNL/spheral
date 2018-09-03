@@ -2,7 +2,6 @@
 #define __PBGWRAP_REFERENCE__
 
 #include <functional>
-using namespace std;
 
 namespace Spheral {
 

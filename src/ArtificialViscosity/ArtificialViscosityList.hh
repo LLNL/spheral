@@ -13,7 +13,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 template<typename Dimension>
 class ArtificialViscosityList: public ArtificialViscosity<Dimension>, 

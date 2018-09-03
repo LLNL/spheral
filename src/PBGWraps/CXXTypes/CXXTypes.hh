@@ -8,7 +8,6 @@
 #include "Geometry/Dimension.hh"
 #include "Utilities/DataTypeTraits.hh"
 
-using namespace std;
 
 // namespace std {
 

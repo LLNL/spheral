@@ -28,7 +28,6 @@ computeAncillaryGeometry(const PolyType& poly,
                          std::vector<typename PolyType::Vector>& vertexUnitNormals,
                          bool computeFacetFacetConnectivity) {
 
-  using namespace std;
   typedef typename PolyType::Vector Vector;
   typedef typename PolyType::Facet Facet;
 
