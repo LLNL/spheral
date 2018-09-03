@@ -22,9 +22,6 @@ namespace Spheral {
 
 using std::abs;
 
-using Geometry::buildUniqueEigenVector;
-using Geometry::jacobiDiagonalize;
-
 //------------------------------------------------------------------------------
 // Return the eigen values and eigen vectors of a symmetric tensor
 //------------------------------------------------------------------------------
