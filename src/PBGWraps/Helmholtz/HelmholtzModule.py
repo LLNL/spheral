@@ -61,7 +61,7 @@ self.generateHelmholtzEquationOfStateBindings(self.HelmholtzEquationOfState%(dim
                            param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                            param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
                            param("double", "minimumTemperature", default_value="-std::numeric_limits<double>::min()"),
-                           param("MaterialPressureMinType", "minPressureType", default_value="Spheral::Material::MaterialPressureMinType::PressureFloor"),
+                           param("MaterialPressureMinType", "minPressureType", default_value="Spheral::MaterialPressureMinType::PressureFloor"),
                            param("double", "abar0", default_value="13.6"),
                            param("double", "zbar0", default_value="6.8")])
                        

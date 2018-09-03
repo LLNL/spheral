@@ -20,10 +20,10 @@ using std::abs;
 //------------------------------------------------------------------------------
 template<typename Dimension>
 Geodyn<Dimension>::
-Geodyn(const Material::PhysicalConstants& constants,
+Geodyn(const PhysicalConstants& constants,
        const double minimumPressure,
        const double maximumPressure,
-       const Material::MaterialPressureMinType minPressureType):
+       const MaterialPressureMinType minPressureType):
   PhysicsEvolvingMaterialLibrary<Dimension>(constants,
                                             minimumPressure,
                                             maximumPressure,

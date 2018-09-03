@@ -15,7 +15,7 @@
 namespace Spheral {
 
 template<typename Dimension>
-class SolidEquationOfState: public Material::EquationOfState<Dimension> {
+class SolidEquationOfState: public EquationOfState<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -28,10 +28,10 @@ public:
   SolidEquationOfState(const double referenceDensity,
                        const double etamin,
                        const double etamax,
-                       const Material::PhysicalConstants& constants,
+                       const PhysicalConstants& constants,
                        const double minimumPressure,
                        const double maximumPressure,
-                       const Material::MaterialPressureMinType minPressureType);
+                       const MaterialPressureMinType minPressureType);
   virtual ~SolidEquationOfState();
 
   // Access the member data.

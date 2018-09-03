@@ -38,11 +38,11 @@ public:
                            const double gamma0,
                            const double b,
                            const double atomicWeight,
-                           const Material::PhysicalConstants& constants,
+                           const PhysicalConstants& constants,
                            const double externalPressure,
                            const double minimumPressure,
                            const double maximumPressure,
-                           const Material::MaterialPressureMinType minPressureType);
+                           const MaterialPressureMinType minPressureType);
   virtual ~GruneisenEquationOfState();
 
   // We require any equation of state to define the following methods for Fields.
@@ -156,7 +156,7 @@ private:
   GruneisenEquationOfState(const GruneisenEquationOfState&);
   GruneisenEquationOfState& operator=(const GruneisenEquationOfState&);
 
-  using Material::EquationOfState<Dimension>::mConstants;
+  using EquationOfState<Dimension>::mConstants;
 };
 
 }

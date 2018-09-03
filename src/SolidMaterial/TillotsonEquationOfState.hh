@@ -42,11 +42,11 @@ public:
                            const double epsLiquid,
                            const double epsVapor,
                            const double atomicWeight,
-                           const Material::PhysicalConstants& constants,
+                           const PhysicalConstants& constants,
                            const double externalPressure,
                            const double minimumPressure,
                            const double maximumPressure,
-                           const Material::MaterialPressureMinType minPressureType);
+                           const MaterialPressureMinType minPressureType);
   ~TillotsonEquationOfState();
 
   // We require any equation of state to define the following properties.
@@ -165,7 +165,7 @@ private:
   // Disallow default constructor
   TillotsonEquationOfState();
 
-  using Material::EquationOfState<Dimension>::mConstants;
+  using EquationOfState<Dimension>::mConstants;
 };
 
 }

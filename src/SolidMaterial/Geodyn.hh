@@ -36,10 +36,10 @@ public:
 
   // Constructors, destructors.
   // We should add arguments to the constructor to specify the Geodyn model
-  Geodyn(const Material::PhysicalConstants& constants,
+  Geodyn(const PhysicalConstants& constants,
          const double minimumPressure,
          const double maximumPressure,
-         const Material::MaterialPressureMinType minPressureType);
+         const MaterialPressureMinType minPressureType);
   ~Geodyn();
 
   // .............................. EquationOfState interface ..............................
@@ -142,7 +142,7 @@ private:
   vector<double> mGeodynState;
 
   // GEODYN internal units.
-  Material::PhysicalConstants mGeodynUnits;
+  PhysicalConstants mGeodynUnits;
 
   // Units conversion from Geodyn.
   double mRhoConv, mTconv, mPconv, mEconv, mCVconv, mVelConv;
@@ -150,7 +150,7 @@ private:
   // Disallow default constructor
   Geodyn();
 
-  using Material::EquationOfState<Dimension>::mConstants;
+  using EquationOfState<Dimension>::mConstants;
 };
 
 }

@@ -70,7 +70,7 @@ update(const KeyType& key,
    const FluidNodeList<Dim<3> >* fluidNodeListPtr = 
       (const FluidNodeList<Dim<3> >*) key.first;
    CHECK(fluidNodeListPtr != 0);
-   const Material::EquationOfState<Dim<3> >& eos = fluidNodeListPtr->equationOfState();
+   const EquationOfState<Dim<3> >& eos = fluidNodeListPtr->equationOfState();
 
    // Now set the sound speed.
    eos.setSoundSpeed(soundSpeed, massDensity, energy);

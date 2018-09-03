@@ -28,11 +28,11 @@ MurnahanEquationOfState(const double referenceDensity,
                         const double n,
                         const double K,
                         const double atomicWeight,
-                        const Material::PhysicalConstants& constants,
+                        const PhysicalConstants& constants,
                         const double externalPressure,
                         const double minimumPressure,
                         const double maximumPressure,
-                        const Material::MaterialPressureMinType minPressureType):
+                        const MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
                                   etamax,

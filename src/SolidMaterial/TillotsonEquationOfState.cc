@@ -43,11 +43,11 @@ TillotsonEquationOfState(const double referenceDensity,
                          const double epsLiquid,
                          const double epsVapor,
                          const double atomicWeight,
-                         const Material::PhysicalConstants& constants,
+                         const PhysicalConstants& constants,
                          const double externalPressure,
                          const double minimumPressure,
                          const double maximumPressure,
-                         const Material::MaterialPressureMinType minPressureType):
+                         const MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
                                   etamax,

@@ -53,7 +53,7 @@ public:
                double rs,
                double h0,
                const Vector& origin,
-               const Material::PhysicalConstants& constants);
+               const PhysicalConstants& constants);
 
   // Destructor.
   virtual ~NFWPotential();
@@ -118,7 +118,7 @@ private:
   Scalar mRs;
   Scalar mh0;
   Vector mOrigin;
-  Material::PhysicalConstants mConstants;
+  PhysicalConstants mConstants;
   Scalar mDeltaPhiFraction;
   Scalar mCriticalDensity;
   mutable Scalar mPotentialEnergy;

@@ -45,7 +45,7 @@ public:
 
   // Constructors.
   FluidNodeList(std::string name,
-                Material::EquationOfState<Dimension>& eos,
+                EquationOfState<Dimension>& eos,
                 const int numInternal,
                 const int numGhost,
                 const Scalar hmin,
@@ -78,8 +78,8 @@ public:
   virtual void totalEnergy(Field<Dimension, Scalar>& field) const;
 
   // Access the equation of state.
-  const Material::EquationOfState<Dimension>& equationOfState() const;
-  void equationOfState(const Material::EquationOfState<Dimension>& eos);
+  const EquationOfState<Dimension>& equationOfState() const;
+  void equationOfState(const EquationOfState<Dimension>& eos);
 
   // Optional bounding mass densities for use when time integrating
   // the density.
@@ -108,7 +108,7 @@ private:
   Field<Dimension, Scalar> mSpecificThermalEnergy;
 
   // Equation of state.
-  const Material::EquationOfState<Dimension>* mEosPtr;
+  const EquationOfState<Dimension>* mEosPtr;
 #endif
 
   // No default constructor or copying.

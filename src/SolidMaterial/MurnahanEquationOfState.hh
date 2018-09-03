@@ -31,11 +31,11 @@ public:
                           const double n,
                           const double K,
                           const double atomicWeight,
-                          const Material::PhysicalConstants& constants,
+                          const PhysicalConstants& constants,
                           const double externalPressure,
                           const double minimumPressure,
                           const double maximumPressure,
-                          const Material::MaterialPressureMinType minPressureType);
+                          const MaterialPressureMinType minPressureType);
   ~MurnahanEquationOfState();
 
   // We require any equation of state to define the following properties.
@@ -127,7 +127,7 @@ private:
   // Disallow default constructor
   MurnahanEquationOfState();
 
-  using Material::EquationOfState<Dimension>::mConstants;
+  using EquationOfState<Dimension>::mConstants;
 };
 
 }

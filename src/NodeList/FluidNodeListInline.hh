@@ -47,7 +47,7 @@ FluidNodeList<Dimension>::specificThermalEnergy() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const Material::EquationOfState<Dimension>&
+const EquationOfState<Dimension>&
 FluidNodeList<Dimension>::equationOfState() const {
   return *mEosPtr;
 }
@@ -55,7 +55,7 @@ FluidNodeList<Dimension>::equationOfState() const {
 template<typename Dimension>
 inline
 void
-FluidNodeList<Dimension>::equationOfState(const Material::EquationOfState<Dimension>& eos) {
+FluidNodeList<Dimension>::equationOfState(const EquationOfState<Dimension>& eos) {
   mEosPtr = &eos;
 }
 

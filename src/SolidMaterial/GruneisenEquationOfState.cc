@@ -31,11 +31,11 @@ GruneisenEquationOfState(const double referenceDensity,
                          const double gamma0,
                          const double b,
                          const double atomicWeight,
-                         const Material::PhysicalConstants& constants,
+                         const PhysicalConstants& constants,
                          const double externalPressure,
                          const double minimumPressure,
                          const double maximumPressure,
-                         const Material::MaterialPressureMinType minPressureType):
+                         const MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
                                   min(etamax, max(0.99*S1/(S1 - 1.0), 2.0)),

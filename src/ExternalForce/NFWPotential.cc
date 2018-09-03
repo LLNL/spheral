@@ -38,7 +38,7 @@ template<typename Dimension>
 NFWPotential<Dimension>::
 NFWPotential(double deltac, double rs, double h0, 
              const typename Dimension::Vector& origin,
-             const Material::PhysicalConstants& constants):
+             const PhysicalConstants& constants):
   GenericBodyForce<Dimension>(),
   mDeltac(deltac),
   mRs(rs),

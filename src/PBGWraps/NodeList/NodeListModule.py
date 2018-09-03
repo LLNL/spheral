@@ -266,7 +266,7 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
         fileio = "Spheral::FileIOSpace::FileIO"
         fluidderivativeproducer = "Spheral::NodeSpace::FluidDerivativeProducer%id" % ndim
         smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
-        equationofstate = "Spheral::Material::EquationOfState%id" % ndim
+        equationofstate = "Spheral::EquationOfState%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         fileio = "Spheral::FileIOSpace::FileIO"
@@ -325,7 +325,7 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
         symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
         smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
-        equationofstate = "Spheral::Material::EquationOfState%id" % ndim
+        equationofstate = "Spheral::EquationOfState%id" % ndim
         strengthmodel = "Spheral::StrengthModel%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
         fileio = "Spheral::FileIOSpace::FileIO"
@@ -386,7 +386,7 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
         fileio = "Spheral::FileIOSpace::FileIO"
         fluidderivativeproducer = "Spheral::NodeSpace::FluidDerivativeProducer%id" % ndim
         smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
-        equationofstate = "Spheral::Material::EquationOfState%id" % ndim
+        equationofstate = "Spheral::EquationOfState%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         fileio = "Spheral::FileIOSpace::FileIO"
@@ -433,7 +433,7 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
         fileio = "Spheral::FileIOSpace::FileIO"
         fluidderivativeproducer = "Spheral::NodeSpace::FluidDerivativeProducer%id" % ndim
         smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
-        equationofstate = "Spheral::Material::EquationOfState%id" % ndim
+        equationofstate = "Spheral::EquationOfState%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         fileio = "Spheral::FileIOSpace::FileIO"
@@ -465,7 +465,7 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
         fileio = "Spheral::FileIOSpace::FileIO"
         fluidderivativeproducer = "Spheral::NodeSpace::FluidDerivativeProducer%id" % ndim
         smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
-        equationofstate = "Spheral::Material::EquationOfState%id" % ndim
+        equationofstate = "Spheral::EquationOfState%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         fileio = "Spheral::FileIOSpace::FileIO"

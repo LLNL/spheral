@@ -70,7 +70,7 @@ update(const KeyType& key,
     // Get the eos.  This cast is ugly, but is a work-around for now.
     const FluidNodeList<Dimension>* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(gamma[i]->nodeListPtr());
     CHECK(fluidNodeListPtr != 0);
-    const Material::EquationOfState<Dimension>& eos = fluidNodeListPtr->equationOfState();
+    const EquationOfState<Dimension>& eos = fluidNodeListPtr->equationOfState();
 
     // Now set the gamma for this field.
     eos.setGammaField(*gamma[i], *massDensity[i], *energy[i]);

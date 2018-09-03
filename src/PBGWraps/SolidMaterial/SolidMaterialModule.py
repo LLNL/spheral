@@ -129,7 +129,7 @@ def generateSolidEquationOfStateBindings(x, ndim):
 def generatePorousEquationOfStateBindings(x, ndim):
 
     me = "Spheral::PorousEquationOfState%id" % ndim
-    solideos = "Spheral::Material::EquationOfState%id" % ndim
+    solideos = "Spheral::EquationOfState%id" % ndim
     scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
 
     # Constructors.

@@ -42,11 +42,11 @@ public:
         const double rhoMax,
         const double Tmin,
         const double Tmax,
-        const Material::PhysicalConstants& constants,
+        const PhysicalConstants& constants,
         const double externalPressure,
         const double minimumPressure,
         const double maximumPressure,
-        const Material::MaterialPressureMinType minPressureType);
+        const MaterialPressureMinType minPressureType);
   ~ANEOS();
 
   // We require any equation of state to define the following properties.
@@ -138,7 +138,7 @@ private:
   array_type mSTEvals;
 
   // ANEOS internal units.
-  Material::PhysicalConstants mANEOSunits;
+  PhysicalConstants mANEOSunits;
 
   // Units conversion from ANEOS.
   double mRhoConv, mTconv, mPconv, mEconv, mCVconv, mVelConv, mSconv;
@@ -149,7 +149,7 @@ private:
   // Disallow default constructor
   ANEOS();
 
-  using Material::EquationOfState<Dimension>::mConstants;
+  using EquationOfState<Dimension>::mConstants;
 };
 
 }

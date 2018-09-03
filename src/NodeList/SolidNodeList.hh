@@ -24,7 +24,7 @@ public:
 
   // Constructors.
   SolidNodeList(std::string name,
-                Material::EquationOfState<Dimension>& eos,
+                EquationOfState<Dimension>& eos,
                 StrengthModel<Dimension>& strength,
                 const int numInternal,
                 const int numGhost,

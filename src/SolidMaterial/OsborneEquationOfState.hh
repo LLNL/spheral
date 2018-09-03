@@ -41,11 +41,11 @@ public:
                          const double c2neg,
                          const double E0,
                          const double atomicWeight,
-                         const Material::PhysicalConstants& constants,
+                         const PhysicalConstants& constants,
                          const double externalPressure,
                          const double minimumPressure,
                          const double maximumPressure,
-                         const Material::MaterialPressureMinType minPressureType);
+                         const MaterialPressureMinType minPressureType);
   virtual ~OsborneEquationOfState();
 
   // We require any equation of state to define the following methods for Fields.
@@ -135,7 +135,7 @@ private:
   OsborneEquationOfState(const OsborneEquationOfState&);
   OsborneEquationOfState& operator=(const OsborneEquationOfState&);
 
-  using Material::EquationOfState<Dimension>::mConstants;
+  using EquationOfState<Dimension>::mConstants;
 };
 
 }

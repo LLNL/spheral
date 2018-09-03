@@ -12,11 +12,11 @@ SolidEquationOfState<Dimension>::
 SolidEquationOfState(const double referenceDensity,
                      const double etamin,
                      const double etamax,
-                     const Material::PhysicalConstants& constants,
+                     const PhysicalConstants& constants,
                      const double minimumPressure,
                      const double maximumPressure,
-                     const Material::MaterialPressureMinType minPressureType):
-  Material::EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
+                     const MaterialPressureMinType minPressureType):
+  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
   mReferenceDensity(referenceDensity),
   mEtaMin(etamin),
   mEtaMax(etamax) {

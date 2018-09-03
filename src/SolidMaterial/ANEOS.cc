@@ -58,11 +58,11 @@ ANEOS(const int materialNumber,
       const double rhoMax,
       const double Tmin,
       const double Tmax,
-      const Material::PhysicalConstants& constants,
+      const PhysicalConstants& constants,
       const double externalPressure,
       const double minimumPressure,
       const double maximumPressure,
-      const Material::MaterialPressureMinType minPressureType):
+      const MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(get_aneos_referencedensity_(const_cast<int*>(&materialNumber)),  // not in the right units yet!
                                   0.0,                                           // dummy etamin
                                   numeric_limits<double>::max(),                 // dummy etamax

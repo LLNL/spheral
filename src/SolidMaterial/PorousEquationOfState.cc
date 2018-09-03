@@ -18,8 +18,8 @@ using std::abs;
 //------------------------------------------------------------------------------
 template<typename Dimension>
 PorousEquationOfState<Dimension>::
-PorousEquationOfState(const Material::EquationOfState<Dimension>& solidEOS):
-  Material::EquationOfState<Dimension>(solidEOS.constants(),
+PorousEquationOfState(const EquationOfState<Dimension>& solidEOS):
+  EquationOfState<Dimension>(solidEOS.constants(),
                                        solidEOS.minimumPressure(),
                                        solidEOS.maximumPressure(),
                                        solidEOS.minimumPressureType()),
@@ -214,7 +214,7 @@ PorousEquationOfState<Dimension>::valid() const {
 // Access the underlying solid EOS.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const Material::EquationOfState<Dimension>&
+const EquationOfState<Dimension>&
 PorousEquationOfState<Dimension>::
 solidEOS() const {
   return mSolidEOS;

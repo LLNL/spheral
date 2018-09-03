@@ -23,10 +23,10 @@ PhysicsEvolvingMaterialLibrary<Dimension>::
 PhysicsEvolvingMaterialLibrary(const double referenceDensity,
                                const double etamin,
                                const double etamax,
-                               const Material::PhysicalConstants& constants,
+                               const PhysicalConstants& constants,
                                const double minimumPressure,
                                const double maximumPressure,
-                               const Material::MaterialPressureMinType minPressureType):
+                               const MaterialPressureMinType minPressureType):
   Physics<Dimension>(),
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
