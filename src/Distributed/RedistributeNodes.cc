@@ -4,7 +4,6 @@
 //
 // Created by JMO, Tue Feb  4 14:23:11 PST 2003
 //----------------------------------------------------------------------------//
-
 #include "RedistributeNodes.hh"
 #include "DomainNode.hh"
 #include "DataBase/DataBase.hh"
@@ -25,9 +24,19 @@
 #include <vector>
 #include <list>
 #include <sstream>
+using std::vector;
+using std::list;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-
 
 //------------------------------------------------------------------------------
 // Default constructor
@@ -59,7 +68,7 @@ numGlobalNodes(const DataBase<Dimension>& dataBase) const {
   for (ItrType itr = dataBase.nodeListBegin();
        itr < dataBase.nodeListEnd();
        ++itr) {
-    result += numGlobalNodes(**itr);
+    result += Spheral::numGlobalNodes(**itr);
   }
   return result;
 }
@@ -822,7 +831,7 @@ gatherDomainDistributionStatistics(const FieldList<Dimension, typename Dimension
   globalAvgWork /= numProcs;
 
   // Build a string with the result.
-  stringstream result;
+  std::stringstream result;
   result << "    (min, max, avg) nodes per domain: ("
          << globalMinNodes << ", "
          << globalMaxNodes << ", "
@@ -830,7 +839,7 @@ gatherDomainDistributionStatistics(const FieldList<Dimension, typename Dimension
          << "    (min, max, avg) work per domain : ("
          << globalMinWork << ", "
          << globalMaxWork << ", "
-         << globalAvgWork << ")" << ends;
+         << globalAvgWork << ")" << std::ends;
   return result.str();
 }
 

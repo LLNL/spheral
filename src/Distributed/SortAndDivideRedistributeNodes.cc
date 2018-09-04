@@ -17,9 +17,19 @@
 #include "Communicator.hh"
 
 #include <limits>
+using std::vector;
+using std::list;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-
 
 //------------------------------------------------------------------------------
 // Sort the eigen values/vectors such that the eigen values are arranged from
@@ -34,7 +44,7 @@ swapIndicies(EigenStruct<nDim>& result,
   REQUIRE(i < nDim);
   REQUIRE(j < nDim);
   REQUIRE(i != nDim);
-  swap(result.eigenValues(i), result.eigenValues(j));
+  std::swap(result.eigenValues(i), result.eigenValues(j));
   const GeomVector<nDim> tmp = result.eigenVectors.getColumn(i);
   result.eigenVectors.setColumn(i, result.eigenVectors.getColumn(j));
   result.eigenVectors.setColumn(j, tmp);
@@ -227,7 +237,7 @@ shapeTensor(const vector<DomainNode<Dimension> >& domainNodes) const {
     J += r.selfdyad();
   }
   SymTensor globalJ;
-  const int numTensorElements = distance(J.begin(), J.end());
+  const int numTensorElements = std::distance(J.begin(), J.end());
   MPI_Allreduce(&(*J.begin()), &(*globalJ.begin()), numTensorElements, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
 
   // The shape tensor we want is the square root of the second moment.  We also

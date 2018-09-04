@@ -114,7 +114,6 @@ private:
 };
 
 }
-}
 
 #else
 // Forward declare the VoronoiRedistributeNodes class.

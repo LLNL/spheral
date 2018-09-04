@@ -8,6 +8,8 @@
 // Directly cribbed from Jeff Johnson's original code, and cast here as a 
 // standalone dohickey.
 //----------------------------------------------------------------------------//
+#include "Utilities/DBC.hh"
+
 #include "mpi.h"
 #ifndef WIN32
 #include <unistd.h>
@@ -18,10 +20,18 @@
 #include <sstream>
 #include <algorithm>
 
-#include "Utilities/DBC.hh"
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-
 
 void 
 waitallWithDeadlockDetection(const string label,
