@@ -45,19 +45,28 @@
 
 #include "SPHHydroBase.hh"
 
+#ifdef _OPENMP
+#include "omp.h"
+#endif
+
 #include <limits.h>
 #include <float.h>
 #include <algorithm>
 #include <fstream>
 #include <map>
 #include <vector>
-
-#ifdef _OPENMP
-#include "omp.h"
-#endif
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.

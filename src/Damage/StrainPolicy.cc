@@ -4,9 +4,6 @@
 //
 // Created by JMO, Tue Oct 12 16:43:23 PDT 2004
 //----------------------------------------------------------------------------//
-
-#include <vector>
-
 #include "StrainPolicy.hh"
 #include "NodeList/NodeList.hh"
 #include "Strength/SolidFieldNames.hh"
@@ -18,8 +15,19 @@
 #include "Utilities/DBC.hh"
 #include "Kernel/HatKernel.hh"
 
-namespace Spheral {
+#include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructor.

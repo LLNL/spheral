@@ -3,8 +3,6 @@
 //
 // Created by JMO, Fri Aug 16 14:47:57 PDT 2013
 //----------------------------------------------------------------------------//
-#include <vector>
-
 #include "CompatibleFaceSpecificThermalEnergyPolicy.hh"
 #include "computeSVPHCorrectionsOnFaces.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -25,11 +23,19 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
 
-namespace Spheral {
-
-// using std::min;
-// using std::max;
+#include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
 using std::abs;
+
+namespace Spheral {
 
 namespace {
 

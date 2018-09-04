@@ -48,9 +48,18 @@
 #include <fstream>
 #include <map>
 #include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -986,7 +995,7 @@ dt(const DataBase<Dimension>& dataBase,
     }
   }
 
-  stringstream reasonStream;
+  std::stringstream reasonStream;
   reasonStream << "mindt = " << minDt << endl
 	       << reason << endl
                << "  (nodeList, node) = (" << lastNodeListName << ", " << lastNodeID << ") | "
@@ -1002,7 +1011,7 @@ dt(const DataBase<Dimension>& dataBase,
 //               << "  dtcsq = " << lastNodeScale/(lastCsq + FLT_MIN) << endl
 //                << "  dtdivV = " << 1.0/(fabs(lastDivVelocity) + FLT_MIN) << endl
 //                << "  shearVelocity = " << lastShearVelocity << endl
-               << ends;
+               << std::ends;
 
   // Now build the result.
   TimeStepType result(this->cfl()*minDt, reasonStream.str());

@@ -11,12 +11,18 @@
 #include "Utilities/timingUtilities.hh"
 
 #include <algorithm>
-
-namespace Spheral {
-
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
+
+namespace Spheral {
 
 template<typename Dimension, typename NodeListIterator, typename BoundaryIterator>
 void

@@ -13,13 +13,25 @@
 
 #include "Utilities/timingUtilities.hh"
 
+using namespace boost;
+
 #include <limits>
 #include <set>
 #include <sstream>
+using std::vector;
+using std::map;
+using std::set;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-
-using namespace boost;
 
 namespace {
 

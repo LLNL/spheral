@@ -4,9 +4,6 @@
 //
 // Created by JMO, Thu Jul 12 13:40:45 PDT 2018
 //----------------------------------------------------------------------------//
-
-#include <vector>
-
 #include "JohnsonCookFailureStrainPolicy.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "Strength/SolidFieldNames.hh"
@@ -17,8 +14,19 @@
 #include "Field/Field.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
+#include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructor.

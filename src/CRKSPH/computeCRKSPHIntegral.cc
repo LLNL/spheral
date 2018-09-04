@@ -13,11 +13,18 @@
 #include "Geometry/outerProduct.hh"
 #include "Geometry/innerProduct.hh"
 
-namespace Spheral {
-
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
+
+namespace Spheral {
 
 template<typename Dimension>
 std::pair<typename Dimension::Vector,typename Dimension::Vector>
@@ -40,7 +47,6 @@ computeCRKSPHIntegral(const ConnectivityMap<Dimension>& connectivityMap,
 
   const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
   const size_t numNodeLists = nodeLists.size();
-  
 
   // Pre-conditions.
   REQUIRE(weight.size() == numNodeLists);

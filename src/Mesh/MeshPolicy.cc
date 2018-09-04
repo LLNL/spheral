@@ -4,7 +4,6 @@
 //
 // Created by JMO, Sat Feb 12 14:37:57 PST 2011
 //----------------------------------------------------------------------------//
-#include <vector>
 #include "MeshPolicy.hh"
 #include "generateMesh.hh"
 #include "Physics/Physics.hh"
@@ -16,8 +15,19 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
+#include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructor without specifying bounds.

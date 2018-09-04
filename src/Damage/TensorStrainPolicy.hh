@@ -32,8 +32,6 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
 
-  typedef typename TensorStrainAlgorithm TensorStrainAlgorithm;
-
   // Constructors, destructor.
   TensorStrainPolicy(const TensorStrainAlgorithm strainType);
   virtual ~TensorStrainPolicy();

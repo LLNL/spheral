@@ -1,8 +1,6 @@
 //---------------------------------Spheral++------------------------------------
 // Detect surface particles leveraging the zeroth and first moments
 //------------------------------------------------------------------------------
-#include <stdio.h>
-
 #include "detectSurface.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -15,11 +13,19 @@
 #include "Geometry/innerDoubleProduct.hh"
 #include "Geometry/invertRankNTensor.hh"
 
-namespace Spheral {
-
+#include <stdio.h>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
+
+namespace Spheral {
 
 template<typename Dimension>
 void

@@ -121,7 +121,6 @@ private:
 };
 
 }
-}
 
 #include "JohnsonCookDamageInline.hh"
 

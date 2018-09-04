@@ -2,22 +2,28 @@
 // Helper method for the SiloPolyMeshGenerator which reads a polyhedral mesh 
 // from a silo file and returns the geometry.
 //------------------------------------------------------------------------------
-#ifdef USE_MPI
-#include "mpi.h"
-#endif
-
-#include <vector>
-#include <algorithm>
-
 #include "Utilities/DBC.hh"
 #include "Geometry/Dimension.hh"
 #include "Distributed/Communicator.hh"
 
 #include "silo.h"
 
-using std::abs;
+#ifdef USE_MPI
+#include "mpi.h"
+#endif
+
+#include <vector>
+#include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
+using std::abs;
 
 namespace Spheral {
 

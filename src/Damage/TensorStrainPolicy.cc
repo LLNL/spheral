@@ -4,8 +4,6 @@
 //
 // Created by JMO, Mon Oct 17 10:56:28 PDT 2005
 //----------------------------------------------------------------------------//
-#include <vector>
-
 #include "TensorStrainPolicy.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/SolidNodeList.hh"
@@ -21,8 +19,19 @@
 #include "Utilities/GeometricUtilities.hh"
 #include "Kernel/TableKernel.hh"
 
-namespace Spheral {
+#include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructor.
