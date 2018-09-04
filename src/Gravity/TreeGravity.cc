@@ -27,12 +27,18 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
-
-namespace Spheral {
-
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
+
+namespace Spheral {
 
 namespace {
 //------------------------------------------------------------------------------
@@ -166,7 +172,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, std::vector<Scalar> > interactionMasses = dataBase.newGlobalFieldList(vector<Scalar>(), "gravity dt interaction masses");
   FieldList<Dimension, std::vector<Vector> > interactionPositions = dataBase.newGlobalFieldList(vector<Vector>(), "gravity dt interaction positions");
   FieldList<Dimension, std::pair<LevelKey, CellKey> > homeBuckets = dataBase.newGlobalFieldList(pair<LevelKey, CellKey>(), "gravity dt home buckets");
-  mDtMinAcc = numeric_limits<Scalar>::max();
+  mDtMinAcc = std::numeric_limits<Scalar>::max();
 
   // Prepare the flags to remember which cells have terminated for each node.
   CompletedCellSet cellsCompleted;
@@ -478,8 +484,8 @@ dt(const DataBase<Dimension>& dataBase,
   // A standard N-body approach -- just take the ratio of softening length/acceleration.
   if (mTimeStepChoice == GravityTimeStepType::AccelerationRatio) {
     const double dt = mftimestep * mDtMinAcc;
-    stringstream reasonStream;
-    reasonStream << "TreeGravity: f*sqrt(L/a) = " << dt << ends;
+    std::stringstream reasonStream;
+    reasonStream << "TreeGravity: f*sqrt(L/a) = " << dt << std::ends;
     return TimeStepType(dt, reasonStream.str());
 
   } else {
@@ -495,13 +501,13 @@ dt(const DataBase<Dimension>& dataBase,
     const double dtDyn = sqrt(1.0/(mG*mRhoMax));
     const double dt = mftimestep * dtDyn;
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    stringstream reasonStream;
+    std::stringstream reasonStream;
     reasonStream << "TreeGravity: sqrt(1/(G rho)) = sqrt(1/("
                  << mG << " * " << mRhoMax
                  << ")) = " << dt 
                  << " selected for node " << mimax 
                  << " in NodeList " << position[mNodeListMax]->nodeList().name()
-                 << ends;
+                 << std::ends;
     return TimeStepType(dt, reasonStream.str());
   }
 }
@@ -533,7 +539,7 @@ template<typename Dimension>
 std::string
 TreeGravity<Dimension>::
 dumpTree(const bool globalTree) const {
-  stringstream ss;
+  std::stringstream ss;
   CellKey key, ix, iy, iz;
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
@@ -609,7 +615,7 @@ template<typename Dimension>
 std::string
 TreeGravity<Dimension>::
 dumpTreeStatistics(const bool globalTree) const {
-  stringstream ss;
+  std::stringstream ss;
   CellKey key, ix, iy, iz;
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
@@ -819,7 +825,7 @@ applyTreeForces(const Tree& tree,
   const double softLength2 = mSofteningLength*mSofteningLength;
 
   // Prepare the result for the shortest timestep.
-  double result = numeric_limits<double>::max();
+  double result = std::numeric_limits<double>::max();
 
   // Declare variables we're going to need in the loop once.  May help with optimization?
   unsigned nodeListi, i, j, k, ilevel, nremaining;

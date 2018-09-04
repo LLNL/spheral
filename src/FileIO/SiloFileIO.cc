@@ -7,10 +7,20 @@
 #include "Field/Field.hh"
 
 #include "boost/algorithm/string/replace.hpp"
+
 #include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-
 
 namespace {
 //------------------------------------------------------------------------------
@@ -1282,7 +1292,7 @@ writeValueSequence(const Container& value,
     const string varname = this->setDir(pathName + "/value");
     vector<double> cvalue(ntot);
     unsigned i = 0;
-    for (unsigned i = 0; i != n; ++i) copy(value[i].begin(), value[i].end(), &cvalue[nvali*i]);
+    for (unsigned i = 0; i != n; ++i) std::copy(value[i].begin(), value[i].end(), &cvalue[nvali*i]);
     VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
             "SiloFileIO ERROR: unable to write variable " << pathName);
   }
@@ -1304,7 +1314,7 @@ readValueSequence(Container& value,
     double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
     VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
     value = Container(n/nvali);
-    for (unsigned i = 0; i != n/nvali; ++i) copy(&cvalue[nvali*i], &cvalue[nvali*(i+1)], value[i].begin());
+    for (unsigned i = 0; i != n/nvali; ++i) std::copy(&cvalue[nvali*i], &cvalue[nvali*(i+1)], value[i].begin());
   }
 }
   

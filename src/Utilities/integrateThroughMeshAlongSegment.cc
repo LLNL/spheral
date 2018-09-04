@@ -8,8 +8,6 @@
 //
 // Created by JMO, Wed Feb  3 16:03:46 PST 2010
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
 #include "integrateThroughMeshAlongSegment.hh"
 #include "lineSegmentIntersections.hh"
 #include "safeInv.hh"
@@ -18,8 +16,19 @@
 #include "Geometry/Dimension.hh"
 #include "FieldOperations/binFieldList2Lattice.hh"
 
-namespace Spheral {
+#include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
+namespace Spheral {
 
 namespace {
 //------------------------------------------------------------------------------

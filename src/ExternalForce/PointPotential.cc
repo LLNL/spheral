@@ -13,7 +13,6 @@
 
 namespace Spheral {
 
-
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
@@ -114,10 +113,10 @@ dt(const DataBase<Dimension>& dataBase,
     }
   }
 
-  stringstream reasonStream;
+  std::stringstream reasonStream;
   reasonStream << "mindt = " << mindt << " | "
                << "rsoft = " << minr << " " 
-               << "minv = " << minv << ends;
+               << "minv = " << minv << std::ends;
 
   return TimeStepType(mindt, reasonStream.str());
 }

@@ -26,9 +26,18 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-
 
 namespace {
 //------------------------------------------------------------------------------
@@ -331,11 +340,11 @@ dt(const DataBase<Dimension>& dataBase,
   const double deltat = std::min((mOldMaxVelocity*mOldMaxAcceleration/(mOldMaxAcceleration*mOldMaxAcceleration + 1.0e-10)) * mMaxDeltaVelocityFactor,
                                  sqrt(2.0*mMaxDeltaVelocityFactor*mSofteningLength*safeInvVar(mOldMaxAcceleration, 1.0e-10)));
 
-  stringstream reasonStream;
+  std::stringstream reasonStream;
   reasonStream << "velocity: " << mOldMaxVelocity
                << ", acceleration: " << mOldMaxAcceleration
                << "dt = f*v/a: " << deltat
-               << ends;
+               << std::ends;
   return TimeStepType(deltat, reasonStream.str());
 }
 

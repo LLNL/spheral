@@ -9,10 +9,6 @@
 // Created by JMO, Tue Mar 18 15:23:04 PDT 2014
 //   revised, JMO, Thu Jan 26 20:56:45 PST 2017
 //----------------------------------------------------------------------------//
-
-#include <vector>
-#include <algorithm>
-
 #include "refinePolyhedron.hh"
 #include "Geometry/Dimension.hh"
 
@@ -22,8 +18,20 @@
 #include "opensubdiv/far/primvarRefiner.h"
 #endif
 
-namespace Spheral {
+#include <vector>
+#include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
+namespace Spheral {
 
 namespace {   // anonymous 
 

@@ -5,15 +5,24 @@
 //
 // Created by JMO, Thu Feb 18 11:25:55 PST 2010
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <vector>
-#include <algorithm>
-
 #include "medianPosition.hh"
 #include "Geometry/Dimension.hh"
 
-namespace Spheral {
+#include <algorithm>
+#include <vector>
+#include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Compare two vectors by the given index coordinate.

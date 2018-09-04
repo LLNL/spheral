@@ -3,12 +3,22 @@
 //
 // Created by JMO, Fri Apr 13 01:19:02 PDT 2001
 //----------------------------------------------------------------------------//
-
 #include "FlatFileIO.hh"
 #include "Field/Field.hh"
 
-namespace Spheral {
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+using std::ios;
 
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -56,7 +66,6 @@ FlatFileIO::~FlatFileIO() {
 void
 FlatFileIO::open(const string fileName, AccessType access) {
 
-
   // If we currently have a file open and attached to this object, close it!
   close();
   CHECK(mFilePtr == 0 && mFileOpen == false);
@@ -83,7 +92,7 @@ FlatFileIO::open(const string fileName, AccessType access) {
   if (mFileFormat == FlatFileFormat::binary) mode = mode | ios::binary;
 
   // Open a file stream and attach it to this objects pointer.
-  mFilePtr = new fstream(fileName.c_str(), mode);
+  mFilePtr = new std::fstream(fileName.c_str(), mode);
   mFileOpen = mFilePtr->is_open();
   ENSURE(mFilePtr != 0 && mFileOpen == true);
 
@@ -1058,7 +1067,7 @@ FlatFileIO::beginningOfFile() const {
 //   open(fileName(), access());
 
   delete mFilePtr;
-  mFilePtr = new fstream(fileName().c_str(), ios::in);
+  mFilePtr = new std::fstream(fileName().c_str(), ios::in);
 }
 
 }
