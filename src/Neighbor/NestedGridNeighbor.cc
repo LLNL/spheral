@@ -15,7 +15,7 @@
 #include "Utilities/intpow2.hh"
 #include "Utilities/DBC.hh"
 
-#include <math.h>
+#include <cmath>
 #include <limits.h>
 #include <float.h>
 #include <numeric>
@@ -23,6 +23,14 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+using std::vector;
+using std::map;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
 

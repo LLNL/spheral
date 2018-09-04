@@ -10,14 +10,20 @@
 #include "Geometry/GeomPlane.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "Mesh/Mesh.hh"
-
 #include "Utilities/DBC.hh"
 #include "Utilities/allReduce.hh"
 
 #include "PlanarBoundary.hh"
 
-namespace Spheral {
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Internal worker method to help with clipping a box range.

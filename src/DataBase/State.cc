@@ -15,6 +15,15 @@
 #include "Geometry/Dimension.hh"
 
 #include <string>
+using std::vector;
+using std::map;
+using std::set;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
 
@@ -237,7 +246,7 @@ update(StateDerivatives<Dimension>& derivs,
     // Check that the some state has been updated on this iteration.  If not, then *somebody*
     // has specified a circular dependency tree!
     if (stateToRemove.empty()) {
-      stringstream message;
+      std::stringstream message;
       message << "State::update ERROR: someone has specified a circular state dependency.\n"
               << "Remaining State:\n";
       for (typename map<KeyType, set<KeyType> >::const_iterator itr = stateToBeCompleted.begin();

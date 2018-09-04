@@ -47,7 +47,7 @@ CRKSPHKernel(const TableKernel<Dimension>& W,
   } else {   //correctionOrder == QuadraticOrder
     return std::max(correctionMin, 
                     std::min(correctionMax, 
-                             Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))))*Wij;
+                             Ai*(1.0 + Bi.dot(rij) + innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))))*Wij;
   }
 }
 
@@ -113,16 +113,16 @@ CRKSPHKernelAndGradient(typename Dimension::Scalar& WCRKSPH,
     }
 
   } else {  //correctionOrder == CRKOrder::QuadraticOrder
-    const double correction0 = Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()));
+    const double correction0 = Ai*(1.0 + Bi.dot(rij) + innerDoubleProduct<Dimension>(Ci, rij.selfdyad()));
     const double correction = std::max(correctionMin, std::min(correctionMax, correction0));
     WCRKSPH = correction*Wij;
     gradWCRKSPH = correction*gradWij;
     if (correction0 > correctionMin and correction0 < correctionMax) {
       gradWCRKSPH += Ai*Bi*Wij;
-      gradWCRKSPH += gradAi*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wij;
-      gradWCRKSPH += Ai*(Geometry::innerProduct<Dimension>(rij,gradBi))*Wij;
-      gradWCRKSPH += Ai*(Geometry::innerDoubleProduct<Dimension>(rij.selfdyad(),gradCi))*Wij;
-      gradWCRKSPH += 2.0*Ai*(Geometry::innerProduct<Dimension>(rij,Ci))*Wij;
+      gradWCRKSPH += gradAi*(1.0 + Bi.dot(rij) + innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wij;
+      gradWCRKSPH += Ai*(innerProduct<Dimension>(rij,gradBi))*Wij;
+      gradWCRKSPH += Ai*(innerDoubleProduct<Dimension>(rij.selfdyad(),gradCi))*Wij;
+      gradWCRKSPH += 2.0*Ai*(innerProduct<Dimension>(rij,Ci))*Wij;
     }
   }
 }

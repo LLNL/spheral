@@ -82,7 +82,6 @@ inline
 Field<Dimension, int>
 globalNodeIDs(const NodeList<Dimension>& nodeList) {
 
-  using Field;
   typedef typename Dimension::Vector Vector;
   typedef typename KeyTraits::Key Key;
 

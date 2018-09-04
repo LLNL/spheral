@@ -13,6 +13,13 @@
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
 
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
 
 //------------------------------------------------------------------------------

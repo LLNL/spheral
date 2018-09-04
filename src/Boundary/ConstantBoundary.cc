@@ -16,10 +16,17 @@
 #include "boost/lexical_cast.hpp"
 #include "boost/algorithm/string.hpp"
 
-namespace Spheral {
-
 using std::vector;
 using std::map;
+using std::string;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
+namespace Spheral {
 
 namespace {
 

@@ -27,9 +27,16 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+using std::vector;
+using std::map;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-
 
 //------------------------------------------------------------------------------
 // Compute the vertex coordinates for a cell.
@@ -494,7 +501,7 @@ std::string
 TreeNeighbor<Dimension>::
 dumpTree(const Tree& tree,
          const bool globalTree) const {
-  stringstream ss;
+  std::stringstream ss;
   CellKey key, ix, iy, iz;
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
@@ -577,7 +584,7 @@ std::string
 TreeNeighbor<Dimension>::
 dumpTreeStatistics(const Tree& tree,
                    const bool globalTree) const {
-  stringstream ss;
+  std::stringstream ss;
   CellKey key, ix, iy, iz;
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();

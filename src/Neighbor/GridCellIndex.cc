@@ -9,10 +9,16 @@
 #include "Geometry/Dimension.hh"
 
 #include <limits.h>
-#include <math.h>
+#include <cmath>
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-
 
 //------------------------------------------------------------------------------
 // Define a global function which returns a vector of GridCellIndex objects

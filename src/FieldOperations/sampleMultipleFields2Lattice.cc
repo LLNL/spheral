@@ -29,10 +29,18 @@
 #endif
 
 #include <algorithm>
-
-namespace Spheral {
+using std::vector;
+using std::map;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 using boost::tuple;
+
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Compute the step size.

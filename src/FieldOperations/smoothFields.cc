@@ -13,11 +13,15 @@
 #include "Kernel/TableKernel.hh"
 #include "Geometry/MathTraits.hh"
 
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+
 //------------------------------------------------------------------------------
 // Return a smoothed estimate of the given FieldList.
 //------------------------------------------------------------------------------
 namespace Spheral {
-
 
 template<typename Dimension, typename DataType>
 FieldList<Dimension, DataType>

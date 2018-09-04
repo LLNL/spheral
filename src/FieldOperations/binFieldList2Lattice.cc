@@ -23,6 +23,13 @@
 #include "Utilities/DBC.hh"
 
 #include <algorithm>
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 #ifdef USE_MPI
 extern "C" {
@@ -31,7 +38,6 @@ extern "C" {
 #endif
 
 namespace Spheral {
-
 
 //------------------------------------------------------------------------------
 // Helper method specialized per dimension to increment grid cell values.

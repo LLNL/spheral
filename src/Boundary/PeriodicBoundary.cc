@@ -4,20 +4,23 @@
 //
 // Created by JMO, Wed Apr 19 14:19:07 PDT 2000
 //----------------------------------------------------------------------------//
-
-#include <algorithm>
-
 #include "PeriodicBoundary.hh"
 #include "Geometry/GeomPlane.hh"
 #include "Field/Field.hh"
 
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-
+#include <algorithm>
+using std::vector;
+using std::map;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
+
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Copy all the boundary nodes from one Boundary to another.

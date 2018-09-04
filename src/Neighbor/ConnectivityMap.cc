@@ -19,6 +19,16 @@
 
 #include <algorithm>
 #include <ctime>
+using std::vector;
+using std::map;
+using std::string;
+using std::pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 // Declare the timers.
 extern Timer TIME_ConnectivityMap_patch;
@@ -26,7 +36,6 @@ extern Timer TIME_ConnectivityMap_valid;
 extern Timer TIME_ConnectivityMap_computeConnectivity;
 
 namespace Spheral {
-
 
 namespace {
 //------------------------------------------------------------------------------
@@ -109,7 +118,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
         if (flags(iNodeList, i) == 0) {
           iNodesToKill_thread.push_back(i);
         } else {
-          if (domainDecompIndependent) keys_thread.push_back(make_pair(old2new(iNodeList, i), mKeys(iNodeList, i)));
+          if (domainDecompIndependent) keys_thread.push_back(std::make_pair(old2new(iNodeList, i), mKeys(iNodeList, i)));
           mNodeTraversalIndices[iNodeList][i] = old2new(iNodeList, i);
           auto& neighbors = mConnectivity[ioff + i];
           CHECK(neighbors.size() == numNodeLists);
@@ -121,7 +130,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
               if (flags(jNodeList, j) == 0) {
                 jNodesToKill.push_back(k);
               } else {
-                if (domainDecompIndependent) nkeys.push_back(make_pair(old2new(jNodeList, j), mKeys(jNodeList, j)));
+                if (domainDecompIndependent) nkeys.push_back(std::make_pair(old2new(jNodeList, j), mKeys(jNodeList, j)));
                 neighbors[jNodeList][k] = old2new(jNodeList, j);
               }
             }
@@ -159,7 +168,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
         // keys = vector<pair<int, Key> >();
         // for (size_t k = 0; k != numNodes; ++k) {
         //   const int i = mNodeTraversalIndices[iNodeList][k];
-        //   keys.push_back(make_pair(i, mKeys(iNodeList, i)));
+        //   keys.push_back(std::make_pair(i, mKeys(iNodeList, i)));
         // }
         sort(keys.begin(), keys.end(), ComparePairsBySecondElement<pair<int, Key> >());
 #pragma omp parallel for

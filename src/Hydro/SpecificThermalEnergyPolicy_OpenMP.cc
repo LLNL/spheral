@@ -8,9 +8,6 @@
 //  Created by JMO, Tue Sep 14 22:27:08 2004
 // Modified by JMO, Fri Nov  3 15:44:41 PDT 2017
 //----------------------------------------------------------------------------//
-#include <vector>
-#include <limits>
-
 #include "SpecificThermalEnergyPolicy.hh"
 #include "HydroFieldNames.hh"
 #include "entropyWeightingFunction.hh"
@@ -29,10 +26,20 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
 
-namespace Spheral {
-
+#include <vector>
+#include <limits>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
 using std::abs;
 
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -105,7 +112,7 @@ update(const KeyType& key,
 
       // State for node i.
       auto& DepsDti = DepsDt(nodeListi, i);
-      const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
+      const auto  weighti = abs(DepsDt0(nodeListi, i)) + std::numeric_limits<Scalar>::epsilon();
       // const auto  si = entropy(nodeListi, i);
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
@@ -134,7 +141,7 @@ update(const KeyType& key,
                ++jitr) {
             const int j = *jitr;
 
-            const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
+            const auto  weightj = abs(DepsDt0(nodeListj, j)) + std::numeric_limits<Scalar>::epsilon();
             // const auto  sj = entropy(nodeListj, j);
             const auto& vj = velocity(nodeListj, j);
             const auto& aj = acceleration(nodeListj, j);

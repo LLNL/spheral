@@ -2368,75 +2368,78 @@ operator<<(std::ostream& os, const Spheral::GeomSymmetricTensor<nDim>& ten) {
   return os;
 }
 
-// //------------------------------------------------------------------------------
-// // Min a symmetric tensor with a scalar -- limit the eigenvalues.
-// //------------------------------------------------------------------------------
-// template<int nDim>
-// inline
-// Spheral::GeomSymmetricTensor<nDim>
-// min(const double minValue, const Spheral::GeomSymmetricTensor<nDim>& tensor) {
+}
 
-//   typedef Spheral::GeomVector<nDim> Vector;
-//   typedef Spheral::GeomTensor<nDim> Tensor;
-//   typedef Spheral::GeomSymmetricTensor<nDim> SymTensor;
+namespace std {
+//------------------------------------------------------------------------------
+// Min a symmetric tensor with a scalar -- limit the eigenvalues.
+//------------------------------------------------------------------------------
+template<int nDim>
+inline
+Spheral::GeomSymmetricTensor<nDim>
+min(const double minValue, const Spheral::GeomSymmetricTensor<nDim>& tensor) {
+
+  typedef Spheral::GeomVector<nDim> Vector;
+  typedef Spheral::GeomTensor<nDim> Tensor;
+  typedef Spheral::GeomSymmetricTensor<nDim> SymTensor;
 
 
-//   // Get the eigen values and eigen vectors.
-//   EigenStruct<nDim> eigen = tensor.eigenVectors();
+  // Get the eigen values and eigen vectors.
+  Spheral::EigenStruct<nDim> eigen = tensor.eigenVectors();
 
-//   // Limit the eigen values if necessary.
-//   if (eigen.eigenValues.maxElement() < minValue) {
-//     return tensor;
-//   } else {
-//     SymTensor result;
-//     for (int i = 0; i != nDim; ++i) {
-//       result(i,i) = std::min(minValue, eigen.eigenValues(i));
-//     }
-//     result.rotationalTransform(eigen.eigenVectors);
-//     return result;
-//   }
-// }
+  // Limit the eigen values if necessary.
+  if (eigen.eigenValues.maxElement() < minValue) {
+    return tensor;
+  } else {
+    SymTensor result;
+    for (int i = 0; i != nDim; ++i) {
+      result(i,i) = std::min(minValue, eigen.eigenValues(i));
+    }
+    result.rotationalTransform(eigen.eigenVectors);
+    return result;
+  }
+}
 
-// template<int nDim>
-// inline
-// Spheral::GeomSymmetricTensor<nDim>
-// min(const Spheral::GeomSymmetricTensor<nDim>& tensor, const double minValue) {
-//   return min(minValue, tensor);
-// }
+template<int nDim>
+inline
+Spheral::GeomSymmetricTensor<nDim>
+min(const Spheral::GeomSymmetricTensor<nDim>& tensor, const double minValue) {
+  return min(minValue, tensor);
+}
 
-// //------------------------------------------------------------------------------
-// // Max a symmetric tensor with a scalar -- limit the eigenvalues.
-// //------------------------------------------------------------------------------
-// template<int nDim>
-// inline
-// Spheral::GeomSymmetricTensor<nDim>
-// max(const double maxValue, const Spheral::GeomSymmetricTensor<nDim>& tensor) {
+//------------------------------------------------------------------------------
+// Max a symmetric tensor with a scalar -- limit the eigenvalues.
+//------------------------------------------------------------------------------
+template<int nDim>
+inline
+Spheral::GeomSymmetricTensor<nDim>
+max(const double maxValue, const Spheral::GeomSymmetricTensor<nDim>& tensor) {
 
-//   typedef Spheral::GeomVector<nDim> Vector;
-//   typedef Spheral::GeomTensor<nDim> Tensor;
-//   typedef Spheral::GeomSymmetricTensor<nDim> SymTensor;
+  typedef Spheral::GeomVector<nDim> Vector;
+  typedef Spheral::GeomTensor<nDim> Tensor;
+  typedef Spheral::GeomSymmetricTensor<nDim> SymTensor;
 
-//   // Get the eigen values and eigen vectors.
-//   EigenStruct<nDim> eigen = tensor.eigenVectors();
+  // Get the eigen values and eigen vectors.
+  Spheral::EigenStruct<nDim> eigen = tensor.eigenVectors();
 
-//   // Limit the eigen values if necessary.
-//   if (eigen.eigenValues.minElement() > maxValue) {
-//     return tensor;
-//   } else {
-//     SymTensor result;
-//     for (int i = 0; i != nDim; ++i) {
-//       result(i,i) = std::max(maxValue, eigen.eigenValues(i));
-//     }
-//     result.rotationalTransform(eigen.eigenVectors);
-//     return result;
-//   }
-// }
+  // Limit the eigen values if necessary.
+  if (eigen.eigenValues.minElement() > maxValue) {
+    return tensor;
+  } else {
+    SymTensor result;
+    for (int i = 0; i != nDim; ++i) {
+      result(i,i) = std::max(maxValue, eigen.eigenValues(i));
+    }
+    result.rotationalTransform(eigen.eigenVectors);
+    return result;
+  }
+}
 
-// template<int nDim>
-// inline
-// Spheral::GeomSymmetricTensor<nDim>
-// max(const Spheral::GeomSymmetricTensor<nDim>& tensor, double const maxValue) {
-//   return max(maxValue, tensor);
-// }
+template<int nDim>
+inline
+Spheral::GeomSymmetricTensor<nDim>
+max(const Spheral::GeomSymmetricTensor<nDim>& tensor, double const maxValue) {
+  return max(maxValue, tensor);
+}
 
 }

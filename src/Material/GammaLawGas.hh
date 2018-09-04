@@ -76,7 +76,7 @@ public:
   Scalar specificHeat(const Scalar massDensity,
                       const Scalar temperature) const;
 
-  Scalar soundeSpeed(const Scalar massDensity,
+  Scalar soundSpeed(const Scalar massDensity,
                     const Scalar specificThermalEnergy) const;
 
   Scalar gamma(const Scalar massDensity,
