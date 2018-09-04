@@ -25,8 +25,8 @@ typedef GenericBodyForce<Dim<3> > GenericBodyForce3d;
     
 }
 
-typedef std::vector<Spheral::PhysicsSpace::Physics<Spheral::Dim<1> >*> vector_of_Physics1d;
-typedef std::vector<Spheral::PhysicsSpace::Physics<Spheral::Dim<2> >*> vector_of_Physics2d;
-typedef std::vector<Spheral::PhysicsSpace::Physics<Spheral::Dim<3> >*> vector_of_Physics3d;
+typedef std::vector<Spheral::Physics<Spheral::Dim<1> >*> vector_of_Physics1d;
+typedef std::vector<Spheral::Physics<Spheral::Dim<2> >*> vector_of_Physics2d;
+typedef std::vector<Spheral::Physics<Spheral::Dim<3> >*> vector_of_Physics3d;
 
 #endif

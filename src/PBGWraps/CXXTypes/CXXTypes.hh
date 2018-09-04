@@ -14,180 +14,180 @@
 //------------------------------------------------------------------------------
 // Names!
 //------------------------------------------------------------------------------
-typedef pair<unsigned, unsigned> pair_unsigned_unsigned;
-typedef pair<uint64_t, uint64_t> pair_ULL_ULL;
-typedef pair<int, int> pair_int_int;
-typedef pair<double, double> pair_double_double;
-typedef pair<double, string> pair_double_string;
-typedef pair<string, string> pair_string_string;
+typedef std::pair<unsigned, unsigned> pair_unsigned_unsigned;
+typedef std::pair<uint64_t, uint64_t> pair_ULL_ULL;
+typedef std::pair<int, int> pair_int_int;
+typedef std::pair<double, double> pair_double_double;
+typedef std::pair<double, std::string> pair_double_string;
+typedef std::pair<std::string, std::string> pair_string_string;
 
-typedef pair<Spheral::Vector1d, Spheral::Vector1d> pair_Vector1d_Vector1d;
-typedef pair<Spheral::Vector2d, Spheral::Vector2d> pair_Vector2d_Vector2d;
-typedef pair<Spheral::Vector3d, Spheral::Vector3d> pair_Vector3d_Vector3d;
+typedef std::pair<Spheral::Vector1d, Spheral::Vector1d> pair_Vector1d_Vector1d;
+typedef std::pair<Spheral::Vector2d, Spheral::Vector2d> pair_Vector2d_Vector2d;
+typedef std::pair<Spheral::Vector3d, Spheral::Vector3d> pair_Vector3d_Vector3d;
 
-typedef pair<Spheral::Tensor1d, Spheral::Tensor1d> pair_Tensor1d_Tensor1d;
-typedef pair<Spheral::Tensor2d, Spheral::Tensor2d> pair_Tensor2d_Tensor2d;
-typedef pair<Spheral::Tensor3d, Spheral::Tensor3d> pair_Tensor3d_Tensor3d;
+typedef std::pair<Spheral::Tensor1d, Spheral::Tensor1d> pair_Tensor1d_Tensor1d;
+typedef std::pair<Spheral::Tensor2d, Spheral::Tensor2d> pair_Tensor2d_Tensor2d;
+typedef std::pair<Spheral::Tensor3d, Spheral::Tensor3d> pair_Tensor3d_Tensor3d;
 
-typedef vector<bool>               vector_of_bool;
-typedef vector<char>               vector_of_char;
-typedef vector<int>                vector_of_int;
-typedef vector<float>              vector_of_float;
-typedef vector<double>             vector_of_double;
-typedef vector<string>             vector_of_string;
-typedef vector<unsigned>           vector_of_unsigned;
-typedef vector<uint64_t>           vector_of_ULL;
-typedef vector<pair_unsigned_unsigned> vector_of_pair_unsigned_unsigned;
-typedef vector<pair_ULL_ULL>       vector_of_pair_ULL_ULL;
-typedef vector<pair_int_int>       vector_of_pair_int_int;
+typedef std::vector<bool>               vector_of_bool;
+typedef std::vector<char>               vector_of_char;
+typedef std::vector<int>                vector_of_int;
+typedef std::vector<float>              vector_of_float;
+typedef std::vector<double>             vector_of_double;
+typedef std::vector<std::string>        vector_of_string;
+typedef std::vector<unsigned>           vector_of_unsigned;
+typedef std::vector<uint64_t>           vector_of_ULL;
+typedef std::vector<pair_unsigned_unsigned> vector_of_pair_unsigned_unsigned;
+typedef std::vector<pair_ULL_ULL>       vector_of_pair_ULL_ULL;
+typedef std::vector<pair_int_int>       vector_of_pair_int_int;
 
-typedef vector<bool>::iterator               vector_of_bool_iterator;
-typedef vector<char>::iterator               vector_of_char_iterator;
-typedef vector<int>::iterator                vector_of_int_iterator;
-typedef vector<float>::iterator              vector_of_float_iterator;
-typedef vector<double>::iterator             vector_of_double_iterator;
-typedef vector<string>::iterator             vector_of_string_iterator;
-typedef vector<unsigned>::iterator           vector_of_unsigned_iterator;
-typedef vector<uint64_t>::iterator           vector_of_ULL_iterator;
-typedef vector<pair_unsigned_unsigned>::iterator vector_of_pair_unsigned_unsigned_iterator;
-typedef vector<pair_ULL_ULL>::iterator       vector_of_pair_ULL_ULL_iterator;
-typedef vector<pair_int_int>::iterator       vector_of_pair_int_int_iterator;
+typedef std::vector<bool>::iterator               vector_of_bool_iterator;
+typedef std::vector<char>::iterator               vector_of_char_iterator;
+typedef std::vector<int>::iterator                vector_of_int_iterator;
+typedef std::vector<float>::iterator              vector_of_float_iterator;
+typedef std::vector<double>::iterator             vector_of_double_iterator;
+typedef std::vector<std::string>::iterator        vector_of_string_iterator;
+typedef std::vector<unsigned>::iterator           vector_of_unsigned_iterator;
+typedef std::vector<uint64_t>::iterator           vector_of_ULL_iterator;
+typedef std::vector<pair_unsigned_unsigned>::iterator vector_of_pair_unsigned_unsigned_iterator;
+typedef std::vector<pair_ULL_ULL>::iterator       vector_of_pair_ULL_ULL_iterator;
+typedef std::vector<pair_int_int>::iterator       vector_of_pair_int_int_iterator;
 
-typedef vector<Spheral::Vector1d> vector_of_Vector1d;
-typedef vector<Spheral::Vector2d> vector_of_Vector2d;
-typedef vector<Spheral::Vector3d> vector_of_Vector3d;
+typedef std::vector<Spheral::Vector1d> vector_of_Vector1d;
+typedef std::vector<Spheral::Vector2d> vector_of_Vector2d;
+typedef std::vector<Spheral::Vector3d> vector_of_Vector3d;
 
-typedef vector<Spheral::Tensor1d> vector_of_Tensor1d;
-typedef vector<Spheral::Tensor2d> vector_of_Tensor2d;
-typedef vector<Spheral::Tensor3d> vector_of_Tensor3d;
+typedef std::vector<Spheral::Tensor1d> vector_of_Tensor1d;
+typedef std::vector<Spheral::Tensor2d> vector_of_Tensor2d;
+typedef std::vector<Spheral::Tensor3d> vector_of_Tensor3d;
 
-typedef vector<Spheral::SymTensor1d> vector_of_SymTensor1d;
-typedef vector<Spheral::SymTensor2d> vector_of_SymTensor2d;
-typedef vector<Spheral::SymTensor3d> vector_of_SymTensor3d;
+typedef std::vector<Spheral::SymTensor1d> vector_of_SymTensor1d;
+typedef std::vector<Spheral::SymTensor2d> vector_of_SymTensor2d;
+typedef std::vector<Spheral::SymTensor3d> vector_of_SymTensor3d;
 
-typedef vector<Spheral::ThirdRankTensor1d> vector_of_ThirdRankTensor1d;
-typedef vector<Spheral::ThirdRankTensor2d> vector_of_ThirdRankTensor2d;
-typedef vector<Spheral::ThirdRankTensor3d> vector_of_ThirdRankTensor3d;
+typedef std::vector<Spheral::ThirdRankTensor1d> vector_of_ThirdRankTensor1d;
+typedef std::vector<Spheral::ThirdRankTensor2d> vector_of_ThirdRankTensor2d;
+typedef std::vector<Spheral::ThirdRankTensor3d> vector_of_ThirdRankTensor3d;
 
-typedef vector<Spheral::FourthRankTensor1d> vector_of_FourthRankTensor1d;
-typedef vector<Spheral::FourthRankTensor2d> vector_of_FourthRankTensor2d;
-typedef vector<Spheral::FourthRankTensor3d> vector_of_FourthRankTensor3d;
+typedef std::vector<Spheral::FourthRankTensor1d> vector_of_FourthRankTensor1d;
+typedef std::vector<Spheral::FourthRankTensor2d> vector_of_FourthRankTensor2d;
+typedef std::vector<Spheral::FourthRankTensor3d> vector_of_FourthRankTensor3d;
 
-typedef vector<Spheral::FifthRankTensor1d> vector_of_FifthRankTensor1d;
-typedef vector<Spheral::FifthRankTensor2d> vector_of_FifthRankTensor2d;
-typedef vector<Spheral::FifthRankTensor3d> vector_of_FifthRankTensor3d;
+typedef std::vector<Spheral::FifthRankTensor1d> vector_of_FifthRankTensor1d;
+typedef std::vector<Spheral::FifthRankTensor2d> vector_of_FifthRankTensor2d;
+typedef std::vector<Spheral::FifthRankTensor3d> vector_of_FifthRankTensor3d;
 
-typedef vector<Spheral::Geom3Vector> vector_of_Geom3Vector;
+typedef std::vector<Spheral::Geom3Vector> vector_of_Geom3Vector;
 
-typedef vector<Spheral::Box1d> vector_of_Box1d;
-typedef vector<Spheral::GeomPolygon> vector_of_Polygon;
-typedef vector<Spheral::GeomPolyhedron> vector_of_Polyhedron;
+typedef std::vector<Spheral::Box1d> vector_of_Box1d;
+typedef std::vector<Spheral::GeomPolygon> vector_of_Polygon;
+typedef std::vector<Spheral::GeomPolyhedron> vector_of_Polyhedron;
 
-typedef vector<Spheral::Vector1d>::iterator vector_of_Vector1d_iterator;
-typedef vector<Spheral::Vector2d>::iterator vector_of_Vector2d_iterator;
-typedef vector<Spheral::Vector3d>::iterator vector_of_Vector3d_iterator;
+typedef std::vector<Spheral::Vector1d>::iterator vector_of_Vector1d_iterator;
+typedef std::vector<Spheral::Vector2d>::iterator vector_of_Vector2d_iterator;
+typedef std::vector<Spheral::Vector3d>::iterator vector_of_Vector3d_iterator;
 
-typedef vector<Spheral::Tensor1d>::iterator vector_of_Tensor1d_iterator;
-typedef vector<Spheral::Tensor2d>::iterator vector_of_Tensor2d_iterator;
-typedef vector<Spheral::Tensor3d>::iterator vector_of_Tensor3d_iterator;
+typedef std::vector<Spheral::Tensor1d>::iterator vector_of_Tensor1d_iterator;
+typedef std::vector<Spheral::Tensor2d>::iterator vector_of_Tensor2d_iterator;
+typedef std::vector<Spheral::Tensor3d>::iterator vector_of_Tensor3d_iterator;
 
-typedef vector<Spheral::SymTensor1d>::iterator vector_of_SymTensor1d_iterator;
-typedef vector<Spheral::SymTensor2d>::iterator vector_of_SymTensor2d_iterator;
-typedef vector<Spheral::SymTensor3d>::iterator vector_of_SymTensor3d_iterator;
+typedef std::vector<Spheral::SymTensor1d>::iterator vector_of_SymTensor1d_iterator;
+typedef std::vector<Spheral::SymTensor2d>::iterator vector_of_SymTensor2d_iterator;
+typedef std::vector<Spheral::SymTensor3d>::iterator vector_of_SymTensor3d_iterator;
 
-typedef vector<Spheral::ThirdRankTensor1d>::iterator vector_of_ThirdRankTensor1d_iterator;
-typedef vector<Spheral::ThirdRankTensor2d>::iterator vector_of_ThirdRankTensor2d_iterator;
-typedef vector<Spheral::ThirdRankTensor3d>::iterator vector_of_ThirdRankTensor3d_iterator;
+typedef std::vector<Spheral::ThirdRankTensor1d>::iterator vector_of_ThirdRankTensor1d_iterator;
+typedef std::vector<Spheral::ThirdRankTensor2d>::iterator vector_of_ThirdRankTensor2d_iterator;
+typedef std::vector<Spheral::ThirdRankTensor3d>::iterator vector_of_ThirdRankTensor3d_iterator;
 
-typedef vector<Spheral::FourthRankTensor1d>::iterator vector_of_FourthRankTensor1d_iterator;
-typedef vector<Spheral::FourthRankTensor2d>::iterator vector_of_FourthRankTensor2d_iterator;
-typedef vector<Spheral::FourthRankTensor3d>::iterator vector_of_FourthRankTensor3d_iterator;
+typedef std::vector<Spheral::FourthRankTensor1d>::iterator vector_of_FourthRankTensor1d_iterator;
+typedef std::vector<Spheral::FourthRankTensor2d>::iterator vector_of_FourthRankTensor2d_iterator;
+typedef std::vector<Spheral::FourthRankTensor3d>::iterator vector_of_FourthRankTensor3d_iterator;
 
-typedef vector<Spheral::FifthRankTensor1d>::iterator vector_of_FifthRankTensor1d_iterator;
-typedef vector<Spheral::FifthRankTensor2d>::iterator vector_of_FifthRankTensor2d_iterator;
-typedef vector<Spheral::FifthRankTensor3d>::iterator vector_of_FifthRankTensor3d_iterator;
+typedef std::vector<Spheral::FifthRankTensor1d>::iterator vector_of_FifthRankTensor1d_iterator;
+typedef std::vector<Spheral::FifthRankTensor2d>::iterator vector_of_FifthRankTensor2d_iterator;
+typedef std::vector<Spheral::FifthRankTensor3d>::iterator vector_of_FifthRankTensor3d_iterator;
 
-typedef vector<Spheral::Geom3Vector>::iterator vector_of_Geom3Vector_iterator;
+typedef std::vector<Spheral::Geom3Vector>::iterator vector_of_Geom3Vector_iterator;
 
-typedef vector<Spheral::Box1d>::iterator vector_of_Box1d_iterator;
-typedef vector<Spheral::GeomPolygon>::iterator vector_of_Polygon_iterator;
-typedef vector<Spheral::GeomPolyhedron>::iterator vector_of_Polyhedron_iterator;
+typedef std::vector<Spheral::Box1d>::iterator vector_of_Box1d_iterator;
+typedef std::vector<Spheral::GeomPolygon>::iterator vector_of_Polygon_iterator;
+typedef std::vector<Spheral::GeomPolyhedron>::iterator vector_of_Polyhedron_iterator;
 
-typedef vector<vector_of_char>        vector_of_vector_of_char;
-typedef vector<vector_of_unsigned>    vector_of_vector_of_unsigned;
-typedef vector<vector_of_int>         vector_of_vector_of_int;
-typedef vector<vector_of_float>       vector_of_vector_of_float;
-typedef vector<vector_of_double>      vector_of_vector_of_double;
-typedef vector<vector_of_string>      vector_of_vector_of_string;
+typedef std::vector<vector_of_char>        vector_of_vector_of_char;
+typedef std::vector<vector_of_unsigned>    vector_of_vector_of_unsigned;
+typedef std::vector<vector_of_int>         vector_of_vector_of_int;
+typedef std::vector<vector_of_float>       vector_of_vector_of_float;
+typedef std::vector<vector_of_double>      vector_of_vector_of_double;
+typedef std::vector<vector_of_string>      vector_of_vector_of_string;
 
-typedef vector<vector_of_Vector1d>       vector_of_vector_of_Vector1d;
-typedef vector<vector_of_Vector2d>       vector_of_vector_of_Vector2d;
-typedef vector<vector_of_Vector3d>       vector_of_vector_of_Vector3d;
+typedef std::vector<vector_of_Vector1d>       vector_of_vector_of_Vector1d;
+typedef std::vector<vector_of_Vector2d>       vector_of_vector_of_Vector2d;
+typedef std::vector<vector_of_Vector3d>       vector_of_vector_of_Vector3d;
 
-typedef vector<vector_of_Tensor1d>       vector_of_vector_of_Tensor1d;
-typedef vector<vector_of_Tensor2d>       vector_of_vector_of_Tensor2d;
-typedef vector<vector_of_Tensor3d>       vector_of_vector_of_Tensor3d;
+typedef std::vector<vector_of_Tensor1d>       vector_of_vector_of_Tensor1d;
+typedef std::vector<vector_of_Tensor2d>       vector_of_vector_of_Tensor2d;
+typedef std::vector<vector_of_Tensor3d>       vector_of_vector_of_Tensor3d;
 
-typedef vector<vector_of_SymTensor1d>       vector_of_vector_of_SymTensor1d;
-typedef vector<vector_of_SymTensor2d>       vector_of_vector_of_SymTensor2d;
-typedef vector<vector_of_SymTensor3d>       vector_of_vector_of_SymTensor3d;
+typedef std::vector<vector_of_SymTensor1d>       vector_of_vector_of_SymTensor1d;
+typedef std::vector<vector_of_SymTensor2d>       vector_of_vector_of_SymTensor2d;
+typedef std::vector<vector_of_SymTensor3d>       vector_of_vector_of_SymTensor3d;
 
-typedef vector<vector_of_ThirdRankTensor1d>       vector_of_vector_of_ThirdRankTensor1d;
-typedef vector<vector_of_ThirdRankTensor2d>       vector_of_vector_of_ThirdRankTensor2d;
-typedef vector<vector_of_ThirdRankTensor3d>       vector_of_vector_of_ThirdRankTensor3d;
+typedef std::vector<vector_of_ThirdRankTensor1d>       vector_of_vector_of_ThirdRankTensor1d;
+typedef std::vector<vector_of_ThirdRankTensor2d>       vector_of_vector_of_ThirdRankTensor2d;
+typedef std::vector<vector_of_ThirdRankTensor3d>       vector_of_vector_of_ThirdRankTensor3d;
 
-typedef vector<vector_of_FourthRankTensor1d>       vector_of_vector_of_FourthRankTensor1d;
-typedef vector<vector_of_FourthRankTensor2d>       vector_of_vector_of_FourthRankTensor2d;
-typedef vector<vector_of_FourthRankTensor3d>       vector_of_vector_of_FourthRankTensor3d;
+typedef std::vector<vector_of_FourthRankTensor1d>       vector_of_vector_of_FourthRankTensor1d;
+typedef std::vector<vector_of_FourthRankTensor2d>       vector_of_vector_of_FourthRankTensor2d;
+typedef std::vector<vector_of_FourthRankTensor3d>       vector_of_vector_of_FourthRankTensor3d;
 
-typedef vector<vector_of_FifthRankTensor1d>       vector_of_vector_of_FifthRankTensor1d;
-typedef vector<vector_of_FifthRankTensor2d>       vector_of_vector_of_FifthRankTensor2d;
-typedef vector<vector_of_FifthRankTensor3d>       vector_of_vector_of_FifthRankTensor3d;
+typedef std::vector<vector_of_FifthRankTensor1d>       vector_of_vector_of_FifthRankTensor1d;
+typedef std::vector<vector_of_FifthRankTensor2d>       vector_of_vector_of_FifthRankTensor2d;
+typedef std::vector<vector_of_FifthRankTensor3d>       vector_of_vector_of_FifthRankTensor3d;
 
-typedef vector<vector_of_vector_of_char>        vector_of_vector_of_vector_of_char;
-typedef vector<vector_of_vector_of_unsigned>    vector_of_vector_of_vector_of_unsigned;
-typedef vector<vector_of_vector_of_int>         vector_of_vector_of_vector_of_int;
-typedef vector<vector_of_vector_of_float>       vector_of_vector_of_vector_of_float;
-typedef vector<vector_of_vector_of_double>      vector_of_vector_of_vector_of_double;
-typedef vector<vector_of_vector_of_string>      vector_of_vector_of_vector_of_string;
+typedef std::vector<vector_of_vector_of_char>        vector_of_vector_of_vector_of_char;
+typedef std::vector<vector_of_vector_of_unsigned>    vector_of_vector_of_vector_of_unsigned;
+typedef std::vector<vector_of_vector_of_int>         vector_of_vector_of_vector_of_int;
+typedef std::vector<vector_of_vector_of_float>       vector_of_vector_of_vector_of_float;
+typedef std::vector<vector_of_vector_of_double>      vector_of_vector_of_vector_of_double;
+typedef std::vector<vector_of_vector_of_string>      vector_of_vector_of_vector_of_string;
 
-typedef vector<vector_of_char>::iterator        vector_of_vector_of_char_iterator;
-typedef vector<vector_of_unsigned>::iterator    vector_of_vector_of_unsigned_iterator;
-typedef vector<vector_of_int>::iterator         vector_of_vector_of_int_iterator;
-typedef vector<vector_of_float>::iterator       vector_of_vector_of_float_iterator;
-typedef vector<vector_of_double>::iterator      vector_of_vector_of_double_iterator;
-typedef vector<vector_of_string>::iterator      vector_of_vector_of_string_iterator;
+typedef std::vector<vector_of_char>::iterator        vector_of_vector_of_char_iterator;
+typedef std::vector<vector_of_unsigned>::iterator    vector_of_vector_of_unsigned_iterator;
+typedef std::vector<vector_of_int>::iterator         vector_of_vector_of_int_iterator;
+typedef std::vector<vector_of_float>::iterator       vector_of_vector_of_float_iterator;
+typedef std::vector<vector_of_double>::iterator      vector_of_vector_of_double_iterator;
+typedef std::vector<vector_of_string>::iterator      vector_of_vector_of_string_iterator;
 
-typedef vector<vector_of_Vector1d>::iterator       vector_of_vector_of_Vector1d_iterator;
-typedef vector<vector_of_Vector2d>::iterator       vector_of_vector_of_Vector2d_iterator;
-typedef vector<vector_of_Vector3d>::iterator       vector_of_vector_of_Vector3d_iterator;
+typedef std::vector<vector_of_Vector1d>::iterator       vector_of_vector_of_Vector1d_iterator;
+typedef std::vector<vector_of_Vector2d>::iterator       vector_of_vector_of_Vector2d_iterator;
+typedef std::vector<vector_of_Vector3d>::iterator       vector_of_vector_of_Vector3d_iterator;
 
-typedef vector<vector_of_Tensor1d>::iterator       vector_of_vector_of_Tensor1d_iterator;
-typedef vector<vector_of_Tensor2d>::iterator       vector_of_vector_of_Tensor2d_iterator;
-typedef vector<vector_of_Tensor3d>::iterator       vector_of_vector_of_Tensor3d_iterator;
+typedef std::vector<vector_of_Tensor1d>::iterator       vector_of_vector_of_Tensor1d_iterator;
+typedef std::vector<vector_of_Tensor2d>::iterator       vector_of_vector_of_Tensor2d_iterator;
+typedef std::vector<vector_of_Tensor3d>::iterator       vector_of_vector_of_Tensor3d_iterator;
 
-typedef vector<vector_of_SymTensor1d>::iterator       vector_of_vector_of_SymTensor1d_iterator;
-typedef vector<vector_of_SymTensor2d>::iterator       vector_of_vector_of_SymTensor2d_iterator;
-typedef vector<vector_of_SymTensor3d>::iterator       vector_of_vector_of_SymTensor3d_iterator;
+typedef std::vector<vector_of_SymTensor1d>::iterator       vector_of_vector_of_SymTensor1d_iterator;
+typedef std::vector<vector_of_SymTensor2d>::iterator       vector_of_vector_of_SymTensor2d_iterator;
+typedef std::vector<vector_of_SymTensor3d>::iterator       vector_of_vector_of_SymTensor3d_iterator;
 
-typedef vector<vector_of_ThirdRankTensor1d>::iterator       vector_of_vector_of_ThirdRankTensor1d_iterator;
-typedef vector<vector_of_ThirdRankTensor2d>::iterator       vector_of_vector_of_ThirdRankTensor2d_iterator;
-typedef vector<vector_of_ThirdRankTensor3d>::iterator       vector_of_vector_of_ThirdRankTensor3d_iterator;
+typedef std::vector<vector_of_ThirdRankTensor1d>::iterator       vector_of_vector_of_ThirdRankTensor1d_iterator;
+typedef std::vector<vector_of_ThirdRankTensor2d>::iterator       vector_of_vector_of_ThirdRankTensor2d_iterator;
+typedef std::vector<vector_of_ThirdRankTensor3d>::iterator       vector_of_vector_of_ThirdRankTensor3d_iterator;
 
-typedef vector<vector_of_FourthRankTensor1d>::iterator       vector_of_vector_of_FourthRankTensor1d_iterator;
-typedef vector<vector_of_FourthRankTensor2d>::iterator       vector_of_vector_of_FourthRankTensor2d_iterator;
-typedef vector<vector_of_FourthRankTensor3d>::iterator       vector_of_vector_of_FourthRankTensor3d_iterator;
+typedef std::vector<vector_of_FourthRankTensor1d>::iterator       vector_of_vector_of_FourthRankTensor1d_iterator;
+typedef std::vector<vector_of_FourthRankTensor2d>::iterator       vector_of_vector_of_FourthRankTensor2d_iterator;
+typedef std::vector<vector_of_FourthRankTensor3d>::iterator       vector_of_vector_of_FourthRankTensor3d_iterator;
 
-typedef vector<vector_of_FifthRankTensor1d>::iterator       vector_of_vector_of_FifthRankTensor1d_iterator;
-typedef vector<vector_of_FifthRankTensor2d>::iterator       vector_of_vector_of_FifthRankTensor2d_iterator;
-typedef vector<vector_of_FifthRankTensor3d>::iterator       vector_of_vector_of_FifthRankTensor3d_iterator;
+typedef std::vector<vector_of_FifthRankTensor1d>::iterator       vector_of_vector_of_FifthRankTensor1d_iterator;
+typedef std::vector<vector_of_FifthRankTensor2d>::iterator       vector_of_vector_of_FifthRankTensor2d_iterator;
+typedef std::vector<vector_of_FifthRankTensor3d>::iterator       vector_of_vector_of_FifthRankTensor3d_iterator;
 
-typedef vector<vector_of_vector_of_char>::iterator        vector_of_vector_of_vector_of_char_iterator;
-typedef vector<vector_of_vector_of_unsigned>::iterator    vector_of_vector_of_vector_of_unsigned_iterator;
-typedef vector<vector_of_vector_of_int>::iterator         vector_of_vector_of_vector_of_int_iterator;
-typedef vector<vector_of_vector_of_float>::iterator       vector_of_vector_of_vector_of_float_iterator;
-typedef vector<vector_of_vector_of_double>::iterator      vector_of_vector_of_vector_of_double_iterator;
-typedef vector<vector_of_vector_of_string>::iterator      vector_of_vector_of_vector_of_string_iterator;
+typedef std::vector<vector_of_vector_of_char>::iterator        vector_of_vector_of_vector_of_char_iterator;
+typedef std::vector<vector_of_vector_of_unsigned>::iterator    vector_of_vector_of_vector_of_unsigned_iterator;
+typedef std::vector<vector_of_vector_of_int>::iterator         vector_of_vector_of_vector_of_int_iterator;
+typedef std::vector<vector_of_vector_of_float>::iterator       vector_of_vector_of_vector_of_float_iterator;
+typedef std::vector<vector_of_vector_of_double>::iterator      vector_of_vector_of_vector_of_double_iterator;
+typedef std::vector<vector_of_vector_of_string>::iterator      vector_of_vector_of_vector_of_string_iterator;
 
 // }
 

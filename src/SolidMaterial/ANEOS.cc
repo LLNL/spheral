@@ -15,6 +15,16 @@
 #include "Utilities/DBC.hh"
 
 #include <iostream>
+using std::vector;
+using std::string;
+using std::pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 
 // Fortran baby!
 extern "C" {
@@ -26,10 +36,6 @@ extern "C" {
 }
 
 namespace Spheral {
-
-using std::min;
-using std::max;
-using std::abs;
 
 // //------------------------------------------------------------------------------
 // // Define an inline common method to handle calling ANEOS1.
@@ -63,7 +69,7 @@ ANEOS(const int materialNumber,
       const MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(get_aneos_referencedensity_(const_cast<int*>(&materialNumber)),  // not in the right units yet!
                                   0.0,                                           // dummy etamin
-                                  numeric_limits<double>::max(),                 // dummy etamax
+                                  std::numeric_limits<double>::max(),            // dummy etamax
                                   constants,
                                   minimumPressure,
                                   maximumPressure,

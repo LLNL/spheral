@@ -74,19 +74,19 @@ typedef VoronoiRedistributeNodes<Dim<1> > VoronoiRedistributeNodes1d;
 typedef VoronoiRedistributeNodes<Dim<2> > VoronoiRedistributeNodes2d;
 typedef VoronoiRedistributeNodes<Dim<3> > VoronoiRedistributeNodes3d;
 
-}
+typedef std::pair<uint64_t, DomainNode1d> pair_ULL_DomainNode1d;
+typedef std::pair<uint64_t, DomainNode2d> pair_ULL_DomainNode2d;
+typedef std::pair<uint64_t, DomainNode3d> pair_ULL_DomainNode3d;
 
-typedef std::pair<uint64_t, Spheral::PartitionSpace::DomainNode1d> pair_ULL_DomainNode1d;
-typedef std::pair<uint64_t, Spheral::PartitionSpace::DomainNode2d> pair_ULL_DomainNode2d;
-typedef std::pair<uint64_t, Spheral::PartitionSpace::DomainNode3d> pair_ULL_DomainNode3d;
-
-typedef std::vector<Spheral::PartitionSpace::DomainNode1d> vector_of_DomainNode1d;
-typedef std::vector<Spheral::PartitionSpace::DomainNode2d> vector_of_DomainNode2d;
-typedef std::vector<Spheral::PartitionSpace::DomainNode3d> vector_of_DomainNode3d;
+typedef std::vector<DomainNode1d> vector_of_DomainNode1d;
+typedef std::vector<DomainNode2d> vector_of_DomainNode2d;
+typedef std::vector<DomainNode3d> vector_of_DomainNode3d;
 
 typedef std::vector<pair_ULL_DomainNode1d> vector_of_pair_ULL_DomainNode1d;
 typedef std::vector<pair_ULL_DomainNode2d> vector_of_pair_ULL_DomainNode2d;
 typedef std::vector<pair_ULL_DomainNode3d> vector_of_pair_ULL_DomainNode3d;
+
+}
 
 // namespace Spheral {
 
@@ -96,9 +96,9 @@ typedef std::vector<pair_ULL_DomainNode3d> vector_of_pair_ULL_DomainNode3d;
 
 // template<typename Dimension>
 // inline
-// NeighborSpace::NestedGridNeighbor<Dimension>*
+// NestedGridNeighbor<Dimension>*
 // getNestedGridNeighbor(const DistributedBoundary<Dimension>& self,
-//                       const NodeSpace::NodeList<Dimension>& nodeList) {
+//                       const NodeList<Dimension>& nodeList) {
 //   return &(self.getNestedGridNeighbor(&nodeList));
 // }
 

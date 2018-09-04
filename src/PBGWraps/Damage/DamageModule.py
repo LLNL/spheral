@@ -43,7 +43,7 @@ self.DamageModel%(dim)id = addObject(space, "DamageModel%(dim)id", parent=Physic
 self.TensorDamageModel%(dim)id = addObject(space, "TensorDamageModel%(dim)id", parent=self.DamageModel%(dim)id, allow_subclassing=True)
 self.JohnsonCookDamage%(dim)id = addObject(space, "JohnsonCookDamage%(dim)id", parent=Physics%(dim)id, allow_subclassing=True)
 self.addWeibullDistributionFunctions(space, %(dim)i)
-self.addComputeFragmentField(SolidSpheral, %(dim)i)
+self.addComputeFragmentField(space, %(dim)i)
 ''' % {"dim" : dim})
 
         return

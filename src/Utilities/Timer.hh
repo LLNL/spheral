@@ -43,9 +43,9 @@ class Timer {
 public:
   
   Timer();                             // unmanaged
-  Timer(const string&);                // root
-  Timer(const string&, Timer&);        // managed
-  Timer(const string&, Timer&, bool);  // diagnostic
+  Timer(const std::string&);                // root
+  Timer(const std::string&, Timer&);        // managed
+  Timer(const std::string&, Timer&, bool);  // diagnostic
   ~Timer();
   
   void setup();
@@ -61,11 +61,11 @@ public:
   long long int papi_counter2() { return accumulated_counter2; }
 #endif
 
-  string Name() { return timer_name;  }
+  std::string Name() { return timer_name;  }
   
   long int Count() { return count; }
 
-  static list<Timer*> TimerList;
+  static std::list<Timer*> TimerList;
 
   static void TimerSummary(const int bert, const int ernie) {
     TimerSummary(); // backwards compatibilty...
@@ -87,7 +87,7 @@ private:
 #endif
 
   int ID;  
-  string timer_name;
+  std::string timer_name;
   Timer& Parent;
 
   double avgWC,  minWC,  maxWC;

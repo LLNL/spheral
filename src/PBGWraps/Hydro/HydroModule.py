@@ -24,7 +24,7 @@ class Hydro:
         space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
-        self.HydroFieldNames = addObject(Spheral, "HydroFieldNames")
+        self.HydroFieldNames = addObject(space, "HydroFieldNames")
 
         for dim in self.dims:
             exec('''

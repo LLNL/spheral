@@ -37,7 +37,7 @@ typedef DataBase<Dim<3> > DataBase3d;
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
 inline
-FieldSpace::Field<Dimension, Value>*
+Field<Dimension, Value>*
 fieldFromStateBase(StateBase<Dimension>& self,
                    const typename StateBase<Dimension>::KeyType& key) {
   return &(self.field(key, Value()));
@@ -48,10 +48,10 @@ fieldFromStateBase(StateBase<Dimension>& self,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-NeighborSpace::ConnectivityMap<Dimension>*
-connectivityMapFromDataBase(const DataBaseSpace::DataBase<Dimension>& db,
+ConnectivityMap<Dimension>*
+connectivityMapFromDataBase(const DataBase<Dimension>& db,
                             const bool buildGhostConnectivity) {
-  return const_cast<NeighborSpace::ConnectivityMap<Dimension>*>(&(db.connectivityMap(buildGhostConnectivity)));
+  return const_cast<ConnectivityMap<Dimension>*>(&(db.connectivityMap(buildGhostConnectivity)));
 }
 
 }

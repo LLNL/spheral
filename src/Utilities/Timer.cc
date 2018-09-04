@@ -2,10 +2,20 @@
 
 #ifdef TIMER 
 
+#include <list>
 #include <iostream>
 #include <fstream>
 #include <cstdio>
 #include <cassert>
+using std::list;
+using std::string;
+using std::pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 #include "Timer.hh"
 

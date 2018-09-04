@@ -78,7 +78,7 @@ template<typename Dimension>
 inline
 typename Boundary<Dimension>::BoundaryNodes*
 accessBoundaryNodesFromBoundary(Boundary<Dimension>& self,
-                                NodeSpace::NodeList<Dimension>& nodes) {
+                                NodeList<Dimension>& nodes) {
   return &(self.accessBoundaryNodes(nodes));
 }
 
