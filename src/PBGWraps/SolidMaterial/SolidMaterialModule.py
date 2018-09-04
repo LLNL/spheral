@@ -20,19 +20,14 @@ class SolidMaterial:
         mod.add_include('"%s/SolidMaterialTypes.hh"' % srcdir)
 
         # Namespace.
-        SolidSpheral = mod.add_cpp_namespace("Spheral")
-        space = SolidSpheral.add_cpp_namespace("SolidMaterial")
-
-        Spheral = mod.add_cpp_namespace("Spheral")
-        Material = Spheral.add_cpp_namespace("Material")
-        PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
+        space = mod.add_cpp_namespace("Spheral")
 
         self.NinthOrderPolynomialFit = addObject(space, "NinthOrderPolynomialFit")
 
         for dim in self.dims:
             exec('''
-EquationOfState%(dim)id = findObject(Material, "EquationOfState%(dim)id")
-Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
+EquationOfState%(dim)id = findObject(space, "EquationOfState%(dim)id")
+Physics%(dim)id = findObject(space, "Physics%(dim)id")
 
 self.SolidEquationOfState%(dim)id = addObject(space, "SolidEquationOfState%(dim)id", parent=EquationOfState%(dim)id, allow_subclassing=True)
 
@@ -92,12 +87,6 @@ generatePhysicsEvolvingMaterialLibraryBindings(self.PhysicsEvolvingMaterialLibra
 
         return
 
-    #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return []
-
 #---------------------------------------------------------------------------
 # SolidEquationOfState
 #---------------------------------------------------------------------------
@@ -130,7 +119,7 @@ def generatePorousEquationOfStateBindings(x, ndim):
 
     me = "Spheral::PorousEquationOfState%id" % ndim
     solideos = "Spheral::EquationOfState%id" % ndim
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
 
     # Constructors.
     x.add_constructor([constrefparam(solideos, "solidEOS")])
@@ -489,7 +478,7 @@ def generateMurnahanEquationOfStateBindings(x, ndim):
 # StrengthModel (virtual interface)
 #---------------------------------------------------------------------------
 def generateStrengthModelVirtualBindings(x, ndim, pureVirtual):
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
 
     # Methods.
     x.add_method("providesSoundSpeed", "bool", [], is_const=True, is_virtual=True)
@@ -605,7 +594,7 @@ def generateSteinbergGuinanStrengthBindings(x, ndim):
 
     solidequationofstate = "Spheral::SolidEquationOfState%id" % ndim
     ninthorderpolynomial = "Spheral::NinthOrderPolynomialFit"
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
 
     # Constructors.
     x.add_constructor([constrefparam(solidequationofstate, "eos"),
@@ -666,7 +655,7 @@ def generateJohnsonCookStrengthBindings(x, ndim):
 
     solidequationofstate = "Spheral::SolidEquationOfState%id" % ndim
     strengthmodel = "Spheral::StrengthModel%id" % ndim
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
 
     # Constructors.
     x.add_constructor([constrefparam(solidequationofstate, "eos"),
@@ -710,7 +699,7 @@ def generateCollinsStrengthBindings(x, ndim):
 
     solidequationofstate = "Spheral::SolidEquationOfState%id" % ndim
     strengthmodel = "Spheral::StrengthModel%id" % ndim
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
 
     # Constructors.
     x.add_constructor([constrefparam(strengthmodel, "shearModulusModel"),
@@ -735,7 +724,7 @@ def generatePorousStrengthModelBindings(x, ndim):
 
     me = "Spheral::PorousStrengthModel%id" % ndim
     strengthmodel = "Spheral::StrengthModel%id" % ndim
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
 
     # Constructors.
     x.add_constructor([constrefparam(strengthmodel, "solidStrength")])
@@ -800,10 +789,10 @@ def generateStrainPorosityBindings(x, ndim):
     me = "Spheral::StrainPorosity%id" % ndim
     porouseos = "Spheral::PorousEquationOfState%id" % ndim
     porousstrength = "Spheral::PorousStrengthModel%id" % ndim
-    nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    nodelist = "Spheral::NodeList%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
     vector_of_boundary = "vector_of_Boundary%id" % ndim
-    fileio = "Spheral::FileIOSpace::FileIO"
+    fileio = "Spheral::FileIO"
 
     # Constructors.
     x.add_constructor([refparam(porouseos, "porousEOS"),

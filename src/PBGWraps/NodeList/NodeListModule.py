@@ -21,16 +21,15 @@ class NodeList:
         mod.add_include('"%s/NodeListTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        self.space = Spheral.add_cpp_namespace("NodeSpace")
+        self.space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
-        self.NodeType = self.space.add_enum("NodeType", [("InternalNode", "Spheral::NodeSpace::NodeType::InternalNode"), 
-                                                         ("GhostNode",    "Spheral::NodeSpace::NodeType::GhostNode")])
+        self.NodeType = self.space.add_enum("NodeType", [("InternalNode", "Spheral::NodeType::InternalNode"), 
+                                                         ("GhostNode",    "Spheral::NodeType::GhostNode")])
 
         for ndim in self.dims:
             exec("""
-self.NodeListRegistrar%(dim)s = addObject(Spheral, "NodeListRegistrar%(dim)s", is_singleton=True);
+self.NodeListRegistrar%(dim)s = addObject(self.space, "NodeListRegistrar%(dim)s", is_singleton=True);
 self.NodeList%(dim)s = addObject(self.space, "NodeList%(dim)s", allow_subclassing=True)
 self.FluidNodeList%(dim)s = addObject(self.space, "FluidNodeList%(dim)s", allow_subclassing=True, parent=self.NodeList%(dim)s)
 self.SolidNodeList%(dim)s = addObject(self.space, "SolidNodeList%(dim)s", allow_subclassing=True, parent=self.FluidNodeList%(dim)s)
@@ -74,12 +73,12 @@ self.addSmoothingScaleBaseDescendentMethods(self.FixedSmoothingScale%(dim)s, %(n
 self.addSmoothingScaleBaseDescendentMethods(self.SPHSmoothingScale%(dim)s, %(ndim)s)
 self.addSmoothingScaleBaseDescendentMethods(self.ASPHSmoothingScale%(dim)s, %(ndim)s)
 
-generateStdVectorBindings(self.vector_of_NodeList%(dim)s, "Spheral::NodeSpace::NodeList%(dim)s*", "vector_of_NodeList%(dim)s")
-generateStdVectorBindings(self.vector_of_FluidNodeList%(dim)s, "Spheral::NodeSpace::FluidNodeList%(dim)s*", "vector_of_FluidNodeList%(dim)s")
-generateStdVectorBindings(self.vector_of_SolidNodeList%(dim)s, "Spheral::NodeSpace::SolidNodeList%(dim)s*", "vector_of_SolidNodeList%(dim)s")
+generateStdVectorBindings(self.vector_of_NodeList%(dim)s, "Spheral::NodeList%(dim)s*", "vector_of_NodeList%(dim)s")
+generateStdVectorBindings(self.vector_of_FluidNodeList%(dim)s, "Spheral::FluidNodeList%(dim)s*", "vector_of_FluidNodeList%(dim)s")
+generateStdVectorBindings(self.vector_of_SolidNodeList%(dim)s, "Spheral::SolidNodeList%(dim)s*", "vector_of_SolidNodeList%(dim)s")
 
 generateStdPairBindings(self.pair_NodeList%(dim)s_string,
-                        "const Spheral::NodeSpace::NodeList%(dim)s*",
+                        "const Spheral::NodeList%(dim)s*",
                         "std::string",
                         "pair_NodeList%(dim)s_string",
                         extract_first = False)
@@ -101,38 +100,38 @@ self.space.add_function("generateVoidNodes", None,
                          param("unsigned int", "numInternal"),
                          param("double", "nPerh"),
                          param("double", "voidThreshold"),
-                         refparam("Spheral::NodeSpace::NodeList%(dim)s", "voidNodes")],
+                         refparam("Spheral::NodeList%(dim)s", "voidNodes")],
                         template_parameters = ["Spheral::Dim<%(ndim)s>"],
                         custom_name = "generateVoidNodes",
                         docstring = "Generate a new set of void nodes based on surfaces in a set of NodeLists.")
 
-self.space.add_function("nthNodalMoment", "Spheral::FieldSpace::ScalarFieldList%(dim)s",
+self.space.add_function("nthNodalMoment", "Spheral::ScalarFieldList%(dim)s",
                         [constrefparam("vector_of_NodeList%(dim)s", "nodeLists"),
-                         constrefparam("Spheral::KernelSpace::TableKernel%(dim)s", "xmin"),
+                         constrefparam("Spheral::TableKernel%(dim)s", "xmin"),
                          param("bool", "renormalize")],
                         template_parameters = ["Spheral::Dim<%(ndim)s>", "0U"],
                         custom_name = "zerothNodalMoment",
                         docstring = "Compute the zeroth moment of the local node distribution in eta space.")
-self.space.add_function("nthNodalMoment", "Spheral::FieldSpace::VectorFieldList%(dim)s",
+self.space.add_function("nthNodalMoment", "Spheral::VectorFieldList%(dim)s",
                         [constrefparam("vector_of_NodeList%(dim)s", "nodeLists"),
-                         constrefparam("Spheral::KernelSpace::TableKernel%(dim)s", "xmin"),
+                         constrefparam("Spheral::TableKernel%(dim)s", "xmin"),
                          param("bool", "renormalize")],
                         template_parameters = ["Spheral::Dim<%(ndim)s>", "1U"],
                         custom_name = "firstNodalMoment",
                         docstring = "Compute the first moment of the local node distribution in eta space.")
-self.space.add_function("nthNodalMoment", "Spheral::FieldSpace::SymTensorFieldList%(dim)s",
+self.space.add_function("nthNodalMoment", "Spheral::SymTensorFieldList%(dim)s",
                         [constrefparam("vector_of_NodeList%(dim)s", "nodeLists"),
-                         constrefparam("Spheral::KernelSpace::TableKernel%(dim)s", "xmin"),
+                         constrefparam("Spheral::TableKernel%(dim)s", "xmin"),
                          param("bool", "renormalize")],
                         template_parameters = ["Spheral::Dim<%(ndim)s>", "2U"],
                         custom_name = "secondNodalMoment",
                         docstring = "Compute the second moment of the local node distribution in eta space.")
 self.space.add_function("zerothAndFirstNodalMoments", None,
                         [constrefparam("vector_of_NodeList%(dim)s", "nodeLists"),
-                         constrefparam("Spheral::KernelSpace::TableKernel%(dim)s", "xmin"),
+                         constrefparam("Spheral::TableKernel%(dim)s", "xmin"),
                          param("bool", "useGradientAsKernel"),
-                         refparam("Spheral::FieldSpace::ScalarFieldList%(dim)s", "zerothMoment"),
-                         refparam("Spheral::FieldSpace::VectorFieldList%(dim)s", "firstMoment")],
+                         refparam("Spheral::ScalarFieldList%(dim)s", "zerothMoment"),
+                         refparam("Spheral::VectorFieldList%(dim)s", "firstMoment")],
                         template_parameters = ["Spheral::Dim<%(ndim)s>"],
                         custom_name = "zerothAndFirstNodalMoments",
                         docstring = "Compute the zeroth and first moments of the local node distribution in eta space.")
@@ -155,13 +154,13 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
     def addNodeListRegistrarMethods(self, x, ndim):
 
         # External objects.
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
         state = "Spheral::State%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
-        neighbor = "Spheral::NeighborSpace::Neighbor%id" % ndim
+        fileio = "Spheral::FileIO"
+        neighbor = "Spheral::Neighbor%id" % ndim
 
         # Methods.
         x.add_method("valid", "bool", [], is_const=True)
@@ -179,17 +178,17 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
     #---------------------------------------------------------------------------
     def addNodeListMethods(self, x, ndim):
 
-        me = "Spheral::NodeSpace::NodeList%id" % ndim
+        me = "Spheral::NodeList%id" % ndim
 
         # External objects.
-        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
+        fieldbase = "Spheral::FieldBase%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
         state = "Spheral::State%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
-        neighbor = "Spheral::NeighborSpace::Neighbor%id" % ndim
+        fileio = "Spheral::FileIO"
+        neighbor = "Spheral::Neighbor%id" % ndim
 
         # Constructors.
         x.add_constructor([param("std::string", "name"),
@@ -254,22 +253,22 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
     #---------------------------------------------------------------------------
     def addFluidNodeListMethods(self, x, ndim):
 
-        me = "Spheral::NodeSpace::FluidNodeList%id" % ndim
+        me = "Spheral::FluidNodeList%id" % ndim
 
         # External objects.
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
         state = "Spheral::State%id" % ndim
         statederivatives = "Spheral::StateDerivatives%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
-        fluidderivativeproducer = "Spheral::NodeSpace::FluidDerivativeProducer%id" % ndim
-        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        fileio = "Spheral::FileIO"
+        fluidderivativeproducer = "Spheral::FluidDerivativeProducer%id" % ndim
+        smoothingscalebase = "Spheral::SmoothingScaleBase%id" % ndim
         equationofstate = "Spheral::EquationOfState%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
+        fileio = "Spheral::FileIO"
 
         # Constructors.
         x.add_constructor([param("std::string", "name"),
@@ -319,16 +318,16 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
     #---------------------------------------------------------------------------
     def addSolidNodeListBindings(self, x, ndim):
 
-        me = "Spheral::NodeSpace::SolidNodeList%id" % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        me = "Spheral::SolidNodeList%id" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        smoothingscalebase = "Spheral::SmoothingScaleBase%id" % ndim
         equationofstate = "Spheral::EquationOfState%id" % ndim
         strengthmodel = "Spheral::StrengthModel%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        fileio = "Spheral::FileIO"
 
         # Constructors.
         x.add_constructor([param("std::string", "name"),
@@ -370,26 +369,26 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
     #---------------------------------------------------------------------------
     def addSmoothingScaleBaseMethods(self, x, ndim):
 
-        me = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        me = "Spheral::SmoothingScaleBase%id" % ndim
 
         # External objects.
         vector = "Spheral::Vector%id" % ndim
         tensor = "Spheral::Tensor%id" % ndim
         symtensor = "Spheral::SymTensor%id" % ndim
-        fluidnodelist = "Spheral::NodeSpace::FluidNodeList%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
+        fluidnodelist = "Spheral::FluidNodeList%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
         state = "Spheral::State%id" % ndim
         statederivatives = "Spheral::StateDerivatives%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
-        fluidderivativeproducer = "Spheral::NodeSpace::FluidDerivativeProducer%id" % ndim
-        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        fileio = "Spheral::FileIO"
+        fluidderivativeproducer = "Spheral::FluidDerivativeProducer%id" % ndim
+        smoothingscalebase = "Spheral::SmoothingScaleBase%id" % ndim
         equationofstate = "Spheral::EquationOfState%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
+        fileio = "Spheral::FileIO"
 
         # Constructors.
         x.add_constructor([])
@@ -423,20 +422,20 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
         vector = "Spheral::Vector%id" % ndim
         tensor = "Spheral::Tensor%id" % ndim
         symtensor = "Spheral::SymTensor%id" % ndim
-        fluidnodelist = "Spheral::NodeSpace::FluidNodeList%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
+        fluidnodelist = "Spheral::FluidNodeList%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
         state = "Spheral::State%id" % ndim
         statederivatives = "Spheral::StateDerivatives%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
-        fluidderivativeproducer = "Spheral::NodeSpace::FluidDerivativeProducer%id" % ndim
-        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        fileio = "Spheral::FileIO"
+        fluidderivativeproducer = "Spheral::FluidDerivativeProducer%id" % ndim
+        smoothingscalebase = "Spheral::SmoothingScaleBase%id" % ndim
         equationofstate = "Spheral::EquationOfState%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
+        fileio = "Spheral::FileIO"
 
         # Constructors.
         x.add_constructor([])
@@ -455,21 +454,21 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
         vector = "Spheral::Vector%id" % ndim
         tensor = "Spheral::Tensor%id" % ndim
         symtensor = "Spheral::SymTensor%id" % ndim
-        fluidnodelist = "Spheral::NodeSpace::FluidNodeList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldlist%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldlist%id" % ndim
+        fluidnodelist = "Spheral::FluidNodeList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldlist%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldlist%id" % ndim
         state = "Spheral::State%id" % ndim
         statederivatives = "Spheral::StateDerivatives%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
-        fluidderivativeproducer = "Spheral::NodeSpace::FluidDerivativeProducer%id" % ndim
-        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        fileio = "Spheral::FileIO"
+        fluidderivativeproducer = "Spheral::FluidDerivativeProducer%id" % ndim
+        smoothingscalebase = "Spheral::SmoothingScaleBase%id" % ndim
         equationofstate = "Spheral::EquationOfState%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
-        mesh = "Spheral::MeshSpace::" + {1 : "LineMesh", 2 : "PolygonalMesh", 3 : "PolyhedralMesh"}[ndim]
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
+        fileio = "Spheral::FileIO"
+        mesh = "Spheral::" + {1 : "LineMesh", 2 : "PolygonalMesh", 3 : "PolyhedralMesh"}[ndim]
         zone = "%s::Zone" % mesh
 
         # Constructors.

@@ -20,25 +20,22 @@ class Distributed:
         mod.add_include('"%s/DistributedTypes.hh"' % srcdir)
 
         # Namespaces.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        bound = Spheral.add_cpp_namespace("BoundarySpace")
-
-        self.space = Spheral.add_cpp_namespace("PartitionSpace")
+        self.space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
         for dim in self.dims:
             exec('''
-Boundary%(dim)id = findObject(bound, "Boundary%(dim)id")
+Boundary%(dim)id = findObject(self.space, "Boundary%(dim)id")
 
-self.DistributedBoundary%(dim)id = addObject(bound, "DistributedBoundary%(dim)id", parent=Boundary%(dim)id, allow_subclassing=True)
+self.DistributedBoundary%(dim)id = addObject(self.space, "DistributedBoundary%(dim)id", parent=Boundary%(dim)id, allow_subclassing=True)
 
-self.NestedGridDistributedBoundary%(dim)id = addObject(bound, "NestedGridDistributedBoundary%(dim)id", parent=self.DistributedBoundary%(dim)id, allow_subclassing=True, is_singleton=True)
+self.NestedGridDistributedBoundary%(dim)id = addObject(self.space, "NestedGridDistributedBoundary%(dim)id", parent=self.DistributedBoundary%(dim)id, allow_subclassing=True, is_singleton=True)
 
-self.BoundingVolumeDistributedBoundary%(dim)id = addObject(bound, "BoundingVolumeDistributedBoundary%(dim)id", parent=self.DistributedBoundary%(dim)id, allow_subclassing=True, is_singleton=True)
+self.BoundingVolumeDistributedBoundary%(dim)id = addObject(self.space, "BoundingVolumeDistributedBoundary%(dim)id", parent=self.DistributedBoundary%(dim)id, allow_subclassing=True, is_singleton=True)
 
-self.TreeDistributedBoundary%(dim)id = addObject(bound, "TreeDistributedBoundary%(dim)id", parent=self.DistributedBoundary%(dim)id, allow_subclassing=True, is_singleton=True)
+self.TreeDistributedBoundary%(dim)id = addObject(self.space, "TreeDistributedBoundary%(dim)id", parent=self.DistributedBoundary%(dim)id, allow_subclassing=True, is_singleton=True)
 
-self.DomainBoundaryNodes%(dim)id = addObject(bound, "DomainBoundaryNodes", outer_class=self.DistributedBoundary%(dim)id, allow_subclassing=True)
+self.DomainBoundaryNodes%(dim)id = addObject(self.space, "DomainBoundaryNodes", outer_class=self.DistributedBoundary%(dim)id, allow_subclassing=True)
 
 self.DomainNode%(dim)id = addObject(self.space, "DomainNode%(dim)id", allow_subclassing=True)
 
@@ -91,9 +88,9 @@ self.genericOrderRedistributeNodesBindings(self.PeanoHilbertOrderRedistributeNod
 self.genericSortAndDivideRedistributeNodesBindings(self.SortAndDivideRedistributeNodes%(dim)id, %(dim)i)
 self.voronoiRedistributeNodesBindings(self.VoronoiRedistributeNodes%(dim)id, %(dim)i)
 
-generateStdPairBindings(self.pair_ULL_DomainNode%(dim)id, "uint64_t", "Spheral::PartitionSpace::DomainNode%(dim)id", "pair_ULL_DomainNode%(dim)id")
+generateStdPairBindings(self.pair_ULL_DomainNode%(dim)id, "uint64_t", "Spheral::DomainNode%(dim)id", "pair_ULL_DomainNode%(dim)id")
 
-generateStdVectorBindings(self.vector_of_DomainNode%(dim)id, "Spheral::PartitionSpace::DomainNode%(dim)id", "vector_of_DomainNode%(dim)id", True)
+generateStdVectorBindings(self.vector_of_DomainNode%(dim)id, "Spheral::DomainNode%(dim)id", "vector_of_DomainNode%(dim)id", True)
 
 generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_DomainNode%(dim)id", "vector_of_pair_ULL_DomainNode%(dim)id", True)
 ''' % {"dim" : dim})
@@ -113,19 +110,19 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
         me = "DistributedBoundary%id" % ndim
         dim = "Spheral::Dim<%i> " % ndim
         vector = "Vector%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
-        domainboundarynodes = "Spheral::BoundarySpace::DistributedBoundary%id::DomainBoundaryNodes" % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        nestedgridneighbor = "Spheral::NeighborSpace::NestedGridNeighbor%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
+        domainboundarynodes = "Spheral::DistributedBoundary%id::DomainBoundaryNodes" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        thirdranktensorfield = "Spheral::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::VectorVectorField%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
+        nestedgridneighbor = "Spheral::NestedGridNeighbor%id" % ndim
 
         # Constructors.
         x.add_constructor([])
@@ -172,19 +169,19 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
     #---------------------------------------------------------------------------
     def nestedGridDistributedBoundaryBindings(self, x, ndim):
 
-        me = "Spheral::BoundarySpace::NestedGridDistributedBoundary%id" % ndim
+        me = "Spheral::NestedGridDistributedBoundary%id" % ndim
         dim = "Spheral::Dim<%i> " % ndim
         vector = "Vector%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         domainboundarynodes = "DomainBoundaryNodes%id" % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        gridcellindex = "Spheral::NeighborSpace::GridCellIndex%id" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        thirdranktensorfield = "Spheral::ThirdRankTensorField%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
+        gridcellindex = "Spheral::GridCellIndex%id" % ndim
         vector_of_gridcellindex = "vector_of_GridCellIndex%id" % ndim
         vector_of_vector_of_gridcellindex = "vector_of_vector_of_GridCellIndex%id" % ndim
 
@@ -216,9 +213,9 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
     #---------------------------------------------------------------------------
     def boundingVolumeDistributedBoundaryBindings(self, x, ndim):
 
-        me = "Spheral::BoundarySpace::BoundingVolumeDistributedBoundary%id" % ndim
+        me = "Spheral::BoundingVolumeDistributedBoundary%id" % ndim
         dim = "Spheral::Dim<%i> " % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
 
         # No constructors -- just the instance method since this is a singleton.
         x.add_method("instancePtr", retval(ptr(me), caller_owns_return=True), [], is_static=True, custom_name="instance")
@@ -233,9 +230,9 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
     #---------------------------------------------------------------------------
     def treeDistributedBoundaryBindings(self, x, ndim):
 
-        me = "Spheral::BoundarySpace::TreeDistributedBoundary%id" % ndim
+        me = "Spheral::TreeDistributedBoundary%id" % ndim
         dim = "Spheral::Dim<%i> " % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
 
         # No constructors -- just the instance method since this is a singleton.
         x.add_method("instancePtr", retval(ptr(me), caller_owns_return=True), [], is_static=True, custom_name="instance")
@@ -296,11 +293,11 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
 
         me = "RedistributeNodes%id" % ndim
         vector = "Vector%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         domainboundarynodes = "DomainBoundaryNodes%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         vector_of_domainnode = "vector_of_DomainNode%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
 
@@ -338,7 +335,7 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
     #---------------------------------------------------------------------------
     def distributeByXPositionBindings(self, x, ndim):
 
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
         
         # Constructors.
@@ -359,14 +356,14 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
 
         me = "NestedGridRedistributeNodes%id" % ndim
         vector = "Vector%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         domainboundarynodes = "DomainBoundaryNodes%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         vector_of_domainnode = "vector_of_DomainNode%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
-        gridcell = "Spheral::NeighborSpace::GridCellIndex%id" % ndim
+        gridcell = "Spheral::GridCellIndex%id" % ndim
 
         # Constructors.
         x.add_constructor([param("double", "Hextent")])
@@ -400,15 +397,15 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
 
         me = "SpaceFillingCurveRedistributeNodes%id" % ndim
         vector = "Vector%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         domainboundarynodes = "DomainBoundaryNodes%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         vector_of_domainnode = "vector_of_DomainNode%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
-        gridcell = "Spheral::NeighborSpace::GridCellIndex%id" % ndim
-        ullfieldlist = "Spheral::FieldSpace::ULLFieldList%id" % ndim
+        gridcell = "Spheral::GridCellIndex%id" % ndim
+        ullfieldlist = "Spheral::ULLFieldList%id" % ndim
         pair_vector_vector = "pair_Vector%id_Vector%id" % (ndim, ndim)
         vector_of_pair_ull_domainnode = "vector_of_pair_ULL_DomainNode%id" % ndim
         key = "uint64_t"
@@ -480,15 +477,15 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
     def genericOrderRedistributeNodesBindings(self, x, ndim):
 
         vector = "Vector%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         domainboundarynodes = "DomainBoundaryNodes%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         vector_of_domainnode = "vector_of_DomainNode%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
-        gridcell = "Spheral::NeighborSpace::GridCellIndex%id" % ndim
-        ullfieldlist = "Spheral::FieldSpace::ULLFieldList%id" % ndim
+        gridcell = "Spheral::GridCellIndex%id" % ndim
+        ullfieldlist = "Spheral::ULLFieldList%id" % ndim
         pair_vector_vector = "pair_Vector%id_Vector%id" % (ndim, ndim)
         vector_of_pair_ull_domainnode = "vector_of_pair_ULL_DomainNode%id" % ndim
         key = "uint64_t"
@@ -514,11 +511,11 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
 
         vector = "Vector%id" % ndim
         eigenstruct = "EigenStruct%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         domainboundarynodes = "DomainBoundaryNodes%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         vector_of_domainnode = "vector_of_DomainNode%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
 
@@ -572,16 +569,16 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
     def voronoiRedistributeNodesBindings(self, x, ndim):
 
         vector = "Vector%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         domainboundarynodes = "DomainBoundaryNodes%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         vector_of_vector = "vector_of_%s" % vector
         vector_of_domainnode = "vector_of_DomainNode%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
-        gridcell = "Spheral::NeighborSpace::GridCellIndex%id" % ndim
-        ullfieldlist = "Spheral::FieldSpace::ULLFieldList%id" % ndim
+        gridcell = "Spheral::GridCellIndex%id" % ndim
+        ullfieldlist = "Spheral::ULLFieldList%id" % ndim
         pair_vector_vector = "pair_Vector%id_Vector%id" % (ndim, ndim)
         vector_of_pair_ull_domainnode = "vector_of_pair_ULL_DomainNode%id" % ndim
         key = "uint64_t"

@@ -24,8 +24,6 @@ typedef NodeListRegistrar<Dim<1> > NodeListRegistrar1d;
 typedef NodeListRegistrar<Dim<2> > NodeListRegistrar2d;
 typedef NodeListRegistrar<Dim<3> > NodeListRegistrar3d;
 
-namespace NodeSpace {
-
 typedef NodeList<Dim<1> > NodeList1d;
 typedef NodeList<Dim<2> > NodeList2d;
 typedef NodeList<Dim<3> > NodeList3d;
@@ -99,7 +97,6 @@ zerothAndFirstNodalMoments(const std::vector<NodeList<Dimension>*>& nodeLists,
 }
 
 }
-}
 
 typedef std::vector<Spheral::NodeSpace::NodeList<Spheral::Dim<1> >*> vector_of_NodeList1d;
 typedef std::vector<Spheral::NodeSpace::NodeList<Spheral::Dim<2> >*> vector_of_NodeList2d;
@@ -149,6 +146,7 @@ typedef std::vector<Spheral::NodeSpace::SolidNodeList<Dim<3> >*>::iterator vecto
 // Extract the NodeListRegistrar instance.
 //------------------------------------------------------------------------------
 namespace Spheral {
+
 template<typename Dimension>
 inline
 static NodeListRegistrar<Dimension>*

@@ -22,8 +22,7 @@ class ArtificialConduction:
         mod.add_include('"%s/ArtificialConductionTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("PhysicsSpace")
+        space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
         for dim in self.dims:
@@ -48,7 +47,7 @@ self.generateArtificialConductionBindings(self.ArtificialConduction%(dim)id, %(d
     # The new sub modules (namespaces) introduced.
     #---------------------------------------------------------------------------
     def newSubModules(self):
-        return ["PhysicsSpace"]
+        return []
 
     #---------------------------------------------------------------------------
     # Artificial Conduction
@@ -56,24 +55,24 @@ self.generateArtificialConductionBindings(self.ArtificialConduction%(dim)id, %(d
     def generateArtificialConductionBindings(self, x, ndim):
         
         # Object names.
-        me = "Spheral::PhysicsSpace::ArtificialConduction%id" % ndim
+        me = "Spheral::ArtificialConduction%id" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        boundary = "Spheral::BoundarySpace::Boundary%id" % ndim
+        boundary = "Spheral::Boundary%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscosity%id" % ndim
         
         # Constructor.
         x.add_constructor([constrefparam(tablekernel, "W"),
                            param("double", "arCondAlpha", default_value="0.5"),
-                           param("CRKOrder", "ACcorrectionOrder", default_value="Spheral::CRKSPHSpace::CRKOrder::LinearOrder")])
+                           param("CRKOrder", "ACcorrectionOrder", default_value="Spheral::CRKOrder::LinearOrder")])
         # Attributes.
         x.add_instance_attribute("ACcorrectionOrder", "CRKOrder", getter="ACcorrectionOrder", setter="ACcorrectionOrder")
                            

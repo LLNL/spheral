@@ -7,7 +7,6 @@
 #include "Physics/GenericBodyForce.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -24,7 +23,6 @@ typedef GenericBodyForce<Dim<1> > GenericBodyForce1d;
 typedef GenericBodyForce<Dim<2> > GenericBodyForce2d;
 typedef GenericBodyForce<Dim<3> > GenericBodyForce3d;
     
-}
 }
 
 typedef std::vector<Spheral::PhysicsSpace::Physics<Spheral::Dim<1> >*> vector_of_Physics1d;

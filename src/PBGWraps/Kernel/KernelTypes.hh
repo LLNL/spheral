@@ -20,7 +20,6 @@
 #include "Kernel/ExpInvKernel.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -89,7 +88,6 @@ typedef ExpInvKernel<Dim<1> > ExpInvKernel1d;
 typedef ExpInvKernel<Dim<2> > ExpInvKernel2d;
 typedef ExpInvKernel<Dim<3> > ExpInvKernel3d;
 
-}
 }
 
 #endif

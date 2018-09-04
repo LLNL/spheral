@@ -21,10 +21,7 @@ class Geodyn:
         mod.add_include('"%s/SolidMaterial/Geodyn.hh"' % topsrcdir)
 
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        Material = Spheral.add_cpp_namespace("Material")
-        PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
-        self.space = Spheral.add_cpp_namespace("SolidMaterial")
+        self.space = mod.add_cpp_namespace("Spheral")
 
         for dim in self.dims:
             exec('''

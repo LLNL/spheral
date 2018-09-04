@@ -20,8 +20,7 @@ class Field:
         mod.add_include('"%s/FieldTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("FieldSpace")
+        space = mod.add_cpp_namespace("Spheral")
 
         self.FieldStorageType = space.add_enum("FieldStorageType", [("ReferenceFields", "Spheral::FieldSpace::FieldStorageType::ReferenceFields"),
                                                                     ("CopyFields", "Spheral::FieldSpace::FieldStorageType::CopyFields")])
@@ -133,12 +132,6 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
 """ % {"element" : element, "dim" : dim})
 
         return
-
-    #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return ["FieldSpace"]
 
     #---------------------------------------------------------------------------
     # Add methods (Fields).

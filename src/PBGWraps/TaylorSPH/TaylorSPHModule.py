@@ -21,12 +21,10 @@ class TaylorSPH:
         mod.add_include('"%s/TaylorSPHTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        self.space = Spheral.add_cpp_namespace("TaylorSPHSpace")
-        PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
+        self.space = mod.add_cpp_namespace("Spheral")
         for dim in self.dims:
             exec('''
-generichydro%(dim)id = findObject(PhysicsSpace, "GenericHydro%(dim)id")
+generichydro%(dim)id = findObject(self.space, "GenericHydro%(dim)id")
 self.TaylorSPHHydroBase%(dim)id = addObject(self.space, "TaylorSPHHydroBase%(dim)id", allow_subclassing=True, parent=generichydro%(dim)id)
 ''' % {"dim" : dim})
 
@@ -46,12 +44,6 @@ self.generateTaylorSPHHydroBaseBindings(self.TaylorSPHHydroBase%(dim)id, %(dim)i
         return
 
     #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return ["TaylorSPHSpace"]
-
-    #---------------------------------------------------------------------------
     # Add the types per dimension.
     #---------------------------------------------------------------------------
     def generateDimBindings(self, ndim):
@@ -60,12 +52,12 @@ self.generateTaylorSPHHydroBaseBindings(self.TaylorSPHHydroBase%(dim)id, %(dim)i
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
 
         # TaylorSPH corrections.
         self.space.add_function("computeTaylorSPHCorrections", None,
@@ -86,43 +78,43 @@ self.generateTaylorSPHHydroBaseBindings(self.TaylorSPHHydroBase%(dim)id, %(dim)i
     def generateTaylorSPHHydroBaseBindings(self, x, ndim):
 
         # Object names.
-        me = "Spheral::TaylorSPHSpace::TaylorSPHHydroBase%id" % ndim
+        me = "Spheral::TaylorSPHHydroBase%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
-        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
-        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
-        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
-        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        fieldbase = "Spheral::FieldBase%id" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        vector3dfield = "Spheral::Vector3dField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::ThirdRankTensorFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
         key = "pair_NodeList%id_string" % ndim
         vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
-        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscosity%id" % ndim
+        fileio = "Spheral::FileIO"
+        smoothingscalebase = "Spheral::SmoothingScaleBase%id" % ndim
 
         # Constructors.
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
@@ -132,7 +124,7 @@ self.generateTaylorSPHHydroBaseBindings(self.TaylorSPHHydroBase%(dim)id, %(dim)i
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
                            param("int", "XSPH", default_value="true"),
-                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::HEvolutionType::IdealH")])
+                           param("HEvolutionType", "HUpdate", default_value="Spheral::HEvolutionType::IdealH")])
 
         # Methods.
         x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)

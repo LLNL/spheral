@@ -15,7 +15,6 @@
 // Names!
 //------------------------------------------------------------------------------
 namespace Spheral {
-namespace MeshSpace {
 
 typedef Mesh<Dim<1> > LineMesh;
 typedef Mesh<Dim<2> > PolygonalMesh;
@@ -120,7 +119,6 @@ lookupNodeListID(MeshType* self,
   return result;
 }
 
-}
 }
 
 #endif

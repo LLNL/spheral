@@ -11,7 +11,6 @@
 #include "Integrator/Verlet.hh"
 
 namespace Spheral {
-namespace IntegratorSpace {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -44,7 +43,6 @@ typedef Verlet<Dim<1> > VerletIntegrator1d;
 typedef Verlet<Dim<2> > VerletIntegrator2d;
 typedef Verlet<Dim<3> > VerletIntegrator3d;
 
-}
 }
 
 #endif

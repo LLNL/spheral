@@ -25,7 +25,6 @@
 // Names!
 //------------------------------------------------------------------------------
 namespace Spheral {
-namespace BoundarySpace {
 
 typedef Boundary<Dim<1> > Boundary1d;
 typedef Boundary<Dim<2> > Boundary2d;
@@ -124,10 +123,9 @@ dynamicCastBoundary(Boundary1* boundPtr) {
 }
 
 }
-}
 
-typedef std::vector<Spheral::BoundarySpace::Boundary1d*> vector_of_Boundary1d;
-typedef std::vector<Spheral::BoundarySpace::Boundary2d*> vector_of_Boundary2d;
-typedef std::vector<Spheral::BoundarySpace::Boundary3d*> vector_of_Boundary3d;
+typedef std::vector<Spheral::Boundary1d*> vector_of_Boundary1d;
+typedef std::vector<Spheral::Boundary2d*> vector_of_Boundary2d;
+typedef std::vector<Spheral::Boundary3d*> vector_of_Boundary3d;
 
 #endif

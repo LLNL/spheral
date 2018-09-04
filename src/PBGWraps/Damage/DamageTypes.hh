@@ -15,7 +15,6 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Names!
 //------------------------------------------------------------------------------
-namespace PhysicsSpace {
 typedef DamageModel<Dim<1> > DamageModel1d;
 typedef DamageModel<Dim<2> > DamageModel2d;
 typedef DamageModel<Dim<3> > DamageModel3d;
@@ -45,7 +44,6 @@ longitudinalSoundSpeedFromDamageModel(const DamageModel<Dimension>& self) {
   return &const_cast<FieldSpace::Field<Dimension, typename Dimension::Scalar>&>(self.longitudinalSoundSpeed());
 }
 
-}
 }
 
 #endif

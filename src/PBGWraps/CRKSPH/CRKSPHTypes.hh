@@ -26,7 +26,6 @@
 #include "SPH/NodeCoupling.hh"
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -139,8 +138,6 @@ CRKSPHKernelAndGradient3d(Dim<3>::Scalar* WCRKSPH,
 //                             massDensity);
 // }
 
-
-}
 }
 
 #endif

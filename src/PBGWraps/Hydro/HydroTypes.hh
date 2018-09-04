@@ -8,7 +8,6 @@
 #include "Hydro/VoronoiHourglassControl.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -25,7 +24,6 @@ typedef VoronoiHourglassControl<Dim<1> > VoronoiHourglassControl1d;
 typedef VoronoiHourglassControl<Dim<2> > VoronoiHourglassControl2d;
 typedef VoronoiHourglassControl<Dim<3> > VoronoiHourglassControl3d;
 
-}
 }
 
 #endif

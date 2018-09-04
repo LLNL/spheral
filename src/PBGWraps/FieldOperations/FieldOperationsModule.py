@@ -13,8 +13,7 @@ class FieldOperations:
     def __init__(self, mod, srcdir, topsrcdir, dims):
         self.dims = dims
         mod.add_include('"%s/FieldOperationsTypes.hh"' % srcdir)
-        Spheral = mod.add_cpp_namespace("Spheral")
-        self.space = Spheral.add_cpp_namespace("FieldSpace")
+        self.space = mod.add_cpp_namespace("Spheral")
         return
 
     #---------------------------------------------------------------------------
@@ -35,13 +34,13 @@ class FieldOperations:
         vector = "Spheral::Vector%id" % ndim
         tensor = "Spheral::Tensor%id" % ndim
         symtensor = "Spheral::SymTensor%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        fieldlistset = "Spheral::FieldSpace::FieldListSet%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        fieldlistset = "Spheral::FieldListSet%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
         vector_of_vector_of_Vector = "vector_of_vector_of_Vector%id" % ndim
         vector_of_vector_of_Tensor = "vector_of_vector_of_Tensor%id" % ndim
         vector_of_vector_of_SymTensor = "vector_of_vector_of_SymTensor%id" % ndim
@@ -394,10 +393,4 @@ class FieldOperations:
                            template_parameters = [dim, "double"],
                            custom_name = "binScalarFieldList2LatticeWithSmoothing%id" % ndim)
         return
-
-    #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return []
 

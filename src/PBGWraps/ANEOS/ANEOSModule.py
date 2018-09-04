@@ -19,8 +19,7 @@ class ANEOS:
         mod.add_include('"%s/ANEOSTypes.hh"' % srcdir)
 
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        self.space = Spheral.add_cpp_namespace("SolidMaterial")
+        self.space = mod.add_cpp_namespace("Spheral")
 
         for dim in self.dims:
             exec('''

@@ -6,7 +6,6 @@
 #include "Gravity/TreeGravity.hh"
 
 namespace Spheral {
-namespace GravitySpace {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -18,7 +17,6 @@ typedef NBodyGravity<Dim<3> > NBodyGravity3d;
 typedef TreeGravity<Dim<2> > QuadTreeGravity;
 typedef TreeGravity<Dim<3> > OctTreeGravity;
 
-}
 }
 
 #endif

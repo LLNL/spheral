@@ -15,8 +15,7 @@ class DataOutput:
         mod.add_include('"%s/DataOutputTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("DataOutput")
+        space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
         self.RestartRegistrar = addObject(space, "RestartRegistrar", is_singleton=True)
@@ -37,7 +36,7 @@ class DataOutput:
     # The new sub modules (namespaces) introduced.
     #---------------------------------------------------------------------------
     def newSubModules(self):
-        return ["DataOutput"]
+        return []
 
     #---------------------------------------------------------------------------
     # Add RestartRegistrar methods.
@@ -63,7 +62,7 @@ class DataOutput:
     #---------------------------------------------------------------------------
     def addRestartableObjectMethods(self):
 
-        fileio = "Spheral::FileIOSpace::FileIO"
+        fileio = "Spheral::FileIO"
 
         x = self.RestartableObject
 

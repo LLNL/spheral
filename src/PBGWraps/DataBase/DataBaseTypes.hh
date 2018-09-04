@@ -28,16 +28,9 @@ typedef State<Dim<3> > State3d;
 typedef StateDerivatives<Dim<3> > StateDerivatives3d;
 typedef State<Dim<3> > State3d;
 
-namespace DataBaseSpace {
-
 typedef DataBase<Dim<1> > DataBase1d;
 typedef DataBase<Dim<2> > DataBase2d;
 typedef DataBase<Dim<3> > DataBase3d;
-
-}
-}
-
-namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Get fields as references from StateBase.

@@ -21,8 +21,7 @@ class Hydro:
         mod.add_include('"%s/HydroTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("PhysicsSpace")
+        space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
         self.HydroFieldNames = addObject(Spheral, "HydroFieldNames")
@@ -66,12 +65,6 @@ self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassContro
         # self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl3d, 3)
 
         return
-
-    #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return []
 
     #---------------------------------------------------------------------------
     # Bindings (HydroFieldNames).
@@ -149,42 +142,42 @@ self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassContro
     def generateSecondMomentHourglassControlBindings(self, x, ndim):
 
         # Object names.
-        me = "Spheral::PhysicsSpace::SecondMomentHourglassControl%id" % ndim
+        me = "Spheral::SecondMomentHourglassControl%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
-        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
-        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
-        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
-        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        fieldbase = "Spheral::FieldBase%id" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        vector3dfield = "Spheral::Vector3dField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::ThirdRankTensorFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
         key = "pair_NodeList%id_string" % ndim
         vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscosity%id" % ndim
+        fileio = "Spheral::FileIO"
 
         # Constructors.
         x.add_constructor([constrefparam(tablekernel, "W"),
@@ -207,42 +200,42 @@ self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassContro
     def generateThirdMomentHourglassControlBindings(self, x, ndim):
 
         # Object names.
-        me = "Spheral::PhysicsSpace::ThirdMomentHourglassControl%id" % ndim
+        me = "Spheral::ThirdMomentHourglassControl%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
-        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
-        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
-        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
-        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        fieldbase = "Spheral::FieldBase%id" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        vector3dfield = "Spheral::Vector3dField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::ThirdRankTensorFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
         key = "pair_NodeList%id_string" % ndim
         vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscosity%id" % ndim
+        fileio = "Spheral::FileIO"
 
         # Constructors.
         x.add_constructor([constrefparam(database, "dataBase"),
@@ -266,23 +259,23 @@ self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassContro
     def generateVoronoiHourglassControlBindings(self, x, ndim):
 
         # Object names.
-        me = "Spheral::PhysicsSpace::VoronoiHourglassControl%id" % ndim
+        me = "Spheral::VoronoiHourglassControl%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::ThirdRankTensorFieldList%id" % ndim
 
         # Constructors.
         x.add_constructor([constrefparam(tablekernel, "W"),
                            param("unsigned int", "order", default_value="1"),
                            param("unsigned int", "limiter", default_value="1"),
                            param("double", "fraction", default_value="0.5"),
-                           param(intfieldlist, "mask", default_value=("%s(FieldSpace::CopyFields)" % intfieldlist))])
+                           param(intfieldlist, "mask", default_value=("%s(CopyFields)" % intfieldlist))])
 
         # Methods.
         const_ref_return_value(x, me, "%s::mask" % me, intfieldlist, [], "mask")
