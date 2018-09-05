@@ -20,13 +20,15 @@ typedef enum _PyBindGenWrapperFlags {
    PYBINDGEN_WRAPPER_FLAG_OBJECT_NOT_OWNED = (1<<0),
 } PyBindGenWrapperFlags;
 #endif
+
 typedef struct {
     PyObject_HEAD
     Spheral::FileIO *obj;
     PyObject *inst_dict;
     PyBindGenWrapperFlags flags:8;
-} PySpheralFileIOSpaceFileIO;
-extern PyTypeObject PySpheralFileIOSpaceFileIO_Type;
+} PySpheralFileIO;
+
+extern PyTypeObject PySpheralFileIO_Type;
 
 namespace Spheral {
 
@@ -69,7 +71,7 @@ label() const {
 void
 RestartableObject::
 dumpState(FileIO& file, const std::string pathName) const {
-  PySpheralFileIOSpaceFileIO* py_file = PyObject_GC_New(PySpheralFileIOSpaceFileIO, &PySpheralFileIOSpaceFileIO_Type);
+  PySpheralFileIO* py_file = PyObject_GC_New(PySpheralFileIO, &PySpheralFileIO_Type);
   py_file->inst_dict = NULL;
   py_file->obj = &file;
   PyObject* result = PyObject_CallMethod(mSelf, (char*) "dumpState", (char*) "Os", py_file, pathName.c_str());
@@ -83,7 +85,7 @@ dumpState(FileIO& file, const std::string pathName) const {
 void
 RestartableObject::
 restoreState(const FileIO& file, const std::string pathName) {
-  PySpheralFileIOSpaceFileIO* py_file = PyObject_GC_New(PySpheralFileIOSpaceFileIO, &PySpheralFileIOSpaceFileIO_Type);
+  PySpheralFileIO* py_file = PyObject_GC_New(PySpheralFileIO, &PySpheralFileIO_Type);
   py_file->inst_dict = NULL;
   py_file->obj = const_cast<FileIO*>(&file);
   PyObject* result = PyObject_CallMethod(mSelf, (char*) "restoreState", (char*) "Os", py_file, pathName.c_str());

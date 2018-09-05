@@ -4,7 +4,7 @@ import mpi
 ################################################################################
 # Provide a timing class
 ################################################################################
-from SpheralModules.Spheral.DataOutput import RestartableObject
+from SpheralModules.Spheral import RestartableObject
 
 class SpheralTimer:
 
