@@ -62,7 +62,7 @@ class EOSTest(unittest.TestCase):
         # assert passfailLookup(P, P0).all()
         Perr = np.minimum(P0, np.abs((P - P0)/np.maximum(1.0e-10, P0)))
         self.failUnless((Perr < 1e4*Ptol).all(),
-                        "Pressure error out of tolerance: %s > %s" % (Perr.max(), 1e4*Ptol))
+                        "Pressure error out of tolerance: %s > %s" % (Perr.max(), 5e4*Ptol))
         return
 
 #-------------------------------------------------------------------------------
