@@ -12,7 +12,7 @@ for dim in dims:
 from SpheralModules.Spheral import TillotsonEquationOfState%(dim)sd as RealTillotsonEquationOfState%(dim)sd
 """ % {"dim" : dim})
 
-from SpheralModules.Spheral.Material import PhysicalConstants, PressureFloor, ZeroPressure
+from SpheralModules.Spheral import PhysicalConstants, PressureFloor, ZeroPressure
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
 #-------------------------------------------------------------------------------

@@ -5,7 +5,7 @@
 # passing in the units as a constructor argument.  The interfaces & names for 
 # the equations of state provided here emulate the original interfaces.
 #-------------------------------------------------------------------------------
-from SpheralModules.Spheral.Material import PhysicalConstants
+from SpheralModules.Spheral import PhysicalConstants
 from MaterialUnits import MKS, CGS, Cosmological, Solar
 from SolidMaterialUnits import CGuS
 

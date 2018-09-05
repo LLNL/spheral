@@ -4,7 +4,7 @@
 # Provides convenient constructors for the ConstantStrength model using the canned
 # values in MaterialPropertiesLib.py.
 #-------------------------------------------------------------------------------
-from SpheralModules.Spheral.Material import PhysicalConstants
+from SpheralModules.Spheral import PhysicalConstants
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
 from spheralDimensions import spheralDimensions
