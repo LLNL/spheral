@@ -110,7 +110,7 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                                                            param("double", "Hdetj"),
                                                            param("double", "Ai"),
                                                            constrefparam(vector, "Bi"),
-      							   constrefparam(tensor, "Ci"),
+                                                           constrefparam(tensor, "Ci"),
                                                            param("double", "correctionMin", default_value = "std::numeric_limits<double>::lowest()"),
                                                            param("double", "correctionMax", default_value = "std::numeric_limits<double>::max()")],
                                 template_parameters = [dim],
