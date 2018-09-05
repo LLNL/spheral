@@ -170,7 +170,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
       const auto n = vol[nodeListi]->numInternalElements();
       const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
 
-#pragma omp parallel for                        \
+#pragma omp parallel for                \
   private(pairPlanes, vol0, voli)
       for (auto i = 0; i < n; ++i) {
         const auto& ri = position(nodeListi, i);
@@ -387,7 +387,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             auto vitr = celli.begin();
             while (interior and vitr != celli.end()) {
               interior = not pointOnPolyhedron(ri + vitr->position,
-                                               facetedBoundaries[nodeListi].vertices(),
+                                               facetedBoundaries[nodeListi],
                                                1.0e-8);
               ++vitr;
             }
