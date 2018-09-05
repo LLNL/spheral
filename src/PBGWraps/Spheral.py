@@ -26,23 +26,6 @@ except:
 # ------------------------------------------------------------------------------
 from SpheralModules import *
 from SpheralModules.Spheral import *
-from SpheralModules.Spheral.NodeSpace import *
-from SpheralModules.Spheral.FieldSpace import *
-from SpheralModules.Spheral.DataBaseSpace import *
-from SpheralModules.Spheral.FileIOSpace import *
-from SpheralModules.Spheral.ArtificialViscositySpace import *
-from SpheralModules.Spheral.DataOutput import *
-from SpheralModules.Spheral.KernelSpace import *
-from SpheralModules.Spheral.NeighborSpace import *
-from SpheralModules.Spheral.Material import *
-from SpheralModules.Spheral.BoundarySpace import *
-from SpheralModules.Spheral.PhysicsSpace import *
-from SpheralModules.Spheral.GravitySpace import *
-from SpheralModules.Spheral.IntegratorSpace import *
-from SpheralModules.Spheral.SPHSpace import *
-from SpheralModules.Spheral.CRKSPHSpace import *
-from SpheralModules.Spheral.SVPHSpace import *
-from SpheralModules.Spheral.MeshSpace import *
 from SpheralModules.Spheral.PythonBoundFunctors import *
 
 # ------------------------------------------------------------------------------
@@ -101,11 +84,11 @@ from SpheralPickle import *
 # ------------------------------------------------------------------------------
 # If we're running parallel, we need to import the Distributed package as well.
 # ------------------------------------------------------------------------------
-try:
-    from SpheralModules.Spheral.PartitionSpace import *
-except:
-    print "Warning: unable to load Distributed components, parallel mode not available."
-    pass
+# try:
+#     from SpheralModules.Spheral.PartitionSpace import *
+# except:
+#     print "Warning: unable to load Distributed components, parallel mode not available."
+#     pass
 
 # ------------------------------------------------------------------------------
 # Import the controller and a standard timer class.
