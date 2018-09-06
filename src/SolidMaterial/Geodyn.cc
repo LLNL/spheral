@@ -26,11 +26,13 @@ Geodyn(const PhysicalConstants& constants,
        const double minimumPressure,
        const double maximumPressure,
        const MaterialPressureMinType minPressureType):
-  PhysicsEvolvingMaterialLibrary<Dimension>(1.0, 1.0, 1.0,
-                                            constants,
-                                            minimumPressure,
-                                            maximumPressure,
-                                            minPressureType),
+  Physics<Dimension>(),
+  SolidEquationOfState<Dimension>(1.0, 1.0, 1.0,
+                                  constants,
+                                  minimumPressure,
+                                  maximumPressure,
+                                  minPressureType),
+  StrengthModel<Dimension>(),
   mGeodynUnits(0.01,    // cm expressed as meters.
                0.001,   // g expressed in kg.
                1.0),    // sec in secs.
