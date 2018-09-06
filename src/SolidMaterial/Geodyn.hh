@@ -139,7 +139,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Tables for the temp->energy lookup.
-  vector<double> mGeodynState;
+  std::vector<double> mGeodynState;
 
   // GEODYN internal units.
   PhysicalConstants mGeodynUnits;

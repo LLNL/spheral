@@ -6,12 +6,16 @@
 #include "Utilities/DBC.hh"
 
 #include <iostream>
-
-namespace Spheral {
-
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
+
+namespace Spheral {
+
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -22,7 +26,8 @@ Geodyn(const PhysicalConstants& constants,
        const double minimumPressure,
        const double maximumPressure,
        const MaterialPressureMinType minPressureType):
-  PhysicsEvolvingMaterialLibrary<Dimension>(constants,
+  PhysicsEvolvingMaterialLibrary<Dimension>(1.0, 1.0, 1.0,
+                                            constants,
                                             minimumPressure,
                                             maximumPressure,
                                             minPressureType),

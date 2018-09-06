@@ -66,7 +66,7 @@ def generateGeodynBindings(x, ndim):
     x.add_constructor([constrefparam("PhysicalConstants", "constants"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     # Generic parent interfaces.
     generateEquationOfStateVirtualBindings(x, ndim, False)
