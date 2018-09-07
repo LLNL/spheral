@@ -16,16 +16,9 @@
 
 namespace Spheral {
 
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
-  template<typename Dimension, typename DataType> class FieldList;
-}
-namespace DataBaseSpace {
-  template<typename Dimension> class DataBase;
-}
-
-namespace NodeSpace {
-
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class DataBase;
 template<typename Dimension> class NodeList;
 
 //------------------------------------------------------------------------------
@@ -37,7 +30,7 @@ numGlobalNodes(const NodeList<Dimension>& nodeList);
   
 template<typename Dimension>
 int
-numGlobalNodes(const DataBaseSpace::DataBase<Dimension>& dataBase);
+numGlobalNodes(const DataBase<Dimension>& dataBase);
   
 template<typename Dimension, typename NodeListIterator>
 int
@@ -49,7 +42,7 @@ numGlobalNodes(const NodeListIterator& begin,
 // the set of them on this process.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FieldSpace::Field<Dimension, int>
+Field<Dimension, int>
 globalNodeIDs(const NodeList<Dimension>& nodeList);
 
 //------------------------------------------------------------------------------
@@ -57,19 +50,16 @@ globalNodeIDs(const NodeList<Dimension>& nodeList);
 // a DataBase, returning the result as a FieldList<int>.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FieldSpace::FieldList<Dimension, int>
-globalNodeIDs(const DataBaseSpace::DataBase<Dimension>& dataBase);
+FieldList<Dimension, int>
+globalNodeIDs(const DataBase<Dimension>& dataBase);
 
 template<typename Dimension, typename NodeListIterator>
-FieldSpace::FieldList<Dimension, int>
+FieldList<Dimension, int>
 globalNodeIDs(const NodeListIterator& begin,
               const NodeListIterator& end);
 
 }
-}
 
-#ifndef __GCCXML__
 #include "globalNodeIDsInline.hh"
-#endif
 
 #endif

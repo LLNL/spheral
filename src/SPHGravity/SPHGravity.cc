@@ -5,14 +5,6 @@
 //! \version $Revision: 2239 $
 //! \date $Date: 2007-05-28 23:58:39 -0700 (Mon, 28 May 2007) $
 //----------------------------------------------------------------------------//
-
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <sstream>
-#include <iostream>
-#include <algorithm>
-
 #include "SPHGravity.hh"
 #include "Geometry/Dimension.hh"
 #include "DataBase/DataBase.hh"
@@ -36,24 +28,20 @@
 #include "Spasmos/PyPetsc.h"
 #include "Spasmos/MatFactory.h"
 
-namespace Spheral {
-namespace GravitySpace {
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
 
-using namespace std;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using NodeSpace::FluidNodeList;
-using NodeSpace::globalNodeIDs;
-using NeighborSpace::ConnectivityMap;
-using BoundarySpace::Boundary;
-using BoundarySpace::PeriodicBoundary;
-using BoundarySpace::DistributedBoundary;
+namespace Spheral {
+
 
 //------------------------------------------------------------------------------
 template <typename Dimension>
 SPHGravity<Dimension>::
-SPHGravity(const KernelSpace::TableKernel<Dimension>& kernel,
+SPHGravity(const TableKernel<Dimension>& kernel,
            typename SPHGravity<Dimension>::Scalar G,
            typename SPHGravity<Dimension>::Scalar maxDeltaVelocity /* = 2.0 */,
            typename SPHGravity<Dimension>::Scalar safetyFactor /* = 0.5 */):
@@ -78,7 +66,6 @@ SPHGravity(const KernelSpace::TableKernel<Dimension>& kernel,
 
   REQUIRE((safetyFactor > 0.0) && (safetyFactor <= 1.0));
 
-  using namespace std;
 
   // Make sure Spasmos is around.
   importConfig();
@@ -587,7 +574,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const
 {
-  using namespace NodeSpace;
 
   // Access to pertinent fields in the database.
   const FieldList<Dimension, Scalar> m = state.scalarFields(HydroFieldNames::mass);
@@ -957,6 +943,5 @@ valid() const
 }
 
 //------------------------------------------------------------------------------
-} // end namespace GravitySpace
 } // end namespace Spheral
 

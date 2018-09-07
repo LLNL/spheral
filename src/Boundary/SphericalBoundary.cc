@@ -12,19 +12,16 @@
 
 #include "SphericalBoundary.hh"
 
+using std::vector;
+using std::string;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-namespace BoundarySpace {
-
-using namespace std;
-
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using Geometry::innerProduct;
 
 //------------------------------------------------------------------------------
 // Construct against the given DataBase.
@@ -34,7 +31,7 @@ SphericalBoundary(const DataBase<Dim<3> >& dataBase):
   Boundary<Dim<3> >(),
   mGhostPositions(dataBase.newGlobalFieldList(std::vector<Dim<3>::Vector>(),
                                               "Ghost node positions")),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -529,5 +526,4 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mGhostPositions, pathName + "/ghostPositions");
 }
 
-}
 }

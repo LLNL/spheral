@@ -9,7 +9,6 @@
 #include "Utilities/safeInv.hh"
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 using FastMath::pow3;
 
@@ -77,6 +76,5 @@ centerOfMass(const Dim<3>::FacetedVolume& polyvol,
 }
 #endif
 
-}
 }
 

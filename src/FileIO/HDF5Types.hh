@@ -1,8 +1,6 @@
 #include "H5Cpp.h"
-using namespace H5;
 
 namespace Spheral {
-namespace FileIO {
 
 static CompType H5Vector1d;
 static CompType H5Vector2d;
@@ -18,5 +16,4 @@ static CompType H5SymTensor3d;
 
 int initializeSpheralH5Types();
 
-}
 }

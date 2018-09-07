@@ -13,16 +13,10 @@
 namespace Spheral {
 
 // Forward declarations.
-namespace NodeSpace {
-  template<typename Dimension> class NodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename Value> class Field;
-  template<typename Dimension, typename Value> class FieldList;
-}
-namespace DataBaseSpace {
-  template<typename Dimension> class DataBase;
-}
+template<typename Dimension> class NodeList;
+template<typename Dimension, typename Value> class Field;
+template<typename Dimension, typename Value> class FieldList;
+template<typename Dimension> class DataBase;
 
 //------------------------------------------------------------------------------
 // The bounding box for a position and H.
@@ -37,15 +31,15 @@ boundingBox(const typename Dimension::Vector& xi,
 // The bounding boxes for a NodeList.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FieldSpace::Field<Dimension, std::pair<typename Dimension::Vector, typename Dimension::Vector> >
-nodeBoundingBoxes(const NodeSpace::NodeList<Dimension>& nodes);
+Field<Dimension, std::pair<typename Dimension::Vector, typename Dimension::Vector> >
+nodeBoundingBoxes(const NodeList<Dimension>& nodes);
 
 //------------------------------------------------------------------------------
 // The bounding boxes for all nodes in a DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FieldSpace::FieldList<Dimension, std::pair<typename Dimension::Vector, typename Dimension::Vector> >
-nodeBoundingBoxes(const DataBaseSpace::DataBase<Dimension>& dataBase);
+FieldList<Dimension, std::pair<typename Dimension::Vector, typename Dimension::Vector> >
+nodeBoundingBoxes(const DataBase<Dimension>& dataBase);
 
 }
 

@@ -6,7 +6,6 @@
 #include <string>
 
 namespace Spheral {
-namespace MHDFieldNames {
 
 extern const std::string magneticInduction;
 extern const std::string magneticDivergence;
@@ -15,7 +14,6 @@ extern const std::string resistivity;
 extern const std::string totalSpecificEnergy;
 extern const std::string hyperbolicCleaning;
 
-}
 }
 
 #endif

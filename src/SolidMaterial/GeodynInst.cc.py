@@ -6,8 +6,6 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace SolidMaterial {
-    template class Geodyn<Dim< %(ndim)s > >;
-  }
+  template class Geodyn<Dim< %(ndim)s > >;
 }
 """

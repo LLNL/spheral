@@ -18,12 +18,11 @@ class Material:
         mod.add_include('"%s/MaterialTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("Material")
+        space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
-        self.MaterialPressureMinType = space.add_enum("MaterialPressureMinType", [("PressureFloor", "Spheral::Material::MaterialPressureMinType::PressureFloor"),
-                                                                                  ("ZeroPressure", "Spheral::Material::MaterialPressureMinType::ZeroPressure")])
+        self.MaterialPressureMinType = space.add_enum("MaterialPressureMinType", [("PressureFloor", "Spheral::MaterialPressureMinType::PressureFloor"),
+                                                                                  ("ZeroPressure", "Spheral::MaterialPressureMinType::ZeroPressure")])
         self.PhysicalConstants = addObject(space, "PhysicalConstants", allow_subclassing=True)
         for dim in self.dims:
             exec('''
@@ -274,7 +273,7 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
 #-------------------------------------------------------------------------------
 def generateEquationOfStateVirtualBindings(x, ndim, pureVirtual):
 
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
 
     # Methods.
     x.add_method("setPressure", None, [refparam(scalarfield, "pressure"),

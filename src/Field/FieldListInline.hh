@@ -1,8 +1,4 @@
 // Includes.
-#include <algorithm>
-#include <limits.h>
-#include <float.h>
-
 #include "Geometry/MathTraits.hh"
 #include "NodeIterators.hh"
 
@@ -19,8 +15,11 @@
 #include "Distributed/Communicator.hh"
 #endif
 
+#include <algorithm>
+#include <limits.h>
+#include <float.h>
+
 namespace Spheral {
-namespace FieldSpace {
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -251,7 +250,7 @@ template<typename Dimension, typename DataType>
 inline
 bool
 FieldList<Dimension, DataType>::
-haveNodeList(const NodeSpace::NodeList<Dimension>& nodeList) const {
+haveNodeList(const NodeList<Dimension>& nodeList) const {
   return mNodeListIndexMap.find(&nodeList) != mNodeListIndexMap.end();
 }
 
@@ -311,7 +310,7 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
 
   // We also update the set of NodeListPtrs in proper order.
   mNodeListPtrs.insert(mNodeListPtrs.begin() + delta,
-                       const_cast<NodeSpace::NodeList<Dimension>*>(field.nodeListPtr()));
+                       const_cast<NodeList<Dimension>*>(field.nodeListPtr()));
   CHECK(mNodeListIndexMap.find(field.nodeListPtr()) == mNodeListIndexMap.end());
   buildNodeListIndexMap();
 
@@ -356,7 +355,7 @@ FieldList<Dimension, DataType>::deleteField(const Field<Dimension, DataType>& fi
   }
 
   // Remove the NodeList pointer.
-  typename std::vector<NodeSpace::NodeList<Dimension>*>::iterator nodeListItr = std::find(mNodeListPtrs.begin(), mNodeListPtrs.end(), field.nodeListPtr());
+  typename std::vector<NodeList<Dimension>*>::iterator nodeListItr = std::find(mNodeListPtrs.begin(), mNodeListPtrs.end(), field.nodeListPtr());
   CHECK(nodeListItr != mNodeListPtrs.end());
   mNodeListPtrs.erase(nodeListItr);
   buildNodeListIndexMap();
@@ -369,14 +368,14 @@ template<typename Dimension, typename DataType>
 inline
 void
 FieldList<Dimension, DataType>::
-appendNewField(const typename FieldSpace::Field<Dimension, DataType>::FieldName name,
-               const NodeSpace::NodeList<Dimension>& nodeList,
+appendNewField(const typename Field<Dimension, DataType>::FieldName name,
+               const NodeList<Dimension>& nodeList,
                const DataType value) {
   VERIFY(mStorageType == FieldStorageType::CopyFields);
 
   // Create the field in our cache.
-  mFieldCache.push_back(std::shared_ptr<Field<Dimension, DataType> >(new FieldSpace::Field<Dimension, DataType>(name, nodeList, value)));
-  FieldSpace::Field<Dimension, DataType>* fieldPtr = mFieldCache.back().get();
+  mFieldCache.push_back(std::shared_ptr<Field<Dimension, DataType> >(new Field<Dimension, DataType>(name, nodeList, value)));
+  Field<Dimension, DataType>* fieldPtr = mFieldCache.back().get();
 
   // Determine the order this Field should be in.
   const NodeListRegistrar<Dimension>& nlr = NodeListRegistrar<Dimension>::instance();
@@ -390,7 +389,7 @@ appendNewField(const typename FieldSpace::Field<Dimension, DataType>::FieldName 
   mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, fieldPtr);
 
   // We also update the set of NodeListPtrs in proper order.
-  mNodeListPtrs.insert(mNodeListPtrs.begin() + delta, const_cast<NodeSpace::NodeList<Dimension>*>(&nodeList));
+  mNodeListPtrs.insert(mNodeListPtrs.begin() + delta, const_cast<NodeList<Dimension>*>(&nodeList));
   CHECK(mNodeListIndexMap.find(fieldPtr->nodeListPtr()) == mNodeListIndexMap.end());
   buildNodeListIndexMap();
 
@@ -585,7 +584,7 @@ template<typename Dimension, typename DataType>
 inline
 typename FieldList<Dimension, DataType>::iterator
 FieldList<Dimension, DataType>::
-fieldForNodeList(const NodeSpace::NodeList<Dimension>& nodeList) {
+fieldForNodeList(const NodeList<Dimension>& nodeList) {
   if (haveNodeList(nodeList)) {
     return begin() + mNodeListIndexMap.find(&nodeList)->second;
   } else {
@@ -597,7 +596,7 @@ template<typename Dimension, typename DataType>
 inline
 typename FieldList<Dimension, DataType>::const_iterator
 FieldList<Dimension, DataType>::
-fieldForNodeList(const NodeSpace::NodeList<Dimension>& nodeList) const {
+fieldForNodeList(const NodeList<Dimension>& nodeList) const {
   if (haveNodeList(nodeList)) {
     return begin() + mNodeListIndexMap.find(&nodeList)->second;
   } else {
@@ -658,7 +657,7 @@ inline
 DataType
 FieldList<Dimension, DataType>::
 operator()(const typename Dimension::Vector& position,
-           const KernelSpace::TableKernel<Dimension>& W) const {
+           const TableKernel<Dimension>& W) const {
 
   DataType result(0.0);
 
@@ -723,7 +722,7 @@ template<typename Dimension, typename DataType>
 inline
 AllNodeIterator<Dimension>
 FieldList<Dimension, DataType>::nodeBegin() const {
-  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator 
+  typename std::vector<NodeList<Dimension>*>::const_iterator 
     nodeListItr = mNodeListPtrs.begin();
   while (nodeListItr < mNodeListPtrs.end() &&
          (*nodeListItr)->numNodes() == 0) {
@@ -750,7 +749,7 @@ template<typename Dimension, typename DataType>
 inline
 InternalNodeIterator<Dimension>
 FieldList<Dimension, DataType>::internalNodeBegin() const {
-  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator
+  typename std::vector<NodeList<Dimension>*>::const_iterator
     nodeListItr = mNodeListPtrs.begin();
   while (nodeListItr < mNodeListPtrs.end() &&
          (*nodeListItr)->numInternalNodes() == 0) {
@@ -777,7 +776,7 @@ template<typename Dimension, typename DataType>
 inline
 GhostNodeIterator<Dimension>
 FieldList<Dimension, DataType>::ghostNodeBegin() const {
-  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator
+  typename std::vector<NodeList<Dimension>*>::const_iterator
     nodeListItr = mNodeListPtrs.begin();
   while (nodeListItr < mNodeListPtrs.end() &&
          (*nodeListItr)->numGhostNodes() == 0) {
@@ -920,7 +919,7 @@ setMasterNodeLists(const typename Dimension::Vector& r,
   for (auto nodeListItr = mNodeListPtrs.begin();
        nodeListItr != mNodeListPtrs.end();
        ++nodeListItr) etaMax = std::max(etaMax, (**nodeListItr).neighbor().kernelExtent());
-  NeighborSpace::Neighbor<Dimension>::setMasterNeighborGroup(r, H,
+  Neighbor<Dimension>::setMasterNeighborGroup(r, H,
                                                              mNodeListPtrs.begin(),
                                                              mNodeListPtrs.end(),
                                                              etaMax,
@@ -1603,7 +1602,7 @@ FieldList<Dimension, DataType>::numGhostNodes() const {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-const std::vector<NodeSpace::NodeList<Dimension>*>&
+const std::vector<NodeList<Dimension>*>&
 FieldList<Dimension, DataType>::
 nodeListPtrs() const {
   return mNodeListPtrs;
@@ -1674,437 +1673,435 @@ operator*(const DataType& lhs,
   return result;
 }
 
-//------------------------------------------------------------------------------
-// Absolute value.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-abs(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(abs(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Absolute value.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// abs(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(abs(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Inverse cosine.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-acos(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(acos(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Inverse cosine.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// acos(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(acos(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Inverse sine.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-asin(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(asin(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Inverse sine.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// asin(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(asin(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Inverse tangent.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-atan(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(atan(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Inverse tangent.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// atan(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(atan(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Inverse tangent2.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-atan2(const FieldList<Dimension, typename Dimension::Scalar>& fieldList1,
-      const FieldList<Dimension, typename Dimension::Scalar>& fieldList2) {
-  REQUIRE(fieldList1.numFields() == fieldList2.numFields());
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList1.numFields(); ++i) {
-    result.appendField(atan2(*(fieldList1[i]), *(fieldList2[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Inverse tangent2.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// atan2(const FieldList<Dimension, typename Dimension::Scalar>& fieldList1,
+//       const FieldList<Dimension, typename Dimension::Scalar>& fieldList2) {
+//   REQUIRE(fieldList1.numFields() == fieldList2.numFields());
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList1.numFields(); ++i) {
+//     result.appendField(atan2(*(fieldList1[i]), *(fieldList2[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Ceiling.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-ceil(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(ceil(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Ceiling.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// ceil(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(ceil(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Cosine.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-cos(FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(cos(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Cosine.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// cos(FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(cos(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Hyperbolic cosine.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-cosh(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(cosh(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Hyperbolic cosine.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// cosh(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(cosh(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Exponential.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-exp(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(exp(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Exponential.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// exp(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(exp(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Absolute value.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-fabs(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(fabs(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Absolute value.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// fabs(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(fabs(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Floor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-floor(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(floor(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Floor.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// floor(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(floor(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Natural logarithm.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-log(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(log(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Natural logarithm.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// log(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(log(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Log base 10.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-log10(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(log10(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Log base 10.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// log10(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(log10(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// powN.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-pow2(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(pow2(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // powN.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// pow2(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(pow2(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
 
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-pow3(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(pow3(*(fieldList[i])));
-  }
-  return result;
-}
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// pow3(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(pow3(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-pow4(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(pow4(*(fieldList[i])));
-  }
-  return result;
-}
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// pow4(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(pow4(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-pow5(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(pow5(*(fieldList[i])));
-  }
-  return result;
-}
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// pow5(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(pow5(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-pow6(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(pow6(*(fieldList[i])));
-  }
-  return result;
-}
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// pow6(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(pow6(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-pow7(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(pow7(*(fieldList[i])));
-  }
-  return result;
-}
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// pow7(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(pow7(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-pow8(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(pow8(*(fieldList[i])));
-  }
-  return result;
-}
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// pow8(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(pow8(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Sine.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-sin(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(sin(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Sine.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// sin(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(sin(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Hyperbolic sine.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-sinh(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(sinh(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Hyperbolic sine.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// sinh(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(sinh(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Square.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-sqr(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(sqr(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Square.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// sqr(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(sqr(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Square root.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Scalar>
-sqrt(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
-  FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(sqrt(*(fieldList[i])));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Square root.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Scalar>
+// sqrt(const FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(sqrt(*(fieldList[i])));
+//   }
+//   return result;
+// }
 
-}
+// //------------------------------------------------------------------------------
+// // Minimum.
+// //------------------------------------------------------------------------------
+// template<typename Dimension, typename DataType>
+// inline
+// FieldList<Dimension, DataType>
+// min(const FieldList<Dimension, DataType>& fieldList1,
+//     const FieldList<Dimension, DataType>& fieldList2) {
+//   REQUIRE(fieldList1.numFields() == fieldList2.numFields());
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList1.numFields(); ++i) {
+//     result.appendField(min(*(fieldList1[i]), *(fieldList2[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Minimum.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-FieldSpace::FieldList<Dimension, DataType>
-min(const FieldSpace::FieldList<Dimension, DataType>& fieldList1,
-    const FieldSpace::FieldList<Dimension, DataType>& fieldList2) {
-  REQUIRE(fieldList1.numFields() == fieldList2.numFields());
-  FieldSpace::FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList1.numFields(); ++i) {
-    result.appendField(min(*(fieldList1[i]), *(fieldList2[i])));
-  }
-  return result;
-}
+// template<typename Dimension, typename DataType>
+// inline
+// FieldList<Dimension, DataType>
+// min(const DataType& value,
+//     const FieldList<Dimension, DataType>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(min(value, *(fieldList[i])));
+//   }
+//   return result;
+// }
 
-template<typename Dimension, typename DataType>
-inline
-FieldSpace::FieldList<Dimension, DataType>
-min(const DataType& value,
-    const FieldSpace::FieldList<Dimension, DataType>& fieldList) {
-  FieldSpace::FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(min(value, *(fieldList[i])));
-  }
-  return result;
-}
+// template<typename Dimension, typename DataType>
+// inline
+// FieldList<Dimension, DataType>
+// min(const FieldList<Dimension, DataType>& fieldList,
+//     const DataType& value) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(min(*(fieldList[i]), value));
+//   }
+//   return result;
+// }
 
-template<typename Dimension, typename DataType>
-inline
-FieldSpace::FieldList<Dimension, DataType>
-min(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
-    const DataType& value) {
-  FieldSpace::FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(min(*(fieldList[i]), value));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Maximum.
+// //------------------------------------------------------------------------------
+// template<typename Dimension, typename DataType>
+// inline
+// FieldList<Dimension, DataType>
+// max(const FieldList<Dimension, DataType>& fieldList1,
+//     const FieldList<Dimension, DataType>& fieldList2) {
+//   REQUIRE(fieldList1.numFields() == fieldList2.numFields());
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList1.numFields(); ++i) {
+//     result.appendField(max(*(fieldList1[i]), *(fieldList2[i])));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Maximum.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-FieldSpace::FieldList<Dimension, DataType>
-max(const FieldSpace::FieldList<Dimension, DataType>& fieldList1,
-    const FieldSpace::FieldList<Dimension, DataType>& fieldList2) {
-  REQUIRE(fieldList1.numFields() == fieldList2.numFields());
-  FieldSpace::FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList1.numFields(); ++i) {
-    result.appendField(max(*(fieldList1[i]), *(fieldList2[i])));
-  }
-  return result;
-}
+// template<typename Dimension, typename DataType>
+// inline
+// FieldList<Dimension, DataType>
+// max(const DataType& value,
+//     const FieldList<Dimension, DataType>& fieldList) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(max(value, *(fieldList[i])));
+//   }
+//   return result;
+// }
 
-template<typename Dimension, typename DataType>
-inline
-FieldSpace::FieldList<Dimension, DataType>
-max(const DataType& value,
-    const FieldSpace::FieldList<Dimension, DataType>& fieldList) {
-  FieldSpace::FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(max(value, *(fieldList[i])));
-  }
-  return result;
-}
-
-template<typename Dimension, typename DataType>
-inline
-FieldSpace::FieldList<Dimension, DataType>
-max(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
-    const DataType& value) {
-  FieldSpace::FieldList<Dimension, typename Dimension::Scalar> result;
-  result.copyFields();
-  for (int i = 0; i < fieldList.numFields(); ++i) {
-    result.appendField(max(*(fieldList[i]), value));
-  }
-  return result;
-}
+// template<typename Dimension, typename DataType>
+// inline
+// FieldList<Dimension, DataType>
+// max(const FieldList<Dimension, DataType>& fieldList,
+//     const DataType& value) {
+//   FieldList<Dimension, typename Dimension::Scalar> result;
+//   result.copyFields();
+//   for (int i = 0; i < fieldList.numFields(); ++i) {
+//     result.appendField(max(*(fieldList[i]), value));
+//   }
+//   return result;
+// }
 
 }

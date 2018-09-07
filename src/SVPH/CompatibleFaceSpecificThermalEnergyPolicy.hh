@@ -17,18 +17,10 @@ namespace Spheral {
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace NodeSpace {
-  template<typename Dimension> class FluidNodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
-}
-namespace DataBaseSpace {
-  template<typename Dimension> class DataBase;
-}
-namespace KernelSpace {
-  template<typename Dimension> class TableKernel;
-}
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension> class DataBase;
+template<typename Dimension> class TableKernel;
 
 template<typename Dimension>
 class CompatibleFaceSpecificThermalEnergyPolicy: 
@@ -41,11 +33,11 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename FieldUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
-  typedef typename PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors, destructor.
-  CompatibleFaceSpecificThermalEnergyPolicy(const KernelSpace::TableKernel<Dimension>& W,
-                                            const DataBaseSpace::DataBase<Dimension>& dataBase,
+  CompatibleFaceSpecificThermalEnergyPolicy(const TableKernel<Dimension>& W,
+                                            const DataBase<Dimension>& dataBase,
                                             ConstBoundaryIterator boundaryBegin,
                                             ConstBoundaryIterator boundaryEnd);
   virtual ~CompatibleFaceSpecificThermalEnergyPolicy();
@@ -79,8 +71,8 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const KernelSpace::TableKernel<Dimension>& mW;
-  const DataBaseSpace::DataBase<Dimension>& mDataBase;
+  const TableKernel<Dimension>& mW;
+  const DataBase<Dimension>& mDataBase;
   ConstBoundaryIterator mBoundaryBegin, mBoundaryEnd;
   static bool mFired;
 

@@ -9,11 +9,6 @@
 #include "Field/FieldList.hh"
 
 namespace Spheral {
-namespace NodeSpace {
-
-using KernelSpace::TableKernel;
-using FieldSpace::FieldList;
-using MeshSpace::Mesh;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -83,7 +78,7 @@ newSmoothingScale(const SymTensor& H,
                   const Scalar hmax,
                   const Scalar hminratio,
                   const Scalar nPerh,
-                  const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                  const ConnectivityMap<Dimension>& connectivityMap,
                   const unsigned nodeListi,
                   const unsigned i) const {
   return H;
@@ -104,7 +99,7 @@ idealSmoothingScale(const SymTensor& H,
                     const Scalar hmax,
                     const Scalar hminratio,
                     const Scalar nPerh,
-                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                    const ConnectivityMap<Dimension>& connectivityMap,
                     const unsigned nodeListi,
                     const unsigned i) const {
   return H;
@@ -127,5 +122,3 @@ idealSmoothingScale(const SymTensor& H,
 }
 
 }
-}
-

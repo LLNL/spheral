@@ -22,19 +22,17 @@
 #include <limits>
 #include <algorithm>
 
-using namespace std;
+using std::vector;
+using std::string;
+using std::to_string;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace PhysicsSpace {
-
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using NeighborSpace::ConnectivityMap;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
 
 namespace {
 
@@ -116,7 +114,7 @@ dt(const DataBase<Dimension>& dataBase,
    const StateDerivatives<Dimension>& derivs,
    typename Dimension::Scalar currentTime) const {
 
-  const double tiny = numeric_limits<double>::epsilon();
+  const double tiny = std::numeric_limits<double>::epsilon();
 
   // Get some useful fluid variables from the DataBase.
   const auto  mask = state.fields(HydroFieldNames::timeStepMask, 1);
@@ -143,10 +141,10 @@ dt(const DataBase<Dimension>& dataBase,
   if (haveLongCs) csl = state.fields(SolidFieldNames::longitudinalSoundSpeed, 0.0);
 
   // Initialize the return value to some impossibly high value.
-  auto minDt = make_pair(numeric_limits<double>::max(), string());
+  auto minDt = make_pair(std::numeric_limits<double>::max(), string());
 
   // Loop over every fluid node.
-  // #pragma omp declare reduction (MINPAIR : pair<double,string> : omp_out = (omp_out.first < omp_in.first ? omp_out : omp_in)) initializer(omp_priv = pair<double,string>(numeric_limits<double>::max(), string("null")))
+  // #pragma omp declare reduction (MINPAIR : pair<double,string> : omp_out = (omp_out.first < omp_in.first ? omp_out : omp_in)) initializer(omp_priv = pair<double,string>(std::numeric_limits<double>::max(), string("null")))
   // #pragma omp parallel for reduction(MINPAIR:minDt) collapse(2)
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
     const auto& fluidNodeList = **(dataBase.fluidNodeListBegin() + nodeListi);
@@ -326,5 +324,3 @@ dt(const DataBase<Dimension>& dataBase,
 }
 
 }
-}
-

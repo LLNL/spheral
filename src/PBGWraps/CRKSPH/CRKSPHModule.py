@@ -22,25 +22,23 @@ class CRKSPH:
         mod.add_include('"%s/CRKSPHTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        self.space = Spheral.add_cpp_namespace("CRKSPHSpace")
-        PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
+        self.space = mod.add_cpp_namespace("Spheral")
 
         for dim in self.dims:
             exec('''
-generichydro%(dim)id = findObject(PhysicsSpace, "GenericHydro%(dim)id")
+generichydro%(dim)id = findObject(self.space, "GenericHydro%(dim)id")
 self.CRKSPHHydroBase%(dim)id = addObject(self.space, "CRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=generichydro%(dim)id)
 self.SolidCRKSPHHydroBase%(dim)id = addObject(self.space, "SolidCRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=self.CRKSPHHydroBase%(dim)id)
 self.CRKSPHVariant%(dim)id = addObject(self.space, "CRKSPHVariant%(dim)id", allow_subclassing=True, parent=self.CRKSPHHydroBase%(dim)id)
 ''' % {"dim" : dim})
-        self.CRKOrder = self.space.add_enum("CRKOrder", [("ZerothOrder",    "Spheral::CRKSPHSpace::CRKOrder::ZerothOrder"),
-                                                         ("LinearOrder",    "Spheral::CRKSPHSpace::CRKOrder::LinearOrder"),
-                                                         ("QuadraticOrder", "Spheral::CRKSPHSpace::CRKOrder::QuadraticOrder")])
-        self.CRKVolumeType = self.space.add_enum("CRKVolumeType", [("CRKMassOverDensity", "Spheral::CRKSPHSpace::CRKVolumeType::CRKMassOverDensity"),
-                                                                   ("CRKSumVolume",       "Spheral::CRKSPHSpace::CRKVolumeType::CRKSumVolume"),
-                                                                   ("CRKVoronoiVolume",   "Spheral::CRKSPHSpace::CRKVolumeType::CRKVoronoiVolume"),
-                                                                   ("CRKHullVolume",      "Spheral::CRKSPHSpace::CRKVolumeType::CRKHullVolume"),
-                                                                   ("HVolume",            "Spheral::CRKSPHSpace::CRKVolumeType::HVolume")])
+        self.CRKOrder = self.space.add_enum("CRKOrder", [("ZerothOrder",    "Spheral::CRKOrder::ZerothOrder"),
+                                                         ("LinearOrder",    "Spheral::CRKOrder::LinearOrder"),
+                                                         ("QuadraticOrder", "Spheral::CRKOrder::QuadraticOrder")])
+        self.CRKVolumeType = self.space.add_enum("CRKVolumeType", [("CRKMassOverDensity", "Spheral::CRKVolumeType::CRKMassOverDensity"),
+                                                                   ("CRKSumVolume",       "Spheral::CRKVolumeType::CRKSumVolume"),
+                                                                   ("CRKVoronoiVolume",   "Spheral::CRKVolumeType::CRKVoronoiVolume"),
+                                                                   ("CRKHullVolume",      "Spheral::CRKVolumeType::CRKHullVolume"),
+                                                                   ("HVolume",            "Spheral::CRKVolumeType::HVolume")])
 
         if 2 in self.dims:
             self.CRKSPHHydroBaseRZ = addObject(self.space, "CRKSPHHydroBaseRZ", allow_subclassing=True, parent=self.CRKSPHHydroBase2d)
@@ -71,7 +69,7 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
     # The new sub modules (namespaces) introduced.
     #---------------------------------------------------------------------------
     def newSubModules(self):
-        return ["CRKSPHSpace"]
+        return []
 
     #---------------------------------------------------------------------------
     # Add the types per dimension.
@@ -82,19 +80,19 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
         thirdranktensor = "ThirdRankTensor%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
-        fourthranktensorfieldlist = "Spheral::FieldSpace::FourthRankTensorFieldList%id" % ndim
-        fifthranktensorfieldlist = "Spheral::FieldSpace::FifthRankTensorFieldList%id" % ndim
-        polyvolfieldlist = "Spheral::FieldSpace::FacetedVolumeFieldList%id" % ndim
-        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::ThirdRankTensorFieldList%id" % ndim
+        fourthranktensorfieldlist = "Spheral::FourthRankTensorFieldList%id" % ndim
+        fifthranktensorfieldlist = "Spheral::FifthRankTensorFieldList%id" % ndim
+        polyvolfieldlist = "Spheral::FacetedVolumeFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::VectorVectorFieldList%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
         vector_of_FacetedVolume = "vector_of_FacetedVolume%id" % ndim
         vector_of_vector_of_FacetedVolume = "vector_of_vector_of_FacetedVolume%id" % ndim
@@ -104,7 +102,7 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
 
         # Helper to compute the CRKSPH kernel.
         self.space.add_function("CRKSPHKernel", "double", [constrefparam(tablekernel, "W"),
-                                                           param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                                           param("Spheral::CRKOrder","correctionOrder"),
                                                            constrefparam(vector, "rij"),
                                                            constrefparam(vector, "etai"),
                                                            param("double", "Hdeti"),
@@ -112,7 +110,7 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                                                            param("double", "Hdetj"),
                                                            param("double", "Ai"),
                                                            constrefparam(vector, "Bi"),
-      							   constrefparam(tensor, "Ci"),
+                                                           constrefparam(tensor, "Ci"),
                                                            param("double", "correctionMin", default_value = "std::numeric_limits<double>::lowest()"),
                                                            param("double", "correctionMax", default_value = "std::numeric_limits<double>::max()")],
                                 template_parameters = [dim],
@@ -124,7 +122,7 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                                                                             Parameter.new("double*", "gradWSPH", direction=Parameter.DIRECTION_OUT),
                                                                             refparam(vector, "gradWCRKSPH"),
                                                                             constrefparam(tablekernel, "W"),
-                                                                            param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                                                            param("Spheral::CRKOrder","correctionOrder"),
                                                                             constrefparam(vector, "rij"),
                                                                             constrefparam(vector, "etai"),
                                                                             constrefparam(symtensor, "Hi"),
@@ -212,7 +210,7 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
-                                 param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                 param("Spheral::CRKOrder","correctionOrder"),
                                  constrefparam("Spheral::NodeCoupling", "nodeCoupling"),
                                  refparam(scalarfieldlist, "m0"),
                                  refparam(vectorfieldlist, "m1"),
@@ -254,7 +252,7 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                                  constrefparam(fourthranktensorfieldlist, "gradm3"),
                                  constrefparam(fifthranktensorfieldlist, "gradm4"),
                                  constrefparam(symtensorfieldlist, "H"),
-                                 param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                 param("Spheral::CRKOrder","correctionOrder"),
                                  refparam(scalarfieldlist, "A"),
                                  refparam(vectorfieldlist, "B"),
                                  refparam(tensorfieldlist, "C"),
@@ -279,7 +277,7 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                                      constrefparam(vectorfieldlist, "B"),
                                      constrefparam(tensorfieldlist, "C"),
                                      constrefparam(connectivitymap, "connectivityMap"),
-                                     param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                     param("Spheral::CRKOrder","correctionOrder"),
                                      constrefparam(tablekernel, "W")],
                                     template_parameters = [dim, element],
                                     custom_name = "interpolateCRKSPH",
@@ -293,7 +291,7 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                                      constrefparam(vectorfieldlist, "B"),
                                      constrefparam(tensorfieldlist, "C"),
                                      constrefparam(connectivitymap, "connectivityMap"),
-                                     param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                     param("Spheral::CRKOrder","correctionOrder"),
                                      constrefparam(tablekernel, "W"),
                                      constrefparam("Spheral::NodeCoupling", "nodeCoupling")],
                                     template_parameters = [dim, element],
@@ -315,7 +313,7 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                                      constrefparam(tensorfieldlist, "gradB"),
                                      constrefparam(thirdranktensorfieldlist, "gradC"),
                                      constrefparam(connectivitymap, "connectivityMap"),
-                                     param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                     param("Spheral::CRKOrder","correctionOrder"),
                                      constrefparam(tablekernel, "W")],
                                     template_parameters = [dim, element],
                                     custom_name = "gradientCRKSPH",
@@ -332,7 +330,7 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                                      constrefparam(tensorfieldlist, "gradB"),
                                      constrefparam(thirdranktensorfieldlist, "gradC"),
                                      constrefparam(connectivitymap, "connectivityMap"),
-                                     param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                     param("Spheral::CRKOrder","correctionOrder"),
                                      constrefparam(tablekernel, "W"),
                                      constrefparam("Spheral::NodeCoupling", "nodeCoupling")],
                                     template_parameters = [dim, element],
@@ -379,44 +377,44 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
     def generateCRKSPHHydroBaseBindings(self, x, ndim):
 
         # Object names.
-        me = "Spheral::CRKSPHSpace::CRKSPHHydroBase%id" % ndim
+        me = "Spheral::CRKSPHHydroBase%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
-        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
-        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
-        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
-        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        fieldbase = "Spheral::FieldBase%id" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        vector3dfield = "Spheral::Vector3dField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::ThirdRankTensorFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
         key = "pair_NodeList%id_string" % ndim
         vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
-        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
-        voidboundary = "Spheral::BoundarySpace::CRKSPHVoidBoundary%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscosity%id" % ndim
+        fileio = "Spheral::FileIO"
+        smoothingscalebase = "Spheral::SmoothingScaleBase%id" % ndim
+        voidboundary = "Spheral::CRKSPHVoidBoundary%id" % ndim
 
         # Constructors.
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
@@ -539,43 +537,43 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
     def generateSolidCRKSPHHydroBaseBindings(self, x, ndim):
 
         # Object names.
-        me = "Spheral::CRKSPHSpace::SolidCRKSPHHydroBase%id" % ndim
+        me = "Spheral::SolidCRKSPHHydroBase%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
-        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
-        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
-        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
-        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        fieldbase = "Spheral::FieldBase%id" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        vector3dfield = "Spheral::Vector3dField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::ThirdRankTensorFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
         key = "pair_NodeList%id_string" % ndim
         vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
-        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscosity%id" % ndim
+        fileio = "Spheral::FileIO"
+        smoothingscalebase = "Spheral::SmoothingScaleBase%id" % ndim
 
         # Constructors.
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
@@ -610,43 +608,43 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
         # Object names.
         x = self.CRKSPHHydroBaseRZ
         ndim = 2
-        me = "Spheral::CRKSPHSpace::CRKSPHHydroBaseRZ"
+        me = "Spheral::CRKSPHHydroBaseRZ"
         dim = "Spheral::Dim<%i>" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
-        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
-        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
-        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
-        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        fieldbase = "Spheral::FieldBase%id" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        vector3dfield = "Spheral::Vector3dField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::ThirdRankTensorFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
         key = "pair_NodeList%id_string" % ndim
         vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
-        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscosity%id" % ndim
+        fileio = "Spheral::FileIO"
+        smoothingscalebase = "Spheral::SmoothingScaleBase%id" % ndim
 
         # Constructors.
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
@@ -676,43 +674,43 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
         # Object names.
         x = self.SolidCRKSPHHydroBaseRZ
         ndim = 2
-        me = "Spheral::CRKSPHSpace::SolidCRKSPHHydroBaseRZ"
+        me = "Spheral::SolidCRKSPHHydroBaseRZ"
         dim = "Spheral::Dim<%i>" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
-        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
-        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
-        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
-        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        fieldbase = "Spheral::FieldBase%id" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        vector3dfield = "Spheral::Vector3dField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::ThirdRankTensorFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
         key = "pair_NodeList%id_string" % ndim
         vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
-        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscosity%id" % ndim
+        fileio = "Spheral::FileIO"
+        smoothingscalebase = "Spheral::SmoothingScaleBase%id" % ndim
 
         # Constructors.
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
@@ -745,44 +743,44 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
     def generateCRKSPHVariantBindings(self, x, ndim):
 
         # Object names.
-        me = "Spheral::CRKSPHSpace::CRKSPHVariant%id" % ndim
+        me = "Spheral::CRKSPHVariant%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
-        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
-        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
-        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
-        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        fieldbase = "Spheral::FieldBase%id" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        vector3dfield = "Spheral::Vector3dField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::ThirdRankTensorFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
         key = "pair_NodeList%id_string" % ndim
         vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
-        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
-        voidboundary = "Spheral::BoundarySpace::CRKSPHVoidBoundary%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscosity%id" % ndim
+        fileio = "Spheral::FileIO"
+        smoothingscalebase = "Spheral::SmoothingScaleBase%id" % ndim
+        voidboundary = "Spheral::CRKSPHVoidBoundary%id" % ndim
 
         # Constructors.
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),

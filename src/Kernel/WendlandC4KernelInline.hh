@@ -1,7 +1,6 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Empty constructor
@@ -101,5 +100,4 @@ WendlandC4Kernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) const 
 
 }
 
-}
 }

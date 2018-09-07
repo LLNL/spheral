@@ -13,16 +13,14 @@
 
 namespace Spheral {
 
-using NeighborSpace::NestedGridNeighbor;
-
 //------------------------------------------------------------------------------
 // Get the NestedGridNeighbor associated with the given NodeList.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-NeighborSpace::NestedGridNeighbor<Dimension>&
-getNestedGridNeighbor(const NodeSpace::NodeList<Dimension>* nodeListPtr) {
-  NeighborSpace::NestedGridNeighbor<Dimension>& neighbor = dynamic_cast<NeighborSpace::NestedGridNeighbor<Dimension>&>(nodeListPtr->neighbor());
+NestedGridNeighbor<Dimension>&
+getNestedGridNeighbor(const NodeList<Dimension>* nodeListPtr) {
+  NestedGridNeighbor<Dimension>& neighbor = dynamic_cast<NestedGridNeighbor<Dimension>&>(nodeListPtr->neighbor());
   return neighbor;
 }
 
@@ -33,16 +31,16 @@ getNestedGridNeighbor(const NodeSpace::NodeList<Dimension>* nodeListPtr) {
 template<typename Dimension>
 inline
 int
-maxNumGridLevels(const DataBaseSpace::DataBase<Dimension>& dataBase,
+maxNumGridLevels(const DataBase<Dimension>& dataBase,
                  MPI_Comm& communicator) {
 
   int numGridLevels = 0;
 
   // Loop over the NodeLists in the DataBase.
-  for (typename DataBaseSpace::DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
+  for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();
        ++nodeListItr) {
-    NeighborSpace::NestedGridNeighbor<Dimension>& neighbor = getNestedGridNeighbor(*nodeListItr);
+    NestedGridNeighbor<Dimension>& neighbor = getNestedGridNeighbor(*nodeListItr);
     numGridLevels = std::max(numGridLevels, neighbor.numGridLevels());
   }
 

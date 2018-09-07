@@ -4,8 +4,6 @@
 //
 // Created by JMO, Tue Jun 28 14:54:03 PDT 2011
 //----------------------------------------------------------------------------//
-#include <limits>
-
 #include "VoronoiHourglassControl.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Mesh/Mesh.hh"
@@ -18,23 +16,13 @@
 #include "FieldOperations/monotonicallyLimitedGradient.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/allReduce.hh"
-
 #include "Geometry/Dimension.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-namespace PhysicsSpace {
+#include <limits>
 
-using namespace std;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using KernelSpace::TableKernel;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using MeshSpace::Mesh;
+namespace Spheral {
+
 
 //------------------------------------------------------------------------------
 // Find the center of mass for a cell given a slope for the density in the cell.
@@ -146,14 +134,14 @@ VoronoiHourglassControl(const TableKernel<Dimension>& W,
   mLimiter(limiter),
   mFraction(fraction),
   mMask(mask),
-  mA(FieldSpace::FieldStorageType::CopyFields),
-  mWeight(FieldSpace::FieldStorageType::CopyFields),
-  mGradRho(FieldSpace::FieldStorageType::CopyFields),
-  mB(FieldSpace::FieldStorageType::CopyFields),
-  mC(FieldSpace::FieldStorageType::CopyFields),
-  mGradA(FieldSpace::FieldStorageType::CopyFields),
-  mD(FieldSpace::FieldStorageType::CopyFields),
-  mGradB(FieldSpace::FieldStorageType::CopyFields) {
+  mA(FieldStorageType::CopyFields),
+  mWeight(FieldStorageType::CopyFields),
+  mGradRho(FieldStorageType::CopyFields),
+  mB(FieldStorageType::CopyFields),
+  mC(FieldStorageType::CopyFields),
+  mGradA(FieldStorageType::CopyFields),
+  mD(FieldStorageType::CopyFields),
+  mGradB(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -285,7 +273,7 @@ finalize(const typename Dimension::Scalar time,
     // Compute the CRKSPH correction terms.
     dataBase.updateConnectivityMap();
     const ConnectivityMap<Dimension>& cm = dataBase.connectivityMap();
-    CRKSPHSpace::computeCRKSPHCorrections(cm, mW, mWeight, position, H, 
+    computeCRKSPHCorrections(cm, mW, mWeight, position, H, 
                                       mA, mA, mB, mC, mD, mGradA, mGradB);
 
     // Find the gradient of the density.
@@ -312,7 +300,7 @@ finalize(const typename Dimension::Scalar time,
             Hj = H(nodeListj, j);
             rij = ri - position(nodeListj, j);
             etaj = Hj*rij;
-            CRKSPHSpace::CRKSPHKernelAndGradient(mW, rij, etaj, Hj, Hj.Determinant(), 
+            CRKSPHKernelAndGradient(mW, rij, etaj, Hj, Hj.Determinant(), 
                                              Ai, Bi, gradAi, gradBi,
                                              Wj, gWj, gradWj);
             mGradRho(nodeListi, i) += rho(nodeListj, j) * mWeight(nodeListj, j)*gradWj;
@@ -341,12 +329,12 @@ finalize(const typename Dimension::Scalar time,
             }
           }
           if (mLimiter == 1) {
-            mGradRho(nodeListi, i) = FieldSpace::scalarLimitedGradient<Dimension, Scalar>(rho(nodeListi, i), 
+            mGradRho(nodeListi, i) = scalarLimitedGradient<Dimension, Scalar>(rho(nodeListi, i), 
                                                                                           mGradRho(nodeListi, i),
                                                                                           ri, rNodes, rhoNodes);
           } else {
             CHECK(mLimiter == 2);
-            mGradRho(nodeListi, i) = FieldSpace::tensorLimitedGradient<Dimension, Scalar>(rho(nodeListi, i), 
+            mGradRho(nodeListi, i) = tensorLimitedGradient<Dimension, Scalar>(rho(nodeListi, i), 
                                                                                           mGradRho(nodeListi, i),
                                                                                           ri, rNodes, rhoNodes);
           }
@@ -389,5 +377,3 @@ finalize(const typename Dimension::Scalar time,
 }
 
 }
-}
-

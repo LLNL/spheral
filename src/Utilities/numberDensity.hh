@@ -12,15 +12,10 @@
 
 // Forward declarations.
 namespace Spheral {
-namespace FieldSpace {
-  template<typename Dimension, typename Value> class FieldList;
-}
-namespace DataBaseSpace {
-  template<typename Dimension> class DataBase;
-}
-namespace KernelSpace {
-  template<typename Dimension> class TableKernel;
-}
+
+template<typename Dimension, typename Value> class FieldList;
+template<typename Dimension> class DataBase;
+template<typename Dimension> class TableKernel;
 
 //------------------------------------------------------------------------------
 // Return the number density for all nodes in the DataBase.
@@ -28,9 +23,9 @@ namespace KernelSpace {
 // neighbor information is up to date.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FieldSpace::FieldList<Dimension, typename Dimension::Scalar>
-numberDensity(const DataBaseSpace::DataBase<Dimension>& dataBase,
-              const KernelSpace::TableKernel<Dimension>& W);
+FieldList<Dimension, typename Dimension::Scalar>
+numberDensity(const DataBase<Dimension>& dataBase,
+              const TableKernel<Dimension>& W);
 
 }
 

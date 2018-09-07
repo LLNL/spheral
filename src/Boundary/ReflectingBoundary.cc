@@ -14,17 +14,15 @@
 
 #include "ReflectingBoundary.hh"
 
-using namespace std;
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace BoundarySpace {
-
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using MeshSpace::Mesh;
-using Geometry::innerProduct;
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -448,7 +446,7 @@ template<typename Dimension>
 void
 ReflectingBoundary<Dimension>::
 swapFaceValues(Field<Dimension, vector<Scalar> >& field,
-               const MeshSpace::Mesh<Dimension>& mesh) const {
+               const Mesh<Dimension>& mesh) const {
 }
 
 // Specialization for vector<Vector> fields.
@@ -456,7 +454,7 @@ template<typename Dimension>
 void
 ReflectingBoundary<Dimension>::
 swapFaceValues(Field<Dimension, vector<Vector> >& field,
-               const MeshSpace::Mesh<Dimension>& mesh) const {
+               const Mesh<Dimension>& mesh) const {
   typedef typename Mesh<Dimension>::Zone Zone;
   const GeomPlane<Dimension>& plane = this->enterPlane();
 
@@ -488,7 +486,7 @@ swapFaceValues(Field<Dimension, vector<Vector> >& field,
 template<typename Dimension>
 void
 ReflectingBoundary<Dimension>::
-dumpState(FileIOSpace::FileIO& file,
+dumpState(FileIO& file,
           const std::string& pathName) const {
 
   // Call the ancestor class.
@@ -503,7 +501,7 @@ dumpState(FileIOSpace::FileIO& file,
 template<typename Dimension>
 void
 ReflectingBoundary<Dimension>::
-restoreState(const FileIOSpace::FileIO& file,
+restoreState(const FileIO& file,
              const std::string& pathName) {
 
   // Call the ancestor class.
@@ -522,5 +520,4 @@ ReflectingBoundary<Dimension>::valid() const {
           PlanarBoundary<Dimension>::valid());
 }
 
-}
 }

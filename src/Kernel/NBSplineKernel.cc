@@ -9,9 +9,7 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Return the kernel weight for a given normalized distance.
@@ -117,5 +115,4 @@ initializeKernel() {
   this->setVolumeNormalization(1.0/volumeIntegral);
 }
 
-}
 }

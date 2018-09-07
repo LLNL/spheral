@@ -11,22 +11,11 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace BoundarySpace {
-    template<typename Dimension> class Boundary;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-}
 
-namespace Spheral {
-namespace PartitionSpace {
+template<typename Dimension> class DataBase;
+template<typename Dimension> class NodeList;
+template<typename Dimension> class Boundary;
+template<typename Dimension, typename DataType> class FieldList;
 
 class SortAndDivideRedistributeNodes2d: public SortAndDivideRedistributeNodes<Dim<2> > {
 
@@ -45,8 +34,8 @@ public:
   virtual ~SortAndDivideRedistributeNodes2d();
 
   // Given a Spheral++ data base of NodeLists, repartition it among the processors.
-  virtual void redistributeNodes(DataBaseSpace::DataBase<Dim<2> >& dataBase,
-                                 std::vector<BoundarySpace::Boundary<Dim<2> >*> boundaries = std::vector<BoundarySpace::Boundary<Dim<2> >*>());
+  virtual void redistributeNodes(DataBase<Dim<2> >& dataBase,
+                                 std::vector<Boundary<Dim<2> >*> boundaries = std::vector<Boundary<Dim<2> >*>());
 
   // Compute the appropriate number of domains in each dimension for a given
   // shape tensor EigenStruct.
@@ -62,14 +51,11 @@ private:
 };
 
 }
-}
 
 #else
 // Forward declare the SortAndDivideRedistributeNodes class.
 namespace Spheral {
-  namespace PartitionSpace {
-    class SortAndDivideRedistributeNodes2d;
-  }
+  class SortAndDivideRedistributeNodes2d;
 }
 
 #endif

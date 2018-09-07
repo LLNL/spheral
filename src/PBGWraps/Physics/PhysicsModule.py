@@ -14,11 +14,11 @@ def generatePhysicsVirtualBindings(x, ndim, pureVirtual):
     vector = "Vector%id" % ndim
     tensor = "Tensor%id" % ndim
     symtensor = "SymTensor%id" % ndim
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-    database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
+    database = "Spheral::DataBase%id" % ndim
     state = "Spheral::State%id" % ndim
     derivatives = "Spheral::StateDerivatives%id" % ndim
-    boundary = "Spheral::BoundarySpace::Boundary%id" % ndim
+    boundary = "Spheral::Boundary%id" % ndim
     vector_of_boundary = "vector_of_Boundary%id" % ndim
 
     # Abstract Methods.
@@ -59,8 +59,7 @@ class Physics:
         mod.add_include('"%s/PhysicsTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("PhysicsSpace")
+        space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
         for dim in self.dims:
@@ -71,15 +70,15 @@ self.GenericBodyForce%(dim)id = addObject(space, "GenericBodyForce%(dim)id", all
 self.vector_of_Physics%(dim)id = addObject(mod, "vector_of_Physics%(dim)id", allow_subclassing=True)
 ''' % {"dim" : dim})
 
-        self.MassDensityType = space.add_enum("MassDensityType", [("SumDensity", "Spheral::PhysicsSpace::MassDensityType::SumDensity"),
-                                                                  ("RigorousSumDensity", "Spheral::PhysicsSpace::MassDensityType::RigorousSumDensity"),
-                                                                  ("HybridSumDensity", "Spheral::PhysicsSpace::MassDensityType::HybridSumDensity"),
-                                                                  ("IntegrateDensity", "Spheral::PhysicsSpace::MassDensityType::IntegrateDensity"),
-                                                                  ("VoronoiCellDensity", "Spheral::PhysicsSpace::MassDensityType::VoronoiCellDensity"),
-                                                                  ("SumVoronoiCellDensity", "Spheral::PhysicsSpace::MassDensityType::SumVoronoiCellDensity"),
-                                                                  ("CorrectedSumDensity", "Spheral::PhysicsSpace::MassDensityType::CorrectedSumDensity")])
-        self.HEvolutionType = space.add_enum("HEvolutionType", [("IdealH", "Spheral::PhysicsSpace::HEvolutionType::IdealH"),
-                                                                ("IntegrateH", "Spheral::PhysicsSpace::HEvolutionType::IntegrateH")])
+        self.MassDensityType = space.add_enum("MassDensityType", [("SumDensity", "Spheral::MassDensityType::SumDensity"),
+                                                                  ("RigorousSumDensity", "Spheral::MassDensityType::RigorousSumDensity"),
+                                                                  ("HybridSumDensity", "Spheral::MassDensityType::HybridSumDensity"),
+                                                                  ("IntegrateDensity", "Spheral::MassDensityType::IntegrateDensity"),
+                                                                  ("VoronoiCellDensity", "Spheral::MassDensityType::VoronoiCellDensity"),
+                                                                  ("SumVoronoiCellDensity", "Spheral::MassDensityType::SumVoronoiCellDensity"),
+                                                                  ("CorrectedSumDensity", "Spheral::MassDensityType::CorrectedSumDensity")])
+        self.HEvolutionType = space.add_enum("HEvolutionType", [("IdealH", "Spheral::HEvolutionType::IdealH"),
+                                                                ("IntegrateH", "Spheral::HEvolutionType::IntegrateH")])
 
         return
 
@@ -93,16 +92,10 @@ self.vector_of_Physics%(dim)id = addObject(mod, "vector_of_Physics%(dim)id", all
 self.generatePhysicsBindings(self.Physics%(dim)id, %(dim)i)
 self.generateGenericHydroBindings(self.GenericHydro%(dim)id, %(dim)i)
 self.generateGenericBodyForceBindings(self.GenericBodyForce%(dim)id, %(dim)i)
-generateStdVectorBindings(self.vector_of_Physics%(dim)id, "Spheral::PhysicsSpace::Physics%(dim)id*", "vector_of_Physics%(dim)id")
+generateStdVectorBindings(self.vector_of_Physics%(dim)id, "Spheral::Physics%(dim)id*", "vector_of_Physics%(dim)id")
 ''' % {"dim" : dim})
 
         return
-
-    #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return ["PhysicsSpace"]
 
     #---------------------------------------------------------------------------
     # Physics bindings
@@ -110,15 +103,15 @@ generateStdVectorBindings(self.vector_of_Physics%(dim)id, "Spheral::PhysicsSpace
     def generatePhysicsBindings(self, x, ndim):
 
         # Object names.
-        me = "Spheral::PhysicsSpace::Physics%id" % ndim
+        me = "Spheral::Physics%id" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        boundary = "Spheral::BoundarySpace::Boundary%id" % ndim
+        boundary = "Spheral::Boundary%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
 
         # Constructor.
@@ -176,18 +169,18 @@ generateStdVectorBindings(self.vector_of_Physics%(dim)id, "Spheral::PhysicsSpace
     def generateGenericHydroBindings(self, x, ndim):
 
         # Object names.
-        me = "Spheral::PhysicsSpace::GenericHydro%id" % ndim
+        me = "Spheral::GenericHydro%id" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        boundary = "Spheral::BoundarySpace::Boundary%id" % ndim
+        boundary = "Spheral::Boundary%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscosity%id" % ndim
 
         # Constructor.
         x.add_constructor([constrefparam(tablekernel, "W"),
@@ -239,19 +232,19 @@ generateStdVectorBindings(self.vector_of_Physics%(dim)id, "Spheral::PhysicsSpace
     def generateGenericBodyForceBindings(self, x, ndim):
 
         # Object names.
-        me = "Spheral::PhysicsSpace::GenericBodyForce%id" % ndim
+        me = "Spheral::GenericBodyForce%id" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        boundary = "Spheral::BoundarySpace::Boundary%id" % ndim
+        boundary = "Spheral::Boundary%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscosity%id" % ndim
 
         # Constructor.
         x.add_constructor([])

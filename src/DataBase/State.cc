@@ -3,8 +3,6 @@
 //
 // Created by JMO, Fri Aug 27 10:56:40 2004
 //----------------------------------------------------------------------------//
-#include <string>
-
 #include "State.hh"
 #include "StateBase.hh"
 #include "StateDerivatives.hh"
@@ -16,11 +14,18 @@
 #include "Field/FieldList.hh"
 #include "Geometry/Dimension.hh"
 
-namespace Spheral {
+#include <string>
+using std::vector;
+using std::map;
+using std::set;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using namespace FieldSpace;
-using PhysicsSpace::Physics;
+namespace Spheral {
 
 namespace {
 //------------------------------------------------------------------------------
@@ -84,7 +89,7 @@ State():
 //------------------------------------------------------------------------------
 template<typename Dimension>
 State<Dimension>::
-State(DataBaseSpace::DataBase<Dimension>& dataBase,
+State(DataBase<Dimension>& dataBase,
       typename State<Dimension>::PackageList& physicsPackages):
   StateBase<Dimension>(),
   mPolicyMap(),
@@ -100,7 +105,7 @@ State(DataBaseSpace::DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 State<Dimension>::
-State(DataBaseSpace::DataBase<Dimension>& dataBase,
+State(DataBase<Dimension>& dataBase,
       typename State<Dimension>::PackageIterator physicsPackageBegin,
       typename State<Dimension>::PackageIterator physicsPackageEnd):
   StateBase<Dimension>(),
@@ -241,7 +246,7 @@ update(StateDerivatives<Dimension>& derivs,
     // Check that the some state has been updated on this iteration.  If not, then *somebody*
     // has specified a circular dependency tree!
     if (stateToRemove.empty()) {
-      stringstream message;
+      std::stringstream message;
       message << "State::update ERROR: someone has specified a circular state dependency.\n"
               << "Remaining State:\n";
       for (typename map<KeyType, set<KeyType> >::const_iterator itr = stateToBeCompleted.begin();
@@ -350,7 +355,7 @@ removePolicy(const typename State<Dimension>::KeyType& key) {
 template<typename Dimension>
 void
 State<Dimension>::
-removePolicy(FieldSpace::FieldBase<Dimension>& field) {
+removePolicy(FieldBase<Dimension>& field) {
   this->removePolicy(StateBase<Dimension>::key(field));
 }
 
@@ -360,7 +365,7 @@ removePolicy(FieldSpace::FieldBase<Dimension>& field) {
 template<typename Dimension>
 void
 State<Dimension>::
-removePolicy(FieldSpace::FieldListBase<Dimension>& fieldList) {
+removePolicy(FieldListBase<Dimension>& fieldList) {
   this->removePolicy(StateBase<Dimension>::key(fieldList));
 }
 

@@ -2,7 +2,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Empty constructor
@@ -81,5 +80,4 @@ ExpInvKernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) const {
   return A*Hdet*(1.0/(x*x*x*x) + 1.0/(x*x*x))*exp(1.0/x);
 }
 
-}
 }

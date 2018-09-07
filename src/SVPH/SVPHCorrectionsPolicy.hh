@@ -31,8 +31,8 @@ public:
   typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
 
   // Constructors, destructor.
-  SVPHCorrectionsPolicy(const DataBaseSpace::DataBase<Dimension>& dataBase,
-                        const KernelSpace::TableKernel<Dimension>& kernel);
+  SVPHCorrectionsPolicy(const DataBase<Dimension>& dataBase,
+                        const TableKernel<Dimension>& kernel);
   virtual ~SVPHCorrectionsPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -48,8 +48,8 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const DataBaseSpace::DataBase<Dimension>& mDataBase;
-  const KernelSpace::TableKernel<Dimension>& mKernel;
+  const DataBase<Dimension>& mDataBase;
+  const TableKernel<Dimension>& mKernel;
 
   SVPHCorrectionsPolicy();
   SVPHCorrectionsPolicy(const SVPHCorrectionsPolicy& rhs);

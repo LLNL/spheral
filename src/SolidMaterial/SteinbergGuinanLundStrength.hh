@@ -15,7 +15,6 @@
 #include "SteinbergGuinanStrength.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
 template<typename Dimension>
 class SteinbergGuinanLundStrength: public SteinbergGuinanStrength<Dimension> {
@@ -70,15 +69,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class SteinbergGuinanLundStrength;
-  }
+  template<typename Dimension> class SteinbergGuinanLundStrength;
 }
 
 #endif

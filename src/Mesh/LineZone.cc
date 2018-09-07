@@ -3,16 +3,23 @@
 //
 // Created by JMO, Thu Oct 14 21:21:02 PDT 2010
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
 #include "Mesh.hh"
 #include "Geometry/Dimension.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-namespace MeshSpace {
+#include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Mesh::Zone(...)
@@ -52,8 +59,8 @@ Zone(const Mesh<Dim<1> >& mesh,
   CHECK(mEdgeIDs.size() == 2);
 
   // Order the faces, edges, & nodes as (left, right).
-  if (mMeshPtr->node(mNodeIDs[0]).position().x() > mMeshPtr->node(mNodeIDs[1]).position().x()) swap(mNodeIDs[0], mNodeIDs[1]);
-  if (mMeshPtr->edge(mEdgeIDs[0]).position().x() > mMeshPtr->edge(mEdgeIDs[1]).position().x()) swap(mEdgeIDs[0], mEdgeIDs[1]);
+  if (mMeshPtr->node(mNodeIDs[0]).position().x() > mMeshPtr->node(mNodeIDs[1]).position().x()) std::swap(mNodeIDs[0], mNodeIDs[1]);
+  if (mMeshPtr->edge(mEdgeIDs[0]).position().x() > mMeshPtr->edge(mEdgeIDs[1]).position().x()) std::swap(mEdgeIDs[0], mEdgeIDs[1]);
 
   // Post-conditions.
   ENSURE(mNodeIDs.size() == 2);
@@ -86,5 +93,4 @@ volume() const {
           mMeshPtr->mNodePositions[mNodeIDs[0]].x());
 }
 
-}
 }

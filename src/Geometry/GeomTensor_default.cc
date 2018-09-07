@@ -10,7 +10,6 @@
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/rotationMatrix.hh"
 
-using namespace std;
 
 namespace Spheral {
 

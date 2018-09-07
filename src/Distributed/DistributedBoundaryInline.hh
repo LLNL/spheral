@@ -4,7 +4,6 @@
 #include "Communicator.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 //------------------------------------------------------------------------------
 // Do not use the ghost nodes from the parallel boundary for mesh generation.
@@ -63,5 +62,4 @@ DistributedBoundary<Dimension>::accessNodeListDomainBoundaryNodeMap() {
 
 #endif // USE_MPI
 
-}
 }

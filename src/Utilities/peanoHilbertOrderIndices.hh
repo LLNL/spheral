@@ -16,20 +16,16 @@
 namespace Spheral {
 
 // Forward declarations.
-namespace DataBaseSpace {
-  template<typename Dimension> class DataBase;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class FieldList;
-}
+template<typename Dimension> class DataBase;
+template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension>
-FieldSpace::FieldList<Dimension, typename KeyTraits::Key>
-peanoHilbertOrderIndices(const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& positions);
+FieldList<Dimension, typename KeyTraits::Key>
+peanoHilbertOrderIndices(const FieldList<Dimension, typename Dimension::Vector>& positions);
 
 template<typename Dimension>
-FieldSpace::FieldList<Dimension, typename KeyTraits::Key>
-peanoHilbertOrderIndices(const DataBaseSpace::DataBase<Dimension>& dataBase);
+FieldList<Dimension, typename KeyTraits::Key>
+peanoHilbertOrderIndices(const DataBase<Dimension>& dataBase);
 
 }
 

@@ -8,14 +8,14 @@
 #ifndef SolidEquationOfState_HH
 #define SolidEquationOfState_HH
 
-#include <limits>
 #include "Material/EquationOfState.hh"
 
+#include <limits>
+
 namespace Spheral {
-namespace SolidMaterial {
 
 template<typename Dimension>
-class SolidEquationOfState: public Material::EquationOfState<Dimension> {
+class SolidEquationOfState: public EquationOfState<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -28,10 +28,10 @@ public:
   SolidEquationOfState(const double referenceDensity,
                        const double etamin,
                        const double etamax,
-                       const Material::PhysicalConstants& constants,
+                       const PhysicalConstants& constants,
                        const double minimumPressure,
                        const double maximumPressure,
-                       const Material::MaterialPressureMinType minPressureType);
+                       const MaterialPressureMinType minPressureType);
   virtual ~SolidEquationOfState();
 
   // Access the member data.
@@ -57,19 +57,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "SolidEquationOfStateInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class SolidEquationOfState;
-  }
+  template<typename Dimension> class SolidEquationOfState;
 }
 
 #endif

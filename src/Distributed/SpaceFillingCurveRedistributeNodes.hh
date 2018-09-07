@@ -11,37 +11,20 @@
 #ifndef SpaceFillingCurveRedistributeNodes_HH
 #define SpaceFillingCurveRedistributeNodes_HH
 
-#ifndef __GCCXML__
-
 #include <vector>
 #include <map>
 #ifdef USE_MPI
 #include "mpi.h"
 #endif
 
-#else
-
-#include "fakestl.hh"
-
-#endif
-
 #include "RedistributeNodes.hh"
 #include "Utilities/KeyTraits.hh"
 
 namespace Spheral {
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace BoundarySpace {
-    template<typename Dimension> class Boundary;
-  }
-}
 
-namespace Spheral {
-namespace PartitionSpace {
+template<typename Dimension> class DataBase;
+template<typename Dimension> class NodeList;
+template<typename Dimension> class Boundary;
 
 template<typename Dimension>
 class SpaceFillingCurveRedistributeNodes: public RedistributeNodes<Dimension> {
@@ -67,14 +50,14 @@ public:
 
   // This is the required method for all descendant classes.
   virtual
-  FieldSpace::FieldList<Dimension, Key> 
-  computeHashedIndices(const DataBaseSpace::DataBase<Dimension>& dataBase) const = 0;
+  FieldList<Dimension, Key> 
+  computeHashedIndices(const DataBase<Dimension>& dataBase) const = 0;
 
   // Given a Spheral++ data base of NodeLists, repartition it among the processors.
   // This is the method required of all descendent classes.
-  virtual void redistributeNodes(DataBaseSpace::DataBase<Dimension>& dataBase,
-                                 std::vector<BoundarySpace::Boundary<Dimension>*> boundaries =
-                                 std::vector<BoundarySpace::Boundary<Dimension>*>()) override;
+  virtual void redistributeNodes(DataBase<Dimension>& dataBase,
+                                 std::vector<Boundary<Dimension>*> boundaries =
+                                 std::vector<Boundary<Dimension>*>()) override;
 
   // Compute the cell size in each dimension.
   Vector computeStepSize(const std::pair<Vector, Vector>& box) const;
@@ -82,7 +65,7 @@ public:
   // Stitch together the given indices and DomainNode list.
   // This returns the set sorted by the index.
   std::vector<std::pair<Key, DomainNode<Dimension> > >
-  buildIndex2IDPairs(const FieldSpace::FieldList<Dimension, Key>& indices,
+  buildIndex2IDPairs(const FieldList<Dimension, Key>& indices,
                      const std::vector<DomainNode<Dimension> >& domainNodes) const;
 
   // Find the hashed index the given amount of work above the specified lower bound.
@@ -163,14 +146,12 @@ private:
 };
 
 }
-}
 
 #else
+
 // Forward declare the SpaceFillingCurveRedistributeNodes class.
 namespace Spheral {
-  namespace PartitionSpace {
-    template<typename Dimension> class SpaceFillingCurveRedistributeNodes;
-  }
+  template<typename Dimension> class SpaceFillingCurveRedistributeNodes;
 }
 
 #endif

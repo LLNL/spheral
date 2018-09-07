@@ -11,7 +11,6 @@
 #include "Integrator.hh"
 
 namespace Spheral {
-namespace IntegratorSpace {
 
 template<typename Dimension>
 class SynchronousRK1: public Integrator<Dimension> {
@@ -24,9 +23,9 @@ public:
 
   // Constructors.
   SynchronousRK1();
-  SynchronousRK1(DataBaseSpace::DataBase<Dimension>& dataBase);
-  SynchronousRK1(DataBaseSpace::DataBase<Dimension>& dataBase,
-                 const std::vector<PhysicsSpace::Physics<Dimension>*>& physicsPackages);
+  SynchronousRK1(DataBase<Dimension>& dataBase);
+  SynchronousRK1(DataBase<Dimension>& dataBase,
+                 const std::vector<Physics<Dimension>*>& physicsPackages);
 
   // Destructor.
   ~SynchronousRK1();
@@ -48,16 +47,14 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
 };
-}
+
 }
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace IntegratorSpace {
-    template<typename Dimension> class SynchronousRK1;
-  }
+  template<typename Dimension> class SynchronousRK1;
 }
 
 #endif

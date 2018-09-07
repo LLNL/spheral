@@ -20,7 +20,7 @@ namespace DataOutput {
 //------------------------------------------------------------------------------
 RestartableObject::
 RestartableObject(const unsigned priority):
-  mRestart(DataOutput::registerWithRestart(*this, priority)) {
+  mRestart(registerWithRestart(*this, priority)) {
 }
 
 //------------------------------------------------------------------------------

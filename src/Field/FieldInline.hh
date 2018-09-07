@@ -1,9 +1,3 @@
-#include <cmath>
-#include <iostream>
-#include <algorithm>
-#include <sstream>
-#include <limits>
-
 #include "Field/FieldBase.hh"
 #include "Geometry/Dimension.hh"
 #include "NodeList/NodeList.hh"
@@ -13,16 +7,20 @@
 #include "Utilities/safeInv.hh"
 #include "Distributed/Communicator.hh"
 
+#include <cmath>
+#include <iostream>
+#include <algorithm>
+#include <sstream>
+#include <limits>
+
 #ifdef USE_MPI
 extern "C" {
 #include "mpi.h"
 }
 #endif
 
-
 // Inlined methods.
 namespace Spheral {
-namespace FieldSpace {
 
 // Construct with name.
 //------------------------------------------------------------------------------
@@ -53,7 +51,7 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
-      const NodeSpace::NodeList<Dimension>& nodeList):
+      const NodeList<Dimension>& nodeList):
   FieldBase<Dimension>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), DataType()),
   mValid(true) {
@@ -64,7 +62,7 @@ template<>
 inline
 Field<Dim<1>, Dim<1>::Scalar>::
 Field(FieldBase<Dim<1> >::FieldName name,
-      const NodeSpace::NodeList<Dim<1> >& nodeList):
+      const NodeList<Dim<1> >& nodeList):
   FieldBase<Dim<1> >(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), 0.0),
   mValid(true) {
@@ -75,7 +73,7 @@ template<>
 inline
 Field<Dim<2>, Dim<2>::Scalar>::
 Field(FieldBase<Dim<2> >::FieldName name,
-      const NodeSpace::NodeList<Dim<2> >& nodeList):
+      const NodeList<Dim<2> >& nodeList):
   FieldBase<Dim<2> >(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), 0.0),
   mValid(true) {
@@ -86,7 +84,7 @@ template<>
 inline
 Field<Dim<3>, Dim<3>::Scalar>::
 Field(FieldBase<Dim<3> >::FieldName name,
-      const NodeSpace::NodeList<Dim<3> >& nodeList):
+      const NodeList<Dim<3> >& nodeList):
   FieldBase<Dim<3> >(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), 0.0),
   mValid(true) {
@@ -100,7 +98,7 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
-      const NodeSpace::NodeList<Dimension>& nodeList,
+      const NodeList<Dimension>& nodeList,
       DataType value):
   FieldBase<Dimension>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), value),
@@ -116,7 +114,7 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name, 
-      const NodeSpace::NodeList<Dimension>& nodeList,
+      const NodeList<Dimension>& nodeList,
       const std::vector<DataType,DataAllocator<DataType>>& array):
   FieldBase<Dimension>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes()),
@@ -132,7 +130,7 @@ Field(typename FieldBase<Dimension>::FieldName name,
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-Field<Dimension, DataType>::Field(const NodeSpace::NodeList<Dimension>& nodeList,
+Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
                                   const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(field.name(), nodeList),
   mDataArray(field.mDataArray),
@@ -447,7 +445,7 @@ void
 Field<Dimension, DataType>::applyScalarMin(const double dataMin) {
   REQUIRE(mValid);
   const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) mDataArray[i] = Spheral::max(mDataArray[i], dataMin);
+  for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::max(mDataArray[i], dataMin);
 }
 
 //------------------------------------------------------------------------------
@@ -459,7 +457,7 @@ void
 Field<Dimension, DataType>::applyScalarMax(const double dataMax) {
   REQUIRE(mValid);
   const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) mDataArray[i] = Spheral::min(mDataArray[i], dataMax);
+  for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::min(mDataArray[i], dataMax);
 }
 
 //------------------------------------------------------------------------------
@@ -1151,7 +1149,7 @@ operator[](const unsigned int index) const {
 template<typename Dimension, typename DataType>
 inline
 void
-Field<Dimension, DataType>::setNodeList(const NodeSpace::NodeList<Dimension>& nodeList) {
+Field<Dimension, DataType>::setNodeList(const NodeList<Dimension>& nodeList) {
   unsigned oldSize = this->size();
   this->setFieldBaseNodeList(nodeList);
   mDataArray.resize(nodeList.numNodes());
@@ -1453,450 +1451,448 @@ operator*(const DataType& lhs,
   return result;
 }
 
-//------------------------------------------------------------------------------
-// Absolute value.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-abs(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::abs(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Absolute value.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// abs(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::abs(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Inverse cosine
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-acos(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::acos(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Inverse cosine
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// acos(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::acos(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Inverse sine
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-asin(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::asin(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Inverse sine
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// asin(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::asin(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Inverse tangent
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-atan(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::atan(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Inverse tangent
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// atan(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::atan(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Inverse tangent2.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-atan2(const Field<Dimension, typename Dimension::Scalar>& field1,
-      const Field<Dimension, typename Dimension::Scalar>& field2) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field1.valid() && field2.valid());
-  CHECK(field1.nodeListPtr() == field2.nodeListPtr());
-  Field<Dimension, Scalar> result(field1);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::atan2(field1(i), field2(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Inverse tangent2.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// atan2(const Field<Dimension, typename Dimension::Scalar>& field1,
+//       const Field<Dimension, typename Dimension::Scalar>& field2) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field1.valid() && field2.valid());
+//   CHECK(field1.nodeListPtr() == field2.nodeListPtr());
+//   Field<Dimension, Scalar> result(field1);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::atan2(field1(i), field2(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Ceiling -- smallest floating-point integer value not less than the argument.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-ceil(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::ceil(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Ceiling -- smallest floating-point integer value not less than the argument.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// ceil(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::ceil(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Cosine
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-cos(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::cos(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Cosine
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// cos(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::cos(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Hyperbolic cosine
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-cosh(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::cosh(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Hyperbolic cosine
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// cosh(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::cosh(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Exponential e^x
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-exp(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::exp(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Exponential e^x
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// exp(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::exp(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// fabs -- same as abs, absolute value
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-fabs(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::abs(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // fabs -- same as abs, absolute value
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// fabs(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::abs(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Floor -- largest floating-point integer value not greater than the argument
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-floor(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::floor(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Floor -- largest floating-point integer value not greater than the argument
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// floor(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::floor(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Natural logarithm
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-log(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::log(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Natural logarithm
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// log(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::log(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Log base 10
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-log10(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::log10(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Log base 10
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// log10(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::log10(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// pow -- raise each element to an arbitrary power
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-pow(const Field<Dimension, typename Dimension::Scalar>& field,
-    const double exponent) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::pow(result(i), exponent);
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // pow -- raise each element to an arbitrary power
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// pow(const Field<Dimension, typename Dimension::Scalar>& field,
+//     const double exponent) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::pow(result(i), exponent);
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// powN -- raise each element to the power N
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-pow2(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = FastMath::pow2(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // powN -- raise each element to the power N
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// pow2(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = FastMath::pow2(result(i));
+//   }
+//   return result;
+// }
 
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-pow3(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = FastMath::pow3(result(i));
-  }
-  return result;
-}
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// pow3(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = FastMath::pow3(result(i));
+//   }
+//   return result;
+// }
 
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-pow4(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = FastMath::pow4(result(i));
-  }
-  return result;
-}
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// pow4(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = FastMath::pow4(result(i));
+//   }
+//   return result;
+// }
 
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-pow5(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = FastMath::pow5(result(i));
-  }
-  return result;
-}
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// pow5(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = FastMath::pow5(result(i));
+//   }
+//   return result;
+// }
 
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-pow6(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = FastMath::pow6(result(i));
-  }
-  return result;
-}
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// pow6(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = FastMath::pow6(result(i));
+//   }
+//   return result;
+// }
 
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-pow7(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = FastMath::pow7(result(i));
-  }
-  return result;
-}
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// pow7(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = FastMath::pow7(result(i));
+//   }
+//   return result;
+// }
 
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-pow8(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = FastMath::pow8(result(i));
-  }
-  return result;
-}
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// pow8(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = FastMath::pow8(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Sine
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-sin(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::sin(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Sine
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// sin(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::sin(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Hyperbolic sine
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-sinh(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    result(i) = std::sinh(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Hyperbolic sine
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// sinh(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     result(i) = std::sinh(result(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Sqr -- square, same as pow2()
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-sqr(const Field<Dimension, typename Dimension::Scalar>& field) {
-  return field.pow2();
-}
+// //------------------------------------------------------------------------------
+// // Sqr -- square, same as pow2()
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// sqr(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   return field.pow2();
+// }
 
-//------------------------------------------------------------------------------
-// Sqrt
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-sqrt(const Field<Dimension, typename Dimension::Scalar>& field) {
-  typedef typename Dimension::Scalar Scalar;
-  CHECK(field.valid());
-  Field<Dimension, Scalar> result(field);
-  for (int i = 0; i < result.numElements(); ++i) {
-    CHECK(result(i) >= 0.0);
-    result(i) = std::sqrt(result(i));
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Sqrt
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// Field<Dimension, typename Dimension::Scalar>
+// sqrt(const Field<Dimension, typename Dimension::Scalar>& field) {
+//   typedef typename Dimension::Scalar Scalar;
+//   CHECK(field.valid());
+//   Field<Dimension, Scalar> result(field);
+//   for (int i = 0; i < result.numElements(); ++i) {
+//     CHECK(result(i) >= 0.0);
+//     result(i) = std::sqrt(result(i));
+//   }
+//   return result;
+// }
 
-}
+// //------------------------------------------------------------------------------
+// // Minimum
+// //------------------------------------------------------------------------------
+// template<typename Dimension, typename DataType>
+// Field<Dimension, DataType>
+// min(const Field<Dimension, DataType>& field1,
+//     const Field<Dimension, DataType>& field2) {
+//   CHECK(field1.valid() && field2.valid());
+//   CHECK(field1.numElements() == field2.numElements());
+//   CHECK(field1.nodeListPtr() == field2.nodeListPtr());
+//   Field<Dimension, DataType> result("min", const_cast<NodeList<Dimension>&>(field1.nodeList()));
+//   for (int i = 0; i < field1.numElements(); ++i) {
+//     result(i) = std::min(field1(i), field2(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Minimum
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-FieldSpace::Field<Dimension, DataType>
-min(const FieldSpace::Field<Dimension, DataType>& field1,
-    const FieldSpace::Field<Dimension, DataType>& field2) {
-  CHECK(field1.valid() && field2.valid());
-  CHECK(field1.numElements() == field2.numElements());
-  CHECK(field1.nodeListPtr() == field2.nodeListPtr());
-  FieldSpace::Field<Dimension, DataType> result("min", const_cast<NodeSpace::NodeList<Dimension>&>(field1.nodeList()));
-  for (int i = 0; i < field1.numElements(); ++i) {
-    result(i) = std::min(field1(i), field2(i));
-  }
-  return result;
-}
+// template<typename Dimension, typename DataType>
+// Field<Dimension, DataType>
+// min(const DataType& value,
+//     const Field<Dimension, DataType>& field) {
+//   CHECK(field.valid());
+//   Field<Dimension, DataType> result("min", const_cast<NodeList<Dimension>&>(field.nodeList()));
+//   for (int i = 0; i < field.numElements(); ++i) {
+//     result(i) = std::min(value, field(i));
+//   }
+//   return result;
+// }
 
-template<typename Dimension, typename DataType>
-FieldSpace::Field<Dimension, DataType>
-min(const DataType& value,
-    const FieldSpace::Field<Dimension, DataType>& field) {
-  CHECK(field.valid());
-  FieldSpace::Field<Dimension, DataType> result("min", const_cast<NodeSpace::NodeList<Dimension>&>(field.nodeList()));
-  for (int i = 0; i < field.numElements(); ++i) {
-    result(i) = std::min(value, field(i));
-  }
-  return result;
-}
+// template<typename Dimension, typename DataType>
+// Field<Dimension, DataType>
+// min(const Field<Dimension, DataType>& field, 
+//     const DataType& value) {
+//   CHECK(field.valid());
+//   Field<Dimension, DataType> result("min", const_cast<NodeList<Dimension>&>(field.nodeList()));
+//   for (int i = 0; i < field.numElements(); ++i) {
+//     result(i) = std::min(field(i), value);
+//   }
+//   return result;
+// }
 
-template<typename Dimension, typename DataType>
-FieldSpace::Field<Dimension, DataType>
-min(const FieldSpace::Field<Dimension, DataType>& field, 
-    const DataType& value) {
-  CHECK(field.valid());
-  FieldSpace::Field<Dimension, DataType> result("min", const_cast<NodeSpace::NodeList<Dimension>&>(field.nodeList()));
-  for (int i = 0; i < field.numElements(); ++i) {
-    result(i) = std::min(field(i), value);
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // Maximum
+// //------------------------------------------------------------------------------
+// template<typename Dimension, typename DataType>
+// Field<Dimension, DataType>
+// max(const Field<Dimension, DataType>& field1,
+//     const Field<Dimension, DataType>& field2) {
+//   CHECK(field1.valid() && field2.valid());
+//   CHECK(field1.numElements() == field2.numElements());
+//   CHECK(field1.nodeListPtr() == field2.nodeListPtr());
+//   Field<Dimension, DataType> result("max", const_cast<NodeList<Dimension>&>(field1.nodeList()));
+//   for (int i = 0; i < field1.numElements(); ++i) {
+//     result(i) = std::max(field1(i), field2(i));
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Maximum
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-FieldSpace::Field<Dimension, DataType>
-max(const FieldSpace::Field<Dimension, DataType>& field1,
-    const FieldSpace::Field<Dimension, DataType>& field2) {
-  CHECK(field1.valid() && field2.valid());
-  CHECK(field1.numElements() == field2.numElements());
-  CHECK(field1.nodeListPtr() == field2.nodeListPtr());
-  FieldSpace::Field<Dimension, DataType> result("max", const_cast<NodeSpace::NodeList<Dimension>&>(field1.nodeList()));
-  for (int i = 0; i < field1.numElements(); ++i) {
-    result(i) = std::max(field1(i), field2(i));
-  }
-  return result;
-}
+// template<typename Dimension, typename DataType>
+// Field<Dimension, DataType>
+// max(const DataType& value,
+//     const Field<Dimension, DataType>& field) {
+//   CHECK(field.valid());
+//   Field<Dimension, DataType> result("max", const_cast<NodeList<Dimension>&>(field.nodeList()));
+//   for (int i = 0; i < field.numElements(); ++i) {
+//     result(i) = std::max(value, field(i));
+//   }
+//   return result;
+// }
 
-template<typename Dimension, typename DataType>
-FieldSpace::Field<Dimension, DataType>
-max(const DataType& value,
-    const FieldSpace::Field<Dimension, DataType>& field) {
-  CHECK(field.valid());
-  FieldSpace::Field<Dimension, DataType> result("max", const_cast<NodeSpace::NodeList<Dimension>&>(field.nodeList()));
-  for (int i = 0; i < field.numElements(); ++i) {
-    result(i) = std::max(value, field(i));
-  }
-  return result;
-}
-
-template<typename Dimension, typename DataType>
-FieldSpace::Field<Dimension, DataType>
-max(const FieldSpace::Field<Dimension, DataType>& field, 
-    const DataType& value) {
-  CHECK(field.valid());
-  FieldSpace::Field<Dimension, DataType> result("max", const_cast<NodeSpace::NodeList<Dimension>&>(field.nodeList()));
-  for (int i = 0; i < field.numElements(); ++i) {
-    result(i) = std::max(field(i), value);
-  }
-  return result;
-}
+// template<typename Dimension, typename DataType>
+// Field<Dimension, DataType>
+// max(const Field<Dimension, DataType>& field, 
+//     const DataType& value) {
+//   CHECK(field.valid());
+//   Field<Dimension, DataType> result("max", const_cast<NodeList<Dimension>&>(field.nodeList()));
+//   for (int i = 0; i < field.numElements(); ++i) {
+//     result(i) = std::max(field(i), value);
+//   }
+//   return result;
+// }
 
 //------------------------------------------------------------------------------
 // Input (istream) operator.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 std::istream&
-operator>>(std::istream& is, FieldSpace::Field<Dimension, DataType>& field) {
+operator>>(std::istream& is, Field<Dimension, DataType>& field) {
 
   // Start by reading the number of elements.
   int numElementsInStream;
@@ -1904,7 +1900,7 @@ operator>>(std::istream& is, FieldSpace::Field<Dimension, DataType>& field) {
   CHECK(numElementsInStream == field.nodeList().numInternalNodes());
 
   // Read in the elements.
-  for (typename FieldSpace::Field<Dimension, DataType>::iterator itr = field.internalBegin();
+  for (typename Field<Dimension, DataType>::iterator itr = field.internalBegin();
        itr < field.internalEnd();
        ++itr) {
     is >> *itr;
@@ -1917,13 +1913,13 @@ operator>>(std::istream& is, FieldSpace::Field<Dimension, DataType>& field) {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 std::ostream&
-operator<<(std::ostream& os, const FieldSpace::Field<Dimension, DataType>& field) {
+operator<<(std::ostream& os, const Field<Dimension, DataType>& field) {
 
   // Write the number of internal elements.
   os << field.nodeList().numInternalNodes() << " ";
 
   // Write the internal elements.
-  for (typename FieldSpace::Field<Dimension, DataType>::const_iterator itr = field.internalBegin();
+  for (typename Field<Dimension, DataType>::const_iterator itr = field.internalBegin();
        itr < field.internalEnd();
        ++itr) {
     os << *itr << " ";

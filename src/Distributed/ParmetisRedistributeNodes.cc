@@ -5,12 +5,6 @@
 //
 // Created by JMO, Wed Feb 12 17:29:09 PST 2003
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
-#include <sstream>
-#include <fstream>
-#include <cstdlib>
-
 #include "RedistributeNodes.hh"
 #include "ParmetisRedistributeNodes.hh"
 #include "DomainNode.hh"
@@ -26,17 +20,14 @@
 
 #include "Utilities/DBC.hh"
 
+#include <algorithm>
+
+#include <sstream>
+#include <fstream>
+#include <cstdlib>
+
 namespace Spheral {
-namespace PartitionSpace {
 
-using namespace std;
-
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using BoundarySpace::BoundingVolumeDistributedBoundary;
-using BoundarySpace::DistributedBoundary;
-using BoundarySpace::Boundary;
-using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
 // Two ways of comparing the pair<globalID, distance> for sorting.
@@ -112,7 +103,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   }
 
   // Assign global IDs to all nodes.
-  FieldList<Dimension, int> globalIDs = NodeSpace::globalNodeIDs(dataBase);
+  FieldList<Dimension, int> globalIDs = globalNodeIDs(dataBase);
 
   // Use the boundary conditions to communicate global IDs.
   for (typename vector<Boundary<Dimension>*>::iterator boundItr = boundaries.begin();
@@ -257,7 +248,7 @@ refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
   }
 
   // Assign global IDs to all nodes.
-  FieldList<Dimension, int> globalIDs = NodeSpace::globalNodeIDs(dataBase);
+  FieldList<Dimension, int> globalIDs = globalNodeIDs(dataBase);
 
   // Use the boundary conditions to communicate global IDs.
   for (typename vector<Boundary<Dimension>*>::iterator boundItr = boundaries.begin();
@@ -371,7 +362,7 @@ void
 ParmetisRedistributeNodes<Dimension>::
 buildCSRGraph(const DataBase<Dimension>& dataBase,
               const vector<DomainNode<Dimension> >& nodeDistribution,
-              const FieldSpace::FieldList<Dimension, int>& globalNodeIDs,
+              const FieldList<Dimension, int>& globalNodeIDs,
               vector<idx_t>& xadj,
               vector<idx_t>& adjacency,
               vector<idx_t>& vtxdist,
@@ -1087,6 +1078,5 @@ symmetricConnectivity(const map<int, vector<pair<int, double> > >& neighbors) co
   return true;
 }
 
-}
 }
 

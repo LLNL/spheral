@@ -10,7 +10,6 @@
 #include "Utilities/newtonRaphson.hh"
 
 namespace Spheral {
-namespace Testing {
 
 //------------------------------------------------------------------------------
 // Define a functor class which we'll pass to the Newton-Raphson algorithm
@@ -44,7 +43,6 @@ testNewtonRaphsonRoot(const TestFunction& func,
   return newtonRaphson(func, x1, x2);
 }
 
-}
 }
 
 #endif

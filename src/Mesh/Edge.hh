@@ -7,7 +7,6 @@
 #define __Spheral_Mesh_Edge__
 
 namespace Spheral {
-namespace MeshSpace {
 
 template<typename Dimension>
 class Mesh<Dimension>::Edge {
@@ -38,7 +37,6 @@ private:
   friend class Mesh<Dimension>;
 };
 
-}
 }
 
 #include "EdgeInline.hh"

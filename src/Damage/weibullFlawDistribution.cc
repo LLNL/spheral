@@ -20,16 +20,20 @@
 
 #include <boost/random.hpp>
 #include <boost/random/uniform_01.hpp>
+using boost::unordered_map;
+
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace PhysicsSpace {
-
-using namespace std;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::FluidNodeList;
-using DataBaseSpace::DataBase;
-using boost::unordered_map;
 
 //------------------------------------------------------------------------------
 // This version uses the Benz-Asphaug algorithm, stepping up deterministically
@@ -350,6 +354,5 @@ weibullFlawDistributionOwen(const unsigned seed,
   return flaws;
 }
 
-}
 }
 

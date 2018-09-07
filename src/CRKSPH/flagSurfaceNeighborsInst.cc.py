@@ -6,9 +6,7 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace CRKSPHSpace {
-    template void flagSurfaceNeighbors<Dim<%(ndim)s>>(FieldSpace::FieldList<Dim<%(ndim)s>, int>& surfacePoint,
-                                                      const NeighborSpace::ConnectivityMap<Dim<%(ndim)s>>& connectivityMap);
-  }
+template void flagSurfaceNeighbors<Dim<%(ndim)s>>(FieldList<Dim<%(ndim)s>, int>& surfacePoint,
+                                                  const ConnectivityMap<Dim<%(ndim)s>>& connectivityMap);
 }
 """

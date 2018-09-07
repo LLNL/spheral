@@ -24,6 +24,16 @@
 // BOOST_GEOMETRY_REGISTER_C_ARRAY_CS(cs::cartesian)
 
 #include <limits>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 //------------------------------------------------------------------------------
 // GeomVector<2> -> Boost.Geometry
@@ -80,7 +90,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Work with a closed polygon defined by it's vertices.

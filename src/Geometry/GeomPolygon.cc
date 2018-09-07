@@ -23,6 +23,10 @@
 #include <limits>
 #include <iostream>
 #include <iterator>
+using std::vector;
+using std::pair;
+using std::min;
+using std::max;
 
 //------------------------------------------------------------------------------
 // It seems there is a missing specialization for abs(long unsigned int), so 
@@ -37,7 +41,6 @@ namespace std {
 
 namespace Spheral {
 
-using namespace std;
 
 //********************************************************************************
 // The following anonymous stuff is lifted from the convex hull method I 
@@ -718,7 +721,7 @@ GeomPolygon::
 edges() const {
   vector<pair<unsigned, unsigned> > result;
   for (unsigned i = 0; i != mVertices.size(); ++i) {
-    result.push_back(make_pair(i, (i + 1) % mVertices.size()));
+    result.push_back(std::make_pair(i, (i + 1) % mVertices.size()));
   }
   return result;
 }
@@ -789,7 +792,7 @@ unsigned
 GeomPolygon::
 closestFacet(const GeomPolygon::Vector& p) const {
   unsigned result = 0;
-  double r2, minr2 = numeric_limits<double>::max();
+  double r2, minr2 = std::numeric_limits<double>::max();
   Vector thpt;
   for (unsigned i = 0; i != mFacets.size(); ++i) {
     thpt = mFacets[i].closestPoint(p);
@@ -966,7 +969,7 @@ convex(const double tol) const {
 //------------------------------------------------------------------------------
 // ostream operator.
 //------------------------------------------------------------------------------
-ostream& operator<<(ostream& os, const GeomPolygon& polygon) {
+std::ostream& operator<<(std::ostream& os, const GeomPolygon& polygon) {
   typedef GeomPolygon::Vector Vector;
   typedef GeomPolygon::Facet Facet;
   const auto& vertices = polygon.vertices();

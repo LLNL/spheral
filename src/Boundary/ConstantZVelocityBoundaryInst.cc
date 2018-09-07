@@ -5,7 +5,5 @@
 #include "ConstantZVelocityBoundary.cc"
 
 namespace Spheral {
-  namespace BoundarySpace {
-    template class ConstantZVelocityBoundary< Dim<3> >;
-  }
+  template class ConstantZVelocityBoundary< Dim<3> >;
 }

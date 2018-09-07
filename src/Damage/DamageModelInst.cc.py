@@ -6,6 +6,6 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class PhysicsSpace::DamageModel<Dim< %(ndim)s > >;
+  template class DamageModel<Dim< %(ndim)s > >;
 }
 """

@@ -3,15 +3,22 @@
 //
 // Created by JMO, Wed Jan  5 21:09:11 PST 2011
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
 #include "Mesh.hh"
 #include "Utilities/DBC.hh"
 
-using namespace std;
+#include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace MeshSpace {
 
 //------------------------------------------------------------------------------
 // Mesh::Face(...)
@@ -119,5 +126,4 @@ unitNormal() const {
   return result.unitVector();
 }
 
-}
 }

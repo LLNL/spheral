@@ -5,12 +5,18 @@
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-
-using namespace std;
-
-using FieldSpace::Field;
-using FieldSpace::FieldList;
 
 template<typename Dimension>
 typename Dimension::FacetedVolume
@@ -18,7 +24,7 @@ computeNeighborHull(const std::vector<std::vector<int> >& fullConnectivity,
                     const typename Dimension::Scalar etaCutoff,
                     const typename Dimension::Vector& ri,
                     const typename Dimension::SymTensor& Hi,
-                    const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position) {
+                    const FieldList<Dimension, typename Dimension::Vector>& position) {
 
   // Pre-conditions.
   const size_t numNodeLists = fullConnectivity.size();

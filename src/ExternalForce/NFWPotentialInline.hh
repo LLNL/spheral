@@ -2,7 +2,6 @@
 #include "DataBase/StateDerivatives.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Return the total potential energy calculated in the last evaluateDerivatives.
@@ -180,5 +179,4 @@ setDeltaPotentialFraction(const typename Dimension::Scalar deltaPhi) {
   mDeltaPhiFraction = deltaPhi;
 }
 
-}
 }

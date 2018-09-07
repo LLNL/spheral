@@ -4,11 +4,6 @@
 //
 // Created by JMO, Mon Aug 27 22:21:17 PDT 2001
 //----------------------------------------------------------------------------//
-#include <list>
-#include <algorithm>
-
-#include "mpi.h"
-
 #include "DistributedBoundary.hh"
 #include "NestedGridDistributedBoundary.hh"
 #include "NestedGridUtilities.hh"
@@ -23,17 +18,13 @@
 #include "waitAllWithDeadlockDetection.hh"
 #include "Communicator.hh"
 
-using namespace std;
+#include <list>
+#include <algorithm>
+
+#include "mpi.h"
+
 
 namespace Spheral {
-namespace BoundarySpace {
-
-using NodeSpace::NodeList;
-using NeighborSpace::NestedGridNeighbor;
-using NeighborSpace::GridCellIndex;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
 
 // Static initialization of singleton instance.
 template <typename Dimension>
@@ -596,6 +587,5 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
   }
 }
 
-}
 }
 

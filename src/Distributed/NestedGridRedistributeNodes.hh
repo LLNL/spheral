@@ -7,40 +7,25 @@
 #ifndef Spheral_NestedGridRedistributeNodes_hh
 #define Spheral_NestedGridRedistributeNodes_hh
 
-#ifndef __GCCXML__
+#include "RedistributeNodes.hh"
+
 #include <set>
 #include <vector>
 #include <map>
-#else
-#include "fakestl.hh"
-#endif
 
 #ifdef USE_MPI
 #include "mpi.h"
 #endif
 
-#include "RedistributeNodes.hh"
-
 namespace Spheral {
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace BoundarySpace {
-    template<typename Dimension> class Boundary;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace NeighborSpace {
-    template<typename Dimension> class GridCellIndex;
-  }
+  template<typename Dimension> class DataBase;
+  template<typename Dimension> class NodeList;
+  template<typename Dimension> class Boundary;
+  template<typename Dimension, typename DataType> class FieldList;
+  template<typename Dimension> class GridCellIndex;
 }
 
 namespace Spheral {
-namespace PartitionSpace {
 
 template<typename Dimension>
 class NestedGridRedistributeNodes: public RedistributeNodes<Dimension> {
@@ -52,7 +37,7 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  typedef std::vector< std::map<NeighborSpace::GridCellIndex<Dimension>, int> > GridCellPopulationType;
+  typedef std::vector< std::map<GridCellIndex<Dimension>, int> > GridCellPopulationType;
 
   // Constructors
   NestedGridRedistributeNodes(const double HExtent);
@@ -62,18 +47,18 @@ public:
 
   // Given a Spheral++ data base of NodeLists, repartition it among the processors.
   // This is the method required of all RedistributeNodes classes.
-  virtual void redistributeNodes(DataBaseSpace::DataBase<Dimension>& dataBase,
-                                 std::vector<BoundarySpace::Boundary<Dimension>*> boundaries = std::vector<BoundarySpace::Boundary<Dimension>*>());
+  virtual void redistributeNodes(DataBase<Dimension>& dataBase,
+                                 std::vector<Boundary<Dimension>*> boundaries = std::vector<Boundary<Dimension>*>());
 
   // Find the global number of nodes on each grid level and in each grid cell.
-  void computeGridCellPopulations(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  void computeGridCellPopulations(const DataBase<Dimension>& dataBase,
                                   GridCellPopulationType& gridCellPopulations,
                                   std::vector<int>& gridLevelPopulations) const;
 
   // Find the grid level with the most nodes, and the minimum grid cell on that grid level.
   void findMaster(const GridCellPopulationType& gridCellPopulations,
                   const std::vector<int>& gridLevelPopulations,
-                  NeighborSpace::GridCellIndex<Dimension>& gridCell,
+                  GridCellIndex<Dimension>& gridCell,
                   int& gridLevel) const;
 
   // Count the number total number of nodes remaining in the given populations.
@@ -82,33 +67,33 @@ public:
 
   // Find the square "rind" of grid cells at the given distance from the given
   // grid cell on the given grid level.
-  std::vector<NeighborSpace::GridCellIndex<Dimension> > gridCellRind(const NeighborSpace::GridCellIndex<Dimension>& gridCell,
+  std::vector<GridCellIndex<Dimension> > gridCellRind(const GridCellIndex<Dimension>& gridCell,
                                                                      const int gridLevel,
                                                                      const int gridCellStep,
                                                                      const GridCellPopulationType& gridCellPopulations) const;
 
   // Helper method to compute the full set of GridCell's at a given step.
-  std::set<NeighborSpace::GridCellIndex<Dimension> > computeGridCellRind(const NeighborSpace::GridCellIndex<Dimension>& gridCell,
+  std::set<GridCellIndex<Dimension> > computeGridCellRind(const GridCellIndex<Dimension>& gridCell,
                                                                          const int gridLevel) const;
 
   // Set the master grid cell info for all NodeLists in the DataBase.
-  void setMasterNodeLists(DataBaseSpace::DataBase<Dimension>& dataBase,
-                          const NeighborSpace::GridCellIndex<Dimension>& gridCell,
+  void setMasterNodeLists(DataBase<Dimension>& dataBase,
+                          const GridCellIndex<Dimension>& gridCell,
                           const int gridLevel,
                           std::vector<std::vector<int>>& masterLists,
                           std::vector<std::vector<int>>& coarseNeighbors) const;
 
   // Gather up the unassigned coarse neighbor nodes, filling in the global node indices and work.
-  void gatherAvailableCoarseNodes(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  void gatherAvailableCoarseNodes(const DataBase<Dimension>& dataBase,
                                   const std::vector<DomainNode<Dimension> >& nodeDistribution,
-                                  const FieldSpace::FieldList<Dimension, Scalar>& work,
+                                  const FieldList<Dimension, Scalar>& work,
                                   const std::vector<std::vector<int>>& localCoarseNeighbors,
                                   std::vector<int>& globalNodeIndices,
                                   std::vector<Scalar>& globalNodeWork) const;
 
   // Assign from the given set of nodes to the given grid cell, until either the
   // desired work per domain is reached or we exhast the given set of nodes.
-  bool assignNodesToDomain(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  bool assignNodesToDomain(const DataBase<Dimension>& dataBase,
                            const std::vector<int>& globalNodeIndices,
                            const std::vector<Scalar>& globalNodeWork,
                            const int currentDomainID,
@@ -135,18 +120,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "NestedGridRedistributeNodesInline.hh"
-#endif
 
 #else
+
 // Forward declare the NestedGridRedistributeNodes class.
 namespace Spheral {
-  namespace PartitionSpace {
-    template<typename Dimension> class NestedGridRedistributeNodes;
-  }
+  template<typename Dimension> class NestedGridRedistributeNodes;
 }
 
 #endif

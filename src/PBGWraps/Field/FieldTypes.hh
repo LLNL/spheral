@@ -11,7 +11,6 @@
 #include "PBGWraps/CXXTypes/CXXTypes.hh"
 
 namespace Spheral {
-namespace FieldSpace {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -128,48 +127,46 @@ typedef FieldListSet<Dim<2> > FieldListSet2d;
 typedef FieldListSet<Dim<3> > FieldListSet3d;
 
 }
-}
 
 // std::vectors of Field*'s
-typedef std::vector<Spheral::FieldSpace::Field<Dim<1>, int>*> vector_of_IntFieldPtr1d;
-typedef std::vector<Spheral::FieldSpace::Field<Dim<1>, Dim<1>::Scalar>*> vector_of_ScalarFieldPtr1d;
-typedef std::vector<Spheral::FieldSpace::Field<Dim<1>, Dim<1>::Vector>*> vector_of_VectorFieldPtr1d;
-typedef std::vector<Spheral::FieldSpace::Field<Dim<1>, Dim<1>::Tensor>*> vector_of_TensorFieldPtr1d;
-typedef std::vector<Spheral::FieldSpace::Field<Dim<1>, Dim<1>::SymTensor>*> vector_of_SymTensorFieldPtr1d;
+typedef std::vector<Spheral::Field<Dim<1>, int>*> vector_of_IntFieldPtr1d;
+typedef std::vector<Spheral::Field<Dim<1>, Dim<1>::Scalar>*> vector_of_ScalarFieldPtr1d;
+typedef std::vector<Spheral::Field<Dim<1>, Dim<1>::Vector>*> vector_of_VectorFieldPtr1d;
+typedef std::vector<Spheral::Field<Dim<1>, Dim<1>::Tensor>*> vector_of_TensorFieldPtr1d;
+typedef std::vector<Spheral::Field<Dim<1>, Dim<1>::SymTensor>*> vector_of_SymTensorFieldPtr1d;
 
-typedef std::vector<Spheral::FieldSpace::Field<Dim<2>, int>*> vector_of_IntFieldPtr2d;
-typedef std::vector<Spheral::FieldSpace::Field<Dim<2>, Dim<2>::Scalar>*> vector_of_ScalarFieldPtr2d;
-typedef std::vector<Spheral::FieldSpace::Field<Dim<2>, Dim<2>::Vector>*> vector_of_VectorFieldPtr2d;
-typedef std::vector<Spheral::FieldSpace::Field<Dim<2>, Dim<2>::Tensor>*> vector_of_TensorFieldPtr2d;
-typedef std::vector<Spheral::FieldSpace::Field<Dim<2>, Dim<2>::SymTensor>*> vector_of_SymTensorFieldPtr2d;
+typedef std::vector<Spheral::Field<Dim<2>, int>*> vector_of_IntFieldPtr2d;
+typedef std::vector<Spheral::Field<Dim<2>, Dim<2>::Scalar>*> vector_of_ScalarFieldPtr2d;
+typedef std::vector<Spheral::Field<Dim<2>, Dim<2>::Vector>*> vector_of_VectorFieldPtr2d;
+typedef std::vector<Spheral::Field<Dim<2>, Dim<2>::Tensor>*> vector_of_TensorFieldPtr2d;
+typedef std::vector<Spheral::Field<Dim<2>, Dim<2>::SymTensor>*> vector_of_SymTensorFieldPtr2d;
 
-typedef std::vector<Spheral::FieldSpace::Field<Dim<3>, int>*> vector_of_IntFieldPtr3d;
-typedef std::vector<Spheral::FieldSpace::Field<Dim<3>, Dim<3>::Scalar>*> vector_of_ScalarFieldPtr3d;
-typedef std::vector<Spheral::FieldSpace::Field<Dim<3>, Dim<3>::Vector>*> vector_of_VectorFieldPtr3d;
-typedef std::vector<Spheral::FieldSpace::Field<Dim<3>, Dim<3>::Tensor>*> vector_of_TensorFieldPtr3d;
-typedef std::vector<Spheral::FieldSpace::Field<Dim<3>, Dim<3>::SymTensor>*> vector_of_SymTensorFieldPtr3d;
+typedef std::vector<Spheral::Field<Dim<3>, int>*> vector_of_IntFieldPtr3d;
+typedef std::vector<Spheral::Field<Dim<3>, Dim<3>::Scalar>*> vector_of_ScalarFieldPtr3d;
+typedef std::vector<Spheral::Field<Dim<3>, Dim<3>::Vector>*> vector_of_VectorFieldPtr3d;
+typedef std::vector<Spheral::Field<Dim<3>, Dim<3>::Tensor>*> vector_of_TensorFieldPtr3d;
+typedef std::vector<Spheral::Field<Dim<3>, Dim<3>::SymTensor>*> vector_of_SymTensorFieldPtr3d;
 
 // std::vectors of FieldLists
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<1>, int> > vector_of_IntFieldList1d;
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar> > vector_of_ScalarFieldList1d;
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<1>, Dim<1>::Vector> > vector_of_VectorFieldList1d;
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<1>, Dim<1>::Tensor> > vector_of_TensorFieldList1d;
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<1>, Dim<1>::SymTensor> > vector_of_SymTensorFieldList1d;
+typedef std::vector<Spheral::FieldList<Dim<1>, int> > vector_of_IntFieldList1d;
+typedef std::vector<Spheral::FieldList<Dim<1>, Dim<1>::Scalar> > vector_of_ScalarFieldList1d;
+typedef std::vector<Spheral::FieldList<Dim<1>, Dim<1>::Vector> > vector_of_VectorFieldList1d;
+typedef std::vector<Spheral::FieldList<Dim<1>, Dim<1>::Tensor> > vector_of_TensorFieldList1d;
+typedef std::vector<Spheral::FieldList<Dim<1>, Dim<1>::SymTensor> > vector_of_SymTensorFieldList1d;
 
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<2>, int> > vector_of_IntFieldList2d;
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar> > vector_of_ScalarFieldList2d;
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<2>, Dim<2>::Vector> > vector_of_VectorFieldList2d;
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<2>, Dim<2>::Tensor> > vector_of_TensorFieldList2d;
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<2>, Dim<2>::SymTensor> > vector_of_SymTensorFieldList2d;
+typedef std::vector<Spheral::FieldList<Dim<2>, int> > vector_of_IntFieldList2d;
+typedef std::vector<Spheral::FieldList<Dim<2>, Dim<2>::Scalar> > vector_of_ScalarFieldList2d;
+typedef std::vector<Spheral::FieldList<Dim<2>, Dim<2>::Vector> > vector_of_VectorFieldList2d;
+typedef std::vector<Spheral::FieldList<Dim<2>, Dim<2>::Tensor> > vector_of_TensorFieldList2d;
+typedef std::vector<Spheral::FieldList<Dim<2>, Dim<2>::SymTensor> > vector_of_SymTensorFieldList2d;
 
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<3>, int> > vector_of_IntFieldList3d;
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar> > vector_of_ScalarFieldList3d;
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<3>, Dim<3>::Vector> > vector_of_VectorFieldList3d;
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<3>, Dim<3>::Tensor> > vector_of_TensorFieldList3d;
-typedef std::vector<Spheral::FieldSpace::FieldList<Dim<3>, Dim<3>::SymTensor> > vector_of_SymTensorFieldList3d;
+typedef std::vector<Spheral::FieldList<Dim<3>, int> > vector_of_IntFieldList3d;
+typedef std::vector<Spheral::FieldList<Dim<3>, Dim<3>::Scalar> > vector_of_ScalarFieldList3d;
+typedef std::vector<Spheral::FieldList<Dim<3>, Dim<3>::Vector> > vector_of_VectorFieldList3d;
+typedef std::vector<Spheral::FieldList<Dim<3>, Dim<3>::Tensor> > vector_of_TensorFieldList3d;
+typedef std::vector<Spheral::FieldList<Dim<3>, Dim<3>::SymTensor> > vector_of_SymTensorFieldList3d;
 
 namespace Spheral {
-namespace FieldSpace {
 
 // //------------------------------------------------------------------------------
 // // Index into a Field.
@@ -239,7 +236,7 @@ template<typename Dimension, typename FieldListType>
 inline
 typename FieldListType::ElementType
 fieldForNodeList(FieldListType& container, 
-                 const NodeSpace::NodeList<Dimension>& nodeList) {
+                 const NodeList<Dimension>& nodeList) {
   return *(container.fieldForNodeList(nodeList));
 }
 
@@ -276,7 +273,6 @@ indexFieldListForValuePointer(FieldListType& container,
   }
 }
 
-}
 }
 
 #endif

@@ -24,7 +24,7 @@ public:
   typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
-  HullVolumePolicy(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap);
+  HullVolumePolicy(const ConnectivityMap<Dimension>& connectivityMap);
   virtual ~HullVolumePolicy();
   
   // Overload the methods describing how to update Fields.
@@ -48,7 +48,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const NeighborSpace::ConnectivityMap<Dimension>& mConnectivityMap;
+  const ConnectivityMap<Dimension>& mConnectivityMap;
 
   HullVolumePolicy(const HullVolumePolicy& rhs);
   HullVolumePolicy& operator=(const HullVolumePolicy& rhs);

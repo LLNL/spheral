@@ -8,12 +8,6 @@
 //
 // Created by JMO, Wed Apr  9 13:13:46 PDT 2008
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <sstream>
-#include <fstream>
-#include <cstdlib>
-#include <bitset>
-
 #include "SpaceFillingCurveRedistributeNodes.hh"
 #include "DomainNode.hh"
 #include "DistributedBoundary.hh"
@@ -31,17 +25,25 @@
 
 #include "Utilities/DBC.hh"
 
+#include <algorithm>
+#include <sstream>
+#include <fstream>
+#include <cstdlib>
+#include <bitset>
+using std::vector;
+using std::pair;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-namespace PartitionSpace {
 
-using namespace std;
-
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using BoundarySpace::DistributedBoundary;
-using BoundarySpace::Boundary;
-using FieldSpace::FieldList;
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Compare pairs of <Key, *> by the first element (Key).
@@ -102,10 +104,10 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   if (double(totalNumNodes)/double(Process::getTotalNumberOfProcesses()) >= 1.0) {
 
     // Get the global IDs.
-    const FieldList<Dimension, int> globalIDs = NodeSpace::globalNodeIDs(dataBase);
+    const FieldList<Dimension, int> globalIDs = globalNodeIDs(dataBase);
 
     // Compute the work per node.
-    FieldList<Dimension, Scalar> workField(FieldSpace::FieldStorageType::CopyFields);
+    FieldList<Dimension, Scalar> workField(FieldStorageType::CopyFields);
     if (this->workBalance()) {
 
       // Enforce boundary conditions for the work computation.
@@ -690,5 +692,3 @@ localReorderOnly(const bool val) {
 }
 
 }
-}
-

@@ -7,7 +7,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace MeshSpace {
 
 //------------------------------------------------------------------------------
 // PolyhedralMesh::Edge::Edge(mesh, node1ID, node2ID)
@@ -28,5 +27,4 @@ Edge(const Mesh<Dim<3> >& mesh,
   REQUIRE2(node1ID != node2ID, "Edge can't have same node twice:  " << node1ID << " " << node2ID);
 }
 
-}
 }

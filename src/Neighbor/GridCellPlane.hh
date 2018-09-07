@@ -8,7 +8,6 @@
 #define __Spheral_GridCellPlane_hh__
 
 namespace Spheral {
-namespace NeighborSpace {
 
 template<typename Dimension> class GridCellIndex;
 
@@ -60,26 +59,19 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-#ifndef __GCCXML__
   GridCellIndex<Dimension> mPoint;
   GridCellIndex<Dimension> mNormal;
-#endif
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "GridCellPlaneInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace NeighborSpace {
-    template<typename Dimension> class GridCellPlane;
-  }
+  template<typename Dimension> class GridCellPlane;
 }
 
 #endif

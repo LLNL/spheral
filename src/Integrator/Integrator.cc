@@ -19,25 +19,23 @@
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
-
 #include "Integrator.hh"
 
 #include <limits.h>
 #include <float.h>
 #include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace IntegratorSpace {
-
-using namespace std;
-
-using NodeSpace::NodeList;
-using DataBaseSpace::DataBase;
-using PhysicsSpace::Physics;
-using FileIOSpace::FileIO;
-using FieldSpace::FieldList;
-using BoundarySpace::Boundary;
-using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -58,7 +56,7 @@ Integrator<Dimension>::Integrator():
   mRigorousBoundaries(false),
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -81,7 +79,7 @@ Integrator(DataBase<Dimension>& dataBase):
   mRigorousBoundaries(false),
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -105,7 +103,7 @@ Integrator(DataBase<Dimension>& dataBase,
   mRigorousBoundaries(false),
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -823,5 +821,3 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
-

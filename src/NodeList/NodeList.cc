@@ -6,7 +6,6 @@
 //
 // Created by JMO, Wed Sep  8 21:54:50 PDT 1999
 //----------------------------------------------------------------------------//
-
 #include "FileIO/FileIO.hh"
 #include "Geometry/Dimension.hh"
 #include "NodeListRegistrar.hh"
@@ -20,20 +19,17 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/ReplaceState.hh"
-
 #include "NodeList.hh"
 
 #include <algorithm>
+using std::vector;
+using std::list;
+using std::string;
+using std::cerr;
+using std::endl;
 
 namespace Spheral {
-namespace NodeSpace {
 
-using namespace std;
-using NeighborSpace::Neighbor;
-using FileIOSpace::FileIO;
-using KernelSpace::TableKernel;
-using FieldSpace::FieldBase;
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Constructor with optional numInternal nodes, numGhost nodes, and name.
@@ -63,7 +59,7 @@ NodeList<Dimension>::NodeList(std::string name,
   mFieldBaseList(),
   mNeighborPtr(0),
   mDummyList(),
-  mRestart(DataOutput::registerWithRestart(*this, 10)) {
+  mRestart(registerWithRestart(*this, 10)) {
   REQUIRE(numInternal >= 0 && numGhost >= 0);
   mMass.setNodeList(*this);
   mPositions.setNodeList(*this);
@@ -680,5 +676,3 @@ restoreState(const FileIO& file, const string& pathName) {
 //   }
 // }
 }
-}
-

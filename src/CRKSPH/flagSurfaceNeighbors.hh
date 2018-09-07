@@ -9,11 +9,9 @@
 #include "Neighbor/ConnectivityMap.hh"
 
 namespace Spheral {
-  namespace CRKSPHSpace {
-    template<typename Dimension> 
-    void flagSurfaceNeighbors(FieldSpace::FieldList<Dimension, int>& surfacePoint,
-                              const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap);
-  }
+template<typename Dimension> 
+void flagSurfaceNeighbors(FieldList<Dimension, int>& surfacePoint,
+                          const ConnectivityMap<Dimension>& connectivityMap);
 }
 
 #endif

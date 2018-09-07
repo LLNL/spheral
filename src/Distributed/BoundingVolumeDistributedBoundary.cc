@@ -6,8 +6,6 @@
 //
 // Created by JMO, Tue Jan 19 09:22:37 PST 2010
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
 #include "mpi.h"
 
 #include "DistributedBoundary.hh"
@@ -25,18 +23,19 @@
 #include "waitAllWithDeadlockDetection.hh"
 #include "Communicator.hh"
 
-using namespace std;
+#include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace BoundarySpace {
-
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using NeighborSpace::NestedGridNeighbor;
-using NeighborSpace::GridCellIndex;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
 
 // Static initialization of singleton instance.
 template <typename Dimension>
@@ -231,6 +230,5 @@ packNodeListBuffers(const DataBase<Dimension>& dataBase,
   ENSURE(Hbuffers.size() == numNodesPerNodeList.size());
 }
 
-}
 }
 

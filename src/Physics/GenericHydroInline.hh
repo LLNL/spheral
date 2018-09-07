@@ -1,17 +1,16 @@
+#include "Utilities/DBC.hh"
+
 #include <limits.h>
 #include <float.h>
 
-#include "Utilities/DBC.hh"
-
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Access the artificial viscosity.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-ArtificialViscositySpace::ArtificialViscosity<Dimension>&
+ArtificialViscosity<Dimension>&
 GenericHydro<Dimension>::artificialViscosity() const {
   return mArtificialViscosity;
 }
@@ -21,7 +20,7 @@ GenericHydro<Dimension>::artificialViscosity() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const KernelSpace::TableKernel<Dimension>&
+const TableKernel<Dimension>&
 GenericHydro<Dimension>::
 kernel() const {
   return mKernel;
@@ -32,7 +31,7 @@ kernel() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const KernelSpace::TableKernel<Dimension>&
+const TableKernel<Dimension>&
 GenericHydro<Dimension>::
 PiKernel() const {
   return mPiKernel;
@@ -236,5 +235,3 @@ updateActualNeighborStats(int numNeighbor) const {
 }
 
 }
-}
-

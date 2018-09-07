@@ -6,7 +6,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace MeshSpace {
 
 //------------------------------------------------------------------------------
 // Mesh::Edge::ID
@@ -91,5 +90,4 @@ length() const {
           mMeshPtr->mNodePositions[mNode1ID]).magnitude();
 }
 
-}
 }

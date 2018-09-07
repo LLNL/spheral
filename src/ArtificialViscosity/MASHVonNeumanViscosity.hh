@@ -13,7 +13,6 @@
 #include "FileIO/FileIO.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 template<typename Dimension>
 class MASHVonNeumanViscosity: public ArtificialViscosity<Dimension> {
@@ -36,12 +35,12 @@ public:
   // Initialize the artificial viscosity for all FluidNodeLists in the given
   // DataBase.
   virtual 
-  void initialize(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  void initialize(const DataBase<Dimension>& dataBase,
                   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
                   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-		  const Scalar time,
-		  const Scalar dt,
-                  const KernelSpace::TableKernel<Dimension>& W);
+                  const Scalar time,
+                  const Scalar dt,
+                  const TableKernel<Dimension>& W);
 
   // Method to calculate and return the viscous acceleration, work, and pressure,
   // all in one step (efficiency and all).
@@ -61,21 +60,21 @@ public:
                               const Vector& gradW) const;
 
   // Access the computed value for the divergence of the velocity.
-  const FieldSpace::FieldList<Dimension, Scalar>& velocityDivergence() const;
+  const FieldList<Dimension, Scalar>& velocityDivergence() const;
 
   // Access the MASH gradient correction.
-  const FieldSpace::FieldList<Dimension, Tensor>& correction() const;
+  const FieldList<Dimension, Tensor>& correction() const;
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
-  FieldSpace::FieldList<Dimension, Scalar> mVelocityDivergence;
-  FieldSpace::FieldList<Dimension, Tensor> mCorrection;
+  FieldList<Dimension, Scalar> mVelocityDivergence;
+  FieldList<Dimension, Tensor> mCorrection;
 
   MASHVonNeumanViscosity();
   MASHVonNeumanViscosity& operator=(const MASHVonNeumanViscosity& rhs);
@@ -87,7 +86,7 @@ protected:
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 MASHVonNeumanViscosity<Dimension>::
 velocityDivergence() const {
   return mVelocityDivergence;
@@ -98,22 +97,19 @@ velocityDivergence() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 MASHVonNeumanViscosity<Dimension>::
 correction() const {
   return mCorrection;
 }
 
 }
-}
 
 #else
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
-// Forward declaration.
-template<typename Dimension> class VonNeumanViscosity;
-}
+  // Forward declaration.
+  template<typename Dimension> class VonNeumanViscosity;
 }
 
 #endif

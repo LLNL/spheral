@@ -13,8 +13,6 @@
 
 namespace Spheral {
 
-using FieldSpace::Field;
-
 //------------------------------------------------------------------------------
 // Constructors.
 //------------------------------------------------------------------------------
@@ -98,8 +96,8 @@ update(const KeyType& key,
 
   // Find the matching derivative field from the StateDerivatives.
   KeyType incrementKey = prefix() + key;
-  FieldSpace::Field<Dimension, Value>& f = state.field(key, Value());
-  const FieldSpace::Field<Dimension, Value>& df = derivs.field(incrementKey, Value());
+  Field<Dimension, Value>& f = state.field(key, Value());
+  const Field<Dimension, Value>& df = derivs.field(incrementKey, Value());
 
   // Loop over the internal values of the field.
   for (unsigned i = 0; i != f.nodeList().numInternalNodes(); ++i) {

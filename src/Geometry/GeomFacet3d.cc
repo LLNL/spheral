@@ -9,7 +9,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Compare a set of points:
@@ -97,7 +96,7 @@ closestPoint(const GeomFacet3d::Vector& p) const {
   // Nope, so look for the point around the circumference of the facet that is
   // closest.
   unsigned i, j, npts = mPoints.size();
-  double r2, minr2 = numeric_limits<double>::max();
+  double r2, minr2 = std::numeric_limits<double>::max();
   Vector potential;
   for (i = 0; i != npts; ++i) {
     j = (i + 1) % npts;

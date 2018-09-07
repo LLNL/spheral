@@ -14,12 +14,14 @@
 #include "Geometry/MathTraits.hh"
 
 namespace Spheral {
-namespace FieldSpace {
 
-using namespace std;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using KernelSpace::TableKernel;
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 //------------------------------------------------------------------------------
 // Calculate the gradient of a FieldList.
@@ -99,16 +101,16 @@ gradient(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel gradient for this node pair.
           Vector gradWij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::NeighborSearchType::GatherScatter:
+          case NeighborSearchType::GatherScatter:
             gradWij = 0.5*(Hi*etaiNorm*kernel.grad(etai, Hi) + 
                            Hj*etajNorm*kernel.grad(etaj, Hj));
             break;
 
-          case NeighborSpace::NeighborSearchType::Gather:
+          case NeighborSearchType::Gather:
             gradWij = Hi*etaiNorm*kernel.grad(etai, Hi);
             break;
 
-          case NeighborSpace::NeighborSearchType::Scatter:
+          case NeighborSearchType::Scatter:
             gradWij = Hj*etajNorm*kernel.grad(etaj, Hj);
             break;
 
@@ -289,5 +291,3 @@ limiter(const FieldList<Dimension, DataType>& fieldList,
 }
 
 }
-}
-

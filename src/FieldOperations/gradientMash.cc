@@ -14,12 +14,14 @@
 #include "Geometry/MathTraits.hh"
 
 namespace Spheral {
-namespace FieldSpace {
 
-using namespace std;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using KernelSpace::TableKernel;
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 //------------------------------------------------------------------------------
 // Calculate the gradient of a FieldList.
@@ -100,18 +102,18 @@ gradientMash(const FieldList<Dimension, DataType>& fieldList,
             Scalar Wij;
             Vector gradWij;
             switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-            case NeighborSpace::NeighborSearchType::GatherScatter:
+            case NeighborSearchType::GatherScatter:
               Wij = 0.5*(kernel(etai, 1.0) + kernel(etaj, 1.0));
               gradWij = 0.5*(Hi*etaiNorm*kernel.grad(etai, 1.0) + 
                              Hj*etajNorm*kernel.grad(etaj, 1.0));
               break;
 
-            case NeighborSpace::NeighborSearchType::Gather:
+            case NeighborSearchType::Gather:
               Wij = kernel(etai, 1.0);
               gradWij = Hi*etaiNorm*kernel.grad(etai, 1.0);
               break;
 
-            case NeighborSpace::NeighborSearchType::Scatter:
+            case NeighborSearchType::Scatter:
               Wij = kernel(etaj, 1.0);
               gradWij = Hj*etajNorm*kernel.grad(etaj, 1.0);
               break;
@@ -238,16 +240,16 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::NeighborSearchType::GatherScatter:
+          case NeighborSearchType::GatherScatter:
             Wij = 0.5*(kernel(etai, 1.0) + 
                        kernel(etaj, 1.0));
             break;
 
-          case NeighborSpace::NeighborSearchType::Gather:
+          case NeighborSearchType::Gather:
             Wij = kernel(etai, 1.0);
             break;
 
-          case NeighborSpace::NeighborSearchType::Scatter:
+          case NeighborSearchType::Scatter:
             Wij = kernel(etaj, 1.0);
             break;
 
@@ -340,16 +342,16 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel gradient for this node pair.
           Scalar Wij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::NeighborSearchType::GatherScatter:
+          case NeighborSearchType::GatherScatter:
             Wij = 0.5*(kernel(etai, 1.0) +
                        kernel(etaj, 1.0))*(a(masterItr) + b(masterItr)*rij.x());
             break;
 
-          case NeighborSpace::NeighborSearchType::Gather:
+          case NeighborSearchType::Gather:
             Wij = kernel(etai, 1.0)*(a(masterItr) + b(masterItr)*rij.x());
             break;
 
-          case NeighborSpace::NeighborSearchType::Scatter:
+          case NeighborSearchType::Scatter:
             Wij = kernel(etaj, 1.0)*(a(masterItr) + b(masterItr)*rij.x());
             break;
 
@@ -444,18 +446,18 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
           Scalar Wij;
           Vector gradWij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::NeighborSearchType::GatherScatter:
+          case NeighborSearchType::GatherScatter:
             Wij = 0.5*(kernel(etai, 1.0) + kernel(etaj, 1.0));
             gradWij = 0.5*(Hi*etaiNorm*kernel.grad(etai, 1.0) + 
                            Hj*etajNorm*kernel.grad(etaj, 1.0));
             break;
 
-          case NeighborSpace::NeighborSearchType::Gather:
+          case NeighborSearchType::Gather:
             Wij = kernel(etai, 1.0);
             gradWij = Hi*etaiNorm*kernel.grad(etai, 1.0);
             break;
 
-          case NeighborSpace::NeighborSearchType::Scatter:
+          case NeighborSearchType::Scatter:
             Wij = kernel(etaj, 1.0);
             gradWij = Hj*etajNorm*kernel.grad(etaj, 1.0);
             break;
@@ -656,5 +658,3 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
 
 
 }
-}
-

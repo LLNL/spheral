@@ -4,13 +4,6 @@
 //
 // Created by JMO, Wed Nov 24 10:51:32 2004
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <vector>
-#include <map>
-
-#include <fstream>
-#include <cstdlib>
-
 #include "SortAndDivideRedistributeNodes2d.hh"
 #include "DomainNode.hh"
 #include "BoundingVolumeDistributedBoundary.hh"
@@ -25,16 +18,24 @@
 
 #include "Utilities/DBC.hh"
 
+#include <algorithm>
+#include <vector>
+#include <map>
+#include <fstream>
+#include <cstdlib>
+using std::vector;
+using std::list;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-namespace PartitionSpace {
-
-using namespace std;
-
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using BoundarySpace::BoundingVolumeDistributedBoundary;
-using BoundarySpace::Boundary;
-using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
 // Construct with the given node extent.
@@ -102,7 +103,7 @@ redistributeNodes(DataBase<Dim<2> >& dataBase,
   }
 
   // Build the set of global node IDs.
-  const FieldList<Dimension, int> globalIDs = NodeSpace::globalNodeIDs(dataBase);
+  const FieldList<Dimension, int> globalIDs = globalNodeIDs(dataBase);
 
   // Get the local description of the domain distribution.
   vector<DomainNode<Dimension> > nodeDistribution = this->currentDomainDecomposition(dataBase, globalIDs, work);
@@ -284,5 +285,4 @@ domainsPerChunk(const Dim<2>::SymTensor::EigenStructType& shapeTensor) const {
   return result;
 }
 
-}
 }

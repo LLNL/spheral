@@ -11,12 +11,11 @@
 #ifndef Verlet_HH
 #define Verlet_HH
 
-#include <vector>
-
 #include "Integrator.hh"
 
+#include <vector>
+
 namespace Spheral {
-namespace IntegratorSpace {
 
 template<typename Dimension>
 class Verlet: public Integrator<Dimension> {
@@ -29,9 +28,9 @@ public:
 
   // Constructors.
   Verlet();
-  Verlet(DataBaseSpace::DataBase<Dimension>& dataBase);
-  Verlet(DataBaseSpace::DataBase<Dimension>& dataBase,
-                 const std::vector<PhysicsSpace::Physics<Dimension>*>& physicsPackages);
+  Verlet(DataBase<Dimension>& dataBase);
+  Verlet(DataBase<Dimension>& dataBase,
+                 const std::vector<Physics<Dimension>*>& physicsPackages);
 
   // Destructor.
   ~Verlet();
@@ -55,15 +54,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace IntegratorSpace {
-    template<typename Dimension> class Verlet;
-  }
+  template<typename Dimension> class Verlet;
 }
 
 #endif

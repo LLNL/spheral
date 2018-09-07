@@ -20,16 +20,17 @@ typedef enum _PyBindGenWrapperFlags {
    PYBINDGEN_WRAPPER_FLAG_OBJECT_NOT_OWNED = (1<<0),
 } PyBindGenWrapperFlags;
 #endif
+
 typedef struct {
     PyObject_HEAD
-    Spheral::FileIOSpace::FileIO *obj;
+    Spheral::FileIO *obj;
     PyObject *inst_dict;
     PyBindGenWrapperFlags flags:8;
-} PySpheralFileIOSpaceFileIO;
-extern PyTypeObject PySpheralFileIOSpaceFileIO_Type;
+} PySpheralFileIO;
+
+extern PyTypeObject PySpheralFileIO_Type;
 
 namespace Spheral {
-namespace DataOutput {
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -37,7 +38,7 @@ namespace DataOutput {
 RestartableObject::
 RestartableObject(PyObject* self,
                   const unsigned priority):
-  mRestart(DataOutput::registerWithRestart(*this, priority)),
+  mRestart(registerWithRestart(*this, priority)),
   mSelf(self) {
 }
 
@@ -69,8 +70,8 @@ label() const {
 //------------------------------------------------------------------------------
 void
 RestartableObject::
-dumpState(FileIOSpace::FileIO& file, const std::string pathName) const {
-  PySpheralFileIOSpaceFileIO* py_file = PyObject_GC_New(PySpheralFileIOSpaceFileIO, &PySpheralFileIOSpaceFileIO_Type);
+dumpState(FileIO& file, const std::string pathName) const {
+  PySpheralFileIO* py_file = PyObject_GC_New(PySpheralFileIO, &PySpheralFileIO_Type);
   py_file->inst_dict = NULL;
   py_file->obj = &file;
   PyObject* result = PyObject_CallMethod(mSelf, (char*) "dumpState", (char*) "Os", py_file, pathName.c_str());
@@ -83,14 +84,13 @@ dumpState(FileIOSpace::FileIO& file, const std::string pathName) const {
 //------------------------------------------------------------------------------
 void
 RestartableObject::
-restoreState(const FileIOSpace::FileIO& file, const std::string pathName) {
-  PySpheralFileIOSpaceFileIO* py_file = PyObject_GC_New(PySpheralFileIOSpaceFileIO, &PySpheralFileIOSpaceFileIO_Type);
+restoreState(const FileIO& file, const std::string pathName) {
+  PySpheralFileIO* py_file = PyObject_GC_New(PySpheralFileIO, &PySpheralFileIO_Type);
   py_file->inst_dict = NULL;
-  py_file->obj = const_cast<FileIOSpace::FileIO*>(&file);
+  py_file->obj = const_cast<FileIO*>(&file);
   PyObject* result = PyObject_CallMethod(mSelf, (char*) "restoreState", (char*) "Os", py_file, pathName.c_str());
   VERIFY2(result != NULL,
           "RestartableObject::restoreState ERROR encountered calling python restoreState method.");
 }
 
-}
 }

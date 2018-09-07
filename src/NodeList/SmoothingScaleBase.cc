@@ -6,7 +6,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace NodeSpace {
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -48,19 +47,19 @@ SmoothingScaleBase<Dimension>::
 template<typename Dimension>
 void
 SmoothingScaleBase<Dimension>::
-newSmoothingScaleAndDerivative(const FieldSpace::Field<Dimension, SymTensor>& H,
-                               const FieldSpace::Field<Dimension, Vector>& position,
-                               const FieldSpace::Field<Dimension, Tensor>& DvDx,
-                               const FieldSpace::Field<Dimension, Scalar>& zerothMoment,
-                               const FieldSpace::Field<Dimension, SymTensor>& secondMoment,
-                               const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                               const KernelSpace::TableKernel<Dimension>& W,
+newSmoothingScaleAndDerivative(const Field<Dimension, SymTensor>& H,
+                               const Field<Dimension, Vector>& position,
+                               const Field<Dimension, Tensor>& DvDx,
+                               const Field<Dimension, Scalar>& zerothMoment,
+                               const Field<Dimension, SymTensor>& secondMoment,
+                               const ConnectivityMap<Dimension>& connectivityMap,
+                               const TableKernel<Dimension>& W,
                                const Scalar hmin,
                                const Scalar hmax,
                                const Scalar hminratio,
                                const Scalar nPerh,
-                               FieldSpace::Field<Dimension, SymTensor>& DHDt,
-                               FieldSpace::Field<Dimension, SymTensor>& Hideal) const {
+                               Field<Dimension, SymTensor>& DHDt,
+                               Field<Dimension, SymTensor>& Hideal) const {
   const NodeList<Dimension>& nodeList = H.nodeList();
   REQUIRE(DvDx.nodeListPtr() == &nodeList);
   REQUIRE(zerothMoment.nodeListPtr() == &nodeList);
@@ -93,5 +92,3 @@ newSmoothingScaleAndDerivative(const FieldSpace::Field<Dimension, SymTensor>& H,
 }
 
 }
-}
-

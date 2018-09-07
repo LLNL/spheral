@@ -10,30 +10,17 @@
 #ifndef ConstantRVelocityBoundary_HH
 #define ConstantRVelocityBoundary_HH
 
-#ifndef __GCCXML__
-#include <vector>
-#endif
-
 #include "ConstantVelocityBoundary.hh"
 
-namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
-}
+#include <vector>
 
 namespace Spheral {
-namespace BoundarySpace {
+
+template<typename Dimension> class NodeList;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class DataBase;
+class FileIO;
 
 template<typename Dimension>
 class ConstantRVelocityBoundary: 
@@ -48,21 +35,21 @@ public:
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
   // Constructors and destructors.
-  ConstantRVelocityBoundary(const NodeSpace::NodeList<Dimension>& nodeList,
+  ConstantRVelocityBoundary(const NodeList<Dimension>& nodeList,
                             const std::vector<int>& nodeIndicies);
   virtual ~ConstantRVelocityBoundary();
 
   //**********************************************************************
   // Override the vector enforceBoundary method.
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Vector>& field) const;
 
   //******************************************************************************
   // Restart methods.
   // Dump the objects state to the given file.
   virtual std::string label() const { return "ConstantRVelocityBoundary"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //******************************************************************************
 
 protected:
@@ -70,21 +57,16 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-#ifndef __GCCXML__
   std::vector<Scalar> mRadialVelocity;
-#endif
 };
 
-}
 }
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace BoundarySpace {
-    template<typename Dimension> class ConstantRVelocityBoundary;
-  }
+  template<typename Dimension> class ConstantRVelocityBoundary;
 }
 
 #endif

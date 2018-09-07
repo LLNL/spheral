@@ -7,7 +7,6 @@
 #define __Spheral_Mesh_Node__
 
 namespace Spheral {
-namespace MeshSpace {
 
 template<typename Dimension>
 class Mesh<Dimension>::Node {
@@ -36,7 +35,6 @@ private:
   friend class Mesh<Dimension>;
 };
 
-}
 }
 
 #include "NodeInline.hh"

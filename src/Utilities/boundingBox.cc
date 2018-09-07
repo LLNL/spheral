@@ -5,16 +5,25 @@
 //
 // Created by JMO, Wed Oct 19 09:58:58 PDT 2011
 //----------------------------------------------------------------------------//
-#include <vector>
-#include <algorithm>
-
 #include "boundingBox.hh"
 #include "Geometry/Dimension.hh"
 #include "Field/FieldList.hh"
 
-namespace Spheral {
+#include <vector>
+#include <algorithm>
 
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Compute the minimum volume box containing all the points in a vector of
@@ -43,7 +52,7 @@ boundingBox(const vector<Vector>& positions,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-boundingBox(const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& positions,
+boundingBox(const FieldList<Dimension, typename Dimension::Vector>& positions,
             typename Dimension::Vector& xmin,
             typename Dimension::Vector& xmax,
             const bool useGhosts) {

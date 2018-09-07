@@ -6,11 +6,6 @@
 //------------------------------------------------------------------------------
 #include "testNodeIterators.hh"
 
-#include <algorithm>
-#include <vector>
-#include <map>
-#include <string>
-
 #include "Field/NodeIterators.hh"
 #include "DataBase/DataBase.hh"
 #include "NodeList/NodeList.hh"
@@ -18,12 +13,13 @@
 
 #include "Geometry/Dimension.hh"
 
-namespace Spheral {
-namespace Testing {
+#include <algorithm>
+#include <vector>
+#include <map>
+#include <string>
 
-using namespace std;
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
+namespace Spheral {
+
 
 //------------------------------------------------------------------------------
 // Workhorse method to test that a given pair of NodeIterators walks the given 
@@ -263,5 +259,4 @@ testGlobalRefineNodeIterators(const DataBase<Dimension>& dataBase) {
                               controlIDs);
 }
 
-}
 }

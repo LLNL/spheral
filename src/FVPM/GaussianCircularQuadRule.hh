@@ -15,8 +15,6 @@
 
 namespace Spheral {
 
-namespace FVPMSpace {
-
 //! \class GaussianCircularQuadRule
 //! This class implements a Guassian quadrature rule for integrating 
 //! functions on intersections of circular/spherical intersections in space.
@@ -35,7 +33,7 @@ public:
 
   //! Constructs a 1D Gaussian quadrature rule with the given kernel and 
   //! N integration points.
-  GaussianCircularQuadRule(const KernelSpace::TableKernel<Dim<1> >& W, size_t N);
+  GaussianCircularQuadRule(const TableKernel<Dim<1> >& W, size_t N);
 
   // Copy construct and assignment operator are compiler-defined.
 
@@ -73,7 +71,7 @@ public:
   typedef Dim<2>::SymTensor SymTensor;
 
   //! Constructs a 2D Gaussian quadrature rule with the given kernel.
-  GaussianCircularQuadRule(const KernelSpace::TableKernel<Dim<2> >& W);
+  GaussianCircularQuadRule(const TableKernel<Dim<2> >& W);
 
   //! Destructor. 
   ~GaussianCircularQuadRule();
@@ -99,7 +97,7 @@ public:
   typedef Dim<3>::SymTensor SymTensor;
 
   //! Constructs a 3D Gaussian quadrature rule with the given kernel.
-  GaussianCircularQuadRule(const KernelSpace::TableKernel<Dim<3> >& W);
+  GaussianCircularQuadRule(const TableKernel<Dim<3> >& W);
 
   //! Destructor. 
   ~GaussianCircularQuadRule();
@@ -116,7 +114,6 @@ public:
 
 };
 
-}
 }
 
 #endif

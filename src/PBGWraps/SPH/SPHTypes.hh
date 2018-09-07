@@ -22,8 +22,6 @@ typedef DamagedNodeCoupling<Dim<1> > DamagedNodeCoupling1d;
 typedef DamagedNodeCoupling<Dim<2> > DamagedNodeCoupling2d;
 typedef DamagedNodeCoupling<Dim<3> > DamagedNodeCoupling3d;
 
-namespace SPHSpace {
-
 typedef SPHHydroBase<Dim<1> > SPHHydroBase1d;
 typedef SPHHydroBase<Dim<2> > SPHHydroBase2d;
 typedef SPHHydroBase<Dim<3> > SPHHydroBase3d;
@@ -36,7 +34,6 @@ typedef SolidSPHHydroBase<Dim<1> > SolidSPHHydroBase1d;
 typedef SolidSPHHydroBase<Dim<2> > SolidSPHHydroBase2d;
 typedef SolidSPHHydroBase<Dim<3> > SolidSPHHydroBase3d;
 
-}
 }
 
 #endif

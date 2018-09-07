@@ -19,8 +19,7 @@ class Helmholtz:
         mod.add_include('"%s/HelmholtzTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("Material")
+        space = mod.add_cpp_namespace("Spheral")
 
         for dim in self.dims:
             exec('''
@@ -41,27 +40,20 @@ self.generateHelmholtzEquationOfStateBindings(self.HelmholtzEquationOfState%(dim
                 ''' % {"dim" : dim})                                
         return
 
-    #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return []
-
-
 #---------------------------------------------------------------------------
 # HelmholtzEquationOfState
 #---------------------------------------------------------------------------
     def generateHelmholtzEquationOfStateBindings(self, x, ndim):
 
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
 
         # Constructor.
         x.add_constructor([constrefparam("PhysicalConstants", "constants"),
                            param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                            param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
                            param("double", "minimumTemperature", default_value="-std::numeric_limits<double>::min()"),
-                           param("MaterialPressureMinType", "minPressureType", default_value="Spheral::Material::MaterialPressureMinType::PressureFloor"),
+                           param("MaterialPressureMinType", "minPressureType", default_value="Spheral::MaterialPressureMinType::PressureFloor"),
                            param("double", "abar0", default_value="13.6"),
                            param("double", "zbar0", default_value="6.8")])
                        

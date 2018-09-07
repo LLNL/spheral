@@ -19,11 +19,7 @@ namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace FileIOSpace {
-  class FileIO;
-}
-
-namespace GravitySpace {
+class FileIO;
 
 enum class GravityTimeStepType {
   AccelerationRatio = 0,
@@ -31,7 +27,7 @@ enum class GravityTimeStepType {
 };
 
 template<typename Dimension>
-class TreeGravity: public PhysicsSpace::GenericBodyForce<Dimension> {
+class TreeGravity: public GenericBodyForce<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
@@ -39,7 +35,7 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  typedef typename PhysicsSpace::Physics<Dimension>::TimeStepType TimeStepType;
+  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   //! Constructor.
   //! \param G -- the gravitational constant.
@@ -57,30 +53,30 @@ public:
   virtual ~TreeGravity();
 
   //! We augment the generic body force state.
-  virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state);
 
   //! This is the derivative method that all BodyForce classes must provide.
   virtual 
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const;
 
   //! Vote on the timestep.  This uses a velocity-limiting rule.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
 
   //! Initializations on problem start up.
-  virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& db);
+  virtual void initializeProblemStartup(DataBase<Dimension>& db);
 
   //! Initialize before we start a derivative evaluation.
   virtual void initialize(const Scalar time,
                           const Scalar dt,
-                          const DataBaseSpace::DataBase<Dimension>& dataBase,
+                          const DataBase<Dimension>& dataBase,
                           State<Dimension>& state,
                           StateDerivatives<Dimension>& derivs);
                        
@@ -91,7 +87,7 @@ public:
   virtual Scalar extraEnergy() const;
 
   //! Return the gravitational potential created by the particle distribution.
-  const FieldSpace::FieldList<Dimension, Scalar>& potential() const;
+  const FieldList<Dimension, Scalar>& potential() const;
 
   //! Return a dump of the tree structure as a string.
   std::string dumpTree(const bool globalTree) const;
@@ -127,8 +123,8 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "TreeGravity"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 private:
@@ -180,7 +176,7 @@ private:
   Tree mTree;
 
   // The potential fields filled in during evaluateDerivates.
-  mutable FieldSpace::FieldList<Dimension, Scalar> mPotential;
+  mutable FieldList<Dimension, Scalar> mPotential;
   mutable Scalar mExtraEnergy;
 
   // Data we need for computing time steps.
@@ -188,7 +184,7 @@ private:
   mutable Scalar mDtMinAcc, mRhoMax;
   
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // Default constructor -- disabled.
   TreeGravity();
@@ -226,13 +222,13 @@ private:
 
   // Walk a tree and apply it's forces to a set of points.
   Scalar applyTreeForces(const Tree& tree,
-                         const FieldSpace::FieldList<Dimension, Scalar>& mass,
-                         const FieldSpace::FieldList<Dimension, Vector>& position,
-                         FieldSpace::FieldList<Dimension, Vector>& DvDt,
-                         FieldSpace::FieldList<Dimension, Scalar>& potential,
-                         FieldSpace::FieldList<Dimension, std::vector<Scalar> >& interactionMasses,
-                         FieldSpace::FieldList<Dimension, std::vector<Vector> >& interactionPositions,
-                         FieldSpace::FieldList<Dimension, std::pair<LevelKey, CellKey> >& homeBuckets,
+                         const FieldList<Dimension, Scalar>& mass,
+                         const FieldList<Dimension, Vector>& position,
+                         FieldList<Dimension, Vector>& DvDt,
+                         FieldList<Dimension, Scalar>& potential,
+                         FieldList<Dimension, std::vector<Scalar> >& interactionMasses,
+                         FieldList<Dimension, std::vector<Vector> >& interactionPositions,
+                         FieldList<Dimension, std::pair<LevelKey, CellKey> >& homeBuckets,
                          CompletedCellSet& cellsCompleted) const;
 
   // Methods to help serializing/deserializing Trees to buffers of char.
@@ -244,7 +240,6 @@ private:
   void deserialize(Cell& cell, std::vector<char>::const_iterator& bufItr, const std::vector<char>::const_iterator& endItr) const;
 };
 
-}
 }
 
 #include "TreeGravityInline.hh"

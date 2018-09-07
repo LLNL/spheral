@@ -2,7 +2,6 @@
 // for diagonalizing a real symmetric matrix.
 
 namespace Spheral {
-namespace Geometry {
 
 template<typename Dimension>
 int jacobiDiagonalize(const typename Dimension::SymTensor& A,
@@ -11,5 +10,4 @@ int jacobiDiagonalize(const typename Dimension::SymTensor& A,
                       const double convergenceThreshold = 1.0e-15,
                       const int maxSweeps = 50);
 
-}
 }

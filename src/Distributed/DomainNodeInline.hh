@@ -1,7 +1,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace PartitionSpace {
 
 //------------------------------------------------------------------------------
 // operator ==
@@ -82,5 +81,4 @@ unpack(std::vector<double>::const_iterator& itr) {
   for (int i = 0; i != Dimension::nDim; ++i) position(i) = *(itr++);
 }
 
-}
 }

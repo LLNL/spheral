@@ -79,7 +79,7 @@ public:
   // Construct from a FieldList of positions.
   //----------------------------------------------------------------------------
   template<typename CellValueFactory = NullCellFactory>
-  Tree(const FieldSpace::FieldList<Dimension, Vector>& positions,
+  Tree(const FieldList<Dimension, Vector>& positions,
        CellValueFactory factory = CellValueFactory());
 
   //----------------------------------------------------------------------------

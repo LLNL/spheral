@@ -13,7 +13,6 @@
 #include "Boundary.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 template<typename Dimension>
 class ThreeOneDimensionBoundary: public Boundary<Dimension> {
@@ -57,15 +56,12 @@ private:
 };
 
 }
-}
 
 #else
 
 namespace Spheral {
-namespace BoundarySpace {
-// Forward declaration.
-template<typename Dimension> class ThreeOneDimensionBoundary;
-}
+  // Forward declaration.
+  template<typename Dimension> class ThreeOneDimensionBoundary;
 }
 
 #endif

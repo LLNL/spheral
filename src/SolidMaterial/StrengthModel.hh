@@ -11,13 +11,8 @@
 
 // Forward declarations.
 namespace Spheral {
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-  }
-}
 
-namespace Spheral {
-namespace SolidMaterial {
+template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
 class StrengthModel {
@@ -31,38 +26,38 @@ public:
 
   //............................................................................
   // The generic interface we require all strength models to provide.
-  virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
-                            const FieldSpace::Field<Dimension, Scalar>& density,
-                            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                            const FieldSpace::Field<Dimension, Scalar>& pressure) const = 0;
+  virtual void shearModulus(Field<Dimension, Scalar>& shearModulus,
+                            const Field<Dimension, Scalar>& density,
+                            const Field<Dimension, Scalar>& specificThermalEnergy,
+                            const Field<Dimension, Scalar>& pressure) const = 0;
 
-  virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
-                             const FieldSpace::Field<Dimension, Scalar>& density,
-                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                             const FieldSpace::Field<Dimension, Scalar>& pressure,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const = 0;
+  virtual void yieldStrength(Field<Dimension, Scalar>& yieldStrength,
+                             const Field<Dimension, Scalar>& density,
+                             const Field<Dimension, Scalar>& specificThermalEnergy,
+                             const Field<Dimension, Scalar>& pressure,
+                             const Field<Dimension, Scalar>& plasticStrain,
+                             const Field<Dimension, Scalar>& plasticStrainRate) const = 0;
   //............................................................................
   // Some strength models optionally provide the following methods.
   virtual bool providesSoundSpeed() const { return false; }
   virtual bool providesBulkModulus() const { return false; }
-  virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
-                          const FieldSpace::Field<Dimension, Scalar>& density,
-                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                          const FieldSpace::Field<Dimension, Scalar>& pressure,
-                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const;
+  virtual void soundSpeed(Field<Dimension, Scalar>& soundSpeed,
+                          const Field<Dimension, Scalar>& density,
+                          const Field<Dimension, Scalar>& specificThermalEnergy,
+                          const Field<Dimension, Scalar>& pressure,
+                          const Field<Dimension, Scalar>& fluidSoundSpeed) const;
 
-  virtual void bulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
-                           const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void bulkModulus(Field<Dimension, Scalar>& bulkModulus,
+                           const Field<Dimension, Scalar>& massDensity,
+                           const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void meltSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
-                                  const FieldSpace::Field<Dimension, Scalar>& density,
-                                  const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const;
+  virtual void meltSpecificEnergy(Field<Dimension, Scalar>& meltSpecificEnergy,
+                                  const Field<Dimension, Scalar>& density,
+                                  const Field<Dimension, Scalar>& specficThermalEnergy) const;
 
-  virtual void coldSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& coldSpecificEnergy,
-                                  const FieldSpace::Field<Dimension, Scalar>& density,
-                                  const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const;
+  virtual void coldSpecificEnergy(Field<Dimension, Scalar>& coldSpecificEnergy,
+                                  const Field<Dimension, Scalar>& density,
+                                  const Field<Dimension, Scalar>& specficThermalEnergy) const;
 
 protected:
   // The following individual methods are deprecated.
@@ -76,7 +71,7 @@ protected:
                                const double plasticStrain,
                                const double plasticStrainRate) const { VERIFY2(false, "Individual values for StrengthModel::yieldStrength is deprecated."); }
 
-  virtual double soundSpeed(const double density,
+  virtual double soundeSpeed(const double density,
                             const double specificThermalEnergy,
                             const double pressure,
                             const double fluidSoundSpeed) const { VERIFY2(false, "Individual values for StrengthModel::soundSpeed is deprecated."); }
@@ -89,15 +84,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class StrengthModel;
-  }
+  template<typename Dimension> class StrengthModel;
 }
 
 #endif

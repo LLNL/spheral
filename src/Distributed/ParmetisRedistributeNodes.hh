@@ -9,12 +9,10 @@
 #ifndef ParmetisRedistributeNodes_HH
 #define ParmetisRedistributeNodes_HH
 
-#ifndef __GCCXML__
+#include "RedistributeNodes.hh"
+
 #include <vector>
 #include <map>
-#else
-#include "fakestl.hh"
-#endif
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -25,22 +23,13 @@ extern "C" {
 typedef int idx_t;
 #endif
 
-#include "RedistributeNodes.hh"
-
 namespace Spheral {
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace BoundarySpace {
-    template<typename Dimension> class Boundary;
-  }
+  template<typename Dimension> class DataBase;
+  template<typename Dimension> class NodeList;
+  template<typename Dimension> class Boundary;
 }
 
 namespace Spheral {
-namespace PartitionSpace {
 
 template<typename Dimension>
 class ParmetisRedistributeNodes: public RedistributeNodes<Dimension> {
@@ -60,15 +49,15 @@ public:
 
   // Given a Spheral++ data base of NodeLists, repartition it among the processors.
   // This is the method required of all descendent classes.
-  virtual void redistributeNodes(DataBaseSpace::DataBase<Dimension>& dataBase,
-                                 std::vector<BoundarySpace::Boundary<Dimension>*> boundaries =
-                                 std::vector<BoundarySpace::Boundary<Dimension>*>());
+  virtual void redistributeNodes(DataBase<Dimension>& dataBase,
+                                 std::vector<Boundary<Dimension>*> boundaries =
+                                 std::vector<Boundary<Dimension>*>());
 
   // Given a Spheral++ data base of NodeLists, repartition it among the processors.
   // This is the method required of all descendent classes.
-  void refineAndRedistributeNodes(DataBaseSpace::DataBase<Dimension>& dataBase,
-                                  std::vector<BoundarySpace::Boundary<Dimension>*> boundaries =
-                                  std::vector<BoundarySpace::Boundary<Dimension>*>());
+  void refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
+                                  std::vector<Boundary<Dimension>*> boundaries =
+                                  std::vector<Boundary<Dimension>*>());
 
   // The node extent we use when selecting neighbors.
   double normalizedNodeExtent() const;
@@ -82,9 +71,9 @@ private:
   double mNormalizedNodeExtent;
 
   // Build the CSR adjacency information used by Parmetis.
-  void buildCSRGraph(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  void buildCSRGraph(const DataBase<Dimension>& dataBase,
                      const std::vector<DomainNode<Dimension> >& nodeDistribution,
-                     const FieldSpace::FieldList<Dimension, int>& globalNodeIDs,
+                     const FieldList<Dimension, int>& globalNodeIDs,
                      std::vector<idx_t>& xadj,
                      std::vector<idx_t>& adjacency,
                      std::vector<idx_t>& vtxdist,
@@ -101,14 +90,14 @@ private:
   // Verify that the given connectivity data is minimally valid compared against a
   // domain decomposition.
   bool validConnectivity(const std::vector<DomainNode<Dimension> >& nodeDistribution,
-                         const DataBaseSpace::DataBase<Dimension>& dataBase,
+                         const DataBase<Dimension>& dataBase,
                          const ConnectivityType& neighbors,
-                         const FieldSpace::FieldList<Dimension, int>& globalNodeIDs) const;
+                         const FieldList<Dimension, int>& globalNodeIDs) const;
 
   // Verify that the given adjacency data is minimally valid compared against a
   // domain decomposition.
   bool validCSRGraph(const std::vector<DomainNode<Dimension> >& nodeDistribution,
-                     const DataBaseSpace::DataBase<Dimension>& dataBase,
+                     const DataBase<Dimension>& dataBase,
                      const std::vector<idx_t>& xadj,
                      const std::vector<idx_t>& adjacency,
                      const std::vector<idx_t>& vtxdist) const;
@@ -137,18 +126,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "ParmetisRedistributeNodesInline.hh"
-#endif
 
 #else
+
 // Forward declare the ParmetisRedistributeNodes class.
 namespace Spheral {
-  namespace PartitionSpace {
-    template<typename Dimension> class ParmetisRedistributeNodes;
-  }
+  template<typename Dimension> class ParmetisRedistributeNodes;
 }
 
 #endif

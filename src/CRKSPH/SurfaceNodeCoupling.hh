@@ -20,7 +20,7 @@ template<typename Dimension>
 class SurfaceNodeCoupling: public NodeCoupling {
 public:
   // Constructor, destructor.
-  SurfaceNodeCoupling(const FieldSpace::FieldList<Dimension, int>& surfacePoints):
+  SurfaceNodeCoupling(const FieldList<Dimension, int>& surfacePoints):
     NodeCoupling(),
     mSurfacePoints(surfacePoints) {}
 
@@ -36,7 +36,7 @@ public:
   }
 
 private:
-  const FieldSpace::FieldList<Dimension, int>& mSurfacePoints;
+  const FieldList<Dimension, int>& mSurfacePoints;
 };
 
 }

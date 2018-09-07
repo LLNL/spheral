@@ -7,19 +7,14 @@
 #ifndef __Spheral__VoronoiHourGlassControl__
 #define __Spheral__VoronoiHourGlassControl__
 
-#include <vector>
 #include "Physics/Physics.hh"
+
+#include <vector>
 
 namespace Spheral {
 
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class FieldList;
-}
-namespace KernelSpace {
-  template<typename Dimension> class TableKernel;
-}
-
-namespace PhysicsSpace {
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class TableKernel;
 
 template<typename Dimension>
 class VoronoiHourglassControl : 
@@ -44,11 +39,11 @@ public:
   // mask:     Optional mask indicating nodes to filter or not
   //             0 => don't apply filtering.
   //             1 => filter
-  VoronoiHourglassControl(const KernelSpace::TableKernel<Dimension>& W,
+  VoronoiHourglassControl(const TableKernel<Dimension>& W,
                           const unsigned order,
                           const unsigned limiter,
                           const double fraction,
-                          const FieldSpace::FieldList<Dimension, int>& mask);
+                          const FieldList<Dimension, int>& mask);
 
   // Destructor.
   virtual ~VoronoiHourglassControl();
@@ -59,29 +54,29 @@ public:
   virtual 
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const;
 
   // Vote on a time step.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
 
   // Register the state you want carried around (and potentially evolved), as
   // well as the policies for such evolution.
-  virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state);
 
   // Register the derivatives/change fields for updating state.
-  virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerDerivatives(DataBase<Dimension>& dataBase,
                                    StateDerivatives<Dimension>& derivs);
 
   // Finalize method, where we override the positions.
   virtual void finalize(const Scalar time, 
                         const Scalar dt,
-                        DataBaseSpace::DataBase<Dimension>& dataBase, 
+                        DataBase<Dimension>& dataBase, 
                         State<Dimension>& state,
                         StateDerivatives<Dimension>& derivs);
 
@@ -107,49 +102,44 @@ public:
   void fraction(const double x);
 
   // Mask indicating which nodes are allowed filtering.
-  const FieldSpace::FieldList<Dimension, int>& mask() const;
-  void mask(const FieldSpace::FieldList<Dimension, int>& x);
+  const FieldList<Dimension, int>& mask() const;
+  void mask(const FieldList<Dimension, int>& x);
 
   // The Kernel.
-  const KernelSpace::TableKernel<Dimension>& kernel() const;
+  const TableKernel<Dimension>& kernel() const;
 
   // Last gradient of the mass density.
-  const FieldSpace::FieldList<Dimension, Vector>& gradRho() const;
+  const FieldList<Dimension, Vector>& gradRho() const;
 
   // CRKSPH correction fields.
-  const FieldSpace::FieldList<Dimension, Scalar>& A() const;
-  const FieldSpace::FieldList<Dimension, Vector>& B() const;
-  const FieldSpace::FieldList<Dimension, Vector>& C() const;
-  const FieldSpace::FieldList<Dimension, Tensor>& D() const;
-  const FieldSpace::FieldList<Dimension, Vector>& gradA() const;
-  const FieldSpace::FieldList<Dimension, Tensor>& gradB() const;
-  const FieldSpace::FieldList<Dimension, Scalar>& weight() const;
+  const FieldList<Dimension, Scalar>& A() const;
+  const FieldList<Dimension, Vector>& B() const;
+  const FieldList<Dimension, Vector>& C() const;
+  const FieldList<Dimension, Tensor>& D() const;
+  const FieldList<Dimension, Vector>& gradA() const;
+  const FieldList<Dimension, Tensor>& gradB() const;
+  const FieldList<Dimension, Scalar>& weight() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const KernelSpace::TableKernel<Dimension>& mW;
+  const TableKernel<Dimension>& mW;
   unsigned mOrder, mLimiter;
   double mFraction;
-  FieldSpace::FieldList<Dimension, int> mMask;
-  FieldSpace::FieldList<Dimension, Scalar> mA, mWeight;
-  FieldSpace::FieldList<Dimension, Vector> mGradRho, mB, mC, mGradA;
-  FieldSpace::FieldList<Dimension, Tensor> mD, mGradB;
+  FieldList<Dimension, int> mMask;
+  FieldList<Dimension, Scalar> mA, mWeight;
+  FieldList<Dimension, Vector> mGradRho, mB, mC, mGradA;
+  FieldList<Dimension, Tensor> mD, mGradB;
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "VoronoiHourglassControlInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace PhysicsSpace {
-    template<typename Dimension> class VoronoiHourglassControl;
-  }
+  template<typename Dimension> class VoronoiHourglassControl;
 }
 
 #endif

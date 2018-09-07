@@ -10,24 +10,20 @@
 #include "Geometry/GeomPlane.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "Mesh/Mesh.hh"
-
 #include "Utilities/DBC.hh"
 #include "Utilities/allReduce.hh"
 
 #include "PlanarBoundary.hh"
 
-namespace Spheral {
-namespace BoundarySpace {
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using NeighborSpace::Neighbor;
-using MeshSpace::Mesh;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Internal worker method to help with clipping a box range.
@@ -82,7 +78,7 @@ PlanarBoundary<Dimension>::PlanarBoundary():
   Boundary<Dimension>(),
   mEnterPlane(),
   mExitPlane(),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -95,7 +91,7 @@ PlanarBoundary(const GeomPlane<Dimension>& enterPlane,
   Boundary<Dimension>(),
   mEnterPlane(enterPlane),
   mExitPlane(exitPlane),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
   ENSURE(valid());
 }
 
@@ -293,7 +289,7 @@ mapPosition(const Vector& position,
 template<typename Dimension>
 void
 PlanarBoundary<Dimension>::
-dumpState(FileIOSpace::FileIO& file,
+dumpState(FileIO& file,
           const std::string& pathName) const {
   file.write(enterPlane(), pathName + "/enterPlane");
   file.write(exitPlane(), pathName + "/exitPlane");
@@ -305,7 +301,7 @@ dumpState(FileIOSpace::FileIO& file,
 template<typename Dimension>
 void
 PlanarBoundary<Dimension>::
-restoreState(const FileIOSpace::FileIO& file,
+restoreState(const FileIO& file,
              const std::string& pathName) {
   file.read(mEnterPlane, pathName + "/enterPlane");
   file.read(mExitPlane, pathName + "/exitPlane");
@@ -446,5 +442,4 @@ facesOnPlane(const Mesh<Dimension>& mesh,
   return result;
 }
 
-}
 }

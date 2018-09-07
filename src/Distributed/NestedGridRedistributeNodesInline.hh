@@ -1,7 +1,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace PartitionSpace {
 
 //------------------------------------------------------------------------------
 // Access the Hextent variable.
@@ -21,5 +20,4 @@ NestedGridRedistributeNodes<Dimension>::Hextent(const double val) {
   mHextent = val;
 }
 
-}
 }

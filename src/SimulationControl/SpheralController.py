@@ -3,11 +3,7 @@
 #------------------------------------------------------------------------------
 import sys, os, gc, warnings, mpi
 
-from SpheralModules.Spheral import FileIOSpace
-from SpheralModules.Spheral.DataOutput import RestartableObject, RestartRegistrar
-from SpheralModules.Spheral import BoundarySpace
-from SpheralModules.Spheral.FieldSpace import *
-from SpheralModules.Spheral.FileIOSpace import *
+from SpheralModules.Spheral import *
 from SpheralModules import Timer
 from SpheralTimer import SpheralTimer
 from SpheralConservation import SpheralConservation
@@ -23,10 +19,10 @@ for dim in dims:
 from SpheralModules.Spheral import State%(dim)sd
 from SpheralModules.Spheral import StateDerivatives%(dim)sd
 from SpheralModules.Spheral import iterateIdealH%(dim)sd
-from SpheralModules.Spheral.NodeSpace import ASPHSmoothingScale%(dim)sd
-from SpheralModules.Spheral.NodeSpace import SPHSmoothingScale%(dim)sd
-from SpheralModules.Spheral.KernelSpace import TableKernel%(dim)sd
-from SpheralModules.Spheral.KernelSpace import BSplineKernel%(dim)sd
+from SpheralModules.Spheral import ASPHSmoothingScale%(dim)sd
+from SpheralModules.Spheral import SPHSmoothingScale%(dim)sd
+from SpheralModules.Spheral import TableKernel%(dim)sd
+from SpheralModules.Spheral import BSplineKernel%(dim)sd
 from SpheralModules import vector_of_Physics%(dim)sd
 """ % {"dim" : dim})
 
@@ -517,7 +513,7 @@ class SpheralController:
         import time
         start = time.clock()
         fileName = self.restartBaseName + "_cycle%i" % self.totalSteps
-        file = self.restartFileConstructor(fileName, FileIOSpace.Create)
+        file = self.restartFileConstructor(fileName, Create)
         RestartRegistrar.instance().dumpState(file)
         print "Wrote restart file in %0.2f seconds" % (time.clock() - start)
 
@@ -547,10 +543,10 @@ class SpheralController:
         import time
         start = time.clock()
         if self.restartFileConstructor is GzipFileIO:
-            file = self.restartFileConstructor(fileName, FileIOSpace.Read)
+            file = self.restartFileConstructor(fileName, Read)
                                                #readToMemory = True)
         else:
-            file = self.restartFileConstructor(fileName, FileIOSpace.Read)
+            file = self.restartFileConstructor(fileName, Read)
         RestartRegistrar.instance().restoreState(file)
         print "Finished: required %0.2f seconds" % (time.clock() - start)
 
@@ -603,12 +599,12 @@ class SpheralController:
         # boundary, since their ghost nodes need to be communicated.
         precedeDistributed = []
         if 3 in dims:
-            precedeDistributed += [BoundarySpace.CylindricalBoundary,
-                                   BoundarySpace.SphericalBoundary]
+            precedeDistributed += [CylindricalBoundary,
+                                   SphericalBoundary]
         for dim in dims:
             exec("""
-precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
-                       BoundarySpace.ConstantBoundary%(dim)sd]
+precedeDistributed += [PeriodicBoundary%(dim)sd,
+                       ConstantBoundary%(dim)sd]
 """ % {"dim" : dim})
 
         # Check if this is a parallel process or not.
@@ -619,13 +615,13 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
         # boundary condition and insert it into the list of boundaries for each physics
         # package.
         else:
-            # exec("from SpheralModules.Spheral.BoundarySpace import NestedGridDistributedBoundary%s" % self.dim)
+            # exec("from SpheralModules.Spheral import NestedGridDistributedBoundary%s" % self.dim)
             # self.domainbc = eval("NestedGridDistributedBoundary%s.instance()" % self.dim)
-            # from SpheralModules.Spheral.BoundarySpace import BoundingVolumeDistributedBoundary1d, \
-            #                                                  BoundingVolumeDistributedBoundary2d, \
-            #                                                  BoundingVolumeDistributedBoundary3d
+            # from SpheralModules.Spheral import BoundingVolumeDistributedBoundary1d, \
+            #                                    BoundingVolumeDistributedBoundary2d, \
+            #                                    BoundingVolumeDistributedBoundary3d
             # self.domainbc = eval("BoundingVolumeDistributedBoundary%s.instance()" % self.dim)
-            exec("from SpheralModules.Spheral.BoundarySpace import TreeDistributedBoundary%s" % self.dim)
+            exec("from SpheralModules.Spheral import TreeDistributedBoundary%s" % self.dim)
             self.domainbc = eval("TreeDistributedBoundary%s.instance()" % self.dim)
 
             # Iterate over each of the physics packages.
@@ -679,12 +675,12 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
         self.redistribute = None
         self.redistributeTimer = SpheralTimer("Time for redistributing nodes.")
         if mpi.procs > 1:
-            from SpheralModules.Spheral import PartitionSpace
+            from SpheralModules import Spheral
             try:
-                #self.redistribute = eval("PartitionSpace.ParmetisRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                #self.redistribute = eval("PartitionSpace.SortAndDivideRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                #self.redistribute = eval("PartitionSpace.PeanoHilbertOrderRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                self.redistribute = eval("PartitionSpace.VoronoiRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                #self.redistribute = eval("Spheral.ParmetisRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                #self.redistribute = eval("Spheral.SortAndDivideRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                #self.redistribute = eval("Spheral.PeanoHilbertOrderRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                self.redistribute = eval("Spheral.VoronoiRedistributeNodes%s(W.kernelExtent)" % self.dim)
             except:
                 print "Warning: this appears to be a parallel run, but Controller cannot construct"
                 print "         dynamic redistributer."

@@ -4,8 +4,6 @@
 #ifndef __Spheral_centroidalRelaxNodes__
 #define __Spheral_centroidalRelaxNodes__
 
-#include <vector>
-
 #include "Utilities/Functors.hh"
 #include "DataBase/DataBase.hh"
 #include "NodeList/FluidNodeList.hh"
@@ -15,26 +13,28 @@
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
 
+#include <vector>
+
 namespace Spheral {
 
 template<typename Dimension>
 unsigned
-centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
+centroidalRelaxNodesImpl(DataBase<Dimension>& db,
                          const std::vector<typename Dimension::FacetedVolume>& volumeBoundaries,
                          const std::vector<std::vector<typename Dimension::FacetedVolume> >& holes,
-                         const KernelSpace::TableKernel<Dimension>& W,
+                         const TableKernel<Dimension>& W,
                          const PythonBoundFunctors::SpheralFunctor<typename Dimension::Vector, double>& rhofunc,
                          const PythonBoundFunctors::SpheralFunctor<typename Dimension::Vector, typename Dimension::Vector>& gradrhofunc,
                          const bool rhoConst,
                          const bool useGradRhoFunc,
-                         std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
+                         std::vector<Boundary<Dimension>*>& boundaries,
                          const unsigned maxIterations,
                          const double fracTol,
-                         const CRKSPHSpace::CRKOrder correctionOrder,
+                         const CRKOrder correctionOrder,
                          const double centroidFrac,
-                         FieldSpace::FieldList<Dimension, double>& vol,
-                         FieldSpace::FieldList<Dimension, int>& surfacePoint,
-                         FieldSpace::FieldList<Dimension, typename Dimension::FacetedVolume>& cells);
+                         FieldList<Dimension, double>& vol,
+                         FieldList<Dimension, int>& surfacePoint,
+                         FieldList<Dimension, typename Dimension::FacetedVolume>& cells);
 
 }
 

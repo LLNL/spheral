@@ -16,15 +16,9 @@ namespace Spheral {
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace NodeSpace {
-  template<typename Dimension> class FluidNodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
-}
-namespace PhysicsSpace {
-  template<typename Dimension> class StrainModel;
-}
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension> class StrainModel;
 
 template<typename Dimension>
 class JohnsonCookFailureStrainPolicy: 
@@ -36,12 +30,12 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename FieldSpace::Field<Dimension, Scalar> FieldType;
+  typedef Field<Dimension, Scalar> FieldType;
   typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
 
   // Constructors, destructor.
-  JohnsonCookFailureStrainPolicy(const FieldSpace::Field<Dimension, Scalar>& D1,
-                                 const FieldSpace::Field<Dimension, Scalar>& D2,
+  JohnsonCookFailureStrainPolicy(const Field<Dimension, Scalar>& D1,
+                                 const Field<Dimension, Scalar>& D2,
                                  const double D3,
                                  const double D4,
                                  const double D5,
@@ -64,8 +58,8 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const FieldSpace::Field<Dimension, Scalar>& mD1;
-  const FieldSpace::Field<Dimension, Scalar>& mD2;
+  const Field<Dimension, Scalar>& mD1;
+  const Field<Dimension, Scalar>& mD2;
   double mD3, mD4, mD5, mepsilondot0, msigmamax, mefailmin, mTcrit;
 
   // No copy or default construction.

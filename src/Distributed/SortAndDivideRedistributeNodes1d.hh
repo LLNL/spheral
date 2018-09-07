@@ -11,22 +11,11 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace BoundarySpace {
-    template<typename Dimension> class Boundary;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-}
 
-namespace Spheral {
-namespace PartitionSpace {
+template<typename Dimension> class DataBase;
+template<typename Dimension> class NodeList;
+template<typename Dimension> class Boundary;
+template<typename Dimension, typename DataType> class FieldList;
 
 class SortAndDivideRedistributeNodes1d: public SortAndDivideRedistributeNodes<Dim<1> > {
 
@@ -45,8 +34,8 @@ public:
   virtual ~SortAndDivideRedistributeNodes1d();
 
   // Given a Spheral++ data base of NodeLists, repartition it among the processors.
-  virtual void redistributeNodes(DataBaseSpace::DataBase<Dim<1> >& dataBase,
-                                 std::vector<BoundarySpace::Boundary<Dim<1> >*> boundaries = std::vector<BoundarySpace::Boundary<Dim<1> >*>());
+  virtual void redistributeNodes(DataBase<Dim<1> >& dataBase,
+                                 std::vector<Boundary<Dim<1> >*> boundaries = std::vector<Boundary<Dim<1> >*>());
 
 
 private:
@@ -59,14 +48,12 @@ private:
 };
 
 }
-}
 
 #else
+
 // Forward declare the SortAndDivideRedistributeNodes class.
 namespace Spheral {
-  namespace PartitionSpace {
-    class SortAndDivideRedistributeNodes1d;
-  }
+  class SortAndDivideRedistributeNodes1d;
 }
 
 #endif

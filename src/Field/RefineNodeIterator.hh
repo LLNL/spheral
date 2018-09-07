@@ -11,12 +11,8 @@
 #include <vector>
 
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-}
 
-namespace Spheral {
+template<typename Dimension> class NodeList;
 
 template<typename Dimension>
 class RefineNodeIterator: public NodeIteratorBase<Dimension> {
@@ -24,13 +20,13 @@ public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors and destructors.
   RefineNodeIterator();
-  RefineNodeIterator(typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListItr,
-                     typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListBegin,
-                     typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListEnd,
+  RefineNodeIterator(typename std::vector<NodeList<Dimension>*>::const_iterator nodeListItr,
+                     typename std::vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
+                     typename std::vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
                      const std::vector<std::vector<int>>& refineNeighbors);
-  RefineNodeIterator(typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListItr,
-                     typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListBegin,
-                     typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListEnd,
+  RefineNodeIterator(typename std::vector<NodeList<Dimension>*>::const_iterator nodeListItr,
+                     typename std::vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
+                     typename std::vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
                      std::vector<int>::const_iterator IDItr,
                      const std::vector<std::vector<int>>& refineNeighbors);
   RefineNodeIterator(const RefineNodeIterator& rhs);
@@ -55,9 +51,9 @@ protected:
 private:
   //---------------------------- Private Interface ----------------------------//
   // Internal method to initialize the state.
-  void initialize(typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListItr,
-                  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListBegin,
-                  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListEnd,
+  void initialize(typename std::vector<NodeList<Dimension>*>::const_iterator nodeListItr,
+                  typename std::vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
+                  typename std::vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
                   std::vector<int>::const_iterator IDItr,
                   const std::vector<std::vector<int>>& refineNeighbors);
 

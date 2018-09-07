@@ -13,8 +13,6 @@
 
 namespace Spheral {
 
-using FieldSpace::FieldList;
-
 //------------------------------------------------------------------------------
 // Constructors.
 //------------------------------------------------------------------------------
@@ -103,8 +101,8 @@ update(const KeyType& key,
 
   // Find the matching replacement FieldList from the StateDerivatives.
   KeyType replaceKey = prefix() + fieldKey;
-  FieldSpace::FieldList<Dimension, Value> f = state.fields(fieldKey, Value());
-  const FieldSpace::FieldList<Dimension, Value> df = derivs.fields(replaceKey, Value());
+  FieldList<Dimension, Value> f = state.fields(fieldKey, Value());
+  const FieldList<Dimension, Value> df = derivs.fields(replaceKey, Value());
   CHECK(f.size() == df.size());
 
   // Loop over the internal values of the field.

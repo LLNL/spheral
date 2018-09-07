@@ -11,7 +11,6 @@
 #include "SmoothingScaleBase.hh"
 
 namespace Spheral {
-namespace NodeSpace {
 
 template<typename Dimension>
 class FixedSmoothingScale: public SmoothingScaleBase<Dimension> {
@@ -47,12 +46,12 @@ public:
                     const Vector& pos,
                     const Scalar zerothMoment,
                     const SymTensor& secondMoment,
-                    const KernelSpace::TableKernel<Dimension>& W,
+                    const TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
                     const Scalar hminratio,
                     const Scalar nPerh,
-                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                    const ConnectivityMap<Dimension>& connectivityMap,
                     const unsigned nodeListi,
                     const unsigned i) const;
 
@@ -63,27 +62,26 @@ public:
                       const Vector& pos,
                       const Scalar zerothMoment,
                       const SymTensor& secondMoment,
-                      const KernelSpace::TableKernel<Dimension>& W,
+                      const TableKernel<Dimension>& W,
                       const Scalar hmin,
                       const Scalar hmax,
                       const Scalar hminratio,
                       const Scalar nPerh,
-                      const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                      const ConnectivityMap<Dimension>& connectivityMap,
                       const unsigned nodeListi,
                       const unsigned i) const;
 
   // Compute the new H tensors for a tessellation.
   virtual SymTensor
   idealSmoothingScale(const SymTensor& H,
-                      const MeshSpace::Mesh<Dimension>& mesh,
-                      const typename MeshSpace::Mesh<Dimension>::Zone& zone,
+                      const Mesh<Dimension>& mesh,
+                      const typename Mesh<Dimension>::Zone& zone,
                       const Scalar hmin,
                       const Scalar hmax,
                       const Scalar hminratio,
                       const Scalar nPerh) const;
 };
 
-}
 }
 
 #endif

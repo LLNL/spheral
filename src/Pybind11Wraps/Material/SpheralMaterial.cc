@@ -404,9 +404,9 @@ PYBIND11_MODULE(SpheralMaterial, m) {
 
   //............................................................................
   // MaterialPressureMinType
-  py::enum_<Spheral::Material::MaterialPressureMinType>(m, "MaterialPressureMinType")
-    .value("PressureFloor", Spheral::Material::MaterialPressureMinType::PressureFloor)
-    .value("ZeroPressure",  Spheral::Material::MaterialPressureMinType::ZeroPressure)
+  py::enum_<Spheral::MaterialPressureMinType>(m, "MaterialPressureMinType")
+    .value("PressureFloor", Spheral::MaterialPressureMinType::PressureFloor)
+    .value("ZeroPressure",  Spheral::MaterialPressureMinType::ZeroPressure)
     .export_values();
 
   //............................................................................

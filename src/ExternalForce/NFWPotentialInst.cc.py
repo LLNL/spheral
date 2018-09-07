@@ -6,9 +6,6 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace PhysicsSpace {
-    using namespace Material;
-    template class NFWPotential<Dim< %(ndim)s > >;
-  }
+  template class NFWPotential<Dim< %(ndim)s > >;
 }
 """

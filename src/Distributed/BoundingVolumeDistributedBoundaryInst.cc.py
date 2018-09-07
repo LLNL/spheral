@@ -6,8 +6,6 @@ text = """
 #include "BoundingVolumeDistributedBoundary.cc"
 
 namespace Spheral {
-  namespace BoundarySpace {
-    template class BoundingVolumeDistributedBoundary< Dim< %(ndim)s > >;
-  }
+  template class BoundingVolumeDistributedBoundary< Dim< %(ndim)s > >;
 }
 """

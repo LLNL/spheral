@@ -11,22 +11,21 @@
 #include "Boundary/Boundary.hh"
 #include "Utilities/rotationMatrix.hh"
 #include "Utilities/SpheralFunctions.hh"
-
 #include "Geometry/Dimension.hh"
-
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-namespace PhysicsSpace {
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Inline functions specialized to Dimension to calculate the anti-hourglassing
@@ -92,7 +91,7 @@ SecondMomentHourglassControl(const TableKernel<Dimension>& W,
   mW(W),
   mMultiplier(multiplier),
   mMaxAccelerationFactor(maxAccelerationFactor),
-  mAcceleration(FieldSpace::FieldStorageType::CopyFields) {
+  mAcceleration(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -270,6 +269,5 @@ registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
 }
 
-}
 }
 

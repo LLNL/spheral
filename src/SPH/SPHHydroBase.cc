@@ -45,36 +45,28 @@
 
 #include "SPHHydroBase.hh"
 
+#ifdef _OPENMP
+#include "omp.h"
+#endif
+
 #include <limits.h>
 #include <float.h>
 #include <algorithm>
 #include <fstream>
 #include <map>
 #include <vector>
-
-#ifdef _OPENMP
-#include "omp.h"
-#endif
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace SPHSpace {
-
-using namespace std;
-using PhysicsSpace::GenericHydro;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using MeshSpace::Mesh;
-
-using PhysicsSpace::MassDensityType;
-using PhysicsSpace::HEvolutionType;
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -115,35 +107,35 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mnTensile(nTensile),
   mxmin(xmin),
   mxmax(xmax),
-  mTimeStepMask(FieldSpace::FieldStorageType::CopyFields),
-  mPressure(FieldSpace::FieldStorageType::CopyFields),
-  mSoundSpeed(FieldSpace::FieldStorageType::CopyFields),
-  mVolume(FieldSpace::FieldStorageType::CopyFields),
-  mOmegaGradh(FieldSpace::FieldStorageType::CopyFields),
-  mSpecificThermalEnergy0(FieldSpace::FieldStorageType::CopyFields),
-  mEntropy(FieldSpace::FieldStorageType::CopyFields),
-  mHideal(FieldSpace::FieldStorageType::CopyFields),
-  mMaxViscousPressure(FieldSpace::FieldStorageType::CopyFields),
-  mEffViscousPressure(FieldSpace::FieldStorageType::CopyFields),
-  mMassDensityCorrection(FieldSpace::FieldStorageType::CopyFields),
-  mViscousWork(FieldSpace::FieldStorageType::CopyFields),
-  mMassDensitySum(FieldSpace::FieldStorageType::CopyFields),
-  mNormalization(FieldSpace::FieldStorageType::CopyFields),
-  mWeightedNeighborSum(FieldSpace::FieldStorageType::CopyFields),
-  mMassSecondMoment(FieldSpace::FieldStorageType::CopyFields),
-  mXSPHWeightSum(FieldSpace::FieldStorageType::CopyFields),
-  mXSPHDeltaV(FieldSpace::FieldStorageType::CopyFields),
-  mDxDt(FieldSpace::FieldStorageType::CopyFields),
-  mDvDt(FieldSpace::FieldStorageType::CopyFields),
-  mDmassDensityDt(FieldSpace::FieldStorageType::CopyFields),
-  mDspecificThermalEnergyDt(FieldSpace::FieldStorageType::CopyFields),
-  mDHDt(FieldSpace::FieldStorageType::CopyFields),
-  mDvDx(FieldSpace::FieldStorageType::CopyFields),
-  mInternalDvDx(FieldSpace::FieldStorageType::CopyFields),
-  mM(FieldSpace::FieldStorageType::CopyFields),
-  mLocalM(FieldSpace::FieldStorageType::CopyFields),
-  mPairAccelerations(FieldSpace::FieldStorageType::CopyFields),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mTimeStepMask(FieldStorageType::CopyFields),
+  mPressure(FieldStorageType::CopyFields),
+  mSoundSpeed(FieldStorageType::CopyFields),
+  mVolume(FieldStorageType::CopyFields),
+  mOmegaGradh(FieldStorageType::CopyFields),
+  mSpecificThermalEnergy0(FieldStorageType::CopyFields),
+  mEntropy(FieldStorageType::CopyFields),
+  mHideal(FieldStorageType::CopyFields),
+  mMaxViscousPressure(FieldStorageType::CopyFields),
+  mEffViscousPressure(FieldStorageType::CopyFields),
+  mMassDensityCorrection(FieldStorageType::CopyFields),
+  mViscousWork(FieldStorageType::CopyFields),
+  mMassDensitySum(FieldStorageType::CopyFields),
+  mNormalization(FieldStorageType::CopyFields),
+  mWeightedNeighborSum(FieldStorageType::CopyFields),
+  mMassSecondMoment(FieldStorageType::CopyFields),
+  mXSPHWeightSum(FieldStorageType::CopyFields),
+  mXSPHDeltaV(FieldStorageType::CopyFields),
+  mDxDt(FieldStorageType::CopyFields),
+  mDvDt(FieldStorageType::CopyFields),
+  mDmassDensityDt(FieldStorageType::CopyFields),
+  mDspecificThermalEnergyDt(FieldStorageType::CopyFields),
+  mDHDt(FieldStorageType::CopyFields),
+  mDvDx(FieldStorageType::CopyFields),
+  mInternalDvDx(FieldStorageType::CopyFields),
+  mM(FieldStorageType::CopyFields),
+  mLocalM(FieldStorageType::CopyFields),
+  mPairAccelerations(FieldStorageType::CopyFields),
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -196,8 +188,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // dataBase.fluidEntropy(mEntropy);
 
   // // In some cases we need the volume per node as well.
-  // const bool updateVolume = (this->densityUpdate() == PhysicsSpace::VoronoiCellDensity or
-  //                            this->densityUpdate() == PhysicsSpace::SumVoronoiCellDensity);
+  // const bool updateVolume = (this->densityUpdate() == VoronoiCellDensity or
+  //                            this->densityUpdate() == SumVoronoiCellDensity);
   // if (updateVolume) {
   //   Mesh<Dimension> mesh;
   //   NodeList<Dimension> voidNodes("void", 0, 0);
@@ -206,7 +198,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   //   sort(nodeLists.begin(), nodeLists.end(), typename NodeListRegistrar<Dimension>::NodeListComparator());
   //   Vector xmin, xmax;
   //   boundingBox(dataBase.fluidPosition(), xmin, xmax);
-  //   MeshSpace::generateMesh<Dimension, 
+  //   generateMesh<Dimension, 
   //                           typename vector<const NodeList<Dimension>*>::iterator,
   //                           ConstBoundaryIterator>(nodeLists.begin(), nodeLists.end(),
   //                                                  this->boundaryBegin(), this->boundaryEnd(),
@@ -247,8 +239,8 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mOmegaGradh, 1.0, HydroFieldNames::omegaGradh);
 
   // We may need the volume per node as well.
-  const bool updateVolume = (this->densityUpdate() == PhysicsSpace::MassDensityType::VoronoiCellDensity or
-                             this->densityUpdate() == PhysicsSpace::MassDensityType::SumVoronoiCellDensity);
+  const bool updateVolume = (this->densityUpdate() == MassDensityType::VoronoiCellDensity or
+                             this->densityUpdate() == MassDensityType::SumVoronoiCellDensity);
   if (updateVolume) {
     dataBase.resizeFluidFieldList(mVolume, 0.0, HydroFieldNames::volume, false);
   }
@@ -289,10 +281,10 @@ registerState(DataBase<Dimension>& dataBase,
                                                                       (*itr)->rhoMax()));
     const Scalar hmaxInv = 1.0/(*itr)->hmax();
     const Scalar hminInv = 1.0/(*itr)->hmin();
-    if (HEvolution() == PhysicsSpace::HEvolutionType::IntegrateH) {
+    if (HEvolution() == HEvolutionType::IntegrateH) {
       Hpolicy->push_back(new IncrementBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
     } else {
-      CHECK(HEvolution() == PhysicsSpace::HEvolutionType::IdealH);
+      CHECK(HEvolution() == HEvolutionType::IdealH);
       Hpolicy->push_back(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
     }
   }
@@ -986,15 +978,15 @@ finalize(const typename Dimension::Scalar time,
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
-  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
+  if (densityUpdate() == MassDensityType::RigorousSumDensity or
+      densityUpdate() == MassDensityType::CorrectedSumDensity) {
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     computeSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
-    if (densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
+    if (densityUpdate() == MassDensityType::CorrectedSumDensity) {
       for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
            boundaryItr != this->boundaryEnd();
            ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
@@ -1003,12 +995,12 @@ finalize(const typename Dimension::Scalar time,
            ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
       correctSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
     }
-  } else if (densityUpdate() == PhysicsSpace::MassDensityType::SumDensity) {
+  } else if (densityUpdate() == MassDensityType::SumDensity) {
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     const FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
                                                                       HydroFieldNames::massDensity, 0.0);
     massDensity.assignFields(massDensitySum);
-  } else if (densityUpdate() == PhysicsSpace::MassDensityType::HybridSumDensity) {
+  } else if (densityUpdate() == MassDensityType::HybridSumDensity) {
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     const FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
                                                                       HydroFieldNames::massDensity, 0.0);
@@ -1020,13 +1012,13 @@ finalize(const typename Dimension::Scalar time,
         if (normalization(nodeListi, i) > 0.95) massDensity(nodeListi, i) = massDensitySum(nodeListi, i);
       }
     }
-  } else if (densityUpdate() == PhysicsSpace::MassDensityType::VoronoiCellDensity) {
+  } else if (densityUpdate() == MassDensityType::VoronoiCellDensity) {
     this->updateVolume(state, false);
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     massDensity = mass / volume;
-  } else if (densityUpdate() == PhysicsSpace::MassDensityType::SumVoronoiCellDensity) {
+  } else if (densityUpdate() == MassDensityType::SumVoronoiCellDensity) {
     this->updateVolume(state, true);
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -1141,8 +1133,8 @@ applyGhostBoundaries(State<Dimension>& state,
   }
 
   // FieldList<Dimension, Scalar> volume;
-  // const bool updateVolume = (this->densityUpdate() == PhysicsSpace::MassDensityType::VoronoiCellDensity or
-  //                            this->densityUpdate() == PhysicsSpace::MassDensityType::SumVoronoiCellDensity);
+  // const bool updateVolume = (this->densityUpdate() == MassDensityType::VoronoiCellDensity or
+  //                            this->densityUpdate() == MassDensityType::SumVoronoiCellDensity);
   // if (updateVolume) {
   //   CHECK(state.fieldNameRegistered(HydroFieldNames::volume));
   //   volume = state.fields(HydroFieldNames::volume, 0.0);
@@ -1189,8 +1181,8 @@ enforceBoundaries(State<Dimension>& state,
   }
 
   // FieldList<Dimension, Scalar> volume;
-  // const bool updateVolume = (this->densityUpdate() == PhysicsSpace::MassDensityType::VoronoiCellDensity or
-  //                            this->densityUpdate() == PhysicsSpace::MassDensityType::SumVoronoiCellDensity);
+  // const bool updateVolume = (this->densityUpdate() == MassDensityType::VoronoiCellDensity or
+  //                            this->densityUpdate() == MassDensityType::SumVoronoiCellDensity);
   // if (updateVolume) {
   //   CHECK(state.fieldNameRegistered(HydroFieldNames::volume));
   //   volume = state.fields(HydroFieldNames::volume, 0.0);
@@ -1245,7 +1237,7 @@ updateVolume(State<Dimension>& state,
   vector<const NodeList<Dimension>*> nodeLists(positions.nodeListPtrs().begin(),
                                                positions.nodeListPtrs().end());
   nodeLists.push_back(&voidNodes);
-  MeshSpace::generateMesh<Dimension, 
+  generateMesh<Dimension, 
                           typename vector<const NodeList<Dimension>*>::iterator,
                           ConstBoundaryIterator>
     (nodeLists.begin(), nodeLists.end(),
@@ -1370,5 +1362,3 @@ restoreState(const FileIO& file, string pathName) {
 }
 
 }
-}
-

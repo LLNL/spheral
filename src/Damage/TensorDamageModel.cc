@@ -28,28 +28,21 @@
 #include "Boundary/Boundary.hh"
 #include "Neighbor/Neighbor.hh"
 
-#include "boost/shared_ptr.hpp"
-
 #include <string>
 #include <vector>
 #include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace PhysicsSpace {
-
-using namespace std;
-
-using NodeSpace::NodeList;
-using NodeSpace::SolidNodeList;
-using Material::EquationOfState;
-using FileIOSpace::FileIO;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using BoundarySpace::Boundary;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NeighborSpace::Neighbor;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -70,8 +63,8 @@ TensorDamageModel(SolidNodeList<Dimension>& nodeList,
   mStrain(SolidFieldNames::strainTensor, nodeList),
   mEffectiveStrain(SolidFieldNames::effectiveStrainTensor, nodeList),
   mDdamageDt(TensorDamagePolicy<Dimension>::prefix() + SolidFieldNames::scalarDamage, nodeList),
-  mNewEffectiveDamage(ReplaceState<Dimension, FieldSpace::Field<Dimension, SymTensor> >::prefix() + SolidFieldNames::effectiveTensorDamage, nodeList),
-  mNewDamageGradient(ReplaceState<Dimension, FieldSpace::Field<Dimension, Vector> >::prefix() + SolidFieldNames::damageGradient, nodeList),
+  mNewEffectiveDamage(ReplaceState<Dimension, Field<Dimension, SymTensor> >::prefix() + SolidFieldNames::effectiveTensorDamage, nodeList),
+  mNewDamageGradient(ReplaceState<Dimension, Field<Dimension, Vector> >::prefix() + SolidFieldNames::damageGradient, nodeList),
   mStrainAlgorithm(strainAlgorithm),
   mEffDamageAlgorithm(effDamageAlgorithm),
   mCriticalDamageThreshold(criticalDamageThreshold),
@@ -661,6 +654,5 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mDdamageDt, pathName + "/DdamageDt");
 }
 
-}
 }
 

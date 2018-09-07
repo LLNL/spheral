@@ -3,7 +3,6 @@
 #include "Dimension.hh"
 
 namespace Spheral {
-namespace Geometry {
 
 Dim<3>::Vector
 buildEigenVector(const Dim<3>::SymTensor& A,
@@ -15,5 +14,4 @@ buildUniqueEigenVector(const Dim<3>::SymTensor& A,
                        const Dim<3>::Vector& U0,
                        const Dim<3>::Vector& U1);
 
-}
 }

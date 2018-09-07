@@ -7,31 +7,27 @@
 #ifndef __Spheral_MashCorrectionPolicy_hh__
 #define __Spheral_MashCorrectionPolicy_hh__
 
-#include <string>
-
 #include "DataBase/UpdatePolicyBase.hh"
+
+#include <string>
 
 namespace Spheral {
 
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace NodeSpace {
-  template<typename Dimension> class FluidNodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
-}
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
 class MashCorrectionPolicy: 
-    public UpdatePolicyBase<Dimension, FieldSpace::Field<Dimension, typename Dimension::Tensor> > {
+    public UpdatePolicyBase<Dimension, Field<Dimension, typename Dimension::Tensor> > {
 
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
   typedef typename Dimension::Tensor Tensor;
-  typedef typename FieldSpace::Field<Dimension, Tensor> FieldType;
+  typedef typename Field<Dimension, Tensor> FieldType;
   typedef typename UpdatePolicyBase<Dimension, FieldType>::KeyType KeyType;
 
   // Constructors, destructor.

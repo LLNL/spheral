@@ -7,9 +7,8 @@
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 
 namespace Spheral {
-namespace MHDSpace {
 
-class PriceMonaghanDissipation: public ArtificialViscositySpace::ArtificialViscosity<Dim<3> > {
+class PriceMonaghanDissipation: public ArtificialViscosity<Dim<3> > {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef Dim<3>::Scalar Scalar;
@@ -33,13 +32,13 @@ public:
   ~PriceMonaghanDissipation();
 
   // Method to apply the dissipative effects.
-  void viscousEffects(const DataBaseSpace::DataBase<Dim<3> >& dataBase,
-                      const NeighborSpace::ConnectivityMap<Dim<3> >& connectivityMap,
+  void viscousEffects(const DataBase<Dim<3> >& dataBase,
+                      const ConnectivityMap<Dim<3> >& connectivityMap,
                       const State<Dim<3> >& state,
                       StateDerivatives<Dim<3> >& derivatives) const;
 
   // Timestep vote method.
-  TimeStepType dt(const DataBaseSpace::DataBase<Dim<3> >& dataBase, 
+  TimeStepType dt(const DataBase<Dim<3> >& dataBase, 
                   const State<Dim<3> >& state,
                   const StateDerivatives<Dim<3> >& derivs,
                   const Scalar currentTime) const;
@@ -59,15 +58,11 @@ private:
 };
 
 }
-}
 
 #else
 
 namespace Spheral {
-  namespace MHDSpace {
-    // Forward declaration.
-    class PriceMonaghanDissipation;
-  }
+  class PriceMonaghanDissipation;
 }
 
 #endif

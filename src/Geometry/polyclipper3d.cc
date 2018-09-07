@@ -22,9 +22,19 @@
 
 #include <list>
 #include <map>
+#include <set>
 #include <iostream>
 #include <iterator>
 #include <algorithm>
+using std::vector;
+using std::list;
+using std::map;
+using std::set;
+using std::pair;
+using std::make_pair;
+using std::min;
+using std::max;
+using std::abs;
 
 // Declare the timers.
 extern Timer TIME_PC3d_convertto;
@@ -41,7 +51,6 @@ extern Timer TIME_PC3d_collapseDegenerates;
 
 namespace PolyClipper {
 
-using namespace std;
 
 namespace {    // anonymous methods
 
@@ -240,7 +249,7 @@ initializePolyhedron(Polyhedron& poly,
 std::string
 polyhedron2string(const Polyhedron& poly) {
 
-  ostringstream s;
+  std::ostringstream s;
   const auto nverts = poly.size();
   for (auto i = 0; i < nverts; ++i) {
     s << i << " ID=" << poly[i].ID << " comp=" << poly[i].comp << " @ " << poly[i].position

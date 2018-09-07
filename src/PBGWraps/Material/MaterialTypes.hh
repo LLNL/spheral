@@ -9,7 +9,6 @@
 #include "Material/IsothermalEquationOfState.hh"
 
 namespace Spheral {
-namespace Material {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -30,7 +29,6 @@ typedef IsothermalEquationOfState<Dim<1> > IsothermalEquationOfState1d;
 typedef IsothermalEquationOfState<Dim<2> > IsothermalEquationOfState2d;
 typedef IsothermalEquationOfState<Dim<3> > IsothermalEquationOfState3d;
 
-}
 }
 
 #endif

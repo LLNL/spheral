@@ -19,10 +19,6 @@
 
 namespace Spheral {
 
-using namespace std;
-using MeshSpace::Mesh;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Write a master silo file.

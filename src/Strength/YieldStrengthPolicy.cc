@@ -19,10 +19,6 @@
 
 namespace Spheral {
 
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-using NodeSpace::SolidNodeList;
-
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
@@ -77,7 +73,7 @@ update(const KeyType& key,
     // Get the strength model.  This cast is ugly, but is a work-around for now.
     const SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(stateFields[k]->nodeListPtr());
     CHECK(solidNodeListPtr != 0);
-    const SolidMaterial::StrengthModel<Dimension>& strengthModel = solidNodeListPtr->strengthModel();
+    const StrengthModel<Dimension>& strengthModel = solidNodeListPtr->strengthModel();
 
     // Now set the yield strength.
     strengthModel.yieldStrength(*stateFields[k], *massDensity[k], *energy[k], *P[k], *PS[k], *PSR[k]);

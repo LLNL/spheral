@@ -13,17 +13,20 @@
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
 #include "Physics/Physics.hh"
-
 #include "Utilities/DBC.hh"
 
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-namespace IntegratorSpace {
-
-using namespace std;
-
-using DataBaseSpace::DataBase;
-using FieldSpace::FieldList;
-using PhysicsSpace::Physics;
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -142,6 +145,5 @@ step(typename Dimension::Scalar maxTime,
   this->currentTime(t + dt);
   this->lastDt(dt);
 }
-}
-}
 
+}

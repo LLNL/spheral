@@ -4,18 +4,15 @@ text = """
 //
 // Created by CDR, Nov 19 2014
 //----------------------------------------------------------------------------//
-
-#include <math.h>
-
 #include "Kernel.hh"
 #include "WendlandC6Kernel.hh"
+
+#include <math.h>
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 namespace Spheral {
-  namespace KernelSpace {
-    template class WendlandC6Kernel< Dim< %(ndim)s >  >;
-  }
+  template class WendlandC6Kernel< Dim< %(ndim)s >  >;
 }
 """

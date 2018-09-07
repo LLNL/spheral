@@ -12,16 +12,15 @@
 #include "Field/Field.hh"
 #include "Utilities/DBC.hh"
 
-using namespace std;
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace BoundarySpace {
-
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using MeshSpace::Mesh;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -118,5 +117,4 @@ void AxisBoundaryRZ::etamin(const double x) {
   mEtaMin = x;
 }
 
-}
 }

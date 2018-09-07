@@ -35,7 +35,6 @@ extern "C" {
 #define TIMER_COUNTER 0
 #endif
 
-using namespace std;
 
 #define DIAGNOSTIC false 
 
@@ -44,9 +43,9 @@ class Timer {
 public:
   
   Timer();                             // unmanaged
-  Timer(const string&);                // root
-  Timer(const string&, Timer&);        // managed
-  Timer(const string&, Timer&, bool);  // diagnostic
+  Timer(const std::string&);                // root
+  Timer(const std::string&, Timer&);        // managed
+  Timer(const std::string&, Timer&, bool);  // diagnostic
   ~Timer();
   
   void setup();
@@ -62,11 +61,11 @@ public:
   long long int papi_counter2() { return accumulated_counter2; }
 #endif
 
-  string Name() { return timer_name;  }
+  std::string Name() { return timer_name;  }
   
   long int Count() { return count; }
 
-  static list<Timer*> TimerList;
+  static std::list<Timer*> TimerList;
 
   static void TimerSummary(const int bert, const int ernie) {
     TimerSummary(); // backwards compatibilty...
@@ -88,7 +87,7 @@ private:
 #endif
 
   int ID;  
-  string timer_name;
+  std::string timer_name;
   Timer& Parent;
 
   double avgWC,  minWC,  maxWC;
@@ -110,7 +109,6 @@ private:
 // stub Timer class
 #include <string>
 #include <iostream>
-using namespace std;
 
 #define DIAGNOSTIC false
 
@@ -119,13 +117,13 @@ class Timer {
 public:
 
   Timer() {}
-  Timer(const string&) {}
-  //Timer(const string&, int) {}
-  Timer(const string&, Timer&) {}
-  Timer(const string&, Timer&, bool) {}
+  Timer(const std::string&) {}
+  //Timer(const std::string&, int) {}
+  Timer(const std::string&, Timer&) {}
+  Timer(const std::string&, Timer&, bool) {}
   ~Timer() {}
 
-  static list<Timer*> TimerList;
+  static std::list<Timer*> TimerList;
 
   inline void setup(){}
   inline void start(){}
@@ -140,7 +138,7 @@ public:
   inline long long int papi_counter2() {return 0;}
 #endif
 
-  inline string Name() {return NULL;}
+  inline std::string Name() {return NULL;}
   
   inline long int Count() {return 0;}
   
@@ -156,7 +154,7 @@ public:
     rank=0;
 #endif
     if(rank==0) {
-      cout << " Timers Disabled.  No timing output written."  << endl;
+      std::cout << " Timers Disabled.  No timing output written."  << std::endl;
     }
   }
 

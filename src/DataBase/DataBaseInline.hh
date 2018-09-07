@@ -1,7 +1,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace DataBaseSpace {
 
 //------------------------------------------------------------------------------
 // Number of NodeLists registered with the DataBase.
@@ -231,7 +230,7 @@ DataBase<Dimension>::solidNodeListAsNodeListEnd() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NeighborSpace::ConnectivityMap<Dimension>&
+const ConnectivityMap<Dimension>&
 DataBase<Dimension>::
 connectivityMap() const {
   VERIFY2(mConnectivityMapPtr.use_count() != 0,
@@ -241,7 +240,7 @@ connectivityMap() const {
 
 template<typename Dimension>
 inline
-const NeighborSpace::ConnectivityMap<Dimension>&
+const ConnectivityMap<Dimension>&
 DataBase<Dimension>::
 connectivityMap(const bool buildConnectivityMap) const {
   if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap(buildConnectivityMap);
@@ -264,11 +263,11 @@ connectivityMapPtr(const bool buildConnectivityMap) const {
 template<typename Dimension>
 template<typename DataType>
 inline
-FieldSpace::FieldList<Dimension, DataType>
+FieldList<Dimension, DataType>
 DataBase<Dimension>::
 newGlobalFieldList(const DataType value,
-                   const typename FieldSpace::Field<Dimension, DataType>::FieldName name) const {
-  FieldSpace::FieldList<Dimension, DataType> result(FieldSpace::FieldStorageType::CopyFields);
+                   const typename Field<Dimension, DataType>::FieldName name) const {
+  FieldList<Dimension, DataType> result(FieldStorageType::CopyFields);
   for (ConstNodeListIterator nodeListItr = nodeListBegin();
        nodeListItr != nodeListEnd();
        ++nodeListItr) {
@@ -286,11 +285,11 @@ newGlobalFieldList(const DataType value,
 template<typename Dimension>
 template<typename DataType>
 inline
-FieldSpace::FieldList<Dimension, DataType>
+FieldList<Dimension, DataType>
 DataBase<Dimension>::
 newFluidFieldList(const DataType value,
-                  const typename FieldSpace::Field<Dimension, DataType>::FieldName name) const {
-  FieldSpace::FieldList<Dimension, DataType> result(FieldSpace::FieldStorageType::CopyFields);
+                  const typename Field<Dimension, DataType>::FieldName name) const {
+  FieldList<Dimension, DataType> result(FieldStorageType::CopyFields);
   for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
        nodeListItr != fluidNodeListEnd();
        ++nodeListItr) {
@@ -308,11 +307,11 @@ newFluidFieldList(const DataType value,
 template<typename Dimension>
 template<typename DataType>
 inline
-FieldSpace::FieldList<Dimension, DataType>
+FieldList<Dimension, DataType>
 DataBase<Dimension>::
 newSolidFieldList(const DataType value,
-                  const typename FieldSpace::Field<Dimension, DataType>::FieldName name) const {
-  FieldSpace::FieldList<Dimension, DataType> result(FieldSpace::FieldStorageType::CopyFields);
+                  const typename Field<Dimension, DataType>::FieldName name) const {
+  FieldList<Dimension, DataType> result(FieldStorageType::CopyFields);
   for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
        nodeListItr != solidNodeListEnd();
        ++nodeListItr) {
@@ -332,16 +331,16 @@ template<typename DataType>
 inline
 void
 DataBase<Dimension>::
-resizeGlobalFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
+resizeGlobalFieldList(FieldList<Dimension, DataType>& fieldList,
                       const DataType value,
-                      const typename FieldSpace::Field<Dimension, DataType>::FieldName name,
+                      const typename Field<Dimension, DataType>::FieldName name,
                       const bool resetValues) const {
-  VERIFY((fieldList.storageType() == FieldSpace::FieldStorageType::CopyFields));
+  VERIFY((fieldList.storageType() == FieldStorageType::CopyFields));
 
   // First check if it's necessary to resize the FieldList.
   bool reinitialize = fieldList.numFields() != numNodeLists();
   ConstNodeListIterator nodeListItr = nodeListBegin();
-  typename FieldSpace::FieldList<Dimension, DataType>::const_iterator itr = fieldList.begin();
+  typename FieldList<Dimension, DataType>::const_iterator itr = fieldList.begin();
   while (!reinitialize && 
          nodeListItr != nodeListEnd() &&
          itr != fieldList.end()) {
@@ -351,7 +350,7 @@ resizeGlobalFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
   }
 
   if (reinitialize) {
-    fieldList = FieldSpace::FieldList<Dimension, DataType>(fieldList.storageType());
+    fieldList = FieldList<Dimension, DataType>(fieldList.storageType());
     for (ConstNodeListIterator nodeListItr = nodeListBegin();
          nodeListItr != nodeListEnd();
          ++nodeListItr) fieldList.appendNewField(name, **nodeListItr, value);
@@ -371,16 +370,16 @@ template<typename DataType>
 inline
 void
 DataBase<Dimension>::
-resizeFluidFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
+resizeFluidFieldList(FieldList<Dimension, DataType>& fieldList,
                      const DataType value,
-                     const typename FieldSpace::Field<Dimension, DataType>::FieldName name,
+                     const typename Field<Dimension, DataType>::FieldName name,
                      const bool resetValues) const {
-  VERIFY((fieldList.storageType() == FieldSpace::FieldStorageType::CopyFields));
+  VERIFY((fieldList.storageType() == FieldStorageType::CopyFields));
 
   // First check if it's necessary to resize the FieldList.
   bool reinitialize = fieldList.numFields() != numFluidNodeLists();
   ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
-  typename FieldSpace::FieldList<Dimension, DataType>::const_iterator itr = fieldList.begin();
+  typename FieldList<Dimension, DataType>::const_iterator itr = fieldList.begin();
   while (!reinitialize && 
          nodeListItr != fluidNodeListEnd() &&
          itr != fieldList.end()) {
@@ -390,7 +389,7 @@ resizeFluidFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
   }
 
   if (reinitialize) {
-    fieldList = FieldSpace::FieldList<Dimension, DataType>(fieldList.storageType());
+    fieldList = FieldList<Dimension, DataType>(fieldList.storageType());
     for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
          nodeListItr != fluidNodeListEnd();
          ++nodeListItr) fieldList.appendNewField(name, **nodeListItr, value);
@@ -410,16 +409,16 @@ template<typename DataType>
 inline
 void
 DataBase<Dimension>::
-resizeSolidFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
+resizeSolidFieldList(FieldList<Dimension, DataType>& fieldList,
                      const DataType value,
-                     const typename FieldSpace::Field<Dimension, DataType>::FieldName name,
+                     const typename Field<Dimension, DataType>::FieldName name,
                      const bool resetValues) const {
-  VERIFY((fieldList.storageType() == FieldSpace::FieldStorageType::CopyFields));
+  VERIFY((fieldList.storageType() == FieldStorageType::CopyFields));
 
   // First check if it's necessary to resize the FieldList.
   bool reinitialize = fieldList.numFields() != numSolidNodeLists();
   ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
-  typename FieldSpace::FieldList<Dimension, DataType>::const_iterator itr = fieldList.begin();
+  typename FieldList<Dimension, DataType>::const_iterator itr = fieldList.begin();
   while (!reinitialize && 
          nodeListItr != solidNodeListEnd() &&
          itr != fieldList.end()) {
@@ -429,7 +428,7 @@ resizeSolidFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
   }
 
   if (reinitialize) {
-    fieldList = FieldSpace::FieldList<Dimension, DataType>(fieldList.storageType());
+    fieldList = FieldList<Dimension, DataType>(fieldList.storageType());
     for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
          nodeListItr != solidNodeListEnd();
          ++nodeListItr) fieldList.appendNewField(name, **nodeListItr, value);
@@ -440,5 +439,4 @@ resizeSolidFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
   ENSURE(fieldList.numFields() == numSolidNodeLists());
 }
 
-}
 }

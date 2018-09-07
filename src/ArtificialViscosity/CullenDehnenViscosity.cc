@@ -22,27 +22,19 @@
 
 #include "CullenDehnenViscosity.hh"
 
-namespace Spheral {
-namespace ArtificialViscositySpace {
-    
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
-using FileIOSpace::FileIO;
 
-using PhysicsSpace::Physics;
-using DataOutput::Restart;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NodeSpace::SmoothingScaleBase;
-
-using KernelSpace::TableKernel;
-using NeighborSpace::ConnectivityMap;
-
+namespace Spheral {
+    
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
 //------------------------------------------------------------------------------
@@ -58,13 +50,13 @@ CullenDehnenViscosity(ArtificialViscosity<Dimension>& q,
                       const Scalar fKern, //Parameter = 1/3 Hopkins 2014 for quinitc spline
                       const bool boolHopkins): //use Hopkins Reformulation
   Physics<Dimension>(),
-  mPrevDvDt(FieldSpace::FieldStorageType::CopyFields),
-  mPrevDivV(FieldSpace::FieldStorageType::CopyFields),
-  mCullAlpha(FieldSpace::FieldStorageType::CopyFields),
-  mPrevDivV2(FieldSpace::FieldStorageType::CopyFields),
-  mCullAlpha2(FieldSpace::FieldStorageType::CopyFields),
-  mDalphaDt(FieldSpace::FieldStorageType::CopyFields),
-  mAlphaLocal(FieldSpace::FieldStorageType::CopyFields),
+  mPrevDvDt(FieldStorageType::CopyFields),
+  mPrevDivV(FieldStorageType::CopyFields),
+  mCullAlpha(FieldStorageType::CopyFields),
+  mPrevDivV2(FieldStorageType::CopyFields),
+  mCullAlpha2(FieldStorageType::CopyFields),
+  mDalphaDt(FieldStorageType::CopyFields),
+  mAlphaLocal(FieldStorageType::CopyFields),
   malphMax(alphMax),
   malphMin(alphMin),
   mbetaC(betaC),
@@ -74,7 +66,7 @@ CullenDehnenViscosity(ArtificialViscosity<Dimension>& q,
   mboolHopkins(boolHopkins),
   myq(q),
   mKernel(W),
-  mRestart(DataOutput::registerWithRestart(*this)){
+  mRestart(registerWithRestart(*this)){
 }
 
 //------------------------------------------------------------------------------
@@ -148,42 +140,42 @@ boolHopkins(bool val)
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const KernelSpace::TableKernel<Dimension>&
+const TableKernel<Dimension>&
 CullenDehnenViscosity<Dimension>::kernel() const {
   return mKernel;
 }
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 CullenDehnenViscosity<Dimension>::PrevDvDt() const {
    return mPrevDvDt;
 }
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CullenDehnenViscosity<Dimension>::PrevDivV() const {
    return mPrevDivV;
 }
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CullenDehnenViscosity<Dimension>::PrevDivV2() const {
    return mPrevDivV2;
 }
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CullenDehnenViscosity<Dimension>::CullAlpha() const {
    return mCullAlpha;
 }
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CullenDehnenViscosity<Dimension>::CullAlpha2() const {
    return mCullAlpha2;
 }
@@ -613,5 +605,4 @@ dt(const DataBase<Dimension>& dataBase,
     return TimeStepType(1.0e100, "Rate of viscosity change -- NO VOTE.");
 }
 
-}    
 }

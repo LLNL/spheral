@@ -54,23 +54,18 @@
 #include <fstream>
 #include <map>
 #include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace CRKSPHSpace {
-
-using namespace std;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NodeSpace::SolidNodeList;
-using SolidMaterial::SolidEquationOfState;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // Compute the artificial tensile stress correction tensor for the given 
@@ -126,10 +121,10 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                        const bool compatibleEnergyEvolution,
                        const bool evolveTotalEnergy,
                        const bool XSPH,
-                       const PhysicsSpace::MassDensityType densityUpdate,
-                       const PhysicsSpace::HEvolutionType HUpdate,
-                       const CRKSPHSpace::CRKOrder correctionOrder,
-                       const CRKSPHSpace::CRKVolumeType volumeType,
+                       const MassDensityType densityUpdate,
+                       const HEvolutionType HUpdate,
+                       const CRKOrder correctionOrder,
+                       const CRKVolumeType volumeType,
                        const double epsTensile,
                        const double nTensile,
                        const bool damageRelieveRubble):
@@ -150,8 +145,8 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                                   epsTensile,
                                   nTensile,
                                   damageRelieveRubble),
-  mDeviatoricStressTT(FieldSpace::FieldStorageType::CopyFields),
-  mDdeviatoricStressTTDt(FieldSpace::FieldStorageType::CopyFields) {
+  mDeviatoricStressTT(FieldStorageType::CopyFields),
+  mDdeviatoricStressTTDt(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -416,7 +411,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mDdeviatoricStressTTDt, pathName + "/DdeviatoricStressTTDt");
 }
 
-}
 }
 
 #ifdef _OPENMP

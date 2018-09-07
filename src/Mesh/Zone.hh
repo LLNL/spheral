@@ -7,7 +7,6 @@
 #define __Spheral_Mesh_Zone__
 
 namespace Spheral {
-namespace MeshSpace {
 
 template<typename Dimension>
 class Mesh<Dimension>::Zone {
@@ -54,7 +53,6 @@ private:
   friend class Mesh<Dimension>;
 };
 
-}
 }
 
 #include "ZoneInline.hh"

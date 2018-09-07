@@ -8,21 +8,21 @@ text = """
 namespace Spheral {
 template
 unsigned
-centroidalRelaxNodesImpl(DataBaseSpace::DataBase< Dim<%(ndim)s > >& db,
+centroidalRelaxNodesImpl(DataBase< Dim<%(ndim)s > >& db,
                          const std::vector<Dim< %(ndim)s >::FacetedVolume>& volumeBoundaries,
                          const std::vector<std::vector<Dim< %(ndim)s >::FacetedVolume> >& holes,
-                         const KernelSpace::TableKernel<Dim< %(ndim)s > >& W,
+                         const TableKernel<Dim< %(ndim)s > >& W,
                          const PythonBoundFunctors::SpheralFunctor<Dim< %(ndim)s >::Vector, double>& rhofunc,
                          const PythonBoundFunctors::SpheralFunctor<Dim< %(ndim)s >::Vector, Dim< %(ndim)s >::Vector>& gradrhofunc,
                          const bool rhoConst,
                          const bool useGradRhoFunc,
-                         std::vector<BoundarySpace::Boundary<Dim< %(ndim)s > >*>& boundaries,
+                         std::vector<Boundary<Dim< %(ndim)s > >*>& boundaries,
                          const unsigned maxIterations,
                          const double fracTol,
-                         const CRKSPHSpace::CRKOrder correctionOrder,
+                         const CRKOrder correctionOrder,
                          const double centroidFrac,
-                         FieldSpace::FieldList<Dim< %(ndim)s >, double>& vol,
-                         FieldSpace::FieldList<Dim< %(ndim)s >, int>& surfacePoint,
-                         FieldSpace::FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::FacetedVolume>& cells);
+                         FieldList<Dim< %(ndim)s >, double>& vol,
+                         FieldList<Dim< %(ndim)s >, int>& surfacePoint,
+                         FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::FacetedVolume>& cells);
 }
 """

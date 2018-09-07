@@ -25,23 +25,14 @@
 #include "Physics/GenericBodyForce.hh"
 #include "Material/PhysicalConstants.hh"
 
-// Forward declarations.
 namespace Spheral {
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace Material {
-    class PhysicalConstants;
-  }
-}
 
-namespace Spheral {
-namespace PhysicsSpace {
+// Forward declarations.
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class NodeList;
+template<typename Dimension> class DataBase;
+class PhysicalConstants;
 
 template<typename Dimension>
 class NFWPotential: public GenericBodyForce<Dimension> {
@@ -62,7 +53,7 @@ public:
                double rs,
                double h0,
                const Vector& origin,
-               const Material::PhysicalConstants& constants);
+               const PhysicalConstants& constants);
 
   // Destructor.
   virtual ~NFWPotential();
@@ -71,12 +62,12 @@ public:
   virtual 
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const;
 
   // Provide the timestep appropriate for this package.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
@@ -127,7 +118,7 @@ private:
   Scalar mRs;
   Scalar mh0;
   Vector mOrigin;
-  Material::PhysicalConstants mConstants;
+  PhysicalConstants mConstants;
   Scalar mDeltaPhiFraction;
   Scalar mCriticalDensity;
   mutable Scalar mPotentialEnergy;
@@ -140,19 +131,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "NFWPotentialInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace PhysicsSpace {
-    template<typename Dimension> class NFWPotential;
-  }
+  template<typename Dimension> class NFWPotential;
 }
 
 #endif

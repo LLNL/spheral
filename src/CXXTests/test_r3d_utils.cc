@@ -5,17 +5,15 @@
 //
 // Created by JMO, Wed Jan 11 15:14:32 PST 2017
 //------------------------------------------------------------------------------
-#include <vector>
-#include <random>
-
 #include "test_r3d_utils.hh"
 #include "Utilities/r3d_utils.hh"
 #include "Geometry/Dimension.hh"
 
-namespace Spheral {
-namespace Testing {
+#include <vector>
+#include <random>
 
-using namespace std;
+namespace Spheral {
+
 
 namespace {  // anonymous
 
@@ -544,5 +542,4 @@ std::string test_clip_polyhedron() {
   return "OK";
 }
 
-}
 }

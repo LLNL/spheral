@@ -16,10 +16,7 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
-using Spheral::KernelSpace::TableKernel;
-   
 class PlanarSymmetryBoundary: public Boundary<Dim<3> > {
 
 public:
@@ -64,15 +61,12 @@ private:
 };
 
 }
-}
 
 #else
 
 namespace Spheral {
-namespace BoundarySpace {
-// Forward declaration.
-class PlanarSymmetryBoundary;
-}
+  // Forward declaration.
+  class PlanarSymmetryBoundary;
 }
 
 #endif

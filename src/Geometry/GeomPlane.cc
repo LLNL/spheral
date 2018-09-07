@@ -3,18 +3,16 @@
 //
 // Created by JMO, Thu Feb 24 17:26:32 PST 2000
 //----------------------------------------------------------------------------//
-
-#include <algorithm>
-
 #include "GeomPlane.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/pointDistances.hh"
 #include "Dimension.hh"
 
-namespace Spheral {
+#include <algorithm>
+using std::vector;
 
-using namespace std;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Empty constructor.

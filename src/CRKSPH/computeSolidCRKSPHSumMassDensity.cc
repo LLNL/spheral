@@ -9,20 +9,18 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "SPH/NodeCoupling.hh"
 
-namespace Spheral {
-namespace CRKSPHSpace {
-
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using BoundarySpace::Boundary;
+namespace Spheral {
 
 template<typename Dimension>
 void
@@ -45,12 +43,12 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
+  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
   const Scalar W0 = W.kernelValue(0.0, 1.0);
 
   // Prepare to sum the correction.
-  FieldList<Dimension, Scalar> m0(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> m0(FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     m0.appendNewField("zeroth correction", position[nodeListi]->nodeList(), 0.0);
   }
@@ -125,6 +123,5 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
   }
 }
 
-}
 }
 

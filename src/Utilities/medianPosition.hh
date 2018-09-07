@@ -8,6 +8,8 @@
 #ifndef __Spheral_medianPosition__
 #define __Spheral_medianPosition__
 
+#include <vector>
+
 namespace Spheral {
 
 //------------------------------------------------------------------------------

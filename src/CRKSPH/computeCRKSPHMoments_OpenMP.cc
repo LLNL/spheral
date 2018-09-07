@@ -16,21 +16,10 @@
 #include "Geometry/invertRankNTensor.hh"
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
-using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using Geometry::outerProduct;
-using Geometry::innerProduct;
-using Geometry::innerDoubleProduct;
 
 //------------------------------------------------------------------------------
 // Compute the moments.
@@ -249,5 +238,3 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
 }
 
 }//End Namespace
-}
-

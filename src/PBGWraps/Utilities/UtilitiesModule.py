@@ -17,7 +17,6 @@ class Utilities:
         mod.add_include('"%s/UtilitiesTypes.hh"' % srcdir)
         self.Spheral = mod.add_cpp_namespace("Spheral")
         self.PythonBoundFunctors = self.Spheral.add_cpp_namespace("PythonBoundFunctors")
-        self.NodeSpace = self.Spheral.add_cpp_namespace("NodeSpace")
 
         # Expose types.
         self.KeyTraits = addObject(mod, "KeyTraits", allow_subclassing=True)
@@ -92,7 +91,7 @@ Spheral.add_function("boundingBox", None, [constrefparam("vector_of_%(vector)s",
                                            refparam("%(vector)s", "xmax")],
                                            template_parameters = ["%(vector)s"],
                                            custom_name = "boundingBox")
-Spheral.add_function("globalBoundingBox", None, [constrefparam("Spheral::FieldSpace::VectorFieldList%(dim)s", "positions"),
+Spheral.add_function("globalBoundingBox", None, [constrefparam("Spheral::VectorFieldList%(dim)s", "positions"),
                                                  refparam("%(vector)s", "xmin"),
                                                  refparam("%(vector)s", "xmax"),
                                                  param("bool", "ghost", default_value="false")],
@@ -348,10 +347,9 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
         vector_of_boundary = "vector_of_Boundary%id" % ndim
         tablekernel = "TableKernel%id" % ndim
         connectivitymap = "ConnectivityMap%id" % ndim
-        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        smoothingscalebase = "Spheral::SmoothingScaleBase%id" % ndim
 
         Spheral = self.Spheral
-        NodeSpace = self.NodeSpace
 
         # Dimension dependent functor bindings.
         self.addFunctorBindings(eval("self.VectorScalarFunctor%id" % ndim), "Vector%id" % ndim, "double")
@@ -359,22 +357,22 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
         self.addFunctorBindings(eval("self.VectorPairScalarFunctor%id" % ndim), "Vector%id" % ndim, "pair_double_double")
 
         # Expose methods.
-        NodeSpace.add_function("numGlobalNodes", "int", [constrefparam(nodelist, "nodes")],
+        Spheral.add_function("numGlobalNodes", "int", [constrefparam(nodelist, "nodes")],
                                custom_name = "numGlobalNodes%id" % ndim,
                                template_parameters = [dim],
                                docstring="Global number of nodes in the NodeList.")
 
-        NodeSpace.add_function("numGlobalNodesAll", "int", [constrefparam(database, "dataBase")],
+        Spheral.add_function("numGlobalNodesAll", "int", [constrefparam(database, "dataBase")],
                                custom_name = "numGlobalNodesAll%id" % ndim,
                                template_parameters = [dim],
                                docstring="Global number of nodes in the DataBase.")
 
-        NodeSpace.add_function("globalNodeIDs", intfield, [constrefparam(nodelist, "nodes")],
+        Spheral.add_function("globalNodeIDs", intfield, [constrefparam(nodelist, "nodes")],
                                custom_name = "globalNodeIDs%id" % ndim,
                                template_parameters = [dim],
                                docstring="Determine unique global node IDs for the nodes in a NodeList.")
 
-        NodeSpace.add_function("globalNodeIDsAll", intfieldlist, [constrefparam(database, "dataBase")],
+        Spheral.add_function("globalNodeIDsAll", intfieldlist, [constrefparam(database, "dataBase")],
                                custom_name = "globalNodeIDsAll%id" % ndim,
                                template_parameters = [dim],
                                docstring="Determine unique global node IDs for the nodes in a DataBase.")
@@ -461,10 +459,9 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
         vectorfieldlist = "VectorFieldList%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
         tablekernel = "TableKernel%id" % ndim
-        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        smoothingscalebase = "Spheral::SmoothingScaleBase%id" % ndim
 
         Spheral = self.Spheral
-        NodeSpace = self.NodeSpace
 
         # Expose methods.
         Spheral.add_function("rotationMatrix%id" % ndim, tensor, [constrefparam(vector, "runit")],
@@ -527,10 +524,3 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                      is_const=True,
                      is_pure_virtual=True)
         return
-
-    #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return []
-

@@ -1,7 +1,6 @@
 #include "Utilities/FastMath.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
 //------------------------------------------------------------------------------
 // etamin_solid
@@ -368,5 +367,4 @@ compute_dP4deps_rho(const double& phi, const double& dphideps_rho, const double&
   return rho*(ma + (phi + eps*dphideps_rho)*exp(-malpha*thpt*thpt));
 }
 
-}
 }

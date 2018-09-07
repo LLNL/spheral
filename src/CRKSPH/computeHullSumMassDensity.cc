@@ -16,19 +16,10 @@
 #include "polytope/convexHull_2d.hh"
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
-using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using BoundarySpace::Boundary;
 
 namespace {
 #ifdef SPHERAL1D
@@ -198,7 +189,7 @@ computeHullSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
+  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
   const Scalar kernelExtent2 = FastMath::square(W.kernelExtent());
 
@@ -255,6 +246,5 @@ computeHullSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   }
 }
 
-}
 }
 

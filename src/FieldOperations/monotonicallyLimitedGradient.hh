@@ -6,14 +6,14 @@
 // Created by JMO, Wed Feb 13 09:32:33 PST 2008
 //----------------------------------------------------------------------------//
 
-#include <vector>
-#include <map>
 #include "Geometry/MathTraits.hh"
 #include "Geometry/innerProduct.hh"
 #include "Utilities/SpheralFunctions.hh"
 
+#include <vector>
+#include <map>
+
 namespace Spheral {
-namespace FieldSpace {
 
 //------------------------------------------------------------------------------
 // Compute the necessary limit such that the projected value falls within
@@ -203,5 +203,4 @@ tensorLimitedGradient(const DataType& fieldi,
   return phi*gradi;
 }
 
-}
 }

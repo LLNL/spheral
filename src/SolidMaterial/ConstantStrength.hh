@@ -12,7 +12,6 @@
 #include "Field/Field.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
 template<typename Dimension>
 class ConstantStrength: public StrengthModel<Dimension> {
@@ -29,17 +28,17 @@ public:
   virtual ~ConstantStrength() {};
 
   // The generic interface we require all strength models to provide.
-  virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
-                            const FieldSpace::Field<Dimension, Scalar>& density,
-                            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                            const FieldSpace::Field<Dimension, Scalar>& pressure) const;
+  virtual void shearModulus(Field<Dimension, Scalar>& shearModulus,
+                            const Field<Dimension, Scalar>& density,
+                            const Field<Dimension, Scalar>& specificThermalEnergy,
+                            const Field<Dimension, Scalar>& pressure) const;
 
-  virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
-                             const FieldSpace::Field<Dimension, Scalar>& density,
-                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                             const FieldSpace::Field<Dimension, Scalar>& pressure,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const;
+  virtual void yieldStrength(Field<Dimension, Scalar>& yieldStrength,
+                             const Field<Dimension, Scalar>& density,
+                             const Field<Dimension, Scalar>& specificThermalEnergy,
+                             const Field<Dimension, Scalar>& pressure,
+                             const Field<Dimension, Scalar>& plasticStrain,
+                             const Field<Dimension, Scalar>& plasticStrainRate) const;
 
   // Read only access to the parameters.
   double mu0() const;
@@ -56,8 +55,6 @@ private:
   ConstantStrength(const ConstantStrength&);
   ConstantStrength& operator=(const ConstantStrength&);
 };
-
-#ifndef __GCCXML__
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -95,10 +92,10 @@ template<typename Dimension>
 inline
 void
 ConstantStrength<Dimension>::
-shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
-             const FieldSpace::Field<Dimension, Scalar>& density,
-             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-             const FieldSpace::Field<Dimension, Scalar>& pressure) const {
+shearModulus(Field<Dimension, Scalar>& shearModulus,
+             const Field<Dimension, Scalar>& density,
+             const Field<Dimension, Scalar>& specificThermalEnergy,
+             const Field<Dimension, Scalar>& pressure) const {
   shearModulus = mShearModulus0;
 }
 
@@ -109,12 +106,12 @@ template<typename Dimension>
 inline
 void
 ConstantStrength<Dimension>::
-yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
-              const FieldSpace::Field<Dimension, Scalar>& density,
-              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-              const FieldSpace::Field<Dimension, Scalar>& pressure,
-              const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
-              const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const {
+yieldStrength(Field<Dimension, Scalar>& yieldStrength,
+              const Field<Dimension, Scalar>& density,
+              const Field<Dimension, Scalar>& specificThermalEnergy,
+              const Field<Dimension, Scalar>& pressure,
+              const Field<Dimension, Scalar>& plasticStrain,
+              const Field<Dimension, Scalar>& plasticStrainRate) const {
   if (mEOSptr != 0 and
       density/(mEOSptr->referenceDensity()) < mEOSptr->etamin()) {
     yieldStrength = 0.0;
@@ -145,18 +142,13 @@ Y0() const {
   return mYieldStrength0;
 }
 
-#endif
-
-}
 }
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class ConstantStrength;
-  }
+  template<typename Dimension> class ConstantStrength;
 }
 
 #endif

@@ -1,7 +1,6 @@
 //------------------------------------------------------------------------------
 // Compute the SPH mass density summation.
 //------------------------------------------------------------------------------
-
 #include "computeSPHSumMassDensity.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
@@ -9,18 +8,18 @@
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
 
-namespace Spheral {
-namespace SPHSpace {
-
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
+namespace Spheral {
 
 template<typename Dimension>
 void
@@ -44,7 +43,7 @@ correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::SymTensor SymTensor;
 
   // Make a single corrective pass.
-  FieldList<Dimension, Scalar> sumUnity(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> sumUnity(FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     sumUnity.appendNewField("SPH sum unity check", massDensity[nodeListi]->nodeList(), 0.0);
   }
@@ -116,5 +115,3 @@ correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 }
 
 }
-}
-

@@ -14,7 +14,6 @@
 #include "FieldSet.hh"
 
 namespace Spheral {
-namespace FieldSpace {
 
 template <typename Dimension, typename DataType>
 class AggregateField: public FieldBase<AggregateField<Dimension, DataType> > {
@@ -39,8 +38,6 @@ class AggregateField: public FieldBase<AggregateField<Dimension, DataType> > {
 
 }; // end class AggregateField
   
-} // end namespace FieldSpace
 } // end namespace Spheral
-
 
 #endif

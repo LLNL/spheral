@@ -17,11 +17,7 @@
 // #endif
 
 namespace Spheral {
-namespace FileIOSpace {
 
-using namespace std;
-
-//using Spheral::FieldSpace::FieldList;
 
 #ifdef USE_POSTGRES
 //------------------------------------------------------------------------------
@@ -893,15 +889,14 @@ mParseSymTensor(typename Dimension::SymTensor& value,
 
 #endif // #ifdef USE_POSTGRES
 
-} // end namespace FileIOSpace
 } // end namespace Spheral
 
 //------------------------------------------------------------------------------
 // Explicit instantiation
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-template class Spheral::FileIOSpace::DbFileIO< Dim<1> >;
-template class Spheral::FileIOSpace::DbFileIO< Dim<2> >;
-template class Spheral::FileIOSpace::DbFileIO< Dim<3> >;
+template class Spheral::DbFileIO< Dim<1> >;
+template class Spheral::DbFileIO< Dim<2> >;
+template class Spheral::DbFileIO< Dim<3> >;
 
 

@@ -6,7 +6,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace MeshSpace {
 
 //------------------------------------------------------------------------------
 // Mesh::Face::ID
@@ -117,5 +116,4 @@ compare(const typename Dimension::Vector& point,
                                        -1);
 }
 
-}
 }

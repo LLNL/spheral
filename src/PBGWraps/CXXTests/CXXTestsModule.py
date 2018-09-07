@@ -22,8 +22,7 @@ class CXXTests:
         mod.add_include('"%s/CXXTests/test_r3d_utils.hh"' % topsrcdir)
 
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        self.space = Spheral.add_cpp_namespace("Testing")
+        self.space = mod.add_cpp_namespace("Spheral")
 
         return
 
@@ -80,4 +79,4 @@ self.space.add_function("testGlobalRefineNodeIterators", "std::string",
     # The new sub modules (namespaces) introduced.
     #---------------------------------------------------------------------------
     def newSubModules(self):
-        return ["Testing"]
+        return []

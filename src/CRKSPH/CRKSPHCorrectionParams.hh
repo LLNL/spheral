@@ -3,7 +3,6 @@
 #define __Spheral_CRKSPHCorrectionParams_hh__
 //Enumerated type for the corrected Kernels
 namespace Spheral {
-namespace CRKSPHSpace {
 
 enum class CRKOrder : int {//Used to assign the order of the corrections
   ZerothOrder = 0,
@@ -19,6 +18,5 @@ enum class CRKVolumeType : int { // Choices for the CRK volume weighting
   HVolume = 4,
 };
 
-}
 }
 #endif

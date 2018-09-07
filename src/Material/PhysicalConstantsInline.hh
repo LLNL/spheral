@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace Material {
 
 //------------------------------------------------------------------------------
 // Unit length in meters.
@@ -127,5 +126,4 @@ PhysicalConstants::stefanBoltzmannConstant() const {
     return Sigma;
 }
 
-}
 }

@@ -11,13 +11,10 @@
 #include "Utilities/SpheralFunctions.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
-using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Construct with the given coefficients.
@@ -30,11 +27,11 @@ MurnahanEquationOfState(const double referenceDensity,
                         const double n,
                         const double K,
                         const double atomicWeight,
-                        const Material::PhysicalConstants& constants,
+                        const PhysicalConstants& constants,
                         const double externalPressure,
                         const double minimumPressure,
                         const double maximumPressure,
-                        const Material::MaterialPressureMinType minPressureType):
+                        const MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
                                   etamax,
@@ -318,5 +315,3 @@ MurnahanEquationOfState<Dimension>::valid() const {
 }
 
 }
-}
-

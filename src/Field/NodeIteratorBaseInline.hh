@@ -1,9 +1,9 @@
-#include <vector>
-
 #include "Utilities/DBC.hh"
 #include "Neighbor/Neighbor.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
+
+#include <vector>
 
 namespace Spheral {
 
@@ -67,8 +67,8 @@ operator<(const NodeIteratorBase<Dimension>& rhs) const {
   if (nodeListIterator() < mNodeListEnd &&
       rhs.nodeListIterator() < rhs.mNodeListEnd) {
 
-    const NodeSpace::NodeList<Dimension>* lhsPtr = nodeListPtr();
-    const NodeSpace::NodeList<Dimension>* rhsPtr = rhs.nodeListPtr();
+    const NodeList<Dimension>* lhsPtr = nodeListPtr();
+    const NodeList<Dimension>* rhsPtr = rhs.nodeListPtr();
     if (lhsPtr < rhsPtr) {
       return true;
     } else if (lhsPtr == rhsPtr) {
@@ -94,7 +94,7 @@ operator<(const NodeIteratorBase<Dimension>& rhs) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator
+typename std::vector<NodeList<Dimension>*>::const_iterator
 NodeIteratorBase<Dimension>::
 nodeListIterator() const {
   return mNodeListItr;
@@ -105,7 +105,7 @@ nodeListIterator() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NodeSpace::NodeList<Dimension>*
+const NodeList<Dimension>*
 NodeIteratorBase<Dimension>::
 nodeListPtr() const {
   if (mNodeListItr < mNodeListEnd) {
@@ -120,10 +120,10 @@ nodeListPtr() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NodeSpace::FluidNodeList<Dimension>*
+const FluidNodeList<Dimension>*
 NodeIteratorBase<Dimension>::
 fluidNodeListPtr() const {
-  const NodeSpace::FluidNodeList<Dimension>* result = dynamic_cast<const NodeSpace::FluidNodeList<Dimension>*>(nodeListPtr());
+  const FluidNodeList<Dimension>* result = dynamic_cast<const FluidNodeList<Dimension>*>(nodeListPtr());
   ENSURE(result != 0);
   return result;
 }
@@ -158,7 +158,7 @@ inline
 bool
 NodeIteratorBase<Dimension>::
 internalNode() const {
-  return nodeListPtr()->nodeType(nodeID()) == NodeSpace::NodeType::InternalNode;
+  return nodeListPtr()->nodeType(nodeID()) == NodeType::InternalNode;
 }
 
 //------------------------------------------------------------------------------
@@ -169,7 +169,7 @@ inline
 bool
 NodeIteratorBase<Dimension>::
 ghostNode() const {
-  return nodeListPtr()->nodeType(nodeID()) == NodeSpace::NodeType::GhostNode;
+  return nodeListPtr()->nodeType(nodeID()) == NodeType::GhostNode;
 }
 
 //------------------------------------------------------------------------------

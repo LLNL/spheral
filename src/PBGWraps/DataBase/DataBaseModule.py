@@ -19,15 +19,14 @@ class DataBase:
         mod.add_include('"%s/DataBaseTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("DataBaseSpace")
+        space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
         for dim in self.dims:
             exec('''
-self.StateBase%(dim)id = addObject(Spheral, "StateBase%(dim)id", allow_subclassing=True)
-self.State%(dim)id = addObject(Spheral, "State%(dim)id", allow_subclassing=True, parent=self.StateBase%(dim)id)
-self.StateDerivatives%(dim)id = addObject(Spheral, "StateDerivatives%(dim)id", allow_subclassing=True, parent=self.StateBase%(dim)id)
+self.StateBase%(dim)id = addObject(space, "StateBase%(dim)id", allow_subclassing=True)
+self.State%(dim)id = addObject(space, "State%(dim)id", allow_subclassing=True, parent=self.StateBase%(dim)id)
+self.StateDerivatives%(dim)id = addObject(space, "StateDerivatives%(dim)id", allow_subclassing=True, parent=self.StateBase%(dim)id)
 self.DataBase%(dim)id = addObject(space, "DataBase%(dim)id", allow_subclassing=True)
 ''' % {"dim" : dim})
 
@@ -52,7 +51,7 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
     # The new sub modules (namespaces) introduced.
     #---------------------------------------------------------------------------
     def newSubModules(self):
-        return ["DataBaseSpace"]
+        return []
 
     #---------------------------------------------------------------------------
     # Add StateBase methods.
@@ -66,38 +65,38 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
         thirdranktensor = "ThirdRankTensor%id" % ndim
-        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
-        fieldlistbase = "Spheral::FieldSpace::FieldListBase%id" % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
-        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
-        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
-        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
-        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        fieldbase = "Spheral::FieldBase%id" % ndim
+        fieldlistbase = "Spheral::FieldListBase%id" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        vector3dfield = "Spheral::Vector3dField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::ThirdRankTensorFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
-        boundary = "Spheral::BoundarySpace::Boundary%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
+        boundary = "Spheral::Boundary%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
-        mesh = ("Spheral::MeshSpace::LineMesh",
-                "Spheral::MeshSpace::PolygonalMesh",
-                "Spheral::MeshSpace::PolyhedralMesh")[ndim - 1]
+        mesh = ("Spheral::LineMesh",
+                "Spheral::PolygonalMesh",
+                "Spheral::PolyhedralMesh")[ndim - 1]
 
         # Constructors.
         x.add_constructor([])
@@ -187,7 +186,7 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
         dim = "Spheral::Dim<%i>" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         vectorpkgs = "vector_of_Physics%id" % ndim
 
         # Constructors.
@@ -219,7 +218,7 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
         # Object names.
         me = "StateDerivatives%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         vectorpkgs = "vector_of_Physics%id" % ndim
 
         # Constructors.
@@ -244,7 +243,7 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
     def addDataBaseMethods(self, x, ndim):
 
         # Object names.
-        me = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        me = "Spheral::DataBase%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
@@ -255,40 +254,40 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
         polyvol = {1: "Box1d", 
                    2: "Polygon",
                    3: "Polyhedron"}[ndim]
-        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
-        fourthranktensorfield = "Spheral::FieldSpace::FourthRankTensorField%id" % ndim
-        fifthranktensorfield = "Spheral::FieldSpace::FifthRankTensorField%id" % ndim
-        polyvolfield = "Spheral::FieldSpace::FacetedVolumeField%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
-        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
-        fourthranktensorfieldlist = "Spheral::FieldSpace::FourthRankTensorFieldList%id" % ndim
-        fifthranktensorfieldlist = "Spheral::FieldSpace::FifthRankTensorFieldList%id" % ndim
-        polyvolfieldlist = "Spheral::FieldSpace::FacetedVolumeFieldList%id" % ndim
-        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
-        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
-        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
-        fluidnodelist = "Spheral::NodeSpace::FluidNodeList%id" % ndim
-        solidnodelist = "Spheral::NodeSpace::SolidNodeList%id" % ndim
+        fieldbase = "Spheral::FieldBase%id" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        vector3dfield = "Spheral::Vector3dField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::ThirdRankTensorField%id" % ndim
+        fourthranktensorfield = "Spheral::FourthRankTensorField%id" % ndim
+        fifthranktensorfield = "Spheral::FifthRankTensorField%id" % ndim
+        polyvolfield = "Spheral::FacetedVolumeField%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::ThirdRankTensorFieldList%id" % ndim
+        fourthranktensorfieldlist = "Spheral::FourthRankTensorFieldList%id" % ndim
+        fifthranktensorfieldlist = "Spheral::FifthRankTensorFieldList%id" % ndim
+        polyvolfieldlist = "Spheral::FacetedVolumeFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
+        fluidnodelist = "Spheral::FluidNodeList%id" % ndim
+        solidnodelist = "Spheral::SolidNodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
         vectorpkgs = "vector_of_Physics%id" % ndim
         vectornodelists = "vector_of_NodeList%id" % ndim
         vectorfluidnodelists = "vector_of_FluidNodeList%id" % ndim

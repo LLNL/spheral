@@ -2368,6 +2368,9 @@ operator<<(std::ostream& os, const Spheral::GeomSymmetricTensor<nDim>& ten) {
   return os;
 }
 
+}
+
+namespace std {
 //------------------------------------------------------------------------------
 // Min a symmetric tensor with a scalar -- limit the eigenvalues.
 //------------------------------------------------------------------------------
@@ -2382,7 +2385,7 @@ min(const double minValue, const Spheral::GeomSymmetricTensor<nDim>& tensor) {
 
 
   // Get the eigen values and eigen vectors.
-  EigenStruct<nDim> eigen = tensor.eigenVectors();
+  Spheral::EigenStruct<nDim> eigen = tensor.eigenVectors();
 
   // Limit the eigen values if necessary.
   if (eigen.eigenValues.maxElement() < minValue) {
@@ -2417,7 +2420,7 @@ max(const double maxValue, const Spheral::GeomSymmetricTensor<nDim>& tensor) {
   typedef Spheral::GeomSymmetricTensor<nDim> SymTensor;
 
   // Get the eigen values and eigen vectors.
-  EigenStruct<nDim> eigen = tensor.eigenVectors();
+  Spheral::EigenStruct<nDim> eigen = tensor.eigenVectors();
 
   // Limit the eigen values if necessary.
   if (eigen.eigenValues.minElement() > maxValue) {

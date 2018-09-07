@@ -5,7 +5,6 @@
 #include "ArtificialConduction/ArtificialConduction.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -15,7 +14,6 @@ typedef ArtificialConduction<Dim<1> > ArtificialConduction1d;
 typedef ArtificialConduction<Dim<2> > ArtificialConduction2d;
 typedef ArtificialConduction<Dim<3> > ArtificialConduction3d;
     
-}
 }
 
 #endif

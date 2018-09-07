@@ -7,7 +7,6 @@
 #include "Material/HelmholtzEquationOfState.hh"
 
 namespace Spheral {
-namespace Material {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -16,7 +15,6 @@ typedef HelmholtzEquationOfState<Dim<1> > HelmholtzEquationOfState1d;
 typedef HelmholtzEquationOfState<Dim<2> > HelmholtzEquationOfState2d;
 typedef HelmholtzEquationOfState<Dim<3> > HelmholtzEquationOfState3d;
 
-}
 }
 
 #endif

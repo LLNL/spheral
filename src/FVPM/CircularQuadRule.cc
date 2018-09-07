@@ -8,12 +8,10 @@
 
 namespace Spheral {
 
-namespace FVPMSpace {
-
 //-------------------------------------------------------------------
 template <typename Dimension>
 CircularQuadRule<Dimension>::
-CircularQuadRule(const KernelSpace::TableKernel<Dimension>& W):
+CircularQuadRule(const TableKernel<Dimension>& W):
   QuadRule<Dimension>(W)
 {
 }
@@ -46,5 +44,3 @@ setDomain(const Vector& x1,
 //-------------------------------------------------------------------
 
 }
-}
-

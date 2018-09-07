@@ -1,7 +1,6 @@
 //------------------------------------------------------------------------------
 // Compute the Voronoi cell mass density summation.
 //------------------------------------------------------------------------------
-
 #include "computeSumVoronoiCellMassDensityFromFaces.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -13,22 +12,18 @@
 #include "Utilities/safeInv.hh"
 #include "Mesh/Mesh.hh"
 
-namespace Spheral {
-namespace SVPHSpace {
-
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NeighborSpace::Neighbor;
-using DataBaseSpace::DataBase;
-using MeshSpace::Mesh;
+namespace Spheral {
 
 template<typename Dimension>
 void
@@ -126,6 +121,5 @@ computeSumVoronoiCellMassDensityFromFaces(const Mesh<Dimension>& mesh,
   }
 }
 
-}
 }
 

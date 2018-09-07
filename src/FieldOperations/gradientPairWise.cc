@@ -15,12 +15,14 @@
 #include "incrementPairWiseDelta.hh"
 
 namespace Spheral {
-namespace FieldSpace {
 
-using namespace std;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using KernelSpace::TableKernel;
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 //------------------------------------------------------------------------------
 // Calculate the gradient of a FieldList.
@@ -104,16 +106,16 @@ gradientPairWise
             // Get the symmetrized kernel weighting for this node pair.
             Scalar Wij;
             switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-            case NeighborSpace::NeighborSearchType::GatherScatter:
+            case NeighborSearchType::GatherScatter:
               Wij = 0.5*(kernel(etai, Hi) + 
                          kernel(etaj, Hj));
               break;
 
-            case NeighborSpace::NeighborSearchType::Gather:
+            case NeighborSearchType::Gather:
               Wij = kernel(etai, Hi);
               break;
 
-            case NeighborSpace::NeighborSearchType::Scatter:
+            case NeighborSearchType::Scatter:
               Wij = kernel(etaj, Hj);
               break;
 
@@ -158,5 +160,3 @@ gradientPairWise
 }
 
 }
-}
-

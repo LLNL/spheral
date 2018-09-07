@@ -12,9 +12,6 @@
 //  Created by JMO, Sat Aug 10 23:03:39 PDT 2013
 // Modified by JMO, Wed Feb 28 15:46:04 PST 2018
 //----------------------------------------------------------------------------//
-#include <vector>
-#include <limits>
-
 #include "NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "HydroFieldNames.hh"
 #include "NodeList/NodeList.hh"
@@ -32,15 +29,20 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
 
-namespace Spheral {
+#include <vector>
+#include <limits>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NeighborSpace::ConnectivityMap;
+namespace Spheral {
 
 // namespace {
 
@@ -138,7 +140,7 @@ update(const KeyType& key,
 
       // State for node i.
       auto&       DepsDti = DepsDt(nodeListi, i);
-      const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
+      const auto  weighti = abs(DepsDt0(nodeListi, i)) + std::numeric_limits<Scalar>::epsilon();
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto  ui = eps0(nodeListi, i);
@@ -166,7 +168,7 @@ update(const KeyType& key,
                ++jitr) {
             const auto        j = *jitr;
             auto&       DepsDtj = DepsDt(nodeListj, j);
-            const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
+            const auto  weightj = abs(DepsDt0(nodeListj, j)) + std::numeric_limits<Scalar>::epsilon();
             const auto  mj = mass(nodeListj, j);
             const auto& vj = velocity(nodeListj, j);
             const auto& aj = acceleration(nodeListj, j);

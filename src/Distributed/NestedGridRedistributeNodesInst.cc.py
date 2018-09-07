@@ -6,9 +6,7 @@ text = """
 #include "NestedGridRedistributeNodes.cc"
 
 namespace Spheral {
-  namespace PartitionSpace {
-    template class NestedGridRedistributeNodes< Dim< %(ndim)s > >;
-  }
+  template class NestedGridRedistributeNodes< Dim< %(ndim)s > >;
 }
 
 """

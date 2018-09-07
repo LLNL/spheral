@@ -10,14 +10,10 @@
 #include "Field/Field.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
-using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Construct with the given Gruneisen constants.
@@ -34,11 +30,11 @@ GruneisenEquationOfState(const double referenceDensity,
                          const double gamma0,
                          const double b,
                          const double atomicWeight,
-                         const Material::PhysicalConstants& constants,
+                         const PhysicalConstants& constants,
                          const double externalPressure,
                          const double minimumPressure,
                          const double maximumPressure,
-                         const Material::MaterialPressureMinType minPressureType):
+                         const MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
                                   min(etamax, max(0.99*S1/(S1 - 1.0), 2.0)),
@@ -375,6 +371,6 @@ GruneisenEquationOfState<Dimension>::valid() const {
           mS1 > 0.0 &&
           mCv > 0.0);
 }
-}
+
 }
 

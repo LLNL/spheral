@@ -6,8 +6,6 @@ text = """
 #include "PeriodicBoundary.cc"
 
 namespace Spheral {
-  namespace BoundarySpace {
-    template class PeriodicBoundary< Dim< %(ndim)s > >;
-  }
+  template class PeriodicBoundary< Dim< %(ndim)s > >;
 }
 """

@@ -6,9 +6,6 @@
 // Created by JMO, Wed Dec 18 22:46:54 PST 2002
 //----------------------------------------------------------------------------//
 
-#include <vector>
-using std::vector;
-
 #include "FieldListSecondDerivatives.hh"
 #include "FieldListFunctions.hh"
 #include "Field/FieldList.hh"
@@ -19,14 +16,11 @@ using std::vector;
 #include "Kernel/TableKernel.hh"
 #include "Boundary/Boundary.hh"
 
-namespace Spheral {
-namespace FieldSpace {
+#include <vector>
+using std::vector;
 
-using namespace std;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using KernelSpace::TableKernel;
-using BoundarySpace::Boundary;
+namespace Spheral {
+
 
 //------------------------------------------------------------------------------
 // Calculate the gradient of the divergence of a Vector FieldList.
@@ -84,5 +78,3 @@ gradDivVectorFieldList
 }
 
 }
-}
-

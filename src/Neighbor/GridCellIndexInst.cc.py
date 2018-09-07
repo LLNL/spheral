@@ -8,16 +8,14 @@ text = """
 #include "GridCellIndex.cc"
 
 namespace Spheral {
-  namespace NeighborSpace {
 
-    // 2^20
+  // 2^20
 #define INDEXMAX 1048576 - 1
 #define INDEXMIN -INDEXMAX - 1
 #define XMULTIPLIER (INDEXMAX - INDEXMIN)
 
-    template<> const int GridCellIndex< Dim< %(ndim)s > >::mIndexMax = INDEXMAX; // 2^20 - 1
-    template<> const int GridCellIndex< Dim< %(ndim)s > >::mIndexMin = INDEXMIN;
+  template<> const int GridCellIndex< Dim< %(ndim)s > >::mIndexMax = INDEXMAX; // 2^20 - 1
+  template<> const int GridCellIndex< Dim< %(ndim)s > >::mIndexMin = INDEXMIN;
 
-  }
 }
 """

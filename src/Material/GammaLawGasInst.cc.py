@@ -6,8 +6,6 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace Material {
-    template class GammaLawGas< Dim< %(ndim)s >  >;
-  }
+  template class GammaLawGas< Dim< %(ndim)s >  >;
 }
 """

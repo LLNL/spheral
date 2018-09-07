@@ -4,7 +4,6 @@
 //
 // Created by JMO, Sat Feb 12 14:37:57 PST 2011
 //----------------------------------------------------------------------------//
-#include <vector>
 #include "MeshPolicy.hh"
 #include "generateMesh.hh"
 #include "Physics/Physics.hh"
@@ -16,22 +15,26 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/DBC.hh"
 
+#include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-
-using namespace std;
-
-using PhysicsSpace::Physics;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FieldSpace::Field;
-using MeshSpace::Mesh;
 
 //------------------------------------------------------------------------------
 // Constructor without specifying bounds.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 MeshPolicy<Dimension>::
-MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
+MeshPolicy(const Physics<Dimension>& package,
            const double voidThreshold,
            const bool meshGhostNodes,
            const bool generateVoid,
@@ -53,7 +56,7 @@ MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 MeshPolicy<Dimension>::
-MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
+MeshPolicy(const Physics<Dimension>& package,
            const Vector& xmin,
            const Vector& xmax,
            const double voidThreshold,
@@ -95,7 +98,7 @@ update(const KeyType& key,
   REQUIRE(key == HydroFieldNames::mesh);
 
   // Get the state.
-  const FieldSpace::FieldList<Dimension, Vector> positions = state.fields(HydroFieldNames::position, Vector::zero);
+  const FieldList<Dimension, Vector> positions = state.fields(HydroFieldNames::position, Vector::zero);
   Mesh<Dimension>& mesh = state.mesh();
   mesh.clear();
 
@@ -109,9 +112,9 @@ update(const KeyType& key,
   vector<const NodeList<Dimension>*> nodeLists(positions.nodeListPtrs().begin(),
                                                positions.nodeListPtrs().end());
   nodeLists.push_back(&voidNodes);
-  MeshSpace::generateMesh<Dimension, 
-                          typename vector<const NodeList<Dimension>*>::iterator,
-                          typename Physics<Dimension>::ConstBoundaryIterator>
+  generateMesh<Dimension, 
+               typename vector<const NodeList<Dimension>*>::iterator,
+               typename Physics<Dimension>::ConstBoundaryIterator>
     (nodeLists.begin(), nodeLists.end(),
      mPackage.boundaryBegin(),
      mPackage.boundaryEnd(),

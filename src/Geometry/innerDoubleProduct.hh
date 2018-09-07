@@ -6,7 +6,7 @@
 #ifndef __Spheral_innerDoubleProduct_hh__
 #define __Spheral_innerDoubleProduct_hh__
 
-namespace Geometry {
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // A^{ij} B^{jk}, inner double product of a tensor (rank 2) with a tensor (rank 2).

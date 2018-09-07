@@ -17,13 +17,10 @@
 
 // Forward declarations.
 namespace Spheral {
-  namespace FileIOSpace {
-    class FileIO;
-  }
+  class FileIO;
 }
 
 namespace Spheral {
-namespace DataOutput {
 
 class RestartRegistrar {
 
@@ -60,10 +57,10 @@ public:
   void printLabels() const;
 
   // Cause all registered objects to write their state to the file.
-  void dumpState(FileIOSpace::FileIO& file) const;
+  void dumpState(FileIO& file) const;
 
   // Cause all registered objects to restore their state from the file.
-  void restoreState(const FileIOSpace::FileIO& file) const;
+  void restoreState(const FileIO& file) const;
 
 private:
   //------------------------===== Private Interface =====----------------------//
@@ -86,19 +83,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "RestartRegistrarInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace DataOutput {
-    class RestartRegistrar;
-  }
+  class RestartRegistrar;
 }
 
 #endif

@@ -7,22 +7,18 @@
 //
 // Created by JMO, Thu May  5 16:07:36 PDT 2005
 //----------------------------------------------------------------------------//
-#include <iostream>
-using namespace std;
-
 #include "LinearPolynomialEquationOfState.hh"
 #include "Field/Field.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-namespace SolidMaterial {
+#include <iostream>
 
-using namespace std;
+namespace Spheral {
+
 using std::min;
 using std::max;
 using std::abs;
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Construct with the given coefficients.
@@ -40,11 +36,11 @@ LinearPolynomialEquationOfState(const double referenceDensity,
                                 const double b1,
                                 const double b2,
                                 const double atomicWeight,
-                                const Material::PhysicalConstants& constants,
+                                const PhysicalConstants& constants,
                                 const double externalPressure,
                                 const double minimumPressure,
                                 const double maximumPressure,
-                                const Material::MaterialPressureMinType minPressureType):
+                                const MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
                                   etamax,
@@ -336,5 +332,3 @@ LinearPolynomialEquationOfState<Dimension>::valid() const {
 }
 
 }
-}
-

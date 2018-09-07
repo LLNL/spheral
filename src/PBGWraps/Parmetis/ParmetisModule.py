@@ -18,8 +18,7 @@ class Parmetis:
         mod.add_include('"%s/ParmetisTypes.hh"' % srcdir)
 
         # Namespaces.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("PartitionSpace")
+        space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
         if 2 in self.dims:
@@ -46,7 +45,7 @@ class Parmetis:
     #---------------------------------------------------------------------------
     def parmetisBindings(self, x, ndim):
 
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
         
         # Constructors.

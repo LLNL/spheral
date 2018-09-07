@@ -28,12 +28,7 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
-using namespace std;
-using DataBaseSpace::DataBase;
-using FieldSpace::FieldList;
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -42,7 +37,7 @@ template<typename Dimension>
 NFWPotential<Dimension>::
 NFWPotential(double deltac, double rs, double h0, 
              const typename Dimension::Vector& origin,
-             const Material::PhysicalConstants& constants):
+             const PhysicalConstants& constants):
   GenericBodyForce<Dimension>(),
   mDeltac(deltac),
   mRs(rs),
@@ -152,14 +147,12 @@ dt(const DataBase<Dimension>& dataBase,
     }
   }
 
-  stringstream reasonStream;
+  std::stringstream reasonStream;
   reasonStream << "mindt = " << mindt << " | "
                << "rsoft = " << minr << " " 
-               << "minv = " << minv << ends;
+               << "minv = " << minv << std::ends;
 
   return TimeStepType(mindt, reasonStream.str());
 }
 
 }
-}
-

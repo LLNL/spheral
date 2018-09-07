@@ -12,7 +12,6 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 //------------------------------------------------------------------------------
 // Compute the corrected kernel value.
@@ -20,7 +19,7 @@ namespace CRKSPHSpace {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
+CRKSPHKernel(const TableKernel<Dimension>& W,
              const CRKOrder correctionOrder,
              const typename Dimension::Vector& rij,
              const typename Dimension::Vector& etai,
@@ -48,7 +47,7 @@ CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
   } else {   //correctionOrder == QuadraticOrder
     return std::max(correctionMin, 
                     std::min(correctionMax, 
-                             Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))))*Wij;
+                             Ai*(1.0 + Bi.dot(rij) + innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))))*Wij;
   }
 }
 
@@ -61,7 +60,7 @@ void
 CRKSPHKernelAndGradient(typename Dimension::Scalar& WCRKSPH,
                         typename Dimension::Scalar& gradWSPH,
                         typename Dimension::Vector& gradWCRKSPH,
-                        const KernelSpace::TableKernel<Dimension>& W,
+                        const TableKernel<Dimension>& W,
                         const CRKOrder correctionOrder,
                         const typename Dimension::Vector& rij,
                         const typename Dimension::Vector& etai,
@@ -114,19 +113,18 @@ CRKSPHKernelAndGradient(typename Dimension::Scalar& WCRKSPH,
     }
 
   } else {  //correctionOrder == CRKOrder::QuadraticOrder
-    const double correction0 = Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()));
+    const double correction0 = Ai*(1.0 + Bi.dot(rij) + innerDoubleProduct<Dimension>(Ci, rij.selfdyad()));
     const double correction = std::max(correctionMin, std::min(correctionMax, correction0));
     WCRKSPH = correction*Wij;
     gradWCRKSPH = correction*gradWij;
     if (correction0 > correctionMin and correction0 < correctionMax) {
       gradWCRKSPH += Ai*Bi*Wij;
-      gradWCRKSPH += gradAi*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wij;
-      gradWCRKSPH += Ai*(Geometry::innerProduct<Dimension>(rij,gradBi))*Wij;
-      gradWCRKSPH += Ai*(Geometry::innerDoubleProduct<Dimension>(rij.selfdyad(),gradCi))*Wij;
-      gradWCRKSPH += 2.0*Ai*(Geometry::innerProduct<Dimension>(rij,Ci))*Wij;
+      gradWCRKSPH += gradAi*(1.0 + Bi.dot(rij) + innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wij;
+      gradWCRKSPH += Ai*(innerProduct<Dimension>(rij,gradBi))*Wij;
+      gradWCRKSPH += Ai*(innerDoubleProduct<Dimension>(rij.selfdyad(),gradCi))*Wij;
+      gradWCRKSPH += 2.0*Ai*(innerProduct<Dimension>(rij,Ci))*Wij;
     }
   }
 }
 
-}
 }

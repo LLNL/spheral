@@ -3,7 +3,6 @@
 //
 // Created by J. Michael Owen, Wed Feb  7 22:59:14 PST 2001
 //----------------------------------------------------------------------------//
-
 #include "FileIO.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -12,13 +11,18 @@
 #include "boost/algorithm/string.hpp"
 
 #include <cstring>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace FileIOSpace {
-
-using namespace std;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
 // Empty Constructor.
@@ -349,5 +353,4 @@ readObject(PyObject* pathObj) const {
 }
 #endif
 
-}
 }

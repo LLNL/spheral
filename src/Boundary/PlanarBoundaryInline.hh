@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace BoundarySpace {
 
 //------------------------------------------------------------------------------
 // Access the entrance plane.
@@ -37,5 +36,4 @@ setExitPlane(const GeomPlane<Dimension>& exitPlane) {
   mExitPlane = exitPlane;
 }
 
-}
 }

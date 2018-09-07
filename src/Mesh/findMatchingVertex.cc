@@ -1,9 +1,17 @@
 #include "findMatchingVertex.hh"
 
-namespace Spheral {
-namespace MeshSpace {
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // The the matching vertex between two lists (assumed to be in opposite order.)
@@ -68,5 +76,4 @@ findMatchingVertex(const std::vector<Dim<3>::Vector>& verticesi,
   return j;
 }
 
-}
 }

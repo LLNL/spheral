@@ -16,23 +16,12 @@
 #include "Utilities/safeInv.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 using std::vector;
 using std::min;
 using std::max;
 using std::abs;
 using std::string;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-    
-using CRKSPHSpace::gradientCRKSPH;
-using FieldSpace::gradient;
 
 //------------------------------------------------------------------------------
 // Default constructor
@@ -40,7 +29,7 @@ using FieldSpace::gradient;
 template<typename Dimension>
 ArtificialConduction<Dimension>::
 ArtificialConduction(const TableKernel<Dimension>& W,
-                     const Scalar alphaArCond, const CRKSPHSpace::CRKOrder ACcorrectionOrder):
+                     const Scalar alphaArCond, const CRKOrder ACcorrectionOrder):
     Physics<Dimension>(),
     mKernel(W),
     mACcorrectionOrder(ACcorrectionOrder),
@@ -60,7 +49,7 @@ ArtificialConduction<Dimension>::~ArtificialConduction() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-CRKSPHSpace::CRKOrder
+CRKOrder
 ArtificialConduction<Dimension>::ACcorrectionOrder() const {
   return mACcorrectionOrder;
 }
@@ -69,7 +58,7 @@ template<typename Dimension>
 inline
 void
 ArtificialConduction<Dimension>::
-ACcorrectionOrder(const CRKSPHSpace::CRKOrder order) {
+ACcorrectionOrder(const CRKOrder order) {
   mACcorrectionOrder = order;
 }
 
@@ -384,6 +373,4 @@ dt(const DataBase<Dimension>& dataBase,
     return result;
 }
 
-
-}
 }

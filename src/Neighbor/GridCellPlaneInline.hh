@@ -5,7 +5,7 @@
 template<typename Dimension>
 inline
 std::ostream&
-operator<<(std::ostream& os, const Spheral::NeighborSpace::GridCellPlane<Dimension>& gp) {
+operator<<(std::ostream& os, const Spheral::GridCellPlane<Dimension>& gp) {
   os << "GridCellPlane(" << gp.point() << ", " << gp.normal() << ")";
   return os;
 }

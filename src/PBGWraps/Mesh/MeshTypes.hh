@@ -15,7 +15,6 @@
 // Names!
 //------------------------------------------------------------------------------
 namespace Spheral {
-namespace MeshSpace {
 
 typedef Mesh<Dim<1> > LineMesh;
 typedef Mesh<Dim<2> > PolygonalMesh;
@@ -27,8 +26,8 @@ typedef Mesh<Dim<3> > PolyhedralMesh;
 template<typename Dimension>
 inline
 void
-computeGenerators(std::vector<NodeSpace::NodeList<Dimension>*>& nodeLists,
-                  std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
+computeGenerators(std::vector<NodeList<Dimension>*>& nodeLists,
+                  std::vector<Boundary<Dimension>*>& boundaries,
                   const bool meshGhostNodes,
                   const typename Dimension::Vector& xmin,
                   const typename Dimension::Vector& xmax,
@@ -36,8 +35,8 @@ computeGenerators(std::vector<NodeSpace::NodeList<Dimension>*>& nodeLists,
                   std::vector<typename Dimension::SymTensor>& Hs,
                   std::vector<unsigned>& offsets) {
   computeGenerators<Dimension, 
-                    typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator,
-                    typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator>
+                    typename std::vector<NodeList<Dimension>*>::const_iterator,
+                    typename std::vector<Boundary<Dimension>*>::const_iterator>
     (nodeLists.begin(), nodeLists.end(), 
      boundaries.begin(), boundaries.end(),
      meshGhostNodes, xmin, xmax, 
@@ -50,8 +49,8 @@ computeGenerators(std::vector<NodeSpace::NodeList<Dimension>*>& nodeLists,
 template<typename Dimension>
 inline
 void
-generateMesh(std::vector<NodeSpace::NodeList<Dimension>*>& nodeLists,
-             std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
+generateMesh(std::vector<NodeList<Dimension>*>& nodeLists,
+             std::vector<Boundary<Dimension>*>& boundaries,
              const typename Dimension::Vector& xmin,
              const typename Dimension::Vector& xmax,
              const bool meshGhostNodes,
@@ -60,7 +59,7 @@ generateMesh(std::vector<NodeSpace::NodeList<Dimension>*>& nodeLists,
              const bool removeBoundaryZones,
              const double voidThreshold,
              Mesh<Dimension>& mesh,
-             NodeSpace::NodeList<Dimension>& voidNodes) {
+             NodeList<Dimension>& voidNodes) {
   generateMesh(nodeLists.begin(), nodeLists.end(), 
                boundaries.begin(), boundaries.end(),
                xmin, xmax,
@@ -120,7 +119,6 @@ lookupNodeListID(MeshType* self,
   return result;
 }
 
-}
 }
 
 #endif

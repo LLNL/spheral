@@ -8,17 +8,13 @@
 #include "MHD/MHDFieldNames.hh"
 
 namespace Spheral {
-namespace MHDSpace {
-
-using namespace Spheral::DataBaseSpace;
-using namespace Spheral::FileIOSpace;
 
 //----------------------------------------------------------------------------
 ConductingFluidNodeList::
 ConductingFluidNodeList(const std::string& name,
                         EquationOfState<Dim<3> >& eos,
-                        KernelSpace::TableKernel<Dim<3> >& W,
-                        KernelSpace::TableKernel<Dim<3> >& WQ,
+                        TableKernel<Dim<3> >& W,
+                        TableKernel<Dim<3> >& WQ,
                         int numInternalNodes,
                         int numGhostNodes):
    SphNodeList<Dim<3> >::SphNodeList(name, eos, W, WQ, numInternalNodes, numGhostNodes),
@@ -26,9 +22,9 @@ ConductingFluidNodeList(const std::string& name,
    mDBDt(new Field<Dim<3>, Vector>(IncrementState<Dim<3>, Field<Dim<3>, Vector> >::prefix() + MHDFieldNames::magneticInduction, *this)),
    mCurrentDensity(new Field<Dim<3>, Vector>(MHDFieldNames::currentDensity, *this)),
    mDivB(new Field<Dim<3>, Scalar>(MHDFieldNames::magneticDivergence, *this)),
-	mResistivity(new Field<Dim<3>, Scalar>(MHDFieldNames::resistivity, *this)),
-	mTotalSpecificEnergy(new Field<Dim<3>, Scalar>(MHDFieldNames::totalSpecificEnergy, *this)),
-	mDeDt(new Field<Dim<3>, Dim<3>::Scalar>(IncrementState<Dim<3>, Field<Dim<3>, Scalar> >::prefix() + MHDFieldNames::totalSpecificEnergy, *this)),
+        mResistivity(new Field<Dim<3>, Scalar>(MHDFieldNames::resistivity, *this)),
+        mTotalSpecificEnergy(new Field<Dim<3>, Scalar>(MHDFieldNames::totalSpecificEnergy, *this)),
+        mDeDt(new Field<Dim<3>, Dim<3>::Scalar>(IncrementState<Dim<3>, Field<Dim<3>, Scalar> >::prefix() + MHDFieldNames::totalSpecificEnergy, *this)),
    mResistivityPolicy(new NonDynamicState<Dim<3>, Field<Dim<3>, Scalar> >())
 {
 } // end constructor
@@ -39,8 +35,8 @@ ConductingFluidNodeList(const std::string& name,
 ConductingFluidNodeList::
 ConductingFluidNodeList(const std::string& name,
                         EquationOfState<Dim<3> >& eos,
-                        KernelSpace::TableKernel<Dim<3> >& W,
-                        KernelSpace::TableKernel<Dim<3> >& WQ,
+                        TableKernel<Dim<3> >& W,
+                        TableKernel<Dim<3> >& WQ,
                         const Scalar& C,
                         int numInternalNodes,
                         int numGhostNodes):
@@ -49,9 +45,9 @@ ConductingFluidNodeList(const std::string& name,
    mDBDt(new Field<Dim<3>, Vector>(IncrementState<Dim<3>, Field<Dim<3>, Vector> >::prefix() + MHDFieldNames::magneticInduction, *this)),
    mCurrentDensity(new Field<Dim<3>, Vector>(MHDFieldNames::currentDensity, *this)),
    mDivB(new Field<Dim<3>, Scalar>(MHDFieldNames::magneticDivergence, *this)),
-	mResistivity(new Field<Dim<3>, Dim<3>::Scalar>(MHDFieldNames::resistivity, *this)),
-	mTotalSpecificEnergy(new Field<Dim<3>, Dim<3>::Scalar>(MHDFieldNames::totalSpecificEnergy, *this)),
-	mDeDt(new Field<Dim<3>, Dim<3>::Scalar>(IncrementState<Dim<3>, Field<Dim<3>, Scalar> >::prefix() + MHDFieldNames::totalSpecificEnergy, *this)),
+        mResistivity(new Field<Dim<3>, Dim<3>::Scalar>(MHDFieldNames::resistivity, *this)),
+        mTotalSpecificEnergy(new Field<Dim<3>, Dim<3>::Scalar>(MHDFieldNames::totalSpecificEnergy, *this)),
+        mDeDt(new Field<Dim<3>, Dim<3>::Scalar>(IncrementState<Dim<3>, Field<Dim<3>, Scalar> >::prefix() + MHDFieldNames::totalSpecificEnergy, *this)),
    mResistivityPolicy(new SpitzerResistivityUpdatePolicy(C))
 {
 } // end constructor
@@ -62,8 +58,8 @@ ConductingFluidNodeList(const std::string& name,
 ConductingFluidNodeList::
 ConductingFluidNodeList(const std::string& name,
                         EquationOfState<Dim<3> >& eos,
-                        KernelSpace::TableKernel<Dim<3> >& W,
-                        KernelSpace::TableKernel<Dim<3> >& WQ,
+                        TableKernel<Dim<3> >& W,
+                        TableKernel<Dim<3> >& WQ,
                         double C,
                         double Rmax,
                         int numInternalNodes,
@@ -73,9 +69,9 @@ ConductingFluidNodeList(const std::string& name,
    mDBDt(new Field<Dim<3>, Vector>(IncrementState<Dim<3>, Field<Dim<3>, Vector> >::prefix() + MHDFieldNames::magneticInduction, *this)),
    mCurrentDensity(new Field<Dim<3>, Vector>(MHDFieldNames::currentDensity, *this)),
    mDivB(new Field<Dim<3>, Scalar>(MHDFieldNames::magneticDivergence, *this)),
-	mResistivity(new Field<Dim<3>, Dim<3>::Scalar>(MHDFieldNames::resistivity, *this)),
-	mTotalSpecificEnergy(new Field<Dim<3>, Dim<3>::Scalar>(MHDFieldNames::totalSpecificEnergy, *this)),
-	mDeDt(new Field<Dim<3>, Dim<3>::Scalar>(IncrementState<Dim<3>, Field<Dim<3>, Scalar> >::prefix() + MHDFieldNames::totalSpecificEnergy, *this)),
+        mResistivity(new Field<Dim<3>, Dim<3>::Scalar>(MHDFieldNames::resistivity, *this)),
+        mTotalSpecificEnergy(new Field<Dim<3>, Dim<3>::Scalar>(MHDFieldNames::totalSpecificEnergy, *this)),
+        mDeDt(new Field<Dim<3>, Dim<3>::Scalar>(IncrementState<Dim<3>, Field<Dim<3>, Scalar> >::prefix() + MHDFieldNames::totalSpecificEnergy, *this)),
    mResistivityPolicy(new SpitzerResistivityUpdatePolicy(C, Rmax))
 {
 } // end constructor
@@ -86,8 +82,8 @@ ConductingFluidNodeList(const std::string& name,
 ConductingFluidNodeList::
 ConductingFluidNodeList(const std::string& name,
                         EquationOfState<Dim<3> >& eos,
-                        KernelSpace::TableKernel<Dim<3> >& W,
-                        KernelSpace::TableKernel<Dim<3> >& WQ,
+                        TableKernel<Dim<3> >& W,
+                        TableKernel<Dim<3> >& WQ,
                         double C,
                         double Rmax,
                         double rhoMin,
@@ -98,9 +94,9 @@ ConductingFluidNodeList(const std::string& name,
    mDBDt(new Field<Dim<3>, Vector>(IncrementState<Dim<3>, Field<Dim<3>, Vector> >::prefix() + MHDFieldNames::magneticInduction, *this)),
    mCurrentDensity(new Field<Dim<3>, Vector>(MHDFieldNames::currentDensity, *this)),
    mDivB(new Field<Dim<3>, Scalar>(MHDFieldNames::magneticDivergence, *this)),
-	mResistivity(new Field<Dim<3>, Dim<3>::Scalar>(MHDFieldNames::resistivity, *this)),
-	mTotalSpecificEnergy(new Field<Dim<3>, Dim<3>::Scalar>(MHDFieldNames::totalSpecificEnergy, *this)),
-	mDeDt(new Field<Dim<3>, Dim<3>::Scalar>(IncrementState<Dim<3>, Field<Dim<3>, Scalar> >::prefix() + MHDFieldNames::totalSpecificEnergy, *this)),
+        mResistivity(new Field<Dim<3>, Dim<3>::Scalar>(MHDFieldNames::resistivity, *this)),
+        mTotalSpecificEnergy(new Field<Dim<3>, Dim<3>::Scalar>(MHDFieldNames::totalSpecificEnergy, *this)),
+        mDeDt(new Field<Dim<3>, Dim<3>::Scalar>(IncrementState<Dim<3>, Field<Dim<3>, Scalar> >::prefix() + MHDFieldNames::totalSpecificEnergy, *this)),
    mResistivityPolicy(new SpitzerResistivityUpdatePolicy(C, Rmax, rhoMin))
 {
 } // end constructor
@@ -352,8 +348,4 @@ restoreState(const FileIO& file, const std::string& pathName) {
 
 //----------------------------------------------------------------------------
 
-
-} // end namespace MHDSpace
 } // end namespace Spheral
-
-

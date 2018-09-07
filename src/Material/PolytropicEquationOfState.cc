@@ -11,9 +11,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace Material {
-
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Construct with the given polytropic constant, index and mean molecular 
@@ -284,5 +281,3 @@ PolytropicEquationOfState<Dimension>::valid() const {
 }
 
 }
-}
-

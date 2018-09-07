@@ -8,7 +8,6 @@
 #define __Spheral_PolynomialFit_hh__
 
 namespace Spheral {
-namespace SolidMaterial {
 
 class NinthOrderPolynomialFit {
 public:
@@ -51,19 +50,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "PolynomialFitInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    class NinthOrderPolynomialFit;
-  }
+  class NinthOrderPolynomialFit;
 }
 
 #endif

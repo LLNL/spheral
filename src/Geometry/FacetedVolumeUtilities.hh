@@ -9,11 +9,12 @@
 #ifndef __Spheral_Geometry_computeAncillaryGeometry__
 #define __Spheral_Geometry_computeAncillaryGeometry__
 
+#include "Utilities/safeInv.hh"
+
 #include <algorithm>
 #include <vector>
 #include <set>
 #include <deque>
-#include "Utilities/safeInv.hh"
 
 namespace Spheral {
 namespace GeometryUtilities {
@@ -27,7 +28,8 @@ computeAncillaryGeometry(const PolyType& poly,
                          std::vector<typename PolyType::Vector>& vertexUnitNormals,
                          bool computeFacetFacetConnectivity) {
 
-  using namespace std;
+  using std::vector;
+
   typedef typename PolyType::Vector Vector;
   typedef typename PolyType::Facet Facet;
 

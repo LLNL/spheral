@@ -273,7 +273,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
         if result:
             print "Restoring MedialGenerator state from %s" % cacheFileName
             if mpi.rank == 0:
-                f = SiloFileIO(cacheFileName, FileIOSpace.Read)
+                f = SiloFileIO(cacheFileName, Read)
                 numGeneratingProcs = f.readObject("numGeneratingProcs")
                 
                 # Decide how to divide the generating domains between our current processes.
@@ -322,7 +322,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
             dire = os.path.dirname(cacheFileName)
             if dire and not os.path.exists(dire):
                 os.makedirs(dire)
-            f = SiloFileIO(cacheFileName, FileIOSpace.Create)
+            f = SiloFileIO(cacheFileName, Create)
             f.writeObject(mpi.procs, "numGeneratingProcs")
             writeNodeData(f, 0, self.pos, self.m, self.H, self.vol, self.surface)
             for iproc in xrange(1, mpi.procs):

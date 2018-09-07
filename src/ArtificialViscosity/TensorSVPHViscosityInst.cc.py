@@ -6,8 +6,6 @@ text = """
 #include "TensorSVPHViscosity.cc"
 
 namespace Spheral {
-  namespace ArtificialViscositySpace {
-    template class TensorSVPHViscosity< Dim< %(ndim)s > >;
-  }
+  template class TensorSVPHViscosity< Dim< %(ndim)s > >;
 }
 """

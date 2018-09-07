@@ -1,6 +1,3 @@
-#include <iostream>
-using namespace std;
-
 #include "Geodyn.hh"
 #include "Field/Field.hh"
 #include "Utilities/bisectSearch.hh"
@@ -8,29 +5,34 @@ using namespace std;
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-namespace SolidMaterial {
-
-using namespace std;
+#include <iostream>
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
-using FieldSpace::Field;
-using DataBaseSpace::DataBase;
+
+namespace Spheral {
+
 
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 Geodyn<Dimension>::
-Geodyn(const Material::PhysicalConstants& constants,
+Geodyn(const PhysicalConstants& constants,
        const double minimumPressure,
        const double maximumPressure,
-       const Material::MaterialPressureMinType minPressureType):
-  PhysicsEvolvingMaterialLibrary<Dimension>(constants,
-                                            minimumPressure,
-                                            maximumPressure,
-                                            minPressureType),
+       const MaterialPressureMinType minPressureType):
+  Physics<Dimension>(),
+  SolidEquationOfState<Dimension>(1.0, 1.0, 1.0,
+                                  constants,
+                                  minimumPressure,
+                                  maximumPressure,
+                                  minPressureType),
+  StrengthModel<Dimension>(),
   mGeodynUnits(0.01,    // cm expressed as meters.
                0.001,   // g expressed in kg.
                1.0),    // sec in secs.
@@ -206,7 +208,7 @@ void
 Geodyn<Dimension>::
 evaluateDerivatives(const Scalar time,
                     const Scalar dt,
-                    const DataBaseSpace::DataBase<Dimension>& dataBase,
+                    const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
 }
@@ -217,7 +219,7 @@ evaluateDerivatives(const Scalar time,
 template<typename Dimension>
 typename Geodyn<Dimension>::TimeStepType
 Geodyn<Dimension>::
-dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+dt(const DataBase<Dimension>& dataBase, 
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
    const Scalar currentTime) const {
@@ -252,7 +254,7 @@ void
 Geodyn<Dimension>::
 initialize(const Scalar time, 
            const Scalar dt,
-           const DataBaseSpace::DataBase<Dimension>& dataBase, 
+           const DataBase<Dimension>& dataBase, 
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
 }
@@ -265,11 +267,9 @@ void
 Geodyn<Dimension>::
 finalize(const Scalar time, 
          const Scalar dt,
-         DataBaseSpace::DataBase<Dimension>& dataBase, 
+         DataBase<Dimension>& dataBase, 
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
 }
 
 }
-}
-

@@ -14,13 +14,10 @@
 #include "SpaceFillingCurveRedistributeNodes.hh"
 
 namespace Spheral {
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
+  template<typename Dimension> class DataBase;
 }
 
 namespace Spheral {
-namespace PartitionSpace {
 
 template<typename Dimension>
 class PeanoHilbertOrderRedistributeNodes: public SpaceFillingCurveRedistributeNodes<Dimension> {
@@ -46,8 +43,8 @@ public:
 
   // Hash the positions.
   virtual
-  FieldSpace::FieldList<Dimension, Key> 
-  computeHashedIndices(const DataBaseSpace::DataBase<Dimension>& dataBase) const override;
+  FieldList<Dimension, Key> 
+  computeHashedIndices(const DataBase<Dimension>& dataBase) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -58,14 +55,11 @@ private:
 };
 
 }
-}
 
 #else
 // Forward declare the PeanoHilbertOrderRedistributeNodes class.
 namespace Spheral {
-  namespace PartitionSpace {
-    template<typename Dimension> class PeanoHilbertOrderRedistributeNodes;
-  }
+  template<typename Dimension> class PeanoHilbertOrderRedistributeNodes;
 }
 
 #endif

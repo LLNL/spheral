@@ -21,19 +21,12 @@
 #endif
 
 namespace Spheral {
-  template<typename Dimension> class NodeIteratorBase;
-  template<typename Dimension> class CoarseNodeIterator;
-  template<typename Dimension> class RefineNodeIterator;
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-}
 
-namespace Spheral {
-namespace FieldSpace {
+template<typename Dimension> class NodeIteratorBase;
+template<typename Dimension> class CoarseNodeIterator;
+template<typename Dimension> class RefineNodeIterator;
+template<typename Dimension> class NodeList;
+template<typename Dimension> class TableKernel;
 
 #ifdef USE_UVM
 template<typename DataType>
@@ -65,14 +58,14 @@ public:
   explicit Field(FieldName name);
   Field(FieldName name, const Field& field);
   Field(FieldName name,
-        const NodeSpace::NodeList<Dimension>& nodeList);
+        const NodeList<Dimension>& nodeList);
   Field(FieldName name,
-        const NodeSpace::NodeList<Dimension>& nodeList,
+        const NodeList<Dimension>& nodeList,
         DataType value);
   Field(FieldName name,
-        const NodeSpace::NodeList<Dimension>& nodeList, 
+        const NodeList<Dimension>& nodeList, 
         const std::vector<DataType,DataAllocator<DataType>>& array);
-  Field(const NodeSpace::NodeList<Dimension>& nodeList, const Field& field);
+  Field(const NodeList<Dimension>& nodeList, const Field& field);
   Field(const Field& field);
   virtual std::shared_ptr<FieldBase<Dimension> > clone() const;
 
@@ -175,19 +168,19 @@ public:
 //   // neighbor initializations have already been performed for the given
 //   // position!
 //   DataType operator()(const Vector& r,
-//                       const KernelSpace::TableKernel<Dimension>& W) const;
+//                       const TableKernel<Dimension>& W) const;
 
 //   // Interpolate from this Field onto a new Field defined at the positions
 //   // of the given NodeList.
 //   Field<Dimension, DataType>
-//   sampleField(const NodeSpace::NodeList<Dimension>& splatNodeList,
-//               const KernelSpace::TableKernel<Dimension>& W) const;
+//   sampleField(const NodeList<Dimension>& splatNodeList,
+//               const TableKernel<Dimension>& W) const;
 
 //   // Conservatively splat values from this Field onto a new Field defined
 //   // at the positions of the given NodeList, using the MASH formalism.
 //   Field<Dimension, DataType>
-//   splatToFieldMash(const NodeSpace::NodeList<Dimension>& splatNodeList,
-//                    const KernelSpace::TableKernel<Dimension>& W) const;
+//   splatToFieldMash(const NodeList<Dimension>& splatNodeList,
+//                    const TableKernel<Dimension>& W) const;
 
   // Test if this Field is in a valid, internally consistent state.
   bool valid() const;
@@ -212,7 +205,7 @@ public:
   const DataType& operator[](const unsigned int index) const;
 
   // Required functions to control size of fields.
-  virtual void setNodeList(const NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void setNodeList(const NodeList<Dimension>& nodeList);
   virtual void resizeField(unsigned size);
   virtual void resizeFieldInternal(unsigned size, unsigned oldFirstGhostNode);
   virtual void resizeFieldGhost(unsigned size);
@@ -237,7 +230,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
 //  std::vector<DataType,std::allocator<DataType> > mDataArray;
-  std::vector<DataType,DataAllocator<DataType>> mDataArray;
+  std::vector<DataType, DataAllocator<DataType>> mDataArray;
   bool mValid;
 
   // No default constructor.
@@ -245,19 +238,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "FieldInline.hh"
-#endif
 
 #else
 
 // Forward declare the Field class.
 namespace Spheral {
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-  }
+  template<typename Dimension, typename DataType> class Field;
 }
 
 #endif

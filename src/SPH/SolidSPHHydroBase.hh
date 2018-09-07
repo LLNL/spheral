@@ -12,34 +12,19 @@
 #include "SPH/SPHHydroBase.hh"
 
 namespace Spheral {
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  namespace NodeSpace {
-    template<typename Dimension> class SmoothingScaleBase;
-  }
-  namespace ArtificialViscositySpace {
-    template<typename Dimension> class ArtificialViscosity;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
-}
 
-namespace Spheral {
-namespace SPHSpace {
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class SmoothingScaleBase;
+template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class TableKernel;
+template<typename Dimension> class DataBase;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+class FileIO;
 
 template<typename Dimension>
-class SolidSPHHydroBase: public SPHSpace::SPHHydroBase<Dimension> {
+class SolidSPHHydroBase: public SPHHydroBase<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -48,14 +33,14 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  typedef typename PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  SolidSPHHydroBase(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                    ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
-                    const KernelSpace::TableKernel<Dimension>& W,
-                    const KernelSpace::TableKernel<Dimension>& WPi,
-                    const KernelSpace::TableKernel<Dimension>& WGrad,
+  SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                    ArtificialViscosity<Dimension>& Q,
+                    const TableKernel<Dimension>& W,
+                    const TableKernel<Dimension>& WPi,
+                    const TableKernel<Dimension>& WGrad,
                     const double filter,
                     const double cfl,
                     const bool useVelocityMagnitudeForDt,
@@ -65,8 +50,8 @@ public:
                     const bool XSPH,
                     const bool correctVelocityGradient,
                     const bool sumMassDensityOverAllNodeLists,
-                    const PhysicsSpace::MassDensityType densityUpdate,
-                    const PhysicsSpace::HEvolutionType HUpdate,
+                    const MassDensityType densityUpdate,
+                    const HEvolutionType HUpdate,
                     const double epsTensile,
                     const double nTensile,
                     const bool damageRelieveRubble,
@@ -78,16 +63,16 @@ public:
 
   // Tasks we do once on problem startup.
   virtual
-  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase) override;
+  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
-  void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state) override;
 
   // Register the derivatives/change fields for updating state.
   virtual
-  void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+  void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs) override;
 
   // Evaluate the derivatives for the principle hydro variables:
@@ -95,7 +80,7 @@ public:
   virtual
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
 
@@ -110,15 +95,15 @@ public:
                          StateDerivatives<Dimension>& derivs) override;
 
   // Gradient kernel
-  const KernelSpace::TableKernel<Dimension>& GradKernel() const;
+  const TableKernel<Dimension>& GradKernel() const;
 
   // The state field lists we're maintaining.
-  const FieldSpace::FieldList<Dimension, SymTensor>& DdeviatoricStressDt() const;
-  const FieldSpace::FieldList<Dimension, Scalar>& bulkModulus() const;
-  const FieldSpace::FieldList<Dimension, Scalar>& shearModulus() const;
-  const FieldSpace::FieldList<Dimension, Scalar>& yieldStrength() const;
-  const FieldSpace::FieldList<Dimension, Scalar>& plasticStrain0() const;
-  const FieldSpace::FieldList<Dimension, SymTensor>& Hfield0() const;
+  const FieldList<Dimension, SymTensor>& DdeviatoricStressDt() const;
+  const FieldList<Dimension, Scalar>& bulkModulus() const;
+  const FieldList<Dimension, Scalar>& shearModulus() const;
+  const FieldList<Dimension, Scalar>& yieldStrength() const;
+  const FieldList<Dimension, Scalar>& plasticStrain0() const;
+  const FieldList<Dimension, SymTensor>& Hfield0() const;
 
   // Control whether allow damaged material to have stress relieved.
   bool damageRelieveRubble() const;
@@ -127,25 +112,25 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "SolidSPHHydroBase"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 private:
   //--------------------------- Private Interface ---------------------------//
   bool mDamageRelieveRubble;
-  const KernelSpace::TableKernel<Dimension>& mGradKernel;   // Gradient kernel
+  const TableKernel<Dimension>& mGradKernel;   // Gradient kernel
 
   // Some internal scratch fields.
-  FieldSpace::FieldList<Dimension, SymTensor> mDdeviatoricStressDt;
-  FieldSpace::FieldList<Dimension, Scalar> mBulkModulus;
-  FieldSpace::FieldList<Dimension, Scalar> mShearModulus;
-  FieldSpace::FieldList<Dimension, Scalar> mYieldStrength;
-  FieldSpace::FieldList<Dimension, Scalar> mPlasticStrain0;
-  FieldSpace::FieldList<Dimension, SymTensor> mHfield0;
+  FieldList<Dimension, SymTensor> mDdeviatoricStressDt;
+  FieldList<Dimension, Scalar> mBulkModulus;
+  FieldList<Dimension, Scalar> mShearModulus;
+  FieldList<Dimension, Scalar> mYieldStrength;
+  FieldList<Dimension, Scalar> mPlasticStrain0;
+  FieldList<Dimension, SymTensor> mHfield0;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // No default constructor, copying, or assignment.
   SolidSPHHydroBase();
@@ -154,7 +139,6 @@ private:
 };
 
 }
-}
 
 #include "SolidSPHHydroBaseInline.hh"
 
@@ -162,9 +146,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  namespace SPHSpace {
-    template<typename Dimension> class SolidSPHHydroBase;
-  }
+  template<typename Dimension> class SolidSPHHydroBase;
 }
 
 #endif
