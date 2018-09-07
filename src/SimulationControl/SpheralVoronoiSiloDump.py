@@ -405,6 +405,8 @@ def dumpPhysicsState(stateThingy,
         integrator = stateThingy
         dataBase = integrator.dataBase()
         state = eval("State%id(integrator.dataBase(), integrator.physicsPackages())" % integrator.dataBase().nDim)
+        for p in integrator.physicsPackages():
+            p.registerAdditionalVisualizationState(dataBase, state)
         derivs = None
         if dumpDerivatives:
             derivs = eval("StateDerivatives%id(integrator.dataBase(), integrator.physicsPackages())" % integrator.dataBase().nDim)

@@ -81,6 +81,21 @@ enroll(FieldSpace::FieldBase<Dimension>& field) {
 }
 
 //------------------------------------------------------------------------------
+// Add a field (shared_ptr).
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+StateBase<Dimension>::
+enroll(std::shared_ptr<FieldSpace::FieldBase<Dimension>>& fieldPtr) {
+  const KeyType key = this->key(*fieldPtr);
+  mStorage[key] = fieldPtr.get();
+  mNodeListPtrs.insert(fieldPtr->nodeListPtr());
+  mCache.push_back(fieldPtr);
+  ENSURE(find(mNodeListPtrs.begin(), mNodeListPtrs.end(), fieldPtr->nodeListPtr()) != mNodeListPtrs.end());
+}
+
+//------------------------------------------------------------------------------
 // Add the fields from a FieldList.
 //------------------------------------------------------------------------------
 template<typename Dimension>

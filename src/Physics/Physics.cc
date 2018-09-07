@@ -215,6 +215,16 @@ extraMomentum() const {
   return typename Dimension::Vector();
 }
 
+//------------------------------------------------------------------------------
+// Defaul noop for extra viz state.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+registerAdditionalVisualizationState(DataBaseSpace::DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state) {
+}
+
 }
 }
 
