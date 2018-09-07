@@ -403,7 +403,7 @@
     <None Include="..\..\src\SolidMaterial\StrengthModel.hh">
       <FileType>Document</FileType>
     </None>
-    <CustomBuild Include="..\..\src\SolidMaterial\StrengthModelInst.cc.py" >
+    <CustomBuild Include="..\..\src\SolidMaterial\StrengthModelInst.cc.py">
       <Command>
         python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
         python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
