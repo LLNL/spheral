@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "computeCRKSPHIntegral.cc"
+#include "CRKSPH/computeCRKSPHIntegral.cc"
 
 namespace Spheral {
   namespace CRKSPHSpace {

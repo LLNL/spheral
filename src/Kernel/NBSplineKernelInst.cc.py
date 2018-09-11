@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "NBSplineKernel.cc"
+#include "Kernel/NBSplineKernel.cc"
 
 namespace Spheral {
   namespace KernelSpace {

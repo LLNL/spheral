@@ -1,38 +1,25 @@
-set(Hydro_sources2d
-    EntropyPolicyInst.cc.2.cc
-    GammaPolicyInst.cc.2.cc
-    NonSymmetricSpecificThermalEnergyPolicyInst.cc.2.cc
-    PositionPolicyInst.cc.2.cc
-    PressurePolicyInst.cc.2.cc
-    SecondMomentHourglassControlInst.cc.2.cc
-    SoundSpeedPolicyInst.cc.2.cc
-    SpecificFromTotalThermalEnergyPolicyInst.cc.2.cc
-    SpecificThermalEnergyPolicyInst.cc.2.cc
-    SumVoronoiMassDensityPolicyInst.cc.2.cc
-    ThirdMomentHourglassControlInst.cc.2.cc
-    VolumePolicyInst.cc.2.cc
-    VoronoiMassDensityPolicyInst.cc.2.cc
-    )
+set(Hydro_inst
+    EntropyPolicy
+    GammaPolicy
+    NonSymmetricSpecificThermalEnergyPolicy
+    PositionPolicy
+    PressurePolicy
+    SecondMomentHourglassControl
+    SoundSpeedPolicy
+    SpecificFromTotalThermalEnergyPolicy
+    SpecificThermalEnergyPolicy
+    SumVoronoiMassDensityPolicy
+    ThirdMomentHourglassControl
+    VolumePolicy
+    VoronoiMassDensityPolicy
+   )
 
-set(Hydro_sources3d
-    EntropyPolicyInst.cc.3.cc
-    GammaPolicyInst.cc.3.cc
-    NonSymmetricSpecificThermalEnergyPolicyInst.cc.3.cc
-    PositionPolicyInst.cc.3.cc
-    PressurePolicyInst.cc.3.cc
-    SecondMomentHourglassControlInst.cc.3.cc
-    SoundSpeedPolicyInst.cc.3.cc
-    SpecificFromTotalThermalEnergyPolicyInst.cc.3.cc
-    SpecificThermalEnergyPolicyInst.cc.3.cc
-    SumVoronoiMassDensityPolicyInst.cc.3.cc
-    ThirdMomentHourglassControlInst.cc.3.cc
-    VolumePolicyInst.cc.3.cc
-    VoronoiMassDensityPolicyInst.cc.3.cc
-    )
 
 set(Hydro_sources
     HydroFieldNames.cc
     )
+
+instantiate(Hydro_inst Hydro_sources)
 
 set(Hydro_headers
     EntropyPolicy.hh
@@ -62,12 +49,8 @@ set(Hydro_headers
     entropyWeightingFunction.hh
     )
 
-INCLUDE_DIRECTORIES(../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_Hydro
-                SOURCES     ${Hydro_sources2d} ${Hydro_sources3d} ${Hydro_sources}
+                SOURCES     ${Hydro_sources}
                 HEADERS     ${Hydro_headers}
                 DEPENDS_ON  ${spheral_depends}
                 )

@@ -3,7 +3,7 @@ text = """
 // Explicit instation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "StateBase.cc"
+#include "DataBase/StateBase.cc"
 
 namespace Spheral {
   template class StateBase<Dim< %(ndim)s > >;

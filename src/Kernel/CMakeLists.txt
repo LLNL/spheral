@@ -1,42 +1,27 @@
-set(Kernel_sources2d
-    BSplineKernelInst.cc.2.cc
-    ExpInvKernelInst.cc.2.cc
-    GaussianKernelInst.cc.2.cc
-    HatKernelInst.cc.2.cc
-    NBSplineKernelInst.cc.2.cc
-    NSincPolynomialKernelInst.cc.2.cc
-    PiGaussianKernelInst.cc.2.cc
-    QuarticSplineKernelInst.cc.2.cc
-    QuinticSplineKernelInst.cc.2.cc
-    SincKernelInst.cc.2.cc
-    SuperGaussianKernelInst.cc.2.cc
-    TableKernelInst.cc.2.cc
-    VolumeIntegrationFunctionsInst.cc.2.cc
-    W4SplineKernelInst.cc.2.cc
-    WendlandC2KernelInst.cc.2.cc
-    WendlandC4KernelInst.cc.2.cc
-    WendlandC6KernelInst.cc.2.cc
-    )
+set(Kernel_inst
+    BSplineKernel
+    ExpInvKernel
+    GaussianKernel
+    HatKernel
+    NBSplineKernel
+    NSincPolynomialKernel
+    PiGaussianKernel
+    QuarticSplineKernel
+    QuinticSplineKernel
+    SincKernel
+    SuperGaussianKernel
+    TableKernel
+    VolumeIntegrationFunctions
+    W4SplineKernel
+    WendlandC2Kernel
+    WendlandC4Kernel
+    WendlandC6Kernel
+   )
 
-set(Kernel_sources3d
-    BSplineKernelInst.cc.3.cc
-    ExpInvKernelInst.cc.3.cc
-    GaussianKernelInst.cc.3.cc
-    HatKernelInst.cc.3.cc
-    NBSplineKernelInst.cc.3.cc
-    NSincPolynomialKernelInst.cc.3.cc
-    PiGaussianKernelInst.cc.3.cc
-    QuarticSplineKernelInst.cc.3.cc
-    QuinticSplineKernelInst.cc.3.cc
-    SincKernelInst.cc.3.cc
-    SuperGaussianKernelInst.cc.3.cc
-    TableKernelInst.cc.3.cc
-    VolumeIntegrationFunctionsInst.cc.3.cc
-    W4SplineKernelInst.cc.3.cc
-    WendlandC2KernelInst.cc.3.cc
-    WendlandC4KernelInst.cc.3.cc
-    WendlandC6KernelInst.cc.3.cc
-    )
+
+set(Kernel_sources )
+
+instantiate(Kernel_inst Kernel_sources)
 
 set(Kernel_headers
     BSplineKernel.hh
@@ -78,12 +63,8 @@ set(Kernel_headers
     WendlandC6KernelInline.hh
     )
 
-INCLUDE_DIRECTORIES(../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_Kernel
-                SOURCES     ${Kernel_sources2d} ${Kernel_sources3d}
+                SOURCES     ${Kernel_sources}
                 HEADERS     ${Kernel_headers}
                 DEPENDS_ON  ${spheral_depends}
                 )

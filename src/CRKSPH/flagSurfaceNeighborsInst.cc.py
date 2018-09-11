@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "flagSurfaceNeighbors.cc"
+#include "CRKSPH/flagSurfaceNeighbors.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

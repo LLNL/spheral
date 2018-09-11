@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "smoothFields.cc"
+#include "FieldOperations/smoothFields.cc"
 #include "Geometry/Dimension.hh"
 
 //============================== smoothFields() ==============================

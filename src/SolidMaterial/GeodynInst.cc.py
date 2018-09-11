@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "Geodyn.cc"
+#include "SolidMaterial/Geodyn.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

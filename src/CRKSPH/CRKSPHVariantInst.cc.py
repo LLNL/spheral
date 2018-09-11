@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "CRKSPHVariant.cc"
+#include "CRKSPH/CRKSPHVariant.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

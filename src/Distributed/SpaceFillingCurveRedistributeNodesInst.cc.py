@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "SpaceFillingCurveRedistributeNodes.cc"
+#include "Distributed/SpaceFillingCurveRedistributeNodes.cc"
 
 namespace Spheral {
   namespace PartitionSpace {

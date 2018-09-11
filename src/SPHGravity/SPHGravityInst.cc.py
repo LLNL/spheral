@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiations.
 //------------------------------------------------------------------------------
-#include "SPHGravity.cc"
+#include "SPHGravity/SPHGravity.cc"
 
 namespace Spheral {
   namespace GravitySpace {

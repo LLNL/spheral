@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "gradientPairWise.cc"
+#include "FieldOperations/gradientPairWise.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

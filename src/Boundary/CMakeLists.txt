@@ -1,35 +1,35 @@
-set(Boundary_sources2d
-    AxisBoundaryRZ.cc
-    BoundaryInst.cc.2.cc
-    CRKSPHVoidBoundaryInst.cc.2.cc
-    ConstantBoundaryInst.cc.2.cc
-    ConstantRVelocityBoundaryInst.cc.2.cc
-    ConstantVelocityBoundaryInst.cc.2.cc
-    ConstantXVelocityBoundaryInst.cc.2.cc
-    ConstantYVelocityBoundaryInst.cc.2.cc
-    PeriodicBoundaryInst.cc.2.cc
-    PlanarBoundaryInst.cc.2.cc
-    ReflectingBoundaryInst.cc.2.cc
-    RigidBoundaryInst.cc.2.cc
-    )
+set(Boundary_inst
+    Boundary
+    CRKSPHVoidBoundary
+    ConstantBoundary
+    ConstantRVelocityBoundary
+    ConstantVelocityBoundary
+    ConstantXVelocityBoundary
+    ConstantYVelocityBoundary
+    PeriodicBoundary
+    PlanarBoundary
+    ReflectingBoundary
+    RigidBoundary
+   )
 
-set(Boundary_sources3d
-    AxialSymmetryBoundary.cc
-    BoundaryInst.cc.3.cc
-    CRKSPHVoidBoundaryInst.cc.3.cc
-    ConstantBoundaryInst.cc.3.cc
-    ConstantRVelocityBoundaryInst.cc.3.cc
-    ConstantVelocityBoundaryInst.cc.3.cc
-    ConstantXVelocityBoundaryInst.cc.3.cc
-    ConstantYVelocityBoundaryInst.cc.3.cc
-    ConstantZVelocityBoundaryInst.cc.3.cc
-    CylindricalBoundary.cc
-    PeriodicBoundaryInst.cc.3.cc
-    PlanarBoundaryInst.cc.3.cc
-    ReflectingBoundaryInst.cc.3.cc
-    RigidBoundaryInst.cc.3.cc
-    SphericalBoundary.cc
-    )
+
+set(Boundary_sources )
+
+if(ENABLE_2D)
+  list(APPEND Boundary_sources
+       AxisBoundaryRZ.cc
+      )
+endif()
+
+if(ENABLE_3D)
+  list(APPEND Boundary_sources
+       AxialSymmetryBoundary.cc
+       CylindricalBoundary.cc
+       SphericalBoundary.cc
+      )
+endif()
+
+instantiate(Boundary_inst Boundary_sources)
 
 set(Boundary_headers
     AxialSymmetryBoundary.hh
@@ -62,12 +62,8 @@ set(Boundary_headers
     mapPositionThroughPlanes.hh
     )
 
-INCLUDE_DIRECTORIES(../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_Boundary
-                SOURCES     ${Boundary_sources2d} ${Boundary_sources3d}
+                SOURCES     ${Boundary_sources}
                 HEADERS     ${Boundary_headers}
                 DEPENDS_ON  ${spheral_depends}
                 )

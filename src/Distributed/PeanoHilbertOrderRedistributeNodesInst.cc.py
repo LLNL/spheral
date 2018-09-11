@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "PeanoHilbertOrderRedistributeNodes.cc"
+#include "Distributed/PeanoHilbertOrderRedistributeNodes.cc"
 
 namespace Spheral {
   namespace PartitionSpace {

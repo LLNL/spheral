@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "Verlet.cc"
+#include "Integrator/Verlet.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

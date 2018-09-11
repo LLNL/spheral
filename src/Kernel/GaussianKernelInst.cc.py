@@ -6,8 +6,8 @@ text = """
 //----------------------------------------------------------------------------//
 #include <math.h>
 
-#include "Kernel.hh"
-#include "GaussianKernel.hh"
+#include "Kernel/Kernel.hh"
+#include "Kernel/GaussianKernel.hh"
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.

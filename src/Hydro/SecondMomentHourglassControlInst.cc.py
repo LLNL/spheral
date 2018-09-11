@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "SecondMomentHourglassControl.cc"
+#include "Hydro/SecondMomentHourglassControl.cc"
 
 namespace Spheral {
   namespace PhysicsSpace {
