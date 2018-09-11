@@ -287,21 +287,21 @@ force_build:
 %Inst3d.cc:	%Inst.cc.py
 	@$(PYTHONEXE) $(SPHERALTOP)/helpers/InstantiationGenerator.py $< $@ 3
 
-%.hh:	%.py
-	$(eval cls = $(basename $(<F)))
-	@$(PYTHONEXE) -c "import sys; sys.path += ['$(srcdir)', '$(srcdir)/..']; from $(cls) import *; generateTrampoline($(cls)())" > $@
+# %.hh:	%.py
+# 	$(eval cls = $(basename $(<F)))
+# 	@$(PYTHONEXE) -c "import sys; sys.path += ['$(srcdir)', '$(srcdir)/..']; from $(cls) import *; generateTrampoline($(cls)())" > $@
 
-%Concrete.hh:	%.py
-	$(eval cls = $(basename $(<F)))
-	@$(PYTHONEXE) -c "import sys; sys.path += ['$(srcdir)', '$(srcdir)/..']; from $(cls) import *; generateConcreteTrampoline($(cls)())" > $@
+# %Concrete.hh:	%.py
+# 	$(eval cls = $(basename $(<F)))
+# 	@$(PYTHONEXE) -c "import sys; sys.path += ['$(srcdir)', '$(srcdir)/..']; from $(cls) import *; generateConcreteTrampoline($(cls)())" > $@
 
-virtual%Bindings.hh:	%.py
-	$(eval cls = $(basename $(<F)))
-	@$(PYTHONEXE) -c "import sys; sys.path += ['$(srcdir)', '$(srcdir)/..']; from $(cls) import *; generateBindingFunction($(cls)())" > $@
+# virtual%Bindings.hh:	%.py
+# 	$(eval cls = $(basename $(<F)))
+# 	@$(PYTHONEXE) -c "import sys; sys.path += ['$(srcdir)', '$(srcdir)/..']; from $(cls) import *; generateBindingFunction($(cls)())" > $@
 
-%.cc:	%.py
-	$(eval mod = $(basename $(<F)))
-	@$(PYTHONEXE) -c "import sys; sys.path += ['$(srcdir)', '$(srcdir)/..']; from ModuleGenerator import *; import $(mod); generateModule($(mod))" > $@
+# %.cc:	%.py
+# 	$(eval mod = $(basename $(<F)))
+# 	@$(PYTHONEXE) -c "import sys; sys.path += ['$(srcdir)', '$(srcdir)/..']; from ModuleGenerator import *; import $(mod); generateModule($(mod))" > $@
 
 # Machine dependent rules for generating dependency files.
 include $(SPHERALTOP)/helpers/@DEPENDRULES@
