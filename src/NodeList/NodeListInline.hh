@@ -30,7 +30,7 @@ template<typename Dimension>
 inline
 unsigned 
 NodeList<Dimension>::numInternalNodes() const {
-  CHECK(mFirstGhostNode <= numNodes());
+  CHECK2(mFirstGhostNode <= numNodes(), "NodeList sizes: " << mFirstGhostNode << " " << numNodes());
   return mFirstGhostNode;
 }
 
