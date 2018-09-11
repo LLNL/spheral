@@ -7,9 +7,6 @@
 //
 // Created by JMO, Tue Sep 14 22:27:08 2004
 //----------------------------------------------------------------------------//
-#include <vector>
-#include <limits>
-
 #include "SpecificThermalEnergyPolicy.hh"
 #include "HydroFieldNames.hh"
 #include "entropyWeightingFunction.hh"
@@ -28,10 +25,15 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
 
-namespace Spheral {
-
+#include <vector>
+#include <limits>
 using std::vector;
+using std::numeric_limits;
 using std::abs;
+using std::min;
+using std::max;
+
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructor.
