@@ -17,7 +17,7 @@ AC_SUBST(PIPTARGETS)
 
 PYOPT=""
 BOOSTLIBTARGETS="math"
-PIPTARGETS+=" pybindgen==0.17.0"
+PIPTARGETS+=" pybindgen==0.17.0"      # if nothing else, polytope currently requires this
 
 AC_MSG_CHECKING(for --without-pybindgen)
 AC_ARG_WITH(pybindgen,
@@ -53,6 +53,7 @@ AC_ARG_WITH(pybind11,
     PYTHONPKGS+=" CXXTypes Geometry PolyClipper Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator Utilities"
     INCS+="-I\$(prefix)/include -I\$prefix/include/python\$(PYTHONVERSION) \$(patsubst %, -I\$(SRCTOP)/%, \$(CXXPKGS))"
     MODULELINK="-L\$(LIBDIR) \$(PKGLIBS)"
+    PIPTARGETS+=" decorator"
     if test "`uname -s`" = "AIX"; then
        MODULELINK="$MODULELINK -e init\$(PKGNAME)"
     fi

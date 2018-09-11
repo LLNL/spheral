@@ -311,7 +311,7 @@ include $(SPHERALTOP)/helpers/@DEPENDRULES@
 
 #-------------------------------------------------------------------------------
 # For pybind11 we need to generate trampoline sources before trying to compile.
-$(SRCTARGETS):	$(PYB11GENTARGETS)
+# $(SRCTARGETS):	$(PYB11GENTARGETS)
 
 #-------------------------------------------------------------------------------
 ifneq "$(SRCTARGETS)" ""
@@ -435,9 +435,9 @@ $(PYB11TARGET): $(PYB11TARGET:.$(SHLIBEXT)=.py) $(PYB11SRCS)
 	@echo "################################################################################"
 	@mkdir -p $(PYTHONLIBDIR)/Spheral
 	$(eval mod = $(basename $(<F)))
-	$(PYTHONEXE) -c "import sys; sys.path = ['$(srcdir)', '$(srcdir)/..'] + sys.path; from ModuleGenerator import *; import $(mod); generateModule($(mod))" > $(mod).cc
+	$(PYTHONEXE) -c "import sys; sys.path = ['$(srcdir)', '$(srcdir)/..'] + sys.path; from PYB11Generator import *; import $(mod); PYB11generateModule($(mod))" > $(mod).cc
 	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $(mod).cc -o $(mod).o
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PYB11TARGET) $(PYB11OBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS)
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PYB11TARGET) $(mod).o $(PYB11OBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS)
 	cp -f $(PYB11TARGET) $(PYTHONLIBDIR)/Spheral
 
 #-------------------------------------------------------------------------------
