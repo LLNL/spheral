@@ -7,14 +7,39 @@ import decorator as PYB11decorator           # To preserve wrapped functions arg
 #-------------------------------------------------------------------------------
 # Singleton
 #-------------------------------------------------------------------------------
-def PYB11singleton(Cls):
-    @PYB11wraps(Cls)
+def PYB11singleton(cls):
+    @PYB11wraps(cls)
     class Wrapper:
         PYB11singleton = True
         def __init__(self, *args, **kwargs):
-            self.instance = Cls(*args, **kwargs)
+            self.instance = cls(*args, **kwargs)
             return
     return Wrapper
+
+#-------------------------------------------------------------------------------
+# namespace
+#-------------------------------------------------------------------------------
+def PYB11namespace(cls, x):
+    @PYB11wraps(cls)
+    class Wrapper:
+        PYB11namespace = x
+        def __init__(self, *args, **kwargs):
+            self.instance = cls(*args, **kwargs)
+            return
+    return Wrapper
+
+#-------------------------------------------------------------------------------
+# cppname
+#-------------------------------------------------------------------------------
+class PYB11cppname:
+    def __init__(self, x):
+        self.cppname = x
+        return
+    def __call__(self, cls):
+        @PYB11wraps(cls)
+        class WrappedCls(cls):
+            PYB11cppname = self.cppname
+        return WrappedCls
 
 #-------------------------------------------------------------------------------
 # Virtual method
@@ -78,3 +103,4 @@ def PYB11static(f):
         return f(*args, **kwargs)
     f.PYB11static = True
     return PYB11decorator.decorate(f, wrapper)
+

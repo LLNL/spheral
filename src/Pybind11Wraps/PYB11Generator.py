@@ -245,7 +245,7 @@ def PYB11generateModuleClasses(modobj, ss):
     py::class_<%(cppname)s""" % klassattrs)
         if klassattrs["singleton"]:
             ss(", std::unique_ptr<RestartRegistrar, py::nodelete>")
-        ss('>(m, "%(pyname)s") obj;\n' % klassattrs)
+        ss('> obj(m, "%(pyname)s");\n' % klassattrs)
 
         # Is there a doc string?
         if inspect.getdoc(klass):
@@ -269,9 +269,9 @@ def PYB11generateModuleClasses(modobj, ss):
         ss("  }\n")
 
 #-------------------------------------------------------------------------------
-# PYB11generateModuleClasses
+# PYB11generateModuleSTL
 #
-# Bind the classes in the module
+# Bind the STL containers in the module
 #-------------------------------------------------------------------------------
 def PYB11generateModuleSTL(modobj, ss):
     stuff = PYB11STLobjs(modobj)
@@ -345,6 +345,7 @@ def PYB11methods(obj):
 def PYB11attrs(obj):
     d = {"pyname"       : obj.__name__,
          "cppname"      : obj.__name__,
+         "namespace"    : None,
          "singleton"    : False,
          "virtual"      : False,
          "pure_virtual" : False,

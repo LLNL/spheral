@@ -7,18 +7,18 @@ import decorator as PYB11decorator           # To preserve wrapped functions arg
 #-------------------------------------------------------------------------------
 # cppname
 #-------------------------------------------------------------------------------
-def PYB11cppname(f, arg):
-    def wrapper(f, *args, **kwargs):
-        return f(*args, **kwargs)
-    f.PYB11cppname = True
-    return PYB11decorator.decorate(f, wrapper)
+# def PYB11cppname(f, x):
+#     def wrapper(f, *args, **kwargs):
+#         return f(*args, **kwargs)
+#     f.PYB11cppname = x
+#     return PYB11decorator.decorate(f, wrapper)
 
 #-------------------------------------------------------------------------------
 # pyname
 #-------------------------------------------------------------------------------
-def PYB11cppname(f):
+def PYB11pyname(f, x):
     def wrapper(f, *args, **kwargs):
         return f(*args, **kwargs)
-    f.PYB11pyname = True
+    f.PYB11pyname = x
     return PYB11decorator.decorate(f, wrapper)
 
