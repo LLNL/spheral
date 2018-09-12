@@ -49,6 +49,54 @@ def addPlaneMethods(cls, ndim):
         exec("cls.%s = %s" % (x, x))
 
 #-------------------------------------------------------------------------------
+# Helper to add the templated methods for Vertex.
+#-------------------------------------------------------------------------------
+@PYB11ignore
+def addVertexMethods(cls, ndim):
+
+    # Constructors
+    def pyinit0(self):
+        "Default constructor"
+        return
+
+    def pyinit1(rhs = "const PolyClipper::Vertex%id" % ndim):
+        "Copy constructor"
+        return
+
+    def pyinit2(position = "const PolyClipper::Plane%id::Vector&" % ndim):
+        "Construct with a position."
+        return
+
+    def pyinit3(position = "const PolyClipper::Plane%id::Vector&" % ndim,
+                c = "int"):
+        "Construct with a position and initial compare flag."
+        return
+
+    # Attributes
+    @PYB11readwrite
+    def position(self):
+        "The position of the vertex."
+        return "None"
+
+    @PYB11readwrite
+    def neighbors(self):
+        "The connectivty of the vertex."
+        return "None"
+
+    @PYB11readwrite
+    def comp(self):
+        "The current comparison flag."
+        return "None"
+
+    @PYB11readwrite
+    def ID(self):
+        "The ID or index of the vertex."
+        return "None"
+
+    for x in ("pyinit0", "pyinit1", "pyinit2", "pyinit3", "position", "neighbors", "comp", "ID"):
+        exec("cls.%s = %s" % (x, x))
+
+#-------------------------------------------------------------------------------
 # Plane2d
 #-------------------------------------------------------------------------------
 @PYB11cppname("PolyClipper::Plane2d")
@@ -65,3 +113,13 @@ class PolyClipperPlane3d:
     """Plane class for polyclipper in 3 dimensions."""
 
 addPlaneMethods(PolyClipperPlane3d, 3)
+
+#-------------------------------------------------------------------------------
+# Vertex2d
+#-------------------------------------------------------------------------------
+@PYB11cppname("PolyClipper::Vertex2d")
+class Vertex2d:
+    """Vertex class for polyclipper in 2 dimensions."""
+
+addVertexMethods(Vertex2d, 2)
+
