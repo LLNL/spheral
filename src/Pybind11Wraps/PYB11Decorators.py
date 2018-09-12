@@ -1,48 +1,62 @@
 #-------------------------------------------------------------------------------
-# Decorators for attributes to classes.
+# Decorators for PYB11 generation.
 #-------------------------------------------------------------------------------
 from functools import wraps as PYB11wraps    # Add PYB11 to screen out in generation
 import decorator as PYB11decorator           # To preserve wrapped functions args
+import types
 
 #-------------------------------------------------------------------------------
-# Singleton
+# Singleton (class)
 #-------------------------------------------------------------------------------
 def PYB11singleton(cls):
-    @PYB11wraps(cls)
-    class Wrapper:
-        PYB11singleton = True
-        def __init__(self, *args, **kwargs):
-            self.instance = cls(*args, **kwargs)
-            return
-    return Wrapper
+    def __init__(self):
+        return
+    def __call__(self, cls):
+        @PYB11wraps(cls)
+        class WrappedCls(cls):
+            PYB11singleton = True
+        return WrappedCls
 
 #-------------------------------------------------------------------------------
-# namespace
+# namespace (class or method)
 #-------------------------------------------------------------------------------
 def PYB11namespace(cls, x):
-    @PYB11wraps(cls)
-    class Wrapper:
-        PYB11namespace = x
-        def __init__(self, *args, **kwargs):
-            self.instance = cls(*args, **kwargs)
-            return
-    return Wrapper
+    def __init__(self, x):
+        self.namespace = x
+        return
+    def __call__(self, thing):
+        if type(thing) == types.ClassType:
+            @PYB11wraps(thing)
+            class WrappedCls(thing):
+                PYB11namespace = self.namespace
+            return WrappedCls
+        else:
+            def wrapper(f, *args, **kwargs):
+                return f(*args, **kwargs)
+            f.PYB11namespace = self.namespace
+            return PYB11decorator.decorate(f, wrapper)
 
 #-------------------------------------------------------------------------------
-# cppname
+# cppname (class or method)
 #-------------------------------------------------------------------------------
 class PYB11cppname:
     def __init__(self, x):
         self.cppname = x
         return
-    def __call__(self, cls):
-        @PYB11wraps(cls)
-        class WrappedCls(cls):
-            PYB11cppname = self.cppname
-        return WrappedCls
+    def __call__(self, thing):
+        if type(thing) == types.ClassType:
+            @PYB11wraps(thing)
+            class WrappedCls(thing):
+                PYB11cppname = self.cppname
+            return WrappedCls
+        else:
+            def wrapper(f, *args, **kwargs):
+                return f(*args, **kwargs)
+            f.PYB11cppname = self.cppname
+            return PYB11decorator.decorate(f, wrapper)
 
 #-------------------------------------------------------------------------------
-# Virtual method
+# Virtual (method)
 #-------------------------------------------------------------------------------
 def PYB11virtual(f):
     def wrapper(f, *args, **kwargs):
@@ -51,7 +65,7 @@ def PYB11virtual(f):
     return PYB11decorator.decorate(f, wrapper)
 
 #-------------------------------------------------------------------------------
-# Pure virtual method
+# Pure virtual (method)
 #-------------------------------------------------------------------------------
 def PYB11pure_virtual(f):
     def wrapper(f, *args, **kwargs):
@@ -60,12 +74,21 @@ def PYB11pure_virtual(f):
     return PYB11decorator.decorate(f, wrapper)
 
 #-------------------------------------------------------------------------------
-# const method
+# const (method)
 #-------------------------------------------------------------------------------
 def PYB11const(f):
     def wrapper(f, *args, **kwargs):
         return f(*args, **kwargs)
     f.PYB11const = True
+    return PYB11decorator.decorate(f, wrapper)
+
+#-------------------------------------------------------------------------------
+# static (method)
+#-------------------------------------------------------------------------------
+def PYB11static(f):
+    def wrapper(f, *args, **kwargs):
+        return f(*args, **kwargs)
+    f.PYB11static = True
     return PYB11decorator.decorate(f, wrapper)
 
 #-------------------------------------------------------------------------------
@@ -93,14 +116,5 @@ def PYB11setter(f, x):
     def wrapper(f, *args, **kwargs):
         return f(*args, **kwargs)
     f.PYB11setter = x
-    return PYB11decorator.decorate(f, wrapper)
-
-#-------------------------------------------------------------------------------
-# static method
-#-------------------------------------------------------------------------------
-def PYB11static(f):
-    def wrapper(f, *args, **kwargs):
-        return f(*args, **kwargs)
-    f.PYB11static = True
     return PYB11decorator.decorate(f, wrapper)
 
