@@ -17,10 +17,10 @@ class PolyClipperPlane2d:
     "Plane class for polyclipper in %i dimensions." % 2
 
     # Constructors
-    def pyinit(self):
+    def pyinit0(self):
         "Default constructor"
         return
 
-    def pyinit(rhs = "const PolyClipper::Plane%id" % 2):
+    def pyinit1(rhs = "const PolyClipper::Plane%id" % 2):
         "Copy constructor"
         return

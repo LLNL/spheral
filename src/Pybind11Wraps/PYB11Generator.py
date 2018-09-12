@@ -222,16 +222,15 @@ def PYB11generateModuleClasses(modobj, ss):
             if i < len(args) - 1:
                 ss("%s, " % argType)
             else:
-                ss("%s>()" % argType)
+                ss("%s" % argType)
             argString += ', "%s"_a' % argName
             if default:
                 argString += "=%s" % default
-        ss("%s);\n" % argString)
+        ss(">()%s);\n" % argString)
         return
 
-    # Map special generation patterns.
-    special_class_methods = {"pyinit" : pyinit,
-                            "__init__" : ignore}
+    # Some methods we want to skip.
+    ignores = ["__init__"]
 
     # Iterate over the module classes.
     classes = PYB11classes(modobj)
@@ -258,13 +257,14 @@ def PYB11generateModuleClasses(modobj, ss):
 
         # Bind methods of the class.
         for mname, meth in PYB11methods(klass):
-            methattrs = PYB11attrs(meth)
-            methattrs["returnType"] = eval("objinst." + mname + "()")
-            args = PYB11parseArgs(meth)
-            if mname in special_class_methods:
-                special_class_methods[mname](meth, methattrs, args)
-            else:
-                generic_class_method(meth, methattrs, args)
+            if mname not in ignores:
+                methattrs = PYB11attrs(meth)
+                methattrs["returnType"] = eval("objinst." + mname + "()")
+                args = PYB11parseArgs(meth)
+                if mname[:6] == "pyinit":
+                    pyinit(meth, methattrs, args)
+                else:
+                    generic_class_method(meth, methattrs, args)
 
         ss("  }\n")
 
