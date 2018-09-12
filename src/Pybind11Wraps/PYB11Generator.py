@@ -5,6 +5,7 @@ import inspect
 import sys
 from PYB11ClassDecorators import *
 from PYB11FunctionDecorators import *
+from PYB11STLmethods import *
 
 #-------------------------------------------------------------------------------
 # PYB11generateModule
@@ -20,6 +21,9 @@ def PYB11generateModule(modobj):
 
         # Bind classes.
         PYB11generateModuleClasses(modobj, ss)
+
+        # Bind STL types.
+        PYB11generateModuleSTL(modobj, ss)
 
         # Closing
         ss("}\n")
@@ -71,6 +75,11 @@ using namespace pybind11::literals;
         if modobj.preamble:
             ss(modobj.preamble + "\n")
         ss("\n")
+
+    # Some pybind11 types need their own preamble.
+    for objname, obj in PYB11STLobjs(modobj):
+        obj.preamble(modobj, ss, objname)
+    ss("\n")
 
     # Declare the module
     ss("""
@@ -260,6 +269,19 @@ def PYB11generateModuleClasses(modobj, ss):
         ss("  }\n")
 
 #-------------------------------------------------------------------------------
+# PYB11generateModuleClasses
+#
+# Bind the classes in the module
+#-------------------------------------------------------------------------------
+def PYB11generateModuleSTL(modobj, ss):
+    stuff = PYB11STLobjs(modobj)
+    for (name, obj) in stuff:
+        ss("  ")
+        obj(modobj, ss, name)
+    ss("\n")
+    return
+
+#-------------------------------------------------------------------------------
 # PYB11parseArgs
 #
 # Return (argType, argName, <default_value>)
@@ -295,6 +317,17 @@ def PYB11functions(modobj):
 def PYB11classes(modobj):
     return [(name, cls) for (name, cls) in inspect.getmembers(modobj, predicate=inspect.isclass)
             if name[:5] != "PYB11"]
+
+#-------------------------------------------------------------------------------
+# PYB11STLobjs
+#
+# Get the STL objects to bind from a module
+#-------------------------------------------------------------------------------
+def PYB11STLobjs(modobj):
+    return [(name, obj) for (name, obj) in inspect.getmembers(modobj)
+            if name[:5] != "PYB11" and
+            (isinstance(obj, PYB11_bind_vector) or
+             isinstance(obj, PYB11_bind_map))]
 
 #-------------------------------------------------------------------------------
 # PYB11methods
