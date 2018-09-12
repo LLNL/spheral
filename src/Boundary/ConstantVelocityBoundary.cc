@@ -10,15 +10,16 @@
 
 #include "ConstantVelocityBoundary.hh"
 
+using std::vector;
+using std::string;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-namespace BoundarySpace {
-
-using namespace std;
-
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using FileIOSpace::FileIO;
 
 //------------------------------------------------------------------------------
 // Construct with the given set of nodes.
@@ -31,7 +32,7 @@ ConstantVelocityBoundary(const NodeList<Dimension>& nodeList,
   mNodeListPtr(&nodeList),
   mNodes("Constant Nodes", nodeList, 0),
   mVelocity("Constant velocities", nodeList.velocity()),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 
   // Store the ids of the nodes we're watching.
   for (vector<int>::const_iterator itr = nodeIndices.begin();
@@ -247,5 +248,4 @@ restoreState(const FileIO& file, const string& pathName) {
 
 }
 
-}
 }

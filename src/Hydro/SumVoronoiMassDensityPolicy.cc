@@ -6,7 +6,6 @@
 //
 // Created by JMO, Mon Aug  1 10:48:03 PDT 2011
 //----------------------------------------------------------------------------//
-
 #include "SumVoronoiMassDensityPolicy.hh"
 #include "HydroFieldNames.hh"
 #include "DataBase/UpdatePolicyBase.hh"
@@ -20,16 +19,18 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using PhysicsSpace::Physics;
-using BoundarySpace::Boundary;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -177,8 +178,8 @@ updateAsIncrement(const KeyType& key,
 
   // Find the matching derivative field from the StateDerivatives.
   KeyType incrementKey = IncrementFieldList<Dimension, Scalar>::prefix() + fieldKey;
-  FieldSpace::FieldList<Dimension, Scalar> f = state.fields(fieldKey, 0.0);
-  const FieldSpace::FieldList<Dimension, Scalar> df = derivs.fields(incrementKey, 0.0);
+  FieldList<Dimension, Scalar> f = state.fields(fieldKey, 0.0);
+  const FieldList<Dimension, Scalar> df = derivs.fields(incrementKey, 0.0);
 
   // Loop over the internal values of the field.
   const unsigned numFields = f.numFields();

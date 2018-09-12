@@ -10,8 +10,6 @@
 //
 // Created by JMO, Wed Nov 16 10:40:07 PST 2005
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
 #include "sampleMultipleFields2Lattice.hh"
 #include "Field/FieldList.hh"
 #include "Field/FieldListSet.hh"
@@ -31,15 +29,19 @@
 #include "Distributed/Communicator.hh"
 #endif
 
-namespace Spheral {
-namespace FieldSpace {
-
-using namespace std;
+#include <algorithm>
+using std::vector;
+using std::map;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 using boost::tuple;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using KernelSpace::TableKernel;
+
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Compute the step size.
@@ -371,7 +373,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
 
   // We need to exclude any nodes that come from the Distributed boundary condition.
 #ifdef USE_MPI
-  BoundarySpace::NestedGridDistributedBoundary<Dimension>& distributedBoundary = BoundarySpace::NestedGridDistributedBoundary<Dimension>::instance();
+  BoundingVolumeDistributedBoundary<Dimension>& distributedBoundary = BoundingVolumeDistributedBoundary<Dimension>::instance();
 #endif
 
   // Compute the total number of sample points.
@@ -798,5 +800,3 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
 }
 
 }
-}
-

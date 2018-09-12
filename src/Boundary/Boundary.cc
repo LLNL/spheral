@@ -5,7 +5,6 @@
 //----------------------------------------------------------------------------//
 
 #include <algorithm>
-using namespace std;
 
 #include "Boundary.hh"
 #include "DataBase/DataBase.hh"
@@ -15,13 +14,16 @@ using namespace std;
 
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-namespace BoundarySpace {
+using std::vector;
+using std::map;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -312,7 +314,7 @@ template<typename Dimension>
 void
 Boundary<Dimension>::reset(const DataBase<Dimension>& dataBase) {
   // Clear our own internal data.
-  mBoundaryNodes = std::map<NodeSpace::NodeList<Dimension>*, BoundaryNodes>();
+  mBoundaryNodes = std::map<NodeList<Dimension>*, BoundaryNodes>();
 }
 
 //------------------------------------------------------------------------------
@@ -339,5 +341,4 @@ Boundary<Dimension>::
 clip(typename Dimension::Vector& xmin, typename Dimension::Vector& xmax) const {
 }
 
-}
 }

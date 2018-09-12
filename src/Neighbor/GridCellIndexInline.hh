@@ -3,7 +3,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace NeighborSpace {
 
 //------------------------------------------------------------------------------
 // Define a global function which returns a vector of GridCellIndex objects
@@ -1206,5 +1205,3 @@ operator<<(std::ostream& os, const GridCellIndex<Dimension>& gc) {
 }
 
 }
-}
-

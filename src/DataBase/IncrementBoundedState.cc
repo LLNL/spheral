@@ -4,7 +4,6 @@
 //
 // Created by JMO, Thu Aug 26 14:28:07 2004
 //----------------------------------------------------------------------------//
-
 #include "IncrementBoundedState.hh"
 #include "UpdatePolicyBase.hh"
 #include "State.hh"
@@ -12,9 +11,14 @@
 #include "Field/Field.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using Spheral::FieldSpace::Field;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructors.

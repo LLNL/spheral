@@ -4,17 +4,14 @@ text = """
 //
 // Created by JMO, Wed Dec  1 14:38:51 PST 1999
 //----------------------------------------------------------------------------//
+#include "SincKernel.hh"
 
 #include <math.h>
-
-#include "Kernel/SincKernel.hh"
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 namespace Spheral {
-  namespace KernelSpace {
-    template class SincKernel< Dim< %(ndim)s >  >;
-  }
+  template class SincKernel< Dim< %(ndim)s >  >;
 }
 """

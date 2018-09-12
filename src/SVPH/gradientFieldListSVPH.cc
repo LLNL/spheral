@@ -9,20 +9,18 @@
 #include "Geometry/Dimension.hh"
 #include "Geometry/innerProduct.hh"
 
-namespace Spheral {
-namespace SVPHSpace {
-
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using Geometry::innerProduct;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Local utility methods.
@@ -68,11 +66,11 @@ delta_grad(const Dim<3>::Vector& xij,
 template<typename Dimension, typename DataType>
 FieldList<Dimension, typename MathTraits<Dimension, DataType>::GradientType>
 gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
-                      const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                      const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
-                      const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                      const KernelSpace::TableKernel<Dimension>& W,
-                      const MeshSpace::Mesh<Dimension>& mesh,
+                      const FieldList<Dimension, typename Dimension::Vector>& position,
+                      const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
+                      const ConnectivityMap<Dimension>& connectivityMap,
+                      const TableKernel<Dimension>& W,
+                      const Mesh<Dimension>& mesh,
                       const bool firstOrderConsistent) {
 
   // Pre-conditions.
@@ -87,11 +85,11 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
   typedef typename MathTraits<Dimension, DataType>::GradientType GradientType;
 
   // Prepare the result and some work fields.
-  FieldList<Dimension, GradientType> result(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, Scalar> volume(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, Scalar> A(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, Vector> B(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, Tensor> gradB(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, GradientType> result(FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> volume(FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> A(FieldStorageType::CopyFields);
+  FieldList<Dimension, Vector> B(FieldStorageType::CopyFields);
+  FieldList<Dimension, Tensor> gradB(FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = fieldList[nodeListi]->nodeList();
     result.appendNewField("SVPH gradient of " + fieldList[nodeListi]->name(), nodeList, GradientType());
@@ -187,5 +185,4 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
   return result;
 }
 
-}
 }

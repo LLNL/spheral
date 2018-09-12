@@ -6,13 +6,8 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-namespace SVPHSpace {
 
 using std::vector;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using MeshSpace::Mesh;
 
 // Scalar
 template 
@@ -57,6 +52,5 @@ sampleFieldListSVPH<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>(const FieldList
                                                const TableKernel< Dim< %(ndim)s > >& W,
                                                const Mesh<Dim< %(ndim)s > >& mesh,
                                                const bool firstOrderConsistent);
-}
 }
 """

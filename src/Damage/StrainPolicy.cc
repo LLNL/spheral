@@ -4,9 +4,6 @@
 //
 // Created by JMO, Tue Oct 12 16:43:23 PDT 2004
 //----------------------------------------------------------------------------//
-
-#include <vector>
-
 #include "StrainPolicy.hh"
 #include "NodeList/NodeList.hh"
 #include "Strength/SolidFieldNames.hh"
@@ -18,14 +15,19 @@
 #include "Utilities/DBC.hh"
 #include "Kernel/HatKernel.hh"
 
+#include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-
-using namespace std;
-
-using FieldSpace::Field;
-using NodeSpace::NodeList;
-using Material::EquationOfState;
-using KernelSpace::HatKernel;
 
 //------------------------------------------------------------------------------
 // Constructor.

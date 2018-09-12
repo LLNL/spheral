@@ -14,12 +14,14 @@
 #include "Geometry/MathTraits.hh"
 
 namespace Spheral {
-namespace FieldSpace {
 
-using namespace std;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using KernelSpace::TableKernel;
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 //------------------------------------------------------------------------------
 // Return a monotonic smoothed estimate of the given FieldList by using a
@@ -106,16 +108,16 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::NeighborSearchType::GatherScatter:
+          case NeighborSearchType::GatherScatter:
             Wij = 0.5*(kernel(etai, 1.0) + 
                        kernel(etaj, 1.0));
             break;
 
-          case NeighborSpace::NeighborSearchType::Gather:
+          case NeighborSearchType::Gather:
             Wij = kernel(etai, 1.0);
             break;
 
-          case NeighborSpace::NeighborSearchType::Scatter:
+          case NeighborSearchType::Scatter:
             Wij = kernel(etaj, 1.0);
             break;
 
@@ -158,16 +160,16 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij0;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::NeighborSearchType::GatherScatter:
+          case NeighborSearchType::GatherScatter:
             Wij0 = 0.5*(kernel(etai, 1.0) + 
                         kernel(etaj, 1.0));
             break;
 
-          case NeighborSpace::NeighborSearchType::Gather:
+          case NeighborSearchType::Gather:
             Wij0 = kernel(etai, 1.0);
             break;
 
-          case NeighborSpace::NeighborSearchType::Scatter:
+          case NeighborSearchType::Scatter:
             Wij0 = kernel(etaj, 1.0);
             break;
 
@@ -260,16 +262,16 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::NeighborSearchType::GatherScatter:
+          case NeighborSearchType::GatherScatter:
             Wij = 0.5*(kernel(etai, 1.0) +
                        kernel(etaj, 1.0))*(a(masterItr) + b(masterItr)*rij.x());
             break;
 
-          case NeighborSpace::NeighborSearchType::Gather:
+          case NeighborSearchType::Gather:
             Wij = kernel(etai, 1.0)*(a(masterItr) + b(masterItr)*rij.x());
             break;
 
-          case NeighborSpace::NeighborSearchType::Scatter:
+          case NeighborSearchType::Scatter:
             Wij = kernel(etaj, 1.0)*(a(masterItr) + b(masterItr)*rij.x());
             break;
 
@@ -308,5 +310,3 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
 
 
 }
-}
-

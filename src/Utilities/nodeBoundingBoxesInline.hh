@@ -15,7 +15,7 @@ boundingBox(const typename Dimension::Vector& xi,
             const typename Dimension::Scalar& kernelExtent) {
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  const Vector extent = NeighborSpace::Neighbor<Dimension>::HExtent(Hi, kernelExtent);
+  const Vector extent = Neighbor<Dimension>::HExtent(Hi, kernelExtent);
   return std::make_pair(xi - extent, xi + extent);
 }
 

@@ -11,25 +11,19 @@
 #ifndef __Spheral_CRKSPHSpecificThermalEnergyPolicy_hh__
 #define __Spheral_CRKSPHSpecificThermalEnergyPolicy_hh__
 
-#include <string>
-
 #include "DataBase/IncrementFieldList.hh"
 #include "Kernel/TableKernel.hh"
+
+#include <string>
 
 namespace Spheral {
 
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace NodeSpace {
-  template<typename Dimension> class FluidNodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class FieldList;
-}
-namespace DataBaseSpace {
-  template<typename Dimension> class DataBase;
-}
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class DataBase;
 
 template<typename Dimension>
 class CRKSPHSpecificThermalEnergyPolicy: 
@@ -44,8 +38,8 @@ public:
   typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
-  CRKSPHSpecificThermalEnergyPolicy(const DataBaseSpace::DataBase<Dimension>& db,
-                                  const KernelSpace::TableKernel<Dimension>& W);
+  CRKSPHSpecificThermalEnergyPolicy(const DataBase<Dimension>& db,
+                                  const TableKernel<Dimension>& W);
   virtual ~CRKSPHSpecificThermalEnergyPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -77,8 +71,8 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const DataBaseSpace::DataBase<Dimension>* mDataBasePtr;
-  const KernelSpace::TableKernel<Dimension>& mWT;
+  const DataBase<Dimension>* mDataBasePtr;
+  const TableKernel<Dimension>& mWT;
 
   CRKSPHSpecificThermalEnergyPolicy(const CRKSPHSpecificThermalEnergyPolicy& rhs);
   CRKSPHSpecificThermalEnergyPolicy& operator=(const CRKSPHSpecificThermalEnergyPolicy& rhs);

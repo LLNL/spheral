@@ -3,9 +3,6 @@
 //
 // Created by JMO, Tue Oct 12 23:07:22 PDT 2010
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <limits>
-
 #include "Mesh.hh"
 #include "Geometry/Dimension.hh"
 #include "Utilities/bisectSearch.hh"
@@ -17,10 +14,22 @@
 #include "mpi.h"
 #endif
 
-namespace Spheral {
-namespace MeshSpace {
+#include <algorithm>
+#include <limits>
+using std::vector;
+using std::map;
+using std::set;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Comparator function to sort indices.
@@ -352,7 +361,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
     CHECK(z1 < z2 and 
           z1 < numOldZones + newCells.size() and 
           (z2 == UNSETID or z2 < numOldZones + newCells.size()));
-    if (cellX[z1] > mNodePositions[inode].x()) swap(z1, z2);
+    if (cellX[z1] > mNodePositions[inode].x()) std::swap(z1, z2);
     mFaces.push_back(Face(*this, inode, ~z1, z2, vector<unsigned>(1, inode)));
   }
 
@@ -397,10 +406,9 @@ template<> const unsigned Mesh<Dim<1> >::minEdgesPerFace = 1;
 template<> const unsigned Mesh<Dim<1> >::minNodesPerFace = 1;
 
 }
-}
 
 //------------------------------------------------------------------------------
 // Instantiate the generic mesh non-inlined methods.
 //------------------------------------------------------------------------------
 #include "Mesh.cc"
-template class Spheral::MeshSpace::Mesh<Spheral::Dim<1> >;
+template class Spheral::Mesh<Spheral::Dim<1> >;

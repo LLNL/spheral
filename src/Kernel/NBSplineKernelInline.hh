@@ -1,12 +1,11 @@
-#include <math.h>
-#include <vector>
-
 #include "Geometry/Dimension.hh"
 #include "VolumeIntegrationFunctions.hh"
 #include "Utilities/DBC.hh"
 
+#include <math.h>
+#include <vector>
+
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Construct with the given order.
@@ -105,5 +104,4 @@ NBSplineKernel<Dimension>::oneSidedPowerFunction(const double x,
   }
 }
 
-}
 }

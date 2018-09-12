@@ -20,19 +20,14 @@ class SolidMaterial:
         mod.add_include('"%s/SolidMaterialTypes.hh"' % srcdir)
 
         # Namespace.
-        SolidSpheral = mod.add_cpp_namespace("Spheral")
-        space = SolidSpheral.add_cpp_namespace("SolidMaterial")
-
-        Spheral = mod.add_cpp_namespace("Spheral")
-        Material = Spheral.add_cpp_namespace("Material")
-        PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
+        space = mod.add_cpp_namespace("Spheral")
 
         self.NinthOrderPolynomialFit = addObject(space, "NinthOrderPolynomialFit")
 
         for dim in self.dims:
             exec('''
-EquationOfState%(dim)id = findObject(Material, "EquationOfState%(dim)id")
-Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
+EquationOfState%(dim)id = findObject(space, "EquationOfState%(dim)id")
+Physics%(dim)id = findObject(space, "Physics%(dim)id")
 
 self.SolidEquationOfState%(dim)id = addObject(space, "SolidEquationOfState%(dim)id", parent=EquationOfState%(dim)id, allow_subclassing=True)
 
@@ -92,12 +87,6 @@ generatePhysicsEvolvingMaterialLibraryBindings(self.PhysicsEvolvingMaterialLibra
 
         return
 
-    #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return []
-
 #---------------------------------------------------------------------------
 # SolidEquationOfState
 #---------------------------------------------------------------------------
@@ -128,9 +117,9 @@ def generateSolidEquationOfStateBindings(x, ndim):
 #---------------------------------------------------------------------------
 def generatePorousEquationOfStateBindings(x, ndim):
 
-    me = "Spheral::SolidMaterial::PorousEquationOfState%id" % ndim
-    solideos = "Spheral::Material::EquationOfState%id" % ndim
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    me = "Spheral::PorousEquationOfState%id" % ndim
+    solideos = "Spheral::EquationOfState%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
 
     # Constructors.
     x.add_constructor([constrefparam(solideos, "solidEOS")])
@@ -489,7 +478,7 @@ def generateMurnahanEquationOfStateBindings(x, ndim):
 # StrengthModel (virtual interface)
 #---------------------------------------------------------------------------
 def generateStrengthModelVirtualBindings(x, ndim, pureVirtual):
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
 
     # Methods.
     x.add_method("providesSoundSpeed", "bool", [], is_const=True, is_virtual=True)
@@ -544,7 +533,7 @@ def generateStrengthModelBindings(x, ndim):
 #---------------------------------------------------------------------------
 def generateConstantStrengthBindings(x, ndim):
 
-    solidequationofstate = "Spheral::SolidMaterial::SolidEquationOfState%id" % ndim
+    solidequationofstate = "Spheral::SolidEquationOfState%id" % ndim
 
     # Constructors.
     x.add_constructor([param("double", "mu0"),
@@ -591,7 +580,7 @@ def generateNinthOrderPolynomialFitBindings(x):
                        param("double", "C7"),
                        param("double", "C8"),
                        param("double", "C9")])
-    #x.add_constructor([constrefparam("Spheral::SolidMaterial::NinthOderPolynomialFit", "rhs")])
+    #x.add_constructor([constrefparam("Spheral::NinthOderPolynomialFit", "rhs")])
 
     # Methods.
     x.add_method("operator()", "double", [param("double", "x")], custom_name="__call__", is_const=True)
@@ -603,9 +592,9 @@ def generateNinthOrderPolynomialFitBindings(x):
 #---------------------------------------------------------------------------
 def generateSteinbergGuinanStrengthBindings(x, ndim):
 
-    solidequationofstate = "Spheral::SolidMaterial::SolidEquationOfState%id" % ndim
-    ninthorderpolynomial = "Spheral::SolidMaterial::NinthOrderPolynomialFit"
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    solidequationofstate = "Spheral::SolidEquationOfState%id" % ndim
+    ninthorderpolynomial = "Spheral::NinthOrderPolynomialFit"
+    scalarfield = "Spheral::ScalarField%id" % ndim
 
     # Constructors.
     x.add_constructor([constrefparam(solidequationofstate, "eos"),
@@ -664,9 +653,9 @@ def generateSteinbergGuinanStrengthBindings(x, ndim):
 #---------------------------------------------------------------------------
 def generateJohnsonCookStrengthBindings(x, ndim):
 
-    solidequationofstate = "Spheral::SolidMaterial::SolidEquationOfState%id" % ndim
-    strengthmodel = "Spheral::SolidMaterial::StrengthModel%id" % ndim
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    solidequationofstate = "Spheral::SolidEquationOfState%id" % ndim
+    strengthmodel = "Spheral::StrengthModel%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
 
     # Constructors.
     x.add_constructor([constrefparam(solidequationofstate, "eos"),
@@ -708,9 +697,9 @@ def generateJohnsonCookStrengthBindings(x, ndim):
 #---------------------------------------------------------------------------
 def generateCollinsStrengthBindings(x, ndim):
 
-    solidequationofstate = "Spheral::SolidMaterial::SolidEquationOfState%id" % ndim
-    strengthmodel = "Spheral::SolidMaterial::StrengthModel%id" % ndim
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    solidequationofstate = "Spheral::SolidEquationOfState%id" % ndim
+    strengthmodel = "Spheral::StrengthModel%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
 
     # Constructors.
     x.add_constructor([constrefparam(strengthmodel, "shearModulusModel"),
@@ -733,9 +722,9 @@ def generateCollinsStrengthBindings(x, ndim):
 #---------------------------------------------------------------------------
 def generatePorousStrengthModelBindings(x, ndim):
 
-    me = "Spheral::SolidMaterial::PorousStrengthModel%id" % ndim
-    strengthmodel = "Spheral::SolidMaterial::StrengthModel%id" % ndim
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    me = "Spheral::PorousStrengthModel%id" % ndim
+    strengthmodel = "Spheral::StrengthModel%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
 
     # Constructors.
     x.add_constructor([constrefparam(strengthmodel, "solidStrength")])
@@ -754,8 +743,8 @@ def generatePorousStrengthModelBindings(x, ndim):
 #---------------------------------------------------------------------------
 def generateSteinbergGuinanLundStrengthBindings(x, ndim):
 
-    solidequationofstate = "Spheral::SolidMaterial::SolidEquationOfState%id" % ndim
-    ninthorderpolynomial = "Spheral::SolidMaterial::NinthOrderPolynomialFit"
+    solidequationofstate = "Spheral::SolidEquationOfState%id" % ndim
+    ninthorderpolynomial = "Spheral::NinthOrderPolynomialFit"
 
     # Constructors.
     x.add_constructor([constrefparam(solidequationofstate, "eos"),
@@ -797,13 +786,13 @@ def generateSteinbergGuinanLundStrengthBindings(x, ndim):
 # StrainPorosity
 #---------------------------------------------------------------------------
 def generateStrainPorosityBindings(x, ndim):
-    me = "Spheral::SolidMaterial::StrainPorosity%id" % ndim
-    porouseos = "Spheral::SolidMaterial::PorousEquationOfState%id" % ndim
-    porousstrength = "Spheral::SolidMaterial::PorousStrengthModel%id" % ndim
-    nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+    me = "Spheral::StrainPorosity%id" % ndim
+    porouseos = "Spheral::PorousEquationOfState%id" % ndim
+    porousstrength = "Spheral::PorousStrengthModel%id" % ndim
+    nodelist = "Spheral::NodeList%id" % ndim
+    scalarfield = "Spheral::ScalarField%id" % ndim
     vector_of_boundary = "vector_of_Boundary%id" % ndim
-    fileio = "Spheral::FileIOSpace::FileIO"
+    fileio = "Spheral::FileIO"
 
     # Constructors.
     x.add_constructor([refparam(porouseos, "porousEOS"),
@@ -854,7 +843,7 @@ def generateStrainPorosityBindings(x, ndim):
 def generatePhysicsEvolvingMaterialLibraryBindings(x, ndim):
 
     dim = "Spheral::Dim< %i >" % ndim
-    me = "Spheral::SolidMaterial::PhysicsEvolvingMaterialLibrary%id" % ndim
+    me = "Spheral::PhysicsEvolvingMaterialLibrary%id" % ndim
 
     # Constructors.
     x.add_constructor([param("double", "referenceDensity"),

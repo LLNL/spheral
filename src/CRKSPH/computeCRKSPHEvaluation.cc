@@ -12,28 +12,25 @@
 #include "Geometry/outerProduct.hh"
 #include "Geometry/innerProduct.hh"
 
-namespace Spheral {
-namespace CRKSPHSpace {
-
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using Geometry::outerProduct;
-using Geometry::innerProduct;
+namespace Spheral {
 
 template<typename Dimension>
 void
 computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
                        const TableKernel<Dimension>& W,
                        const FieldList<Dimension, typename Dimension::Scalar>& weight,
- 	               const FieldList<Dimension, typename Dimension::Vector>& position,
+                       const FieldList<Dimension, typename Dimension::Vector>& position,
                        const FieldList<Dimension, typename Dimension::SymTensor>& H,
                        size_t nodeListi, const int i, typename Dimension::Vector reval,
                        const bool coupleNodeLists, typename Dimension::Scalar& WCRKSPH, typename Dimension::Vector& gradWCRKSPH){
@@ -204,5 +201,3 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
 }
 
 }
-}
-

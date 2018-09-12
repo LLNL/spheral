@@ -6,7 +6,6 @@
 #include <fstream>
 #include <cstdlib>
 #include <cmath>
-using namespace std;
 
 #include "../Timer.hh"
 #include "Distributed/Communicator.hh"

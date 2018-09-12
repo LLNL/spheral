@@ -5,7 +5,6 @@
 #include <limits>
 #include <float.h>
 #include <vector>
-using namespace std;
 
 #include "GeomSymmetricTensor.hh"
 #include "EigenStruct.hh"
@@ -18,12 +17,14 @@ using namespace std;
 
 #include <Eigen/Dense>
 
+#include <cmath>
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
 
 using std::abs;
-
-using Geometry::buildUniqueEigenVector;
-using Geometry::jacobiDiagonalize;
 
 //------------------------------------------------------------------------------
 // Return the eigen values and eigen vectors of a symmetric tensor

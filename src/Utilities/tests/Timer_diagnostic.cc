@@ -1,6 +1,5 @@
 // diagnostic.cpp
 #include <iostream>
-using namespace std;
 
 #include "../Timer.hh"
 

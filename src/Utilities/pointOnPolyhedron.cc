@@ -14,7 +14,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 bool pointOnPolyhedron(const Dim<3>::Vector& p,
                        const Dim<3>::FacetedVolume& polyhedron,

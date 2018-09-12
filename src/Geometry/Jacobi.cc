@@ -5,7 +5,7 @@
 
 #include <cmath>
 #include <vector>
-using namespace std;
+using std::vector;
 
 #include "Utilities/DBC.hh"
 

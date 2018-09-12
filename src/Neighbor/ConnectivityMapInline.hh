@@ -3,10 +3,7 @@
 
 #include <algorithm>
 
-using Spheral::FieldSpace::FieldList;
-
 namespace Spheral {
-namespace NeighborSpace {
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -25,7 +22,7 @@ ConnectivityMap(const NodeListIterator& begin,
   mOffsets(),
   mConnectivity(),
   mNodeTraversalIndices(),
-  mKeys(FieldSpace::FieldStorageType::CopyFields) {
+  mKeys(FieldStorageType::CopyFields) {
 
   // The private method does the grunt work of filling in the connectivity once we have
   // established the set of NodeLists.
@@ -56,7 +53,7 @@ rebuild(const NodeListIterator& begin,
   mOffsets.resize(numNodeLists);
   std::vector<unsigned> numNodes(numNodeLists);
   for (NodeListIterator itr = begin; itr != end; ++itr) {
-    typename std::vector<const NodeSpace::NodeList<Dimension>*>::iterator posItr = 
+    typename std::vector<const NodeList<Dimension>*>::iterator posItr = 
       registrar.findInsertionPoint(*itr, mNodeLists.begin(), mNodeLists.end());
     const unsigned i = std::distance(mNodeLists.begin(), posItr);
     CHECK(i < numNodeLists);
@@ -91,7 +88,7 @@ buildGhostConnectivity() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const std::vector<const NodeSpace::NodeList<Dimension>*>&
+const std::vector<const NodeList<Dimension>*>&
 ConnectivityMap<Dimension>::
 nodeLists() const {
   return mNodeLists;
@@ -104,7 +101,7 @@ template<typename Dimension>
 inline
 const std::vector< std::vector<int> >&
 ConnectivityMap<Dimension>::
-connectivityForNode(const NodeSpace::NodeList<Dimension>* nodeListPtr,
+connectivityForNode(const NodeList<Dimension>* nodeListPtr,
                     const int nodeID) const {
   const bool ghostValid = (mBuildGhostConnectivity or
                            NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
@@ -144,7 +141,7 @@ template<typename Dimension>
 inline
 int
 ConnectivityMap<Dimension>::
-numNeighborsForNode(const NodeSpace::NodeList<Dimension>* nodeListPtr,
+numNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
                     const int nodeID) const {
   const std::vector< std::vector<int> >& neighbors = connectivityForNode(nodeListPtr, nodeID);
   int result = 0;
@@ -239,12 +236,11 @@ ithNode(const int nodeList, const int index) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NodeSpace::NodeList<Dimension>&
+const NodeList<Dimension>&
 ConnectivityMap<Dimension>::
 nodeList(const int index) const {
   REQUIRE(index >= 0 and index < mNodeLists.size());
   return *(mNodeLists[index]);
 }
 
-}
 }

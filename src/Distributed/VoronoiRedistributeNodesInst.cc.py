@@ -6,9 +6,6 @@ text = """
 #include "Distributed/VoronoiRedistributeNodes.cc"
 
 namespace Spheral {
-  namespace PartitionSpace {
-    template class VoronoiRedistributeNodes< Dim< %(ndim)s > >;
-  }
+  template class VoronoiRedistributeNodes< Dim< %(ndim)s > >;
 }
-
 """

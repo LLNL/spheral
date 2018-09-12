@@ -1,7 +1,6 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Empty constructor
@@ -108,5 +107,4 @@ W4SplineKernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) const {
   }
 }
 
-}
 }

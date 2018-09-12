@@ -11,14 +11,10 @@
 #include "Field/Field.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
-using namespace std;
 using std::abs;
 using std::min;
 using std::max;
-
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -75,10 +71,10 @@ JohnsonCookStrength<Dimension>::
 template<typename Dimension>
 void
 JohnsonCookStrength<Dimension>::
-shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
-             const FieldSpace::Field<Dimension, Scalar>& density,
-             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-             const FieldSpace::Field<Dimension, Scalar>& pressure) const {
+shearModulus(Field<Dimension, Scalar>& shearModulus,
+             const Field<Dimension, Scalar>& density,
+             const Field<Dimension, Scalar>& specificThermalEnergy,
+             const Field<Dimension, Scalar>& pressure) const {
   mShearModulusModelPtr->shearModulus(shearModulus, density, specificThermalEnergy, pressure);
 }
 
@@ -88,12 +84,12 @@ shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
 template<typename Dimension>
 void
 JohnsonCookStrength<Dimension>::
-yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
-              const FieldSpace::Field<Dimension, Scalar>& density,
-              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-              const FieldSpace::Field<Dimension, Scalar>& pressure,
-              const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
-              const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const {
+yieldStrength(Field<Dimension, Scalar>& yieldStrength,
+              const Field<Dimension, Scalar>& density,
+              const Field<Dimension, Scalar>& specificThermalEnergy,
+              const Field<Dimension, Scalar>& pressure,
+              const Field<Dimension, Scalar>& plasticStrain,
+              const Field<Dimension, Scalar>& plasticStrainRate) const {
   Field<Dimension, Scalar> T("temperature", yieldStrength.nodeList());
   mEOSPtr->setTemperature(T, density, specificThermalEnergy);
   for (auto i = 0; i != yieldStrength.numInternalElements(); ++i) {
@@ -121,11 +117,11 @@ yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
 template<typename Dimension>
 void
 JohnsonCookStrength<Dimension>::
-soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
-           const FieldSpace::Field<Dimension, Scalar>& density,
-           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-           const FieldSpace::Field<Dimension, Scalar>& pressure,
-           const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const {
+soundSpeed(Field<Dimension, Scalar>& soundSpeed,
+           const Field<Dimension, Scalar>& density,
+           const Field<Dimension, Scalar>& specificThermalEnergy,
+           const Field<Dimension, Scalar>& pressure,
+           const Field<Dimension, Scalar>& fluidSoundSpeed) const {
   mShearModulusModelPtr->soundSpeed(soundSpeed, density, specificThermalEnergy, pressure, fluidSoundSpeed);
 }
 
@@ -217,5 +213,3 @@ shearModulusScaling() const {
 }
 
 }
-}
-

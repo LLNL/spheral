@@ -5,7 +5,6 @@ namespace FractalSpace
 {
   void force_at_point_initial(Group& group, Fractal& fractal)
   {
-    using namespace std;
     ofstream& FileFractal=fractal.p_file->DUMPS;
     //    ofstream& FileFractal=fractal.p_file->FileFractal;
     // worry about group 1 at the edge for isolated BC.

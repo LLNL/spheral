@@ -22,8 +22,7 @@ text = """
 #include "Kernel/ExpInvKernel.hh"
 
 namespace Spheral {
-  namespace KernelSpace {
-    template class TableKernel< Dim< %(ndim)s > >;
+  template class TableKernel< Dim< %(ndim)s > >;
 """
 
 for Wname in ("BSplineKernel",
@@ -47,6 +46,5 @@ for Wname in ("BSplineKernel",
 """ % {"Wname" : Wname}
 
 text += """
-  }
 }
 """

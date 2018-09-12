@@ -13,9 +13,6 @@
 
 namespace Spheral {
 
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-
 //------------------------------------------------------------------------------
 // The (sorted) set of registered NodeList names.
 //------------------------------------------------------------------------------
@@ -98,7 +95,7 @@ NodeListRegistrar<Dimension>::
 template<typename Dimension>
 void
 NodeListRegistrar<Dimension>::
-registerNodeList(NodeSpace::NodeList<Dimension>& nodeList) {
+registerNodeList(NodeList<Dimension>& nodeList) {
 
   // Make sure this isn't a NodeList we already have registered.
   VERIFY2(std::find(mNodeLists.begin(), mNodeLists.end(), &nodeList) == mNodeLists.end(),
@@ -135,7 +132,7 @@ registerNodeList(NodeSpace::NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 NodeListRegistrar<Dimension>::
-registerNodeList(NodeSpace::FluidNodeList<Dimension>& nodeList) {
+registerNodeList(FluidNodeList<Dimension>& nodeList) {
 
   // Make sure this isn't a NodeList we already have registered.
   VERIFY2(std::find(mFluidNodeLists.begin(), mFluidNodeLists.end(), &nodeList) == mFluidNodeLists.end(),
@@ -181,7 +178,7 @@ registerNodeList(NodeSpace::FluidNodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 NodeListRegistrar<Dimension>::
-unregisterNodeList(NodeSpace::NodeList<Dimension>& nodeList) {
+unregisterNodeList(NodeList<Dimension>& nodeList) {
 
   // Make sure this is a NodeList we have registered.
   iterator itr = std::find(mNodeLists.begin(), mNodeLists.end(), &nodeList);
@@ -202,7 +199,7 @@ unregisterNodeList(NodeSpace::NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 NodeListRegistrar<Dimension>::
-unregisterNodeList(NodeSpace::FluidNodeList<Dimension>& nodeList) {
+unregisterNodeList(FluidNodeList<Dimension>& nodeList) {
 
   // Make sure this is a NodeList we have registered.
   {

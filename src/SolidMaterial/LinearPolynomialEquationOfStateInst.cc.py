@@ -6,8 +6,6 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace SolidMaterial {
-    template class LinearPolynomialEquationOfState<Dim< %(ndim)s > >;
-  }
+  template class LinearPolynomialEquationOfState<Dim< %(ndim)s > >;
 }
 """

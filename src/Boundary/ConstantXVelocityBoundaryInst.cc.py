@@ -6,8 +6,6 @@ text = """
 #include "Boundary/ConstantXVelocityBoundary.cc"
 
 namespace Spheral {
-  namespace BoundarySpace {
-    template class ConstantXVelocityBoundary< Dim< %(ndim)s > >;
-  }
+  template class ConstantXVelocityBoundary< Dim< %(ndim)s > >;
 }
 """

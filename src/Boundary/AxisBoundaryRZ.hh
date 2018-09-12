@@ -13,7 +13,6 @@
 #include "ReflectingBoundary.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 class AxisBoundaryRZ: public ReflectingBoundary<Dim<2> > {
 
@@ -31,8 +30,8 @@ public:
   virtual ~AxisBoundaryRZ();
 
   // Find the set of nodes in violation of this boundary in the given NodeList.
-  virtual void setViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
-  virtual void updateViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList);
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
 
   // Access the fuzz from the axis we're using to enforce the BC.
   double etamin() const;
@@ -49,15 +48,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace BoundarySpace {
-    class AxisBoundaryRZ;
-  }
+  class AxisBoundaryRZ;
 }
 
 #endif

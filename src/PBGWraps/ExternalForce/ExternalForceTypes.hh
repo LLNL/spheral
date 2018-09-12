@@ -7,7 +7,6 @@
 #include "ExternalForce/LinearAcceleration.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -24,7 +23,6 @@ typedef LinearAcceleration<Dim<1> > LinearAcceleration1d;
 typedef LinearAcceleration<Dim<2> > LinearAcceleration2d;
 typedef LinearAcceleration<Dim<3> > LinearAcceleration3d;
 
-}
 }
 
 #endif

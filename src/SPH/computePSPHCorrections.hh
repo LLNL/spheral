@@ -7,33 +7,25 @@
 namespace Spheral {
 
   // Forward declarations.
-  namespace NeighborSpace {
-    template<typename Dimension> class ConnectivityMap;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
+  template<typename Dimension> class ConnectivityMap;
+  template<typename Dimension> class TableKernel;
+  template<typename Dimension, typename DataType> class FieldList;
 
-  namespace SPHSpace {
+  template<typename Dimension>
+  void
+  computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
+                         const TableKernel<Dimension>& W,
+                         const FieldList<Dimension, typename Dimension::Scalar>& mass,
+                         const FieldList<Dimension, typename Dimension::Vector>& position,
+                         const FieldList<Dimension, typename Dimension::Scalar>& specificThermalEnergy,
+                         const FieldList<Dimension, typename Dimension::Scalar>& gamma,
+                         const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                         const bool computeMassDensity,
+                         FieldList<Dimension, typename Dimension::Scalar>& PSPHmassDensity,
+                         FieldList<Dimension, typename Dimension::Scalar>& PSPHpbar,
+                         FieldList<Dimension, typename Dimension::Scalar>& PSPHsoundSpeed,
+                         FieldList<Dimension, typename Dimension::Scalar>& PSPHcorrection);
 
-    template<typename Dimension>
-    void
-    computePSPHCorrections(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                           const KernelSpace::TableKernel<Dimension>& W,
-                           const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
-                           const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                           const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& specificThermalEnergy,
-                           const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& gamma,
-                           const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                           const bool computeMassDensity,
-                           FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& PSPHmassDensity,
-                           FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& PSPHpbar,
-                           FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& PSPHsoundSpeed,
-                           FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& PSPHcorrection);
-  }
 }
 
 #endif

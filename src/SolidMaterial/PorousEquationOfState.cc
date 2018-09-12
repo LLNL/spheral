@@ -3,27 +3,22 @@
 // 
 // See header for references and such.
 //----------------------------------------------------------------------------//
-
 #include "PorousEquationOfState.hh"
 #include "Field/Field.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
-using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 PorousEquationOfState<Dimension>::
-PorousEquationOfState(const Material::EquationOfState<Dimension>& solidEOS):
-  Material::EquationOfState<Dimension>(solidEOS.constants(),
+PorousEquationOfState(const EquationOfState<Dimension>& solidEOS):
+  EquationOfState<Dimension>(solidEOS.constants(),
                                        solidEOS.minimumPressure(),
                                        solidEOS.maximumPressure(),
                                        solidEOS.minimumPressureType()),
@@ -218,7 +213,7 @@ PorousEquationOfState<Dimension>::valid() const {
 // Access the underlying solid EOS.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const Material::EquationOfState<Dimension>&
+const EquationOfState<Dimension>&
 PorousEquationOfState<Dimension>::
 solidEOS() const {
   return mSolidEOS;
@@ -228,7 +223,7 @@ solidEOS() const {
 // Access the alpha field.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 PorousEquationOfState<Dimension>::
 alpha() const {
   return *mAlphaPtr;
@@ -237,7 +232,7 @@ alpha() const {
 template<typename Dimension>
 void
 PorousEquationOfState<Dimension>::
-alpha(const FieldSpace::Field<Dimension, typename Dimension::Scalar>& x) {
+alpha(const Field<Dimension, typename Dimension::Scalar>& x) {
   mAlphaPtr = &x;
 }
 
@@ -276,5 +271,3 @@ c0(const typename Dimension::Scalar x) {
 }
 
 }
-}
-

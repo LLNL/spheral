@@ -13,20 +13,27 @@
 #include <iostream>
 #include <sstream>
 
-using namespace std;
-using Spheral::FileIOSpace::FileIO;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace DataOutput {
 
 //------------------------------------------------------------------------------
 // Weak pointers don't have operator==, so we have to provide something.
 //------------------------------------------------------------------------------
 template<typename T>
-struct CompareWeakPtr: public binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool> {
-  typedef typename binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::first_argument_type first_argument_type;
-  typedef typename binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::second_argument_type second_argument_type;
-  typedef typename binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::result_type result_type;
+struct CompareWeakPtr: public std::binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool> {
+  typedef typename std::binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::first_argument_type first_argument_type;
+  typedef typename std::binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::second_argument_type second_argument_type;
+  typedef typename std::binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::result_type result_type;
   result_type operator()(const std::weak_ptr<T> lhs,
                          const std::weak_ptr<T> rhs) const {
     return lhs.lock() == rhs.lock();
@@ -143,7 +150,7 @@ uniqueLabels() const {
        ++itr) {
     string l = itr->lock()->label();
     if (find(result.begin(), result.end(), l) != result.end()) {
-      stringstream newlabel;
+      std::stringstream newlabel;
       newlabel << l << "_" << counter;
       l = newlabel.str();
       ++counter;
@@ -212,9 +219,8 @@ RestartRegistrar::
 }
 
 }
-}
 
 //------------------------------------------------------------------------------
 // Initialize the static instance pointer.
 //-----------------------------------------------------------------------------
-Spheral::DataOutput::RestartRegistrar* Spheral::DataOutput::RestartRegistrar::mInstancePtr = 0;
+Spheral::RestartRegistrar* Spheral::RestartRegistrar::mInstancePtr = 0;

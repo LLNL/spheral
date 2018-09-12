@@ -12,31 +12,22 @@
 #define __Spheral_NodeListRegistrar__
 
 #include <string>
-
-#ifndef __GCCXML__
 #include <vector>
-#else
-#include "fakestl.hh"
-#endif
 
 namespace Spheral {
 
 // Forward decalarations.
-namespace NodeSpace {
-  template<typename Dimension> class NodeList;
-  template<typename Dimension> class FluidNodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension> class FieldBase;
-}
+template<typename Dimension> class NodeList;
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension> class FieldBase;
 
 template<typename Dimension>
 class NodeListRegistrar {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef std::vector<NodeSpace::NodeList<Dimension>*> ContainerType;
-  typedef std::vector<NodeSpace::FluidNodeList<Dimension>*> FluidContainerType;
+  typedef std::vector<NodeList<Dimension>*> ContainerType;
+  typedef std::vector<FluidNodeList<Dimension>*> FluidContainerType;
 
   typedef typename ContainerType::iterator iterator;
   typedef typename ContainerType::const_iterator const_iterator;
@@ -47,12 +38,12 @@ public:
   // Define a nested comparator class for comparing NodeLists by their names.
   class NodeListComparator {
   public:
-    int operator()(const NodeSpace::NodeList<Dimension>* nodeListPtr1,
-                   const NodeSpace::NodeList<Dimension>* nodeListPtr2) const {
+    int operator()(const NodeList<Dimension>* nodeListPtr1,
+                   const NodeList<Dimension>* nodeListPtr2) const {
       return nodeListPtr1->name() < nodeListPtr2->name();
     }
-    int operator()(const FieldSpace::FieldBase<Dimension>* fieldPtr1,
-                   const FieldSpace::FieldBase<Dimension>* fieldPtr2) const {
+    int operator()(const FieldBase<Dimension>* fieldPtr1,
+                   const FieldBase<Dimension>* fieldPtr2) const {
       return fieldPtr1->nodeListPtr()->name() < fieldPtr2->nodeListPtr()->name();
     }
   };
@@ -101,7 +92,6 @@ public:
 
 private:
   //--------------------------- Private Interface---------------------------//
-#ifndef __GCCXML__
   // The one and only instance.
   static NodeListRegistrar* mInstancePtr;
 
@@ -119,48 +109,45 @@ private:
   ~NodeListRegistrar();
 
   // Grant friendship to NodeLists to register and unregister themselves.
-  friend class NodeSpace::NodeList<Dimension>;
-  friend class NodeSpace::FluidNodeList<Dimension>;
-  void registerNodeList(NodeSpace::NodeList<Dimension>& nodeList);
-  void registerNodeList(NodeSpace::FluidNodeList<Dimension>& nodeList);
-  void unregisterNodeList(NodeSpace::NodeList<Dimension>& nodeList);
-  void unregisterNodeList(NodeSpace::FluidNodeList<Dimension>& nodeList);
+  friend class NodeList<Dimension>;
+  friend class FluidNodeList<Dimension>;
+  void registerNodeList(NodeList<Dimension>& nodeList);
+  void registerNodeList(FluidNodeList<Dimension>& nodeList);
+  void unregisterNodeList(NodeList<Dimension>& nodeList);
+  void unregisterNodeList(FluidNodeList<Dimension>& nodeList);
 
   // Helpers for findInsertionPoint that know how to extract a NodeList*
   // from the argument.
-  NodeSpace::NodeList<Dimension>* 
-  getNodeListPtr(NodeSpace::NodeList<Dimension>* thingy) const {
+  NodeList<Dimension>* 
+  getNodeListPtr(NodeList<Dimension>* thingy) const {
     return thingy;
   }
 
-  NodeSpace::NodeList<Dimension>* 
-  getNodeListPtr(const NodeSpace::NodeList<Dimension>* thingy) const {
-    return const_cast<NodeSpace::NodeList<Dimension>*>(thingy);
+  NodeList<Dimension>* 
+  getNodeListPtr(const NodeList<Dimension>* thingy) const {
+    return const_cast<NodeList<Dimension>*>(thingy);
   }
 
-  NodeSpace::NodeList<Dimension>* 
-  getNodeListPtr(NodeSpace::FluidNodeList<Dimension>* thingy) const {
-    return (NodeSpace::NodeList<Dimension>*) thingy;
+  NodeList<Dimension>* 
+  getNodeListPtr(FluidNodeList<Dimension>* thingy) const {
+    return (NodeList<Dimension>*) thingy;
   }
 
-  NodeSpace::NodeList<Dimension>* 
-  getNodeListPtr(FieldSpace::FieldBase<Dimension>* thingy) const {
-    return const_cast<NodeSpace::NodeList<Dimension>*>(thingy->nodeListPtr());
+  NodeList<Dimension>* 
+  getNodeListPtr(FieldBase<Dimension>* thingy) const {
+    return const_cast<NodeList<Dimension>*>(thingy->nodeListPtr());
   }
 
-  NodeSpace::NodeList<Dimension>* 
-  getNodeListPtr(const FieldSpace::FieldBase<Dimension>* thingy) const {
-    return const_cast<NodeSpace::NodeList<Dimension>*>(thingy->nodeListPtr());
+  NodeList<Dimension>* 
+  getNodeListPtr(const FieldBase<Dimension>* thingy) const {
+    return const_cast<NodeList<Dimension>*>(thingy->nodeListPtr());
   }
-#endif
 
 };
 
 }
 
-#ifndef __GCCXML__
 #include "NodeListRegistrarInline.hh"
-#endif
 
 #else
 

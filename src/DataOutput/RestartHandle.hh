@@ -12,21 +12,14 @@
 #ifndef __Spheral_RestartHandle__
 #define __Spheral_RestartHandle__
 
-#ifndef __GCCXML__
 #include <string>
-#else
-#include "fakestl.hh"
-#endif
 
 // Forward declarations.
 namespace Spheral {
-  namespace FileIOSpace {
-    class FileIO;
-  }
+  class FileIO;
 }
 
 namespace Spheral {
-namespace DataOutput {
 
 class RestartHandle {
 public:
@@ -41,10 +34,10 @@ public:
   // Methods all restartable objects must provide.
   //******************************************************************************
   // Dump the objects state to the given file.
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const = 0;
+  virtual void dumpState(FileIO& file, const std::string& pathName) const = 0;
 
   // Restore state from the given file.
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName) const = 0;
+  virtual void restoreState(const FileIO& file, const std::string& pathName) const = 0;
 
   // Provide a label for the object type to use when writing to the file.
   virtual std::string label() const = 0;
@@ -55,15 +48,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
-namespace Spheral{
-  namespace DataOutput {
-    class RestartHandle;
-  }
+namespace Spheral {
+  class RestartHandle;
 }
 
 #endif

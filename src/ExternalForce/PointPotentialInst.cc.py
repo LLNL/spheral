@@ -6,8 +6,6 @@ text = """
 #include "ExternalForce/PointPotential.cc"
 
 namespace Spheral {
-  namespace PhysicsSpace {
-    template class PointPotential< Dim< %(ndim)s > >;
-  }
+  template class PointPotential< Dim< %(ndim)s > >;
 }
 """

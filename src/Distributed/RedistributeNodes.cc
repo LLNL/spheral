@@ -4,14 +4,6 @@
 //
 // Created by JMO, Tue Feb  4 14:23:11 PST 2003
 //----------------------------------------------------------------------------//
-
-#include "mpi.h"
-
-#include <algorithm>
-#include <vector>
-#include <list>
-#include <sstream>
-
 #include "RedistributeNodes.hh"
 #include "DomainNode.hh"
 #include "DataBase/DataBase.hh"
@@ -26,15 +18,25 @@
 
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-namespace PartitionSpace {
+#include "mpi.h"
 
-using namespace std;
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
+#include <algorithm>
+#include <vector>
+#include <list>
+#include <sstream>
+using std::vector;
+using std::list;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Default constructor
@@ -66,7 +68,7 @@ numGlobalNodes(const DataBase<Dimension>& dataBase) const {
   for (ItrType itr = dataBase.nodeListBegin();
        itr < dataBase.nodeListEnd();
        ++itr) {
-    result += NodeSpace::numGlobalNodes(**itr);
+    result += Spheral::numGlobalNodes(**itr);
   }
   return result;
 }
@@ -92,7 +94,7 @@ template<typename Dimension>
 vector<DomainNode<Dimension> >
 RedistributeNodes<Dimension>::
 currentDomainDecomposition(const DataBase<Dimension>& dataBase,
-                           const FieldSpace::FieldList<Dimension, int>& globalNodeIDs,
+                           const FieldList<Dimension, int>& globalNodeIDs,
                            const FieldList<Dimension, Scalar>& workPerNode) const {
 
   // Pre-conditions.
@@ -151,6 +153,9 @@ void
 RedistributeNodes<Dimension>::
 enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistribution,
                            DataBase<Dimension>& dataBase) const {
+
+  // Notify everyone before we start redistributing.
+  RedistributionRegistrar::instance().preRedistributionNotifications();
 
   REQUIRE(validDomainDecomposition(nodeDistribution, dataBase));
   typedef typename DataBase<Dimension>::ConstNodeListIterator NodeListIterator;
@@ -826,7 +831,7 @@ gatherDomainDistributionStatistics(const FieldList<Dimension, typename Dimension
   globalAvgWork /= numProcs;
 
   // Build a string with the result.
-  stringstream result;
+  std::stringstream result;
   result << "    (min, max, avg) nodes per domain: ("
          << globalMinNodes << ", "
          << globalMaxNodes << ", "
@@ -834,10 +839,9 @@ gatherDomainDistributionStatistics(const FieldList<Dimension, typename Dimension
          << "    (min, max, avg) work per domain : ("
          << globalMinWork << ", "
          << globalMaxWork << ", "
-         << globalAvgWork << ")" << ends;
+         << globalAvgWork << ")" << std::ends;
   return result.str();
 }
 
-}
 }
 

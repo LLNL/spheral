@@ -4,8 +4,6 @@
 //
 // Created by JMO, Tue Oct 30 15:42:41 PDT 2007
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
 #include "OmegaGradhPolicy.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "NodeList/NodeList.hh"
@@ -21,17 +19,10 @@
 #include "Utilities/DBC.hh"
 #include "Kernel/TableKernel.hh"
 
+#include <algorithm>
+
 namespace Spheral {
 
-using namespace std;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using DataBaseSpace::DataBase;
-using NeighborSpace::ConnectivityMap;
-using BoundarySpace::Boundary;
 
 //------------------------------------------------------------------------------
 // Constructor.

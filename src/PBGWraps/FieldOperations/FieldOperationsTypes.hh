@@ -9,7 +9,6 @@
 #include "FieldOperations/binFieldList2Lattice.hh"
 
 namespace Spheral {
-namespace FieldSpace {
 
 //------------------------------------------------------------------------------
 // Disambiguate the binFields methods.
@@ -18,14 +17,13 @@ template<typename Dimension, typename Value>
 inline
 std::vector<Value>
 binFieldList2LatticeWithSmoothing(const FieldList<Dimension, Value>& fieldList,
-                                  const KernelSpace::TableKernel<Dimension>& W,
+                                  const TableKernel<Dimension>& W,
                                   const typename Dimension::Vector& xmin,
                                   const typename Dimension::Vector& xmax,
                                   const std::vector<unsigned>& nsample) {
   return binFieldList2Lattice(fieldList, W, xmin, xmax, nsample);
 }
 
-}
 }
 
 #endif

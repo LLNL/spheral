@@ -14,7 +14,6 @@
 #include "MonaghanGingoldViscosity.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 class MonaghanGingoldViscosityRZ: public MonaghanGingoldViscosity<Dim<2> > {
 public:
@@ -59,15 +58,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace ArtificialViscositySpace {
-    class MonaghanGingoldViscosityRZ;
-  }
+  class MonaghanGingoldViscosityRZ;
 }
 
 #endif

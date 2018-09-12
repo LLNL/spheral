@@ -16,6 +16,15 @@
 #include "Utilities/pointInPolyhedron.hh"
 #include "Utilities/safeInv.hh"
 
+#include <vector>
+#include <map>
+using std::vector;
+using std::map;
+using std::pair;
+using std::make_pair;
+using std::min;
+using std::max;
+
 extern "C" {
 #include "libqhull/qhull_a.h"
 }
@@ -38,7 +47,6 @@ extern Timer TIME_Polyhedron_convex;
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -628,7 +636,7 @@ unsigned
 GeomPolyhedron::
 closestFacet(const GeomPolyhedron::Vector& p) const {
   unsigned result = 0;
-  double r2, minr2 = numeric_limits<double>::max();
+  double r2, minr2 = std::numeric_limits<double>::max();
   Vector thpt;
   for (unsigned i = 0; i != mFacets.size(); ++i) {
     thpt = mFacets[i].closestPoint(p);
@@ -799,7 +807,7 @@ setBoundingBox() {
 
   TIME_Polyhedron_BB_R2.start();
   if (pointInPolyhedron(mCentroid, *this, false, 1.0e-10)) {
-    mRinterior2 = numeric_limits<double>::max();
+    mRinterior2 = std::numeric_limits<double>::max();
     for (const auto& facet: mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
     mRinterior2 = FastMath::square(mRinterior2);
   } else {
@@ -835,7 +843,7 @@ convex(const double tol) const {
 //------------------------------------------------------------------------------
 // ostream operator.
 //------------------------------------------------------------------------------
-ostream& operator<<(ostream& os, const GeomPolyhedron& polyhedron) {
+std::ostream& operator<<(std::ostream& os, const GeomPolyhedron& polyhedron) {
   typedef GeomPolyhedron::Vector Vector;
   typedef GeomPolyhedron::Facet Facet;
   const vector<Vector>& vertices = polyhedron.vertices();
@@ -845,7 +853,7 @@ ostream& operator<<(ostream& os, const GeomPolyhedron& polyhedron) {
   os << "            ]\n           facets[\n";
   for (size_t i = 0; i != facetIndices.size(); ++i) {
     os << "                    " << i << " [";
-    std::copy(facetIndices[i].begin(), facetIndices[i].end(), ostream_iterator<unsigned>(os, " "));
+    std::copy(facetIndices[i].begin(), facetIndices[i].end(), std::ostream_iterator<unsigned>(os, " "));
     os << "]\n";
   }
   os << "])\n";

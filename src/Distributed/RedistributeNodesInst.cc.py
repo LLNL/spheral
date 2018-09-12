@@ -6,9 +6,7 @@ text = """
 #include "Distributed/RedistributeNodes.cc"
 
 namespace Spheral {
-  namespace PartitionSpace {
-    template class RedistributeNodes< Dim< %(ndim)s > >;
-  }
+  template class RedistributeNodes< Dim< %(ndim)s > >;
 }
 
 """

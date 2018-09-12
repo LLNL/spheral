@@ -20,10 +20,9 @@ class Strength:
         mod.add_include('"%s/StrengthTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("SolidMaterial")
+        space = mod.add_cpp_namespace("Spheral")
 
-        self.SolidFieldNames = addObject(Spheral, "SolidFieldNames")
+        self.SolidFieldNames = addObject(space, "SolidFieldNames")
 
         return
 
@@ -35,12 +34,6 @@ class Strength:
         self.generateSolidFieldNamesBindings(self.SolidFieldNames)
 
         return
-
-    #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return ["SolidMaterial"]
 
     #---------------------------------------------------------------------------
     # Bindings (SolidFieldNames).

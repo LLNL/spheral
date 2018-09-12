@@ -1,6 +1,3 @@
-#include <vector>
-#include <algorithm>
-
 #include "computeFragmentField.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/NodeList.hh"
@@ -10,12 +7,20 @@
 #include "Geometry/Dimension.hh"
 #include "Distributed/Communicator.hh"
 
-namespace Spheral {
+#include <vector>
+#include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using FieldSpace::Field;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Reduce a container to it's unique elements.
@@ -106,7 +111,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
 
   // Figure out how many elements are in a symmetric tensor.
   SymTensor Hthpt;
-  const int Hsize = distance(Hthpt.begin(), Hthpt.end());
+  const int Hsize = std::distance(Hthpt.begin(), Hthpt.end());
 
   // Grab the state.
   const Field<Dimension, Scalar>& m = nodes.mass();
@@ -115,19 +120,19 @@ computeFragmentField(const NodeList<Dimension>& nodes,
   Neighbor<Dimension>& neighbor = nodes.neighbor();
 
   // Get the total number of nodes, and the global IDs on this domain.
-  int numGlobalNodesRemaining = NodeSpace::numGlobalNodes(nodes);
-  vector<int> globalNodeIDs;
+  int numGlobalNodesRemaining = numGlobalNodes(nodes);
+  vector<int> gIDs;
   {
-    Field<Dimension, int> globalNodeField = NodeSpace::globalNodeIDs(nodes);
+    Field<Dimension, int> globalNodeField = globalNodeIDs(nodes);
     copy(globalNodeField.begin(), 
          globalNodeField.begin() + nodes.numInternalNodes(),
-         back_inserter(globalNodeIDs));
+         back_inserter(gIDs));
   }
-  vector<int> globalNodesRemaining(globalNodeIDs);
-  const vector<int>::iterator maxGlobalItr = max_element(globalNodeIDs.begin(), 
-                                                         globalNodeIDs.end());
+  vector<int> globalNodesRemaining(gIDs);
+  const vector<int>::iterator maxGlobalItr = max_element(gIDs.begin(), 
+                                                         gIDs.end());
   int maxGlobalID = 0;
-  if (maxGlobalItr != globalNodeIDs.end()) maxGlobalID = *maxGlobalItr;
+  if (maxGlobalItr != gIDs.end()) maxGlobalID = *maxGlobalItr;
 #ifdef USE_MPI
   {
     int tmp = maxGlobalID;
@@ -150,7 +155,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
       ++numDustNodes;
       vector<int>::iterator removeItr = find(globalNodesRemaining.begin(),
                                              globalNodesRemaining.end(),
-                                             globalNodeIDs[i]);
+                                             gIDs[i]);
       CHECK(removeItr != globalNodesRemaining.end());
       globalNodesRemaining.erase(removeItr);
     }
@@ -193,10 +198,10 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     int ilocal = globalMinID;
     bool localNode = true;
 #ifdef USE_MPI
-    const vector<int>::iterator ilocalItr = find(globalNodeIDs.begin(),
-                                                 globalNodeIDs.end(),
+    const vector<int>::iterator ilocalItr = find(gIDs.begin(),
+                                                 gIDs.end(),
                                                  globalMinID);
-    localNode = (ilocalItr != globalNodeIDs.end());
+    localNode = (ilocalItr != gIDs.end());
     BEGIN_CONTRACT_SCOPE
     {
       int tmp = localNode ? 1 : 0;
@@ -207,8 +212,8 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     END_CONTRACT_SCOPE
     int tmp = numProcs;
     if (localNode) {
-      CHECK(ilocalItr != globalNodeIDs.end());
-      ilocal = distance(globalNodeIDs.begin(), ilocalItr);
+      CHECK(ilocalItr != gIDs.end());
+      ilocal = distance(gIDs.begin(), ilocalItr);
       tmp = procID;
       CHECK(result(ilocal) == maxGlobalID);
     }
@@ -309,7 +314,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
          ++itr) {
       vector<int>::iterator removeItr = find(globalNodesRemaining.begin(),
                                              globalNodesRemaining.end(),
-                                             globalNodeIDs[*itr]);
+                                             gIDs[*itr]);
       if (removeItr != globalNodesRemaining.end())
         globalNodesRemaining.erase(removeItr);
     }
@@ -329,7 +334,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
            ++itr) {
         CHECK(find(globalNodesRemaining.begin(),
                    globalNodesRemaining.end(),
-                   globalNodeIDs[*itr]) == globalNodesRemaining.end());
+                   gIDs[*itr]) == globalNodesRemaining.end());
       }
     }
     END_CONTRACT_SCOPE

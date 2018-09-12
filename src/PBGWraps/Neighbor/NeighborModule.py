@@ -21,14 +21,13 @@ class Neighbor:
         mod.add_include('"%s/NeighborTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("NeighborSpace")
+        space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
-        self.NeighborSearchType = space.add_enum("NeighborSearchType", [("None", "Spheral::NeighborSpace::NeighborSearchType::None"),
-                                                                        ("Gather", "Spheral::NeighborSpace::NeighborSearchType::Gather"),
-                                                                        ("Scatter", "Spheral::NeighborSpace::NeighborSearchType::Scatter"),
-                                                                        ("GatherScatter", "Spheral::NeighborSpace::NeighborSearchType::GatherScatter")])
+        self.NeighborSearchType = space.add_enum("NeighborSearchType", [("None", "Spheral::NeighborSearchType::None"),
+                                                                        ("Gather", "Spheral::NeighborSearchType::Gather"),
+                                                                        ("Scatter", "Spheral::NeighborSearchType::Scatter"),
+                                                                        ("GatherScatter", "Spheral::NeighborSearchType::GatherScatter")])
 
         for ndim in self.dims:
             exec("""
@@ -57,17 +56,11 @@ self.generateNeighborBindings(self.Neighbor%(ndim)id, %(ndim)i)
 self.generateNestedGridNeighborBindings(self.NestedGridNeighbor%(ndim)id, %(ndim)i)
 self.generateTreeNeighborBindings(self.TreeNeighbor%(ndim)id, %(ndim)i)
 self.generateConnectivityMapBindings(self.ConnectivityMap%(ndim)id, %(ndim)i)
-generateStdVectorBindings(self.vector_of_GridCellIndex%(ndim)id, "Spheral::NeighborSpace::GridCellIndex%(ndim)id", "vector_of_GridCellIndex%(ndim)id", indexAsPointer=True)
+generateStdVectorBindings(self.vector_of_GridCellIndex%(ndim)id, "Spheral::GridCellIndex%(ndim)id", "vector_of_GridCellIndex%(ndim)id", indexAsPointer=True)
 generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vector_of_GridCellIndex%(ndim)id", "vector_of_vector_of_GridCellIndex%(ndim)id", indexAsPointer=True)
 """ % {"ndim" : ndim})
 
         return
-
-    #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return ["NeighborSpace"]
 
     #---------------------------------------------------------------------------
     # GridCellIndex
@@ -75,8 +68,8 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
     def generateGridCellIndexBindings(self, x, ndim):
 
         # Objects.
-        me = "Spheral::NeighborSpace::GridCellIndex%id" % ndim
-        gridcellplane = "Spheral::NeighborSpace::GridCellPlane%id" % ndim
+        me = "Spheral::GridCellIndex%id" % ndim
+        gridcellplane = "Spheral::GridCellPlane%id" % ndim
 
         # Constructors.
         x.add_constructor([])
@@ -141,8 +134,8 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
     def generateGridCellPlaneBindings(self, x, ndim):
 
         # Objects.
-        me = "Spheral::NeighborSpace::GridCellPlane%id" % ndim
-        gridcellindex = "Spheral::NeighborSpace::GridCellIndex%id" % ndim
+        me = "Spheral::GridCellPlane%id" % ndim
+        gridcellindex = "Spheral::GridCellIndex%id" % ndim
 
         # Constructors.
         x.add_constructor([])
@@ -176,16 +169,16 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
     def generateNeighborBindings(self, x, ndim):
 
         # Objects.
-        me = "Spheral::NeighborSpace::Neighbor%id" % ndim
+        me = "Spheral::Neighbor%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
-        gridcellplane = "Spheral::NeighborSpace::GridCellPlane%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        gridcellplane = "Spheral::GridCellPlane%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
         plane = "Plane%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
 
         # Constructors.
         x.add_constructor([refparam(nodelist, "nodeList"), 
@@ -236,14 +229,14 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
 
         # Objects.
         dim = "Spheral::Dim<%i>" % ndim
-        gridcellplane = "Spheral::NeighborSpace::GridCellPlane%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        gridcellplane = "Spheral::GridCellPlane%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
         plane = "Plane%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
 
         # Methods.
         x.add_method("setMasterList", None, [constrefparam(vector, "position"), constrefparam("double", "H"),
@@ -278,23 +271,23 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
     def generateNestedGridNeighborBindings(self, x, ndim):
 
         # Objects.
-        me = "Spheral::NeighborSpace::NestedGridNeighbor%id" % ndim
+        me = "Spheral::NestedGridNeighbor%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
-        gridcellplane = "Spheral::NeighborSpace::GridCellPlane%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        gridcellplane = "Spheral::GridCellPlane%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
         plane = "Plane%id" % ndim
-        gridcellindex = "Spheral::NeighborSpace::GridCellIndex%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
+        gridcellindex = "Spheral::GridCellIndex%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
         vector_of_gridcell = "vector_of_GridCellIndex%id" % ndim
         vector_of_vector_of_gridcell = "vector_of_vector_of_GridCellIndex%id" % ndim
 
         # Constructors.
         x.add_constructor([refparam(nodelist, "nodeList"),
-                           param("NeighborSearchType", "searchType", default_value="Spheral::NeighborSpace::NeighborSearchType::GatherScatter"),
+                           param("NeighborSearchType", "searchType", default_value="Spheral::NeighborSearchType::GatherScatter"),
                            param("int", "numGridLevels", default_value="31"),
                            param("double", "topGridCellSize", default_value="100.0"),
                            param(vector, "origin", default_value="%s()" % vector),
@@ -362,15 +355,15 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
     def generateTreeNeighborBindings(self, x, ndim):
 
         # Objects.
-        me = "Spheral::NeighborSpace::TreeNeighbor%id" % ndim
+        me = "Spheral::TreeNeighbor%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
         plane = "Plane%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
 
         # Constructors.
         x.add_constructor([refparam(nodelist, "nodeList"),
@@ -402,13 +395,13 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
     def generateConnectivityMapBindings(self, x, ndim):
 
         # Objects.
-        me = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        me = "Spheral::ConnectivityMap%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
-        gridcellindex = "Spheral::NeighborSpace::GridCellIndex%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
-        fluidnodelist = "Spheral::NodeSpace::FluidNodeList%id" % ndim
+        gridcellindex = "Spheral::GridCellIndex%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
+        fluidnodelist = "Spheral::FluidNodeList%id" % ndim
         vector_of_const_nodelist = "vector_of_const_nodelist%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
 
         # Constructor.
         x.add_constructor([])

@@ -12,8 +12,7 @@
 #include <algorithm>
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
-using namespace std;
+
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -23,7 +22,7 @@ GradPressureViscosity<Dimension>::
 GradPressureViscosity():
   ArtificialViscosity<Dimension>(),
   mKernelPtr(0),
-  mWeight(FieldSpace::FieldStorageType::ReferenceFields) {
+  mWeight(FieldStorageType::ReferenceFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -34,7 +33,7 @@ GradPressureViscosity<Dimension>::
 GradPressureViscosity(Scalar Clinear, Scalar Cquadratic):
   ArtificialViscosity<Dimension>(Clinear, Cquadratic),
   mKernelPtr(0),
-  mWeight(FieldSpace::FieldStorageType::ReferenceFields) {
+  mWeight(FieldStorageType::ReferenceFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -186,16 +185,13 @@ viscousEffects(typename Dimension::Vector& acceleration,
 }
 
 }
-}
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 namespace Spheral {
-namespace ArtificialViscositySpace {
-template class GradPressureViscosity< Dim<1> >;
-template class GradPressureViscosity< Dim<2> >;
-template class GradPressureViscosity< Dim<3> >;
-}
+  template class GradPressureViscosity< Dim<1> >;
+  template class GradPressureViscosity< Dim<2> >;
+  template class GradPressureViscosity< Dim<3> >;
 }

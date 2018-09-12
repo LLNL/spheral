@@ -6,7 +6,7 @@
 #ifndef __Spheral_outerProduct_hh__
 #define __Spheral_outerProduct_hh__
 
-namespace Geometry {
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Outer product with a scalar, just return the scalar times the elements.

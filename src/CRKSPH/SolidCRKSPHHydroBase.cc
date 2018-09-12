@@ -51,23 +51,18 @@
 #include <fstream>
 #include <map>
 #include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace CRKSPHSpace {
-
-using namespace std;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NodeSpace::SolidNodeList;
-using SolidMaterial::SolidEquationOfState;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // Compute the artificial tensile stress correction tensor for the given 
@@ -124,10 +119,10 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                      const bool compatibleEnergyEvolution,
                      const bool evolveTotalEnergy,
                      const bool XSPH,
-                     const PhysicsSpace::MassDensityType densityUpdate,
-                     const PhysicsSpace::HEvolutionType HUpdate,
-                     const CRKSPHSpace::CRKOrder correctionOrder,
-                     const CRKSPHSpace::CRKVolumeType volumeType,
+                     const MassDensityType densityUpdate,
+                     const HEvolutionType HUpdate,
+                     const CRKOrder correctionOrder,
+                     const CRKVolumeType volumeType,
                      const double epsTensile,
                      const double nTensile,
                      const bool damageRelieveRubble):
@@ -148,14 +143,14 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                              epsTensile,
                              nTensile),
   mDamageRelieveRubble(damageRelieveRubble),
-  mDdeviatoricStressDt(FieldSpace::FieldStorageType::CopyFields),
-  mBulkModulus(FieldSpace::FieldStorageType::CopyFields),
-  mShearModulus(FieldSpace::FieldStorageType::CopyFields),
-  mYieldStrength(FieldSpace::FieldStorageType::CopyFields),
-  mPlasticStrain0(FieldSpace::FieldStorageType::CopyFields),
-  mHfield0(FieldSpace::FieldStorageType::CopyFields),
-  mFragIDs(FieldSpace::FieldStorageType::ReferenceFields),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mDdeviatoricStressDt(FieldStorageType::CopyFields),
+  mBulkModulus(FieldStorageType::CopyFields),
+  mShearModulus(FieldStorageType::CopyFields),
+  mYieldStrength(FieldStorageType::CopyFields),
+  mPlasticStrain0(FieldStorageType::CopyFields),
+  mHfield0(FieldStorageType::CopyFields),
+  mFragIDs(FieldStorageType::ReferenceFields),
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -389,6 +384,5 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mFragIDs, pathName + "/fragIDs");
 }
 
-}
 }
 

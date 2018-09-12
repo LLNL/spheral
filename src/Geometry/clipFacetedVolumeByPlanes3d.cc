@@ -48,7 +48,6 @@ extern Timer   TIME_convertto_constructor;
 
 namespace Spheral {
 
-using namespace std;
 
 namespace {
 

@@ -9,12 +9,10 @@
 
 namespace Spheral {
 
-namespace FVPMSpace {
-
 //-------------------------------------------------------------------
 template <typename Dimension>
 QuadRule<Dimension>::
-QuadRule(const KernelSpace::TableKernel<Dimension>& W):
+QuadRule(const TableKernel<Dimension>& W):
   mW(W)
 {
 }
@@ -30,5 +28,3 @@ QuadRule<Dimension>::
 //-------------------------------------------------------------------
 
 }
-}
-

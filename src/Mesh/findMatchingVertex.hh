@@ -1,8 +1,7 @@
-#include <vector>
 #include "Geometry/Dimension.hh"
+#include <vector>
 
 namespace Spheral {
-namespace MeshSpace {
 
 //------------------------------------------------------------------------------
 // Find the the matching vertex between two lists (assumed to be in opposite 
@@ -42,5 +41,4 @@ findMatchingVertex(const Vector& target,
                    const std::vector<Vector>& verticesj,
                    const std::vector<unsigned>& indicesj);
 
-}
 }

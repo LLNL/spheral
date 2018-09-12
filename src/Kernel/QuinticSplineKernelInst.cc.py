@@ -9,9 +9,7 @@ text = """
 //----------------------------------------------------------------------------//
 #include "Kernel/QuinticSplineKernel.cc"
 
-
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Empty constructor
@@ -58,6 +56,5 @@ text += """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 template class QuinticSplineKernel< Dim< %(ndim)s >  >;
-}
 }
 """

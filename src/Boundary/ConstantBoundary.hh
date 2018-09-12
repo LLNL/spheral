@@ -15,21 +15,13 @@
 #include "DataBase/StateBase.hh" // For constructing Field keys.
 
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace FieldSpace {
-    template<typename Dimension> class FieldBase;
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-}
 
-namespace Spheral {
-namespace BoundarySpace {
+// Forward declarations.
+template<typename Dimension> class NodeList;
+template<typename Dimension> class FieldBase;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class DataBase;
 
 template<typename Dimension>
 class ConstantBoundary: public Boundary<Dimension> {
@@ -44,7 +36,7 @@ public:
   typedef typename StateBase<Dimension>::KeyType KeyType;
 
   // Constructors and destructors.
-  ConstantBoundary(NodeSpace::NodeList<Dimension>& nodeList,
+  ConstantBoundary(NodeList<Dimension>& nodeList,
                    const std::vector<int>& nodeIDs,
                    const GeomPlane<Dimension>& denialPlane);
   virtual ~ConstantBoundary();
@@ -52,37 +44,37 @@ public:
   //**********************************************************************
   // All Boundary conditions must provide the following methods:
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void setGhostNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void setGhostNodes(NodeList<Dimension>& nodeList);
 
   // For the computed set of ghost nodes, set the positions and H's.
-  virtual void updateGhostNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void updateGhostNodes(NodeList<Dimension>& nodeList);
 
   // Apply the boundary condition to the ghost node values in the given Field.
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, int>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, int>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const;
 
   // Find any internal nodes that are in violation of this Boundary.
-  virtual void setViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList);
 
   // For the computed set of nodes in violation of the boundary, bring them
   // back into compliance (for the positions and H's.)
-  virtual void updateViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
 
   // Apply the boundary condition to the violation node values in the given Field.
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, int>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, int>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Vector>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const;
   //**********************************************************************
 
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Scalar>>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Vector>>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, std::vector<Vector>>& field) const;
 
   // After physics have been initialized we take a snapshot of the node state.
   virtual void initializeProblemStartup();
@@ -93,21 +85,21 @@ public:
   // Accessor methods.
   std::vector<int> nodeIndices() const;
   int numConstantNodes() const;
-  const NodeSpace::NodeList<Dimension>& nodeList() const;
+  const NodeList<Dimension>& nodeList() const;
   Tensor reflectOperator() const;
 
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const;
-  virtual void dumpState(FileIOSpace::FileIO& file, std::string pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
+  virtual void dumpState(FileIO& file, std::string pathName) const;
+  virtual void restoreState(const FileIO& file, std::string pathName);
   //****************************************************************************
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  NodeSpace::NodeList<Dimension>* mNodeListPtr;
+  NodeList<Dimension>* mNodeListPtr;
   int mBoundaryCount;
-  FieldSpace::Field<Dimension, int> mNodeFlags;
+  Field<Dimension, int> mNodeFlags;
   int mNumConstantNodes;
   GeomPlane<Dimension> mDenialPlane;
   Tensor mReflectOperator;
@@ -132,14 +124,13 @@ private:
   VectorVectorStorageType mVectorVectorValues;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // No default or copy constructors.
   ConstantBoundary();
   ConstantBoundary(ConstantBoundary&);
 };
 
-}
 }
 
 #include "ConstantBoundaryInline.hh"
@@ -148,9 +139,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  namespace ConstantBoundarySpace {
-    template<typename Dimension> class ConstantBoundary;
-  }
+  template<typename Dimension> class ConstantBoundary;
 }
 
 #endif

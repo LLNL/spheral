@@ -22,9 +22,14 @@
 
 #include <list>
 #include <map>
+#include <set>
 #include <iostream>
 #include <iterator>
 #include <algorithm>
+using std::vector;
+using std::list;
+using std::map;
+using std::set;
 
 // Declare the timers.
 extern Timer TIME_PC2d_convertto;
@@ -40,7 +45,6 @@ extern Timer TIME_PC2d_collapseDegenerates;
 
 namespace PolyClipper {
 
-using namespace std;
 
 namespace {    // anonymous methods
 
@@ -225,7 +229,7 @@ initializePolygon(Polygon& poly,
 //------------------------------------------------------------------------------
 std::string
 polygon2string(const Polygon& poly) {
-  ostringstream s;
+  std::ostringstream s;
 
   // Numbers of vertices.
   const auto nverts = poly.size();

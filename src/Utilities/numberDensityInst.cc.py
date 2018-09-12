@@ -7,7 +7,7 @@ text = """
 
 namespace Spheral {
 
-  template FieldSpace::FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar> numberDensity<Dim< %(ndim)s > >(const DataBaseSpace::DataBase<Dim< %(ndim)s > >& dataBase, const KernelSpace::TableKernel<Dim< %(ndim)s > >& W);
+  template FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar> numberDensity<Dim< %(ndim)s > >(const DataBase<Dim< %(ndim)s > >& dataBase, const TableKernel<Dim< %(ndim)s > >& W);
 
 }
 """

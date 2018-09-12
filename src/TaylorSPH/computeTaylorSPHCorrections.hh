@@ -6,28 +6,20 @@
 
 namespace Spheral {
 
-  // Forward declarations.
-  namespace NeighborSpace {
-    template<typename Dimension> class ConnectivityMap;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
+// Forward declarations.
+template<typename Dimension> class ConnectivityMap;
+template<typename Dimension> class TableKernel;
+template<typename Dimension, typename DataType> class FieldList;
 
-  namespace TaylorSPHSpace {
+template<typename Dimension>
+void
+computeTaylorSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
+                       const TableKernel<Dimension>& W,
+                       const FieldList<Dimension, typename Dimension::Scalar>& weight,
+                       const FieldList<Dimension, typename Dimension::Vector>& position,
+                       const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                       FieldList<Dimension, typename Dimension::Tensor>& D);
 
-    template<typename Dimension>
-    void
-    computeTaylorSPHCorrections(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                           const KernelSpace::TableKernel<Dimension>& W,
-                           const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
-                           const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                           const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                           FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& D);
-  }
 }
 
 #endif

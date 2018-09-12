@@ -27,9 +27,7 @@ namespace Spheral {
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 
-namespace MHDSpace {
-
-class MHD: public PhysicsSpace::Physics<Dim<3> > {
+class MHD: public Physics<Dim<3> > {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef Dim<3>::Scalar Scalar;
@@ -37,8 +35,8 @@ public:
   typedef Dim<3>::Tensor Tensor;
   typedef Dim<3>::SymTensor SymTensor;
 
-  typedef PhysicsSpace::Physics<Dim<3> >::TimeStepType TimeStepType;
-  typedef PhysicsSpace::Physics<Dim<3> >::ConstBoundaryIterator ConstBoundaryIterator;
+  typedef Physics<Dim<3> >::TimeStepType TimeStepType;
+  typedef Physics<Dim<3> >::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Options for evolving the specific thermal energy.
   enum SpecificThermalEnergyType {
@@ -74,7 +72,7 @@ public:
   //! \param W The kernel used to compute SPH interpolants.
   //! \param mu0 The permeability of free space in vacuum.
   //! \param implicitness The degree of implicitness to use (0 to 1.0) in treating magnetic diffusion.  Defaults to 0.5.
-  MHD(const KernelSpace::TableKernel<Dim<3> >& W,
+  MHD(const TableKernel<Dim<3> >& W,
       double mu0,
       double implicitness = 0.5);
 
@@ -85,18 +83,18 @@ public:
   virtual 
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dim<3> >& dataBase,
+                           const DataBase<Dim<3> >& dataBase,
                            const State<Dim<3> >& state,
                            StateDerivatives<Dim<3> >& derivs) const;
 
   //! Register the state for MHD.
   virtual 
-  void registerState(DataBaseSpace::DataBase<Dim<3> >& dataBase,
+  void registerState(DataBase<Dim<3> >& dataBase,
                      State<Dim<3> >& state);
 
   // Register the derivatives/change fields for updating state.
   virtual
-  void registerDerivatives(DataBaseSpace::DataBase<Dim<3> >& dataBase,
+  void registerDerivatives(DataBase<Dim<3> >& dataBase,
                            StateDerivatives<Dim<3> >& derivs);
 
   // Apply boundary conditions to the fields.
@@ -108,7 +106,7 @@ public:
                                  StateDerivatives<Dim<3> >& derivs);
 
   //! Vote on the timestep.  This uses a velocity-limiting rule.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dim<3> >& dataBase, 
+  virtual TimeStepType dt(const DataBase<Dim<3> >& dataBase, 
                           const State<Dim<3> >& state,
                           const StateDerivatives<Dim<3> >& derivs,
                           const Scalar currentTime) const;
@@ -116,20 +114,20 @@ public:
   //! Pre-step work.
   virtual void initialize(const Scalar& time, 
                           const Scalar& dt,
-                          const DataBaseSpace::DataBase<Dim<3> >& db, 
+                          const DataBase<Dim<3> >& db, 
                           State<Dim<3> >& state,
                           StateDerivatives<Dim<3> >& derivs);
 
   //! Post-step work.
   virtual void finalize(const Scalar time, 
                         const Scalar dt,
-                        DataBaseSpace::DataBase<Dim<3> >& db, 
+                        DataBase<Dim<3> >& db, 
                         State<Dim<3> >& state,
                         StateDerivatives<Dim<3> >& derivs);
 
   // This method performs work after each stage of integration.  In particular, 
   // any magnetic divergence cleaning we do goes here. 
-  void postStateUpdate(const DataBaseSpace::DataBase<Dim<3> >& db, 
+  void postStateUpdate(const DataBase<Dim<3> >& db, 
                        State<Dim<3> >& state,
                        const StateDerivatives<Dim<3> >& derivatives) const;
 
@@ -206,7 +204,7 @@ private:
 
 #ifndef __GCCXML__
   //! SPH kernel.
-  const KernelSpace::TableKernel<Dim<3> >& mKernel;
+  const TableKernel<Dim<3> >& mKernel;
 
   //! Vector factory.
   mutable PyObject* mVecFactory;
@@ -228,7 +226,7 @@ private:
   mutable KSP mDiffSolver;
 
   // A global indexing scheme for all the nodes in our problem of interest.
-  mutable FieldSpace::FieldList<Dim<3>, int> mNodeIndices;
+  mutable FieldList<Dim<3>, int> mNodeIndices;
 
   // A mapping of nodes to other nodes that overlap them.
   mutable std::map<int, int> mOverlapNodes;
@@ -237,34 +235,34 @@ private:
   mutable double mMagneticEnergy;
 
   // Compute the diffusion matrix structure given a set of nodal data.
-  void mComputeMatrixStructure(const DataBaseSpace::DataBase<Dim<3> >& dataBase,
+  void mComputeMatrixStructure(const DataBase<Dim<3> >& dataBase,
                                const State<Dim<3> >& state) const;
  
   // Compute the curl-curl operator matrix.
-  Mat mCurlCurlMatrix(const DataBaseSpace::DataBase<Dim<3> >& dataBase,
+  Mat mCurlCurlMatrix(const DataBase<Dim<3> >& dataBase,
                       const State<Dim<3> >& state) const;
  
   // Apply boundary conditions to the linear system representing the 
   // magnetic diffusion equation.
-  void mApplyDiffusionBCs(const DataBaseSpace::DataBase<Dim<3> >& dataBase,
+  void mApplyDiffusionBCs(const DataBase<Dim<3> >& dataBase,
                           const State<Dim<3> >& state, 
                           PyObject* matrix, 
                           PyObject* RHS) const;
   
   // Compute the time derivatives resulting from magnetic induction 
   // add them to the given set of derivatives.
-  void mAddDiffusionDerivatives(const DataBaseSpace::DataBase<Dim<3> >& dataBase,
+  void mAddDiffusionDerivatives(const DataBase<Dim<3> >& dataBase,
                                 const State<Dim<3> >& state,
                                 const Scalar time,
                                 const Scalar dt,
                                 StateDerivatives<Dim<3> >& derivs) const;
 
   // Compute the divergence of B.
-  void mComputeDivB(const DataBaseSpace::DataBase<Dim<3> >& dataBase,
+  void mComputeDivB(const DataBase<Dim<3> >& dataBase,
                     State<Dim<3> >& state) const;
 
   // Clean the divergence of B.
-  void mCleanDivB(const DataBaseSpace::DataBase<Dim<3> >& dataBase,
+  void mCleanDivB(const DataBase<Dim<3> >& dataBase,
                   State<Dim<3> >& state) const;
 
 #endif
@@ -288,7 +286,7 @@ private:
 
   // The potential involved in the hyperbolic divergence cleaning scheme and 
   // its time derivative.
-  FieldSpace::FieldList<Dim<3>, Scalar> mPsi, mDpsiDt;
+  FieldList<Dim<3>, Scalar> mPsi, mDpsiDt;
 
   // Maximum, minimum, and average measured divergence of B.
   mutable double mMaxDivB, mMinDivB, mAvgDivB;
@@ -305,8 +303,6 @@ private:
   MHD& operator=(const MHD&);
 
 }; // end class MHD
-
-} // end namespace MHDSpace
 
 } // end namespace Spheral
 

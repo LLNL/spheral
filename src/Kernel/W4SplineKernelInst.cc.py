@@ -4,18 +4,15 @@ text = """
 //
 // Created by JMO, Mon Nov 29 22:57:26 PST 1999
 //----------------------------------------------------------------------------//
+#include "Kernel.hh"
+#include "W4SplineKernel.hh"
 
 #include <math.h>
-
-#include "Kernel/Kernel.hh"
-#include "Kernel/W4SplineKernel.hh"
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 namespace Spheral {
-  namespace KernelSpace {
-    template class W4SplineKernel< Dim< %(ndim)s >  >;
-  }
+  template class W4SplineKernel< Dim< %(ndim)s >  >;
 }
 """

@@ -19,35 +19,31 @@ class Damage:
         mod.add_include('"%s/DamageTypes.hh"' % srcdir)
     
         # Namespaces.
-        SolidSpheral = mod.add_cpp_namespace("Spheral")
-        space = SolidSpheral.add_cpp_namespace("PhysicsSpace")
+        space = mod.add_cpp_namespace("Spheral")
 
-        Spheral = mod.add_cpp_namespace("Spheral")
-        PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
+        self.TensorStrainAlgorithm = space.add_enum("TensorStrainAlgorithm", [("BenzAsphaugStrain", "Spheral::TensorStrainAlgorithm::BenzAsphaugStrain"),
+                                                                              ("StrainHistory", "Spheral::TensorStrainAlgorithm::StrainHistory"),
+                                                                              ("MeloshRyanAsphaugStrain", "Spheral::TensorStrainAlgorithm::MeloshRyanAsphaugStrain"),
+                                                                              ("PlasticStrain", "Spheral::TensorStrainAlgorithm::PlasticStrain"),
+                                                                              ("PseudoPlasticStrain", "Spheral::TensorStrainAlgorithm::PseudoPlasticStrain")])
+        self.EffectiveDamageAlgorithm = space.add_enum("EffectiveDamageAlgorithm", [("CopyDamage", "Spheral::EffectiveDamageAlgorithm::CopyDamage"),
+                                                                                    ("MaxDamage", "Spheral::EffectiveDamageAlgorithm::MaxDamage"),
+                                                                                    ("SampledDamage", "Spheral::EffectiveDamageAlgorithm::SampledDamage")])
 
-        self.TensorStrainAlgorithm = space.add_enum("TensorStrainAlgorithm", [("BenzAsphaugStrain", "Spheral::PhysicsSpace::TensorStrainAlgorithm::BenzAsphaugStrain"),
-                                                                              ("StrainHistory", "Spheral::PhysicsSpace::TensorStrainAlgorithm::StrainHistory"),
-                                                                              ("MeloshRyanAsphaugStrain", "Spheral::PhysicsSpace::TensorStrainAlgorithm::MeloshRyanAsphaugStrain"),
-                                                                              ("PlasticStrain", "Spheral::PhysicsSpace::TensorStrainAlgorithm::PlasticStrain"),
-                                                                              ("PseudoPlasticStrain", "Spheral::PhysicsSpace::TensorStrainAlgorithm::PseudoPlasticStrain")])
-        self.EffectiveDamageAlgorithm = space.add_enum("EffectiveDamageAlgorithm", [("CopyDamage", "Spheral::PhysicsSpace::EffectiveDamageAlgorithm::CopyDamage"),
-                                                                                    ("MaxDamage", "Spheral::PhysicsSpace::EffectiveDamageAlgorithm::MaxDamage"),
-                                                                                    ("SampledDamage", "Spheral::PhysicsSpace::EffectiveDamageAlgorithm::SampledDamage")])
-
-        self.EffectiveFlawAlgorithm = space.add_enum("EffectiveFlawAlgorithm", [("FullSpectrumFlaws", "Spheral::PhysicsSpace::EffectiveFlawAlgorithm::FullSpectrumFlaws"),
-                                                                                ("MinFlaw", "Spheral::PhysicsSpace::EffectiveFlawAlgorithm::MinFlaw"),
-                                                                                ("MaxFlaw", "Spheral::PhysicsSpace::EffectiveFlawAlgorithm::MaxFlaw"),
-                                                                                ("InverseSumFlaws", "Spheral::PhysicsSpace::EffectiveFlawAlgorithm::InverseSumFlaws"),
-                                                                                ("SampledFlaws", "Spheral::PhysicsSpace::EffectiveFlawAlgorithm::SampledFlaws")])
+        self.EffectiveFlawAlgorithm = space.add_enum("EffectiveFlawAlgorithm", [("FullSpectrumFlaws", "Spheral::EffectiveFlawAlgorithm::FullSpectrumFlaws"),
+                                                                                ("MinFlaw", "Spheral::EffectiveFlawAlgorithm::MinFlaw"),
+                                                                                ("MaxFlaw", "Spheral::EffectiveFlawAlgorithm::MaxFlaw"),
+                                                                                ("InverseSumFlaws", "Spheral::EffectiveFlawAlgorithm::InverseSumFlaws"),
+                                                                                ("SampledFlaws", "Spheral::EffectiveFlawAlgorithm::SampledFlaws")])
 
         for dim in self.dims:
             exec('''
-Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
+Physics%(dim)id = findObject(space, "Physics%(dim)id")
 self.DamageModel%(dim)id = addObject(space, "DamageModel%(dim)id", parent=Physics%(dim)id, allow_subclassing=True)
 self.TensorDamageModel%(dim)id = addObject(space, "TensorDamageModel%(dim)id", parent=self.DamageModel%(dim)id, allow_subclassing=True)
 self.JohnsonCookDamage%(dim)id = addObject(space, "JohnsonCookDamage%(dim)id", parent=Physics%(dim)id, allow_subclassing=True)
 self.addWeibullDistributionFunctions(space, %(dim)i)
-self.addComputeFragmentField(SolidSpheral, %(dim)i)
+self.addComputeFragmentField(space, %(dim)i)
 ''' % {"dim" : dim})
 
         return
@@ -70,24 +66,24 @@ self.generateJohnsonCookDamageBindings(self.JohnsonCookDamage%(dim)id, %(dim)i)
     # The new sub modules (namespaces) introduced.
     #---------------------------------------------------------------------------
     def newSubModules(self):
-        return ["SolidMaterial"]
+        return []
 
     #---------------------------------------------------------------------------
     # DamageModel
     #---------------------------------------------------------------------------
     def generateDamageModelBindings(self, x, ndim):
 
-        me = "Spheral::PhysicsSpace::DamageModel%id" % ndim
+        me = "Spheral::DamageModel%id" % ndim
         dim = "Spheral::Dim<%i> " % ndim
-        solidnodelist = "Spheral::NodeSpace::SolidNodeList%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        solidnodelist = "Spheral::SolidNodeList%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        fileio = "Spheral::FileIO"
 
         # Constructors.
         x.add_constructor([refparam(solidnodelist, "nodeList"),
@@ -107,9 +103,11 @@ self.generateJohnsonCookDamageBindings(self.JohnsonCookDamage%(dim)id, %(dim)i)
         x.add_method("preStepInitialize", None, [constrefparam(database, "dataBase"),
                                                  refparam(state, "state"),
                                                  refparam(derivatives, "derivatives")], is_virtual=True)
-        x.add_method("postStateUpdate", None, [constrefparam(database, "dataBase"),
+        x.add_method("postStateUpdate", None, [param("double", "t"),
+                                               param("double", "dt"),
+                                               constrefparam(database, "dataBase"),
                                                refparam(state, "state"),
-                                               constrefparam(derivatives, "derivatives")], is_const=True, is_virtual=True)
+                                               refparam(derivatives, "derivatives")], is_virtual=True)
         x.add_method("cullToWeakestFlaws", None, [])
         x.add_method("flawsForNode", "vector_of_double", [param("int", "index")], is_const=True)
         x.add_function_as_method("const_reference_as_pointer",
@@ -162,19 +160,19 @@ self.generateJohnsonCookDamageBindings(self.JohnsonCookDamage%(dim)id, %(dim)i)
     #---------------------------------------------------------------------------
     def generateTensorDamageModelBindings(self, x, ndim):
 
-        me = "Spheral::PhysicsSpace::TensorDamageModel%id" % ndim
+        me = "Spheral::TensorDamageModel%id" % ndim
         dim = "Spheral::Dim<%i> " % ndim
-        solidnodelist = "Spheral::NodeSpace::SolidNodeList%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        solidnodelist = "Spheral::SolidNodeList%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        fileio = "Spheral::FileIO"
 
         # Constructors.
         x.add_constructor([refparam(solidnodelist, "nodeList"),
@@ -243,19 +241,19 @@ self.generateJohnsonCookDamageBindings(self.JohnsonCookDamage%(dim)id, %(dim)i)
     #---------------------------------------------------------------------------
     def generateJohnsonCookDamageBindings(self, x, ndim):
 
-        me = "Spheral::PhysicsSpace::JohnsonCookDamage%id" % ndim
+        me = "Spheral::JohnsonCookDamage%id" % ndim
         dim = "Spheral::Dim<%i> " % ndim
-        solidnodelist = "Spheral::NodeSpace::SolidNodeList%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        solidnodelist = "Spheral::SolidNodeList%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        fileio = "Spheral::FileIO"
 
         # Constructors.
         x.add_constructor([refparam(solidnodelist, "nodeList"),
@@ -332,8 +330,8 @@ self.generateJohnsonCookDamageBindings(self.JohnsonCookDamage%(dim)id, %(dim)i)
     def addWeibullDistributionFunctions(self, space, ndim):
 
         dim = "Spheral::Dim<%i> " % ndim
-        fluidnodelist = "Spheral::NodeSpace::FluidNodeList%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
+        fluidnodelist = "Spheral::FluidNodeList%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
 
         space.add_function("weibullFlawDistributionBenzAsphaug",
                            vectordoublefield,
@@ -367,9 +365,9 @@ self.generateJohnsonCookDamageBindings(self.JohnsonCookDamage%(dim)id, %(dim)i)
     def addComputeFragmentField(self, space, ndim):
 
         dim = "Spheral::Dim<%i> " % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
 
         space.add_function("computeFragmentField", intfield,
                            [constrefparam(nodelist, "nodeList"),

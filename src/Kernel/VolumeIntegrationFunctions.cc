@@ -5,18 +5,17 @@
 //
 // Created by JMO, Mon Jan  6 16:24:19 PST 2003
 //----------------------------------------------------------------------------//
-#include <math.h>
-#include <functional>
-
 #include "VolumeIntegrationFunctions.hh"
 #include "Utilities/simpsonsIntegration.hh"
 #include "Geometry/Dimension.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-namespace KernelSpace {
+#include <math.h>
+#include <functional>
 
-using namespace std;
+namespace Spheral {
+
+
 //------------------------------------------------------------------------------
 // Functor to provide the apppriate integrand.
 //------------------------------------------------------------------------------
@@ -68,5 +67,3 @@ double simpsonsVolumeIntegral(const KernelType& W,
 }
   
 }
-}
-

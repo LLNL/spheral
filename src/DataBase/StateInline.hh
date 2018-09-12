@@ -21,7 +21,7 @@ template<typename Dimension>
 inline
 void
 State<Dimension>::
-enroll(FieldSpace::FieldBase<Dimension>& field,
+enroll(FieldBase<Dimension>& field,
        typename State<Dimension>::PolicyPointer polptr) {
   this->enroll(field);
   this->enroll(this->key(field), polptr);
@@ -34,7 +34,7 @@ template<typename Dimension>
 inline
 void
 State<Dimension>::
-enroll(FieldSpace::FieldListBase<Dimension>& fieldList,
+enroll(FieldListBase<Dimension>& fieldList,
        typename State<Dimension>::PolicyPointer polptr) {
   this->enroll(fieldList);
   this->enroll(this->key(fieldList), polptr);
@@ -47,8 +47,19 @@ template<typename Dimension>
 inline
 void
 State<Dimension>::
-enroll(FieldSpace::FieldBase<Dimension>& field) {
+enroll(FieldBase<Dimension>& field) {
   StateBase<Dimension>::enroll(field);
+}
+
+//------------------------------------------------------------------------------
+// Enroll the given field shared_pointer.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+State<Dimension>::
+enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) {
+  StateBase<Dimension>::enroll(fieldPtr);
 }
 
 //------------------------------------------------------------------------------
@@ -58,7 +69,7 @@ template<typename Dimension>
 inline
 void
 State<Dimension>::
-enroll(FieldSpace::FieldListBase<Dimension>& fieldList) {
+enroll(FieldListBase<Dimension>& fieldList) {
   StateBase<Dimension>::enroll(fieldList);
 }
 
@@ -70,7 +81,7 @@ template<typename Value>
 inline
 typename State<Dimension>::PolicyPointer
 State<Dimension>::
-policy(const FieldSpace::Field<Dimension, Value>& field) const {
+policy(const Field<Dimension, Value>& field) const {
   const KeyType key = StateBase<Dimension>::key(field);
   return this->policy(key);
 }

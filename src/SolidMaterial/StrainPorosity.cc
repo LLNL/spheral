@@ -11,22 +11,20 @@
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/IncrementFieldList.hh"
-
 #include "StrainPorosity.hh"
 
-namespace Spheral {
-namespace SolidMaterial {
-
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::Field;
-using NodeSpace::NodeList;
-using PhysicsSpace::Physics;
-using DataBaseSpace::DataBase;
-using FileIOSpace::FileIO;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -59,7 +57,7 @@ StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,
   mDalphaDt(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, nodeList),
   mStrain(SolidFieldNames::porosityStrain, nodeList),
   mDstrainDt(IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityStrain, nodeList),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
   VERIFY2(mEpsE <= 0.0,
           "ERROR : epsE required to be epsE <= 0.0.");
   VERIFY2(mEpsX <= mEpsE,
@@ -219,5 +217,3 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
-

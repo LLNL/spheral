@@ -30,14 +30,6 @@
 
 namespace Spheral {
 
-using namespace std;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
 
 namespace {
 
@@ -226,8 +218,8 @@ update(const KeyType& key,
   CHECK(nodeLists.size() == numFields);
 
   // Prepare a counter to keep track of how we go through the pair-accelerations.
-  FieldList<Dimension, Scalar> DepsDt(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, int> offset(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> DepsDt(FieldStorageType::CopyFields);
+  FieldList<Dimension, int> offset(FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numFields; ++nodeListi) {
     DepsDt.appendNewField("delta E", *nodeLists[nodeListi], 0.0);
     offset.appendNewField("offset", *nodeLists[nodeListi], 0);

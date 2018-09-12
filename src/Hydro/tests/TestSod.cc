@@ -18,7 +18,6 @@
 #include "Hydro/Hydro.hh"
 #include "Integrator/SynchronousRK2.hh"
 
-using namespace std;
 
 // Define a C++ stripped down version of the controller.
 template<typename Dimension, typename FluidNodeListType, typename KernelType>

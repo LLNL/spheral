@@ -4,18 +4,15 @@ text = """
 //
 // Created by JMO, Mon Nov 29 22:57:26 PST 1999
 //----------------------------------------------------------------------------//
+#include "Kernel.hh"
+#include "BSplineKernel.hh"
 
 #include <math.h>
-
-#include "Kernel/Kernel.hh"
-#include "Kernel/BSplineKernel.hh"
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 namespace Spheral {
-  namespace KernelSpace {
-    template class BSplineKernel<Dim< %(ndim)s > >;
-  }
+  template class BSplineKernel<Dim< %(ndim)s > >;
 }
 """

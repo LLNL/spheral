@@ -6,7 +6,6 @@
 //----------------------------------------------------------------------------//
 
 namespace Spheral {
-namespace GravitySpace {
 
 //------------------------------------------------------------------------------
 // Build a cell key from coordinate indices.
@@ -194,5 +193,4 @@ constructDaughterPtrs(TreeGravity<Dimension>::Tree& tree) const {
   }
 }
 
-}
 }

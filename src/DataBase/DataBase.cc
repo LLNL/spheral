@@ -20,30 +20,24 @@
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
 
-#include <algorithm>
-#include <memory>
-
 #ifdef USE_MPI
 extern "C" {
 #include "mpi.h"
 }
 #endif
 
-namespace Spheral {
-namespace DataBaseSpace {
-
-using namespace std;
+#include <algorithm>
+#include <memory>
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 using std::shared_ptr;
 
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NodeSpace::SolidNodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using KernelSpace::TableKernel;
-using NeighborSpace::Neighbor;
-using NeighborSpace::ConnectivityMap;
-using Material::EquationOfState;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -475,7 +469,7 @@ reinitializeNeighbors() const {
 
   // Find the current bounding box and average node extent in one loop.
   // Compute the average node extent.
-  Vector xmin = numeric_limits<Scalar>::max(), xmax = numeric_limits<Scalar>::lowest();
+  Vector xmin = std::numeric_limits<Scalar>::max(), xmax = std::numeric_limits<Scalar>::lowest();
   unsigned ntot = 0;
   Scalar havg = 0.0;
   for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
@@ -1826,6 +1820,5 @@ int DataBase<Dimension>::nDim = Dimension::nDim;
 template<typename Dimension>
 bool DataBase<Dimension>::isRZ = false;
 
-}
 }
 

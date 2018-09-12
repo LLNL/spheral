@@ -327,7 +327,7 @@ template<typename Dimension>
 void dimensionBindings(py::module& m, const std::string suffix) {
 
   using namespace Spheral::FieldSpace;
-  using Spheral::Material::EquationOfState;
+  using Spheral::EquationOfState;
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;

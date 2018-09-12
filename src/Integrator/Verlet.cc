@@ -18,18 +18,20 @@
 #include "Field/NodeIterators.hh"
 #include "Physics/Physics.hh"
 #include "Hydro/HydroFieldNames.hh"
-
 #include "Utilities/DBC.hh"
 
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-namespace IntegratorSpace {
-
-using namespace std;
-
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using PhysicsSpace::Physics;
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -119,7 +121,7 @@ step(typename Dimension::Scalar maxTime,
   state.update(derivs, hdt0, t, dt0);
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-  this->postStateUpdate(db, state, derivs);
+  this->postStateUpdate(t + hdt0, hdt0, db, state, derivs);
   this->finalizeGhostBoundaries();
 
   // Copy the mid-point state.
@@ -138,7 +140,7 @@ step(typename Dimension::Scalar maxTime,
   }
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-  this->postStateUpdate(db, state, derivs);
+  this->postStateUpdate(t + dt0, dt0, db, state, derivs);
   this->finalizeGhostBoundaries();
 
   // Evaluate the derivatives at the predicted end-point.
@@ -158,7 +160,7 @@ step(typename Dimension::Scalar maxTime,
   }
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-  this->postStateUpdate(db, state, derivs);
+  this->postStateUpdate(t + dt0, dt0, db, state, derivs);
   this->finalizeGhostBoundaries();
 
   // Apply any physics specific finalizations.
@@ -169,6 +171,5 @@ step(typename Dimension::Scalar maxTime,
   this->currentTime(t + dt0);
   this->lastDt(dt0);
 }
-}
-}
 
+}

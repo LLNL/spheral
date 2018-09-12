@@ -6,8 +6,6 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace SVPHSpace {
-    template class SVPHFacetedHydroBase< Dim< %(ndim)s > >;
-  }
+  template class SVPHFacetedHydroBase< Dim< %(ndim)s > >;
 }
 """

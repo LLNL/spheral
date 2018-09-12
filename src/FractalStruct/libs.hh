@@ -23,4 +23,3 @@
 #include "_hypre_utilities.h"
 #include "HYPRE_krylov.h"
 #include "HYPRE_struct_ls.h"
-using namespace std;

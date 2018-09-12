@@ -13,16 +13,9 @@
 #include <vector>
 
 namespace Spheral {
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-}
 
-namespace Spheral {
-namespace BoundarySpace {
+template<typename Dimension> class DataBase;
+template<typename Dimension> class NodeList;
 
 template<typename Dimension>
 class TreeDistributedBoundary: public DistributedBoundary<Dimension> {
@@ -34,7 +27,7 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  typedef typename NeighborSpace::TreeNeighbor<Dimension>::CellKey CellKey;
+  typedef typename TreeNeighbor<Dimension>::CellKey CellKey;
   typedef typename DistributedBoundary<Dimension>::DomainBoundaryNodes DomainBoundaryNodes;
 
   // This method returns the singleton instance of the object.
@@ -46,7 +39,7 @@ public:
 
   //**********************************************************************
   // Set the ghost nodes based on the NodeLists in the given DataBase.
-  virtual void setAllGhostNodes(DataBaseSpace::DataBase<Dimension>& dataBase) override;
+  virtual void setAllGhostNodes(DataBase<Dimension>& dataBase) override;
   //**********************************************************************
 
 private:
@@ -60,23 +53,20 @@ private:
   TreeDistributedBoundary& operator=(const TreeDistributedBoundary&);
 
   // Private methods.
-  const NeighborSpace::TreeNeighbor<Dimension>* getTreeNeighborPtr(const NodeSpace::NodeList<Dimension>* nodeListPtr) const;
-  std::vector<std::vector<CellKey>> flattenTrees(const DataBaseSpace::DataBase<Dimension>& dataBase) const;
+  const TreeNeighbor<Dimension>* getTreeNeighborPtr(const NodeList<Dimension>* nodeListPtr) const;
+  std::vector<std::vector<CellKey>> flattenTrees(const DataBase<Dimension>& dataBase) const;
   void broadcastTree(const std::vector<std::vector<CellKey>>& localTree);
-  void buildSendNodes(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  void buildSendNodes(const DataBase<Dimension>& dataBase,
                       const std::vector<std::vector<CellKey>>& localTree);
 };
 
-}
 }
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace BoundarySpace {
-    template<typename Dimension> class TreeDistributedBoundary;
-  }
+  template<typename Dimension> class TreeDistributedBoundary;
 }
 
 #endif

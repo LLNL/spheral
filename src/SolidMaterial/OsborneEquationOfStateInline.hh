@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace SolidMaterial {
 
 //------------------------------------------------------------------------------
 // a1
@@ -248,5 +247,4 @@ OsborneEquationOfState<Dimension>::externalPressure(const double val) {
   mExternalPressure = val;
 }
 
-}
 }

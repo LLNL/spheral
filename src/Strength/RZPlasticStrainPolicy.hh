@@ -8,22 +8,18 @@
 #ifndef __Spheral_RZPlasticStrainPolicy_hh__
 #define __Spheral_RZPlasticStrainPolicy_hh__
 
-#include <string>
-
 #include "DataBase/FieldListUpdatePolicyBase.hh"
 #include "Geometry/Dimension.hh"
+
+#include <string>
 
 namespace Spheral {
 
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace NodeSpace {
-  template<typename Dimension> class FluidNodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
-}
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension, typename DataType> class Field;
 
 class RZPlasticStrainPolicy: 
     public FieldListUpdatePolicyBase<Dim<2>, Dim<2>::Scalar> {

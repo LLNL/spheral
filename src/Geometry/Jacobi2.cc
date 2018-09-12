@@ -8,7 +8,6 @@
 using std::abs;
 
 namespace Spheral {
-namespace Geometry {
 
 template<typename Dimension>
 inline
@@ -117,5 +116,4 @@ template int jacobiDiagonalize< Dim<3> >(const Dim<3>::SymTensor& A,
                                          const double convergenceThreshold,
                                          const int maxSweeps);
 
-}
 }

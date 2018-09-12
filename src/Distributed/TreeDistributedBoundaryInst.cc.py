@@ -6,8 +6,6 @@ text = """
 #include "Distributed/TreeDistributedBoundary.cc"
 
 namespace Spheral {
-  namespace BoundarySpace {
-    template class TreeDistributedBoundary< Dim< %(ndim)s > >;
-  }
+  template class TreeDistributedBoundary< Dim< %(ndim)s > >;
 }
 """

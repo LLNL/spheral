@@ -14,31 +14,18 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  namespace NodeSpace {
-    template<typename Dimension> class SmoothingScaleBase;
-  }
-  namespace ArtificialViscositySpace {
-    template<typename Dimension> class ArtificialViscosity;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class SmoothingScaleBase;
+template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class TableKernel;
+template<typename Dimension> class DataBase;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+class FileIO;
 }
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 class CRKSPHHydroBaseRZ: public CRKSPHHydroBase<Dim<2> > {
 
@@ -54,23 +41,23 @@ public:
   typedef Dimension::SymTensor SymTensor;
   typedef Dimension::FacetedVolume FacetedVolume;
 
-  typedef PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  typedef Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  CRKSPHHydroBaseRZ(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                    ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
-                    const KernelSpace::TableKernel<Dimension>& W,
-                    const KernelSpace::TableKernel<Dimension>& WPi,
+  CRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                    ArtificialViscosity<Dimension>& Q,
+                    const TableKernel<Dimension>& W,
+                    const TableKernel<Dimension>& WPi,
                     const double filter,
                     const double cfl,
                     const bool useVelocityMagnitudeForDt,
                     const bool compatibleEnergyEvolution,
                     const bool evolveTotalEnergy,
                     const bool XSPH,
-                    const PhysicsSpace::MassDensityType densityUpdate,
-                    const PhysicsSpace::HEvolutionType HUpdate,
-                    const CRKSPHSpace::CRKOrder correctionOrder,
-                    const CRKSPHSpace::CRKVolumeType volumeType,
+                    const MassDensityType densityUpdate,
+                    const HEvolutionType HUpdate,
+                    const CRKOrder correctionOrder,
+                    const CRKVolumeType volumeType,
                     const double epsTensile,
                     const double nTensile);
 
@@ -79,11 +66,11 @@ public:
 
   // Tasks we do once on problem startup.
   virtual
-  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+  void initializeProblemStartup(DataBase<Dimension>& dataBase);
 
   // Register the state Hydro expects to use and evolve.
   virtual 
-  void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state);
 
   // Evaluate the derivatives for the principle hydro variables:
@@ -91,7 +78,7 @@ public:
   virtual
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const;
 
@@ -99,7 +86,7 @@ public:
   virtual
   void finalize(const Scalar time,
                 const Scalar dt,
-                DataBaseSpace::DataBase<Dimension>& dataBase,
+                DataBase<Dimension>& dataBase,
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivs);
                   
@@ -127,15 +114,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace CRKSPHSpace {
-    class CRKSPHHydroBaseRZ;
-  }
+  class CRKSPHHydroBaseRZ;
 }
 
 #endif

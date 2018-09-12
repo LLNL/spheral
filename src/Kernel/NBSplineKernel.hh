@@ -12,7 +12,6 @@
 #include "Kernel.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 template<typename Dimension>
 class NBSplineKernel: 
@@ -64,19 +63,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "NBSplineKernelInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace KernelSpace {
-    template<typename Dimension> class NBSplineKernel;
-  }
+  template<typename Dimension> class NBSplineKernel;
 }
 
 #endif

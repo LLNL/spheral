@@ -6,9 +6,7 @@ text = """
 #include "Distributed/DistributeByXPosition.cc"
 
 namespace Spheral {
-  namespace PartitionSpace {
-    template class DistributeByXPosition< Dim< %(ndim)s > >;
-  }
+  template class DistributeByXPosition< Dim< %(ndim)s > >;
 }
 
 """

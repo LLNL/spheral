@@ -16,19 +16,13 @@ namespace Spheral {
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace NodeSpace {
-  template<typename Dimension> class FluidNodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
-}
-namespace PhysicsSpace {
-  template<typename Dimension> class DamageModel;
-}
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension> class DamageModel;
 
 template<typename Dimension>
 class ScalarDamagePolicy: 
-    public UpdatePolicyBase<Dimension, FieldSpace::Field<Dimension, typename Dimension::Scalar> > {
+    public UpdatePolicyBase<Dimension, Field<Dimension, typename Dimension::Scalar> > {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
@@ -36,11 +30,11 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename FieldSpace::Field<Dimension, Scalar> FieldType;
+  typedef typename Field<Dimension, Scalar> FieldType;
   typedef typename UpdatePolicyBase<Dimension, FieldType>::KeyType KeyType;
 
   // Constructors, destructor.
-  explicit ScalarDamagePolicy(const PhysicsSpace::DamageModel<Dimension>& damageModel);
+  explicit ScalarDamagePolicy(const DamageModel<Dimension>& damageModel);
   virtual ~ScalarDamagePolicy();
   
   // Overload the methods describing how to update Fields.
@@ -58,7 +52,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const PhysicsSpace::DamageModel<Dimension>* mDamageModelPtr;
+  const DamageModel<Dimension>* mDamageModelPtr;
 
   ScalarDamagePolicy();
   ScalarDamagePolicy(const ScalarDamagePolicy& rhs);

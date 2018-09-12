@@ -20,12 +20,6 @@
 
 namespace Spheral {
 
-using namespace std;
-
-using FieldSpace::Field;
-using NodeSpace::SolidNodeList;
-using PhysicsSpace::DamageModel;
-using Material::EquationOfState;
 
 //------------------------------------------------------------------------------
 // Constructor.

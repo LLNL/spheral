@@ -6,9 +6,7 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace Material {
-    template class EquationOfState< Dim< %(ndim)s >  >;
-  }
+  template class EquationOfState< Dim< %(ndim)s >  >;
 }
 
 """

@@ -15,12 +15,6 @@
 
 namespace Spheral {
 
-using DataBaseSpace::DataBase;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FieldSpace::Field;
-
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
@@ -70,7 +64,7 @@ update(const KeyType& key,
   Field<Dimension, Vector>& B = state.field(Bkey, Vector::zero);
   Field<Dimension, Tensor>& gradB = state.field(gradBkey, Tensor::zero);
 
-  SVPHSpace::computeSVPHCorrections<Dimension>(mDataBase.connectivityMap(),
+  computeSVPHCorrections<Dimension>(mDataBase.connectivityMap(),
                                                mKernel,
                                                volume, position, H,
                                                A, B, gradB);

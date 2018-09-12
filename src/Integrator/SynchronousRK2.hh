@@ -8,16 +8,11 @@
 #ifndef SynchronousRK2_HH
 #define SynchronousRK2_HH
 
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "Integrator.hh"
 
+#include <vector>
+
 namespace Spheral {
-namespace IntegratorSpace {
 
 template<typename Dimension>
 class SynchronousRK2: public Integrator<Dimension> {
@@ -30,9 +25,9 @@ public:
 
   // Constructors.
   SynchronousRK2();
-  SynchronousRK2(DataBaseSpace::DataBase<Dimension>& dataBase);
-  SynchronousRK2(DataBaseSpace::DataBase<Dimension>& dataBase,
-                 const std::vector<PhysicsSpace::Physics<Dimension>*>& physicsPackages);
+  SynchronousRK2(DataBase<Dimension>& dataBase);
+  SynchronousRK2(DataBase<Dimension>& dataBase,
+                 const std::vector<Physics<Dimension>*>& physicsPackages);
 
   // Destructor.
   ~SynchronousRK2();
@@ -56,15 +51,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace IntegratorSpace {
-    template<typename Dimension> class SynchronousRK2;
-  }
+  template<typename Dimension> class SynchronousRK2;
 }
 
 #endif

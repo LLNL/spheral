@@ -1,12 +1,10 @@
-#include <vector>
-using namespace std;
-
 #include "HDF5Traits.hh"
 #include "HDF5Types.hh"
 #include "Geometry/Dimension.hh"
 
+#include <vector>
+
 namespace Spheral {
-namespace FileIO {
 
 //------------------------------------------------------------------------------
 // Set the H5Traits translation types.
@@ -23,5 +21,4 @@ const CompType HDF5Traits<Dim<1>::SymTensor>::Type = H5SymTensor1d;
 const CompType HDF5Traits<Dim<2>::SymTensor>::Type = H5SymTensor2d;
 const CompType HDF5Traits<Dim<3>::SymTensor>::Type = H5SymTensor3d;
 
-}
 }

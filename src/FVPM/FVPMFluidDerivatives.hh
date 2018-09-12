@@ -13,24 +13,15 @@
 namespace Spheral {
 
 // Forward declarations.
-namespace NodeSpace {
-  template<typename Dimension> class FluidNodeList;
-}
-namespace KernelSpace {
-  template<typename Dimension> class TableKernel;
-}
-namespace FileIOSpace {
-  class FileIO;
-}
-
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension> class TableKernel;
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-
-namespace FVPMSpace {
+class FileIO;
 
 template<typename Dimension>
 class FVPMFluidDerivatives:
-    public NodeSpace::FluidDerivativeProducer<Dimension> {
+    public FluidDerivativeProducer<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -49,31 +40,31 @@ public:
   virtual
   void
   updateMassDensity(const State<Dimension>& state,
-                    const KernelSpace::TableKernel<Dimension>& W,
-                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                    FieldSpace::Field<Dimension, Scalar>& massDensity) const;
+                    const TableKernel<Dimension>& W,
+                    const ConnectivityMap<Dimension>& connectivityMap,
+                    Field<Dimension, Scalar>& massDensity) const;
 
   // The required method for updating the weights.
   virtual
   void
   updateWeight(const State<Dimension>& state,
-               const KernelSpace::TableKernel<Dimension>& W,
-               const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-               FieldSpace::Field<Dimension, Scalar>& weight) const;
+               const TableKernel<Dimension>& W,
+               const ConnectivityMap<Dimension>& connectivityMap,
+               Field<Dimension, Scalar>& weight) const;
 
   // Update the correction fields. Unclear what this is in the context of FVPM.
   virtual
   void
   updateCorrections(const State<Dimension>& state,
-                    const KernelSpace::TableKernel<Dimension>& W,
-                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                    FieldSpace::Field<Dimension, Scalar>& omegaGradh,
-                    FieldSpace::Field<Dimension, Scalar>& A,
-                    FieldSpace::Field<Dimension, Vector>& B,
-                    FieldSpace::Field<Dimension, Vector>& C,
-                    FieldSpace::Field<Dimension, Tensor>& D,
-                    FieldSpace::Field<Dimension, Vector>& gradA,
-                    FieldSpace::Field<Dimension, Tensor>& gradB,
+                    const TableKernel<Dimension>& W,
+                    const ConnectivityMap<Dimension>& connectivityMap,
+                    Field<Dimension, Scalar>& omegaGradh,
+                    Field<Dimension, Scalar>& A,
+                    Field<Dimension, Vector>& B,
+                    Field<Dimension, Vector>& C,
+                    Field<Dimension, Tensor>& D,
+                    Field<Dimension, Vector>& gradA,
+                    Field<Dimension, Tensor>& gradB,
                     const bool useGradhCorrections) const;
 
   // The required method to actually compute the derivatives.
@@ -81,13 +72,13 @@ public:
   void
   calculateDerivatives(const Scalar time,
                        const Scalar dt,
-                       const NodeSpace::FluidNodeList<Dimension>& nodeList,
+                       const FluidNodeList<Dimension>& nodeList,
                        const Scalar nPerh,
                        const bool XSPH,
                        const bool compatibleEnergyEvolution,
                        const Scalar epsTensile,
-                       const KernelSpace::TableKernel<Dimension>& W,
-                       const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                       const TableKernel<Dimension>& W,
+                       const ConnectivityMap<Dimension>& connectivityMap,
                        const State<Dimension>& state,
                        StateDerivatives<Dimension>& derivatives) const;
 
@@ -98,7 +89,6 @@ private:
   //--------------------------- Private Interface ---------------------------//
 };
 
-}
 }
 
 #endif

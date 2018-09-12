@@ -859,7 +859,7 @@ DBWrite_vector_of_vector(DBfile& file,
                          std::vector<std::vector<T>>& var) {
   auto ndims = var.size();
   auto dims = std::vector<int>(ndims);
-  vector<T> varlinear;
+  std::vector<T> varlinear;
   for (auto i = 0; i < ndims; ++i) {
     dims[i] = var[i].size();
     auto istart = varlinear.size();
@@ -974,7 +974,7 @@ DBPutCompoundarray(DBfile& file,
   const unsigned numValues = std::accumulate(elemLengths.begin(), elemLengths.end(), 0);
 
   // Flatten the values to a single arrray.
-  vector<T> flatValues;
+  std::vector<T> flatValues;
   flatValues.reserve(numValues);
   for (unsigned k = 0; k != values.size(); ++k) {
     for (unsigned j = 0; j != values[k].size(); ++j) {
@@ -1149,7 +1149,7 @@ DBPutQuadmesh(DBfile& file,
   // Number of nodes in each dimension.
   auto nxnodes = coords[0].size();
   auto nxynodes = nxnodes*coords[1].size();
-  vector<int> meshdims(ndims);
+  std::vector<int> meshdims(ndims);
   auto nnodes = 1;
   for (auto k = 0; k < ndims; ++k) {
     meshdims[k] = coords[k].size();
@@ -1253,7 +1253,7 @@ DBPutUcdvar(DBfile& file,
   int nvars = Spheral2Silo<T>::numElements();
   int nels = values.size();
   int mixlen = mixValues.size();
-  vector<char*> varnames;
+  std::vector<char*> varnames;
   for (i = 0; i != nvars; ++i) {
     varnames.push_back(const_cast<char*>((name + "_").c_str()));
     sprintf(varnames.back(), "%i", i);
@@ -1337,7 +1337,7 @@ DBPutQuadvar(DBfile& file,
              std::vector<T>& values,
              std::vector<T>& mixValues,
              int centering,
-             vector<int>& vardims,
+             std::vector<int>& vardims,
              DBoptlist_wrapper& optlist) {
 
   // Preconditions.
@@ -1350,7 +1350,7 @@ DBPutQuadvar(DBfile& file,
   auto nvars = Spheral2Silo<T>::numElements();
   auto nels = values.size();
   auto mixlen = mixValues.size();
-  vector<char*> varnames;
+  std::vector<char*> varnames;
   for (auto i = 0; i != nvars; ++i) {
     varnames.push_back(const_cast<char*>((name + "_").c_str()));
     sprintf(varnames.back(), "%i", i);
@@ -1402,7 +1402,7 @@ DBPutQuadvar1(DBfile& file,
               std::vector<T>& values,
               std::vector<T>& mixValues,
               int centering,
-              vector<int>& vardims,
+              std::vector<int>& vardims,
               DBoptlist_wrapper& optlist) {
 
   // Preconditions.
@@ -1452,7 +1452,7 @@ DBPutZonelist2(DBfile& file,
   VERIFY(shapecount.size() == nshapes);
 
   // Construct the flat array of zone nodes.
-  vector<int> nodelist;
+  std::vector<int> nodelist;
   for (unsigned k = 0; k != zoneNodes.size(); ++k) {
     //nodelist.push_back(zoneNodes[k].size());
     std::copy(zoneNodes[k].begin(), zoneNodes[k].end(), std::back_inserter(nodelist));
@@ -1496,7 +1496,7 @@ DBPutPHZonelist(DBfile& file,
   const unsigned nzones = zoneFaceLists.size();
 
   // Construct the flat arrays of face-node info and zone-face info.
-  vector<int> nodecnts, nodelist, facecnts, facelist;
+  std::vector<int> nodecnts, nodelist, facecnts, facelist;
   for (unsigned k = 0; k != nfaces; ++k) {
     const std::vector<int>& faceNodes = faceNodeLists[k];
     nodecnts.push_back(faceNodes.size());

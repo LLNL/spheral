@@ -17,15 +17,13 @@
 
 #include "SolidNodeList.hh"
 
+using std::vector;
+using std::list;
+using std::string;
+using std::cerr;
+using std::endl;
+
 namespace Spheral {
-namespace NodeSpace {
-
-using namespace std;
-
-using Material::EquationOfState;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using FileIOSpace::FileIO;
 
 //------------------------------------------------------------------------------
 // Construct with the given EOS object, along with optional numInternal nodes,
@@ -35,7 +33,7 @@ template<typename Dimension>
 SolidNodeList<Dimension>::
 SolidNodeList(string name,
               EquationOfState<Dimension>& eos,
-              SolidMaterial::StrengthModel<Dimension>& strength,
+              StrengthModel<Dimension>& strength,
               const int numInternal,
               const int numGhost,
               const Scalar hmin,
@@ -179,5 +177,3 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
-

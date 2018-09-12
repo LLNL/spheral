@@ -9,7 +9,6 @@
 #include "Kernel.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 template<typename Dimension>
 class SincKernel: public Kernel<Dimension, SincKernel<Dimension> > {
@@ -37,19 +36,14 @@ public:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "SincKernelInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace KernelSpace {
-    template<typename Dimension> class SincKernel;
-  }
+  template<typename Dimension> class SincKernel;
 }
 
 #endif

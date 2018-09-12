@@ -10,7 +10,6 @@
 #include "MonaghanGingoldViscosity.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 template<typename Dimension>
 class CRKSPHMonaghanGingoldViscosity: public MonaghanGingoldViscosity<Dimension> {
@@ -38,14 +37,14 @@ public:
 
   // Initialize the artificial viscosity for all FluidNodeLists in the given
   // DataBase.
-  virtual void initialize(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void initialize(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           ConstBoundaryIterator boundaryBegin,
                           ConstBoundaryIterator boundaryEnd,
                           const Scalar time,
                           const Scalar dt,
-                          const KernelSpace::TableKernel<Dimension>& W);
+                          const TableKernel<Dimension>& W);
 
   // The required method to compute the artificial viscous P/rho^2.
   virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 
@@ -77,7 +76,7 @@ public:
 protected:
   //--------------------------- Private Interface ---------------------------//
   double mEtaCritFrac, mEtaFoldFrac, mEtaCrit, mEtaFold;
-  FieldSpace::FieldList<Dimension, Tensor> mGradVel;
+  FieldList<Dimension, Tensor> mGradVel;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -87,15 +86,12 @@ private:
 };
 
 }
-}
 
 #else
 
 namespace Spheral {
-  namespace ArtificialViscositySpace {
-    // Forward declaration.
-    template<typename Dimension> class CRKSPHMonaghanGingoldViscosity;
-  }
+  // Forward declaration.
+  template<typename Dimension> class CRKSPHMonaghanGingoldViscosity;
 }
 
 #endif

@@ -9,19 +9,18 @@
 #include "Geometry/Dimension.hh"
 #include "Geometry/MathTraits.hh"
 
-namespace Spheral {
-namespace SVPHSpace {
-
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
+namespace Spheral {
 
 namespace {
 //------------------------------------------------------------------------------
@@ -39,13 +38,11 @@ inline Dim<1>::Scalar scalarAdapter(const Dim<1>::SymTensor& val) { return val.x
 //------------------------------------------------------------------------------
 template<typename DataType>
 typename MathTraits<Dim<1>, DataType>::GradientType
-computeCellGradient(const FieldSpace::FieldList<Dim<1>, DataType>& fieldList,
-                    const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& position,
+computeCellGradient(const FieldList<Dim<1>, DataType>& fieldList,
+                    const FieldList<Dim<1>, Dim<1>::Vector>& position,
                     const int nodeListi,
                     const int i,
-                    const MeshSpace::Mesh<Dim<1> >& mesh) {
-  using namespace FieldSpace;
-  using namespace MeshSpace;
+                    const Mesh<Dim<1> >& mesh) {
   typedef Dim<1> Dimension;
   typedef Dimension::Scalar Scalar;
   typedef Dimension::Vector Vector;
@@ -88,11 +85,11 @@ computeCellGradient(const FieldSpace::FieldList<Dim<1>, DataType>& fieldList,
 template<typename Dimension, typename DataType>
 FieldList<Dimension, DataType>
 sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
-                    const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                    const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
-                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                    const KernelSpace::TableKernel<Dimension>& W,
-                    const MeshSpace::Mesh<Dimension>& mesh,
+                    const FieldList<Dimension, typename Dimension::Vector>& position,
+                    const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
+                    const ConnectivityMap<Dimension>& connectivityMap,
+                    const TableKernel<Dimension>& W,
+                    const Mesh<Dimension>& mesh,
                     const bool firstOrderConsistent) {
 
   // Pre-conditions.
@@ -107,11 +104,11 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
   typedef typename MathTraits<Dimension, DataType>::GradientType GradientType;
 
   // Prepare the result and some work fields.
-  FieldList<Dimension, DataType> result(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, Scalar> volume(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, Scalar> A(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, Vector> B(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, Tensor> gradB(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, DataType> result(FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> volume(FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> A(FieldStorageType::CopyFields);
+  FieldList<Dimension, Vector> B(FieldStorageType::CopyFields);
+  FieldList<Dimension, Tensor> gradB(FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = fieldList[nodeListi]->nodeList();
     result.appendNewField("SVPH sample of " + fieldList[nodeListi]->name(), nodeList, DataType(0));
@@ -201,5 +198,4 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
   return result;
 }
 
-}
 }

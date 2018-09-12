@@ -6,6 +6,6 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template FieldSpace::FieldList<Dim< %(ndim)s >, int> nodeOrdering<Dim< %(ndim)s > >(const FieldSpace::FieldList<Dim< %(ndim)s >, KeyTraits::Key>&);
+  template FieldList<Dim< %(ndim)s >, int> nodeOrdering<Dim< %(ndim)s > >(const FieldList<Dim< %(ndim)s >, KeyTraits::Key>&);
 }
 """

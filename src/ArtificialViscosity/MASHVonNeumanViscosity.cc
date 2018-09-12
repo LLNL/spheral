@@ -11,18 +11,10 @@
 #include "Boundary/Boundary.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
-using namespace std;
 using std::abs;
 using std::min;
 using std::max;
-
-using Spheral::DataBaseSpace::DataBase;
-using Spheral::FieldSpace::Field;
-using Spheral::FieldSpace::FieldList;
-using Spheral::KernelSpace::TableKernel;
-using Spheral::BoundarySpace::Boundary;
 
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
@@ -271,7 +263,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mVelocityDivergence, pathName + "/velocityDivergence");
   file.read(mCorrection, pathName + "/correction");
 }  
-}
+
 }
 
 //------------------------------------------------------------------------------
@@ -279,9 +271,7 @@ restoreState(const FileIO& file, const string& pathName) {
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 namespace Spheral {
-namespace ArtificialViscositySpace {
-template class MASHVonNeumanViscosity< Dim<1> >;
-template class MASHVonNeumanViscosity< Dim<2> >;
-template class MASHVonNeumanViscosity< Dim<3> >;
-}
+  template class MASHVonNeumanViscosity< Dim<1> >;
+  template class MASHVonNeumanViscosity< Dim<2> >;
+  template class MASHVonNeumanViscosity< Dim<3> >;
 }

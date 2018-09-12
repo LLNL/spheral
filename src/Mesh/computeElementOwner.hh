@@ -11,14 +11,12 @@
 #include <vector>
 
 namespace Spheral {
-namespace MeshSpace {
 
 std::vector<unsigned>
 computeElementOwner(const unsigned numElements,
                     const std::vector<unsigned>& neighborDomains,
                     const std::vector<std::vector<unsigned> >& sharedElements);
 
-}
 }
 
 #endif

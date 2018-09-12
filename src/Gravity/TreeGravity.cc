@@ -27,19 +27,18 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
-
-namespace Spheral {
-namespace GravitySpace {
-
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using FileIOSpace::FileIO;
+namespace Spheral {
 
 namespace {
 //------------------------------------------------------------------------------
@@ -100,7 +99,7 @@ TreeGravity(const double G,
             const double opening,
             const double ftimestep,
             const GravityTimeStepType timeStepChoice):
-  PhysicsSpace::GenericBodyForce<Dimension >(),
+  GenericBodyForce<Dimension >(),
   mG(G),
   mSofteningLength(softeningLength),
   mOpening2(opening*opening),
@@ -110,13 +109,13 @@ TreeGravity(const double G,
   mXmin(),
   mXmax(),
   mTree(),
-  mPotential(FieldSpace::FieldStorageType::CopyFields),
+  mPotential(FieldStorageType::CopyFields),
   mExtraEnergy(0.0),
   mNodeListMax(0),
   mimax(0),
   mDtMinAcc(0.0),
   mRhoMax(0.0),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
   VERIFY(G > 0.0);
   VERIFY(opening > 0.0);
   VERIFY(softeningLength > 0.0);
@@ -139,7 +138,7 @@ void
 TreeGravity<Dimension>::
 registerState(DataBase<Dimension >& dataBase,
               State<Dimension >& state) {
-  PhysicsSpace::GenericBodyForce<Dimension >::registerState(dataBase, state);
+  GenericBodyForce<Dimension >::registerState(dataBase, state);
   state.enroll(mPotential);
 }
 
@@ -170,10 +169,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   mPotential = 0.0;
 
   // Initialize the time-step voting data.
-  FieldSpace::FieldList<Dimension, std::vector<Scalar> > interactionMasses = dataBase.newGlobalFieldList(vector<Scalar>(), "gravity dt interaction masses");
-  FieldSpace::FieldList<Dimension, std::vector<Vector> > interactionPositions = dataBase.newGlobalFieldList(vector<Vector>(), "gravity dt interaction positions");
-  FieldSpace::FieldList<Dimension, std::pair<LevelKey, CellKey> > homeBuckets = dataBase.newGlobalFieldList(pair<LevelKey, CellKey>(), "gravity dt home buckets");
-  mDtMinAcc = numeric_limits<Scalar>::max();
+  FieldList<Dimension, std::vector<Scalar> > interactionMasses = dataBase.newGlobalFieldList(vector<Scalar>(), "gravity dt interaction masses");
+  FieldList<Dimension, std::vector<Vector> > interactionPositions = dataBase.newGlobalFieldList(vector<Vector>(), "gravity dt interaction positions");
+  FieldList<Dimension, std::pair<LevelKey, CellKey> > homeBuckets = dataBase.newGlobalFieldList(pair<LevelKey, CellKey>(), "gravity dt home buckets");
+  mDtMinAcc = std::numeric_limits<Scalar>::max();
 
   // Prepare the flags to remember which cells have terminated for each node.
   CompletedCellSet cellsCompleted;
@@ -344,7 +343,7 @@ initializeProblemStartup(DataBase<Dimension>& db) {
 
   // We need to make a dry run through setting derivatives and such
   // to set our initial vote on the time step.
-  vector<PhysicsSpace::Physics<Dimension>*> packages(1, this);
+  vector<Physics<Dimension>*> packages(1, this);
   State<Dimension> state(db, packages);
   StateDerivatives<Dimension> derivs(db, packages);
   this->initialize(0.0, 1.0, db, state, derivs);
@@ -485,8 +484,8 @@ dt(const DataBase<Dimension>& dataBase,
   // A standard N-body approach -- just take the ratio of softening length/acceleration.
   if (mTimeStepChoice == GravityTimeStepType::AccelerationRatio) {
     const double dt = mftimestep * mDtMinAcc;
-    stringstream reasonStream;
-    reasonStream << "TreeGravity: f*sqrt(L/a) = " << dt << ends;
+    std::stringstream reasonStream;
+    reasonStream << "TreeGravity: f*sqrt(L/a) = " << dt << std::ends;
     return TimeStepType(dt, reasonStream.str());
 
   } else {
@@ -502,13 +501,13 @@ dt(const DataBase<Dimension>& dataBase,
     const double dtDyn = sqrt(1.0/(mG*mRhoMax));
     const double dt = mftimestep * dtDyn;
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    stringstream reasonStream;
+    std::stringstream reasonStream;
     reasonStream << "TreeGravity: sqrt(1/(G rho)) = sqrt(1/("
                  << mG << " * " << mRhoMax
                  << ")) = " << dt 
                  << " selected for node " << mimax 
                  << " in NodeList " << position[mNodeListMax]->nodeList().name()
-                 << ends;
+                 << std::ends;
     return TimeStepType(dt, reasonStream.str());
   }
 }
@@ -540,7 +539,7 @@ template<typename Dimension>
 std::string
 TreeGravity<Dimension>::
 dumpTree(const bool globalTree) const {
-  stringstream ss;
+  std::stringstream ss;
   CellKey key, ix, iy, iz;
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
@@ -616,7 +615,7 @@ template<typename Dimension>
 std::string
 TreeGravity<Dimension>::
 dumpTreeStatistics(const bool globalTree) const {
-  stringstream ss;
+  std::stringstream ss;
   CellKey key, ix, iy, iz;
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
@@ -811,13 +810,13 @@ template<typename Dimension>
 typename Dimension::Scalar
 TreeGravity<Dimension>::
 applyTreeForces(const Tree& tree,
-                const FieldSpace::FieldList<Dimension, Scalar>& mass,
-                const FieldSpace::FieldList<Dimension, Vector>& position,
-                FieldSpace::FieldList<Dimension, Vector>& DvDt,
-                FieldSpace::FieldList<Dimension, Scalar>& potential,
-                FieldSpace::FieldList<Dimension, vector<Scalar> >& interactionMasses,
-                FieldSpace::FieldList<Dimension, vector<Vector> >& interactionPositions,
-                FieldSpace::FieldList<Dimension, pair<LevelKey, CellKey> >& homeBuckets,
+                const FieldList<Dimension, Scalar>& mass,
+                const FieldList<Dimension, Vector>& position,
+                FieldList<Dimension, Vector>& DvDt,
+                FieldList<Dimension, Scalar>& potential,
+                FieldList<Dimension, vector<Scalar> >& interactionMasses,
+                FieldList<Dimension, vector<Vector> >& interactionPositions,
+                FieldList<Dimension, pair<LevelKey, CellKey> >& homeBuckets,
                 TreeGravity<Dimension>::CompletedCellSet& cellsCompleted) const {
 
   const unsigned numNodeLists = mass.numFields();
@@ -826,7 +825,7 @@ applyTreeForces(const Tree& tree,
   const double softLength2 = mSofteningLength*mSofteningLength;
 
   // Prepare the result for the shortest timestep.
-  double result = numeric_limits<double>::max();
+  double result = std::numeric_limits<double>::max();
 
   // Declare variables we're going to need in the loop once.  May help with optimization?
   unsigned nodeListi, i, j, k, ilevel, nremaining;
@@ -1043,5 +1042,4 @@ template<typename Dimension> uint64_t TreeGravity<Dimension>::xkeymask = (1U << 
 template<typename Dimension> uint64_t TreeGravity<Dimension>::ykeymask = TreeGravity<Dimension>::xkeymask << TreeGravity<Dimension>::num1dbits;
 template<typename Dimension> uint64_t TreeGravity<Dimension>::zkeymask = TreeGravity<Dimension>::ykeymask << TreeGravity<Dimension>::num1dbits;
 
-}
 }

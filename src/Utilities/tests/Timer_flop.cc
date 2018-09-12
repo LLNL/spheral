@@ -2,7 +2,6 @@
 #include <cstdlib>
 #include <cmath>
 #include <cstdio>
-using namespace std;
 
 #include "../Timer.hh"
 

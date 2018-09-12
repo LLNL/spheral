@@ -5,8 +5,6 @@ text = """
 #include "Physics/GenericHydro.cc"
 
 namespace Spheral {
-  namespace PhysicsSpace {
-    template class GenericHydro< Dim< %(ndim)s > >;
-  }
+  template class GenericHydro< Dim< %(ndim)s > >;
 }
 """

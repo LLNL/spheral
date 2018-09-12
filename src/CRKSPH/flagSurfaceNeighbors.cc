@@ -7,20 +7,23 @@
 #include "Field/FieldList.hh"
 #include "NodeList/NodeList.hh"
 
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-namespace CRKSPHSpace {
-
-using namespace std;
-
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-using NeighborSpace::ConnectivityMap;
 
 template<typename Dimension>
 void
-flagSurfaceNeighbors(FieldSpace::FieldList<Dimension, int>& surfacePoint,
-                     const NeighborSpace::ConnectivityMap<Dimension >& connectivityMap) {
+flagSurfaceNeighbors(FieldList<Dimension, int>& surfacePoint,
+                     const ConnectivityMap<Dimension >& connectivityMap) {
 
   typedef Dim<1>::Scalar Scalar;
   typedef Dim<1>::Vector Vector;
@@ -53,5 +56,4 @@ flagSurfaceNeighbors(FieldSpace::FieldList<Dimension, int>& surfacePoint,
   }
 }
 
-}
 }

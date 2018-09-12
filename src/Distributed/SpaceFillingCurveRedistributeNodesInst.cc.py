@@ -6,11 +6,7 @@ text = """
 #include "Distributed/SpaceFillingCurveRedistributeNodes.cc"
 
 namespace Spheral {
-  namespace PartitionSpace {
-
-    template class SpaceFillingCurveRedistributeNodes< Dim< %(ndim)s > >;
-
-  }
+  template class SpaceFillingCurveRedistributeNodes< Dim< %(ndim)s > >;
 }
 
 """

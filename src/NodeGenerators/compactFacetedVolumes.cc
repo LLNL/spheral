@@ -13,7 +13,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Push FacetedVolume shapes together inside a surface, but excluding mutual
@@ -33,7 +32,6 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
-  using FieldSpace::Field;
 
   // Preconditions.
   const unsigned nshapes = shapes.size();
@@ -68,13 +66,13 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
   const Vector xghost = surface.xmax() + length*Vector::one;
 
   // Make a temporary NodeList so we can use it's neighbor logic.
-  Material::PhysicalConstants constants(1.0, 1.0, 1.0);
-  Material::GammaLawGas<Dimension> eos(2.0, 2.0, constants, 0.0, 1e10, Material::MaterialPressureMinType::PressureFloor);
-  NodeSpace::FluidNodeList<Dimension> nodes("shapes", eos, nshapes, 0,
+  PhysicalConstants constants(1.0, 1.0, 1.0);
+  GammaLawGas<Dimension> eos(2.0, 2.0, constants, 0.0, 1e10, MaterialPressureMinType::PressureFloor);
+  FluidNodeList<Dimension> nodes("shapes", eos, nshapes, 0,
                                             1e-10, 1e10, 1.0, 1.01, 500, 0.0, 1e10);
-  NeighborSpace::NestedGridNeighbor<Dimension> neighbor(nodes, NeighborSpace::NeighborSearchType::GatherScatter, 31, 3.0*length, surface.xmin(), 1.0, 1);
+  NestedGridNeighbor<Dimension> neighbor(nodes, NeighborSearchType::GatherScatter, 31, 3.0*length, surface.xmin(), 1.0, 1);
   nodes.registerNeighbor(neighbor);
-  DataBaseSpace::DataBase<Dimension> db;
+  DataBase<Dimension> db;
   db.appendNodeList(nodes);
   Field<Dimension, Vector>& pos = nodes.positions();
   Field<Dimension, SymTensor>& H = nodes.Hfield();

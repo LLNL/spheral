@@ -7,7 +7,6 @@
 #define __Spheral_Kernel_hh__
 
 namespace Spheral {
-namespace KernelSpace {
 
 template<typename Dimension, typename Descendent>
 class Kernel {
@@ -115,19 +114,14 @@ protected:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "KernelInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace KernelSpace {
-    template<typename Dimension, typename Descendent> class Kernel;
-  }
+  template<typename Dimension, typename Descendent> class Kernel;
 }
 
 #endif

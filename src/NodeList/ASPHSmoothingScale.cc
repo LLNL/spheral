@@ -14,19 +14,15 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Mesh/Mesh.hh"
 
-namespace Spheral {
-namespace NodeSpace {
+#include <cmath>
 
-using namespace std;
+namespace Spheral {
+
+using std::vector;
 using std::min;
 using std::max;
 using std::abs;
-
-using KernelSpace::TableKernel;
-using NeighborSpace::ConnectivityMap;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using MeshSpace::Mesh;
+using std::pow;
 
 namespace {
 
@@ -293,7 +289,7 @@ idealSmoothingScale(const SymTensor& H,
                     const Scalar hmax,
                     const Scalar hminratio,
                     const Scalar nPerh,
-                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                    const ConnectivityMap<Dimension>& connectivityMap,
                     const unsigned nodeListi,
                     const unsigned i) const {
 
@@ -415,7 +411,7 @@ newSmoothingScale(const SymTensor& H,
                   const Scalar hmax,
                   const Scalar hminratio,
                   const Scalar nPerh,
-                  const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                  const ConnectivityMap<Dimension>& connectivityMap,
                   const unsigned nodeListi,
                   const unsigned i) const {
 
@@ -543,5 +539,3 @@ idealSmoothingScale(const SymTensor& H,
 }
 
 }
-}
-

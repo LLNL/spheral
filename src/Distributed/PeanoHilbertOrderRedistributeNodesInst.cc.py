@@ -6,9 +6,7 @@ text = """
 #include "Distributed/PeanoHilbertOrderRedistributeNodes.cc"
 
 namespace Spheral {
-  namespace PartitionSpace {
-    template class PeanoHilbertOrderRedistributeNodes< Dim< %(ndim)s > >;
-  }
+  template class PeanoHilbertOrderRedistributeNodes< Dim< %(ndim)s > >;
 }
 
 """

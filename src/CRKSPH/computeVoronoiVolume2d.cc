@@ -1,10 +1,6 @@
 //---------------------------------Spheral++------------------------------------
 // Compute the volume per point based on the Voronoi tessellation.
 //------------------------------------------------------------------------------
-#include <algorithm>
-#include <utility>
-#include <ctime>
-
 #include "computeVoronoiVolume.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -18,21 +14,23 @@
 
 extern Timer TIME_computeVoronoiVolume2d;
 
-namespace Spheral {
-namespace CRKSPHSpace {
-
-using namespace std;
+#include <algorithm>
+#include <utility>
+#include <ctime>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using namespace FastMath;
+namespace Spheral {
 
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using NeighborSpace::ConnectivityMap;
+using namespace FastMath;
 
 namespace {  // anonymous namespace
 // //------------------------------------------------------------------------------
@@ -194,20 +192,20 @@ void findPolygonExtent(double& xmin, double& xmax,
 void
 computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      const FieldList<Dim<2>, Dim<2>::SymTensor>& H,
-                     const FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& rho,
-                     const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& gradRho,
+                     const FieldList<Dim<2>, Dim<2>::Scalar>& rho,
+                     const FieldList<Dim<2>, Dim<2>::Vector>& gradRho,
                      const ConnectivityMap<Dim<2> >& connectivityMap,
-                     const FieldSpace::FieldList<Dim<2>, Dim<2>::SymTensor>& damage,
+                     const FieldList<Dim<2>, Dim<2>::SymTensor>& damage,
                      const std::vector<Dim<2>::FacetedVolume>& facetedBoundaries,
                      const std::vector<std::vector<Dim<2>::FacetedVolume> >& holes,
-                     const std::vector<BoundarySpace::Boundary<Dim<2>>*>& boundaries,
-                     const FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& weight,
+                     const std::vector<Boundary<Dim<2>>*>& boundaries,
+                     const FieldList<Dim<2>, Dim<2>::Scalar>& weight,
                      const FieldList<Dim<2>, int>& voidPoint,
                      FieldList<Dim<2>, int>& surfacePoint,
                      FieldList<Dim<2>, Dim<2>::Scalar>& vol,
-                     FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian,
-                     FieldSpace::FieldList<Dim<2>, vector<Dim<2>::Vector>>& etaVoidPoints,
-                     FieldSpace::FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells) {
+                     FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian,
+                     FieldList<Dim<2>, vector<Dim<2>::Vector>>& etaVoidPoints,
+                     FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells) {
 
   TIME_computeVoronoiVolume2d.start();
 
@@ -257,7 +255,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     }
 
     // We'll need to hang onto the PolyClipper cells.
-    FieldList<Dim<2>, PolyClipper::Polygon> polycells(FieldSpace::FieldStorageType::CopyFields);
+    FieldList<Dim<2>, PolyClipper::Polygon> polycells(FieldStorageType::CopyFields);
     for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       polycells.appendNewField("polycells", vol[nodeListi]->nodeList(), PolyClipper::Polygon());
     }
@@ -551,5 +549,4 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   TIME_computeVoronoiVolume2d.stop();
 }
     
-}
 }

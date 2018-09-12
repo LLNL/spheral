@@ -26,7 +26,7 @@ public:
   typedef typename FieldUpdatePolicyBase<Dimension, SymTensor>::KeyType KeyType;
 
   // Constructors, destructor.
-  MeshIdealHPolicy(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleBase,
+  MeshIdealHPolicy(const SmoothingScaleBase<Dimension>& smoothingScaleBase,
                    const Scalar hmin,
                    const Scalar hmax,
                    const Scalar hminratio,
@@ -63,7 +63,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   static bool mFired;
-  const NodeSpace::SmoothingScaleBase<Dimension>& mSmoothingScaleBase;
+  const SmoothingScaleBase<Dimension>& mSmoothingScaleBase;
   Scalar mhmin, mhmax, mhminratio, mnPerh;
 
   MeshIdealHPolicy(const MeshIdealHPolicy& rhs);

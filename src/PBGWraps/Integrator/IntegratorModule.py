@@ -19,8 +19,7 @@ class Integrator:
         mod.add_include('"%s/IntegratorTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("IntegratorSpace")
+        space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
         for dim in self.dims:
@@ -55,56 +54,50 @@ self.generateIntegratorDescendentBindings(self.VerletIntegrator%(dim)id, %(dim)i
         return
 
     #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return ["IntegratorSpace"]
-
-    #---------------------------------------------------------------------------
     # Generate bindings (Integrator).
     #---------------------------------------------------------------------------
     def generateIntegratorBindings(self, x, ndim):
 
         # Object names.
-        me = "Spheral::IntegratorSpace::Integrator%id" % ndim
+        me = "Spheral::Integrator%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
-        intfield = "Spheral::FieldSpace::IntField%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
-        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
-        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
-        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
-        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
-        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        fieldbase = "Spheral::FieldBase%id" % ndim
+        intfield = "Spheral::IntField%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        vector3dfield = "Spheral::Vector3dField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::ThirdRankTensorFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
-        physics = "Spheral::PhysicsSpace::Physics%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
+        physics = "Spheral::Physics%id" % ndim
         key = "pair_NodeList%id_string" % ndim
         vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
         vectorphysics = "vector_of_Physics%id" % ndim
         vectorboundary = "vector_of_Boundary%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscosity%id" % ndim
+        fileio = "Spheral::FileIO"
 
         # Constructors.
         x.add_constructor([])
@@ -143,9 +136,11 @@ self.generateIntegratorDescendentBindings(self.VerletIntegrator%(dim)id, %(dim)i
                                                    constrefparam(state, "state"),
                                                    refparam(derivatives, "derivs")],
                      is_const = True)
-        x.add_method("postStateUpdate", None, [constrefparam(database, "dataBase"),
+        x.add_method("postStateUpdate", None, [param("double", "t"),
+                                               param("double", "dt"),
+                                               constrefparam(database, "dataBase"),
                                                refparam(state, "state"),
-                                               constrefparam(derivatives, "derivs")],
+                                               refparam(derivatives, "derivs")],
                      is_const = True)
         x.add_method("postStepFinalize", None, [param("double", "t"),
                                                 param("double", "dt"),
@@ -189,7 +184,7 @@ self.generateIntegratorDescendentBindings(self.VerletIntegrator%(dim)id, %(dim)i
     def generateIntegratorDescendentBindings(self, x, ndim):
 
         # Object names.
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        database = "Spheral::DataBase%id" % ndim
         vectorphysics = "vector_of_Physics%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim

@@ -6,7 +6,6 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-namespace NeighborSpace {
 
 //------------------------------------------------------------------------------
 // Initialize static variables.
@@ -17,6 +16,5 @@ template<> const int NestedGridNeighbor< Dim< %(ndim)s > >::mGridNormalMagnitude
 
 template class NestedGridNeighbor< Dim< %(ndim)s > >;
 
-}
 }
 """

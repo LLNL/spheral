@@ -6,8 +6,6 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace IntegratorSpace {
-    template class Integrator< Dim< %(ndim)s > >;
-  }
+  template class Integrator< Dim< %(ndim)s > >;
 }
 """

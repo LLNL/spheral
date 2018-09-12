@@ -5,16 +5,20 @@
 //
 // Created by:  JMO, Mon Dec 27 10:47:34 PST 1999
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <math.h>
-
 #include "GridCellIndex.hh"
 #include "Geometry/Dimension.hh"
 
-namespace Spheral {
-namespace NeighborSpace {
+#include <limits.h>
+#include <cmath>
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Define a global function which returns a vector of GridCellIndex objects
@@ -84,5 +88,4 @@ GridCellIndexRange(const GridCellIndex<Dim<3> >& gridCellMin,
   return result;  
 }
 
-}
 }

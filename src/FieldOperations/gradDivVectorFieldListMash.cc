@@ -6,9 +6,6 @@
 // Created by JMO, Wed Dec 18 22:46:54 PST 2002
 //----------------------------------------------------------------------------//
 
-#include <vector>
-using std::vector;
-
 #include "FieldListSecondDerivatives.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
@@ -18,14 +15,17 @@ using std::vector;
 #include "Kernel/TableKernel.hh"
 #include "Boundary/Boundary.hh"
 
-namespace Spheral {
-namespace FieldSpace {
+#include <vector>
+using std::vector;
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using KernelSpace::TableKernel;
-using BoundarySpace::Boundary;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Calculate the gradient of the divergence of a Vector FieldList.
@@ -173,19 +173,19 @@ gradDivVectorFieldListMash
               Vector gWij;
               Tensor g2Wij;
               switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-              case NeighborSpace::NeighborSearchType::GatherScatter:
+              case NeighborSearchType::GatherScatter:
                 Wij = 0.5*(Wi + Wj);
                 gWij = 0.5*(gWi + gWj);
                 g2Wij = 0.5*(g2Wi + g2Wj);
                 break;
 
-              case NeighborSpace::NeighborSearchType::Gather:
+              case NeighborSearchType::Gather:
                 Wij = Wi;
                 gWij = gWi;
                 g2Wij = g2Wi;
                 break;
 
-              case NeighborSpace::NeighborSearchType::Scatter:
+              case NeighborSearchType::Scatter:
                 Wij = Wj;
                 gWij = gWj;
                 g2Wij = g2Wj;
@@ -246,5 +246,3 @@ gradDivVectorFieldListMash
 }
 
 }
-}
-

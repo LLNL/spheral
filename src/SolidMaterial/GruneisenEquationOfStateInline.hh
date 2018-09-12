@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace SolidMaterial {
 
 //------------------------------------------------------------------------------
 // Get and set C0.
@@ -163,5 +162,4 @@ GruneisenEquationOfState<Dimension>::externalPressure(const double val) {
   mExternalPressure = val;
 }
 
-}
 }

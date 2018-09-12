@@ -1,8 +1,6 @@
 //---------------------------------Spheral++------------------------------------
 // Detect surface particles leveraging the zeroth and first moments
 //------------------------------------------------------------------------------
-#include <stdio.h>
-
 #include "detectSurface.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -15,33 +13,31 @@
 #include "Geometry/innerDoubleProduct.hh"
 #include "Geometry/invertRankNTensor.hh"
 
-namespace Spheral {
-namespace CRKSPHSpace {
-using namespace std;
+#include <stdio.h>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
-    
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using Geometry::outerProduct;
-using Geometry::innerProduct;
-using Geometry::innerDoubleProduct;
-    
+
+namespace Spheral {
+
 template<typename Dimension>
 void
-detectSurface(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-              const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& m0,
-              const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& m1,
-              const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-              const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+detectSurface(const ConnectivityMap<Dimension>& connectivityMap,
+              const FieldList<Dimension, typename Dimension::Scalar>& m0,
+              const FieldList<Dimension, typename Dimension::Vector>& m1,
+              const FieldList<Dimension, typename Dimension::Vector>& position,
+              const FieldList<Dimension, typename Dimension::SymTensor>& H,
               const double detectThreshold,
               const double detectRange,
               const double sweepAngle,
-              FieldSpace::FieldList<Dimension, int>& surfacePoint) {
+              FieldList<Dimension, int>& surfacePoint) {
 
   // Pre-conditions.
   const size_t numNodeLists = m0.size();
@@ -114,5 +110,4 @@ detectSurface(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
   }
 }
 
-}
 }

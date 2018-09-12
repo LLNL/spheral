@@ -2,7 +2,6 @@
 #include "Utilities/SpheralFunctions.hh"
 
 namespace Spheral {
-namespace PartitionSpace {
 
 //------------------------------------------------------------------------------
 // Access the Hextent variable.
@@ -22,5 +21,4 @@ SortAndDivideRedistributeNodes<Dimension>::Hextent(const double val) {
   mHextent = val;
 }
 
-}
 }

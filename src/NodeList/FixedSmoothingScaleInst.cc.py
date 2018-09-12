@@ -5,5 +5,5 @@ text = """
 #include "NodeList/FixedSmoothingScale.cc"
 #include "Geometry/Dimension.hh"
 
-template class Spheral::NodeSpace::FixedSmoothingScale<Spheral::Dim< %(ndim)s > >;
+template class Spheral::FixedSmoothingScale<Spheral::Dim< %(ndim)s > >;
 """

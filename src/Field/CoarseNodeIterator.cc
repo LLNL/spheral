@@ -4,14 +4,12 @@
 //
 // Created by J. Michael Owen, Tue Mar 18 21:32:13 PST 2003
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
 #include "CoarseNodeIterator.hh"
 
-namespace Spheral {
+#include <algorithm>
+using std::vector;
 
-using namespace std;
-using NodeSpace::NodeList;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Default constructor.

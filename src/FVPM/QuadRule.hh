@@ -14,11 +14,7 @@
 
 namespace Spheral {
 
-namespace KernelSpace {
-  template<typename Dimension> class TableKernel;
-}
-
-namespace FVPMSpace {
+template<typename Dimension> class TableKernel;
 
 //! \class EllipticIntersectionQuadRule
 //! This abstract base defines an interface for quadrature rules approximating
@@ -34,7 +30,7 @@ public:
 
   //! Base constructor for the quadrature rule. Needs a kernel to define the 
   //! integration domain in the most general sense.
-  explicit QuadRule(const KernelSpace::TableKernel<Dimension>& W);
+  explicit QuadRule(const TableKernel<Dimension>& W);
 
   // Copy constructor and assignment operator are compiler-defined.
 
@@ -58,14 +54,13 @@ public:
 
 protected:
   // Kernel.
-  const KernelSpace::TableKernel<Dimension>& mW;
+  const TableKernel<Dimension>& mW;
 
 private:
   // No default constructor.
   QuadRule();
 };
 
-}
 }
 
 #endif

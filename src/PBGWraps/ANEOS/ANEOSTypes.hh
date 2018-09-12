@@ -18,13 +18,10 @@ extern "C" {
 //------------------------------------------------------------------------------
 namespace Spheral {
 
-namespace Material {
 typedef EquationOfState<Dim<1> > EquationOfState1d;
 typedef EquationOfState<Dim<2> > EquationOfState2d;
 typedef EquationOfState<Dim<3> > EquationOfState3d;
-}
 
-namespace SolidMaterial {
 typedef ANEOS<Dim<1> > ANEOS1d;
 typedef ANEOS<Dim<2> > ANEOS2d;
 typedef ANEOS<Dim<3> > ANEOS3d;
@@ -74,7 +71,6 @@ ANEOS_STEvals(const ANEOS<Dimension>& eos) {
   return result;
 }
 
-}
 }
 
 #endif

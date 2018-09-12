@@ -11,21 +11,18 @@
 #include "Geometry/outerProduct.hh"
 #include "Geometry/innerProduct.hh"
 
-namespace Spheral {
-namespace SVPHSpace {
-
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using Geometry::outerProduct;
-using Geometry::innerProduct;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Internal utility functions in the unnamed namespace.
@@ -444,6 +441,5 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 //   }
 // }
 
-}
 }
 

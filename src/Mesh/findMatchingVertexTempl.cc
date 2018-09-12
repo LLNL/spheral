@@ -1,9 +1,7 @@
 #include "findMatchingVertex.hh"
 
 namespace Spheral {
-namespace MeshSpace {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Find the closest vertex in the list to the given position.
@@ -50,5 +48,4 @@ findMatchingVertex(const Vector& target,
   return indicesj[result];
 }
 
-}
 }

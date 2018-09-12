@@ -9,19 +9,18 @@
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
 
-namespace Spheral {
-namespace SPHSpace {
-
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
+namespace Spheral {
 
 template<typename Dimension>
 void
@@ -92,7 +91,6 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       Scalar gradNbari = -gradh0;//DnbarDh
       if (computeMassDensity) PSPHmassDensity(nodeListi, i) += mi*W0;
 
-
       // Neighbors!
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
       CHECK(fullConnectivity.size() == numNodeLists);
@@ -145,5 +143,3 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 }
 
 }
-}
-

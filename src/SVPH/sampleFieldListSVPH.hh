@@ -11,18 +11,17 @@
 #include "Mesh/Mesh.hh"
 
 namespace Spheral {
-  namespace SVPHSpace {
 
-    template<typename Dimension, typename DataType>
-    FieldList<Dimension, DataType>
-    sampleFieldListSVPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
-                        const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                        const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
-                        const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                        const KernelSpace::TableKernel<Dimension>& W,
-                        const MeshSpace::Mesh<Dimension>& mesh,
-                        const bool firstOrderConsistent);
-  }
+  template<typename Dimension, typename DataType>
+  FieldList<Dimension, DataType>
+  sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
+                      const FieldList<Dimension, typename Dimension::Vector>& position,
+                      const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
+                      const ConnectivityMap<Dimension>& connectivityMap,
+                      const TableKernel<Dimension>& W,
+                      const Mesh<Dimension>& mesh,
+                      const bool firstOrderConsistent);
+
 }
 
 #endif

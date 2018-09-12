@@ -14,11 +14,7 @@
 namespace Spheral {
 
 // Forward declarations.
-namespace KernelSpace {
-  template<typename Dimension> class TableKernel;
-}
-
-namespace FVPMSpace {
+template<typename Dimension> class TableKernel;
 
 //! \class TestFunction
 //! This class represents a test function \f$\psi(\vec{x})\f$ used in the
@@ -35,7 +31,7 @@ public:
   //! Constructs a test function.
   //! \param W The kernel used to construct this test function.
   //! \param quadRule The quadrature rule used to compute the interaction vectors.
-  TestFunction(const KernelSpace::TableKernel<Dimension>& W,
+  TestFunction(const TableKernel<Dimension>& W,
                const QuadRule<Dimension>& quadRule);
 
   //! Destructor. 
@@ -79,7 +75,7 @@ public:
 private:
 
   // The kernel.
-  KernelSpace::TableKernel<Dimension>& mKernel;
+  TableKernel<Dimension>& mKernel;
 
   // The quadrature rule.
   mutable QuadRule<Dimension> mQuadRule;
@@ -89,7 +85,6 @@ private:
   TestFunction& operator=(const TestFunction&);
 };
 
-}
 }
 
 #endif

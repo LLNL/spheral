@@ -6,9 +6,7 @@ text = """
 #include "Distributed/MortonOrderRedistributeNodes.cc"
 
 namespace Spheral {
-  namespace PartitionSpace {
-    template class MortonOrderRedistributeNodes< Dim< %(ndim)s > >;
-  }
+  template class MortonOrderRedistributeNodes< Dim< %(ndim)s > >;
 }
 
 """

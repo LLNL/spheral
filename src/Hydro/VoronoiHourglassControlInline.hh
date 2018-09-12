@@ -2,7 +2,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Access the order of the density fit in a cell.
@@ -69,7 +68,7 @@ fraction(const double x) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, int>&
+const FieldList<Dimension, int>&
 VoronoiHourglassControl<Dimension>::
 mask() const {
   return mMask;
@@ -79,7 +78,7 @@ template<typename Dimension>
 inline
 void
 VoronoiHourglassControl<Dimension>::
-mask(const FieldSpace::FieldList<Dimension, int>& x) {
+mask(const FieldList<Dimension, int>& x) {
   VERIFY(x.localMin() >= 0 and x.localMax() <= 1);
   mMask = x;
 }
@@ -89,7 +88,7 @@ mask(const FieldSpace::FieldList<Dimension, int>& x) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const KernelSpace::TableKernel<Dimension>&
+const TableKernel<Dimension>&
 VoronoiHourglassControl<Dimension>::
 kernel() const {
   return mW;
@@ -100,7 +99,7 @@ kernel() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 VoronoiHourglassControl<Dimension>::
 gradRho() const {
   return mGradRho;
@@ -108,7 +107,7 @@ gradRho() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 VoronoiHourglassControl<Dimension>::
 A() const {
   return mA;
@@ -116,7 +115,7 @@ A() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 VoronoiHourglassControl<Dimension>::
 B() const {
   return mB;
@@ -124,7 +123,7 @@ B() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 VoronoiHourglassControl<Dimension>::
 C() const {
   return mC;
@@ -132,7 +131,7 @@ C() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 VoronoiHourglassControl<Dimension>::
 D() const {
   return mD;
@@ -140,7 +139,7 @@ D() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 VoronoiHourglassControl<Dimension>::
 gradA() const {
   return mGradA;
@@ -148,7 +147,7 @@ gradA() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 VoronoiHourglassControl<Dimension>::
 gradB() const {
   return mGradB;
@@ -156,11 +155,10 @@ gradB() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 VoronoiHourglassControl<Dimension>::
 weight() const {
   return mWeight;
 }
 
-}
 }

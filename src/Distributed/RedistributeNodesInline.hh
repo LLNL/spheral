@@ -3,7 +3,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace PartitionSpace {
 
 #ifdef USE_MPI
 //------------------------------------------------------------------------------
@@ -49,6 +48,4 @@ RedistributeNodes<Dimension>::computeWork(const bool x) {
   mComputeWork = x;
 }
 
-
-}
 }

@@ -1,15 +1,13 @@
 text = """
-#include <math.h>
+#include "Kernel.hh"
+#include "ExpInvKernel.hh"
 
-#include "Kernel/Kernel.hh"
-#include "Kernel/ExpInvKernel.hh"
+#include <math.h>
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 namespace Spheral {
-  namespace KernelSpace {
-    template class ExpInvKernel< Dim< %(ndim)s >  >;
-  }
+  template class ExpInvKernel< Dim< %(ndim)s >  >;
 }
 """

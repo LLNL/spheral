@@ -8,8 +8,6 @@ text = """
 #include "NodeList/ASPHSmoothingScale.cc"
 
 namespace Spheral {
-  namespace NodeSpace {
-    template class ASPHSmoothingScale<Dim< %(ndim)s > >;
-  }
+  template class ASPHSmoothingScale<Dim< %(ndim)s > >;
 }
 """

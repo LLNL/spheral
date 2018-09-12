@@ -9,19 +9,6 @@ import os, time, gc, mpi
 
 from SpheralModules import *
 from SpheralModules.Spheral import *
-from SpheralModules.Spheral.NodeSpace import *
-from SpheralModules.Spheral.FieldSpace import *
-from SpheralModules.Spheral.DataBaseSpace import *
-from SpheralModules.Spheral.FileIOSpace import *
-from SpheralModules.Spheral.ArtificialViscositySpace import *
-from SpheralModules.Spheral.DataOutput import *
-from SpheralModules.Spheral.KernelSpace import *
-from SpheralModules.Spheral.NeighborSpace import *
-from SpheralModules.Spheral.Material import *
-from SpheralModules.Spheral.BoundarySpace import *
-from SpheralModules.Spheral.PhysicsSpace import *
-from SpheralModules.Spheral.GravitySpace import *
-from SpheralModules.Spheral.IntegratorSpace import *
 
 class Spheral1dVizDump:
 

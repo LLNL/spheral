@@ -1,11 +1,10 @@
-#include <math.h>
-
 #include "Geometry/Dimension.hh"
 #include "VolumeIntegrationFunctions.hh"
 #include "Utilities/DBC.hh"
 
+#include <math.h>
+
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Construct with the given extent in eta.
@@ -93,5 +92,4 @@ GaussianKernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) const {
   return 2.0*(2.0*etaMagnitude*etaMagnitude - 1)*kernelValue(etaMagnitude, Hdet);
 }
 
-}
 }

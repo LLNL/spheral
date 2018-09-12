@@ -10,10 +10,10 @@
 #ifndef __Spheral_RZDeviatoricStress_hh__
 #define __Spheral_RZDeviatoricStress_hh__
 
-#include <string>
-
 #include "DataBase/IncrementFieldList.hh"
 #include "Geometry/Dimension.hh"
+
+#include <string>
 
 namespace Spheral {
 

@@ -4,14 +4,12 @@
 //
 // Created by J. Michael Owen, Mon Mar 17 17:31:14 PST 2003
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
 #include "GhostNodeIterator.hh"
 
-namespace Spheral {
+#include <algorithm>
+using std::vector;
 
-using namespace std;
-using NodeSpace::NodeList;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Default constructor.

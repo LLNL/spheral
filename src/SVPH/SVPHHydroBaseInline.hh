@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace SVPHSpace {
 
 //------------------------------------------------------------------------------
 // Choose whether we want to sum for mass density, or integrate the continuity
@@ -7,7 +6,7 @@ namespace SVPHSpace {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-PhysicsSpace::MassDensityType
+MassDensityType
 SVPHHydroBase<Dimension>::densityUpdate() const {
   return mDensityUpdate;
 }
@@ -16,7 +15,7 @@ template<typename Dimension>
 inline
 void
 SVPHHydroBase<Dimension>::
-densityUpdate(const PhysicsSpace::MassDensityType type) {
+densityUpdate(const MassDensityType type) {
   mDensityUpdate = type;
 }
 
@@ -25,7 +24,7 @@ densityUpdate(const PhysicsSpace::MassDensityType type) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-PhysicsSpace::HEvolutionType
+HEvolutionType
 SVPHHydroBase<Dimension>::HEvolution() const {
   return mHEvolution;
 }
@@ -34,7 +33,7 @@ template<typename Dimension>
 inline
 void
 SVPHHydroBase<Dimension>::
-HEvolution(const PhysicsSpace::HEvolutionType type) {
+HEvolution(const HEvolutionType type) {
   mHEvolution = type;
 }
 
@@ -149,7 +148,7 @@ xmax(const typename Dimension::Vector& x) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NodeSpace::SmoothingScaleBase<Dimension>&
+const SmoothingScaleBase<Dimension>&
 SVPHHydroBase<Dimension>::
 smoothingScaleMethod() const {
   return mSmoothingScaleMethod;
@@ -160,7 +159,7 @@ smoothingScaleMethod() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const MeshSpace::Mesh<Dimension>&
+const Mesh<Dimension>&
 SVPHHydroBase<Dimension>::
 mesh() const {
   return *mMeshPtr;
@@ -171,7 +170,7 @@ mesh() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SVPHHydroBase<Dimension>::
 A() const {
   return mA;
@@ -179,7 +178,7 @@ A() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 SVPHHydroBase<Dimension>::
 B() const {
   return mB;
@@ -187,7 +186,7 @@ B() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 SVPHHydroBase<Dimension>::
 gradB() const {
   return mGradB;
@@ -195,7 +194,7 @@ gradB() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, int>&
+const FieldList<Dimension, int>&
 SVPHHydroBase<Dimension>::
 timeStepMask() const {
   return mTimeStepMask;
@@ -203,7 +202,7 @@ timeStepMask() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SVPHHydroBase<Dimension>::
 pressure() const {
   return mPressure;
@@ -211,7 +210,7 @@ pressure() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SVPHHydroBase<Dimension>::
 soundSpeed() const {
   return mSoundSpeed;
@@ -219,7 +218,7 @@ soundSpeed() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SVPHHydroBase<Dimension>::
 volume() const {
   return mVolume;
@@ -227,7 +226,7 @@ volume() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SVPHHydroBase<Dimension>::
 specificThermalEnergy0() const {
   return mSpecificThermalEnergy0;
@@ -235,7 +234,7 @@ specificThermalEnergy0() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 SVPHHydroBase<Dimension>::
 Hideal() const {
   return mHideal;
@@ -243,7 +242,7 @@ Hideal() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SVPHHydroBase<Dimension>::
 maxViscousPressure() const {
   return mMaxViscousPressure;
@@ -251,7 +250,7 @@ maxViscousPressure() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SVPHHydroBase<Dimension>::
 massDensitySum() const {
   return mMassDensitySum;
@@ -259,7 +258,7 @@ massDensitySum() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SVPHHydroBase<Dimension>::
 weightedNeighborSum() const {
   return mWeightedNeighborSum;
@@ -267,7 +266,7 @@ weightedNeighborSum() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 SVPHHydroBase<Dimension>::
 massSecondMoment() const {
   return mMassSecondMoment;
@@ -275,7 +274,7 @@ massSecondMoment() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 SVPHHydroBase<Dimension>::
 XSVPHDeltaV() const {
   return mXSVPHDeltaV;
@@ -283,7 +282,7 @@ XSVPHDeltaV() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 SVPHHydroBase<Dimension>::
 DxDt() const {
   return mDxDt;
@@ -291,7 +290,7 @@ DxDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 SVPHHydroBase<Dimension>::
 DvDt() const {
   return mDvDt;
@@ -299,7 +298,7 @@ DvDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SVPHHydroBase<Dimension>::
 DmassDensityDt() const {
   return mDmassDensityDt;
@@ -307,7 +306,7 @@ DmassDensityDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SVPHHydroBase<Dimension>::
 DspecificThermalEnergyDt() const {
   return mDspecificThermalEnergyDt;
@@ -315,7 +314,7 @@ DspecificThermalEnergyDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 SVPHHydroBase<Dimension>::
 DHDt() const {
   return mDHDt;
@@ -323,7 +322,7 @@ DHDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 SVPHHydroBase<Dimension>::
 DvDx() const {
   return mDvDx;
@@ -331,7 +330,7 @@ DvDx() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 SVPHHydroBase<Dimension>::
 internalDvDx() const {
   return mInternalDvDx;
@@ -339,11 +338,10 @@ internalDvDx() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >&
+const FieldList<Dimension, std::vector<typename Dimension::Vector> >&
 SVPHHydroBase<Dimension>::
 pairAccelerations() const {
   return mPairAccelerations;
 }
 
-}
 }

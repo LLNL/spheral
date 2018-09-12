@@ -1,10 +1,6 @@
 //---------------------------------Spheral++------------------------------------
 // Compute the volume per point based on the Voronoi tessellation.
 //------------------------------------------------------------------------------
-#include <algorithm>
-#include <utility>
-#include <ctime>
-
 #include "computeVoronoiVolume.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -19,21 +15,23 @@
 
 extern Timer TIME_computeVoronoiVolume3d;
 
-namespace Spheral {
-namespace CRKSPHSpace {
-
-using namespace std;
+#include <algorithm>
+#include <utility>
+#include <ctime>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using namespace FastMath;
+namespace Spheral {
 
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using NeighborSpace::ConnectivityMap;
+using namespace FastMath;
 
 namespace {  // anonymous namespace
 
@@ -65,20 +63,20 @@ void findPolyhedronExtent(double& xmin, double& xmax,
 void
 computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      const FieldList<Dim<3>, Dim<3>::SymTensor>& H,
-                     const FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& rho,
-                     const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& gradRho,
+                     const FieldList<Dim<3>, Dim<3>::Scalar>& rho,
+                     const FieldList<Dim<3>, Dim<3>::Vector>& gradRho,
                      const ConnectivityMap<Dim<3> >& connectivityMap,
-                     const FieldSpace::FieldList<Dim<3>, Dim<3>::SymTensor>& damage,
+                     const FieldList<Dim<3>, Dim<3>::SymTensor>& damage,
                      const std::vector<Dim<3>::FacetedVolume>& facetedBoundaries,
                      const std::vector<std::vector<Dim<3>::FacetedVolume> >& holes,
-                     const std::vector<BoundarySpace::Boundary<Dim<3>>*>& boundaries,
-                     const FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& weight,
+                     const std::vector<Boundary<Dim<3>>*>& boundaries,
+                     const FieldList<Dim<3>, Dim<3>::Scalar>& weight,
                      const FieldList<Dim<3>, int>& voidPoint,
                      FieldList<Dim<3>, int>& surfacePoint,
                      FieldList<Dim<3>, Dim<3>::Scalar>& vol,
-                     FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian,
-                     FieldSpace::FieldList<Dim<3>, vector<Dim<3>::Vector>>& etaVoidPoints,
-                     FieldSpace::FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells) {
+                     FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian,
+                     FieldList<Dim<3>, vector<Dim<3>::Vector>>& etaVoidPoints,
+                     FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells) {
 
   TIME_computeVoronoiVolume3d.start();
 
@@ -160,7 +158,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
     const auto nverts = cell0.size();
 
     // We'll need to hang onto the PolyClipper cells.
-    FieldList<Dim<3>, PolyClipper::Polyhedron> polycells(FieldSpace::FieldStorageType::CopyFields);
+    FieldList<Dim<3>, PolyClipper::Polyhedron> polycells(FieldStorageType::CopyFields);
     for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       polycells.appendNewField("polycells", vol[nodeListi]->nodeList(), PolyClipper::Polyhedron());
     }
@@ -172,7 +170,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
       const auto n = vol[nodeListi]->numInternalElements();
       const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
 
-#pragma omp parallel for                        \
+#pragma omp parallel for                \
   private(pairPlanes, vol0, voli)
       for (auto i = 0; i < n; ++i) {
         const auto& ri = position(nodeListi, i);
@@ -389,7 +387,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             auto vitr = celli.begin();
             while (interior and vitr != celli.end()) {
               interior = not pointOnPolyhedron(ri + vitr->position,
-                                               facetedBoundaries[nodeListi].vertices(),
+                                               facetedBoundaries[nodeListi],
                                                1.0e-8);
               ++vitr;
             }
@@ -427,5 +425,4 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
   TIME_computeVoronoiVolume3d.stop();
 }
     
-}
 }

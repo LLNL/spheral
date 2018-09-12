@@ -12,14 +12,18 @@
 #include "Field/NodeIterators.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-namespace PhysicsSpace {
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -100,5 +104,3 @@ dt(const DataBase<Dimension>& dataBase,
 }
 
 }
-}
-

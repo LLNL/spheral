@@ -25,10 +25,10 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   // Constructor.
-  DamagedNodeCouplingWithFrags(const FieldSpace::FieldList<Dimension, SymTensor>& damage,
-                               const FieldSpace::FieldList<Dimension, Vector>& damageGradient,
-                               const FieldSpace::FieldList<Dimension, SymTensor>& H,
-                               const FieldSpace::FieldList<Dimension, int>& fragIDs):
+  DamagedNodeCouplingWithFrags(const FieldList<Dimension, SymTensor>& damage,
+                               const FieldList<Dimension, Vector>& damageGradient,
+                               const FieldList<Dimension, SymTensor>& H,
+                               const FieldList<Dimension, int>& fragIDs):
     DamagedNodeCoupling<Dimension>(damage, damageGradient, H),
     mFragIDs(fragIDs) {}
 
@@ -43,7 +43,7 @@ public:
   }
 
 private:
-  const FieldSpace::FieldList<Dimension, int>& mFragIDs;
+  const FieldList<Dimension, int>& mFragIDs;
 
   // Forbidden methods.
   DamagedNodeCouplingWithFrags();

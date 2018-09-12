@@ -5,13 +5,13 @@
 #ifndef __Spheral_relaxNodeDistribution__
 #define __Spheral_relaxNodeDistribution__
 
-#include <vector>
-
 #include "DataBase/DataBase.hh"
 #include "Boundary/Boundary.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Geometry/Dimension.hh"
+
+#include <vector>
 
 namespace Spheral {
 
@@ -39,11 +39,11 @@ struct WeightingFunctor {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
+relaxNodeDistribution(DataBase<Dimension>& dataBase,
                       const typename Dimension::FacetedVolume& boundary,
-                      const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
-                      const KernelSpace::TableKernel<Dimension>& W,
-                      const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                      const std::vector<Boundary<Dimension>*>& boundaries,
+                      const TableKernel<Dimension>& W,
+                      const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                       const WeightingFunctor<Dimension>& weightingFunctor,
                       const WeightingFunctor<Dimension>& massDensityFunctor,
                       const double targetMass,

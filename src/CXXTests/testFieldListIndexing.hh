@@ -19,11 +19,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace Testing {
-
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
 // Workhorse method to test that the indexed FieldList values for a given range
@@ -221,7 +216,6 @@ testIndexByRefineNodeIterators(const DataBase<Dimension>& dataBase,
 //                                           fieldList);
 // }
 
-}
 }
 
 #endif

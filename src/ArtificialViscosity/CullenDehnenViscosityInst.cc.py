@@ -6,8 +6,6 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace ArtificialViscositySpace {
-    template class CullenDehnenViscosity< Dim< %(ndim)s > >;
-  }
+  template class CullenDehnenViscosity< Dim< %(ndim)s > >;
 }
 """

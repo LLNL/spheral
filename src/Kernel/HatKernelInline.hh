@@ -2,7 +2,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Empty constructor
@@ -121,5 +120,4 @@ HatKernel<Dimension>::W0() const {
   return mW0;
 }
 
-}
 }

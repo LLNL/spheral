@@ -7,7 +7,6 @@
 //----------------------------------------------------------------------------//
 
 namespace Spheral {
-namespace KernelSpace {
 
 // Use Simpsons rule to evaluate the volume integral of the given kernel.
 template<typename Dimension, typename KernelType>
@@ -15,6 +14,6 @@ double simpsonsVolumeIntegral(const KernelType& W,
                               const double rMin,
                               const double rMax,
                               const int numBins);
-}
+
 }
 

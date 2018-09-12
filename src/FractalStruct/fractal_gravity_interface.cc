@@ -12,7 +12,6 @@ namespace Spheral
 {
   namespace GravitySpace 
   {
-    using namespace std;
     using namespace FractalSpace;
     using YOUR_SPACES::WhatEver;
     template <T> void fractal_gravity_interface(T& JMO)

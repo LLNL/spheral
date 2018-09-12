@@ -3,7 +3,6 @@
 #include "NodeList/NodeList.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Return the acceleration.
@@ -21,7 +20,7 @@ a0() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NodeSpace::NodeList<Dimension>&
+const NodeList<Dimension>&
 ConstantAcceleration<Dimension>::
 nodeList() const {
   REQUIRE(mNodeListPtr != 0);
@@ -33,11 +32,10 @@ nodeList() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, int>&
+const Field<Dimension, int>&
 ConstantAcceleration<Dimension>::
 flags() const {
   return mFlags;
 }
 
-}
 }

@@ -17,22 +17,15 @@
 #include "DataBase/StateDerivatives.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/safeInv.hh"
-
 #include "FluidNodeList.hh"
 
-using namespace std;
-
-using Spheral::FieldSpace::Field;
-using Spheral::NeighborSpace::Neighbor;
-using Spheral::Material::EquationOfState;
-using Spheral::FileIOSpace::FileIO;
-using Spheral::KernelSpace::TableKernel;
-using Spheral::FieldSpace::FieldList;
-using Spheral::NeighborSpace::ConnectivityMap;
-using Spheral::DataBaseSpace::DataBase;
+using std::vector;
+using std::list;
+using std::string;
+using std::cerr;
+using std::endl;
 
 namespace Spheral {
-namespace NodeSpace {
 
 //------------------------------------------------------------------------------
 // Construct with given EOS object, along with optional numInternal nodes,
@@ -204,5 +197,3 @@ restoreState(const FileIO& file, const string& pathName) {
 }  
 
 }
-}
-

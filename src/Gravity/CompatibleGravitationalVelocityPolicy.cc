@@ -4,9 +4,6 @@
 // 
 // Created by JMO, Mon Oct  2 13:44:59 PDT 2017
 //----------------------------------------------------------------------------//
-#include <vector>
-#include <limits>
-
 #include "CompatibleGravitationalVelocityPolicy.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "NodeList/NodeList.hh"
@@ -20,17 +17,20 @@
 #include "Utilities/DBC.hh"
 #include "Utilities/SpheralFunctions.hh"
 
-namespace Spheral {
-
+#include <vector>
+#include <limits>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
 using std::abs;
 
-using namespace std;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NeighborSpace::ConnectivityMap;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructor.

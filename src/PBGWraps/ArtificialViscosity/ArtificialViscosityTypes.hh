@@ -17,7 +17,6 @@
 //#include "ArtificialViscosity/CRKSPHMonaghanGingoldViscosityRZ.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -61,7 +60,7 @@ typedef TensorCRKSPHViscosity<Dim<3> > TensorCRKSPHViscosity3d;
 typedef VonNeumanViscosity<Dim<1> > VonNeumanViscosity1d;
 typedef VonNeumanViscosity<Dim<2> > VonNeumanViscosity2d;
 typedef VonNeumanViscosity<Dim<3> > VonNeumanViscosity3d;
-}
+
 }
 
 #endif

@@ -5,10 +5,11 @@
 //----------------------------------------------------------------------------//
 
 #include "Timer.hh"
+#include <list>
 
 // Must initialize the static list defined in Timer.hh
 #ifdef TIMER
-list<Timer*> Timer::TimerList(0); 
+std::list<Timer*> Timer::TimerList(0); 
 #endif
 
 //------------------------------------------------------------------------------

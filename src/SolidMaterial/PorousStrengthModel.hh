@@ -26,7 +26,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
 template<typename Dimension>
 class PorousStrengthModel: public StrengthModel<Dimension> {
@@ -39,38 +38,38 @@ public:
   virtual ~PorousStrengthModel();
 
   // We require the Field only interface!
-  virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
-                            const FieldSpace::Field<Dimension, Scalar>& density,
-                            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                            const FieldSpace::Field<Dimension, Scalar>& pressure) const;
+  virtual void shearModulus(Field<Dimension, Scalar>& shearModulus,
+                            const Field<Dimension, Scalar>& density,
+                            const Field<Dimension, Scalar>& specificThermalEnergy,
+                            const Field<Dimension, Scalar>& pressure) const;
 
-  virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
-                             const FieldSpace::Field<Dimension, Scalar>& density,
-                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                             const FieldSpace::Field<Dimension, Scalar>& pressure,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const;
+  virtual void yieldStrength(Field<Dimension, Scalar>& yieldStrength,
+                             const Field<Dimension, Scalar>& density,
+                             const Field<Dimension, Scalar>& specificThermalEnergy,
+                             const Field<Dimension, Scalar>& pressure,
+                             const Field<Dimension, Scalar>& plasticStrain,
+                             const Field<Dimension, Scalar>& plasticStrainRate) const;
 
   // The optional methods the underlying strength model might provide.
   virtual bool providesSoundSpeed() const override { return mSolidStrength.providesSoundSpeed(); }
   virtual bool providesBulkModulus() const override { return mSolidStrength.providesBulkModulus(); }
-  virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
-                          const FieldSpace::Field<Dimension, Scalar>& density,
-                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                          const FieldSpace::Field<Dimension, Scalar>& pressure,
-                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const;
+  virtual void soundSpeed(Field<Dimension, Scalar>& soundSpeed,
+                          const Field<Dimension, Scalar>& density,
+                          const Field<Dimension, Scalar>& specificThermalEnergy,
+                          const Field<Dimension, Scalar>& pressure,
+                          const Field<Dimension, Scalar>& fluidSoundSpeed) const;
 
-  virtual void bulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
-                           const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void bulkModulus(Field<Dimension, Scalar>& bulkModulus,
+                           const Field<Dimension, Scalar>& massDensity,
+                           const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void meltSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
-                                  const FieldSpace::Field<Dimension, Scalar>& density,
-                                  const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const;
+  virtual void meltSpecificEnergy(Field<Dimension, Scalar>& meltSpecificEnergy,
+                                  const Field<Dimension, Scalar>& density,
+                                  const Field<Dimension, Scalar>& specficThermalEnergy) const;
 
-  virtual void coldSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& coldSpecificEnergy,
-                                  const FieldSpace::Field<Dimension, Scalar>& density,
-                                  const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const;
+  virtual void coldSpecificEnergy(Field<Dimension, Scalar>& coldSpecificEnergy,
+                                  const Field<Dimension, Scalar>& density,
+                                  const Field<Dimension, Scalar>& specficThermalEnergy) const;
 
   // Forbid the non-Field calls.
   virtual double shearModulus(const double density,
@@ -85,13 +84,13 @@ public:
 
   // Access the material parameters.
   const StrengthModel<Dimension>& solidStrength() const;
-  const FieldSpace::Field<Dimension, Scalar>& alpha() const;
-  void alpha(const FieldSpace::Field<Dimension, Scalar>& x);
+  const Field<Dimension, Scalar>& alpha() const;
+  void alpha(const Field<Dimension, Scalar>& x);
 
 private:
   //--------------------------- Private Interface ---------------------------//
   const StrengthModel<Dimension>& mSolidStrength;
-  const FieldSpace::Field<Dimension, Scalar>* mAlphaPtr;
+  const Field<Dimension, Scalar>* mAlphaPtr;
 
   // No copying or assignment.
   PorousStrengthModel(const PorousStrengthModel&);
@@ -99,15 +98,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class PorousStrengthModel;
-  }
+  template<typename Dimension> class PorousStrengthModel;
 }
 
 #endif

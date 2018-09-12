@@ -11,16 +11,11 @@
 #include "RedistributeNodes.hh"
 
 namespace Spheral {
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
+  template<typename Dimension> class DataBase;
+  template<typename Dimension> class NodeList;
 }
 
 namespace Spheral {
-namespace PartitionSpace {
 
 template<typename Dimension>
 class DistributeByXPosition: public RedistributeNodes<Dimension> {
@@ -35,8 +30,8 @@ public:
 
   // Given a Spheral++ data base of NodeLists, repartition it among the processors.
   // This is the method required of all descendent classes.
-  virtual void redistributeNodes(DataBaseSpace::DataBase<Dimension>& dataBase,
-                                 std::vector<BoundarySpace::Boundary<Dimension>*> boundaries = std::vector<BoundarySpace::Boundary<Dimension>*>()) override;
+  virtual void redistributeNodes(DataBase<Dimension>& dataBase,
+                                 std::vector<Boundary<Dimension>*> boundaries = std::vector<Boundary<Dimension>*>()) override;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -47,14 +42,11 @@ private:
 };
 
 }
-}
 
 #else
 // Forward declare the DistributeByXPosition class.
 namespace Spheral {
-  namespace PartitionSpace {
-    template<typename Dimension> class DistributeByXPosition;
-  }
+  template<typename Dimension> class DistributeByXPosition;
 }
 
 #endif

@@ -19,25 +19,23 @@
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
-
 #include "Integrator.hh"
 
 #include <limits.h>
 #include <float.h>
 #include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace IntegratorSpace {
-
-using namespace std;
-
-using NodeSpace::NodeList;
-using DataBaseSpace::DataBase;
-using PhysicsSpace::Physics;
-using FileIOSpace::FileIO;
-using FieldSpace::FieldList;
-using BoundarySpace::Boundary;
-using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -58,7 +56,7 @@ Integrator<Dimension>::Integrator():
   mRigorousBoundaries(false),
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -81,7 +79,7 @@ Integrator(DataBase<Dimension>& dataBase):
   mRigorousBoundaries(false),
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -105,7 +103,7 @@ Integrator(DataBase<Dimension>& dataBase,
   mRigorousBoundaries(false),
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -325,15 +323,17 @@ Integrator<Dimension>::finalizeDerivatives(const Scalar t,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Integrator<Dimension>::postStateUpdate(const DataBase<Dimension>& dataBase, 
+Integrator<Dimension>::postStateUpdate(const Scalar t,
+                                       const Scalar dt,
+                                       const DataBase<Dimension>& dataBase, 
                                        State<Dimension>& state,
-                                       const StateDerivatives<Dimension>& derivs) const {
+                                       StateDerivatives<Dimension>& derivs) const {
 
   // Loop over the physics packages.
   for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = physicsPackagesBegin();
        physicsItr != physicsPackagesEnd();
        ++physicsItr) {
-    (*physicsItr)->postStateUpdate(dataBase, state, derivs);
+    (*physicsItr)->postStateUpdate(t, dt, dataBase, state, derivs);
   }
 }
 
@@ -821,5 +821,3 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
-

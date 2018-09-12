@@ -9,19 +9,13 @@
 #include "ArtificialViscosity.hh"
 
 namespace Spheral {
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace FileIOSpace {
-      class FileIO;
-   }
-}
 
-namespace Spheral {
-namespace ArtificialViscositySpace {
+// Forward declarations.
+template<typename Dimension, typename DataType> class FieldList;
+class FileIO;
 
-using Spheral::FieldSpace::FieldList;
-using Spheral::FileIOSpace::FileIO;
+using Spheral::FieldList;
+using Spheral::FileIO;
 
 template<typename Dimension>
 class VonNeumanViscosity: public ArtificialViscosity<Dimension> {
@@ -42,14 +36,14 @@ public:
   // Initialize the artificial viscosity for all FluidNodeLists in the given
   // DataBase.
   virtual 
-  void initialize(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  void initialize(const DataBase<Dimension>& dataBase,
                   const State<Dimension>& state,
                   const StateDerivatives<Dimension>& derivs,
                   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
                   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-		  const Scalar time,
-		  const Scalar dt,
-                  const KernelSpace::TableKernel<Dimension>& W);
+                  const Scalar time,
+                  const Scalar dt,
+                  const TableKernel<Dimension>& W);
 
   // Require all descendents to return the artificial viscous Pi = P/rho^2 as a tensor.
   // Scalar viscosities should just return a diagonal tensor with their value along the diagonal.
@@ -83,15 +77,12 @@ protected:
 };
 
 }
-}
 
 #else
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
-// Forward declaration.
-template<typename Dimension> class VonNeumanViscosity;
-}
+  // Forward declaration.
+  template<typename Dimension> class VonNeumanViscosity;
 }
 
 #endif

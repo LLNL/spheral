@@ -6,13 +6,8 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-namespace SVPHSpace {
 
 using std::vector;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using MeshSpace::Mesh;
 
 // Scalar
 template 
@@ -37,6 +32,5 @@ gradientFieldListSVPH<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>(const FieldList<
                                             const bool firstOrderConsistent);
 
 
-}
 }
 """

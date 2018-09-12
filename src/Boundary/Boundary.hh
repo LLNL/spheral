@@ -16,23 +16,13 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace MeshSpace {
-    template<typename Dimension> class Mesh;
-  }
-}
 
-namespace Spheral {
-namespace BoundarySpace {
+// Forward declarations.
+template<typename Dimension> class NodeList;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class DataBase;
+template<typename Dimension> class Mesh;
 
 template<typename Dimension>
 class Boundary {
@@ -65,100 +55,98 @@ public:
   //   Violation nodes -- any internal nodes in the NodeList that our out
   //                      of bounds for this boundary condition.
 
-#ifndef __GCCXML__
   // Allow read access to the map of NodeList->BoundaryNodes.
-  const std::map<NodeSpace::NodeList<Dimension>*, BoundaryNodes>& boundaryNodeMap() const;
-#endif
+  const std::map<NodeList<Dimension>*, BoundaryNodes>& boundaryNodeMap() const;
 
   // Check if we have entries for the given NodeList.
-  bool haveNodeList(const NodeSpace::NodeList<Dimension>& nodeList) const;
+  bool haveNodeList(const NodeList<Dimension>& nodeList) const;
 
   // Control, Ghost, and Violation nodes for a given NodeList.
-  const std::vector<int>& controlNodes(const NodeSpace::NodeList<Dimension>& nodeList) const;
-  const std::vector<int>& ghostNodes(const NodeSpace::NodeList<Dimension>& nodeList) const;
-  const std::vector<int>& violationNodes(const NodeSpace::NodeList<Dimension>& nodeList) const;
+  const std::vector<int>& controlNodes(const NodeList<Dimension>& nodeList) const;
+  const std::vector<int>& ghostNodes(const NodeList<Dimension>& nodeList) const;
+  const std::vector<int>& violationNodes(const NodeList<Dimension>& nodeList) const;
 
   // Provide iterators over the control, ghost, and violation nodes for a
   // given NodeList.
-  std::vector<int>::const_iterator controlBegin(const NodeSpace::NodeList<Dimension>& nodeList) const;
-  std::vector<int>::const_iterator controlEnd(const NodeSpace::NodeList<Dimension>& nodeList) const;
+  std::vector<int>::const_iterator controlBegin(const NodeList<Dimension>& nodeList) const;
+  std::vector<int>::const_iterator controlEnd(const NodeList<Dimension>& nodeList) const;
 
-  std::vector<int>::const_iterator ghostBegin(const NodeSpace::NodeList<Dimension>& nodeList) const;
-  std::vector<int>::const_iterator ghostEnd(const NodeSpace::NodeList<Dimension>& nodeList) const;
+  std::vector<int>::const_iterator ghostBegin(const NodeList<Dimension>& nodeList) const;
+  std::vector<int>::const_iterator ghostEnd(const NodeList<Dimension>& nodeList) const;
 
-  std::vector<int>::const_iterator violationBegin(const NodeSpace::NodeList<Dimension>& nodeList) const;
-  std::vector<int>::const_iterator violationEnd(const NodeSpace::NodeList<Dimension>& nodeList) const;
+  std::vector<int>::const_iterator violationBegin(const NodeList<Dimension>& nodeList) const;
+  std::vector<int>::const_iterator violationEnd(const NodeList<Dimension>& nodeList) const;
 
   // Set the ghost nodes based on the FluidNodeLists in the given DataBase.
-  virtual void setAllGhostNodes(DataBaseSpace::DataBase<Dimension>& dataBase);
+  virtual void setAllGhostNodes(DataBase<Dimension>& dataBase);
 
   // Apply the boundary condition to the ghost nodes in the given FieldList.
   template<typename DataType>
-  void applyFieldListGhostBoundary(FieldSpace::FieldList<Dimension, DataType>& fieldList) const;
+  void applyFieldListGhostBoundary(FieldList<Dimension, DataType>& fieldList) const;
 
   // Select any nodes based in the FluidNodeLists in the given DataBase that
   // are in violation of boundary condition.
-  virtual void setAllViolationNodes(DataBaseSpace::DataBase<Dimension>& dataBase);
+  virtual void setAllViolationNodes(DataBase<Dimension>& dataBase);
 
   // Enforce the boundary condition on the values of the FieldList for the nodes in
   // violation in the given FieldList.
   template<typename DataType>
-  void enforceFieldListBoundary(FieldSpace::FieldList<Dimension, DataType>& fieldList) const;
+  void enforceFieldListBoundary(FieldList<Dimension, DataType>& fieldList) const;
 
   // Use a set of flags to cull out inactive ghost nodes.
-  virtual void cullGhostNodes(const FieldSpace::FieldList<Dimension, int>& flagSet,
-                              FieldSpace::FieldList<Dimension, int>& old2newIndexMap,
+  virtual void cullGhostNodes(const FieldList<Dimension, int>& flagSet,
+                              FieldList<Dimension, int>& old2newIndexMap,
                               std::vector<int>& numNodesRemoved);
 
   //**********************************************************************
   // All Boundary conditions must provide the following methods:
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void setGhostNodes(NodeSpace::NodeList<Dimension>& nodeList) = 0;
+  virtual void setGhostNodes(NodeList<Dimension>& nodeList) = 0;
 
   // For the computed set of ghost nodes, set the positions and H's.
-  virtual void updateGhostNodes(NodeSpace::NodeList<Dimension>& nodeList) = 0;
+  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) = 0;
 
   // Apply the boundary condition to the ghost node values in the given Field.
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, int>& field) const = 0;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Scalar>& field) const = 0;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Vector>& field) const = 0;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Tensor>& field) const = 0;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const = 0;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const = 0;
+  virtual void applyGhostBoundary(Field<Dimension, int>& field) const = 0;
+  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const = 0;
+  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const = 0;
+  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const = 0;
+  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const = 0;
+  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const = 0;
 
   // Find any internal nodes that are in violation of this Boundary.
-  virtual void setViolationNodes(NodeSpace::NodeList<Dimension>& nodeList) = 0;
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList) = 0;
 
   // For the computed set of nodes in violation of the boundary, bring them
   // back into compliance (for the positions and H's.)
-  virtual void updateViolationNodes(NodeSpace::NodeList<Dimension>& nodeList) = 0;
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) = 0;
 
   // Apply the boundary condition to the violation node values in the given Field.
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, int>& field) const = 0;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Scalar>& field) const = 0;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Vector>& field) const = 0;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Tensor>& field) const = 0;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const = 0;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const = 0;
+  virtual void enforceBoundary(Field<Dimension, int>& field) const = 0;
+  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const = 0;
+  virtual void enforceBoundary(Field<Dimension, Vector>& field) const = 0;
+  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const = 0;
+  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const = 0;
+  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const = 0;
 
   // Apply the boundary condition to face centered fields on a tessellation.
-  virtual void enforceBoundary(std::vector<int>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
-  virtual void enforceBoundary(std::vector<Scalar>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
-  virtual void enforceBoundary(std::vector<Vector>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
-  virtual void enforceBoundary(std::vector<Tensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
-  virtual void enforceBoundary(std::vector<SymTensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
-  virtual void enforceBoundary(std::vector<ThirdRankTensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<int>& faceField, const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<Scalar>& faceField, const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<Vector>& faceField, const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<Tensor>& faceField, const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<SymTensor>& faceField, const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<ThirdRankTensor>& faceField, const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
 
   // Fill in faces on this boundary with effective opposite face values.
-  virtual void swapFaceValues(FieldSpace::Field<Dimension, std::vector<Scalar> >& field,
-                              const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
-  virtual void swapFaceValues(FieldSpace::Field<Dimension, std::vector<Vector> >& field,
-                              const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void swapFaceValues(Field<Dimension, std::vector<Scalar> >& field,
+                              const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void swapFaceValues(Field<Dimension, std::vector<Vector> >& field,
+                              const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
   //**********************************************************************
 
   // We provide default copies for arrays of values, but descendants can override these.
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Scalar>>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Vector>>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, std::vector<Vector>>& field) const;
 
   // Some boundaries need to know when a problem is starting up and all the physics
   // packages have been initialized.
@@ -169,7 +157,7 @@ public:
   virtual void finalizeGhostBoundary() const {};
 
   // Overridable hook for clearing out the boundary condition.
-  virtual void reset(const DataBaseSpace::DataBase<Dimension>& dataBase);
+  virtual void reset(const DataBase<Dimension>& dataBase);
 
   // Report the number of ghost nodes in this boundary.
   virtual int numGhostNodes() const;
@@ -186,17 +174,16 @@ public:
   //--------------------------- Protected Interface ---------------------------//
   // Descendent classes are allowed to access the BoundaryNodes for the
   // given NodeList.
-  std::map<NodeSpace::NodeList<Dimension>*, BoundaryNodes>& accessBoundaryNodes();
-  BoundaryNodes& accessBoundaryNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  std::map<NodeList<Dimension>*, BoundaryNodes>& accessBoundaryNodes();
+  BoundaryNodes& accessBoundaryNodes(NodeList<Dimension>& nodeList);
 
-  virtual void addNodeList(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void addNodeList(NodeList<Dimension>& nodeList);
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  std::map<NodeSpace::NodeList<Dimension>*, BoundaryNodes> mBoundaryNodes;
+  std::map<NodeList<Dimension>*, BoundaryNodes> mBoundaryNodes;
 };
 
-}
 }
 
 #include "BoundaryInline.hh"
@@ -204,10 +191,8 @@ private:
 #else
 
 namespace Spheral {
-  namespace BoundarySpace {
-    // Forward declaration.
-    template<typename Dimension> class Boundary;
-  }
+  // Forward declaration.
+  template<typename Dimension> class Boundary;
 }
 
 #endif

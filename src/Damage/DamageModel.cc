@@ -27,22 +27,18 @@
 
 #include <string>
 #include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace PhysicsSpace {
-
-using namespace std;
-
-using NodeSpace::SolidNodeList;
-using Material::EquationOfState;
-using FileIOSpace::FileIO;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using BoundarySpace::Boundary;
-using KernelSpace::TableKernel;
-using NeighborSpace::ConnectivityMap;
-using NodeSpace::NodeList;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -65,7 +61,7 @@ DamageModel(SolidNodeList<Dimension>& nodeList,
   mLongitudinalSoundSpeed(SolidFieldNames::longitudinalSoundSpeed, nodeList),
   mExcludeNode("Nodes excluded from damage", nodeList, 0),
   mCriticalNodesPerSmoothingScale(0.99),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -266,9 +262,11 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void 
 DamageModel<Dimension>::
-postStateUpdate(const DataBase<Dimension>& dataBase, 
+postStateUpdate(const Scalar time, 
+                const Scalar dt,
+                const DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
-                const StateDerivatives<Dimension>& derivatives) const {
+                StateDerivatives<Dimension>& derivatives) {
 
   typedef typename SymTensor::EigenStructType EigenStruct;
 
@@ -444,6 +442,5 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mExcludeNode, pathName + "/excludeNode");
 }
 
-}
 }
 

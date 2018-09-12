@@ -24,7 +24,6 @@
 #include "Kernel.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 template<typename Dimension>
 class HKernel: public Kernel<Dimension, HKernel<Dimension> > {
@@ -70,19 +69,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "HKernelInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace KernelSpace {
-    template<typename Dimension> class HKernel;
-  }
+  template<typename Dimension> class HKernel;
 }
 
 #endif

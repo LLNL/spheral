@@ -4,13 +4,6 @@
 //
 // Created by JMO, Mon Jun 30 21:36:40 PDT 2014
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
 #include "TaylorSPHHydroBase.hh"
 #include "computeTaylorSPHCorrections.hh"
 #include "NodeList/SmoothingScaleBase.hh"
@@ -39,23 +32,15 @@
 #include "Utilities/safeInv.hh"
 #include "FileIO/FileIO.hh"
 
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
+
 namespace Spheral {
-namespace TaylorSPHSpace {
 
-using namespace std;
-using PhysicsSpace::GenericHydro;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-
-using PhysicsSpace::HEvolutionType;
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -75,26 +60,26 @@ TaylorSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mHEvolution(HUpdate),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mXSPH(XSPH),
-  mTimeStepMask(FieldSpace::FieldStorageType::CopyFields),
-  mPressure(FieldSpace::FieldStorageType::CopyFields),
-  mSoundSpeed(FieldSpace::FieldStorageType::CopyFields),
-  mSpecificThermalEnergy0(FieldSpace::FieldStorageType::CopyFields),
-  mHideal(FieldSpace::FieldStorageType::CopyFields),
-  mMaxViscousPressure(FieldSpace::FieldStorageType::CopyFields),
-  mWeightedNeighborSum(FieldSpace::FieldStorageType::CopyFields),
-  mMassSecondMoment(FieldSpace::FieldStorageType::CopyFields),
-  mXSPHWeightSum(FieldSpace::FieldStorageType::CopyFields),
-  mXSPHDeltaV(FieldSpace::FieldStorageType::CopyFields),
-  mDxDt(FieldSpace::FieldStorageType::CopyFields),
-  mDvDt(FieldSpace::FieldStorageType::CopyFields),
-  mDmassDensityDt(FieldSpace::FieldStorageType::CopyFields),
-  mDspecificThermalEnergyDt(FieldSpace::FieldStorageType::CopyFields),
-  mDHDt(FieldSpace::FieldStorageType::CopyFields),
-  mDvDx(FieldSpace::FieldStorageType::CopyFields),
-  mInternalDvDx(FieldSpace::FieldStorageType::CopyFields),
-  mPairAccelerations(FieldSpace::FieldStorageType::CopyFields),
-  mD(FieldSpace::FieldStorageType::CopyFields),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mTimeStepMask(FieldStorageType::CopyFields),
+  mPressure(FieldStorageType::CopyFields),
+  mSoundSpeed(FieldStorageType::CopyFields),
+  mSpecificThermalEnergy0(FieldStorageType::CopyFields),
+  mHideal(FieldStorageType::CopyFields),
+  mMaxViscousPressure(FieldStorageType::CopyFields),
+  mWeightedNeighborSum(FieldStorageType::CopyFields),
+  mMassSecondMoment(FieldStorageType::CopyFields),
+  mXSPHWeightSum(FieldStorageType::CopyFields),
+  mXSPHDeltaV(FieldStorageType::CopyFields),
+  mDxDt(FieldStorageType::CopyFields),
+  mDvDt(FieldStorageType::CopyFields),
+  mDmassDensityDt(FieldStorageType::CopyFields),
+  mDspecificThermalEnergyDt(FieldStorageType::CopyFields),
+  mDHDt(FieldStorageType::CopyFields),
+  mDvDx(FieldStorageType::CopyFields),
+  mInternalDvDx(FieldStorageType::CopyFields),
+  mPairAccelerations(FieldStorageType::CopyFields),
+  mD(FieldStorageType::CopyFields),
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -188,10 +173,10 @@ registerState(DataBase<Dimension>& dataBase,
                                                                       (*itr)->rhoMax()));
     const Scalar hmaxInv = 1.0/(*itr)->hmax();
     const Scalar hminInv = 1.0/(*itr)->hmin();
-    if (HEvolution() == PhysicsSpace::HEvolutionType::IntegrateH) {
+    if (HEvolution() == HEvolutionType::IntegrateH) {
       Hpolicy->push_back(new IncrementBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
     } else {
-      CHECK(HEvolution() == PhysicsSpace::HEvolutionType::IdealH);
+      CHECK(HEvolution() == HEvolutionType::IdealH);
       Hpolicy->push_back(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
     }
   }
@@ -873,5 +858,3 @@ restoreState(const FileIO& file, string pathName) {
 }
 
 }
-}
-

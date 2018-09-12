@@ -3,21 +3,25 @@
 //
 // Created by JMO, Tue Nov 16 15:30:39 PST 2010
 //----------------------------------------------------------------------------//
-#include <vector>
-#include <algorithm>
-
 #include "Mesh.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-namespace MeshSpace {
-
-using namespace std;
+#include <vector>
+#include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
+
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Comparator to help sorting the faces counter-clockwise about a position.
@@ -101,7 +105,7 @@ Zone(const Mesh<Dim<2> >& mesh,
     sort(nodeIDs.begin(), nodeIDs.end());
     if (!(unique(nodeIDs.begin(), nodeIDs.end()) == nodeIDs.end())) {
       cerr << "Blago!  : " << mID << " : Faces : ";
-      copy(mFaceIDs.begin(), mFaceIDs.end(), ostream_iterator<int>(cerr, " "));
+      copy(mFaceIDs.begin(), mFaceIDs.end(), std::ostream_iterator<int>(cerr, " "));
       cerr << endl << " Face nodes :";
       for (vector<int>::const_iterator itr = mFaceIDs.begin(); itr != mFaceIDs.end(); ++itr) {
         const unsigned i = Mesh<Dim<2> >::positiveID(*itr);
@@ -190,5 +194,4 @@ volume() const {
   return result;
 }
 
-}
 }

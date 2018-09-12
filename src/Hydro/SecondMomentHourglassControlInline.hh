@@ -2,7 +2,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Access the maximum multiplicative factor for the acceleration.
@@ -49,11 +48,10 @@ multiplier(const double x) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 SecondMomentHourglassControl<Dimension>::
 acceleration() const {
   return mAcceleration;
 }
 
-}
 }

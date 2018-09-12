@@ -11,7 +11,6 @@
 #include "Restart.hh"
 
 namespace Spheral {
-namespace DataOutput {
 
 //------------------------------------------------------------------------------
 // The data type any client classes must hold onto if they want to register for 
@@ -35,7 +34,6 @@ registerWithRestart(Object& object,
   return handle;
 }
 
-}
 }
 
 #endif

@@ -20,31 +20,16 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  namespace NodeSpace {
-    template<typename Dimension> class SmoothingScaleBase;
-  }
-  namespace ArtificialViscositySpace {
-    template<typename Dimension> class ArtificialViscosity;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
-}
 
-namespace Spheral {
-namespace SPHSpace {
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class SmoothingScaleBase;
+template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class TableKernel;
+template<typename Dimension> class DataBase;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+class FileIO;
 
 class SolidSPHHydroBaseRZ: public SolidSPHHydroBase<Dim<2> > {
 
@@ -56,14 +41,14 @@ public:
   typedef Dimension::Tensor Tensor;
   typedef Dimension::SymTensor SymTensor;
 
-  typedef PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  typedef Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  SolidSPHHydroBaseRZ(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                      ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
-                      const KernelSpace::TableKernel<Dimension>& W,
-                      const KernelSpace::TableKernel<Dimension>& WPi,
-                      const KernelSpace::TableKernel<Dimension>& WGrad,
+  SolidSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                      ArtificialViscosity<Dimension>& Q,
+                      const TableKernel<Dimension>& W,
+                      const TableKernel<Dimension>& WPi,
+                      const TableKernel<Dimension>& WGrad,
                       const double filter,
                       const double cfl,
                       const bool useVelocityMagnitudeForDt,
@@ -73,8 +58,8 @@ public:
                       const bool XSPH,
                       const bool correctVelocityGradient,
                       const bool sumMassDensityOverAllNodeLists,
-                      const PhysicsSpace::MassDensityType densityUpdate,
-                      const PhysicsSpace::HEvolutionType HUpdate,
+                      const MassDensityType densityUpdate,
+                      const HEvolutionType HUpdate,
                       const double epsTensile,
                       const double nTensile,
                       const bool damageRelieveRubble,
@@ -86,16 +71,16 @@ public:
 
   // Tasks we do once on problem startup.
   virtual
-  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+  void initializeProblemStartup(DataBase<Dimension>& dataBase);
 
   // Register the state Hydro expects to use and evolve.
   virtual 
-  void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state);
 
   // Register the derivatives/change fields for updating state.
   virtual
-  void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+  void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs);
 
   // Evaluate the derivatives for the principle hydro variables:
@@ -103,7 +88,7 @@ public:
   virtual
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const;
 
@@ -111,7 +96,7 @@ public:
   virtual
   void finalize(const Scalar time,
                 const Scalar dt,
-                DataBaseSpace::DataBase<Dimension>& dataBase,
+                DataBase<Dimension>& dataBase,
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivs);
                
@@ -127,21 +112,21 @@ public:
 
   // The state field lists we're maintaining.
   // In the RZ case we have the (theta,theta) component of the deviatoric stress.
-  const FieldSpace::FieldList<Dimension, Scalar>& deviatoricStressTT() const;
-  const FieldSpace::FieldList<Dimension, Scalar>& DdeviatoricStressTTDt() const;
+  const FieldList<Dimension, Scalar>& deviatoricStressTT() const;
+  const FieldList<Dimension, Scalar>& DdeviatoricStressTTDt() const;
 
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "SolidSPHHydroBaseRZ"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Some internal scratch fields.
-  FieldSpace::FieldList<Dimension, Scalar> mDeviatoricStressTT;
-  FieldSpace::FieldList<Dimension, Scalar> mDdeviatoricStressTTDt;
+  FieldList<Dimension, Scalar> mDeviatoricStressTT;
+  FieldList<Dimension, Scalar> mDdeviatoricStressTTDt;
 
   // No default constructor, copying, or assignment.
   SolidSPHHydroBaseRZ();
@@ -150,19 +135,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "SolidSPHHydroBaseRZInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace SPHSpace {
-    class SolidSPHHydroBaseRZ;
-  }
+  class SolidSPHHydroBaseRZ;
 }
 
 #endif

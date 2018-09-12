@@ -12,30 +12,23 @@
 namespace Spheral {
 
   // Forward declarations.
-  namespace MeshSpace {
-    template<typename Dimension> class Mesh;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
+  template<typename Dimension> class Mesh;
+  template<typename Dimension> class TableKernel;
+  template<typename Dimension, typename DataType> class Field;
+  template<typename Dimension, typename DataType> class FieldList;
 
-  namespace SVPHSpace {
-    template<typename Dimension, typename BoundaryIterator>
-    void
-    computeSVPHCorrectionsOnFaces(const MeshSpace::Mesh<Dimension>& mesh,
-                                  const KernelSpace::TableKernel<Dimension>& W,
-                                  const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& volume,
-                                  const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                                  const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                                  const BoundaryIterator& boundaryBegin,
-                                  const BoundaryIterator& boundaryEnd,
-                                  std::vector<typename Dimension::Scalar>& A,
-                                  std::vector<typename Dimension::Vector>& B);
-  }
+  template<typename Dimension, typename BoundaryIterator>
+  void
+  computeSVPHCorrectionsOnFaces(const Mesh<Dimension>& mesh,
+                                const TableKernel<Dimension>& W,
+                                const FieldList<Dimension, typename Dimension::Scalar>& volume,
+                                const FieldList<Dimension, typename Dimension::Vector>& position,
+                                const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                                const BoundaryIterator& boundaryBegin,
+                                const BoundaryIterator& boundaryEnd,
+                                std::vector<typename Dimension::Scalar>& A,
+                                std::vector<typename Dimension::Vector>& B);
+
 }
 
 #endif

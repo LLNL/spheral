@@ -8,8 +8,6 @@
 //
 // Created by JMO, Sat Dec 20 22:36:58 PST 2008
 //----------------------------------------------------------------------------//
-#include "boost/assign.hpp"
-
 #include "peanoHilbertOrderIndices.hh"
 #include "PeanoHilbertTransform.hh"
 #include "globalBoundingVolumes.hh"
@@ -17,14 +15,21 @@
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-
-using namespace std;
+#include "boost/assign.hpp"
 using namespace boost::assign;
 
-using NodeSpace::NodeList;
-using DataBaseSpace::DataBase;
-using FieldSpace::FieldList;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // The specialized function (per dimension) to dive down the recursive levels
@@ -418,7 +423,7 @@ peanoHilbertOrderIndices(const FieldList<Dimension, typename Dimension::Vector>&
   typedef typename Dimension::Vector Vector;
 
   // Prepare the result.
-  FieldList<Dimension, Key> result(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Key> result(FieldStorageType::CopyFields);
   const vector<NodeList<Dimension>*>& nodeListPtrs = positions.nodeListPtrs();
   for (const NodeList<Dimension>* nodeListPtr: nodeListPtrs) {
     result.appendNewField("hashed indices", *nodeListPtr, KeyTraits::zero);

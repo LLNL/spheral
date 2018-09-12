@@ -17,7 +17,6 @@
 #include "Kernel.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 template<typename Dimension>
 class SuperGaussianKernel: public Kernel<Dimension, SuperGaussianKernel<Dimension> > {
@@ -50,19 +49,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "SuperGaussianKernelInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace KernelSpace {
-    template<typename Dimension> class SuperGaussianKernel;
-  }
+  template<typename Dimension> class SuperGaussianKernel;
 }
 
 #endif

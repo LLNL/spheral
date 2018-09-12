@@ -25,19 +25,7 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace FVPMSpace {
 
-using namespace std;
-
-using NodeSpace::FluidDerivativeProducer;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using Material::EquationOfState;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using KernelSpace::TableKernel;
-using NeighborSpace::Neighbor;
-using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -81,9 +69,9 @@ template<typename Dimension>
 void
 FVPMFluidDerivatives<Dimension>::
 updateMassDensity(const State<Dimension>& state,
-                  const KernelSpace::TableKernel<Dimension>& W,
-                  const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                  FieldSpace::Field<Dimension, Scalar>& massDensity) const {
+                  const TableKernel<Dimension>& W,
+                  const ConnectivityMap<Dimension>& connectivityMap,
+                  Field<Dimension, Scalar>& massDensity) const {
   // Nothing to do here for now.
   VERIFY2(false, "FVPMFluidDerivatives::updateMassDensity undefined!");
 }
@@ -332,9 +320,7 @@ calculateDerivatives(const typename Dimension::Scalar time,
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 namespace Spheral {
-  namespace FVPMSpace {
-    template class FVPMFluidDerivatives< Dim<1> >;
-    template class FVPMFluidDerivatives< Dim<2> >;
-    template class FVPMFluidDerivatives< Dim<3> >;
-  }
+  template class FVPMFluidDerivatives< Dim<1> >;
+  template class FVPMFluidDerivatives< Dim<2> >;
+  template class FVPMFluidDerivatives< Dim<3> >;
 }

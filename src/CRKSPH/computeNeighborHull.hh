@@ -8,18 +8,17 @@
 
 namespace Spheral {
 
-  // Forward declarations.
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
+// Forward declarations.
+template<typename Dimension, typename DataType> class FieldList;
 
-  template<typename Dimension>
-  typename Dimension::FacetedVolume
-  computeNeighborHull(const std::vector<std::vector<int> >& fullConnectivity,
-                      const typename Dimension::Scalar etaCutoff,
-                      const typename Dimension::Vector& ri,
-                      const typename Dimension::SymTensor& Hi,
-                      const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position);
+template<typename Dimension>
+typename Dimension::FacetedVolume
+computeNeighborHull(const std::vector<std::vector<int> >& fullConnectivity,
+                    const typename Dimension::Scalar etaCutoff,
+                    const typename Dimension::Vector& ri,
+                    const typename Dimension::SymTensor& Hi,
+                    const FieldList<Dimension, typename Dimension::Vector>& position);
+
 }
 
 #endif

@@ -17,10 +17,6 @@
 
 namespace Spheral {
 
-using namespace std;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -72,7 +68,7 @@ update(const KeyType& key,
   // Get the eos.  This cast is ugly, but is a work-around for now.
   const FluidNodeList<Dimension>* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(pressure.nodeListPtr());
   CHECK(fluidNodeListPtr != 0);
-  const Material::EquationOfState<Dimension>& eos = fluidNodeListPtr->equationOfState();
+  const EquationOfState<Dimension>& eos = fluidNodeListPtr->equationOfState();
 
   // Compute the cell density.
   const Field<Dimension, Scalar> rho = mass/vol;

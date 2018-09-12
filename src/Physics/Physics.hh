@@ -13,18 +13,11 @@
 #include <string>
 
 namespace Spheral {
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace BoundarySpace {
-    template<typename Dimension> class Boundary;
-  }
-}
 
-namespace Spheral {
-namespace PhysicsSpace {
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class DataBase;
+template<typename Dimension> class Boundary;
 
 template<typename Dimension>
 class Physics {
@@ -35,8 +28,8 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::iterator BoundaryIterator;
-  typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
+  typedef typename std::vector<Boundary<Dimension>*>::iterator BoundaryIterator;
+  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
   typedef typename std::pair<double, std::string> TimeStepType;
 
   // Constructors.
@@ -51,23 +44,23 @@ public:
   virtual 
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const = 0;
 
   // Vote on a time step.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const = 0;
 
   // Register the state you want carried around (and potentially evolved), as
   // well as the policies for such evolution.
-  virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state) = 0;
 
   // Register the derivatives/change fields for updating state.
-  virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerDerivatives(DataBase<Dimension>& dataBase,
                                    StateDerivatives<Dimension>& derivs) = 0;
 
   // It's useful to have labels for Physics packages.  We'll require this to have
@@ -77,12 +70,12 @@ public:
   //******************************************************************************//
   // Methods for handling boundary conditions.
   // Add a Boundary condition.
-  void appendBoundary(BoundarySpace::Boundary<Dimension>& boundary);  // To end of boundary list
-  void prependBoundary(BoundarySpace::Boundary<Dimension>& boundary); // To beginning of boundary list
+  void appendBoundary(Boundary<Dimension>& boundary);  // To end of boundary list
+  void prependBoundary(Boundary<Dimension>& boundary); // To beginning of boundary list
   void clearBoundaries();                                             // Remove all boundary conditions
 
   // Test if the given Boundary condition is registered.
-  bool haveBoundary(const BoundarySpace::Boundary<Dimension>& boundary) const;
+  bool haveBoundary(const Boundary<Dimension>& boundary) const;
 
   // Provide standard iterator methods over the boundary conditions list.
   BoundaryIterator boundaryBegin();
@@ -92,7 +85,7 @@ public:
   ConstBoundaryIterator boundaryEnd() const;
 
   // Access the list of boundary conditions.
-  const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaryConditions() const;
+  const std::vector<Boundary<Dimension>*>& boundaryConditions() const;
 
   // Apply boundary conditions to the physics specific fields.
   virtual void applyGhostBoundaries(State<Dimension>& state,
@@ -104,10 +97,10 @@ public:
 
   //******************************************************************************//
   // An optional hook to initialize once when the problem is starting up.
-  virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase);
 
   // Optional hook to be called at the beginning of a time step.
-  virtual void preStepInitialize(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
                                  State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs);
 
@@ -115,7 +108,7 @@ public:
   // evaluateDerivatives() method is called.
   virtual void initialize(const Scalar time, 
                           const Scalar dt,
-                          const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                          const DataBase<Dimension>& dataBase, 
                           State<Dimension>& state,
                           StateDerivatives<Dimension>& derivs);
 
@@ -123,7 +116,7 @@ public:
   // Really we should rename this post-step finalize.
   virtual void finalize(const Scalar time, 
                         const Scalar dt,
-                        DataBaseSpace::DataBase<Dimension>& dataBase, 
+                        DataBase<Dimension>& dataBase, 
                         State<Dimension>& state,
                         StateDerivatives<Dimension>& derivs);
 
@@ -133,16 +126,18 @@ public:
   virtual 
   void finalizeDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const;
 
   // Provide a hook to be called after the state has been updated and 
   // boundary conditions have been enforced.
   virtual 
-  void postStateUpdate(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  void postStateUpdate(const Scalar time, 
+                       const Scalar dt,
+                       const DataBase<Dimension>& dataBase, 
                        State<Dimension>& state,
-                       const StateDerivatives<Dimension>& derivatives) const;
+                       StateDerivatives<Dimension>& derivatives);
 
   // Some physics does not require the connectivity be constructed.
   virtual bool requireConnectivity() const;
@@ -158,19 +153,18 @@ public:
   // system (electromagnetic momentum flux density, etc.) 
   virtual Vector extraMomentum() const;
 
+  // Register any additional state for visualization.
+  virtual void registerAdditionalVisualizationState(DataBase<Dimension>& dataBase,
+                                                    State<Dimension>& state);
+
 private:
   //--------------------------- Private Interface ---------------------------//
-#ifndef __GCCXML__
-  std::vector<BoundarySpace::Boundary<Dimension>*> mBoundaryConditions;
-#endif
+  std::vector<Boundary<Dimension>*> mBoundaryConditions;
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "PhysicsInline.hh"
-#endif
 
 #else
 

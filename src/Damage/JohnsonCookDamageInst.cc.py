@@ -6,6 +6,6 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class PhysicsSpace::JohnsonCookDamage<Dim< %(ndim)s > >;
+  template class JohnsonCookDamage<Dim< %(ndim)s > >;
 }
 """
