@@ -5,6 +5,7 @@ Binds the PolyClipper geometry operations for clipping polygons & polyhedra.
 """
 
 from PYB11Decorators import *
+import types
 
 # Include files.
 includes = ['"Geometry/polyclipper.hh"']
@@ -45,7 +46,7 @@ def addPlaneMethods(cls, ndim):
         "The normal to the plane."
         return "Vector"
 
-    for x in ("pyinit0", "pyinit1", "pyinit2", "pyinit3", "dist", "normal"):
+    for x in [x for x in dir() if type(eval(x)) == types.FunctionType]: 
         exec("cls.%s = %s" % (x, x))
 
 #-------------------------------------------------------------------------------
@@ -93,7 +94,7 @@ def addVertexMethods(cls, ndim):
         "The ID or index of the vertex."
         return "None"
 
-    for x in ("pyinit0", "pyinit1", "pyinit2", "pyinit3", "position", "neighbors", "comp", "ID"):
+    for x in [x for x in dir() if type(eval(x)) == types.FunctionType]: 
         exec("cls.%s = %s" % (x, x))
 
 #-------------------------------------------------------------------------------

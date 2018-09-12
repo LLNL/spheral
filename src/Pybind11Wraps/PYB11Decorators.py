@@ -5,8 +5,6 @@ from functools import wraps as PYB11wraps    # Add PYB11 to screen out in genera
 import decorator as PYB11decorator           # To preserve wrapped functions args
 import types
 
-import sys
-
 #-------------------------------------------------------------------------------
 # ignore
 #-------------------------------------------------------------------------------
