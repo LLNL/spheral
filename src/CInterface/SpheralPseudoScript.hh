@@ -43,7 +43,7 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef FieldSpace::Field<Dimension, std::vector<double>> FlawStorageType;
+  typedef Field<Dimension, std::vector<double>> FlawStorageType;
 
   // Get the instance.
   static SpheralPseudoScript& instance();
@@ -203,30 +203,30 @@ private:
   int mDistributedBoundary;
 
   // The material data.
-  std::shared_ptr<Material::PhysicalConstants> mUnitsPtr;
-  std::shared_ptr<SolidMaterial::SolidEquationOfState<Dimension>> mEOSptr;
-  std::shared_ptr<SolidMaterial::StrengthModel<Dimension>> mStrengthModelPtr;
+  std::shared_ptr<PhysicalConstants> mUnitsPtr;
+  std::shared_ptr<SolidEquationOfState<Dimension> > mEOSptr;
+  std::shared_ptr<StrengthModel<Dimension> > mStrengthModelPtr;
 
   // The NodeList data.
-  std::vector<std::shared_ptr<NeighborSpace::Neighbor<Dimension>>> mNeighbors;
-  std::vector<std::shared_ptr<NodeSpace::SolidNodeList<Dimension>>> mNodeLists;
+  std::vector<std::shared_ptr<Neighbor<Dimension> > > mNeighbors;
+  std::vector<std::shared_ptr<SolidNodeList<Dimension> > > mNodeLists;
 
   // Hydro bits.
-  std::shared_ptr<KernelSpace::TableKernel<Dimension>> mKernelPtr;
-  std::shared_ptr<KernelSpace::TableKernel<Dimension>> mPiKernelPtr;
-  std::shared_ptr<KernelSpace::TableKernel<Dimension>> mGradKernelPtr;
-  std::shared_ptr<NodeSpace::SmoothingScaleBase<Dimension>> mSmoothingScaleMethodPtr;
-  std::shared_ptr<ArtificialViscositySpace::ArtificialViscosity<Dimension>> mQptr;
-  std::shared_ptr<PhysicsSpace::Physics<Dimension>> mHydroPtr;
+  std::shared_ptr<TableKernel<Dimension> > mKernelPtr;
+  std::shared_ptr<TableKernel<Dimension> > mPiKernelPtr;
+  std::shared_ptr<TableKernel<Dimension> > mGradKernelPtr;
+  std::shared_ptr<SmoothingScaleBase<Dimension> > mSmoothingScaleMethodPtr;
+  std::shared_ptr<ArtificialViscosity<Dimension> > mQptr;
+  std::shared_ptr<Physics<Dimension> > mHydroPtr;
 
   // Integrator and state.
-  std::shared_ptr<IntegratorSpace::CheapSynchronousRK2<Dimension>> mIntegratorPtr;
-  std::shared_ptr<DataBaseSpace::DataBase<Dimension>> mDataBasePtr;
+  std::shared_ptr<CheapSynchronousRK2<Dimension> > mIntegratorPtr;
+  std::shared_ptr<DataBase<Dimension> > mDataBasePtr;
   std::shared_ptr<State<Dimension>> mStatePtr;
   std::shared_ptr<StateDerivatives<Dimension>> mDerivsPtr;
 
   // A boundary to hold the host code values.
-  std::vector<std::shared_ptr<BoundarySpace::Boundary<Dimension>>> mHostCodeBoundaries;
+  std::vector<std::shared_ptr<Boundary<Dimension> > > mHostCodeBoundaries;
 
   // No public constructors, destructor, or assignment.
   SpheralPseudoScript();

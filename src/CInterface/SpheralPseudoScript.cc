@@ -56,40 +56,6 @@ namespace Spheral {
 
 using namespace std;
 
-using Material::PhysicalConstants;
-using SolidMaterial::SolidEquationOfState;
-using SolidMaterial::StrengthModel;
-using SolidMaterial::LinearPolynomialEquationOfState;
-using SolidMaterial::NullStrength;
-using NodeSpace::SolidNodeList;
-using KernelSpace::TableKernel;
-using KernelSpace::NBSplineKernel;
-using KernelSpace::GaussianKernel;
-using KernelSpace::PiGaussianKernel;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::SPHSmoothingScale;
-using NodeSpace::ASPHSmoothingScale;
-using NeighborSpace::NestedGridNeighbor;
-using NeighborSpace::TreeNeighbor;
-using NeighborSpace::ConnectivityMap;
-using ArtificialViscositySpace::ArtificialViscosity;
-using ArtificialViscositySpace::MonaghanGingoldViscosity;
-using ArtificialViscositySpace::TensorMonaghanGingoldViscosity;
-using ArtificialViscositySpace::CRKSPHMonaghanGingoldViscosity;
-using PhysicsSpace::Physics;
-using SPHSpace::SolidSPHHydroBase;
-using SPHSpace::SolidSPHHydroBaseRZ;
-using CRKSPHSpace::SolidCRKSPHHydroBase;
-using CRKSPHSpace::SolidCRKSPHHydroBaseRZ;
-using DataBaseSpace::DataBase;
-using IntegratorSpace::CheapSynchronousRK2;
-using BoundarySpace::Boundary;
-using BoundarySpace::ConstantBoundary;
-using BoundarySpace::ReflectingBoundary;
-using BoundarySpace::AxisBoundaryRZ;
-using FieldSpace::Field;
-using FieldSpace::FieldListSet;
-
 //------------------------------------------------------------------------------
 // Local utility functions.
 //------------------------------------------------------------------------------
@@ -380,11 +346,11 @@ template<typename Dimension> struct HydroConstructor;
 // 3D 
 template<> struct HydroConstructor<Dim<3>> {
   static std::shared_ptr<Physics<Dim<3>>> newinstance(const bool CRK,
-                                                      const NodeSpace::SmoothingScaleBase<Dim<3>>& smoothingScaleMethod,
-                                                      ArtificialViscositySpace::ArtificialViscosity<Dim<3>>& Q,
-                                                      const KernelSpace::TableKernel<Dim<3>>& W,
-                                                      const KernelSpace::TableKernel<Dim<3>>& WPi,
-                                                      const KernelSpace::TableKernel<Dim<3>>& WGrad,
+                                                      const SmoothingScaleBase<Dim<3>>& smoothingScaleMethod,
+                                                      ArtificialViscosity<Dim<3>>& Q,
+                                                      const TableKernel<Dim<3>>& W,
+                                                      const TableKernel<Dim<3>>& WPi,
+                                                      const TableKernel<Dim<3>>& WGrad,
                                                       const double filter,
                                                       const double cfl,
                                                       const bool useVelocityMagnitudeForDt,
@@ -394,10 +360,10 @@ template<> struct HydroConstructor<Dim<3>> {
                                                       const bool XSPH,
                                                       const bool correctVelocityGradient,
                                                       const bool sumMassDensityOverAllNodeLists,
-                                                      const PhysicsSpace::MassDensityType densityUpdate,
-                                                      const PhysicsSpace::HEvolutionType HUpdate,
-                                                      const CRKSPHSpace::CRKOrder correctionOrder,
-                                                      const CRKSPHSpace::CRKVolumeType volumeType,
+                                                      const MassDensityType densityUpdate,
+                                                      const HEvolutionType HUpdate,
+                                                      const CRKOrder correctionOrder,
+                                                      const CRKVolumeType volumeType,
                                                       const double epsTensile,
                                                       const double nTensile,
                                                       const bool damageRelieveRubble,
@@ -455,11 +421,11 @@ template<> struct HydroConstructor<Dim<3>> {
 // 2D 
 template<> struct HydroConstructor<Dim<2>> {
   static std::shared_ptr<Physics<Dim<2>>> newinstance(const bool CRK,
-                                                      const NodeSpace::SmoothingScaleBase<Dim<2>>& smoothingScaleMethod,
-                                                      ArtificialViscositySpace::ArtificialViscosity<Dim<2>>& Q,
-                                                      const KernelSpace::TableKernel<Dim<2>>& W,
-                                                      const KernelSpace::TableKernel<Dim<2>>& WPi,
-                                                      const KernelSpace::TableKernel<Dim<2>>& WGrad,
+                                                      const SmoothingScaleBase<Dim<2>>& smoothingScaleMethod,
+                                                      ArtificialViscosity<Dim<2>>& Q,
+                                                      const TableKernel<Dim<2>>& W,
+                                                      const TableKernel<Dim<2>>& WPi,
+                                                      const TableKernel<Dim<2>>& WGrad,
                                                       const double filter,
                                                       const double cfl,
                                                       const bool useVelocityMagnitudeForDt,
@@ -469,10 +435,10 @@ template<> struct HydroConstructor<Dim<2>> {
                                                       const bool XSPH,
                                                       const bool correctVelocityGradient,
                                                       const bool sumMassDensityOverAllNodeLists,
-                                                      const PhysicsSpace::MassDensityType densityUpdate,
-                                                      const PhysicsSpace::HEvolutionType HUpdate,
-                                                      const CRKSPHSpace::CRKOrder correctionOrder,
-                                                      const CRKSPHSpace::CRKVolumeType volumeType,
+                                                      const MassDensityType densityUpdate,
+                                                      const HEvolutionType HUpdate,
+                                                      const CRKOrder correctionOrder,
+                                                      const CRKVolumeType volumeType,
                                                       const double epsTensile,
                                                       const double nTensile,
                                                       const bool damageRelieveRubble,
@@ -645,7 +611,7 @@ initialize(const bool     RZ,
                                                                                                                100.0, 
                                                                                                                *me.mUnitsPtr,
                                                                                                                0.0, 0.0, 1e100,
-                                                                                                                  Material::MaterialPressureMinType::ZeroPressure));
+                                                                                                               MaterialPressureMinType::ZeroPressure));
   me.mStrengthModelPtr = std::shared_ptr<StrengthModel<Dimension>>(new NullStrength<Dimension>());
 
   // Build the general interpolation kernel.
@@ -709,14 +675,14 @@ initialize(const bool     RZ,
                                                                                                     1e100))); // rhoMax -- we depend on the host code
     if (distributedBoundary == 2) {
       me.mNeighbors.push_back(std::shared_ptr< TreeNeighbor<Dimension>>(new TreeNeighbor<Dimension>(*me.mNodeLists.back(),
-                                                                                                    NeighborSpace::NeighborSearchType::GatherScatter,
+                                                                                                    NeighborSearchType::GatherScatter,
                                                                                                     me.mKernelPtr->kernelExtent(),
                                                                                                     xmin,
                                                                                                     xmax)));
     }
     else {
       me.mNeighbors.push_back(std::shared_ptr< NestedGridNeighbor<Dimension>>(new NestedGridNeighbor<Dimension>(*me.mNodeLists.back(),
-                                                                                                                NeighborSpace::NeighborSearchType::GatherScatter,
+                                                                                                                NeighborSearchType::GatherScatter,
                                                                                                                 31,
                                                                                                                 (xmax - xmin).maxElement(),
                                                                                                                 Vector::zero,
@@ -763,10 +729,10 @@ initialize(const bool     RZ,
                                                           XSPH,                                              // XSPH
                                                           vGradCorrection,                                   // correctVelocityGradient
                                                           sumMassDensity,                                    // sumMassDensityOverAllNodeLists
-                                                          PhysicsSpace::MassDensityType::RigorousSumDensity, // densityUpdate
-                                                          PhysicsSpace::HEvolutionType::IdealH,              // HUpdate
-                                                          CRKSPHSpace::CRKOrder::LinearOrder,                // CRK order
-                                                          CRKSPHSpace::CRKVolumeType::CRKSumVolume,          // CRK volume type
+                                                          MassDensityType::RigorousSumDensity, // densityUpdate
+                                                          HEvolutionType::IdealH,              // HUpdate
+                                                          CRKOrder::LinearOrder,                // CRK order
+                                                          CRKVolumeType::CRKSumVolume,          // CRK volume type
                                                           0.0,                                               // epsTensile
                                                           4.0,                                               // nTensile
                                                           false,                                             // damageRelieve
@@ -962,10 +928,10 @@ updateState(const double*  mass,
   // distributed ghost nodes.
 #if USE_MPI
   if (me.mDistributedBoundary == 2) {
-    me.mHydroPtr->appendBoundary(BoundarySpace::TreeDistributedBoundary<Dimension>::instance());
+    me.mHydroPtr->appendBoundary(TreeDistributedBoundary<Dimension>::instance());
   }
   else {
-    me.mHydroPtr->appendBoundary(BoundarySpace::NestedGridDistributedBoundary<Dimension>::instance());
+    me.mHydroPtr->appendBoundary(NestedGridDistributedBoundary<Dimension>::instance());
   }
 #endif
 

@@ -7,6 +7,7 @@ namespace Spheral {
 using std::min;
 using std::max;
 using std::abs;
+using std::vector;
 
 //------------------------------------------------------------------------------
 // Function to compute the per dimension volume multiplier.

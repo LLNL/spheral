@@ -1,7 +1,6 @@
 set(Material_inst
     EquationOfState
     GammaLawGas
-    HelmholtzEquationOfState
     IsothermalEquationOfState
     PolytropicEquationOfState
    )
@@ -17,7 +16,6 @@ set(Material_headers
     EquationOfState.hh
     EquationOfStateInline.hh
     GammaLawGas.hh
-    HelmholtzEquationOfState.hh
     IsothermalEquationOfState.hh
     IsothermalEquationOfStateInline.hh
     PhysicalConstants.hh

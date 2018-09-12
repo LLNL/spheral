@@ -22,10 +22,6 @@ set(Geometry_sources
     buildEigenVector.cc
     computeEigenValues.cc
     fakemain.cc
-    clipConvexFacetedVolumeByPlanes2d.cc
-    clipConvexFacetedVolumeByPlanes3d.cc
-    clipFacetedVolumeByPlanes1d.cc
-    clipFacetedVolumeByPlanes3d.cc
     polyclipper2d.cc
     polyclipper3d.cc
    )
@@ -98,8 +94,6 @@ set(Geometry_headers
     innerProduct.hh
     invertRankNTensor.hh
     outerProduct.hh
-    clipConvexFacetedVolumeByPlanes.hh
-    clipFacetedVolumeByPlanes.hh
     polyclipper.hh
     polyclipper_utilities.hh
     )

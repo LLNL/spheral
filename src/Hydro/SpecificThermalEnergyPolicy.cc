@@ -31,7 +31,8 @@
 namespace Spheral {
 
 using std::abs;
-
+using std::vector;
+using std::numeric_limits;
 
 //------------------------------------------------------------------------------
 // Constructor.

@@ -24,7 +24,6 @@ if (ENABLE_MPI)
        DistributedBoundary
        MortonOrderRedistributeNodes
        NestedGridDistributedBoundary
-       NestedGridRedistributeNodes
        PeanoHilbertOrderRedistributeNodes
        RedistributeNodes
        SortAndDivideRedistributeNodes
@@ -47,8 +46,6 @@ set(Distributed_headers
     DomainNodeInline.hh
     MortonOrderRedistributeNodes.hh
     NestedGridDistributedBoundary.hh
-    NestedGridRedistributeNodes.hh
-    NestedGridRedistributeNodesInline.hh
     NestedGridUtilities.hh
     ParmetisRedistributeNodes.hh
     ParmetisRedistributeNodesInline.hh

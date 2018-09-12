@@ -31,6 +31,8 @@
 
 namespace Spheral {
 
+using std::vector;
+using std::numeric_limits;
 
 // namespace {
 
