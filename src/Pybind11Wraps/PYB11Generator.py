@@ -188,6 +188,16 @@ def PYB11generateModuleClasses(modobj, ss):
         pass
 
     #...........................................................................
+    # readonly attribute
+    def readonly_class_attribute(aname, attrs, args):
+        ss('    obj.def_readonly("%(pyname)s", ' % methattrs)
+        ss(("&%(cppname)s::" % klassattrs) + methattrs["cppname"])
+        doc = inspect.getdoc(meth)
+        if doc:
+            ss(',\n            "%s"' % doc)
+        ss(");\n")
+
+    #...........................................................................
     # readwrite attribute
     def readwrite_class_attribute(aname, attrs, args):
         ss('    obj.def_readwrite("%(pyname)s", ' % methattrs)
@@ -270,13 +280,16 @@ def PYB11generateModuleClasses(modobj, ss):
             if mname not in ignores:
                 methattrs = PYB11attrs(meth)
                 methattrs["returnType"] = eval("objinst." + mname + "()")
-                args = PYB11parseArgs(meth)
-                if mname[:6] == "pyinit":
-                    pyinit(meth, methattrs, args)
-                elif methattrs["readwrite"]:
-                    readwrite_class_attribute(meth, methattrs, args)
-                else:
-                    generic_class_method(meth, methattrs, args)
+                if not methattrs["ignore"]:
+                    args = PYB11parseArgs(meth)
+                    if mname[:6] == "pyinit":
+                        pyinit(meth, methattrs, args)
+                    elif methattrs["readonly"]:
+                        readonly_class_attribute(meth, methattrs, args)
+                    elif methattrs["readwrite"]:
+                        readwrite_class_attribute(meth, methattrs, args)
+                    else:
+                        generic_class_method(meth, methattrs, args)
 
         ss("  }\n")
 
@@ -357,6 +370,7 @@ def PYB11methods(obj):
 def PYB11attrs(obj):
     d = {"pyname"       : obj.__name__,
          "cppname"      : obj.__name__,
+         "ignore"       : False,
          "namespace"    : None,
          "singleton"    : False,
          "virtual"      : False,

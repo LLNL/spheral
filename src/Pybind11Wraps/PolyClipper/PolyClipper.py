@@ -12,7 +12,8 @@ includes = ['"Geometry/polyclipper.hh"']
 #-------------------------------------------------------------------------------
 # Helper to add the templated methods to Planes.
 #-------------------------------------------------------------------------------
-def PYB11_addPlaneMethods(cls, ndim):
+@PYB11ignore
+def addPlaneMethods(cls, ndim):
 
     # Constructors
     def pyinit0(self):
@@ -54,7 +55,7 @@ def PYB11_addPlaneMethods(cls, ndim):
 class PolyClipperPlane2d:
     """Plane class for polyclipper in 2 dimensions."""
 
-PYB11_addPlaneMethods(PolyClipperPlane2d, 2)
+addPlaneMethods(PolyClipperPlane2d, 2)
 
 #-------------------------------------------------------------------------------
 # Plane3d
@@ -63,4 +64,4 @@ PYB11_addPlaneMethods(PolyClipperPlane2d, 2)
 class PolyClipperPlane3d:
     """Plane class for polyclipper in 3 dimensions."""
 
-PYB11_addPlaneMethods(PolyClipperPlane3d, 3)
+addPlaneMethods(PolyClipperPlane3d, 3)

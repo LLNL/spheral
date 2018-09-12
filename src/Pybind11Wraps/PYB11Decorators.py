@@ -5,6 +5,19 @@ from functools import wraps as PYB11wraps    # Add PYB11 to screen out in genera
 import decorator as PYB11decorator           # To preserve wrapped functions args
 import types
 
+import sys
+
+#-------------------------------------------------------------------------------
+# ignore
+#-------------------------------------------------------------------------------
+class PYB11ignore:
+    def __init__(self, func):
+        self.func = func
+        func.PYB11ignore = True
+        return
+    def __call__(self, *args, **kwargs):
+        return self.func(*args, **kwargs)
+
 #-------------------------------------------------------------------------------
 # Singleton (class)
 #-------------------------------------------------------------------------------
