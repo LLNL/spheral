@@ -10,12 +10,9 @@ from PYB11Decorators import *
 includes = ['"Geometry/polyclipper.hh"']
 
 #-------------------------------------------------------------------------------
-# Plane2d
+# Helper to add the templated methods to Planes.
 #-------------------------------------------------------------------------------
-@PYB11cppname("PolyClipper::Plane2d")
-class PolyClipperPlane2d:
-    """Plane class for polyclipper in 2 dimensions."""
-    ndim = 2    
+def PYB11_addPlaneMethods(cls, ndim):
 
     # Constructors
     def pyinit0(self):
@@ -35,3 +32,35 @@ class PolyClipperPlane2d:
                 normal = "const PolyClipper::Plane%id::Vector&" % ndim):
         "Construct with a point and normal."
         return
+
+    # Attributes
+    @PYB11readwrite
+    def dist(self):
+        "The distance to the origin along the normal."
+        return "double"
+
+    @PYB11readwrite
+    def normal(self):
+        "The normal to the plane."
+        return "Vector"
+
+    for x in ("pyinit0", "pyinit1", "pyinit2", "pyinit3", "dist", "normal"):
+        exec("cls.%s = %s" % (x, x))
+
+#-------------------------------------------------------------------------------
+# Plane2d
+#-------------------------------------------------------------------------------
+@PYB11cppname("PolyClipper::Plane2d")
+class PolyClipperPlane2d:
+    """Plane class for polyclipper in 2 dimensions."""
+
+PYB11_addPlaneMethods(PolyClipperPlane2d, 2)
+
+#-------------------------------------------------------------------------------
+# Plane3d
+#-------------------------------------------------------------------------------
+@PYB11cppname("PolyClipper::Plane3d")
+class PolyClipperPlane3d:
+    """Plane class for polyclipper in 3 dimensions."""
+
+PYB11_addPlaneMethods(PolyClipperPlane3d, 3)

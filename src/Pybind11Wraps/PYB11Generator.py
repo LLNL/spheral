@@ -188,6 +188,16 @@ def PYB11generateModuleClasses(modobj, ss):
         pass
 
     #...........................................................................
+    # readwrite attribute
+    def readwrite_class_attribute(aname, attrs, args):
+        ss('    obj.def_readwrite("%(pyname)s", ' % methattrs)
+        ss(("&%(cppname)s::" % klassattrs) + methattrs["cppname"])
+        doc = inspect.getdoc(meth)
+        if doc:
+            ss(',\n            "%s"' % doc)
+        ss(");\n")
+
+    #...........................................................................
     # Property
     def class_property(meth, methattrs, args):
 
@@ -263,6 +273,8 @@ def PYB11generateModuleClasses(modobj, ss):
                 args = PYB11parseArgs(meth)
                 if mname[:6] == "pyinit":
                     pyinit(meth, methattrs, args)
+                elif methattrs["readwrite"]:
+                    readwrite_class_attribute(meth, methattrs, args)
                 else:
                     generic_class_method(meth, methattrs, args)
 
@@ -351,9 +363,11 @@ def PYB11attrs(obj):
          "pure_virtual" : False,
          "const"        : False,
          "static"       : False,
-         "property"     : None,
-         "getter"       : None,
-         "setter"       : None}
+         "property"     : None,           # Property
+         "getter"       : None,           # Property
+         "setter"       : None,           # Property
+         "readwrite"    : False,          # Attribute
+         "readonly"     : False}          # Attribute
     for key in d:
         if hasattr(obj, "PYB11" + key):
             d[key] = eval("obj.PYB11%s" % key)

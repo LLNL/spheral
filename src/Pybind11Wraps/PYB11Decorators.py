@@ -92,6 +92,15 @@ def PYB11static(f):
     return PYB11decorator.decorate(f, wrapper)
 
 #-------------------------------------------------------------------------------
+# attribute
+#-------------------------------------------------------------------------------
+def PYB11readwrite(f):
+    def wrapper(f, *args, **kwargs):
+        return f(*args, **kwargs)
+    f.PYB11readwrite = True
+    return PYB11decorator.decorate(f, wrapper)
+
+#-------------------------------------------------------------------------------
 # property
 #-------------------------------------------------------------------------------
 def PYB11property(f, x):
