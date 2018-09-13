@@ -125,7 +125,7 @@ def PYB11generateModuleFunctions(modobj, ss):
         # Write the binding
         ss('  m.def("%(pyname)s", ' % methattrs)
         if returnType:
-            assert not args is None
+            assert not stuff.args is None
             ss("(%s (*)(" % returnType)
             for i, (argType, argName, default) in enumerate(PYB11parseArgs(stuff.args)):
                 ss(argType)
