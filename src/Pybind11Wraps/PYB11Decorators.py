@@ -34,6 +34,8 @@ def PYB11singleton(cls):
 class PYB11namespace:
     def __init__(self, x):
         self.namespace = x
+        if self.namespace[:-2] != "::":
+            self.namespace += "::"
         return
     def __call__(self, thing):
         if type(thing) == types.ClassType:

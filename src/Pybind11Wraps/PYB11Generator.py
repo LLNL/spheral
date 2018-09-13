@@ -131,13 +131,13 @@ def PYB11generateModuleFunctions(modobj, ss):
                 ss(argType)
                 if i < nargs - 1:
                     ss(", ")
-            ss(")) &%(namespace)s::%(cppname)s" % methattrs)
+            ss(")) &%(namespace)s%(cppname)s" % methattrs)
             for argType, argName, default in PYB11parseArgs(stuff.args):
                 ss(', "%s"_a' % argName)
                 if default:
                     ss("=" + default)
         else:
-            ss("&%(namespace)s::%(cppname)s" % methattrs)
+            ss("&%(namespace)s%(cppname)s" % methattrs)
 
         # Write the doc string
         if inspect.getdoc(meth):
