@@ -44,8 +44,8 @@ def PYB11namespace(cls, x):
         else:
             def wrapper(f, *args, **kwargs):
                 return f(*args, **kwargs)
-            f.PYB11namespace = self.namespace
-            return PYB11decorator.decorate(f, wrapper)
+            thing.PYB11namespace = self.namespace
+            return PYB11decorator.decorate(thing, wrapper)
 
 #-------------------------------------------------------------------------------
 # cppname (class or method)
@@ -63,8 +63,8 @@ class PYB11cppname:
         else:
             def wrapper(f, *args, **kwargs):
                 return f(*args, **kwargs)
-            f.PYB11cppname = self.cppname
-            return PYB11decorator.decorate(f, wrapper)
+            thing.PYB11cppname = self.cppname
+            return PYB11decorator.decorate(thing, wrapper)
 
 #-------------------------------------------------------------------------------
 # Virtual (method)

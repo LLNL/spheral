@@ -112,37 +112,32 @@ def PYB11generateModuleFunctions(modobj, ss):
     if methods:
         ss("  // Methods\n")
     for name, meth in methods:
+        methattrs = PYB11attrs(meth)
 
-        # Get the return type and arguments.
-        returnType = meth()
+        # Arguments
         stuff = inspect.getargspec(meth)
-        args = None
-        if "args" in stuff.args:
-            args = stuff.defaults[stuff.args.index("args") - 1]
-            nargs = len(args)
+        nargs = len(stuff.args)
 
-        # Because python does not have function overloading, we provide the ability
-        # to rename the c++ method.
-        if "name" in stuff.args:
-            name = stuff.defaults[stuff.args.index("name") - 1]
+        # Return type
+        returnType = meth(*tuple(stuff.args))
+        methattrs["returnType"] = returnType
 
         # Write the binding
-        dvals = {"name" : name, "returnType" : returnType}
-        ss('  m.def("%s", ' % name)
+        ss('  m.def("%(pyname)s", ' % methattrs)
         if returnType:
             assert not args is None
             ss("(%s (*)(" % returnType)
-            for i, (argType, argName, default) in enumerate(PYB11parseArgs(args)):
+            for i, (argType, argName, default) in enumerate(PYB11parseArgs(stuff.args)):
                 ss(argType)
                 if i < nargs - 1:
                     ss(", ")
-            ss(")) &%s" % name)
-            for argType, argName, default in PYB11parseArgs(args):
+            ss(")) &%(cppnme)s" % methattrs)
+            for argType, argName, default in PYB11parseArgs(stuff.args):
                 ss(', "%s"_a' % argName)
                 if default:
                     ss("=" + default)
         else:
-            ss("&%s" % name)
+            ss("&%(cppname)s" % methattrs)
 
         # Write the doc string
         if inspect.getdoc(meth):
