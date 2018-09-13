@@ -248,15 +248,21 @@ def PYB11generateModuleClasses(modobj, ss):
     # Binary operators
     def binary_operator(meth, methattrs, args, op):
         assert len(args) == 1
-        ss('    obj.def(py::self ' + op)
         argType, argName, default = args[0]
-        ss(' ' + argType + ');\n')
+        ss('    obj.def(py::self %s %s);\n' % (op, argType))
 
     #...........................................................................
-    # Binary operators
+    # Reverse binary operators
+    def reverse_binary_operator(meth, methattrs, args, op):
+        assert len(args) == 1
+        argType, argName, default = args[0]
+        ss('    obj.def(%s %s py::self);\n' % (argType, op))
+
+    #...........................................................................
+    # Unary operators
     def unary_operator(meth, methattrs, args, op):
         assert len(args) == 0
-        ss('    obj.def(%spy::self);\n' % op)
+        ss('    obj.def(%s py::self);\n' % op)
 
     #...........................................................................
     # Tabulate the dispatch for special operations.
@@ -271,6 +277,15 @@ def PYB11generateModuleClasses(modobj, ss):
                           "__xor__" : (binary_operator, "^"),
                           "__or__"  : (binary_operator, "|"),
                           
+                          "__radd__" : (reverse_binary_operator, "+"),
+                          "__rsub__" : (reverse_binary_operator, "-"),
+                          "__rmul__" : (reverse_binary_operator, "*"),
+                          "__rdiv__" : (reverse_binary_operator, "/"),
+                          "__rmod__" : (reverse_binary_operator, "%"),
+                          "__rand__" : (reverse_binary_operator, "&"),
+                          "__rxor__" : (reverse_binary_operator, "^"),
+                          "__ror__"  : (reverse_binary_operator, "|"),
+                          
                           "__iadd__" : (binary_operator, "+="),
                           "__isub__" : (binary_operator, "-="),
                           "__imul__" : (binary_operator, "*="),
@@ -280,7 +295,7 @@ def PYB11generateModuleClasses(modobj, ss):
                           "__ixor__" : (binary_operator, "^="),
                           "__ior__"  : (binary_operator, "|="),
 
-                          "__neg__" : (unary_operator, "-"),
+                          "__neg__"    : (unary_operator, "-"),
                           "__invert__" : (unary_operator, "~"),
 
                           "__lt__" : (binary_operator, "<"),
