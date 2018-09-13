@@ -94,6 +94,9 @@ def addVertexMethods(cls, ndim):
         "The ID or index of the vertex."
         return "None"
 
+    def __eq__(self, other="py::self"):
+        return "None"
+
     for x in [x for x in dir() if type(eval(x)) == types.FunctionType]: 
         exec("cls.%s = %s" % (x, x))
 
@@ -123,4 +126,13 @@ class Vertex2d:
     """Vertex class for polyclipper in 2 dimensions."""
 
 addVertexMethods(Vertex2d, 2)
+
+#-------------------------------------------------------------------------------
+# Vertex3d
+#-------------------------------------------------------------------------------
+@PYB11cppname("PolyClipper::Vertex3d")
+class Vertex3d:
+    """Vertex class for polyclipper in 3 dimensions."""
+
+addVertexMethods(Vertex3d, 3)
 

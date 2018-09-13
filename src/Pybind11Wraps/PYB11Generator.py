@@ -188,6 +188,22 @@ def PYB11generateModuleClasses(modobj, ss):
         pass
 
     #...........................................................................
+    # pyinit<>
+    def pyinit(meth, methattrs, args):
+        ss("    obj.def(py::init<")
+        argString = ""
+        for i, (argType, argName, default) in enumerate(args):
+            if i < len(args) - 1:
+                ss("%s, " % argType)
+            else:
+                ss("%s" % argType)
+            argString += ', "%s"_a' % argName
+            if default:
+                argString += "=%s" % default
+        ss(">()%s);\n" % argString)
+        return
+
+    #...........................................................................
     # readonly attribute
     def readonly_class_attribute(aname, attrs, args):
         ss('    obj.def_readonly("%(pyname)s", ' % methattrs)
@@ -234,24 +250,52 @@ def PYB11generateModuleClasses(modobj, ss):
         ss(");\n")
 
     #...........................................................................
-    # pyinit<>
-    def pyinit(meth, methattrs, args):
-        ss("    obj.def(py::init<")
-        argString = ""
-        for i, (argType, argName, default) in enumerate(args):
-            if i < len(args) - 1:
-                ss("%s, " % argType)
-            else:
-                ss("%s" % argType)
-            argString += ', "%s"_a' % argName
-            if default:
-                argString += "=%s" % default
-        ss(">()%s);\n" % argString)
-        return
+    # Binary operators
+    def binary_operator(meth, methattrs, args, op):
+        assert len(args) == 1
+        ss('    obj.def(py::self ' + op)
+        argType, argName, default = args[0]
+        ss(' ' + argType + ');\n')
 
-    # Some methods we want to skip.
-    ignores = ["__init__"]
+    #...........................................................................
+    # Binary operators
+    def unary_operator(meth, methattrs, args, op):
+        assert len(args) == 0
+        ss('    obj.def(%spy::self);\n' % op)
 
+    #...........................................................................
+    # Tabulate the dispatch for special operations.
+    special_operators =  {"__init__": (ignore, ""),
+
+                          "__add__" : (binary_operator, "+"),
+                          "__sub__" : (binary_operator, "-"),
+                          "__mul__" : (binary_operator, "*"),
+                          "__div__" : (binary_operator, "/"),
+                          "__mod__" : (binary_operator, "%"),
+                          "__and__" : (binary_operator, "&"),
+                          "__xor__" : (binary_operator, "^"),
+                          "__or__"  : (binary_operator, "|"),
+                          
+                          "__iadd__" : (binary_operator, "+="),
+                          "__isub__" : (binary_operator, "-="),
+                          "__imul__" : (binary_operator, "*="),
+                          "__idiv__" : (binary_operator, "/="),
+                          "__imod__" : (binary_operator, "%="),
+                          "__iand__" : (binary_operator, "&="),
+                          "__ixor__" : (binary_operator, "^="),
+                          "__ior__"  : (binary_operator, "|="),
+
+                          "__neg__" : (unary_operator, "-"),
+                          "__invert__" : (unary_operator, "~"),
+
+                          "__lt__" : (binary_operator, "<"),
+                          "__le__" : (binary_operator, "<="),
+                          "__eq__" : (binary_operator, "=="),
+                          "__ne__" : (binary_operator, "!="),
+                          "__gt__" : (binary_operator, ">"),
+                          "__ge__" : (binary_operator, ">=")}
+
+    #...........................................................................
     # Iterate over the module classes.
     classes = PYB11classes(modobj)
     for kname, klass in classes:
@@ -277,19 +321,21 @@ def PYB11generateModuleClasses(modobj, ss):
 
         # Bind methods of the class.
         for mname, meth in PYB11methods(klass):
-            if mname not in ignores:
-                methattrs = PYB11attrs(meth)
-                methattrs["returnType"] = eval("objinst." + mname + "()")
-                if not methattrs["ignore"]:
-                    args = PYB11parseArgs(meth)
-                    if mname[:6] == "pyinit":
-                        pyinit(meth, methattrs, args)
-                    elif methattrs["readonly"]:
-                        readonly_class_attribute(meth, methattrs, args)
-                    elif methattrs["readwrite"]:
-                        readwrite_class_attribute(meth, methattrs, args)
-                    else:
-                        generic_class_method(meth, methattrs, args)
+            methattrs = PYB11attrs(meth)
+            methattrs["returnType"] = eval("objinst." + mname + "()")
+            if not methattrs["ignore"]:
+                args = PYB11parseArgs(meth)
+                if mname[:6] == "pyinit":
+                    pyinit(meth, methattrs, args)
+                elif mname in special_operators:
+                    func, op = special_operators[mname]
+                    func(meth, methattrs, args, op)
+                elif methattrs["readonly"]:
+                    readonly_class_attribute(meth, methattrs, args)
+                elif methattrs["readwrite"]:
+                    readwrite_class_attribute(meth, methattrs, args)
+                else:
+                    generic_class_method(meth, methattrs, args)
 
         ss("  }\n")
 
