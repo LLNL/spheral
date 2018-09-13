@@ -31,7 +31,7 @@ def PYB11singleton(cls):
 #-------------------------------------------------------------------------------
 # namespace (class or method)
 #-------------------------------------------------------------------------------
-def PYB11namespace(cls, x):
+class PYB11namespace:
     def __init__(self, x):
         self.namespace = x
         return

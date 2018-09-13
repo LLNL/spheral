@@ -139,7 +139,7 @@ addVertexMethods(Vertex3d, 3)
 #-------------------------------------------------------------------------------
 # Polygon methods.
 #-------------------------------------------------------------------------------
-@PYB11cppname("PolyClipper::initializePolygon")
+@PYB11namespace("PolyClipper")
 def initializePolygon(poly, positions, neighbors):
     "Initialize a PolyClipper::Polygon from vertex positions and vertex neighbors."
     return None

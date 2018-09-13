@@ -131,13 +131,13 @@ def PYB11generateModuleFunctions(modobj, ss):
                 ss(argType)
                 if i < nargs - 1:
                     ss(", ")
-            ss(")) &%(cppnme)s" % methattrs)
+            ss(")) &%(namespace)s::%(cppname)s" % methattrs)
             for argType, argName, default in PYB11parseArgs(stuff.args):
                 ss(', "%s"_a' % argName)
                 if default:
                     ss("=" + default)
         else:
-            ss("&%(cppname)s" % methattrs)
+            ss("&%(namespace)s::%(cppname)s" % methattrs)
 
         # Write the doc string
         if inspect.getdoc(meth):
@@ -412,7 +412,7 @@ def PYB11attrs(obj):
     d = {"pyname"       : obj.__name__,
          "cppname"      : obj.__name__,
          "ignore"       : False,
-         "namespace"    : None,
+         "namespace"    : "",
          "singleton"    : False,
          "virtual"      : False,
          "pure_virtual" : False,
