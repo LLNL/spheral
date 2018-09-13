@@ -157,10 +157,10 @@ def PYB11generateModuleClasses(modobj, ss):
     def generic_class_method(meth, methattrs, args):
         ss('    obj.def("%(pyname)s", ' % methattrs)
         if methattrs["returnType"] is None:
-            ss(("&%(cppname)s::" % klassattrs) + methattrs["cppname"])
+            ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
         else:
             argString = ""
-            ss(("(%(returnType)s " % methattrs) + ("(%(cppname)s::*)(" % klassattrs))
+            ss(("(%(returnType)s " % methattrs) + ("(%(namespace)%(cppname)s::*)(" % klassattrs))
             for i, (argType, argName, default) in enumerate(args):
                 ss(argType)
                 if i < len(args) - 1:
@@ -169,9 +169,9 @@ def PYB11generateModuleClasses(modobj, ss):
                 if default:
                     argString += "=%s" % default
             if methattrs["const"]:
-                ss((") const) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+                ss((") const) &%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
             else:
-                ss((")) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+                ss((")) &%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
         doc = inspect.getdoc(meth)
         if doc:
             ss(',\n            "%s"' % doc)
@@ -202,7 +202,7 @@ def PYB11generateModuleClasses(modobj, ss):
     # readonly attribute
     def readonly_class_attribute(aname, attrs, args):
         ss('    obj.def_readonly("%(pyname)s", ' % methattrs)
-        ss(("&%(cppname)s::" % klassattrs) + methattrs["cppname"])
+        ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
         doc = inspect.getdoc(meth)
         if doc:
             ss(',\n            "%s"' % doc)
@@ -212,7 +212,7 @@ def PYB11generateModuleClasses(modobj, ss):
     # readwrite attribute
     def readwrite_class_attribute(aname, attrs, args):
         ss('    obj.def_readwrite("%(pyname)s", ' % methattrs)
-        ss(("&%(cppname)s::" % klassattrs) + methattrs["cppname"])
+        ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
         doc = inspect.getdoc(meth)
         if doc:
             ss(',\n            "%s"' % doc)
@@ -224,10 +224,10 @@ def PYB11generateModuleClasses(modobj, ss):
 
         ss('    obj.def("%(pyname)s", ' % methattrs)
         if methattrs["returnType"] is None:
-            ss(("&%(cppname)s::" % klassattrs) + methattrs["cppname"])
+            ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
         else:
             argString = ""
-            ss(("(%(returnType)s " % methattrs) + ("(%(cppname)s::*)(" % klassattrs))
+            ss(("(%(returnType)s " % methattrs) + ("(%(namespace)s%(cppname)s::*)(" % klassattrs))
             for i, (argType, argName, default) in enumerate(args):
                 ss(argType)
                 if i < len(args) - 1:
@@ -236,9 +236,9 @@ def PYB11generateModuleClasses(modobj, ss):
                 if default:
                     argString += "=%s" % default
             if methattrs["const"]:
-                ss((") const) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+                ss((") const) &%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
             else:
-                ss((")) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+                ss((")) &%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
         doc = inspect.getdoc(meth)
         if doc:
             ss(',\n            "%s"' % doc)
@@ -300,7 +300,7 @@ def PYB11generateModuleClasses(modobj, ss):
   //............................................................................
   // Class %(pyname)s
   {
-    py::class_<%(cppname)s""" % klassattrs)
+    py::class_<%(namespace)s%(cppname)s""" % klassattrs)
         if klassattrs["singleton"]:
             ss(", std::unique_ptr<RestartRegistrar, py::nodelete>")
         ss('> obj(m, "%(pyname)s");\n' % klassattrs)
