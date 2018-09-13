@@ -435,7 +435,7 @@ $(PYB11TARGET): $(PYB11TARGET:.$(SHLIBEXT)=.py) $(PYB11SRCS)
 	@echo "################################################################################"
 	@mkdir -p $(PYTHONLIBDIR)/Spheral
 	$(eval mod = $(basename $(<F)))
-	$(PYTHONEXE) -c "import sys; sys.path = ['$(srcdir)', '$(srcdir)/..'] + sys.path; from PYB11Generator import *; import $(mod); PYB11generateModule($(mod))" > $(mod).cc
+	$(PYTHONEXE) -c "import sys; sys.path = ['$(srcdir)', '$(srcdir)/..'] + sys.path; from PYB11Generator import *; import $(mod); PYB11generateModule($(mod))"
 	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $(mod).cc -o $(mod).o
 	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PYB11TARGET) $(mod).o $(PYB11OBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS)
 	cp -f $(PYB11TARGET) $(PYTHONLIBDIR)/Spheral

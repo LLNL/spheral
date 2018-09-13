@@ -3,8 +3,7 @@
 #-------------------------------------------------------------------------------
 import inspect
 import sys
-from PYB11ClassDecorators import *
-from PYB11FunctionDecorators import *
+from PYB11Decorators import *
 from PYB11STLmethods import *
 
 #-------------------------------------------------------------------------------
@@ -126,15 +125,30 @@ def PYB11generateModuleFunctions(modobj, ss):
         ss('  m.def("%(pyname)s", ' % methattrs)
         if returnType:
             assert not stuff.args is None
+            assert not stuff.defaults is None
+            assert len(stuff.args) == len(stuff.defaults)
+            argNames = stuff.args
+            argTypes, argDefaults = [], []
+            for thing in stuff.defaults:
+                if isinstance(thing, tuple):
+                    assert len(thing) == 2
+                    argTypes.append(thing[0])
+                    argDefaults.append(thing[1])
+                else:
+                    argTypes.append(thing)
+                    argDefaults.append(None)
+            assert len(argNames) == nargs
+            assert len(argTypes) == nargs
+            assert len(argDefaults) == nargs
             ss("(%s (*)(" % returnType)
-            for i, (argType, argName, default) in enumerate(PYB11parseArgs(stuff.args)):
+            for i, argType in enumerate(argTypes):
                 ss(argType)
                 if i < nargs - 1:
                     ss(", ")
             ss(")) &%(namespace)s%(cppname)s" % methattrs)
-            for argType, argName, default in PYB11parseArgs(stuff.args):
+            for argType, argName, default in zip(argTypes, argNames, argDefaults):
                 ss(', "%s"_a' % argName)
-                if default:
+                if not default is None:
                     ss("=" + default)
         else:
             ss("&%(namespace)s%(cppname)s" % methattrs)
