@@ -20,14 +20,17 @@ def addPlaneMethods(cls, ndim):
     def pyinit0(self):
         "Default constructor"
 
-    def pyinit1(rhs = "const PolyClipper::Plane%id" % ndim):
+    def pyinit1(self,
+                rhs = "const PolyClipper::Plane%id" % ndim):
         "Copy constructor"
 
-    def pyinit2(dist = "double",
+    def pyinit2(self,
+                dist = "double",
                 normal = "const PolyClipper::Plane%id::Vector&" % ndim):
         "Construct with a distance and normal."
 
-    def pyinit3(point = "const PolyClipper::Plane%id::Vector&" % ndim,
+    def pyinit3(self,
+                point = "const PolyClipper::Plane%id::Vector&" % ndim,
                 normal = "const PolyClipper::Plane%id::Vector&" % ndim):
         "Construct with a point and normal."
 

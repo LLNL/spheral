@@ -53,3 +53,70 @@ for gtype in geomtypes + ["Plane"]:
         exec('vector_of_%s = PYB11_bind_vector("%s", opaque=True)' % (element, element))
 vector_of_Facet2d = PYB11_bind_vector("GeomFacet2d", opaque=True)
 vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True)
+
+#-------------------------------------------------------------------------------
+# Worker for adding methods to Vector.
+#-------------------------------------------------------------------------------
+@PYB11ignore
+def addVectorMethods(cls, ndim):
+
+    me = "Vector%id" % ndim
+
+    # Constructors
+    def pyinit0(self):
+        "Default constructor"
+
+    def pyinit1(self,
+                rhs = "const Vector%id" % ndim):
+        "Copy constructor"
+
+    def pyinit2(self,
+                x = "double",
+                y = ("double", "0.0"),
+                z = ("double", "0.0")):
+        "Construct with element values."
+
+    # Attributes
+    @PYB11static
+    @PYB11readonly
+    def nDimensions(self):
+        "Number of dimensions"
+
+    @PYB11static
+    @PYB11readonly
+    def numElements(self):
+        "Number of elements stored in the type."
+
+    @PYB11static
+    @PYB11readonly
+    def zero(self):
+        "The zero value equivalent."
+
+    @PYB11static
+    @PYB11readonly
+    def one(self):
+        "The unit value equivalent."
+
+    @PYB11getter("x")
+    @PYB11const
+    def x(self):
+        "The x coordinate"
+        return "double"
+
+    @PYB11setter("x")
+    @PYB11cppname("x")
+    def setx(self, val="double"):
+        "The x coordinate"
+        return "void"
+
+    # Add all the locally defined methods to the cls.
+    for x in [x for x in dir() if type(eval(x)) == types.FunctionType]: 
+        exec("cls.%s = %s" % (x, x))
+
+#-------------------------------------------------------------------------------
+# Vector
+#-------------------------------------------------------------------------------
+class Vector1d:
+    "Spheral Vector (1d)"
+
+addVectorMethods(Vector1d, 1)

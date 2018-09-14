@@ -105,7 +105,7 @@ def PYB11static(f):
     return PYB11decorator.decorate(f, wrapper)
 
 #-------------------------------------------------------------------------------
-# attribute
+# attribute (readwrite)
 #-------------------------------------------------------------------------------
 def PYB11readwrite(f):
     def wrapper(f, *args, **kwargs):
@@ -114,29 +114,62 @@ def PYB11readwrite(f):
     return PYB11decorator.decorate(f, wrapper)
 
 #-------------------------------------------------------------------------------
-# property
+# attribute (readonly)
 #-------------------------------------------------------------------------------
-def PYB11property(f, x):
+def PYB11readonly(f):
     def wrapper(f, *args, **kwargs):
         return f(*args, **kwargs)
-    f.PYB11property = x
+    f.PYB11readonly = True
     return PYB11decorator.decorate(f, wrapper)
 
 #-------------------------------------------------------------------------------
 # getter (for property)
 #-------------------------------------------------------------------------------
-def PYB11getter(f, x):
-    def wrapper(f, *args, **kwargs):
-        return f(*args, **kwargs)
-    f.PYB11getter = x
-    return PYB11decorator.decorate(f, wrapper)
+class PYB11getter:
+    def __init__(self, x):
+        self.getter = x
+        return
+    def __call__(self, thing):
+        if type(thing) == types.ClassType:
+            @PYB11wraps(thing)
+            class WrappedCls(thing):
+                PYB11getter = self.getter
+            return WrappedCls
+        else:
+            def wrapper(f, *args, **kwargs):
+                return f(*args, **kwargs)
+            thing.PYB11getter = self.getter
+            return PYB11decorator.decorate(thing, wrapper)
+
+# def PYB11getter(f, x):
+#     def wrapper(f, *args, **kwargs):
+#         return f(*args, **kwargs)
+#     f.PYB11getter = x
+#     return PYB11decorator.decorate(f, wrapper)
 
 #-------------------------------------------------------------------------------
 # setter (for property)
 #-------------------------------------------------------------------------------
-def PYB11setter(f, x):
-    def wrapper(f, *args, **kwargs):
-        return f(*args, **kwargs)
-    f.PYB11setter = x
-    return PYB11decorator.decorate(f, wrapper)
+class PYB11setter:
+    def __init__(self, x):
+        self.setter = x
+        return
+    def __call__(self, thing):
+        if type(thing) == types.ClassType:
+            @PYB11wraps(thing)
+            class WrappedCls(thing):
+                PYB11setter = self.setter
+            return WrappedCls
+        else:
+            def wrapper(f, *args, **kwargs):
+                return f(*args, **kwargs)
+            thing.PYB11setter = self.setter
+            return PYB11decorator.decorate(thing, wrapper)
+
+
+# def PYB11setter(f, x):
+#     def wrapper(f, *args, **kwargs):
+#         return f(*args, **kwargs)
+#     f.PYB11setter = x
+#     return PYB11decorator.decorate(f, wrapper)
 

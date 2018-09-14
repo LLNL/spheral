@@ -169,12 +169,13 @@ def PYB11generateModuleClasses(modobj, ss):
     #...........................................................................
     # Generate a generic class method spec.
     def generic_class_method(meth, methattrs, args):
+        print "!! klassattrs: ", klassattrs
         ss('    obj.def("%(pyname)s", ' % methattrs)
         if methattrs["returnType"] is None:
             ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
         else:
             argString = ""
-            ss(("(%(returnType)s " % methattrs) + ("(%(namespace)%(cppname)s::*)(" % klassattrs))
+            ss(("(%(returnType)s " % methattrs) + ("(%(namespace)s%(cppname)s::*)(" % klassattrs))
             for i, (argType, argName, default) in enumerate(args):
                 ss(argType)
                 if i < len(args) - 1:
@@ -221,7 +222,10 @@ def PYB11generateModuleClasses(modobj, ss):
     #...........................................................................
     # readonly attribute
     def readonly_class_attribute(aname, attrs, args):
-        ss('    obj.def_readonly("%(pyname)s", ' % methattrs)
+        if attrs["static"]:
+            ss('    obj.def_readonly_static("%(pyname)s", ' % methattrs)
+        else:
+            ss('    obj.def_readonly("%(pyname)s", ' % methattrs)
         ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
         doc = inspect.getdoc(meth)
         if doc:
@@ -231,7 +235,10 @@ def PYB11generateModuleClasses(modobj, ss):
     #...........................................................................
     # readwrite attribute
     def readwrite_class_attribute(aname, attrs, args):
-        ss('    obj.def_readwrite("%(pyname)s", ' % methattrs)
+        if attrs["static"]:
+            ss('    obj.def_readwrite_static("%(pyname)s", ' % methattrs)
+        else:
+            ss('    obj.def_readwrite("%(pyname)s", ' % methattrs)
         ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
         doc = inspect.getdoc(meth)
         if doc:
@@ -240,25 +247,28 @@ def PYB11generateModuleClasses(modobj, ss):
 
     #...........................................................................
     # Property
-    def class_property(meth, methattrs, args):
+    def class_property(getmeth, getmethattrs, getargs,
+                       setmeth, setmethattrs, setargs):
+        ss('    obj.def_property("%(pyname)s", ' % getmethattrs)
 
-        ss('    obj.def("%(pyname)s", ' % methattrs)
-        if methattrs["returnType"] is None:
-            ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
-        else:
-            argString = ""
-            ss(("(%(returnType)s " % methattrs) + ("(%(namespace)s%(cppname)s::*)(" % klassattrs))
-            for i, (argType, argName, default) in enumerate(args):
-                ss(argType)
-                if i < len(args) - 1:
-                    ss(", ")
-                argString += ', "%s"_a' % argName
-                if default:
-                    argString += "=%s" % default
-            if methattrs["const"]:
-                ss((") const) &%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+        # Get method
+        if not getmethattrs["returnType"] is None:
+            ss("(" + getmethattrs["returnType"] + " (%(namespace)s%(cppname)s::*)()" % klassattrs)
+            if getmethattrs["const"]:
+                ss(" const) ")
             else:
-                ss((")) &%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+                ss(") ")
+        ss(("&%(namespace)s%(cppname)s::" % klassattrs) + getmethattrs["cppname"])
+
+        # Set method
+        if setmeth:
+            if not setmethattrs["returnType"] is None:
+                ss(", (" + setmethattrs["returnType"] + " (%(namespace)s%(cppname)s::*)()" % klassattrs)
+                if setmethattrs["const"]:
+                    ss(" const) ")
+                else:
+                    ss(") ")
+            ss(("&%(namespace)s%(cppname)s::" % klassattrs) + setmethattrs["cppname"])
         doc = inspect.getdoc(meth)
         if doc:
             ss(',\n            "%s"' % doc)
@@ -349,25 +359,94 @@ def PYB11generateModuleClasses(modobj, ss):
                 ss('"%s"\n' % line);
             ss("  ;\n")
 
-        # Bind methods of the class.
-        for mname, meth in PYB11methods(klass):
+        # Grab all the methods
+        for (mname, meth) in PYB11methods(klass):
+            print "**> ", mname, meth, PYB11attrs(meth)
+        allmethods = [(mname, meth) for (mname, meth) in PYB11methods(klass)
+                      if not PYB11attrs(meth)["ignore"]]
+        for (mname, meth) in allmethods:
+            print "--> ", mname, meth, PYB11attrs(meth)
+
+        # Bind constructors of the class.
+        ss("\n    // Constructors\n")
+        kills = []
+        for i, (mname, meth) in enumerate(allmethods):
+            if mname[:6] == "pyinit":
+                methattrs = PYB11attrs(meth)
+                args = PYB11parseArgs(meth)
+                pyinit(meth, methattrs, args)
+                kills.append(i)
+        for i in reversed(kills):
+            del allmethods[i]
+
+        # Bind special operators.
+        ss("\n    // Operators\n")
+        kills = []
+        for i, (mname, meth) in enumerate(allmethods):
             methattrs = PYB11attrs(meth)
             methattrs["returnType"] = eval("objinst." + mname + "()")
-            if not methattrs["ignore"]:
-                args = PYB11parseArgs(meth)
-                if mname[:6] == "pyinit":
-                    pyinit(meth, methattrs, args)
-                elif mname in special_operators:
-                    func, op = special_operators[mname]
-                    func(meth, methattrs, args, op)
-                elif methattrs["readonly"]:
-                    readonly_class_attribute(meth, methattrs, args)
-                elif methattrs["readwrite"]:
-                    readwrite_class_attribute(meth, methattrs, args)
-                else:
-                    generic_class_method(meth, methattrs, args)
+            args = PYB11parseArgs(meth)
+            if mname in special_operators:
+                func, op = special_operators[mname]
+                func(meth, methattrs, args, op)
+                kills.append(i)
+        for i in reversed(kills):
+            del allmethods[i]
 
-        ss("  }\n")
+        # Bind attributes
+        ss("\n    // Attributes\n")
+        kills = []
+        for i, (mname, meth) in enumerate(allmethods):
+            methattrs = PYB11attrs(meth)
+            methattrs["returnType"] = eval("objinst." + mname + "()")
+            args = PYB11parseArgs(meth)
+            if methattrs["readonly"]:
+                readonly_class_attribute(meth, methattrs, args)
+                kills.append(i)
+            elif methattrs["readwrite"]:
+                readwrite_class_attribute(meth, methattrs, args)
+                kills.append(i)
+        for i in reversed(kills):
+            del allmethods[i]
+
+        # Bind properties
+        ss("\n    // Properties\n")
+        kills = []
+        for i, (getmname, getmeth) in enumerate(allmethods):
+            getmethattrs = PYB11attrs(getmeth)
+            getargs = PYB11parseArgs(getmeth)
+            if getmethattrs["getter"]:
+                getmethattrs["returnType"] = eval("objinst." + getmname + "()")
+                propvar = getmethattrs["getter"]
+                # Look for a setter
+                for j, (setmname, setmeth) in enumerate(allmethods):
+                    setmethattrs = PYB11attrs(setmeth)
+                    if setmethattrs["setter"] == propvar:
+                        setmethattrs["returnType"] = eval("objinst." + setmname + "()")
+                        setargs = PYB11parseArgs(setmeth)
+                        break
+                if j < len(allmethods):
+                    # Getter/setter
+                    class_property(getmeth, getmethattrs, getargs, setmeth, setmethattrs, setargs)
+                    kills.append(i)
+                    kills.append(j)
+                else:
+                    # Getter only
+                    class_property(getmeth, getmethattrs, getargs, None, None, None)
+                    kills.append(i)
+        kills.sort()
+        for i in reversed(kills):
+            del allmethods[i]
+
+        # Bind the remaining methods of the class.
+        ss("\n    // Methods\n")
+        for i, (mname, meth) in enumerate(allmethods):
+            methattrs = PYB11attrs(meth)
+            methattrs["returnType"] = eval("objinst." + mname + "()")
+            args = PYB11parseArgs(meth)
+            generic_class_method(meth, methattrs, args)
+
+        ss("  }\n\n")
 
 #-------------------------------------------------------------------------------
 # PYB11generateModuleSTL
@@ -453,7 +532,6 @@ def PYB11attrs(obj):
          "pure_virtual" : False,
          "const"        : False,
          "static"       : False,
-         "property"     : None,           # Property
          "getter"       : None,           # Property
          "setter"       : None,           # Property
          "readwrite"    : False,          # Attribute
