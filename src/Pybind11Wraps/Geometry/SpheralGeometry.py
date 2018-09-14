@@ -6,6 +6,7 @@ etc.) and associated methods such as products and eigenvalues.
 from PYB11Decorators import *
 from PYB11STLmethods import *
 from PYB11property import *
+from PYB11class import *
 import types
 
 # Define some useful type collections we're going to be wrapping in this module.
@@ -58,17 +59,16 @@ vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True)
 #-------------------------------------------------------------------------------
 # Worker for adding methods to Vector.
 #-------------------------------------------------------------------------------
-@PYB11ignore
-def addVectorMethods(cls, ndim):
-    
-    me = "Vector%id" % ndim
+@PYB11template
+class Vector:
+    "Spheral Geometric Vector class"
 
     # Constructors
     def pyinit0(self):
         "Default constructor"
 
     def pyinit1(self,
-                rhs = "const Vector%id" % ndim):
+                rhs = "const Dim<%(TP__ndim)s>::Vector"):
         "Copy constructor"
 
     def pyinit2(self,
@@ -110,17 +110,23 @@ def addVectorMethods(cls, ndim):
         return "void"
 
     # Properties
-    cls.x = PYB11property(getx, setx,
-                          doc = "The x coordinate.")
+    x = PYB11property(getx, setx,
+                      doc = "The x coordinate.")
 
-    # Add all the locally defined methods to the cls.
-    for _x in [x for x in dir() if type(eval(x)) == types.FunctionType]: 
-        exec("cls.%s = %s" % (_x, _x))
+    # # Add all the locally defined methods to the cls.
+    # for _x in [x for x in dir() if type(eval(x)) == types.FunctionType]: 
+    #     exec("cls.%s = %s" % (_x, _x))
 
 #-------------------------------------------------------------------------------
 # Vector
 #-------------------------------------------------------------------------------
-class Vector1d:
-    "Spheral Vector (1d)"
+Vector1d = PYB11TemplateClass(Vector,
+                              [("ndim", "1")],
+                              cppname = "Dim<1>::Vector",
+                              pyname = "Vector1d",
+                              docext = " (1D).")
 
-addVectorMethods(Vector1d, 1)
+# class Vector1d:
+#     "Spheral Vector (1d)"
+
+# addVectorMethods(Vector1d, 1)

@@ -5,6 +5,7 @@
 #--------------------------------------------------------------------------------
 from PYB11utils import *
 from PYB11property import *
+import copy
 
 #-------------------------------------------------------------------------------
 # PYB11generateModuleClasses
@@ -14,17 +15,72 @@ from PYB11property import *
 def PYB11generateModuleClasses(modobj, ss):
     classes = PYB11classes(modobj)
     for kname, klass in classes:
-        klassinst = klass()
         klassattrs = PYB11attrs(klass)
         if not klassattrs["ignore"]:
-            PYB11generateClass(kname, klass, klassinst, klassattrs, ss)
+            PYB11generateClass(klass, klassattrs, ss)
+
+    # Now look for any template class instantiations.
+    klass_templates = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11TemplateClass)]
+    print klass_templates
+    for ktname in klass_templates:
+        klass_template = eval("modobj.%s" % ktname)
+        klass_template(ss)
+    return
+
+#--------------------------------------------------------------------------------
+# Make a class template instantiation
+#--------------------------------------------------------------------------------
+class PYB11TemplateClass:
+
+    def __init__(self,
+                 klass_template,
+                 template_parameters,
+                 cppname = None,
+                 pyname = None,
+                 docext = ""):
+        self.klass_template = klass_template
+        self.template_parameters = template_parameters
+        self.cppname = cppname
+        self.pyname = pyname
+        self.docext = docext
+        return
+
+    def __call__(self, ss):
+
+        # Do some template mangling (and magically put the template parameters in scope).
+        template_ext = "<"
+        doc_ext = ""
+        for name, val in self.template_parameters:
+            exec("%s = %s" % (name, val))
+            template_ext += "%s, " % val
+            doc_ext += "_%s_" % val.replace("::", "_").replace("<", "_").replace(">", "_")
+
+        klassattrs = PYB11attrs(self.klass_template)
+        if self.cppname:
+            klassattrs["cppname"] = self.cppname
+        else:
+            klassattrs["cppname"] += template_ext
+        if self.pyname:
+            klassattrs["pyname"] = self.pyname
+        else:
+            klassattrs["pyname"] += doc_ext
+
+        for name, val in self.template_parameters:
+            klassattrs["TP__%s" % name] = val
+
+        doc0 = copy.deepcopy(self.klass_template.__doc__)
+        self.klass_template.__doc__ += self.docext
+        PYB11generateClass(self.klass_template, klassattrs, ss)
+        self.klass_template__doc__ = doc0
+        return
 
 #-------------------------------------------------------------------------------
 # PYB11generateClass
 #
 # Bind the methods for the given class
 #-------------------------------------------------------------------------------
-def PYB11generateClass(kname, klass, klassinst, klassattrs, ss):
+def PYB11generateClass(klass, klassattrs, ss):
+    klassinst = klass()
 
     #...........................................................................
     # Generate a generic class method spec.
