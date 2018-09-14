@@ -102,13 +102,11 @@ def addVectorMethods(cls, ndim):
     @PYB11const
     @PYB11ignore
     def getx(self):
-        "The x coordinate"
         return "double"
 
     @PYB11cppname("x")
     @PYB11ignore
     def setx(self, val="double"):
-        "The x coordinate"
         return "void"
 
     # Properties

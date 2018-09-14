@@ -43,8 +43,8 @@ def addPlaneMethods(cls, ndim):
     def normal(self):
         "The normal to the plane."
 
-    for x in [x for x in dir() if type(eval(x)) == types.FunctionType]: 
-        exec("cls.%s = %s" % (x, x))
+    for __x in [x for x in dir() if type(eval(x)) == types.FunctionType]: 
+        exec("cls.%s = %s" % (__x, __x))
 
 #-------------------------------------------------------------------------------
 # Helper to add methods for Vertex.
