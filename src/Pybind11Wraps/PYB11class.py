@@ -165,22 +165,28 @@ def PYB11generateClass(klass, klassattrs, ssout):
     #...........................................................................
     # Binary operators
     def binary_operator(meth, methattrs, args, op):
-        assert len(args) == 1
-        argType, argName, default = args[0]
+        assert len(args) in (0, 1)
+        if len(args) == 0:
+            argType = "py::self"
+        else:
+            argType = args[0][0]
         ss('    obj.def(py::self %s %s);\n' % (op, argType))
 
     #...........................................................................
     # Reverse binary operators
     def reverse_binary_operator(meth, methattrs, args, op):
-        assert len(args) == 1
-        argType, argName, default = args[0]
+        assert len(args) in (0, 1)
+        if len(args) == 0:
+            argType = "py::self"
+        else:
+            argType = args[0][0]
         ss('    obj.def(%s %s py::self);\n' % (argType, op))
 
     #...........................................................................
     # Unary operators
     def unary_operator(meth, methattrs, args, op):
         assert len(args) == 0
-        ss('    obj.def(%s py::self);\n' % op)
+        ss('    obj.def(%spy::self);\n' % op)
 
     #...........................................................................
     # Tabulate the dispatch for special operations.

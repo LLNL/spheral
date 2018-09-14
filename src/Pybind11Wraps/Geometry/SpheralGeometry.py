@@ -63,21 +63,7 @@ vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True)
 class Vector:
     "Spheral Geometric Vector class"
 
-    # Constructors
-    def pyinit0(self):
-        "Default constructor"
-
-    def pyinit1(self,
-                rhs = "const Dim<%(TP__ndim)s>::Vector"):
-        "Copy constructor"
-
-    def pyinit2(self,
-                x = "double",
-                y = ("double", "0.0"),
-                z = ("double", "0.0")):
-        "Construct with element values."
-
-    # Attributes
+    # Static attributes
     @PYB11static
     @PYB11readonly
     def nDimensions(self):
@@ -98,6 +84,119 @@ class Vector:
     def one(self):
         "The unit value equivalent."
 
+    # Constructors
+    def pyinit0(self):
+        "Default constructor"
+
+    def pyinit1(self,
+                rhs = "const Dim<%(TP__ndim)s>::Vector"):
+        "Copy constructor"
+
+    def pyinit2(self,
+                x = "double",
+                y = ("double", "0.0"),
+                z = ("double", "0.0")):
+        "Construct with element values."
+
+    # Methods
+    @PYB11const
+    def dot(self):
+        "Dot (innner) product with a Vector."
+
+    @PYB11const
+    def cross(self):
+        "Cross product with a Vector."
+
+    @PYB11const
+    def dyad(self):
+        "Dyadic (outer) product with a Vector."
+
+    @PYB11const
+    def selfdyad(self):
+        "Dyadic (outer) product with ourself."
+
+    @PYB11const
+    def unitVector(self):
+        "Unit vector in the direction of this one."
+
+    @PYB11const
+    def magnitude(self):
+        "The magnitude of the Vector."
+
+    @PYB11const
+    def magnitude2(self):
+        "The square of the magnitude of the Vector."
+        return
+
+    @PYB11const
+    def minElement(self):
+        "Minimum (x,y,z) in the Vector."
+
+    @PYB11const
+    def maxElement(self):
+        "Maximum (x,y,z) in the Vector."
+
+    @PYB11const
+    def maxAbsElement(self):
+        "Maximum absolute element (|x|,|y|,|z|) in the Vector."
+
+    @PYB11const
+    def sumElements(self):
+        "Sum of the elements (x+y+z) in the Vector."
+
+    # Operators
+    def __neg__(self):
+        return
+    def __add__(self):
+        return
+    def __sub__(self):
+        return
+    def __mul__(self):
+        return
+    def __iadd__(self):
+        return
+    def __isub__(self):
+        return
+    def __mul__(self, rhs="float()"):
+        return
+    def __rmul__(self, rhs="float()"):
+        return
+    def __div__(self, rhs="float()"):
+        return
+    def __imul__(self, rhs="float()"):
+        return
+    def __idiv__(self, rhs="float()"):
+        return
+
+    # Comparison
+    @PYB11const
+    def compare(self,
+                rhs = "const Dim<%(TP__ndim)s>::Vector&"):
+        "Compare (-1,0,1) with a Vector."
+        return "int"
+
+    @PYB11const
+    @PYB11pyname("compare")
+    @PYB11cppname("compare")
+    def compare1(self,
+                 rhs = "const double"):
+        "Compare (-1,0,1) with a double."
+        return "int"
+
+    def __eq__(self):
+        return
+    def __ne__(self):
+        return
+    def __lt__(self):
+        return
+    def __gt__(self):
+        return
+    def __le__(self):
+        return
+    def __ge__(self):
+        return
+
+    # x
     @PYB11cppname("x")
     @PYB11const
     @PYB11ignore
@@ -109,24 +208,40 @@ class Vector:
     def setx(self, val="double"):
         return "void"
 
-    # Properties
-    x = PYB11property(getx, setx,
-                      doc = "The x coordinate.")
+    # y
+    @PYB11cppname("y")
+    @PYB11const
+    @PYB11ignore
+    def gety(self):
+        return "double"
 
-    # # Add all the locally defined methods to the cls.
-    # for _x in [x for x in dir() if type(eval(x)) == types.FunctionType]: 
-    #     exec("cls.%s = %s" % (_x, _x))
+    @PYB11cppname("y")
+    @PYB11ignore
+    def sety(self, val="double"):
+        return "void"
+
+    # z
+    @PYB11cppname("z")
+    @PYB11const
+    @PYB11ignore
+    def getz(self):
+        return "double"
+
+    @PYB11cppname("z")
+    @PYB11ignore
+    def setz(self, val="double"):
+        return "void"
+
+    # Properties
+    x = PYB11property(getx, setx, doc = "The x coordinate.")
+    y = PYB11property(gety, sety, doc = "The y coordinate.")
+    z = PYB11property(getz, setz, doc = "The z coordinate.")
 
 #-------------------------------------------------------------------------------
-# Vector
+# Vector instantiations.
 #-------------------------------------------------------------------------------
 Vector1d = PYB11TemplateClass(Vector,
                               [("ndim", "1")],
                               cppname = "Dim<1>::Vector",
                               pyname = "Vector1d",
                               docext = " (1D).")
-
-# class Vector1d:
-#     "Spheral Vector (1d)"
-
-# addVectorMethods(Vector1d, 1)
