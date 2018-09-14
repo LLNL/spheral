@@ -88,6 +88,12 @@ def PYB11generateClass(klass, klassattrs, ssout):
     # Generate a generic class method spec.
     def generic_class_method(meth, methattrs, args):
         ss('    obj.def("%(pyname)s", ' % methattrs)
+
+        # If there is an implementation, short-circuit the rest.
+        if methattrs["implementation"]:
+            ss("%s);\n" % methattrs["implementation"])
+            return
+
         if methattrs["returnType"] is None:
             ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
         else:
@@ -189,8 +195,35 @@ def PYB11generateClass(klass, klassattrs, ssout):
         ss('    obj.def(%spy::self);\n' % op)
 
     #...........................................................................
+    # operator()
+    def call_operator(meth, methattrs, args, op):
+        ss('    obj.def("__call__", ')
+        if methattrs["returnType"] is None:
+            ss("&%(namespace)s%(cppname)s::operator()" % klassattrs)
+        else:
+            argString = ""
+            ss(("(%(returnType)s " % methattrs) + ("(%(namespace)s%(cppname)s::*)(" % klassattrs))
+            for i, (argType, argName, default) in enumerate(args):
+                ss(argType)
+                if i < len(args) - 1:
+                    ss(", ")
+                argString += ', "%s"_a' % argName
+                if default:
+                    argString += "=%s" % default
+            if methattrs["const"]:
+                ss((") const) &%(namespace)s%(cppname)s::operator()" % klassattrs) + argString)
+            else:
+                ss((")) &%(namespace)s%(cppname)s::operator()" % klassattrs) + argString)
+        doc = inspect.getdoc(meth)
+        if doc:
+            ss(',\n            "%s"' % doc)
+        ss(", py::is_operator());\n")
+
+    #...........................................................................
     # Tabulate the dispatch for special operations.
     special_operators =  {"__init__": (ignore, ""),
+
+                          "__call__": (call_operator, ""),
 
                           "__add__" : (binary_operator, "+"),
                           "__sub__" : (binary_operator, "-"),

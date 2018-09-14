@@ -25,17 +25,18 @@ def PYB11parseArgs(meth):
 # Read the possible PYB11 generation attributes from the obj
 #-------------------------------------------------------------------------------
 def PYB11attrs(obj):
-    d = {"pyname"       : obj.__name__,
-         "cppname"      : obj.__name__,
-         "ignore"       : False,
-         "namespace"    : "",
-         "singleton"    : False,
-         "virtual"      : False,
-         "pure_virtual" : False,
-         "const"        : False,
-         "static"       : False,
-         "readwrite"    : False,          # Attribute
-         "readonly"     : False}          # Attribute
+    d = {"pyname"         : obj.__name__,
+         "cppname"        : obj.__name__,
+         "ignore"         : False,
+         "namespace"      : "",
+         "singleton"      : False,
+         "virtual"        : False,
+         "pure_virtual"   : False,
+         "const"          : False,
+         "static"         : False,
+         "readwrite"      : False,          # Attribute
+         "readonly"       : False,          # Attribute
+         "implementation" : None}
     for key in d:
         if hasattr(obj, "PYB11" + key):
             d[key] = eval("obj.PYB11%s" % key)

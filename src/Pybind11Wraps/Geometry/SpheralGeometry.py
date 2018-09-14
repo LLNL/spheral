@@ -168,6 +168,28 @@ class Vector:
     def __idiv__(self, rhs="float()"):
         return
 
+    # Sequence methods
+    @PYB11implementation("[](const Dim<%(TP__ndim)s>::Vector& self) { return Dim<%(TP__ndim)s>::nDim; }")
+    def __len__(self):
+        "The size (in number of coordinates) of the Vector."
+
+    @PYB11implementation("[](const Dim<%(TP__ndim)s>::Vector &s, size_t i) { if (i >= Dim<%(TP__ndim)s>::Vector::numElements) throw py::index_error(); return s[i]; }") 
+    def __getitem__(self):
+        "Python indexing to get a coordinate."
+
+    @PYB11implementation("[](Dim<%(TP__ndim)s>::Vector &s, size_t i, float v) { if (i >= Dim<%(TP__ndim)s>::Vector::numElements) throw py::index_error(); s[i] = v; }") 
+    def __setitem__(self):
+        "Python indexing to set a coordinate."
+
+    @PYB11implementation("[](const Dim<%(TP__ndim)s>::Vector &s) { return py::make_iterator(s.begin(), s.end()); }")
+    def __iter__(self):
+        "Python iteration through a Vector."
+
+    @PYB11const
+    def __call__(self, i="Dim<%(TP__ndim)s>::Vector::size_type"):
+        "Index for a coordinate using parens."
+        return "double"
+
     # Comparison
     @PYB11const
     def compare(self,

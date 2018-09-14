@@ -115,3 +115,14 @@ def PYB11readonly(f):
 #     f.PYB11readonly = True
 #     return PYB11decorator.decorate(f, wrapper)
 
+#-------------------------------------------------------------------------------
+# implementation -- provide an inline implementation in C++ (only for experts!)
+#-------------------------------------------------------------------------------
+class PYB11implementation:
+    def __init__(self, x):
+        self.val = x
+        return
+    def __call__(self, thing):
+        thing.PYB11implementation = self.val
+        return thing
+
