@@ -1,7 +1,7 @@
 #--------------------------------------------------------------------------------
 # PYB11property
 #
-# Stuff for handling classes in pybind11
+# Stuff for handling properties in pybind11
 #--------------------------------------------------------------------------------
 from PYB11utils import *
 
