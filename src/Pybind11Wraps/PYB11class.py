@@ -5,7 +5,7 @@
 #--------------------------------------------------------------------------------
 from PYB11utils import *
 from PYB11property import *
-import copy
+import copy, StringIO
 
 #-------------------------------------------------------------------------------
 # PYB11generateModuleClasses
@@ -21,7 +21,6 @@ def PYB11generateModuleClasses(modobj, ss):
 
     # Now look for any template class instantiations.
     klass_templates = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11TemplateClass)]
-    print klass_templates
     for ktname in klass_templates:
         klass_template = eval("modobj.%s" % ktname)
         klass_template(ss)
@@ -79,8 +78,11 @@ class PYB11TemplateClass:
 #
 # Bind the methods for the given class
 #-------------------------------------------------------------------------------
-def PYB11generateClass(klass, klassattrs, ss):
+def PYB11generateClass(klass, klassattrs, ssout):
     klassinst = klass()
+
+    fs = StringIO.StringIO()
+    ss = fs.write
 
     #...........................................................................
     # Generate a generic class method spec.
@@ -298,6 +300,9 @@ def PYB11generateClass(klass, klassattrs, ss):
     PYB11GenerateClassProperties(klassinst, klassattrs, ss)
 
     ss("  }\n\n")
+
+    ssout(fs.getvalue() % klassattrs)
+    fs.close()
 
     return
 
