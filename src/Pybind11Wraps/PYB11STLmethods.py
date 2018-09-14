@@ -3,7 +3,7 @@
 #
 # Thin wrappers to generate the pybind11 STL functions.
 #-------------------------------------------------------------------------------
-
+import inspect
 
 #-------------------------------------------------------------------------------
 # std::vector
@@ -54,3 +54,28 @@ PYBIND11_MAKE_OPAQUE(%(ttype)s);
     def __call__(self, modobj, ss, name):
         ss('py::bind_map<std::map<' + self.key + ', ' + self.value + '>>(m, "' + name + '");\n')
         return
+
+#-------------------------------------------------------------------------------
+# PYB11STLobjs
+#
+# Get the STL objects to bind from a module
+#-------------------------------------------------------------------------------
+def PYB11STLobjs(modobj):
+    return [(name, obj) for (name, obj) in inspect.getmembers(modobj)
+            if name[:5] != "PYB11" and
+            (isinstance(obj, PYB11_bind_vector) or
+             isinstance(obj, PYB11_bind_map))]
+
+#-------------------------------------------------------------------------------
+# PYB11generateModuleSTL
+#
+# Bind the STL containers in the module
+#-------------------------------------------------------------------------------
+def PYB11generateModuleSTL(modobj, ss):
+    stuff = PYB11STLobjs(modobj)
+    for (name, obj) in stuff:
+        ss("  ")
+        obj(modobj, ss, name)
+    ss("\n")
+    return
+

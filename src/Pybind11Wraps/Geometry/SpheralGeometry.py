@@ -5,6 +5,7 @@ etc.) and associated methods such as products and eigenvalues.
 
 from PYB11Decorators import *
 from PYB11STLmethods import *
+from PYB11property import *
 import types
 
 # Define some useful type collections we're going to be wrapping in this module.
@@ -59,7 +60,7 @@ vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True)
 #-------------------------------------------------------------------------------
 @PYB11ignore
 def addVectorMethods(cls, ndim):
-
+    
     me = "Vector%id" % ndim
 
     # Constructors
@@ -97,21 +98,26 @@ def addVectorMethods(cls, ndim):
     def one(self):
         "The unit value equivalent."
 
-    @PYB11getter("x")
+    @PYB11cppname("x")
     @PYB11const
-    def x(self):
+    @PYB11ignore
+    def getx(self):
         "The x coordinate"
         return "double"
 
-    @PYB11setter("x")
     @PYB11cppname("x")
+    @PYB11ignore
     def setx(self, val="double"):
         "The x coordinate"
         return "void"
 
+    # Properties
+    cls.x = PYB11property(getx, setx,
+                          doc = "The x coordinate.")
+
     # Add all the locally defined methods to the cls.
-    for x in [x for x in dir() if type(eval(x)) == types.FunctionType]: 
-        exec("cls.%s = %s" % (x, x))
+    for _x in [x for x in dir() if type(eval(x)) == types.FunctionType]: 
+        exec("cls.%s = %s" % (_x, _x))
 
 #-------------------------------------------------------------------------------
 # Vector

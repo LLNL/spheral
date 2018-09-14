@@ -3,8 +3,10 @@
 #-------------------------------------------------------------------------------
 import inspect
 import sys
+from PYB11utils import *
 from PYB11Decorators import *
 from PYB11STLmethods import *
+from PYB11property import *
 
 #-------------------------------------------------------------------------------
 # PYB11generateModule
@@ -112,52 +114,53 @@ def PYB11generateModuleFunctions(modobj, ss):
         ss("  // Methods\n")
     for name, meth in methods:
         methattrs = PYB11attrs(meth)
+        if not methattrs["ignore"]:
 
-        # Arguments
-        stuff = inspect.getargspec(meth)
-        nargs = len(stuff.args)
+            # Arguments
+            stuff = inspect.getargspec(meth)
+            nargs = len(stuff.args)
 
-        # Return type
-        returnType = meth(*tuple(stuff.args))
-        methattrs["returnType"] = returnType
+            # Return type
+            returnType = meth(*tuple(stuff.args))
+            methattrs["returnType"] = returnType
 
-        # Write the binding
-        ss('  m.def("%(pyname)s", ' % methattrs)
-        if returnType:
-            assert not stuff.args is None
-            assert not stuff.defaults is None
-            assert len(stuff.args) == len(stuff.defaults)
-            argNames = stuff.args
-            argTypes, argDefaults = [], []
-            for thing in stuff.defaults:
-                if isinstance(thing, tuple):
-                    assert len(thing) == 2
-                    argTypes.append(thing[0])
-                    argDefaults.append(thing[1])
-                else:
-                    argTypes.append(thing)
-                    argDefaults.append(None)
-            assert len(argNames) == nargs
-            assert len(argTypes) == nargs
-            assert len(argDefaults) == nargs
-            ss("(%s (*)(" % returnType)
-            for i, argType in enumerate(argTypes):
-                ss(argType)
-                if i < nargs - 1:
-                    ss(", ")
-            ss(")) &%(namespace)s%(cppname)s" % methattrs)
-            for argType, argName, default in zip(argTypes, argNames, argDefaults):
-                ss(', "%s"_a' % argName)
-                if not default is None:
-                    ss("=" + default)
-        else:
-            ss("&%(namespace)s%(cppname)s" % methattrs)
+            # Write the binding
+            ss('  m.def("%(pyname)s", ' % methattrs)
+            if returnType:
+                assert not stuff.args is None
+                assert not stuff.defaults is None
+                assert len(stuff.args) == len(stuff.defaults)
+                argNames = stuff.args
+                argTypes, argDefaults = [], []
+                for thing in stuff.defaults:
+                    if isinstance(thing, tuple):
+                        assert len(thing) == 2
+                        argTypes.append(thing[0])
+                        argDefaults.append(thing[1])
+                    else:
+                        argTypes.append(thing)
+                        argDefaults.append(None)
+                assert len(argNames) == nargs
+                assert len(argTypes) == nargs
+                assert len(argDefaults) == nargs
+                ss("(%s (*)(" % returnType)
+                for i, argType in enumerate(argTypes):
+                    ss(argType)
+                    if i < nargs - 1:
+                        ss(", ")
+                ss(")) &%(namespace)s%(cppname)s" % methattrs)
+                for argType, argName, default in zip(argTypes, argNames, argDefaults):
+                    ss(', "%s"_a' % argName)
+                    if not default is None:
+                        ss("=" + default)
+            else:
+                ss("&%(namespace)s%(cppname)s" % methattrs)
 
-        # Write the doc string
-        if inspect.getdoc(meth):
-            doc = inspect.getdoc(meth)
-            ss(',\n        "%s"' % inspect.getdoc(meth))
-        ss(");\n")
+            # Write the doc string
+            if inspect.getdoc(meth):
+                doc = inspect.getdoc(meth)
+                ss(',\n        "%s"' % inspect.getdoc(meth))
+            ss(");\n")
 
 #-------------------------------------------------------------------------------
 # PYB11generateModuleClasses
@@ -169,7 +172,6 @@ def PYB11generateModuleClasses(modobj, ss):
     #...........................................................................
     # Generate a generic class method spec.
     def generic_class_method(meth, methattrs, args):
-        print "!! klassattrs: ", klassattrs
         ss('    obj.def("%(pyname)s", ' % methattrs)
         if methattrs["returnType"] is None:
             ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
@@ -360,12 +362,8 @@ def PYB11generateModuleClasses(modobj, ss):
             ss("  ;\n")
 
         # Grab all the methods
-        for (mname, meth) in PYB11methods(klass):
-            print "**> ", mname, meth, PYB11attrs(meth)
         allmethods = [(mname, meth) for (mname, meth) in PYB11methods(klass)
                       if not PYB11attrs(meth)["ignore"]]
-        for (mname, meth) in allmethods:
-            print "--> ", mname, meth, PYB11attrs(meth)
 
         # Bind constructors of the class.
         ss("\n    // Constructors\n")
@@ -409,35 +407,6 @@ def PYB11generateModuleClasses(modobj, ss):
         for i in reversed(kills):
             del allmethods[i]
 
-        # Bind properties
-        ss("\n    // Properties\n")
-        kills = []
-        for i, (getmname, getmeth) in enumerate(allmethods):
-            getmethattrs = PYB11attrs(getmeth)
-            getargs = PYB11parseArgs(getmeth)
-            if getmethattrs["getter"]:
-                getmethattrs["returnType"] = eval("objinst." + getmname + "()")
-                propvar = getmethattrs["getter"]
-                # Look for a setter
-                for j, (setmname, setmeth) in enumerate(allmethods):
-                    setmethattrs = PYB11attrs(setmeth)
-                    if setmethattrs["setter"] == propvar:
-                        setmethattrs["returnType"] = eval("objinst." + setmname + "()")
-                        setargs = PYB11parseArgs(setmeth)
-                        break
-                if j < len(allmethods):
-                    # Getter/setter
-                    class_property(getmeth, getmethattrs, getargs, setmeth, setmethattrs, setargs)
-                    kills.append(i)
-                    kills.append(j)
-                else:
-                    # Getter only
-                    class_property(getmeth, getmethattrs, getargs, None, None, None)
-                    kills.append(i)
-        kills.sort()
-        for i in reversed(kills):
-            del allmethods[i]
-
         # Bind the remaining methods of the class.
         ss("\n    // Methods\n")
         for i, (mname, meth) in enumerate(allmethods):
@@ -446,39 +415,10 @@ def PYB11generateModuleClasses(modobj, ss):
             args = PYB11parseArgs(meth)
             generic_class_method(meth, methattrs, args)
 
+        # Bind properties
+        PYB11GenerateClassProperties(objinst, klassattrs, ss)
+
         ss("  }\n\n")
-
-#-------------------------------------------------------------------------------
-# PYB11generateModuleSTL
-#
-# Bind the STL containers in the module
-#-------------------------------------------------------------------------------
-def PYB11generateModuleSTL(modobj, ss):
-    stuff = PYB11STLobjs(modobj)
-    for (name, obj) in stuff:
-        ss("  ")
-        obj(modobj, ss, name)
-    ss("\n")
-    return
-
-#-------------------------------------------------------------------------------
-# PYB11parseArgs
-#
-# Return (argType, argName, <default_value>)
-#-------------------------------------------------------------------------------
-def PYB11parseArgs(meth):
-    stuff = inspect.getargspec(meth)
-    result = []
-    if stuff.defaults:
-        nargs = len(stuff.defaults)
-        for argName, val in zip(stuff.args[-nargs:], stuff.defaults):
-            if isinstance(val, tuple):
-                assert len(val) == 2
-                argType, default = val
-            else:
-                argType, default = val, None
-            result.append((argType, argName, default))
-    return result
 
 #-------------------------------------------------------------------------------
 # PYB11functions
@@ -499,17 +439,6 @@ def PYB11classes(modobj):
             if name[:5] != "PYB11"]
 
 #-------------------------------------------------------------------------------
-# PYB11STLobjs
-#
-# Get the STL objects to bind from a module
-#-------------------------------------------------------------------------------
-def PYB11STLobjs(modobj):
-    return [(name, obj) for (name, obj) in inspect.getmembers(modobj)
-            if name[:5] != "PYB11" and
-            (isinstance(obj, PYB11_bind_vector) or
-             isinstance(obj, PYB11_bind_map))]
-
-#-------------------------------------------------------------------------------
 # PYB11methods
 #
 # Get the methods to bind from a class
@@ -517,26 +446,3 @@ def PYB11STLobjs(modobj):
 def PYB11methods(obj):
     return inspect.getmembers(obj, predicate=inspect.ismethod)
 
-#-------------------------------------------------------------------------------
-# PYB11attrs
-#
-# Read the possible PYB11 generation attributes from the obj
-#-------------------------------------------------------------------------------
-def PYB11attrs(obj):
-    d = {"pyname"       : obj.__name__,
-         "cppname"      : obj.__name__,
-         "ignore"       : False,
-         "namespace"    : "",
-         "singleton"    : False,
-         "virtual"      : False,
-         "pure_virtual" : False,
-         "const"        : False,
-         "static"       : False,
-         "getter"       : None,           # Property
-         "setter"       : None,           # Property
-         "readwrite"    : False,          # Attribute
-         "readonly"     : False}          # Attribute
-    for key in d:
-        if hasattr(obj, "PYB11" + key):
-            d[key] = eval("obj.PYB11%s" % key)
-    return d

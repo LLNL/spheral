@@ -8,13 +8,23 @@ import types
 #-------------------------------------------------------------------------------
 # ignore
 #-------------------------------------------------------------------------------
-class PYB11ignore:
-    def __init__(self, func):
-        self.func = func
-        func.PYB11ignore = True
-        return
-    def __call__(self, *args, **kwargs):
-        return self.func(*args, **kwargs)
+def PYB11ignore(thing):
+    thing.PYB11ignore = True
+    return thing
+
+# def PYB11ignore(f):
+#     def wrapper(f, *args, **kwargs):
+#         return f(*args, **kwargs)
+#     f.PYB11virtual = True
+#     return PYB11decorator.decorate(f, wrapper)
+
+
+    # def __init__(self, func):
+    #     self.func = func
+    #     func.PYB11ignore = True
+    #     return
+    # def __call__(self, *args, **kwargs):
+    #     return self.func(*args, **kwargs)
 
 #-------------------------------------------------------------------------------
 # Singleton (class)
