@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Instantiations.
 //------------------------------------------------------------------------------
-#include "TensorDamageModel.cc"
+#include "Damage/TensorDamageModel.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

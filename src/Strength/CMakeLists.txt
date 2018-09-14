@@ -1,28 +1,25 @@
-set(Strength_sources2d
-    BulkModulusPolicyInst.cc.2.cc
-    DeviatoricStressPolicyInst.cc.2.cc
-    MeltEnergyPolicyInst.cc.2.cc
-    PlasticStrainPolicyInst.cc.2.cc
-    RZDeviatoricStressPolicy.cc
-    RZPlasticStrainPolicy.cc
-    ShearModulusPolicyInst.cc.2.cc
-    StrengthSoundSpeedPolicyInst.cc.2.cc
-    YieldStrengthPolicyInst.cc.2.cc
-    )
-
-set(Strength_sources3d
-    BulkModulusPolicyInst.cc.3.cc
-    DeviatoricStressPolicyInst.cc.3.cc
-    MeltEnergyPolicyInst.cc.3.cc
-    PlasticStrainPolicyInst.cc.3.cc
-    ShearModulusPolicyInst.cc.3.cc
-    StrengthSoundSpeedPolicyInst.cc.3.cc
-    YieldStrengthPolicyInst.cc.3.cc
-    )
+set(Strength_inst
+    BulkModulusPolicy
+    DeviatoricStressPolicy
+    MeltEnergyPolicy
+    PlasticStrainPolicy
+    ShearModulusPolicy
+    StrengthSoundSpeedPolicy
+    YieldStrengthPolicy
+   )
 
 set(Strength_sources
     SolidFieldNames.cc
     )
+
+if(ENABLE_2D)
+  list(APPEND Strength_sources
+       RZDeviatoricStressPolicy.cc
+       RZPlasticStrainPolicy.cc
+      )
+endif()
+
+instantiate(Strength_inst Strength_sources)
 
 set(Strength_headers
     BulkModulusPolicy.hh
@@ -38,12 +35,8 @@ set(Strength_headers
     effectiveKernelVolume.hh
     )
 
-INCLUDE_DIRECTORIES(../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_Strength
-                SOURCES     ${Strength_sources} ${Strength_sources2d} ${Strength_sources3d}
+                SOURCES     ${Strength_sources}
                 HEADERS     ${Strength_headers}
                 DEPENDS_ON  ${spheral_depends}
                 )

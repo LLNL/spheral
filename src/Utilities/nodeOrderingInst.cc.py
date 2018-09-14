@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "nodeOrdering.cc"
+#include "Utilities/nodeOrdering.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

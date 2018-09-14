@@ -7,7 +7,7 @@ text = """
 
 #include <math.h>
 
-#include "SincKernel.hh"
+#include "Kernel/SincKernel.hh"
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.

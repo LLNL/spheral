@@ -6,7 +6,7 @@ text = """
 //----------------------------------------------------------------------------//
 #include <math.h>
 
-#include "SuperGaussianKernel.hh"
+#include "Kernel/SuperGaussianKernel.hh"
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.

@@ -1,32 +1,22 @@
-set(Damage_sources2d
-    DamageModelInst.cc.2.cc
-    JohnsonCookDamageInst.cc.2.cc
-    JohnsonCookDamagePolicyInst.cc.2.cc
-    JohnsonCookFailureStrainPolicyInst.cc.2.cc
-    LongitudinalSoundSpeedPolicyInst.cc.2.cc
-    StrainPolicyInst.cc.2.cc
-    TensorDamageModelInst.cc.2.cc
-    TensorDamagePolicyInst.cc.2.cc
-    TensorStrainPolicyInst.cc.2.cc
-    YoungsModulusPolicyInst.cc.2.cc
-    computeFragmentFieldInst.cc.2.cc
-    weibullFlawDistributionInst.cc.2.cc
-    )
+set(Damage_inst
+    DamageModel
+    JohnsonCookDamage
+    JohnsonCookDamagePolicy
+    JohnsonCookFailureStrainPolicy
+    LongitudinalSoundSpeedPolicy
+    StrainPolicy
+    TensorDamageModel
+    TensorDamagePolicy
+    TensorStrainPolicy
+    YoungsModulusPolicy
+    computeFragmentField
+    weibullFlawDistribution
+   )
 
-set(Damage_sources3d
-    DamageModelInst.cc.3.cc
-    JohnsonCookDamageInst.cc.3.cc
-    JohnsonCookDamagePolicyInst.cc.3.cc
-    JohnsonCookFailureStrainPolicyInst.cc.3.cc
-    LongitudinalSoundSpeedPolicyInst.cc.3.cc
-    StrainPolicyInst.cc.3.cc
-    TensorDamageModelInst.cc.3.cc
-    TensorDamagePolicyInst.cc.3.cc
-    TensorStrainPolicyInst.cc.3.cc
-    YoungsModulusPolicyInst.cc.3.cc
-    computeFragmentFieldInst.cc.3.cc
-    weibullFlawDistributionInst.cc.3.cc
-    )
+
+set(Damage_sources )
+
+instantiate(Damage_inst Damage_sources)
 
 set(Damage_headers
     DamageGradientPolicy.hh
@@ -53,12 +43,8 @@ set(Damage_headers
     weibullFlawDistribution.hh
     )
 
-INCLUDE_DIRECTORIES(../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_Damage
-                SOURCES     ${Damage_sources2d} ${Damage_sources3d}
+                SOURCES     ${Damage_sources}
                 HEADERS     ${Damage_headers}
                 DEPENDS_ON  ${spheral_depends}
                 )

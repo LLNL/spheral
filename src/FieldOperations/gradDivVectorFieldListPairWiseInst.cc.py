@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "gradDivVectorFieldListPairWise.cc"
+#include "FieldOperations/gradDivVectorFieldListPairWise.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

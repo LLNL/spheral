@@ -1,2 +1,0 @@
-
-for f in *Inst.cc.py; do python ../helpers/InstantiationGenerator.py $f ${f%.py}.2.cc 2; done

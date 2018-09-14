@@ -2,13 +2,13 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "CRKSPHHydroBase.cc"
+#include "CRKSPH/CRKSPHHydroBase.cc"
 #include "Geometry/Dimension.hh"
 
 #ifdef _OPENMP
-#include "CRKSPHEvaluateDerivatives_OpenMP.cc"
+#include "CRKSPH/CRKSPHEvaluateDerivatives_OpenMP.cc"
 #else
-#include "CRKSPHEvaluateDerivatives.cc"
+#include "CRKSPH/CRKSPHEvaluateDerivatives.cc"
 #endif
 
 namespace Spheral {

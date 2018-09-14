@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiations.
 //------------------------------------------------------------------------------
-#include "NBodyGravity.cc"
+#include "Gravity/NBodyGravity.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

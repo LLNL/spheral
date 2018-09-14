@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "OsborneEquationOfState.cc"
+#include "SolidMaterial/OsborneEquationOfState.cc"
 
 namespace Spheral {
   namespace SolidMaterial {

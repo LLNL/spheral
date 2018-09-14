@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "computeSVPHCorrectionsOnFaces.cc"
+#include "SVPH/computeSVPHCorrectionsOnFaces.cc"
 #include "Geometry/Dimension.hh"
 #include "Physics/Physics.hh"
 #include "Boundary/Boundary.hh"

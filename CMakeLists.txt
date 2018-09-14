@@ -16,6 +16,10 @@ endif()
 
 include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
 
+option(ENABLE_2D "enable 2d" ON)
+option(ENABLE_3D "enable 3d" ON)
+option(ENABLE_INSTANTIATIONS "enable instantiations" ON)
+
 ################################
 # Include standard build system logic and options
 ################################

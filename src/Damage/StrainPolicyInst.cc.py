@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "StrainPolicy.cc"
+#include "Damage/StrainPolicy.cc"
 
 namespace Spheral {
   template class Spheral::StrainPolicy<Dim< %(ndim)s > >;

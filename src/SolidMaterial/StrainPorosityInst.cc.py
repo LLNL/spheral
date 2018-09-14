@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "StrainPorosity.cc"
+#include "SolidMaterial/StrainPorosity.cc"
 
 namespace Spheral {
   namespace SolidMaterial {

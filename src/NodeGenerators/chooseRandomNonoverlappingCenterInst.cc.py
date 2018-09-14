@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "chooseRandomNonoverlappingCenter.cc"
+#include "NodeGenerators/chooseRandomNonoverlappingCenter.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

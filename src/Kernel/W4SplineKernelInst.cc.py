@@ -7,8 +7,8 @@ text = """
 
 #include <math.h>
 
-#include "Kernel.hh"
-#include "W4SplineKernel.hh"
+#include "Kernel/Kernel.hh"
+#include "Kernel/W4SplineKernel.hh"
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.

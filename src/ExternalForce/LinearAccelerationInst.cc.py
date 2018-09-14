@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "LinearAcceleration.cc"
+#include "ExternalForce/LinearAcceleration.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
