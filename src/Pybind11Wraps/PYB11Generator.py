@@ -248,35 +248,6 @@ def PYB11generateModuleClasses(modobj, ss):
         ss(");\n")
 
     #...........................................................................
-    # Property
-    def class_property(getmeth, getmethattrs, getargs,
-                       setmeth, setmethattrs, setargs):
-        ss('    obj.def_property("%(pyname)s", ' % getmethattrs)
-
-        # Get method
-        if not getmethattrs["returnType"] is None:
-            ss("(" + getmethattrs["returnType"] + " (%(namespace)s%(cppname)s::*)()" % klassattrs)
-            if getmethattrs["const"]:
-                ss(" const) ")
-            else:
-                ss(") ")
-        ss(("&%(namespace)s%(cppname)s::" % klassattrs) + getmethattrs["cppname"])
-
-        # Set method
-        if setmeth:
-            if not setmethattrs["returnType"] is None:
-                ss(", (" + setmethattrs["returnType"] + " (%(namespace)s%(cppname)s::*)()" % klassattrs)
-                if setmethattrs["const"]:
-                    ss(" const) ")
-                else:
-                    ss(") ")
-            ss(("&%(namespace)s%(cppname)s::" % klassattrs) + setmethattrs["cppname"])
-        doc = inspect.getdoc(meth)
-        if doc:
-            ss(',\n            "%s"' % doc)
-        ss(");\n")
-
-    #...........................................................................
     # Binary operators
     def binary_operator(meth, methattrs, args, op):
         assert len(args) == 1
