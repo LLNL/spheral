@@ -3,11 +3,11 @@ from PYB11property import *
 from PYB11class import *
 
 #-------------------------------------------------------------------------------
-# Tensor (rank 2) template
+# SymTensor (rank 2) template
 #-------------------------------------------------------------------------------
 @PYB11template("ndim")
-class Tensor:
-    "Spheral geometric tensor (rank 2: %(ndim)sx%(ndim)s) class"
+class SymTensor:
+    "Spheral geometric symmetric tensor (rank 2: %(ndim)sx%(ndim)s) class"
 
     # Static attributes
     @PYB11static
@@ -58,33 +58,33 @@ class Tensor:
         "Construct with element values."
 
     # Sequence methods
-    @PYB11implementation("[](const Dim<%(ndim)s>::Tensor& self) { return Dim<%(ndim)s>::Tensor::numElements; }")
+    @PYB11implementation("[](const Dim<%(ndim)s>::SymTensor& self) { return Dim<%(ndim)s>::SymTensor::numElements; }")
     def __len__(self):
-        "The size (number of elements) of the Tensor."
+        "The size (number of elements) of the SymTensor."
 
-    @PYB11implementation("[](const Dim<%(ndim)s>::Tensor &s, size_t i) { if (i >= Dim<%(ndim)s>::Tensor::numElements) throw py::index_error(); return s[i]; }") 
+    @PYB11implementation("[](const Dim<%(ndim)s>::SymTensor &s, size_t i) { if (i >= Dim<%(ndim)s>::SymTensor::numElements) throw py::index_error(); return s[i]; }") 
     def __getitem__(self):
         "Python indexing to get an element."
 
-    @PYB11implementation("[](Dim<%(ndim)s>::Tensor &s, size_t i, float v) { if (i >= Dim<%(ndim)s>::Tensor::numElements) throw py::index_error(); s[i] = v; }") 
+    @PYB11implementation("[](Dim<%(ndim)s>::SymTensor &s, size_t i, float v) { if (i >= Dim<%(ndim)s>::SymTensor::numElements) throw py::index_error(); s[i] = v; }") 
     def __setitem__(self):
         "Python indexing to set an element."
 
-    @PYB11implementation("[](const Dim<%(ndim)s>::Tensor &s) { return py::make_iterator(s.begin(), s.end()); }")
+    @PYB11implementation("[](const Dim<%(ndim)s>::SymTensor &s) { return py::make_iterator(s.begin(), s.end()); }")
     def __iter__(self):
-        "Python iteration through a Tensor."
+        "Python iteration through a SymTensor."
 
     @PYB11const
     def __call__(self,
-                 row="Dim<%(ndim)s>::Tensor::size_type", 
-                 col="Dim<%(ndim)s>::Tensor::size_type"):
+                 row="Dim<%(ndim)s>::SymTensor::size_type", 
+                 col="Dim<%(ndim)s>::SymTensor::size_type"):
         "Extract the (row, column) element."
         return "double"
 
     # String representation
     @PYB11implementation("""
-[](const Dim<%(ndim)s>::Tensor& self) {
-  std::string result = "Tensor" + std::to_string(%(ndim)s) + "d(";
+[](const Dim<%(ndim)s>::SymTensor& self) {
+  std::string result = "SymTensor" + std::to_string(%(ndim)s) + "d(";
   for (auto val: self) result += (" " + std::to_string(val) + " ");
   result += ")";
   return result;
@@ -100,10 +100,6 @@ class Tensor:
     def __sub__(self, rhs="Dim<%(ndim)s>::Tensor()"):
         return
     def __mul__(self, rhs="Dim<%(ndim)s>::Tensor()"):
-        return
-    def __iadd__(self, rhs="Dim<%(ndim)s>::Tensor()"):
-        return
-    def __isub__(self, rhs="Dim<%(ndim)s>::Tensor()"):
         return
 
     def __add__(self, rhs="Dim<%(ndim)s>::SymTensor()"):
@@ -197,6 +193,18 @@ class Tensor:
         "Apply the given rotational transform to the tensor."
     def maxAbsElement(self):
         "Return the maximum of the absolute values of the elements."
+
+    # Methods special to symmetric tensor (not in tensor).
+    def cube(self):
+        "Cube power of this symmetric tensor."
+    def sqrt(self):
+        "Sqrt of the symmetric tensor."
+    def cuberoot(self):
+        "Cube root of the symmetric tensor."
+    def pow(self):
+        "Raise the symmetric tensor to an arbitrary power."
+    def eigenVectors(self):
+        "Return an EigenStruct with the eigenvalues and eigenvectors."
 
     # xx
     @PYB11cppname("xx")
@@ -318,17 +326,17 @@ class Tensor:
     zz = property(getzz, setzz, doc="The zz element.")
 
 #-------------------------------------------------------------------------------
-# Tensor instantiations.
+# SymTensor instantiations.
 #-------------------------------------------------------------------------------
-Tensor1d = PYB11TemplateClass(Tensor,
-                              template_parameters = ("1"),
-                              cppname = "Dim<1>::Tensor",
-                              pyname = "Tensor1d")
-Tensor2d = PYB11TemplateClass(Tensor,
-                              template_parameters = ("2"),
-                              cppname = "Dim<2>::Tensor",
-                              pyname = "Tensor2d")
-Tensor3d = PYB11TemplateClass(Tensor,
-                              template_parameters = ("3"),
-                              cppname = "Dim<3>::Tensor",
-                              pyname = "Tensor3d")
+SymTensor1d = PYB11TemplateClass(SymTensor,
+                                 template_parameters = ("1"),
+                                 cppname = "Dim<1>::SymTensor",
+                                 pyname = "SymTensor1d")
+SymTensor2d = PYB11TemplateClass(SymTensor,
+                                 template_parameters = ("2"),
+                                 cppname = "Dim<2>::SymTensor",
+                                 pyname = "SymTensor2d")
+SymTensor3d = PYB11TemplateClass(SymTensor,
+                                 template_parameters = ("3"),
+                                 cppname = "Dim<3>::SymTensor",
+                                 pyname = "SymTensor3d")
