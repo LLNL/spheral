@@ -89,7 +89,7 @@ class Vector:
         "Default constructor"
 
     def pyinit1(self,
-                rhs = "const Dim<%(TP__ndim)s>::Vector"):
+                rhs = "const Dim<%(ndim)s>::Vector"):
         "Copy constructor"
 
     def pyinit2(self,
@@ -169,31 +169,31 @@ class Vector:
         return
 
     # Sequence methods
-    @PYB11implementation("[](const Dim<%(TP__ndim)s>::Vector& self) { return Dim<%(TP__ndim)s>::nDim; }")
+    @PYB11implementation("[](const Dim<%(ndim)s>::Vector& self) { return Dim<%(ndim)s>::nDim; }")
     def __len__(self):
         "The size (in number of coordinates) of the Vector."
 
-    @PYB11implementation("[](const Dim<%(TP__ndim)s>::Vector &s, size_t i) { if (i >= Dim<%(TP__ndim)s>::Vector::numElements) throw py::index_error(); return s[i]; }") 
+    @PYB11implementation("[](const Dim<%(ndim)s>::Vector &s, size_t i) { if (i >= Dim<%(ndim)s>::Vector::numElements) throw py::index_error(); return s[i]; }") 
     def __getitem__(self):
         "Python indexing to get a coordinate."
 
-    @PYB11implementation("[](Dim<%(TP__ndim)s>::Vector &s, size_t i, float v) { if (i >= Dim<%(TP__ndim)s>::Vector::numElements) throw py::index_error(); s[i] = v; }") 
+    @PYB11implementation("[](Dim<%(ndim)s>::Vector &s, size_t i, float v) { if (i >= Dim<%(ndim)s>::Vector::numElements) throw py::index_error(); s[i] = v; }") 
     def __setitem__(self):
         "Python indexing to set a coordinate."
 
-    @PYB11implementation("[](const Dim<%(TP__ndim)s>::Vector &s) { return py::make_iterator(s.begin(), s.end()); }")
+    @PYB11implementation("[](const Dim<%(ndim)s>::Vector &s) { return py::make_iterator(s.begin(), s.end()); }")
     def __iter__(self):
         "Python iteration through a Vector."
 
     @PYB11const
-    def __call__(self, i="Dim<%(TP__ndim)s>::Vector::size_type"):
+    def __call__(self, i="Dim<%(ndim)s>::Vector::size_type"):
         "Index for a coordinate using parens."
         return "double"
 
     # Comparison
     @PYB11const
     def compare(self,
-                rhs = "const Dim<%(TP__ndim)s>::Vector&"):
+                rhs = "const Dim<%(ndim)s>::Vector&"):
         "Compare (-1,0,1) with a Vector."
         return "int"
 
@@ -263,7 +263,12 @@ class Vector:
 # Vector instantiations.
 #-------------------------------------------------------------------------------
 Vector1d = PYB11TemplateClass(Vector,
-                              ("1"),
+                              template_parameters = ("1"),
                               cppname = "Dim<1>::Vector",
                               pyname = "Vector1d",
                               docext = " (1D).")
+Vector2d = PYB11TemplateClass(Vector,
+                              template_parameters = ("2"),
+                              cppname = "Dim<2>::Vector",
+                              pyname = "Vector2d",
+                              docext = " (2D).")

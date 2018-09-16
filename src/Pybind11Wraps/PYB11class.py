@@ -66,8 +66,9 @@ class PYB11TemplateClass:
         else:
             klassattrs["pyname"] += doc_ext
 
+        klassattrs["template_dict"] = {}
         for name, val in self.template_parameters:
-            klassattrs["TP__%s" % name] = val
+            klassattrs["template_dict"][name] = val
 
         doc0 = copy.deepcopy(self.klass_template.__doc__)
         self.klass_template.__doc__ += self.docext
@@ -342,7 +343,7 @@ def PYB11generateClass(klass, klassattrs, ssout):
 
     ss("  }\n\n")
 
-    ssout(fs.getvalue() % klassattrs)
+    ssout(fs.getvalue() % klassattrs["template_dict"])
     fs.close()
 
     return
