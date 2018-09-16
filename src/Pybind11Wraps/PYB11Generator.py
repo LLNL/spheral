@@ -7,7 +7,6 @@ from PYB11utils import *
 from PYB11Decorators import *
 from PYB11STLmethods import *
 from PYB11class import *
-from PYB11property import *
 
 #-------------------------------------------------------------------------------
 # PYB11generateModule

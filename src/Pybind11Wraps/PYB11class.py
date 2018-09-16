@@ -339,7 +339,7 @@ def PYB11generateClass(klass, klassattrs, ssout):
         generic_class_method(meth, methattrs, args)
 
     # Bind properties
-    PYB11GenerateClassProperties(klassinst, klassattrs, ss)
+    PYB11GenerateClassProperties(klass, klassinst, klassattrs, ss)
 
     ss("  }\n\n")
 
