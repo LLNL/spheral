@@ -12,7 +12,7 @@ import types
 # Define some useful type collections we're going to be wrapping in this module.
 geomtypes = ["Vector", "Tensor", "SymTensor", "ThirdRankTensor", "FourthRankTensor", "FifthRankTensor", "FacetedVolume"]
 
-# We use the preamble for a whole bunch of useful typedefs.
+# The code preamble
 preamble = """
 using namespace Spheral;
 
@@ -218,6 +218,17 @@ class Vector:
     def __ge__(self):
         return
 
+    # String representation
+    @PYB11implementation("""
+[](const Dim<%(ndim)s>::Vector& self) {
+  std::string result = "Vector" + std::to_string(%(ndim)s) + "d(";
+  for (auto val: self) result += (" " + std::to_string(val) + " ");
+  result += ")";
+  return result;
+}""")
+    def __repr__(self):
+        return
+
     # x
     @PYB11cppname("x")
     @PYB11const
@@ -272,3 +283,8 @@ Vector2d = PYB11TemplateClass(Vector,
                               cppname = "Dim<2>::Vector",
                               pyname = "Vector2d",
                               docext = " (2D).")
+Vector3d = PYB11TemplateClass(Vector,
+                              template_parameters = ("3"),
+                              cppname = "Dim<3>::Vector",
+                              pyname = "Vector3d",
+                              docext = " (3D).")
