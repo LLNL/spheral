@@ -73,7 +73,7 @@ class PYB11TemplateClass:
         doc0 = copy.deepcopy(self.klass_template.__doc__)
         self.klass_template.__doc__ += self.docext
         PYB11generateClass(self.klass_template, klassattrs, ss)
-        self.klass_template__doc__ = doc0
+        self.klass_template.__doc__ = doc0
         return
 
 #-------------------------------------------------------------------------------
