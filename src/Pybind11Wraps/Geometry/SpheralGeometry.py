@@ -255,9 +255,9 @@ class Vector:
         return "void"
 
     # Properties
-    x = PYB11property(getx, setx, doc = "The x coordinate.")
-    y = PYB11property(gety, sety, doc = "The y coordinate.")
-    z = PYB11property(getz, setz, doc = "The z coordinate.")
+    x = property(getx, setx, doc="The x coordinate.")
+    y = property(gety, sety, doc="The y coordinate.")
+    z = property(getz, setz, doc="The z coordinate.")
 
 #-------------------------------------------------------------------------------
 # Vector instantiations.
