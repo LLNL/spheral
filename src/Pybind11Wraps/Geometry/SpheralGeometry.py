@@ -59,7 +59,7 @@ vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True)
 #-------------------------------------------------------------------------------
 # Worker for adding methods to Vector.
 #-------------------------------------------------------------------------------
-@PYB11template
+@PYB11template("ndim")
 class Vector:
     "Spheral Geometric Vector class"
 
@@ -263,7 +263,7 @@ class Vector:
 # Vector instantiations.
 #-------------------------------------------------------------------------------
 Vector1d = PYB11TemplateClass(Vector,
-                              [("ndim", "1")],
+                              ("1"),
                               cppname = "Dim<1>::Vector",
                               pyname = "Vector1d",
                               docext = " (1D).")

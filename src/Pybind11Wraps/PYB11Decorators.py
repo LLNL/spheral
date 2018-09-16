@@ -15,9 +15,14 @@ def PYB11ignore(thing):
 #-------------------------------------------------------------------------------
 # template (for now just cause the method/class to be ignored)
 #-------------------------------------------------------------------------------
-def PYB11template(thing):
-    thing.PYB11ignore = True
-    return thing
+class PYB11template:
+    def __init__(self, *args):
+        self.template = tuple(args)
+        return
+    def __call__(self, thing):
+        thing.PYB11ignore = True
+        thing.PYB11template = self.template
+        return thing
 
 #-------------------------------------------------------------------------------
 # Singleton (class)

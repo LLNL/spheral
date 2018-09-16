@@ -36,7 +36,8 @@ def PYB11attrs(obj):
          "static"         : False,
          "readwrite"      : False,          # Attribute
          "readonly"       : False,          # Attribute
-         "implementation" : None}
+         "implementation" : None,
+         "template"       : ()}
     for key in d:
         if hasattr(obj, "PYB11" + key):
             d[key] = eval("obj.PYB11%s" % key)

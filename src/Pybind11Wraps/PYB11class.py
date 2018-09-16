@@ -38,7 +38,9 @@ class PYB11TemplateClass:
                  pyname = None,
                  docext = ""):
         self.klass_template = klass_template
-        self.template_parameters = template_parameters
+        klassattrs = PYB11attrs(self.klass_template)
+        assert len(klassattrs["template"]) == len(template_parameters)
+        self.template_parameters = [(name, val) for (name, val) in zip(klassattrs["template"], template_parameters)]
         self.cppname = cppname
         self.pyname = pyname
         self.docext = docext
