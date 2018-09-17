@@ -272,6 +272,13 @@ def PYB11generateClass(klass, klassattrs, ssout):
   // Class %(pyname)s
   {
     py::class_<%(namespace)s%(cppname)s""" % klassattrs)
+
+    # Check for base classes.
+    for bklass in inspect.getmro(klass)[1:]:
+        bklassattrs = PYB11attrs(bklass)
+        ss(", %(namespace)s%(cppname)s" % bklassattrs)
+
+    # Is this a singleton?
     if klassattrs["singleton"]:
         ss(", std::unique_ptr<RestartRegistrar, py::nodelete>")
     ss('> obj(m, "%(pyname)s");\n' % klassattrs)
