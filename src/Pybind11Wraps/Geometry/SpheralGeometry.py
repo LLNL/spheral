@@ -105,3 +105,17 @@ computeEigenValues2 = PYB11TemplateFunction(computeEigenValues,
 computeEigenValues3 = PYB11TemplateFunction(computeEigenValues,
                                             template_parameters = "Dim<3>",
                                             pyname = "computeEigenValues")
+
+#-------------------------------------------------------------------------------
+# Inner product
+#-------------------------------------------------------------------------------
+@PYB11template("ValueType")
+def innerProductScalar(A = "const double&",
+                       B = "const %(ValueType)s&"):
+    "Inner product with a scalar."
+    return "%(ValueType)s"
+
+innerProductScalar1 = PYB11TemplateFunction(innerProductScalar,
+                                            template_parameters = "Dim<1>::Vector",
+                                            pyname = "innerProduct",
+                                            cppname = "innerProduct<Dim<1>::Vector>")
