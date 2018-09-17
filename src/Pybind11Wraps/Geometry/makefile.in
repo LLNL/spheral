@@ -8,6 +8,10 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = Geometry
 PKGDIR = $(PKGNAME)/
+PYB11SRCS = \
+	Vector.py \
+	Tensor.py \
+	ThirdRankTensor.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------

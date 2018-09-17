@@ -60,4 +60,4 @@ vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True)
 from Vector import Vector1d, Vector2d, Vector3d
 from Tensor import Tensor1d, Tensor2d, Tensor3d
 from SymTensor import SymTensor1d, SymTensor2d, SymTensor3d
-
+from ThirdRankTensor import ThirdRankTensor1d, ThirdRankTensor2d, ThirdRankTensor3d
