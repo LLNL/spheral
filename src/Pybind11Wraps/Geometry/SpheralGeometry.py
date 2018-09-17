@@ -78,15 +78,12 @@ def invertRankNTensor(tensor = "const %(TensorType)s&"):
 
 invertRankNTensor1 = PYB11TemplateFunction(invertRankNTensor,
                                            template_parameters = "Dim<1>::Tensor",
-                                           cppname = "invertRankNTensor",
                                            pyname = "invertRankNTensor")
 invertRankNTensor2 = PYB11TemplateFunction(invertRankNTensor,
                                            template_parameters = "Dim<1>::SymTensor",
-                                           cppname = "invertRankNTensor",
                                            pyname = "invertRankNTensor")
 invertRankNTensor3 = PYB11TemplateFunction(invertRankNTensor,
                                            template_parameters = "Dim<1>::FourthRankTensor",
-                                           cppname = "invertRankNTensor",
                                            pyname = "invertRankNTensor")
 
 #-------------------------------------------------------------------------------
