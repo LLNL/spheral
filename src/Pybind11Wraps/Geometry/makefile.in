@@ -13,7 +13,9 @@ PYB11SRCS = \
 	Tensor.py \
 	ThirdRankTensor.py \
 	FourthRankTensor.py \
-	FifthRankTensor.py
+	FifthRankTensor.py \
+	EigenStruct.py \
+	Plane.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------

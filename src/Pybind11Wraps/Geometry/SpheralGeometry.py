@@ -46,7 +46,8 @@ includes = ['"Geometry/Dimension.hh"',
             '"Field/Field.hh"',
             '"Utilities/DataTypeTraits.hh"',
 
-            '<vector>']
+            '<vector>',
+            '<sstream>']
 
 # STL containers
 for gtype in geomtypes + ["Plane"]:
@@ -63,3 +64,5 @@ from SymTensor import SymTensor1d, SymTensor2d, SymTensor3d
 from ThirdRankTensor import ThirdRankTensor1d, ThirdRankTensor2d, ThirdRankTensor3d
 from FourthRankTensor import FourthRankTensor1d, FourthRankTensor2d, FourthRankTensor3d
 from FifthRankTensor import FifthRankTensor1d, FifthRankTensor2d, FifthRankTensor3d
+from EigenStruct import EigenStruct1d, EigenStruct2d, EigenStruct3d
+from Plane import Plane1d, Plane2d, Plane3d
