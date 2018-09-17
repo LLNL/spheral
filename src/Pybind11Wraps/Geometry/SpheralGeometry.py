@@ -107,7 +107,7 @@ computeEigenValues3 = PYB11TemplateFunction(computeEigenValues,
                                             pyname = "computeEigenValues")
 
 #-------------------------------------------------------------------------------
-# Inner product
+# Inner product (with a double)
 #-------------------------------------------------------------------------------
 @PYB11template("ValueType")
 def innerProductScalar(A = "const double&",
@@ -115,7 +115,49 @@ def innerProductScalar(A = "const double&",
     "Inner product with a scalar."
     return "%(ValueType)s"
 
-innerProductScalar1 = PYB11TemplateFunction(innerProductScalar,
-                                            template_parameters = "Dim<1>::Vector",
-                                            pyname = "innerProduct",
-                                            cppname = "innerProduct<Dim<1>::Vector>")
+@PYB11template("ValueType")
+def innerProductScalarR(A = "const %(ValueType)s&",
+                        B = "const double&"):
+    "Inner product with a scalar."
+    return "%(ValueType)s"
+
+i = 0
+for VT in ("Vector", "Tensor", "SymTensor", "ThirdRankTensor", "FourthRankTensor", "FifthRankTensor"):
+    for ndim in (1, 2, 3):
+        exec("""
+innerProductScalar%(i)i = PYB11TemplateFunction(innerProductScalar,
+                                                template_parameters = "Dim<%(ndim)i>::%(VT)s",
+                                                pyname = "innerProduct",
+                                                cppname = "innerProduct<Dim<%(ndim)i>::%(VT)s>")
+innerProductScalar%(j)i = PYB11TemplateFunction(innerProductScalarR,
+                                                template_parameters = "Dim<%(ndim)i>::%(VT)s",
+                                                pyname = "innerProduct",
+                                                cppname = "innerProduct<Dim<%(ndim)i>::%(VT)s>")
+""" % {"i" : i,
+       "j" : i + 1,
+       "VT" : VT,
+       "ndim" : ndim})
+        i += 2
+
+#-------------------------------------------------------------------------------
+# General inner products
+#-------------------------------------------------------------------------------
+@PYB11template("AType", "BType", "ReturnType")
+def innerProduct(A = "const %(AType)s&",
+                 B = "const %(BType)s&"):
+    "Inner product (%(AType)s.%(BType)s."
+    return "%(ReturnType)s"
+
+for AT in ("Vector", "Tensor", "SymTensor", "ThirdRankTensor", "FourthRankTensor", "FifthRankTensor"):
+    for BT in ("Vector", "Tensor", "SymTensor", "ThirdRankTensor", "FourthRankTensor", "FifthRankTensor"):
+        for ndim in (1, 2, 3):
+        exec("""
+innerProduct%(i)i = PYB11TemplateFunction(innerProduct,
+                                          template_parameters = ("Dim<%(ndim)i>::",
+                                          pyname = "innerProduct",
+                                          cppname = "innerProduct<Dim<%(ndim)i>")
+""" % {"i" : i,
+       "AT" : "Dim<
+       "VT" : VT,
+       "ndim" : ndim})
+        i += 1
