@@ -37,6 +37,8 @@ class PYB11TemplateClass:
                  cppname = None,
                  pyname = None,
                  docext = ""):
+        if isinstance(template_parameters, str):
+            template_parameters = (template_parameters,)
         self.klass_template = klass_template
         klassattrs = PYB11attrs(self.klass_template)
         assert len(klassattrs["template"]) == len(template_parameters)
@@ -52,9 +54,10 @@ class PYB11TemplateClass:
         template_ext = "<"
         doc_ext = ""
         for name, val in self.template_parameters:
-            exec("%s = %s" % (name, val))
+            exec("%s = '%s'" % (name, val))
             template_ext += "%s, " % val
             doc_ext += "_%s_" % val.replace("::", "_").replace("<", "_").replace(">", "_")
+        template_ext = template_ext[:-2] + ">"
 
         klassattrs = PYB11attrs(self.klass_template)
         if self.cppname:

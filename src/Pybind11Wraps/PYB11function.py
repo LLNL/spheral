@@ -21,10 +21,70 @@ def PYB11generateModuleFunctions(modobj, ss):
             if not methattrs["ignore"]:
                 PYB11generateFunction(meth, methattrs, ss)
 
+    # Now look for any template function instantiations.
+    func_templates = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11TemplateFunction)]
+    for ftname in func_templates:
+        func_template = eval("modobj.%s" % ftname)
+        func_template(ss)
+    return
+
+#--------------------------------------------------------------------------------
+# Make a function template instantiation
+#--------------------------------------------------------------------------------
+class PYB11TemplateFunction:
+
+    def __init__(self,
+                 func_template,
+                 template_parameters,
+                 cppname = None,
+                 pyname = None,
+                 docext = ""):
+        if isinstance(template_parameters, str):
+            template_parameters = (template_parameters,)
+        self.func_template = func_template
+        funcattrs = PYB11attrs(self.func_template)
+        assert len(funcattrs["template"]) == len(template_parameters)
+        self.template_parameters = [(name, val) for (name, val) in zip(funcattrs["template"], template_parameters)]
+        self.cppname = cppname
+        self.pyname = pyname
+        self.docext = docext
+        return
+
+    def __call__(self, ss):
+
+        # Do some template mangling (and magically put the template parameters in scope).
+        template_ext = "<"
+        doc_ext = ""
+        for name, val in self.template_parameters:
+            exec("%s = '%s'" % (name, val))
+            template_ext += "%s, " % val
+            doc_ext += "_%s_" % val.replace("::", "_").replace("<", "_").replace(">", "_")
+        template_ext = template_ext[:-2] + ">"
+
+        funcattrs = PYB11attrs(self.func_template)
+        if self.cppname:
+            funcattrs["cppname"] = self.cppname
+        else:
+            funcattrs["cppname"] += template_ext
+        if self.pyname:
+            funcattrs["pyname"] = self.pyname
+        else:
+            funcattrs["pyname"] += doc_ext
+
+        funcattrs["template_dict"] = {}
+        for name, val in self.template_parameters:
+            funcattrs["template_dict"][name] = val
+
+        doc0 = copy.deepcopy(self.func_template.__doc__)
+        self.func_template.__doc__ += self.docext
+        PYB11generateFunction(self.func_template, funcattrs, ss)
+        self.func_template.__doc__ = doc0
+        return
+
 #-------------------------------------------------------------------------------
 # Generate a function definition
 #-------------------------------------------------------------------------------
-def PYB11generateFunction(meth, methattrs, ss):
+def PYB11generateFunction(meth, methattrs, ssout):
     fs = StringIO.StringIO()
     ss = fs.write
 
@@ -78,6 +138,9 @@ def PYB11generateFunction(meth, methattrs, ss):
         doc = inspect.getdoc(meth)
         ss(',\n        "%s"' % inspect.getdoc(meth))
     ss(");\n")
+
+    ssout(fs.getvalue() % methattrs["template_dict"])
+    fs.close()
     return
 
 #-------------------------------------------------------------------------------

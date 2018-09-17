@@ -7,6 +7,7 @@ from PYB11Decorators import *
 from PYB11STLmethods import *
 from PYB11property import *
 from PYB11class import *
+from PYB11function import *
 import types
 
 # Define some useful type collections we're going to be wrapping in this module.
@@ -74,3 +75,36 @@ from Plane import Plane1d, Plane2d, Plane3d
 def invertRankNTensor(tensor = "const %(TensorType)s&"):
     "Compute the inverse of a tensor."
     return "%(TensorType)s"
+
+invertRankNTensor1 = PYB11TemplateFunction(invertRankNTensor,
+                                           template_parameters = "Dim<1>::Tensor",
+                                           cppname = "invertRankNTensor",
+                                           pyname = "invertRankNTensor")
+invertRankNTensor2 = PYB11TemplateFunction(invertRankNTensor,
+                                           template_parameters = "Dim<1>::SymTensor",
+                                           cppname = "invertRankNTensor",
+                                           pyname = "invertRankNTensor")
+invertRankNTensor3 = PYB11TemplateFunction(invertRankNTensor,
+                                           template_parameters = "Dim<1>::FourthRankTensor",
+                                           cppname = "invertRankNTensor",
+                                           pyname = "invertRankNTensor")
+
+#-------------------------------------------------------------------------------
+# computeEigenValues
+#-------------------------------------------------------------------------------
+@PYB11template("Dim")
+def computeEigenValues(field = "const Field<%(Dim)s, %(Dim)s::SymTensor>&",
+                       eigenValues = "const Field<%(Dim)s, %(Dim)s::Vector>&",
+                       eigenVectors = "const Field<%(Dim)s, %(Dim)s::Tensor>&"):
+    "Compute the eigenvalues for a field of symmetric tensors."
+    return "void"
+
+computeEigenValues1 = PYB11TemplateFunction(computeEigenValues,
+                                            template_parameters = "Dim<1>",
+                                            pyname = "computeEigenValues")
+computeEigenValues2 = PYB11TemplateFunction(computeEigenValues,
+                                            template_parameters = "Dim<2>",
+                                            pyname = "computeEigenValues")
+computeEigenValues3 = PYB11TemplateFunction(computeEigenValues,
+                                            template_parameters = "Dim<3>",
+                                            pyname = "computeEigenValues")
