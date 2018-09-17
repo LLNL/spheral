@@ -141,7 +141,7 @@ innerProductScalar%(VT)s = PYB11TemplateFunction(innerProductScalarR,
 @PYB11template("AType", "BType", "ReturnType")
 def innerProduct(A = "const %(AType)s&",
                  B = "const %(BType)s&"):
-    "Inner product (%(AType)s . %(BType)s."
+    "Inner product (%(AType)s . %(BType)s -> %(ReturnType)s"
     return "%(ReturnType)s"
 
 # Map inner product types to result
@@ -218,7 +218,7 @@ outerProductScalar%(VT)s = PYB11TemplateFunction(outerProductScalarR,
 @PYB11template("AType", "BType", "ReturnType")
 def outerProduct(A = "const %(AType)s&",
                  B = "const %(BType)s&"):
-    "Outer product (%(AType)s x %(BType)s."
+    "Outer product (%(AType)s x %(BType)s -> %(ReturnType)s"
     return "%(ReturnType)s"
 
 # Map outer product types to result
@@ -253,4 +253,53 @@ outerProduct%(A)s%(B)s = PYB11TemplateFunction(outerProduct,
 """ % {"A"  : A,
        "B"  : B,
        "RT" : OPRT[(A, B)],
+       "ndim" : ndim})
+
+#-------------------------------------------------------------------------------
+# Inner double product
+#-------------------------------------------------------------------------------
+@PYB11template("AType", "BType", "ReturnType")
+def innerDoubleProduct(A = "const %(AType)s&",
+                       B = "const %(BType)s&"):
+    "Inner double product (%(AType)s : %(BType)s -> %(ReturnType)s"
+    return "%(ReturnType)s"
+
+# Map product types to result
+IDPRT = {("Tensor", "Tensor")               : "double",
+         ("Tensor", "SymTensor")            : "double",
+         ("Tensor", "ThirdRankTensor")      : "Vector",
+         ("Tensor", "FourthRankTensor")     : "Tensor",
+         ("Tensor", "FifthRankTensor")      : "ThirdRankTensor",
+
+         ("SymTensor", "SymTensor")         : "double",
+         ("SymTensor", "ThirdRankTensor")   : "Vector",
+         ("SymTensor", "FourthRankTensor")  : "Tensor",
+         ("SymTensor", "FifthRankTensor")   : "ThirdRankTensor",
+
+         ("ThirdRankTensor", "ThirdRankTensor") : "Tensor",
+         ("ThirdRankTensor", "FourthRankTensor"): "ThirdRankTensor",
+         ("ThirdRankTensor", "FifthRankTensor") : "FourthRankTensor",
+
+         ("FourthRankTensor", "FourthRankTensor") : "FourthRankTensor",
+         ("FourthRankTensor", "FifthRankTensor")  : "FifthRankTensor",
+}
+for A, B in dict(IDPRT):
+    IDPRT[(B, A)] = IDPRT[(A, B)]
+
+for A, B in IDPRT:
+    for ndim in (1, 2, 3):
+        exec("""
+a = "Dim<%(ndim)i>::" + "%(A)s"
+b = "Dim<%(ndim)i>::" + "%(B)s"
+if "%(RT)s" == "double":
+    rt = "%(RT)s"
+else:
+    rt = "Dim<%(ndim)i>::" + "%(RT)s"
+innerDoubleProduct%(A)s%(B)s = PYB11TemplateFunction(innerDoubleProduct,
+                                                     template_parameters = (a, b, rt),
+                                                     pyname = "innerDoubleProduct",
+                                                     cppname = "innerDoubleProduct<Dim<%(ndim)i>>")
+""" % {"A"  : A,
+       "B"  : B,
+       "RT" : IDPRT[(A, B)],
        "ndim" : ndim})
