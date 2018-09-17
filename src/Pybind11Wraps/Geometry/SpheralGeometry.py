@@ -56,7 +56,7 @@ for gtype in geomtypes + ["Plane"]:
 vector_of_Facet2d = PYB11_bind_vector("GeomFacet2d", opaque=True)
 vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True)
 
-# Get the objects wrapped in split off files.
+# Get the objects wrapped in other files.
 from Vector import Vector1d, Vector2d, Vector3d
 from Tensor import Tensor1d, Tensor2d, Tensor3d
 from SymTensor import SymTensor1d, SymTensor2d, SymTensor3d
