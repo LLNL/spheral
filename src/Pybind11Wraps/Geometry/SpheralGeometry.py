@@ -66,3 +66,11 @@ from FourthRankTensor import FourthRankTensor1d, FourthRankTensor2d, FourthRankT
 from FifthRankTensor import FifthRankTensor1d, FifthRankTensor2d, FifthRankTensor3d
 from EigenStruct import EigenStruct1d, EigenStruct2d, EigenStruct3d
 from Plane import Plane1d, Plane2d, Plane3d
+
+#-------------------------------------------------------------------------------
+# invertRankNTensor template
+#-------------------------------------------------------------------------------
+@PYB11template("TensorType")
+def invertRankNTensor(tensor = "const %(TensorType)s&"):
+    "Compute the inverse of a tensor."
+    return "%(TensorType)s"

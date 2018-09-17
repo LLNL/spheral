@@ -94,10 +94,8 @@ def PYB11generateClass(klass, klassattrs, ssout):
 
         # If there is an implementation, short-circuit the rest.
         if methattrs["implementation"]:
-            ss("%s);\n" % methattrs["implementation"])
-            return
-
-        if methattrs["returnType"] is None:
+            ss(methattrs["implementation"])
+        elif methattrs["returnType"] is None:
             ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
         else:
             argString = ""
