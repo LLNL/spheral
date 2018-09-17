@@ -4,11 +4,11 @@ PYTHON = $(SPHERALBLD)/bin/python
 CXX = g++
 CXXFLAGS = -fpic -fexceptions -std=c++11 -march=native -I.  -I/usr/workspace/wsrzd/owen/projects/Spheral/debug-pybind11-toss_3_x86_64_ib/Linux_x86_64/include/python2.7  -I/usr/workspace/wsrzd/owen/projects/Spheral/debug-pybind11-toss_3_x86_64_ib/Linux_x86_64/include
 
-all:	inheritance
+all:	testInheritance
 
-inheritance:	testInheritance.py
+testInheritance:	testInheritance.py
 	$(PYTHON) -c "import sys; sys.path += ['$(SPHERALSRC)/Pybind11Wraps']; from PYB11Generator import *; import testInheritance; PYB11generateModule(testInheritance)"
-	$(CXX) $(CXXFLAGS) -shared -o inheritance.so testInheritance.cc
+	$(CXX) $(CXXFLAGS) -shared -o testInheritance.so testInheritance.cc
 
 clean:
-	rm -fr testInheritance.cc inheritance.so
+	rm -fr testInheritance.cc testInheritance.so
