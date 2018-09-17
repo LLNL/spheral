@@ -322,18 +322,7 @@ void spheral_sample_mesh(const int      ndims,
                          const double*  xmincoords,
                          const double*  xmaxcoords,
                          const int*     nsamples,
-                         double*        latticeMass,
-                         double*        latticeDensity,
-                         double*        latticeEnergy,
-                         double**       latticeVelocity,
-                         double*        latticePressure,
-                         double**       latticeStress,
-                         double*        latticeStressTT,
-                         double*        latticeSoundSpeed,
-                         double*        latticeBulkMod,
-                         double*        latticeShearMod,
-                         double*        latticeStrength,
-                         double*        latticeStrain);
+                         double*        latticeDensity);
 
 /*------------------------------------------------------------------------------
   spheral_fill_volume

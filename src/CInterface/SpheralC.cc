@@ -368,52 +368,19 @@ void spheral_sample_mesh(const int      ndims,
                          const double*  xmincoords,
                          const double*  xmaxcoords,
                          const int*     nsamples,
-                         double*        latticeMass,
-                         double*        latticeDensity,
-                         double*        latticeEnergy,
-                         double**       latticeVelocity,
-                         double*        latticePressure,
-                         double**       latticeStress,
-                         double*        latticeStressTT,
-                         double*        latticeSoundSpeed,
-                         double*        latticeBulkMod,
-                         double*        latticeShearMod,
-                         double*        latticeStrength,
-                         double*        latticeStrain) {
+                         double*        latticeDensity) {
   if (ndims == 3) {
     typedef Spheral::Dim<3> Dimension;
-    Dimension::Vector xmin(xmincoords[0], xmincoords[1], xmincoords[2]), 
+    Dimension::Vector xmin(xmincoords[0], xmincoords[1], xmincoords[2]),
                       xmax(xmaxcoords[0], xmaxcoords[1], xmaxcoords[2]);
     Spheral::SpheralPseudoScript<Dimension>::sampleLatticeMesh(xmin, xmax, nsamples,
-                                                               latticeMass,
-                                                               latticeDensity,
-                                                               latticeEnergy,
-                                                               latticeVelocity,
-                                                               latticePressure,
-                                                               latticeStress,
-                                                               latticeStressTT,
-                                                               latticeSoundSpeed,
-                                                               latticeBulkMod,
-                                                               latticeShearMod,
-                                                               latticeStrength,
-                                                               latticeStrain);
+                                                               latticeDensity);
   } else if (ndims == 2) {
     typedef Spheral::Dim<2> Dimension;
     Dimension::Vector xmin(xmincoords[0], xmincoords[1]), 
                       xmax(xmaxcoords[0], xmaxcoords[1]);
     Spheral::SpheralPseudoScript<Dimension>::sampleLatticeMesh(xmin, xmax, nsamples,
-                                                               latticeMass,
-                                                               latticeDensity,
-                                                               latticeEnergy,
-                                                               latticeVelocity,
-                                                               latticePressure,
-                                                               latticeStress,
-                                                               latticeStressTT,
-                                                               latticeSoundSpeed,
-                                                               latticeBulkMod,
-                                                               latticeShearMod,
-                                                               latticeStrength,
-                                                               latticeStrain);
+                                                               latticeDensity);
   }
 }
 

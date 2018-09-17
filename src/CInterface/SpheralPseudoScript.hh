@@ -149,18 +149,7 @@ public:
   static void sampleLatticeMesh(const Vector&  xmin,
                                 const Vector&  xmax,
                                 const int*     nsamples,
-                                double*        latticeMass,
-                                double*        latticeDensity,
-                                double*        latticeEnergy,
-                                double**       latticeVelocity,
-                                double*        latticePressure,
-                                double**       latticeStress,
-                                double*        latticeStressTT,
-                                double*        latticeSoundSpeed,
-                                double*        latticeBulkMod,
-                                double*        latticeShearMod,
-                                double*        latticeStrength,
-                                double*        latticeStrain);
+                                double*        latticeDensity);
 
   static void fillVolume(const int*     nnodes,
                          const double** coords,

@@ -1093,18 +1093,7 @@ SpheralPseudoScript<Dimension>::
 sampleLatticeMesh(const Vector&  xmin,
                   const Vector&  xmax,
                   const int*     nsamples,
-                  double*        latticeMass,
-                  double*        latticeDensity,
-                  double*        latticeEnergy,
-                  double**       latticeVelocity,
-                  double*        latticePressure,
-                  double**       latticeStress,
-                  double*        latticeStressTT,
-                  double*        latticeSoundSpeed,
-                  double*        latticeBulkMod,
-                  double*        latticeShearMod,
-                  double*        latticeStrength,
-                  double*        latticeStrain) {
+                  double*        latticeDensity) {
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -1113,35 +1102,14 @@ sampleLatticeMesh(const Vector&  xmin,
   // Pull the state fields.
   auto m = me.mStatePtr->fields(HydroFieldNames::mass, 0.0);
   auto rho = me.mStatePtr->fields(HydroFieldNames::massDensity, 0.0);
-  auto eps = me.mStatePtr->fields(HydroFieldNames::specificThermalEnergy, 0.0);
-  auto P = me.mStatePtr->fields(HydroFieldNames::pressure, 0.0);
-  auto cs = me.mStatePtr->fields(HydroFieldNames::soundSpeed, 0.0);
-  auto ps = me.mStatePtr->fields(SolidFieldNames::plasticStrain, 0.0);
-  auto K = me.mStatePtr->fields(SolidFieldNames::bulkModulus, 0.0);
-  auto mu = me.mStatePtr->fields(SolidFieldNames::shearModulus, 0.0);
-  auto Y = me.mStatePtr->fields(SolidFieldNames::yieldStrength, 0.0);
   auto pos = me.mStatePtr->fields(HydroFieldNames::position, Vector::zero);
-  auto vel = me.mStatePtr->fields(HydroFieldNames::velocity, Vector::zero);
   auto H = me.mStatePtr->fields(HydroFieldNames::H, SymTensor::zero);
-  auto S = me.mStatePtr->fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  auto STT = me.mStatePtr->fields(SolidFieldNames::deviatoricStressTT, 0.0);
   auto pType = me.mStatePtr->fields(SolidFieldNames::particleTypes, 0);
   auto weight = m/rho;
   auto mask = pType+1;
 
   FieldListSet<Dimension> sphSet;
-  sphSet.ScalarFieldLists.push_back(m);
   sphSet.ScalarFieldLists.push_back(rho);
-  sphSet.ScalarFieldLists.push_back(eps);
-  sphSet.ScalarFieldLists.push_back(P);
-  sphSet.ScalarFieldLists.push_back(cs);
-  sphSet.ScalarFieldLists.push_back(ps);
-  sphSet.ScalarFieldLists.push_back(K);
-  sphSet.ScalarFieldLists.push_back(mu);
-  sphSet.ScalarFieldLists.push_back(Y);
-  if (latticeStressTT != NULL) sphSet.ScalarFieldLists.push_back(STT);
-  sphSet.VectorFieldLists.push_back(vel);
-  sphSet.SymTensorFieldLists.push_back(S);
 
   std::vector<int> nsample;
   for (int i = 0 ; i < Dimension::nDim ; ++i) {
@@ -1157,66 +1125,7 @@ sampleLatticeMesh(const Vector&  xmin,
                                    scalarValues, vectorValues, tensorValues, symTensorValues);
 
   for (int i = 0 ; i < scalarValues[0].size() ; ++i) {
-    latticeMass[i] = scalarValues[0][i] ;
-  }
-  for (int i = 0 ; i < scalarValues[1].size() ; ++i) {
-    latticeDensity[i] = scalarValues[1][i] ;
-  }
-  for (int i = 0 ; i < scalarValues[2].size() ; ++i) {
-    latticeEnergy[i] = scalarValues[2][i] ;
-  }
-  for (int i = 0 ; i < scalarValues[3].size() ; ++i) {
-    latticePressure[i] = scalarValues[3][i] ;
-  }
-  for (int i = 0 ; i < scalarValues[4].size() ; ++i) {
-    latticeSoundSpeed[i] = scalarValues[4][i] ;
-  }
-  for (int i = 0 ; i < scalarValues[5].size() ; ++i) {
-    latticeStrain[i] = scalarValues[5][i] ;
-  }
-  for (int i = 0 ; i < scalarValues[6].size() ; ++i) {
-    latticeBulkMod[i] = scalarValues[6][i] ;
-  }
-  for (int i = 0 ; i < scalarValues[7].size() ; ++i) {
-    latticeShearMod[i] = scalarValues[7][i] ;
-  }
-  for (int i = 0 ; i < scalarValues[8].size() ; ++i) {
-    latticeStrength[i] = scalarValues[8][i] ;
-  }
-  if (Dimension::nDim == 3) {
-    for (int i = 0 ; i < vectorValues[0].size() ; ++i) {
-      latticeVelocity[0][i] = vectorValues[0][i].x() ;
-      latticeVelocity[1][i] = vectorValues[0][i].y() ;
-      latticeVelocity[2][i] = vectorValues[0][i].z() ;
-    }
-  }
-  else {
-    for (int i = 0 ; i < vectorValues[0].size() ; ++i) {
-      latticeVelocity[0][i] = vectorValues[0][i].x() ;
-      latticeVelocity[1][i] = vectorValues[0][i].y() ;
-    }
-  }
-  if (Dimension::nDim == 3) {
-    for (int i = 0 ; i < symTensorValues[0].size() ; ++i) {
-      latticeStress[0][i] = symTensorValues[0][i].xx();
-      latticeStress[1][i] = symTensorValues[0][i].xy();
-      latticeStress[2][i] = symTensorValues[0][i].xz();
-      latticeStress[3][i] = symTensorValues[0][i].yy();
-      latticeStress[4][i] = symTensorValues[0][i].yz();
-      latticeStress[5][i] = symTensorValues[0][i].zz();
-    }
-  }
-  else {
-    for (int i = 0 ; i < symTensorValues[0].size() ; ++i) {
-      latticeStress[0][i] = symTensorValues[0][i].xx();
-      latticeStress[1][i] = symTensorValues[0][i].xy();
-      latticeStress[2][i] = symTensorValues[0][i].yy();
-    }
-    if (latticeStressTT != NULL) {
-      for (int i = 0 ; i < scalarValues[9].size() ; ++i) {
-        latticeStressTT[i] = scalarValues[9][i] ;
-      }
-    }
+    latticeDensity[i] = scalarValues[0][i] ;
   }
 }
 
