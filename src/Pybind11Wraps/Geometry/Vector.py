@@ -47,7 +47,7 @@ class Vector:
     # Methods
     @PYB11const
     def dot(self):
-        "Dot (innner) product with a Vector."
+        "Dot (inner) product with a Vector."
 
     @PYB11const
     def cross(self):
