@@ -14,17 +14,17 @@ import copy, StringIO
 # Bind the classes in the module
 #-------------------------------------------------------------------------------
 def PYB11generateModuleClasses(modobj, ss):
-    classes = PYB11classes(modobj)
-    for kname, klass in classes:
+    klasses = PYB11classes(modobj)
+    for kname, klass in klasses:
         klassattrs = PYB11attrs(klass)
         if not klassattrs["ignore"]:
             PYB11generateClass(klass, klassattrs, ss)
 
     # Now look for any template class instantiations.
-    klass_templates = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11TemplateClass)]
-    for ktname in klass_templates:
-        klass_template = eval("modobj.%s" % ktname)
-        klass_template(ss)
+    templates = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11TemplateClass)]
+    for ktname in templates:
+        inst = eval("modobj.%s" % ktname)
+        inst(ss)
     return
 
 #-------------------------------------------------------------------------------
@@ -33,15 +33,16 @@ def PYB11generateModuleClasses(modobj, ss):
 # Generate trampolines for any classes with virtual methods.
 #-------------------------------------------------------------------------------
 def PYB11generateModuleTrampolines(modobj, ss):
-    classes = PYB11classes(modobj)
-    for kname, klass in classes:
-        klassattrs = PYB11attrs(klass)
-        if not klassattrs["ignore"]:
-            
-            # Are there any virtual methods in this class?
-            if PYB11virtualClass(klass):
-                PYB11generateTrampoline(klass, klassattrs, ss)
+    klasses = PYB11classes(modobj)
+    for kname, klass in klasses:
+        if PYB11virtualClass(klass):
+            PYB11generateTrampoline(klass, ss)
 
+    # templates = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11TemplateClass)]
+    # for ktname in templates:
+    #     inst = eval("modobj.%s" % ktname)
+    #     if PYB11virtualClass(inst.klass_template):
+    #         inst.makeTrampoline(ss)
     return
 
 #--------------------------------------------------------------------------------
@@ -67,8 +68,22 @@ class PYB11TemplateClass:
         return
 
     def __call__(self, ss):
+        klassattrs = self.mangleNames()
+        if self.klass_template.__doc__:
+            doc0 = copy.deepcopy(self.klass_template.__doc__)
+            self.klass_template.__doc__ += self.docext
+        PYB11generateClass(self.klass_template, klassattrs, ss)
+        if self.klass_template.__doc__:
+            self.klass_template.__doc__ = doc0
+        return
 
-        # Do some template mangling (and magically put the template parameters in scope).
+    def makeTrampoline(self, ss):
+        klassattrs = self.mangleNames()
+        PYB11generateTrampoline(self.klass_template, klassattrs, ss)
+        return
+
+    # Do some template mangling (and magically put the template parameters in scope).
+    def mangleNames(self):
         template_ext = "<"
         doc_ext = ""
         for name, val in self.template_parameters:
@@ -90,14 +105,7 @@ class PYB11TemplateClass:
         klassattrs["template_dict"] = {}
         for name, val in self.template_parameters:
             klassattrs["template_dict"][name] = val
-
-        if self.klass_template.__doc__:
-            doc0 = copy.deepcopy(self.klass_template.__doc__)
-            self.klass_template.__doc__ += self.docext
-        PYB11generateClass(self.klass_template, klassattrs, ss)
-        if self.klass_template.__doc__:
-            self.klass_template.__doc__ = doc0
-        return
+        return klassattrs
 
 #-------------------------------------------------------------------------------
 # PYB11generateClass

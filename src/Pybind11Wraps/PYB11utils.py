@@ -63,6 +63,21 @@ def PYB11virtualClass(klass):
     return virtual
 
 #-------------------------------------------------------------------------------
+# PYB11mangle
+#
+# Return the C++ template <...> description, and a mangled string thereof.
+#-------------------------------------------------------------------------------
+def PYB11mangle(templateargs):
+    tt = "<"
+    for i, arg in enumerate(templateargs):
+        if i < len(templateargs) - 1:
+            tt += "%s, " % arg
+        else:
+            tt += "%s>" % arg
+    mt = tt.replace("<", "__").replace(">", "__").replace("::", "_").replace(", ", "_")
+    return tt, mt
+
+#-------------------------------------------------------------------------------
 # PYB11attrs
 #
 # Read the possible PYB11 generation attributes from the obj
