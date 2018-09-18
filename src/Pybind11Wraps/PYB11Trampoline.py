@@ -86,27 +86,29 @@ public:
             else:
                 ms(") override { ")
 
-            if methattrs["pure_virtual"]:
-                ms("PYBIND11_OVERLOAD_PURE(%s, " % methattrs["returnType"])
-            else:
-                ms("PYBIND11_OVERLOAD(%s, " % methattrs["returnType"])
-            ms(" %(namespace)s%(full_cppname)s," % klassattrs)
-            if len(args) > 0:
-                ms(" %(cppname)s, " % methattrs)
-            else:
-                ms(" %(cppname)s);" % methattrs)
-
-            for i, (argType, argName, default) in enumerate(args):
-                if i < nargs - 1:
-                    ms(argName + ", ")
-                else:
-                    ms(argName + ");")
-            ms(" }\n")
-
-            # Is this a new binding?
+            # At this point we can make the call of whether this is a new method.
             if not fms.getvalue() in boundMethods:
-                ss(fms.getvalue())
                 boundMethods.append(fms.getvalue())
+
+                if methattrs["pure_virtual"]:
+                    ms("PYBIND11_OVERLOAD_PURE(%s, " % methattrs["returnType"])
+                else:
+                    ms("PYBIND11_OVERLOAD(%s, " % methattrs["returnType"])
+                ms(" %(namespace)s%(full_cppname)s," % klassattrs)
+                if len(args) > 0:
+                    ms(" %(cppname)s, " % methattrs)
+                else:
+                    ms(" %(cppname)s);" % methattrs)
+
+                for i, (argType, argName, default) in enumerate(args):
+                    if i < nargs - 1:
+                        ms(argName + ", ")
+                    else:
+                        ms(argName + ");")
+                ms(" }\n")
+
+                # Write to the out stream.
+                ss(fms.getvalue())
             fms.close()
 
     # Closing

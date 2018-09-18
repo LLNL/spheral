@@ -24,6 +24,7 @@ namespace Aspace {
     virtual T do_something() const { std::cerr << "A::do_something" << std::endl; return 2*val; }
     virtual T do_something_else() const { std::cerr << "A::do_something_else" << std::endl; return 5*val; }
     virtual T yet_another_method() const { std::cerr << "A::yet_another_method" << std::endl; return 42*val; }
+    virtual void yipes() = 0;
     T getval() const { return val; }
     void setval(T inval) { val = inval; }
   };
@@ -36,6 +37,7 @@ namespace Bspace {
     B(): Aspace::A<T>() { std::cerr << "B()" << std::endl; }
     virtual ~B() { std::cerr << "~B()" << std::endl; }
     virtual T do_something() const override { std::cerr << "B::do_something" << std::endl; return 100*this->getval();}
+    virtual void yipes() { std::cerr << "B::yipes!" << std::endl; }
   };
 }
 """
@@ -68,6 +70,22 @@ class A:
         "A virtual yet_another_method."
         return "%(T)s"
 
+    @PYB11pure_virtual
+    def yipes(self):
+        "Yipes!"
+        return "void"
+
+    @PYB11ignore
+    @PYB11const
+    def getval(self):
+        return "%(T)s"
+
+    @PYB11ignore
+    def setval(self, inval = "%(T)s"):
+        return "void"
+
+    property(getval, setval, doc="Totally set the val.")
+
 #-------------------------------------------------------------------------------
 # B
 #-------------------------------------------------------------------------------
@@ -83,6 +101,11 @@ class B(A):
     def do_something(self):
         "B override of base do_something method."
         return "%(T)s"
+
+    @PYB11virtual
+    def yipes(self):
+        "Yipes!"
+        return "void"
 
 #-------------------------------------------------------------------------------
 # instantiations
