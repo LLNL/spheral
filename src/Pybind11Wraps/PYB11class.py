@@ -297,6 +297,13 @@ def PYB11generateClass(klass, klassattrs, ssout):
     for bklass in inspect.getmro(klass)[1:2]:
         bklassattrs = PYB11attrs(bklass)
         ss(", %(namespace)s%(cppname)s" % bklassattrs)
+        if bklassattrs["template"]:
+            ss("<")
+            for i, t in enumerate(bklassattrs["template"]):
+                if i < len(t) - 1:
+                    ss("%(" + t + ")s, ")
+                else:
+                    ss("%(" + t + ")s>")
 
     # Any trampoline?
     if PYB11virtualClass(klass):

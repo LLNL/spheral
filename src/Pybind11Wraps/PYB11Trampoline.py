@@ -80,7 +80,11 @@ def PYB11generateTrampoline(klass, klassattrs, ssout):
 #
 # All the stuff up to the methods.
 #-------------------------------------------------------------------------------
-def PYB11generateTrampolineClassStart(klass, klassattrs, ss):
+def PYB11generateTrampolineClassStart(klass, klassattrs, ssout):
+
+    # Prepare in case there are templates lurking in here.
+    fs = StringIO.StringIO()
+    ss = fs.write
 
     # Compiler guard.
     ss("""//------------------------------------------------------------------------------
@@ -102,6 +106,10 @@ public:
   using %(cppname)s::%(cppname)s;   // inherit constructors
 
 """ % klassattrs)
+
+    # Finish up.
+    ssout(fs.getvalue() % klassattrs["template_dict"])
+    fs.close()
 
     return
 
