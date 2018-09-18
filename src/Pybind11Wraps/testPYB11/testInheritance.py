@@ -45,7 +45,7 @@ class A:
     @PYB11const
     def do_something(self):
         "A virtual do_something method."
-        return
+        return "void"
 
 #-------------------------------------------------------------------------------
 # B
@@ -60,4 +60,4 @@ class B(A):
     @PYB11const
     def do_something(self):
         "B override of base do_something method."
-        return
+        return "void"

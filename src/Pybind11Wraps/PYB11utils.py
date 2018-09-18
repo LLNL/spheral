@@ -1,5 +1,32 @@
 import inspect
 
+
+#-------------------------------------------------------------------------------
+# PYB11classes
+#
+# Get the classes to bind from a module
+#-------------------------------------------------------------------------------
+def PYB11classes(modobj):
+    return [(name, cls) for (name, cls) in inspect.getmembers(modobj, predicate=inspect.isclass)
+            if name[:5] != "PYB11"]
+
+#-------------------------------------------------------------------------------
+# PYB11ClassMethods
+#
+# Get the methods to bind from a class
+#-------------------------------------------------------------------------------
+def PYB11ClassMethods(obj):
+    return inspect.getmembers(obj, predicate=inspect.ismethod)
+
+#-------------------------------------------------------------------------------
+# PYB11functions
+#
+# Get the functions to bind from a module
+#-------------------------------------------------------------------------------
+def PYB11functions(modobj):
+    return [(name, meth) for (name, meth) in inspect.getmembers(modobj, predicate=inspect.isfunction)
+            if name[:5] != "PYB11"]
+
 #-------------------------------------------------------------------------------
 # PYB11parseArgs
 #

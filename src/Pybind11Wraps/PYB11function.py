@@ -143,12 +143,3 @@ def PYB11generateFunction(meth, methattrs, ssout):
     fs.close()
     return
 
-#-------------------------------------------------------------------------------
-# PYB11functions
-#
-# Get the functions to bind from a module
-#-------------------------------------------------------------------------------
-def PYB11functions(modobj):
-    return [(name, meth) for (name, meth) in inspect.getmembers(modobj, predicate=inspect.isfunction)
-            if name[:5] != "PYB11"]
-

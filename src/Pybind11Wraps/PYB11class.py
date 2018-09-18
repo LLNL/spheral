@@ -5,6 +5,7 @@
 #--------------------------------------------------------------------------------
 from PYB11utils import *
 from PYB11property import *
+from PYB11Trampoline import *
 import copy, StringIO
 
 #-------------------------------------------------------------------------------
@@ -24,6 +25,30 @@ def PYB11generateModuleClasses(modobj, ss):
     for ktname in klass_templates:
         klass_template = eval("modobj.%s" % ktname)
         klass_template(ss)
+    return
+
+#-------------------------------------------------------------------------------
+# PYB11generateModuleTrampolines
+#
+# Generate trampolines for any classes with virtual methods.
+#-------------------------------------------------------------------------------
+def PYB11generateModuleTrampolines(modobj, ss):
+    classes = PYB11classes(modobj)
+    for kname, klass in classes:
+        klassattrs = PYB11attrs(klass)
+        if not klassattrs["ignore"]:
+            
+            # Are there any virtual methods in this class?
+            allmethods = [(mname, meth) for (mname, meth) in PYB11ClassMethods(klass)
+                          if not PYB11attrs(meth)["ignore"]]
+            virtual = False
+            for mname, meth in allmethods:
+                methattrs = PYB11attrs(meth)
+                if methattrs["virtual"] or methattrs["pure_virtual"]:
+                    virtual = True
+            if virtual:
+                PYB11generateTrampoline(klass, klassattrs, ss)
+
     return
 
 #--------------------------------------------------------------------------------
@@ -274,7 +299,7 @@ def PYB11generateClass(klass, klassattrs, ssout):
     py::class_<%(namespace)s%(cppname)s""" % klassattrs)
 
     # Check for base classes.
-    for bklass in inspect.getmro(klass)[1:]:
+    for bklass in inspect.getmro(klass)[1:2]:
         bklassattrs = PYB11attrs(bklass)
         ss(", %(namespace)s%(cppname)s" % bklassattrs)
 
@@ -355,21 +380,3 @@ def PYB11generateClass(klass, klassattrs, ssout):
     fs.close()
 
     return
-
-#-------------------------------------------------------------------------------
-# PYB11classes
-#
-# Get the classes to bind from a module
-#-------------------------------------------------------------------------------
-def PYB11classes(modobj):
-    return [(name, cls) for (name, cls) in inspect.getmembers(modobj, predicate=inspect.isclass)
-            if name[:5] != "PYB11"]
-
-#-------------------------------------------------------------------------------
-# PYB11ClassMethods
-#
-# Get the methods to bind from a class
-#-------------------------------------------------------------------------------
-def PYB11ClassMethods(obj):
-    return inspect.getmembers(obj, predicate=inspect.ismethod)
-

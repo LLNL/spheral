@@ -18,13 +18,13 @@ def PYB11generateModule(modobj):
         ss = f.write
         PYB11generateModuleStart(modobj, ss, name)
 
-        # Bind methods.
+        # Bind methods
         PYB11generateModuleFunctions(modobj, ss)
 
-        # Bind classes.
+        # Bind classes
         PYB11generateModuleClasses(modobj, ss)
 
-        # Bind STL types.
+        # Bind STL types
         PYB11generateModuleSTL(modobj, ss)
 
         # Closing
@@ -82,6 +82,9 @@ using namespace pybind11::literals;
     for objname, obj in PYB11STLobjs(modobj):
         obj.preamble(modobj, ss, objname)
     ss("\n")
+
+    # Trampolines
+    PYB11generateModuleTrampolines(modobj, ss)
 
     # Declare the module
     ss("""
