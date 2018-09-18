@@ -19,6 +19,8 @@ namespace Aspace {
     A() { std::cerr << "A()" << std::endl; }
     virtual ~A() { std::cerr << "~A()" << std::endl; }
     virtual void do_something() const { std::cerr << "A::do_something" << std::endl; }
+    virtual void do_something_else() const { std::cerr << "A::do_something_else" << std::endl; }
+    virtual int yet_another_method() const { std::cerr << "A::yet_another_method" << std::endl; return 42; }
   };
 }
 
@@ -46,6 +48,18 @@ class A:
     def do_something(self):
         "A virtual do_something method."
         return "void"
+
+    @PYB11virtual
+    @PYB11const
+    def do_something_else(self):
+        "A virtual do_something_else method."
+        return "void"
+
+    @PYB11virtual
+    @PYB11const
+    def yet_another_method(self):
+        "A virtual yet_another_method."
+        return "int"
 
 #-------------------------------------------------------------------------------
 # B
