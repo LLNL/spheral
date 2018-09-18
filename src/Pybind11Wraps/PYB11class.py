@@ -39,14 +39,7 @@ def PYB11generateModuleTrampolines(modobj, ss):
         if not klassattrs["ignore"]:
             
             # Are there any virtual methods in this class?
-            allmethods = [(mname, meth) for (mname, meth) in PYB11ClassMethods(klass)
-                          if not PYB11attrs(meth)["ignore"]]
-            virtual = False
-            for mname, meth in allmethods:
-                methattrs = PYB11attrs(meth)
-                if methattrs["virtual"] or methattrs["pure_virtual"]:
-                    virtual = True
-            if virtual:
+            if PYB11virtualClass(klass):
                 PYB11generateTrampoline(klass, klassattrs, ss)
 
     return
@@ -302,6 +295,10 @@ def PYB11generateClass(klass, klassattrs, ssout):
     for bklass in inspect.getmro(klass)[1:2]:
         bklassattrs = PYB11attrs(bklass)
         ss(", %(namespace)s%(cppname)s" % bklassattrs)
+
+    # Any trampoline?
+    if PYB11virtualClass(klass):
+        ss(", %(namespace)sPYB11Trampoline%(cppname)s" % klassattrs)
 
     # Is this a singleton?
     if klassattrs["singleton"]:

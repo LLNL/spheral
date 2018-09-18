@@ -47,6 +47,22 @@ def PYB11parseArgs(meth):
     return result
 
 #-------------------------------------------------------------------------------
+# PYB11virtualClass
+#
+# Test if the given class has virtual methods.
+#-------------------------------------------------------------------------------
+def PYB11virtualClass(klass):
+    klassattrs = PYB11attrs(klass)
+    allmethods = [(mname, meth) for (mname, meth) in PYB11ClassMethods(klass)
+                  if not PYB11attrs(meth)["ignore"]]
+    virtual = False
+    for mname, meth in allmethods:
+        methattrs = PYB11attrs(meth)
+        if methattrs["virtual"] or methattrs["pure_virtual"]:
+            virtual = True
+    return virtual
+
+#-------------------------------------------------------------------------------
 # PYB11attrs
 #
 # Read the possible PYB11 generation attributes from the obj
