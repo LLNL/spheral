@@ -1,106 +1,61 @@
 #-------------------------------------------------------------------------------
-# TrampolineGenerator
+# PYB11TrampolineGenerator
 #-------------------------------------------------------------------------------
 import inspect
 import sys
 
-class TrampolineGenerator:
-    """Users should inherit from this base class and provide
-
-Optional attributes to override:
-  self.includes : a list of string include paths
-"""
-
-    def __init__(self,
-                includes = [],
-                namespaces = [],
-                templates = [],
-                preamble = None):
-        self.includes = includes
-        self.namespaces = namespaces
-        self.templates = templates
-        self.preamble = preamble
-        return
-
 #-------------------------------------------------------------------------------
-# generateTrampoline
+# PYB11generateTrampoline
 #
 # Generate the trampoline class, including pure virtual hooks.
 #-------------------------------------------------------------------------------
-def generateTrampoline(obj):
-    ss = sys.stdout.write
-    name = obj.__class__.__name__
-    __generateClassStart(obj, ss, name)
+def PYB11generateTrampoline(klass, klassattrs, ss):
+    klassinst = klass()
 
-    # Bind the methods
-    methods = [(name, meth) for (name, meth) in inspect.getmembers(obj, predicate=inspect.ismethod)
-               if name[:2] != "__"]
+    # Common preliminary code
+    PYB11generateTrampolineClassStart(klass, klassattrs, ss)
+
+    # Bind the virtual methods
+    methods = [(mname, meth) for (mname, meth) in PYB11ClassMethods(klass)
+               if not PYB11attrs(meth)["ignore"] and
+               (PYB11attrs(meth)["virtual"] or PYB11attrs(meth)["pure_virtual"])]
+    print " --> virtual: ", methods
     for name, method in methods:
+        methattrs = PYB11attrs(meth)
+        methattrs["returnType"] = eval("klassinst." + mname + "()")
+        assert methattrs["returnType"]    # We require the full spec for virtual methods
+        ss("  virtual %(returnType)s %(cppname)s(" % methattrs)
 
-        # Get the return type and arguments.
-        returnType = method()
-        stuff = inspect.getargspec(method)
-        if "args" in stuff.args:
-            args = stuff.defaults[stuff.args.index("args") - 1]
+        # Fill out the argument list for this method
+        args = PYB11parseArgs(meth)
+        for i, (argType, argName, default) in enumerate(args):
+            ss(argType)
+            if i < len(args) - 1:
+                ss(", ")
+        if methattrs["const"]:
+            ss(") const override) { ")
         else:
-            args = []
-        nargs = len(args)
+            ss(") override { ")
 
-        # Is this method const?
-        if "const" in stuff.args:
-            const = stuff.defaults[stuff.args.index("const") - 1]
+        if methattrs["pure_virtual"]:
+            ss("    PYBIND11_OVERLOAD_PURE(%s, " % methattrs["returnType"])
         else:
-            const = False
-
-        # Is this method abstract?
-        if "pure" in stuff.args:
-            pure = stuff.defaults[stuff.args.index("pure") - 1]
+            ss("    PYBIND11_OVERLOAD(%s, " % methattrs["returnType"])
+        ss(" %(namespace)s%(cppname)s," % klassattrs)
+        if len(args) > 0:
+            ss(" %(cppname)s, " % methattrs)
         else:
-            pure = False
+            ss(" %(cppname)s);" % methattrs)
 
-        # Because python does not have function overloading, we provide the ability
-        # to rename the c++ method.
-        if "name" in stuff.args:
-            name = stuff.defaults[stuff.args.index("name") - 1]
-
-        # Generate the spec for this method
-        dvals = {"name" : name, "returnType" : returnType}
-        firstline = "  virtual %(returnType)s %(name)s(" % dvals
-        offset = " "*len(firstline)
-        ss(firstline)
-        for i, (argType, argName, default) in enumerate(__parseArgs(args)):
-            if i > 0:
-                ss(offset)
-            ss(argType + " " + argName)
+        for i, (argType, argName, default) in enumerate(args):
             if i < nargs - 1:
-                ss(",\n")
-        ss(")")
-        if const:
-            ss(" const override {\n")
-        else:
-            ss(" override {\n")
-
-        if pure:
-            ss("    PYBIND11_OVERLOAD_PURE(" + returnType + ",\t// Return type\n")
-            offset = "                           "
-        else:
-            ss("    PYBIND11_OVERLOAD(" + returnType + ",\t// Return type\n")
-            offset = "                      "
-        ss(offset + "Base,\t\t// Parent class\n")
-        if nargs > 0:
-            ss(offset + name + ",\t// name of method\n")
-        else:
-            ss(offset + name + ");\t// name of method\n")
-
-        for i, (argType, argName, default) in enumerate(__parseArgs(args)):
-            if i < nargs - 1:
-                ss(offset + argName + ",\t// argument %i\n" % (i + 1))
+                ss(argName + ", ")
             else:
-                ss(offset + argName + ");\t// argument %i\n" % (i + 1))
-        ss("  }\n")
+                ss(argName + ");")
+        ss(" }\n")
 
     # Closing
-    __generateClassEnd(obj, ss)
+    PYB11generateTrampolineClassEnd(klass, klassattrs, ss)
     return
 
 #-------------------------------------------------------------------------------
@@ -295,85 +250,43 @@ def generateBindingFunction(obj):
     return
 
 #-------------------------------------------------------------------------------
-# __generateClassStart
+# PYB11generateTrampolineClassStart
 #
 # All the stuff up to the methods.
 #-------------------------------------------------------------------------------
-def __generateClassStart(obj, ss, name):
+def PYB11generateTrampolineClassStart(klass, klassattrs, ss):
 
     # Compiler guard.
     ss("""//------------------------------------------------------------------------------
-// Trampoline class for %(name)s
+// Trampoline class for %(cppname)s
 //------------------------------------------------------------------------------
-#ifndef __trampoline_%(name)s__
-#define __trampoline_%(name)s__
+#ifndef __trampoline_%(pyname)s__
+#define __trampoline_%(pyname)s__
 
-""" % {"name" : name})
-
-    # Includes
-    for inc in obj.includes:
-        ss('#include "%s"\n' % inc)
-    ss("\n")
-
-    # Preamble
-    if obj.preamble:
-        ss(obj.preamble + "\n")
+    """ % klassattrs)
 
     # Namespaces
-    for ns in obj.namespaces:
+    for ns in klassattrs["namespace"].split("::"):
         ss("namespace " + ns + " {\n")
-    ss("\n")
-
-    # Template parameters
-    ss("template<")
-    for tp in obj.templates:
-        ss("typename %s, " % tp)
-    ss("typename Base>\n")
 
     # Class name
     ss("""
-class %(name)s: public Base {
+class PYB11Trampoline%(cppname)s: public %(cppname)s {
 public:
-  using Base::Base;   // inherit constructors
+  using %(cppname)s::%(cppname)s;   // inherit constructors
 
-""" % {"name"     : name,
-      })
-
-    # typedefs
-    if "Dimension" in obj.templates:
-        ss("""
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-
-""");
+ """ % klassattrs)
 
     return
 
 #-------------------------------------------------------------------------------
-# __generateClassEnd
+# PYB11generateTrampolineClassEnd
 #
 # Finish up the code.
 #-------------------------------------------------------------------------------
-def __generateClassEnd(obj, ss):
+def PYB11generateTrampolineClassEnd(klass, klassattrs, ss):
     ss("};\n\n")
-    for ns in obj.namespaces:
+    for ns in klassattrs["namespace"].split("::"):
         ss("}\n")
     ss("\n#endif\n")
     return
-
-#-------------------------------------------------------------------------------
-# __parseArgs
-#
-# Return (argType, argName, default_value (optional)
-#-------------------------------------------------------------------------------
-def __parseArgs(args):
-    result = []
-    for tup in args:
-        if len(tup) == 2:
-            result.append((tup[0], tup[1], None))
-        else:
-            result.append(tup)
-    return result
