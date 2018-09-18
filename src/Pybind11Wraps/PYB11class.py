@@ -91,10 +91,12 @@ class PYB11TemplateClass:
         for name, val in self.template_parameters:
             klassattrs["template_dict"][name] = val
 
-        doc0 = copy.deepcopy(self.klass_template.__doc__)
-        self.klass_template.__doc__ += self.docext
+        if self.klass_template.__doc__:
+            doc0 = copy.deepcopy(self.klass_template.__doc__)
+            self.klass_template.__doc__ += self.docext
         PYB11generateClass(self.klass_template, klassattrs, ss)
-        self.klass_template.__doc__ = doc0
+        if self.klass_template.__doc__:
+            self.klass_template.__doc__ = doc0
         return
 
 #-------------------------------------------------------------------------------
