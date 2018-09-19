@@ -39,6 +39,10 @@ namespace Bspace {
     virtual T do_something() const override { std::cerr << "B::do_something" << std::endl; return 100*this->getval();}
     virtual void yipes() { std::cerr << "B::yipes!" << std::endl; }
   };
+
+
+  template<typename Ta, typename Tb>
+  void some_function(const Ta& a, const Tb& b) { std::cerr << "some_function(" << a << " " << b << ")" << std::endl; }
 }
 """
 
@@ -84,7 +88,7 @@ class A:
     def setval(self, inval = "%(T)s"):
         return "void"
 
-    property(getval, setval, doc="Totally set the val.")
+    val = property(getval, setval, doc="Totally set the val.")
 
 #-------------------------------------------------------------------------------
 # B
@@ -108,7 +112,19 @@ class B(A):
         return "void"
 
 #-------------------------------------------------------------------------------
+# some_function
+#-------------------------------------------------------------------------------
+@PYB11template("Ta", "Tb")
+@PYB11namespace("Bspace")
+def some_function(a = "const %(Ta)s&",
+                  b = "const %(Tb)s&"):
+    "A function of %(Ta)s and %(Tb)s."
+    return "void"
+
+#-------------------------------------------------------------------------------
 # instantiations
 #-------------------------------------------------------------------------------
 Aint = PYB11TemplateClass(A, template_parameters = "int")
 Bint = PYB11TemplateClass(B, template_parameters = "int")
+
+some_function = PYB11TemplateFunction(some_function, template_parameters=("int", "double"))
