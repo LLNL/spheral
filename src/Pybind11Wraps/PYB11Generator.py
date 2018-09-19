@@ -8,6 +8,7 @@ from PYB11Decorators import *
 from PYB11STLmethods import *
 from PYB11function import *
 from PYB11class import *
+from PYB11enum import *
 
 #-------------------------------------------------------------------------------
 # PYB11generateModule
@@ -18,13 +19,16 @@ def PYB11generateModule(modobj):
         ss = f.write
         PYB11generateModuleStart(modobj, ss, name)
 
-        # Bind methods
+        # methods
         PYB11generateModuleFunctions(modobj, ss)
 
-        # Bind classes
+        # classes
         PYB11generateModuleClasses(modobj, ss)
 
-        # Bind STL types
+        # enums
+        PYB11generateModuleEnums(modobj, ss)
+
+        # STL types
         PYB11generateModuleSTL(modobj, ss)
 
         # Closing
