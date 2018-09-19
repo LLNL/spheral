@@ -2,12 +2,7 @@
 This is a test module for enum binding in PYB11.
 """
 
-from PYB11Decorators import *
-from PYB11STLmethods import *
-from PYB11property import *
-from PYB11class import *
-from PYB11function import *
-from PYB11enum import *
+from PYB11Generator import *
 
 # List the files we want to include.
 includes = ['<iostream>']

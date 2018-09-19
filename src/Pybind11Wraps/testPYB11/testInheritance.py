@@ -2,11 +2,7 @@
 This is a test module for class binding with inheritance in PYB11.
 """
 
-from PYB11Decorators import *
-from PYB11STLmethods import *
-from PYB11property import *
-from PYB11class import *
-from PYB11function import *
+from PYB11Generator import *
 
 # List the files we want to include.
 includes = ['<iostream>']
