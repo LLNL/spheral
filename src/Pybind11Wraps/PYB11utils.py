@@ -1,5 +1,4 @@
-import inspect
-
+import inspect, StringIO
 
 #-------------------------------------------------------------------------------
 # PYB11classes
@@ -76,6 +75,24 @@ def PYB11mangle(templateargs):
             tt += "%s>" % arg
     mt = tt.replace("<", "__").replace(">", "__").replace("::", "_").replace(", ", "_")
     return tt, mt
+
+#-------------------------------------------------------------------------------
+# PYB11indentedIO
+#
+# Add extra indentation to an output stream.
+#-------------------------------------------------------------------------------
+class PYB11indentedIO:
+    def __init__(self, prefix):
+        self.prefix = prefix
+        self.fs = StringIO.StringIO()
+        return
+    def __call__(self, stuff):
+        self.fs.write(self.prefix + stuff)
+        return
+    def getvalue(self):
+        return self.fs.getvalue()
+    def close(self):
+        self.fs.close()
 
 #-------------------------------------------------------------------------------
 # PYB11attrs

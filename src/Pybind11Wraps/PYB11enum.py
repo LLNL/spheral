@@ -8,10 +8,13 @@ import sys, inspect
 # Bind the classes in the module
 #-------------------------------------------------------------------------------
 def PYB11generateModuleEnums(modobj, ss):
+    
+    # Module enums
     enums = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11enum)]
     for name in enums:
         inst = eval("modobj.%s" % name)
         inst(modobj, ss)
+
     return
 
 #-------------------------------------------------------------------------------
@@ -37,26 +40,28 @@ class PYB11enum:
         return
 
     def __call__(self,
-                 modobj,
-                 ss,
-                 klass = None):
+                 scope,
+                 ss):
         if self.name:
             self.__name__ = self.name
         else:
-            self.__name__ = self.getInstanceName(modobj)
+            self.__name__ = self.getInstanceName(scope)
         if self.cppname is None:
             self.cppname = self.__name__
         enumattrs = PYB11attrs(self)
         enumattrs["namespace"] = self.namespace
         enumattrs["cppname"] = self.cppname
-        if klass:
+        if inspect.isclass(scope):
+            klass = scope
             klassattrs = PYB11attrs(klass)
-
-        ss("  py::enum_<%(namespace)s%(cppname)s>(" % enumattrs)
-        if klass:
-            ss('%(pyname)s, ' % klassattrs + '"%(pyname)s"' % enumattrs)
         else:
-            ss('m, "%(pyname)s"' % enumattrs)
+            klass = False
+
+        if klass:
+            ss('  py::enum_<%(namespace)s%(cppname)s::' % klassattrs)
+            ss('%(cppname)s>(obj, "%(pyname)s"' % enumattrs)
+        else:
+            ss('  py::enum_<%(namespace)s%(cppname)s>(m, "%(pyname)s"' % enumattrs)
 
         if self.doc:
             ss(', "%s")\n' % self.doc)
@@ -72,13 +77,13 @@ class PYB11enum:
         if self.export_values:
             ss('    .export_values();\n')
         else:
-            ss('    ;')
+            ss('    ;\n')
 
         return
 
-    def getInstanceName(self, modobj):
-        for name in dir(modobj):
-            thing = eval("modobj.%s" % name)
+    def getInstanceName(self, scope):
+        for name in dir(scope):
+            thing = eval("scope.%s" % name)
             if isinstance(thing, PYB11enum) and thing == self:
                 return name
         raise RuntimeError, "PYB11enum: unable to find myself!"

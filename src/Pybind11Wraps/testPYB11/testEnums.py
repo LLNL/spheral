@@ -22,6 +22,8 @@ namespace Aspace {
     virtual void do_something() const { std::cerr << "A::do_something" << std::endl; }
     virtual void do_something_else() const { std::cerr << "A::do_something_else" << std::endl; }
     virtual int yet_another_method() const { std::cerr << "A::yet_another_method" << std::endl; return 42; }
+
+    enum class Furniture { chair, bed, couch };
   };
 
   enum class Color { black, white, red, blue, yellow };
@@ -56,9 +58,10 @@ class A:
         "A virtual yet_another_method."
         return "int"
 
+    Furniture = PYB11enum(("chair", "bed", "couch"))
+
 #-------------------------------------------------------------------------------
 # Color
 #-------------------------------------------------------------------------------
-blago = 10
 Color = PYB11enum(("black", "white", "red", "blue", "yellow"),
                   namespace="Aspace")

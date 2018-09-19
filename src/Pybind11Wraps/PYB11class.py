@@ -6,6 +6,7 @@
 from PYB11utils import *
 from PYB11property import *
 from PYB11Trampoline import *
+from PYB11enum import PYB11enum
 import copy, StringIO
 
 #-------------------------------------------------------------------------------
@@ -387,6 +388,17 @@ def PYB11generateClass(klass, klassattrs, ssout):
 
     # Bind properties
     PYB11GenerateClassProperties(klass, klassinst, klassattrs, ss)
+
+    # Look for any class scope enums and bind them
+    enums = [x for x in dir(klassinst) if isinstance(eval("klassinst.%s" % x), PYB11enum)]
+    if enums:
+        ss("\n    // %(cppname)s enums\n" % klassattrs)
+        ssenum = PYB11indentedIO("")
+        for ename in enums:
+            inst = eval("klassinst.%s" % ename)
+            inst(klass, ssenum)
+        ss(ssenum.getvalue())
+        ssenum.close()
 
     ss("  }\n\n")
 
