@@ -1,6 +1,6 @@
 from PYB11utils import *
 
-import inspect
+import sys, inspect
 
 #-------------------------------------------------------------------------------
 # PYB11generateModuleEnums
@@ -8,7 +8,7 @@ import inspect
 # Bind the classes in the module
 #-------------------------------------------------------------------------------
 def PYB11generateModuleEnums(modobj, ss):
-    enums = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11enumType)]
+    enums = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11enum)]
     for name in enums:
         inst = eval("modobj.%s" % name)
         inst(modobj, ss)
@@ -17,24 +17,21 @@ def PYB11generateModuleEnums(modobj, ss):
 #-------------------------------------------------------------------------------
 # Generate an enum
 #-------------------------------------------------------------------------------
-class PYB11enumType:
+class PYB11enum:
 
     def __init__(self,
                  values,
-                 name,
+                 name = None,
                  namespace = "",
                  cppname = None,
                  export_values = False,
                  doc = None):
         self.values = values
-        self.__name__ = name
+        self.name = name
         self.namespace = namespace
         if self.namespace and self.namespace[:-2] != "::":
             self.namespace += "::"
-        if cppname:
-            self.cppname = cppname
-        else:
-            self.cppname = name
+        self.cppname = cppname
         self.export_values = export_values
         self.doc = doc
         return
@@ -43,6 +40,12 @@ class PYB11enumType:
                  modobj,
                  ss,
                  klass = None):
+        if self.name:
+            self.__name__ = self.name
+        else:
+            self.__name__ = self.getInstanceName(modobj)
+        if self.cppname is None:
+            self.cppname = self.__name__
         enumattrs = PYB11attrs(self)
         enumattrs["namespace"] = self.namespace
         enumattrs["cppname"] = self.cppname
@@ -72,3 +75,10 @@ class PYB11enumType:
             ss('    ;')
 
         return
+
+    def getInstanceName(self, modobj):
+        for name in dir(modobj):
+            thing = eval("modobj.%s" % name)
+            if isinstance(thing, PYB11enum) and thing == self:
+                return name
+        raise RuntimeError, "PYB11enum: unable to find myself!"

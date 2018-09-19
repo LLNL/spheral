@@ -59,6 +59,6 @@ class A:
 #-------------------------------------------------------------------------------
 # Color
 #-------------------------------------------------------------------------------
-Color = PYB11enumType(("black", "white", "red", "blue", "yellow"),
-                      name="Color",
-                      namespace="Aspace")
+blago = 10
+Color = PYB11enum(("black", "white", "red", "blue", "yellow"),
+                  namespace="Aspace")
