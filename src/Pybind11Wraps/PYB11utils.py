@@ -87,7 +87,8 @@ class PYB11indentedIO:
         self.fs = StringIO.StringIO()
         return
     def __call__(self, stuff):
-        self.fs.write(self.prefix + stuff)
+        newstuff = stuff.replace("\n", "\n" + self.prefix)
+        self.fs.write(newstuff)
         return
     def getvalue(self):
         return self.fs.getvalue()

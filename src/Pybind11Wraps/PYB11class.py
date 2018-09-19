@@ -392,8 +392,8 @@ def PYB11generateClass(klass, klassattrs, ssout):
     # Look for any class scope enums and bind them
     enums = [x for x in dir(klassinst) if isinstance(eval("klassinst.%s" % x), PYB11enum)]
     if enums:
-        ss("\n    // %(cppname)s enums\n" % klassattrs)
-        ssenum = PYB11indentedIO("")
+        ss("\n    // %(cppname)s enums\n  " % klassattrs)
+        ssenum = PYB11indentedIO("  ")
         for ename in enums:
             inst = eval("klassinst.%s" % ename)
             inst(klass, ssenum)
