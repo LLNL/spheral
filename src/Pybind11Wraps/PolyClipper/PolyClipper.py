@@ -4,7 +4,7 @@ PolyClipper module.
 Binds the PolyClipper geometry operations for clipping polygons & polyhedra.
 """
 
-from PYB11Decorators import *
+from PYB11Generator import *
 import types
 
 # Include files.

@@ -4,7 +4,7 @@ Spheral CXXTypes module.
 Provides access to fundamental C++ types from python that are not Spheral specific.
 """
 
-from PYB11STLmethods import *
+from PYB11Generator import *
 
 preamble = """
 typedef std::pair<double, double> pair_double_double;

@@ -9,6 +9,7 @@ from PYB11STLmethods import *
 from PYB11function import *
 from PYB11class import *
 from PYB11enum import *
+from PYB11attr import *
 
 #-------------------------------------------------------------------------------
 # PYB11generateModule
@@ -30,6 +31,9 @@ def PYB11generateModule(modobj):
 
         # STL types
         PYB11generateModuleSTL(modobj, ss)
+
+        # Attributes
+        PYB11generateModuleAttrs(modobj, ss)
 
         # Closing
         ss("}\n")

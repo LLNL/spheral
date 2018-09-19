@@ -3,11 +3,7 @@ This module provides the fundamental Spheral Geometry types (Vector, Tensor,
 etc.) and associated methods such as products and eigenvalues.
 """
 
-from PYB11Decorators import *
-from PYB11STLmethods import *
-from PYB11property import *
-from PYB11class import *
-from PYB11function import *
+from PYB11Generator import *
 import types
 
 # Define some useful type collections we're going to be wrapping in this module.

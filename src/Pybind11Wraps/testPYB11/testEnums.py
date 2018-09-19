@@ -83,3 +83,9 @@ Bintdouble = PYB11TemplateClass(B, template_parameters=("int", "double"))
 #-------------------------------------------------------------------------------
 Color = PYB11enum(("black", "white", "red", "blue", "yellow"),
                   namespace="Aspace")
+
+#-------------------------------------------------------------------------------
+# Attributes.
+#-------------------------------------------------------------------------------
+the_answer = PYB11attr("42")
+what = PYB11attr('py::cast("The world")')
