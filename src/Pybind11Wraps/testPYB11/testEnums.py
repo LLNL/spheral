@@ -29,6 +29,14 @@ namespace Aspace {
   enum class Color { black, white, red, blue, yellow };
 }
 
+namespace Bspace {
+  template<typename T1, typename T2>
+  class B {
+  public:
+    B() { std::cerr << "B<T1, T2>()" << std::endl; }
+    enum class Rodent { mouse, squirrel, gerbil };
+  };
+}
 """
 
 #-------------------------------------------------------------------------------
@@ -59,6 +67,21 @@ class A:
         return "int"
 
     Furniture = PYB11enum(("chair", "bed", "couch"))
+
+#-------------------------------------------------------------------------------
+# B
+#-------------------------------------------------------------------------------
+@PYB11namespace("Bspace")
+@PYB11template("T1", "T2")
+class B:
+
+    def pyinit(self):
+        "Default constructor B<%(T1)s, %(T2)s>."
+
+    Rodent = PYB11enum(("mouse", "squirrel", "gerbil"))
+
+# B<int, double>
+Bintdouble = PYB11TemplateClass(B, template_parameters=("int", "double"))
 
 #-------------------------------------------------------------------------------
 # Color

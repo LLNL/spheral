@@ -396,7 +396,7 @@ def PYB11generateClass(klass, klassattrs, ssout):
         ssenum = PYB11indentedIO("  ")
         for ename in enums:
             inst = eval("klassinst.%s" % ename)
-            inst(klass, ssenum)
+            inst(klass, ssenum, klassattrs)
         ss(ssenum.getvalue())
         ssenum.close()
 

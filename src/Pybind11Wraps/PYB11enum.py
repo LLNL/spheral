@@ -41,7 +41,8 @@ class PYB11enum:
 
     def __call__(self,
                  scope,
-                 ss):
+                 ss,
+                 scopeattrs=None):
         if self.name:
             self.__name__ = self.name
         else:
@@ -53,7 +54,7 @@ class PYB11enum:
         enumattrs["cppname"] = self.cppname
         if inspect.isclass(scope):
             klass = scope
-            klassattrs = PYB11attrs(klass)
+            klassattrs = scopeattrs
         else:
             klass = False
 
