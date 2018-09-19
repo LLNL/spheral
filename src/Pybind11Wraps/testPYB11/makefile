@@ -6,8 +6,7 @@ PYTHON = $(SPHERALBLD)/bin/python
 CXX = g++
 CXXFLAGS = -fpic -fexceptions -std=c++11 -march=native -I.  -I$(SPHERALBLD)/include/python2.7  -I$(SPHERALBLD)/include
 
-all:	testEnums
-#all:	testInheritance testTemplateInheritance testEnums
+all:	testInheritance testTemplateInheritance testEnums
 
 testInheritance:	testInheritance.py
 	$(PYTHON) -c "import sys; sys.path += ['$(SPHERALSRC)/Pybind11Wraps']; from PYB11Generator import *; import testInheritance; PYB11generateModule(testInheritance)"
