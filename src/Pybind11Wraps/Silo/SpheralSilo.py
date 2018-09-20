@@ -22,6 +22,223 @@ class DBoptlist:
                maxopts = ("int", "1024")):
         "Construct with the given number of avilable option slots."
 
+    def addOption(self,
+                  option = "int",
+                  value = "const int&"):
+        return "int"
+
+    @PYB11pycppname("addOption")
+    def addOption1(self,
+                   option = "int",
+                   value = "const double&"):
+        return "int"
+
+    @PYB11pycppname("addOption")
+    def addOption2(self,
+                   option = "int",
+                   value = "const std::string&"):
+        return "int"
+
+    @PYB11pycppname("addOption")
+    def addOption3(self,
+                   option = "int",
+                   value = "const std::vector<int>&"):
+        return "int"
+
+    @PYB11pycppname("addOption")
+    def addOption4(self,
+                   option = "int",
+                   value = "const std::vector<double>&"):
+        return "int"
+
+    @PYB11pycppname("addOption")
+    def addOption5(self,
+                   option = "int",
+                   value = "const std::vector<std::string>&"):
+        return "int"
+
+    def getOption(self,
+                  option = "int"):
+        return "int"
+
+    @PYB11pycppname("getOption")
+    def getOption1(self,
+                   option = "int"):
+        return "double"
+
+    @PYB11pycppname("getOption")
+    def getOption2(self,
+                   option = "int"):
+        return "std::string"
+
+    @PYB11pycppname("getOption")
+    def getOption3(self,
+                   option = "int"):
+        return "std::vector<int>"
+
+    @PYB11pycppname("getOption")
+    def getOption4(self,
+                   option = "int"):
+        return "std::vector<double>"
+
+    @PYB11pycppname("getOption")
+    def getOption5(self,
+                   option = "int"):
+        return "std::vector<std::string>"
+
+#-------------------------------------------------------------------------------
+@PYB11namespace("silo")
+@PYB11cppname("DBmrgtree_wrapper")
+class DBmrgtree:
+    "Another silo thingus."
+
+    # Constructor
+    def pyinit(self,
+               mesh_type = ("int", "DB_POINTMESH"),
+               info_bits = ("int", "0"),
+               max_children = ("int", "1024"),
+               optlist = ("silo::DBoptlist_wrapper", "silo::DBoptlist_wrapper(1024)")):
+        "Constructor"
+
+    # Methods for defining properties
+    @PYB11const
+    @PYB11cppname("name")
+    @PYB11ignore
+    def getname(self):
+        return "std::string"
+
+    @PYB11cppname("name")
+    @PYB11ignore
+    def setname(self, val="std::string"):
+        return "void"
+
+    @PYB11const
+    @PYB11cppname("src_mesh_name")
+    @PYB11ignore
+    def getsrc_mesh_name(self):
+        return "std::string"
+
+    @PYB11cppname("src_mesh_name")
+    @PYB11ignore
+    def setsrc_mesh_name(self, val="std::string"):
+        return "void"
+
+    @PYB11const
+    @PYB11cppname("src_mesh_type")
+    @PYB11ignore
+    def getsrc_mesh_type(self):
+        return "int"
+
+    @PYB11cppname("src_mesh_type")
+    @PYB11ignore
+    def setsrc_mesh_type(self, val="int"):
+        return "void"
+
+    @PYB11const
+    @PYB11cppname("type_info_bits")
+    @PYB11ignore
+    def gettype_info_bits(self):
+        return "int"
+
+    @PYB11cppname("type_info_bits")
+    @PYB11ignore
+    def settype_info_bits(self, val="int"):
+        return "void"
+
+    @PYB11const
+    @PYB11cppname("num_nodes")
+    @PYB11ignore
+    def getnum_nodes(self):
+        return "int"
+
+    @PYB11cppname("num_nodes")
+    @PYB11ignore
+    def setnum_nodes(self, val="int"):
+        return "void"
+
+    # Properties
+    name = property(getname, setname)
+    src_mesh_name = property(getsrc_mesh_name, setsrc_mesh_name)
+    src_mesh_type = property(getsrc_mesh_type, setsrc_mesh_type)
+    type_info_bits = property(gettype_info_bits, settype_info_bits)
+    num_nodes = property(getnum_nodes, setnum_nodes)
+
+#-------------------------------------------------------------------------------
+# STL types
+vector_of_DBoptlist = PYB11_bind_vector("silo::DBoptlist_wrapper")
+
+#-------------------------------------------------------------------------------
+# Module methods
+@PYB11cppname("silo::DBCreate_wrap")
+def DBCreate():
+    "Create a silo database"
+
+@PYB11cppname("silo::DBOpen_wrap")
+def DBOpen():
+    "Open a silo database"
+
+@PYB11namespace("silo")
+def DBClose():
+    "Close a silo database"
+
+@PYB11namespace("silo")
+def DBPutMultimesh():
+    "Write a multimesh"
+
+@PYB11namespace("silo")
+def DBPutMultimat():
+    "Write a multimat"
+
+@PYB11namespace("silo")
+def DBPutMultivar():
+    "Write a multivar"
+
+@PYB11namespace("silo")
+def DBPutMaterial():
+    "Write a material"
+
+@PYB11namespace("silo")
+def DBPutUcdmesh():
+    "Write a UCD mesh"
+
+@PYB11namespace("silo")
+def DBPutDefvars():
+    "Write var definitions"
+
+@PYB11namespace("silo")
+def DBPutZonelist2():
+    "Write a zonelist"
+
+@PYB11namespace("silo")
+def DBPutPHZonelist():
+    "Write a polyhedral zonelist"
+
+@PYB11namespace("silo")
+def DBPutPointmesh():
+    "Write a point mesh"
+
+@PYB11namespace("silo")
+def DBAddRegion():
+    "Add a region to a silo data base"
+
+@PYB11namespace("silo")
+def DBSetCwr():
+    "set cwr?"
+
+@PYB11namespace("silo")
+def DBGetCwr():
+    "Get the cwr"
+
+@PYB11namespace("silo")
+def DBPutMrgtree():
+    "Write an mrg tree"
+
+@PYB11template("T")
+def DBWrite():
+    "Write a %(T)s to a silo database."
+
+DBWrite_int = PYB11TemplateFunction(DBWrite, ("int",), cppname="DBWrite", pyname="DBWrite")
+
 #-------------------------------------------------------------------------------
 # Taken from the silo.h file, expose the #define variables as module attributes.
 DB_ZONETYPE_POLYHEDRON = PYB11attr("DB_ZONETYPE_POLYHEDRON")

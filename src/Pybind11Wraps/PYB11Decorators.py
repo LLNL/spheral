@@ -45,6 +45,18 @@ class PYB11namespace:
         return thing
 
 #-------------------------------------------------------------------------------
+# pycppname (class or method)
+#-------------------------------------------------------------------------------
+class PYB11pycppname:
+    def __init__(self, x):
+        self.x = x
+        return
+    def __call__(self, thing):
+        thing.PYB11cppname = self.x
+        thing.PYB11pyname = self.x
+        return thing
+
+#-------------------------------------------------------------------------------
 # cppname (class or method)
 #-------------------------------------------------------------------------------
 class PYB11cppname:
