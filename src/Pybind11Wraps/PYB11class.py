@@ -22,7 +22,7 @@ def PYB11generateModuleClasses(modobj, ss):
             PYB11generateClass(klass, klassattrs, ss)
 
     # Now look for any template class instantiations.
-    templates = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11TemplateClass)]
+    templates = PYB11classTemplateInsts(modobj)
     for ktname in templates:
         inst = eval("modobj.%s" % ktname)
         inst(ss)

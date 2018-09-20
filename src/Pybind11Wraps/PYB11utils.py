@@ -1,6 +1,14 @@
 import inspect, StringIO
 
 #-------------------------------------------------------------------------------
+# Key function to sort lists by source code order.
+#-------------------------------------------------------------------------------
+def PYB11sort_by_line(stuff):
+    name, obj = stuff
+    source, lineno = inspect.findsource(obj)
+    return lineno
+
+#-------------------------------------------------------------------------------
 # PYB11classes
 #
 # Get the classes to bind from a module
@@ -8,11 +16,18 @@ import inspect, StringIO
 def PYB11classes(modobj):
     result = [(name, cls) for (name, cls) in inspect.getmembers(modobj, predicate=inspect.isclass)
               if name[:5] != "PYB11"]
-    def sort_by_line_no(stuff):
-        name, obj = stuff
-        source, lineno = inspect.findsource(obj)
-        return lineno
-    result.sort(key = sort_by_line_no)
+    result.sort(key = PYB11sort_by_line)
+    return result
+
+#-------------------------------------------------------------------------------
+# PYB11classTemplateInsts
+#
+# Get the template class instantiations to bind from a module
+#-------------------------------------------------------------------------------
+def PYB11classTemplateInsts(modobj):
+    from PYB11class import PYB11TemplateClass
+    result = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11TemplateClass)]
+    result.sort(key = PYB11sort_by_line)
     return result
 
 #-------------------------------------------------------------------------------
@@ -22,11 +37,7 @@ def PYB11classes(modobj):
 #-------------------------------------------------------------------------------
 def PYB11ClassMethods(obj):
     result = inspect.getmembers(obj, predicate=inspect.ismethod)
-    def sort_by_line_no(stuff):
-        name, obj = stuff
-        source, lineno = inspect.findsource(obj)
-        return lineno
-    result.sort(key = sort_by_line_no)
+    result.sort(key = PYB11sort_by_line)
     return result
 
 #-------------------------------------------------------------------------------
@@ -37,11 +48,7 @@ def PYB11ClassMethods(obj):
 def PYB11functions(modobj):
     result = [(name, meth) for (name, meth) in inspect.getmembers(modobj, predicate=inspect.isfunction)
               if name[:5] != "PYB11"]
-    def sort_by_line_no(stuff):
-        name, obj = stuff
-        source, lineno = inspect.findsource(obj)
-        return lineno
-    result.sort(key = sort_by_line_no)
+    result.sort(key = PYB11sort_by_line)
     return result
 
 #-------------------------------------------------------------------------------
