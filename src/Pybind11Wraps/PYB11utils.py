@@ -4,9 +4,13 @@ import inspect, StringIO
 # Key function to sort lists by source code order.
 #-------------------------------------------------------------------------------
 def PYB11sort_by_line(stuff):
+    from PYB11class import PYB11TemplateClass
     name, obj = stuff
-    source, lineno = inspect.findsource(obj)
-    return lineno
+    if isinstance(obj, PYB11TemplateClass):
+        return obj.order
+    else:
+        source, lineno = inspect.findsource(obj)
+        return lineno
 
 #-------------------------------------------------------------------------------
 # PYB11classes
@@ -28,6 +32,7 @@ def PYB11classTemplateInsts(modobj):
     from PYB11class import PYB11TemplateClass
     result = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11TemplateClass)]
     result = [(x, eval("modobj.%s" % x)) for x in result]
+    result.sort(key = PYB11sort_by_line)
     return result
 
 #-------------------------------------------------------------------------------

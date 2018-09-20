@@ -49,6 +49,7 @@ def PYB11generateModuleTrampolines(modobj, ss):
 # Make a class template instantiation
 #--------------------------------------------------------------------------------
 class PYB11TemplateClass:
+    __order = 0
 
     def __init__(self,
                  klass_template,
@@ -65,6 +66,8 @@ class PYB11TemplateClass:
         self.cppname = cppname
         self.pyname = pyname
         self.docext = docext
+        PYB11TemplateClass.__order += 1
+        self.order = int(PYB11TemplateClass.__order)
         return
 
     def __call__(self, ss):
