@@ -11,9 +11,14 @@ def PYB11generateModuleEnums(modobj, ss):
     
     # Module enums
     enums = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11enum)]
+    if enums:
+        ss("  //..............................................................................\n")
+        ss("  // enum types\n")
     for name in enums:
         inst = eval("modobj.%s" % name)
         inst(modobj, ss)
+    if enums:
+        ss("\n")
 
     return
 
@@ -76,9 +81,9 @@ class PYB11enum:
             ss('%(namespace)s%(cppname)s::' % enumattrs + value + ')\n')
 
         if self.export_values:
-            ss('    .export_values();\n')
+            ss('    .export_values();\n\n')
         else:
-            ss('    ;\n')
+            ss('    ;\n\n')
 
         return
 
