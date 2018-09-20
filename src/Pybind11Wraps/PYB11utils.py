@@ -27,7 +27,7 @@ def PYB11classes(modobj):
 def PYB11classTemplateInsts(modobj):
     from PYB11class import PYB11TemplateClass
     result = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11TemplateClass)]
-    result.sort(key = PYB11sort_by_line)
+    result = [(x, eval("modobj.%s" % x)) for x in result]
     return result
 
 #-------------------------------------------------------------------------------
