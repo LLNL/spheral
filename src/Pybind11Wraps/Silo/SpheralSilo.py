@@ -7,12 +7,16 @@ from PYB11Generator import *
 includes = ['"Geometry/Dimension.hh"',
             '"SiloWrappers.hh"']
 
+preamble = """
+using namespace silo;
+using namespace Spheral;
+"""
+
 #-------------------------------------------------------------------------------
 class DBfile:
     "Opaque object for silo file struct"
 
 #-------------------------------------------------------------------------------
-@PYB11namespace("silo")
 @PYB11cppname("DBoptlist_wrapper")
 class DBoptlist:
     "The silo optlist collection."
@@ -87,7 +91,6 @@ class DBoptlist:
         return "std::vector<std::string>"
 
 #-------------------------------------------------------------------------------
-@PYB11namespace("silo")
 @PYB11cppname("DBmrgtree_wrapper")
 class DBmrgtree:
     "Another silo thingus."
@@ -182,6 +185,22 @@ def DBClose():
     "Close a silo database"
 
 @PYB11namespace("silo")
+def DBMkDir():
+    "Make a new path in a silo database"
+
+@PYB11namespace("silo")
+def DBSetDir():
+    "Go to the given path in a silo database"
+
+@PYB11namespace("silo")
+def DBGetDir():
+    "Get the current path in the silo database."
+
+@PYB11namespace("silo")
+def DBCpDir():
+    "Copy a directory to another."
+
+@PYB11namespace("silo")
 def DBPutMultimesh():
     "Write a multimesh"
 
@@ -200,6 +219,10 @@ def DBPutMaterial():
 @PYB11namespace("silo")
 def DBPutUcdmesh():
     "Write a UCD mesh"
+
+@PYB11namespace("silo")
+def DBPutQuadmesh():
+    "Write a quad mesh"
 
 @PYB11namespace("silo")
 def DBPutDefvars():
@@ -233,11 +256,82 @@ def DBGetCwr():
 def DBPutMrgtree():
     "Write an mrg tree"
 
+#-------------------------------------------------------------------------------
 @PYB11template("T")
+@PYB11namespace("silo")
 def DBWrite():
     "Write a %(T)s to a silo database."
 
-DBWrite_int = PYB11TemplateFunction(DBWrite, ("int",), cppname="DBWrite", pyname="DBWrite")
+@PYB11template("T")
+@PYB11namespace("silo")
+def DBWrite_vector():
+    "Write a std::vector<%(T)s> to a silo database."
+
+@PYB11template("T")
+@PYB11namespace("silo")
+def DBWrite_vector_of_vector():
+    "Write a std::vector<std::vector<%(T)s>> to a silo database."
+
+@PYB11template("T")
+@PYB11namespace("silo")
+def DBPutCompoundarray():
+    "Write a compound array of %(T)s to a silo database."
+
+@PYB11template("T")
+@PYB11namespace("silo")
+def DBReadVar():
+    "Read a %(T)s from a silo database."
+
+@PYB11template("T")
+@PYB11namespace("silo")
+def DBPutUcdvar1():
+    "Write a UCD scalar variable of %(T)s to a silo database."
+
+@PYB11template("T")
+@PYB11namespace("silo")
+def DBPutQuadvar1():
+    "Write a quad mesh scalar variable of %(T)s to a silo database."
+
+@PYB11template("T")
+@PYB11namespace("silo")
+def DBPutPointvar1():
+    "Write a point mesh scalar variable of %(T)s to a silo database."
+
+@PYB11template("T")
+@PYB11namespace("silo")
+def DBPutUcdvar():
+    "Write a UCD mesh variable of %(T)s to a silo database."
+
+@PYB11template("T")
+@PYB11namespace("silo")
+def DBPutQuadvar():
+    "Write a quad mesh variable of %(T)s to a silo database."
+
+@PYB11template("T")
+@PYB11namespace("silo")
+def DBPutPointvar():
+    "Write a point mesh variable of %(T)s to a silo database."
+
+for d in ("int", "float", "double"):
+    exec('''
+DBWrite_%(d)s = PYB11TemplateFunction(DBWrite, ("%(d)s",), pyname="DBWrite")
+DBWrite_vector_%(d)s = PYB11TemplateFunction(DBWrite_vector, ("%(d)s",), pyname="DBWrite")
+DBWrite_vector_of_vector_%(d)s = PYB11TemplateFunction(DBWrite_vector_of_vector, ("%(d)s",), pyname="DBWrite")
+DBPutCompoundarray_%(d)s = PYB11TemplateFunction(DBPutCompoundarray, ("%(d)s", ), pyname="DBPutCompoundarray")
+DBReadVar_%(d)s = PYB11TemplateFunction(DBReadVar, ("%(d)s",), pyname="DBReadVar")
+DBPutUcdvar1_%(d)s = PYB11TemplateFunction(DBPutUcdvar1, ("%(d)s",), pyname="DBPutUcdvar1")
+DBPutQuadvar1_%(d)s = PYB11TemplateFunction(DBPutQuadvar1, ("%(d)s",), pyname="DBPutUcdvar1")
+DBPutPointvar1_%(d)s = PYB11TemplateFunction(DBPutPointvar1, ("%(d)s",), pyname="DBPutPointvar1")
+''' % {"d" : d})
+
+for d in ("Vector", "Tensor", "SymTensor"):
+    for ndim in (2, 3):
+        exec('''
+DBPutUcdvar_%(ndim)i = PYB11TemplateFunction(DBPutUcdvar, "Dim<%(ndim)i>::%(d)s", pyname="DBPutUcdvar")
+DBPutQuadvar_%(ndim)i = PYB11TemplateFunction(DBPutQuadvar, "Dim<%(ndim)i>::%(d)s", pyname="DBPutQuadvar")
+DBPutPointvar_%(ndim)i = PYB11TemplateFunction(DBPutPointvar, "Dim<%(ndim)i>::%(d)s", pyname="DBPutPointvar")
+''') % {"ndim" : ndim,
+        "d" : d}
 
 #-------------------------------------------------------------------------------
 # Taken from the silo.h file, expose the #define variables as module attributes.
