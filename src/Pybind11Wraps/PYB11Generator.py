@@ -20,17 +20,17 @@ def PYB11generateModule(modobj):
         ss = f.write
         PYB11generateModuleStart(modobj, ss, name)
 
-        # methods
-        PYB11generateModuleFunctions(modobj, ss)
+        # enums
+        PYB11generateModuleEnums(modobj, ss)
 
         # classes
         PYB11generateModuleClasses(modobj, ss)
 
-        # enums
-        PYB11generateModuleEnums(modobj, ss)
-
         # STL types
         PYB11generateModuleSTL(modobj, ss)
+
+        # methods
+        PYB11generateModuleFunctions(modobj, ss)
 
         # Attributes
         PYB11generateModuleAttrs(modobj, ss)

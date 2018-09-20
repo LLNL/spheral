@@ -6,8 +6,14 @@ import inspect, StringIO
 # Get the classes to bind from a module
 #-------------------------------------------------------------------------------
 def PYB11classes(modobj):
-    return [(name, cls) for (name, cls) in inspect.getmembers(modobj, predicate=inspect.isclass)
-            if name[:5] != "PYB11"]
+    result = [(name, cls) for (name, cls) in inspect.getmembers(modobj, predicate=inspect.isclass)
+              if name[:5] != "PYB11"]
+    def sort_by_line_no(stuff):
+        name, obj = stuff
+        source, lineno = inspect.findsource(obj)
+        return lineno
+    result.sort(key = sort_by_line_no)
+    return result
 
 #-------------------------------------------------------------------------------
 # PYB11ClassMethods
@@ -15,7 +21,13 @@ def PYB11classes(modobj):
 # Get the methods to bind from a class
 #-------------------------------------------------------------------------------
 def PYB11ClassMethods(obj):
-    return inspect.getmembers(obj, predicate=inspect.ismethod)
+    result = inspect.getmembers(obj, predicate=inspect.ismethod)
+    def sort_by_line_no(stuff):
+        name, obj = stuff
+        source, lineno = inspect.findsource(obj)
+        return lineno
+    result.sort(key = sort_by_line_no)
+    return result
 
 #-------------------------------------------------------------------------------
 # PYB11functions
@@ -23,8 +35,14 @@ def PYB11ClassMethods(obj):
 # Get the functions to bind from a module
 #-------------------------------------------------------------------------------
 def PYB11functions(modobj):
-    return [(name, meth) for (name, meth) in inspect.getmembers(modobj, predicate=inspect.isfunction)
-            if name[:5] != "PYB11"]
+    result = [(name, meth) for (name, meth) in inspect.getmembers(modobj, predicate=inspect.isfunction)
+              if name[:5] != "PYB11"]
+    def sort_by_line_no(stuff):
+        name, obj = stuff
+        source, lineno = inspect.findsource(obj)
+        return lineno
+    result.sort(key = sort_by_line_no)
+    return result
 
 #-------------------------------------------------------------------------------
 # PYB11parseArgs
