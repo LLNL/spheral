@@ -12,7 +12,10 @@ PYB11SRCS = \
 	NodeList.py \
 	FluidNodeList.py \
 	SolidNodeList.py \
-	SmoothingScaleBase.py
+	SmoothingScaleBase.py \
+	FixedSmoothingScale.py \
+	SPHSmoothingScale.py \
+	ASPHSmoothingScale.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------

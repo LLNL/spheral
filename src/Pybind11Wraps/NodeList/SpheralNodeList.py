@@ -66,6 +66,9 @@ from NodeList import NodeList
 from FluidNodeList import FluidNodeList
 from SolidNodeList import SolidNodeList
 from SmoothingScaleBase import SmoothingScaleBase
+from FixedSmoothingScale import FixedSmoothingScale
+from SPHSmoothingScale import SPHSmoothingScale
+from ASPHSmoothingScale import ASPHSmoothingScale
 
 for ndim in (1,): # dims:
     exec('''
@@ -76,4 +79,7 @@ FluidNodeList%(ndim)id = PYB11TemplateClass(FluidNodeList, template_parameters =
 SolidNodeList%(ndim)id = PYB11TemplateClass(SolidNodeList, template_parameters = dimDictionary(%(ndim)i))
 
 SmoothingScaleBase%(ndim)id = PYB11TemplateClass(SmoothingScaleBase, template_parameters = ("Dim<%(ndim)i>"))
+FixedSmoothingScale%(ndim)id = PYB11TemplateClass(FixedSmoothingScale, template_parameters = ("Dim<%(ndim)i>"))
+SPHSmoothingScale%(ndim)id = PYB11TemplateClass(SPHSmoothingScale, template_parameters = ("Dim<%(ndim)i>"))
+ASPHSmoothingScale%(ndim)id = PYB11TemplateClass(ASPHSmoothingScale, template_parameters = ("Dim<%(ndim)i>"))
 ''' % {"ndim" : ndim})
