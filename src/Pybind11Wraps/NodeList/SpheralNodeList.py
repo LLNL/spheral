@@ -6,7 +6,9 @@ Provides the fundamental NodeList classes.
 
 from PYB11Generator import *
 from spheralDimensions import spheralDimensions as PYB11dimensions
+from spheralDimensions import PYB11dimDictionary
 dims = PYB11dimensions()
+
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -43,22 +45,4 @@ NodeType = PYB11enum(("InternalNode", "GhostNode"), export_values=True,
 from NodeList import NodeList
 
 NodeList1d = PYB11TemplateClass(NodeList,
-                                template_parameters = {"Dimension" : "Dim<1>",
-                                                       "Scalar"    : "Dim<1>::Scalar",
-                                                       "Vector"    : "Dim<1>::Vector",
-                                                       "Tensor"    : "Dim<1>::Tensor",
-                                                       "SymTensor" : "Dim<1>::SymTensor",
-                                                       "ScalarField": "Field<Dim<1>, Dim<1>::Scalar>",
-                                                       "VectorField": "Field<Dim<1>, Dim<1>::Vector>",
-                                                       "TensorField": "Field<Dim<1>, Dim<1>::Tensor>",
-                                                       "SymTensorField": "Field<Dim<1>, Dim<1>::SymTensor>"})
-
-# for ndim in dims:
-#     exec('''
-# NodeList%(ndim)id =  PYB11TemplateClass(NodeList, pyname="NodeList%(ndim)id",
-#                                         template_parameters=("Dim<%(ndim)i>"))
-# ''' % {"ndim" : ndim,
-#        "Scalar" : "Dim<%i>::Scalar" % ndim,
-#        "Vector" : "Dim<%i>::Vector" % ndim,
-#        "Tensor" : "Dim<%i>::Tensor" % ndim,
-#        "SymTensor" : "Dim<%i>::Symensor" % ndim})
+                                template_parameters = PYB11dimDictionary(1))
