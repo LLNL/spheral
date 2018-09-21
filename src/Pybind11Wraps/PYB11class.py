@@ -57,15 +57,28 @@ class PYB11TemplateClass:
                  cppname = None,
                  pyname = None,
                  docext = ""):
-        if isinstance(template_parameters, str):
-            template_parameters = (template_parameters,)
         self.klass_template = klass_template
-        klassattrs = PYB11attrs(self.klass_template)
-        assert len(klassattrs["template"]) == len(template_parameters)
-        self.template_parameters = [(name, val) for (name, val) in zip(klassattrs["template"], template_parameters)]
         self.cppname = cppname
         self.pyname = pyname
         self.docext = docext
+
+        # Create the template parameter dictionary
+        self.template_parameters = {}
+        klassattrs = PYB11attrs(self.klass_template)
+        if isinstance(template_parameters, str):
+            assert len(klassattrs["template"]) == 1
+            self.template_parameters[klassattrs["template"][0]] = template_parameters
+        elif isinstance(template_parameters, tuple):
+            assert len(klassattrs["template"]) == len(template_parameters)
+            for name, val in zip(klassattrs["template"], template_parameters):
+                self.template_parameters[name] = val
+        else:
+            assert isinstance(template_parameters, dict)
+            for key in klassattrs["template"]:
+                assert key in template_parameters
+            self.template_parameters = template_parameters
+            
+        # Build the order of instantiations
         PYB11TemplateClass.__order += 1
         self.order = int(PYB11TemplateClass.__order)
         return
@@ -87,15 +100,16 @@ class PYB11TemplateClass:
 
     # Do some template mangling (and magically put the template parameters in scope).
     def mangleNames(self):
+        klassattrs = PYB11attrs(self.klass_template)
         template_ext = "<"
         doc_ext = ""
-        for name, val in self.template_parameters:
+        for name in klassattrs["template"]:
+            val = self.template_parameters[name]
             exec("%s = '%s'" % (name, val))
             template_ext += "%s, " % val
             doc_ext += "_%s_" % val.replace("::", "_").replace("<", "_").replace(">", "_")
         template_ext = template_ext[:-2] + ">"
 
-        klassattrs = PYB11attrs(self.klass_template)
         if self.cppname:
             klassattrs["cppname"] = self.cppname
         else:
@@ -105,9 +119,7 @@ class PYB11TemplateClass:
         else:
             klassattrs["pyname"] += doc_ext
 
-        klassattrs["template_dict"] = {}
-        for name, val in self.template_parameters:
-            klassattrs["template_dict"][name] = val
+        klassattrs["template_dict"] = self.template_parameters
         return klassattrs
 
 #-------------------------------------------------------------------------------

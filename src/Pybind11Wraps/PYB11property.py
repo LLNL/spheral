@@ -27,16 +27,16 @@ def PYB11property(propname,
     # What kind of property do we have (readwrite, readonly, static, etc.)?
     if getterattrs["static"]:
         if setter:
-            proptype = "readwrite_static"
+            proptype = "_readwrite_static"
         else:
-            proptype = "readonly_static"
+            proptype = "_readonly_static"
     else:
         if setter:
             proptype = ""
         else:
-            proptype = "readonly"
+            proptype = "_readonly"
 
-    ss('    obj.def_property_%s("%s", (%s ' % (proptype, propname, returnType))
+    ss('    obj.def_property%s("%s", (%s ' % (proptype, propname, returnType))
 
     if getterattrs["static"]:
         ss('(%(namespace)s*)()' % klassattrs)
