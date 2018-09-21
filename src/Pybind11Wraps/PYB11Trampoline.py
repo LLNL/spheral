@@ -78,7 +78,7 @@ public:
             # Fill out the argument list for this method
             args = PYB11parseArgs(meth)
             for i, (argType, argName, default) in enumerate(args):
-                ms(argType)
+                ms("%s %s" % (argType, argName))
                 if i < len(args) - 1:
                     ms(", ")
             if methattrs["const"]:
@@ -101,7 +101,7 @@ public:
                     ms(" %(cppname)s);" % methattrs)
 
                 for i, (argType, argName, default) in enumerate(args):
-                    if i < nargs - 1:
+                    if i < len(args) - 1:
                         ms(argName + ", ")
                     else:
                         ms(argName + ");")

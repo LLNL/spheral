@@ -23,10 +23,27 @@ def PYB11property(propname,
     returnType = eval("klassinst." + getter.__name__ + "()")
     getterattrs = PYB11attrs(getter)
     getterattrs["returnType"] = returnType
-    ss('    obj.def_property("%s", (%s ' % (propname, returnType))
-    ss('(%(namespace)s%(cppname)s::*)()' % klassattrs)
+
+    # What kind of property do we have (readwrite, readonly, static, etc.)?
+    if getterattrs["static"]:
+        if setter:
+            proptype = "readwrite_static"
+        else:
+            proptype = "readonly_static"
+    else:
+        if setter:
+            proptype = ""
+        else:
+            proptype = "readonly"
+
+    ss('    obj.def_property_%s("%s", (%s ' % (proptype, propname, returnType))
+
+    if getterattrs["static"]:
+        ss('(%(namespace)s*)()' % klassattrs)
+    else:
+        ss('(%(namespace)s%(cppname)s::*)()' % klassattrs)
     if getterattrs["const"]:
-        ss(' const)')
+        ss('const)')
     else:
         ss(')')
     ss(' &%(namespace)s%(cppname)s::' % klassattrs + getterattrs["cppname"])
@@ -36,7 +53,10 @@ def PYB11property(propname,
         setterattrs = PYB11attrs(setter)
         args = PYB11parseArgs(setter)
         assert len(args) == 1
-        ss(', (void (%(namespace)s%(cppname)s::*)' % klassattrs)
+        if setterattrs["static"]:
+            ss(', (void (%(namespace)s*)' % klassattrs)
+        else:
+            ss(', (void (%(namespace)s%(cppname)s::*)' % klassattrs)
         ss('(%s) ' % args[0][0])
         if setterattrs["const"]:
             ss(' const)')

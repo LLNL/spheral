@@ -4,24 +4,22 @@ Spheral DataOuput module.
 Provides the fundamental classes for Restart in Spheral.
 """
 
-import sys
-sys.path.append("..")
 from PYB11Generator import *
 
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ["<vector>",
-            "<string>",
-            '"Geometry/Dimension"',
+includes = ['"Geometry/Dimension.hh"',
             '"DataOutput/RestartRegistrar.hh"',
             '"DataOutput/RestartableObject.hh"',
-            '"FileIO/FileIO.hh"']
-
+            '"FileIO/FileIO.hh"',
+            "<vector>",
+            "<string>"]
+            
 #-------------------------------------------------------------------------------
 # Namespaces the module is in.
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral::DataOutput"]
+namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # RestartRegistrar
@@ -29,12 +27,6 @@ namespaces = ["Spheral::DataOutput"]
 @PYB11singleton
 class RestartRegistrar:
     "A singleton object that holds all objects currently registered for restart."
-
-    # The instance attribute.  We expose this as a property of the class.
-    @PYB11static
-    @PYB11readonly
-    @PYB11getter("instance")
-    instance = "RestartRegistrar&"
 
     def removeExpiredPointers(self):
         "Clear all expired objects from the RestartRegistrar."
@@ -60,11 +52,13 @@ class RestartRegistrar:
         "Restore the state of all restartable handles"
         return
 
-    # @PYB11static
-    # @PYB11getter("instance")
-    # def instance(self):
-    #     "Get the singleton instance."
-    #     return
+    # The instance attribute.  We expose this as a property of the class.
+    @PYB11static
+    @PYB11cppname("instance")
+    @PYB11ignore
+    def getinstance(self):
+        return "RestartRegistrar&"
+    instance = property(getinstance, doc="The static RestartRegistrar instance.")
 
 #-------------------------------------------------------------------------------
 # RestartableObject
@@ -87,24 +81,14 @@ class RestartableObject:
     @PYB11virtual
     @PYB11const
     def dumpState(self,
-                  file = "FileIOSpace::FileIO&",
+                  file = "FileIO&",
                   pathName = "const std::string"):
         "Write this objects state to the file under the given path."
         return "void"
 
     @PYB11virtual
     def restoreState(self,
-                     file = "const FileIOSpace::FileIO&",
-                     pathName = ("const std::string", "pathName")):
+                     file = "const FileIO&",
+                     pathName = ("const std::string", '"pathName"')):
         "Read the state for this object from the given file and path."
         return "void"
-
-#-------------------------------------------------------------------------------
-# 
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# 
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# 
-#-------------------------------------------------------------------------------

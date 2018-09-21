@@ -130,10 +130,17 @@ def PYB11generateClass(klass, klassattrs, ssout):
         if methattrs["implementation"]:
             ss(methattrs["implementation"])
         elif methattrs["returnType"] is None:
-            ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
+            if methattrs["static"]:
+                ss(("&%(namespace)s" % klassattrs) + methattrs["cppname"])
+            else:
+                ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
         else:
+            ss("(%(returnType)s " % methattrs)
+            if methattrs["static"]:
+                ss("(%(namespace)s*)(" % klassattrs)
+            else:
+                ss("(%(namespace)s%(cppname)s::*)(" % klassattrs)
             argString = ""
-            ss(("(%(returnType)s " % methattrs) + ("(%(namespace)s%(cppname)s::*)(" % klassattrs))
             for i, (argType, argName, default) in enumerate(args):
                 ss(argType)
                 if i < len(args) - 1:
