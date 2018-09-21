@@ -9,7 +9,6 @@ from spheralDimensions import spheralDimensions as PYB11dimensions
 from spheralDimensions import PYB11dimDictionary
 dims = PYB11dimensions()
 
-
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
@@ -40,9 +39,37 @@ NodeType = PYB11enum(("InternalNode", "GhostNode"), export_values=True,
                      doc="The classifications of Spheral nodes.")
 
 #-------------------------------------------------------------------------------
+# NodeListRegistrar
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+@PYB11singleton
+class NodeListRegistrar:
+
+    @PYB11const
+    def valid(self):
+        return "bool"
+
+    # The instance attribute.  We expose this as a property of the class.
+    @PYB11static
+    @PYB11cppname("instance")
+    @PYB11ignore
+    def getinstance(self):
+        return "NodeListRegistrar<%(Dimension)s>&"
+    instance = property(getinstance, doc="The static NodeListRegistrar<%(Dimension)s> instance.")
+
+
+NodeListRegistrar1d = PYB11TemplateClass(NodeListRegistrar, template_parameters="Dim<1>")
+
+#-------------------------------------------------------------------------------
 # NodeLists
 #-------------------------------------------------------------------------------
 from NodeList import NodeList
-
-NodeList1d = PYB11TemplateClass(NodeList,
-                                template_parameters = PYB11dimDictionary(1))
+if 1 in dims:
+    NodeList1d = PYB11TemplateClass(NodeList,
+                                    template_parameters = PYB11dimDictionary(1))
+if 2 in dims:
+    NodeList2d = PYB11TemplateClass(NodeList,
+                                    template_parameters = PYB11dimDictionary(2))
+if 3 in dims:
+    NodeList3d = PYB11TemplateClass(NodeList,
+                                    template_parameters = PYB11dimDictionary(3))

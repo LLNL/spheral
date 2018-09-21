@@ -341,7 +341,7 @@ def PYB11generateClass(klass, klassattrs, ssout):
 
     # Is this a singleton?
     if klassattrs["singleton"]:
-        ss(", std::unique_ptr<RestartRegistrar, py::nodelete>")
+        ss(", std::unique_ptr<%(namespace)s%(cppname)s, py::nodelete>" % klassattrs)
     ss('> obj(m, "%(pyname)s");\n' % klassattrs)
 
     # Is there a doc string?
