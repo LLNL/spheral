@@ -7,6 +7,17 @@ from PYB11Generator import *
 class NodeList:
     "Spheral NodeList base class in %(Dimension)s"
 
+    PYB11typedefs = """
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef Field<%(Dimension)s, Scalar> ScalarField;
+    typedef Field<%(Dimension)s, Vector> VectorField;
+    typedef Field<%(Dimension)s, Tensor> TensorField;
+    typedef Field<%(Dimension)s, SymTensor> SymTensorField;
+"""
+
     def pyinit(self,
                name = "std::string",
                numInternal = ("unsigned", "0"),
@@ -22,55 +33,55 @@ class NodeList:
     @PYB11const
     def mass(self):
         "The mass field"
-        return "const %(ScalarField)s&"
+        return "const ScalarField&"
 
     @PYB11const
     def positions(self):
         "The position field"
-        return "const %(VectorField)s&"
+        return "const VectorField&"
 
     @PYB11const
     def velocity(self):
         "The velocity field"
-        return "const %(VectorField)s&"
+        return "const VectorField&"
 
     @PYB11const
     def Hfield(self):
         "The H tensor field"
-        return "const %(SymTensorField)s&"
+        return "const SymTensorField&"
 
     @PYB11const
     def work(self):
         "The CPU work field"
-        return "%(ScalarField)s&"
+        return "ScalarField&"
 
     @PYB11pycppname("mass")
-    def setmass(self, newValue="const %(ScalarField)s&"):
+    def setmass(self, newValue="const ScalarField&"):
         "Set the mass field"
         return "void"
 
     @PYB11pycppname("positions")
-    def setpositions(self, newValue="const %(VectorField)s&"):
+    def setpositions(self, newValue="const VectorField&"):
         "Set the position field"
         return "void"
 
     @PYB11pycppname("velocity")
-    def setvelocity(self, newValue="const %(VectorField)s&"):
+    def setvelocity(self, newValue="const VectorField&"):
         "Set the velocity field"
         return "void"
 
     @PYB11pycppname("Hfield")
-    def setHfield(self, newValue="const %(SymTensorField)s&"):
+    def setHfield(self, newValue="const SymTensorField&"):
         "Set the H tensor field"
         return "void"
 
     @PYB11pycppname("work")
-    def setwork(self, newValue="const %(ScalarField)s&"):
+    def setwork(self, newValue="const ScalarField&"):
         "Set the CPU work field"
         return "void"
 
     @PYB11const
-    def Hinverse(self, result="%(SymTensorField)s&"):
+    def Hinverse(self, result="SymTensorField&"):
         "Compute the inverse H field"
         return "void"
 

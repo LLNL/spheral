@@ -5,7 +5,7 @@ from FluidNodeList import FluidNodeList
 # SolidNodeList template
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
-class SolidNodeList(NodeList):
+class SolidNodeList(FluidNodeList):
     "Spheral SolidNodeList base class in %(Dimension)s, i.e.,  the NodeList for solid dynamics."
 
     PYB11typedefs = """
@@ -70,12 +70,12 @@ class SolidNodeList(NodeList):
         return "const ScalarField&"
 
     @PYB11const
-    def tensorDamage(self):
+    def damage(self):
         "The damage field"
         return "const SymTensorField&"
 
     @PYB11const
-    def effectiveTensorDamage(self):
+    def effectiveDamage(self):
         "The effective damage field"
         return "const SymTensorField&"
 

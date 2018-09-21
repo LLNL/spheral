@@ -321,7 +321,12 @@ def PYB11generateClass(klass, klassattrs, ssout):
   //............................................................................
   // Class %(pyname)s
   {
-    py::class_<%(namespace)s%(cppname)s""" % klassattrs)
+""" % klassattrs)
+    # If the class has specified any typedefs, do them.
+    if hasattr(klass, "PYB11typedefs"):
+        ss(klass.PYB11typedefs + "\n")
+
+    ss("    py::class_<%(namespace)s%(cppname)s" % klassattrs)
 
     # Check for base classes.
     for bklass in inspect.getmro(klass)[1:2]:
@@ -330,7 +335,7 @@ def PYB11generateClass(klass, klassattrs, ssout):
         if bklassattrs["template"]:
             ss("<")
             for i, t in enumerate(bklassattrs["template"]):
-                if i < len(t) - 1:
+                if i < len(bklassattrs["template"]) - 1:
                     ss("%(" + t + ")s, ")
                 else:
                     ss("%(" + t + ")s>")

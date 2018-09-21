@@ -55,9 +55,14 @@ public:
 
 """ % klassattrs)
 
+    # Any typedefs?
+    if hasattr(klass, "PYB11typedefs"):
+        ss(klass.PYB11typedefs + "\n")
+
     # Bind the (unique) virtual methods for all classes up the inheritance tree.
     boundMethods = []
     for bklass in inspect.getmro(klass):
+
         bklassinst = bklass()
         bklassattrs = PYB11attrs(bklass)
         methods = [(mname, meth) for (mname, meth) in PYB11ClassMethods(bklass)

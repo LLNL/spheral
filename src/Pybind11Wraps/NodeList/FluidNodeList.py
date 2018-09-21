@@ -8,16 +8,27 @@ from NodeList import NodeList
 class FluidNodeList(NodeList):
     "Spheral FluidNodeList base class in %(Dimension)s, i.e.,  the NodeList for fluid hydrodynamics."
 
+    PYB11typedefs = """
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef Field<%(Dimension)s, Scalar> ScalarField;
+    typedef Field<%(Dimension)s, Vector> VectorField;
+    typedef Field<%(Dimension)s, Tensor> TensorField;
+    typedef Field<%(Dimension)s, SymTensor> SymTensorField;
+"""
+
     def pyinit(self,
                name = "std::string",
                eos = "EquationOfState<%(Dimension)s>&",
-               numInternal = ("unsigned", "0"),
-               numGhost = ("unsigned", "0"),
+               numInternal = ("int", "0"),
+               numGhost = ("int", "0"),
                hmin = ("double", "1e-20"),
                hmax = ("double", "1e20"),
                hminratio = ("double", "0.1"),
                nPerh = ("double", "2.01"),
-               maxNumNeighbors = ("unsigned", "500"),
+               maxNumNeighbors = ("int", "500"),
                rhoMin = ("double", "1e-10"),
                rhoMax = ("double", "1e100")):
         "Constructor for a FluidNodeList class."
@@ -26,47 +37,47 @@ class FluidNodeList(NodeList):
     @PYB11const
     def massDensity(self):
         "The mass density field"
-        return "const %(ScalarField)s&"
+        return "const ScalarField&"
 
     @PYB11const
     def specificThermalEnergy(self):
         "The specific thermal energy field"
-        return "const %(ScalarField)s&"
+        return "const ScalarField&"
 
     @PYB11virtual
     @PYB11const
-    def pressure(self, result="%(ScalarField)s&"):
-        "Compute the current pressure, storing the result in the argument %(ScalarField)s."
+    def pressure(self, result="ScalarField&"):
+        "Compute the current pressure, storing the result in the argument ScalarField."
         return "void"
 
     @PYB11virtual
     @PYB11const
-    def temperature(self, result="%(ScalarField)s&"):
-        "Compute the current temperature, storing the result in the argument %(ScalarField)s."
+    def temperature(self, result="ScalarField&"):
+        "Compute the current temperature, storing the result in the argument ScalarField."
         return "void"
 
     @PYB11virtual
     @PYB11const
-    def soundSpeed(self, result="%(ScalarField)s&"):
-        "Compute the current sound speed, storing the result in the argument %(ScalarField)s."
+    def soundSpeed(self, result="ScalarField&"):
+        "Compute the current sound speed, storing the result in the argument ScalarField."
         return "void"
 
     @PYB11virtual
     @PYB11const
-    def volume(self, result="%(ScalarField)s&"):
-        "Compute the current volume, storing the result in the argument %(ScalarField)s."
+    def volume(self, result="ScalarField&"):
+        "Compute the current volume, storing the result in the argument ScalarField."
         return "void"
 
     @PYB11virtual
     @PYB11const
-    def linearMomentum(self, result="%(VectorField)s&"):
-        "Compute the current linear momentum, storing the result in the argument %(ScalarField)s."
+    def linearMomentum(self, result="VectorField&"):
+        "Compute the current linear momentum, storing the result in the argument ScalarField."
         return "void"
 
     @PYB11virtual
     @PYB11const
-    def totalEnergy(self, result="%(ScalarField)s&"):
-        "Compute the current total energy, storing the result in the argument %(ScalarField)s."
+    def totalEnergy(self, result="ScalarField&"):
+        "Compute the current total energy, storing the result in the argument ScalarField."
         return "void"
 
     @PYB11const
@@ -74,7 +85,8 @@ class FluidNodeList(NodeList):
         "Return the equation of state object this FluidNodeList is associated with."
         return "const EquationOfState<%(Dimension)s>&"
 
-    def setequatinoOfState(self, equationOfState="const EquationOfState<%(Dimension)s>&"):
+    @PYB11cppname("equationOfState")
+    def setequationOfState(self, equationOfState="const EquationOfState<%(Dimension)s>&"):
         "Set the equation of state for this FluidNodeList."
         return "void"
 
@@ -111,8 +123,7 @@ class FluidNodeList(NodeList):
 
     @PYB11ignore
     @PYB11cppname("rhoMin")
-    @PYB11const
-    def setrhoMin(self, val="double"):
+    def setrhoMin(self, val="const double"):
         return "void"
 
     @PYB11ignore
@@ -123,8 +134,7 @@ class FluidNodeList(NodeList):
 
     @PYB11ignore
     @PYB11cppname("rhoMax")
-    @PYB11const
-    def setrhoMax(self, val="double"):
+    def setrhoMax(self, val="const double"):
         return "void"
 
     # Properties

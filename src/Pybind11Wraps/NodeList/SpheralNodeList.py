@@ -22,6 +22,8 @@ includes = ['"Geometry/Dimension.hh"',
             '"NodeList/ASPHSmoothingScale.hh"',
             '"NodeList/generateVoidNodes.hh"',
             '"NodeList/nthNodalMoment.hh"',
+            '"Material/EquationOfState.hh"',
+            '"SolidMaterial/StrengthModel.hh"',
             '"Kernel/TableKernel.hh"',
             '"Mesh/Mesh.hh"',
             '"FileIO/FileIO.hh"']
@@ -60,10 +62,14 @@ class NodeListRegistrar:
 # Do our dimension dependent instantiations.
 #-------------------------------------------------------------------------------
 from NodeList import NodeList
+from FluidNodeList import FluidNodeList
+from SolidNodeList import SolidNodeList
 
-for ndim in dims:
+for ndim in (1,): # dims:
     exec('''
 NodeListRegistrar%(ndim)id = PYB11TemplateClass(NodeListRegistrar, template_parameters=dimDictionary(%(ndim)i))
-NodeList%(ndim)id = PYB11TemplateClass(NodeList, template_parameters = dimDictionary(%(ndim)i))
-''' % {"ndim" : ndim})
 
+NodeList%(ndim)id = PYB11TemplateClass(NodeList, template_parameters = dimDictionary(%(ndim)i))
+FluidNodeList%(ndim)id = PYB11TemplateClass(FluidNodeList, template_parameters = dimDictionary(%(ndim)i))
+SolidNodeList%(ndim)id = PYB11TemplateClass(SolidNodeList, template_parameters = dimDictionary(%(ndim)i))
+''' % {"ndim" : ndim})
