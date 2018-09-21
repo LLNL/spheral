@@ -3,6 +3,7 @@
 # Provide a method of getting the instantiated dimensions from python.
 #-------------------------------------------------------------------------------
 def spheralDimensions():
+    PYB11ignore = True     # Screen from PYB11
     dims_string = "@DIMS@"
     dims = [int(x) for x in dims_string.split()]
     return dims
@@ -10,7 +11,8 @@ def spheralDimensions():
 #-------------------------------------------------------------------------------
 # Return a dictionary of useful Spheral Dimensional types.
 #-------------------------------------------------------------------------------
-def PYB11dimDictionary(ndim):
+def dimDictionary(ndim):
+    PYB11ignore = True     # Screen from PYB11
     return {"Dimension"      : "Dim<%i>" % ndim,
             "Scalar"         : "Dim<%i>::Scalar" % ndim,
             "Vector"         : "Dim<%i>::Scalar" % ndim,

@@ -5,9 +5,8 @@ Provides the fundamental NodeList classes.
 """
 
 from PYB11Generator import *
-from spheralDimensions import spheralDimensions as PYB11dimensions
-from spheralDimensions import PYB11dimDictionary
-dims = PYB11dimensions()
+from spheralDimensions import *
+dims = spheralDimensions()
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -66,10 +65,10 @@ NodeListRegistrar1d = PYB11TemplateClass(NodeListRegistrar, template_parameters=
 from NodeList import NodeList
 if 1 in dims:
     NodeList1d = PYB11TemplateClass(NodeList,
-                                    template_parameters = PYB11dimDictionary(1))
+                                    template_parameters = dimDictionary(1))
 if 2 in dims:
     NodeList2d = PYB11TemplateClass(NodeList,
-                                    template_parameters = PYB11dimDictionary(2))
+                                    template_parameters = dimDictionary(2))
 if 3 in dims:
     NodeList3d = PYB11TemplateClass(NodeList,
-                                    template_parameters = PYB11dimDictionary(3))
+                                    template_parameters = dimDictionary(3))
