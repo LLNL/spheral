@@ -23,7 +23,8 @@ includes = ['"Geometry/Dimension.hh"',
             '"NodeList/generateVoidNodes.hh"',
             '"NodeList/nthNodalMoment.hh"',
             '"Kernel/TableKernel.hh"',
-            '"Mesh/Mesh.hh"']
+            '"Mesh/Mesh.hh"',
+            '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -46,7 +47,11 @@ NodeList1d = PYB11TemplateClass(NodeList,
                                                        "Scalar"    : "Dim<1>::Scalar",
                                                        "Vector"    : "Dim<1>::Vector",
                                                        "Tensor"    : "Dim<1>::Tensor",
-                                                       "SymTensor" : "Dim<1>::SymTensor"})
+                                                       "SymTensor" : "Dim<1>::SymTensor",
+                                                       "ScalarField": "Field<Dim<1>, Dim<1>::Scalar>",
+                                                       "VectorField": "Field<Dim<1>, Dim<1>::Vector>",
+                                                       "TensorField": "Field<Dim<1>, Dim<1>::Tensor>",
+                                                       "SymTensorField": "Field<Dim<1>, Dim<1>::SymTensor>"})
 
 # for ndim in dims:
 #     exec('''
