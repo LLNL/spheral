@@ -63,6 +63,7 @@ from NodeList import NodeList
 
 for ndim in dims:
     exec('''
-NodeListRegistrar%(ndim)id = NodeListRegistrar1d = PYB11TemplateClass(NodeListRegistrar, template_parameters=dimDictionary(%(ndim)i))
+NodeListRegistrar%(ndim)id = PYB11TemplateClass(NodeListRegistrar, template_parameters=dimDictionary(%(ndim)i))
 NodeList%(ndim)id = PYB11TemplateClass(NodeList, template_parameters = dimDictionary(%(ndim)i))
 ''' % {"ndim" : ndim})
+

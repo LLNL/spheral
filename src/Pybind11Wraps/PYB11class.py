@@ -78,9 +78,9 @@ class PYB11TemplateClass:
                 assert key in template_parameters
             self.template_parameters = template_parameters
             
-        # Build the order of instantiations
+        # Record the order of instantiations
+        self.order = PYB11TemplateClass.__order + 1
         PYB11TemplateClass.__order += 1
-        self.order = int(PYB11TemplateClass.__order)
         return
 
     def __call__(self, pyname, ss):
