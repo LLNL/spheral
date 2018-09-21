@@ -24,7 +24,7 @@ def PYB11generateModuleClasses(modobj, ss):
     # Now look for any template class instantiations.
     templates = PYB11classTemplateInsts(modobj)
     for (ktname, inst) in templates:
-        inst(ss)
+        inst(ktname, ss)
     return
 
 #-------------------------------------------------------------------------------
@@ -83,8 +83,8 @@ class PYB11TemplateClass:
         self.order = int(PYB11TemplateClass.__order)
         return
 
-    def __call__(self, ss):
-        klassattrs = self.mangleNames()
+    def __call__(self, pyname, ss):
+        klassattrs = self.mangleNames(pyname)
         if self.klass_template.__doc__:
             doc0 = copy.deepcopy(self.klass_template.__doc__)
             self.klass_template.__doc__ += self.docext
@@ -93,13 +93,13 @@ class PYB11TemplateClass:
             self.klass_template.__doc__ = doc0
         return
 
-    def makeTrampoline(self, ss):
-        klassattrs = self.mangleNames()
+    def makeTrampoline(self, pyname, ss):
+        klassattrs = self.mangleNames(pyname)
         PYB11generateTrampoline(self.klass_template, klassattrs, ss)
         return
 
     # Do some template mangling (and magically put the template parameters in scope).
-    def mangleNames(self):
+    def mangleNames(self, pyname):
         klassattrs = PYB11attrs(self.klass_template)
         template_ext = "<"
         doc_ext = ""
@@ -117,7 +117,7 @@ class PYB11TemplateClass:
         if self.pyname:
             klassattrs["pyname"] = self.pyname
         else:
-            klassattrs["pyname"] += doc_ext
+            klassattrs["pyname"] = pyname
 
         klassattrs["template_dict"] = self.template_parameters
         return klassattrs

@@ -56,19 +56,13 @@ class NodeListRegistrar:
         return "NodeListRegistrar<%(Dimension)s>&"
     instance = property(getinstance, doc="The static NodeListRegistrar<%(Dimension)s> instance.")
 
-
-NodeListRegistrar1d = PYB11TemplateClass(NodeListRegistrar, template_parameters="Dim<1>")
-
 #-------------------------------------------------------------------------------
-# NodeLists
+# Do our dimension dependent instantiations.
 #-------------------------------------------------------------------------------
 from NodeList import NodeList
-if 1 in dims:
-    NodeList1d = PYB11TemplateClass(NodeList,
-                                    template_parameters = dimDictionary(1))
-if 2 in dims:
-    NodeList2d = PYB11TemplateClass(NodeList,
-                                    template_parameters = dimDictionary(2))
-if 3 in dims:
-    NodeList3d = PYB11TemplateClass(NodeList,
-                                    template_parameters = dimDictionary(3))
+
+for ndim in dims:
+    exec('''
+NodeListRegistrar%(ndim)id = NodeListRegistrar1d = PYB11TemplateClass(NodeListRegistrar, template_parameters=dimDictionary(%(ndim)i))
+NodeList%(ndim)id = PYB11TemplateClass(NodeList, template_parameters = dimDictionary(%(ndim)i))
+''' % {"ndim" : ndim})
