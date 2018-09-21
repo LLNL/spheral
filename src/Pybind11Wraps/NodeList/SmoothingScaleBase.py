@@ -20,27 +20,23 @@ class SmoothingScaleBase:
     def pyinit(self):
         "Default constructor"
 
-    # def pyinit1(self, rhs="SmoothingScaleBase<%(Dimension)s>&"):
-    #     "Copy constructor."
-        
-    # @PYB11virtual
-    # @PYB11const
-    # def newSmoothingScaleAndDerivative(self,
-    #                                    H = "const Field<%(Dimension)s, SymTensor>&",
-    #                                    position = "const Field<%(Dimension)s, Vector>&",
-    #                                    DvDx = "const Field<%(Dimension)s, Tensor>&",
-    #                                    zerothMoment = "const Field<%(Dimension)s, Scalar>&", 
-    #                                    secondMoment = "const Field<%(Dimension)s, SymTensor>&", 
-    #                                    connectivityMap = "const ConnectivityMap<%(Dimension)s>&", 
-    #                                    W = "const TableKernel<%(Dimension)s>&", 
-    #                                    hmin = "const typename %(Dimension)s::Scalar", 
-    #                                    hmax = "const typename %(Dimension)s::Scalar", 
-    #                                    hminratio = "const typename %(Dimension)s::Scalar", 
-    #                                    nPerh = "const typename %(Dimension)s::Scalar", 
-    #                                    DHDt = "Field<%(Dimension)s, SymTensor>&", 
-    #                                    Hideal = "Field<%(Dimension)s, SymTensor>&"):
-    #     "Compute the time derivative and ideal H simultaneously for a Field of H's."
-    #     return "void"
+    @PYB11const
+    def newSmoothingScaleAndDerivative(self,
+                                       H = "const SymTensorField&",
+                                       position = "const VectorField&",
+                                       DvDx = "const TensorField&",
+                                       zerothMoment = "const ScalarField&", 
+                                       secondMoment = "const SymTensorField&", 
+                                       connectivityMap = "const ConnectivityMap<%(Dimension)s>&", 
+                                       W = "const TableKernel<%(Dimension)s>&", 
+                                       hmin = "const Scalar", 
+                                       hmax = "const Scalar", 
+                                       hminratio = "const Scalar", 
+                                       nPerh = "const Scalar", 
+                                       DHDt = "SymTensorField&", 
+                                       Hideal = "SymTensorField&"):
+        "Compute the time derivative and ideal H simultaneously for a Field of H's."
+        return "void"
     
     @PYB11pure_virtual
     @PYB11const
