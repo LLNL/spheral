@@ -52,7 +52,7 @@ def PYB11property(propname,
     if setter:
         setterattrs = PYB11attrs(setter)
         args = PYB11parseArgs(setter)
-        assert len(args) == 1
+        assert len(args) == 1, "Bad number of arguments to property %s" % propname
         if setterattrs["static"]:
             ss(', (void (%(namespace)s*)' % klassattrs)
         else:
