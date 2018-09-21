@@ -25,6 +25,7 @@ includes = ['"Geometry/Dimension.hh"',
             '"Material/EquationOfState.hh"',
             '"SolidMaterial/StrengthModel.hh"',
             '"Kernel/TableKernel.hh"',
+            '"Neighbor/ConnectivityMap.hh"',
             '"Mesh/Mesh.hh"',
             '"FileIO/FileIO.hh"']
 
@@ -64,6 +65,7 @@ class NodeListRegistrar:
 from NodeList import NodeList
 from FluidNodeList import FluidNodeList
 from SolidNodeList import SolidNodeList
+from SmoothingScaleBase import SmoothingScaleBase
 
 for ndim in (1,): # dims:
     exec('''
@@ -72,4 +74,6 @@ NodeListRegistrar%(ndim)id = PYB11TemplateClass(NodeListRegistrar, template_para
 NodeList%(ndim)id = PYB11TemplateClass(NodeList, template_parameters = dimDictionary(%(ndim)i))
 FluidNodeList%(ndim)id = PYB11TemplateClass(FluidNodeList, template_parameters = dimDictionary(%(ndim)i))
 SolidNodeList%(ndim)id = PYB11TemplateClass(SolidNodeList, template_parameters = dimDictionary(%(ndim)i))
+
+SmoothingScaleBase%(ndim)id = PYB11TemplateClass(SmoothingScaleBase, template_parameters = ("Dim<%(ndim)i>"))
 ''' % {"ndim" : ndim})
