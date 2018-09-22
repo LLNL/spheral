@@ -46,7 +46,7 @@ def PYB11generateTrampoline(klass, ssout):
     ss("""class PYB11Trampoline%(cppname)s: public %(full_cppname)s {
 public:
   using %(full_cppname)s::%(cppname)s;   // inherit constructors
-  typedef %(full_cppname)s %(mangle_cppname)s;
+  typedef %(full_cppname)s PYB11self;    // Necessary to protect macros below from names with commas in them
 
 """ % klassattrs)
 
@@ -91,10 +91,9 @@ public:
                 boundMethods.append(fms.getvalue())
 
                 if methattrs["pure_virtual"]:
-                    ms("PYBIND11_OVERLOAD_PURE(%s, " % methattrs["returnType"])
+                    ms("PYBIND11_OVERLOAD_PURE(%s, PYB11self, " % methattrs["returnType"])
                 else:
-                    ms("PYBIND11_OVERLOAD(%s, " % methattrs["returnType"])
-                ms(" %(mangle_cppname)s," % klassattrs)
+                    ms("PYBIND11_OVERLOAD(%s, PYB11self, " % methattrs["returnType"])
                 if len(args) > 0:
                     ms(" %(cppname)s, " % methattrs)
                 else:
