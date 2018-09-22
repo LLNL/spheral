@@ -35,6 +35,13 @@ includes = ['"Geometry/Dimension.hh"',
 namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
+# preamble
+#-------------------------------------------------------------------------------
+preamble = """
+typedef std::pair<NodeList<Dim<1>>*, std::string> pair_NodeList1dptr_string;
+"""
+
+#-------------------------------------------------------------------------------
 # Enums
 #-------------------------------------------------------------------------------
 NodeType = PYB11enum(("InternalNode", "GhostNode"), export_values=True,
@@ -82,4 +89,10 @@ SmoothingScaleBase%(ndim)id = PYB11TemplateClass(SmoothingScaleBase, template_pa
 FixedSmoothingScale%(ndim)id = PYB11TemplateClass(FixedSmoothingScale, template_parameters = ("Dim<%(ndim)i>"))
 SPHSmoothingScale%(ndim)id = PYB11TemplateClass(SPHSmoothingScale, template_parameters = ("Dim<%(ndim)i>"))
 ASPHSmoothingScale%(ndim)id = PYB11TemplateClass(ASPHSmoothingScale, template_parameters = ("Dim<%(ndim)i>"))
+
+vector_of_NodeList%(ndim)id = PYB11_bind_vector("NodeList<Dim<%(ndim)i>>*", opaque=True)
+vector_of_FluidNodeList%(ndim)id = PYB11_bind_vector("FluidNodeList<Dim<%(ndim)i>>*", opaque=True)
+vector_of_SolidNodeList%(ndim)id = PYB11_bind_vector("SolidNodeList<Dim<%(ndim)i>>*", opaque=True)
+
+vector_of_pair_NodeList%(ndim)id_string = PYB11_bind_vector("pair_NodeList%(ndim)idptr_string", opaque=True)
 ''' % {"ndim" : ndim})
