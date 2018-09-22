@@ -187,11 +187,11 @@ class NodeList:
     @PYB11const
     def getnodesPerSmoothingScale(self):
         "Return the target number of nodes per smoothing scale"
-        return "%(Scalar)s"
+        return "Scalar"
 
     @PYB11cppname("nodesPerSmoothingScale")
     @PYB11ignore
-    def setnodesPerSmoothingScale(self, val="const %(Scalar)s"):
+    def setnodesPerSmoothingScale(self, val="const Scalar"):
         "Set the target number of nodes per smoothing scale"
         return "void"
 

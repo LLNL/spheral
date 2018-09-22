@@ -37,9 +37,9 @@ namespaces = ["Spheral"]
 #-------------------------------------------------------------------------------
 # preamble
 #-------------------------------------------------------------------------------
-preamble = """
-typedef std::pair<NodeList<Dim<1>>*, std::string> pair_NodeList1dptr_string;
-"""
+preamble = ""
+for ndim in dims:
+    preamble += "typedef std::pair<NodeList<Dim<%(ndim)i>>*, std::string> pair_NodeList%(ndim)idptr_string;\n" % {"ndim": ndim}
 
 #-------------------------------------------------------------------------------
 # Enums
@@ -77,18 +77,18 @@ from FixedSmoothingScale import FixedSmoothingScale
 from SPHSmoothingScale import SPHSmoothingScale
 from ASPHSmoothingScale import ASPHSmoothingScale
 
-for ndim in (1,): # dims:
+for ndim in dims:
     exec('''
-NodeListRegistrar%(ndim)id = PYB11TemplateClass(NodeListRegistrar, template_parameters=dimDictionary(%(ndim)i))
+NodeListRegistrar%(ndim)id = PYB11TemplateClass(NodeListRegistrar, template_parameters="Dim<%(ndim)i>")
 
-NodeList%(ndim)id = PYB11TemplateClass(NodeList, template_parameters = dimDictionary(%(ndim)i))
-FluidNodeList%(ndim)id = PYB11TemplateClass(FluidNodeList, template_parameters = dimDictionary(%(ndim)i))
-SolidNodeList%(ndim)id = PYB11TemplateClass(SolidNodeList, template_parameters = dimDictionary(%(ndim)i))
+NodeList%(ndim)id = PYB11TemplateClass(NodeList, template_parameters="Dim<%(ndim)i>")
+FluidNodeList%(ndim)id = PYB11TemplateClass(FluidNodeList, template_parameters="Dim<%(ndim)i>")
+SolidNodeList%(ndim)id = PYB11TemplateClass(SolidNodeList, template_parameters="Dim<%(ndim)i>")
 
-SmoothingScaleBase%(ndim)id = PYB11TemplateClass(SmoothingScaleBase, template_parameters = ("Dim<%(ndim)i>"))
-FixedSmoothingScale%(ndim)id = PYB11TemplateClass(FixedSmoothingScale, template_parameters = ("Dim<%(ndim)i>"))
-SPHSmoothingScale%(ndim)id = PYB11TemplateClass(SPHSmoothingScale, template_parameters = ("Dim<%(ndim)i>"))
-ASPHSmoothingScale%(ndim)id = PYB11TemplateClass(ASPHSmoothingScale, template_parameters = ("Dim<%(ndim)i>"))
+SmoothingScaleBase%(ndim)id = PYB11TemplateClass(SmoothingScaleBase, template_parameters="Dim<%(ndim)i>")
+FixedSmoothingScale%(ndim)id = PYB11TemplateClass(FixedSmoothingScale, template_parameters="Dim<%(ndim)i>")
+SPHSmoothingScale%(ndim)id = PYB11TemplateClass(SPHSmoothingScale, template_parameters="Dim<%(ndim)i>")
+ASPHSmoothingScale%(ndim)id = PYB11TemplateClass(ASPHSmoothingScale, template_parameters="Dim<%(ndim)i>")
 
 vector_of_NodeList%(ndim)id = PYB11_bind_vector("NodeList<Dim<%(ndim)i>>*", opaque=True)
 vector_of_FluidNodeList%(ndim)id = PYB11_bind_vector("FluidNodeList<Dim<%(ndim)i>>*", opaque=True)
