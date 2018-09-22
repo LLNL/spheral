@@ -1,10 +1,11 @@
 from PYB11Generator import *
+from FieldBase import FieldBase
 
 #-------------------------------------------------------------------------------
 # Field
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "Value")
-class Field:
+class Field(FieldBase):
 
     typedefs="""
 typedef Field<%(Dimension)s, %(Value)s> FieldType;
@@ -25,9 +26,78 @@ typedef Field<%(Dimension)s, %(Value)s> FieldType;
                 val = "%(Value)s"):
         "Construct with a name, NodeList, and initial value"
 
-    # def pyinit4(self, rhs="const FieldType&"):
+    # def pyinit4(self, rhs="const PYB11TrampolineField<%(Dimension)s, %(Value)s>&"):
     #     "Copy constructor"
 
+    #...........................................................................
+    # Comparators
+    def __eq__(self):
+        return
+
+    def __ne__(self):
+        return
+
+    def __gt__(self):
+        return
+
+    def __lt__(self):
+        return
+
+    def __ge__(self):
+        return "bool"
+
+    def __le__(self):
+        return "bool"
+
+    def __eq__(self, rhs="%(Value)s()"):
+        "Equivalence comparision with a %(Value)s"
+        return "bool"
+
+    def __ne__(self, rhs="%(Value)s()"):
+        "Not equal comparision with a %(Value)s"
+        return "bool"
+
+    def __gt__(self, rhs="%(Value)s()"):
+        "Greater than comparision with a %(Value)s"
+        return "bool"
+
+    def __lt__(self, rhs="%(Value)s()"):
+        "Less than comparision with a %(Value)s"
+        return "bool"
+
+    def __ge__(self, rhs="%(Value)s()"):
+        "Greater than or equal comparision with a %(Value)s"
+        return "bool"
+
+    def __le__(self, rhs="%(Value)s()"):
+        "Less than or equal comparision with a %(Value)s"
+        return "bool"
+
+    #...........................................................................
+    # Sequence methods
+    @PYB11cppname("size")
+    @PYB11const
+    def __len__(self):
+        return "unsigned"
+
+    @PYB11cppname("operator[]")
+    def __getitem__(self, index="unsigned"):
+        return "%(Value)s&"
+
+    @PYB11implementation("[](FieldType& self, size_t i, const %(Value)s v) { if (i >= self.size()) throw py::index_error(); self[i] = v; }") 
+    def __setitem__(self):
+        "Set a value"
+
+    @PYB11implementation("[](const FieldType& self) { return py::make_iterator(self.begin(), self.end()); }")
+    def __iter__(self):
+        "Python iteration through a Field."
+
+    def __call__(self, i="int"):
+        "Index into a Field"
+        return "%(Value)s&"
+
+    #...........................................................................
+    # FieldBase virtual methods
     @PYB11virtual
     @PYB11const
     def size(self):
@@ -82,3 +152,77 @@ typedef Field<%(Dimension)s, %(Value)s> FieldType;
                      buffer = "const std::vector<char>&"):
         "Deserialize values from the given buffer"
         return "void"
+
+    #...........................................................................
+    # Methods
+    def applyMin(self):
+        "Enforce a floor on the values of the Field."
+        return
+
+    def applyMax(self):
+        "Enforce a ceiling on the values of the Field."
+        return
+
+    def applyScalarMin(self):
+        "Enforce a float floor on the values of the Field."
+        return
+
+    def applyScalarMax(self):
+        "Enforce a float ceiling on the values of the Field."
+        return
+
+    @PYB11const
+    def sumElements(self):
+        "Return the sum of the elements in the Field."
+        return
+
+    @PYB11const
+    def min(self):
+        "Return the mimimum value in the Field."
+        return
+
+    @PYB11const
+    def max(self):
+        "Return the maximum value in the Field."
+        return
+
+    @PYB11const
+    def localSumElements(self):
+        "Return the sum of the elements in the Field local to each processor."
+        return
+
+    @PYB11const
+    def localMin(self):
+        "Return the mimimum value in the Field local to each processor."
+        return
+
+    @PYB11const
+    def localMax(self):
+        "Return the maximum value in the Field local to each processor."
+        return
+
+    @PYB11const
+    def string(self, precision=("const int", "20")):
+        "Serialize to a string"
+        return "std::string"
+
+    def string(self, s="const std::string&"):
+        "Deserialize from a string"
+        return "void"
+
+    #...........................................................................
+    # Properties
+    @PYB11pycppname("numElements")
+    @PYB11ignore
+    @PYB11const
+    def getnumElements(self):
+        return "unsigned"
+
+    @PYB11pycppname("numInternalElements")
+    @PYB11ignore
+    @PYB11const
+    def getnumInternalElements(self):
+        return "unsigned"
+
+    numElements = property(getnumElements, doc="Number of elements in field")
+    numInternalElements = property(getnumInternalElements, doc="Number of elements in field")
