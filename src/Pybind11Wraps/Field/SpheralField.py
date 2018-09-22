@@ -41,6 +41,7 @@ FieldStorageType = PYB11enum(("ReferenceFields", "CopyFields"), export_values=Tr
 # Do our dimension dependent instantiations.
 #-------------------------------------------------------------------------------
 from FieldBase import FieldBase
+from Field import Field
 
 for ndim in (1,): #dims:
     exec('''

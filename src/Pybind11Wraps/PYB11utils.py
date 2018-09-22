@@ -95,13 +95,15 @@ def PYB11virtualClass(klass):
 # Return the C++ template <...> description, and a mangled string thereof.
 #-------------------------------------------------------------------------------
 def PYB11mangle(templateargs):
-    tt = "<"
-    for i, arg in enumerate(templateargs):
-        if i < len(templateargs) - 1:
-            tt += "%s, " % arg
-        else:
-            tt += "%s>" % arg
-    mt = tt.replace("<", "__").replace(">", "__").replace("::", "_").replace(", ", "_")
+    tt, mt = "", ""
+    if templateargs:
+        tt = "<"
+        for i, arg in enumerate(templateargs):
+            if i < len(templateargs) - 1:
+                tt += "%s," % arg
+            else:
+                tt += "%s>" % arg
+        mt = tt.replace("<", "__").replace(">", "__").replace("::", "_").replace(", ", "_").replace(",", "_")
     return tt, mt
 
 #-------------------------------------------------------------------------------
@@ -146,4 +148,7 @@ def PYB11attrs(obj):
     for key in d:
         if hasattr(obj, "PYB11" + key):
             d[key] = eval("obj.PYB11%s" % key)
+    safeexts= PYB11mangle(d["template"])
+    d["full_cppname"] = d["cppname"] + safeexts[0]
+    d["mangle_cppname"] = d["cppname"] + safeexts[1]
     return d

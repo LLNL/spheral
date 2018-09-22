@@ -14,14 +14,8 @@ from PYB11utils import *
 #-------------------------------------------------------------------------------
 def PYB11generateTrampoline(klass, ssout):
 
-    # Check if this is a templated class definition
     klassattrs = PYB11attrs(klass)
     template_klass = len(klassattrs["template"]) > 0
-    klassattrs["full_cppname"], klassattrs["mangle_cppname"] = klassattrs["cppname"], klassattrs["cppname"]
-    if template_klass:
-        stuff = PYB11mangle(klassattrs["template"])
-        klassattrs["full_cppname"] += stuff[0]
-        klassattrs["mangle_cppname"] += stuff[1]
 
     # Prepare in case there are templates lurking in here.
     fs = StringIO.StringIO()
@@ -52,6 +46,7 @@ def PYB11generateTrampoline(klass, ssout):
     ss("""class PYB11Trampoline%(cppname)s: public %(full_cppname)s {
 public:
   using %(full_cppname)s::%(cppname)s;   // inherit constructors
+  typedef %(full_cppname)s %(mangle_cppname)s;
 
 """ % klassattrs)
 
@@ -99,7 +94,7 @@ public:
                     ms("PYBIND11_OVERLOAD_PURE(%s, " % methattrs["returnType"])
                 else:
                     ms("PYBIND11_OVERLOAD(%s, " % methattrs["returnType"])
-                ms(" %(namespace)s%(full_cppname)s," % klassattrs)
+                ms(" %(mangle_cppname)s," % klassattrs)
                 if len(args) > 0:
                     ms(" %(cppname)s, " % methattrs)
                 else:
