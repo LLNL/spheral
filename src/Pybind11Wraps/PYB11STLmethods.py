@@ -20,14 +20,7 @@ class PYB11_bind_vector:
 
     def preamble(self, modobj, ss, name):
         if self.opaque:
-            if "," in self.element:
-                ss('''{
-  typedef %(element)s %(safe_element)s; 
-  PYBIND11_MAKE_OPAQUE(std::vector<%(safe_element)s>);
-}\n''' % {"element": self.element,
-          "safe_element" : PYB11mangle(self.element)})
-            else:
-                ss('PYBIND11_MAKE_OPAQUE(std::vector<' + self.element + '>);\n')
+            ss('PYBIND11_MAKE_OPAQUE(std::vector<' + PYB11CPPsafe(self.element) + '>);\n')
         return
 
     def __call__(self, modobj, ss, name):
@@ -50,14 +43,8 @@ class PYB11_bind_map:
 
     def preamble(self, modobj, ss, name):
         if self.opaque:
-            cppname = "std::map<" + self.key + ", " + self.value + ">"
-            manglename = PYB11mangle(cppname)
-            ss('''{
-  typedef %(cppname)s %(manglename)s;
-  PYBIND11_MAKE_OPAQUE(%(manglename)s);
-}
-''' % {"cppname" : cppname,
-       "manglename" : manglename})
+            cppname = "std::map<" + self.key + "," + self.value + ">"
+            ss("PYBIND11_MAKE_OPAQUE(" + PYB11CPPsafe(cppname) + ");\n")
         return
 
     def __call__(self, modobj, ss, name):

@@ -99,6 +99,14 @@ def PYB11mangle(name):
     return result
 
 #-------------------------------------------------------------------------------
+# PYB11CPPsafe
+#
+# Mangle a string to make commas safe for CPP directives.
+#-------------------------------------------------------------------------------
+def PYB11CPPsafe(string):
+    return string.replace(",", " PYB11COMMA ")
+
+#-------------------------------------------------------------------------------
 # PYB11cppname_exts
 #
 # Return the C++ template <...> description, and a mangled string thereof.
