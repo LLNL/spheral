@@ -6,13 +6,13 @@ Provides access to fundamental C++ types from python that are not Spheral specif
 
 from PYB11Generator import *
 
-preamble = """
-typedef std::pair<double, double> pair_double_double;
-typedef std::pair<double, std::string> pair_double_string;
-typedef std::pair<unsigned, unsigned> pair_unsigned_unsigned;
-typedef std::pair<uint64_t, uint64_t> pair_ULL_ULL;
-typedef std::pair<std::string, std::string> pair_string_string;
-"""
+# preamble = """
+# typedef std::pair<double, double> pair_double_double;
+# typedef std::pair<double, std::string> pair_double_string;
+# typedef std::pair<unsigned, unsigned> pair_unsigned_unsigned;
+# typedef std::pair<uint64_t, uint64_t> pair_ULL_ULL;
+# typedef std::pair<std::string, std::string> pair_string_string;
+# """
 
 # Include files.
 includes = ["<vector>",
@@ -39,11 +39,11 @@ vector_of_vector_of_double   = PYB11_bind_vector("std::vector<double>", opaque=T
 vector_of_vector_of_string   = PYB11_bind_vector("std::vector<std::string>", opaque=True)
 
 # std::vector<pair<>>
-vector_of_pair_double_double     = PYB11_bind_vector("pair_double_double", opaque=True)
-vector_of_pair_double_string     = PYB11_bind_vector("pair_double_string", opaque=True)
-vector_of_pair_unsigned_unsigned = PYB11_bind_vector("pair_unsigned_unsigned", opaque=True)
-vector_of_pair_ULL_ULL           = PYB11_bind_vector("pair_ULL_ULL", opaque=True)
-vector_of_pair_string_string     = PYB11_bind_vector("pair_string_string", opaque=True)
+vector_of_pair_double_double     = PYB11_bind_vector("pair<double,_double>", opaque=True)
+# vector_of_pair_double_string     = PYB11_bind_vector("pair_double_string", opaque=True)
+# vector_of_pair_unsigned_unsigned = PYB11_bind_vector("pair_unsigned_unsigned", opaque=True)
+# vector_of_pair_ULL_ULL           = PYB11_bind_vector("pair_ULL_ULL", opaque=True)
+# vector_of_pair_string_string     = PYB11_bind_vector("pair_string_string", opaque=True)
 
 # std::map
 map_string_double = PYB11_bind_map("std::string", "double", opaque=True)

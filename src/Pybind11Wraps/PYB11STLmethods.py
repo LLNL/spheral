@@ -4,6 +4,7 @@
 # Thin wrappers to generate the pybind11 STL functions.
 #-------------------------------------------------------------------------------
 import inspect
+from PYB11utils import *
 
 #-------------------------------------------------------------------------------
 # std::vector
@@ -19,7 +20,14 @@ class PYB11_bind_vector:
 
     def preamble(self, modobj, ss, name):
         if self.opaque:
-            ss('PYBIND11_MAKE_OPAQUE(std::vector<' + self.element + '>);\n')
+            if "," in self.element:
+                ss('''{
+  typedef %(element)s %(safe_element)s; 
+  PYBIND11_MAKE_OPAQUE(std::vector<%(safe_element)s>);
+}\n''' % {"element": self.element,
+          "safe_element" : PYB11mangle(self.element)})
+            else:
+                ss('PYBIND11_MAKE_OPAQUE(std::vector<' + self.element + '>);\n')
         return
 
     def __call__(self, modobj, ss, name):
@@ -42,13 +50,14 @@ class PYB11_bind_map:
 
     def preamble(self, modobj, ss, name):
         if self.opaque:
-            mangle_key = self.key.replace("::", "_")
-            mangle_val = self.value.replace("::", "_")
-            ttype = 'map_' + mangle_key + '_' + mangle_val
-            ss('''
-typedef std::map<%(key)s, %(value)s> %(ttype)s;
-PYBIND11_MAKE_OPAQUE(%(ttype)s);
-''' % {"key": self.key, "value": self.value, "ttype": ttype})
+            cppname = "std::map<" + self.key + ", " + self.value + ">"
+            manglename = PYB11mangle(cppname)
+            ss('''{
+  typedef %(cppname)s %(manglename)s;
+  PYBIND11_MAKE_OPAQUE(%(manglename)s);
+}
+''' % {"cppname" : cppname,
+       "manglename" : manglename})
         return
 
     def __call__(self, modobj, ss, name):

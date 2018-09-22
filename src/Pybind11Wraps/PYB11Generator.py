@@ -62,6 +62,7 @@ def PYB11generateModuleStart(modobj, ss, name):
 namespace py = pybind11;
 using namespace pybind11::literals;
 
+#define PYB11COMMA ,
 """ % {"name" : name})
 
     # Includes
