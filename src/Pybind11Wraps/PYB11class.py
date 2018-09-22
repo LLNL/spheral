@@ -323,8 +323,8 @@ def PYB11generateClass(klass, klassattrs, ssout):
   {
 """ % klassattrs)
     # If the class has specified any typedefs, do them.
-    if hasattr(klass, "PYB11typedefs"):
-        ss(klass.PYB11typedefs + "\n")
+    if hasattr(klass, "typedefs"):
+        ss(klass.typedefs + "\n")
 
     ss("    py::class_<%(namespace)s%(cppname)s" % klassattrs)
 

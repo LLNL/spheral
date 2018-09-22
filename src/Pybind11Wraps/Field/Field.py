@@ -25,8 +25,8 @@ typedef Field<%(Dimension)s, %(Value)s> FieldType;
                 val = "%(Value)s"):
         "Construct with a name, NodeList, and initial value"
 
-    def pyinit4(self, nodeList="const FieldType&"):
-        "Copy constructor"
+    # def pyinit4(self, rhs="const FieldType&"):
+    #     "Copy constructor"
 
     @PYB11virtual
     @PYB11const

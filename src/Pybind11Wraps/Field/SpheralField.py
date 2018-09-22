@@ -47,3 +47,10 @@ for ndim in (1,): #dims:
     exec('''
 FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
+
+    for (value, label) in (("double", "Scalar"), ):
+        exec('''
+Field%(label)s%(ndim)sd = PYB11TemplateClass(Field, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
+''' % {"ndim" : ndim,
+       "value" : value,
+       "label" : label})
