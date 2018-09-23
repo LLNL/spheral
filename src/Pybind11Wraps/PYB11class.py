@@ -329,16 +329,21 @@ def PYB11generateClass(klass, klassattrs, ssout):
     ss("    py::class_<%(namespace)s%(cppname)s" % klassattrs)
 
     # Check for base classes.
-    for bklass in inspect.getmro(klass)[1:2]:
+    cppname = "%(namespace)s%(cppname)s" % klassattrs
+    for bklass in inspect.getmro(klass)[1:]:
         bklassattrs = PYB11attrs(bklass)
-        ss(", %(namespace)s%(cppname)s" % bklassattrs)
+        bcppname = "%(namespace)s%(cppname)s" % bklassattrs
         if bklassattrs["template"]:
-            ss("<")
+            bcppname += "<"
             for i, t in enumerate(bklassattrs["template"]):
                 if i < len(bklassattrs["template"]) - 1:
-                    ss("%(" + t + ")s, ")
+                    bcppname += ("%(" + t + ")s, ")
                 else:
-                    ss("%(" + t + ")s>")
+                    bcppname += ("%(" + t + ")s>")
+            bcppname = bcppname % klassattrs["template_dict"]
+        if bcppname != cppname:
+            ss(", " + bcppname)
+            break
 
     # Any trampoline?
     if PYB11virtualClass(klass):

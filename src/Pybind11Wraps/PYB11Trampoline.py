@@ -17,6 +17,13 @@ def PYB11generateTrampoline(klass, ssout):
     klassattrs = PYB11attrs(klass)
     template_klass = len(klassattrs["template"]) > 0
 
+    # This is a bit of trickery to let us use inheritance without regenerating trampolines
+    if"__known_trampolines" not in PYB11generateTrampoline.__dict__:
+        PYB11generateTrampoline.__known_trampolines = []
+    if klassattrs["pyname"] in PYB11generateTrampoline.__known_trampolines:
+        return
+    PYB11generateTrampoline.__known_trampolines.append(klassattrs["pyname"])
+
     # Prepare in case there are templates lurking in here.
     fs = StringIO.StringIO()
     ss = fs.write
@@ -123,4 +130,3 @@ public:
     ssout(fs.getvalue() % Tdict)
 
     return
-

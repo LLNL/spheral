@@ -201,10 +201,11 @@ typedef Field<%(Dimension)s, %(Value)s> FieldType;
     numInternalElements = property(getnumInternalElements, doc="Number of elements in field")
 
 #-------------------------------------------------------------------------------
-# Add arithmetic operations to a Field
+# Add numeric operations to a Field
 #-------------------------------------------------------------------------------
-@PYB11ignore
-def addFieldArithmeticOperations(cls):
+@PYB11template("Dimension", "Value")
+@PYB11pycppname("Field")
+class ArithmeticField(Field):
 
     def __add__(self):
         return
@@ -222,14 +223,15 @@ def addFieldArithmeticOperations(cls):
         "Return the sum of the elements in the Field local to each processor."
         return
 
-    for name in [x for x in dir() if inspect.isfunction(eval(x))]:
-        exec("cls.%s = %s" % (name, name))
+    # for name in [x for x in dir() if inspect.isfunction(eval(x))]:
+    #     exec("cls.%s = %s" % (name, name))
 
 #-------------------------------------------------------------------------------
 # Add min/max operations to a Field
 #-------------------------------------------------------------------------------
-@PYB11ignore
-def addFieldMinMaxOperations(cls):
+@PYB11template("Dimension", "Value")
+@PYB11pycppname("Field")
+class MinMaxField(ArithmeticField):
 
     def applyMin(self):
         "Enforce a floor on the values of the Field."
@@ -267,5 +269,5 @@ def addFieldMinMaxOperations(cls):
         "Return the maximum value in the Field local to each processor."
         return
 
-    for name in [x for x in dir() if inspect.isfunction(eval(x))]:
-        exec("cls.%s = %s" % (name, name))
+    # for name in [x for x in dir() if inspect.isfunction(eval(x))]:
+    #     exec("cls.%s = %s" % (name, name))

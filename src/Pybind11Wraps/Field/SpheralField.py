@@ -7,6 +7,7 @@ Provides the Field classes.
 from PYB11Generator import *
 from spheralDimensions import *
 dims = spheralDimensions()
+import copy
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -43,39 +44,43 @@ FieldStorageType = PYB11enum(("ReferenceFields", "CopyFields"), export_values=Tr
 from FieldBase import *
 from Field import *
 
+# ArithmeticField = copy.deepcopy(Field)
+# addFieldArithmeticOperations(ArithmeticField)
+# ArithmeticField.PYB11cppname = ArithmeticField.PYB11pyname = "Field"
+
+# NumericField = copy.deepcopy(Field)
+# addFieldArithmeticOperations(NumericField)
+# addFieldMinMaxOperations(Field)
+# NumericField.PYB11cppname = NumericField.PYB11pyname = "Field"
+
 for ndim in (1,): #dims:
     exec('''
 FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
 
-    # Arithmetic fields
+    # First the non-numeric type fields.
+    for (value, label) in (("std::vector<double>", "VectorDouble"),):
+        exec('''
+%(label)sField%(ndim)sd = PYB11TemplateClass(Field, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
+''' % {"ndim" : ndim,
+       "value" : value,
+       "label" : label})
+
+# Arithmetic only fields
+for ndim in (1,): #dims:
+    for (value, label) in (("Dim<%i>::Vector" % ndim, "Vector"),):
+        exec('''
+%(label)sField%(ndim)sd = PYB11TemplateClass(ArithmeticField, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
+''' % {"ndim" : ndim,
+       "value" : value,
+       "label" : label})
+
+# Fully numeric fields
+for ndim in (1,): #dims:
     for (value, label) in (("double", "Scalar"),
                            ("int", "Int")):
         exec('''
-addFieldArithmeticOperations(Field)
-addFieldMinMaxOperations(Field)
-%(label)sField%(ndim)sd = PYB11TemplateClass(Field, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
-''' % {"ndim" : ndim,
-       "value" : value,
-       "label" : label})
-
-    # Arithmetic only fields
-    for (value, label) in (("Dim<%i>::Vector" % ndim, "Vector"),):
-        exec('''
-Field = None
-from Field import Field
-addFieldArithmeticOperations(Field)
-%(label)sField%(ndim)sd = PYB11TemplateClass(Field, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
-''' % {"ndim" : ndim,
-       "value" : value,
-       "label" : label})
-
-    # Non-numeric fields
-    for (value, label) in (("std::vector<double>", "VectorDouble"),):
-        exec('''
-Field = None
-from Field import Field
-%(label)sField%(ndim)sd = PYB11TemplateClass(Field, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
+%(label)sField%(ndim)sd = PYB11TemplateClass(MinMaxField, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 ''' % {"ndim" : ndim,
        "value" : value,
        "label" : label})
