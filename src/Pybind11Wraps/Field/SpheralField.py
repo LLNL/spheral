@@ -43,6 +43,7 @@ FieldStorageType = PYB11enum(("ReferenceFields", "CopyFields"), export_values=Tr
 #-------------------------------------------------------------------------------
 from FieldBase import *
 from Field import *
+from FieldList import *
 
 for ndim in (1,): #dims:
 
@@ -53,7 +54,7 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
 ''' % {"ndim" : ndim})
 
     #...........................................................................
-    # non-numeric type fields.
+    # non-numeric types
     for (value, label) in (("Dim<%i>::FacetedVolume" % ndim,       "FacetedVolume"), 
                            ("std::vector<double>",                 "VectorDouble"),
                            ("std::vector<Dim<%i>::Vector>" % ndim, "VectorVector"),
@@ -61,6 +62,7 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
                            ("std::vector<Dim<%i>::Tensor>" % ndim, "VectorSymTensor")):
         exec('''
 %(label)sField%(ndim)sd = PYB11TemplateClass(Field, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
+%(label)sFieldList%(ndim)sd = PYB11TemplateClass(FieldList, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 ''' % {"ndim" : ndim,
        "value" : value,
        "label" : label})

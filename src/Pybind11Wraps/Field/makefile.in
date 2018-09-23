@@ -8,6 +8,9 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = Field
 PKGDIR = $(PKGNAME)/
+PYB11SRCS = \
+	Field.py \
+	FieldList.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------

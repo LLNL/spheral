@@ -143,3 +143,13 @@ class PYB11implementation:
         thing.PYB11implementation = self.val
         return thing
 
+#-------------------------------------------------------------------------------
+# returnpolicy
+#-------------------------------------------------------------------------------
+class PYB11returnpolicy:
+    def __init__(self, x):
+        self.val = x
+        return
+    def __call__(self, thing):
+        thing.PYB11returnpolicy = self.val
+        return thing

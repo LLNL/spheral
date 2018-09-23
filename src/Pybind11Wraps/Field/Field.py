@@ -46,21 +46,6 @@ typedef Field<%(Dimension)s, %(Value)s> FieldType;
         "Not equal comparision with a %(Value)s"
         return "bool"
 
-    @PYB11const
-    def internalValues(self):
-        "Return a vector<%(Value)s> of just the internal values"
-        return "std::vector<%(Value)s>"
-
-    @PYB11const
-    def ghostValues(self):
-        "Return a vector<%(Value)s> of just the ghost values"
-        return "std::vector<%(Value)s>"
-
-    @PYB11const
-    def allValues(self):
-        "Return a vector<%(Value)s> of all values"
-        return "std::vector<%(Value)s>"
-
     #...........................................................................
     # Sequence methods
     @PYB11cppname("size")
@@ -151,6 +136,21 @@ typedef Field<%(Dimension)s, %(Value)s> FieldType;
     def string(self, s="const std::string&"):
         "Deserialize from a string"
         return "void"
+
+    @PYB11const
+    def internalValues(self):
+        "Return a vector<%(Value)s> of just the internal values"
+        return "std::vector<%(Value)s>"
+
+    @PYB11const
+    def ghostValues(self):
+        "Return a vector<%(Value)s> of just the ghost values"
+        return "std::vector<%(Value)s>"
+
+    @PYB11const
+    def allValues(self):
+        "Return a vector<%(Value)s> of all values"
+        return "std::vector<%(Value)s>"
 
     #...........................................................................
     # operators
