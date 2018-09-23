@@ -38,40 +38,12 @@ typedef Field<%(Dimension)s, %(Value)s> FieldType;
     def __ne__(self):
         return
 
-    def __gt__(self):
-        return
-
-    def __lt__(self):
-        return
-
-    def __ge__(self):
-        return "bool"
-
-    def __le__(self):
-        return "bool"
-
     def __eq__(self, rhs="%(Value)s()"):
         "Equivalence comparision with a %(Value)s"
         return "bool"
 
     def __ne__(self, rhs="%(Value)s()"):
         "Not equal comparision with a %(Value)s"
-        return "bool"
-
-    def __gt__(self, rhs="%(Value)s()"):
-        "Greater than comparision with a %(Value)s"
-        return "bool"
-
-    def __lt__(self, rhs="%(Value)s()"):
-        "Less than comparision with a %(Value)s"
-        return "bool"
-
-    def __ge__(self, rhs="%(Value)s()"):
-        "Greater than or equal comparision with a %(Value)s"
-        return "bool"
-
-    def __le__(self, rhs="%(Value)s()"):
-        "Less than or equal comparision with a %(Value)s"
         return "bool"
 
     @PYB11const
@@ -223,8 +195,35 @@ class ArithmeticField(Field):
         "Return the sum of the elements in the Field local to each processor."
         return
 
-    # for name in [x for x in dir() if inspect.isfunction(eval(x))]:
-    #     exec("cls.%s = %s" % (name, name))
+    #...........................................................................
+    # Comparators
+    def __gt__(self):
+        return
+
+    def __lt__(self):
+        return
+
+    def __ge__(self):
+        return "bool"
+
+    def __le__(self):
+        return "bool"
+
+    def __gt__(self, rhs="%(Value)s()"):
+        "Greater than comparision with a %(Value)s"
+        return "bool"
+
+    def __lt__(self, rhs="%(Value)s()"):
+        "Less than comparision with a %(Value)s"
+        return "bool"
+
+    def __ge__(self, rhs="%(Value)s()"):
+        "Greater than or equal comparision with a %(Value)s"
+        return "bool"
+
+    def __le__(self, rhs="%(Value)s()"):
+        "Less than or equal comparision with a %(Value)s"
+        return "bool"
 
 #-------------------------------------------------------------------------------
 # Add min/max operations to a Field
