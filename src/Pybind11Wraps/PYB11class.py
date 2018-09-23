@@ -164,6 +164,11 @@ def PYB11generateClass(klass, klassattrs, ssout):
                 ss((") const) &%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
             else:
                 ss((")) &%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+
+        # Is there a return value policy?
+        if methattrs["returnpolicy"]:
+            ss(", py::return_value_policy::%s" % methattrs["returnpolicy"])
+
         doc = inspect.getdoc(meth)
         if doc:
             ss(',\n            "%s"' % doc)

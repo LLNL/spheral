@@ -160,6 +160,7 @@ def PYB11attrs(obj):
          "readwrite"      : False,          # Attribute
          "readonly"       : False,          # Attribute
          "implementation" : None,
+         "returnpolicy"   : None,
          "template"       : (),
          "template_dict"  : {}}
     for key in d:

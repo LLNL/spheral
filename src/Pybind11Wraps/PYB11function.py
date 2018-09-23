@@ -133,6 +133,10 @@ def PYB11generateFunction(meth, methattrs, ssout):
     else:
         ss("&%(namespace)s%(cppname)s" % methattrs)
 
+    # Is there a return value policy?
+    if methattrs["returnpolicy"]:
+        ss(", py::return_value_policy::%s" % methattrs["returnpolicy"])
+
     # Write the doc string
     if inspect.getdoc(meth):
         doc = inspect.getdoc(meth)
