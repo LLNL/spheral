@@ -1,3 +1,4 @@
+import inspect
 from PYB11Generator import *
 from FieldBase import FieldBase
 
@@ -72,6 +73,21 @@ typedef Field<%(Dimension)s, %(Value)s> FieldType;
     def __le__(self, rhs="%(Value)s()"):
         "Less than or equal comparision with a %(Value)s"
         return "bool"
+
+    @PYB11const
+    def internalValues(self):
+        "Return a vector<%(Value)s> of just the internal values"
+        return "std::vector<%(Value)s>"
+
+    @PYB11const
+    def ghostValues(self):
+        "Return a vector<%(Value)s> of just the ghost values"
+        return "std::vector<%(Value)s>"
+
+    @PYB11const
+    def allValues(self):
+        "Return a vector<%(Value)s> of all values"
+        return "std::vector<%(Value)s>"
 
     #...........................................................................
     # Sequence methods
@@ -155,52 +171,6 @@ typedef Field<%(Dimension)s, %(Value)s> FieldType;
 
     #...........................................................................
     # Methods
-    def applyMin(self):
-        "Enforce a floor on the values of the Field."
-        return
-
-    def applyMax(self):
-        "Enforce a ceiling on the values of the Field."
-        return
-
-    def applyScalarMin(self):
-        "Enforce a float floor on the values of the Field."
-        return
-
-    def applyScalarMax(self):
-        "Enforce a float ceiling on the values of the Field."
-        return
-
-    @PYB11const
-    def sumElements(self):
-        "Return the sum of the elements in the Field."
-        return
-
-    @PYB11const
-    def min(self):
-        "Return the mimimum value in the Field."
-        return
-
-    @PYB11const
-    def max(self):
-        "Return the maximum value in the Field."
-        return
-
-    @PYB11const
-    def localSumElements(self):
-        "Return the sum of the elements in the Field local to each processor."
-        return
-
-    @PYB11const
-    def localMin(self):
-        "Return the mimimum value in the Field local to each processor."
-        return
-
-    @PYB11const
-    def localMax(self):
-        "Return the maximum value in the Field local to each processor."
-        return
-
     @PYB11const
     def string(self, precision=("const int", "20")):
         "Serialize to a string"
@@ -209,6 +179,9 @@ typedef Field<%(Dimension)s, %(Value)s> FieldType;
     def string(self, s="const std::string&"):
         "Deserialize from a string"
         return "void"
+
+    #...........................................................................
+    # operators
 
     #...........................................................................
     # Properties
@@ -226,3 +199,73 @@ typedef Field<%(Dimension)s, %(Value)s> FieldType;
 
     numElements = property(getnumElements, doc="Number of elements in field")
     numInternalElements = property(getnumInternalElements, doc="Number of elements in field")
+
+#-------------------------------------------------------------------------------
+# Add arithmetic operations to a Field
+#-------------------------------------------------------------------------------
+@PYB11ignore
+def addFieldArithmeticOperations(cls):
+
+    def __add__(self):
+        return
+
+    def __sub__(self):
+        return
+
+    @PYB11const
+    def sumElements(self):
+        "Return the sum of the elements in the Field."
+        return
+
+    @PYB11const
+    def localSumElements(self):
+        "Return the sum of the elements in the Field local to each processor."
+        return
+
+    for name in [x for x in dir() if inspect.isfunction(eval(x))]:
+        exec("cls.%s = %s" % (name, name))
+
+#-------------------------------------------------------------------------------
+# Add min/max operations to a Field
+#-------------------------------------------------------------------------------
+@PYB11ignore
+def addFieldMinMaxOperations(cls):
+
+    def applyMin(self):
+        "Enforce a floor on the values of the Field."
+        return
+
+    def applyMax(self):
+        "Enforce a ceiling on the values of the Field."
+        return
+
+    # def applyScalarMin(self):
+    #     "Enforce a float floor on the values of the Field."
+    #     return
+
+    # def applyScalarMax(self):
+    #     "Enforce a float ceiling on the values of the Field."
+    #     return
+
+    @PYB11const
+    def min(self):
+        "Return the mimimum value in the Field."
+        return
+
+    @PYB11const
+    def max(self):
+        "Return the maximum value in the Field."
+        return
+
+    @PYB11const
+    def localMin(self):
+        "Return the mimimum value in the Field local to each processor."
+        return
+
+    @PYB11const
+    def localMax(self):
+        "Return the maximum value in the Field local to each processor."
+        return
+
+    for name in [x for x in dir() if inspect.isfunction(eval(x))]:
+        exec("cls.%s = %s" % (name, name))

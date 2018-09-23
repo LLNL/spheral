@@ -40,17 +40,42 @@ FieldStorageType = PYB11enum(("ReferenceFields", "CopyFields"), export_values=Tr
 #-------------------------------------------------------------------------------
 # Do our dimension dependent instantiations.
 #-------------------------------------------------------------------------------
-from FieldBase import FieldBase
-from Field import Field
+from FieldBase import *
+from Field import *
 
 for ndim in (1,): #dims:
     exec('''
 FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
 
-    for (value, label) in (("double", "Scalar"), ):
+    # Arithmetic fields
+    for (value, label) in (("double", "Scalar"),
+                           ("int", "Int")):
         exec('''
-Field%(label)s%(ndim)sd = PYB11TemplateClass(Field, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
+addFieldArithmeticOperations(Field)
+addFieldMinMaxOperations(Field)
+%(label)sField%(ndim)sd = PYB11TemplateClass(Field, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
+''' % {"ndim" : ndim,
+       "value" : value,
+       "label" : label})
+
+    # Arithmetic only fields
+    for (value, label) in (("Dim<%i>::Vector" % ndim, "Vector"),):
+        exec('''
+Field = None
+from Field import Field
+addFieldArithmeticOperations(Field)
+%(label)sField%(ndim)sd = PYB11TemplateClass(Field, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
+''' % {"ndim" : ndim,
+       "value" : value,
+       "label" : label})
+
+    # Non-numeric fields
+    for (value, label) in (("std::vector<double>", "VectorDouble"),):
+        exec('''
+Field = None
+from Field import Field
+%(label)sField%(ndim)sd = PYB11TemplateClass(Field, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 ''' % {"ndim" : ndim,
        "value" : value,
        "label" : label})

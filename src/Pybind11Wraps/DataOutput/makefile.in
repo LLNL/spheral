@@ -8,6 +8,8 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = DataOutput
 PKGDIR = $(PKGNAME)/
+SRCTARGETS = \
+	$(srcdir)/RestartableObject.cc
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------
