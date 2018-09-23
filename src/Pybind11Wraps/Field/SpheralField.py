@@ -67,9 +67,10 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
 
     #...........................................................................
     # arithmetic fields
-    for (value, label) in (("Dim<%i>::Vector" % ndim,           "Vector"),
+    for (value, label) in (("int",                              "Int"),
+                           ("uint64_t",                         "ULL"),
+                           ("Dim<%i>::Vector" % ndim,           "Vector"),
                            ("Dim<%i>::Tensor" % ndim,           "Tensor"),
-                           ("Dim<%i>::SymTensor" % ndim,        "SymTensor"),
                            ("Dim<%i>::ThirdRankTensor" % ndim,  "ThirdRankTensor"),
                            ("Dim<%i>::FourthRankTensor" % ndim, "FourthRankTensor"),
                            ("Dim<%i>::FifthRankTensor" % ndim,  "FifthRankTensor")):
@@ -80,10 +81,9 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
        "label" : label})
 
     #...........................................................................
-    # Fully numeric fields
-    for (value, label) in (("int",      "Int"),
-                           ("uint64_t", "ULL"),
-                           ("double",   "Scalar")):
+    # A few fields can apply the min/max with a scalar addtionally
+    for (value, label) in (("double",                     "Scalar"),
+                           ("Dim<%i>::SymTensor" % ndim,  "SymTensor")):
         exec('''
 %(label)sField%(ndim)sd = PYB11TemplateClass(MinMaxField, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 ''' % {"ndim" : ndim,

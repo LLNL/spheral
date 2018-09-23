@@ -185,6 +185,30 @@ class ArithmeticField(Field):
     def __sub__(self):
         return
 
+    def __iadd__(self):
+        return
+
+    def __isub__(self):
+        return
+
+    def __add__(self, rhs="%(Value)s()"):
+        return "FieldType"
+
+    def __sub__(self, rhs="%(Value)s()"):
+        return "FieldType"
+
+    def __iadd__(self, rhs="%(Value)s()"):
+        return
+
+    def __isub__(self, rhs="%(Value)s()"):
+        return
+
+    def __imul__(self, rhs="double()"):
+        return
+
+    def __idiv__(self, rhs="double()"):
+        return
+
     @PYB11const
     def sumElements(self):
         "Return the sum of the elements in the Field."
@@ -225,13 +249,6 @@ class ArithmeticField(Field):
         "Less than or equal comparision with a %(Value)s"
         return "bool"
 
-#-------------------------------------------------------------------------------
-# Add min/max operations to a Field
-#-------------------------------------------------------------------------------
-@PYB11template("Dimension", "Value")
-@PYB11pycppname("Field")
-class MinMaxField(ArithmeticField):
-
     def applyMin(self):
         "Enforce a floor on the values of the Field."
         return
@@ -239,14 +256,6 @@ class MinMaxField(ArithmeticField):
     def applyMax(self):
         "Enforce a ceiling on the values of the Field."
         return
-
-    # def applyScalarMin(self):
-    #     "Enforce a float floor on the values of the Field."
-    #     return
-
-    # def applyScalarMax(self):
-    #     "Enforce a float ceiling on the values of the Field."
-    #     return
 
     @PYB11const
     def min(self):
@@ -268,5 +277,17 @@ class MinMaxField(ArithmeticField):
         "Return the maximum value in the Field local to each processor."
         return
 
-    # for name in [x for x in dir() if inspect.isfunction(eval(x))]:
-    #     exec("cls.%s = %s" % (name, name))
+#-------------------------------------------------------------------------------
+# Add min/max operations to a Field
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension", "Value")
+@PYB11pycppname("Field")
+class MinMaxField(ArithmeticField):
+
+    def applyScalarMin(self):
+        "Enforce a float floor on the values of the Field."
+        return
+
+    def applyScalarMax(self):
+        "Enforce a float ceiling on the values of the Field."
+        return
