@@ -44,23 +44,18 @@ FieldStorageType = PYB11enum(("ReferenceFields", "CopyFields"), export_values=Tr
 from FieldBase import *
 from Field import *
 
-# ArithmeticField = copy.deepcopy(Field)
-# addFieldArithmeticOperations(ArithmeticField)
-# ArithmeticField.PYB11cppname = ArithmeticField.PYB11pyname = "Field"
-
-# NumericField = copy.deepcopy(Field)
-# addFieldArithmeticOperations(NumericField)
-# addFieldMinMaxOperations(Field)
-# NumericField.PYB11cppname = NumericField.PYB11pyname = "Field"
-
 for ndim in (1,): #dims:
+
+    #...........................................................................
+    # FieldBase
     exec('''
 FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
 
-    # First the non-numeric type fields.
-    for (value, label) in (("Dim<%i>::FacetedVolume" % ndim, "FacetedVolume"), 
-                           ("std::vector<double>", "VectorDouble"),
+    #...........................................................................
+    # non-numeric type fields.
+    for (value, label) in (("Dim<%i>::FacetedVolume" % ndim,       "FacetedVolume"), 
+                           ("std::vector<double>",                 "VectorDouble"),
                            ("std::vector<Dim<%i>::Vector>" % ndim, "VectorVector"),
                            ("std::vector<Dim<%i>::Tensor>" % ndim, "VectorSymTensor"),
                            ("std::vector<Dim<%i>::Tensor>" % ndim, "VectorSymTensor")):
@@ -70,25 +65,25 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
        "value" : value,
        "label" : label})
 
-# Arithmetic only fields
-for ndim in (1,): #dims:
-    for (value, label) in (("Dim<%i>::Vector" % ndim, "Vector"),
-                           ("Dim<%i>::Tensor" % ndim, "Tensor"),
-                           ("Dim<%i>::SymTensor" % ndim, "SymTensor"),
-                           ("Dim<%i>::ThirdRankTensor" % ndim, "ThirdRankTensor"),
+    #...........................................................................
+    # arithmetic fields
+    for (value, label) in (("Dim<%i>::Vector" % ndim,           "Vector"),
+                           ("Dim<%i>::Tensor" % ndim,           "Tensor"),
+                           ("Dim<%i>::SymTensor" % ndim,        "SymTensor"),
+                           ("Dim<%i>::ThirdRankTensor" % ndim,  "ThirdRankTensor"),
                            ("Dim<%i>::FourthRankTensor" % ndim, "FourthRankTensor"),
-                           ("Dim<%i>::FifthRankTensor" % ndim, "FifthRankTensor")):
+                           ("Dim<%i>::FifthRankTensor" % ndim,  "FifthRankTensor")):
         exec('''
 %(label)sField%(ndim)sd = PYB11TemplateClass(ArithmeticField, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 ''' % {"ndim" : ndim,
        "value" : value,
        "label" : label})
 
-# Fully numeric fields
-for ndim in (1,): #dims:
-    for (value, label) in (("int", "Int"),
+    #...........................................................................
+    # Fully numeric fields
+    for (value, label) in (("int",      "Int"),
                            ("uint64_t", "ULL"),
-                           ("double", "Scalar")):
+                           ("double",   "Scalar")):
         exec('''
 %(label)sField%(ndim)sd = PYB11TemplateClass(MinMaxField, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 ''' % {"ndim" : ndim,
