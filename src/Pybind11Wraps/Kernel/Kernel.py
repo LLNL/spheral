@@ -29,7 +29,7 @@ class Kernel:
         "Return the value of the kernel"
         return "double"
 
-    @PYB11cppname("kernelValue")
+    @PYB11pycppname("kernelValue")
     @PYB11const
     def kernelValue1(self,
               etaMagnitude = "double",
@@ -37,7 +37,7 @@ class Kernel:
         "Return the value of the kernel"
         return "double"
 
-    @PYB11cppname("kernelValue")
+    @PYB11pycppname("kernelValue")
     @PYB11const
     def kernelValue2(self,
               eta = "const Vector&",
@@ -45,7 +45,7 @@ class Kernel:
         "Return the value of the kernel"
         return "double"
 
-    @PYB11cppname("kernelValue")
+    @PYB11pycppname("kernelValue")
     @PYB11const
     def kernelValue3(self,
               eta = "const Vector&",
@@ -61,7 +61,7 @@ class Kernel:
         "Return the value of the gradient of the kernel"
         return "double"
 
-    @PYB11cppname("gradValue")
+    @PYB11pycppname("gradValue")
     @PYB11const
     def gradValue1(self,
               etaMagnitude = "double",
@@ -69,7 +69,7 @@ class Kernel:
         "Return the value of the gradient of the kernel"
         return "double"
 
-    @PYB11cppname("gradValue")
+    @PYB11pycppname("gradValue")
     @PYB11const
     def gradValue2(self,
               eta = "const Vector&",
@@ -77,7 +77,7 @@ class Kernel:
         "Return the value of the gradient of the kernel"
         return "double"
 
-    @PYB11cppname("gradValue")
+    @PYB11pycppname("gradValue")
     @PYB11const
     def gradValue3(self,
               eta = "const Vector&",
@@ -93,7 +93,7 @@ class Kernel:
         "Return the value of the second derivative of the kernel"
         return "double"
 
-    @PYB11cppname("grad2Value")
+    @PYB11pycppname("grad2Value")
     @PYB11const
     def grad2Value1(self,
               etaMagnitude = "double",
@@ -101,7 +101,7 @@ class Kernel:
         "Return the value of the second derivative of the kernel"
         return "double"
 
-    @PYB11cppname("grad2Value")
+    @PYB11pycppname("grad2Value")
     @PYB11const
     def grad2Value2(self,
               eta = "const Vector&",
@@ -109,7 +109,7 @@ class Kernel:
         "Return the value of the second derivative of the kernel"
         return "double"
 
-    @PYB11cppname("grad2Value")
+    @PYB11pycppname("grad2Value")
     @PYB11const
     def grad2Value3(self,
               eta = "const Vector&",
@@ -118,7 +118,7 @@ class Kernel:
         return "double"
 
     #...........................................................................
-    @PYB11cppname("grad")
+    @PYB11pycppname("grad")
     @PYB11const
     def grad_0(self,
                etaMagnitude = "double",
@@ -126,7 +126,7 @@ class Kernel:
         "Return the gradient of the kernel"
         return "double"
 
-    @PYB11cppname("grad")
+    @PYB11pycppname("grad")
     @PYB11const
     def grad_1(self,
                etaMagnitude = "double",
@@ -134,7 +134,7 @@ class Kernel:
         "Return the gradient of the kernel"
         return "double"
 
-    @PYB11cppname("grad")
+    @PYB11pycppname("grad")
     @PYB11const
     def grad_2(self,
                eta = "const Vector&",
@@ -142,7 +142,7 @@ class Kernel:
         "Return the gradient of the kernel"
         return "double"
 
-    @PYB11cppname("grad")
+    @PYB11pycppname("grad")
     @PYB11const
     def grad_3(self,
                eta = "const Vector&",
@@ -151,7 +151,7 @@ class Kernel:
         return "double"
 
     #...........................................................................
-    @PYB11cppname("grad2")
+    @PYB11pycppname("grad2")
     @PYB11const
     def grad2_0(self,
                etaMagnitude = "double",
@@ -159,7 +159,7 @@ class Kernel:
         "Return the second derivative of the kernel"
         return "double"
 
-    @PYB11cppname("grad2")
+    @PYB11pycppname("grad2")
     @PYB11const
     def grad2_1(self,
                etaMagnitude = "double",
@@ -167,7 +167,7 @@ class Kernel:
         "Return the second derivative of the kernel"
         return "double"
 
-    @PYB11cppname("grad2")
+    @PYB11pycppname("grad2")
     @PYB11const
     def grad2_2(self,
                eta = "const Vector&",
@@ -175,7 +175,7 @@ class Kernel:
         "Return the second derivative of the kernel"
         return "double"
 
-    @PYB11cppname("grad2")
+    @PYB11pycppname("grad2")
     @PYB11const
     def grad2_3(self,
                eta = "const Vector&",
@@ -184,7 +184,7 @@ class Kernel:
         return "double"
 
     #...........................................................................
-    @PYB11cppname("gradh")
+    @PYB11pycppname("gradh")
     @PYB11const
     def gradh_0(self,
                 etaMagnitude = "double",
@@ -192,7 +192,7 @@ class Kernel:
         "Return the gradient with respect to h of the kernel"
         return "double"
 
-    @PYB11cppname("gradh")
+    @PYB11pycppname("gradh")
     @PYB11const
     def gradh_1(self,
                etaMagnitude = "double",
@@ -200,7 +200,7 @@ class Kernel:
         "Return the gradient with respect to h of the kernel"
         return "double"
 
-    @PYB11cppname("gradh")
+    @PYB11pycppname("gradh")
     @PYB11const
     def gradh_2(self,
                eta = "const Vector&",
@@ -208,7 +208,7 @@ class Kernel:
         "Return the gradient with respect to h of the kernel"
         return "double"
 
-    @PYB11cppname("gradh")
+    @PYB11pycppname("gradh")
     @PYB11const
     def gradh_3(self,
                eta = "const Vector&",
