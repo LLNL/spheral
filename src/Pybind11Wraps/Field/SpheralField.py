@@ -38,7 +38,7 @@ from Field import *
 from FieldList import *
 from FieldListSet import *
 
-for ndim in (1,): #dims:
+for ndim in dims:
 
     #...........................................................................
     # FieldBase, FieldListSet
