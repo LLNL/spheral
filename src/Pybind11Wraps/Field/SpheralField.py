@@ -26,13 +26,6 @@ includes = ['"Geometry/Dimension.hh"',
 namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
-# preamble
-#-------------------------------------------------------------------------------
-# preamble = ""
-# for ndim in dims:
-#     preamble += "typedef std::pair<NodeList<Dim<%(ndim)i>>*, std::string> pair_NodeList%(ndim)idptr_string;\n" % {"ndim": ndim}
-
-#-------------------------------------------------------------------------------
 # Enums
 #-------------------------------------------------------------------------------
 FieldStorageType = PYB11enum(("ReferenceFields", "CopyFields"), export_values=True,
@@ -44,13 +37,15 @@ FieldStorageType = PYB11enum(("ReferenceFields", "CopyFields"), export_values=Tr
 from FieldBase import *
 from Field import *
 from FieldList import *
+from FieldListSet import *
 
 for ndim in (1,): #dims:
 
     #...........................................................................
-    # FieldBase
+    # FieldBase, FieldListSet
     exec('''
 FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(ndim)i>")
+FieldListSet%(ndim)sd = PYB11TemplateClass(FieldListSet, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
 
     #...........................................................................
