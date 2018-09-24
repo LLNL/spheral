@@ -7,7 +7,6 @@ Provides the Field classes.
 from PYB11Generator import *
 from spheralDimensions import *
 dims = spheralDimensions()
-import copy
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -86,5 +85,19 @@ FieldListSet%(ndim)sd = PYB11TemplateClass(FieldListSet, template_parameters="Di
 %(label)sField%(ndim)sd = PYB11TemplateClass(MinMaxField, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 %(label)sFieldList%(ndim)sd = PYB11TemplateClass(MinMaxFieldList, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 ''' % {"ndim" : ndim,
+       "value" : value,
+       "label" : label})
+
+    #...........................................................................
+    # STL collections of Field types
+    for value, label in (("int", "Int"),
+                         ("double", "Scalar"),
+                         ("Dim<%i>::Vector" % ndim, "Vector"),
+                         ("Dim<%i>::Tensor" % ndim, "Tensor"),
+                         ("Dim<%i>::SymTensor" % ndim, "SymTensor")):
+        exec('''
+vector_of_%(label)sFieldPtr%(ndim)id = PYB11_bind_vector("Field<%(Dimension)s, %(value)s>*", opaque=True)
+''' % {"ndim": ndim,
+       "Dimension" : "Dim<%i>" % ndim,
        "value" : value,
        "label" : label})
