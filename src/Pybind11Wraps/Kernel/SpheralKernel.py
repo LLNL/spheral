@@ -32,6 +32,21 @@ includes = ['"Geometry/Dimension.hh"',
             '<string>']
 
 #-------------------------------------------------------------------------------
+# Define a preamble function to expose the protected methods of Kernel.
+#-------------------------------------------------------------------------------
+preamble = """
+namespace Spheral {
+  template<typename Dimension, typename Descendant>
+  class KernelPublicist: public Kernel<Dimension, Descendant> {
+  public:
+    using Kernel<Dimension, Descendant>::setVolumeNormalization;
+    using Kernel<Dimension, Descendant>::setKernelExtent;
+    using Kernel<Dimension, Descendant>::setInflectionPoint;
+  };
+}
+"""
+
+#-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
 namespaces = ["Spheral"]
@@ -42,7 +57,8 @@ namespaces = ["Spheral"]
 from Kernel import *
 
 for ndim in dims:
-BSplineKernel1d = PYB11TemplateClass(Kernel,
-                                     template_parameters = ("Dim<1>", "BSplineKernel<Dim<1>>"),
-                                     pyname = "BSplineKernel1d",
-                                     cppname = "BSplineKernel<Dim<1>>")
+    exec('''
+BSplineKernel%(ndim)id = PYB11TemplateClass(Kernel,
+                                            template_parameters = ("Dim<%(ndim)i>", "BSplineKernel<Dim<%(ndim)i>>"),
+                                            cppname = "BSplineKernel<Dim<%(ndim)i>>")
+''' % {"ndim" : ndim})
