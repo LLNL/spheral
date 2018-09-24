@@ -61,6 +61,8 @@ for ndim in dims:
                "Hat", "Sinc", "NSincPolynomial", "NBSpline", "QuarticSpline",
                "QuinticSpline", "Table", "WendlandC2", "WendlandC4", "WendlandC6", "ExpInv"):
         exec('''
+_Kernel%(ndim)id_%(KT)s = PYB11TemplateClass(Kernel,
+                                             template_parameters = ("Dim<%(ndim)i>", "%(KT)sKernel<Dim<%(ndim)i>>"))
 %(KT)sKernel%(ndim)id = PYB11TemplateClass(%(KT)sKernel,
                                            template_parameters = ("Dim<%(ndim)i>", "%(KT)sKernel<Dim<%(ndim)i>>"),
                                             cppname = "%(KT)sKernel<Dim<%(ndim)i>>")
