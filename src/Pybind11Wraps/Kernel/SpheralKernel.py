@@ -57,8 +57,12 @@ namespaces = ["Spheral"]
 from Kernel import *
 
 for ndim in dims:
-    exec('''
-BSplineKernel%(ndim)id = PYB11TemplateClass(Kernel,
-                                            template_parameters = ("Dim<%(ndim)i>", "BSplineKernel<Dim<%(ndim)i>>"),
-                                            cppname = "BSplineKernel<Dim<%(ndim)i>>")
-''' % {"ndim" : ndim})
+    for KT in ("BSpline", "W4Spline", "Gaussian", "SuperGaussian", "PiGaussian",
+               "Hat", "Sinc", "NSincPolynomial", "NBSpline", "QuarticSpline",
+               "QuinticSpline", "Table", "WendlandC2", "WendlandC4", "WendlandC6", "ExpInv"):
+        exec('''
+%(KT)sKernel%(ndim)id = PYB11TemplateClass(Kernel,
+                                           template_parameters = ("Dim<%(ndim)i>", "%(KT)sKernel<Dim<%(ndim)i>>"),
+                                            cppname = "%(KT)sKernel<Dim<%(ndim)i>>")
+''' % {"ndim" : ndim,
+       "KT"   : KT})

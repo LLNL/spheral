@@ -11,8 +11,8 @@ class Kernel:
     typedef %(Dimension)s::SymTensor SymTensor;
 """
 
-    def pyinit(self):
-        "Default constructor"
+    # def pyinit(self):
+    #     "Default constructor"
 
     @PYB11const
     def __call__(self,
