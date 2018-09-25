@@ -44,6 +44,16 @@ def PYB11ClassMethods(obj):
     return result
 
 #-------------------------------------------------------------------------------
+# PYB11ThisClassMethods
+#
+# Cull the methods found in PYB11ClassMethods to just those defined locally
+# in obj.
+#-------------------------------------------------------------------------------
+def PYB11ThisClassMethods(obj):
+    result = PYB11ClassMethods(obj)
+    return [(name, meth) for (name, meth) in result if name in obj.__dict__]
+
+#-------------------------------------------------------------------------------
 # PYB11functions
 #
 # Get the functions to bind from a module

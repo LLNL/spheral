@@ -372,7 +372,7 @@ def PYB11generateClass(klass, klassattrs, ssout):
         ss("  ;\n")
 
     # Grab all the methods
-    allmethods = [(mname, meth) for (mname, meth) in PYB11ClassMethods(klass)
+    allmethods = [(mname, meth) for (mname, meth) in PYB11ThisClassMethods(klass)
                   if not PYB11attrs(meth)["ignore"]]
 
     # Bind constructors of the class.
