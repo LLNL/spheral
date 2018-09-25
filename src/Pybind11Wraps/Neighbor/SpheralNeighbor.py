@@ -51,10 +51,12 @@ NeighborSearchType = PYB11enum(("None", "Gather", "Scatter", "GatherScatter"), e
 # Instantiate our types
 #-------------------------------------------------------------------------------
 from GridCellIndex import *
+from GridCellPlane import *
 from Neighbor import *
 
 for ndim in dims:
     exec('''
 GridCellIndex%(ndim)id = PYB11TemplateClass(GridCellIndex, template_parameters="Dim<%(ndim)i>")
+GridCellPlane%(ndim)id = PYB11TemplateClass(GridCellPlane, template_parameters="Dim<%(ndim)i>")
 Neighbor%(ndim)id = PYB11TemplateClass(Neighbor, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
