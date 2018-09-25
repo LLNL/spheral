@@ -7,7 +7,7 @@ from PYB11Generator import *
 class NodeList:
     "Spheral NodeList base class in %(Dimension)s"
 
-    PYB11typedefs = """
+    typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

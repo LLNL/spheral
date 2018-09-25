@@ -7,7 +7,7 @@ from SmoothingScaleBase import *
 @PYB11template("Dimension")
 class FixedSmoothingScale(SmoothingScaleBase):
 
-    PYB11typedefs = """
+    typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

@@ -8,7 +8,7 @@ from NodeList import NodeList
 class FluidNodeList(NodeList):
     "Spheral FluidNodeList base class in %(Dimension)s, i.e.,  the NodeList for fluid hydrodynamics."
 
-    PYB11typedefs = """
+    typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;
