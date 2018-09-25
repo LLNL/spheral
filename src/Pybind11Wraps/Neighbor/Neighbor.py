@@ -227,27 +227,5 @@ class Neighbor:
 
     #...........................................................................
     # Properties
-    @PYB11ignore
-    @PYB11pycppname("neighborSearchType")
-    @PYB11const
-    def getneighborSearchType(self):
-        return "NeighborSearchType"
-
-    @PYB11ignore
-    @PYB11pycppname("neighborSearchType")
-    def setneighborSearchType(self, val="NeighborSearchType"):
-        return "void"
-
-    @PYB11ignore
-    @PYB11pycppname("kernelExtent")
-    @PYB11const
-    def getkernelExtent(self):
-        return "double"
-
-    @PYB11ignore
-    @PYB11pycppname("kernelExtent")
-    def setkernelExtent(self, val="double"):
-        return "void"
-
-    neighborSearchType = property(getneighborSearchType, setneighborSearchType, doc="The search algorithm for nodes interacting")
-    kernelExtent = property(getkernelExtent, setkernelExtent, doc="The kernel extent for nodes interacting in eta space")
+    neighborSearchType = PYB11property("NeighborSearchType", "neighborSearchType", "neighborSearchType", doc="The search algorithm for nodes interacting")
+    kernelExtent = PYB11property("double", "kernelExtent", "kernelExtent", doc="The kernel extent for nodes interacting in eta space")

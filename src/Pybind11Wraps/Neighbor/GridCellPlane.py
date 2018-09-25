@@ -55,25 +55,5 @@ class GridCellPlane:
 
     #...........................................................................
     # Properties
-    @PYB11pycppname("point")
-    @PYB11ignore
-    @PYB11const
-    def getPoint(self):
-        return "GridCellIndexType"
-
-    @PYB11ignore
-    def setPoint(self, val="GridCellIndexType"):
-        return "void"
-
-    @PYB11pycppname("normal")
-    @PYB11ignore
-    @PYB11const
-    def getNormal(self):
-        return "GridCellIndexType"
-
-    @PYB11ignore
-    def setNormal(self, val="GridCellIndexType"):
-        return "void"
-
-    point = property(getPoint, setPoint, "Point in the plane")
-    normal = property(getNormal, setNormal, "Normal to plane")
+    point = PYB11property("const GridCellIndexType&", "point", "point", "Point in the plane")
+    normal = PYB11property("const GridCellIndexType&", "normal", "normal", "Normal to plane")
