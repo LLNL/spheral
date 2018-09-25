@@ -102,6 +102,5 @@ def injectNeighborVirtualMethods(cls):
     # Inject em...
     names = [x for x in dir() if inspect.isfunction(eval(x))]
     for name in names:
-        print name
         exec('cls.%(name)s = eval("%(name)s")' % {"name": name})
     return

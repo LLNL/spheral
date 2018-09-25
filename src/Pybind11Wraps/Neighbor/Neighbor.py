@@ -68,6 +68,7 @@ class Neighbor:
         return "void"
 
     @PYB11pycppname("setMasterList")
+    @PYB11virtual
     @PYB11const
     def setMasterList0(self,
                        nodeID = "int",
@@ -77,6 +78,7 @@ class Neighbor:
         return "void"
 
     @PYB11pycppname("setRefineNeighborList")
+    @PYB11virtual
     @PYB11const
     def setRefineNeighborList0(self,
                                nodeID = "int",

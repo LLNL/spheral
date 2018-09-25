@@ -9,8 +9,8 @@ from injectNeighborVirtualMethods import *
 class TreeNeighbor(Neighbor):
 
     typedefs = """
-    typedef TreeNeighbor<%(Dimension)s>::LevelKey LevelKey;
-    typedef TreeNeighbor<%(Dimension)s>::CellKey CellKey;
+    typedef typename TreeNeighbor<%(Dimension)s>::LevelKey LevelKey;
+    typedef typename TreeNeighbor<%(Dimension)s>::CellKey CellKey;
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;
@@ -57,11 +57,11 @@ class TreeNeighbor(Neighbor):
 
     @PYB11const
     def dumpTreeStatistics(self, globalTree="const bool"):
-        "Return a string describing the overall statistics of the tree"n
+        "Return a string describing the overall statistics of the tree"
         return "std::string"
     
     @PYB11const
-    def serialize(self, buffer="std::vector<char>"):
+    def serialize(self, buffer="std::vector<char>&"):
         "Serialize the current tree state to a buffer"
         return "void"
 

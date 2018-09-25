@@ -54,6 +54,7 @@ from GridCellIndex import *
 from GridCellPlane import *
 from Neighbor import *
 from NestedGridNeighbor import *
+from TreeNeighbor import *
 
 for ndim in dims:
     exec('''
@@ -61,4 +62,5 @@ GridCellIndex%(ndim)id = PYB11TemplateClass(GridCellIndex, template_parameters="
 GridCellPlane%(ndim)id = PYB11TemplateClass(GridCellPlane, template_parameters="Dim<%(ndim)i>")
 Neighbor%(ndim)id = PYB11TemplateClass(Neighbor, template_parameters="Dim<%(ndim)i>")
 NestedGridNeighbor%(ndim)id = PYB11TemplateClass(NestedGridNeighbor, template_parameters="Dim<%(ndim)i>")
+TreeNeighbor%(ndim)id = PYB11TemplateClass(TreeNeighbor, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
