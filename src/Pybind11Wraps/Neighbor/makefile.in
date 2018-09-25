@@ -10,7 +10,9 @@ PKGNAME = Neighbor
 PKGDIR = $(PKGNAME)/
 PYB11SRCS = \
 	GridCellIndex.py \
-	Neighbor.py
+	injectNeighborVirtualMethods.py \
+	Neighbor.py \
+	NestedGridNeighbor.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------
