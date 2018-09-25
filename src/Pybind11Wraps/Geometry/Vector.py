@@ -1,6 +1,4 @@
-from PYB11Decorators import *
-from PYB11property import *
-from PYB11class import *
+from PYB11Generator import *
 
 #-------------------------------------------------------------------------------
 # Vector template
@@ -175,46 +173,10 @@ class Vector:
     def __repr__(self):
         return
 
-    # x
-    @PYB11cppname("x")
-    @PYB11const
-    @PYB11ignore
-    def getx(self):
-        return "double"
-
-    @PYB11cppname("x")
-    @PYB11ignore
-    def setx(self, val="double"):
-        return "void"
-
-    # y
-    @PYB11cppname("y")
-    @PYB11const
-    @PYB11ignore
-    def gety(self):
-        return "double"
-
-    @PYB11cppname("y")
-    @PYB11ignore
-    def sety(self, val="double"):
-        return "void"
-
-    # z
-    @PYB11cppname("z")
-    @PYB11const
-    @PYB11ignore
-    def getz(self):
-        return "double"
-
-    @PYB11cppname("z")
-    @PYB11ignore
-    def setz(self, val="double"):
-        return "void"
-
     # Properties
-    x = property(getx, setx, doc="The x coordinate.")
-    y = property(gety, sety, doc="The y coordinate.")
-    z = property(getz, setz, doc="The z coordinate.")
+    x = PYB11property("double", getter="x", setter="x", doc="The x coordinate.")
+    y = PYB11property("double", getter="y", setter="y", doc="The y coordinate.")
+    z = PYB11property("double", getter="z", setter="z", doc="The z coordinate.")
 
 #-------------------------------------------------------------------------------
 # Vector instantiations.

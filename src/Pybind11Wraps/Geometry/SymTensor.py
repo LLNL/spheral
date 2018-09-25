@@ -1,6 +1,4 @@
-from PYB11Decorators import *
-from PYB11property import *
-from PYB11class import *
+from PYB11Generator import *
 
 #-------------------------------------------------------------------------------
 # SymTensor (rank 2) template
@@ -206,124 +204,16 @@ class SymTensor:
     def eigenVectors(self):
         "Return an EigenStruct with the eigenvalues and eigenvectors."
 
-    # xx
-    @PYB11cppname("xx")
-    @PYB11const
-    @PYB11ignore
-    def getxx(self):
-        return "double"
-
-    @PYB11cppname("xx")
-    @PYB11ignore
-    def setxx(self, val="double"):
-        return "void"
-
-    # xy
-    @PYB11cppname("xy")
-    @PYB11const
-    @PYB11ignore
-    def getxy(self):
-        return "double"
-
-    @PYB11cppname("xy")
-    @PYB11ignore
-    def setxy(self, val="double"):
-        return "void"
-
-    # xz
-    @PYB11cppname("xz")
-    @PYB11const
-    @PYB11ignore
-    def getxz(self):
-        return "double"
-
-    @PYB11cppname("xz")
-    @PYB11ignore
-    def setxz(self, val="double"):
-        return "void"
-
-    # yx
-    @PYB11cppname("yx")
-    @PYB11const
-    @PYB11ignore
-    def getyx(self):
-        return "double"
-
-    @PYB11cppname("yx")
-    @PYB11ignore
-    def setyx(self, val="double"):
-        return "void"
-
-    # yy
-    @PYB11cppname("yy")
-    @PYB11const
-    @PYB11ignore
-    def getyy(self):
-        return "double"
-
-    @PYB11cppname("yy")
-    @PYB11ignore
-    def setyy(self, val="double"):
-        return "void"
-
-    # yz
-    @PYB11cppname("yz")
-    @PYB11const
-    @PYB11ignore
-    def getyz(self):
-        return "double"
-
-    @PYB11cppname("yz")
-    @PYB11ignore
-    def setyz(self, val="double"):
-        return "void"
-
-    # zx
-    @PYB11cppname("zx")
-    @PYB11const
-    @PYB11ignore
-    def getzx(self):
-        return "double"
-
-    @PYB11cppname("zx")
-    @PYB11ignore
-    def setzx(self, val="double"):
-        return "void"
-
-    # zy
-    @PYB11cppname("zy")
-    @PYB11const
-    @PYB11ignore
-    def getzy(self):
-        return "double"
-
-    @PYB11cppname("zy")
-    @PYB11ignore
-    def setzy(self, val="double"):
-        return "void"
-
-    # zz
-    @PYB11cppname("zz")
-    @PYB11const
-    @PYB11ignore
-    def getzz(self):
-        return "double"
-
-    @PYB11cppname("zz")
-    @PYB11ignore
-    def setzz(self, val="double"):
-        return "void"
-
     # Properties
-    xx = property(getxx, setxx, doc="The xx element.")
-    xy = property(getxy, setxy, doc="The xy element.")
-    xz = property(getxz, setxz, doc="The xz element.")
-    yx = property(getyx, setyx, doc="The yx element.")
-    yy = property(getyy, setyy, doc="The yy element.")
-    yz = property(getyz, setyz, doc="The yz element.")
-    zx = property(getzx, setzx, doc="The zx element.")
-    zy = property(getzy, setzy, doc="The zy element.")
-    zz = property(getzz, setzz, doc="The zz element.")
+    xx = PYB11property("double", "xx", "xx", doc="The xx element.")
+    xy = PYB11property("double", "xy", "xy", doc="The xy element.")
+    xz = PYB11property("double", "xz", "xz", doc="The xz element.")
+    yx = PYB11property("double", "yx", "yx", doc="The yx element.")
+    yy = PYB11property("double", "yy", "yy", doc="The yy element.")
+    yz = PYB11property("double", "yz", "yz", doc="The yz element.")
+    zx = PYB11property("double", "zx", "zx", doc="The zx element.")
+    zy = PYB11property("double", "zy", "zy", doc="The zy element.")
+    zz = PYB11property("double", "zz", "zz", doc="The zz element.")
 
 #-------------------------------------------------------------------------------
 # SymTensor instantiations.

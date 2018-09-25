@@ -1,6 +1,4 @@
-from PYB11Decorators import *
-from PYB11property import *
-from PYB11class import *
+from PYB11Generator import *
 
 #-------------------------------------------------------------------------------
 # Plane template
@@ -9,21 +7,26 @@ from PYB11class import *
 class Plane:
     "The geometric representation for a plane in %(ndim)s dimensions."
 
+    typedefs="""
+    typedef Dim<%(ndim)s>::Vector Vector;
+    typedef GeomPlane<Dim<%(ndim)s>> PlaneType;
+"""
+
     # Constructors
     def pyinit0(self):
         "Default constructor"
 
     def pyinit1(self,
-                rhs = "const GeomPlane<Dim<%(ndim)s>>"):
+                rhs = "const PlaneType&"):
         "Copy constructor"
 
     def pyinit2(self,
-                point = "const Dim<%(ndim)s>::Vector&",
-                normal = "const Dim<%(ndim)s>::Vector&"):
+                point = "const Vector&",
+                normal = "const Vector&"):
         "Construct from a (point,normal)."
 
     def pyinit3(self,
-                points = "const std::vector<Dim<%(ndim)s>::Vector>&"):
+                points = "const std::vector<Vector>&"):
         "Best fit plane for a set of point."
 
     # Methods
@@ -49,48 +52,22 @@ class Plane:
         return
     def __lt__(self):
         return
-    def __eq__(self, rhs="Dim<%(ndim)s>::Vector()"):
+    def __eq__(self, rhs="Vector()"):
         return
-    def __ne__(self, rhs="Dim<%(ndim)s>::Vector()"):
+    def __ne__(self, rhs="Vector()"):
         return
-    def __lt__(self, rhs="Dim<%(ndim)s>::Vector()"):
+    def __lt__(self, rhs="Vector()"):
         return
-    def __gt__(self, rhs="Dim<%(ndim)s>::Vector()"):
+    def __gt__(self, rhs="Vector()"):
         return
-    def __le__(self, rhs="Dim<%(ndim)s>::Vector()"):
+    def __le__(self, rhs="Vector()"):
         return
-    def __ge__(self, rhs="Dim<%(ndim)s>::Vector()"):
+    def __ge__(self, rhs="Vector()"):
         return
-
-    # Point
-    @PYB11cppname("point")
-    @PYB11ignore
-    @PYB11const
-    def getpoint(self):
-        return "const Dim<%(ndim)s>::Vector&"
-
-    @PYB11cppname("point")
-    @PYB11ignore
-    def setpoint(self,
-                 val = "const Dim<%(ndim)s>::Vector&"):
-        return "void"
-
-    # Normal
-    @PYB11cppname("normal")
-    @PYB11ignore
-    @PYB11const
-    def getnormal(self):
-        return "const Dim<%(ndim)s>::Vector&"
-
-    @PYB11cppname("normal")
-    @PYB11ignore
-    def setnormal(self,
-                 val = "const Dim<%(ndim)s>::Vector&"):
-        return "void"
 
     # Properties
-    point = property(getpoint, setpoint, doc="The point for plane definition.")
-    normal = property(getnormal, setnormal, doc="The unit normal to the plane.")
+    point = PYB11property("const Vector&", "point", "point", doc="The point for plane definition.")
+    normal = PYB11property("const Vector&", "normal", "normal", doc="The unit normal to the plane.")
 
     # String representation
     @PYB11implementation("""

@@ -1,6 +1,4 @@
-from PYB11Decorators import *
-from PYB11property import *
-from PYB11class import *
+from PYB11Generator import *
 
 #-------------------------------------------------------------------------------
 # ThirdRankTensor template
