@@ -8,7 +8,9 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = Neighbor
 PKGDIR = $(PKGNAME)/
-PYB11SRCS = Neighbor.py
+PYB11SRCS = \
+	GridCellIndex.py \
+	Neighbor.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------
