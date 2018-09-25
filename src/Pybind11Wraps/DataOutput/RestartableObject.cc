@@ -13,7 +13,6 @@
 #include "FileIO/FileIO.hh"
 
 namespace Spheral {
-namespace DataOutput {
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -30,5 +29,4 @@ RestartableObject::
 ~RestartableObject() {
 }
 
-}
 }

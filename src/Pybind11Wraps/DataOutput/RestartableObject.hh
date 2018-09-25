@@ -28,7 +28,6 @@ namespace Spheral {
 }
 
 namespace Spheral {
-namespace DataOutput {
 
 class RestartableObject {
 
@@ -39,8 +38,8 @@ public:
 
   // The methods we are providing for restart.
   virtual std::string label() const = 0;
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string pathName) const = 0;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string pathName) = 0;
+  virtual void dumpState(FileIO& file, const std::string pathName) const = 0;
+  virtual void restoreState(const FileIO& file, const std::string pathName) = 0;
 
 private:
   //-----------------------===== Private Interface =====-----------------------//
@@ -48,7 +47,6 @@ private:
   RestartRegistrationType mRestart;
 };
 
-}
 }
 
 #endif

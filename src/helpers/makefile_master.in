@@ -429,7 +429,7 @@ $(PYB11SRCS):	$(PYB11TARGETDATE)
 
 $(PYB11OBJS):	$(PYB11SRCS)
 
-$(PYB11TARGET): $(PYB11TARGET:.$(SHLIBEXT)=.py) $(PYB11SRCS)
+$(PYB11TARGET): $(PYB11TARGET:.$(SHLIBEXT)=.py) $(PYB11SRCS) $(OBJS)
 	@echo "################################################################################"
 	@echo "# Building module $(PYB11TARGET)"
 	@echo "################################################################################"
