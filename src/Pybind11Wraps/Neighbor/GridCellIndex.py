@@ -6,6 +6,10 @@ from PYB11Generator import *
 @PYB11template("Dimension")
 class GridCellIndex:
 
+    typedefs="""
+typedef GridCellPlane<%(Dimension)s> GridCellPlaneType;
+"""
+
     #...........................................................................
     # Constructors
     def pyinit0(self):
@@ -44,6 +48,10 @@ class GridCellIndex:
         "Dot product with another GridCellIndex"
         return
 
+    def compare(self):
+        "Compare with another gridcell (-1,0,1)"
+        return
+
     #...........................................................................
     # Sequence methods
     @PYB11implementation("[](const GridCellIndex<%(Dimension)s>& self) { return %(Dimension)s::nDim; }")
@@ -66,3 +74,53 @@ class GridCellIndex:
     def __call__(self, i="int"):
         "Index for a coordinate using parens."
         return "int"
+
+    #...........................................................................
+    # Operators
+    def __neg__(self):
+        return
+    def __add__(self):
+        return
+    def __sub__(self):
+        return
+    def __iadd__(self):
+        return
+    def __isub__(self):
+        return
+
+    def __add__(self, rhs="int()"):
+        return
+    def __sub__(self, rhs="int()"):
+        return
+    def __mul__(self, rhs="int()"):
+        return
+    def __rmul__(self, rhs="int()"):
+        return
+    def __div__(self, rhs="int()"):
+        return
+    def __iadd__(self, rhs="int()"):
+        return
+    def __isub__(self, rhs="int()"):
+        return
+
+    def __eq__(self):
+        return
+    def __ne__(self):
+        return
+    def __lt__(self):
+        return
+    def __gt__(self):
+        return
+    def __le__(self):
+        return
+    def __ge__(self):
+        return
+
+    def __lt__(self, rhs="GridCellPlaneType()"):
+        return
+    def __gt__(self, rhs="GridCellPlaneType()"):
+        return
+    def __le__(self, rhs="GridCellPlaneType()"):
+        return
+    def __ge__(self, rhs="GridCellPlaneType()"):
+        return
