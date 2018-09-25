@@ -136,7 +136,10 @@ def PYB11generateClass(klass, klassattrs, ssout):
     #...........................................................................
     # Generate a generic class method spec.
     def generic_class_method(meth, methattrs, args):
-        ss('    obj.def("%(pyname)s", ' % methattrs)
+        if methattrs["static"]:
+            ss('    obj.def_static("%(pyname)s", ' % methattrs)
+        else:
+            ss('    obj.def("%(pyname)s", ' % methattrs)
 
         # If there is an implementation, short-circuit the rest.
         if methattrs["implementation"]:

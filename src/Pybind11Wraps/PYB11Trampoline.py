@@ -58,8 +58,8 @@ public:
 """ % klassattrs)
 
     # Any typedefs?
-    if hasattr(klass, "PYB11typedefs"):
-        ss(klass.PYB11typedefs + "\n")
+    if hasattr(klass, "typedefs"):
+        ss(klass.typedefs + "\n")
 
     # Bind the (unique) virtual methods for all classes up the inheritance tree.
     boundMethods = []
