@@ -7,7 +7,7 @@ from PYB11Generator import *
 class GridCellIndex:
 
     typedefs="""
-typedef GridCellPlane<%(Dimension)s> GridCellPlaneType;
+    typedef GridCellPlane<%(Dimension)s> GridCellPlaneType;
 """
 
     #...........................................................................
@@ -51,6 +51,33 @@ typedef GridCellPlane<%(Dimension)s> GridCellPlaneType;
     def compare(self):
         "Compare with another gridcell (-1,0,1)"
         return
+
+    def inRange(self):
+        "Test if the gridcell is inside the range specified by the arguments"
+
+    def magnitude(self):
+        "The magnitude of the Vector"
+
+    def magnitude2(self):
+        "The square of the magnitude of the Vector"
+
+    def minElement(self):
+        "Minimum int coordinate in Vector"
+
+    def maxElement(self):
+        "Maximum int coordinate in Vector"
+
+    def sumElements(self):
+        "Sum of the coordinate"
+
+    def productElements(self):
+        "Product of the coordinates"
+
+    def indexMin(self):
+        "Return the minimum allowed coordinate"
+
+    def indexMax(self):
+        "Return the maximum allowed coordinate"
 
     #...........................................................................
     # Sequence methods
