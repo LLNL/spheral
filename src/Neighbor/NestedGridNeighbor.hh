@@ -121,15 +121,15 @@ public:
   const std::vector<GC>& occupiedGridCells(const int gridLevelID) const;
 
   // Origin of the gridcell coordinates.
-  Vector origin() const;
+  const Vector& origin() const;
   void origin(const Vector& origin);
 
   // The top level grid size.
-  double topGridSize() const;
+  const double topGridSize() const;
   void topGridSize(const double gridSize);
 
   // The radius in gridcells a node can touch on it's home grid level.
-  int gridCellInfluenceRadius() const;
+  const int gridCellInfluenceRadius() const;
   void gridCellInfluenceRadius(const int x);
 
   // Find the head node for the link list of a grid cell (if it exists).

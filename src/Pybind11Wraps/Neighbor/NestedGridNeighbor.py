@@ -13,6 +13,7 @@ class NestedGridNeighbor(Neighbor):
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef NodeList<%(Dimension)s> NodeListType;
+    typedef GridCellIndex<%(Dimension)s> GridCellIndexType;
     typedef GeomPlane<%(Dimension)s> Plane;
 """
 
@@ -20,7 +21,7 @@ class NestedGridNeighbor(Neighbor):
     # Constructors
     def pyinit(self,
                nodeList = "NodeListType&",
-               searchType = ("const NestedGridNeighborSearchType", "NeighborSearchType::GatherScatter"),
+               searchType = ("const NeighborSearchType", "NeighborSearchType::GatherScatter"),
                numGridLevels = ("int", "31"),
                topGridCellSize = ("double", "100.0"),
                origin = ("Vector", "Vector::zero"),
@@ -37,7 +38,7 @@ class NestedGridNeighbor(Neighbor):
                        position = "const Vector&",
                        H = "const Scalar&",
                        masterList = "std::vector<int>&",
-                       coarseNestedGridNeighbors = "std::vector<int>&"):
+                       coarseNeighbors = "std::vector<int>&"):
         "Fill the given arrays with (master, coarse) neighbor info for the given (position, H)"
         return "void"
 
@@ -48,29 +49,29 @@ class NestedGridNeighbor(Neighbor):
                        position = "const Vector&",
                        H = "const SymTensor&",
                        masterList = "std::vector<int>&",
-                       coarseNestedGridNeighbors = "std::vector<int>&"):
+                       coarseNeighbors = "std::vector<int>&"):
         "Fill the given arrays with (master, coarse) neighbor info for the given (position, H)"
         return "void"
 
     @PYB11virtual
     @PYB11const
-    @PYB11pycppname("setRefineNestedGridNeighborList")
-    def setRefineNestedGridNeighborList1(self,
+    @PYB11pycppname("setRefineNeighborList")
+    def setRefineNeighborList1(self,
                                position = "const Vector&",
                                H = "const Scalar&",
-                               coarseNestedGridNeighbors = "const std::vector<int>&",
-                               refineList = "std::vector<int>&"):
+                               coarseNeighbors = "const std::vector<int>&",
+                               refineNeighbors = "std::vector<int>&"):
         "Fill the given arrays with (coarse, refine) neighbor info for the given (position, H)"
         return "void"
 
     @PYB11virtual
     @PYB11const
-    @PYB11pycppname("setRefineNestedGridNeighborList")
-    def setRefineNestedGridNeighborList2(self,
+    @PYB11pycppname("setRefineNeighborList")
+    def setRefineNeighborList2(self,
                                position = "const Vector&",
                                H = "const SymTensor&",
-                               coarseNestedGridNeighbors = "const std::vector<int>&",
-                               refineList = "std::vector<int>&"):
+                               coarseNeighbors = "const std::vector<int>&",
+                               refineNeighbors = "std::vector<int>&"):
         "Fill the given arrays with (coarse, refine) neighbor info for the given (position, H)"
         return "void"
 
@@ -80,17 +81,17 @@ class NestedGridNeighbor(Neighbor):
     def setMasterList3(self,
                        position = "const Vector&",
                        masterList = "std::vector<int>&",
-                       coarseNestedGridNeighbors = "std::vector<int>&"):
+                       coarseNeighbors = "std::vector<int>&"):
         "Fill the given arrays with (master, coarse) neighbor info for the given position"
         return "void"
 
     @PYB11virtual
     @PYB11const
-    @PYB11pycppname("setRefineNestedGridNeighborList")
+    @PYB11pycppname("setRefineNeighborList")
     def setRefineNeighobrList3(self,
                                position = "const Vector&",
-                               coarseNestedGridNeighbors = "const std::vector<int>&",
-                               refineList = "std::vector<int>&"):
+                               coarseNeighbors = "const std::vector<int>&",
+                               refineNeighbors = "std::vector<int>&"):
         "Fill the given arrays with (coarse, refine) neighbor info for the given position"
         return "void"
 
@@ -101,7 +102,7 @@ class NestedGridNeighbor(Neighbor):
                        enterPlane = "const Plane&",
                        exitPlane = "const Plane&",
                        masterList = "std::vector<int>&",
-                       coarseNestedGridNeighbors = "std::vector<int>&"):
+                       coarseNeighbors = "std::vector<int>&"):
         "Fill the given arrays with (master, coarse) neighbor info for the given (enter, exit) plane proximity"
         return "void"
 
@@ -120,13 +121,13 @@ class NestedGridNeighbor(Neighbor):
     @PYB11virtual
     @PYB11const
     def valid(self):
-        "Test if the NestedGridNeighbor is valid, i.e., ready to be queried for connectivity information."
+        "Test if the Neighbor is valid, i.e., ready to be queried for connectivity information."
         return "bool"
 
     #...........................................................................
     # Methods
     @PYB11const
-    def gridLevel(self, nodeID="const int", gridLevel="const int"):
+    def gridLevel(self, nodeID="const int"):
         "Find the gridlevel for the given nodeID"
         return "int"
 
@@ -164,40 +165,61 @@ class NestedGridNeighbor(Neighbor):
     @PYB11const
     def occupiedGridCells(self):
         "The full set of occupied gridcells on all gridlevels"
-        return "std::vector<std::vector<int>>&"
+        return "const std::vector<std::vector<GridCellIndexType>>&"
 
     @PYB11returnpolicy("reference_internal")
     @PYB11pycppname("occupiedGridCells")
     @PYB11const
     def occupiedGridCells1(self, gridLevel="const int"):
         "The set of occupied gridcells on the given gridlevel"
-        return "std::vector<int>&"
+        return "const std::vector<GridCellIndexType>&"
 
-    #...........................................................................
-    # Properties
-    @PYB11ignore
-    @PYB11pycppname("numGridLevels")
+    def headOfGridCell(self):
+        "Return the head of the chain for (grid cell, grid level)"
+
+    def nextNodeInCell(self):
+        "Find the next node in the chain from a given node"
+
+    def internalNodesInCell(self):
+        "Return a list of the internal nodes in the given (grid cell, grid level)"
+
+    def nodesInCell(self):
+        "Return a list of the nodes in the given (grid cell, grid level)"
+
+    def appendNodesInCell(self):
+        "Add to the chain of nodes for a given (grid cell, grid level)"
+
+    def occupiedGridCellsInRange(self):
+        "Find the occupied grid cells given (min, max) cells and grid level"
+
+    def gridNormal(self):
+        "Convert a coordinate vector to an integer normal"
+
+    def mapGridCell(self):
+        "Map a (grid cell, grid level) through a pair of planes"
+
     @PYB11const
-    def getnumGridLevels(self):
-        return "int"
-
-    @PYB11ignore
-    @PYB11pycppname("numGridLevels")
-    def setnumGridLevels(self, val="const int"):
+    def setNestedMasterList(self,
+                            gridCell = "const GridCellIndexType&",
+                            gridLevel = "const int",
+                            masterList = "std::vector<int>&",
+                            coarseNeighbors = "std::vector<int>&"):
+        "Worker method used to set master/coarse information"
         return "void"
 
-    @PYB11ignore
-    @PYB11pycppname("numOccupiedGridLevels")
-    @PYB11const
-    def getnumOccupiedGridLevels(self):
-        return "int"
-
-    @PYB11ignore
-    @PYB11pycppname("occupiedGridLevels")
-    @PYB11const
-    def getoccupiedGridLevels(self):
-        return "std::vector<int>"
-
-    numGridLevels = property(getnumGridLevels, setnumGridLevels, doc="The number of gridlevels")
-    numOccupiedGridLevels = property(getnumOccupiedGridLevels, doc="The number of occupied gridlevels")
-    occupiedGridLevels = property(getoccupiedGridLevels, doc="The occupied grid levels")
+    def findNestedNeighbors(self):
+        "Return the neighbors for the given (grid cell, grid level)"
+    
+    #...........................................................................
+    # Properties
+    numGridLevels = PYB11property("int", "numGridLevels", "numGridLevels", doc="The maximum number of grid levels allowed")
+    numOccupiedGridLevels = PYB11property("int", "numOccupiedGridLevels", doc="The number of grid levels populated by nodes")
+    occupiedGridLevels = PYB11property("std::vector<int>", "occupiedGridLevels", doc="Array of the occupied grid levels")
+    origin = PYB11property("const Vector&", "origin", "origin", doc="The origin for computing the GridCellIndex of a coordinate Vector")
+    topGridSize = PYB11property("const double", "topGridSize", "topGridSize", doc="The cell size on the coarsest (top) grid level")
+    gridCellInfluenceRadius = PYB11property("const int", "gridCellInfluenceRadius", "gridCellInfluenceRadius", doc="The radius in grid cells on a level a cell can interact with")
+    gridCellSizeInv = PYB11property("const std::vector<double>&", "gridCellSizeInv", doc="The array of 1/grid cell size for each level")
+    nodeInCell = PYB11property("const std::vector<std::vector<GridCellIndexType>>&", "nodeInCell", doc="The cell each node is in")
+    masterGridLevel = PYB11property("int", "masterGridLevel", doc="The current master grid level")
+    masterGridCellIndex = PYB11property("GridCellIndexType", "masterGridCellIndex", doc="The current master grid cell index")
+    endOfLinkList = PYB11property("int", "endOfLinkList", doc="Value used to terminate a link list chain")

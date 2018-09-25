@@ -126,7 +126,7 @@ class Neighbor:
                                position = "const Vector&",
                                H = "const Scalar&",
                                coarseNeighbors = "const std::vector<int>&",
-                               refineList = "std::vector<int>&"):
+                               refineNeighbors = "std::vector<int>&"):
         "Fill the given arrays with (coarse, refine) neighbor info for the given (position, H)"
         return "void"
 
@@ -137,7 +137,7 @@ class Neighbor:
                                position = "const Vector&",
                                H = "const SymTensor&",
                                coarseNeighbors = "const std::vector<int>&",
-                               refineList = "std::vector<int>&"):
+                               refineNeighbors = "std::vector<int>&"):
         "Fill the given arrays with (coarse, refine) neighbor info for the given (position, H)"
         return "void"
 
@@ -157,7 +157,7 @@ class Neighbor:
     def setRefineNeighobrList3(self,
                                position = "const Vector&",
                                coarseNeighbors = "const std::vector<int>&",
-                               refineList = "std::vector<int>&"):
+                               refineNeighbors = "std::vector<int>&"):
         "Fill the given arrays with (coarse, refine) neighbor info for the given position"
         return "void"
 
