@@ -39,3 +39,30 @@ class GridCellIndex:
     def setIndices3(self, xIndex="int", yIndex="int", zIndex="int"):
         "Set the (x,y,z) indices"
         return "void"
+
+    def dot(self):
+        "Dot product with another GridCellIndex"
+        return
+
+    #...........................................................................
+    # Sequence methods
+    @PYB11implementation("[](const GridCellIndex<%(Dimension)s>& self) { return %(Dimension)s::nDim; }")
+    def __len__(self):
+        "The size (in number of coordinates) of the GridCellIndex."
+
+    @PYB11implementation("[](const GridCellIndex<%(Dimension)s> &s, int i) { if (i >= %(Dimension)s::nDim) throw py::index_error(); return s(i); }") 
+    def __getitem__(self):
+        "Python indexing to get a coordinate."
+
+    @PYB11implementation("[](GridCellIndex<%(Dimension)s> &s, int i, float v) { if (i >= %(Dimension)s::nDim) throw py::index_error(); s(i) = v; }") 
+    def __setitem__(self):
+        "Python indexing to set a coordinate."
+
+    @PYB11implementation("[](const GridCellIndex<%(Dimension)s> &s) { return py::make_iterator(std::begin(s), std::end(s)); }")
+    def __iter__(self):
+        "Python iteration through a GridCellIndex."
+
+    @PYB11const
+    def __call__(self, i="int"):
+        "Index for a coordinate using parens."
+        return "int"

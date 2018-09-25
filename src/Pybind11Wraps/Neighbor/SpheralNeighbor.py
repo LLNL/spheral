@@ -20,7 +20,8 @@ includes = ['"Geometry/Dimension.hh"',
             '"Neighbor/TreeNeighbor.hh"',
             '"Neighbor/ConnectivityMap.hh"',
             '<vector>',
-            '<string>']
+            '<string>',
+            '<iterator>']
 
 #-------------------------------------------------------------------------------
 # Define a preamble function to expose the protected methods of Neighbor.

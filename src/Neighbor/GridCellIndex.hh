@@ -21,6 +21,9 @@ class GridCellIndex: public GridCellIndexBase<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
+  typedef const int* const_iterator;
+  typedef int* iterator;
+
   GridCellIndex();
   GridCellIndex(int xIndex);
   GridCellIndex(int xIndex, int yIndex);
@@ -88,6 +91,13 @@ public:
 
   int indexMin() const;
   int indexMax() const;
+
+  // Iterator access to the raw data.
+  iterator begin();
+  iterator end();
+
+  const_iterator begin() const;
+  const_iterator end() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//

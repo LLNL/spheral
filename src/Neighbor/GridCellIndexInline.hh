@@ -1121,6 +1121,39 @@ GridCellIndex<Dimension>::indexMax() const {
 }
 
 //------------------------------------------------------------------------------
+// Provide begin/end iterators over the elements of the Vector.
+//------------------------------------------------------------------------------
+// Non-const versions.
+template<typename Dimension>
+inline
+typename GridCellIndex<Dimension>::iterator
+GridCellIndex<Dimension>::begin() {
+  return &(this->mx);
+}
+
+template<typename Dimension>
+inline
+typename GridCellIndex<Dimension>::iterator
+GridCellIndex<Dimension>::end() {
+  return &(this->mx) + Dimension::nDim;
+}
+
+// Const versions.
+template<typename Dimension>
+inline
+typename GridCellIndex<Dimension>::const_iterator
+GridCellIndex<Dimension>::begin() const {
+  return &(this->mx);
+}
+
+template<typename Dimension>
+inline
+typename GridCellIndex<Dimension>::const_iterator
+GridCellIndex<Dimension>::end() const {
+  return &(this->mx) + Dimension::nDim;
+}
+
+//------------------------------------------------------------------------------
 // Upack the individual indices into a single int integer value.
 //------------------------------------------------------------------------------
 // template<>
