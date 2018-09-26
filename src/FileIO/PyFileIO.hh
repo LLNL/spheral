@@ -154,11 +154,11 @@ public:
   // Override the base FileIO read methods to use the above pure virtual methods.
 
   // Write methods.
-  virtual void write(const unsigned value, const std::string pathName) { write_unsigned_int(value, pathName); }
-  virtual void write(const int value, const std::string pathName) { write_int(value, pathName); }
-  virtual void write(const bool value, const std::string pathName) { write_bool(value, pathName); }
-  virtual void write(const double value, const std::string pathName) { write_double(value, pathName); }
-  virtual void write(const std::string value, const std::string pathName) { write_string(value, pathName); }
+  virtual void write(const unsigned& value, const std::string pathName) { write_unsigned_int(value, pathName); }
+  virtual void write(const int& value, const std::string pathName) { write_int(value, pathName); }
+  virtual void write(const bool& value, const std::string pathName) { write_bool(value, pathName); }
+  virtual void write(const double& value, const std::string pathName) { write_double(value, pathName); }
+  virtual void write(const std::string& value, const std::string pathName) { write_string(value, pathName); }
 
   virtual void write(const Dim<1>::Vector& value, const std::string pathName) { write_Vector1d(value, pathName); }
   virtual void write(const Dim<1>::Tensor& value, const std::string pathName) { write_Tensor1d(value, pathName); }

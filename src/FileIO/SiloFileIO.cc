@@ -102,7 +102,7 @@ SiloFileIO::close() {
 // Write an unsigned to the file.
 //------------------------------------------------------------------------------
 void
-SiloFileIO::write(const unsigned value, const string pathName) {
+SiloFileIO::write(const unsigned& value, const string pathName) {
   const string varname = this->setDir(pathName);
   int dims[1] = {1};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &value, dims, 1, DB_INT) == 0,
@@ -113,7 +113,7 @@ SiloFileIO::write(const unsigned value, const string pathName) {
 // Write an int to the file.
 //------------------------------------------------------------------------------
 void
-SiloFileIO::write(const int value, const string pathName) {
+SiloFileIO::write(const int& value, const string pathName) {
   const string varname = this->setDir(pathName);
   int dims[1] = {1};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &value, dims, 1, DB_INT) == 0,
@@ -124,7 +124,7 @@ SiloFileIO::write(const int value, const string pathName) {
 // Write a bool to the file.
 //------------------------------------------------------------------------------
 void
-SiloFileIO::write(const bool value, const string pathName) {
+SiloFileIO::write(const bool& value, const string pathName) {
   const string varname = this->setDir(pathName);
   int dims[1] = {1};
   int ivalue = value ? 1 : 0;
@@ -136,7 +136,7 @@ SiloFileIO::write(const bool value, const string pathName) {
 // Write a double to the file.
 //------------------------------------------------------------------------------
 void
-SiloFileIO::write(const double value, const string pathName) {
+SiloFileIO::write(const double& value, const string pathName) {
   const string varname = this->setDir(pathName);
   int dims[1] = {1};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &value, dims, 1, DB_DOUBLE) == 0,
@@ -147,7 +147,7 @@ SiloFileIO::write(const double value, const string pathName) {
 // Write a string to the file.
 //------------------------------------------------------------------------------
 void
-SiloFileIO::write(const string value, const string pathName) {
+SiloFileIO::write(const string& value, const string pathName) {
   const char* cvalue = value.c_str();
   int dims[1] = {int(strlen(cvalue))};
   this->write(dims[0], pathName + "/size");

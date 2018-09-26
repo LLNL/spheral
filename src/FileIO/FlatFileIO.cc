@@ -119,7 +119,7 @@ FlatFileIO::close() {
 // Write an unsigned to the file.
 //------------------------------------------------------------------------------
 void
-FlatFileIO::write(const unsigned value, const string pathName) {
+FlatFileIO::write(const unsigned& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
@@ -127,7 +127,7 @@ FlatFileIO::write(const unsigned value, const string pathName) {
 // Write an int to the file.
 //------------------------------------------------------------------------------
 void
-FlatFileIO::write(const int value, const string pathName) {
+FlatFileIO::write(const int& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
@@ -135,7 +135,7 @@ FlatFileIO::write(const int value, const string pathName) {
 // Write a bool to the file.
 //------------------------------------------------------------------------------
 void
-FlatFileIO::write(const bool value, const string pathName) {
+FlatFileIO::write(const bool& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
@@ -144,7 +144,7 @@ FlatFileIO::write(const bool value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::
-write(const double value, const string pathName) {
+write(const double& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
@@ -237,7 +237,7 @@ write(const Dim<3>::ThirdRankTensor& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::
-write(const string value, const string pathName) {
+write(const string& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 

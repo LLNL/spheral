@@ -36,11 +36,11 @@ public:
   //******************************************************************************
   // All FileIO objects had better be able to read and write the primitive 
   // DataTypes.
-  virtual void write(const unsigned value, const std::string pathName);
-  virtual void write(const int value, const std::string pathName);
-  virtual void write(const bool value, const std::string pathName);
-  virtual void write(const double value, const std::string pathName);
-  virtual void write(const std::string value, const std::string pathName);
+  virtual void write(const unsigned& value, const std::string pathName);
+  virtual void write(const int& value, const std::string pathName);
+  virtual void write(const bool& value, const std::string pathName);
+  virtual void write(const double& value, const std::string pathName);
+  virtual void write(const std::string& value, const std::string pathName);
 
   virtual void write(const Dim<1>::Vector& value, const std::string pathName);
   virtual void write(const Dim<1>::Tensor& value, const std::string pathName);
