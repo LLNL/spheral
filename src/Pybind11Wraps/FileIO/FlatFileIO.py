@@ -1,0 +1,44 @@
+#-------------------------------------------------------------------------------
+# FlatFileIO
+#-------------------------------------------------------------------------------
+from PYB11Generator import *
+from injectFileIOVirtualMethods import *
+from spheralDimensions import *
+dims = spheralDimensions()
+
+class FlatFileIO:
+    "FileIO implementation for raw read/writes to a file (ascii or binary)"
+
+    #...........................................................................
+    # Constructors
+    def pyinit0(self):
+        "Default constructor"
+
+    def pyinit1(self,
+                filename = "const std::string",
+                access = "AccessType",
+                format = ("FlatFileFormat", "FlatFileFormat::ascii")):
+        "Construct with a given file name, access, and file format (ascii/binary)"
+
+    #...........................................................................
+    # Methods
+    @PYB11const
+    def findPathName(self,
+                     pathName = "const std::string"):
+        "Move the pointer in the file to the specified path"
+        return "void"
+
+    @PYB11const
+    def beginningOfFile(self):
+        "Move the pointer in the file to the beginning"
+        return "void"
+
+    #...........................................................................
+    # Properties
+    precision = PYB11property("int", "precision", "setPrecision", doc="Precision for reading/writing numbers")
+    readyToWrite = PYB11property("bool", "readyToWrite", doc="Is the FlatFileIO object valid for writing?")
+
+#-------------------------------------------------------------------------------
+# Override the required virtual interface
+#-------------------------------------------------------------------------------
+injectFileIOVirtualMethods(FlatFileIO)

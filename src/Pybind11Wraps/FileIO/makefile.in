@@ -9,7 +9,10 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = FileIO
 PKGDIR = $(PKGNAME)/
 PYB11SRCS = \
-	FileIO.py
+	FileIO.py \
+	FlatFileIO.py \
+	SiloFileIO.py \
+	PyFileIO.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------

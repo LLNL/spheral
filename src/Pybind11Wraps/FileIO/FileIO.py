@@ -6,6 +6,7 @@ from spheralDimensions import *
 dims = spheralDimensions()
 
 class FileIO:
+    "Abstract base class for FileIO objects"
 
     #...........................................................................
     # Constructors
@@ -259,6 +260,13 @@ writeFieldVec%(Tmangle)s = PYB11TemplateMember(writeFieldVec,
                     path = "PyObject*"):
         "Handle a generic python object through serialization"
         return "void"
+
+    @PYB11returnpolicy("take_ownership")
+    @PYB11const
+    def readObject(self,
+                   path = "PyObject*"):
+        "Return a generic python object from deserialization."
+        return "PyObject*"
 
     #...........................................................................
     # Properties
