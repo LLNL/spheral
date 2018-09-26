@@ -24,54 +24,64 @@ class EquationOfState:
     # Abstract interface
     @PYB11pure_virtual
     @PYB11const
-    def setPressure(Pressure = "ScalarField&",
+    def setPressure(self,
+                    Pressure = "ScalarField&",
                     massDensity = "const ScalarField&",
                     specificThermalEnergy = "const ScalarField&"):
         return "void"
 
     @PYB11pure_virtual
     @PYB11const
-    def setTemperature(temperature = "ScalarField&",
+    def setTemperature(self,
+                       temperature = "ScalarField&",
                        massDensity = "const ScalarField&",
                        specificThermalEnergy = "const ScalarField&"):
         return "void"
 
     @PYB11pure_virtual
     @PYB11const
-    def setSpecificThermalEnergy(specificThermalEnergy = "ScalarField&",
+    def setSpecificThermalEnergy(self,
+                                 specificThermalEnergy = "ScalarField&",
                                  massDensity = "const ScalarField&",
                                  temperature = "const ScalarField&"):
         return "void"
 
     @PYB11pure_virtual
     @PYB11const
-    def setSpecificHeat(specificHeat = "ScalarField&",
+    def setSpecificHeat(self,
+                        specificHeat = "ScalarField&",
                         massDensity = "const ScalarField&",
                         temperature = "const ScalarField&"):
         return "void"
 
     @PYB11pure_virtual
     @PYB11const
-    def setSoundSpeed(soundSpeed = "ScalarField&",
+    def setSoundSpeed(self,
+                      soundSpeed = "ScalarField&",
                       massDensity = "const ScalarField&",
                       specificThermalEnergy = "const ScalarField&"):
         return "void"
 
     @PYB11pure_virtual
     @PYB11const
-    def setGammaField(gamma = "ScalarField&",
+    def setGammaField(self,
+                      gamma = "ScalarField&",
                       massDensity = "const ScalarField&",
                       specificThermalEnergy = "const ScalarField&"):
         return "void"
 
     @PYB11pure_virtual
     @PYB11const
-    def setBulkModulus(bulkModulus = "ScalarField&",
+    def setBulkModulus(self,
+                       bulkModulus = "ScalarField&",
                        massDensity = "const ScalarField&",
                        specificThermalEnergy = "const ScalarField&"):
         return "void"
 
-    def setEntropy(entropy = "ScalarField&",
+    @PYB11pure_virtual
+    @PYB11const
+    def setEntropy(self,
+                   entropy = "ScalarField&",
                    massDensity = "const ScalarField&",
                    specificThermalEnergy = "const ScalarField&"):
         return "void"
@@ -85,7 +95,8 @@ class EquationOfState:
     # Virtual methods
     @PYB11virtual
     @PYB11const
-    def specificThermalEnergyForPressure(Ptarget = "const Scalar",
+    def specificThermalEnergyForPressure(self,
+                                         Ptarget = "const Scalar",
                                          rho = "const Scalar",
                                          epsMin = "const Scalar",
                                          epsMax = "const Scalar",

@@ -35,9 +35,16 @@ MaterialPressureMinType = PYB11enum(("PressureFloor", "ZeroPressure"), export_va
 #-------------------------------------------------------------------------------
 # Instantiate our types
 #-------------------------------------------------------------------------------
+from PhysicalConstants import *
 from EquationOfState import *
+from GammaLawGas import *
+from PolytropicEquationOfState import *
+from IsothermalEquationOfState import *
 
 for ndim in dims:
     exec('''
 EquationOfState%(ndim)id = PYB11TemplateClass(EquationOfState, template_parameters="Dim<%(ndim)i>")
+GammaLawGas%(ndim)id = PYB11TemplateClass(GammaLawGas, template_parameters="Dim<%(ndim)i>")
+PolytropicEquationOfState%(ndim)id = PYB11TemplateClass(PolytropicEquationOfState, template_parameters="Dim<%(ndim)i>")
+IsothermalEquationOfState%(ndim)id = PYB11TemplateClass(IsothermalEquationOfState, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
