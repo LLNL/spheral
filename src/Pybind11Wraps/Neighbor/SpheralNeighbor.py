@@ -13,6 +13,7 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 includes = ['"Geometry/Dimension.hh"',
             '"Geometry/GeomPlane.hh"',
+            '"Boundary/Boundary.hh"',
             '"Neighbor/GridCellIndex.hh"',
             '"Neighbor/GridCellPlane.hh"',
             '"Neighbor/Neighbor.hh"',
@@ -58,6 +59,7 @@ from GridCellPlane import *
 from Neighbor import *
 from NestedGridNeighbor import *
 from TreeNeighbor import *
+from ConnectivityMap import *
 
 for ndim in dims:
     exec('''
@@ -66,6 +68,7 @@ GridCellPlane%(ndim)id = PYB11TemplateClass(GridCellPlane, template_parameters="
 Neighbor%(ndim)id = PYB11TemplateClass(Neighbor, template_parameters="Dim<%(ndim)i>")
 NestedGridNeighbor%(ndim)id = PYB11TemplateClass(NestedGridNeighbor, template_parameters="Dim<%(ndim)i>")
 TreeNeighbor%(ndim)id = PYB11TemplateClass(TreeNeighbor, template_parameters="Dim<%(ndim)i>")
+ConnectivityMap%(ndim)id = PYB11TemplateClass(ConnectivityMap, template_parameters="Dim<%(ndim)i>")
 
 vector_of_GridCellIndex%(ndim)id = PYB11_bind_vector("GridCellIndex%(ndim)id", opaque=True)
 vector_of_vector_of_GridCellIndex%(ndim)id = PYB11_bind_vector("std::vector<GridCellIndex%(ndim)id>", opaque=True)

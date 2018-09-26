@@ -12,7 +12,9 @@ PYB11SRCS = \
 	GridCellIndex.py \
 	injectNeighborVirtualMethods.py \
 	Neighbor.py \
-	NestedGridNeighbor.py
+	NestedGridNeighbor.py \
+	TreeNeighbor.py \
+	ConnectivityMap.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------
