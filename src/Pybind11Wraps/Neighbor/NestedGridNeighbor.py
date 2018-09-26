@@ -126,8 +126,8 @@ class NestedGridNeighbor(Neighbor):
     gridCellInfluenceRadius = PYB11property("const int", "gridCellInfluenceRadius", "gridCellInfluenceRadius", doc="The radius in grid cells on a level a cell can interact with")
     gridCellSizeInv = PYB11property("const std::vector<double>&", "gridCellSizeInv", doc="The array of 1/grid cell size for each level")
     nodeInCell = PYB11property("const std::vector<std::vector<GridCellIndexType>>&", "nodeInCell", doc="The cell each node is in")
-    masterGridLevel = PYB11property("int", "masterGridLevel", doc="The current master grid level")
-    masterGridCellIndex = PYB11property("GridCellIndexType", "masterGridCellIndex", doc="The current master grid cell index")
+    #masterGridLevel = PYB11property("int", "masterGridLevel", doc="The current master grid level")
+    #masterGridCellIndex = PYB11property("const GridCellIndexType&", "masterGridCellIndex", doc="The current master grid cell index")
     endOfLinkList = PYB11property("int", "endOfLinkList", doc="Value used to terminate a link list chain")
 
 #-------------------------------------------------------------------------------

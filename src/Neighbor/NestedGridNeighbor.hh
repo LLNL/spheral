@@ -172,8 +172,6 @@ public:
   // Allow read only access to some of the more interesting member data.
   const std::vector<double>& gridCellSizeInv() const;
   const std::vector< std::vector<GC > >& nodeInCell() const;
-  int masterGridLevel() const;
-  const GC& masterGridCellIndex() const;
 
   // The flag indicating the end of a linked list of nodes.
   int endOfLinkList() const;
