@@ -238,3 +238,30 @@ writeFieldVec%(Tmangle)s = PYB11TemplateMember(writeFieldVec,
 ''' % {"ndim"    : ndim,
        "T"       : T,
        "Tmangle" : ("Field<%i%s>" % (ndim, T)).replace(":", "_").replace("<", "_").replace(">", "_")})
+
+    @PYB11const
+    def splitPathComponents(self, pathName="const std::string&"):
+        "A helper function to split a string up into substrings delimited by '/'."
+        return "std::vector<std::string>"
+
+    @PYB11const
+    def groupName(self, pathName="const std::string"):
+        "Return the group (directory) component of a path."
+        return "std::string"
+
+    @PYB11const
+    def variableName(self, pathName="const std::string"):
+        "Return the variable component of a path."
+        return "std::string"
+
+    def writeObject(self,
+                    thing = "PyObject*",
+                    path = "PyObject*"):
+        "Handle a generic python object through serialization"
+        return "void"
+
+    #...........................................................................
+    # Properties
+    fileName = PYB11property("const std::string&", "fileName", doc="The current file name")
+    access = PYB11property("AccessType", "access", doc="The access type of the currently open file")
+    fileOpen = PYB11property("bool", "fileOpen", doc="Is the file currently open?")
