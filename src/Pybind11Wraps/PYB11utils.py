@@ -40,7 +40,11 @@ def PYB11classTemplateInsts(modobj):
 #-------------------------------------------------------------------------------
 def PYB11ClassMethods(obj):
     result = inspect.getmembers(obj, predicate=inspect.ismethod)
-    result.sort(key = PYB11sort_by_line)
+    # It's nice to sort in the same order the user created, but not necessary
+    try:
+        result.sort(key = PYB11sort_by_line)
+    except:
+        pass
     return result
 
 #-------------------------------------------------------------------------------
