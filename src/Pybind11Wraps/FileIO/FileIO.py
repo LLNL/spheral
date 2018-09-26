@@ -214,3 +214,27 @@ def readPlane%(ndim)i(self,
     "Read a Plane%(ndim)id"
     return "void"
 ''' % {"ndim" : ndim})
+
+    @PYB11template("Dimension", "Value")
+    @PYB11pycppname("write")
+    def writeFieldVec(self,
+                      field = "const Field<%(Dimension)s, std::vector<%(Value)s>>&",
+                      pathName = "const std::string"):
+        "Write a Field<%(Dimension)s, vector<%(Value)s>>"
+        return "void"
+
+    for ndim in dims:
+        types = ["int",
+                 "Dim<%i>::Scalar" % ndim,
+                 "Dim<%i>::Vector" % ndim,
+                 "Dim<%i>::Tensor" % ndim,
+                 "Dim<%i>::SymTensor" % ndim,
+                 "Dim<%i>::ThirdRankTensor" % ndim]
+        for T in types:
+            exec('''
+writeFieldVec%(Tmangle)s = PYB11TemplateMember(writeFieldVec,
+                                               template_parameters=("Dim<%(ndim)i>", "%(T)s"),
+                                               pyname = "write")
+''' % {"ndim"    : ndim,
+       "T"       : T,
+       "Tmangle" : ("Field<%i%s>" % (ndim, T)).replace(":", "_").replace("<", "_").replace(">", "_")})

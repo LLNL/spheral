@@ -123,6 +123,110 @@ class PYB11TemplateClass:
         return klassattrs
 
 #-------------------------------------------------------------------------------
+# Make a class member function template instantiation
+#-------------------------------------------------------------------------------
+class PYB11TemplateMember:
+
+    def __init__(self,
+                 func_template,
+                 template_parameters,
+                 cppname = None,
+                 pyname = None,
+                 docext = ""):
+        if isinstance(template_parameters, str):
+            template_parameters = (template_parameters,)
+        self.func_template = func_template
+        funcattrs = PYB11attrs(self.func_template)
+        assert len(funcattrs["template"]) == len(template_parameters)
+        self.template_parameters = [(name, val) for (name, val) in zip(funcattrs["template"], template_parameters)]
+        self.cppname = cppname
+        self.pyname = pyname
+        self.docext = docext
+        return
+
+    def __call__(self, klass, klassattrs, ss):
+        # Do some template mangling (and magically put the template parameters in scope).
+        template_ext = "<"
+        doc_ext = ""
+        for name, val in self.template_parameters:
+            exec("%s = '%s'" % (name, val))
+            template_ext += "%s, " % val
+            doc_ext += "_%s_" % val.replace("::", "_").replace("<", "_").replace(">", "_")
+        template_ext = template_ext[:-2] + ">"
+
+        funcattrs = PYB11attrs(self.func_template)
+        if self.cppname:
+            funcattrs["cppname"] = self.cppname
+        else:
+            funcattrs["cppname"] += template_ext
+        if self.pyname:
+            funcattrs["pyname"] = self.pyname
+        else:
+            funcattrs["pyname"] += doc_ext
+
+        funcattrs["template_dict"] = {}
+        for name, val in self.template_parameters:
+            funcattrs["template_dict"][name] = val
+
+        doc0 = copy.deepcopy(self.func_template.__doc__)
+        self.func_template.__doc__ += self.docext
+        fs = StringIO.StringIO()
+        PYB11generic_class_method(klass, klassattrs, self.func_template, funcattrs, fs.write)
+        ss(fs.getvalue() % PYB11union_dict(klassattrs["template_dict"], funcattrs["template_dict"]))
+        fs.close()
+        self.func_template.__doc__ = doc0
+        return
+        
+
+#-------------------------------------------------------------------------------
+# Generic class method generation
+#-------------------------------------------------------------------------------
+def PYB11generic_class_method(klass, klassattrs, meth, methattrs, ss):
+    klassinst = klass()
+    args = PYB11parseArgs(meth)
+    methattrs["returnType"] = meth(klassinst)
+    if methattrs["static"]:
+        ss('    obj.def_static("%(pyname)s", ' % methattrs)
+    else:
+        ss('    obj.def("%(pyname)s", ' % methattrs)
+
+    # If there is an implementation, short-circuit the rest.
+    if methattrs["implementation"]:
+        ss(methattrs["implementation"])
+    elif methattrs["returnType"] is None:
+        if methattrs["static"]:
+            ss(("&%(namespace)s" % klassattrs) + methattrs["cppname"])
+        else:
+            ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
+    else:
+        ss("(%(returnType)s " % methattrs)
+        if methattrs["static"]:
+            ss("(%(namespace)s*)(" % klassattrs)
+        else:
+            ss("(%(namespace)s%(cppname)s::*)(" % klassattrs)
+        argString = ""
+        for i, (argType, argName, default) in enumerate(args):
+            ss(argType)
+            if i < len(args) - 1:
+                ss(", ")
+            argString += ', "%s"_a' % argName
+            if default:
+                argString += "=%s" % default
+        if methattrs["const"]:
+            ss((") const) &%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+        else:
+            ss((")) &%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+
+    # Is there a return value policy?
+    if methattrs["returnpolicy"]:
+        ss(", py::return_value_policy::%s" % methattrs["returnpolicy"])
+
+    doc = inspect.getdoc(meth)
+    if doc:
+        ss(',\n            "%s"' % doc)
+    ss(");\n")
+
+#-------------------------------------------------------------------------------
 # PYB11generateClass
 #
 # Bind the methods for the given class
@@ -132,50 +236,6 @@ def PYB11generateClass(klass, klassattrs, ssout):
 
     fs = StringIO.StringIO()
     ss = fs.write
-
-    #...........................................................................
-    # Generate a generic class method spec.
-    def generic_class_method(meth, methattrs, args):
-        if methattrs["static"]:
-            ss('    obj.def_static("%(pyname)s", ' % methattrs)
-        else:
-            ss('    obj.def("%(pyname)s", ' % methattrs)
-
-        # If there is an implementation, short-circuit the rest.
-        if methattrs["implementation"]:
-            ss(methattrs["implementation"])
-        elif methattrs["returnType"] is None:
-            if methattrs["static"]:
-                ss(("&%(namespace)s" % klassattrs) + methattrs["cppname"])
-            else:
-                ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
-        else:
-            ss("(%(returnType)s " % methattrs)
-            if methattrs["static"]:
-                ss("(%(namespace)s*)(" % klassattrs)
-            else:
-                ss("(%(namespace)s%(cppname)s::*)(" % klassattrs)
-            argString = ""
-            for i, (argType, argName, default) in enumerate(args):
-                ss(argType)
-                if i < len(args) - 1:
-                    ss(", ")
-                argString += ', "%s"_a' % argName
-                if default:
-                    argString += "=%s" % default
-            if methattrs["const"]:
-                ss((") const) &%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
-            else:
-                ss((")) &%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
-
-        # Is there a return value policy?
-        if methattrs["returnpolicy"]:
-            ss(", py::return_value_policy::%s" % methattrs["returnpolicy"])
-
-        doc = inspect.getdoc(meth)
-        if doc:
-            ss(',\n            "%s"' % doc)
-        ss(");\n")
 
     #...........................................................................
     # Ignore a method
@@ -418,15 +478,24 @@ def PYB11generateClass(klass, klassattrs, ssout):
         del allmethods[i]
 
     # Bind the remaining methods of the class.
-    ss("\n    // Methods\n")
-    for i, (mname, meth) in enumerate(allmethods):
-        methattrs = PYB11attrs(meth)
-        methattrs["returnType"] = eval("klassinst." + mname + "()")
-        args = PYB11parseArgs(meth)
-        generic_class_method(meth, methattrs, args)
+    if allmethods:
+        ss("\n    // Methods\n")
+        for i, (mname, meth) in enumerate(allmethods):
+            methattrs = PYB11attrs(meth)
+            PYB11generic_class_method(klass, klassattrs, meth, methattrs, ss)
 
     # Bind properties
     PYB11GenerateClassProperties(klass, klassinst, klassattrs, ss)
+
+    # Bind any templated methods
+    templates = [x for x in dir(klassinst) if isinstance(eval("klassinst.%s" % x), PYB11TemplateMember)]
+    if templates:
+        ss("\n    // %(cppname)s template methods\n" % klassattrs)
+        for tname in templates:
+            inst = eval("klassinst.%s" % tname)
+            meth = inst.func_template
+            methattrs = PYB11attrs(meth)
+            inst(klass, klassattrs, ss)
 
     # Look for any class scope enums and bind them
     enums = [x for x in dir(klassinst) if isinstance(eval("klassinst.%s" % x), PYB11enum)]

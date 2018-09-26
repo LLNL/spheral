@@ -113,6 +113,16 @@ def PYB11mangle(name):
     return result
 
 #-------------------------------------------------------------------------------
+# Union of dictionarys.
+#-------------------------------------------------------------------------------
+def PYB11union_dict(*args):
+    result = {}
+    for d in args:
+        for key in d:
+            result[key] = d[key]
+    return result
+
+#-------------------------------------------------------------------------------
 # PYB11CPPsafe
 #
 # Mangle a string to make commas safe for CPP directives.
