@@ -25,7 +25,7 @@ def PYB11generateModuleFunctions(modobj, ss):
     func_templates = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11TemplateFunction)]
     for ftname in func_templates:
         func_template = eval("modobj.%s" % ftname)
-        func_template(ss)
+        func_template(ftname, ss)
     return
 
 #--------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ class PYB11TemplateFunction:
         self.docext = docext
         return
 
-    def __call__(self, ss):
+    def __call__(self, pyname, ss):
 
         # Do some template mangling (and magically put the template parameters in scope).
         template_ext = "<"
@@ -69,7 +69,7 @@ class PYB11TemplateFunction:
         if self.pyname:
             funcattrs["pyname"] = self.pyname
         else:
-            funcattrs["pyname"] += doc_ext
+            funcattrs["pyname"] = pyname
 
         funcattrs["template_dict"] = {}
         for name, val in self.template_parameters:
