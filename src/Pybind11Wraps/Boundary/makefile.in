@@ -9,18 +9,9 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Boundary
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-
-PYB11GENTARGETS = \
-	PyBoundary.hh \
-	PyBoundaryConcrete.hh \
-	virtualPyBoundaryBindings.hh \
-	PyBoundaryMesh.hh \
-	virtualPyBoundaryMeshBindings.hh \
-	PyPlanarBoundary.hh \
-	virtualPyPlanarBoundaryBindings.hh
-
-SRCTARGETS += \
-	$(srcdir)/SpheralBoundary.cc
+PYB11SRCS = \
+	BoundaryAbstractMethods.py \
+	Boundary.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
