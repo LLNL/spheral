@@ -487,15 +487,22 @@ def PYB11generateClass(klass, klassattrs, ssout):
     # Bind properties
     PYB11GenerateClassProperties(klass, klassinst, klassattrs, ss)
 
+    # Find base class template member instantiations, so we don't reproduce them.
+    btemplates = []
+    for bklass in inspect.getmro(klass)[1:]:
+        bklassinst = bklass()
+        btemplates += [x for x in dir(bklassinst) if isinstance(eval("bklassinst.%s" % x), PYB11TemplateMember)]
+
     # Bind any templated methods
     templates = [x for x in dir(klassinst) if isinstance(eval("klassinst.%s" % x), PYB11TemplateMember)]
     if templates:
         ss("\n    // %(cppname)s template methods\n" % klassattrs)
         for tname in templates:
-            inst = eval("klassinst.%s" % tname)
-            meth = inst.func_template
-            methattrs = PYB11attrs(meth)
-            inst(tname, klass, klassattrs, ss)
+            if tname not in btemplates:
+                inst = eval("klassinst.%s" % tname)
+                meth = inst.func_template
+                methattrs = PYB11attrs(meth)
+                inst(tname, klass, klassattrs, ss)
 
     # Look for any class scope enums and bind them
     enums = [x for x in dir(klassinst) if isinstance(eval("klassinst.%s" % x), PYB11enum)]
