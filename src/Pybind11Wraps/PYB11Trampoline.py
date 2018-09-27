@@ -16,6 +16,8 @@ def PYB11generateTrampoline(klass, ssout):
 
     klassattrs = PYB11attrs(klass)
     template_klass = len(klassattrs["template"]) > 0
+    if klassattrs["ignore"] and not template_klass:
+        return
 
     # This is a bit of trickery to let us use inheritance without regenerating trampolines
     if"__known_trampolines" not in PYB11generateTrampoline.__dict__:

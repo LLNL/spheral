@@ -147,4 +147,4 @@ class Neighbor:
 #-------------------------------------------------------------------------------
 # Add the abstract interface
 #-------------------------------------------------------------------------------
-PYB11inject(NeighborAbstractMethods, TreeNeighbor, pure_virtual=True)
+PYB11inject(NeighborAbstractMethods, Neighbor, pure_virtual=True)

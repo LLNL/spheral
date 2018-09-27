@@ -5,7 +5,7 @@ from PYB11Generator import *
 import inspect, types
 
 @PYB11ignore
-class NeighborVirtualMethods:
+class NeighborAbstractMethods:
 
     @PYB11const
     @PYB11pycppname("setMasterList")

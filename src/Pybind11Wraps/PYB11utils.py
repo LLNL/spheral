@@ -10,13 +10,15 @@ def PYB11inject(fromcls, tocls,
                 virtual = False,
                 pure_virtual = False):
     assert not (virtual and pure_virtual), "PYB11inject: cannot specify both virtual and pure_virtual!"
-    names = [x for x in dir(fromcls) if (x[:2] != "__" and inspect.isfunction(eval('fromcls.%s' % x)))]
+    names = [x for x in dir(fromcls) if (x[:2] != "__" and inspect.ismethod(eval('fromcls.%s' % x)))]
     for name in names:
-        exec('tocls.%(name)s = eval("fromcls.%(name)s")' % {"name": name})
+        exec('''tocls.%(name)s = eval("fromcls.__dict__['%(name)s']")''' % {"name": name})
+        #exec('tocls.%(name)s = eval("fromcls.%(name)s")' % {"name": name})
         if virtual:
-            exec('tocls.%(name)s.PYB11virtual = True')
+            exec('tocls.%s.__dict__["PYB11virtual"] = True' % name)
         elif pure_virtual:
-            exec('tocls.%(name)s.PYB11pure_virtual = True')
+            exec('tocls.%s.__dict__["PYB11pure_virtual"] = True' % name)
+            #exec('tocls.%s.PYB11pure_virtual = True' % name)
     return
 
 #-------------------------------------------------------------------------------
