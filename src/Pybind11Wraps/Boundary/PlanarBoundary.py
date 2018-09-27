@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from Boundary import *
-from BoundaryAbstractMethods import *
+from RestartMethods import *
 
 @PYB11template("Dimension")
 class PlanarBoundary(Boundary):
@@ -114,6 +114,6 @@ class PlanarBoundary(Boundary):
         return "std::vector<unsigned>"
 
 #-------------------------------------------------------------------------------
-# Inject abstract interface
+# Inject restart methods
 #-------------------------------------------------------------------------------
-# PYB11inject(BoundaryAbstractMethods, Boundary, pure_virtual=True)
+PYB11inject(RestartMethods, PlanarBoundary)

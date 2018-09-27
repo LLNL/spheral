@@ -27,6 +27,7 @@ includes = ['"Boundary/Boundary.hh"',
             '"Boundary/AxialSymmetryBoundary.hh"',
             '"Boundary/AxisBoundaryRZ.hh"',
             '"Boundary/CRKSPHVoidBoundary.hh"',
+            '"FileIO/FileIO.hh"',
             '<vector>',
             '<string>']
 
