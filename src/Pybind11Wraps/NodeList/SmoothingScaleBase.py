@@ -1,4 +1,5 @@
 from PYB11Generator import *
+from SmoothingScaleAbstractMethods import *
 
 #-------------------------------------------------------------------------------
 # SmoothingScaleBase
@@ -38,65 +39,8 @@ class SmoothingScaleBase:
         "Compute the time derivative and ideal H simultaneously for a Field of H's."
         return "void"
     
-    @PYB11pure_virtual
-    @PYB11const
-    def smoothingScaleDerivative(self,
-                                 H = "const SymTensor&",
-                                 pos = "const Vector&", 
-                                 DvDx = "const Tensor&", 
-                                 hmin = "const Scalar", 
-                                 hmax = "const Scalar", 
-                                 hminratio = "const Scalar", 
-                                 nPerh = "const Scalar"):
-        "Time derivative of the smoothing scale."
-        return "SymTensor"
-  
-    @PYB11pure_virtual
-    @PYB11const
-    def newSmoothingScale(self,
-                          H = "const SymTensor&", 
-                          pos = "const Vector&", 
-                          zerothMoment = "const Scalar", 
-                          secondMoment = "const SymTensor&", 
-                          W = "const TableKernel<%(Dimension)s>&", 
-                          hmin = "const Scalar", 
-                          hmax = "const Scalar", 
-                          hminratio = "const Scalar", 
-                          nPerh = "const Scalar", 
-                          connectivityMap = "const ConnectivityMap<%(Dimension)s>&", 
-                          nodeListi = "const unsigned", 
-                          i = "const unsigned"):
-        "Return a new H, with limiting based on the old value."
-        return "SymTensor"
 
-    @PYB11pure_virtual
-    @PYB11const
-    def idealSmoothingScale(self,
-                            H = "const SymTensor&", 
-                            pos = "const Vector&", 
-                            zerothMoment = "const Scalar", 
-                            secondMoment = "const SymTensor&", 
-                            W = "const TableKernel<%(Dimension)s>&", 
-                            hmin = "const typename %(Dimension)s::Scalar", 
-                            hmax = "const typename %(Dimension)s::Scalar", 
-                            hminratio = "const typename %(Dimension)s::Scalar", 
-                            nPerh = "const Scalar", 
-                            connectivityMap = "const ConnectivityMap<%(Dimension)s>&", 
-                            nodeListi = "const unsigned", 
-                            i = "const unsigned"):
-        "Determine an 'ideal' H for the given moments."
-        return "typename %(Dimension)s::SymTensor"
-
-    @PYB11pure_virtual
-    @PYB11const
-    @PYB11pycppname("idealSmoothingScale")
-    def idealSmoothingScale1(self,
-                             H = "const SymTensor&", 
-                             mesh = "const Mesh<%(Dimension)s>&", 
-                             zone = "const typename Mesh<%(Dimension)s>::Zone&", 
-                             hmin = "const Scalar", 
-                             hmax = "const Scalar", 
-                             hminratio = "const Scalar", 
-                             nPerh = "const Scalar"):
-        "Compute the new H tensors for a tessellation."
-        return "SymTensor"
+#-------------------------------------------------------------------------------
+# Add the abstract interface
+#-------------------------------------------------------------------------------
+PYB11inject(SmoothingScaleAbstractMethods, SmoothingScaleBase, pure_virtual=True)

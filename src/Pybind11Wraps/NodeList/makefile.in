@@ -12,6 +12,7 @@ PYB11SRCS = \
 	NodeList.py \
 	FluidNodeList.py \
 	SolidNodeList.py \
+	SmoothingScaleAbstractMethods.py \
 	SmoothingScaleBase.py \
 	FixedSmoothingScale.py \
 	SPHSmoothingScale.py \
