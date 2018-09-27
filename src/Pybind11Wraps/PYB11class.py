@@ -144,7 +144,7 @@ class PYB11TemplateMember:
         self.docext = docext
         return
 
-    def __call__(self, klass, klassattrs, ss):
+    def __call__(self, pyname, klass, klassattrs, ss):
         # Do some template mangling (and magically put the template parameters in scope).
         template_ext = "<"
         doc_ext = ""
@@ -162,7 +162,7 @@ class PYB11TemplateMember:
         if self.pyname:
             funcattrs["pyname"] = self.pyname
         else:
-            funcattrs["pyname"] += doc_ext
+            funcattrs["pyname"] = pyname
 
         funcattrs["template_dict"] = {}
         for name, val in self.template_parameters:
@@ -495,7 +495,7 @@ def PYB11generateClass(klass, klassattrs, ssout):
             inst = eval("klassinst.%s" % tname)
             meth = inst.func_template
             methattrs = PYB11attrs(meth)
-            inst(klass, klassattrs, ss)
+            inst(tname, klass, klassattrs, ss)
 
     # Look for any class scope enums and bind them
     enums = [x for x in dir(klassinst) if isinstance(eval("klassinst.%s" % x), PYB11enum)]
