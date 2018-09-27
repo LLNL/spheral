@@ -1,5 +1,6 @@
 from PYB11Generator import *
 from NodeList import NodeList
+from RestartMethods import *
 
 #-------------------------------------------------------------------------------
 # FluidNodeList template
@@ -90,23 +91,6 @@ class FluidNodeList(NodeList):
         "Set the equation of state for this FluidNodeList."
         return "void"
 
-    @PYB11virtual
-    @PYB11const
-    def label(self):
-        "Label for restart files"
-        return "std::string"
-
-    @PYB11virtual
-    @PYB11const
-    def dumpState(self, file="FileIO&", pathName="const std::string&"):
-        "Serialize under the given path in a FileIO object"
-        return "void"
-
-    @PYB11virtual
-    def restoreState(self, file="const FileIO&", pathName="const std::string&"):
-        "Restore state from the given path in a FileIO object"
-        return "void"
-
     # Comparison
     def __eq__(self):
         "Equivalence test with another FluidNodeList"
@@ -140,3 +124,8 @@ class FluidNodeList(NodeList):
     # Properties
     rhoMin = property(getrhoMin, setrhoMin, doc="The minimum allowed mass density.")
     rhoMax = property(getrhoMax, setrhoMax, doc="The maximum allowed mass density.")
+
+#-------------------------------------------------------------------------------
+# Inject the restart methods
+#-------------------------------------------------------------------------------
+PYB11inject(RestartMethods, FluidNodeList)

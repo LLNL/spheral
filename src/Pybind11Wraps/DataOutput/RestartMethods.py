@@ -9,20 +9,16 @@ class RestartMethods:
     @PYB11virtual
     @PYB11const
     def label(self):
-        "The label used to create a path in the restart file"
+        "Label for restart files"
         return "std::string"
 
     @PYB11virtual
     @PYB11const
-    def dumpState(self,
-                  file = "FileIO&",
-                  pathName = "const std::string&"):
-        "Write the restart state to the given path in the given file"
+    def dumpState(self, file="FileIO&", pathName="const std::string&"):
+        "Serialize under the given path in a FileIO object"
         return "void"
 
     @PYB11virtual
-    def restoreState(self,
-                     file = "const FileIO&",
-                     pathName = "const std::string&"):
-        "Restore our state from the given path & file"
+    def restoreState(self, file="const FileIO&", pathName="const std::string&"):
+        "Restore state from the given path in a FileIO object"
         return "void"

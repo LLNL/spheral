@@ -1,5 +1,6 @@
 from PYB11Generator import *
 from FluidNodeList import FluidNodeList
+from RestartMethods import *
 
 #-------------------------------------------------------------------------------
 # SolidNodeList template
@@ -99,23 +100,6 @@ class SolidNodeList(FluidNodeList):
         "Return the strength model object this SolidNodeList is associated with."
         return "const StrengthModel<%(Dimension)s>&"
 
-    @PYB11virtual
-    @PYB11const
-    def label(self):
-        "Label for restart files"
-        return "std::string"
-
-    @PYB11virtual
-    @PYB11const
-    def dumpState(self, file="FileIO&", pathName="const std::string&"):
-        "Serialize under the given path in a FileIO object"
-        return "void"
-
-    @PYB11virtual
-    def restoreState(self, file="const FileIO&", pathName="const std::string&"):
-        "Restore state from the given path in a FileIO object"
-        return "void"
-
     # Comparison
     def __eq__(self):
         "Equivalence test with another SolidNodeList"
@@ -123,3 +107,7 @@ class SolidNodeList(FluidNodeList):
     def __ne__(self):
         "Inequivalence test with another SolidNodeList"
 
+#-------------------------------------------------------------------------------
+# Inject the restart methods
+#-------------------------------------------------------------------------------
+PYB11inject(RestartMethods, SolidNodeList)

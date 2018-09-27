@@ -1,4 +1,5 @@
 from PYB11Generator import *
+from RestartMethods import *
 
 #-------------------------------------------------------------------------------
 # NodeList template
@@ -120,23 +121,6 @@ class NodeList:
         "Reorder the nodes to the given mapping"
         return "void"
 
-    @PYB11virtual
-    @PYB11const
-    def label(self):
-        "Label for restart files"
-        return "std::string"
-
-    @PYB11virtual
-    @PYB11const
-    def dumpState(self, file="FileIO&", pathName="const std::string&"):
-        "Serialize under the given path in a FileIO object"
-        return "void"
-
-    @PYB11virtual
-    def restoreState(self, file="const FileIO&", pathName="const std::string&"):
-        "Restore state from the given path in a FileIO object"
-        return "void"
-
     # Comparison
     def __eq__(self):
         "Equivalence test with another NodeList"
@@ -252,3 +236,8 @@ class NodeList:
     hmin = property(gethmin, sethmin, doc="Minimum allowed smoothing scale")
     hmax = property(gethmax, sethmax, doc="Maximum allowed smoothing scale")
     hminratio = property(gethminratio, sethminratio, doc="Minimum allowed ratio of min/max smoothing scale eigenvalues on each node")
+
+#-------------------------------------------------------------------------------
+# Inject the restart methods
+#-------------------------------------------------------------------------------
+PYB11inject(RestartMethods, NodeList)
