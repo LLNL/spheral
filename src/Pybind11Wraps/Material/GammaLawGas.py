@@ -2,7 +2,7 @@
 # GammaLawGas
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from injectEOSVirtualMethods import *
+from EOSAbstractMethods import *
 
 @PYB11template("Dimension")
 class GammaLawGas:
@@ -82,4 +82,4 @@ class GammaLawGas:
 #-------------------------------------------------------------------------------
 # Add the virtual interface
 #-------------------------------------------------------------------------------
-injectEOSVirtualMethods(GammaLawGas)
+PYB11inject(EOSAbstractMethods, GammaLawGas, virtual=True)

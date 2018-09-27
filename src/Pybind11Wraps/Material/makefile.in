@@ -10,6 +10,7 @@ PKGNAME = Material
 PKGDIR = $(PKGNAME)/
 PYB11SRCS = \
 	PhysicalConstants.py \
+	EOSAbstractMethods.py \
 	EquationOfState.py \
 	GammaLawGas.py \
 	PolytropicEquationOfState.py \

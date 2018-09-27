@@ -2,7 +2,7 @@
 # IsothermalEquationOfState
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from injectEOSVirtualMethods import *
+from EOSAbstractMethods import *
 
 @PYB11template("Dimension")
 class IsothermalEquationOfState:
@@ -82,4 +82,4 @@ class IsothermalEquationOfState:
 #-------------------------------------------------------------------------------
 # Add the virtual interface
 #-------------------------------------------------------------------------------
-injectEOSVirtualMethods(IsothermalEquationOfState)
+PYB11inject(EOSAbstractMethods, IsothermalEquationOfState, virtual=True)

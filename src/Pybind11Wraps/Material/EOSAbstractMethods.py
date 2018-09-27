@@ -5,9 +5,8 @@ from PYB11Generator import *
 import inspect
 
 @PYB11ignore
-def injectEOSVirtualMethods(cls):
+class EOSAbstractMethods:
 
-    @PYB11virtual
     @PYB11const
     def setPressure(self,
                     Pressure = "ScalarField&",
@@ -15,7 +14,6 @@ def injectEOSVirtualMethods(cls):
                     specificThermalEnergy = "const ScalarField&"):
         return "void"
 
-    @PYB11virtual
     @PYB11const
     def setTemperature(self,
                        temperature = "ScalarField&",
@@ -23,7 +21,6 @@ def injectEOSVirtualMethods(cls):
                        specificThermalEnergy = "const ScalarField&"):
         return "void"
 
-    @PYB11virtual
     @PYB11const
     def setSpecificThermalEnergy(self,
                                  specificThermalEnergy = "ScalarField&",
@@ -31,7 +28,6 @@ def injectEOSVirtualMethods(cls):
                                  temperature = "const ScalarField&"):
         return "void"
 
-    @PYB11virtual
     @PYB11const
     def setSpecificHeat(self,
                         specificHeat = "ScalarField&",
@@ -39,7 +35,6 @@ def injectEOSVirtualMethods(cls):
                         temperature = "const ScalarField&"):
         return "void"
 
-    @PYB11virtual
     @PYB11const
     def setSoundSpeed(self,
                       soundSpeed = "ScalarField&",
@@ -47,7 +42,6 @@ def injectEOSVirtualMethods(cls):
                       specificThermalEnergy = "const ScalarField&"):
         return "void"
 
-    @PYB11virtual
     @PYB11const
     def setGammaField(self,
                       gamma = "ScalarField&",
@@ -55,7 +49,6 @@ def injectEOSVirtualMethods(cls):
                       specificThermalEnergy = "const ScalarField&"):
         return "void"
 
-    @PYB11virtual
     @PYB11const
     def setBulkModulus(self,
                        bulkModulus = "ScalarField&",
@@ -63,7 +56,6 @@ def injectEOSVirtualMethods(cls):
                        specificThermalEnergy = "const ScalarField&"):
         return "void"
 
-    @PYB11virtual
     @PYB11const
     def setEntropy(self,
                    entropy = "ScalarField&",
@@ -71,13 +63,6 @@ def injectEOSVirtualMethods(cls):
                    specificThermalEnergy = "const ScalarField&"):
         return "void"
 
-    @PYB11virtual
     @PYB11const
     def valid(self):
         return "bool"
-    
-    # Inject em...
-    names = [x for x in dir() if inspect.isfunction(eval(x))]
-    for name in names:
-        exec('cls.%(name)s = eval("%(name)s")' % {"name": name})
-    return

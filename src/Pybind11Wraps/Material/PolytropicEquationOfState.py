@@ -2,7 +2,7 @@
 # PolytropicEquationOfState
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from injectEOSVirtualMethods import *
+from EOSAbstractMethods import *
 
 @PYB11template("Dimension")
 class PolytropicEquationOfState:
@@ -86,4 +86,4 @@ class PolytropicEquationOfState:
 #-------------------------------------------------------------------------------
 # Add the virtual interface
 #-------------------------------------------------------------------------------
-injectEOSVirtualMethods(PolytropicEquationOfState)
+PYB11inject(EOSAbstractMethods, PolytropicEquationOfState)
