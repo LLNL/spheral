@@ -10,7 +10,7 @@ PKGNAME = Neighbor
 PKGDIR = $(PKGNAME)/
 PYB11SRCS = \
 	GridCellIndex.py \
-	injectNeighborVirtualMethods.py \
+	NeighborVirtualMethods.py \
 	Neighbor.py \
 	NestedGridNeighbor.py \
 	TreeNeighbor.py \

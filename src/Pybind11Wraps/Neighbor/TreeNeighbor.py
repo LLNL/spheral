@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from Neighbor import *
-from neighborVirtualMethods import *
+from NeighborAbstractMethods import *
 
 @PYB11template("Dimension")
 class TreeNeighbor(Neighbor):
@@ -74,6 +74,12 @@ class TreeNeighbor(Neighbor):
         "For our parallel algorithm it is useful to be able to set the master/coarse information based on the given (level, cell)."
         return "void"
 
+    @PYB11virtual
+    @PYB11const
+    def valid(self):
+        "Test if the Neighbor is valid, i.e., ready to be queried for connectivity information."
+        return "bool"
+
     #...........................................................................
     # Properties
     xmin = PYB11property("const Vector&", "xmin", doc="The minimum coordinate for the simulation bounding box")
@@ -84,4 +90,4 @@ class TreeNeighbor(Neighbor):
 #-------------------------------------------------------------------------------
 # Add the virtual interface
 #-------------------------------------------------------------------------------
-PYB11inject(NeighborVirtualMethods, TreeNeighbor, virtual=True)
+PYB11inject(NeighborAbstractMethods, TreeNeighbor, virtual=True)

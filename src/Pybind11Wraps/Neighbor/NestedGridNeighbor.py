@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from Neighbor import *
-from neighborVirtualMethods import *
+from NeighborAbstractMethods import *
 
 @PYB11template("Dimension")
 class NestedGridNeighbor(Neighbor):
@@ -115,7 +115,13 @@ class NestedGridNeighbor(Neighbor):
 
     def findNestedNeighbors(self):
         "Return the neighbors for the given (grid cell, grid level)"
-    
+
+    @PYB11virtual
+    @PYB11const
+    def valid(self):
+        "Test if the Neighbor is valid, i.e., ready to be queried for connectivity information."
+        return "bool"
+
     #...........................................................................
     # Properties
     numGridLevels = PYB11property("int", "numGridLevels", "numGridLevels", doc="The maximum number of grid levels allowed")
@@ -133,4 +139,4 @@ class NestedGridNeighbor(Neighbor):
 #-------------------------------------------------------------------------------
 # Add the virtual interface
 #-------------------------------------------------------------------------------
-PYB11inject(NeighborVirtualMethods, NestedGridNeighbor, virtual=True)
+PYB11inject(NeighborAbstractMethods, NestedGridNeighbor, virtual=True)

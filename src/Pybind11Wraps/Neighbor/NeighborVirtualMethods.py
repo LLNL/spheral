@@ -84,8 +84,3 @@ class NeighborVirtualMethods:
                      nodeIDs = "const std::vector<int>&"):
         "Update the internal connectivity information for the given nodes based on the state of associated NodeList"
         return "void"
-
-    @PYB11const
-    def valid(self):
-        "Test if the Neighbor is valid, i.e., ready to be queried for connectivity information."
-        return "bool"
