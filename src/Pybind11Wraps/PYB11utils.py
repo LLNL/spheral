@@ -1,4 +1,23 @@
+from PYB11Decorators import *
 import inspect, StringIO
+
+#-------------------------------------------------------------------------------
+# PYB11inject
+#
+# Add methods defined in fromclass to tocls
+#-------------------------------------------------------------------------------
+def PYB11inject(fromcls, tocls,
+                virtual = False,
+                pure_virtual = False):
+    assert not (virtual and pure_virtual), "PYB11inject: cannot specify both virtual and pure_virtual!"
+    names = [x for x in dir(fromcls) if (x[:2] != "__" and inspect.isfunction(eval('fromcls.%s' % x)))]
+    for name in names:
+        exec('tocls.%(name)s = eval("fromcls.%(name)s")' % {"name": name})
+        if virtual:
+            exec('tocls.%(name)s.PYB11virtual = True')
+        elif pure_virtual:
+            exec('tocls.%(name)s.PYB11pure_virtual = True')
+    return
 
 #-------------------------------------------------------------------------------
 # Key function to sort lists by source code order.

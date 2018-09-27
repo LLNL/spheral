@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from Neighbor import *
-from injectNeighborVirtualMethods import *
+from neighborVirtualMethods import *
 
 @PYB11template("Dimension")
 class NestedGridNeighbor(Neighbor):
@@ -133,4 +133,4 @@ class NestedGridNeighbor(Neighbor):
 #-------------------------------------------------------------------------------
 # Add the virtual interface
 #-------------------------------------------------------------------------------
-injectNeighborVirtualMethods(NestedGridNeighbor)
+PYB11inject(NeighborVirtualMethods, NestedGridNeighbor, virtual=True)

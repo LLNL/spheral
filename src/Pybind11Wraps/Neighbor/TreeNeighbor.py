@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from Neighbor import *
-from injectNeighborVirtualMethods import *
+from neighborVirtualMethods import *
 
 @PYB11template("Dimension")
 class TreeNeighbor(Neighbor):
@@ -84,4 +84,4 @@ class TreeNeighbor(Neighbor):
 #-------------------------------------------------------------------------------
 # Add the virtual interface
 #-------------------------------------------------------------------------------
-injectNeighborVirtualMethods(TreeNeighbor)
+PYB11inject(NeighborVirtualMethods, TreeNeighbor, virtual=True)
