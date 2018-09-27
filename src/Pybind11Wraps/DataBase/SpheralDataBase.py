@@ -33,10 +33,12 @@ namespaces = ["Spheral"]
 from StateBase import *
 from State import *
 from StateDerivatives import *
+from DataBase import *
 
 for ndim in dims:
     exec('''
 StateBase%(ndim)id = PYB11TemplateClass(StateBase, template_parameters="Dim<%(ndim)i>")
 State%(ndim)id = PYB11TemplateClass(State, template_parameters="Dim<%(ndim)i>")
 StateDerivatives%(ndim)id = PYB11TemplateClass(StateDerivatives, template_parameters="Dim<%(ndim)i>")
+DataBase%(ndim)id = PYB11TemplateClass(DataBase, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
