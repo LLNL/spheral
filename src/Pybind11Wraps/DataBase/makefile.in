@@ -9,7 +9,9 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = DataBase
 PKGDIR = $(PKGNAME)/
 PYB11SRCS = \
-	StateBase.py
+	StateBase.py \
+	State.py \
+	StateDerivatives.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------
