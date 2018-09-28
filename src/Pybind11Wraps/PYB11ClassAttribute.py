@@ -8,13 +8,7 @@ import sys, inspect
 #-------------------------------------------------------------------------------
 def PYB11GenerateClassAttributes(klass, klassinst, klassattrs, ss):
 
-    # Find any base attributes so we can screen them out
-    battrs = []
-    for bklass in inspect.getmro(klass)[1:]:
-        bklassinst = bklass()
-        battrs += [x for x in dir(bklassinst) if isinstance(eval("bklassinst.%s" % x), PYB11ClassAttribute)]
-
-    PYB11attrs = [x for x in dir(klass) if isinstance(eval("klass.%s" % x), PYB11ClassAttribute)]
+    PYB11attrs = [x for x in dir(klass) if isinstance(eval("klass.%s" % x), PYB11ClassAttribute) and x in klass.__dict__]
     if PYB11attrs:
         ss("\n    // Properties\n")
 
