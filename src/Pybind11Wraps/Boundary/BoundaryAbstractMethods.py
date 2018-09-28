@@ -59,13 +59,6 @@ class BoundaryAbstractMethods:
         "Apply the boundary condition to the ghost node values in the given Field."
         return "void"
 
-    @PYB11pycppname("applyGhostBoundary")
-    @PYB11const
-    def applyGhostBoundary7(self,
-                            field = "Field<%(Dimension)s, std::vector<Scalar>>&"):
-        "Apply the boundary condition to the ghost node values in the given Field."
-        return "void"
-
     def setViolationNodes(self,
                           nodeList = "NodeList<%(Dimension)s>&"):
         "Find any internal nodes that are in violation of this Boundary."

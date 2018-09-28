@@ -12,7 +12,8 @@ PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 PYB11SRCS = \
 	BoundaryAbstractMethods.py \
 	Boundary.py \
-	PlanarBoundary.py
+	PlanarBoundary.py \
+	ReflectingBoundary.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

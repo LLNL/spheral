@@ -41,11 +41,13 @@ namespaces = ["Spheral"]
 #-------------------------------------------------------------------------------
 from Boundary import *
 from PlanarBoundary import *
+from ReflectingBoundary import *
 
 for ndim in dims:
     exec('''
 Boundary%(ndim)id = PYB11TemplateClass(Boundary, template_parameters="Dim<%(ndim)i>")
 PlanarBoundary%(ndim)id = PYB11TemplateClass(PlanarBoundary, template_parameters="Dim<%(ndim)i>")
+ReflectingBoundary%(ndim)id = PYB11TemplateClass(ReflectingBoundary, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
 
 
