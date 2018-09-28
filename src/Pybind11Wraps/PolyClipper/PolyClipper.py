@@ -10,6 +10,8 @@ import types
 # Include files.
 includes = ['"Geometry/polyclipper.hh"']
 
+namespaces = ["PolyClipper"]
+
 #-------------------------------------------------------------------------------
 # Helper to add methods to Planes.
 #-------------------------------------------------------------------------------
@@ -21,17 +23,17 @@ def addPlaneMethods(cls, ndim):
         "Default constructor"
 
     def pyinit1(self,
-                rhs = "const PolyClipper::Plane%id" % ndim):
+                rhs = "const Plane%id" % ndim):
         "Copy constructor"
 
     def pyinit2(self,
                 dist = "double",
-                normal = "const PolyClipper::Plane%id::Vector&" % ndim):
+                normal = "const Plane%id::Vector&" % ndim):
         "Construct with a distance and normal."
 
     def pyinit3(self,
-                point = "const PolyClipper::Plane%id::Vector&" % ndim,
-                normal = "const PolyClipper::Plane%id::Vector&" % ndim):
+                point = "const Plane%id::Vector&" % ndim,
+                normal = "const Plane%id::Vector&" % ndim):
         "Construct with a point and normal."
 
     # Attributes
@@ -51,13 +53,13 @@ def addVertexMethods(cls, ndim):
     def pyinit0(self):
         "Default constructor"
 
-    def pyinit1(rhs = "const PolyClipper::Vertex%id" % ndim):
+    def pyinit1(rhs = "const Vertex%id" % ndim):
         "Copy constructor"
 
-    def pyinit2(position = "const PolyClipper::Plane%id::Vector&" % ndim):
+    def pyinit2(position = "const Plane%id::Vector&" % ndim):
         "Construct with a position."
 
-    def pyinit3(position = "const PolyClipper::Plane%id::Vector&" % ndim,
+    def pyinit3(position = "const Plane%id::Vector&" % ndim,
                 c = "int"):
         "Construct with a position and initial compare flag."
 
@@ -76,7 +78,7 @@ def addVertexMethods(cls, ndim):
 #-------------------------------------------------------------------------------
 # Plane2d
 #-------------------------------------------------------------------------------
-@PYB11cppname("PolyClipper::Plane2d")
+@PYB11cppname("Plane2d")
 class PolyClipperPlane2d:
     """Plane class for polyclipper in 2 dimensions."""
 
@@ -85,7 +87,7 @@ addPlaneMethods(PolyClipperPlane2d, 2)
 #-------------------------------------------------------------------------------
 # Plane3d
 #-------------------------------------------------------------------------------
-@PYB11cppname("PolyClipper::Plane3d")
+@PYB11cppname("Plane3d")
 class PolyClipperPlane3d:
     """Plane class for polyclipper in 3 dimensions."""
 
@@ -94,7 +96,7 @@ addPlaneMethods(PolyClipperPlane3d, 3)
 #-------------------------------------------------------------------------------
 # Vertex2d
 #-------------------------------------------------------------------------------
-@PYB11cppname("PolyClipper::Vertex2d")
+@PYB11cppname("Vertex2d")
 class Vertex2d:
     """Vertex class for polyclipper in 2 dimensions."""
 
@@ -103,7 +105,7 @@ addVertexMethods(Vertex2d, 2)
 #-------------------------------------------------------------------------------
 # Vertex3d
 #-------------------------------------------------------------------------------
-@PYB11cppname("PolyClipper::Vertex3d")
+@PYB11cppname("Vertex3d")
 class Vertex3d:
     """Vertex class for polyclipper in 3 dimensions."""
 
@@ -131,7 +133,7 @@ def convertFromPolygon(Spheral_polygon, polygon):
 @PYB11namespace("PolyClipper")
 def moments(zerothMoment = "double&",
             firstMoment = "Spheral::Dim<2>::Vector&",
-            poly = "const PolyClipper::Polygon&"):
+            poly = "const Polygon&"):
     "Compute the zeroth and first moment of a PolyClipper::Polygon."
     return "void"
 
@@ -140,13 +142,13 @@ def clipPolygon(poly, planes):
     "Clip a PolyClipper::Polygon with a collection of planes."
 
 @PYB11namespace("PolyClipper")
-def collapseDegenerates(poly = "PolyClipper::Polygon&",
+def collapseDegenerates(poly = "Polygon&",
                         tol = "const double"):
     "Collapse edges in a PolyClipper::Polygon below the given tolerance."
     return "void"
 
 @PYB11namespace("PolyClipper")
-def splitIntoTriangles(poly = "const PolyClipper::Polygon&",
+def splitIntoTriangles(poly = "const Polygon&",
                        tol = ("const double", "0.0")):
     "Split a PolyClipper::Polygon into triangles.\n"
     "The result is returned as a vector<vector<int>>, where each inner vector is a triple of\n"
@@ -175,7 +177,7 @@ def convertFromPolyhedron(Spheral_polyhedron, polyhedron):
 @PYB11namespace("PolyClipper")
 def moments(zerothMoment = "double&",
             firstMoment = "Spheral::Dim<3>::Vector&",
-            poly = "const PolyClipper::Polyhedron&"):
+            poly = "const Polyhedron&"):
     "Compute the zeroth and first moment of a PolyClipper::Polyhedron."
     return "void"
 
@@ -184,13 +186,13 @@ def clipPolyhedron(poly, planes):
     "Clip a PolyClipper::Polyhedron with a collection of planes."
 
 @PYB11namespace("PolyClipper")
-def collapseDegenerates(poly = "PolyClipper::Polyhedron&",
+def collapseDegenerates(poly = "Polyhedron&",
                         tol = "const double"):
     "Collapse edges in a PolyClipper::Polyhedron below the given tolerance."
     return "void"
 
 @PYB11namespace("PolyClipper")
-def splitIntoTetrahedra(poly = "const PolyClipper::Polyhedron&",
+def splitIntoTetrahedra(poly = "const Polyhedron&",
                         tol = ("const double", "0.0")):
     "Split a PolyClipper::Polyhedron into tetrahedra.\n"
     "The result is returned as a vector<vector<int>>, where each inner vector is a set of four\n"
