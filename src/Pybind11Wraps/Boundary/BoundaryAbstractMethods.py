@@ -8,7 +8,7 @@ from PYB11Generator import *
 class BoundaryAbstractMethods:
 
     def setGhostNodes(self,
-                      nodeList = "NodeList<%(Dimension)s>&",):
+                      nodeList = "NodeList<%(Dimension)s>&"):
         "Use the given NodeList's neighbor object to select the ghost nodes."
         return "void"
 
