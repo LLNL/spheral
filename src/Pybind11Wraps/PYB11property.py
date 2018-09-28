@@ -38,7 +38,7 @@ class PYB11property:
         assert self.setter is None or self.setterraw is None, "PYB11property: cannot specify both setter and setterraw"
         return
 
-    def __call__(self, propname, klassinst, klassattrs, ss):
+    def __call__(self, propname, klassattrs, ss):
         if self.static:
             if self.setter:
                 proptype = "_readwrite_static"
@@ -88,35 +88,6 @@ class PYB11property:
         else:
             ss(');\n')
         return
-
-#         class Prop:
-#             def __init__(self):
-#                 pass
-#         prop = Prop()
-#         prop.__doc__ = self.doc
-        
-#         # getter
-#         if inspect.ismethod(self.getter):
-#             prop.fget = self.getter
-#         else:
-#             getter = '@PYB11cppname("%s")' % self.getter
-#             if self.static:
-#                 getter += '@PYB11static'
-#             getter += '''
-# def get_PYB11_%(propname)s(self):
-#     return "%(returnType)s"
-# ''' % {"propname"   : self.propname,
-#        "returnType" : self.returnType}
-#             print getter
-#             exec(getter)
-#             exec("klass.get_PYB11_%s = types.MethodType(get_PYB11_%s, klassinst, klass)" % (self.propname, self.propname))
-#             prop.fget = eval("klass.get_PYB11_%s" % self.propname)
-
-#         # setter
-#         if inspect.ismethod(self.setter) or self.setter is None:
-#             prop.fset = self.setter
-#         PYB11GenerateProperty(self.propname, prop, klassinst, klassattrs, ss)
-#         return
 
 #--------------------------------------------------------------------------------
 # Make a property
@@ -190,8 +161,16 @@ def PYB11GenerateProperty(propname,
 # Bind the class properties
 #-------------------------------------------------------------------------------
 def PYB11GenerateClassProperties(klass, klassinst, klassattrs, ss):
-    props = [x for x in dir(klass) if isinstance(eval("klass.%s" % x), property)]
-    PYB11props = [x for x in dir(klass) if isinstance(eval("klass.%s" % x), PYB11property)]
+
+    # Find any base properties so we can screen them out
+    bprops = []
+    for bklass in inspect.getmro(klass)[1:]:
+        bklassinst = bklass()
+        bprops += [x for x in dir(bklassinst) if (isinstance(eval("bklassinst.%s" % x), property) or
+                                                  isinstance(eval("bklassinst.%s" % x), PYB11property))]
+
+    props = [x for x in dir(klass) if isinstance(eval("klass.%s" % x), property) and x not in bprops]
+    PYB11props = [x for x in dir(klass) if isinstance(eval("klass.%s" % x), PYB11property) and x not in bprops]
     if props or PYB11props:
         ss("\n    // Properties\n")
 
@@ -199,7 +178,7 @@ def PYB11GenerateClassProperties(klass, klassinst, klassattrs, ss):
         prop = eval("klass.%s" % propname)
         PYB11GenerateProperty(propname, prop, klassinst, klassattrs, ss)
     for propname in PYB11props:
-        exec('klassinst.%s("%s", klassinst, klassattrs, ss)' % (propname, propname))
+        exec('klassinst.%s("%s", klassattrs, ss)' % (propname, propname))
     ss("\n")
 
     return

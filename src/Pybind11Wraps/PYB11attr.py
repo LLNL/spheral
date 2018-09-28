@@ -12,10 +12,10 @@ def PYB11generateModuleAttrs(modobj, ss):
     # Module attrs
     stuff = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11attr)]
     if stuff:
-        ss('  // module attributes\n')
-        for name in stuff:
-            inst = eval("modobj.%s" % name)
-            inst(modobj, ss)
+        ss('\n  // module attributes\n')
+        for pyname in stuff:
+            inst = eval("modobj.%s" % pyname)
+            inst(pyname, ss)
 
     return
 
@@ -26,26 +26,20 @@ class PYB11attr:
 
     def __init__(self,
                  value,
-                 name = None):
+                 pyname = None):
         self.value = value
-        self.name = name
+        self.pyname = pyname
         return
 
     def __call__(self,
-                 scope,
+                 pyname,
                  ss):
-        if self.name:
-            self.__name__ = self.name
+        if self.pyname:
+            self.__name__ = self.pyname
         else:
-            self.__name__ = self.getInstanceName(scope)
+            self.__name__ = pyname
         attrattrs = PYB11attrs(self)
         attrattrs["cppname"] = self.value
         ss('  m.attr("%(pyname)s") = %(cppname)s;\n' % attrattrs)
         return
 
-    def getInstanceName(self, scope):
-        for name in dir(scope):
-            thing = eval("scope.%s" % name)
-            if isinstance(thing, PYB11attr) and thing == self:
-                return name
-        raise RuntimeError, "PYB11attr: unable to find myself!"

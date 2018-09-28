@@ -8,15 +8,9 @@ class FifthRankTensor:
     "Spheral fifth rank tensor (%(ndim)sx%(ndim)sx%(ndim)sx%(ndim)s) class"
 
     # Static attributes
-    @PYB11static
-    @PYB11readonly
-    def nDimensions(self):
-        "Number of dimensions"
-
-    @PYB11static
-    @PYB11readonly
-    def numElements(self):
-        "Number of elements stored in the type."
+    nDimensions = PYB11readonly(static=True, doc="Number of dimensions")
+    numElements = PYB11readonly(static=True, doc="Number of elements stored in the type")
+    zero = PYB11readonly(static=True, doc="The zero value equivalent")
 
     # Constructors
     def pyinit0(self):

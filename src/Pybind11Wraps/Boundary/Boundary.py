@@ -154,17 +154,9 @@ eflgb%(T)s = PYB11TemplateMember(enforceFieldListBoundary, template_parameters="
     #---------------------------------------------------------------------------
     class BoundaryNodes:
 
-        @PYB11readwrite
-        def controlNodes(self):
-            return "std::vector<int>"
-
-        @PYB11readwrite
-        def ghostNodes(self):
-            return "std::vector<int>"
-
-        @PYB11readwrite
-        def violationNodes(self):
-            return "std::vector<int>"
+        controlNodes = PYB11readwrite()
+        ghostNodes = PYB11readwrite()
+        violationNodes = PYB11readwrite()
 
 #-------------------------------------------------------------------------------
 # Inject abstract interface

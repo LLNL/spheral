@@ -16,15 +16,8 @@ class EigenStruct:
         "Copy constructor"
 
     # Attributes
-    @PYB11readwrite
-    def eigenValues(self):
-        "The vector of eigenvalues."
-        return "Dim<%(ndim)s>::Vector"
-
-    @PYB11readwrite
-    def eigenVectors(self):
-        "The matrix of eigenvectors as column vectors."
-        return "Dim<%(ndim)s>::Vector"
+    eigenValues = PYB11readwrite(doc="The vector of eigenvalues")
+    eigenVectors = PYB11readwrite(doc="The matrix of eigenvectors as column vectors")
 
     # String representation
     @PYB11implementation("""

@@ -30,7 +30,10 @@ def PYB11sort_by_line(stuff):
     if isinstance(obj, PYB11TemplateClass):
         return obj.order + 0
     else:
-        source, lineno = inspect.findsource(obj)
+        try:
+            source, lineno = inspect.findsource(obj)
+        except:
+            raise RuntimeError, "Cannot find source for %s?" % name
         return lineno
 
 #-------------------------------------------------------------------------------
@@ -202,8 +205,6 @@ def PYB11attrs(obj):
          "pure_virtual"   : False,
          "const"          : False,
          "static"         : False,
-         "readwrite"      : False,          # Attribute
-         "readonly"       : False,          # Attribute
          "implementation" : None,
          "returnpolicy"   : None,
          "template"       : (),

@@ -35,13 +35,8 @@ def addPlaneMethods(cls, ndim):
         "Construct with a point and normal."
 
     # Attributes
-    @PYB11readwrite
-    def dist(self):
-        "The distance to the origin along the normal."
-
-    @PYB11readwrite
-    def normal(self):
-        "The normal to the plane."
+    dist = PYB11readwrite(doc="The distance to the origin along the normal.")
+    normal = PYB11readwrite(doc="The normal to the plane.")
 
     for __x in [x for x in dir() if type(eval(x)) == types.FunctionType]: 
         exec("cls.%s = %s" % (__x, __x))
@@ -67,21 +62,10 @@ def addVertexMethods(cls, ndim):
         "Construct with a position and initial compare flag."
 
     # Attributes
-    @PYB11readwrite
-    def position(self):
-        "The position of the vertex."
-
-    @PYB11readwrite
-    def neighbors(self):
-        "The connectivty of the vertex."
-
-    @PYB11readwrite
-    def comp(self):
-        "The current comparison flag."
-
-    @PYB11readwrite
-    def ID(self):
-        "The ID or index of the vertex."
+    position = PYB11readwrite(doc="The position of the vertex.")
+    neighbors = PYB11readwrite(doc="The connectivty of the vertex.")
+    comp = PYB11readwrite(doc="The current comparison flag.")
+    ID = PYB11readwrite(doc="The ID or index of the vertex.")
 
     def __eq__(self, other="py::self"):
         return
@@ -96,7 +80,7 @@ def addVertexMethods(cls, ndim):
 class PolyClipperPlane2d:
     """Plane class for polyclipper in 2 dimensions."""
 
-addPlaneMethods(PolyClipperPlane2d, 2)
+#addPlaneMethods(PolyClipperPlane2d, 2)
 
 #-------------------------------------------------------------------------------
 # Plane3d

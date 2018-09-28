@@ -5,6 +5,7 @@
 #--------------------------------------------------------------------------------
 from PYB11utils import *
 from PYB11property import *
+from PYB11ClassAttribute import *
 from PYB11Trampoline import *
 from PYB11enum import PYB11enum
 import copy, StringIO
@@ -483,6 +484,9 @@ def PYB11generateClass(klass, klassattrs, ssout):
         for i, (mname, meth) in enumerate(allmethods):
             methattrs = PYB11attrs(meth)
             PYB11generic_class_method(klass, klassattrs, meth, methattrs, ss)
+
+    # Bind attributes
+    PYB11GenerateClassAttributes(klass, klassinst, klassattrs, ss)
 
     # Bind properties
     PYB11GenerateClassProperties(klass, klassinst, klassattrs, ss)

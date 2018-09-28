@@ -107,32 +107,6 @@ def PYB11static(f):
     return f
 
 #-------------------------------------------------------------------------------
-# attribute (readwrite)
-#-------------------------------------------------------------------------------
-def PYB11readwrite(f):
-    f.PYB11readwrite = True
-    return f
-
-# def PYB11readwrite(f):
-#     def wrapper(f, *args, **kwargs):
-#         return f(*args, **kwargs)
-#     f.PYB11readwrite = True
-#     return PYB11decorator.decorate(f, wrapper)
-
-#-------------------------------------------------------------------------------
-# Attribute (readonly)
-#-------------------------------------------------------------------------------
-def PYB11readonly(f):
-    f.PYB11readonly = True
-    return f
-
-# def PYB11readonly(f):
-#     def wrapper(f, *args, **kwargs):
-#         return f(*args, **kwargs)
-#     f.PYB11readonly = True
-#     return PYB11decorator.decorate(f, wrapper)
-
-#-------------------------------------------------------------------------------
 # implementation -- provide an inline implementation in C++ (only for experts!)
 #-------------------------------------------------------------------------------
 class PYB11implementation:
