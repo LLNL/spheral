@@ -7,18 +7,16 @@ import inspect, StringIO
 # Add methods defined in fromclass to tocls
 #-------------------------------------------------------------------------------
 def PYB11inject(fromcls, tocls,
-                virtual = False,
-                pure_virtual = False):
-    assert not (virtual and pure_virtual), "PYB11inject: cannot specify both virtual and pure_virtual!"
+                virtual = None,
+                pure_virtual = None):
+    assert not (virtual and pure_virtual), "PYB11inject: cannot specify both virtual and pure_virtual as True!"
     names = [x for x in dir(fromcls) if (x[:2] != "__" and inspect.ismethod(eval('fromcls.%s' % x)))]
     for name in names:
         exec('''tocls.%(name)s = eval("fromcls.__dict__['%(name)s']")''' % {"name": name})
-        #exec('tocls.%(name)s = eval("fromcls.%(name)s")' % {"name": name})
-        if virtual:
-            exec('tocls.%s.__dict__["PYB11virtual"] = True' % name)
-        elif pure_virtual:
-            exec('tocls.%s.__dict__["PYB11pure_virtual"] = True' % name)
-            #exec('tocls.%s.PYB11pure_virtual = True' % name)
+        if not virtual is None:
+            exec('tocls.%s.__dict__["PYB11virtual"] = %s' % (name, virtual))
+        if not pure_virtual is None:
+            exec('tocls.%s.__dict__["PYB11pure_virtual"] = %s' % (name, pure_virtual))
     return
 
 #-------------------------------------------------------------------------------

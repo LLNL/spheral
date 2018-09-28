@@ -36,4 +36,4 @@ class ReflectingBoundary(PlanarBoundary):
 # Inject methods
 #-------------------------------------------------------------------------------
 PYB11inject(RestartMethods, ReflectingBoundary)
-PYB11inject(BoundaryAbstractMethods, ReflectingBoundary, virtual=True)
+PYB11inject(BoundaryAbstractMethods, ReflectingBoundary, virtual=True, pure_virtual=False)

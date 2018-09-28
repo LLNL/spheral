@@ -371,26 +371,28 @@ def PYB11generateClass(klass, klassattrs, ssout):
 
     ss("    py::class_<%(namespace)s%(cppname)s" % klassattrs)
 
-    # Check for base classes.
-    cppname = "%(namespace)s%(cppname)s" % klassattrs
-    for bklass in inspect.getmro(klass)[1:]:
-        bklassattrs = PYB11attrs(bklass)
-        bcppname = "%(namespace)s%(cppname)s" % bklassattrs
-        if bklassattrs["template"]:
-            bcppname += "<"
-            for i, t in enumerate(bklassattrs["template"]):
-                if i < len(bklassattrs["template"]) - 1:
-                    bcppname += ("%(" + t + ")s, ")
-                else:
-                    bcppname += ("%(" + t + ")s>")
-            bcppname = bcppname % klassattrs["template_dict"]
-        if bcppname != cppname:
-            ss(", " + bcppname)
-            break
-
     # Any trampoline?
     if PYB11virtualClass(klass):
         ss(", %(namespace)sPYB11Trampoline%(cppname)s" % klassattrs)
+
+    else:
+
+        # Check for base classes.
+        cppname = "%(namespace)s%(cppname)s" % klassattrs
+        for bklass in inspect.getmro(klass)[1:]:
+            bklassattrs = PYB11attrs(bklass)
+            bcppname = "%(namespace)s%(cppname)s" % bklassattrs
+            if bklassattrs["template"]:
+                bcppname += "<"
+                for i, t in enumerate(bklassattrs["template"]):
+                    if i < len(bklassattrs["template"]) - 1:
+                        bcppname += ("%(" + t + ")s, ")
+                    else:
+                        bcppname += ("%(" + t + ")s>")
+                bcppname = bcppname % klassattrs["template_dict"]
+            if bcppname != cppname:
+                ss(", " + bcppname)
+                break
 
     # Is this a singleton?
     if klassattrs["singleton"]:
