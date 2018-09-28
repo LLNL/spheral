@@ -100,20 +100,16 @@ public:
                 boundMethods.append(fms.getvalue())
 
                 if methattrs["pure_virtual"]:
-                    ms("PYBIND11_OVERLOAD_PURE(%s, PYB11self, " % methattrs["returnType"])
+                    ms("PYBIND11_OVERLOAD_PURE(%(returnType)s, PYB11self, %(cppname)s, " % methattrs)
                 else:
-                    ms("PYBIND11_OVERLOAD(%s, PYB11self, " % methattrs["returnType"])
-                if len(args) > 0:
-                    ms(" %(cppname)s, " % methattrs)
-                else:
-                    ms(" %(cppname)s);" % methattrs)
+                    ms("PYBIND11_OVERLOAD(%(returnType)s, PYB11self, %(cppname)s, " % methattrs)
 
                 for i, (argType, argName, default) in enumerate(args):
                     if i < len(args) - 1:
                         ms(argName + ", ")
                     else:
-                        ms(argName + ");")
-                ms(" }\n")
+                        ms(argName)
+                ms("); }\n")
 
                 # Write to the out stream.
                 ss(fms.getvalue())
