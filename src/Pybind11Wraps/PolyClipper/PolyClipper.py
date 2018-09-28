@@ -80,7 +80,7 @@ def addVertexMethods(cls, ndim):
 class PolyClipperPlane2d:
     """Plane class for polyclipper in 2 dimensions."""
 
-#addPlaneMethods(PolyClipperPlane2d, 2)
+addPlaneMethods(PolyClipperPlane2d, 2)
 
 #-------------------------------------------------------------------------------
 # Plane3d
