@@ -266,32 +266,6 @@ def PYB11generateClass(klass, klassattrs, ssout):
         return
 
     #...........................................................................
-    # readonly attribute
-    def readonly_class_attribute(aname, attrs, args):
-        if attrs["static"]:
-            ss('    obj.def_readonly_static("%(pyname)s", ' % methattrs)
-        else:
-            ss('    obj.def_readonly("%(pyname)s", ' % methattrs)
-        ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
-        doc = inspect.getdoc(meth)
-        if doc:
-            ss(',\n            "%s"' % doc)
-        ss(");\n")
-
-    #...........................................................................
-    # readwrite attribute
-    def readwrite_class_attribute(aname, attrs, args):
-        if attrs["static"]:
-            ss('    obj.def_readwrite_static("%(pyname)s", ' % methattrs)
-        else:
-            ss('    obj.def_readwrite("%(pyname)s", ' % methattrs)
-        ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
-        doc = inspect.getdoc(meth)
-        if doc:
-            ss(',\n            "%s"' % doc)
-        ss(");\n")
-
-    #...........................................................................
     # Binary operators
     def binary_operator(meth, methattrs, args, op):
         assert len(args) in (0, 1)
@@ -458,22 +432,6 @@ def PYB11generateClass(klass, klassattrs, ssout):
         if mname in special_operators:
             func, op = special_operators[mname]
             func(meth, methattrs, args, op)
-            kills.append(i)
-    for i in reversed(kills):
-        del allmethods[i]
-
-    # Bind attributes
-    ss("\n    // Attributes\n")
-    kills = []
-    for i, (mname, meth) in enumerate(allmethods):
-        methattrs = PYB11attrs(meth)
-        methattrs["returnType"] = eval("klassinst." + mname + "()")
-        args = PYB11parseArgs(meth)
-        if methattrs["readonly"]:
-            readonly_class_attribute(meth, methattrs, args)
-            kills.append(i)
-        elif methattrs["readwrite"]:
-            readwrite_class_attribute(meth, methattrs, args)
             kills.append(i)
     for i in reversed(kills):
         del allmethods[i]
