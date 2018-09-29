@@ -1,15 +1,14 @@
 #-------------------------------------------------------------------------------
-# ConstantVelocityBoundary
+# ConstantXVelocityBoundary
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from Boundary import *
-from BoundaryAbstractMethods import *
-from RestartMethods import *
+from ConstantVelocityBoundary import *
 
 @PYB11template("Dimension")
-class ConstantVelocityBoundary(Boundary):
-    """ConstantVelocityBoundary -- A boundary condition to enforce a constant 
-velocity on a given set of nodes.
+class ConstantXVelocityBoundary(ConstantVelocityBoundary):
+    """ConstantXVelocityBoundary -- A boundary condition to enforce a constant 
+x-component velocity on a given set of nodes.
 
 This boundary is very specialized -- it explicitly works on only one 
 NodeList.
@@ -21,7 +20,6 @@ NodeList.
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
-    typedef GeomPlane<%(Dimension)s> Plane;
 """
 
     #...........................................................................
@@ -29,20 +27,7 @@ NodeList.
     def pyinit(self,
                nodeList = "const NodeList<%(Dimension)s>&",
                nodeIndices = "const std::vector<int>&"):
-        "Construct a constant velocity boundary for the specified nodes"
-
-    #...........................................................................
-    # Methods
-    @PYB11virtual
-    @PYB11const
-    def valid(self):
-        return "bool"
-
-    #...........................................................................
-    # Properties
-    nodeList = PYB11property("const NodeList<%(Dimension)s>&", "nodeList", doc="The NodeList this boundary applies to")
-    nodeIndices = PYB11property("std::vector<int>", "nodeIndices", doc="The nodes this boundary is in control of")
-    velocityCondition = PYB11property("std::vector<Vector>", "velocityCondition", doc="The velocities for the nodes we control")
+        "Construct a constant X velocity for the given nodes"
 
 #-------------------------------------------------------------------------------
 # Inject methods

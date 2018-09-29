@@ -47,6 +47,7 @@ from ReflectingBoundary import *
 from RigidBoundary import *
 from PeriodicBoundary import *
 from ConstantVelocityBoundary import *
+from ConstantXVelocityBoundary import *
 
 for ndim in dims:
     exec('''
@@ -56,4 +57,5 @@ ReflectingBoundary%(ndim)id = PYB11TemplateClass(ReflectingBoundary, template_pa
 RigidBoundary%(ndim)id = PYB11TemplateClass(RigidBoundary, template_parameters="Dim<%(ndim)i>")
 PeriodicBoundary%(ndim)id = PYB11TemplateClass(PeriodicBoundary, template_parameters="Dim<%(ndim)i>")
 ConstantVelocityBoundary%(ndim)id = PYB11TemplateClass(ConstantVelocityBoundary, template_parameters="Dim<%(ndim)i>")
+ConstantXVelocityBoundary%(ndim)id = PYB11TemplateClass(ConstantXVelocityBoundary, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
