@@ -1,5 +1,5 @@
 from PYB11Decorators import *
-import inspect, StringIO
+import inspect, StringIO, copy
 
 #-------------------------------------------------------------------------------
 # PYB11inject
@@ -12,7 +12,7 @@ def PYB11inject(fromcls, tocls,
     assert not (virtual and pure_virtual), "PYB11inject: cannot specify both virtual and pure_virtual as True!"
     names = [x for x in dir(fromcls) if (x[:2] != "__" and inspect.ismethod(eval('fromcls.%s' % x)))]
     for name in names:
-        exec('''tocls.%(name)s = eval("fromcls.__dict__['%(name)s']")''' % {"name": name})
+        exec('''tocls.%(name)s = eval("copy.deepcopy(fromcls.__dict__['%(name)s'])")''' % {"name": name})
         if not virtual is None:
             exec('tocls.%s.__dict__["PYB11virtual"] = %s' % (name, virtual))
         if not pure_virtual is None:
