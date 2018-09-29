@@ -1,18 +1,34 @@
 from PYB11Decorators import *
-import inspect, StringIO, copy
+import inspect, StringIO, types
 
 #-------------------------------------------------------------------------------
 # PYB11inject
 #
 # Add methods defined in fromclass to tocls
 #-------------------------------------------------------------------------------
+# We need this bit of trickery from stackoverflow to make a new copy of the method
+# in question.  Necessary to avoid corrupting attributes of the original classes
+# methods.
+def PYB11copy_func(f, name=None):
+    '''
+    return a function with same code, globals, defaults, closure, and 
+    name (or provide a new name)
+    '''
+    fn = types.FunctionType(f.__code__, f.__globals__, name or f.__name__,
+                            f.__defaults__, f.__closure__)
+    # in case f was given attrs (note this dict is a shallow copy):
+    fn.__dict__.update(f.__dict__) 
+    return fn
+
 def PYB11inject(fromcls, tocls,
                 virtual = None,
                 pure_virtual = None):
     assert not (virtual and pure_virtual), "PYB11inject: cannot specify both virtual and pure_virtual as True!"
+
     names = [x for x in dir(fromcls) if (x[:2] != "__" and inspect.ismethod(eval('fromcls.%s' % x)))]
     for name in names:
-        exec('''tocls.%(name)s = eval("copy.deepcopy(fromcls.__dict__['%(name)s'])")''' % {"name": name})
+        exec('''tocls.%(name)s = PYB11copy_func(fromcls.%(name)s)''' % {"name": name})
+        #exec('''tocls.%(name)s = copy_func(eval("fromcls.__dict__['%(name)s']"))''' % {"name": name})
         if not virtual is None:
             exec('tocls.%s.__dict__["PYB11virtual"] = %s' % (name, virtual))
         if not pure_virtual is None:

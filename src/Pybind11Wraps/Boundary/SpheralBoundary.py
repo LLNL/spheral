@@ -44,16 +44,16 @@ namespaces = ["Spheral"]
 from Boundary import *
 from PlanarBoundary import *
 from ReflectingBoundary import *
-#from RigidBoundary import *
-#from PeriodicBoundary import *
-#from ConstantVelocityBoundary import *
+from RigidBoundary import *
+from PeriodicBoundary import *
+from ConstantVelocityBoundary import *
 
-for ndim in (1,): # in dims:
+for ndim in dims:
     exec('''
 Boundary%(ndim)id = PYB11TemplateClass(Boundary, template_parameters="Dim<%(ndim)i>")
 PlanarBoundary%(ndim)id = PYB11TemplateClass(PlanarBoundary, template_parameters="Dim<%(ndim)i>")
 ReflectingBoundary%(ndim)id = PYB11TemplateClass(ReflectingBoundary, template_parameters="Dim<%(ndim)i>")
-#RigidBoundary%(ndim)id = PYB11TemplateClass(RigidBoundary, template_parameters="Dim<%(ndim)i>")
-#PeriodicBoundary%(ndim)id = PYB11TemplateClass(PeriodicBoundary, template_parameters="Dim<%(ndim)i>")
-#ConstantVelocityBoundary%(ndim)id = PYB11TemplateClass(ConstantVelocityBoundary, template_parameters="Dim<%(ndim)i>")
+RigidBoundary%(ndim)id = PYB11TemplateClass(RigidBoundary, template_parameters="Dim<%(ndim)i>")
+PeriodicBoundary%(ndim)id = PYB11TemplateClass(PeriodicBoundary, template_parameters="Dim<%(ndim)i>")
+ConstantVelocityBoundary%(ndim)id = PYB11TemplateClass(ConstantVelocityBoundary, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
