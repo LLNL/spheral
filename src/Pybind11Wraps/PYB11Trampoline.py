@@ -51,13 +51,29 @@ def PYB11generateTrampoline(klass, ssout):
             else:
                 ss("typename %s>\n" % name)
 
+    # Build the base class hierarchy names
+    bklassnames = []
+    for bklass in inspect.getmro(klass):
+        bklassattrs = PYB11attrs(bklass)
+        bklassname = "%(namespace)s%(cppname)s" % bklassattrs
+        if len(bklassattrs["template"]) > 0:
+            bklassname += "<"
+            for i, name in enumerate(bklassattrs["template"]):
+                bklassname += name
+                if i < len(bklassattrs["template"]) - 1:
+                    bklassname += ", "
+            bklassname += ">"
+        bklassnames.append(bklassname)
+    assert len(bklassnames) == len(inspect.getmro(klass))
+
     # Class name
     ss("""class PYB11Trampoline%(cppname)s: public %(full_cppname)s {
 public:
   using %(full_cppname)s::%(cppname)s;   // inherit constructors
   typedef %(full_cppname)s PYB11self;    // Necessary to protect macros below from names with commas in them
-
 """ % klassattrs)
+    for bklassname in bklassnames:
+        ss("  typedef %s %s;\n" % (bklassname, PYB11mangle(bklassname)))
 
     # Any typedefs?
     if hasattr(klass, "typedefs"):
@@ -65,13 +81,26 @@ public:
 
     # Bind the (unique) virtual methods for all classes up the inheritance tree.
     boundMethods = []
-    for bklass in inspect.getmro(klass):
+    for (bklass, bklassname) in zip(inspect.getmro(klass), bklassnames):
 
         bklassinst = bklass()
         bklassattrs = PYB11attrs(bklass)
         methods = [(mname, meth) for (mname, meth) in PYB11ClassMethods(bklass)
-                   if not PYB11attrs(meth)["ignore"] and
-                   (PYB11attrs(meth)["virtual"] or PYB11attrs(meth)["pure_virtual"])]
+                   if (not PYB11attrs(meth)["ignore"] and
+                       (PYB11attrs(meth)["virtual"] or PYB11attrs(meth)["pure_virtual"]) and
+                       mname in bklass.__dict__)]
+
+        # # HACK!
+        # bklassname = "%(namespace)s%(cppname)s" % bklassattrs
+        # if len(bklassattrs["template"]) > 0:
+        #     bklassname += "<"
+        #     for i, name in enumerate(bklassattrs["template"]):
+        #         bklassname += name
+        #         if i < len(bklassattrs["template"]) - 1:
+        #             bklassname += ", "
+        #     bklassname += ">"
+        # bklassname = PYB11CPPsafe(bklassname)
+
         for mname, meth in methods:
             
             # We build this method string up independent of the output stream
@@ -102,7 +131,15 @@ public:
                 if methattrs["pure_virtual"]:
                     ms("PYBIND11_OVERLOAD_PURE(%(returnType)s, PYB11self, %(cppname)s, " % methattrs)
                 else:
-                    ms("PYBIND11_OVERLOAD(%(returnType)s, PYB11self, %(cppname)s, " % methattrs)
+                    # HACK!  To workaround what appears to be a bug in overloading virtual method callbacks
+                    # in pybind11 (see https://github.com/pybind/pybind11/issues/1547), we have to give
+                    # the address of the object that actually implements it.  This is clealy not how a human
+                    # should have to handle this, but since we're code generating this we can do this explicit
+                    # workaround.
+                    #ms("PYBIND11_OVERLOAD(%(returnType)s, PYB11self, %(cppname)s, " % methattrs)
+                    ms("PYBIND11_OVERLOAD(%(returnType)s, " % methattrs)
+                    ms(PYB11mangle(bklassname) + ", ")
+                    ms("%(cppname)s, " % methattrs)
 
                 for i, (argType, argName, default) in enumerate(args):
                     if i < len(args) - 1:

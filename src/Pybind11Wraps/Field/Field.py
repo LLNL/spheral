@@ -9,7 +9,7 @@ from FieldBase import FieldBase
 class Field(FieldBase):
 
     typedefs="""
-typedef Field<%(Dimension)s, %(Value)s> FieldType;
+  typedef Field<%(Dimension)s, %(Value)s> FieldType;
 """
 
     def pyinit(self, name="std::string"):

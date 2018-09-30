@@ -29,8 +29,16 @@ NodeList.
                nodeIndices = "const std::vector<int>&"):
         "Construct a constant X velocity for the given nodes"
 
-#-------------------------------------------------------------------------------
-# Inject methods
-#-------------------------------------------------------------------------------
-PYB11inject(BoundaryAbstractMethods, ConstantVelocityBoundary, virtual=True, pure_virtual=False)
-PYB11inject(RestartMethods, ConstantVelocityBoundary)
+    #...........................................................................
+    # Methods
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary(self, field="Field<%(Dimension)s, Vector>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11virtual
+    @PYB11const
+    def label(self):
+        "Label for restart files"
+        return "std::string"
