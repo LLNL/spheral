@@ -20,16 +20,12 @@ class CRKSPHVoidBoundary(Boundary):
 
     #...........................................................................
     # Constructors
-    def pyinit(self):
-        "Default constructor"
-
-    def pyinit1(self,
-                surfacePoint = "const FieldList<%(Dimension)s, int>&",
-                etaVoidPoints = "const FieldList<%(Dimension)s, std::vector<Vector>>&"):
+    def pyinit(self,
+               surfacePoint = "const FieldList<%(Dimension)s, int>&",
+               etaVoidPoints = "const FieldList<%(Dimension)s, std::vector<Vector>>&"):
         "Constructor"
 
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, CRKSPHVoidBoundary)
 PYB11inject(BoundaryAbstractMethods, CRKSPHVoidBoundary, virtual=True, pure_virtual=False)
