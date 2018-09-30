@@ -1,0 +1,35 @@
+#-------------------------------------------------------------------------------
+# CRKSPHVoidBoundary
+#-------------------------------------------------------------------------------
+from PYB11Generator import *
+from Boundary import *
+from BoundaryAbstractMethods import *
+from RestartMethods import *
+
+@PYB11template("Dimension")
+class CRKSPHVoidBoundary(Boundary):
+
+    typedefs = """
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef GeomPlane<%(Dimension)s> Plane;
+"""
+
+    #...........................................................................
+    # Constructors
+    def pyinit(self):
+        "Default constructor"
+
+    def pyinit1(self,
+                surfacePoint = "const FieldList<%(Dimension)s, int>&",
+                etaVoidPoints = "const FieldList<%(Dimension)s, std::vector<Vector>>&"):
+        "Constructor"
+
+#-------------------------------------------------------------------------------
+# Inject methods
+#-------------------------------------------------------------------------------
+PYB11inject(RestartMethods, CRKSPHVoidBoundary)
+PYB11inject(BoundaryAbstractMethods, CRKSPHVoidBoundary, virtual=True, pure_virtual=False)

@@ -44,7 +44,7 @@ class Boundary:
         return "void"
 
     @PYB11pycppname("applyGhostBoundary")
-#FIXME    @PYB11virtual
+    @PYB11virtual
     @PYB11const
     def applyGhostBoundary20(self,
                              field = "Field<%(Dimension)s, std::vector<Scalar>>&"):
@@ -52,7 +52,7 @@ class Boundary:
         return "void"
 
     @PYB11pycppname("applyGhostBoundary")
-#FIXME    @PYB11virtual
+    @PYB11virtual
     @PYB11const
     def applyGhostBoundary21(self,
                              field = "Field<%(Dimension)s, std::vector<Vector>>&"):

@@ -13,7 +13,16 @@ PYB11SRCS = \
 	BoundaryAbstractMethods.py \
 	Boundary.py \
 	PlanarBoundary.py \
-	ReflectingBoundary.py
+	ReflectingBoundary.py \
+	RigidBoundary.py \
+	PeriodicBoundary.py \
+	ConstantVelocityBoundary.py \
+	ConstantXVelocityBoundary.py \
+	ConstantYVelocityBoundary.py \
+	ConstantZVelocityBoundary.py \
+	ConstantRVelocityBoundary.py \
+	ConstantBoundary.py \
+	CRKSPHVoidBoundary.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

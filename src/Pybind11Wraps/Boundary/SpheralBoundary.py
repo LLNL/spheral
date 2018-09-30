@@ -48,6 +48,11 @@ from RigidBoundary import *
 from PeriodicBoundary import *
 from ConstantVelocityBoundary import *
 from ConstantXVelocityBoundary import *
+from ConstantYVelocityBoundary import *
+from ConstantZVelocityBoundary import *
+from ConstantRVelocityBoundary import *
+from ConstantBoundary import *
+from CRKSPHVoidBoundary import *
 
 for ndim in dims:
     exec('''
@@ -58,4 +63,14 @@ RigidBoundary%(ndim)id = PYB11TemplateClass(RigidBoundary, template_parameters="
 PeriodicBoundary%(ndim)id = PYB11TemplateClass(PeriodicBoundary, template_parameters="Dim<%(ndim)i>")
 ConstantVelocityBoundary%(ndim)id = PYB11TemplateClass(ConstantVelocityBoundary, template_parameters="Dim<%(ndim)i>")
 ConstantXVelocityBoundary%(ndim)id = PYB11TemplateClass(ConstantXVelocityBoundary, template_parameters="Dim<%(ndim)i>")
+ConstantBoundary%(ndim)id = PYB11TemplateClass(ConstantBoundary, template_parameters="Dim<%(ndim)i>")
+CRKSPHVoidBoundary%(ndim)id = PYB11TemplateClass(CRKSPHVoidBoundary, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
+
+if 2 in dims:
+    ConstantYVelocityBoundary2d = PYB11TemplateClass(ConstantYVelocityBoundary, template_parameters="Dim<2>")
+
+if 3 in dims:
+    ConstantYVelocityBoundary2d = PYB11TemplateClass(ConstantYVelocityBoundary, template_parameters="Dim<2>")
+    ConstantYVelocityBoundary3d = PYB11TemplateClass(ConstantYVelocityBoundary, template_parameters="Dim<3>")
+    ConstantZVelocityBoundary3d = PYB11TemplateClass(ConstantZVelocityBoundary, template_parameters="Dim<3>")
