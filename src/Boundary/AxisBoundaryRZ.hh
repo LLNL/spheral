@@ -34,7 +34,7 @@ public:
   virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
 
   // Access the fuzz from the axis we're using to enforce the BC.
-  double etamin() const;
+  const double etamin() const;
   void etamin(const double x);
 
   //****************************************************************************

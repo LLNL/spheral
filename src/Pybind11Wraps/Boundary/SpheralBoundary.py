@@ -69,6 +69,7 @@ CRKSPHVoidBoundary%(ndim)id = PYB11TemplateClass(CRKSPHVoidBoundary, template_pa
 
 if 2 in dims:
     ConstantYVelocityBoundary2d = PYB11TemplateClass(ConstantYVelocityBoundary, template_parameters="Dim<2>")
+    from AxisBoundaryRZ import *
 
 if 3 in dims:
     ConstantYVelocityBoundary2d = PYB11TemplateClass(ConstantYVelocityBoundary, template_parameters="Dim<2>")
