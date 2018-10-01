@@ -419,25 +419,15 @@ $(BPLMODTARGET): $(BPLOBJS) $(OBJS)
 # 	cp -f $(PYB11TARGET) $(PYTHONLIBDIR)/Spheral
 
 #-------------------------------------------------------------------------------
-$(PYB11TARGETDATE):  $(PYB11TARGET)
-	@echo "################################################################################"
-	@echo "# Building sources $(PYB11TARGET) $(PYB11SRCS)"
-	@echo "################################################################################"
-	touch $(PYB11TARGETDATE)
-
-$(PYB11SRCS):	$(PYB11TARGETDATE)
-
-$(PYB11OBJS):	$(PYB11SRCS)
-
-$(PYB11TARGET): $(PYB11TARGET:.$(SHLIBEXT)=.py) $(PYB11SRCS) $(OBJS)
+$(PYB11TARGET): $(subst Spheral,,$(PYB11TARGET:.$(SHLIBEXT)=MOD.py)) $(PYB11SRCS) $(OBJS)
 	@echo "################################################################################"
 	@echo "# Building module $(PYB11TARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(PYTHONLIBDIR)/Spheral
-	$(eval mod = $(basename $(<F)))
-	env PYTHONPATH="$(srcdir):$(srcdir)/..:$(subst $(SPACE),:,$(patsubst %,$(srcdir)/../%,$(PYTHONPKGS))):$(PYLIBDIR)" $(PYTHONEXE) -c "from PYB11Generator import *; import $(mod); PYB11generateModule($(mod))"
-	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $(mod).cc -o $(mod).o
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PYB11TARGET) $(mod).o $(PYB11OBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(PKGLIBS) $(PKGLIBS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS)
+	$(eval mod = $(subst MOD,,$(basename $(<F))))
+	env PYTHONPATH="$(srcdir):$(srcdir)/..:$(subst $(SPACE),:,$(patsubst %,$(srcdir)/../%,$(PYTHONPKGS))):$(PYLIBDIR)" $(PYTHONEXE) -c "from PYB11Generator import *; import $(mod)MOD; PYB11generateModule($(mod)MOD, 'Spheral$(mod)')"
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c Spheral$(mod).cc -o Spheral$(mod).o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PYB11TARGET) Spheral$(mod).o $(PYB11OBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(PKGLIBS) $(PKGLIBS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS)
 	cp -f $(PYB11TARGET) $(PYTHONLIBDIR)/Spheral
 
 #-------------------------------------------------------------------------------
