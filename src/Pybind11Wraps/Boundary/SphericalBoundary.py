@@ -26,7 +26,7 @@ class SphericalBoundary(Boundary):
 
     #...........................................................................
     # Methods
-    @PYB11static
+    @PYB11const
     def reflectOperator(self,
                         r0 = "const Vector&",
                         r1 = "const Vector&"):

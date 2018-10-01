@@ -22,7 +22,10 @@ PYB11SRCS = \
 	ConstantZVelocityBoundary.py \
 	ConstantRVelocityBoundary.py \
 	ConstantBoundary.py \
-	CRKSPHVoidBoundary.py
+	CRKSPHVoidBoundary.py \
+	AxisBoundaryRZ.py \
+	CylindricalBoundary.py \
+	SphericalBoundary.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
