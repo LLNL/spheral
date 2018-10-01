@@ -6,9 +6,11 @@ from Boundary import *
 from BoundaryAbstractMethods import *
 from RestartMethods import *
 
+@PYB11template()
 class CylindricalBoundary(Boundary):
 
     typedefs = """
+    typedef Dim<3> DIM;
     typedef Dim<3>::Scalar Scalar;
     typedef Dim<3>::Vector Vector;
     typedef Dim<3>::Tensor Tensor;

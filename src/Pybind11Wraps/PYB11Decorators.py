@@ -20,7 +20,10 @@ class PYB11template:
         self.template = tuple(args)
         return
     def __call__(self, thing):
-        thing.PYB11ignore = True
+        if self.template:
+            thing.PYB11ignore = True
+        else:
+            thing.PYB11ignore = False
         thing.PYB11template = self.template
         return thing
 

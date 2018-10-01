@@ -16,18 +16,19 @@ NodeList.
 """
 
     typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
-    typedef GeomPlane<%(Dimension)s> Plane;
+    typedef %(Dimension)s DIM;
+    typedef typename DIM::Scalar Scalar;
+    typedef typename DIM::Vector Vector;
+    typedef typename DIM::Tensor Tensor;
+    typedef typename DIM::SymTensor SymTensor;
+    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
+    typedef GeomPlane<DIM> Plane;
 """
 
     #...........................................................................
     # Constructors
     def pyinit(self,
-               nodeList = "const NodeList<%(Dimension)s>&",
+               nodeList = "const NodeList<DIM>&",
                nodeIndices = "const std::vector<int>&"):
         "Construct a constant velocity boundary for the specified nodes"
 
@@ -40,7 +41,7 @@ NodeList.
 
     #...........................................................................
     # Properties
-    nodeList = PYB11property("const NodeList<%(Dimension)s>&", "nodeList", doc="The NodeList this boundary applies to")
+    nodeList = PYB11property("const NodeList<DIM>&", "nodeList", doc="The NodeList this boundary applies to")
     nodeIndices = PYB11property("std::vector<int>", "nodeIndices", doc="The nodes this boundary is in control of")
     velocityCondition = PYB11property("std::vector<Vector>", "velocityCondition", doc="The velocities for the nodes we control")
 

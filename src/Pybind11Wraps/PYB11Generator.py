@@ -63,8 +63,6 @@ namespace py = pybind11;
 using namespace pybind11::literals;
 
 #define PYB11COMMA ,
-#define PYB11LANGLE <
-#define PYB11RANGLE >
 
 """ % {"name" : name})
 

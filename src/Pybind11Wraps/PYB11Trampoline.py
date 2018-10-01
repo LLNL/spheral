@@ -30,6 +30,11 @@ def PYB11generateTrampoline(klass, ssout):
     fs = StringIO.StringIO()
     ss = fs.write
 
+    # Build the dictionary of template substitutions.
+    Tdict = {}
+    for p in klassattrs["template"]:
+        Tdict[p] = p
+
     # Compiler guard.
     ss("""//------------------------------------------------------------------------------
 // Trampoline class for %(cppname)s
@@ -90,17 +95,6 @@ public:
                        (PYB11attrs(meth)["virtual"] or PYB11attrs(meth)["pure_virtual"]) and
                        mname in bklass.__dict__)]
 
-        # # HACK!
-        # bklassname = "%(namespace)s%(cppname)s" % bklassattrs
-        # if len(bklassattrs["template"]) > 0:
-        #     bklassname += "<"
-        #     for i, name in enumerate(bklassattrs["template"]):
-        #         bklassname += name
-        #         if i < len(bklassattrs["template"]) - 1:
-        #             bklassname += ", "
-        #     bklassname += ">"
-        # bklassname = PYB11CPPsafe(bklassname)
-
         for mname, meth in methods:
             
             # We build this method string up independent of the output stream
@@ -125,8 +119,8 @@ public:
                 ms(") override { ")
 
             # At this point we can make the call of whether this is a new method.
-            if not fms.getvalue() in boundMethods:
-                boundMethods.append(fms.getvalue())
+            if not (fms.getvalue() % Tdict) in boundMethods:
+                boundMethods.append(fms.getvalue() % Tdict)
 
                 if methattrs["pure_virtual"]:
                     ms("PYBIND11_OVERLOAD_PURE(%(returnType)s, PYB11self, %(cppname)s, " % methattrs)
@@ -159,9 +153,6 @@ public:
     ss("\n#endif\n")
 
     # Sub any template parameters.
-    Tdict = {}
-    for p in klassattrs["template"]:
-        Tdict[p] = p
     ssout(fs.getvalue() % Tdict)
 
     return

@@ -11,12 +11,13 @@ from RestartMethods import *
 class ReflectingBoundary(PlanarBoundary):
 
     typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
-    typedef GeomPlane<%(Dimension)s> Plane;
+    typedef %(Dimension)s DIM;
+    typedef typename DIM::Scalar Scalar;
+    typedef typename DIM::Vector Vector;
+    typedef typename DIM::Tensor Tensor;
+    typedef typename DIM::SymTensor SymTensor;
+    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
+    typedef GeomPlane<DIM> Plane;
 """
 
     #...........................................................................

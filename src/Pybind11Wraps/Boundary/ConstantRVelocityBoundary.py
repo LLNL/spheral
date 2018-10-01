@@ -16,17 +16,18 @@ NodeList.
 """
 
     typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef %(Dimension)s DIM;
+    typedef typename DIM::Scalar Scalar;
+    typedef typename DIM::Vector Vector;
+    typedef typename DIM::Tensor Tensor;
+    typedef typename DIM::SymTensor SymTensor;
+    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
 """
 
     #...........................................................................
     # Constructors
     def pyinit(self,
-               nodeList = "const NodeList<%(Dimension)s>&",
+               nodeList = "const NodeList<DIM>&",
                nodeIndices = "const std::vector<int>&"):
         "Construct a constant radial velocity for the given nodes"
 
@@ -34,7 +35,7 @@ NodeList.
     # Methods
     @PYB11virtual
     @PYB11const
-    def enforceBoundary(self, field="Field<%(Dimension)s, Vector>&"):
+    def enforceBoundary(self, field="Field<DIM, Vector>&"):
         "Apply the boundary condition to the violation node values in the given Field."
         return "void"
 
