@@ -76,3 +76,4 @@ if 3 in dims:
     ConstantYVelocityBoundary3d = PYB11TemplateClass(ConstantYVelocityBoundary, template_parameters="Dim<3>")
     ConstantZVelocityBoundary3d = PYB11TemplateClass(ConstantZVelocityBoundary, template_parameters="Dim<3>")
     from CylindricalBoundary import *
+    from SphericalBoundary import *
