@@ -132,8 +132,7 @@ def PYB11parseArgs(meth):
 #-------------------------------------------------------------------------------
 def PYB11virtualClass(klass):
     klassattrs = PYB11attrs(klass)
-    allmethods = [(mname, meth) for (mname, meth) in PYB11ClassMethods(klass)
-                  if not PYB11attrs(meth)["ignore"]]
+    allmethods = PYB11ThisClassMethods(klass)
     virtual = False
     for mname, meth in allmethods:
         methattrs = PYB11attrs(meth)
@@ -148,8 +147,7 @@ def PYB11virtualClass(klass):
 #-------------------------------------------------------------------------------
 def PYB11protectedClass(klass):
     klassattrs = PYB11attrs(klass)
-    allmethods = [(mname, meth) for (mname, meth) in PYB11ClassMethods(klass)
-                  if not PYB11attrs(meth)["ignore"]]
+    allmethods = PYB11ThisClassMethods(klass)
     protected = False
     for mname, meth in allmethods:
         methattrs = PYB11attrs(meth)

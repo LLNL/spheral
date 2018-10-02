@@ -7,8 +7,8 @@ from PYB11Generator import *
 class Kernel:
 
     typedefs = """
-    typedef %(Dimension)s::Vector Vector;
-    typedef %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
 """
 
     # def pyinit(self):
@@ -217,47 +217,33 @@ class Kernel:
         return "double"
 
     #...........................................................................
-    @PYB11implementation("&KernelPublicist<%(Dimension)s,%(Descendant)s>::setVolumeNormalization")
+    # Protected methods
+    @PYB11protected
     @PYB11const
     def setVolumeNormalization(self,
                                val = "double"):
         "Set the volume normalization constant."
         return "void"
 
-    @PYB11implementation("&KernelPublicist<%(Dimension)s,%(Descendant)s>::setKernelExtent")
+    @PYB11protected
     @PYB11const
     def setKernelExtent(self,
                         val = "double"):
         "Set the volume normalization constant."
         return "void"
 
-    @PYB11implementation("&KernelPublicist<%(Dimension)s,%(Descendant)s>::setInflectionPoint")
+    @PYB11protected
     @PYB11const
     def setInflectionPoint(self,
                            val = "double"):
         "Set the volume normalization constant."
         return "void"
 
-    @PYB11ignore
-    @PYB11cppname("volumeNormalization")
-    def getvolumeNormalization(self):
-        return "double"
-
-    @PYB11ignore
-    @PYB11cppname("kernelExtent")
-    def getkernelExtent(self):
-        return "double"
-
-    @PYB11ignore
-    @PYB11cppname("inflectionPoint")
-    def getinflectionPoint(self):
-        return "double"
-
     #...........................................................................
     # Properties
-    volumeNormalization = property(getvolumeNormalization, doc="The volume normalization to ensure the integral of the kennel is unity.")
-    kernelExtent = property(getkernelExtent, doc="The spatial radius of the kernel in dimensionless (x/h) units.")
-    inflectionPoint = property(getinflectionPoint, doc="The inflection point radius in dimensionless (x/h) units.")
+    volumeNormalization = PYB11property("double", "volumeNormalization", doc="The volume normalization to ensure the integral of the kennel is unity.")
+    kernelExtent = PYB11property("double", "kernelExtent", doc="The spatial radius of the kernel in dimensionless (x/h) units.")
+    inflectionPoint = PYB11property("double", "inflectionPoint", doc="The inflection point radius in dimensionless (x/h) units.")
 
 #-------------------------------------------------------------------------------
 # BSpline

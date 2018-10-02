@@ -32,21 +32,6 @@ includes = ['"Geometry/Dimension.hh"',
             '<string>']
 
 #-------------------------------------------------------------------------------
-# Define a preamble function to expose the protected methods of Kernel.
-#-------------------------------------------------------------------------------
-preamble = """
-namespace Spheral {
-  template<typename Dimension, typename Descendant>
-  class KernelPublicist: public Kernel<Dimension, Descendant> {
-  public:
-    using Kernel<Dimension, Descendant>::setVolumeNormalization;
-    using Kernel<Dimension, Descendant>::setKernelExtent;
-    using Kernel<Dimension, Descendant>::setInflectionPoint;
-  };
-}
-"""
-
-#-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
 namespaces = ["Spheral"]
