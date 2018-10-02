@@ -66,8 +66,8 @@ public:
     
     // Restart methods.
     virtual std::string label() const { return "MorrisMonaghanReducingViscosity"; }
-    virtual void dumpState(FileIO& file, std::string pathName) const;
-    virtual void restoreState(const FileIO& file, std::string pathName);
+    virtual void dumpState(FileIO& file, const std::string& pathName) const;
+    virtual void restoreState(const FileIO& file, const std::string& pathName);
         
         
     // Access the FieldList of Reducing Viscosity multiplicative correction.

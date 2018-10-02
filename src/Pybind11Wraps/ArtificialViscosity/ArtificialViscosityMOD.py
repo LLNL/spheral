@@ -38,11 +38,15 @@ namespaces = ["Spheral"]
 from ArtificialViscosity import *
 from MonaghanGingoldViscosity import *
 from CRKSPHMonaghanGingoldViscosity import *
+from MorrisMonaghanReducingViscosity import *
+from CullenDehnenViscosity import *
 
 for ndim in dims:
     exec('''
 ArtificialViscosity%(ndim)id = PYB11TemplateClass(ArtificialViscosity, template_parameters="%(Dimension)s")
 MonaghanGingoldViscosity%(ndim)id = PYB11TemplateClass(MonaghanGingoldViscosity, template_parameters="%(Dimension)s")
 CRKSPHMonaghanGingoldViscosity%(ndim)id = PYB11TemplateClass(CRKSPHMonaghanGingoldViscosity, template_parameters="%(Dimension)s")
+MorrisMonaghanReducingViscosity%(ndim)id = PYB11TemplateClass(MorrisMonaghanReducingViscosity, template_parameters="%(Dimension)s")
+CullenDehnenViscosity%(ndim)id = PYB11TemplateClass(CullenDehnenViscosity, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : ("Dim<" + str(ndim) +">")})
