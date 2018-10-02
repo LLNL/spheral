@@ -84,14 +84,14 @@ class ArtificialViscosity:
                                      doc="The RK correction order used for computing gradients in the viscosity")
     balsaraShearCorrection = PYB11property("bool", "balsaraShearCorrection", "balsaraShearCorrection",
                                            doc="Toggle whether to use the Balsara suppression for shear flows")
-    ClMultiplier = PYB11property("FieldList<DIM, Scalar>&", "ClMultiplier",
+    ClMultiplier = PYB11property("const FieldList<DIM, Scalar>&", "ClMultiplier",
                                  doc="Correction multiplier for the linear term")
-    CqMultiplier = PYB11property("FieldList<DIM, Scalar>&", "CqMultiplier",
+    CqMultiplier = PYB11property("const FieldList<DIM, Scalar>&", "CqMultiplier",
                                  doc="Correction multiplier for the quadratic term")
     shearCorrection = PYB11property("const FieldList<DIM, Scalar>&", "shearCorrection",
                                     doc="Correction multiplier for Balsara shear suppression")
     sigma = PYB11property("const FieldList<DIM, Vector>&", "sigma",
-                          doc="Access the internally computed estimate of sigma: sig^ab = \partial v^a / \partial x^b")
+                          doc="Access the internally computed estimate of sigma: sig^ab = partial v^a / partial x^b")
     gradDivVelocity = PYB11property("const FieldList<DIM, Vector>&", "gradDivVelocity",
                                     doc="Access the internally computed estimate of the velocity gradient and grad div velocity")
     limiter = PYB11property("bool", "limiter", "limiter",
