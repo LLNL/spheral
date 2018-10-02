@@ -39,6 +39,28 @@ class GenericHydro(Physics):
         return "TimeStepType"
 
     #...........................................................................
+    # Protected methods
+    @PYB11protected
+    @PYB11const
+    def updateMasterNeighborStats(self, numMaster="int"):
+        return "void"
+
+    @PYB11protected
+    @PYB11const
+    def updateCoarseNeighborStats(self, numCoarse="int"):
+        return "void"
+
+    @PYB11protected
+    @PYB11const
+    def updateRefineNeighborStats(self, numRefine="int"):
+        return "void"
+
+    @PYB11protected
+    @PYB11const
+    def updateActualNeighborStats(self, numActual="int"):
+        return "void"
+
+    #...........................................................................
     # Attributes
     artificialViscosity = PYB11property("ArtificialViscosity<DIM>&", "artificialViscosity", doc="The artificial viscosity object")
     kernel = PYB11property("const TableKernel<DIM>&", "kernel", doc="The interpolation kernel")

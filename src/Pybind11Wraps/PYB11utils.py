@@ -142,6 +142,22 @@ def PYB11virtualClass(klass):
     return virtual
 
 #-------------------------------------------------------------------------------
+# PYB11protectedClass
+#
+# Test if the given class has protected methods.
+#-------------------------------------------------------------------------------
+def PYB11protectedClass(klass):
+    klassattrs = PYB11attrs(klass)
+    allmethods = [(mname, meth) for (mname, meth) in PYB11ClassMethods(klass)
+                  if not PYB11attrs(meth)["ignore"]]
+    protected = False
+    for mname, meth in allmethods:
+        methattrs = PYB11attrs(meth)
+        if methattrs["protected"]:
+            protected = True
+    return protected
+
+#-------------------------------------------------------------------------------
 # PYB11mangle
 #
 # Mangle a string to a safe C++ variable name.
@@ -217,6 +233,7 @@ def PYB11attrs(obj):
          "singleton"      : False,
          "virtual"        : False,
          "pure_virtual"   : False,
+         "protected"      : False,
          "const"          : False,
          "static"         : False,
          "implementation" : None,

@@ -8,6 +8,7 @@ from PYB11Decorators import *
 from PYB11STLmethods import *
 from PYB11function import *
 from PYB11class import *
+from PYB11Publicist import *
 from PYB11enum import *
 from PYB11attr import *
 
@@ -98,6 +99,9 @@ using namespace pybind11::literals;
 
     # Trampolines
     PYB11generateModuleTrampolines(modobj, ss)
+
+    # Trampolines
+    PYB11generateModulePublicists(modobj, ss)
 
     # Declare the module
     ss("""

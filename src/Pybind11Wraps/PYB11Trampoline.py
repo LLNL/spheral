@@ -8,6 +8,18 @@ import StringIO
 from PYB11utils import *
 
 #-------------------------------------------------------------------------------
+# PYB11generateModuleTrampolines
+#
+# Generate trampolines for any classes with virtual methods.
+#-------------------------------------------------------------------------------
+def PYB11generateModuleTrampolines(modobj, ss):
+    klasses = PYB11classes(modobj)
+    for kname, klass in klasses:
+        if PYB11virtualClass(klass):
+            PYB11generateTrampoline(klass, ss)
+    return
+
+#-------------------------------------------------------------------------------
 # PYB11generateTrampoline
 #
 # Generate the trampoline class, including pure virtual hooks.

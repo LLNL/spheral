@@ -28,24 +28,6 @@ def PYB11generateModuleClasses(modobj, ss):
         inst(ktname, ss)
     return
 
-#-------------------------------------------------------------------------------
-# PYB11generateModuleTrampolines
-#
-# Generate trampolines for any classes with virtual methods.
-#-------------------------------------------------------------------------------
-def PYB11generateModuleTrampolines(modobj, ss):
-    klasses = PYB11classes(modobj)
-    for kname, klass in klasses:
-        if PYB11virtualClass(klass):
-            PYB11generateTrampoline(klass, ss)
-
-    # templates = [x for x in dir(modobj) if isinstance(eval("modobj.%s" % x), PYB11TemplateClass)]
-    # for ktname in templates:
-    #     inst = eval("modobj.%s" % ktname)
-    #     if PYB11virtualClass(inst.klass_template):
-    #         inst.makeTrampoline(ss)
-    return
-
 #--------------------------------------------------------------------------------
 # Make a class template instantiation
 #--------------------------------------------------------------------------------
@@ -186,6 +168,12 @@ def PYB11generic_class_method(klass, klassattrs, meth, methattrs, ss):
     klassinst = klass()
     args = PYB11parseArgs(meth)
     methattrs["returnType"] = meth(klassinst)
+
+    methattrs["namespace"] = "%(namespace)s" % klassattrs
+    methattrs["classcppname"] = "%(cppname)s" % klassattrs
+    if methattrs["protected"]:
+        methattrs["classcppname"] = "PYB11Publicist" + methattrs["classcppname"]
+
     if methattrs["static"]:
         ss('    obj.def_static("%(pyname)s", ' % methattrs)
     else:
@@ -196,13 +184,13 @@ def PYB11generic_class_method(klass, klassattrs, meth, methattrs, ss):
         ss(methattrs["implementation"])
     elif methattrs["returnType"] is None:
         if methattrs["static"]:
-            ss(("&%(namespace)s" % klassattrs) + methattrs["cppname"])
+            ss("&%(namespace)s%(cppname)s" % methattrs)
         else:
-            ss(("&%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"])
+            ss("&%(namespace)s%(classcppname)s::%(cppname)s" % methattrs)
     else:
         ss("(%(returnType)s " % methattrs)
         if methattrs["static"]:
-            ss("(%(namespace)s*)(" % klassattrs)
+            ss("(%(namespace)s*)(" % methattrs)
         else:
             ss("(%(namespace)s%(cppname)s::*)(" % klassattrs)
         argString = ""
@@ -214,9 +202,9 @@ def PYB11generic_class_method(klass, klassattrs, meth, methattrs, ss):
             if default:
                 argString += "=%s" % default
         if methattrs["const"]:
-            ss((") const) &%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+            ss(") const) &%(namespace)s%(classcppname)s::%(cppname)s" % methattrs + argString)
         else:
-            ss((")) &%(namespace)s%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+            ss(")) &%(namespace)s%(classcppname)s::%(cppname)s" % methattrs + argString)
 
     # Is there a return value policy?
     if methattrs["returnpolicy"]:
