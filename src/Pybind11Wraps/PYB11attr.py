@@ -25,7 +25,7 @@ def PYB11generateModuleAttrs(modobj, ss):
 class PYB11attr:
 
     def __init__(self,
-                 value,
+                 value = None,
                  pyname = None):
         self.value = value
         self.pyname = pyname
@@ -39,7 +39,9 @@ class PYB11attr:
         else:
             self.__name__ = pyname
         attrattrs = PYB11attrs(self)
-        attrattrs["cppname"] = self.value
+        if self.value:
+            attrattrs["cppname"] = self.value
+        else:
+            attrattrs["cppname"] = pyname
         ss('  m.attr("%(pyname)s") = %(cppname)s;\n' % attrattrs)
         return
-
