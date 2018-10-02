@@ -13,9 +13,11 @@ PYB11SRCS += \
 	$(srcdir)/ArtificialViscosityAbstractMethods.py \
 	$(srcdir)/ArtificialViscosity.py \
 	$(srcdir)/MonaghanGingoldViscosity.py \
+	$(srcdir)/TensorMonaghanGingoldViscosity.py \
 	$(srcdir)/CRKSPHMonaghanGingoldViscosity.py \
 	$(srcdir)/MorrisMonaghanReducingViscosity.py \
-	$(srcdir)/CullenDehnenViscosity.py
+	$(srcdir)/CullenDehnenViscosity.py \
+	$(srcdir)/FiniteVolumeViscosity.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
