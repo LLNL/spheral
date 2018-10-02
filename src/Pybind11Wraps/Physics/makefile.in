@@ -11,7 +11,8 @@ PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 PYB11SRCS = \
 	$(srcdir)/PhysicsAbstractMethods.py \
-	$(srcdir)/Physics.py
+	$(srcdir)/Physics.py \
+	$(srcdir)/GenericHydro.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
