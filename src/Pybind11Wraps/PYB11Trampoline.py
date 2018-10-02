@@ -94,9 +94,14 @@ public:
 
     # Any typedefs?
     if hasattr(klass, "typedefs"):
-        ss(klass.typedefs + "\n")
+        typedefs = str(klass.typedefs)
+    else:
+        typedefs = ""
 
     # Bind the (unique) virtual methods for all classes up the inheritance tree.
+    # We use an independent StringIO object for this, since we may have some new typedefs that
+    # need to be added before this stuff is output to the source.
+    methfms = StringIO.StringIO()
     boundMethods = []
     for (bklass, bklassname) in zip(inspect.getmro(klass), bklassnames):
 
@@ -112,51 +117,66 @@ public:
             # We build this method string up independent of the output stream
             # until we determine if it's already been generated.
             fms = StringIO.StringIO()
-            ms = fms.write
 
             methattrs = PYB11attrs(meth)
             methattrs["returnType"] = eval("bklassinst." + mname + "()")
             assert methattrs["returnType"]    # We require the full spec for virtual methods
-            ms("  virtual %(returnType)s %(cppname)s(" % methattrs)
+            fms.write("  virtual %(returnType)s %(cppname)s(" % methattrs)
 
             # Fill out the argument list for this method
             args = PYB11parseArgs(meth)
             for i, (argType, argName, default) in enumerate(args):
-                ms("%s %s" % (argType, argName))
+                fms.write("%s %s" % (argType, argName))
                 if i < len(args) - 1:
-                    ms(", ")
+                    fms.write(", ")
             if methattrs["const"]:
-                ms(") const override { ")
+                fms.write(") const override { ")
             else:
-                ms(") override { ")
+                fms.write(") override { ")
 
             # At this point we can make the call of whether this is a new method.
             if not (fms.getvalue() % Tdict) in boundMethods:
                 boundMethods.append(fms.getvalue() % Tdict)
 
+                # Check if the returnType C++ name will choke PYBIND11_OVERLOAD*
+                returnType = methattrs["returnType"]
+                if PYB11badchars(returnType):
+                    returnType = PYB11mangle(returnType)
+                    typedefstring = "    typedef typename %s %s;\n" % (methattrs["returnType"], returnType)
+                    if typedefstring not in typedefs:
+                        typedefs += typedefstring
+                    methattrs["returnType"] = returnType
+
                 if methattrs["pure_virtual"]:
-                    ms("PYBIND11_OVERLOAD_PURE(%(returnType)s, PYB11self, %(cppname)s, " % methattrs)
+                    fms.write("PYBIND11_OVERLOAD_PURE(%(returnType)s, PYB11self, %(cppname)s, " % methattrs)
                 else:
                     # HACK!  To workaround what appears to be a bug in overloading virtual method callbacks
                     # in pybind11 (see https://github.com/pybind/pybind11/issues/1547), we have to give
                     # the address of the object that actually implements it.  This is clealy not how a human
                     # should have to handle this, but since we're code generating this we can do this explicit
                     # workaround.
-                    #ms("PYBIND11_OVERLOAD(%(returnType)s, PYB11self, %(cppname)s, " % methattrs)
-                    ms("PYBIND11_OVERLOAD(%(returnType)s, " % methattrs)
-                    ms(PYB11mangle(bklassname) + ", ")
-                    ms("%(cppname)s, " % methattrs)
+                    #fms.write("PYBIND11_OVERLOAD(%(returnType)s, PYB11self, %(cppname)s, " % methattrs)
+                    fms.write("PYBIND11_OVERLOAD(%(returnType)s, " % methattrs)
+                    fms.write(PYB11mangle(bklassname) + ", ")
+                    fms.write("%(cppname)s, " % methattrs)
 
                 for i, (argType, argName, default) in enumerate(args):
                     if i < len(args) - 1:
-                        ms(argName + ", ")
+                        fms.write(argName + ", ")
                     else:
-                        ms(argName)
-                ms("); }\n")
+                        fms.write(argName)
+                fms.write("); }\n")
 
-                # Write to the out stream.
-                ss(fms.getvalue())
+                # Write to the method overloading stream.
+                methfms.write(fms.getvalue())
             fms.close()
+
+    # Write the full typdefs
+    ss(typedefs + "\n")
+
+    # Write the method overloads
+    ss(methfms.getvalue())
+    methfms.close()
 
     # Closing
     ss("};\n\n")

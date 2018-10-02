@@ -156,6 +156,14 @@ def PYB11protectedClass(klass):
     return protected
 
 #-------------------------------------------------------------------------------
+# PYB11badchars
+#
+# Check if any of the forbidden characters for PYBIND11_OVERLOAD* are present.
+#-------------------------------------------------------------------------------
+def PYB11badchars(name):
+    return any((c in ("<", ">", ",")) for c in name)
+
+#-------------------------------------------------------------------------------
 # PYB11mangle
 #
 # Mangle a string to a safe C++ variable name.
