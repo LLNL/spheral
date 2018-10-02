@@ -42,6 +42,7 @@ from CRKSPHMonaghanGingoldViscosity import *
 from MorrisMonaghanReducingViscosity import *
 from CullenDehnenViscosity import *
 from FiniteVolumeViscosity import *
+from TensorSVPHViscosity import *
 
 for ndim in dims:
     exec('''
@@ -52,5 +53,6 @@ CRKSPHMonaghanGingoldViscosity%(ndim)id = PYB11TemplateClass(CRKSPHMonaghanGingo
 MorrisMonaghanReducingViscosity%(ndim)id = PYB11TemplateClass(MorrisMonaghanReducingViscosity, template_parameters="%(Dimension)s")
 CullenDehnenViscosity%(ndim)id = PYB11TemplateClass(CullenDehnenViscosity, template_parameters="%(Dimension)s")
 FiniteVolumeViscosity%(ndim)id = PYB11TemplateClass(FiniteVolumeViscosity, template_parameters="%(Dimension)s")
+TensorSVPHViscosity%(ndim)id = PYB11TemplateClass(TensorSVPHViscosity, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : ("Dim<" + str(ndim) +">")})
