@@ -132,7 +132,7 @@ def PYB11parseArgs(meth):
 #-------------------------------------------------------------------------------
 def PYB11virtualClass(klass):
     klassattrs = PYB11attrs(klass)
-    allmethods = PYB11ThisClassMethods(klass)
+    allmethods = PYB11ClassMethods(klass)
     virtual = False
     for mname, meth in allmethods:
         methattrs = PYB11attrs(meth)
