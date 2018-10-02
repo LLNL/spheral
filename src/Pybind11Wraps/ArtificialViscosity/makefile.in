@@ -19,7 +19,8 @@ PYB11SRCS += \
 	$(srcdir)/CullenDehnenViscosity.py \
 	$(srcdir)/FiniteVolumeViscosity.py \
 	$(srcdir)/TensorSVPHViscosity.py \
-	$(srcdir)/TensorCRKSPHViscosity.py
+	$(srcdir)/TensorCRKSPHViscosity.py \
+	$(srcdir)/VonNeumanViscosity.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
