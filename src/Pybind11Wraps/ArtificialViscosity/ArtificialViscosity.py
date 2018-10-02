@@ -73,6 +73,7 @@ class ArtificialViscosity:
 
     #...........................................................................
     # Protected methods
+    
 
     #...........................................................................
     # Properties
@@ -105,7 +106,22 @@ class ArtificialViscosity:
     energyMultiplier = PYB11property("Scalar", "energyMultiplier", "energyMultiplier",
                                      doc="The multiplier for energy in the limiter.")
 
+    # This one is a protected property!
+    @PYB11const
+    @PYB11ignore
+    @PYB11protected
+    @PYB11cppname("calculateSigma")
+    def getcalculateSigma(self):
+        return "bool"
 
+    @PYB11ignore
+    @PYB11protected
+    @PYB11cppname("calculateSigma")
+    def setcalculateSigma(self, val="bool"):
+        return "void"
+
+    calculateSigma = property(getcalculateSigma, setcalculateSigma, doc="Toggle if sigma should be computed")
+    
 #-------------------------------------------------------------------------------
 # Inject abstract interface
 #-------------------------------------------------------------------------------

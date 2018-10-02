@@ -72,14 +72,15 @@ public:
 
     # Publish the virtual methods of this class.
     methods = [(mname, meth) for (mname, meth) in PYB11ClassMethods(klass)
-               if (not PYB11attrs(meth)["ignore"] and
-                   PYB11attrs(meth)["protected"] and
-                   mname in klass.__dict__)]
+               if (PYB11attrs(meth)["protected"] and mname in klass.__dict__)]
 
+    boundmeths = []
     for mname, meth in methods:
         methattrs = PYB11attrs(meth)
-        ss("  using %(full_cppname)s::" % klassattrs)
-        ss("%(cppname)s;\n" % methattrs)
+        if methattrs["cppname"] not in boundmeths:
+            boundmeths.append(methattrs["cppname"])
+            ss("  using %(full_cppname)s::" % klassattrs)
+            ss("%(cppname)s;\n" % methattrs)
 
     # Closing
     ss("};\n\n")

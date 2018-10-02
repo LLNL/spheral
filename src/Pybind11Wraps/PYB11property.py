@@ -107,6 +107,10 @@ def PYB11GenerateProperty(propname,
     returnType = eval("klassinst." + getter.__name__ + "()")
     getterattrs = PYB11attrs(getter)
     getterattrs["returnType"] = returnType
+    getterattrs["namespace"] = "%(namespace)s" % klassattrs
+    getterattrs["classcppname"] = "%(cppname)s" % klassattrs
+    if getterattrs["protected"]:
+        getterattrs["classcppname"] = "PYB11Publicist" + getterattrs["classcppname"]
 
     # What kind of property do we have (readwrite, readonly, static, etc.)?
     if getterattrs["static"]:
@@ -130,11 +134,15 @@ def PYB11GenerateProperty(propname,
         ss('const)')
     else:
         ss(')')
-    ss(' &%(namespace)s%(cppname)s::' % klassattrs + getterattrs["cppname"])
+    ss(' &%(namespace)s%(classcppname)s::%(cppname)s' % getterattrs)
 
     # setter, if any
     if setter:
         setterattrs = PYB11attrs(setter)
+        setterattrs["namespace"] = "%(namespace)s" % klassattrs
+        setterattrs["classcppname"] = "%(cppname)s" % klassattrs
+        if setterattrs["protected"]:
+            setterattrs["classcppname"] = "PYB11Publicist" + setterattrs["classcppname"]
         args = PYB11parseArgs(setter)
         assert len(args) == 1, "Bad number of arguments to property %s" % propname
         if setterattrs["static"]:
@@ -146,7 +154,7 @@ def PYB11GenerateProperty(propname,
             ss(' const)')
         else:
             ss(')')
-        ss(' &%(namespace)s%(cppname)s::' % klassattrs + setterattrs["cppname"])
+        ss(' &%(namespace)s%(classcppname)s::%(cppname)s' % setterattrs)
 
     # Is there a docstring?
     if doc:
