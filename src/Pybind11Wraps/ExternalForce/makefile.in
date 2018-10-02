@@ -9,9 +9,10 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = ExternalForce
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-
-SRCTARGETS += \
-	$(srcdir)/SpheralExternalForce.cc
+PYB11SRCS = \
+	PointPotential.py \
+	ConstantAcceleration.py \
+	LinearAcceleration.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

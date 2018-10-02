@@ -59,15 +59,15 @@ public:
 
   // Access G.
   Scalar G() const;
-  void setG(const Scalar G);
+  void setG(Scalar G);
 
   // Access the mass.
   Scalar mass() const;
-  void setMass(const Scalar m);
+  void setMass(Scalar m);
 
   // Access the core softening radius.
   Scalar coreRadius() const;
-  void setCoreRadius(const Scalar rc);
+  void setCoreRadius(Scalar rc);
 
   // Access the origin.
   const Vector& origin() const;
@@ -76,7 +76,7 @@ public:
   // The maximum allowed fractional change in a particles potential (for 
   // setting the timestep).
   Scalar deltaPotentialFraction() const;
-  void setDeltaPotentialFraction(const Scalar deltaPhi);
+  void setDeltaPotentialFraction(Scalar deltaPhi);
 
 private:
   //--------------------------- Public Interface ---------------------------//
