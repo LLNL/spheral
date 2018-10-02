@@ -22,7 +22,8 @@ class PYB11property:
                  setterraw = None,
                  getterconst = True,
                  setterconst = False,
-                 static = None):
+                 static = None,
+                 returnpolicy = None):
         self.returnType = returnType
         self.getter = getter
         self.setter = setter
@@ -32,6 +33,7 @@ class PYB11property:
         self.getterconst = getterconst
         self.setterconst = setterconst
         self.static = static
+        self.returnpolicy = returnpolicy
 
         assert self.getter or self.getterraw, "PYB11property: must specify getter or getterraw"
         assert self.getter is None or self.getterraw is None, "PYB11property: cannot specify both getter and getterraw"
@@ -81,6 +83,10 @@ class PYB11property:
                 else:
                     ss(')')
                 ss(' &%(namespace)s%(cppname)s::' % klassattrs + self.setter)
+
+        # Is there a return policy?
+        if self.returnpolicy:
+            ss(", py::return_value_policy::" + self.returnpolicy)
 
         # Is there a docstring?
         if self.doc:
@@ -155,6 +161,10 @@ def PYB11GenerateProperty(propname,
         else:
             ss(')')
         ss(' &%(namespace)s%(classcppname)s::%(cppname)s' % setterattrs)
+
+    # Is there a return policy?
+    if getterattrs["returnpolicy"]:
+        ss(", py::return_value_policy::%(returnpolicy)s" % getterattrs)
 
     # Is there a docstring?
     if doc:
