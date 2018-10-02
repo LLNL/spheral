@@ -36,9 +36,13 @@ namespaces = ["Spheral"]
 # Do our dimension dependent instantiations.
 #-------------------------------------------------------------------------------
 from ArtificialViscosity import *
+from MonaghanGingoldViscosity import *
+from CRKSPHMonaghanGingoldViscosity import *
 
 for ndim in dims:
     exec('''
 ArtificialViscosity%(ndim)id = PYB11TemplateClass(ArtificialViscosity, template_parameters="%(Dimension)s")
+MonaghanGingoldViscosity%(ndim)id = PYB11TemplateClass(MonaghanGingoldViscosity, template_parameters="%(Dimension)s")
+CRKSPHMonaghanGingoldViscosity%(ndim)id = PYB11TemplateClass(CRKSPHMonaghanGingoldViscosity, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : ("Dim<" + str(ndim) +">")})

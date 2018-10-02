@@ -65,10 +65,10 @@ public:
   // Access the fractions setting the critical spacing for kicking the
   // viscosity back on full force.
   double etaCritFrac() const;
-  void etaCritFrac(const double val);
+  void etaCritFrac(double val);
 
   double etaFoldFrac() const;
-  void etaFoldFrac(const double val);
+  void etaFoldFrac(double val);
 
   // Restart methods.
   virtual std::string label() const { return "CRKSPHMonaghanGingoldViscosity"; }

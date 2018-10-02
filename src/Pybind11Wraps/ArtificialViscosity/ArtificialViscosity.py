@@ -15,7 +15,6 @@ class ArtificialViscosity:
     typedef typename DIM::Tensor Tensor;
     typedef typename DIM::SymTensor SymTensor;
     typedef typename DIM::ThirdRankTensor ThirdRankTensor;
-    typedef typename ArtificialViscosity<DIM>::TimeStepType TimeStepType;
 """
 
     #...........................................................................
@@ -72,10 +71,6 @@ class ArtificialViscosity:
         return "Tensor"
 
     #...........................................................................
-    # Protected methods
-    
-
-    #...........................................................................
     # Properties
     Cl = PYB11property("Scalar", "Cl", "Cl",
                        doc="The linear coefficient")
@@ -126,4 +121,4 @@ class ArtificialViscosity:
 # Inject abstract interface
 #-------------------------------------------------------------------------------
 PYB11inject(ArtificialViscosityAbstractMethods, ArtificialViscosity, pure_virtual=True)
-PYB11inject(RestartMethods, ArtificialViscosity, pure_virtual=True)
+PYB11inject(RestartMethods, ArtificialViscosity)

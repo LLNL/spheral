@@ -11,7 +11,8 @@ PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 PYB11SRCS += \
 	$(srcdir)/ArtificialViscosityAbstractMethods.py \
-	$(srcdir)/ArtificialViscosity.py
+	$(srcdir)/ArtificialViscosity.py \
+	$(srcdir)/MonaghanGingoldViscosity.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
