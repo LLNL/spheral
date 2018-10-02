@@ -151,15 +151,15 @@ public:
 
   // The negligible sound speed parameter for use in the limiter.
   Scalar negligibleSoundSpeed() const;
-  void negligibleSoundSpeed(const Scalar val);
+  void negligibleSoundSpeed(Scalar val);
 
   // The multiplier for sound speed in the limiter.
   Scalar csMultiplier() const;
-  void csMultiplier(const Scalar val);
+  void csMultiplier(Scalar val);
 
   // The multiplier for energy in the limiter.
   Scalar energyMultiplier() const;
-  void energyMultiplier(const Scalar val);
+  void energyMultiplier(Scalar val);
 
   // Helper method to calculate Del cross V from the given sigma tensor.
   Scalar computeDelCrossVMagnitude(const Tensor& sigma) const;

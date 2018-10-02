@@ -9,9 +9,9 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = ArtificialViscosity
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-
-SRCTARGETS += \
-	$(srcdir)/SpheralArtificialViscosity.cc
+PYB11SRCS += \
+	$(srcdir)/ArtificialViscosityAbstractMethods.py \
+	$(srcdir)/ArtificialViscosity.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
