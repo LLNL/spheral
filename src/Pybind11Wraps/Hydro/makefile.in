@@ -10,9 +10,6 @@ PKGNAME = Hydro
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
-SRCTARGETS += \
-	$(srcdir)/SpheralHydro.cc
-
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 EXTRALIBS += $(LDRPATH)
