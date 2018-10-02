@@ -27,16 +27,7 @@ includes = ['"Geometry/Dimension.hh"',
 #-------------------------------------------------------------------------------
 # Define a preamble function to expose the protected methods of Neighbor.
 #-------------------------------------------------------------------------------
-preamble = """
-namespace Spheral {
-  template<typename Dimension>
-  class NeighborPublicist: public Neighbor<Dimension> {
-  public:
-    using Neighbor<Dimension>::accessNodeExtentField;
-  };
-}
-
-"""
+preamble = ""
 for ndim in dims:
     preamble += "typedef GridCellIndex<Dim<%(ndim)i>> GridCellIndex%(ndim)id;\n" % {"ndim" : ndim}
 

@@ -134,7 +134,7 @@ class Neighbor:
 
     #...........................................................................
     # Protected methods
-    @PYB11implementation("&NeighborPublicist<%(Dimension)s>::accessNodeExtentField")
+    @PYB11protected
     def accessNodeExtentField(self):
         "Read/write access the protected node extent field member"
         return "Field<%(Dimension)s, Vector>&"
