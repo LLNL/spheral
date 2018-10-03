@@ -38,9 +38,11 @@ namespaces = ["Spheral"]
 # Instantiate our types
 #-------------------------------------------------------------------------------
 from Integrator import *
+from PredictorCorrectorIntegrator import *
 
 for ndim in dims:
     exec('''
 Integrator%(ndim)id = PYB11TemplateClass(Integrator, template_parameters="%(Dimension)s")
+PredictorCorrectorIntegrator%(ndim)id = PYB11TemplateClass(PredictorCorrectorIntegrator, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})

@@ -178,5 +178,5 @@ into compliance."""
 #-------------------------------------------------------------------------------
 # Inject other interfaces
 #-------------------------------------------------------------------------------
-PYB11inject(IntegratorAbstractMethods, Integrator, pure_virtual=True)
+PYB11inject(IntegratorAbstractMethods, Integrator, virtual=False, pure_virtual=True)
 PYB11inject(RestartMethods, Integrator)
