@@ -10,9 +10,6 @@ PKGNAME = Utilities
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
-SRCTARGETS += \
-	$(srcdir)/SpheralUtilities.cc
-
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 EXTRALIBS += $(LDRPATH)
