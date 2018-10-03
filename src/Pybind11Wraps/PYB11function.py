@@ -138,9 +138,10 @@ def PYB11generateFunction(meth, methattrs, ssout):
         ss(", py::return_value_policy::%s" % methattrs["returnpolicy"])
 
     # Write the doc string
-    if inspect.getdoc(meth):
-        doc = inspect.getdoc(meth)
-        ss(',\n        "%s"' % inspect.getdoc(meth))
+    doc = inspect.getdoc(meth)
+    if doc:
+        ss(", ")
+        PYB11docstring(doc, ss)
     ss(");\n")
 
     ssout(fs.getvalue() % methattrs["template_dict"])
