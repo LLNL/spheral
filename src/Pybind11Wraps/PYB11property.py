@@ -15,7 +15,7 @@ class PYB11property:
 
     def __init__(self,
                  returnType,
-                 getter,
+                 getter = None,
                  setter = None,
                  doc = None,
                  getterraw = None,
@@ -35,12 +35,14 @@ class PYB11property:
         self.static = static
         self.returnpolicy = returnpolicy
 
-        assert self.getter or self.getterraw, "PYB11property: must specify getter or getterraw"
         assert self.getter is None or self.getterraw is None, "PYB11property: cannot specify both getter and getterraw"
         assert self.setter is None or self.setterraw is None, "PYB11property: cannot specify both setter and setterraw"
         return
 
     def __call__(self, propname, klassattrs, ss):
+        if self.getter is None:
+            self.getter = propname
+
         if self.static:
             if self.setter:
                 proptype = "_readwrite_static"
