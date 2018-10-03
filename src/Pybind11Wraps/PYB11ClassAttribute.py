@@ -54,7 +54,8 @@ class PYB11ClassAttribute:
             ss('    obj.def_%s("%s", ' % (self.deftype, pyname))
         ss(("&%(namespace)s%(cppname)s::" % klassattrs) + cppname)
         if self.doc:
-            ss(',\n            "%s"' % self.doc)
+            ss(', ')
+            PYB11docstring(self.doc, ss)
         ss(");\n")
         return
 
