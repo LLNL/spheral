@@ -58,6 +58,7 @@ namespaces = ["Spheral"]
 #-------------------------------------------------------------------------------
 from SpheralFunctor import *
 from KeyTraits import *
+from Timer import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
