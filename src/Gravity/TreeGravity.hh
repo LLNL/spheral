@@ -100,19 +100,19 @@ public:
 
   //! The opening angle threshold when we shift to tree cell approximations.
   double opening() const;
-  void opening(const double x);
+  void opening(double x);
 
   //! The current softening length.
   double softeningLength() const;
-  void softeningLength(const double x);
+  void softeningLength(double x);
 
   //! The current time step scaling factor.
   double ftimestep() const;
-  void ftimestep(const double x);
+  void ftimestep(double x);
 
   //! The algorithmic choice for setting the time step.
   GravityTimeStepType timeStepChoice() const;
-  void timeStepChoice(const GravityTimeStepType x);
+  void timeStepChoice(GravityTimeStepType x);
 
   //! The lower left corner of the computational cube that was last used.
   Vector xmin() const;

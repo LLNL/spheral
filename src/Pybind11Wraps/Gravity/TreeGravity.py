@@ -3,6 +3,7 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from GenericBodyForce import *
+from RestartMethods import *
 
 @PYB11template("Dimension")
 class TreeGravity(GenericBodyForce):
@@ -21,7 +22,7 @@ class TreeGravity(GenericBodyForce):
     # Constructors
     def pyinit(self,
                G = "const double",
-               plummerSofteningLength = "const double",
+               softeningLength = "const double",
                opening = "const double",
                ftimestep = "const double",
                timeStepChoice = "GravityTimeStepType"):
@@ -63,28 +64,14 @@ class TreeGravity(GenericBodyForce):
         return "void"
 
     @PYB11virtual
-    def preStepInitialize(self,
-                          dataBase = "const DataBase<DIM>&", 
-                          state = "State<DIM>&",
-                          derivs = "StateDerivatives<DIM>&"):
-        "Optional hook to be called at the beginning of a time step."
+    def initialize(self,
+                   time = "const Scalar", 
+                   dt = "const Scalar",
+                   dataBase = "const DataBase<DIM>&", 
+                   state = "State<DIM>&",
+                   derivs = "StateDerivatives<DIM>&"):
+        "Some packages might want a hook to do some initializations before the evaluateDerivatives() method is called."
         return "void"
-
-    @PYB11virtual
-    def finalize(self,
-                 time = "const Scalar", 
-                 dt = "const Scalar",
-                 dataBase = "DataBase<DIM>&", 
-                 state = "State<DIM>&",
-                 derivs = "StateDerivatives<DIM>&"):
-        "Similarly packages might want a hook to do some post-step finalizations.  Really we should rename this post-step finalize."
-        return "void"
-
-    @PYB11virtual
-    @PYB11const
-    def label(self):
-        "It's useful to have labels for Physics packages.  We'll require this to have the same signature as the restart label."
-        return "std::string"
 
     @PYB11virtual
     @PYB11const
@@ -98,14 +85,28 @@ class TreeGravity(GenericBodyForce):
         "Many physics packages will have their own representations of energy in the system (gravitational potential energy, radiative losses, etc.)"
         return "Scalar"
 
-    @PYB11virtual
     @PYB11const
-    def valid(self):
-        return "bool"
+    def dumpTree(self, globalTree="const bool"):
+        "Return a dump of the tree structure as a string."
+        return "std::string"
+
+    @PYB11const
+    def dumpTreeStatistics(self, globalTree="const bool"):
+        "Return a string describing the overall statistics of the tree."
+        return "std::string"
 
     #...........................................................................
     # Properties
     potential = PYB11property("const FieldList<DIM, Scalar>&", "potential", returnpolicy="reference_internal", doc="The last computed potential")
     G = PYB11property("double", "G", doc="The gravitational constant")
+    opening = PYB11property("double", "opening", "opening", doc="The opening angle threshold when we shift to tree cell approximations.")
     softeningLength = PYB11property("Scalar", "softeningLength", "softeningLength", doc="The Plummer softening scale")
-    compatibleVelocityUpdate = PYB11property("bool", "compatibleVelocityUpdate", "compatibleVelocityUpdate", doc="Experimental compatible update for velocity")
+    ftimestep = PYB11property("double", "ftimestep", "ftimestep", doc="The current time step scaling factor.")
+    timeStepChoice = PYB11property("GravityTimeStepType", "timeStepChoice", "timeStepChoice", doc="The algorithmic choice for setting the time step.")
+    xmin = PYB11property("Vector", "xmin", doc="The lower left corner of the computational cube that was last used.")
+    xmax = PYB11property("Vector", "xmax", doc="The upper right corner of the computational cube that was last used.")
+
+#-------------------------------------------------------------------------------
+# Inject restart methods
+#-------------------------------------------------------------------------------
+PYB11inject(RestartMethods, TreeGravity)

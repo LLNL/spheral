@@ -15,6 +15,7 @@ includes = ['"Geometry/Dimension.hh"',
             '"Physics/GenericBodyForce.hh"',
             '"Gravity/NBodyGravity.hh"',
             '"Gravity/TreeGravity.hh"',
+            '"FileIO/FileIO.hh"',
             '<vector>',
             '<string>',
             '<iterator>']
@@ -39,6 +40,11 @@ from TreeGravity import *
 for ndim in dims:
     exec('''
 NBodyGravity%(ndim)id = PYB11TemplateClass(NBodyGravity, template_parameters="%(Dimension)s")
-TreeGravity%(ndim)id = PYB11TemplateClass(TreeGravity, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
+
+if 2 in dims:
+    QuadTreeGravity = PYB11TemplateClass(TreeGravity, template_parameters="Dim<2>")
+
+if 3 in dims:
+    OctTreeGravity = PYB11TemplateClass(TreeGravity, template_parameters="Dim<3>")
