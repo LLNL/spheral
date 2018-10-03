@@ -212,7 +212,8 @@ def PYB11generic_class_method(klass, klassattrs, meth, methattrs, ss):
 
     doc = inspect.getdoc(meth)
     if doc:
-        ss(',\n            "%s"' % doc)
+        ss(", ")
+        PYB11docstring(doc, ss)
     ss(");\n")
 
 #-------------------------------------------------------------------------------
@@ -247,7 +248,8 @@ def PYB11generateClass(klass, klassattrs, ssout):
         ss(">()%s" % argString)
         doc = inspect.getdoc(meth)
         if doc:
-            ss(',\n            "%s"' % doc)
+            ss(", ")
+            PYB11docstring(doc, ss)
         ss(");\n")
 
 
@@ -301,7 +303,8 @@ def PYB11generateClass(klass, klassattrs, ssout):
                 ss((")) &%(namespace)s%(cppname)s::operator()" % klassattrs) + argString)
         doc = inspect.getdoc(meth)
         if doc:
-            ss(',\n            "%s"' % doc)
+            ss(", ")
+            PYB11docstring(doc, ss)
         ss(", py::is_operator());\n")
 
     #...........................................................................
@@ -388,13 +391,11 @@ def PYB11generateClass(klass, klassattrs, ssout):
     ss('> obj(m, "%(pyname)s");\n' % klassattrs)
 
     # Is there a doc string?
-    if inspect.getdoc(klass):
+    doc = inspect.getdoc(klass)
+    if doc:
         ss("    obj.doc() = ")
-        for i, line in enumerate(inspect.getdoc(klass).split('\n')):
-            if i > 0:
-                ss("            ")
-            ss('"%s"\n' % line);
-        ss("  ;\n")
+        PYB11docstring(doc, ss)
+        ss(";\n")
 
     # Grab all the methods
     allmethods = [(mname, meth) for (mname, meth) in PYB11ThisClassMethods(klass)

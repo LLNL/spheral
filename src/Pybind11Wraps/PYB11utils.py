@@ -227,6 +227,24 @@ class PYB11indentedIO:
         self.fs.close()
 
 #-------------------------------------------------------------------------------
+# PYB11docstring
+#
+# Generate a reasonably formatted doc string
+#-------------------------------------------------------------------------------
+def PYB11docstring(doc, ss):
+    if doc:
+        stuff = doc.split("\n")
+        if len(stuff) == 1:
+            ss('"%s"' % doc)
+        else:
+            ss("\n")
+            for i, line in enumerate(doc.split('\n')):
+                ss('            "%s\\n"' % line);
+                if i < len(stuff) - 1:
+                    ss("\n")
+    return
+
+#-------------------------------------------------------------------------------
 # PYB11attrs
 #
 # Read the possible PYB11 generation attributes from the obj

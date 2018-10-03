@@ -90,9 +90,9 @@ class PYB11property:
 
         # Is there a docstring?
         if self.doc:
-            ss(',\n                     "%s");\n' % self.doc)
-        else:
-            ss(');\n')
+            ss(", ")
+            PYB11docstring(self.doc, ss)
+        ss(');\n')
         return
 
 #--------------------------------------------------------------------------------
@@ -168,9 +168,9 @@ def PYB11GenerateProperty(propname,
 
     # Is there a docstring?
     if doc:
-        ss(',\n                     "%s");\n' % doc)
-    else:
-        ss(');\n')
+        ss(", ")
+        PYB11docstring(doc, ss)
+    ss(');\n')
     return
 
 #-------------------------------------------------------------------------------

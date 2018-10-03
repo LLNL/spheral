@@ -113,12 +113,10 @@ PYBIND11_MODULE(%(name)s, m) {
 """ % {"name"     : name,
       })
 
-    if inspect.getdoc(modobj):
+    doc = inspect.getdoc(modobj)
+    if doc:
         ss("  m.doc() = ")
-        for i, line in enumerate(inspect.getdoc(modobj).split('\n')):
-            if i > 0:
-                ss("            ")
-            ss('"%s"\n' % line);
+        PYB11docstring(doc, ss)
         ss("  ;\n")
     ss("\n")
 
