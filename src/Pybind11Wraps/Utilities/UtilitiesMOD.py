@@ -70,3 +70,29 @@ VectorVectorFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_param
 VectorPairScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Dimension)s::Vector", "std::pair<double,double>"))
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
+
+#-------------------------------------------------------------------------------
+# Module functions
+#-------------------------------------------------------------------------------
+def erff(x = "double"):
+    "You know, the error function."
+    return "double"
+
+@PYB11cppname("newtonRaphson<const PythonBoundFunctors::SpheralFunctor<double, std::pair<double, double>>>")
+def newtonRaphsonFindRoot(function = "const PythonBoundFunctors::SpheralFunctor<double, std::pair<double, double>>&",
+                          x1 = "double",
+                          x2 = "double",
+                          xaccuracy = ("double", "1.0e-15"),
+                          yaccuracy = ("double", "1.0e-15"),
+                          maxIterations = ("int", "100")):
+    """Newton-Raphson root finder.
+Finds a root of 'function' in the range (x1, x2)"""
+    return "double"
+
+@PYB11cppname("simpsonsIntegration<const PythonBoundFunctors::SpheralFunctor<double, double>, double, double>")
+def simpsonsIntegrationDouble(function = "const PythonBoundFunctors::SpheralFunctor<double, double>&",
+                              x0 = "double",
+                              x1 = "double",
+                              numBins = "unsigned"):
+    "Numerically integrate 'function' in the range (x0, x1) via Simpsons rule"
+    return "double"
