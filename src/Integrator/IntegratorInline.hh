@@ -202,7 +202,7 @@ template<typename Dimension>
 inline
 void
 Integrator<Dimension>::
-updateBoundaryFrequency(const int value) {
+updateBoundaryFrequency(int value) {
   mUpdateBoundaryFrequency = value;
 }
 
@@ -239,7 +239,7 @@ template<typename Dimension>
 inline
 void
 Integrator<Dimension>::
-cullGhostNodes(const bool x) {
+cullGhostNodes(bool x) {
   mCullGhostNodes = x;
 }
 
