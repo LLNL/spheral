@@ -22,6 +22,20 @@ class FlatFileIO(FileIO):
         "Construct with a given file name, access, and file format (ascii/binary)"
 
     #...........................................................................
+    # Override abstract methods
+    @PYB11virtual
+    def open(self,
+             fileName = "const std::string",
+             access = "AccessType"):
+        "Open a file for IO"
+        return "void"
+
+    @PYB11virtual
+    def close(self):
+        "Close the current file we're pointing at"
+        return "void"
+
+    #...........................................................................
     # Methods
     @PYB11const
     def findPathName(self,

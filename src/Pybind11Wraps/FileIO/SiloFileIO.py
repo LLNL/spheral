@@ -20,6 +20,20 @@ class SiloFileIO(FileIO):
                 access = "AccessType"):
         "Open a silo file with a given file name and access"
 
+    #...........................................................................
+    # Override abstract methods
+    @PYB11virtual
+    def open(self,
+             fileName = "const std::string",
+             access = "AccessType"):
+        "Open a file for IO"
+        return "void"
+
+    @PYB11virtual
+    def close(self):
+        "Close the current file we're pointing at"
+        return "void"
+
 #-------------------------------------------------------------------------------
 # Override the required virtual interface
 #-------------------------------------------------------------------------------

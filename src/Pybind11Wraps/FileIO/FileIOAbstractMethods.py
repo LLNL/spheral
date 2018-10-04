@@ -9,16 +9,6 @@ dims = spheralDimensions()
 @PYB11ignore
 class FileIOAbstractMethods:
 
-    def open(self,
-             fileName = "const std::string",
-             access = "AccessType"):
-        "Open a file for IO"
-        return "void"
-
-    def close(self):
-        "Close the current file we're pointing at"
-        return "void"
-
     #...........................................................................
     # Abstract interface (primitives)
     types = ["unsigned", "int", "bool", "double", "std::string"]

@@ -20,6 +20,20 @@ class FileIO:
         "Construct with a given file name and access"
 
     #...........................................................................
+    # Abstract methods
+    @PYB11pure_virtual
+    def open(self,
+             fileName = "const std::string",
+             access = "AccessType"):
+        "Open a file for IO"
+        return "void"
+
+    @PYB11pure_virtual
+    def close(self):
+        "Close the current file we're pointing at"
+        return "void"
+
+    #...........................................................................
     # Virtual methods
     @PYB11virtual
     def write_unsigned_int(self,
