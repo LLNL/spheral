@@ -96,3 +96,48 @@ def simpsonsIntegrationDouble(function = "const PythonBoundFunctors::SpheralFunc
                               numBins = "unsigned"):
     "Numerically integrate 'function' in the range (x0, x1) via Simpsons rule"
     return "double"
+
+#-------------------------------------------------------------------------------
+# packElement
+#-------------------------------------------------------------------------------
+@PYB11template("T")
+def packElement(x = "const %(T)s&",
+                buffer = "std::vector<char>&"):
+    "Serialize a %(T)s onto a buffer of vector<char>"
+    return "void"
+
+@PYB11template("T")
+@PYB11cppname("packElement")
+def packElementVector(x = "const std::vector<%(T)s>&",
+                      buffer = "std::vector<char>&"):
+    "Serialize a vector<%(T)s> onto a buffer of vector<char>"
+    return "void"
+
+@PYB11template("T")
+@PYB11implementation("[](const %(T)s& x) { std::vector<char> buf; packElement(x, buf); return std::string(buf.begin(), buf.end()); }")
+def toString(x = "const %(T)s&"):
+    return "std:string"
+
+@PYB11template("T")
+@PYB11implementation("[](const std::string& x) { %(T)s result; const std::vector<char> buf(x.begin(), x.end()); auto itr = buf.begin(); unpackElement(result, itr, buf.end()); return result; }")
+def fromString(x = "const std::string&"):
+    return "%(T)s"
+
+packTypes = ("int", "double", "uint32_t", "uint64_t",
+             "Dim<1>::FacetedVolume", "Dim<2>::FacetedVolume", "Dim<3>::FacetedVolume")
+for type in packTypes:
+    exec('''
+packElement%(suffix)s = PYB11TemplateFunction(packElement, template_parameters="%(type)s", pyname="packElement")
+toString%(suffix)s = PYB11TemplateFunction(toString, template_parameters="%(type)s") # , pyname="toString")
+fromString%(suffix)s = PYB11TemplateFunction(fromString, template_parameters="%(type)s") # , pyname="fromString")
+''' % {"type"   : type,
+       "suffix" : PYB11mangle(type)})
+
+packVecTypes = ("unsigned", "int", "float", "double", "uint32_t", "uint64_t", "unsigned")
+for type in packVecTypes:
+    exec('''
+packElementVector%(suffix)s = PYB11TemplateFunction(packElement, template_parameters="%(type)s", pyname="packElement")
+toStringVector%(suffix)s = PYB11TemplateFunction(toString, template_parameters="std::vector<%(type)s>") # , pyname="toString")
+fromStringVector%(suffix)s = PYB11TemplateFunction(fromString, template_parameters="std::vector<%(type)s>") # , pyname="toString")
+''' % {"type"   : type,
+       "suffix" : PYB11mangle(type)})

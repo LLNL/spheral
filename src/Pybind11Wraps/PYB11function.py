@@ -75,10 +75,12 @@ class PYB11TemplateFunction:
         for name, val in self.template_parameters:
             funcattrs["template_dict"][name] = val
 
-        doc0 = copy.deepcopy(self.func_template.__doc__)
-        self.func_template.__doc__ += self.docext
+        if self.func_template.__doc__:
+            doc0 = copy.deepcopy(self.func_template.__doc__)
+            self.func_template.__doc__ += self.docext
         PYB11generateFunction(self.func_template, funcattrs, ss)
-        self.func_template.__doc__ = doc0
+        if self.func_template.__doc__:
+            self.func_template.__doc__ = doc0
         return
 
 #-------------------------------------------------------------------------------
