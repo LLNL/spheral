@@ -11,7 +11,7 @@ from PYB11Generator import *
 #-------------------------------------------------------------------------------
 includes = ['"Geometry/Dimension.hh"',
             '"DataOutput/RestartRegistrar.hh"',
-            '"DataOutput/RestartableObject.hh"',
+            '"RestartableObject.hh"',
             '"FileIO/FileIO.hh"',
             "<vector>",
             "<string>"]
@@ -67,7 +67,7 @@ class RestartableObject:
     "The base class for building restartable python objects in Spheral."
 
     def pyinit(self,
-               pyobj = "PyObject*",
+               pyself = "py::object&",
                priority = "const unsigned"):
         "Construct with the given object and priority."
         return
@@ -82,13 +82,13 @@ class RestartableObject:
     @PYB11const
     def dumpState(self,
                   file = "FileIO&",
-                  pathName = "const std::string"):
+                  pathName = "const std::string&"):
         "Write this objects state to the file under the given path."
         return "void"
 
     @PYB11virtual
     def restoreState(self,
                      file = "const FileIO&",
-                     pathName = ("const std::string", '"pathName"')):
+                     pathName = ("const std::string&", '"pathName"')):
         "Read the state for this object from the given file and path."
         return "void"

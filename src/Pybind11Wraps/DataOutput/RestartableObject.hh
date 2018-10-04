@@ -16,8 +16,10 @@
 #ifndef __Spheral_RestartableObject__
 #define __Spheral_RestartableObject__
 
-#include <string>
+#include "pybind11/pybind11.h"
+#include "pybind11/functional.h"
 
+#include <string>
 #include "DataOutput/registerWithRestart.hh"
 
 // Forward declarations.
@@ -27,24 +29,27 @@ namespace Spheral {
   }
 }
 
+namespace py = pybind11;
+
 namespace Spheral {
 
 class RestartableObject {
 
 public:
   //------------------------===== Public Interface =====-----------------------//
-  RestartableObject(const unsigned priority);
+  RestartableObject(py::object& self, const unsigned priority);
   virtual ~RestartableObject();
 
   // The methods we are providing for restart.
-  virtual std::string label() const = 0;
-  virtual void dumpState(FileIO& file, const std::string pathName) const = 0;
-  virtual void restoreState(const FileIO& file, const std::string pathName) = 0;
+  virtual std::string label() const;
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
 
 private:
   //-----------------------===== Private Interface =====-----------------------//
   // The restart registration.
   RestartRegistrationType mRestart;
+  py::object& mSelf;
 };
 
 }
