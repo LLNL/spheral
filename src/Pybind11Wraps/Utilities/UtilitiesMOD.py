@@ -98,7 +98,7 @@ def simpsonsIntegrationDouble(function = "const PythonBoundFunctors::SpheralFunc
     return "double"
 
 #-------------------------------------------------------------------------------
-# packElement
+# packElement/unpackElement
 #-------------------------------------------------------------------------------
 @PYB11template("T")
 def packElement(x = "const %(T)s&",
@@ -123,21 +123,23 @@ def toString(x = "const %(T)s&"):
 def fromString(x = "const std::string&"):
     return "%(T)s"
 
-packTypes = ("int", "double", "uint32_t", "uint64_t",
-             "Dim<1>::FacetedVolume", "Dim<2>::FacetedVolume", "Dim<3>::FacetedVolume")
-for type in packTypes:
+for type, suffix in (("int", "Int"),
+                     ("double", "Double"),
+                     ("uint32_t", "Uint32_t"),
+                     ("uint64_t", "Uint64_t"),
+                     ("Dim<1>::FacetedVolume", "Box1d"),
+                     ("Dim<2>::FacetedVolume", "Polygon"),
+                     ("Dim<3>::FacetedVolume", "Polyhedron")):
     exec('''
-packElement%(suffix)s = PYB11TemplateFunction(packElement, template_parameters="%(type)s", pyname="packElement")
-toString%(suffix)s = PYB11TemplateFunction(toString, template_parameters="%(type)s") # , pyname="toString")
-fromString%(suffix)s = PYB11TemplateFunction(fromString, template_parameters="%(type)s") # , pyname="fromString")
+packElement%(suffix)s       = PYB11TemplateFunction(packElement,       template_parameters="%(type)s",              pyname="packElement")
+packElementVector%(suffix)s = PYB11TemplateFunction(packElementVector, template_parameters="%(type)s",              pyname="packElement")
+toString%(suffix)s          = PYB11TemplateFunction(toString,          template_parameters="%(type)s",              pyname="toString")
+toStringVector%(suffix)s    = PYB11TemplateFunction(toString,          template_parameters="std::vector<%(type)s>", pyname="toString")
+to%(suffix)s                = PYB11TemplateFunction(fromString,        template_parameters="%(type)s")
+toVector%(suffix)s          = PYB11TemplateFunction(fromString,        template_parameters="std::vector<%(type)s>")
 ''' % {"type"   : type,
-       "suffix" : PYB11mangle(type)})
+       "suffix" : suffix})
 
-packVecTypes = ("unsigned", "int", "float", "double", "uint32_t", "uint64_t", "unsigned")
-for type in packVecTypes:
-    exec('''
-packElementVector%(suffix)s = PYB11TemplateFunction(packElement, template_parameters="%(type)s", pyname="packElement")
-toStringVector%(suffix)s = PYB11TemplateFunction(toString, template_parameters="std::vector<%(type)s>") # , pyname="toString")
-fromStringVector%(suffix)s = PYB11TemplateFunction(fromString, template_parameters="std::vector<%(type)s>") # , pyname="toString")
-''' % {"type"   : type,
-       "suffix" : PYB11mangle(type)})
+packElementVecVecU     = PYB11TemplateFunction(packElementVector, template_parameters="std::vector<unsigned>",              pyname="packElement")
+toStringVecVecU        = PYB11TemplateFunction(toString,          template_parameters="std::vector<std::vector<unsigned>>", pyname="toString")
+toVectorVectorUnsigned = PYB11TemplateFunction(fromString,        template_parameters="std::vector<std::vector<unsigned>>")
