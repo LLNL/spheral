@@ -91,7 +91,8 @@ public:
   typedef %(full_cppname)s PYB11self;    // Necessary to protect macros below from names with commas in them
 """ % klassattrs)
     for bklassname in bklassnames[1:]:
-        ss("  typedef %s %s;\n" % (bklassname, PYB11mangle(bklassname)))
+        if bklassname != PYB11mangle(bklassname):
+            ss("  typedef %s %s;\n" % (bklassname, PYB11mangle(bklassname)))
 
     # Any typedefs?
     if hasattr(klass, "typedefs"):
