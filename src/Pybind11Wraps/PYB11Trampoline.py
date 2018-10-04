@@ -82,6 +82,7 @@ def PYB11generateTrampoline(klass, ssout):
             bklassname += ">"
         bklassnames.append(bklassname)
     assert len(bklassnames) == len(inspect.getmro(klass))
+    bklassnames[0] = "PYB11self"
 
     # Class name
     ss("""class PYB11Trampoline%(cppname)s: public %(full_cppname)s {
@@ -89,7 +90,7 @@ public:
   using %(full_cppname)s::%(cppname)s;   // inherit constructors
   typedef %(full_cppname)s PYB11self;    // Necessary to protect macros below from names with commas in them
 """ % klassattrs)
-    for bklassname in bklassnames:
+    for bklassname in bklassnames[1:]:
         ss("  typedef %s %s;\n" % (bklassname, PYB11mangle(bklassname)))
 
     # Any typedefs?
