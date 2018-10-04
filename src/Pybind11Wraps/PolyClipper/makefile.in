@@ -8,7 +8,7 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = PolyClipper
 PKGDIR = $(PKGNAME)/
-PYB11TARGET = $(PKGNAME).$(SHLIBEXT)
+PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
