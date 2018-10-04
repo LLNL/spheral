@@ -2,11 +2,12 @@
 # SiloFileIO
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from injectFileIOVirtualMethods import *
+from FileIO import *
+from FileIOAbstractMethods import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
-class SiloFileIO:
+class SiloFileIO(FileIO):
     "Handle FileIO for silo files"
 
     #...........................................................................
@@ -22,4 +23,4 @@ class SiloFileIO:
 #-------------------------------------------------------------------------------
 # Override the required virtual interface
 #-------------------------------------------------------------------------------
-injectFileIOVirtualMethods(SiloFileIO)
+PYB11inject(FileIOAbstractMethods, SiloFileIO, virtual=True, pure_virtual=False)

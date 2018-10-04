@@ -2,6 +2,7 @@
 # FileIO abstract class
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
+from FileIOAbstractMethods import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
@@ -17,112 +18,6 @@ class FileIO:
                 filename = "const std::string",
                 access = "AccessType"):
         "Construct with a given file name and access"
-
-    #...........................................................................
-    # Abstract interface
-    @PYB11pure_virtual
-    def open(self,
-             fileName = "const std::string",
-             access = "AccessType"):
-        "Open a file for IO"
-        return "void"
-
-    @PYB11pure_virtual
-    def close(self):
-        "Close the current file we're pointing at"
-        return "void"
-
-    #...........................................................................
-    # Abstract interface (primitives)
-    types = ["unsigned", "int", "bool", "double", "std::string"]
-    for ndim in dims:
-        types += ["Dim<%i>::Vector" % ndim,
-                  "Dim<%i>::Tensor" % ndim,
-                  "Dim<%i>::SymTensor" % ndim,
-                  "Dim<%i>::ThirdRankTensor" % ndim]
-
-    for T in types:
-        exec("""
-@PYB11pure_virtual
-@PYB11pycppname("write")
-def write%(Tmangle)s(self,
-    value = "const %(T)s&",
-    pathName = "const std::string"):
-    "Write %(T)s"
-    return "void"
-
-@PYB11pure_virtual
-@PYB11pycppname("read")
-@PYB11const
-def read%(Tmangle)s(self,
-    value = "%(T)s&",
-    pathName = "const std::string"):
-    "Read %(T)s"
-    return "void"
-""" % {"T"       : T,
-       "Tmangle" : T.replace(":", "_").replace("<", "_").replace(">", "_")})
-
-    #...........................................................................
-    # Abstract interface (std::vector<primitives>)
-    types = ["int", "double", "std::string"]
-    for ndim in dims:
-        types += ["Dim<%i>::Vector" % ndim,
-                  "Dim<%i>::Tensor" % ndim,
-                  "Dim<%i>::SymTensor" % ndim,
-                  "Dim<%i>::ThirdRankTensor" % ndim]
-
-    for T in types:
-        exec("""
-@PYB11pure_virtual
-@PYB11pycppname("write")
-def write%(Tmangle)s(self,
-    value = "const %(T)s&",
-    pathName = "const std::string"):
-    "Write %(T)s"
-    return "void"
-
-@PYB11pure_virtual
-@PYB11pycppname("read")
-@PYB11const
-def read%(Tmangle)s(self,
-    value = "%(T)s&",
-    pathName = "const std::string"):
-    "Read %(T)s"
-    return "void"
-""" % {"T"       : "std::vector<%s>" % T,
-       "Tmangle" : ("vector<%s>" % T).replace(":", "_").replace("<", "_").replace(">", "_")})
-
-    #...........................................................................
-    # Abstract interface (Field<primitives>)
-    for ndim in dims:
-        types = ["int",
-                 "Dim<%i>::Scalar" % ndim,
-                 "Dim<%i>::Vector" % ndim,
-                 "Dim<%i>::Tensor" % ndim,
-                 "Dim<%i>::SymTensor" % ndim,
-                 "Dim<%i>::ThirdRankTensor" % ndim]
-
-        for T in types:
-            exec("""
-@PYB11pure_virtual
-@PYB11pycppname("write")
-def writeField%(Tmangle)s(self,
-    value = "const Field<Dim<%(ndim)i>, %(T)s>&",
-    pathName = "const std::string"):
-    "Write Field<Dim<%(ndim)i, %(T)s>"
-    return "void"
-
-@PYB11pure_virtual
-@PYB11pycppname("read")
-@PYB11const
-def readField%(Tmangle)s(self,
-    value = "Field<Dim<%(ndim)i>, %(T)s>&",
-    pathName = "const std::string"):
-    "Read %(T)s"
-    return "void"
-""" % {"ndim" : ndim,
-       "T"       : T,
-       "Tmangle" : ("Field<%i%s>" % (ndim, T)).replace(":", "_").replace("<", "_").replace(">", "_")})
 
     #...........................................................................
     # Virtual methods
@@ -273,3 +168,8 @@ writeFieldVec%(Tmangle)s = PYB11TemplateMember(writeFieldVec,
     fileName = PYB11property("const std::string&", "fileName", doc="The current file name")
     access = PYB11property("AccessType", "access", doc="The access type of the currently open file")
     fileOpen = PYB11property("bool", "fileOpen", doc="Is the file currently open?")
+
+#-------------------------------------------------------------------------------
+# Inject the abstract interface
+#-------------------------------------------------------------------------------
+PYB11inject(FileIOAbstractMethods, FileIO, virtual=False, pure_virtual=True)

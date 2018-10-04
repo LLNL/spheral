@@ -7,16 +7,14 @@ from spheralDimensions import *
 dims = spheralDimensions()
 
 @PYB11ignore
-def injectFileIOVirtualMethods(cls):
+class FileIOAbstractMethods:
 
-    @PYB11virtual
     def open(self,
              fileName = "const std::string",
              access = "AccessType"):
         "Open a file for IO"
         return "void"
 
-    @PYB11virtual
     def close(self):
         "Close the current file we're pointing at"
         return "void"
@@ -32,7 +30,6 @@ def injectFileIOVirtualMethods(cls):
 
     for T in types:
         exec("""
-@PYB11virtual
 @PYB11pycppname("write")
 def write%(Tmangle)s(self,
     value = "const %(T)s&",
@@ -40,7 +37,6 @@ def write%(Tmangle)s(self,
     "Write %(T)s"
     return "void"
 
-@PYB11virtual
 @PYB11pycppname("read")
 @PYB11const
 def read%(Tmangle)s(self,
@@ -62,7 +58,6 @@ def read%(Tmangle)s(self,
 
     for T in types:
         exec("""
-@PYB11virtual
 @PYB11pycppname("write")
 def write%(Tmangle)s(self,
     value = "const %(T)s&",
@@ -70,7 +65,6 @@ def write%(Tmangle)s(self,
     "Write %(T)s"
     return "void"
 
-@PYB11virtual
 @PYB11pycppname("read")
 @PYB11const
 def read%(Tmangle)s(self,
@@ -93,7 +87,6 @@ def read%(Tmangle)s(self,
 
         for T in types:
             exec("""
-@PYB11virtual
 @PYB11pycppname("write")
 def writeField%(Tmangle)s(self,
     value = "const Field<Dim<%(ndim)i>, %(T)s>&",
@@ -101,7 +94,6 @@ def writeField%(Tmangle)s(self,
     "Write Field<Dim<%(ndim)i, %(T)s>"
     return "void"
 
-@PYB11virtual
 @PYB11pycppname("read")
 @PYB11const
 def readField%(Tmangle)s(self,
@@ -112,9 +104,3 @@ def readField%(Tmangle)s(self,
 """ % {"ndim" : ndim,
        "T"       : T,
        "Tmangle" : ("Field<%i%s>" % (ndim, T)).replace(":", "_").replace("<", "_").replace(">", "_")})
-
-    # Inject em...
-    names = [x for x in dir() if inspect.isfunction(eval(x))]
-    for name in names:
-        exec('cls.%(name)s = eval("%(name)s")' % {"name": name})
-    return

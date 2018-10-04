@@ -2,11 +2,12 @@
 # FlatFileIO
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from injectFileIOVirtualMethods import *
+from FileIO import *
+from FileIOAbstractMethods import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
-class FlatFileIO:
+class FlatFileIO(FileIO):
     "FileIO implementation for raw read/writes to a file (ascii or binary)"
 
     #...........................................................................
@@ -41,4 +42,5 @@ class FlatFileIO:
 #-------------------------------------------------------------------------------
 # Override the required virtual interface
 #-------------------------------------------------------------------------------
-injectFileIOVirtualMethods(FlatFileIO)
+PYB11inject(FileIOAbstractMethods, FlatFileIO, virtual=True, pure_virtual=False)
+
