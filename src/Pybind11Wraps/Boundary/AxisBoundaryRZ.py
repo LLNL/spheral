@@ -6,6 +6,7 @@ from Boundary import *
 from BoundaryAbstractMethods import *
 
 @PYB11template()
+@PYB11template_dict({"Dimension" : "Dim<2>"})
 class AxisBoundaryRZ(Boundary):
 
     typedefs = """

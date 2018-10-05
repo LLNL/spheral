@@ -7,6 +7,7 @@ from BoundaryAbstractMethods import *
 from RestartMethods import *
 
 @PYB11template()
+@PYB11template_dict({"Dimension" : "Dim<3>"})
 class SphericalBoundary(Boundary):
 
     typedefs = """
