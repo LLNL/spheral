@@ -103,7 +103,11 @@ def PYB11ThisClassMethods(obj):
 def PYB11functions(modobj):
     result = [(name, meth) for (name, meth) in inspect.getmembers(modobj, predicate=inspect.isfunction)
               if name[:5] != "PYB11"]
-    result.sort(key = PYB11sort_by_line)
+    # It's nice to sort in the same order the user created, but not necessary
+    try:
+        result.sort(key = PYB11sort_by_line)
+    except:
+        pass
     return result
 
 #-------------------------------------------------------------------------------
@@ -235,11 +239,11 @@ def PYB11docstring(doc, ss):
     if doc:
         stuff = doc.split("\n")
         if len(stuff) == 1:
-            ss('"%s"' % doc)
+            ss('"%s"' % doc.replace('"', '\\"'))
         else:
             ss("\n")
             for i, line in enumerate(doc.split('\n')):
-                ss('            "%s\\n"' % line);
+                ss('            "%s\\n"' % line.replace('"', '\\"'));
                 if i < len(stuff) - 1:
                     ss("\n")
     return
