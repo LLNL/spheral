@@ -13,7 +13,7 @@ def PYB11ignore(thing):
     return thing
 
 #-------------------------------------------------------------------------------
-# template (for now just cause the method/class to be ignored)
+# template
 #-------------------------------------------------------------------------------
 class PYB11template:
     def __init__(self, *args):
@@ -25,6 +25,19 @@ class PYB11template:
         else:
             thing.PYB11ignore = False
         thing.PYB11template = self.template
+        return thing
+
+#-------------------------------------------------------------------------------
+# template_dict
+# Take direct control of the template dictionary, not common
+#-------------------------------------------------------------------------------
+class PYB11template_dict:
+    def __init__(self, val):
+        assert isinstance(val, dict)
+        self.val = val
+        return
+    def __call__(self, thing):
+        thing.PYB11template_dict = self.val
         return thing
 
 #-------------------------------------------------------------------------------
