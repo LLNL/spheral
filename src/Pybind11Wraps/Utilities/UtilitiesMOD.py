@@ -54,7 +54,7 @@ includes = ['"Geometry/Dimension.hh"',
 namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
-# Instantiate our dimensional types
+# Instantiate types and add dimension dependent functions.
 #-------------------------------------------------------------------------------
 from SpheralFunctor import *
 from KeyTraits import *
@@ -82,6 +82,22 @@ def globalBoundingVolumes(dataBase = "const DataBase<%(Dimension)s>&"):
     "Return the bounding FacetedVolumes for the positions and (positions+h_extent) in the DataBase"
     return "py::tuple"
 
+@PYB11template("Vector")
+def collinear(a = "const %(Vector)s&",
+              b = "const %(Vector)s&",
+              c = "const %(Vector)s&",
+              tol = ("const double", "1.0e-10")):
+    "Test if points a, b, & c are collinear.   You should scale the tolerance handed in here!"
+    return "bool"
+
+@PYB11template("Vector")
+def between(a = "const %(Vector)s&",
+            b = "const %(Vector)s&",
+            c = "const %(Vector)s&",
+            tol = ("const double", "1.0e-10")):
+    "Test if point c is between a & b.   You should scale the tolerance handed in here!"
+    return "bool"
+
 for ndim in dims:
     exec('''
 # Functors
@@ -94,6 +110,9 @@ boundingBoxVec%(ndim)id = PYB11TemplateFunction(boundingBoxVec, template_paramet
 boundingBoxFL%(ndim)id = PYB11TemplateFunction(boundingBoxFL, template_parameters="%(Dimension)s", pyname="boundingBox")
 globalBoundingVolumes%(ndim)id = PYB11TemplateFunction(globalBoundingVolumes, template_parameters="%(Dimension)s", pyname="globalBoundingVolumes")
 
+collinear%(ndim)id = PYB11TemplateFunction(collinear, template_parameters="%(Vector)s", pyname="collinear")
+between%(ndim)id = PYB11TemplateFunction(between, template_parameters="%(Vector)s", pyname="between")
+
 # segment-segment intersections
 @PYB11pycppname("segmentSegmentIntersection")
 @PYB11implementation("""[](const %(Vector)s& a0,
@@ -101,11 +120,11 @@ globalBoundingVolumes%(ndim)id = PYB11TemplateFunction(globalBoundingVolumes, te
                            const %(Vector)s& b0,
                            const %(Vector)s& b1,
                            const double tol) { %(Vector)s result1, result2; auto flag = segmentSegmentIntersection(a0, a1, b0, b1, result1, result2, tol); return py::make_tuple(flag, result1, result2); }""")
-def segmentSegmentIntsersection%(ndim)id(a0 = "const %(Vector)s&",
-                                         a1 = "const %(Vector)s&",
-                                         b0 = "const %(Vector)s&",
-                                         b1 = "const %(Vector)s&",
-                                         tol = ("const double", "1.0e-8")):
+def segmentSegmentIntersection%(ndim)id(a0 = "const %(Vector)s&",
+                                        a1 = "const %(Vector)s&",
+                                        b0 = "const %(Vector)s&",
+                                        b1 = "const %(Vector)s&",
+                                        tol = ("const double", "1.0e-8")):
     """Intersection of two line segments.
 The line segments are characterized by their endpoints: a_seg = (a0, a1)
                                                         b_seg = (b0, b1)
@@ -117,9 +136,20 @@ Return values are a tuple(char, Vector, Vector)
              "0" -> The segments do not intersect
        The Vectors are the intersection points (if any)"""
     return "py::tuple"
+
+# segment-segment distance
+@PYB11pycppname("segmentSegmentDistance")
+def segmentSegmentDistance%(ndim)id(a0 = "const %(Vector)s&",
+                                    a1 = "const %(Vector)s&",
+                                    b0 = "const %(Vector)s&",
+                                    b1 = "const %(Vector)s&"):
+    "Compute the minimum distance between two line segments. (a0,a1) -> (b0,b1)"
+    return "double"
+
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">",
        "Vector"    : "Dim<" + str(ndim) + ">::Vector"})
+
 
 #-------------------------------------------------------------------------------
 # Module functions
@@ -231,3 +261,36 @@ pointPlaneDistance%(ndim)id = PYB11TemplateFunction(pointPlaneDistance, template
 overlayRemapFields%(ndim)id = PYB11TemplateFunction(overlayRemapFields, template_parameters="Dim<%(ndim)i>", pyname="overlayRemapFields")
 ''' % {"ndim"   : ndim,
        "Vector" : "Dim<" + str(ndim) + ">::Vector"})
+
+
+#-------------------------------------------------------------------------------
+# Geometry operations only available in 3D.
+#-------------------------------------------------------------------------------
+# segment-planar section intersection
+@PYB11implementation("""[](const Dim<3>::Vector& s0,
+                           const Dim<3>::Vector& s1,
+                           const std::vector<Dim<3>::Vector>& pverts,
+                           const double tol) {
+                               Dim<3>::Vector intersect;
+                               auto flag = segmentPlanarSectionIntersection(s0, s1, pverts, intersect, tol);
+                               return py::make_tuple(flag, intersect);
+                           }""")
+def segmentPlanarSectionIntersection(s0 = "const Dim<3>::Vector&",
+                                     s1 = "const Dim<3>::Vector&",
+                                     pverts = "const std::vector<Dim<3>::Vector>&",
+                                     tol = ("const double", "1.0e-8")):
+    """Intersection of a line segment with a polygonal section of a plane.
+The line segment is characterized by it's endpoints:     seg = (s0, s1)
+The polygonal section of the plane is specified by
+a series of points:                                    plane = pverts[0], pverts[1], ...
+Note there must be at least 3 non-collinear points, and they
+must be passed in in order to draw the polygon.
+
+Return values are a tuple(char, Vector)
+       The Vector is the intersection point (if any)
+       The char is a code characterizing the intersection:
+             "p" -> The segment lies in the plane (plane)
+             "d" -> The pverts points do not define a unique plane (degenerate)
+             "1" -> The segment intersects the plane properly
+             "0" -> The segment does not intersect the plane"""
+    return "py::tuple"
