@@ -143,3 +143,42 @@ toVector%(suffix)s          = PYB11TemplateFunction(fromString,        template_
 packElementVecVecU     = PYB11TemplateFunction(packElementVector, template_parameters="std::vector<unsigned>",              pyname="packElement")
 toStringVecVecU        = PYB11TemplateFunction(toString,          template_parameters="std::vector<std::vector<unsigned>>", pyname="toString")
 toVectorVectorUnsigned = PYB11TemplateFunction(fromString,        template_parameters="std::vector<std::vector<unsigned>>")
+
+#-------------------------------------------------------------------------------
+# Geometry intersection operations
+#-------------------------------------------------------------------------------
+@PYB11template("Vector")
+def closestPointOnSegment(p = "const %(Vector)s&",
+                          a0 = "const %(Vector)s&",
+                          a1 = "const %(Vector)s&"):
+    "Find the point on a line segment (a0,a1) closest to point (p)."
+    return "%(Vector)s"
+
+@PYB11template("Vector")
+def pointPlaneDistance(point = "const %(Vector)s&",
+                       origin = "const %(Vector)s&",
+                       unitNormal = "const %(Vector)s&"):
+    "Compute the distance between a point and a plane"
+    return "double"
+
+@PYB11template("Dimension")
+def overlayRemapFields(boundaries = "const std::vector<Boundary<%(Dimension)s>*>&",
+                       scalarDonorFields = "const std::vector<Field<%(Dimension)s, typename %(Dimension)s::Scalar>*>&",
+                       vectorDonorFields = "const std::vector<Field<%(Dimension)s, typename %(Dimension)s::Vector>*>&",
+                       tensorDonorFields = "const std::vector<Field<%(Dimension)s, typename %(Dimension)s::Tensor>*>&",
+                       symTensorDonorFields = "const std::vector<Field<%(Dimension)s, typename %(Dimension)s::SymTensor>*>&",
+                       scalarAcceptorFields = "std::vector<Field<%(Dimension)s, typename %(Dimension)s::Scalar>*>&",
+                       vectorAcceptorFields = "std::vector<Field<%(Dimension)s, typename %(Dimension)s::Vector>*>&",
+                       tensorAcceptorFields = "std::vector<Field<%(Dimension)s, typename %(Dimension)s::Tensor>*>&",
+                       symTensorAcceptorFields = "std::vector<Field<%(Dimension)s, typename %(Dimension)s::SymTensor>*>&"):
+    """Use geometric clipping to remap a set of conserved fields.
+Currently only works single NodeList -> single NodeList, no boundaries."""
+    return "void"
+
+for ndim in (x for x in dims if x in (2, 3)):
+    exec('''
+closestPointOnSegment%(ndim)id = PYB11TemplateFunction(closestPointOnSegment, template_parameters="%(Vector)s", pyname="closestPointOnSegment")
+pointPlaneDistance%(ndim)id = PYB11TemplateFunction(pointPlaneDistance, template_parameters="%(Vector)s", pyname="pointPlaneDistance")
+overlayRemapFields%(ndim)id = PYB11TemplateFunction(overlayRemapFields, template_parameters="Dim<%(ndim)i>", pyname="overlayRemapFields")
+''' % {"ndim"   : ndim,
+       "Vector" : "Dim<" + str(ndim) + ">::Vector"})
