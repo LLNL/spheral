@@ -54,7 +54,7 @@ includes = ['"Geometry/Dimension.hh"',
 namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
-# Instantiate our types
+# Instantiate our dimensional types
 #-------------------------------------------------------------------------------
 from SpheralFunctor import *
 from KeyTraits import *
@@ -63,11 +63,33 @@ from Timer import *
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
 
+@PYB11template("Vector")
+@PYB11cppname("boundingBox")
+def boundingBoxVec(positions = "std::vector<%(Vector)s>&",
+                   xmin = "%(Vector)s&",
+                   xmax = "%(Vector)s&"):
+    "Minimum (axis-aligned) bounding box for a collection of %(Vector)s"
+    return "void"
+
+@PYB11template("Dimension")
+@PYB11cppname("boundingBox")
+def boundingBoxFL(positions = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+                  xmin = "typename %(Dimension)s::Vector&",
+                  xmax = "typename %(Dimension)s::Vector&",
+                  useGhosts = "const bool"):
+    "Minimum (axis-aligned) bounding box for a FieldList<%(Dimension)s::Vector>"
+    return "void"
+
 for ndim in dims:
     exec('''
+# Functors
 VectorScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Dimension)s::Vector", "double"))
 VectorVectorFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Dimension)s::Vector", "%(Dimension)s::Vector"))
 VectorPairScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Dimension)s::Vector", "std::pair<double,double>"))
+
+# boundingVolumes
+boundingBoxVec%(ndim)id = PYB11TemplateFunction(boundingBoxVec, template_parameters="%(Dimension)s::Vector", pyname="boundingBox")
+boundingBoxFL%(ndim)id = PYB11TemplateFunction(boundingBoxFL, template_parameters="%(Dimension)s", pyname="boundingBox")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
@@ -88,7 +110,6 @@ def newtonRaphsonFindRoot(function = "const PythonBoundFunctors::SpheralFunctor<
     """Newton-Raphson root finder.
 Finds a root of 'function' in the range (x1, x2)"""
     return "double"
-
 @PYB11cppname("simpsonsIntegration<const PythonBoundFunctors::SpheralFunctor<double, double>, double, double>")
 def simpsonsIntegrationDouble(function = "const PythonBoundFunctors::SpheralFunctor<double, double>&",
                               x0 = "double",
@@ -145,7 +166,7 @@ toStringVecVecU        = PYB11TemplateFunction(toString,          template_param
 toVectorVectorUnsigned = PYB11TemplateFunction(fromString,        template_parameters="std::vector<std::vector<unsigned>>")
 
 #-------------------------------------------------------------------------------
-# Geometry intersection operations
+# Geometry operations only available in 2D/3D.
 #-------------------------------------------------------------------------------
 @PYB11template("Vector")
 def closestPointOnSegment(p = "const %(Vector)s&",
