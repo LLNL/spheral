@@ -64,21 +64,17 @@ ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("d
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
 
 @PYB11template("Vector")
-@PYB11cppname("boundingBox")
-def boundingBoxVec(positions = "std::vector<%(Vector)s>&",
-                   xmin = "%(Vector)s&",
-                   xmax = "%(Vector)s&"):
+@PYB11implementation("[](std::vector<%(Vector)s>& positions) { %(Vector)s xmin, xmax; boundingBox(positions, xmin, xmax); return py::make_tuple(xmin, xmax); }")
+def boundingBoxVec(positions = "std::vector<%(Vector)s>&"):
     "Minimum (axis-aligned) bounding box for a collection of %(Vector)s"
-    return "void"
+    return "py::tuple"
 
 @PYB11template("Dimension")
-@PYB11cppname("boundingBox")
+@PYB11implementation("[](const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>& positions, const bool useGhosts) { %(Dimension)s::Vector xmin, xmax; boundingBox(positions, xmin, xmax, useGhosts); return py::make_tuple(xmin, xmax); }")
 def boundingBoxFL(positions = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
-                  xmin = "typename %(Dimension)s::Vector&",
-                  xmax = "typename %(Dimension)s::Vector&",
                   useGhosts = "const bool"):
     "Minimum (axis-aligned) bounding box for a FieldList<%(Dimension)s::Vector>"
-    return "void"
+    return "py::tuple"
 
 for ndim in dims:
     exec('''
