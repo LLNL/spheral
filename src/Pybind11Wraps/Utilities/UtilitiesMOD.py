@@ -48,6 +48,27 @@ includes = ['"Geometry/Dimension.hh"',
             '<string>',
             '<iterator>']
 
+preamble = """
+#ifndef NOR3D
+#include "Utilities/r3d_utils.hh"
+#else
+//------------------------------------------------------------------------------
+// Stub these methods out when we're not allowing R3D.
+//------------------------------------------------------------------------------
+namespace Spheral {
+  inline Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
+                                                 const std::vector<GeomPlane<Dim<2> > >& planes) {
+    VERIFY2(false, "ERROR: clipFacetedVolume unavailable without R3D.");
+  }
+
+  inline Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
+                                                 const std::vector<GeomPlane<Dim<3> > >& planes) {
+    VERIFY2(false, "ERROR: clipFacetedVolume unavailable without R3D.");
+  }
+}
+#endif
+"""
+
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
@@ -429,13 +450,13 @@ for volume, name, Vector in (("Dim<2>::FacetedVolume", "Polygon",    "Dim<2>::Ve
                              ("Dim<3>::FacetedVolume", "Polyhedron", "Dim<3>::Vector")):
     exec('''
 def pointOn%(name)s(p = "const %(Vector)s&",
-                    polygon = "const %(volume)s&",
+                    poly = "const %(volume)s&",
                     tol = ("const double", "1.0e-10")):
     "Test if a point is on the surface of a %(name)s"
     return "bool"
 
 def pointIn%(name)s(p = "const %(Vector)s&",
-                    polygon = "const %(volume)s&",
+                    poly = "const %(volume)s&",
                     countBoundary = ("const bool", "false"),
                     tol = ("const double", "1.0e-10")):
     "Test if a point is contained in a %(name)s"
@@ -451,3 +472,72 @@ def segmentIntersectEdges%(name)s(a0 = "const %(Vector)s&",
 ''' % {"volume" : volume,
        "name"   : name,
        "Vector" : Vector})
+
+#...............................................................................
+@PYB11pycppname("pointInPolygon")
+def pointInPolygon1(p = "const Dim<2>::Vector&",
+                    vertices = "const std::vector<Dim<2>::Vector>&"):
+    "Test if point (p) is in polygon defined by (vertices)"
+    return "bool"
+
+#...............................................................................
+@PYB11pycppname("pointInPolygon")
+def pointInPolygon2(p = "const Dim<3>::Vector&",
+                    vertices = "const std::vector<Dim<3>::Vector>&",
+                    normal = "const Dim<3>::Vector&"):
+    """3D point in polygon test -- the point and all vertices of the polygon must be coplanar.
+  p        : point we're testing
+  vertices : the vertices of the polygon
+  normal   : normal to the plane of the polygon"""
+    return "bool"
+
+#...............................................................................
+@PYB11pycppname("pointInPolygon")
+def pointInPolygon3(p = "const Dim<3>::Vector&",
+                    vertices = "const std::vector<Dim<3>::Vector>&",
+                    ipoints = "const std::vector<unsigned>&",
+                    normal = "const Dim<3>::Vector&",
+                    countBoundary = ("const bool", "false"),
+                    tol = ("const double", "1.0e-10")):
+    """3D point in polygon test -- the point and all vertices of the polygon must be coplanar.
+  p             : point we're testing
+  vertices      : contains the vertices the polygon as a subset
+  ipoints       : the subset of vertices that define the polygon
+  normal        : normal to the plane of the polygon
+  countBoundary : should points on the boundary count as internal?
+  tol           : tolerance for on boundary"""
+    return "bool"
+
+#...............................................................................
+def refinePolyhedron(poly0 = "const Dim<3>::FacetedVolume&",
+                     numLevels = "int"):
+    "Return a new Polyhedron based on refining an existing one a given number of levels."
+    return "Dim<3>::FacetedVolume"
+
+#-------------------------------------------------------------------------------
+# R2D/R3D utilities
+#-------------------------------------------------------------------------------
+@PYB11pycppname("clipFacetedVolume")
+def clipFacetedVolume1(poly = "const Dim<2>::FacetedVolume&",
+                       planes = "const std::vector<GeomPlane<Dim<2>>>&"):
+    "Clip a polygon by a series of planes using R3D"
+    return "Dim<2>::FacetedVolume"
+
+@PYB11pycppname("clipFacetedVolume")
+def clipFacetedVolume2(poly = "const Dim<3>::FacetedVolume&",
+                       planes = "const std::vector<GeomPlane<Dim<3>>>&"):
+    "Clip a polyhedron by a series of planes using R3D"
+    return "Dim<3>::FacetedVolume"
+
+#...............................................................................
+@PYB11pycppname("clippedVolume")
+def clippedVolume(poly = "const Dim<2>::FacetedVolume&",
+                  planes = "const std::vector<GeomPlane<Dim<2>>>&"):
+    "Return the volume of the clipped region."
+    return "double"
+
+@PYB11pycppname("clippedVolume")
+def clippedVolume(poly = "const Dim<3>::FacetedVolume&",
+                  planes = "const std::vector<GeomPlane<Dim<3>>>&"):
+    "Return the volume of the clipped region."
+    return "double"
