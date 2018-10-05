@@ -76,18 +76,50 @@ def boundingBoxFL(positions = "const FieldList<%(Dimension)s, typename %(Dimensi
     "Minimum (axis-aligned) bounding box for a FieldList<%(Dimension)s::Vector>"
     return "py::tuple"
 
+@PYB11template("Dimension")
+@PYB11implementation("[](const DataBase<%(Dimension)s>& dataBase) { %(Dimension)s::FacetedVolume nodeVolume, sampleVolume; globalBoundingVolumes(dataBase, nodeVolume, sampleVolume); return py::make_tuple(nodeVolume, sampleVolume); }")
+def globalBoundingVolumes(dataBase = "const DataBase<%(Dimension)s>&"):
+    "Return the bounding FacetedVolumes for the positions and (positions+h_extent) in the DataBase"
+    return "py::tuple"
+
 for ndim in dims:
     exec('''
 # Functors
-VectorScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Dimension)s::Vector", "double"))
-VectorVectorFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Dimension)s::Vector", "%(Dimension)s::Vector"))
-VectorPairScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Dimension)s::Vector", "std::pair<double,double>"))
+VectorScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "double"))
+VectorVectorFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "%(Vector)s"))
+VectorPairScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "std::pair<double,double>"))
 
 # boundingVolumes
-boundingBoxVec%(ndim)id = PYB11TemplateFunction(boundingBoxVec, template_parameters="%(Dimension)s::Vector", pyname="boundingBox")
+boundingBoxVec%(ndim)id = PYB11TemplateFunction(boundingBoxVec, template_parameters="%(Vector)s", pyname="boundingBox")
 boundingBoxFL%(ndim)id = PYB11TemplateFunction(boundingBoxFL, template_parameters="%(Dimension)s", pyname="boundingBox")
+globalBoundingVolumes%(ndim)id = PYB11TemplateFunction(globalBoundingVolumes, template_parameters="%(Dimension)s", pyname="globalBoundingVolumes")
+
+# segment-segment intersections
+@PYB11pycppname("segmentSegmentIntersection")
+@PYB11implementation("""[](const %(Vector)s& a0,
+                           const %(Vector)s& a1,
+                           const %(Vector)s& b0,
+                           const %(Vector)s& b1,
+                           const double tol) { %(Vector)s result1, result2; auto flag = segmentSegmentIntersection(a0, a1, b0, b1, result1, result2, tol); return py::make_tuple(flag, result1, result2); }""")
+def segmentSegmentIntsersection%(ndim)id(a0 = "const %(Vector)s&",
+                                         a1 = "const %(Vector)s&",
+                                         b0 = "const %(Vector)s&",
+                                         b1 = "const %(Vector)s&",
+                                         tol = ("const double", "1.0e-8")):
+    """Intersection of two line segments.
+The line segments are characterized by their endpoints: a_seg = (a0, a1)
+                                                        b_seg = (b0, b1)
+Return values are a tuple(char, Vector, Vector)
+       The char is a code characterizing the intersection:
+             "e" -> The segments colinearly overlap (edge)
+             "v" -> The endpoint of one segment lies on the other
+             "1" -> The segments intersect properly
+             "0" -> The segments do not intersect
+       The Vectors are the intersection points (if any)"""
+    return "py::tuple"
 ''' % {"ndim"      : ndim,
-       "Dimension" : "Dim<" + str(ndim) + ">"})
+       "Dimension" : "Dim<" + str(ndim) + ">",
+       "Vector"    : "Dim<" + str(ndim) + ">::Vector"})
 
 #-------------------------------------------------------------------------------
 # Module functions
