@@ -24,6 +24,7 @@ includes = ['"Geometry/Dimension.hh"',
             '"Utilities/globalNodeIDs.hh"',
             '"Utilities/rotationMatrix.hh"',
             '"Utilities/iterateIdealH.hh"',
+            '"Utilities/nodeOrdering.hh"',
             '"Utilities/mortonOrderIndices.hh"',
             '"Utilities/peanoHilbertOrderIndices.hh"',
             '"Utilities/boundingBox.hh"',
@@ -134,7 +135,123 @@ the actual intersection.
 Based on stuff from "Computational Geometry in C", Joseph O'Rourke"""
     return "bool"
 
+@PYB11template("Dimension")
+@PYB11cppname("numGlobalNodes")
+def numGlobalNodesNL(nodes = "const NodeList<%(Dimension)s>&"):
+    "Total number of nodes in the NodeList across all domains"
+    return "int"
+
+@PYB11template("Dimension")
+@PYB11cppname("numGlobalNodes")
+def numGlobalNodesDB(dataBase = "const DataBase<%(Dimension)s>&"):
+    "Total number of nodes in the DataBase across all domains"
+    return "int"
+
+@PYB11template("Dimension")
+@PYB11cppname("globalNodeIDs")
+def globalNodeIDsNL(dataBase = "const NodeList<%(Dimension)s>&"):
+    """Compute a unique set of global node IDs for the given NodeList, and return
+the set of them on this process."""
+    return "Field<%(Dimension)s, int>"
+
+@PYB11template("Dimension")
+@PYB11cppname("globalNodeIDs")
+def globalNodeIDsDB(dataBase = "const DataBase<%(Dimension)s>&"):
+    """Compute a unique set of global node IDs for all nodes across all NodeLists in
+a DataBase, returning the result as a FieldList<int>."""
+    return "FieldList<%(Dimension)s, int>"
+
+@PYB11template("Dimension")
+def iterateIdealH(dataBase = "DataBase<%(Dimension)s>&",
+                  boundaries = "const std::vector<Boundary<%(Dimension)s>*>&",
+                  W = "const TableKernel<%(Dimension)s>&",
+                  smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
+                  maxIterations = ("const int", "100"),
+                  tolerance = ("const double", "1.0e-10"),
+                  nPerhForIteration = ("const double", "0.0"),
+                  sphericalStart = ("const bool", "false"),
+                  fixDeterminant = ("const bool", "false")):
+    """Iterate the ideal H algorithm to converge on a new H field.
+This routine replaces the H field in place."""
+    return "void"
+
+@PYB11template("Dimension", "DataType")
+def nodeOrdering(criteria = "const FieldList<%(Dimension)s, %(DataType)s>&"):
+    """Compute the order that a given set of nodes should be stepped through
+given a FieldList of things to sort them by.
+The FieldList returned is the one to N indexing corresponding to sorting the 
+input in increasing order."""
+    return "FieldList<%(Dimension)s, int>"
+
+@PYB11template("Dimension")
+@PYB11cppname("mortonOrderIndices")
+def mortonOrderIndices_pos(positions = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&"):
+    "Return the Morton (Z) ordering for the positions"
+    return "FieldList<%(Dimension)s, typename KeyTraits::Key>"
+
+@PYB11template("Dimension")
+@PYB11cppname("mortonOrderIndices")
+def mortonOrderIndices_db(dataBase = "const DataBase<%(Dimension)s>&"):
+    "Return the Morton (Z) ordering for the positions in the DataBase"
+    return "FieldList<%(Dimension)s, typename KeyTraits::Key>"
+
+@PYB11template("Dimension")
+@PYB11cppname("mortonOrderIndices")
+def mortonOrderIndices_mask(dataBase = "const DataBase<%(Dimension)s>&",
+                            mask = "const FieldList<%(Dimension)s, int>&"):
+    """Return the Morton (Z) ordering for the positions in the DataBase
+This version allows some nodes to be screened with a mask"""
+    return "FieldList<%(Dimension)s, typename KeyTraits::Key>"
+
+@PYB11template("Dimension")
+@PYB11cppname("peanoHilbertOrderIndices")
+def peanoHilbertOrderIndices_pos(positions = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&"):
+    "Return the Peano-Hilbert ordering for the positions"
+    return "FieldList<%(Dimension)s, typename KeyTraits::Key>"
+
+@PYB11template("Dimension")
+@PYB11cppname("peanoHilbertOrderIndices")
+def peanoHilbertOrderIndices_db(dataBase = "const DataBase<%(Dimension)s>&"):
+    "Return the Peano-Hilbert ordering for the positions in the DataBase"
+    return "FieldList<%(Dimension)s, typename KeyTraits::Key>"
+
+@PYB11template("Dimension")
+def numberDensity(dataBase = "const DataBase<%(Dimension)s>&",
+                  W = "const TableKernel<%(Dimension)s>&"):
+    """Return the number density for all nodes in the DataBase.
+Note this method assumes that all boundary conditions, ghost nodes, and 
+neighbor information is up to date."""
+    return "FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>"
+
+@PYB11template("Dimension", "Value")
+def integrateThroughMeshAlongSegment(values = "const std::vector<std::vector<%(Value)s>>&",
+                                     xmin = "const typename %(Dimension)s::Vector&",
+                                     xmax = "const typename %(Dimension)s::Vector&",
+                                     ncells = "const std::vector<unsigned>&",
+                                     s0 = "const typename %(Dimension)s::Vector&",
+                                     s1 = "const typename %(Dimension)s::Vector&"):
+    """Return the result of integrating a quantity along a line segment.
+The quantity here is assumed to be represented a values in a vector<%(Value)s>,
+where the vector<%(Value)s> is the value of the quantity in a series of cartesian
+cells whose box is defined by by xmin, xmax, and ncells.
+
+We actually pass in a vector<vector<%(Value)s>>, which is a progressively refined
+(by factors of 2 in each dimesion) representation of the data.  The idea is that
+we use the finest level with a non-zero value for the value."""
+    return "%(Value)s"
+
+@PYB11template("Dimension", "DataType")
+def computeShepardsInterpolation(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
+                                 connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
+                                 W = "const TableKernel<%(Dimension)s>&",
+                                 position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+                                 H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
+                                 weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&"):
+    "Compute the Shepard interpolation of a FieldList."
+    return "FieldList<%(Dimension)s, %(DataType)s>"
+
 #...............................................................................
+# Instantiate stuff for the dimensions Spheral is building
 for ndim in dims:
     exec('''
 # Functors
@@ -186,16 +303,87 @@ def segmentSegmentDistance%(ndim)id(a0 = "const %(Vector)s&",
     "Compute the minimum distance between two line segments. (a0,a1) -> (b0,b1)"
     return "double"
 
+#...............................................................................
+numGlobalNodesNL%(ndim)id = PYB11TemplateFunction(numGlobalNodesNL, template_parameters="%(Dimension)s", pyname="numGlobalNodes")
+numGlobalNodesNL%(ndim)id = PYB11TemplateFunction(numGlobalNodesNL, template_parameters="%(Dimension)s", pyname="numGlobalNodes")
+numGlobalNodesDB%(ndim)id = PYB11TemplateFunction(numGlobalNodesDB, template_parameters="%(Dimension)s", pyname="numGlobalNodes")
+globalNodeIDsNL%(ndim)id = PYB11TemplateFunction(globalNodeIDsNL, template_parameters="%(Dimension)s", pyname="globalNodeIDs")
+globalNodeIDsDB%(ndim)id = PYB11TemplateFunction(globalNodeIDsDB, template_parameters="%(Dimension)s", pyname="globalNodeIDs")
+
+iterateIdealH%(ndim)id = PYB11TemplateFunction(iterateIdealH, template_parameters="%(Dimension)s", pyname="iterateIdealH")
+
+nodeOrdering%(ndim)id = PYB11TemplateFunction(nodeOrdering, template_parameters=("%(Dimension)s", "KeyTraits::Key"), pyname="iterateIdealH")
+mortonOrderIndices_pos%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_pos, template_parameters="%(Dimension)s", pyname="mortonOrderIndices")
+mortonOrderIndices_db%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_db, template_parameters="%(Dimension)s", pyname="mortonOrderIndices")
+mortonOrderIndices_mask%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_mask, template_parameters="%(Dimension)s", pyname="mortonOrderIndices")
+peanoHilbertOrderIndices_pos%(ndim)id = PYB11TemplateFunction(peanoHilbertOrderIndices_pos, template_parameters="%(Dimension)s", pyname="peanoHilbertOrderIndices")
+peanoHilbertOrderIndices_db%(ndim)id = PYB11TemplateFunction(peanoHilbertOrderIndices_db, template_parameters="%(Dimension)s", pyname="peanoHilbertOrderIndices")
+
+numberDensity%(ndim)id = PYB11TemplateFunction(numberDensity, template_parameters="%(Dimension)s", pyname="numberDensity")
+integrateThroughMeshAlongSegment%(ndim)id = PYB11TemplateFunction(integrateThroughMeshAlongSegment, template_parameters=("%(Dimension)s", "double"), pyname="integrateThroughMeshAlongSegment")
+
+computeShepardsInterpolationScalar%(ndim)id = PYB11TemplateFunction(computeShepardsInterpolation, template_parameters=("%(Dimension)s", "double"), pyname="computeShepardsInterpolation")
+computeShepardsInterpolationVector%(ndim)id = PYB11TemplateFunction(computeShepardsInterpolation, template_parameters=("%(Dimension)s", "%(Vector)s"), pyname="computeShepardsInterpolation")
+computeShepardsInterpolationTensor%(ndim)id = PYB11TemplateFunction(computeShepardsInterpolation, template_parameters=("%(Dimension)s", "%(Tensor)s"), pyname="computeShepardsInterpolation")
+computeShepardsInterpolationSymTensor%(ndim)id = PYB11TemplateFunction(computeShepardsInterpolation, template_parameters=("%(Dimension)s", "%(SymTensor)s"), pyname="computeShepardsInterpolation")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">",
-       "Vector"    : "Dim<" + str(ndim) + ">::Vector"})
+       "Vector"    : "Dim<" + str(ndim) + ">::Vector",
+       "Tensor"    : "Dim<" + str(ndim) + ">::Tensor",
+       "SymTensor" : "Dim<" + str(ndim) + ">::SymTensor"})
 
+#-------------------------------------------------------------------------------
+# Some methods are always instantiated
+#-------------------------------------------------------------------------------
+@PYB11template("Plane")
+def planarReflectingOperator(plane = "const %(Plane)s&"):
+    "Generate the reflection operator for the given plane."
+    return "%(Plane)s::Tensor"
+
+for ndim in xrange(1, 4):
+    exec('''
+@PYB11cppname("rotationMatrix")
+def rotationMatrix%(ndim)id(runit = "const %(Vector)s&"):
+    "Determine the rotation matrix to rotate into the frame such that the given vector is aligned with the x axis."
+    return "%(Tensor)s"
+
+@PYB11cppname("testBoxIntersection")
+def testBoxIntersection%(ndim)id(xmin1 = "const %(Vector)s&",
+                                 xmax1 = "const %(Vector)s&",
+                                 xmin2 = "const %(Vector)s&",
+                                 xmax2 = "const %(Vector)s&",
+                                 tol = ("const double", "1.0e-10")):
+    "Test if two boxes (specified by their min and max corners) intersect"
+    return "bool"
+
+@PYB11cppname("testPointInBox")
+def testPointInBox%(ndim)id(point = "const %(Vector)s&",
+                            xmin = "const %(Vector)s&",
+                            xmax = "const %(Vector)s&",
+                            tol = ("const double", "1.0e-10")):
+    "Test if a point is contained in a box."
+    return "bool"
+
+planarReflectingOperator%(ndim)id = PYB11TemplateFunction(planarReflectingOperator, template_parameters="%(Plane)s")
+''' % {"ndim"      : ndim,
+       "Dimension" : "Dim<" + str(ndim) + ">",
+       "Vector"    : "Dim<" + str(ndim) + ">::Vector",
+       "Tensor"    : "Dim<" + str(ndim) + ">::Tensor",
+       "SymTensor" : "Dim<" + str(ndim) + ">::SymTensor",
+       "Plane"     : "GeomPlane<Dim<" + str(ndim) + ">>"})
 
 #-------------------------------------------------------------------------------
 # Module functions
 #-------------------------------------------------------------------------------
 def erff(x = "double"):
     "You know, the error function."
+    return "double"
+
+@PYB11namespace("boost::math")
+def legendre_p(l = "int",
+               m = "int",
+               x = "double"):
+    "Compute the associated Legendre polynomial P^m_l(x)"
     return "double"
 
 @PYB11cppname("newtonRaphson<const PythonBoundFunctors::SpheralFunctor<double, std::pair<double, double>>>")
