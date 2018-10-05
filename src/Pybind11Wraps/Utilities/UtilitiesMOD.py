@@ -98,6 +98,22 @@ def between(a = "const %(Vector)s&",
     "Test if point c is between a & b.   You should scale the tolerance handed in here!"
     return "bool"
 
+@PYB11template("Vector")
+@PYB11cppname("segmentSegmentIntersection")
+def segmentSegmentIntersectionTest(a0 = "const %(Vector)s&",
+                                   a1 = "const %(Vector)s&",
+                                   b0 = "const %(Vector)s&",
+                                   b1 = "const %(Vector)s&",
+                                   tol = ("const double", "1.0e-10")):
+    """Check if two line segments intersect (does not compute intersection point).
+The line segments are characterized by their endpoints: a_seg = (a0, a1)
+                                                        b_seg = (b0, b1)
+The advantage of this method is that it should be faster if you don't need
+the actual intersection.
+Based on stuff from "Computational Geometry in C", Joseph O'Rourke"""
+    return "bool"
+
+#...............................................................................
 for ndim in dims:
     exec('''
 # Functors
@@ -112,8 +128,10 @@ globalBoundingVolumes%(ndim)id = PYB11TemplateFunction(globalBoundingVolumes, te
 
 collinear%(ndim)id = PYB11TemplateFunction(collinear, template_parameters="%(Vector)s", pyname="collinear")
 between%(ndim)id = PYB11TemplateFunction(between, template_parameters="%(Vector)s", pyname="between")
+segmentSegmentIntersection%(ndim)id = PYB11TemplateFunction(segmentSegmentIntersectionTest, template_parameters="%(Vector)s", pyname="segmentSegmentIntersection")
 
-# segment-segment intersections
+#...............................................................................
+# segment-segment intersections (return intersect)
 @PYB11pycppname("segmentSegmentIntersection")
 @PYB11implementation("""[](const %(Vector)s& a0,
                            const %(Vector)s& a1,
@@ -124,7 +142,7 @@ def segmentSegmentIntersection%(ndim)id(a0 = "const %(Vector)s&",
                                         a1 = "const %(Vector)s&",
                                         b0 = "const %(Vector)s&",
                                         b1 = "const %(Vector)s&",
-                                        tol = ("const double", "1.0e-8")):
+                                        tol = ("const double", "1.0e-10")):
     """Intersection of two line segments.
 The line segments are characterized by their endpoints: a_seg = (a0, a1)
                                                         b_seg = (b0, b1)
@@ -137,6 +155,7 @@ Return values are a tuple(char, Vector, Vector)
        The Vectors are the intersection points (if any)"""
     return "py::tuple"
 
+#...............................................................................
 # segment-segment distance
 @PYB11pycppname("segmentSegmentDistance")
 def segmentSegmentDistance%(ndim)id(a0 = "const %(Vector)s&",
@@ -294,3 +313,141 @@ Return values are a tuple(char, Vector)
              "1" -> The segment intersects the plane properly
              "0" -> The segment does not intersect the plane"""
     return "py::tuple"
+
+#...............................................................................
+# segment-plane intersection (point-normal plane)
+@PYB11implementation("""[](const Dim<3>::Vector& s0,
+                           const Dim<3>::Vector& s1,
+                           const Dim<3>::Vector& point,
+                           const Dim<3>::Vector& normal,
+                           const double tol) {
+                               Dim<3>::Vector intersect;
+                               auto flag = segmentPlaneIntersection(s0, s1, point, normal, intersect, tol);
+                               return py::make_tuple(flag, intersect);
+                           }""")
+def segmentPlaneIntersection(s0 = "const Dim<3>::Vector&",
+                             s1 = "const Dim<3>::Vector&",
+                             point = "const Dim<3>::Vector&",
+                             normal = "const Dim<3>::Vector&",
+                             result = "Dim<3>::Vector&",
+                             tol = ("const double", "1.0e-8")):
+    """Intersection of a line segment with a plane.
+The line segment is characterized by it's endpoints:     seg = (s0, s1)
+The plane is characterized by a point in the plane and a unit normal: plane (point, normal)
+
+Return values are a tuple<char, Vector>
+       The Vector is the intersection point (if any)
+       The char is a code characterizing the intersection:
+             "p" -> The segment lies in the plane (plane)
+             "d" -> The p points do not define a unique plane (degenerate)
+             "1" -> The segment intersects the plane properly
+             "0" -> The segment does not intersect the plane"""
+    return "py::tuple"
+
+#...............................................................................
+# segment-plane intersection (three point plane)
+@PYB11implementation("""[](const Dim<3>::Vector& s0,
+                           const Dim<3>::Vector& s1,
+                           const Dim<3>::Vector& p0,
+                           const Dim<3>::Vector& p1,
+                           const Dim<3>::Vector& p2,
+                           const double tol) {
+                               Dim<3>::Vector intersect;
+                               auto flag = segmentPlaneIntersection(s0, s1, p0, p1, p2, intersect, tol);
+                               return py::make_tuple(flag, intersect);
+                           }""")
+@PYB11pycppname("segmentPlaneIntersection")
+def segmentPlaneIntersection1(s0 = "const Dim<3>::Vector&",
+                              s1 = "const Dim<3>::Vector&",
+                              p0 = "const Dim<3>::Vector&",
+                              p1 = "const Dim<3>::Vector&",
+                              p2 = "const Dim<3>::Vector&",
+                              result = "Dim<3>::Vector&",
+                              tol = ("const double", "1.0e-8")):
+    """Intersection of a line segment with a plane.
+The line segment is characterized by it's endpoints:     seg = (s0, s1)
+The plane is characterized by three points in the plane: plane = (p0, p1, p2)
+
+Return values are a tuple<char, Vector>
+       The Vector is the intersection point (if any)
+       The char is a code characterizing the intersection:
+             "p" -> The segment lies in the plane (plane)
+             "d" -> The p points do not define a unique plane (degenerate)
+             "1" -> The segment intersects the plane properly
+             "0" -> The segment does not intersect the plane"""
+    return "py::tuple"
+
+#...............................................................................
+# segment-plane intersection True/False test
+@PYB11pycppname("segmentPlaneIntersection")
+def segmentPlaneIntersection2(a0 = "const Dim<3>::Vector&",
+                              a1 = "const Dim<3>::Vector&",
+                              vertices = "const std::vector<Dim<3>::Vector>&",
+                              normal = "const Dim<3>::Vector&",
+                              tol = ("const double", "1.0e-10")):
+    """Check if a line segment intersects a polygonal planar section in 3D.
+The line segment is characterized by its endpoints: a_seg = (a0, a1)
+The planar section is characterized the a set of coplanar vertices: vertices.
+
+The advantage of this method is that it should be faster if you don't need
+the actual intersection.
+
+This version takes the plane representation as a set of coplanar vertices."""
+    return "bool"
+
+#...............................................................................
+# segment-plane intersection True/False test
+@PYB11pycppname("segmentPlaneIntersection")
+def segmentPlaneIntersection3(a0 = "const Dim<3>::Vector&",
+                              a1 = "const Dim<3>::Vector&",
+                              vertices = "const std::vector<Dim<3>::Vector>&",
+                              ipoints = "const std::vector<unsigned>&",
+                              normal = "const Dim<3>::Vector&",
+                              tol = ("const double", "1.0e-10")):
+    """Check if a line segment intersects a polygonal planar section in 3D.
+The line segment is characterized by its endpoints: a_seg = (a0, a1)
+The planar section is characterized the a set of coplanar vertices: vertices.
+
+The advantage of this method is that it should be faster if you don't need
+the actual intersection.
+
+This version takes the plane representation as a subset of the vertices 
+given by ipoints"""
+    return "bool"
+
+#...............................................................................
+def closestPointOnPlane(p = "const Dim<3>::Vector&",
+                        origin = "const Dim<3>::Vector&",
+                        unitNormal = "const Dim<3>::Vector&"):
+    "Find the point on a plane closest to the given point."
+    return "Dim<3>::Vector"
+
+#-------------------------------------------------------------------------------
+# Polygon/Polyhedron containment
+#-------------------------------------------------------------------------------
+for volume, name, Vector in (("Dim<2>::FacetedVolume", "Polygon",    "Dim<2>::Vector"),
+                             ("Dim<3>::FacetedVolume", "Polyhedron", "Dim<3>::Vector")):
+    exec('''
+def pointOn%(name)s(p = "const %(Vector)s&",
+                    polygon = "const %(volume)s&",
+                    tol = ("const double", "1.0e-10")):
+    "Test if a point is on the surface of a %(name)s"
+    return "bool"
+
+def pointIn%(name)s(p = "const %(Vector)s&",
+                    polygon = "const %(volume)s&",
+                    countBoundary = ("const bool", "false"),
+                    tol = ("const double", "1.0e-10")):
+    "Test if a point is contained in a %(name)s"
+    return "bool"
+
+@PYB11pycppname("segmentIntersectEdges")
+def segmentIntersectEdges%(name)s(a0 = "const %(Vector)s&",
+                                  a1 = "const %(Vector)s&",
+                                  poly = "const %(volume)s&",
+                                  tol = ("const double", "1.0e-8")):
+    "Test if a line segment (a0,a1) intersects any edges of a %(name)s"
+    return "bool"
+''' % {"volume" : volume,
+       "name"   : name,
+       "Vector" : Vector})
