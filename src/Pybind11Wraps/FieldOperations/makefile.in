@@ -1,15 +1,14 @@
 # -*-makefile-*-
-# Spheral++ NodeGenerators pybind11 package makefile
+# Spheral++ FieldOperations pybind11 package makefile
 #-------------------------------------------------------------------------------
 srcdir = @abs_srcdir@
 VPATH = @abs_srcdir@
 SPHERALTOP = @abs_top_srcdir@
 BUILDTOP = @abs_top_builddir@
 
-PKGNAME = NodeGenerators
+PKGNAME = FieldOperations
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-PYB11SRCS = WeightingFunctor.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
