@@ -79,17 +79,17 @@ class StateBase:
         "Enroll a mesh for tracking"
         return "void"
 
-    @PYB11pycppname("enroll")
-    def enroll_vec(self,
-                   key = "const std::string&",
-                   vec = "std::vector<Scalar>&"):
-        "Enroll a vector<Scalar> using the given key"
-        return "void"
+    # @PYB11pycppname("enroll")
+    # def enroll_vec(self,
+    #                key = "const std::string&",
+    #                vec = "std::vector<Scalar>&"):
+    #     "Enroll a vector<Scalar> using the given key"
+    #     return "void"
 
-    @PYB11returnpolicy("reference_internal")
-    def array(self, key="const std::string&"):
-        "Get the vector<double> associated with the given key"
-        return "std::vector<Scalar>&"
+    # @PYB11returnpolicy("reference_internal")
+    # def array(self, key="const std::string&"):
+    #     "Get the vector<double> associated with the given key"
+    #     return "std::vector<Scalar>&"
 
     @PYB11const
     def keys(self):

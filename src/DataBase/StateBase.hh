@@ -82,8 +82,8 @@ public:
   // Enroll an externally held Mesh.
   void enrollMesh(MeshPtr meshPtr);
 
-  // Enroll a std::vector<Scalar>.
-  void enroll(const FieldName& key, std::vector<Scalar>& vec);
+  // // Enroll a std::vector<Scalar>.
+  // void enroll(const FieldName& key, std::vector<Scalar>& vec);
 
   // Return the field for the given key.
   template<typename Value>
@@ -99,8 +99,8 @@ public:
   template<typename Value>
   std::vector<Field<Dimension, Value>*> allFields(const Value& dummy) const;
 
-  // Return the vector<Scalar>.
-  std::vector<Scalar>& array(const FieldName& key);
+  // // Return the vector<Scalar>.
+  // std::vector<Scalar>& array(const FieldName& key);
 
   // Return the complete set of keys registered.
   std::vector<KeyType> keys() const;
