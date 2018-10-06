@@ -348,8 +348,6 @@ gradientScalarPairWise%(ndim)id = PYB11TemplateFunction(gradientPairWise, templa
 gradientVectorPairWise%(ndim)id = PYB11TemplateFunction(gradientPairWise, template_parameters=("%(Dimension)s", "%(Vector)s"), pyname="gradientPairWise")
 
 divergenceVectorPairWise%(ndim)id = PYB11TemplateFunction(divergencePairWise, template_parameters=("%(Dimension)s", "%(Vector)s"), pyname="divergencePairWise")
-divergenceTensorPairWise%(ndim)id = PYB11TemplateFunction(divergencePairWise, template_parameters=("%(Dimension)s", "%(Tensor)s"), pyname="divergencePairWise")
-divergenceSymTensorPairWise%(ndim)id = PYB11TemplateFunction(divergencePairWise, template_parameters=("%(Dimension)s", "%(SymTensor)s"), pyname="divergencePairWise")
 
 sampleMultipleFields2Lattice%(ndim)id = PYB11TemplateFunction(sampleMultipleFields2Lattice, template_parameters="%(Dimension)s")
 sampleMultipleFields2LatticeMash%(ndim)id = PYB11TemplateFunction(sampleMultipleFields2LatticeMash, template_parameters="%(Dimension)s")
