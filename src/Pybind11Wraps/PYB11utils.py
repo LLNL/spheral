@@ -68,12 +68,35 @@ class PYB11sort_by_inheritance:
 
         # First pass, order by line number
         self.keys = {}
-        for (name, klass) in klasses:
-            self.keys[(name, klass)] = PYB11sort_by_line((name, klass))
+        for (name, obj) in klasses:
+            if isinstance(obj, PYB11TemplateClass):
+                klass = obj.klass_template
+            else:
+                klass = obj
+            self.keys[klass] = PYB11sort_by_line((name, klass))
+
+        # Now make sure classes come after any of their bases
+        changed = True
+        while changed:
+            changed = False
+            for (name, obj) in klasses:
+                if isinstance(obj, PYB11TemplateClass):
+                    klass = obj.klass_template
+                else:
+                    klass = obj
+                for bklass in inspect.getmro(klass)[1:2]:
+                    if self.keys[klass] < self.keys[bklass]:
+                        self.keys[klass] = self.keys[bklass] + 1
+                        changed = True
 
     def __call__(self, stuff):
-        return PYB11sort_by_line(stuff)
-    #return self.keys[obj1] > self.keys[obj2]
+        from PYB11class import PYB11TemplateClass
+        obj = stuff[1]
+        if isinstance(obj, PYB11TemplateClass):
+            klass = obj.klass_template
+        else:
+            klass = obj
+        return self.keys[klass]
 
 #-------------------------------------------------------------------------------
 # PYB11classes

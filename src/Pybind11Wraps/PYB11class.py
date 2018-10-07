@@ -17,8 +17,7 @@ import copy, StringIO
 #-------------------------------------------------------------------------------
 def PYB11generateModuleClasses(modobj, ss):
     klasses = PYB11classes(modobj) + PYB11classTemplateInsts(modobj)
-    #srt = PYB11sort_by_inheritance(klasses)
-    klasses = sorted(klasses, key=PYB11sort_by_line)
+    klasses = sorted(klasses, key=PYB11sort_by_inheritance(klasses))
     for kname, klass in klasses:
         if isinstance(klass, PYB11TemplateClass):
             klass(kname, ss)
