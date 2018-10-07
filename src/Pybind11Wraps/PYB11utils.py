@@ -42,13 +42,38 @@ def PYB11sort_by_line(stuff):
     from PYB11class import PYB11TemplateClass
     name, obj = stuff
     if isinstance(obj, PYB11TemplateClass):
-        return obj.order + 0
+        #return obj.order + 0
+        try:
+            source, lineno = inspect.findsource(obj.klass_template)
+        except:
+            raise RuntimeError, "Cannot find source for %s?" % name
+        #print " **> ", name, lineno
+        return lineno
     else:
         try:
             source, lineno = inspect.findsource(obj)
         except:
             raise RuntimeError, "Cannot find source for %s?" % name
+        #print " ==> ", name, lineno
         return lineno
+
+#-------------------------------------------------------------------------------
+# PYB11sort_by_inheritance
+#
+# Key sorting function to put base classes first.
+#-------------------------------------------------------------------------------
+class PYB11sort_by_inheritance:
+    def __init__(self, klasses):
+        from PYB11class import PYB11TemplateClass
+
+        # First pass, order by line number
+        self.keys = {}
+        for (name, klass) in klasses:
+            self.keys[(name, klass)] = PYB11sort_by_line((name, klass))
+
+    def __call__(self, stuff):
+        return PYB11sort_by_line(stuff)
+    #return self.keys[obj1] > self.keys[obj2]
 
 #-------------------------------------------------------------------------------
 # PYB11classes

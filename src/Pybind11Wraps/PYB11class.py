@@ -16,17 +16,16 @@ import copy, StringIO
 # Bind the classes in the module
 #-------------------------------------------------------------------------------
 def PYB11generateModuleClasses(modobj, ss):
-    klasses = PYB11classes(modobj)
+    klasses = PYB11classes(modobj) + PYB11classTemplateInsts(modobj)
+    #srt = PYB11sort_by_inheritance(klasses)
+    klasses = sorted(klasses, key=PYB11sort_by_line)
     for kname, klass in klasses:
-        klassattrs = PYB11attrs(klass)
-        if not klassattrs["ignore"]:
-            PYB11generateClass(klass, klassattrs, ss)
-
-    # Now look for any template class instantiations.
-    templates = PYB11classTemplateInsts(modobj)
-    for (ktname, inst) in templates:
-        inst(ktname, ss)
-    return
+        if isinstance(klass, PYB11TemplateClass):
+            klass(kname, ss)
+        else:
+            klassattrs = PYB11attrs(klass)
+            if not klassattrs["ignore"]:
+                PYB11generateClass(klass, klassattrs, ss)
 
 #--------------------------------------------------------------------------------
 # Make a class template instantiation
