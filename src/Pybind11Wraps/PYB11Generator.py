@@ -120,5 +120,21 @@ PYBIND11_MODULE(%(name)s, m) {
         ss("  ;\n")
     ss("\n")
 
+    # Are there any objects to import from other modules
+    othermods = []
+    for (kname, klass) in PYB11classes(modobj):
+        klassattrs = PYB11attrs(klass)
+        #print kname, klassattrs["module"]
+        mods = klassattrs["module"]
+        for otherklass in mods:
+            othermod = mods[otherklass]
+            if othermod not in othermods:
+                othermods.append(othermod)
+    if othermods:
+        ss("  // Import external modules\n")
+        for othermod in othermods:
+            ss('  py::module::import("%s");\n' % othermod)
+        ss("\n")
+
     return
 

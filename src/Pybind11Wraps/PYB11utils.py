@@ -20,6 +20,18 @@ def PYB11copy_func(f, name=None):
     fn.__dict__.update(f.__dict__) 
     return fn
 
+def PYB11copy_class(f, name=None):
+    '''
+    return a function with same code, globals, defaults, closure, and 
+    name (or provide a new name)
+    '''
+    if name is None:
+        name = f.__name__
+    cls = types.ClassType(name, f.__bases__, f.__dict__)
+    # in case f was given attrs (note this dict is a shallow copy):
+    cls.__dict__.update(f.__dict__) 
+    return cls
+
 def PYB11inject(fromcls, tocls,
                 virtual = None,
                 pure_virtual = None):
@@ -315,7 +327,8 @@ def PYB11attrs(obj):
          "implementation" : None,
          "returnpolicy"   : None,
          "template"       : (),
-         "template_dict"  : {}}
+         "template_dict"  : {},
+         "module"         : {}}
     for key in d:
         if hasattr(obj, "PYB11" + key):
             d[key] = eval("obj.PYB11%s" % key)

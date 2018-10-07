@@ -2,8 +2,8 @@
 # TreeGravity base class
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from GenericBodyForce import *
 from RestartMethods import *
+from GenericBodyForce import *
 
 @PYB11template("Dimension")
 class TreeGravity(GenericBodyForce):

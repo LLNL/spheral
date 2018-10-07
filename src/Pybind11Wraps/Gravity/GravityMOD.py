@@ -8,6 +8,11 @@ from PYB11Generator import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
+from NBodyGravity import *
+from TreeGravity import *
+from GenericBodyForce import GenericBodyForce
+PYB11import(GenericBodyForce, "SpheralPhysics")
+
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
@@ -34,9 +39,6 @@ GravityTimeStepType = PYB11enum(("AccelerationRatio", "DynamicalTime"), export_v
 #-------------------------------------------------------------------------------
 # Instantiate our types
 #-------------------------------------------------------------------------------
-from NBodyGravity import *
-from TreeGravity import *
-
 for ndim in dims:
     exec('''
 NBodyGravity%(ndim)id = PYB11TemplateClass(NBodyGravity, template_parameters="%(Dimension)s")

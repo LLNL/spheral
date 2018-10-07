@@ -27,6 +27,14 @@ def PYB11generateModuleClasses(modobj, ss):
                 PYB11generateClass(klass, klassattrs, ss)
 
 #--------------------------------------------------------------------------------
+# Mark a class to be imported from an external module
+#--------------------------------------------------------------------------------
+def PYB11import(klass, modname):
+    if not hasattr(klass, "PYB11module"):
+        klass.PYB11module = {}
+    klass.PYB11module[klass] = modname
+
+#--------------------------------------------------------------------------------
 # Make a class template instantiation
 #--------------------------------------------------------------------------------
 class PYB11TemplateClass:
