@@ -14,9 +14,42 @@ from PYB11utils import *
 #-------------------------------------------------------------------------------
 def PYB11generateModuleTrampolines(modobj, ss):
     klasses = PYB11classes(modobj)
+
+    # Cull to just classes with virtual methods.
+    klasses = [(name, klass) for (name, klass) in klasses if PYB11virtualClass(klass)]
+
+    # Cull for things we're ignoring
+    newklasses = []
+    for name, klass in klasses:
+        klassattrs = PYB11attrs(klass)
+        template_klass = len(klassattrs["template"]) > 0
+        if template_klass or not klassattrs["ignore"]:
+            newklasses.append((name, klass))
+    klasses = newklasses
+
+    # This is a bit of trickery to let us use inheritance without regenerating trampolines
+    known_trampolines = []
+    newklasses = []
+    for name, klass in klasses:
+        klassattrs = PYB11attrs(klass)
+        if klassattrs["pyname"] not in known_trampolines:
+            newklasses.append((name, klass))
+    klasses = newklasses
+
+    # Cull classes imported from other modules
+    newklasses = []
+    for name, klass in klasses:
+        klassattrs = PYB11attrs(klass)
+        mods = klassattrs["module"]
+        print " --> ", klass in mods, klass, mods.keys()
+        if not (klass in mods):
+            newklasses.append((name, klass))
+    klasses = newklasses
+
+    # Generate trampolines
     for kname, klass in klasses:
-        if PYB11virtualClass(klass):
-            PYB11generateTrampoline(klass, ss)
+        PYB11generateTrampoline(klass, ss)
+
     return
 
 #-------------------------------------------------------------------------------
@@ -28,15 +61,20 @@ def PYB11generateTrampoline(klass, ssout):
 
     klassattrs = PYB11attrs(klass)
     template_klass = len(klassattrs["template"]) > 0
-    if klassattrs["ignore"] and not template_klass:
-        return
+    # if klassattrs["ignore"] and not template_klass:
+    #     return
 
-    # This is a bit of trickery to let us use inheritance without regenerating trampolines
-    if"__known_trampolines" not in PYB11generateTrampoline.__dict__:
-        PYB11generateTrampoline.__known_trampolines = []
-    if klassattrs["pyname"] in PYB11generateTrampoline.__known_trampolines:
-        return
-    PYB11generateTrampoline.__known_trampolines.append(klassattrs["pyname"])
+    # # This is a bit of trickery to let us use inheritance without regenerating trampolines
+    # if"__known_trampolines" not in PYB11generateTrampoline.__dict__:
+    #     PYB11generateTrampoline.__known_trampolines = []
+    # if klassattrs["pyname"] in PYB11generateTrampoline.__known_trampolines:
+    #     return
+    # PYB11generateTrampoline.__known_trampolines.append(klassattrs["pyname"])
+
+    # # We also screen out classes imported from other modules.
+    # mods = klassattrs["module"]
+    # if klass in mods:
+    #     return
 
     # Prepare in case there are templates lurking in here.
     fs = StringIO.StringIO()

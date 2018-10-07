@@ -124,7 +124,7 @@ PYBIND11_MODULE(%(name)s, m) {
     othermods = []
     for (kname, klass) in PYB11classes(modobj):
         klassattrs = PYB11attrs(klass)
-        #print kname, klassattrs["module"]
+        print kname, klassattrs["module"]
         mods = klassattrs["module"]
         for otherklass in mods:
             othermod = mods[otherklass]
