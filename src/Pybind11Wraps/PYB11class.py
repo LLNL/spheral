@@ -8,7 +8,7 @@ from PYB11property import *
 from PYB11ClassAttribute import *
 from PYB11Trampoline import *
 from PYB11enum import PYB11enum
-import copy, StringIO
+import copy, StringIO, inspect
 
 #-------------------------------------------------------------------------------
 # PYB11generateModuleClasses

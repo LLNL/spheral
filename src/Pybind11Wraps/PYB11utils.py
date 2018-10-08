@@ -20,18 +20,6 @@ def PYB11copy_func(f, name=None):
     fn.__dict__.update(f.__dict__) 
     return fn
 
-def PYB11copy_class(f, name=None):
-    '''
-    return a function with same code, globals, defaults, closure, and 
-    name (or provide a new name)
-    '''
-    if name is None:
-        name = f.__name__
-    cls = types.ClassType(name, f.__bases__, f.__dict__)
-    # in case f was given attrs (note this dict is a shallow copy):
-    cls.__dict__.update(f.__dict__) 
-    return cls
-
 def PYB11inject(fromcls, tocls,
                 virtual = None,
                 pure_virtual = None):
@@ -96,8 +84,8 @@ class PYB11sort_by_inheritance:
                     klass = obj.klass_template
                 else:
                     klass = obj
-                for bklass in inspect.getmro(klass)[1:2]:
-                    if self.keys[klass] < self.keys[bklass]:
+                for bklass in inspect.getmro(klass)[1:]:
+                    if self.keys[klass] <= self.keys[bklass]:
                         self.keys[klass] = self.keys[bklass] + 1
                         changed = True
 
