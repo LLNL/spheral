@@ -5,6 +5,7 @@ from SmoothingScaleAbstractMethods import *
 # SmoothingScaleBase
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
+@PYB11module("SpheralNodeList")
 class SmoothingScaleBase:
 
     typedefs = """

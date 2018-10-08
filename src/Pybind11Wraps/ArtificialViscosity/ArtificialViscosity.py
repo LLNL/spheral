@@ -6,6 +6,7 @@ from ArtificialViscosityAbstractMethods import *
 from RestartMethods import *
 
 @PYB11template("Dimension")
+@PYB11module("SpheralArtificialViscosity")
 class ArtificialViscosity:
 
     typedefs = """

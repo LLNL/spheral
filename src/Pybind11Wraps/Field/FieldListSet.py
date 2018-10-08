@@ -5,6 +5,7 @@ from PYB11Generator import *
 # FieldListSet
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
+@PYB11module("SpheralField")
 class FieldListSet:
 
     # Constructors

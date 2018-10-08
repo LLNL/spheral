@@ -5,6 +5,7 @@ from PYB11Generator import *
 from BoundaryAbstractMethods import *
 
 @PYB11template("Dimension")
+@PYB11module("SpheralBoundary")
 class Boundary:
 
     typedefs = """

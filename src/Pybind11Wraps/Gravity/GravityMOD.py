@@ -11,9 +11,6 @@ dims = spheralDimensions()
 from NBodyGravity import *
 from TreeGravity import *
 
-from GenericBodyForce import GenericBodyForce
-PYB11import(GenericBodyForce, "SpheralPhysics")
-
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------

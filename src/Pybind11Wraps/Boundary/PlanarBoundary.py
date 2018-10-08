@@ -6,6 +6,7 @@ from Boundary import *
 from RestartMethods import *
 
 @PYB11template("Dimension")
+@PYB11module("SpheralBoundary")
 class PlanarBoundary(Boundary):
 
     typedefs = """

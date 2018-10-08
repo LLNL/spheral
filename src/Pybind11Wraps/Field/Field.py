@@ -6,6 +6,7 @@ from FieldBase import FieldBase
 # Field
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "Value")
+@PYB11module("SpheralField")
 class Field(FieldBase):
 
     typedefs="""

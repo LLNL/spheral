@@ -4,6 +4,7 @@ from PYB11Generator import *
 # FieldBase
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
+@PYB11module("SpheralField")
 class FieldBase:
 
     # def pyinit(self, name="std::string"):

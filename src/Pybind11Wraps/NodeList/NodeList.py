@@ -5,6 +5,7 @@ from RestartMethods import *
 # NodeList template
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
+@PYB11module("SpheralNodeList")
 class NodeList:
     "Spheral NodeList base class in %(Dimension)s"
 

@@ -6,6 +6,7 @@ from FileIOAbstractMethods import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
+@PYB11module("SpheralFileIO")
 class FileIO:
     "Abstract base class for FileIO objects"
 

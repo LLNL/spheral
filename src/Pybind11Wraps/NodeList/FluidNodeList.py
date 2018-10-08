@@ -6,6 +6,7 @@ from RestartMethods import *
 # FluidNodeList template
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
+@PYB11module("SpheralNodeList")
 class FluidNodeList(NodeList):
     "Spheral FluidNodeList base class in %(Dimension)s, i.e.,  the NodeList for fluid hydrodynamics."
 

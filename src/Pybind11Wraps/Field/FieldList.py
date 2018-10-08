@@ -4,6 +4,7 @@ from PYB11Generator import *
 # FieldList
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "Value")
+@PYB11module("SpheralField")
 class FieldList:
 
     typedefs="""

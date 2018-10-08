@@ -6,6 +6,7 @@ from RestartMethods import *
 # SolidNodeList template
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
+@PYB11module("SpheralNodeList")
 class SolidNodeList(FluidNodeList):
     "Spheral SolidNodeList base class in %(Dimension)s, i.e.,  the NodeList for solid dynamics."
 
