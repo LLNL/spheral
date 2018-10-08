@@ -34,6 +34,14 @@ def PYB11import(klass, modname):
         klass.PYB11module = {}
     klass.PYB11module[klass] = modname
 
+    # Check base classes -- if they haven't been assigned as import yet assign
+    # to this module
+    for bklass in inspect.getmro(klass):
+        if not hasattr(bklass, "PYB11module"):
+            bklass.PYB11module = {}
+            bklass.PYB11module[bklass] = modname
+    return
+
 #--------------------------------------------------------------------------------
 # Make a class template instantiation
 #--------------------------------------------------------------------------------

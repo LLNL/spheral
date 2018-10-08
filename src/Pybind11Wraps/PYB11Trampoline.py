@@ -20,36 +20,21 @@ def PYB11generateModuleTrampolines(modobj, ss):
 
     # Cull for things we're ignoring
     newklasses = []
+    known_trampolines = []
     for name, klass in klasses:
         klassattrs = PYB11attrs(klass)
         template_klass = len(klassattrs["template"]) > 0
-        if template_klass or not klassattrs["ignore"]:
-            newklasses.append((name, klass))
-    klasses = newklasses
-
-    # This is a bit of trickery to let us use inheritance without regenerating trampolines
-    known_trampolines = []
-    newklasses = []
-    for name, klass in klasses:
-        klassattrs = PYB11attrs(klass)
-        if klassattrs["pyname"] not in known_trampolines:
-            newklasses.append((name, klass))
-    klasses = newklasses
-
-    # Cull classes imported from other modules
-    newklasses = []
-    for name, klass in klasses:
-        klassattrs = PYB11attrs(klass)
         mods = klassattrs["module"]
-        print " --> ", klass in mods, klass, mods.keys()
-        if not (klass in mods):
+        if ((template_klass or not klassattrs["ignore"]) and         # ignore flag (except for template class)?
+            (klassattrs["pyname"] not in known_trampolines) and      # has this trampoline been generated?
+            (not (klass in mods))):                                  # is this class imported from another mod?
             newklasses.append((name, klass))
+            known_trampolines.append(klassattrs["pyname"])
     klasses = newklasses
 
     # Generate trampolines
     for kname, klass in klasses:
         PYB11generateTrampoline(klass, ss)
-
     return
 
 #-------------------------------------------------------------------------------
