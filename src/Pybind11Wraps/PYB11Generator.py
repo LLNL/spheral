@@ -18,6 +18,7 @@ from PYB11attr import *
 def PYB11generateModule(modobj, name=None):
     if name is None:
         name = modobj.__name__
+    modobj.PYB11modulename = name
     with open(name + ".cc", "w") as f:
         ss = f.write
         PYB11generateModuleStart(modobj, ss, name)

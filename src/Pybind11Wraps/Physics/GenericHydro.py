@@ -5,6 +5,7 @@ from PYB11Generator import *
 from Physics import *
 
 @PYB11template("Dimension")
+@PYB11module("SpheralPhysics")
 class GenericHydro(Physics):
 
     typedefs = """

@@ -9,9 +9,6 @@ from PYB11Generator import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
-from GenericBodyForce import GenericBodyForce
-PYB11import(GenericBodyForce, "SpheralPhysics")
-
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------

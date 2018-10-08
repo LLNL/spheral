@@ -150,3 +150,16 @@ class PYB11returnpolicy:
     def __call__(self, thing):
         thing.PYB11returnpolicy = self.val
         return thing
+
+#-------------------------------------------------------------------------------
+# module
+#-------------------------------------------------------------------------------
+class PYB11module:
+    def __init__(self, x):
+        self.val = x
+        return
+    def __call__(self, thing):
+        if not hasattr(thing, "PYB11module"):
+            thing.PYB11module = {}
+        thing.PYB11module[thing] = self.val
+        return thing

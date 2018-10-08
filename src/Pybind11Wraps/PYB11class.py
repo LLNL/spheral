@@ -23,24 +23,10 @@ def PYB11generateModuleClasses(modobj, ss):
             klass(kname, ss)
         else:
             klassattrs = PYB11attrs(klass)
-            if not klassattrs["ignore"]:
+            mods = klassattrs["module"]
+            if ((not klassattrs["ignore"]) and                                   # ignore this class?
+                ((klass not in mods) or mods[klass] == modobj.PYB11modulename)): # is this class imported from another mod?
                 PYB11generateClass(klass, klassattrs, ss)
-
-#--------------------------------------------------------------------------------
-# Mark a class to be imported from an external module
-#--------------------------------------------------------------------------------
-def PYB11import(klass, modname):
-    if not hasattr(klass, "PYB11module"):
-        klass.PYB11module = {}
-    klass.PYB11module[klass] = modname
-
-    # Check base classes -- if they haven't been assigned as import yet assign
-    # to this module
-    for bklass in inspect.getmro(klass):
-        if not hasattr(bklass, "PYB11module"):
-            bklass.PYB11module = {}
-            bklass.PYB11module[bklass] = modname
-    return
 
 #--------------------------------------------------------------------------------
 # Make a class template instantiation
