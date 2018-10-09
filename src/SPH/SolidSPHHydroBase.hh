@@ -107,7 +107,7 @@ public:
 
   // Control whether allow damaged material to have stress relieved.
   bool damageRelieveRubble() const;
-  void damageRelieveRubble(const bool x);
+  void damageRelieveRubble(bool x);
 
   //****************************************************************************
   // Methods required for restarting.
