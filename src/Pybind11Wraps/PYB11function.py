@@ -15,6 +15,7 @@ import copy, StringIO
 def PYB11generateModuleFunctions(modobj, ss):
     methods = PYB11functions(modobj)
     if methods:
+        ss("  //...........................................................................\n")
         ss("  // Methods\n")
         for name, meth in methods:
             methattrs = PYB11attrs(meth)
