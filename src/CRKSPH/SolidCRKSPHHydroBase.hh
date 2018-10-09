@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidCRKSPHHydroBase -- The SPH/ASPH solid material hydrodynamic package for Spheral++.
+// SolidCRKSPHHydroBase -- The CRKSPH/ACRKSPH solid material hydrodynamic package for Spheral++.
 //
 // Created by JMO, Fri Jul 30 11:07:33 PDT 2010
 //----------------------------------------------------------------------------//
@@ -105,7 +105,7 @@ public:
 
   // Control whether allow damaged material to have stress relieved.
   bool damageRelieveRubble() const;
-  void damageRelieveRubble(const bool x);
+  void damageRelieveRubble(bool x);
 
   //****************************************************************************
   // Methods required for restarting.

@@ -15,7 +15,7 @@ template<typename Dimension>
 inline
 void
 SolidCRKSPHHydroBase<Dimension>::
-damageRelieveRubble(const bool x) {
+damageRelieveRubble(bool x) {
   mDamageRelieveRubble = x;
 }
 
