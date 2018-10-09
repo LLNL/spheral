@@ -8,6 +8,8 @@ from PYB11Generator import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
+from CRKSPHHydroBase import *
+
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
@@ -300,6 +302,8 @@ def computeNeighborHull(fullConnectivity = "const std::vector<std::vector<int> >
 #-------------------------------------------------------------------------------
 for ndim in dims:
     exec('''
+CRKSPHHydroBase%(ndim)id = PYB11TemplateClass(CRKSPHHydroBase, template_parameters="%(Dimension)s")
+
 @PYB11cppname("computeVoronoiVolume")
 def computeVoronoiVolume%(ndim)id(position = "const FieldList<%(Dimension)s, %(Dimension)s::Vector>&",
                                   H = "const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>&",
