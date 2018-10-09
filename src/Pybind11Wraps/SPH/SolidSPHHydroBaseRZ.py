@@ -1,22 +1,22 @@
 #-------------------------------------------------------------------------------
-# SolidSPHHydroBase
+# SolidSPHHydroBaseRZ
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from SPHHydroBase import *
+from SolidSPHHydroBase import *
 from RestartMethods import *
 
-@PYB11template("Dimension")
+@PYB11template()            # Override the fact SolidSPHHydroBase is templated
+@PYB11template_dict({"Dimension" : "Dim<2>"})
 @PYB11module("SpheralSPH")
-class SolidSPHHydroBase(SPHHydroBase):
-    "SolidSPHHydroBase -- The SPH/ASPH solid material hydrodynamic package for Spheral++."
+class SolidSPHHydroBaseRZ(SolidSPHHydroBase):
 
     typedefs = """
-  typedef %(Dimension)s DIM;
-  typedef typename %(Dimension)s::Scalar Scalar;
-  typedef typename %(Dimension)s::Vector Vector;
-  typedef typename %(Dimension)s::Tensor Tensor;
-  typedef typename %(Dimension)s::SymTensor SymTensor;
-  typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+  typedef Dim<2> DIM;
+  typedef typename DIM::Scalar Scalar;
+  typedef typename DIM::Vector Vector;
+  typedef typename DIM::Tensor Tensor;
+  typedef typename DIM::SymTensor SymTensor;
+  typedef typename Physics<DIM>::TimeStepType TimeStepType;
 """
     
     def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<DIM>&",
@@ -40,7 +40,7 @@ class SolidSPHHydroBase(SPHHydroBase):
                damageRelieveRubble = "const bool",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "SolidSPHHydroBase constructor"
+        "SolidSPHHydroBaseRZ constructor"
 
     #...........................................................................
     # Virtual methods
@@ -73,6 +73,15 @@ mass density, velocity, and specific thermal energy."""
         return "void"
 
     @PYB11virtual
+    def finalize(time = "const Scalar",
+                 dt = "const Scalar",
+                 dataBase = "DataBase<DIM>&",
+                 state = "State<DIM>&",
+                 derivs = "StateDerivatives<DIM>&"):
+        "Finalize the hydro at the completion of an integration step."
+        return "void"
+               
+    @PYB11virtual
     def applyGhostBoundaries(state = "State<DIM>&",
                              derivs = "StateDerivatives<DIM>&"):
         "Apply boundary conditions to the physics specific fields."
@@ -86,19 +95,10 @@ mass density, velocity, and specific thermal energy."""
 
     #...........................................................................
     # Properties
-    GradKernel = PYB11property("const TableKernel<DIM>&", "GradKernel",
-                               doc="Kernel for estimating velocity gradient")
-    damageRelieveRubble = PYB11property("bool", "damageRelieveRubble", "damageRelieveRubble", 
-                                        doc="Control whether allow damaged material to have stress relieved.")
-
-    DdeviatoricStressDt =  PYB11property("const FieldList<DIM, SymTensor>&", "DdeviatoricStressDt", returnpolicy="reference_internal")
-    bulkModulus =          PYB11property("const FieldList<DIM, Scalar>&",    "bulkModulus",         returnpolicy="reference_internal")
-    shearModulus =         PYB11property("const FieldList<DIM, Scalar>&",    "shearModulus",        returnpolicy="reference_internal")
-    yieldStrength =        PYB11property("const FieldList<DIM, Scalar>&",    "yieldStrength",       returnpolicy="reference_internal")
-    plasticStrain0 =       PYB11property("const FieldList<DIM, Scalar>&",    "plasticStrain0",      returnpolicy="reference_internal")
-    Hfield0 =              PYB11property("const FieldList<DIM, SymTensor>&", "Hfield0",             returnpolicy="reference_internal")
+    deviatoricStressTT =  PYB11property("const FieldList<DIM, Scalar>&", "deviatoricStressTT", returnpolicy="reference_internal")
+    DdeviatoricStressTTDt =  PYB11property("const FieldList<DIM, Scalar>&", "DdeviatoricStressTTDt", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, SolidSPHHydroBase)
+PYB11inject(RestartMethods, SolidSPHHydroBaseRZ)

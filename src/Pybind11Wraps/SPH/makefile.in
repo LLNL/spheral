@@ -13,7 +13,10 @@ PYB11SRCS = \
 	NodeCoupling.py \
 	SPHHydroBase.py \
 	PSPHHydroBase.py \
-	SolidSPHHydroBase.py
+	SolidSPHHydroBase.py \
+	SPHHydroBaseRZ.py \
+	SPHHydroBaseGSRZ.py \
+	SolidSPHHydroBaseRZ.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

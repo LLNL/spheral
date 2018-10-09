@@ -52,3 +52,8 @@ PSPHHydroBase%(ndim)id = PYB11TemplateClass(PSPHHydroBase, template_parameters="
 SolidSPHHydroBase%(ndim)id = PYB11TemplateClass(SolidSPHHydroBase, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
+
+if 2 in dims:
+    from SPHHydroBaseRZ import *
+    from SPHHydroBaseGSRZ import *
+    from SolidSPHHydroBaseRZ import *

@@ -14,8 +14,15 @@ from PYB11utils import *
 #-------------------------------------------------------------------------------
 def PYB11generateModulePublicists(modobj, ss):
     klasses = PYB11classes(modobj)
+    known_publicists = []
     for kname, klass in klasses:
-        if PYB11protectedClass(klass):
+        klassattrs = PYB11attrs(klass)
+        template_klass = len(klassattrs["template"]) > 0
+        mods = klassattrs["module"]
+        if (PYB11protectedClass(klass) and
+            ((template_klass or not klassattrs["ignore"]) and                 # ignore flag (except for template class)?
+             (klassattrs["pyname"] not in known_publicists) and               # has this trampoline been generated?
+            ((klass not in mods) or mods[klass] == modobj.PYB11modulename))): # is this class imported from another mod?
             PYB11generatePublicist(klass, ss)
     return
 
