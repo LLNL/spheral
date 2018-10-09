@@ -15,7 +15,7 @@ template<typename Dimension>
 inline
 void
 SPHHydroBase<Dimension>::
-densityUpdate(const MassDensityType type) {
+densityUpdate(MassDensityType type) {
   mDensityUpdate = type;
 }
 
@@ -33,7 +33,7 @@ template<typename Dimension>
 inline
 void
 SPHHydroBase<Dimension>::
-HEvolution(const HEvolutionType type) {
+HEvolution(HEvolutionType type) {
   mHEvolution = type;
 }
 
@@ -51,7 +51,7 @@ SPHHydroBase<Dimension>::compatibleEnergyEvolution() const {
 template<typename Dimension>
 inline
 void
-SPHHydroBase<Dimension>::compatibleEnergyEvolution(const bool val) {
+SPHHydroBase<Dimension>::compatibleEnergyEvolution(bool val) {
   mCompatibleEnergyEvolution = val;
 }
 
@@ -68,7 +68,7 @@ SPHHydroBase<Dimension>::evolveTotalEnergy() const {
 template<typename Dimension>
 inline
 void
-SPHHydroBase<Dimension>::evolveTotalEnergy(const bool val) {
+SPHHydroBase<Dimension>::evolveTotalEnergy(bool val) {
   mEvolveTotalEnergy = val;
 }
 
@@ -85,7 +85,7 @@ SPHHydroBase<Dimension>::gradhCorrection() const {
 template<typename Dimension>
 inline
 void
-SPHHydroBase<Dimension>::gradhCorrection(const bool val) {
+SPHHydroBase<Dimension>::gradhCorrection(bool val) {
   mGradhCorrection = val;
 }
 
@@ -102,12 +102,12 @@ SPHHydroBase<Dimension>::XSPH() const {
 template<typename Dimension>
 inline
 void
-SPHHydroBase<Dimension>::XSPH(const bool val) {
+SPHHydroBase<Dimension>::XSPH(bool val) {
   mXSPH = val;
 }
 
 //------------------------------------------------------------------------------
-// Access the flag determining if we're using the XSPH algorithm.
+// Access the flag controlling linear correct velocity gradient.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
@@ -119,7 +119,7 @@ SPHHydroBase<Dimension>::correctVelocityGradient() const {
 template<typename Dimension>
 inline
 void
-SPHHydroBase<Dimension>::correctVelocityGradient(const bool val) {
+SPHHydroBase<Dimension>::correctVelocityGradient(bool val) {
   mCorrectVelocityGradient = val;
 }
 
@@ -137,7 +137,7 @@ SPHHydroBase<Dimension>::sumMassDensityOverAllNodeLists() const {
 template<typename Dimension>
 inline
 void
-SPHHydroBase<Dimension>::sumMassDensityOverAllNodeLists(const bool val) {
+SPHHydroBase<Dimension>::sumMassDensityOverAllNodeLists(bool val) {
   mSumMassDensityOverAllNodeLists = val;
 }
 
@@ -154,7 +154,7 @@ SPHHydroBase<Dimension>::filter() const {
 template<typename Dimension>
 inline
 void
-SPHHydroBase<Dimension>::filter(const double val) {
+SPHHydroBase<Dimension>::filter(double val) {
   VERIFY(val >= 0.0 and val <= 1.0);
   mfilter = val;
 }
@@ -173,7 +173,7 @@ epsilonTensile() const {
 template<typename Dimension>
 void
 SPHHydroBase<Dimension>::
-epsilonTensile(const typename Dimension::Scalar val) {
+epsilonTensile(typename Dimension::Scalar val) {
   mEpsTensile = val;
 }
 
@@ -192,7 +192,7 @@ template<typename Dimension>
 inline
 void
 SPHHydroBase<Dimension>::
-nTensile(const typename Dimension::Scalar val) {
+nTensile(typename Dimension::Scalar val) {
   mnTensile = val;
 }
 
@@ -267,6 +267,14 @@ const FieldList<Dimension, typename Dimension::Scalar>&
 SPHHydroBase<Dimension>::
 soundSpeed() const {
   return mSoundSpeed;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SPHHydroBase<Dimension>::
+volume() const {
+  return mVolume;
 }
 
 template<typename Dimension>

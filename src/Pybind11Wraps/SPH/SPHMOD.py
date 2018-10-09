@@ -9,6 +9,7 @@ from spheralDimensions import *
 dims = spheralDimensions()
 
 from NodeCoupling import *
+from SPHHydroBase import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -26,6 +27,7 @@ includes = ['"Geometry/Dimension.hh"',
             '"SPH/DamagedNodeCoupling.hh"',
             '"SPH/DamagedNodeCouplingWithFrags.hh"',
             '"FileIO/FileIO.hh"',
+            '"ArtificialViscosity/ArtificialViscosity.hh"',
             '<vector>',
             '<string>',
             '<iterator>']
@@ -42,5 +44,7 @@ for ndim in dims:
     exec('''
 DamagedNodeCoupling%(ndim)id = PYB11TemplateClass(DamagedNodeCoupling, template_parameters="%(Dimension)s")
 DamagedNodeCouplingWithFrags%(ndim)id = PYB11TemplateClass(DamagedNodeCouplingWithFrags, template_parameters="%(Dimension)s")
+
+SPHHydroBase%(ndim)id = PYB11TemplateClass(SPHHydroBase, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})

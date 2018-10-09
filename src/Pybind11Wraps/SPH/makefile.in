@@ -10,7 +10,8 @@ PKGNAME = SPH
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 PYB11SRCS = \
-	NodeCoupling.py
+	NodeCoupling.py \
+	SPHHydroBase.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
