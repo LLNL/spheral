@@ -34,24 +34,24 @@ public:
 
   // Constructors.
   SPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                     ArtificialViscosity<Dimension>& Q,
-                     const TableKernel<Dimension>& W,
-                     const TableKernel<Dimension>& WPi,
-                     const double filter,
-                     const double cfl,
-                     const bool useVelocityMagnitudeForDt,
-                     const bool compatibleEnergyEvolution,
-                     const bool evolveTotalEnergy,
-                     const bool gradhCorrection,
-                     const bool XSPH,
-                     const bool correctVelocityGradient,
-                     const bool sumMassDensityOverAllNodeLists,
-                     const MassDensityType densityUpdate,
-                     const HEvolutionType HUpdate,
-                     const double epsTensile,
-                     const double nTensile,
-                     const Vector& xmin,
-                     const Vector& xmax);
+                 ArtificialViscosity<Dimension>& Q,
+                 const TableKernel<Dimension>& W,
+                 const TableKernel<Dimension>& WPi,
+                 const double filter,
+                 const double cfl,
+                 const bool useVelocityMagnitudeForDt,
+                 const bool compatibleEnergyEvolution,
+                 const bool evolveTotalEnergy,
+                 const bool gradhCorrection,
+                 const bool XSPH,
+                 const bool correctVelocityGradient,
+                 const bool sumMassDensityOverAllNodeLists,
+                 const MassDensityType densityUpdate,
+                 const HEvolutionType HUpdate,
+                 const double epsTensile,
+                 const double nTensile,
+                 const Vector& xmin,
+                 const Vector& xmax);
 
   // Destructor.
   virtual ~SPHHydroBaseRZ();
