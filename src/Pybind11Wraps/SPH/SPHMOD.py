@@ -10,6 +10,7 @@ dims = spheralDimensions()
 
 from NodeCoupling import *
 from SPHHydroBase import *
+from PSPHHydroBase import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -46,5 +47,6 @@ DamagedNodeCoupling%(ndim)id = PYB11TemplateClass(DamagedNodeCoupling, template_
 DamagedNodeCouplingWithFrags%(ndim)id = PYB11TemplateClass(DamagedNodeCouplingWithFrags, template_parameters="%(Dimension)s")
 
 SPHHydroBase%(ndim)id = PYB11TemplateClass(SPHHydroBase, template_parameters="%(Dimension)s")
+PSPHHydroBase%(ndim)id = PYB11TemplateClass(PSPHHydroBase, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})

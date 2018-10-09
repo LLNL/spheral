@@ -3,6 +3,7 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from GenericHydro import *
+from RestartMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralSPH")
@@ -109,7 +110,7 @@ mass density, velocity, and specific thermal energy."""
         return "void"
 
     #...........................................................................
-    # Virtual methods
+    # Methods
     @PYB11const
     def updateVolume(state = "State<DIM>&",
                      boundaries = "const bool"):
@@ -178,3 +179,8 @@ boundary conditions."""
     DvDx =                         PYB11property("const FieldList<DIM, Tensor>&",   "DvDx",                 returnpolicy="reference_internal")
     internalDvDx =                 PYB11property("const FieldList<DIM, Tensor>&",   "internalDvDx",         returnpolicy="reference_internal")
     pairAccelerations =            PYB11property("const FieldList<DIM, std::vector<Vector> >&", "pairAccelerations", returnpolicy="reference_internal")
+
+#-------------------------------------------------------------------------------
+# Inject methods
+#-------------------------------------------------------------------------------
+PYB11inject(RestartMethods, SPHHydroBase)

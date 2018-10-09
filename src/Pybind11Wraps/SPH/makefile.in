@@ -11,7 +11,8 @@ PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 PYB11SRCS = \
 	NodeCoupling.py \
-	SPHHydroBase.py
+	SPHHydroBase.py \
+	PSPHHydroBase.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
