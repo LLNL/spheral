@@ -213,4 +213,5 @@ AC_OUTPUT(helpers/makefile_master \
           Pybind11Wraps/Utilities/makefile \
           Pybind11Wraps/NodeGenerators/makefile \
           Pybind11Wraps/FieldOperations/makefile \
+          Pybind11Wraps/SPH/makefile \
           SimulationControl/spheralDimensions.py)
