@@ -28,6 +28,114 @@ class Mesh:
     minEdgesPerFace = PYB11readonly(static=True)
     minNodesPerFace = PYB11readonly(static=True)
 
+    #...........................................................................
+    # Constructors
+    def pyinit(self):
+        "Default constructor"
+
+    def pyinit1(self,
+                generators = "const std::vector<Vector>&",
+                xmin = "const Vector&",
+                xmax = "const Vector&"):
+        "Construct as a tesselation of points in a box"
+
+    def pyinit2(self,
+                generators = "const std::vector<Vector>&",
+                boundary = "const FacetedVolume&"):
+        "Construct as a tesselation of points in a bounding volume"
+
+    def pyinit3(self,
+                nodePositions = "const std::vector<Vector>&",
+                edgeNodes = "const std::vector<std::vector<unsigned> >&",
+                faceEdges = "const std::vector<std::vector<unsigned> >&",
+                zoneFaces = "const std::vector<std::vector<int> >&"):
+        "Construct with explicitly specified geometry & topology"
+
+    #...........................................................................
+    # Methods
+    def clear(self):
+        "Clear out any exising data in the mesh."
+        return "void"
+
+    def reconstruct(self,
+                    generators = "const std::vector<Vector>&",
+                    xmin = "const Vector&",
+                    xmax = "const Vector&"):
+        "Reconstruct from a set of generators in a box."
+        return "void"
+
+    def reconstruct(self,
+                    generators = "const std::vector<Vector>&",
+                    boundary = "const FacetedVolume&"):
+        "Reconstruct from a set of generators in a bounding volume."
+        return "void"
+
+    def removeZonesByMask(self,
+                          mask = "const std::vector<unsigned>&"):
+        """Remove zones from the mesh according to a mask:
+   mask[i] = 0  ---> remove zone i
+   mask[i] = 1  ---> keep zone i"""
+        return "void"
+
+    def cleanEdges(self, edgeTol = "const double"):
+        "Remove edges below a threshold fraction size."
+        return "void"
+
+    @PYB11returnpolicy("reference_internal")
+    @PYB11const
+    def node(self, i="const unsigned"):
+        "Return a Mesh::Node by index"
+        return "const Mesh<%(Dimension)s>::Node&"
+
+    @PYB11returnpolicy("reference_internal")
+    @PYB11const
+    def edge(self, i="const unsigned"):
+        "Return a Mesh::Edge by index"
+        return "const Mesh<%(Dimension)s>::Edge&"
+
+    @PYB11returnpolicy("reference_internal")
+    @PYB11const
+    def face(self, i="const unsigned"):
+        "Return a Mesh::Face by index"
+        return "const Mesh<%(Dimension)s>::Face&"
+
+    @PYB11returnpolicy("reference_internal")
+    @PYB11const
+    def zone(self, i="const unsigned"):
+        "Return a Mesh::Zone by index"
+        return "const Mesh<%(Dimension)s>::Zone&"
+
+    @PYB11const
+    @PYB11implementation("[](const Mesh<%(Dimension)s>& self) { return py::make_iterator(self.nodeBegin(), self.nodeEnd()); }, py::keep_alive<0, 1>()")
+    def nodes(self):
+        "Return a Mesh::Node by index"
+        return "py::list"
+
+    @PYB11const
+    @PYB11implementation("[](const Mesh<%(Dimension)s>& self) { return py::make_iterator(self.edgeBegin(), self.edgeEnd()); }, py::keep_alive<0, 1>()")
+    def edges(self):
+        "Return a Mesh::Edge by index"
+        return "py::list"
+
+    @PYB11const
+    @PYB11implementation("[](const Mesh<%(Dimension)s>& self) { return py::make_iterator(self.faceBegin(), self.faceEnd()); }, py::keep_alive<0, 1>()")
+    def faces(self):
+        "Return a Mesh::Face by index"
+        return "py::list"
+
+    @PYB11const
+    @PYB11implementation("[](const Mesh<%(Dimension)s>& self) { return py::make_iterator(self.zoneBegin(), self.zoneEnd()); }, py::keep_alive<0, 1>()")
+    def zones(self):
+        "Return a Mesh::Zone by index"
+        return "py::list"
+
+    #...........................................................................
+    # Properties
+    numNodes = PYB11property("unsigned")
+    numEdges = PYB11property("unsigned")
+    numFaces = PYB11property("unsigned")
+    numZones = PYB11property("unsigned")
+
     #---------------------------------------------------------------------------
     # Mesh::Node
     #---------------------------------------------------------------------------
