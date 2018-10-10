@@ -1,4 +1,4 @@
-from SpheralModules.Spheral import PhysicalConstants
+from SpheralMaterial import PhysicalConstants
 
 #-------------------------------------------------------------------------------
 # MKS units.

@@ -1,4 +1,7 @@
-from SolidSpheral import *
+from SpheralGeometry import *
+from SpheralMaterial import *
+from SpheralNeighbor import *
+from SpheralNodeList import *
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()

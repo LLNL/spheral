@@ -100,7 +100,6 @@ mass density, velocity, and specific thermal energy."""
     yieldStrength = PYB11property("const FieldList<DIM, Scalar>&", "yieldStrength", returnpolicy="reference_internal")
     plasticStrain0 = PYB11property("const FieldList<DIM, Scalar>&", "plasticStrain0", returnpolicy="reference_internal")
     Hfield0 = PYB11property("const FieldList<DIM, SymTensor>&", "Hfield0", returnpolicy="reference_internal")
-    fragIDs = PYB11property("const FieldList<DIM, int>&", "fragIDs", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods
