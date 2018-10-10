@@ -10,8 +10,7 @@ import pickle
 import time
 import sys
 
-from SpheralModules import *
-from SpheralModules.Spheral import *
+from SpheralCompiledPackages import *
 
 #-------------------------------------------------------------------------------
 # Generic class definition (all dimensions).

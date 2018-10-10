@@ -4,8 +4,8 @@
 #-------------------------------------------------------------------------------
 import os, mpi
 from Spheral import *
-from SpheralModules import silo
-from SpheralModules.silo import SiloAttributes as SA
+from SpheralCompiledPackages import silo
+from SpheralCompiledPackages import SiloAttributes as SA
 
 #-------------------------------------------------------------------------------
 # siloPointMeshDump -- this is the one the user should actually call!

@@ -37,11 +37,11 @@ def __JohnsonCookDamageFactory(nodeList,
 
     # Import the approprite bits of Spheral.
     exec("""
-from SpheralModules.Spheral.PhysicsSpace import JohnsonCookDamage%(ndim)sd as JohnsonCookDamage
-from SpheralModules.Spheral.FieldSpace import ScalarField%(ndim)sd as ScalarField
-from SpheralModules.Spheral.DataBaseSpace import DataBase%(ndim)sd as DataBase
-from SpheralModules.Spheral import nodeOrdering%(ndim)sd as nodeOrdering
-from SpheralModules.Spheral import mortonOrderIndices%(ndim)sd as mortonOrderIndices
+from SpheralCompiledPackages import JohnsonCookDamage%(ndim)sd as JohnsonCookDamage
+from SpheralCompiledPackages import ScalarField%(ndim)sd as ScalarField
+from SpheralCompiledPackages import DataBase%(ndim)sd as DataBase
+from SpheralCompiledPackages import nodeOrdering%(ndim)sd as nodeOrdering
+from SpheralCompiledPackages import mortonOrderIndices%(ndim)sd as mortonOrderIndices
 """ % {"ndim" : ndim})
 
     # Prepare the fields for D1 and D2

@@ -3,8 +3,7 @@
 #------------------------------------------------------------------------------
 import sys, os, gc, warnings, mpi
 
-from SpheralModules.Spheral import *
-from SpheralModules import Timer
+from SpheralCompiledPackages import *
 from SpheralTimer import SpheralTimer
 from SpheralConservation import SpheralConservation
 from GzipFileIO import GzipFileIO
@@ -14,17 +13,6 @@ from findLastRestart import findLastRestart
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
-for dim in dims:
-    exec("""
-from SpheralModules.Spheral import State%(dim)sd
-from SpheralModules.Spheral import StateDerivatives%(dim)sd
-from SpheralModules.Spheral import iterateIdealH%(dim)sd
-from SpheralModules.Spheral import ASPHSmoothingScale%(dim)sd
-from SpheralModules.Spheral import SPHSmoothingScale%(dim)sd
-from SpheralModules.Spheral import TableKernel%(dim)sd
-from SpheralModules.Spheral import BSplineKernel%(dim)sd
-from SpheralModules import vector_of_Physics%(dim)sd
-""" % {"dim" : dim})
 
 class SpheralController:
 
@@ -615,13 +603,13 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         # boundary condition and insert it into the list of boundaries for each physics
         # package.
         else:
-            # exec("from SpheralModules.Spheral import NestedGridDistributedBoundary%s" % self.dim)
+            # exec("from SpheralCompiledPackages import NestedGridDistributedBoundary%s" % self.dim)
             # self.domainbc = eval("NestedGridDistributedBoundary%s.instance()" % self.dim)
-            # from SpheralModules.Spheral import BoundingVolumeDistributedBoundary1d, \
+            # from SpheralCompiledPackages import BoundingVolumeDistributedBoundary1d, \
             #                                    BoundingVolumeDistributedBoundary2d, \
             #                                    BoundingVolumeDistributedBoundary3d
             # self.domainbc = eval("BoundingVolumeDistributedBoundary%s.instance()" % self.dim)
-            exec("from SpheralModules.Spheral import TreeDistributedBoundary%s" % self.dim)
+            exec("from SpheralCompiledPackages import TreeDistributedBoundary%s" % self.dim)
             self.domainbc = eval("TreeDistributedBoundary%s.instance()" % self.dim)
 
             # Iterate over each of the physics packages.
@@ -675,12 +663,11 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         self.redistribute = None
         self.redistributeTimer = SpheralTimer("Time for redistributing nodes.")
         if mpi.procs > 1:
-            from SpheralModules import Spheral
             try:
-                #self.redistribute = eval("Spheral.ParmetisRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                #self.redistribute = eval("Spheral.SortAndDivideRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                #self.redistribute = eval("Spheral.PeanoHilbertOrderRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                self.redistribute = eval("Spheral.VoronoiRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                #self.redistribute = eval("ParmetisRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                #self.redistribute = eval("SortAndDivideRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                #self.redistribute = eval("PeanoHilbertOrderRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                self.redistribute = eval("VoronoiRedistributeNodes%s(W.kernelExtent)" % self.dim)
             except:
                 print "Warning: this appears to be a parallel run, but Controller cannot construct"
                 print "         dynamic redistributer."

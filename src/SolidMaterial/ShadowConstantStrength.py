@@ -4,7 +4,7 @@
 # Provides convenient constructors for the ConstantStrength model using the canned
 # values in MaterialPropertiesLib.py.
 #-------------------------------------------------------------------------------
-from SpheralModules.Spheral import PhysicalConstants
+from SpheralCompiledPackages import PhysicalConstants
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
 from spheralDimensions import spheralDimensions
@@ -12,7 +12,7 @@ dims = spheralDimensions()
 
 for dim in dims:
     exec("""
-from SpheralModules.Spheral import ConstantStrength%(dim)sd as RealConstantStrength%(dim)sd
+from SpheralCompiledPackages import ConstantStrength%(dim)sd as RealConstantStrength%(dim)sd
 """ % {"dim" : dim})
 
 #-------------------------------------------------------------------------------

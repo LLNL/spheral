@@ -1,7 +1,6 @@
 # SpheralConservation
 import mpi
-from SpheralModules import *
-from SpheralModules.Spheral import *
+from SpheralCompiledPackages import *
 
 #-------------------------------------------------------------------------------
 # Conservation

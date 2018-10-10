@@ -4,9 +4,7 @@ import mpi
 import random
 
 from NodeGeneratorBase import *
-from Spheral import Vector2d, Tensor2d, SymTensor2d, \
-     rotationMatrix2d, testPointInBox2d, SiloFileIO
-from SpheralModules.Spheral import *
+from SpheralCompiledPackages import *
 
 from sobol import i4_sobol
 from centroidalRelaxNodes import centroidalRelaxNodes

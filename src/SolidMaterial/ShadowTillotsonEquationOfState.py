@@ -9,10 +9,10 @@ dims = spheralDimensions()
 
 for dim in dims:
     exec("""
-from SpheralModules.Spheral import TillotsonEquationOfState%(dim)sd as RealTillotsonEquationOfState%(dim)sd
+from SpheralCompiledPackages import TillotsonEquationOfState%(dim)sd as RealTillotsonEquationOfState%(dim)sd
 """ % {"dim" : dim})
 
-from SpheralModules.Spheral import PhysicalConstants, PressureFloor, ZeroPressure
+from SpheralCompiledPackages import PhysicalConstants, PressureFloor, ZeroPressure
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
 #-------------------------------------------------------------------------------

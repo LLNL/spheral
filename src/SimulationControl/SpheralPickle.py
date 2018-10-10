@@ -4,13 +4,7 @@
 # for communication!
 #-------------------------------------------------------------------------------
 import copy_reg, pickle
-from SpheralModules import *
-from SpheralModules.Spheral import *
-
-## from SpheralModules.Spheral import Vector1d, Vector2d, Vector3d, \
-##                                    Tensor1d, Tensor2d, Tensor3d, \
-##                                    SymTensor1d, SymTensor2d, SymTensor3d, \
-##                                    ThirdRankTensor1d, ThirdRankTensor2d, ThirdRankTensor3d
+from SpheralCompiledPackages import *
 
 #-------------------------------------------------------------------------------
 # Vector1d

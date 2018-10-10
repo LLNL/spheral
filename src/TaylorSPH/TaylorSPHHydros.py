@@ -1,6 +1,4 @@
-from SpheralModules.Spheral.TaylorSPHSpace import *
-from SpheralModules.Spheral.NodeSpace import *
-from SpheralModules.Spheral.PhysicsSpace import *
+from SpheralCompiledPackages import *
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()

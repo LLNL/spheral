@@ -3,8 +3,8 @@
 # radiographs with Hades.
 #-------------------------------------------------------------------------------
 import Spheral
-from SpheralModules import silo
-from SpheralModules.silo import SiloAttributes as SA
+from SpheralCompiledPackages import silo
+from SpheralCompiledPackages import SiloAttributes as SA
 import mpi
 import sys, os, struct, time, bisect
 from operator import mul
