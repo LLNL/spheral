@@ -101,7 +101,6 @@ public:
   const FieldList<Dimension, Scalar>& yieldStrength() const;
   const FieldList<Dimension, Scalar>& plasticStrain0() const;
   const FieldList<Dimension, SymTensor>& Hfield0() const;
-  const FieldList<Dimension, int>& fragIDs() const;
 
   // Control whether allow damaged material to have stress relieved.
   bool damageRelieveRubble() const;
@@ -125,7 +124,6 @@ private:
   FieldList<Dimension, Scalar> mYieldStrength;
   FieldList<Dimension, Scalar> mPlasticStrain0;
   FieldList<Dimension, SymTensor> mHfield0;
-  FieldList<Dimension, int> mFragIDs;
 
   // The restart registration.
   RestartRegistrationType mRestart;
