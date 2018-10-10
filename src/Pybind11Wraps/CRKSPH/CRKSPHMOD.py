@@ -371,3 +371,9 @@ gradientCRKSPH%(label)s = PYB11TemplateFunction(gradientCRKSPH, template_paramet
        "Dimension" : "Dim<" + str(ndim) + ">",
        "element"   : element,
        "label"     : PYB11mangle(element)})
+
+#-------------------------------------------------------------------------------
+# 2D
+#-------------------------------------------------------------------------------
+if 2 in dims:
+    from CRKSPHHydroBaseRZ import *
