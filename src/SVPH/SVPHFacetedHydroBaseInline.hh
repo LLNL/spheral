@@ -15,7 +15,7 @@ template<typename Dimension>
 inline
 void
 SVPHFacetedHydroBase<Dimension>::
-densityUpdate(const MassDensityType type) {
+densityUpdate(MassDensityType type) {
   mDensityUpdate = type;
 }
 
@@ -33,7 +33,7 @@ template<typename Dimension>
 inline
 void
 SVPHFacetedHydroBase<Dimension>::
-HEvolution(const HEvolutionType type) {
+HEvolution(HEvolutionType type) {
   mHEvolution = type;
 }
 
@@ -51,7 +51,7 @@ SVPHFacetedHydroBase<Dimension>::compatibleEnergyEvolution() const {
 template<typename Dimension>
 inline
 void
-SVPHFacetedHydroBase<Dimension>::compatibleEnergyEvolution(const bool val) {
+SVPHFacetedHydroBase<Dimension>::compatibleEnergyEvolution(bool val) {
   mCompatibleEnergyEvolution = val;
 }
 
@@ -68,7 +68,7 @@ SVPHFacetedHydroBase<Dimension>::XSVPH() const {
 template<typename Dimension>
 inline
 void
-SVPHFacetedHydroBase<Dimension>::XSVPH(const bool val) {
+SVPHFacetedHydroBase<Dimension>::XSVPH(bool val) {
   mXSVPH = val;
 }
 
@@ -85,7 +85,7 @@ SVPHFacetedHydroBase<Dimension>::linearConsistent() const {
 template<typename Dimension>
 inline
 void
-SVPHFacetedHydroBase<Dimension>::linearConsistent(const bool val) {
+SVPHFacetedHydroBase<Dimension>::linearConsistent(bool val) {
   mLinearConsistent = val;
 }
 
@@ -102,7 +102,7 @@ SVPHFacetedHydroBase<Dimension>::generateVoid() const {
 template<typename Dimension>
 inline
 void
-SVPHFacetedHydroBase<Dimension>::generateVoid(const bool val) {
+SVPHFacetedHydroBase<Dimension>::generateVoid(bool val) {
   mGenerateVoid = val;
 }
 
@@ -119,7 +119,7 @@ SVPHFacetedHydroBase<Dimension>::fcentroidal() const {
 template<typename Dimension>
 inline
 void
-SVPHFacetedHydroBase<Dimension>::fcentroidal(const typename Dimension::Scalar val) {
+SVPHFacetedHydroBase<Dimension>::fcentroidal(typename Dimension::Scalar val) {
   VERIFY2(val >= 0.0 and val <= 1.0,
           "SVPHFacetedHydro range error : fcentroidal should be in the range [0,1].");
   mfcentroidal = val;
@@ -138,7 +138,7 @@ SVPHFacetedHydroBase<Dimension>::fcellPressure() const {
 template<typename Dimension>
 inline
 void
-SVPHFacetedHydroBase<Dimension>::fcellPressure(const typename Dimension::Scalar val) {
+SVPHFacetedHydroBase<Dimension>::fcellPressure(typename Dimension::Scalar val) {
   VERIFY2(val >= 0.0 and val <= 1.0,
           "SVPHFacetedHydro range error : fcellPressure should be in the range [0,1].");
   mfcellPressure = val;

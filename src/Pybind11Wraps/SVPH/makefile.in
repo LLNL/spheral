@@ -1,0 +1,16 @@
+# -*-makefile-*-
+# Spheral++ SVPH pybind11 package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = SVPH
+PKGDIR = $(PKGNAME)/
+PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
+#PYB11SRCS = \
+
+#------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
+EXTRALIBS += $(LDRPATH)
