@@ -10,7 +10,12 @@ PKGNAME = CRKSPH
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 PYB11SRCS = \
-	CRKSPHHydroBase.py
+	CRKSPHHydroBase.py \
+	CRKSPHHydroBase.py \
+	SolidCRKSPHHydroBase.py \
+	CRKSPHVariant.py\
+	CRKSPHHydroBaseRZ.py \
+	SolidCRKSPHHydroBaseRZ.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

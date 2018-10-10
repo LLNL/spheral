@@ -1,17 +1,18 @@
 #-------------------------------------------------------------------------------
-# SolidCRKSPHHydroBase
+# SolidCRKSPHHydroBaseRZ
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from CRKSPHHydroBase import *
+from SolidCRKSPHHydroBase import *
 from RestartMethods import *
 
-@PYB11template("Dimension")
+@PYB11template()
+@PYB11template_dict({"Dimension" : "Dim<2>"})
 @PYB11module("SpheralCRKSPH")
-class SolidCRKSPHHydroBase(CRKSPHHydroBase):
-    "SolidCRKSPHHydroBase -- The CRKSPH/ACRKSPH solid material hydrodynamic package for Spheral++."
+class SolidCRKSPHHydroBaseRZ(CRKSPHHydroBase):
+    "An area weighted RZ specialization of solid CRKSPH for cylindrical coordinates"
 
     typedefs = """
-    typedef %(Dimension)s DIM;
+    typedef Dim<2> DIM;
     typedef typename DIM::Scalar Scalar;
     typedef typename DIM::Vector Vector;
     typedef typename DIM::Tensor Tensor;
@@ -76,6 +77,16 @@ mass density, velocity, and specific thermal energy."""
         return "void"
 
     @PYB11virtual
+    def finalize(self,
+                 time = "const Scalar",
+                 dt = "const Scalar",
+                 dataBase = "DataBase<DIM>&",
+                 state = "State<DIM>&",
+                 derivs = "StateDerivatives<DIM>&"):
+        "Finalize the hydro at the completion of an integration step."
+        return "void"
+                  
+    @PYB11virtual
     def applyGhostBoundaries(self,
                              state = "State<DIM>&",
                              derivs = "StateDerivatives<DIM>&"):
@@ -90,20 +101,11 @@ mass density, velocity, and specific thermal energy."""
         return "void"
 
     #...........................................................................
-    # Properties
-    damageRelieveRubble = PYB11property("bool", "damageRelieveRubble", "damageRelieveRubble",
-                                        doc="Control whether allow damaged material to have stress relieved.")
-
-    DdeviatoricStressDt = PYB11property("const FieldList<DIM, SymTensor>&", "DdeviatoricStressDt", returnpolicy="reference_internal")
-    bulkModulus = PYB11property("const FieldList<DIM, Scalar>&", "bulkModulus", returnpolicy="reference_internal")
-    shearModulus = PYB11property("const FieldList<DIM, Scalar>&", "shearModulus", returnpolicy="reference_internal")
-    yieldStrength = PYB11property("const FieldList<DIM, Scalar>&", "yieldStrength", returnpolicy="reference_internal")
-    plasticStrain0 = PYB11property("const FieldList<DIM, Scalar>&", "plasticStrain0", returnpolicy="reference_internal")
-    Hfield0 = PYB11property("const FieldList<DIM, SymTensor>&", "Hfield0", returnpolicy="reference_internal")
-    fragIDs = PYB11property("const FieldList<DIM, int>&", "fragIDs", returnpolicy="reference_internal")
+    deviatoricStressTT = PYB11property("const FieldList<DIM, Scalar>&", "deviatoricStressTT", returnpolicy="reference_internal")
+    DdeviatoricStressTTDt = PYB11property("const FieldList<DIM, Scalar>&", "DdeviatoricStressTTDt", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, SolidCRKSPHHydroBase)
+PYB11inject(RestartMethods, SolidCRKSPHHydroBaseRZ)
 

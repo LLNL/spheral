@@ -377,3 +377,4 @@ gradientCRKSPH%(label)s = PYB11TemplateFunction(gradientCRKSPH, template_paramet
 #-------------------------------------------------------------------------------
 if 2 in dims:
     from CRKSPHHydroBaseRZ import *
+    from SolidCRKSPHHydroBaseRZ import *
