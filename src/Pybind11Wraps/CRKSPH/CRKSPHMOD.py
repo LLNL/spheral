@@ -10,6 +10,7 @@ dims = spheralDimensions()
 
 from CRKSPHHydroBase import *
 from SolidCRKSPHHydroBase import *
+from CRKSPHVariant import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -305,6 +306,7 @@ for ndim in dims:
     exec('''
 CRKSPHHydroBase%(ndim)id = PYB11TemplateClass(CRKSPHHydroBase, template_parameters="%(Dimension)s")
 SolidCRKSPHHydroBase%(ndim)id = PYB11TemplateClass(SolidCRKSPHHydroBase, template_parameters="%(Dimension)s")
+CRKSPHVariant%(ndim)id = PYB11TemplateClass(CRKSPHVariant, template_parameters="%(Dimension)s")
 
 @PYB11cppname("computeVoronoiVolume")
 def computeVoronoiVolume%(ndim)id(position = "const FieldList<%(Dimension)s, %(Dimension)s::Vector>&",
