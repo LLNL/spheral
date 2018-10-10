@@ -8,8 +8,8 @@
 # do some magic 'cause type info and dynamic_casts get screwed up between
 # g++ built libraries.  Sigh.
 # ------------------------------------------------------------------------------
-import sys, ctypes
 try:
+    import sys, ctypes
     sys.setdlopenflags(sys.getdlopenflags() | ctypes.RTLD_GLOBAL)
     #sys.setdlopenflags(ctypes.RTLD_NOW | ctypes.RTLD_GLOBAL)
     #import sys, DLFCN
@@ -22,21 +22,14 @@ except:
     pass
 
 # ------------------------------------------------------------------------------
-# Import the core Spheral compiled packages.
-# ------------------------------------------------------------------------------
-from SpheralModules import *
-from SpheralModules.Spheral import *
-from SpheralModules.Spheral.PythonBoundFunctors import *
-
-# ------------------------------------------------------------------------------
-# PolyCliper
-# ------------------------------------------------------------------------------
-import SpheralModules.PolyClipper as PolyClipper
-
-# ------------------------------------------------------------------------------
 # Load up MPI.
 # ------------------------------------------------------------------------------
 import mpi
+
+# ------------------------------------------------------------------------------
+# Import the compiled packages.
+# ------------------------------------------------------------------------------
+from SpheralCompiledPackages import *
 
 # ------------------------------------------------------------------------------
 # Import the Material python extensions.
@@ -48,6 +41,7 @@ from MaterialEquationsOfState import *
 # Import the various FluidNodeLists.
 # ------------------------------------------------------------------------------
 from FluidNodeLists import *
+from SolidNodeLists import *
 from VoidNodeLists import *
 
 # ------------------------------------------------------------------------------
@@ -57,7 +51,31 @@ from SPHHydros import *
 from PSPHHydros import *
 from SVPHHydros import *
 from CRKSPHHydros import *
+from SolidSPHHydros import *
+from SolidSPHHydrosRZ import *
+from SolidCRKSPHHydros import *
+#from TaylorSPHHydros import *
 from SPHUtilities import *
+
+# ------------------------------------------------------------------------------
+# Import the SolidMaterial python extensions.
+# ------------------------------------------------------------------------------
+from SolidMaterialUnits import *
+from SolidMaterialEquationsOfState import *
+
+from GradyKippTensorDamage import *
+from JohnsonCookDamageFactories import (JohnsonCookDamageConstant,
+                                        JohnsonCookDamageGaussian,
+                                        JohnsonCookDamageWeibull)
+
+# ------------------------------------------------------------------------------
+# Import our shadow layers for augmenting C++ types.
+# ------------------------------------------------------------------------------
+for shadowedthing in ("TillotsonEquationOfState",
+                      "ConstantStrength"):
+    for dim in dims:
+        exec("from Shadow%(thing)s import %(thing)s%(dim)sd" % {"thing" : shadowedthing,
+                                                                "dim"   : dim})
 
 # ------------------------------------------------------------------------------
 # Helpful things with strings.
@@ -82,15 +100,6 @@ from SpheralPickle import *
 #from ExtendFlatFileIO import *
 
 # ------------------------------------------------------------------------------
-# If we're running parallel, we need to import the Distributed package as well.
-# ------------------------------------------------------------------------------
-# try:
-#     from SpheralModules.Spheral.PartitionSpace import *
-# except:
-#     print "Warning: unable to load Distributed components, parallel mode not available."
-#     pass
-
-# ------------------------------------------------------------------------------
 # Import the controller and a standard timer class.
 # ------------------------------------------------------------------------------
 from SpheralTimer import *
@@ -108,7 +117,6 @@ try:
     from PolytopeModules import polytope
 except:
     print "WARNING: unable to import polytope python bindings."
-
 
 # ------------------------------------------------------------------------------
 # Prepare for timing

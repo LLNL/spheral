@@ -188,8 +188,9 @@ AC_OUTPUT(helpers/makefile_master \
           PythonMPIInterfaces/makefile \
           PBGWraps/makefile \
           PBGWraps/SpheralModulesBindings.py \
+          PBGWraps/SpheralCompiledPackages.py \
           Pybind11Wraps/makefile \
-          Pybind11Wraps/Spheral.py \
+          Pybind11Wraps/SpheralCompiledPackages.py \
           Pybind11Wraps/OpenMP/makefile \
           Pybind11Wraps/CXXTypes/makefile \
           Pybind11Wraps/PolyClipper/makefile \

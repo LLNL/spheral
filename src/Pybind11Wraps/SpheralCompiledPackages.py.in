@@ -1,0 +1,6 @@
+# ------------------------------------------------------------------------------
+# Import the compiled packages.
+# ------------------------------------------------------------------------------
+pkgs = "@PYTHONPKGS@"
+for package in pkgs.split():
+    exec("from Spheral%s import *" % package)
