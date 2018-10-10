@@ -462,12 +462,14 @@ def PYB11generateClass(klass, klassattrs, ssout):
     ss("  }\n\n")
 
     # Look for any class scope classes and bind them
-    klasses = [x for x in dir(klassinst) if (inspect.isclass(eval("klassinst.%s" % x)) and x in klass.__dict__)]
-    for kname in klasses:
-        nklass = eval("klassinst.%s" % kname)
+    klasses = [(x, eval("klass.%s" % x)) for x in dir(klassinst) if (inspect.isclass(eval("klass.%s" % x)) and x in klass.__dict__)]
+    klasses = sorted(klasses, key=PYB11sort_by_inheritance(klasses))
+    for (kname, nklass) in klasses:
+        #nklass = eval("klassinst.%s" % kname)
         nklassattrs = PYB11attrs(nklass)
         nklassattrs["pyname"] = klassattrs["pyname"] + "_" + nklassattrs["pyname"]
         nklassattrs["cppname"] = klassattrs["cppname"] + "::" + nklassattrs["cppname"]
+        nklassattrs["template_dict"].update(klassattrs["template_dict"])
         PYB11generateClass(nklass, nklassattrs, ss)
 
     ssout(fs.getvalue() % klassattrs["template_dict"])
