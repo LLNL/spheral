@@ -133,8 +133,6 @@ mass density, velocity, and specific thermal energy."""
                                               doc="Flag to determine if we're using the total energy conserving compatible energy evolution scheme.")
     evolveTotalEnergy = PYB11property("bool", "evolveTotalEnergy", "evolveTotalEnergy",
                                       doc="Flag controlling if we evolve total or specific energy.")
-    gradhCorrection = PYB11property("bool", "gradhCorrection", "gradhCorrection",
-                                    doc="Flag to determine if we're using the grad h correction.")
     XSPH = PYB11property("bool", "XSPH", "XSPH",
                          doc="Flag to determine if we're using the XSPH algorithm.")
     smoothingScaleMethod = PYB11property("SmoothingScaleBase<DIM>&", "smoothingScaleMethod", returnpolicy="reference_internal",
@@ -164,7 +162,6 @@ mass density, velocity, and specific thermal energy."""
     weightedNeighborSum = PYB11property("const FieldList<DIM, Scalar>&", "weightedNeighborSum", returnpolicy="reference_internal")
     massSecondMoment = PYB11property("const FieldList<DIM, SymTensor>&", "massSecondMoment", returnpolicy="reference_internal")
     volume = PYB11property("const FieldList<DIM, Scalar>&", "volume", returnpolicy="reference_internal")
-    volume0 = PYB11property("const FieldList<DIM, Scalar>&", "volume0", returnpolicy="reference_internal")
     massDensityGradient = PYB11property("const FieldList<DIM, Vector>&", "massDensityGradient", returnpolicy="reference_internal")
     XSPHDeltaV = PYB11property("const FieldList<DIM, Vector>&", "XSPHDeltaV", returnpolicy="reference_internal")
     DxDt = PYB11property("const FieldList<DIM, Vector>&", "DxDt", returnpolicy="reference_internal")

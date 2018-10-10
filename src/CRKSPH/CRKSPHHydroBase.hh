@@ -149,10 +149,6 @@ public:
   bool evolveTotalEnergy() const;
   void evolveTotalEnergy(bool val);
 
-  // Flag to determine if we're using the grad h correction.
-  bool gradhCorrection() const;
-  void gradhCorrection(bool val);
-
   // Flag to determine if we're using the XSPH algorithm.
   bool XSPH() const;
   void XSPH(bool val);
@@ -194,7 +190,6 @@ public:
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldList<Dimension, SymTensor>& massSecondMoment() const;
   const FieldList<Dimension, Scalar>&    volume() const;
-  const FieldList<Dimension, Scalar>&    volume0() const;
   const FieldList<Dimension, Vector>&    massDensityGradient() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
@@ -247,7 +242,7 @@ protected:
   HEvolutionType mHEvolution;
   CRKOrder mCorrectionOrder;
   CRKVolumeType mVolumeType;
-  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mGradhCorrection, mXSPH;
+  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mXSPH;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
   bool mDetectSurfaces;
@@ -270,7 +265,6 @@ protected:
   FieldList<Dimension, SymTensor> mMassSecondMoment;
 
   FieldList<Dimension, Scalar>    mVolume;
-  FieldList<Dimension, Scalar>    mVolume0;
   FieldList<Dimension, Vector>    mMassDensityGradient;
 
   FieldList<Dimension, Vector>    mXSPHDeltaV;
