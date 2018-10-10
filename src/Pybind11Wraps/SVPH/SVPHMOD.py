@@ -68,8 +68,7 @@ SVPHFacetedHydroBase%(ndim)id = PYB11TemplateClass(SVPHFacetedHydroBase, templat
     for element in ("Dim<%i>::Scalar" % ndim,
                     "Dim<%i>::Vector" % ndim,
                     "Dim<%i>::Tensor" % ndim,
-                    "Dim<%i>::SymTensor" % ndim,
-                    "Dim<%i>::ThirdRankTensor" % ndim):
+                    "Dim<%i>::SymTensor" % ndim):
         exec('''
 sampleFieldListSVPH%(label)s = PYB11TemplateFunction(sampleFieldListSVPH, template_parameters=("%(Dimension)s", "%(element)s"), pyname="sampleFieldListSVPH")
 ''' % {"ndim"      : ndim,
