@@ -9,6 +9,7 @@ from spheralDimensions import *
 dims = spheralDimensions()
 
 from DamageModel import *
+from TensorDamageModel import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -90,6 +91,7 @@ fragments.  Result returned as an integer Field of fragement IDs."""
 for ndim in dims:
     exec('''
 DamageModel%(ndim)id = PYB11TemplateClass(DamageModel, template_parameters="%(Dimension)s")
+TensorDamageModel%(ndim)id = PYB11TemplateClass(TensorDamageModel, template_parameters="%(Dimension)s")
 
 weibullFlawDistributionBenzAsphaug%(ndim)id = PYB11TemplateFunction(weibullFlawDistributionBenzAsphaug, template_parameters="%(Dimension)s")
 weibullFlawDistributionOwen%(ndim)id = PYB11TemplateFunction(weibullFlawDistributionOwen, template_parameters="%(Dimension)s")
