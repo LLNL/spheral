@@ -52,6 +52,30 @@ class Mesh:
         "Construct with explicitly specified geometry & topology"
 
     #...........................................................................
+    # Virtual methods
+    @PYB11virtual
+    @PYB11const
+    def valid(self):
+        "Perform basic mesh validity checks."
+        return "std::string"
+
+    @PYB11virtual
+    @PYB11const
+    def validDomainInfo(self,
+                        xmin = "const Vector&",
+                        xmax = "const Vector&",
+                        checkUniqueSendProc = "const bool"):
+        "Check that the internal parallel info is consistent."
+        return "std::string"
+
+    #...........................................................................
+    # Static methods
+    @PYB11static
+    def positiveID(self, id = "const int"):
+        "Encapsulate the ones complement for signed (oriented) IDs."
+        return "int"
+
+    #...........................................................................
     # Methods
     def clear(self):
         "Clear out any exising data in the mesh."
@@ -108,26 +132,109 @@ class Mesh:
     @PYB11const
     @PYB11implementation("[](const Mesh<%(Dimension)s>& self) { return py::make_iterator(self.nodeBegin(), self.nodeEnd()); }, py::keep_alive<0, 1>()")
     def nodes(self):
-        "Return a Mesh::Node by index"
+        "Return the set of Mesh::Node"
         return "py::list"
 
     @PYB11const
     @PYB11implementation("[](const Mesh<%(Dimension)s>& self) { return py::make_iterator(self.edgeBegin(), self.edgeEnd()); }, py::keep_alive<0, 1>()")
     def edges(self):
-        "Return a Mesh::Edge by index"
+        "Return the set of Mesh::Edge"
         return "py::list"
 
     @PYB11const
     @PYB11implementation("[](const Mesh<%(Dimension)s>& self) { return py::make_iterator(self.faceBegin(), self.faceEnd()); }, py::keep_alive<0, 1>()")
     def faces(self):
-        "Return a Mesh::Face by index"
+        "Return the set of Mesh::Face"
         return "py::list"
 
     @PYB11const
     @PYB11implementation("[](const Mesh<%(Dimension)s>& self) { return py::make_iterator(self.zoneBegin(), self.zoneEnd()); }, py::keep_alive<0, 1>()")
     def zones(self):
-        "Return a Mesh::Zone by index"
+        "Return the set of Mesh::Zone"
         return "py::list"
+
+    @PYB11const
+    def zone(self,
+             nodeList = "const NodeList<%(Dimension)s>&",
+             i = "const unsigned"):
+        "We also provide the ability to extract the zone corresponding to the given node in a NodeList."
+        return "const Mesh<%(Dimension)s>::Zone&"
+
+    @PYB11const
+    def zone(self,
+             nodeListi = "const unsigned",
+             i = "const unsigned"):
+        "We also provide the ability to extract the zone corresponding to the given node in a NodeList."
+        return "const Mesh<%(Dimension)s>::Zone&"
+
+    @PYB11const
+    def offset(self, nodeList = "const NodeList<%(Dimension)s>&"):
+        "Extract the zone offset for the given NodeList."
+        return "unsigned"
+
+    @PYB11const
+    def offset(self, nodeListi = "const unsigned"):
+        "Extract the zone offset for the given NodeList."
+        return "unsigned"
+
+    @PYB11const
+    def lookupNodeListID(self,
+                         zoneID = "const unsigned",
+                         nodeListi = "unsigned&",
+                         i = "unsigned&"):
+        "Look up the (nodeListID, nodeID) corresponding to the given zoneID."
+        return "void"
+
+    def generateDomainInfo(self):
+        "Compute the communicated mesh structures."
+        return "void"
+
+    def generateParallelRind(self):
+        """Generate a parallel rind of cells around each domain representing a one zone
+thick set of zones shared with the neighboring processors.
+Note we do not recompute the shared elements (nodes & faces) as part of this
+procedure, so following this operation those shared elements are no longer
+on the surface of the local mesh!"""
+        return "void"
+
+    def generateParallelRind(self,
+                             generators = "std::vector<Vector>&",
+                             Hs = "std::vector<SymTensor>&"):
+        "This version also exchanges the generators for the rind cells."
+        return "void"
+
+    @PYB11const
+    def globalMeshNodeIDs(self):
+        "Compute unique global IDs for each node."
+        return "std::vector<unsigned>"
+
+    @PYB11const
+    def globalMeshFaceIDs(self, globalNodeIDs = "const std::vector<unsigned>&"):
+        "Compute unique global IDs for each face."
+        return "std::vector<unsigned>"
+
+    @PYB11const
+    def minimumScale(self):
+        "Compute the minimum scale (distance between nodes)."
+        return "double"
+
+    def storeNodeListOffsets(self,
+                             nodeListPtrs = "const std::vector<NodeList<%(Dimension)s>*>&",
+                             offsets = "const std::vector<unsigned>&"):
+        "Store the given offsets for a set of NodeLists."
+        return "void"
+
+    @PYB11const
+    def boundingSurface(self):
+        "Compute the bounding surface of the mesh."
+        return "FacetedVolume"
+
+    @PYB11const
+    def boundingBox(self,
+                    xmin = "Vector&",
+                    xmax = "Vector&"):
+        "Compute the bounding box of the mesh."
+        return "void"
 
     #...........................................................................
     # Properties
@@ -135,6 +242,9 @@ class Mesh:
     numEdges = PYB11property("unsigned")
     numFaces = PYB11property("unsigned")
     numZones = PYB11property("unsigned")
+    neighborDomains = PYB11property("std::vector<unsigned>&", returnpolicy="reference_internal")
+    sharedNodes = PYB11property("std::vector<std::vector<unsigned>>&", returnpolicy="reference_internal")
+    sharedFaces = PYB11property("std::vector<std::vector<unsigned>>&", returnpolicy="reference_internal")
 
     #---------------------------------------------------------------------------
     # Mesh::Node
