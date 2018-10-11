@@ -9,6 +9,7 @@ from spheralDimensions import *
 dims = spheralDimensions()
 
 from SolidEquationOfState import *
+from PorousEquationOfState import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -48,6 +49,7 @@ namespaces = ["Spheral"]
 for ndim in dims:
     exec('''
 SolidEquationOfState%(ndim)id = PYB11TemplateClass(SolidEquationOfState, template_parameters="%(Dimension)s")
+PorousEquationOfState%(ndim)id = PYB11TemplateClass(PorousEquationOfState, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">",
        "Vector"    : "Dim<" + str(ndim) + ">::Vector"})

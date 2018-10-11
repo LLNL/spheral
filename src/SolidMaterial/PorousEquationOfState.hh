@@ -89,10 +89,10 @@ public:
   void alpha(const Field<Dimension, Scalar>& x);
 
   Scalar alpha0() const;
-  void alpha0(const Scalar x);
+  void alpha0(Scalar x);
 
   Scalar c0() const;
-  void c0(const Scalar x);
+  void c0(Scalar x);
 
 private:
   //--------------------------- Private Interface ---------------------------//
