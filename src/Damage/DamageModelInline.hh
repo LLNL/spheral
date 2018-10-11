@@ -18,7 +18,7 @@ template<typename Dimension>
 inline
 void
 DamageModel<Dimension>::
-criticalNodesPerSmoothingScale(const double x) {
+criticalNodesPerSmoothingScale(double x) {
   VERIFY(x >= 0.0);
   mCriticalNodesPerSmoothingScale = x;
 }
