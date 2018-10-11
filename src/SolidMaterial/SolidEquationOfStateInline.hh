@@ -67,7 +67,7 @@ template<typename Dimension>
 inline
 void
 SolidEquationOfState<Dimension>::
-etamin(const double x) {
+etamin(double x) {
   mEtaMin = x;
 }
 
@@ -86,7 +86,7 @@ template<typename Dimension>
 inline
 void
 SolidEquationOfState<Dimension>::
-etamax(const double x) {
+etamax(double x) {
   mEtaMax = x;
 }
 
