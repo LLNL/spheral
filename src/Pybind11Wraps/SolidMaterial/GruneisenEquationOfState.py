@@ -24,7 +24,7 @@ Reference: Equation of State and Strength of Properties of Selected Materials
                referenceDensity = "const double",
                etamin = "const double",
                etamax = "const double",
-               C0, = "const double",
+               C0 = "const double",
                S1 = "const double",
                S2 = "const double",
                S3 = "const double",

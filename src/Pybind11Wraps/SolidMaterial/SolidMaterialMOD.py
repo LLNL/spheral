@@ -12,6 +12,8 @@ from SolidEquationOfState import *
 from PorousEquationOfState import *
 from StrainPorosity import *
 from LinearPolynomialEquationOfState import *
+from GruneisenEquationOfState import *
+from OsborneEquationOfState import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -54,5 +56,7 @@ SolidEquationOfState%(ndim)id = PYB11TemplateClass(SolidEquationOfState, templat
 PorousEquationOfState%(ndim)id = PYB11TemplateClass(PorousEquationOfState, template_parameters="%(Dimension)s")
 StrainPorosity%(ndim)id = PYB11TemplateClass(StrainPorosity, template_parameters="%(Dimension)s")
 LinearPolynomialEquationOfState%(ndim)id = PYB11TemplateClass(LinearPolynomialEquationOfState, template_parameters="%(Dimension)s")
+GruneisenEquationOfState%(ndim)id = PYB11TemplateClass(GruneisenEquationOfState, template_parameters="%(Dimension)s")
+OsborneEquationOfState%(ndim)id = PYB11TemplateClass(OsborneEquationOfState, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
