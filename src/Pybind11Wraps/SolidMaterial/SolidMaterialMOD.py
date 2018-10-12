@@ -15,6 +15,7 @@ from LinearPolynomialEquationOfState import *
 from GruneisenEquationOfState import *
 from OsborneEquationOfState import *
 from TillotsonEquationOfState import *
+from MurnahanEquationOfState import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -60,5 +61,6 @@ LinearPolynomialEquationOfState%(ndim)id = PYB11TemplateClass(LinearPolynomialEq
 GruneisenEquationOfState%(ndim)id = PYB11TemplateClass(GruneisenEquationOfState, template_parameters="%(Dimension)s")
 OsborneEquationOfState%(ndim)id = PYB11TemplateClass(OsborneEquationOfState, template_parameters="%(Dimension)s")
 TillotsonEquationOfState%(ndim)id = PYB11TemplateClass(TillotsonEquationOfState, template_parameters="%(Dimension)s")
+MurnahanEquationOfState%(ndim)id = PYB11TemplateClass(MurnahanEquationOfState, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})

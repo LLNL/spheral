@@ -101,14 +101,14 @@ public:
   double K() const;
   double atomicWeight() const;
   
-  void n(const double x);
-  void K(const double x);
-  void atomicWeight(const double x);
+  void n(double x);
+  void K(double x);
+  void atomicWeight(double x);
   
   // If requested, the user can specify an external pressure to be applied
   // in the pressure calculation.
   double externalPressure() const;
-  void externalPressure(const double x);
+  void externalPressure(double x);
 
   // Compute the derivative of the pressure with respect to the density.
   double computeDPDrho(const Scalar massDensity,
