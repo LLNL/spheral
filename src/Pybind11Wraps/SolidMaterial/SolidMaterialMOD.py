@@ -16,6 +16,7 @@ from GruneisenEquationOfState import *
 from OsborneEquationOfState import *
 from TillotsonEquationOfState import *
 from MurnahanEquationOfState import *
+from StrengthModel import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -62,5 +63,6 @@ GruneisenEquationOfState%(ndim)id = PYB11TemplateClass(GruneisenEquationOfState,
 OsborneEquationOfState%(ndim)id = PYB11TemplateClass(OsborneEquationOfState, template_parameters="%(Dimension)s")
 TillotsonEquationOfState%(ndim)id = PYB11TemplateClass(TillotsonEquationOfState, template_parameters="%(Dimension)s")
 MurnahanEquationOfState%(ndim)id = PYB11TemplateClass(MurnahanEquationOfState, template_parameters="%(Dimension)s")
+StrengthModel%(ndim)id = PYB11TemplateClass(StrengthModel, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
