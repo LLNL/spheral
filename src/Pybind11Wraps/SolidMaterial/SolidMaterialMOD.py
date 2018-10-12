@@ -19,6 +19,7 @@ from MurnahanEquationOfState import *
 from StrengthModel import *
 from NullStrength import *
 from ConstantStrength import *
+from SteinbergGuinanStrength import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -68,5 +69,6 @@ MurnahanEquationOfState%(ndim)id = PYB11TemplateClass(MurnahanEquationOfState, t
 StrengthModel%(ndim)id = PYB11TemplateClass(StrengthModel, template_parameters="%(Dimension)s")
 NullStrength%(ndim)id = PYB11TemplateClass(NullStrength, template_parameters="%(Dimension)s")
 ConstantStrength%(ndim)id = PYB11TemplateClass(ConstantStrength, template_parameters="%(Dimension)s")
+SteinbergGuinanStrength%(ndim)id = PYB11TemplateClass(SteinbergGuinanStrength, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
