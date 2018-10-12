@@ -9,9 +9,7 @@ from EOSAbstractMethods import *
 @PYB11module("SpheralSolidMaterial")
 class OsborneEquationOfState(EquationOfState):
     """OsborneEquationOfState -- Osborne  equation of state.
-
-Reference: Equation of State and Strength of Properties of Selected Materials
-           Daniel J. Steinberg, UCRL-MA-106439, February 13, 1991"""
+Reference: PAGOSA Physics manual, LA-14425-M"""
 
     typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
