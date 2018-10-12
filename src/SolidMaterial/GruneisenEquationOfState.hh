@@ -113,23 +113,23 @@ public:
   double atomicWeight() const;
   double Cv() const;
 
-  void C0(const double val);
-  void S1(const double val);
-  void S2(const double val);
-  void S3(const double val);
-  void gamma0(const double val);
-  void b(const double val);
-  void atomicWeight(const double val);
+  void C0(double val);
+  void S1(double val);
+  void S2(double val);
+  void S3(double val);
+  void gamma0(double val);
+  void b(double val);
+  void atomicWeight(double val);
 
   // Option to scale the thermal energy term by.  This is mostly useful for test problems
   // where you want to make the Gruneisen independent of energy.
   double energyMultiplier() const;
-  void energyMultiplier(const double val);
+  void energyMultiplier(double val);
 
   // If requested, the user can specify an external pressure to be applied
   // in the pressure calculation.
   double externalPressure() const;
-  void externalPressure(const double P);
+  void externalPressure(double P);
 
   // Compute (\partial P)/(\partial rho) for use in sound speed and bulk modulus.
   Scalar computeDPDrho(const Scalar massDensity,

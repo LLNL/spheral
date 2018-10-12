@@ -13,7 +13,8 @@ PYB11SRCS = \
 	SolidEquationOfState.py \
 	PorousEquationOfState.py \
 	StrainPorosity.py \
-	LinearPolynomialEquationOfState.py
+	LinearPolynomialEquationOfState.py \
+	GruneisenEquationOfState.py
 
 
 #------------------------------------------------------------------------------

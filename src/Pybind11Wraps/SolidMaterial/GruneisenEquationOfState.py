@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# LinearPolynomialEquationOfState
+# GruneisenEquationOfState
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from SolidEquationOfState import *
@@ -7,12 +7,11 @@ from EOSAbstractMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralSolidMaterial")
-class LinearPolynomialEquationOfState(EquationOfState):
-    """LinearPolynomialEquationOfState -- An equation of state approximated by a
-linear polynomial, i.e.:
+class GruneisenEquationOfState(EquationOfState):
+    """GruneisenEquationOfState -- Gruneisen  equation of state.
 
-  P(rho, e) = A0 + A1*mu + a2*mu^2 + a3*mu^3 + (B0 + B1*mu + B2*mu^2)*e
-  mu = rho/rho0 - 1.0"""
+Reference: Equation of State and Strength of Properties of Selected Materials
+           Daniel J. Steinberg, UCRL-MA-106439, February 13, 1991"""
 
     typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
@@ -25,20 +24,19 @@ linear polynomial, i.e.:
                referenceDensity = "const double",
                etamin = "const double",
                etamax = "const double",
-               a0 = "const double",
-               a1 = "const double",
-               a2 = "const double",
-               a3 = "const double",
-               b0 = "const double",
-               b1 = "const double",
-               b2 = "const double",
+               C0, = "const double",
+               S1 = "const double",
+               S2 = "const double",
+               S3 = "const double",
+               gamma0 = "const double",
+               b = "const double",
                atomicWeight = "const double",
                constants = "const PhysicalConstants&",
                externalPressure = ("const double", "0.0"),
                minimumPressure = ("const double", "std::numeric_limits<double>::lowest()"),
                maximumPressure = ("const double", "std::numeric_limits<double>::max()"),
                minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor")):
-        "Linear-polynomial EOS"
+        "Gruneisen EOS"
 
     #...........................................................................
     # Methods
@@ -99,17 +97,20 @@ linear polynomial, i.e.:
 
     #...........................................................................
     # Properties
-    a0 = PYB11property("double", "a0", "a0")
-    a1 = PYB11property("double", "a1", "a1")
-    a2 = PYB11property("double", "a2", "a2")
-    a3 = PYB11property("double", "a3", "a3")
-    b0 = PYB11property("double", "b0", "b0")
-    b1 = PYB11property("double", "b1", "b1")
-    b2 = PYB11property("double", "b2", "b2")
+    C0 = PYB11property("double", "C0", "C0")
+    S1 = PYB11property("double", "S1", "S1")
+    S2 = PYB11property("double", "S2", "S2")
+    S3 = PYB11property("double", "S3", "S3")
+    gamma0 = PYB11property("double", "gamma0", "gamma0")
+    b = PYB11property("double", "b", "b")
+    Cv = PYB11property("double", "Cv")
     atomicWeight = PYB11property("double", "atomicWeight", "atomicWeight")
+    energyMultiplier = PYB11property("double", "energyMultiplier", "energyMultiplier",
+                                     doc="""Option to scale the thermal energy term by.  This is mostly useful for test problems
+where you want to make the Gruneisen independent of energy.""")
     externalPressure = PYB11property("double", "externalPressure", "externalPressure")
 
 #-------------------------------------------------------------------------------
 # Inject EOS interface
 #-------------------------------------------------------------------------------
-PYB11inject(EOSAbstractMethods, LinearPolynomialEquationOfState, virtual=True, pure_virtual=False)
+PYB11inject(EOSAbstractMethods, GruneisenEquationOfState, virtual=True, pure_virtual=False)
