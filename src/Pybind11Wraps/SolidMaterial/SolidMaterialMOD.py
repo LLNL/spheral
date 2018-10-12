@@ -11,6 +11,7 @@ dims = spheralDimensions()
 from SolidEquationOfState import *
 from PorousEquationOfState import *
 from StrainPorosity import *
+from LinearPolynomialEquationOfState import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -52,6 +53,6 @@ for ndim in dims:
 SolidEquationOfState%(ndim)id = PYB11TemplateClass(SolidEquationOfState, template_parameters="%(Dimension)s")
 PorousEquationOfState%(ndim)id = PYB11TemplateClass(PorousEquationOfState, template_parameters="%(Dimension)s")
 StrainPorosity%(ndim)id = PYB11TemplateClass(StrainPorosity, template_parameters="%(Dimension)s")
+LinearPolynomialEquationOfState%(ndim)id = PYB11TemplateClass(LinearPolynomialEquationOfState, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
-       "Dimension" : "Dim<" + str(ndim) + ">",
-       "Vector"    : "Dim<" + str(ndim) + ">::Vector"})
+       "Dimension" : "Dim<" + str(ndim) + ">"})
