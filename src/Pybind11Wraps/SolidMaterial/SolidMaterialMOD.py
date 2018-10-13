@@ -27,6 +27,8 @@ from CollinsStrength import *
 from PorousEquationOfState import *
 from PorousStrengthModel import *
 
+from PhysicsEvolvingMaterialLibrary import *
+
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
@@ -105,5 +107,7 @@ CollinsStrength%(ndim)id = PYB11TemplateClass(CollinsStrength, template_paramete
 
 PorousEquationOfState%(ndim)id = PYB11TemplateClass(PorousEquationOfState, template_parameters="%(Dimension)s")
 PorousStrengthModel%(ndim)id = PYB11TemplateClass(PorousStrengthModel, template_parameters="%(Dimension)s")
+
+PhysicsEvolvingMaterialLibrary%(ndim)id = PYB11TemplateClass(PhysicsEvolvingMaterialLibrary, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
