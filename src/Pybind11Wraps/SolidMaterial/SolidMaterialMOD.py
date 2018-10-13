@@ -20,6 +20,7 @@ from StrengthModel import *
 from NullStrength import *
 from ConstantStrength import *
 from SteinbergGuinanStrength import *
+from JohnsonCookStrength import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -93,5 +94,6 @@ StrengthModel%(ndim)id = PYB11TemplateClass(StrengthModel, template_parameters="
 NullStrength%(ndim)id = PYB11TemplateClass(NullStrength, template_parameters="%(Dimension)s")
 ConstantStrength%(ndim)id = PYB11TemplateClass(ConstantStrength, template_parameters="%(Dimension)s")
 SteinbergGuinanStrength%(ndim)id = PYB11TemplateClass(SteinbergGuinanStrength, template_parameters="%(Dimension)s")
+JohnsonCookStrength%(ndim)id = PYB11TemplateClass(JohnsonCookStrength, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
