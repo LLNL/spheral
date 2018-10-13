@@ -364,7 +364,8 @@ def PYB11generateClass(klass, klassattrs, ssout):
 
     # Check for base classes.
     cppname = "%(namespace)s%(cppname)s" % klassattrs
-    for bklass in inspect.getmro(klass)[1:]:
+    bklasses = PYB11getBaseClasses(klass)
+    for bklass in bklasses[klass]:
         bklassattrs = PYB11attrs(bklass)
         bcppname = "%(namespace)s%(cppname)s" % bklassattrs
         if bklassattrs["template"]:
@@ -377,7 +378,6 @@ def PYB11generateClass(klass, klassattrs, ssout):
             bcppname = bcppname % klassattrs["template_dict"]
         if bcppname != cppname:
             ss(", " + bcppname)
-            break
 
     # Any trampoline?
     if PYB11virtualClass(klass):

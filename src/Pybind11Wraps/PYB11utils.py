@@ -1,5 +1,5 @@
 from PYB11Decorators import *
-import inspect, StringIO, types
+import inspect, StringIO, types, itertools
 
 #-------------------------------------------------------------------------------
 # PYB11inject
@@ -34,6 +34,25 @@ def PYB11inject(fromcls, tocls,
         if not pure_virtual is None:
             exec('tocls.%s.__dict__["PYB11pure_virtual"] = %s' % (name, pure_virtual))
     return
+
+#-------------------------------------------------------------------------------
+# Return the base classes of a class
+#
+# Computes a dictionary giving the direct bases for all classes in the
+# inheritance hierarchy of a class.
+#-------------------------------------------------------------------------------
+def PYB11getBaseClasses(klass):
+    stuff = inspect.getclasstree(inspect.getmro(klass), unique=True)
+    def flatten(s, result):
+        if type(s) is list:
+            for val in s:
+                s = flatten(val, result)
+        else:
+            result.append(s)
+    flatstuff = []
+    flatten(stuff, flatstuff)
+    result = { k[0] : k[1] for k in flatstuff }
+    return result
 
 #-------------------------------------------------------------------------------
 # Key function to sort lists by source code order.
