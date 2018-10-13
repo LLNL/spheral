@@ -54,7 +54,30 @@ includes = ['"Geometry/Dimension.hh"',
 namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
-# Instantiate our types
+# NinthOrderPolynomialFit
+#-------------------------------------------------------------------------------
+class NinthOrderPolynomialFit:
+    "Used by Steinberg-Guinnan strength to approximate cold and melt energies"
+
+    def pyinit(self,
+               C0 = "const double",
+               C1 = "const double",
+               C2 = "const double",
+               C3 = "const double",
+               C4 = "const double",
+               C5 = "const double",
+               C6 = "const double",
+               C7 = "const double",
+               C8 = "const double",
+               C9 = "const double"):
+        "Construct with coefficients"
+
+    @PYB11const
+    def __call__(self, x="const double"):
+        return "double"
+
+#-------------------------------------------------------------------------------
+# Instantiate our dimensional types
 #-------------------------------------------------------------------------------
 for ndim in dims:
     exec('''
