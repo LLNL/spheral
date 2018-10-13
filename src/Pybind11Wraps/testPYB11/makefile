@@ -1,27 +1,19 @@
-SPHERALSRC = /usr/workspace/wsrzd/owen/projects/Spheral/spheral/src
-SPHERALBLD = /usr/workspace/wsrzd/owen/projects/Spheral/debug-pybind11-toss_3_x86_64_ib/Linux_x86_64
-#SPHERALSRC = /home/owen/projects/Spheral/spheral/src
-#SPHERALBLD = /home/owen/projects/Spheral/debug-pybind11/Linux_x86_64
+#SPHERALSRC = /usr/workspace/wsrzd/owen/projects/Spheral/spheral/src
+#SPHERALBLD = /usr/workspace/wsrzd/owen/projects/Spheral/debug-pybind11-toss_3_x86_64_ib/Linux_x86_64
+SPHERALSRC = /home/owen/projects/Spheral/spheral/src
+SPHERALBLD = /home/owen/projects/Spheral/debug-pybind11/Linux_x86_64
 PYTHON = $(SPHERALBLD)/bin/python
 CXX = g++
 CXXFLAGS = -fpic -fexceptions -std=c++11 -march=native -I.  -I$(SPHERALBLD)/include/python2.7  -I$(SPHERALBLD)/include
 
-all:	testInheritance testTemplateInheritance testEnums test_overload
+all:	testInheritance.so testTemplateInheritance.so testEnums.so testOverloadError.so
 
-testInheritance:	testInheritance.py
-	$(PYTHON) -c "import sys; sys.path += ['$(SPHERALSRC)/Pybind11Wraps']; from PYB11Generator import *; import testInheritance; PYB11generateModule(testInheritance)"
-	$(CXX) $(CXXFLAGS) -shared -o testInheritance.so testInheritance.cc
+%.so:	%.cc
+	$(CXX) $(CXXFLAGS) -shared -o $*.so $<
 
-testTemplateInheritance:	testTemplateInheritance.py
-	$(PYTHON) -c "import sys; sys.path += ['$(SPHERALSRC)/Pybind11Wraps']; from PYB11Generator import *; import testTemplateInheritance; PYB11generateModule(testTemplateInheritance)"
-	$(CXX) $(CXXFLAGS) -shared -o testTemplateInheritance.so testTemplateInheritance.cc
-
-testEnums:	testEnums.py
-	$(PYTHON) -c "import sys; sys.path += ['$(SPHERALSRC)/Pybind11Wraps']; from PYB11Generator import *; import testEnums; PYB11generateModule(testEnums)"
-	$(CXX) $(CXXFLAGS) -shared -o testEnums.so testEnums.cc
-
-test_overload: 	testOverloadError.cc
-	$(CXX) $(CXXFLAGS) -shared -o test_overload.so testOverloadError.cc
-
+%.so:	%MOD.py
+	$(eval mod = $(subst MOD,,$(basename $(<F))))
+	$(PYTHON) -c "import sys; sys.path += ['$(SPHERALSRC)/Pybind11Wraps']; from PYB11Generator import *; import $(mod)MOD; PYB11generateModule($(mod)MOD, '$(mod)')"
+	$(CXX) $(CXXFLAGS) -shared -o $(mod).so $(mod).cc
 clean:
 	rm -fr *.so testInheritance.cc testTemplateInheritance.cc testEnums.cc

@@ -30,7 +30,7 @@ class Btrampoline: public B {
   virtual void func(int x) override { PYBIND11_OVERLOAD     (void, B, func, x); }
 };
 
-PYBIND11_MODULE(test_overload, m) {
+PYBIND11_MODULE(testOverloadError, m) {
   py::class_<A, Atrampoline>(m, "A")
     .def(py::init<>())
     .def("func", (void (A::*)()) &A::func)
