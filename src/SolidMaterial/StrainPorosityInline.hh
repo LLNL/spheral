@@ -85,6 +85,14 @@ porousEOS() const {
 
 template<typename Dimension>
 inline
+const PorousStrengthModel<Dimension>&
+StrainPorosity<Dimension>::
+porousStrength() const {
+  return mPorousStrength;
+}
+
+template<typename Dimension>
+inline
 const NodeList<Dimension>&
 StrainPorosity<Dimension>::
 nodeList() const {

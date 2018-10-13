@@ -9,19 +9,23 @@ from spheralDimensions import *
 dims = spheralDimensions()
 
 from SolidEquationOfState import *
-from PorousEquationOfState import *
+
 from StrainPorosity import *
 from LinearPolynomialEquationOfState import *
 from GruneisenEquationOfState import *
 from OsborneEquationOfState import *
 from TillotsonEquationOfState import *
 from MurnahanEquationOfState import *
+
 from StrengthModel import *
 from NullStrength import *
 from ConstantStrength import *
 from SteinbergGuinanStrength import *
 from JohnsonCookStrength import *
 from CollinsStrength import *
+
+from PorousEquationOfState import *
+from PorousStrengthModel import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -86,7 +90,6 @@ for ndim in dims:
 SolidEquationOfState%(ndim)id = PYB11TemplateClass(SolidEquationOfState, template_parameters="%(Dimension)s")
 StrengthModel%(ndim)id = PYB11TemplateClass(StrengthModel, template_parameters="%(Dimension)s")
 
-PorousEquationOfState%(ndim)id = PYB11TemplateClass(PorousEquationOfState, template_parameters="%(Dimension)s")
 StrainPorosity%(ndim)id = PYB11TemplateClass(StrainPorosity, template_parameters="%(Dimension)s")
 LinearPolynomialEquationOfState%(ndim)id = PYB11TemplateClass(LinearPolynomialEquationOfState, template_parameters="%(Dimension)s")
 GruneisenEquationOfState%(ndim)id = PYB11TemplateClass(GruneisenEquationOfState, template_parameters="%(Dimension)s")
@@ -99,5 +102,8 @@ ConstantStrength%(ndim)id = PYB11TemplateClass(ConstantStrength, template_parame
 SteinbergGuinanStrength%(ndim)id = PYB11TemplateClass(SteinbergGuinanStrength, template_parameters="%(Dimension)s")
 JohnsonCookStrength%(ndim)id = PYB11TemplateClass(JohnsonCookStrength, template_parameters="%(Dimension)s")
 CollinsStrength%(ndim)id = PYB11TemplateClass(CollinsStrength, template_parameters="%(Dimension)s")
+
+PorousEquationOfState%(ndim)id = PYB11TemplateClass(PorousEquationOfState, template_parameters="%(Dimension)s")
+PorousStrengthModel%(ndim)id = PYB11TemplateClass(PorousStrengthModel, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
