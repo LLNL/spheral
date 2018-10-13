@@ -21,6 +21,7 @@ from NullStrength import *
 from ConstantStrength import *
 from SteinbergGuinanStrength import *
 from JohnsonCookStrength import *
+from CollinsStrength import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -83,6 +84,8 @@ class NinthOrderPolynomialFit:
 for ndim in dims:
     exec('''
 SolidEquationOfState%(ndim)id = PYB11TemplateClass(SolidEquationOfState, template_parameters="%(Dimension)s")
+StrengthModel%(ndim)id = PYB11TemplateClass(StrengthModel, template_parameters="%(Dimension)s")
+
 PorousEquationOfState%(ndim)id = PYB11TemplateClass(PorousEquationOfState, template_parameters="%(Dimension)s")
 StrainPorosity%(ndim)id = PYB11TemplateClass(StrainPorosity, template_parameters="%(Dimension)s")
 LinearPolynomialEquationOfState%(ndim)id = PYB11TemplateClass(LinearPolynomialEquationOfState, template_parameters="%(Dimension)s")
@@ -90,10 +93,11 @@ GruneisenEquationOfState%(ndim)id = PYB11TemplateClass(GruneisenEquationOfState,
 OsborneEquationOfState%(ndim)id = PYB11TemplateClass(OsborneEquationOfState, template_parameters="%(Dimension)s")
 TillotsonEquationOfState%(ndim)id = PYB11TemplateClass(TillotsonEquationOfState, template_parameters="%(Dimension)s")
 MurnahanEquationOfState%(ndim)id = PYB11TemplateClass(MurnahanEquationOfState, template_parameters="%(Dimension)s")
-StrengthModel%(ndim)id = PYB11TemplateClass(StrengthModel, template_parameters="%(Dimension)s")
+
 NullStrength%(ndim)id = PYB11TemplateClass(NullStrength, template_parameters="%(Dimension)s")
 ConstantStrength%(ndim)id = PYB11TemplateClass(ConstantStrength, template_parameters="%(Dimension)s")
 SteinbergGuinanStrength%(ndim)id = PYB11TemplateClass(SteinbergGuinanStrength, template_parameters="%(Dimension)s")
 JohnsonCookStrength%(ndim)id = PYB11TemplateClass(JohnsonCookStrength, template_parameters="%(Dimension)s")
+CollinsStrength%(ndim)id = PYB11TemplateClass(CollinsStrength, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
