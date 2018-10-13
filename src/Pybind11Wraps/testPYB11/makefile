@@ -16,4 +16,4 @@ all:	testInheritance.so testTemplateInheritance.so testEnums.so testOverloadErro
 	$(PYTHON) -c "import sys; sys.path += ['$(SPHERALSRC)/Pybind11Wraps']; from PYB11Generator import *; import $(mod)MOD; PYB11generateModule($(mod)MOD, '$(mod)')"
 	$(CXX) $(CXXFLAGS) -shared -o $(mod).so $(mod).cc
 clean:
-	rm -fr *.so testInheritance.cc testTemplateInheritance.cc testEnums.cc
+	rm -fr *.pyc *.so testInheritance.cc testTemplateInheritance.cc testEnums.cc
