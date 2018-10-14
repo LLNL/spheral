@@ -64,6 +64,7 @@ from FifthRankTensor import FifthRankTensor1d, FifthRankTensor2d, FifthRankTenso
 from EigenStruct import EigenStruct1d, EigenStruct2d, EigenStruct3d
 from Plane import Plane1d, Plane2d, Plane3d
 from Box1d import *
+from Polygon import *
 
 #-------------------------------------------------------------------------------
 # invertRankNTensor template
