@@ -1,5 +1,5 @@
 import copy
-from SolidSpheral import *
+from SpheralCompiledPackages import *
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
 from spheralDimensions import spheralDimensions

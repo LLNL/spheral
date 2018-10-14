@@ -41,7 +41,6 @@ from MaterialEquationsOfState import *
 # Import the various FluidNodeLists.
 # ------------------------------------------------------------------------------
 from FluidNodeLists import *
-from SolidNodeLists import *
 from VoidNodeLists import *
 
 # ------------------------------------------------------------------------------
@@ -51,9 +50,6 @@ from SPHHydros import *
 from PSPHHydros import *
 from SVPHHydros import *
 from CRKSPHHydros import *
-from SolidSPHHydros import *
-from SolidSPHHydrosRZ import *
-from SolidCRKSPHHydros import *
 #from TaylorSPHHydros import *
 from SPHUtilities import *
 
