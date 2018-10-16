@@ -66,6 +66,7 @@ from Plane import Plane1d, Plane2d, Plane3d
 from Box1d import *
 from Polygon import *
 from Polyhedron import *
+from Facet2d import *
 
 #-------------------------------------------------------------------------------
 # invertRankNTensor template
