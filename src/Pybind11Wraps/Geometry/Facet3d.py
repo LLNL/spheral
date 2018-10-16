@@ -1,19 +1,19 @@
 #-------------------------------------------------------------------------------
-# Facet2d
+# Facet3d
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 
-@PYB11cppname("GeomFacet2d")
-class Facet2d:
-    """GeomFacet2d -- A facet of a polygon (just two points).
+@PYB11cppname("GeomFacet3d")
+class Facet3d:
+    """GeomFacet3d -- A facet of a polyhedron (triangular)
 
-Note a Facet does not maintain it's own copies of it's end points -- the
-assumption is that this is a Facet of a GeomPolygon and that polygon owns
-the set of vertex positions."""
+Note a Facet does not maintain it's own copies of its vertices -- the
+assumption is that this is a Facet of a GeomPolyhedron and that polyhedron
+owns the set of vertex positions."""
 
     typedefs = """
-    typedef GeomFacet2d Facet2d;
-    typedef GeomFacet2d::Vector Vector;
+    typedef GeomFacet3d Facet3d;
+    typedef GeomFacet3d::Vector Vector;
 """
 
     #...........................................................................
@@ -23,9 +23,9 @@ the set of vertex positions."""
 
     def pyinit1(self,
                 vertices = "const std::vector<Vector>&",
-                point1 = "const unsigned",
-                point2 = "const unsigned"):
-        "Explicit constructor with vertices and edge point indices"
+                ipoints = "const std::vector<unsigned>&",
+                normal = "const Vector&"):
+        "Explicit constructor with vertices, point indices, and normal"
 
     #...........................................................................
     # Methods
@@ -50,6 +50,11 @@ the set of vertex positions."""
         return "int"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
+    def point(self, index="const unsigned"):
+        return "const Vector&"
+
+    @PYB11const
     def distance(self,
                  p = "const Vector&"):
         "Compute the minimum distance from the facet to a point."
@@ -71,10 +76,6 @@ the set of vertex positions."""
 
     #...........................................................................
     # Properties
-    point1 = PYB11property("const Vector&", returnpolicy="reference_internal")
-    point2 = PYB11property("const Vector&", returnpolicy="reference_internal")
-    ipoint1 = PYB11property("unsigned")
-    ipoint2 = PYB11property("unsigned")
     ipoints = PYB11property("const std::vector<unsigned>&", returnpolicy="reference_internal")
     normal = PYB11property("const Vector&", returnpolicy="reference_internal")
     position = PYB11property("Vector")

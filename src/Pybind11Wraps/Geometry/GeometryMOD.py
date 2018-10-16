@@ -67,6 +67,7 @@ from Box1d import *
 from Polygon import *
 from Polyhedron import *
 from Facet2d import *
+from Facet3d import *
 
 #-------------------------------------------------------------------------------
 # invertRankNTensor template
