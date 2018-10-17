@@ -342,9 +342,9 @@ ifneq "$(PBGTARGET)" ""
 -include $(notdir $(PBGTARGET:.py=.py.d))
 endif
 
-#ifneq "$(PYB11TARGET)" ""
-#-include $(notdir $(PYB11TARGET:.py=.d))
-#endif
+ifneq "$(PYB11TARGET)" ""
+-include $(notdir $(PYB11TARGET:.so=.d))
+endif
 
 #-------------------------------------------------------------------------------
 $(LIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
