@@ -220,4 +220,5 @@ AC_OUTPUT(helpers/makefile_master \
           Pybind11Wraps/Mesh/makefile \
           Pybind11Wraps/Damage/makefile \
           Pybind11Wraps/SolidMaterial/makefile \
+          Pybind11Wraps/Strength/makefile \
           SimulationControl/spheralDimensions.py)
