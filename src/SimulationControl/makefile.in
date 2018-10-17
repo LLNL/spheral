@@ -19,7 +19,6 @@ PYTHONTARGETS = \
 	$(srcdir)/SolidSpheral2d.py \
 	$(srcdir)/SolidSpheral3d.py \
 	$(srcdir)/SolidSpheralRZ.py \
-	$(srcdir)/SpheralPickle.py \
 	$(srcdir)/SpheralTestUtilities.py \
 	$(srcdir)/SpheralTimer.py \
 	$(srcdir)/SpheralConservation.py \

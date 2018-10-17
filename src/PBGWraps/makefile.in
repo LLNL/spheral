@@ -29,7 +29,8 @@ PBGPKGS = @PYTHONPKGS@
 SPHERALMODULES = SpheralModules
 
 PYTHONTARGETS = \
-	$(srcdir)/SpheralCompiledPackages.py
+	$(srcdir)/SpheralCompiledPackages.py \
+	$(srcdir)/SpheralPickle.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

@@ -12,7 +12,8 @@ PKGDIR = Pybind11Wraps
 INSTALLTARGETS = Spheral.pth
 
 PYTHONTARGETS = \
-	$(BUILDTOP)/Pybind11Wraps/SpheralCompiledPackages.py
+	$(BUILDTOP)/Pybind11Wraps/SpheralCompiledPackages.py \
+	$(srcdir)/SpheralPickle.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
