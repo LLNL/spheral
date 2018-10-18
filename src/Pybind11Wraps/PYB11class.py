@@ -386,7 +386,16 @@ def PYB11generateClass(klass, klassattrs, ssout):
     # Is this a singleton?
     if klassattrs["singleton"]:
         ss(", std::unique_ptr<%(namespace)s%(cppname)s, py::nodelete>" % klassattrs)
-    ss('> obj(m, "%(pyname)s");\n' % klassattrs)
+
+    # Close the template declaration
+    ss('> obj(m, "%(pyname)s"' % klassattrs)
+
+    # Are we allowing dynamic attributes for the class?
+    if klassattrs["dynamic_attr"]:
+        ss(", py::dynamic_attr()")
+
+    # Close the class declaration
+    ss(");\n")
 
     # Is there a doc string?
     doc = inspect.getdoc(klass)

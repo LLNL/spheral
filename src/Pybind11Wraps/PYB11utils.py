@@ -326,6 +326,7 @@ def PYB11attrs(obj):
          "ignore"         : False,
          "namespace"      : "",
          "singleton"      : False,
+         "dynamic_attr"   : None,
          "virtual"        : False,
          "pure_virtual"   : False,
          "protected"      : False,
