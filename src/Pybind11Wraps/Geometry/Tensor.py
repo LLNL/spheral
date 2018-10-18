@@ -29,12 +29,12 @@ class Tensor:
                 xx="double"):
         "Construct with element values."
 
-    def pyinit3(self,
+    def pyinit4(self,
                 xx="double", xy="double",
                 yx="double", yy="double"):
         "Construct with element values."
 
-    def pyinit4(self,
+    def pyinit5(self,
                 xx="double", xy="double", xz="double",
                 yx="double", yy="double", yz="double",
                 zx="double", zy="double", zz="double"):
