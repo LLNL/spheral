@@ -6,6 +6,7 @@ from RestartMethods import *
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11module("SpheralNodeList")
+@PYB11dynamic_attr
 class NodeList:
     "Spheral NodeList base class in %(Dimension)s"
 
