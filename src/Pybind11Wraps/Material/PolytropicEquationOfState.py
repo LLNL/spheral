@@ -2,10 +2,11 @@
 # PolytropicEquationOfState
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
+from EquationOfState import *
 from EOSAbstractMethods import *
 
 @PYB11template("Dimension")
-class PolytropicEquationOfState:
+class PolytropicEquationOfState(EquationOfState):
 
     typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;

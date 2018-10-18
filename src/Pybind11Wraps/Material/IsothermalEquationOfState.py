@@ -2,10 +2,11 @@
 # IsothermalEquationOfState
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
+from EquationOfState import *
 from EOSAbstractMethods import *
 
 @PYB11template("Dimension")
-class IsothermalEquationOfState:
+class IsothermalEquationOfState(EquationOfState):
 
     typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
