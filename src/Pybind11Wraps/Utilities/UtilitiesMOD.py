@@ -304,28 +304,28 @@ def segmentSegmentDistance%(ndim)id(a0 = "const %(Vector)s&",
     return "double"
 
 #...............................................................................
-numGlobalNodesNL%(ndim)id = PYB11TemplateFunction(numGlobalNodesNL, template_parameters="%(Dimension)s", pyname="numGlobalNodes")
-numGlobalNodesNL%(ndim)id = PYB11TemplateFunction(numGlobalNodesNL, template_parameters="%(Dimension)s", pyname="numGlobalNodes")
-numGlobalNodesDB%(ndim)id = PYB11TemplateFunction(numGlobalNodesDB, template_parameters="%(Dimension)s", pyname="numGlobalNodes")
-globalNodeIDsNL%(ndim)id = PYB11TemplateFunction(globalNodeIDsNL, template_parameters="%(Dimension)s", pyname="globalNodeIDs")
-globalNodeIDsDB%(ndim)id = PYB11TemplateFunction(globalNodeIDsDB, template_parameters="%(Dimension)s", pyname="globalNodeIDs")
+numGlobalNodes%(ndim)id = PYB11TemplateFunction(numGlobalNodesNL, template_parameters="%(Dimension)s")
+numGlobalNodes%(ndim)id = PYB11TemplateFunction(numGlobalNodesNL, template_parameters="%(Dimension)s")
+numGlobalNodesAll%(ndim)id = PYB11TemplateFunction(numGlobalNodesDB, template_parameters="%(Dimension)s")
+globalNodeIDs%(ndim)id = PYB11TemplateFunction(globalNodeIDsNL, template_parameters="%(Dimension)s")
+globalNodeIDsAll%(ndim)id = PYB11TemplateFunction(globalNodeIDsDB, template_parameters="%(Dimension)s")
 
-iterateIdealH%(ndim)id = PYB11TemplateFunction(iterateIdealH, template_parameters="%(Dimension)s", pyname="iterateIdealH")
+iterateIdealH%(ndim)id = PYB11TemplateFunction(iterateIdealH, template_parameters="%(Dimension)s")
 
-nodeOrdering%(ndim)id = PYB11TemplateFunction(nodeOrdering, template_parameters=("%(Dimension)s", "KeyTraits::Key"), pyname="iterateIdealH")
-mortonOrderIndices_pos%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_pos, template_parameters="%(Dimension)s", pyname="mortonOrderIndices")
-mortonOrderIndices_db%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_db, template_parameters="%(Dimension)s", pyname="mortonOrderIndices")
-mortonOrderIndices_mask%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_mask, template_parameters="%(Dimension)s", pyname="mortonOrderIndices")
-peanoHilbertOrderIndices_pos%(ndim)id = PYB11TemplateFunction(peanoHilbertOrderIndices_pos, template_parameters="%(Dimension)s", pyname="peanoHilbertOrderIndices")
-peanoHilbertOrderIndices_db%(ndim)id = PYB11TemplateFunction(peanoHilbertOrderIndices_db, template_parameters="%(Dimension)s", pyname="peanoHilbertOrderIndices")
+nodeOrdering%(ndim)id = PYB11TemplateFunction(nodeOrdering, template_parameters=("%(Dimension)s", "KeyTraits::Key"))
+mortonOrderIndices_pos%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_pos, template_parameters="%(Dimension)s")
+mortonOrderIndices_db%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_db, template_parameters="%(Dimension)s")
+mortonOrderIndices_mask%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_mask, template_parameters="%(Dimension)s")
+peanoHilbertOrderIndices_pos%(ndim)id = PYB11TemplateFunction(peanoHilbertOrderIndices_pos, template_parameters="%(Dimension)s")
+peanoHilbertOrderIndices_db%(ndim)id = PYB11TemplateFunction(peanoHilbertOrderIndices_db, template_parameters="%(Dimension)s")
 
-numberDensity%(ndim)id = PYB11TemplateFunction(numberDensity, template_parameters="%(Dimension)s", pyname="numberDensity")
-integrateThroughMeshAlongSegment%(ndim)id = PYB11TemplateFunction(integrateThroughMeshAlongSegment, template_parameters=("%(Dimension)s", "double"), pyname="integrateThroughMeshAlongSegment")
+numberDensity%(ndim)id = PYB11TemplateFunction(numberDensity, template_parameters="%(Dimension)s")
+integrateThroughMeshAlongSegment%(ndim)id = PYB11TemplateFunction(integrateThroughMeshAlongSegment, template_parameters=("%(Dimension)s", "double"))
 
-computeShepardsInterpolationScalar%(ndim)id = PYB11TemplateFunction(computeShepardsInterpolation, template_parameters=("%(Dimension)s", "double"), pyname="computeShepardsInterpolation")
-computeShepardsInterpolationVector%(ndim)id = PYB11TemplateFunction(computeShepardsInterpolation, template_parameters=("%(Dimension)s", "%(Vector)s"), pyname="computeShepardsInterpolation")
-computeShepardsInterpolationTensor%(ndim)id = PYB11TemplateFunction(computeShepardsInterpolation, template_parameters=("%(Dimension)s", "%(Tensor)s"), pyname="computeShepardsInterpolation")
-computeShepardsInterpolationSymTensor%(ndim)id = PYB11TemplateFunction(computeShepardsInterpolation, template_parameters=("%(Dimension)s", "%(SymTensor)s"), pyname="computeShepardsInterpolation")
+computeShepardsInterpolationScalar%(ndim)id = PYB11TemplateFunction(computeShepardsInterpolation, template_parameters=("%(Dimension)s", "double"))
+computeShepardsInterpolationVector%(ndim)id = PYB11TemplateFunction(computeShepardsInterpolation, template_parameters=("%(Dimension)s", "%(Vector)s"))
+computeShepardsInterpolationTensor%(ndim)id = PYB11TemplateFunction(computeShepardsInterpolation, template_parameters=("%(Dimension)s", "%(Tensor)s"))
+computeShepardsInterpolationSymTensor%(ndim)id = PYB11TemplateFunction(computeShepardsInterpolation, template_parameters=("%(Dimension)s", "%(SymTensor)s"))
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">",
        "Vector"    : "Dim<" + str(ndim) + ">::Vector",
