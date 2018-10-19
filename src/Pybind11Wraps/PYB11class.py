@@ -106,9 +106,9 @@ class PYB11TemplateClass:
         return klassattrs
 
 #-------------------------------------------------------------------------------
-# Make a class member function template instantiation
+# Make a class method template instantiation
 #-------------------------------------------------------------------------------
-class PYB11TemplateMember:
+class PYB11TemplateMethod:
 
     def __init__(self,
                  func_template,
@@ -448,7 +448,7 @@ def PYB11generateClass(klass, klassattrs, ssout):
     PYB11GenerateClassProperties(klass, klassinst, klassattrs, ss)
 
     # Bind any templated methods
-    templates = [x for x in dir(klassinst) if isinstance(eval("klassinst.%s" % x), PYB11TemplateMember) and x in klass.__dict__]
+    templates = [x for x in dir(klassinst) if isinstance(eval("klassinst.%s" % x), PYB11TemplateMethod) and x in klass.__dict__]
     if templates:
         ss("\n    // %(cppname)s template methods\n" % klassattrs)
         for tname in templates:

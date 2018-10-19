@@ -112,7 +112,7 @@ class State(StateBase):
         "Return the update policy for the given Field"
         return "PolicyPointer"
 
-    policy10 = PYB11TemplateMember(policy, "int", pyname="policy")
+    policy10 = PYB11TemplateMethod(policy, "int", pyname="policy")
 
     #...........................................................................
     # Proerties

@@ -143,7 +143,7 @@ def readPlane%(ndim)i(self,
                  "Dim<%i>::ThirdRankTensor" % ndim]
         for T in types:
             exec('''
-writeFieldVec%(Tmangle)s = PYB11TemplateMember(writeFieldVec,
+writeFieldVec%(Tmangle)s = PYB11TemplateMethod(writeFieldVec,
                                                template_parameters=("Dim<%(ndim)i>", "%(T)s"),
                                                pyname = "write")
 ''' % {"ndim"    : ndim,

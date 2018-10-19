@@ -147,8 +147,8 @@ class Boundary:
 
     for T in ("int", "Scalar", "Vector", "Tensor", "SymTensor", "ThirdRankTensor"):
         exec('''
-aflgb%(T)s = PYB11TemplateMember(applyFieldListGhostBoundary, template_parameters="%(T)s", pyname="applyFieldListGhostBoundary")
-eflgb%(T)s = PYB11TemplateMember(enforceFieldListBoundary, template_parameters="%(T)s", pyname="enforceFieldListBoundary")
+aflgb%(T)s = PYB11TemplateMethod(applyFieldListGhostBoundary, template_parameters="%(T)s", pyname="applyFieldListGhostBoundary")
+eflgb%(T)s = PYB11TemplateMethod(enforceFieldListBoundary, template_parameters="%(T)s", pyname="enforceFieldListBoundary")
 ''' % {"T" : T})
 
     #---------------------------------------------------------------------------
