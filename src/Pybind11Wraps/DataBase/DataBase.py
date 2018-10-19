@@ -163,6 +163,66 @@ class DataBase:
     def fluidTotalEnergy(self, result="FieldList<%(Dimension)s, Scalar>&"):
         return "void"
 
+    @PYB11const
+    def boundingBox(self,
+                    xmin = "Vector&",
+                    xmax = "Vector&",
+                    ghost = ("const bool", "true")):
+        "Compute coordinates bounding all nodes in the DataBase."
+        return "void"
+
+    @PYB11const
+    def boundingBox(self,
+                    xmin = "Vector&",
+                    xmax = "Vector&",
+                    mask = "const FieldList<%(Dimension)s, int>&",
+                    ghost = ("const bool", "true")):
+        "Compute coordinates bounding all nodes in the DataBase."
+        return "void"
+
+    @PYB11const
+    def localSamplingBoundingVolume(self,
+                                    centroid = "Vector&",
+                                    radiusNodes = "double&",
+                                    radiusSample = "double&",
+                                    xminNodes = "Vector&",
+                                    xmaxNodes = "Vector&",
+                                    xminSample = "Vector&",
+                                    xmaxSample = "Vector&"):
+        "Return the local max sampling extents."
+        return "void"
+
+    @PYB11const
+    def globalSamplingBoundingVolume(self,
+                                     centroid = "Vector&",
+                                     radiusNodes = "double&",
+                                     radiusSample = "double&",
+                                     xminNodes = "Vector&",
+                                     xmaxNodes = "Vector&",
+                                     xminSample = "Vector&",
+                                     xmaxSample = "Vector&"):
+        "Return the global max sampling extents."
+        return "void"
+
+    @PYB11const
+    def localSamplingBoundingBoxes(self,
+                                   xminima = "std::vector<Vector>&",
+                                   xmaxima = "std::vector<Vector>&"):
+        "Return the local min and max sampling extents for groupings of connected nodes."
+        return "void"
+
+    @PYB11const
+    def globalSamplingBoundingBoxes(self,
+                                    xminima = "std::vector<Vector>&",
+                                    xmaxima = "std::vector<Vector>&"):
+        "Return the global min and max sampling extents for groupings of connected nodes."
+        return "void"
+
+    @PYB11const
+    def valid(self):
+        "Provide a method to determine if the DataBase is in a minimally defined valid state."
+        return "bool"
+
     #...........................................................................
     # Template methods
     @PYB11template("DataType")
@@ -293,6 +353,9 @@ will get the new value regardless of resetValues."""
     resizeSolidFifthRankTensorFieldList  = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="FifthRankTensor")
     resizeSolidvector_of_doubleFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="std::vector<double>")
     resizeSolidvector_of_VectorFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="std::vector<Vector>")
+
+    #...........................................................................
+    # Attributes
 
     #...........................................................................
     # Properties
