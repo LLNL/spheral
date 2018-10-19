@@ -11,7 +11,8 @@ PKGDIR = $(PKGNAME)/
 PYB11SRCS = \
 	StateBase.py \
 	State.py \
-	StateDerivatives.py
+	StateDerivatives.py \
+	DataBase.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------

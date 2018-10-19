@@ -19,6 +19,7 @@ includes = ['"Geometry/Dimension.hh"',
             '"Field/Field.hh"',
             '"Neighbor/ConnectivityMap.hh"',
             '"Physics/Physics.hh"',
+            '"Utilities/DataTypeTraits.hh"',
             '<vector>',
             '<string>']
 

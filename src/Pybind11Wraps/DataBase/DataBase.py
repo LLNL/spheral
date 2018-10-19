@@ -12,6 +12,10 @@ class DataBase:
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
+    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
+    typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef typename DataBase<%(Dimension)s>::ConnectivityMapPtr ConnectivityMapPtr;
 """
 
@@ -118,6 +122,27 @@ class DataBase:
                                 refineNeighbors = "std::vector<std::vector<int>>&"):
         "Set the refine neighbor lists for all FluidNodeLists"
         return "void"
+
+    #...........................................................................
+    # Template methods
+    @PYB11template("DataType")
+    @PYB11const
+    def newGlobalFieldList(self,
+                           value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                           name = ("const Field<%(Dimension)s, %(DataType)s>::FieldName", '"Unnamed Field"')):
+        "Construct a new FieldList<%(DataType)s> for all NodeLists in DataBase"
+        return "FieldList<%(Dimension)s, %(DataType)s>"
+
+    newGlobalIntFieldList              = PYB11TemplateMethod(newGlobalFieldList, template_parameters="int")
+    newGlobalScalarFieldList           = PYB11TemplateMethod(newGlobalFieldList, template_parameters="double")
+    newGlobalVectorFieldList           = PYB11TemplateMethod(newGlobalFieldList, template_parameters="Vector")
+    newGlobalTensorFieldList           = PYB11TemplateMethod(newGlobalFieldList, template_parameters="Tensor")
+    newGlobalSymTensorFieldList        = PYB11TemplateMethod(newGlobalFieldList, template_parameters="SymTensor")
+    newGlobalThirdRankTensorFieldList  = PYB11TemplateMethod(newGlobalFieldList, template_parameters="ThirdRankTensor")
+    newGlobalFourthRankTensorFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="FourthRankTensor")
+    newGlobalFifthRankTensorFieldList  = PYB11TemplateMethod(newGlobalFieldList, template_parameters="FifthRankTensor")
+    newGlobalvector_of_doubleFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<double>")
+    newGlobalvector_of_VectorFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<Vector>")
 
     #...........................................................................
     # Properties
