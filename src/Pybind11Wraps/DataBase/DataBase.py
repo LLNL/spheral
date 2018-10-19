@@ -149,6 +149,45 @@ class DataBase:
         "Construct a new FieldList<%(DataType)s> for all SolidNodeLists in DataBase"
         return "FieldList<%(Dimension)s, %(DataType)s>"
 
+    @PYB11template("DataType")
+    @PYB11const
+    def resizeGlobalFieldList(self,
+                              fieldList = "FieldList<%(Dimension)s, %(DataType)s>&",
+                              value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                              name = ("const Field<%(Dimension)s, %(DataType)s>::FieldName", '"Unnamed Field"'),
+                              resetValues = ("const bool", "true")):
+        """Resize a FieldList to the number of NodeLists.
+Optionally we can also set all elements in the FieldList to the specified value.
+Note that if the FieldList is resized it is reconstructed from scratch, so all elements
+will get the new value regardless of resetValues."""
+        return "void"
+
+    @PYB11template("DataType")
+    @PYB11const
+    def resizeFluidFieldList(self,
+                             fieldList = "FieldList<%(Dimension)s, %(DataType)s>&",
+                             value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                             name = ("const Field<%(Dimension)s, %(DataType)s>::FieldName", '"Unnamed Field"'),
+                             resetValues = ("const bool", "true")):
+        """Resize a FieldList to the number of FluidNodeLists.
+Optionally we can also set all elements in the FieldList to the specified value.
+Note that if the FieldList is resized it is reconstructed from scratch, so all elements
+will get the new value regardless of resetValues."""
+        return "void"
+
+    @PYB11template("DataType")
+    @PYB11const
+    def resizeSolidFieldList(self,
+                             fieldList = "FieldList<%(Dimension)s, %(DataType)s>&",
+                             value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                             name = ("const Field<%(Dimension)s, %(DataType)s>::FieldName", '"Unnamed Field"'),
+                             resetValues = ("const bool", "true")):
+        """Resize a FieldList to the number of SolidNodeLists.
+Optionally we can also set all elements in the FieldList to the specified value.
+Note that if the FieldList is resized it is reconstructed from scratch, so all elements
+will get the new value regardless of resetValues."""
+        return "void"
+
     newGlobalIntFieldList              = PYB11TemplateMethod(newGlobalFieldList, template_parameters="int")
     newGlobalScalarFieldList           = PYB11TemplateMethod(newGlobalFieldList, template_parameters="double")
     newGlobalVectorFieldList           = PYB11TemplateMethod(newGlobalFieldList, template_parameters="Vector")
@@ -182,6 +221,39 @@ class DataBase:
     newSolidvector_of_doubleFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<double>")
     newSolidvector_of_VectorFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<Vector>")
 
+    resizeGlobalIntFieldList              = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="int")
+    resizeGlobalScalarFieldList           = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="double")
+    resizeGlobalVectorFieldList           = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="Vector")
+    resizeGlobalTensorFieldList           = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="Tensor")
+    resizeGlobalSymTensorFieldList        = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="SymTensor")
+    resizeGlobalThirdRankTensorFieldList  = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="ThirdRankTensor")
+    resizeGlobalFourthRankTensorFieldList = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="FourthRankTensor")
+    resizeGlobalFifthRankTensorFieldList  = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="FifthRankTensor")
+    resizeGlobalvector_of_doubleFieldList = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="std::vector<double>")
+    resizeGlobalvector_of_VectorFieldList = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="std::vector<Vector>")
+
+    resizeFluidIntFieldList              = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="int")
+    resizeFluidScalarFieldList           = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="double")
+    resizeFluidVectorFieldList           = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="Vector")
+    resizeFluidTensorFieldList           = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="Tensor")
+    resizeFluidSymTensorFieldList        = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="SymTensor")
+    resizeFluidThirdRankTensorFieldList  = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="ThirdRankTensor")
+    resizeFluidFourthRankTensorFieldList = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="FourthRankTensor")
+    resizeFluidFifthRankTensorFieldList  = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="FifthRankTensor")
+    resizeFluidvector_of_doubleFieldList = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="std::vector<double>")
+    resizeFluidvector_of_VectorFieldList = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="std::vector<Vector>")
+
+    resizeSolidIntFieldList              = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="int")
+    resizeSolidScalarFieldList           = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="double")
+    resizeSolidVectorFieldList           = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="Vector")
+    resizeSolidTensorFieldList           = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="Tensor")
+    resizeSolidSymTensorFieldList        = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="SymTensor")
+    resizeSolidThirdRankTensorFieldList  = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="ThirdRankTensor")
+    resizeSolidFourthRankTensorFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="FourthRankTensor")
+    resizeSolidFifthRankTensorFieldList  = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="FifthRankTensor")
+    resizeSolidvector_of_doubleFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="std::vector<double>")
+    resizeSolidvector_of_VectorFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="std::vector<Vector>")
+
     #...........................................................................
     # Properties
     numNodeLists = PYB11property("int", "numNodeLists", doc="Number of NodeLists in DataBase")
@@ -199,3 +271,5 @@ class DataBase:
     nodeListPtrs = PYB11property("const std::vector<NodeList<%(Dimension)s>*>&", "nodeListPtrs", doc="The set of NodeLists in the DataBase")
     fluidNodeListPtrs = PYB11property("const std::vector<FluidNodeList<%(Dimension)s>*>&", "fluidNodeListPtrs", doc="The set of FluidNodeLists in the DataBase")
     solidNodeListPtrs = PYB11property("const std::vector<SolidNodeList<%(Dimension)s>*>&", "solidNodeListPtrs", doc="The set of SolidNodeLists in the DataBase")
+
+    maxKernelExtent = PYB11property("double")
