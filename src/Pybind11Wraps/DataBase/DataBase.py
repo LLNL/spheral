@@ -123,6 +123,46 @@ class DataBase:
         "Set the refine neighbor lists for all FluidNodeLists"
         return "void"
 
+    @PYB11const
+    def globalHinverse(self, result="FieldList<%(Dimension)s, SymTensor>&"):
+        return "void"
+
+    @PYB11const
+    def fluidHinverse(self, result="FieldList<%(Dimension)s, SymTensor>&"):
+        return "void"
+
+    @PYB11const
+    def fluidPressure(self, result="FieldList<%(Dimension)s, Scalar>&"):
+        return "void"
+
+    @PYB11const
+    def fluidTemperature(self, result="FieldList<%(Dimension)s, Scalar>&"):
+        return "void"
+
+    @PYB11const
+    def fluidSoundSpeed(self, result="FieldList<%(Dimension)s, Scalar>&"):
+        return "void"
+
+    @PYB11const
+    def fluidVolume(self, result="FieldList<%(Dimension)s, Scalar>&"):
+        return "void"
+
+    @PYB11const
+    def fluidGamma(self, result="FieldList<%(Dimension)s, Scalar>&"):
+        return "void"
+
+    @PYB11const
+    def fluidEntropy(self, result="FieldList<%(Dimension)s, Scalar>&"):
+        return "void"
+
+    @PYB11const
+    def fluidLinearMomentum(self, result="FieldList<%(Dimension)s, Vector>&"):
+        return "void"
+
+    @PYB11const
+    def fluidTotalEnergy(self, result="FieldList<%(Dimension)s, Scalar>&"):
+        return "void"
+
     #...........................................................................
     # Template methods
     @PYB11template("DataType")
@@ -273,3 +313,28 @@ will get the new value regardless of resetValues."""
     solidNodeListPtrs = PYB11property("const std::vector<SolidNodeList<%(Dimension)s>*>&", "solidNodeListPtrs", doc="The set of SolidNodeLists in the DataBase")
 
     maxKernelExtent = PYB11property("double")
+
+    globalMass = PYB11property("FieldList<%(Dimension)s, Scalar>")
+    globalPosition = PYB11property("FieldList<%(Dimension)s, Vector>")
+    globalVelocity = PYB11property("FieldList<%(Dimension)s, Vector>")
+    globalHfield = PYB11property("FieldList<%(Dimension)s, SymTensor>")
+    globalWork = PYB11property("FieldList<%(Dimension)s, Scalar>")
+
+    fluidMass = PYB11property("FieldList<%(Dimension)s, Scalar>")
+    fluidPosition = PYB11property("FieldList<%(Dimension)s, Vector>")
+    fluidVelocity = PYB11property("FieldList<%(Dimension)s, Vector>")
+    fluidMassDensity = PYB11property("FieldList<%(Dimension)s, Scalar>")
+    fluidSpecificThermalEnergy = PYB11property("FieldList<%(Dimension)s, Scalar>")
+    fluidHfield = PYB11property("FieldList<%(Dimension)s, SymTensor>")
+    fluidWork = PYB11property("FieldList<%(Dimension)s, Scalar>")
+
+    solidDeviatoricStress = PYB11property("FieldList<%(Dimension)s, SymTensor>")
+    solidPlasticStrain = PYB11property("FieldList<%(Dimension)s, Scalar>")
+    solidPlasticStrainRate = PYB11property("FieldList<%(Dimension)s, Scalar>")
+    solidDamage = PYB11property("FieldList<%(Dimension)s, SymTensor>")
+    solidEffectiveDamage = PYB11property("FieldList<%(Dimension)s, SymTensor>")
+    solidDamageGradient = PYB11property("FieldList<%(Dimension)s, Vector>")
+    solidFragmentIDs = PYB11property("FieldList<%(Dimension)s, int>")
+
+    globalNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")
+    fluidNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")
