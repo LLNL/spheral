@@ -133,6 +133,22 @@ class DataBase:
         "Construct a new FieldList<%(DataType)s> for all NodeLists in DataBase"
         return "FieldList<%(Dimension)s, %(DataType)s>"
 
+    @PYB11template("DataType")
+    @PYB11const
+    def newFluidFieldList(self,
+                          value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                          name = ("const Field<%(Dimension)s, %(DataType)s>::FieldName", '"Unnamed Field"')):
+        "Construct a new FieldList<%(DataType)s> for all FluidNodeLists in DataBase"
+        return "FieldList<%(Dimension)s, %(DataType)s>"
+
+    @PYB11template("DataType")
+    @PYB11const
+    def newSolidFieldList(self,
+                          value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                          name = ("const Field<%(Dimension)s, %(DataType)s>::FieldName", '"Unnamed Field"')):
+        "Construct a new FieldList<%(DataType)s> for all SolidNodeLists in DataBase"
+        return "FieldList<%(Dimension)s, %(DataType)s>"
+
     newGlobalIntFieldList              = PYB11TemplateMethod(newGlobalFieldList, template_parameters="int")
     newGlobalScalarFieldList           = PYB11TemplateMethod(newGlobalFieldList, template_parameters="double")
     newGlobalVectorFieldList           = PYB11TemplateMethod(newGlobalFieldList, template_parameters="Vector")
@@ -143,6 +159,28 @@ class DataBase:
     newGlobalFifthRankTensorFieldList  = PYB11TemplateMethod(newGlobalFieldList, template_parameters="FifthRankTensor")
     newGlobalvector_of_doubleFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<double>")
     newGlobalvector_of_VectorFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<Vector>")
+
+    newFluidIntFieldList              = PYB11TemplateMethod(newFluidFieldList, template_parameters="int")
+    newFluidScalarFieldList           = PYB11TemplateMethod(newFluidFieldList, template_parameters="double")
+    newFluidVectorFieldList           = PYB11TemplateMethod(newFluidFieldList, template_parameters="Vector")
+    newFluidTensorFieldList           = PYB11TemplateMethod(newFluidFieldList, template_parameters="Tensor")
+    newFluidSymTensorFieldList        = PYB11TemplateMethod(newFluidFieldList, template_parameters="SymTensor")
+    newFluidThirdRankTensorFieldList  = PYB11TemplateMethod(newFluidFieldList, template_parameters="ThirdRankTensor")
+    newFluidFourthRankTensorFieldList = PYB11TemplateMethod(newFluidFieldList, template_parameters="FourthRankTensor")
+    newFluidFifthRankTensorFieldList  = PYB11TemplateMethod(newFluidFieldList, template_parameters="FifthRankTensor")
+    newFluidvector_of_doubleFieldList = PYB11TemplateMethod(newFluidFieldList, template_parameters="std::vector<double>")
+    newFluidvector_of_VectorFieldList = PYB11TemplateMethod(newFluidFieldList, template_parameters="std::vector<Vector>")
+
+    newSolidIntFieldList              = PYB11TemplateMethod(newSolidFieldList, template_parameters="int")
+    newSolidScalarFieldList           = PYB11TemplateMethod(newSolidFieldList, template_parameters="double")
+    newSolidVectorFieldList           = PYB11TemplateMethod(newSolidFieldList, template_parameters="Vector")
+    newSolidTensorFieldList           = PYB11TemplateMethod(newSolidFieldList, template_parameters="Tensor")
+    newSolidSymTensorFieldList        = PYB11TemplateMethod(newSolidFieldList, template_parameters="SymTensor")
+    newSolidThirdRankTensorFieldList  = PYB11TemplateMethod(newSolidFieldList, template_parameters="ThirdRankTensor")
+    newSolidFourthRankTensorFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="FourthRankTensor")
+    newSolidFifthRankTensorFieldList  = PYB11TemplateMethod(newSolidFieldList, template_parameters="FifthRankTensor")
+    newSolidvector_of_doubleFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<double>")
+    newSolidvector_of_VectorFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<Vector>")
 
     #...........................................................................
     # Properties
