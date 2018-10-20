@@ -8,6 +8,13 @@ from PYB11Generator import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
+from FieldBase import *
+from Field import *
+from ArithmeticField import *
+from MinMaxField import *
+from FieldList import *
+from FieldListSet import *
+
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
@@ -33,11 +40,6 @@ FieldStorageType = PYB11enum(("ReferenceFields", "CopyFields"), export_values=Tr
 #-------------------------------------------------------------------------------
 # Do our dimension dependent instantiations.
 #-------------------------------------------------------------------------------
-from FieldBase import *
-from Field import *
-from FieldList import *
-from FieldListSet import *
-
 for ndim in dims:
 
     #...........................................................................
