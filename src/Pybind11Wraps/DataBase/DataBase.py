@@ -356,6 +356,8 @@ will get the new value regardless of resetValues."""
 
     #...........................................................................
     # Attributes
+    nDim = PYB11readonly(static=True)
+    isRZ = PYB11readonly(static=True)
 
     #...........................................................................
     # Properties
