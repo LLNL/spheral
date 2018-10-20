@@ -28,7 +28,7 @@ This method is symplectic in the absence of dissipation."""
     def pyinit1(self, dataBase = "DataBase<DIM>&"):
         "Construct an integrator with a DataBase"
 
-    def pyinit1(self,
+    def pyinit2(self,
                 dataBase = "DataBase<DIM>&",
                 physicsPackages = "const std::vector<Physics<DIM>*>&"):
         "Construct an integrator with a DataBase and physics packages"
