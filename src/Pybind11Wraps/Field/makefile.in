@@ -10,6 +10,8 @@ PKGNAME = Field
 PKGDIR = $(PKGNAME)/
 PYB11SRCS = \
 	Field.py \
+	ArithmeticField.py \
+	MinMaxField.py \
 	FieldList.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 

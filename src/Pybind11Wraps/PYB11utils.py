@@ -25,7 +25,7 @@ def PYB11inject(fromcls, tocls,
                 pure_virtual = None):
     assert not (virtual and pure_virtual), "PYB11inject: cannot specify both virtual and pure_virtual as True!"
 
-    names = [x for x in dir(fromcls) if (x[:2] != "__" and inspect.ismethod(eval('fromcls.%s' % x)))]
+    names = [x for x in dir(fromcls) if (inspect.ismethod(eval('fromcls.%s' % x)))]
     for name in names:
         exec('''tocls.%(name)s = PYB11copy_func(fromcls.%(name)s)''' % {"name": name})
         #exec('''tocls.%(name)s = copy_func(eval("fromcls.__dict__['%(name)s']"))''' % {"name": name})

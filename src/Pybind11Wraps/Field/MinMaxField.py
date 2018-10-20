@@ -1,7 +1,7 @@
 import inspect
 from PYB11Generator import *
-from FieldBase import FieldBase
-from Field import Field
+from FieldBase import *
+from ArithmeticField import *
 
 #-------------------------------------------------------------------------------
 # Add min/max operations to a Field
@@ -25,4 +25,4 @@ class MinMaxField(FieldBase):
 #-------------------------------------------------------------------------------
 # Inject base field methods
 #-------------------------------------------------------------------------------
-PYB11inject(Field, MinMaxField)
+PYB11inject(ArithmeticField, MinMaxField)
