@@ -170,7 +170,7 @@ into compliance."""
     dtGrowth = PYB11property("Scalar", "dtGrowth", "dtGrowth", doc="Maximum allowed fractional time step growth")
     dataBase = PYB11property("DataBase<DIM>&", "dataBase", returnpolicy="reference_internal", doc="The DataBase of NodeLists")
     physicsPackages = PYB11property("const std::vector<Physics<DIM>*>&", returnpolicy="reference_internal", doc="The set of physics packages")
-    rigorousBoundaries = PYB11property("bool", doc="Toggle if ghost nodes should be recomputed every derivative estimate")
+    rigorousBoundaries = PYB11property("bool", "rigorousBoundaries", "rigorousBoundaries", doc="Toggle if ghost nodes should be recomputed every derivative estimate")
     updateBoundaryFrequency = PYB11property("int", "updateBoundaryFrequency", "updateBoundaryFrequency", doc="Optionally update the boundary ghost nodes only on this frequency of cycles")
     verbose = PYB11property("bool", "verbose", "verbose", doc="Verbose time step information every step")
     domainDecompositionIndependent = PYB11property("bool", "domainDecompositionIndependent", "domainDecompositionIndependent", doc="Order operations to be bit perfect reproducible regardless of domain decomposition")
