@@ -354,6 +354,29 @@ will get the new value regardless of resetValues."""
     resizeSolidvector_of_doubleFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="std::vector<double>")
     resizeSolidvector_of_VectorFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="std::vector<Vector>")
 
+    @PYB11cppname("nodeListPtrs")
+    @PYB11returnpolicy("reference_internal")
+    @PYB11const
+    def nodeLists(self):
+        return "const std::vector<NodeList<%(Dimension)s>*>&"
+
+    @PYB11cppname("fluidNodeListPtrs")
+    @PYB11returnpolicy("reference_internal")
+    @PYB11const
+    def fluidNodeLists(self):
+        return "const std::vector<FluidNodeList<%(Dimension)s>*>&"
+
+    @PYB11cppname("solidNodeListPtrs")
+    @PYB11returnpolicy("reference_internal")
+    @PYB11const
+    def solidNodeLists(self):
+        return "const std::vector<SolidNodeList<%(Dimension)s>*>&"
+
+    nodeListPtrs = PYB11property("const std::vector<NodeList<%(Dimension)s>*>&", "nodeListPtrs", doc="The set of NodeLists in the DataBase")
+    fluidNodeListPtrs = PYB11property("const std::vector<FluidNodeList<%(Dimension)s>*>&", "fluidNodeListPtrs", doc="The set of FluidNodeLists in the DataBase")
+    solidNodeListPtrs = PYB11property("const std::vector<SolidNodeList<%(Dimension)s>*>&", "solidNodeListPtrs", doc="The set of SolidNodeLists in the DataBase")
+
+
     #...........................................................................
     # Attributes
     nDim = PYB11readonly(static=True)
