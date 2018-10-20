@@ -58,46 +58,55 @@ class SolidNodeList(FluidNodeList):
         return "void"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def deviatoricStress(self):
         "The mass density field"
         return "const SymTensorField&"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def plasticStrain(self):
         "The plastic strain field"
         return "const ScalarField&"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def plasticStrainRate(self):
         "The plastic strain rate field"
         return "const ScalarField&"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def damage(self):
         "The damage field"
         return "const SymTensorField&"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def effectiveDamage(self):
         "The effective damage field"
         return "const SymTensorField&"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def damageGradient(self):
         "The damage gradient field"
         return "const VectorField&"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def fragmentIDs(self):
         "The fragment IDs field"
         return "const IntField&"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def particleTypes(self):
         "The particle type field"
         return "const IntField&"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def strengthModel(self):
         "Return the strength model object this SolidNodeList is associated with."
         return "const StrengthModel<%(Dimension)s>&"

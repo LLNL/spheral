@@ -34,26 +34,31 @@ class NodeList:
         return
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def mass(self):
         "The mass field"
         return "const ScalarField&"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def positions(self):
         "The position field"
         return "const VectorField&"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def velocity(self):
         "The velocity field"
         return "const VectorField&"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def Hfield(self):
         "The H tensor field"
         return "const SymTensorField&"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def work(self):
         "The CPU work field"
         return "ScalarField&"
@@ -100,6 +105,7 @@ class NodeList:
         return "NodeType"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def neighbor(self):
         "Neighbor object associated with this NodeList"
         return "Neighbor<%(Dimension)s>&"

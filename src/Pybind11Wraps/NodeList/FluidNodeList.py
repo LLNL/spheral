@@ -38,11 +38,13 @@ class FluidNodeList(NodeList):
         return
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def massDensity(self):
         "The mass density field"
         return "const ScalarField&"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def specificThermalEnergy(self):
         "The specific thermal energy field"
         return "const ScalarField&"
@@ -84,6 +86,7 @@ class FluidNodeList(NodeList):
         return "void"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def equationOfState(self):
         "Return the equation of state object this FluidNodeList is associated with."
         return "const EquationOfState<%(Dimension)s>&"
