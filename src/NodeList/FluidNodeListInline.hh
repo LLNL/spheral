@@ -74,7 +74,7 @@ template<typename Dimension>
 inline
 void
 FluidNodeList<Dimension>::
-rhoMin(const typename Dimension::Scalar x) {
+rhoMin(typename Dimension::Scalar x) {
   mRhoMin = x;
 }
 
@@ -90,7 +90,7 @@ template<typename Dimension>
 inline
 void
 FluidNodeList<Dimension>::
-rhoMax(const typename Dimension::Scalar x) {
+rhoMax(typename Dimension::Scalar x) {
   mRhoMax = x;
 }
 

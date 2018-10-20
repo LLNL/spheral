@@ -93,6 +93,7 @@ class FluidNodeList(NodeList):
         "Set the equation of state for this FluidNodeList."
         return "void"
 
+    #...........................................................................
     # Comparison
     def __eq__(self):
         "Equivalence test with another FluidNodeList"
@@ -100,32 +101,10 @@ class FluidNodeList(NodeList):
     def __ne__(self):
         "Inequivalence test with another FluidNodeList"
 
-    # Methods used for properties
-    @PYB11ignore
-    @PYB11cppname("rhoMin")
-    @PYB11const
-    def getrhoMin(self):
-        return "double"
-
-    @PYB11ignore
-    @PYB11cppname("rhoMin")
-    def setrhoMin(self, val="const double"):
-        return "void"
-
-    @PYB11ignore
-    @PYB11cppname("rhoMax")
-    @PYB11const
-    def getrhoMax(self):
-        return "double"
-
-    @PYB11ignore
-    @PYB11cppname("rhoMax")
-    def setrhoMax(self, val="const double"):
-        return "void"
-
+    #...........................................................................
     # Properties
-    rhoMin = property(getrhoMin, setrhoMin, doc="The minimum allowed mass density.")
-    rhoMax = property(getrhoMax, setrhoMax, doc="The maximum allowed mass density.")
+    rhoMin = PYB11property("Scalar", "rhoMin", "rhoMin", doc="The minimum allowed mass density.")
+    rhoMax = PYB11property("Scalar", "rhoMax", "rhoMax", doc="The maximum allowed mass density.")
 
 #-------------------------------------------------------------------------------
 # Inject the restart methods

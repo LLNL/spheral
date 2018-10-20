@@ -86,8 +86,8 @@ public:
   Scalar rhoMin() const;
   Scalar rhoMax() const;
 
-  void rhoMin(const Scalar x);
-  void rhoMax(const Scalar x);
+  void rhoMin(Scalar x);
+  void rhoMax(Scalar x);
 
   //****************************************************************************
   // Methods required for restarting.

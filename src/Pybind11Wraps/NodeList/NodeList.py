@@ -123,6 +123,7 @@ class NodeList:
         "Reorder the nodes to the given mapping"
         return "void"
 
+    #...........................................................................
     # Comparison
     def __eq__(self):
         "Equivalence test with another NodeList"
@@ -130,114 +131,22 @@ class NodeList:
     def __ne__(self):
         "Inequivalence test with another NodeList"
 
-    # Methods used for properties
-    @PYB11ignore
-    @PYB11cppname("name")
-    @PYB11const
-    def getname(self):
-        return "std::string"
-
-    @PYB11ignore
-    @PYB11cppname("numNodes")
-    @PYB11const
-    def getnumNodes(self):
-        return "unsigned"
-
-    @PYB11ignore
-    @PYB11cppname("numInternalNodes")
-    @PYB11const
-    def getnumInternalNodes(self):
-        return "unsigned"
-
-    @PYB11ignore
-    @PYB11cppname("numGhostNodes")
-    @PYB11const
-    def getnumGhostNodes(self):
-        return "unsigned"
-
-    @PYB11ignore
-    @PYB11cppname("numFields")
-    @PYB11const
-    def getnumFields(self):
-        "The number of fields registered on this NodeList"
-        return "int"
-
-    @PYB11const
-    @PYB11cppname("firstGhostNode")
-    def getfirstGhostNode(self):
-        "Index of the first ghost node on this NodeList"
-        return "unsigned"
-
-    @PYB11ignore
-    @PYB11cppname("nodesPerSmoothingScale")
-    @PYB11const
-    def getnodesPerSmoothingScale(self):
-        "Return the target number of nodes per smoothing scale"
-        return "Scalar"
-
-    @PYB11cppname("nodesPerSmoothingScale")
-    @PYB11ignore
-    def setnodesPerSmoothingScale(self, val="const Scalar"):
-        "Set the target number of nodes per smoothing scale"
-        return "void"
-
-    @PYB11ignore
-    @PYB11cppname("maxNumNeighbors")
-    @PYB11const
-    def getmaxNumNeighbors(self):
-        return "unsigned"
-
-    @PYB11ignore
-    @PYB11cppname("maxNumNeighbors")
-    def setmaxNumNeighbors(self, val="unsigned"):
-        return "unsigned"
-
-    @PYB11ignore
-    @PYB11cppname("hmin")
-    @PYB11const
-    def gethmin(self):
-        return "double"
-
-    @PYB11ignore
-    @PYB11cppname("hmin")
-    def sethmin(self, val="double"):
-        return "void"
-
-    @PYB11ignore
-    @PYB11cppname("hmax")
-    @PYB11const
-    def gethmax(self):
-        return "double"
-
-    @PYB11ignore
-    @PYB11cppname("hmax")
-    def sethmax(self, val="double"):
-        return "void"
-
-    @PYB11ignore
-    @PYB11cppname("hminratio")
-    @PYB11const
-    def gethminratio(self):
-        return "double"
-
-    @PYB11ignore
-    @PYB11cppname("hminratio")
-    def sethminratio(self, val="double"):
-        return "void"
-
+    #...........................................................................
     # Properties
-    name = property(getname, doc="Name of the NodeList")
-    numNodes = property(getnumNodes, doc="Total number of nodes in this NodeList")
-    numInternalNodes = property(getnumInternalNodes, doc="Number of internal nodes in this NodeList")
-    numGhostNodes = property(getnumGhostNodes, doc="Number of ghost nodes in this NodeListb")
-    numFields = property(getnumFields, doc="Number of fields defined on this NodeList")
-    firstGhostNode = property(getfirstGhostNode, doc="Index of the first ghost node on this NodeList")
-    nodesPerSmoothingScale = property(getnodesPerSmoothingScale, setnodesPerSmoothingScale,
-                                      doc="The target number of nodes per smoothing scale")
-    maxNumNeighbors = property(getmaxNumNeighbors, setmaxNumNeighbors, doc="The maximum number of neighbors per node allowed for this NodeList")
-    hmin = property(gethmin, sethmin, doc="Minimum allowed smoothing scale")
-    hmax = property(gethmax, sethmax, doc="Maximum allowed smoothing scale")
-    hminratio = property(gethminratio, sethminratio, doc="Minimum allowed ratio of min/max smoothing scale eigenvalues on each node")
+    name = PYB11property("std::string", doc="Name of the NodeList")
+    numNodes = PYB11property("unsigned", doc="Total number of nodes in this NodeList")
+    numInternalNodes = PYB11property("unsigned", "numInternalNodes", "numInternalNodes", doc="Number of internal nodes in this NodeList")
+    numGhostNodes = PYB11property("unsigned", "numGhostNodes", "numGhostNodes", doc="Number of ghost nodes in this NodeList")
+    numFields = PYB11property("int", doc="Number of fields defined on this NodeList")
+    firstGhostNode = PYB11property("unsigned", doc="Index of the first ghost node on this NodeList")
+    nodesPerSmoothingScale = PYB11property("Scalar", "nodesPerSmoothingScale", "nodesPerSmoothingScale", 
+                                           doc="The target number of nodes per smoothing scale")
+    maxNumNeighbors = PYB11property("unsigned", "maxNumNeighbors", "maxNumNeighbors",
+                                    doc="The maximum number of neighbors per node allowed for this NodeList")
+    hmin = PYB11property("Scalar", "hmin", "hmin", doc="Minimum allowed smoothing scale")
+    hmax = PYB11property("Scalar", "hmax", "hmax", doc="Maximum allowed smoothing scale")
+    hminratio = PYB11property("Scalar", "hminratio", "hminratio", 
+                              doc="Minimum allowed ratio of min/max smoothing scale eigenvalues on each node")
 
 #-------------------------------------------------------------------------------
 # Inject the restart methods
