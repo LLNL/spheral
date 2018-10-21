@@ -13,18 +13,27 @@ class PYB11_bind_vector:
 
     def __init__(self,
                  element,            # template element type for vector
-                 opaque = False):    # should we make the type opaque
+                 opaque = False,     # should we make the type opaque?
+                 local = None):      # should the opaque choice be module local?
         self.element = element
         self.opaque = opaque
+        self.local = local
         return
 
     def preamble(self, modobj, ss, name):
         if self.opaque:
-            ss('PYBIND11_MAKE_OPAQUE(std::vector<' + PYB11CPPsafe(self.element) + '>);\n')
+            ss('PYBIND11_MAKE_OPAQUE(std::vector<' + PYB11CPPsafe(self.element) + '>)\n')
         return
 
     def __call__(self, modobj, ss, name):
-        ss('py::bind_vector<std::vector<' + self.element + '>>(m, "' + name + '");\n')
+        ss('py::bind_vector<std::vector<' + self.element + '>>(m, "' + name + '"')
+        if not self.local is None:
+            ss(', py::module_local(')
+            if self.local:
+                ss('true)')
+            else:
+                ss('false)')
+        ss(');\n')
         return
 
 #-------------------------------------------------------------------------------
@@ -35,10 +44,12 @@ class PYB11_bind_map:
     def __init__(self,
                  key,                # template key type
                  value,              # template value type
-                 opaque = False):    # should we make the container opaque
+                 opaque = False,     # should we make the container opaque
+                 local = None):      # should the opaque choice be module local?
         self.key = key
         self.value = value
         self.opaque = opaque
+        self.local = local
         return
 
     def preamble(self, modobj, ss, name):
@@ -48,7 +59,14 @@ class PYB11_bind_map:
         return
 
     def __call__(self, modobj, ss, name):
-        ss('py::bind_map<std::map<' + self.key + ', ' + self.value + '>>(m, "' + name + '");\n')
+        ss('py::bind_map<std::map<' + self.key + ', ' + self.value + '>>(m, "' + name + '"')
+        if not self.local is None:
+            ss(', py::module_local(')
+            if self.local:
+                ss('true)')
+            else:
+                ss('false)')
+        ss(');\n')
         return
 
 #-------------------------------------------------------------------------------
