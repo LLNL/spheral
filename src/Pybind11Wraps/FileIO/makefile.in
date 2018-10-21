@@ -9,6 +9,7 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = FileIO
 PKGDIR = $(PKGNAME)/
 PYB11SRCS = \
+	FileIOAbstractMethods.py \
 	FileIO.py \
 	FlatFileIO.py \
 	SiloFileIO.py \
