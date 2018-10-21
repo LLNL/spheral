@@ -39,6 +39,7 @@ PYBIND11_MODULE(testOverloadError, m) {
 
   py::class_<B, Btrampoline>(m, "B")
     .def(py::init<>())
+    .def("func", (void (B::*)()) &B::func)                   // <-- this shouldn't be necessary, but overload doesn't show up in python otherwise
     .def("func", (void (B::*)(int)) &B::func)
     ;
 }
