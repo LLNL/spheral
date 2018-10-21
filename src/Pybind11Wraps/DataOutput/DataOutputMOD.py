@@ -55,9 +55,7 @@ class RestartRegistrar:
 
     # The instance attribute.  We expose this as a property of the class.
     @PYB11static
-    @PYB11cppname("instance")
-    @PYB11ignore
-    def getinstance(self):
-        return "RestartRegistrar&"
-    instance = property(getinstance, doc="The static RestartRegistrar instance.")
-
+    @PYB11cppname("instancePtr")
+    @PYB11returnpolicy("take_ownership")
+    def instance(self):
+        return "RestartRegistrar*"

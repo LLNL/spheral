@@ -9,14 +9,14 @@ from SpheralCompiledPackages import RestartableObject
 class SpheralTimer:
 
     def __init__(self, label=None):
-        self.restart = RestartableObject(self)
+        self.__label = label
         self.numInvocations = 0
         self.lastStartTime = 0.0
         self.lastStopTime = 0.0
         self.lastInterval = 0.0
         self.elapsedTime = 0.0
         self.inTimeCycle = 0
-        self.__label = label
+        self.restart = RestartableObject(self)
 
     def start(self):
         if self.inTimeCycle:

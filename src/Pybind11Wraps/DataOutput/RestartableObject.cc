@@ -21,6 +21,7 @@ RestartableObject::
 RestartableObject(py::object& self, const unsigned priority):
   mRestart(registerWithRestart(*this, priority)),
   mSelf(self) {
+  printf("Registering %s\n", this->label().c_str());
 }
 
 //------------------------------------------------------------------------------
@@ -36,8 +37,9 @@ RestartableObject::
 std::string
 RestartableObject::
 label() const {
-  py::object self_label = mSelf.attr("label");
-  return py::str(self_label());
+  printf("RestartableObject::label %d\n", this);
+  auto result = mSelf.attr("label")();
+  return py::str(result);
 }
 
 //------------------------------------------------------------------------------
@@ -46,8 +48,7 @@ label() const {
 void
 RestartableObject::
 dumpState(FileIO& fileIO, const std::string& pathName) const {
-  py::object self_dumpState = mSelf.attr("dumpState");
-  self_dumpState(fileIO, pathName);
+  auto self_dumpState = mSelf.attr("dumpState")(fileIO, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -56,8 +57,7 @@ dumpState(FileIO& fileIO, const std::string& pathName) const {
 void
 RestartableObject::
 restoreState(const FileIO& fileIO, const std::string& pathName) {
-  py::object self_restoreState = mSelf.attr("restoreState");
-  self_restoreState(fileIO, pathName);
+  auto self_restoreState = mSelf.attr("restoreState")(fileIO, pathName);
 }
 
 }
