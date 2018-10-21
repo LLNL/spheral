@@ -70,7 +70,7 @@ class SpheralController:
 
         # If this is a parallel run, automatically construct and insert
         # a DistributedBoundaryCondition into each physics package.
-        self.insertDistributedBoundary(integrator.physicsPackages())
+        self.insertDistributedBoundary(integrator.physicsPackages)
 
         # Should we look for the last restart set?
         if restoreCycle == -1:
@@ -152,7 +152,7 @@ class SpheralController:
         db.updateConnectivityMap(False)
 
         # Initialize the integrator and packages.
-        packages = self.integrator.physicsPackages()
+        packages = self.integrator.physicsPackages
         for package in packages:
             package.initializeProblemStartup(db)
             for bc in package.boundaryConditions():
@@ -192,7 +192,7 @@ class SpheralController:
         # Construct a fresh conservation check object.
         # Hopefully by this time all packages have initialized their own extra energy bins.
         self.conserve = SpheralConservation(self.integrator.dataBase,
-                                            self.integrator.physicsPackages())
+                                            self.integrator.physicsPackages)
 
         # Force the periodic work to fire at problem initalization.
         if (not skipInitialPeriodicWork) and (restoreCycle is None):
@@ -240,8 +240,8 @@ class SpheralController:
         vectorSmooth = eval("smoothVectorFields%id" % db.nDim)
         tensorSmooth = eval("smoothSymTensorFields%id" % db.nDim)
         for iter in xrange(smoothIters):
-            state = eval("State%id(db, self.integrator.physicsPackages())" % db.nDim)
-            derivs = eval("StateDerivatives%id(db, self.integrator.physicsPackages())" % db.nDim)
+            state = eval("State%id(db, self.integrator.physicsPackages)" % db.nDim)
+            derivs = eval("StateDerivatives%id(db, self.integrator.physicsPackages)" % db.nDim)
             self.integrator.setGhostNodes()
             self.integrator.applyGhostBoundaries(state, derivs)
             smoothedVelocity = vectorSmooth(db.fluidVelocity,
@@ -777,7 +777,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         db = self.integrator.dataBase
         nodeLists = db.fluidNodeLists()
         boundaries = self.integrator.uniqueBoundaryConditions()
-        allpackages = self.integrator.physicsPackages()
+        allpackages = self.integrator.physicsPackages
         packages = eval("vector_of_Physics%id()" % db.nDim)
         packages.append(hourglass)
 
