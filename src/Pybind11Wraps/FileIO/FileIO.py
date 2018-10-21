@@ -165,16 +165,18 @@ writeFieldVec%(Tmangle)s = PYB11TemplateMethod(writeFieldVec,
         "Return the variable component of a path."
         return "std::string"
 
+    @PYB11implementation("[](FileIO& self, py::handle thing, py::handle path) { self.writeObject(thing.ptr(), path.ptr()); }")
     def writeObject(self,
-                    thing = "PyObject*",
-                    path = "PyObject*"):
+                    thing = "py::handle",
+                    path = "py::handle"):
         "Handle a generic python object through serialization"
         return "void"
 
     @PYB11returnpolicy("take_ownership")
     @PYB11const
+    @PYB11implementation("[](FileIO& self, py::handle path) { return self.readObject(path.ptr()); }")
     def readObject(self,
-                   path = "PyObject*"):
+                   path = "py::handle"):
         "Return a generic python object from deserialization."
         return "PyObject*"
 
