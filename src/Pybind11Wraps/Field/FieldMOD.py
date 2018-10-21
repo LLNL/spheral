@@ -98,7 +98,7 @@ FieldListSet%(ndim)sd = PYB11TemplateClass(FieldListSet, template_parameters="Di
                          ("Dim<%i>::Tensor" % ndim, "Tensor"),
                          ("Dim<%i>::SymTensor" % ndim, "SymTensor")):
         exec('''
-vector_of_%(label)sFieldPtr%(ndim)id = PYB11_bind_vector("Field<%(Dimension)s, %(value)s>*", opaque=True)
+vector_of_%(label)sFieldPtr%(ndim)id = PYB11_bind_vector("Field<%(Dimension)s, %(value)s>*", opaque=True, local=False)
 ''' % {"ndim": ndim,
        "Dimension" : "Dim<%i>" % ndim,
        "value" : value,

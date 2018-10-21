@@ -52,6 +52,6 @@ Physics%(ndim)id = PYB11TemplateClass(Physics, template_parameters="%(Dimension)
 GenericHydro%(ndim)id = PYB11TemplateClass(GenericHydro, template_parameters="%(Dimension)s")
 GenericBodyForce%(ndim)id = PYB11TemplateClass(GenericBodyForce, template_parameters="%(Dimension)s")
 
-vector_of_Physics%(ndim)id = PYB11_bind_vector("Physics<%(Dimension)s>*", opaque=True)
+vector_of_Physics%(ndim)id = PYB11_bind_vector("Physics<%(Dimension)s>*", opaque=True, local=False)
 ''' % {"ndim"      : ndim,
        "Dimension" : ("Dim<" + str(ndim) +">")})

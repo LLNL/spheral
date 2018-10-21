@@ -54,6 +54,6 @@ NestedGridNeighbor%(ndim)id = PYB11TemplateClass(NestedGridNeighbor, template_pa
 TreeNeighbor%(ndim)id = PYB11TemplateClass(TreeNeighbor, template_parameters="Dim<%(ndim)i>")
 ConnectivityMap%(ndim)id = PYB11TemplateClass(ConnectivityMap, template_parameters="Dim<%(ndim)i>")
 
-vector_of_GridCellIndex%(ndim)id = PYB11_bind_vector("GridCellIndex<Dim<%(ndim)i>>", opaque=True)
-vector_of_vector_of_GridCellIndex%(ndim)id = PYB11_bind_vector("std::vector<GridCellIndex<Dim<%(ndim)i>>>", opaque=True)
+vector_of_GridCellIndex%(ndim)id = PYB11_bind_vector("GridCellIndex<Dim<%(ndim)i>>", opaque=True, local=False)
+vector_of_vector_of_GridCellIndex%(ndim)id = PYB11_bind_vector("std::vector<GridCellIndex<Dim<%(ndim)i>>>", opaque=True, local=False)
 ''' % {"ndim"      : ndim})

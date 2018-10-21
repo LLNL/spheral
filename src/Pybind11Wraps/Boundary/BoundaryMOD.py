@@ -76,7 +76,7 @@ ConstantXVelocityBoundary%(ndim)id = PYB11TemplateClass(ConstantXVelocityBoundar
 ConstantBoundary%(ndim)id = PYB11TemplateClass(ConstantBoundary, template_parameters="%(Dimension)s")
 CRKSPHVoidBoundary%(ndim)id = PYB11TemplateClass(CRKSPHVoidBoundary, template_parameters="%(Dimension)s")
 
-vector_of_Boundary%(ndim)id = PYB11_bind_vector("Boundary<%(Dimension)s>*", opaque=True)
+vector_of_Boundary%(ndim)id = PYB11_bind_vector("Boundary<%(Dimension)s>*", opaque=True, local=False)
 
 dynamicCastBoundary%(ndim)id = PYB11TemplateFunction(dynamicCastBoundary, template_parameters = ("Boundary<%(Dimension)s>", "PlanarBoundary<%(Dimension)s>"))
 ''' % {"ndim"      : ndim,
