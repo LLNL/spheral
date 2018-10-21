@@ -11,6 +11,9 @@ PKGDIR = $(PKGNAME)/
 SRCTARGETS = \
 	$(srcdir)/RestartableObject.cc
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
+PYB11SRCS = \
+	RestartableObject.py \
+	RestartMethods.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

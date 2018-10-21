@@ -55,7 +55,7 @@ class SpheralController:
         self._break = False
 
         # Determine the dimensionality of this run, based on the integrator.
-        self.dim = "%id" % self.integrator.dataBase().nDim
+        self.dim = "%id" % self.integrator.dataBase.nDim
 
         # Determine the visualization method.
         if self.dim == "1d":
@@ -143,7 +143,7 @@ class SpheralController:
         self.integrator.currentTime = initialTime
 
         # Prepare the neighbor objects.
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         db.reinitializeNeighbors()
         db.updateConnectivityMap(False)
 
@@ -191,7 +191,7 @@ class SpheralController:
 
         # Construct a fresh conservation check object.
         # Hopefully by this time all packages have initialized their own extra energy bins.
-        self.conserve = SpheralConservation(self.integrator.dataBase(),
+        self.conserve = SpheralConservation(self.integrator.dataBase,
                                             self.integrator.physicsPackages())
 
         # Force the periodic work to fire at problem initalization.
@@ -235,7 +235,7 @@ class SpheralController:
     # Smooth the physical variables.
     #--------------------------------------------------------------------------
     def smoothState(self, smoothIters=1):
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         scalarSmooth = eval("smoothScalarFields%id" % db.nDim)
         vectorSmooth = eval("smoothVectorFields%id" % db.nDim)
         tensorSmooth = eval("smoothSymTensorFields%id" % db.nDim)
@@ -309,7 +309,7 @@ class SpheralController:
             self.doPeriodicWork(force=True)
             self.redistribute = thpt
 
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         bcs = self.integrator.uniqueBoundaryConditions()
         numActualGhostNodes = 0
         for bc in bcs:
@@ -452,7 +452,7 @@ class SpheralController:
     # Periodically reinitialize neighbors.
     #--------------------------------------------------------------------------
     def reinitializeNeighbors(self, cycle, Time, dt):
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         db.reinitializeNeighbors()
         return
 
@@ -470,7 +470,7 @@ class SpheralController:
                 pass
 
             self.redistributeTimer.start()
-            self.redistribute.redistributeNodes(self.integrator.dataBase(),
+            self.redistribute.redistributeNodes(self.integrator.dataBase,
                                                 self.integrator.uniqueBoundaryConditions())
             self.redistributeTimer.stop()
             self.redistributeTimer.printStatus()
@@ -539,7 +539,7 @@ class SpheralController:
         print "Finished: required %0.2f seconds" % (time.clock() - start)
 
         # Reset neighboring.
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         db.reinitializeNeighbors()
         db.updateConnectivityMap(False)
 
@@ -706,7 +706,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
                 Time = None,
                 dt = None):
         mpi.barrier()
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         db.updateConnectivityMap(False)
         bcs = self.integrator.uniqueBoundaryConditions()
         self.vizMethod(self.integrator,
@@ -729,7 +729,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
                       maxIdealHIterations = 50,
                       idealHTolerance = 1.0e-4):
         print "SpheralController: Initializing H's..."
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         bcs = self.integrator.uniqueBoundaryConditions()
         if self.SPH:
             method = eval("SPHSmoothingScale%s()" % self.dim)
@@ -746,7 +746,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
     #---------------------------------------------------------------------------
     def voronoiInitializeMass(self):
         from generateMesh import generateLineMesh, generatePolygonalMesh, generatePolyhedralMesh
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         nodeLists = db.fluidNodeLists()
         boundaries = self.integrator.uniqueBoundaryConditions()
         method = eval("generate%sMesh" % {1 : "Line", 2 : "Polygonal", 3 : "Polyhedral"}[db.nDim])
@@ -774,7 +774,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         if type(rho) == type(1.0):
             rho = ConstantRho(rho)
 
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         nodeLists = db.fluidNodeLists()
         boundaries = self.integrator.uniqueBoundaryConditions()
         allpackages = self.integrator.physicsPackages()

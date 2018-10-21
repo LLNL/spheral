@@ -9,7 +9,7 @@ class RestartableObject:
 
     def pyinit(self,
                pyself = "py::object&",
-               priority = "const unsigned"):
+               priority = ("const unsigned", "100")):
         "Construct with the given object and priority."
         return
 
