@@ -18,10 +18,9 @@ namespace Spheral {
 // Constructor.
 //------------------------------------------------------------------------------
 RestartableObject::
-RestartableObject(py::object& self, const unsigned priority):
+RestartableObject(py::handle self, const unsigned priority):
   mRestart(registerWithRestart(*this, priority)),
-  mSelf(self) {
-  printf("Registering %s\n", this->label().c_str());
+  mSelf(self.ptr()) {
 }
 
 //------------------------------------------------------------------------------
@@ -37,8 +36,8 @@ RestartableObject::
 std::string
 RestartableObject::
 label() const {
-  printf("RestartableObject::label %d\n", this);
-  auto result = mSelf.attr("label")();
+  py::handle self = mSelf;
+  auto result = self.attr("label")();
   return py::str(result);
 }
 
@@ -48,7 +47,8 @@ label() const {
 void
 RestartableObject::
 dumpState(FileIO& fileIO, const std::string& pathName) const {
-  auto self_dumpState = mSelf.attr("dumpState")(fileIO, pathName);
+  py::handle self = mSelf;
+  auto self_dumpState = self.attr("dumpState")(fileIO, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -57,7 +57,8 @@ dumpState(FileIO& fileIO, const std::string& pathName) const {
 void
 RestartableObject::
 restoreState(const FileIO& fileIO, const std::string& pathName) {
-  auto self_restoreState = mSelf.attr("restoreState")(fileIO, pathName);
+  py::handle self = mSelf;
+  auto self_restoreState = self.attr("restoreState")(fileIO, pathName);
 }
 
 }

@@ -8,7 +8,7 @@ class RestartableObject:
     "The base class for building restartable python objects in Spheral."
 
     def pyinit(self,
-               pyself = "py::object&",
+               pyself = "py::handle",
                priority = ("const unsigned", "100")):
         "Construct with the given object and priority."
         return

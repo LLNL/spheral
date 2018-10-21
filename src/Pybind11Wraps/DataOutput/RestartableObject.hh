@@ -37,7 +37,7 @@ class RestartableObject {
 
 public:
   //------------------------===== Public Interface =====-----------------------//
-  RestartableObject(py::object& self, const unsigned priority);
+  RestartableObject(py::handle self, const unsigned priority);
   virtual ~RestartableObject();
 
   // The methods we are providing for restart.
@@ -49,7 +49,7 @@ private:
   //-----------------------===== Private Interface =====-----------------------//
   // The restart registration.
   RestartRegistrationType mRestart;
-  py::object& mSelf;
+  PyObject* mSelf;
 };
 
 }
