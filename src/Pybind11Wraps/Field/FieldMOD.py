@@ -13,6 +13,8 @@ from Field import *
 from ArithmeticField import *
 from MinMaxField import *
 from FieldList import *
+from ArithmeticFieldList import *
+from MinMaxFieldList import *
 from FieldListSet import *
 
 #-------------------------------------------------------------------------------
