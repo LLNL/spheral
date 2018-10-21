@@ -35,7 +35,8 @@ class Integrator:
     #...........................................................................
     # Virtual methods
     @PYB11virtual
-    def step(self, maxTime="Scalar"):
+    @PYB11pycppname("step")
+    def step1(self, maxTime="Scalar"):
         "Take a step"
         return "void"
 
