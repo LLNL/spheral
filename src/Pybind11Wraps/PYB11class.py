@@ -408,6 +408,31 @@ def PYB11generateClass(klass, klassattrs, ssout):
     allmethods = [(mname, meth) for (mname, meth) in PYB11ThisClassMethods(klass)
                   if not PYB11attrs(meth)["ignore"]]
 
+    # Helper method to check if the given method spec is already in allmethods
+    def newOverloadedMethod(mname, meth, allmethods):
+        methattrs = PYB11attrs(meth)
+        args = PYB11parseArgs(meth)
+        overload = False
+        for (othername, othermeth) in allmethods:
+            othermethattrs = PYB11attrs(othermeth)
+            if methattrs["cppname"] == othermethattrs["cppname"]:
+                overload = True
+                otherargs = PYB11parseArgs(othermeth)
+                if otherargs == args:
+                    return False
+        return overload
+
+    # We also need any overloaded methods from the base classes.
+    # I'm pretty sure this is a pybind11 bug -- we shouldn't have to explicitly add
+    # base class overloads.
+    for bklass in inspect.getmro(klass)[1:]:
+        bklassattrs = PYB11attrs(bklass)
+        for mname, meth in PYB11ThisClassMethods(bklass):
+            if ((not PYB11attrs(meth)["ignore"]) and            # Ignore the method?
+                (mname[:6] != "pyinit") and                     # Ignore constructors
+                newOverloadedMethod(mname, meth, allmethods)):  # New overload?
+                allmethods.append((mname, meth))
+
     # Bind constructors of the class.
     ss("\n    // Constructors\n")
     kills = []
