@@ -313,11 +313,11 @@ globalNodeIDsAll%(ndim)id = PYB11TemplateFunction(globalNodeIDsDB, template_para
 iterateIdealH%(ndim)id = PYB11TemplateFunction(iterateIdealH, template_parameters="%(Dimension)s")
 
 nodeOrdering%(ndim)id = PYB11TemplateFunction(nodeOrdering, template_parameters=("%(Dimension)s", "KeyTraits::Key"))
-mortonOrderIndices_pos%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_pos, template_parameters="%(Dimension)s")
-mortonOrderIndices_db%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_db, template_parameters="%(Dimension)s")
-mortonOrderIndices_mask%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_mask, template_parameters="%(Dimension)s")
-peanoHilbertOrderIndices_pos%(ndim)id = PYB11TemplateFunction(peanoHilbertOrderIndices_pos, template_parameters="%(Dimension)s")
-peanoHilbertOrderIndices_db%(ndim)id = PYB11TemplateFunction(peanoHilbertOrderIndices_db, template_parameters="%(Dimension)s")
+mortonOrderIndices_pos%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_pos, template_parameters="%(Dimension)s", pyname="mortonOrderIndices%(ndim)id")
+mortonOrderIndices_db%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_db, template_parameters="%(Dimension)s", pyname="mortonOrderIndices%(ndim)id")
+mortonOrderIndices_mask%(ndim)id = PYB11TemplateFunction(mortonOrderIndices_mask, template_parameters="%(Dimension)s", pyname="mortonOrderIndices%(ndim)id")
+peanoHilbertOrderIndices_pos%(ndim)id = PYB11TemplateFunction(peanoHilbertOrderIndices_pos, template_parameters="%(Dimension)s", pyname="peanoHilbertOrderIndices%(ndim)id")
+peanoHilbertOrderIndices_db%(ndim)id = PYB11TemplateFunction(peanoHilbertOrderIndices_db, template_parameters="%(Dimension)s", pyname="peanoHilbertOrderIndices%(ndim)id")
 
 numberDensity%(ndim)id = PYB11TemplateFunction(numberDensity, template_parameters="%(Dimension)s")
 integrateThroughMeshAlongSegment%(ndim)id = PYB11TemplateFunction(integrateThroughMeshAlongSegment, template_parameters=("%(Dimension)s", "double"))
