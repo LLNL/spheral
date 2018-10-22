@@ -25,6 +25,7 @@ def PYB11inject(fromcls, tocls,
                 pure_virtual = None):
     assert not (virtual and pure_virtual), "PYB11inject: cannot specify both virtual and pure_virtual as True!"
 
+    # Methods
     names = [x for x in dir(fromcls) if (inspect.ismethod(eval('fromcls.%s' % x)))]
     for name in names:
         exec('''tocls.%(name)s = PYB11copy_func(fromcls.%(name)s)''' % {"name": name})
@@ -33,6 +34,22 @@ def PYB11inject(fromcls, tocls,
             exec('tocls.%s.__dict__["PYB11virtual"] = %s' % (name, virtual))
         if not pure_virtual is None:
             exec('tocls.%s.__dict__["PYB11pure_virtual"] = %s' % (name, pure_virtual))
+
+    # Properties
+    from PYB11property import PYB11property
+    names = [x for x in dir(fromcls) if isinstance(eval('fromcls.%s' % x), PYB11property)]
+    for name in names:
+        exec('''tocls.%(name)s = PYB11property(returnType = fromcls.%(name)s.returnType,
+                                               getter = fromcls.%(name)s.getter,
+                                               setter = fromcls.%(name)s.setter,
+                                               doc = fromcls.%(name)s.doc,
+                                               getterraw = fromcls.%(name)s.getterraw,
+                                               setterraw = fromcls.%(name)s.setterraw,
+                                               getterconst = fromcls.%(name)s.getterconst,
+                                               setterconst = fromcls.%(name)s.setterconst,
+                                               static = fromcls.%(name)s.static,
+                                               returnpolicy = fromcls.%(name)s.returnpolicy)''' % {"name": name})
+
     return
 
 #-------------------------------------------------------------------------------

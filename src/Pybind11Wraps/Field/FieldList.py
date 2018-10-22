@@ -156,34 +156,9 @@ class FieldList:
         return "%(Value)s&"
 
     #...........................................................................
-    # Properties (and methods for em)
-    @PYB11cppname("storageType")
-    @PYB11const
-    def getstorageType(self):
-        return "FieldStorageType"
-
-    @PYB11cppname("numFields")
-    @PYB11const
-    def getnumFields(self):
-        return "unsigned"
-
-    @PYB11cppname("numNodes")
-    @PYB11const
-    def getnumNodes(self):
-        return "unsigned"
-
-    @PYB11cppname("numInternalNodes")
-    @PYB11const
-    def getnumInternalNodes(self):
-        return "unsigned"
-
-    @PYB11cppname("numGhostNodes")
-    @PYB11const
-    def getnumGhostNodes(self):
-        return "unsigned"
-
-    storageType = property(getstorageType, doc="The method whereby Fields are stored/referenced by this FieldList")
-    numFields = property(getnumFields, doc="Number of Fields")
-    numNodes = property(getnumNodes, doc="Number of nodes in all the associated Fields")
-    numInternalNodes = property(getnumInternalNodes, doc="Number of internal nodes in all the associated Fields")
-    numGhostNodes = property(getnumGhostNodes, doc="Number of ghost nodes in all the associated Fields")
+    # Properties
+    storageType = PYB11property("FieldStorageType", doc="The method whereby Fields are stored/referenced by this FieldList")
+    numFields = PYB11property("unsigned", doc="Number of Fields")
+    numNodes = PYB11property("unsigned", doc="Number of nodes in all the associated Fields")
+    numInternalNodes = PYB11property("unsigned", doc="Number of internal nodes in all the associated Fields")
+    numGhostNodes = PYB11property("unsigned", doc="Number of ghost nodes in all the associated Fields")
