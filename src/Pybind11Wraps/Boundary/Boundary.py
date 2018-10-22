@@ -80,12 +80,6 @@ class Boundary:
 
     @PYB11virtual
     @PYB11const
-    def numGhostNodes(self,):
-        "Report the number of ghost nodes in this boundary."
-        return "int"
-
-    @PYB11virtual
-    @PYB11const
     def clip(self,
              xmin = "Vector&",
              xmax = "Vector&"):
@@ -150,6 +144,10 @@ class Boundary:
 aflgb%(T)s = PYB11TemplateMethod(applyFieldListGhostBoundary, template_parameters="%(T)s", pyname="applyFieldListGhostBoundary")
 eflgb%(T)s = PYB11TemplateMethod(enforceFieldListBoundary, template_parameters="%(T)s", pyname="enforceFieldListBoundary")
 ''' % {"T" : T})
+
+    #...........................................................................
+    # Attributes
+    numGhostNodes = PYB11property("int")
 
     #---------------------------------------------------------------------------
     # BoundaryNodes

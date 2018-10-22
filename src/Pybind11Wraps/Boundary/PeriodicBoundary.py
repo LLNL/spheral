@@ -48,12 +48,6 @@ class PeriodicBoundary(PlanarBoundary):
 
     @PYB11virtual
     @PYB11const
-    def numGhostNodes(self,):
-        "Report the number of ghost nodes in this boundary."
-        return "int"
-
-    @PYB11virtual
-    @PYB11const
     def label(self):
         "Label for restart files"
         return "std::string"
