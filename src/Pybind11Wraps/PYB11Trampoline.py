@@ -117,6 +117,13 @@ public:
         if bklassname != PYB11mangle(bklassname):
             ss("  typedef %s %s;\n" % (bklassname, PYB11mangle(bklassname)))
 
+    # Use any nested class definitions
+    klasses = [(x, eval("klass.%s" % x)) for x in dir(klass) if (inspect.isclass(eval("klass.%s" % x)) and x in klass.__dict__)]
+    for (kname, nklass) in klasses:
+        nklassattrs = PYB11attrs(nklass)
+        ss("  typedef typename %(full_cppname)s::" % klassattrs)
+        ss("%(cppname)s %(cppname)s;\n" % nklassattrs)
+
     # Any typedefs?
     if hasattr(klass, "typedefs"):
         typedefs = str(klass.typedefs)
