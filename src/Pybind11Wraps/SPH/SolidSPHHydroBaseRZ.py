@@ -11,7 +11,6 @@ from RestartMethods import *
 class SolidSPHHydroBaseRZ(SolidSPHHydroBase):
 
     typedefs = """
-  typedef Dim<2> %(Dimension)s;
   typedef typename %(Dimension)s::Scalar Scalar;
   typedef typename %(Dimension)s::Vector Vector;
   typedef typename %(Dimension)s::Tensor Tensor;

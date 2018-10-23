@@ -12,7 +12,6 @@ class SolidCRKSPHHydroBaseRZ(CRKSPHHydroBase):
     "An area weighted RZ specialization of solid CRKSPH for cylindrical coordinates"
 
     typedefs = """
-    typedef Dim<2> %(Dimension)s;
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;
