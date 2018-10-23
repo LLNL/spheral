@@ -66,9 +66,10 @@ def PYB11generateTrampoline(klass, ssout):
     ss = fs.write
 
     # Build the dictionary of template substitutions.
-    Tdict = {}
-    for p in klassattrs["template"]:
-        Tdict[p] = p
+    if klassattrs["template_dict"]:
+        Tdict = {key:key for key in klassattrs["template_dict"]}
+    else:
+        Tdict = {key:key for key in klassattrs["template"]}
 
     # Compiler guard.
     ss("""//------------------------------------------------------------------------------
@@ -117,12 +118,12 @@ public:
         if bklassname != PYB11mangle(bklassname):
             ss("  typedef %s %s;\n" % (bklassname, PYB11mangle(bklassname)))
 
-    # Use any nested class definitions
-    klasses = [(x, eval("klass.%s" % x)) for x in dir(klass) if (inspect.isclass(eval("klass.%s" % x)) and x in klass.__dict__)]
-    for (kname, nklass) in klasses:
-        nklassattrs = PYB11attrs(nklass)
-        ss("  typedef typename %(full_cppname)s::" % klassattrs)
-        ss("%(cppname)s %(cppname)s;\n" % nklassattrs)
+    # # Use any nested class definitions
+    # klasses = [(x, eval("klass.%s" % x)) for x in dir(klass) if (inspect.isclass(eval("klass.%s" % x)) and x in klass.__dict__)]
+    # for (kname, nklass) in klasses:
+    #     nklassattrs = PYB11attrs(nklass)
+    #     ss("  typedef typename %(full_cppname)s::" % klassattrs)
+    #     ss("%(cppname)s %(cppname)s;\n" % nklassattrs)
 
     # Any typedefs?
     if hasattr(klass, "typedefs"):
@@ -167,7 +168,11 @@ public:
                 fms.write(") override { ")
 
             # At this point we can make the call of whether this is a new method.
-            if not (fms.getvalue() % Tdict) in boundMethods:
+            try:
+                thpt = fms.getvalue() % Tdict
+            except:
+                raise RuntimeError, "Unable to generate call descriptor for %s in %s->%s" % (mname, str(klass), bklassname)
+            if not thpt in boundMethods:
                 boundMethods.append(fms.getvalue() % Tdict)
 
                 # Check if the returnType C++ name will choke PYBIND11_OVERLOAD*
