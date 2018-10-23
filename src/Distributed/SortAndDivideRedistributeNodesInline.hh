@@ -16,7 +16,7 @@ SortAndDivideRedistributeNodes<Dimension>::Hextent() const {
 template<typename Dimension>
 inline
 void
-SortAndDivideRedistributeNodes<Dimension>::Hextent(const double val) {
+SortAndDivideRedistributeNodes<Dimension>::Hextent(double val) {
   REQUIRE(distinctlyGreaterThan(val, 0.0));
   mHextent = val;
 }

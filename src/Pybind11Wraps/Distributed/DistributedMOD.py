@@ -17,6 +17,7 @@ from RedistributeNodes import *
 from SpaceFillingCurveRedistributeNodes import *
 from MortonOrderRedistributeNodes import *
 from PeanoHilbertOrderRedistributeNodes import *
+from SortAndDivideRedistributeNodes import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -63,6 +64,7 @@ RedistributeNodes%(ndim)id = PYB11TemplateClass(RedistributeNodes, template_para
 SpaceFillngCurveRedistributeNodes%(ndim)id = PYB11TemplateClass(SpaceFillingCurveRedistributeNodes, template_parameters="%(Dimension)s")
 MortonOrderRedistributeNodes%(ndim)id = PYB11TemplateClass(MortonOrderRedistributeNodes, template_parameters="%(Dimension)s")
 PeanoHilbertOrderRedistributeNodes%(ndim)id = PYB11TemplateClass(PeanoHilbertOrderRedistributeNodes, template_parameters="%(Dimension)s")
+SortAndDivideRedistributeNodes%(ndim)id = PYB11TemplateClass(SortAndDivideRedistributeNodes, template_parameters="%(Dimension)s")
 
 #vector_of_Boundary%(ndim)id = PYB11_bind_vector("Boundary<%(Dimension)s>*", opaque=True, local=False)
 ''' % {"ndim"      : ndim,
