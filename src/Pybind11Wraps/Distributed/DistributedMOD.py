@@ -63,6 +63,7 @@ TreeDistributedBoundary%(ndim)id = PYB11TemplateClass(TreeDistributedBoundary, t
 BoundingVolumeDistributedBoundary%(ndim)id = PYB11TemplateClass(BoundingVolumeDistributedBoundary, template_parameters="%(Dimension)s")
 DomainNode%(ndim)id = PYB11TemplateClass(DomainNode, template_parameters="%(Dimension)s")
 RedistributeNodes%(ndim)id = PYB11TemplateClass(RedistributeNodes, template_parameters="%(Dimension)s")
+SortAndDivideRedistributeNodesBase%(ndim)id = PYB11TemplateClass(SortAndDivideRedistributeNodes, template_parameters="%(Dimension)s")
 SpaceFillngCurveRedistributeNodes%(ndim)id = PYB11TemplateClass(SpaceFillingCurveRedistributeNodes, template_parameters="%(Dimension)s")
 MortonOrderRedistributeNodes%(ndim)id = PYB11TemplateClass(MortonOrderRedistributeNodes, template_parameters="%(Dimension)s")
 PeanoHilbertOrderRedistributeNodes%(ndim)id = PYB11TemplateClass(PeanoHilbertOrderRedistributeNodes, template_parameters="%(Dimension)s")
