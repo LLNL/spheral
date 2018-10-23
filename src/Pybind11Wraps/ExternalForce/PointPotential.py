@@ -8,13 +8,12 @@ from GenericBodyForce import *
 class PointPotential(GenericBodyForce):
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
-    typedef typename Physics<DIM>::TimeStepType TimeStepType;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
     #...........................................................................
@@ -33,17 +32,17 @@ class PointPotential(GenericBodyForce):
     def evaluateDerivatives(self,
                             time = "const Scalar",
                             dt = "const Scalar",
-                            dataBase = "const DataBase<DIM>&",
-                            state = "const State<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         "Increment the derivatives."
         return "void"
 
     @PYB11virtual
     @PYB11const
-    def dt(dataBase = "const DataBase<DIM>&", 
-           state = "const State<DIM>&",
-           derivs = "const StateDerivatives<DIM>&",
+    def dt(dataBase = "const DataBase<%(Dimension)s>&", 
+           state = "const State<%(Dimension)s>&",
+           derivs = "const StateDerivatives<%(Dimension)s>&",
            currentTime = "const Scalar"):
         "Vote on a time step."
         return "TimeStepType"

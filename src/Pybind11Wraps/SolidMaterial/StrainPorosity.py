@@ -36,19 +36,18 @@ parameter (alpha) and gives it to the PorousEquationOfState."""
 
 
     typedefs = """
-    typedef %(Dimension)s DIM;
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
-    typedef typename Physics<DIM>::TimeStepType TimeStepType;
+    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
     #...........................................................................
     # Constructors
     def pyinit(self,
-               porousEOS = "PorousEquationOfState<DIM>&",
-               porousStrength = "PorousStrengthModel<DIM>&",
-               nodeList = "const NodeList<DIM>&",
+               porousEOS = "PorousEquationOfState<%(Dimension)s>&",
+               porousStrength = "PorousStrengthModel<%(Dimension)s>&",
+               nodeList = "const NodeList<%(Dimension)s>&",
                phi0 = "const double",
                epsE = "const double",
                epsX = "const double",
@@ -72,7 +71,7 @@ parameter (alpha) and gives it to the PorousEquationOfState."""
     # Virtual methods
     @PYB11virtual
     def initializeProblemStartup(self, 
-                                 dataBase = "DataBase<DIM>&"):
+                                 dataBase = "DataBase<%(Dimension)s>&"):
         "Do any required one-time initializations on problem start up."
         return "void"
 
@@ -87,13 +86,13 @@ parameter (alpha) and gives it to the PorousEquationOfState."""
     gammaS0 = PYB11property("double", doc="Reference gamma at full density")
     cS0 = PYB11property("double", doc="Reference sound speed at full density")
     c0 = PYB11property("double", doc="Reference sound speed at initial porosity")
-    porousEOS = PYB11property("const PorousEquationOfState<DIM>&", returnpolicy="reference_internal")
-    porousStrength = PYB11property("PorousStrengthModel<DIM>&", returnpolicy="reference_internal")
-    nodeList = PYB11property("const NodeList<DIM>&", returnpolicy="reference_internal")
-    alpha = PYB11property("const Field<DIM, Scalar>&", returnpolicy="reference_internal")
-    DalphaDt = PYB11property("const Field<DIM, Scalar>&", returnpolicy="reference_internal")
-    strain = PYB11property("const Field<DIM, Scalar>&", returnpolicy="reference_internal")
-    DstrainDt = PYB11property("const Field<DIM, Scalar>&", returnpolicy="reference_internal")
+    porousEOS = PYB11property("const PorousEquationOfState<%(Dimension)s>&", returnpolicy="reference_internal")
+    porousStrength = PYB11property("PorousStrengthModel<%(Dimension)s>&", returnpolicy="reference_internal")
+    nodeList = PYB11property("const NodeList<%(Dimension)s>&", returnpolicy="reference_internal")
+    alpha = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
+    DalphaDt = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
+    strain = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
+    DstrainDt = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods

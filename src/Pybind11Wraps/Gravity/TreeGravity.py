@@ -9,13 +9,12 @@ from GenericBodyForce import *
 class TreeGravity(GenericBodyForce):
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
-    typedef typename Physics<DIM>::TimeStepType TimeStepType;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
     #...........................................................................
@@ -32,8 +31,8 @@ class TreeGravity(GenericBodyForce):
     # Virtual methods
     @PYB11virtual
     def registerState(self,
-                      dataBase = "DataBase<DIM>&",
-                      state = "State<DIM>&"):
+                      dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
         "Register the state you want carried around (and potentially evolved), as well as the policies for such evolution."
         return "void"
 
@@ -42,24 +41,24 @@ class TreeGravity(GenericBodyForce):
     def evaluateDerivatives(self,
                             time = "const Scalar",
                             dt = "const Scalar",
-                            dataBase = "const DataBase<DIM>&",
-                            state = "const State<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         "Increment the derivatives."
         return "void"
 
     @PYB11virtual
     @PYB11const
-    def dt(dataBase = "const DataBase<DIM>&", 
-           state = "const State<DIM>&",
-           derivs = "const StateDerivatives<DIM>&",
+    def dt(dataBase = "const DataBase<%(Dimension)s>&", 
+           state = "const State<%(Dimension)s>&",
+           derivs = "const StateDerivatives<%(Dimension)s>&",
            currentTime = "const Scalar"):
         "Vote on a time step."
         return "TimeStepType"
 
     @PYB11virtual
     def initializeProblemStartup(self,
-                                 dataBase = "DataBase<DIM>&"):
+                                 dataBase = "DataBase<%(Dimension)s>&"):
         "An optional hook to initialize once when the problem is starting up."
         return "void"
 
@@ -67,9 +66,9 @@ class TreeGravity(GenericBodyForce):
     def initialize(self,
                    time = "const Scalar", 
                    dt = "const Scalar",
-                   dataBase = "const DataBase<DIM>&", 
-                   state = "State<DIM>&",
-                   derivs = "StateDerivatives<DIM>&"):
+                   dataBase = "const DataBase<%(Dimension)s>&", 
+                   state = "State<%(Dimension)s>&",
+                   derivs = "StateDerivatives<%(Dimension)s>&"):
         "Some packages might want a hook to do some initializations before the evaluateDerivatives() method is called."
         return "void"
 
@@ -97,7 +96,7 @@ class TreeGravity(GenericBodyForce):
 
     #...........................................................................
     # Properties
-    potential = PYB11property("const FieldList<DIM, Scalar>&", "potential", returnpolicy="reference_internal", doc="The last computed potential")
+    potential = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "potential", returnpolicy="reference_internal", doc="The last computed potential")
     G = PYB11property("double", "G", doc="The gravitational constant")
     opening = PYB11property("double", "opening", "opening", doc="The opening angle threshold when we shift to tree cell approximations.")
     softeningLength = PYB11property("Scalar", "softeningLength", "softeningLength", doc="The Plummer softening scale")

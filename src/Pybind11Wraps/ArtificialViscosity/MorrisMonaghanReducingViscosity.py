@@ -17,19 +17,18 @@ References:
 """
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
-    typedef typename Physics<DIM>::TimeStepType TimeStepType;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
     #...........................................................................
     # Constructors
     def pyinit(self,
-               q = "ArtificialViscosity<DIM>&",
+               q = "ArtificialViscosity<%(Dimension)s>&",
                nhQ = ("const Scalar", "5.0"),
                nhL = ("const Scalar", "10.0"),
                aMin = ("const Scalar", "0.1"),
@@ -38,8 +37,8 @@ References:
 
     #...........................................................................
     # Properties
-    DrvAlphaDtQ = PYB11property("const FieldList<DIM, Scalar>&", "DrvAlphaDtQ")
-    DrvAlphaDtL = PYB11property("const FieldList<DIM, Scalar>&", "DrvAlphaDtL")
+    DrvAlphaDtQ = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DrvAlphaDtQ")
+    DrvAlphaDtL = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DrvAlphaDtL")
     nhQ = PYB11property("Scalar", "nhQ", "nhQ")
     nhL = PYB11property("Scalar", "nhL", "nhL")
     aMin = PYB11property("Scalar", "aMin", "aMin")

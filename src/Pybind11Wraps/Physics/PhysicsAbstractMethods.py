@@ -10,29 +10,29 @@ class PhysicsAbstractMethods:
     def evaluateDerivatives(self,
                             time = "const Scalar",
                             dt = "const Scalar",
-                            dataBase = "const DataBase<DIM>&",
-                            state = "const State<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         "Increment the derivatives."
         return "void"
 
     @PYB11const
-    def dt(dataBase = "const DataBase<DIM>&", 
-           state = "const State<DIM>&",
-           derivs = "const StateDerivatives<DIM>&",
+    def dt(dataBase = "const DataBase<%(Dimension)s>&", 
+           state = "const State<%(Dimension)s>&",
+           derivs = "const StateDerivatives<%(Dimension)s>&",
            currentTime = "const Scalar"):
         "Vote on a time step."
         return "TimeStepType"
 
     def registerState(self,
-                      dataBase = "DataBase<DIM>&",
-                      state = "State<DIM>&"):
+                      dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
         "Register the state you want carried around (and potentially evolved), as well as the policies for such evolution."
         return "void"
 
     def registerDerivatives(self,
-                            dataBase = "DataBase<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "DataBase<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         "Register the derivatives/change fields for updating state."
         return "void"
 

@@ -8,26 +8,25 @@ from GenericBodyForce import *
 class ConstantAcceleration(GenericBodyForce):
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
-    typedef typename Physics<DIM>::TimeStepType TimeStepType;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
     #...........................................................................
     # Constructors
     def pyinit(self,
                a0 = "const Vector",
-               nodeList = "const NodeList<DIM>&",
+               nodeList = "const NodeList<%(Dimension)s>&",
                indices = "const std::vector<int>&"):
         "ConstantAcceleration constructor"
 
     def pyinit1(self,
                 a0 = "const Vector",
-                nodeList = "const NodeList<DIM>&"):
+                nodeList = "const NodeList<%(Dimension)s>&"):
         "ConstantAcceleration constructor"
 
     #...........................................................................
@@ -37,17 +36,17 @@ class ConstantAcceleration(GenericBodyForce):
     def evaluateDerivatives(self,
                             time = "const Scalar",
                             dt = "const Scalar",
-                            dataBase = "const DataBase<DIM>&",
-                            state = "const State<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         "Increment the derivatives."
         return "void"
 
     @PYB11virtual
     @PYB11const
-    def dt(dataBase = "const DataBase<DIM>&", 
-           state = "const State<DIM>&",
-           derivs = "const StateDerivatives<DIM>&",
+    def dt(dataBase = "const DataBase<%(Dimension)s>&", 
+           state = "const State<%(Dimension)s>&",
+           derivs = "const StateDerivatives<%(Dimension)s>&",
            currentTime = "const Scalar"):
         "Vote on a time step."
         return "TimeStepType"
@@ -61,5 +60,5 @@ class ConstantAcceleration(GenericBodyForce):
     #...........................................................................
     # Properties
     a0 = PYB11property("Vector", "a0", doc="The fixed acceleration to apply")
-    nodeList = PYB11property("const NodeList<DIM>&", "nodeList", returnpolicy="reference_internal", doc="The NodeList this ConstantAcceleration applies to")
-    flags = PYB11property("const Field<DIM, int>&", "flags", returnpolicy="reference_internal", doc="The node flags")
+    nodeList = PYB11property("const NodeList<%(Dimension)s>&", "nodeList", returnpolicy="reference_internal", doc="The NodeList this ConstantAcceleration applies to")
+    flags = PYB11property("const Field<%(Dimension)s, int>&", "flags", returnpolicy="reference_internal", doc="The node flags")

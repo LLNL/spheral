@@ -9,19 +9,18 @@ class ArtificialConduction(Physics):
     "ArtificialConduction -- Artificial smoothing of energy discontinuities"
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
-    typedef typename Physics<DIM>::TimeStepType TimeStepType;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
     #...........................................................................
     # Constructors
     def pyinit(self,
-               W = "const TableKernel<DIM>&",
+               W = "const TableKernel<%(Dimension)s>&",
                alphaArCond = "const Scalar",
                ACcorrectionOrder = ("const CRKOrder", "CRKOrder::LinearOrder")):
         "Constructor"
@@ -30,7 +29,7 @@ class ArtificialConduction(Physics):
         # Virtual methods
         @PYB11virtual
         def initializeProblemStartup(self,
-                                     dataBase = "DataBase<DIM>&"):
+                                     dataBase = "DataBase<%(Dimension)s>&"):
             "Do any required one-time initializations on problem start up."
             return "void"
             

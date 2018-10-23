@@ -12,22 +12,21 @@ This class does not know how to seed the flaw distribution -- that is
 required of descendant classes."""
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename Physics<DIM>::TimeStepType TimeStepType;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 
-    typedef Field<DIM, std::vector<double> > FlawStorageType;
+    typedef Field<%(Dimension)s, std::vector<double> > FlawStorageType;
 """
 
     def pyinit(self,
-               nodeList = "SolidNodeList<DIM>&",
+               nodeList = "SolidNodeList<%(Dimension)s>&",
                strainAlgorithm = "const TensorStrainAlgorithm",
                effDamageAlgorithm = "const EffectiveDamageAlgorithm",
                useDamageGradient = "const bool",
-               W = "const TableKernel<DIM>&",
+               W = "const TableKernel<%(Dimension)s>&",
                crackGrowthMultiplier = "const double",
                flawAlgorithm = "const EffectiveFlawAlgorithm",
                criticalDamageThreshold = "const double",
@@ -42,57 +41,57 @@ required of descendant classes."""
     def evaluateDerivatives(self,
                             time = "const Scalar",
                             dt = "const Scalar",
-                            dataBase = "const DataBase<DIM>&",
-                            state = "const State<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         "Compute the derivatives."
         return "void"
 
     @PYB11virtual
     @PYB11const
     def dt(self,
-           dataBase = "const DataBase<DIM>&",
-           state = "const State<DIM>&",
-           derivs = "const StateDerivatives<DIM>&",
+           dataBase = "const DataBase<%(Dimension)s>&",
+           state = "const State<%(Dimension)s>&",
+           derivs = "const StateDerivatives<%(Dimension)s>&",
            currentTime = "const Scalar"):
         "Vote on a time step."
         return "TimeStepType"
 
     @PYB11virtual
     def registerState(self,
-                      dataBase = "DataBase<DIM>&",
-                      state = "State<DIM>&"):
+                      dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
         "Register our state."
         return "void"
 
     @PYB11virtual
     def registerDerivatives(self,
-                            dataBase = "DataBase<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "DataBase<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         "Register the derivatives/change fields for updating state."
         return "void"
 
     @PYB11virtual
     def applyGhostBoundaries(self,
-                             state = "State<DIM>&",
-                             derivs = "StateDerivatives<DIM>&"):
+                             state = "State<%(Dimension)s>&",
+                             derivs = "StateDerivatives<%(Dimension)s>&"):
         "Apply boundary conditions to the physics specific fields."
         return "void"
 
     @PYB11virtual
     def enforceBoundaries(self,
-                          state = "State<DIM>&",
-                          derivs = "StateDerivatives<DIM>&"):
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
     #...........................................................................
     # Properties
-    strain = PYB11property("Field<DIM, SymTensor>&", returnpolicy="reference_internal")
-    effectiveStrain = PYB11property("const Field<DIM, SymTensor>&", returnpolicy="reference_internal")
-    DdamageDt = PYB11property("const Field<DIM, Scalar>&", returnpolicy="reference_internal")
-    newEffectiveDamage = PYB11property("const Field<DIM, SymTensor>&", returnpolicy="reference_internal")
-    newDamageGradient = PYB11property("const Field<DIM, Vector>&", returnpolicy="reference_internal")
+    strain = PYB11property("Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
+    effectiveStrain = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
+    DdamageDt = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
+    newEffectiveDamage = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
+    newDamageGradient = PYB11property("const Field<%(Dimension)s, Vector>&", returnpolicy="reference_internal")
 
     strainAlgorithm = PYB11property("TensorStrainAlgorithm")
     effectiveDamageAlgorithm = PYB11property("EffectiveDamageAlgorithm")

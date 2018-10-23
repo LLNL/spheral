@@ -16,19 +16,18 @@ NodeList.
 """
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
-    typedef GeomPlane<DIM> Plane;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef GeomPlane<%(Dimension)s> Plane;
 """
 
     #...........................................................................
     # Constructors
     def pyinit(self,
-               nodeList = "NodeList<DIM>&",
+               nodeList = "NodeList<%(Dimension)s>&",
                nodeIndices = "const std::vector<int>&",
                denialPlane = "const Plane&"):
         "Construct a constant boundary for the specified nodes, including plane nodes are not allowed through"
@@ -39,14 +38,14 @@ NodeList.
     @PYB11virtual
     @PYB11const
     def applyGhostBoundary20(self,
-                             field = "Field<DIM, std::vector<Scalar>>&"):
+                             field = "Field<%(Dimension)s, std::vector<Scalar>>&"):
         return "void"
 
     @PYB11pycppname("applyGhostBoundary")
     @PYB11virtual
     @PYB11const
     def applyGhostBoundary21(self,
-                             field = "Field<DIM, std::vector<Vector>>&"):
+                             field = "Field<%(Dimension)s, std::vector<Vector>>&"):
         return "void"
 
     @PYB11virtual
@@ -60,7 +59,7 @@ NodeList.
 
     #...........................................................................
     # Properties
-    nodeList = PYB11property("const NodeList<DIM>&", "nodeList", doc="The NodeList this boundary applies to")
+    nodeList = PYB11property("const NodeList<%(Dimension)s>&", "nodeList", doc="The NodeList this boundary applies to")
     nodeIndices = PYB11property("std::vector<int>", "nodeIndices", doc="The nodes this boundary is in control of")
     numConstantNodes = PYB11property("int", "numConstantNodes", doc="The number of nodes we are controlling")
     reflectOperator = PYB11property("const Tensor&", "reflectOperator", doc="The tensor reflection transformation")

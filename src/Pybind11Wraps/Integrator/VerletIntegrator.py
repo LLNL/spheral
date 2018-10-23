@@ -12,12 +12,11 @@ class VerletIntegrator(Integrator):
 This method is symplectic in the absence of dissipation."""
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
 """
 
     #...........................................................................
@@ -25,12 +24,12 @@ This method is symplectic in the absence of dissipation."""
     def pyinit(self):
         "Construct an itegrator"
 
-    def pyinit1(self, dataBase = "DataBase<DIM>&"):
+    def pyinit1(self, dataBase = "DataBase<%(Dimension)s>&"):
         "Construct an integrator with a DataBase"
 
     def pyinit2(self,
-                dataBase = "DataBase<DIM>&",
-                physicsPackages = "const std::vector<Physics<DIM>*>&"):
+                dataBase = "DataBase<%(Dimension)s>&",
+                physicsPackages = "const std::vector<Physics<%(Dimension)s>*>&"):
         "Construct an integrator with a DataBase and physics packages"
 
     #...........................................................................

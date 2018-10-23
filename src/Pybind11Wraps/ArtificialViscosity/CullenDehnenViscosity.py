@@ -16,20 +16,19 @@ Hopkins arXiv:1409.7395
 """
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
-    typedef typename Physics<DIM>::TimeStepType TimeStepType;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
     #...........................................................................
     # Constructors
     def pyinit(self,
-               q = "ArtificialViscosity<DIM>&",
-               W = "const TableKernel<DIM>&",
+               q = "ArtificialViscosity<%(Dimension)s>&",
+               W = "const TableKernel<%(Dimension)s>&",
                alphMax = ("const Scalar", "2.0"),
                alphMin = ("const Scalar", "0.02"),
                betaC = ("const Scalar", "0.7"),
@@ -43,21 +42,21 @@ Hopkins arXiv:1409.7395
     # Virtual methods
     @PYB11virtual
     def applyGhostBoundaries(self,
-                             state = "State<DIM>&",
-                             derivs = "StateDerivatives<DIM>&"):
+                             state = "State<%(Dimension)s>&",
+                             derivs = "StateDerivatives<%(Dimension)s>&"):
         "Apply boundary conditions to the physics specific fields."
         return "void"
 
     @PYB11virtual
     def enforceBoundaries(self,
-                          state = "State<DIM>&",
-                          derivs = "StateDerivatives<DIM>&"):
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
     @PYB11virtual
     def initializeProblemStartup(self,
-                                 dataBase = "DataBase<DIM>&"):
+                                 dataBase = "DataBase<%(Dimension)s>&"):
         "An optional hook to initialize once when the problem is starting up."
         return "void"
 
@@ -65,9 +64,9 @@ Hopkins arXiv:1409.7395
     def finalize(self,
                  time = "const Scalar", 
                  dt = "const Scalar",
-                 dataBase = "DataBase<DIM>&", 
-                 state = "State<DIM>&",
-                 derivs = "StateDerivatives<DIM>&"):
+                 dataBase = "DataBase<%(Dimension)s>&", 
+                 state = "State<%(Dimension)s>&",
+                 derivs = "StateDerivatives<%(Dimension)s>&"):
         "Similarly packages might want a hook to do some post-step finalizations.  Really we should rename this post-step finalize."
         return "void"
 
@@ -76,9 +75,9 @@ Hopkins arXiv:1409.7395
     def finalizeDerivatives(self,
                             time = "const Scalar",
                             dt = "const Scalar",
-                            dataBase = "const DataBase<DIM>&",
-                            state = "const State<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         "Provide a hook to be called after all physics packages have had their evaluateDerivatives method called, but before anyone does anything with those derivatives."
         return "void"
 
@@ -91,14 +90,14 @@ Hopkins arXiv:1409.7395
     betaC = PYB11property("Scalar", "betaC", "betaC")
     fKern = PYB11property("Scalar", "fKern", "fKern")
     boolHopkins = PYB11property("bool", "boolHopkins", "boolHopkins")
-    kernel = PYB11property("const TableKernel<DIM>&", "kernel", returnpolicy="reference_internal")
-    PrevDvDt = PYB11property("const FieldList<DIM, Vector>&", "PrevDvDt", returnpolicy="reference_internal")
-    PrevDivV = PYB11property("const FieldList<DIM, Scalar>&", "PrevDivV", returnpolicy="reference_internal")
-    PrevDivV2 = PYB11property("const FieldList<DIM, Scalar>&", "PrevDivV2", returnpolicy="reference_internal")
-    CullAlpha = PYB11property("const FieldList<DIM, Scalar>&", "CullAlpha", returnpolicy="reference_internal")
-    CullAlpha2  = PYB11property("const FieldList<DIM, Scalar>&", "CullAlpha2", returnpolicy="reference_internal")
-    DalphaDt = PYB11property("const FieldList<DIM, Scalar>&", "DalphaDt", returnpolicy="reference_internal")
-    alphaLocal = PYB11property("const FieldList<DIM, Scalar>&", "alphaLocal", returnpolicy="reference_internal")
+    kernel = PYB11property("const TableKernel<%(Dimension)s>&", "kernel", returnpolicy="reference_internal")
+    PrevDvDt = PYB11property("const FieldList<%(Dimension)s, Vector>&", "PrevDvDt", returnpolicy="reference_internal")
+    PrevDivV = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "PrevDivV", returnpolicy="reference_internal")
+    PrevDivV2 = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "PrevDivV2", returnpolicy="reference_internal")
+    CullAlpha = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "CullAlpha", returnpolicy="reference_internal")
+    CullAlpha2  = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "CullAlpha2", returnpolicy="reference_internal")
+    DalphaDt = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DalphaDt", returnpolicy="reference_internal")
+    alphaLocal = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "alphaLocal", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject abstract interface

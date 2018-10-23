@@ -9,13 +9,12 @@ from PhysicsAbstractMethods import *
 class Physics:
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
-    typedef typename Physics<DIM>::TimeStepType TimeStepType;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
     #...........................................................................
@@ -27,29 +26,29 @@ class Physics:
     # Virtual methods
     @PYB11virtual
     def applyGhostBoundaries(self,
-                             state = "State<DIM>&",
-                             derivs = "StateDerivatives<DIM>&"):
+                             state = "State<%(Dimension)s>&",
+                             derivs = "StateDerivatives<%(Dimension)s>&"):
         "Apply boundary conditions to the physics specific fields."
         return "void"
 
     @PYB11virtual
     def enforceBoundaries(self,
-                          state = "State<DIM>&",
-                          derivs = "StateDerivatives<DIM>&"):
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
     @PYB11virtual
     def initializeProblemStartup(self,
-                                 dataBase = "DataBase<DIM>&"):
+                                 dataBase = "DataBase<%(Dimension)s>&"):
         "An optional hook to initialize once when the problem is starting up."
         return "void"
 
     @PYB11virtual
     def preStepInitialize(self,
-                          dataBase = "const DataBase<DIM>&", 
-                          state = "State<DIM>&",
-                          derivs = "StateDerivatives<DIM>&"):
+                          dataBase = "const DataBase<%(Dimension)s>&", 
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
         "Optional hook to be called at the beginning of a time step."
         return "void"
 
@@ -57,9 +56,9 @@ class Physics:
     def initialize(self,
                    time = "const Scalar", 
                    dt = "const Scalar",
-                   dataBase = "const DataBase<DIM>&", 
-                   state = "State<DIM>&",
-                   derivs = "StateDerivatives<DIM>&"):
+                   dataBase = "const DataBase<%(Dimension)s>&", 
+                   state = "State<%(Dimension)s>&",
+                   derivs = "StateDerivatives<%(Dimension)s>&"):
         "Some packages might want a hook to do some initializations before the evaluateDerivatives() method is called."
         return "void"
 
@@ -67,9 +66,9 @@ class Physics:
     def finalize(self,
                  time = "const Scalar", 
                  dt = "const Scalar",
-                 dataBase = "DataBase<DIM>&", 
-                 state = "State<DIM>&",
-                 derivs = "StateDerivatives<DIM>&"):
+                 dataBase = "DataBase<%(Dimension)s>&", 
+                 state = "State<%(Dimension)s>&",
+                 derivs = "StateDerivatives<%(Dimension)s>&"):
         "Similarly packages might want a hook to do some post-step finalizations.  Really we should rename this post-step finalize."
         return "void"
 
@@ -78,9 +77,9 @@ class Physics:
     def finalizeDerivatives(self,
                             time = "const Scalar",
                             dt = "const Scalar",
-                            dataBase = "const DataBase<DIM>&",
-                            state = "const State<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         "Provide a hook to be called after all physics packages have had their evaluateDerivatives method called, but before anyone does anything with those derivatives."
         return "void"
 
@@ -88,9 +87,9 @@ class Physics:
     def postStateUpdate(self,
                         time = "const Scalar", 
                         dt = "const Scalar",
-                        dataBase = "const DataBase<DIM>&", 
-                        state = "State<DIM>&",
-                        derivs = "StateDerivatives<DIM>&"):
+                        dataBase = "const DataBase<%(Dimension)s>&", 
+                        state = "State<%(Dimension)s>&",
+                        derivs = "StateDerivatives<%(Dimension)s>&"):
         "Provide a hook to be called after the state has been updated and boundary conditions have been enforced."
         return "void"
 
@@ -120,18 +119,18 @@ class Physics:
 
     @PYB11virtual
     def registerAdditionalVisualizationState(self,
-                                             dataBase = "DataBase<DIM>&",
-                                             state = "State<DIM>&"):
+                                             dataBase = "DataBase<%(Dimension)s>&",
+                                             state = "State<%(Dimension)s>&"):
         "Register any additional state for visualization."
         return "void"
 
     #...........................................................................
     # Methods
-    def appendBoundary(self, boundary="Boundary<DIM>&"):
+    def appendBoundary(self, boundary="Boundary<%(Dimension)s>&"):
         "Add a Boundary condition to the end of boundary list"
         return "void"
     
-    def prependBoundary(self, boundary="Boundary<DIM>&"):
+    def prependBoundary(self, boundary="Boundary<%(Dimension)s>&"):
         "Insert a Boundary condition at the beginning of the boundary list"
         return "void"
 
@@ -140,7 +139,7 @@ class Physics:
         return "void"
 
     @PYB11const
-    def haveBoundary(self, boundary="const Boundary<DIM>&"):
+    def haveBoundary(self, boundary="const Boundary<%(Dimension)s>&"):
         "Test if the given Boundary condition is registered."
         return "bool"
 
@@ -148,7 +147,7 @@ class Physics:
     @PYB11const
     def boundaryConditions(self):
         "Access the list of boundary conditions."
-        return "const std::vector<Boundary<DIM>*>&"
+        return "const std::vector<Boundary<%(Dimension)s>*>&"
 
 #-------------------------------------------------------------------------------
 # Inject abstract interface

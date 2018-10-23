@@ -10,7 +10,6 @@ from RestartMethods import *
 class PSPHHydroBase(SPHHydroBase):
 
     typedefs = """
-  typedef %(Dimension)s DIM;
   typedef typename %(Dimension)s::Scalar Scalar;
   typedef typename %(Dimension)s::Vector Vector;
   typedef typename %(Dimension)s::Tensor Tensor;
@@ -18,10 +17,10 @@ class PSPHHydroBase(SPHHydroBase):
   typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
     
-    def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<DIM>&",
-               Q = "ArtificialViscosity<DIM>&",
-               W = "const TableKernel<DIM>&",
-               WPi = "const TableKernel<DIM>&",
+    def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
+               Q = "ArtificialViscosity<%(Dimension)s>&",
+               W = "const TableKernel<%(Dimension)s>&",
+               WPi = "const TableKernel<%(Dimension)s>&",
                filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
@@ -40,20 +39,20 @@ class PSPHHydroBase(SPHHydroBase):
     #...........................................................................
     # Virtual methods
     @PYB11virtual
-    def initializeProblemStartup(dataBase = "DataBase<DIM>&"):
+    def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
         "Tasks we do once on problem startup."
         return "void"
 
     @PYB11virtual 
-    def registerState(dataBase = "DataBase<DIM>&",
-                      state = "State<DIM>&"):
+    def registerState(dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
         "Register the state Hydro expects to use and evolve."
         return "void"
 
     @PYB11virtual 
-    def preStepInitialize(dataBase = "const DataBase<DIM>&",
-                          state = "State<DIM>&",
-                          derivs = "StateDerivatives<DIM>&"):
+    def preStepInitialize(dataBase = "const DataBase<%(Dimension)s>&",
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
         "Pre-step initializations."
         return "void"
 
@@ -61,9 +60,9 @@ class PSPHHydroBase(SPHHydroBase):
     @PYB11const
     def evaluateDerivatives(time = "const Scalar",
                             dt = "const Scalar",
-                            dataBase = "const DataBase<DIM>&",
-                            state = "const State<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         """Evaluate the derivatives for the principle hydro 
 mass density, velocity, and specific thermal energy."""
         return "void"
@@ -72,30 +71,30 @@ mass density, velocity, and specific thermal energy."""
     @PYB11const
     def finalizeDerivatives(time = "const Scalar",
                             dt = "const Scalar",
-                            dataBase = "const DataBase<DIM>&",
-                            state = "const State<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         "Finalize the derivatives."
         return "void"
 
     @PYB11virtual
     def postStateUpdate(time = "const Scalar",
                         dt = "const Scalar",
-                        dataBase = "const DataBase<DIM>&",
-                        state = "State<DIM>&",
-                        derivs = "StateDerivatives<DIM>&"):
+                        dataBase = "const DataBase<%(Dimension)s>&",
+                        state = "State<%(Dimension)s>&",
+                        derivs = "StateDerivatives<%(Dimension)s>&"):
         "Post-state update. For PSPH this is where we recompute the PSPH pressure and corrections."
         return "void"
                
     @PYB11virtual
-    def applyGhostBoundaries(state = "State<DIM>&",
-                             derivs = "StateDerivatives<DIM>&"):
+    def applyGhostBoundaries(state = "State<%(Dimension)s>&",
+                             derivs = "StateDerivatives<%(Dimension)s>&"):
         "Apply boundary conditions to the physics specific fields."
         return "void"
 
     @PYB11virtual
-    def enforceBoundaries(state = "State<DIM>&",
-                          derivs = "StateDerivatives<DIM>&"):
+    def enforceBoundaries(state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
@@ -104,8 +103,8 @@ mass density, velocity, and specific thermal energy."""
     HopkinsConductivity = PYB11property("bool", "HopkinsConductivity", "HopkinsConductivity", 
                                         doc="Flag determining if we're applying Hopkins 2014 conductivity.")
 
-    gamma =          PYB11property("const FieldList<DIM, Scalar>&", "gamma",          returnpolicy="reference_internal")
-    PSPHcorrection = PYB11property("const FieldList<DIM, Scalar>&", "PSPHcorrection", returnpolicy="reference_internal")
+    gamma =          PYB11property("const FieldList<%(Dimension)s, Scalar>&", "gamma",          returnpolicy="reference_internal")
+    PSPHcorrection = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "PSPHcorrection", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods

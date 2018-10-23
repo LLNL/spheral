@@ -10,14 +10,13 @@ from RestartMethods import *
 class PlanarBoundary(Boundary):
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
-    typedef typename Boundary<DIM>::BoundaryNodes BoundaryNodes;
-    typedef GeomPlane<DIM> Plane;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename Boundary<%(Dimension)s>::BoundaryNodes BoundaryNodes;
+    typedef GeomPlane<%(Dimension)s> Plane;
 """
 
     #...........................................................................
@@ -34,25 +33,25 @@ class PlanarBoundary(Boundary):
     # Virtual methods
     @PYB11virtual
     def setGhostNodes(self,
-                      nodeList = "NodeList<DIM>&"):
+                      nodeList = "NodeList<%(Dimension)s>&"):
         "Set ghost nodes for the NodeList"
         return "void"
 
     @PYB11virtual
     def updateGhostNodes(self,
-                         nodeList = "NodeList<DIM>&"):
+                         nodeList = "NodeList<%(Dimension)s>&"):
         "Update position and H for ghost nodes for the NodeList"
         return "void"
 
     @PYB11virtual
     def setViolationNodes(self,
-                      nodeList = "NodeList<DIM>&"):
+                      nodeList = "NodeList<%(Dimension)s>&"):
         "Set violation nodes for the NodeList"
         return "void"
 
     @PYB11virtual
     def updateViolationNodes(self,
-                         nodeList = "NodeList<DIM>&"):
+                         nodeList = "NodeList<%(Dimension)s>&"):
         "Update nodes in violation of this Boundary for the NodeList"
         return "void"
                     
@@ -94,7 +93,7 @@ class PlanarBoundary(Boundary):
     #...........................................................................
     # Methods
     def setGhostNodes(self,
-                      nodeList = "NodeList<DIM>&",
+                      nodeList = "NodeList<%(Dimension)s>&",
                       presetControlNodes = "const std::vector<int>&"):
         "Set the ghost nodes for a predefined set of control nodes"
         return "void"
@@ -109,7 +108,7 @@ class PlanarBoundary(Boundary):
 
     @PYB11const
     def facesOnPlane(self,
-                     mesh = "const Mesh<DIM>&",
+                     mesh = "const Mesh<%(Dimension)s>&",
                      plane = "const Plane&",
                      tol = "const Scalar"):
         "Provide a method to identify tessellation faces on a plane."

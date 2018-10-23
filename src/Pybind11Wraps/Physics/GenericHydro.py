@@ -9,21 +9,20 @@ from Physics import *
 class GenericHydro(Physics):
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
-    typedef typename Physics<DIM>::TimeStepType TimeStepType;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
     #...........................................................................
     # Constructors
     def pyinit(self,
-               W = "const TableKernel<DIM>&",
-               WPi = "const TableKernel<DIM>&",
-               Q = "ArtificialViscosity<DIM>&",
+               W = "const TableKernel<%(Dimension)s>&",
+               WPi = "const TableKernel<%(Dimension)s>&",
+               Q = "ArtificialViscosity<%(Dimension)s>&",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool"):
         "GenericHydro constructor"
@@ -32,9 +31,9 @@ class GenericHydro(Physics):
     # Virtual methods
     @PYB11virtual
     @PYB11const
-    def dt(dataBase = "const DataBase<DIM>&", 
-           state = "const State<DIM>&",
-           derivs = "const StateDerivatives<DIM>&",
+    def dt(dataBase = "const DataBase<%(Dimension)s>&", 
+           state = "const State<%(Dimension)s>&",
+           derivs = "const StateDerivatives<%(Dimension)s>&",
            currentTime = "const Scalar"):
         "Vote on a time step."
         return "TimeStepType"
@@ -63,9 +62,9 @@ class GenericHydro(Physics):
 
     #...........................................................................
     # Attributes
-    artificialViscosity = PYB11property("ArtificialViscosity<DIM>&", "artificialViscosity", doc="The artificial viscosity object")
-    kernel = PYB11property("const TableKernel<DIM>&", "kernel", doc="The interpolation kernel")
-    PiKernel = PYB11property("const TableKernel<DIM>&", "PiKernel", doc="The interpolation kernel for the artificial viscosity")
+    artificialViscosity = PYB11property("ArtificialViscosity<%(Dimension)s>&", "artificialViscosity", doc="The artificial viscosity object")
+    kernel = PYB11property("const TableKernel<%(Dimension)s>&", "kernel", doc="The interpolation kernel")
+    PiKernel = PYB11property("const TableKernel<%(Dimension)s>&", "PiKernel", doc="The interpolation kernel for the artificial viscosity")
     cfl = PYB11property("Scalar", "cfl", "cfl", doc="The Courant-Friedrichs-Lewy timestep limit multiplier")
     useVelocityMagnitudeForDt = PYB11property("bool", "useVelocityMagnitudeForDt", "useVelocityMagnitudeForDt", doc="Should the pointwise velocity magnitude be used to limit the timestep?")
     minMasterNeighbor = PYB11property("int", "minMasterNeighbor", doc="minimum number of master neighbors found")

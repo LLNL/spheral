@@ -10,7 +10,6 @@ from RestartMethods import *
 class SPHHydroBase(GenericHydro):
 
     typedefs = """
-  typedef %(Dimension)s DIM;
   typedef typename %(Dimension)s::Scalar Scalar;
   typedef typename %(Dimension)s::Vector Vector;
   typedef typename %(Dimension)s::Tensor Tensor;
@@ -18,10 +17,10 @@ class SPHHydroBase(GenericHydro):
   typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
     
-    def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<DIM>&",
-               Q = "ArtificialViscosity<DIM>&",
-               W = "const TableKernel<DIM>&",
-               WPi = "const TableKernel<DIM>&",
+    def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
+               Q = "ArtificialViscosity<%(Dimension)s>&",
+               W = "const TableKernel<%(Dimension)s>&",
+               WPi = "const TableKernel<%(Dimension)s>&",
                filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
@@ -42,28 +41,28 @@ class SPHHydroBase(GenericHydro):
     #...........................................................................
     # Virtual methods
     @PYB11virtual
-    def initializeProblemStartup(dataBase = "DataBase<DIM>&"):
+    def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
         "Tasks we do once on problem startup."
         return "void"
 
     @PYB11virtual 
-    def registerState(dataBase = "DataBase<DIM>&",
-                      state = "State<DIM>&"):
+    def registerState(dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
         "Register the state Hydro expects to use and evolve."
         return "void"
 
     @PYB11virtual
-    def registerDerivatives(dataBase = "DataBase<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+    def registerDerivatives(dataBase = "DataBase<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         "Register the derivatives/change fields for updating state."
         return "void"
 
     @PYB11virtual
     def initialize(time = "const Scalar",
                    dt = "const Scalar",
-                   dataBase = "const DataBase<DIM>&",
-                   state = "State<DIM>&",
-                   derivs = "StateDerivatives<DIM>&"):
+                   dataBase = "const DataBase<%(Dimension)s>&",
+                   state = "State<%(Dimension)s>&",
+                   derivs = "StateDerivatives<%(Dimension)s>&"):
         "Initialize the Hydro before we start a derivative evaluation."
         return "void"
                        
@@ -71,9 +70,9 @@ class SPHHydroBase(GenericHydro):
     @PYB11const
     def evaluateDerivatives(time = "const Scalar",
                             dt = "const Scalar",
-                            dataBase = "const DataBase<DIM>&",
-                            state = "const State<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         """Evaluate the derivatives for the principle hydro 
 mass density, velocity, and specific thermal energy."""
         return "void"
@@ -82,37 +81,37 @@ mass density, velocity, and specific thermal energy."""
     @PYB11const
     def finalizeDerivatives(time = "const Scalar",
                             dt = "const Scalar",
-                            dataBase = "const DataBase<DIM>&",
-                            state = "const State<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         "Finalize the derivatives."
         return "void"
 
     @PYB11virtual
     def finalize(time = "const Scalar",
                  dt = "const Scalar",
-                 dataBase = "DataBase<DIM>&",
-                 state = "State<DIM>&",
-                 derivs = "StateDerivatives<DIM>&"):
+                 dataBase = "DataBase<%(Dimension)s>&",
+                 state = "State<%(Dimension)s>&",
+                 derivs = "StateDerivatives<%(Dimension)s>&"):
         "Finalize the hydro at the completion of an integration step."
         return "void"
                
     @PYB11virtual
-    def applyGhostBoundaries(state = "State<DIM>&",
-                             derivs = "StateDerivatives<DIM>&"):
+    def applyGhostBoundaries(state = "State<%(Dimension)s>&",
+                             derivs = "StateDerivatives<%(Dimension)s>&"):
         "Apply boundary conditions to the physics specific fields."
         return "void"
 
     @PYB11virtual
-    def enforceBoundaries(state = "State<DIM>&",
-                          derivs = "StateDerivatives<DIM>&"):
+    def enforceBoundaries(state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
     #...........................................................................
     # Methods
     @PYB11const
-    def updateVolume(state = "State<DIM>&",
+    def updateVolume(state = "State<%(Dimension)s>&",
                      boundaries = "const bool"):
         """A method to fill in the volume in the State, optionally enforcing
 boundary conditions."""
@@ -147,38 +146,38 @@ boundary conditions."""
     xmax = PYB11property("const Vector&", "xmax", "xmax",
                          returnpolicy="reference_internal",
                          doc="Optional maximum coordinate for bounding box for use generating the mesh for the Voronoi mass density update.")
-    smoothingScaleMethod = PYB11property("const SmoothingScaleBase<DIM>&", "smoothingScaleMethod",
+    smoothingScaleMethod = PYB11property("const SmoothingScaleBase<%(Dimension)s>&", "smoothingScaleMethod",
                                          returnpolicy="reference_internal",
                                          doc="The object defining how we evolve smoothing scales.")
 
-    timeStepMask =                 PYB11property("const FieldList<DIM, int>&",      "timeStepMask",         returnpolicy="reference_internal")
-    pressure =                     PYB11property("const FieldList<DIM, Scalar>&",   "pressure",             returnpolicy="reference_internal")
-    soundSpeed =                   PYB11property("const FieldList<DIM, Scalar>&",   "soundSpeed",           returnpolicy="reference_internal")
-    volume =                       PYB11property("const FieldList<DIM, Scalar>&",   "volume",               returnpolicy="reference_internal")
-    omegaGradh =                   PYB11property("const FieldList<DIM, Scalar>&",   "omegaGradh",           returnpolicy="reference_internal")
-    specificThermalEnergy0 =       PYB11property("const FieldList<DIM, Scalar>&",   "specificThermalEnergy0",returnpolicy="reference_internal")
-    entropy =                      PYB11property("const FieldList<DIM, Scalar>&",   "entropy",              returnpolicy="reference_internal")
-    Hideal =                       PYB11property("const FieldList<DIM, SymTensor>&","Hideal",               returnpolicy="reference_internal")
-    maxViscousPressure =           PYB11property("const FieldList<DIM, Scalar>&",   "maxViscousPressure",   returnpolicy="reference_internal")
-    effectiveViscousPressure =     PYB11property("const FieldList<DIM, Scalar>&",   "effectiveViscousPressure", returnpolicy="reference_internal")
-    massDensityCorrection =        PYB11property("const FieldList<DIM, Scalar>&",   "massDensityCorrection",returnpolicy="reference_internal")
-    viscousWork =                  PYB11property("const FieldList<DIM, Scalar>&",   "viscousWork",          returnpolicy="reference_internal")
-    massDensitySum =               PYB11property("const FieldList<DIM, Scalar>&",   "massDensitySum",       returnpolicy="reference_internal")
-    normalization =                PYB11property("const FieldList<DIM, Scalar>&",   "normalization",        returnpolicy="reference_internal")
-    weightedNeighborSum =          PYB11property("const FieldList<DIM, Scalar>&",   "weightedNeighborSum",  returnpolicy="reference_internal")
-    massSecondMoment =             PYB11property("const FieldList<DIM, SymTensor>&","massSecondMoment",     returnpolicy="reference_internal")
-    XSPHWeightSum =                PYB11property("const FieldList<DIM, Scalar>&",   "XSPHWeightSum",        returnpolicy="reference_internal")
-    XSPHDeltaV =                   PYB11property("const FieldList<DIM, Vector>&",   "XSPHDeltaV",           returnpolicy="reference_internal")
-    M =                            PYB11property("const FieldList<DIM, Tensor>&",   "M",                    returnpolicy="reference_internal")
-    localM =                       PYB11property("const FieldList<DIM, Tensor>&",   "localM",               returnpolicy="reference_internal")
-    DxDt =                         PYB11property("const FieldList<DIM, Vector>&",   "DxDt",                 returnpolicy="reference_internal")
-    DvDt =                         PYB11property("const FieldList<DIM, Vector>&",   "DvDt",                 returnpolicy="reference_internal")
-    DmassDensityDt =               PYB11property("const FieldList<DIM, Scalar>&",   "DmassDensityDt",       returnpolicy="reference_internal")
-    DspecificThermalEnergyDt =     PYB11property("const FieldList<DIM, Scalar>&",   "DspecificThermalEnergyDt", returnpolicy="reference_internal")
-    DHDt =                         PYB11property("const FieldList<DIM, SymTensor>&","DHDt",                 returnpolicy="reference_internal")
-    DvDx =                         PYB11property("const FieldList<DIM, Tensor>&",   "DvDx",                 returnpolicy="reference_internal")
-    internalDvDx =                 PYB11property("const FieldList<DIM, Tensor>&",   "internalDvDx",         returnpolicy="reference_internal")
-    pairAccelerations =            PYB11property("const FieldList<DIM, std::vector<Vector> >&", "pairAccelerations", returnpolicy="reference_internal")
+    timeStepMask =                 PYB11property("const FieldList<%(Dimension)s, int>&",      "timeStepMask",         returnpolicy="reference_internal")
+    pressure =                     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "pressure",             returnpolicy="reference_internal")
+    soundSpeed =                   PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "soundSpeed",           returnpolicy="reference_internal")
+    volume =                       PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "volume",               returnpolicy="reference_internal")
+    omegaGradh =                   PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "omegaGradh",           returnpolicy="reference_internal")
+    specificThermalEnergy0 =       PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "specificThermalEnergy0",returnpolicy="reference_internal")
+    entropy =                      PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "entropy",              returnpolicy="reference_internal")
+    Hideal =                       PYB11property("const FieldList<%(Dimension)s, SymTensor>&","Hideal",               returnpolicy="reference_internal")
+    maxViscousPressure =           PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "maxViscousPressure",   returnpolicy="reference_internal")
+    effectiveViscousPressure =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "effectiveViscousPressure", returnpolicy="reference_internal")
+    massDensityCorrection =        PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "massDensityCorrection",returnpolicy="reference_internal")
+    viscousWork =                  PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "viscousWork",          returnpolicy="reference_internal")
+    massDensitySum =               PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "massDensitySum",       returnpolicy="reference_internal")
+    normalization =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "normalization",        returnpolicy="reference_internal")
+    weightedNeighborSum =          PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "weightedNeighborSum",  returnpolicy="reference_internal")
+    massSecondMoment =             PYB11property("const FieldList<%(Dimension)s, SymTensor>&","massSecondMoment",     returnpolicy="reference_internal")
+    XSPHWeightSum =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "XSPHWeightSum",        returnpolicy="reference_internal")
+    XSPHDeltaV =                   PYB11property("const FieldList<%(Dimension)s, Vector>&",   "XSPHDeltaV",           returnpolicy="reference_internal")
+    M =                            PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "M",                    returnpolicy="reference_internal")
+    localM =                       PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "localM",               returnpolicy="reference_internal")
+    DxDt =                         PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DxDt",                 returnpolicy="reference_internal")
+    DvDt =                         PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DvDt",                 returnpolicy="reference_internal")
+    DmassDensityDt =               PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "DmassDensityDt",       returnpolicy="reference_internal")
+    DspecificThermalEnergyDt =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "DspecificThermalEnergyDt", returnpolicy="reference_internal")
+    DHDt =                         PYB11property("const FieldList<%(Dimension)s, SymTensor>&","DHDt",                 returnpolicy="reference_internal")
+    DvDx =                         PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "DvDx",                 returnpolicy="reference_internal")
+    internalDvDx =                 PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "internalDvDx",         returnpolicy="reference_internal")
+    pairAccelerations =            PYB11property("const FieldList<%(Dimension)s, std::vector<Vector> >&", "pairAccelerations", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods

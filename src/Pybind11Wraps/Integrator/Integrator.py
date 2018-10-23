@@ -11,12 +11,11 @@ class Integrator:
     "Base class for all Spheral time integration algorithms"
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
 """
 
     #...........................................................................
@@ -24,12 +23,12 @@ class Integrator:
     def pyinit(self):
         "Construct an itegrator"
 
-    def pyinit1(self, dataBase = "DataBase<DIM>&"):
+    def pyinit1(self, dataBase = "DataBase<%(Dimension)s>&"):
         "Construct an integrator with a DataBase"
 
     def pyinit2(self,
-                dataBase = "DataBase<DIM>&",
-                physicsPackages = "const std::vector<Physics<DIM>*>&"):
+                dataBase = "DataBase<%(Dimension)s>&",
+                physicsPackages = "const std::vector<Physics<%(Dimension)s>*>&"):
         "Construct an integrator with a DataBase and physics packages"
 
     #...........................................................................
@@ -45,15 +44,15 @@ class Integrator:
     def selectDt(self,
                  dtMin = "const Scalar",
                  dtMax = "const Scalar",
-                 state = "const State<DIM>&",
-                 derivs = "const StateDerivatives<DIM>&"):
+                 state = "const State<%(Dimension)s>&",
+                 derivs = "const StateDerivatives<%(Dimension)s>&"):
         "Provide a method of looping over the physics packages and picking a time step."
         return "Scalar"
 
     @PYB11virtual
     def preStepInitialize(self,
-                          state = "State<DIM>&",
-                          derivs = "StateDerivatives<DIM>&"):
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
         """Perform generic initializations at the beginning of a timestep.
 To be called once per advance cycle."""
         return "void"
@@ -62,8 +61,8 @@ To be called once per advance cycle."""
     def initializeDerivatives(self,
                               t = "const double",
                               dt = "const double",
-                              state = "State<DIM>&",
-                              derivs = "StateDerivatives<DIM>&"):
+                              state = "State<%(Dimension)s>&",
+                              derivs = "StateDerivatives<%(Dimension)s>&"):
         """Prepare all physics packages for calls to evaluateDerivatives.
 To be called before any call to Physics::evaluateDerivatives, therefore potentially
 several times during a time step."""
@@ -73,8 +72,8 @@ several times during a time step."""
     def postStepFinalize(self,
                          t = "const double",
                          dt = "const double",
-                         state = "State<DIM>&",
-                         derivs = "StateDerivatives<DIM>&"):
+                         state = "State<%(Dimension)s>&",
+                         derivs = "StateDerivatives<%(Dimension)s>&"):
         "Finalize at the end a timestep, therefore called once at the end of a timestep."
         return "void"
 
@@ -89,9 +88,9 @@ several times during a time step."""
     def evaluateDerivatives(self,
                             t = "const Scalar",
                             dt = "const Scalar",
-                            dataBase = "const DataBase<DIM>&",
-                            state = "const State<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         "Iterate over all physics packages and call evaluateDerivatives."
         return "void"
 
@@ -99,9 +98,9 @@ several times during a time step."""
     def finalizeDerivatives(self,
                             t = "const Scalar",
                             dt = "const Scalar",
-                            dataBase = "const DataBase<DIM>&",
-                            state = "const State<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         "Iterate over all physics packages and call finalizeDerivatives."
         return "void"
 
@@ -109,33 +108,33 @@ several times during a time step."""
     def postStateUpdate(self,
                         t = "const Scalar",
                         dt = "const Scalar",
-                        dataBase = "const DataBase<DIM>&",
-                        state = "State<DIM>&",
-                        derivs = "StateDerivatives<DIM>&"):
+                        dataBase = "const DataBase<%(Dimension)s>&",
+                        state = "State<%(Dimension)s>&",
+                        derivs = "StateDerivatives<%(Dimension)s>&"):
         "Iterate over all physics packages and call postStateUpdate"
         return "void"
 
-    def appendPhysicsPackage(self, package="Physics<DIM>&"):
+    def appendPhysicsPackage(self, package="Physics<%(Dimension)s>&"):
         "Add a Physics package."
         return "void"
 
     @PYB11const
-    def havePhysicsPackage(self, package="const Physics<DIM>&"):
+    def havePhysicsPackage(self, package="const Physics<%(Dimension)s>&"):
         "Test if the given Physics package is listed in the integrator."
         return "bool"
 
     @PYB11const
     def uniqueBoundaryConditions(self):
         "Get the unique set of boundary conditions across all physics packages."
-        return "std::vector<Boundary<DIM>*>"
+        return "std::vector<Boundary<%(Dimension)s>*>"
 
     def setGhostNodes(self):
         "Set the ghost nodes for all node lists according to the boundary conditions."
         return "void"
 
     def applyGhostBoundaries(self,
-                             state = "State<DIM>&",
-                             derivs = "StateDerivatives<DIM>&"):
+                             state = "State<%(Dimension)s>&",
+                             derivs = "StateDerivatives<%(Dimension)s>&"):
         "Set the ghost node values on the Fields of the nodes lists in the data base."
         return "void"
 
@@ -148,16 +147,16 @@ several times during a time step."""
         return "void"
 
     def enforceBoundaries(self,
-                          state = "State<DIM>&",
-                          derivs = "StateDerivatives<DIM>&"):
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
         """Reset any internal nodes in violation of boundary conditions to be brought 
 into compliance."""
         return "void"
 
     @PYB11const
     def copyGhostState(self,
-                       state0 = "const State<DIM>&",
-                       state1 = "State<DIM>&"):
+                       state0 = "const State<%(Dimension)s>&",
+                       state1 = "State<%(Dimension)s>&"):
         "Copy the ghost positions and H's from one state to another."
         return "void"
 
@@ -169,8 +168,8 @@ into compliance."""
     dtMax = PYB11property("Scalar", "dtMax", "dtMax", doc="Maximum allowed time step")
     lastDt = PYB11property("Scalar", "lastDt", "lastDt", doc="Last timestep used")
     dtGrowth = PYB11property("Scalar", "dtGrowth", "dtGrowth", doc="Maximum allowed fractional time step growth")
-    dataBase = PYB11property("DataBase<DIM>&", "dataBase", returnpolicy="reference_internal", doc="The DataBase of NodeLists")
-    physicsPackages = PYB11property("const std::vector<Physics<DIM>*>&", returnpolicy="reference_internal", doc="The set of physics packages")
+    dataBase = PYB11property("DataBase<%(Dimension)s>&", "dataBase", returnpolicy="reference_internal", doc="The DataBase of NodeLists")
+    physicsPackages = PYB11property("const std::vector<Physics<%(Dimension)s>*>&", returnpolicy="reference_internal", doc="The set of physics packages")
     rigorousBoundaries = PYB11property("bool", "rigorousBoundaries", "rigorousBoundaries", doc="Toggle if ghost nodes should be recomputed every derivative estimate")
     updateBoundaryFrequency = PYB11property("int", "updateBoundaryFrequency", "updateBoundaryFrequency", doc="Optionally update the boundary ghost nodes only on this frequency of cycles")
     verbose = PYB11property("bool", "verbose", "verbose", doc="Verbose time step information every step")

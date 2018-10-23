@@ -10,22 +10,21 @@ class CRKSPHVariant(CRKSPHHydroBase):
     "CRKSPHVariant -- A development variant of CRKSPH for experimentation."
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
-    typedef typename DIM::FourthRankTensor FourthRankTensor;
-    typedef typename DIM::FifthRankTensor FifthRankTensor;
-    typedef typename Physics<DIM>::TimeStepType TimeStepType;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
+    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
+    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
     def pyinit(self,
-               smoothingScaleMethod = "const SmoothingScaleBase<DIM>&",
-               Q = "ArtificialViscosity<DIM>&",
-               W = "const TableKernel<DIM>&",
-               WPi = "const TableKernel<DIM>&",
+               smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
+               Q = "ArtificialViscosity<%(Dimension)s>&",
+               W = "const TableKernel<%(Dimension)s>&",
+               WPi = "const TableKernel<%(Dimension)s>&",
                filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
@@ -43,7 +42,7 @@ class CRKSPHVariant(CRKSPHHydroBase):
     #...........................................................................
     # Virtual methods
     @PYB11virtual
-    def initializeProblemStartup(self, dataBase = "DataBase<DIM>&"):
+    def initializeProblemStartup(self, dataBase = "DataBase<%(Dimension)s>&"):
         "Tasks we do once on problem startup."
         return "void"
 
@@ -51,9 +50,9 @@ class CRKSPHVariant(CRKSPHHydroBase):
     def initialize(self,
                    time = "const Scalar",
                    dt = "const Scalar",
-                   dataBase = "const DataBase<DIM>&",
-                   state = "State<DIM>&",
-                   derivs = "StateDerivatives<DIM>&"):
+                   dataBase = "const DataBase<%(Dimension)s>&",
+                   state = "State<%(Dimension)s>&",
+                   derivs = "StateDerivatives<%(Dimension)s>&"):
         "Initialize the Hydro before we start a derivative evaluation."
         return "void"
                           
@@ -62,9 +61,9 @@ class CRKSPHVariant(CRKSPHHydroBase):
     def evaluateDerivatives(self,
                             time = "const Scalar",
                             dt = "const Scalar",
-                            dataBase = "const DataBase<DIM>&",
-                            state = "const State<DIM>&",
-                            derivs = "StateDerivatives<DIM>&"):
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
         """Evaluate the derivatives for the principle hydro variables:
 mass density, velocity, and specific thermal energy."""
         return "void"

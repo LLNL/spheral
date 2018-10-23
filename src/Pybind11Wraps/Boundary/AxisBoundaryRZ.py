@@ -10,12 +10,11 @@ from BoundaryAbstractMethods import *
 class AxisBoundaryRZ(Boundary):
 
     typedefs = """
-    typedef Dim<2> DIM;
-    typedef DIM::Scalar Scalar;
-    typedef DIM::Vector Vector;
-    typedef DIM::Tensor Tensor;
-    typedef DIM::SymTensor SymTensor;
-    typedef DIM::ThirdRankTensor ThirdRankTensor;
+    typedef %(Dimension)s::Scalar Scalar;
+    typedef %(Dimension)s::Vector Vector;
+    typedef %(Dimension)s::Tensor Tensor;
+    typedef %(Dimension)s::SymTensor SymTensor;
+    typedef %(Dimension)s::ThirdRankTensor ThirdRankTensor;
 """
 
     #...........................................................................
@@ -27,11 +26,11 @@ class AxisBoundaryRZ(Boundary):
     #...........................................................................
     # Methods
     @PYB11virtual
-    def setViolationNodes(self, nodeList="NodeList<DIM>&"):
+    def setViolationNodes(self, nodeList="NodeList<%(Dimension)s>&"):
         return "void"
 
     @PYB11virtual
-    def updateViolationNodes(self, nodeList="NodeList<DIM>&"):
+    def updateViolationNodes(self, nodeList="NodeList<%(Dimension)s>&"):
         return "void"
 
     @PYB11virtual

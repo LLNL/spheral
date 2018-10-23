@@ -10,7 +10,6 @@ from BoundaryAbstractMethods import *
 class DistributedBoundary(Boundary):
 
     typedefs = """
-    typedef %(Dimension)s DIM;
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

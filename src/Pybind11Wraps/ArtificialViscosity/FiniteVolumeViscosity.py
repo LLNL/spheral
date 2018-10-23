@@ -9,12 +9,11 @@ from ArtificialViscosityAbstractMethods import *
 class FiniteVolumeViscosity(ArtificialViscosity):
 
     typedefs = """
-    typedef %(Dimension)s DIM;
-    typedef typename DIM::Scalar Scalar;
-    typedef typename DIM::Vector Vector;
-    typedef typename DIM::Tensor Tensor;
-    typedef typename DIM::SymTensor SymTensor;
-    typedef typename DIM::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
 """
 
     #...........................................................................
@@ -35,7 +34,7 @@ class FiniteVolumeViscosity(ArtificialViscosity):
     #...........................................................................
     # Properties
     scalar = PYB11property("bool", "scalar")
-    DvDx = PYB11property("const FieldList<DIM, Tensor>&", "DvDx", returnpolicy="reference_internal")
+    DvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "DvDx", returnpolicy="reference_internal")
     
 #-------------------------------------------------------------------------------
 # Inject abstract interface
