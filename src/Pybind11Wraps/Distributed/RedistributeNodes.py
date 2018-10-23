@@ -36,18 +36,20 @@ This is the method required of all descendent classes."""
         "Global number of nodes in DataBase."
         return "int"
 
+    @PYB11pycppname("currentDomainDecomposition")
     @PYB11const
-    def currentDomainDecomposition(self,
-                                   dataBase = "const DataBase<%(Dimension)s>&",
-                                   globalNodeIDs = "const FieldList<%(Dimension)s, int>&"):
+    def currentDomainDecomposition1(self,
+                                    dataBase = "const DataBase<%(Dimension)s>&",
+                                    globalNodeIDs = "const FieldList<%(Dimension)s, int>&"):
         "Calculate the current domain decomposition, and return it as a set of DomainNode identifiers."
         return "std::vector<DomainNode<%(Dimension)s> >"
 
+    @PYB11pycppname("currentDomainDecomposition")
     @PYB11const
-    def currentDomainDecomposition(self,
-                                   dataBase = "const DataBase<%(Dimension)s>&",
-                                   globalNodeIDs = "const FieldList<%(Dimension)s, int>&",
-                                   workPerNode = "const FieldList<%(Dimension)s, Scalar>&"):
+    def currentDomainDecomposition2(self,
+                                    dataBase = "const DataBase<%(Dimension)s>&",
+                                    globalNodeIDs = "const FieldList<%(Dimension)s, int>&",
+                                    workPerNode = "const FieldList<%(Dimension)s, Scalar>&"):
         "Same as currentDomainDecomposition, but fills in work field in the DomainNodes."
         return "std::vector<DomainNode<%(Dimension)s> >"
 

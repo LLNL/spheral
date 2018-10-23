@@ -10,6 +10,7 @@ dims = spheralDimensions()
 
 from DistributedBoundary import *
 from NestedGridDistributedBoundary import *
+from TreeDistributedBoundary import *
 from BoundingVolumeDistributedBoundary import *
 from DomainNode import *
 from RedistributeNodes import *
@@ -51,6 +52,7 @@ for ndim in dims:
     exec('''
 DistributedBoundary%(ndim)id = PYB11TemplateClass(DistributedBoundary, template_parameters="%(Dimension)s")
 NestedGridDistributedBoundary%(ndim)id = PYB11TemplateClass(NestedGridDistributedBoundary, template_parameters="%(Dimension)s")
+TreeDistributedBoundary%(ndim)id = PYB11TemplateClass(TreeDistributedBoundary, template_parameters="%(Dimension)s")
 BoundingVolumeDistributedBoundary%(ndim)id = PYB11TemplateClass(BoundingVolumeDistributedBoundary, template_parameters="%(Dimension)s")
 DomainNode%(ndim)id = PYB11TemplateClass(DomainNode, template_parameters="%(Dimension)s")
 RedistributeNodes%(ndim)id = PYB11TemplateClass(RedistributeNodes, template_parameters="%(Dimension)s")
