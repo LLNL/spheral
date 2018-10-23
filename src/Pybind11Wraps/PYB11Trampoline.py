@@ -179,7 +179,7 @@ public:
                 returnType = methattrs["returnType"]
                 if PYB11badchars(returnType):
                     returnType = PYB11mangle(returnType)
-                    typedefstring = "    typedef typename %s %s;\n" % (methattrs["returnType"], returnType)
+                    typedefstring = "    typedef %s %s;\n" % (methattrs["returnType"], returnType)
                     if typedefstring not in typedefs:
                         typedefs += typedefstring
                     methattrs["returnType"] = returnType
