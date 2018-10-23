@@ -6,6 +6,13 @@ from SpaceFillingCurveRedistributeNodes import *
 
 @PYB11template("Dimension")
 class PeanoHilbertOrderRedistributeNodes(SpaceFillingCurveRedistributeNodes):
+    """PeanoHilbertOrderRedistributeNodes
+
+Attempt to redistribute nodes such that they are laid out in memory
+in a PeanoHilbert ordering.  Note that this involves renumbering the nodes of 
+each NodeList, not just redistributing them between processors.
+
+Springel V. (2005), MNRAS"""
 
     typedefs = """
     typedef typename KeyTraits::Key Key;

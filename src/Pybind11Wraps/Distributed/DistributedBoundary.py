@@ -8,6 +8,9 @@ from BoundaryAbstractMethods import *
 
 @PYB11template("Dimension")
 class DistributedBoundary(Boundary):
+    """DistributedBoundary -- Base class for distributed parallel boundary
+conditions, connecting NodeLists across parallel domains."""
+
 
     typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;

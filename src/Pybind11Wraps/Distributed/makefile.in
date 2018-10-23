@@ -18,7 +18,13 @@ PYB11SRCS = \
 	RedistributeNodes.py \
 	SpaceFillingCurveRedistributeNodes.py \
 	MortonOrderRedistributeNodes.py \
-	PeanoHilbertOrderRedistributeNodes.py
+	PeanoHilbertOrderRedistributeNodes.py \
+	SortAndDivideRedistributeNodes.py \
+	VoronoiRedistributeNodes.py \
+	DistributeByXPosition.py \
+	SortAndDivideRedistributeNodes1d.py \
+	SortAndDivideRedistributeNodes2d.py \
+	SortAndDivideRedistributeNodes3d.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

@@ -6,6 +6,14 @@ from RedistributeNodes import *
 
 @PYB11template("Dimension")
 class VoronoiRedistributeNodes(RedistributeNodes):
+    """VoronoiRedistributeNodes
+
+This algorithm uses the Voronoi tessellation to decide how to domain 
+decompose our points.  The idea is to relax a set of generator points into
+the SPH node distribution -- the generators are attracted to the SPH points
+repelled by one and other.  These generator points then become the seeds to
+draw the Voronoi tessellation about, each cell of which then represents a 
+computational domain."""
 
     typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;

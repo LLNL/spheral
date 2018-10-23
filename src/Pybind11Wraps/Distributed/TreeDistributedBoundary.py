@@ -8,6 +8,8 @@ from DistributedBoundary import *
 @PYB11template("Dimension")
 @PYB11singleton
 class TreeDistributedBoundary(DistributedBoundary):
+    """TreeDistributedBoundary -- Implementation of the Distributed Boundary
+condition for use with TreeNeighbor based NodeLists."""
 
     typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;

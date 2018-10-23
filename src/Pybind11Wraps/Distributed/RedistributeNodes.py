@@ -5,6 +5,8 @@ from PYB11Generator import *
 
 @PYB11template("Dimension")
 class RedistributeNodes:
+    """RedistributeNodes -- An abstract base class for methods that repartition
+the Spheral++ NodeLists among domains."""
 
     typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;

@@ -6,6 +6,14 @@ from RedistributeNodes import *
 
 @PYB11template("Dimension")
 class SortAndDivideRedistributeNodes(RedistributeNodes):
+    """SortAndDivideRedistributeNodes -- (Re)domain decompose the nodes by using 
+a sort and divide algorithm.
+
+This is a template base class -- the actual dimension dependent objects
+are: 
+  SortAndDivideRedistributeNodes1d
+  SortAndDivideRedistributeNodes2d
+  SortAndDivideRedistributeNodes3d"""
 
     typedefs = """
     typedef typename KeyTraits::Key Key;

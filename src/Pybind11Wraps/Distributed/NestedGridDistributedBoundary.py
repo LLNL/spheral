@@ -8,6 +8,8 @@ from DistributedBoundary import *
 @PYB11template("Dimension")
 @PYB11singleton
 class NestedGridDistributedBoundary(DistributedBoundary):
+    """NestedGridDistributedBoundary -- Implementation of the Distributed Boundary
+condition for use with NestedGridNeighbor based NodeLists."""
 
     typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;

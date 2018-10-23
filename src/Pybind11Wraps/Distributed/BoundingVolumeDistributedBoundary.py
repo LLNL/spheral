@@ -8,6 +8,11 @@ from DistributedBoundary import *
 @PYB11template("Dimension")
 @PYB11singleton
 class BoundingVolumeDistributedBoundary(DistributedBoundary):
+    """BoundingVolumeDistributedBoundary
+
+Build a distributed boundary based on testing for intersecting bounding 
+volumes of domains."""
+
 
     typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;

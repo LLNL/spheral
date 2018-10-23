@@ -6,6 +6,12 @@ from RedistributeNodes import *
 
 @PYB11template("Dimension")
 class SpaceFillingCurveRedistributeNodes(RedistributeNodes):
+    """SpaceFillingCurveRedistributeNodes
+
+This is an abstract base for the space filling curve family of 
+repartitioners.  The assumption is that the descendent classes will provide
+the computeHashedIndices method to assign unique keys to each point in the
+order that that algorithm wants the points distributed."""
 
     typedefs = """
     typedef typename KeyTraits::Key Key;

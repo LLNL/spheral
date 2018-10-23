@@ -7,6 +7,8 @@ from SortAndDivideRedistributeNodes import *
 @PYB11template()
 @PYB11template_dict({"Dimension": "Dim<2>"})
 class SortAndDivideRedistributeNodes2d(SortAndDivideRedistributeNodes):
+    """SortAndDivideRedistributeNodes2d -- 2-D implementation of the sort and 
+divide algorithm for domain decomposition."""
 
     typedefs = """
     typedef typename KeyTraits::Key Key;

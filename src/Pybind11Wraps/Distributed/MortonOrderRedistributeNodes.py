@@ -6,6 +6,13 @@ from SpaceFillingCurveRedistributeNodes import *
 
 @PYB11template("Dimension")
 class MortonOrderRedistributeNodes(SpaceFillingCurveRedistributeNodes):
+    """MortonOrderRedistributeNodes
+
+Attempt to redistribute nodes such that they are laid out in memory
+in a Morton ordering.  Note that this involves renumbering the nodes of 
+each NodeList, not just redistributing them between processors.
+
+Warren & Salmon (1995), Computer Physics Communications, 87, 266-290."""
 
     typedefs = """
     typedef typename KeyTraits::Key Key;
