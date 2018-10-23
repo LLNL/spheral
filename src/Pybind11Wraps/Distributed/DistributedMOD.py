@@ -69,3 +69,12 @@ SortAndDivideRedistributeNodes%(ndim)id = PYB11TemplateClass(SortAndDivideRedist
 #vector_of_Boundary%(ndim)id = PYB11_bind_vector("Boundary<%(Dimension)s>*", opaque=True, local=False)
 ''' % {"ndim"      : ndim,
        "Dimension" : ("Dim<" + str(ndim) +">")})
+
+if 1 in dims:
+    from SortAndDivideRedistributeNodes1d import *
+
+if 2 in dims:
+    from SortAndDivideRedistributeNodes2d import *
+
+if 3 in dims:
+    from SortAndDivideRedistributeNodes3d import *
