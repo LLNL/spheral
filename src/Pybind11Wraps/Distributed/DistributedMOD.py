@@ -67,7 +67,7 @@ MortonOrderRedistributeNodes%(ndim)id = PYB11TemplateClass(MortonOrderRedistribu
 PeanoHilbertOrderRedistributeNodes%(ndim)id = PYB11TemplateClass(PeanoHilbertOrderRedistributeNodes, template_parameters="%(Dimension)s")
 VoronoiRedistributeNodes%(ndim)id = PYB11TemplateClass(VoronoiRedistributeNodes, template_parameters="%(Dimension)s")
 
-#vector_of_Boundary%(ndim)id = PYB11_bind_vector("Boundary<%(Dimension)s>*", opaque=True, local=False)
+vector_of_DomainNode%(ndim)id = PYB11_bind_vector("DomainNode<%(Dimension)s>", opaque=True, local=False)
 ''' % {"ndim"      : ndim,
        "Dimension" : ("Dim<" + str(ndim) +">")})
 
