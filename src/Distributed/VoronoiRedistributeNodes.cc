@@ -988,7 +988,7 @@ workBalance() const {
 template<typename Dimension>
 void
 VoronoiRedistributeNodes<Dimension>::
-workBalance(const bool val) {
+workBalance(bool val) {
   mWorkBalance = val;
 }
 
@@ -1006,7 +1006,7 @@ balanceGenerators() const {
 template<typename Dimension>
 void
 VoronoiRedistributeNodes<Dimension>::
-balanceGenerators(const bool val) {
+balanceGenerators(bool val) {
   mBalanceGenerators = val;
 }
 
@@ -1023,7 +1023,7 @@ tolerance() const {
 template<typename Dimension>
 void
 VoronoiRedistributeNodes<Dimension>::
-tolerance(const double val) {
+tolerance(double val) {
   mTolerance = val;
 }
 
@@ -1040,7 +1040,7 @@ maxIterations() const {
 template<typename Dimension>
 void
 VoronoiRedistributeNodes<Dimension>::
-maxIterations(const unsigned val) {
+maxIterations(unsigned val) {
   mMaxIterations = val;
 }
 
