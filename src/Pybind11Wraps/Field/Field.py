@@ -55,6 +55,7 @@ class Field(FieldBase):
         return "unsigned"
 
     @PYB11cppname("operator[]")
+    @PYB11returnpolicy("reference_internal")
     def __getitem__(self, index="unsigned"):
         return "%(Value)s&"
 
@@ -66,6 +67,7 @@ class Field(FieldBase):
     def __iter__(self):
         "Python iteration through a Field."
 
+    @PYB11returnpolicy("reference_internal")
     def __call__(self, i="int"):
         "Index into a Field"
         return "%(Value)s&"

@@ -30,6 +30,7 @@ class FourthRankTensor:
         "The size (number of elements) of the FourthRankTensor."
 
     @PYB11implementation("[](const Dim<%(ndim)s>::FourthRankTensor &s, size_t i) { if (i >= Dim<%(ndim)s>::FourthRankTensor::numElements) throw py::index_error(); return s[i]; }") 
+    @PYB11returnpolicy("reference_internal")
     def __getitem__(self):
         "Python indexing to get an element."
 

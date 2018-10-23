@@ -103,6 +103,7 @@ class Vector:
         "The size (in number of coordinates) of the Vector."
 
     @PYB11implementation("[](const Dim<%(ndim)s>::Vector &s, size_t i) { if (i >= Dim<%(ndim)s>::Vector::numElements) throw py::index_error(); return s[i]; }") 
+    @PYB11returnpolicy("reference_internal")
     def __getitem__(self):
         "Python indexing to get a coordinate."
 

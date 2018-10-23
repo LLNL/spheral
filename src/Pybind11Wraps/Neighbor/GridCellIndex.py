@@ -86,6 +86,7 @@ class GridCellIndex:
         "The size (in number of coordinates) of the GridCellIndex."
 
     @PYB11implementation("[](const GridCellIndex<%(Dimension)s> &s, int i) { if (i >= %(Dimension)s::nDim) throw py::index_error(); return s(i); }") 
+    @PYB11returnpolicy("reference_internal")
     def __getitem__(self):
         "Python indexing to get a coordinate."
 

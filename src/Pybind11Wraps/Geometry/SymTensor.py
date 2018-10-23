@@ -46,6 +46,7 @@ class SymTensor:
         "The size (number of elements) of the SymTensor."
 
     @PYB11implementation("[](const Dim<%(ndim)s>::SymTensor &s, size_t i) { if (i >= Dim<%(ndim)s>::SymTensor::numElements) throw py::index_error(); return s[i]; }") 
+    @PYB11returnpolicy("reference_internal")
     def __getitem__(self):
         "Python indexing to get an element."
 
