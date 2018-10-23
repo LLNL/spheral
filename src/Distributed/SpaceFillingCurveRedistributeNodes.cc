@@ -644,14 +644,14 @@ maxNodesPerDomainFraction() const {
 template<typename Dimension>
 void
 SpaceFillingCurveRedistributeNodes<Dimension>::
-minNodesPerDomainFraction(const double x) {
+minNodesPerDomainFraction(double x) {
   mMinNodesPerDomainFraction = x;
 }
 
 template<typename Dimension>
 void
 SpaceFillingCurveRedistributeNodes<Dimension>::
-maxNodesPerDomainFraction(const double x) {
+maxNodesPerDomainFraction(double x) {
   mMaxNodesPerDomainFraction = x;
 }
 
@@ -669,7 +669,7 @@ workBalance() const {
 template<typename Dimension>
 void
 SpaceFillingCurveRedistributeNodes<Dimension>::
-workBalance(const bool val) {
+workBalance(bool val) {
   mWorkBalance = val;
 }
 
@@ -687,7 +687,7 @@ localReorderOnly() const {
 template<typename Dimension>
 void
 SpaceFillingCurveRedistributeNodes<Dimension>::
-localReorderOnly(const bool val) {
+localReorderOnly(bool val) {
   mLocalReorderOnly = val;
 }
 
