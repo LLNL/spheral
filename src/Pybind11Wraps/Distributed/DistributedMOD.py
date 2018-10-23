@@ -19,6 +19,7 @@ from MortonOrderRedistributeNodes import *
 from PeanoHilbertOrderRedistributeNodes import *
 from SortAndDivideRedistributeNodes import *
 from VoronoiRedistributeNodes import *
+from DistributeByXPosition import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -73,9 +74,11 @@ vector_of_DomainNode%(ndim)id = PYB11_bind_vector("DomainNode<%(Dimension)s>", o
 
 if 1 in dims:
     from SortAndDivideRedistributeNodes1d import *
-
+    DistributeByXPosition1d = PYB11TemplateClass(DistributeByXPosition, template_parameters="Dim<1>")
+    
 if 2 in dims:
     from SortAndDivideRedistributeNodes2d import *
-
+    DistributeByXPosition2d = PYB11TemplateClass(DistributeByXPosition, template_parameters="Dim<2>")
+    
 if 3 in dims:
     from SortAndDivideRedistributeNodes3d import *
