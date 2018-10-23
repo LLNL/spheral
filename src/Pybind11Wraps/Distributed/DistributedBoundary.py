@@ -74,10 +74,6 @@ class DistributedBoundary(Boundary):
         "Update the control and ghost nodes of the base class"
         return "void"
 
-    def setControlAndGhostNodes(self):
-        "Update the control and ghost nodes of the base class."
-        return "void"
-
     #...........................................................................
     # Non-blocking exchanges
     @PYB11template("DataType")

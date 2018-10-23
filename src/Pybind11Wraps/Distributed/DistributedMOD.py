@@ -9,6 +9,7 @@ from spheralDimensions import *
 dims = spheralDimensions()
 
 from DistributedBoundary import *
+from NestedGridDistributedBoundary import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -45,6 +46,7 @@ namespaces = ["Spheral"]
 for ndim in dims:
     exec('''
 DistributedBoundary%(ndim)id = PYB11TemplateClass(DistributedBoundary, template_parameters="%(Dimension)s")
+NestedGridDistributedBoundary%(ndim)id = PYB11TemplateClass(DistributedBoundary, template_parameters="%(Dimension)s")
 
 #vector_of_Boundary%(ndim)id = PYB11_bind_vector("Boundary<%(Dimension)s>*", opaque=True, local=False)
 ''' % {"ndim"      : ndim,
