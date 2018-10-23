@@ -12,6 +12,7 @@ from DistributedBoundary import *
 from NestedGridDistributedBoundary import *
 from BoundingVolumeDistributedBoundary import *
 from DomainNode import *
+from RedistributeNodes import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -52,6 +53,7 @@ DistributedBoundary%(ndim)id = PYB11TemplateClass(DistributedBoundary, template_
 NestedGridDistributedBoundary%(ndim)id = PYB11TemplateClass(NestedGridDistributedBoundary, template_parameters="%(Dimension)s")
 BoundingVolumeDistributedBoundary%(ndim)id = PYB11TemplateClass(BoundingVolumeDistributedBoundary, template_parameters="%(Dimension)s")
 DomainNode%(ndim)id = PYB11TemplateClass(DomainNode, template_parameters="%(Dimension)s")
+RedistributeNodes%(ndim)id = PYB11TemplateClass(RedistributeNodes, template_parameters="%(Dimension)s")
 
 #vector_of_Boundary%(ndim)id = PYB11_bind_vector("Boundary<%(Dimension)s>*", opaque=True, local=False)
 ''' % {"ndim"      : ndim,
