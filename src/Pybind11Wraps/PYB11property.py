@@ -64,11 +64,9 @@ class PYB11property:
                 ss('(%(namespace)s*)()' % klassattrs)
             else:
                 ss('(%(namespace)s%(cppname)s::*)()' % klassattrs)
-            if self.getterconst:
-                ss(' const)')
-            else:
-                ss(')')
-            ss(' &%(namespace)s%(cppname)s::' % klassattrs + self.getter)
+                if self.getterconst:
+                    ss(' const')
+            ss(') &%(namespace)s%(cppname)s::' % klassattrs + self.getter)
 
         # setter, if any
         if self.setterraw:
