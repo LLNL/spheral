@@ -16,6 +16,7 @@ class DistributedBoundary(Boundary):
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
 
+    typedef typename DistributedBoundary<%(Dimension)s>::DomainBoundaryNodes DomainBoundaryNodes;
     typedef std::map<int, DomainBoundaryNodes> DomainBoundaryNodeMap;
     typedef std::map<NodeList<%(Dimension)s>*, DomainBoundaryNodeMap> NodeListDomainBoundaryNodeMap;
 """
@@ -73,6 +74,10 @@ class DistributedBoundary(Boundary):
         "Update the control and ghost nodes of the base class"
         return "void"
 
+    def setControlAndGhostNodes(self):
+        "Update the control and ghost nodes of the base class."
+        return "void"
+
     #...........................................................................
     # Non-blocking exchanges
     @PYB11template("DataType")
@@ -87,6 +92,10 @@ class DistributedBoundary(Boundary):
     def beginExchangeFieldVariableSize(self,
                                        field = "Field<%(Dimension)s, %(DataType)s>&"):
         "Start a non-blocking Field exchange"
+        return "void"
+
+    def finalizeExchanges(self):
+        "Force the exchanges which have been registered to execute."
         return "void"
 
     beginExchangeFieldInt             = PYB11TemplateMethod(beginExchangeField, template_parameters="int", pyname="beginExchangeField")
@@ -126,6 +135,59 @@ class DistributedBoundary(Boundary):
     def meshGhostNodes(self):
         "We do not want to use the parallel ghost nodes as generators."
         return "bool"
+
+    #...........................................................................
+    # Protected methods
+    @PYB11protected
+    @PYB11returnpolicy("reference_internal")
+    def accessNodeListDomainBoundaryNodeMap(self):
+        "Descendent classes get read/write access to the communication maps."
+        return "NodeListDomainBoundaryNodeMap&"
+
+    @PYB11protected
+    @PYB11returnpolicy("reference_internal")
+    def accessDomainBoundaryNodeMap(self,
+                                    nodeList = "const NodeList<%(Dimension)s>&"):
+        "Descendent classes get read/write access to the communication maps."
+        return "DomainBoundaryNodeMap&"
+
+    @PYB11protected
+    @PYB11returnpolicy("reference_internal")
+    def accessDomainBoundaryNodes(self,
+                                  nodeList = "const NodeList<%(Dimension)s>&",
+                                  neighborDomainID = "int"):
+        return "DomainBoundaryNodes&"
+
+    @PYB11protected
+    @PYB11returnpolicy("reference_internal")
+    def openDomainBoundaryNodes(self,
+                                nodeListPtr = "NodeList<%(Dimension)s>*",
+                                domainID = "const int"):
+        """Convenience method to return an iterator to the DomainBoundaryNodes for the
+given NodeList and domain pair.  If there isn't an entry for this pair already,
+this method creates one."""
+        return "DomainBoundaryNodes&"
+
+    @PYB11protected
+    def removeDomainBoundaryNodes(self,
+                                  nodeListPtr = "NodeList<%(Dimension)s>*",
+                                  domainID = "const int"):
+        "Inverse of above -- remove the DomainBoundaryNodes for a NodeList/procID pair."
+        return "void"
+
+    @PYB11virtual
+    @PYB11protected
+    def reset(self,
+              dataBase = "const DataBase<%(Dimension)s>&"):
+        "Override the Boundary method for clearing the maps."
+        return "void"
+
+    @PYB11protected
+    def buildReceiveAndGhostNodes(self,
+                                  dataBase = "const DataBase<%(Dimension)s>&"):
+        """This handy helper method will build receive and ghost nodes on all each
+domain based on send nodes that have already been filled in."""
+        return "void"
 
     #...........................................................................
     # Properties
