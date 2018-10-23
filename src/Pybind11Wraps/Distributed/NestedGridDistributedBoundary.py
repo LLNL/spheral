@@ -6,7 +6,7 @@ from PYB11Generator import *
 from DistributedBoundary import *
 
 @PYB11template("Dimension")
-@PYB11singleton
+#@PYB11singleton
 class NestedGridDistributedBoundary(DistributedBoundary):
     """NestedGridDistributedBoundary -- Implementation of the Distributed Boundary
 condition for use with NestedGridNeighbor based NodeLists."""

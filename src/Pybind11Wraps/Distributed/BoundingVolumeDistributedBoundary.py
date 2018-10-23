@@ -6,7 +6,7 @@ from PYB11Generator import *
 from DistributedBoundary import *
 
 @PYB11template("Dimension")
-@PYB11singleton
+#@PYB11singleton
 class BoundingVolumeDistributedBoundary(DistributedBoundary):
     """BoundingVolumeDistributedBoundary
 
