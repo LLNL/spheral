@@ -10,11 +10,13 @@ dims = spheralDimensions()
 
 from DistributedBoundary import *
 from NestedGridDistributedBoundary import *
+from BoundingVolumeDistributedBoundary import *
 
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
 includes = ['"Boundary/Boundary.hh"',
+            '"Neighbor/GridCellIndex.hh"',
             '"Distributed/DistributedBoundary.hh"',
             '"Distributed/NestedGridDistributedBoundary.hh"',
             '"Distributed/BoundingVolumeDistributedBoundary.hh"',
@@ -46,7 +48,8 @@ namespaces = ["Spheral"]
 for ndim in dims:
     exec('''
 DistributedBoundary%(ndim)id = PYB11TemplateClass(DistributedBoundary, template_parameters="%(Dimension)s")
-NestedGridDistributedBoundary%(ndim)id = PYB11TemplateClass(DistributedBoundary, template_parameters="%(Dimension)s")
+NestedGridDistributedBoundary%(ndim)id = PYB11TemplateClass(NestedGridDistributedBoundary, template_parameters="%(Dimension)s")
+BoundingVolumeDistributedBoundary%(ndim)id = PYB11TemplateClass(BoundingVolumeDistributedBoundary, template_parameters="%(Dimension)s")
 
 #vector_of_Boundary%(ndim)id = PYB11_bind_vector("Boundary<%(Dimension)s>*", opaque=True, local=False)
 ''' % {"ndim"      : ndim,

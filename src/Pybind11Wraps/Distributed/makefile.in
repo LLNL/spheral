@@ -11,7 +11,9 @@ PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 PYB11SRCS = \
 	DistributedBoundary.py \
-	NestedGridDistributedBoundary.py
+	NestedGridDistributedBoundary.py \
+	BoundingVolumeDistributedBoundary.py \
+	TreeDistributedBoundary.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

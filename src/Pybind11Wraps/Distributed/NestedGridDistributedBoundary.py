@@ -32,27 +32,27 @@ class NestedGridDistributedBoundary(DistributedBoundary):
     # Methods
     @PYB11const
     def maxNumGridLevels(self,
-                         dataBase = "const DataBase<Dimension>&"):
+                         dataBase = "const DataBase<%(Dimension)s>&"):
         "Determine the max number of occupied grid levels for all NodeLists in a DataBase."
         return "int"
 
     @PYB11const
     def setGridCellInfluenceRadius(self,
-                                   dataBase = "DataBase<Dimension>&",
+                                   dataBase = "DataBase<%(Dimension)s>&",
                                    newGridCellInfluenceRadius = "const int"):
         "Determine the radius of influence in gridcells being used."
         return "int"
 
     @PYB11const
     def flattenOccupiedGridCells(self,
-                                 dataBase = "const DataBase<Dimension>&",
-                                 gridCells = "std::vector< std::vector< GridCellIndex<Dimension> > >&"):
+                                 dataBase = "const DataBase<%(Dimension)s>&",
+                                 gridCells = "std::vector< std::vector< GridCellIndex<%(Dimension)s> > >&"):
         "Build the set of occupied grid cells for all NodeLists on this process."
         return "void"
 
     @PYB11const
     def packGridCellIndices(self,
-                            gridCellSet = "const std::vector< std::vector< GridCellIndex<Dimension> > >&",
+                            gridCellSet = "const std::vector< std::vector< GridCellIndex<%(Dimension)s> > >&",
                             packedGridCellIndices = "std::vector<int>&"):
         "Pack the occupied grid cell set into a C style array syntax for messaging with MPI."
         return "void"
@@ -61,7 +61,7 @@ class NestedGridDistributedBoundary(DistributedBoundary):
     def unpackGridCellIndices(self,
                               packedGridCellIndices = "const std::vector<int>&",
                               gridCellDimension = "const std::vector<int>&",
-                              gridCellSet = "std::vector< std::vector< GridCellIndex<Dimension> > >&"):
+                              gridCellSet = "std::vector< std::vector< GridCellIndex<%(Dimension)s> > >&"):
         "Unpack the occupied grid cell set from C style array syntax to the more sensible set of occupied grid cells."
         return "void"
 
@@ -81,7 +81,7 @@ class NestedGridDistributedBoundary(DistributedBoundary):
 
     #...........................................................................
     # Properties
-    occupiedGridCells = PYB11property("const std::vector<std::vector<std::vector<GridCellIndex<Dimension>>>>&",
+    occupiedGridCells = PYB11property("const std::vector<std::vector<std::vector<GridCellIndex<%(Dimension)s>>>>&",
                                       returnpolicy="reference_internal",
                                       doc="The last set of occupied grid cells (only the master process knows the full set")
     boxCulling = PYB11property("bool", "boxCulling", "boxCulling")
