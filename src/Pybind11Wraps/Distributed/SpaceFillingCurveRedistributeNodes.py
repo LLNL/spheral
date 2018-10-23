@@ -28,6 +28,7 @@ class SpaceFillingCurveRedistributeNodes(RedistributeNodes):
     #...........................................................................
     # Virtual methods
     @PYB11pure_virtual
+    @PYB11const
     def computeHashedIndices(self,
                              dataBase = "const DataBase<%(Dimension)s>&"):
         "This is the required method for all descendant classes."
@@ -112,7 +113,7 @@ This returns the set sorted by the index."""
         return "Scalar"
 
     @PYB11const
-    @PYB11implementation("""[](self,
+    @PYB11implementation("""[](const SpaceFillingCurveRedistributeNodes<%(Dimension)s>& self,
                                const std::vector<Key>& indices,
                                const std::vector<int>& count,
                                const std::vector<Scalar>& work,
