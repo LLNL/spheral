@@ -28,6 +28,9 @@ class Vector:
         "Construct with element values."
 
     # Methods
+    def Zero(self):
+        "Zero out the vector elements"
+
     @PYB11const
     def dot(self):
         "Dot (inner) product with a Vector."
@@ -86,15 +89,21 @@ class Vector:
         return
     def __isub__(self):
         return
-    def __mul__(self, rhs="float()"):
+
+    @PYB11pycppname("__mul__")
+    def __mul__f(self, rhs="float()"):
         return
-    def __rmul__(self, rhs="float()"):
+    @PYB11pycppname("__rmul__")
+    def __rmul__f(self, rhs="float()"):
         return
-    def __div__(self, rhs="float()"):
+    @PYB11pycppname("__div__")
+    def __div__f(self, rhs="float()"):
         return
-    def __imul__(self, rhs="float()"):
+    @PYB11pycppname("__imul__")
+    def __imul__f(self, rhs="float()"):
         return
-    def __idiv__(self, rhs="float()"):
+    @PYB11pycppname("__idiv__")
+    def __idiv__f(self, rhs="float()"):
         return
 
     # Sequence methods

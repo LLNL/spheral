@@ -90,29 +90,40 @@ class Tensor:
     def __isub__(self, rhs="Dim<%(ndim)s>::Tensor()"):
         return
 
-    def __add__(self, rhs="Dim<%(ndim)s>::SymTensor()"):
+    @PYB11pycppname("__add__")
+    def __add__ST(self, rhs="Dim<%(ndim)s>::SymTensor()"):
         return
-    def __sub__(self, rhs="Dim<%(ndim)s>::SymTensor()"):
+    @PYB11pycppname("__sub__")
+    def __sub__ST(self, rhs="Dim<%(ndim)s>::SymTensor()"):
         return
-    def __mul__(self, rhs="Dim<%(ndim)s>::SymTensor()"):
+    @PYB11pycppname("__mul__")
+    def __mul__ST(self, rhs="Dim<%(ndim)s>::SymTensor()"):
         return
-    def __iadd__(self, rhs="Dim<%(ndim)s>::SymTensor()"):
+    @PYB11pycppname("__iadd__")
+    def __iadd__ST(self, rhs="Dim<%(ndim)s>::SymTensor()"):
         return
-    def __isub__(self, rhs="Dim<%(ndim)s>::SymTensor()"):
-        return
-
-    def __mul__(self, rhs="float()"):
-        return
-    def __rmul__(self, rhs="float()"):
-        return
-    def __div__(self, rhs="float()"):
-        return
-    def __imul__(self, rhs="float()"):
-        return
-    def __idiv__(self, rhs="float()"):
+    @PYB11pycppname("__isub__")
+    def __isub__ST(self, rhs="Dim<%(ndim)s>::SymTensor()"):
         return
 
-    def __mul__(self, rhs="Dim<%(ndim)s>::Vector()"):
+    @PYB11pycppname("__mul__")
+    def __mul__f(self, rhs="float()"):
+        return
+    @PYB11pycppname("__rmul__")
+    def __rmul__f(self, rhs="float()"):
+        return
+    @PYB11pycppname("__div__")
+    def __div__f(self, rhs="float()"):
+        return
+    @PYB11pycppname("__imul__")
+    def __imul__f(self, rhs="float()"):
+        return
+    @PYB11pycppname("__idiv__")
+    def __idiv__f(self, rhs="float()"):
+        return
+
+    @PYB11pycppname("__mul__")
+    def __mul__V(self, rhs="Dim<%(ndim)s>::Vector()"):
         return
 
     # Comparison

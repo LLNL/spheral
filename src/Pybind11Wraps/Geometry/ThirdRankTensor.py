@@ -8,6 +8,7 @@ class ThirdRankTensor:
     "Spheral third rank tensor (%(ndim)sx%(ndim)sx%(ndim)s) class"
 
     # Static attributes
+    nrank = PYB11readonly(static=True, doc="Rank of the tensor")
     nDimensions = PYB11readonly(static=True, doc="Number of dimensions")
     numElements = PYB11readonly(static=True, doc="Number of elements stored in the type")
     zero = PYB11readonly(static=True, doc="The zero value equivalent")
@@ -48,6 +49,57 @@ class ThirdRankTensor:
                  k="Dim<%(ndim)s>::ThirdRankTensor::size_type"):
         "Extract the (i,j,k) element."
         return "double"
+
+    # Methods
+    def Zero(self):
+        "Zero out the elements"
+        return "void"
+
+    @PYB11const
+    def doubledot(self, rhs="const Dim<%(ndim)s>::ThirdRankTensor"):
+        return "double"
+
+    @PYB11const
+    def squareElements(self):
+        return "const Dim<%(ndim)s>::ThirdRankTensor"
+
+    @PYB11const
+    def maxAbsElement(self):
+        return "double"
+
+    # Operators
+    def __neg__(self):
+        return
+    def __iadd__(self):
+        return
+    def __isub__(self):
+        return
+    def __add__(self):
+        return
+    def __sub__(self):
+        return
+    def __imul__(self, rhs="float()"):
+        return
+    def __idiv__(self, rhs="float()"):
+        return
+    def __mul__(self, rhs="float()"):
+        return
+    def __div__(self, rhs="float()"):
+        return
+                 
+    # Comparisons
+    def __eq__(self):
+        return
+    def __ne__(self):
+        return
+    def __lt__(self):
+        return
+    def __gt__(self):
+        return
+    def __le__(self):
+        return
+    def __ge__(self):
+        return
 
     # String representation
     @PYB11implementation("""
