@@ -143,8 +143,9 @@ class TestDistributedBoundary1d:
                         refineNeighbors = vector_of_vector_of_int()
                         sys.stderr.write("STAGE 3 : %d\n" % testProc)
                         self.dataBase.setMasterNodeLists(ri, Hi, masterLists, coarseNeighbors)
+                        sys.stderr.write("STAGE 4 : %d %d %d\n" % (testProc, len(masterLists), len(coarseNeighbors)))
                         self.dataBase.setRefineNodeLists(ri, Hi, coarseNeighbors, refineNeighbors)
-                        sys.stderr.write("STAGE 4 : %d\n" % testProc)
+                        sys.stderr.write("STAGE 5 : %d %d %d %d\n" % (testProc, len(masterLists), len(coarseNeighbors), len(refineNeighbors)))
                         assert len(refineNeighbors) == 3
                         refine = []
                         for k, globalIDs in enumerate([self.globalIDField1,
