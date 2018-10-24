@@ -26,10 +26,10 @@ computational domain."""
     # Constructors
     def pyinit(self,
                dummy = "const double",
-               workBalance = "const bool",
-               balanceGenerators = "const bool",
-               tolerance = "const double",
-               maxIterations = "const unsigned"):
+               workBalance = ("const bool", "false"),
+               balanceGenerators = ("const bool", "true"),
+               tolerance = ("const double", "1.0e-2"),
+               maxIterations = ("const unsigned", "200")):
         "Constructor"
 
     #...........................................................................
