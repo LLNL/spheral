@@ -108,6 +108,9 @@ class SymTensor:
     def __idiv__(self, rhs="float()"):
         return
 
+    def __mul__(self, rhs="Dim<%(ndim)s>::Vector()"):
+        return
+
     # Comparison
     def __eq__(self):
         return
