@@ -10,7 +10,7 @@ PKGNAME = SimulationControl
 PKGDIR = $(PKGNAME)/
 PYTHONTARGETS = \
 	spheralDimensions.py \
-	$(srcdir)/Spheral.py \
+	Spheral.py \
 	$(srcdir)/Spheral1d.py \
 	$(srcdir)/Spheral2d.py \
 	$(srcdir)/Spheral3d.py \
@@ -45,6 +45,17 @@ PYTHONTARGETS = \
 	$(srcdir)/PolyhedronFileUtilities.py \
 	$(srcdir)/resampleNodeList.py \
 	$(srcdir)/overlayNodeList.py
+
+#-------------------------------------------------------------------------------
+# This stuff is for generating git revision info in the python.
+# Based on our former mercurial logic from:
+#   https://www.mercurial-scm.org/wiki/VersioningWithMake
+GITVERSION:= $(shell git --git-dir $(SPHERALTOP)/../.git rev-parse --short HEAD) $(shell git --git-dir $(SPHERALTOP)/../.git rev-list --all --count HEAD)
+Spheral.py: gitstamp
+.PHONY: update_gitstamp
+gitstamp: update_gitstamp
+	[ -f $@ ] || touch $@
+	sed -e 's/@spheralversion@/$(GITVERSION)/g' $(srcdir)/Spheral.py > Spheral.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
