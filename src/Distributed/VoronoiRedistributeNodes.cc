@@ -209,13 +209,7 @@ computeCellBoundaries<Dim<3> >(const Dim<3>::Vector& xmin,
 //------------------------------------------------------------------------------
 // Compute the subcell positions.
 //------------------------------------------------------------------------------
-template<typename Vector>
-vector<Vector>
-computeDaughterPositions(const Vector& xmin,
-                         const Vector& xmax);
-
 // 1-D
-template<>
 inline
 vector<Dim<1>::Vector>
 computeDaughterPositions(const Dim<1>::Vector& xmin,
@@ -230,7 +224,6 @@ computeDaughterPositions(const Dim<1>::Vector& xmin,
 }
 
 // 2-D
-template<>
 inline
 vector<Dim<2>::Vector>
 computeDaughterPositions(const Dim<2>::Vector& xmin,
@@ -247,7 +240,6 @@ computeDaughterPositions(const Dim<2>::Vector& xmin,
 }
 
 // 3-D
-template<>
 inline
 vector<Dim<3>::Vector>
 computeDaughterPositions(const Dim<3>::Vector& xmin,
