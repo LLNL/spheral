@@ -49,6 +49,16 @@ class FluidNodeList(NodeList):
         "The specific thermal energy field"
         return "const ScalarField&"
 
+    @PYB11pycppname("massDensity")
+    def setmassDensity(self, val="const ScalarField&"):
+        "Set the mass density field"
+        return "void"
+
+    @PYB11pycppname("specificThermalEnergy")
+    def setspecificThermalEnergy(self, val="const ScalarField&"):
+        "Set the specific thermal energy field"
+        return "void"
+
     @PYB11virtual
     @PYB11const
     def pressure(self, result="ScalarField&"):
