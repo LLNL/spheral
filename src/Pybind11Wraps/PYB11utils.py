@@ -145,6 +145,17 @@ def PYB11classes(modobj):
     return sorted(result, key = PYB11sort_by_line)
 
 #-------------------------------------------------------------------------------
+# PYB11othermods
+#
+# Get the modules we should import if any
+#-------------------------------------------------------------------------------
+def PYB11othermods(modobj):
+    if hasattr(modobj, "import_modules"):
+        return modobj.import_modules
+    else:
+        return []
+
+#-------------------------------------------------------------------------------
 # PYB11classTemplateInsts
 #
 # Get the template class instantiations to bind from a module

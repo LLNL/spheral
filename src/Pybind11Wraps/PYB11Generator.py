@@ -122,7 +122,7 @@ PYBIND11_MODULE(%(name)s, m) {
     ss("\n")
 
     # Are there any objects to import from other modules
-    othermods = []
+    othermods = PYB11othermods(modobj)
     for (kname, klass) in PYB11classes(modobj):
         klassattrs = PYB11attrs(klass)
         mods = klassattrs["module"]
