@@ -5,6 +5,7 @@ Provides the base class and implementations for neighbor finding in Spheral.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

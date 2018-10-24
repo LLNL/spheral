@@ -4,6 +4,7 @@ etc.) and associated methods such as products and eigenvalues.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 import types
 
 # Define some useful type collections we're going to be wrapping in this module.

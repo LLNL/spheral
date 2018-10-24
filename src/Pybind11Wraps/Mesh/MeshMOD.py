@@ -5,6 +5,7 @@ Provides useful utilities for defining and manipulating unstructured polygonal/p
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

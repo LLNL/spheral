@@ -2,6 +2,7 @@
 # SVPHFactedHydroBase
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
+from SpheralCommon import *
 
 from GenericHydro import *
 from RestartMethods import *

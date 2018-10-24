@@ -3,6 +3,7 @@ Provides wrappers for the Silo library.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 
 includes = ['"Geometry/Dimension.hh"',
             '"SiloWrappers.hh"']

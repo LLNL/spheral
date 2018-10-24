@@ -5,6 +5,7 @@ Provides equations of state and material models for solids in Spheral.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

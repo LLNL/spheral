@@ -26,11 +26,11 @@ def PYB11generateModule(modobj, name=None):
         # enums
         PYB11generateModuleEnums(modobj, ss)
 
-        # classes
-        PYB11generateModuleClasses(modobj, ss)
-
         # STL types
         PYB11generateModuleSTL(modobj, ss)
+
+        # classes
+        PYB11generateModuleClasses(modobj, ss)
 
         # methods
         PYB11generateModuleFunctions(modobj, ss)

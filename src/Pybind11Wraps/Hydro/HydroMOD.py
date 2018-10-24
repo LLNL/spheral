@@ -5,6 +5,7 @@ Provides the support classes for hydro algorithms.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

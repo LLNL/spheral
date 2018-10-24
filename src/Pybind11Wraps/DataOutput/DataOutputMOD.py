@@ -5,6 +5,7 @@ Provides the fundamental classes for Restart in Spheral.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from RestartableObject import *
 
 #-------------------------------------------------------------------------------

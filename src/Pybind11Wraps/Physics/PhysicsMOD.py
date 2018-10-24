@@ -5,6 +5,7 @@ Provides the Physics, GenericHydro, and other physics base classes
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

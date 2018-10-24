@@ -5,6 +5,7 @@ Provides strength modeling helpers.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

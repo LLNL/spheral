@@ -5,6 +5,7 @@ Provides the interfaces and basic fluid material models.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

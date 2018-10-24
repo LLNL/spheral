@@ -5,6 +5,7 @@ Provides the artificial conduction methods.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

@@ -5,6 +5,7 @@ Algorithms and methods for creating initial conditions in Spheral.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

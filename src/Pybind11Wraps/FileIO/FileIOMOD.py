@@ -5,6 +5,7 @@ Provides the interfaces for communicating with file systems.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

@@ -6,6 +6,7 @@ resampling, gradient, etc.)
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

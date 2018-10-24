@@ -5,6 +5,7 @@ Provides the Boundary base class and many boundary implementations.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

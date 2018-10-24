@@ -5,6 +5,7 @@ Provides higher level interface for State and DataBase objects.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

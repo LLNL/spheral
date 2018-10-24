@@ -8,6 +8,7 @@ modules more effectively.a
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

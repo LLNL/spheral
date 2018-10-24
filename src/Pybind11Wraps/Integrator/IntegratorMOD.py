@@ -5,6 +5,7 @@ Provides the base classes and implementations for time integrators in Spheral.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

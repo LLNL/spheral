@@ -5,6 +5,7 @@ Provides implementations of SPH, PSPH, and ASPH
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

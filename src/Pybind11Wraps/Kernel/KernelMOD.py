@@ -5,6 +5,7 @@ Provide the standard SPH/CRK interpolation kernels.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

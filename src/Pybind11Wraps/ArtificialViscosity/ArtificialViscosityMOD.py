@@ -5,6 +5,7 @@ Provides the artificial viscosity algorithms for use with the hydrodynamics meth
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

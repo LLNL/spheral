@@ -5,6 +5,7 @@ Provides the implementations of gravitational physics packages in Spheral.
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 

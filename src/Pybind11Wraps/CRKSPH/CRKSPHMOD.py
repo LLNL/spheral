@@ -5,6 +5,7 @@ Provides implementations of CRKSPH (fluid and solid).
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
