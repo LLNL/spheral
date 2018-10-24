@@ -285,7 +285,9 @@ def PYB11generateClass(klass, klassattrs, ssout):
     # operator()
     def call_operator(meth, methattrs, args, op):
         ss('    obj.def("__call__", ')
-        if methattrs["returnType"] is None:
+        if methattrs["implementation"]:
+            ss(methattrs["implementation"])
+        elif methattrs["returnType"] is None:
             ss("&%(namespace)s%(cppname)s::operator()" % klassattrs)
         else:
             argString = ""
