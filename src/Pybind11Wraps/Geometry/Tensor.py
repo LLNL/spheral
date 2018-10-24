@@ -168,11 +168,13 @@ class Tensor:
         "Product with a Vector%(ndim)sd."
         return "Dim<%(ndim)s>::Vector"
     @PYB11const
-    def dot(self, rhs="const Dim<%(ndim)s>::Tensor&"):
+    @PYB11pycppname("dot")
+    def dot2(self, rhs="const Dim<%(ndim)s>::Tensor&"):
         "Product with a Tensor%(ndim)sd."
         return "Dim<%(ndim)s>::Tensor"
     @PYB11const
-    def dot(self, rhs="const Dim<%(ndim)s>::SymTensor&"):
+    @PYB11pycppname("dot")
+    def dot3(self, rhs="const Dim<%(ndim)s>::SymTensor&"):
         "Product with a SymTensor%(ndim)sd."
         return "Dim<%(ndim)s>::Tensor"
     @PYB11const
@@ -180,7 +182,8 @@ class Tensor:
         "Double dot contraction with another tensor (returns a scalar)."
         return "double"
     @PYB11const
-    def doubledot(self, rhs="const Dim<%(ndim)s>::SymTensor&"):
+    @PYB11pycppname("doubledot")
+    def doubledot2(self, rhs="const Dim<%(ndim)s>::SymTensor&"):
         "Double dot contraction with a SymTensor (returns a scalar)."
         return "double"
     def selfDoubledot(self):
