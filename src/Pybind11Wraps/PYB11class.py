@@ -427,8 +427,8 @@ def PYB11generateClass(klass, klassattrs, ssout):
         methattrs = PYB11attrs(meth)
         methattrs["returnType"] = eval("klassinst." + mname + "()")
         args = PYB11parseArgs(meth)
-        if mname in special_operators:
-            func, op = special_operators[mname]
+        if methattrs["pyname"] in special_operators:
+            func, op = special_operators[methattrs["pyname"]]
             func(meth, methattrs, args, op)
             kills.append(i)
     for i in reversed(kills):
