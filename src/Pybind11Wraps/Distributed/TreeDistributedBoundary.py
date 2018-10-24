@@ -28,7 +28,7 @@ condition for use with TreeNeighbor based NodeLists."""
     @PYB11cppname("instancePtr")
     @PYB11returnpolicy("take_ownership")
     def instance(self):
-        return "RestartRegistrar*"
+        return "TreeDistributedBoundary<%(Dimension)s>*"
 
     #...........................................................................
     # Virtual methods

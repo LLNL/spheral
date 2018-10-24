@@ -31,7 +31,7 @@ volumes of domains."""
     @PYB11cppname("instancePtr")
     @PYB11returnpolicy("take_ownership")
     def instance(self):
-        return "RestartRegistrar*"
+        return "BoundingVolumeDistributedBoundary<%(Dimension)s>*"
 
     #...........................................................................
     # Virtual methods
