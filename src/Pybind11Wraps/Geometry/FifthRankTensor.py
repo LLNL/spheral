@@ -42,7 +42,9 @@ class FifthRankTensor:
     @PYB11implementation("[](const Dim<%(ndim)s>::FifthRankTensor &s) { return py::make_iterator(s.begin(), s.end()); }")
     def __iter__(self):
         "Python iteration through a FifthRankTensor."
+
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def __call__(self,
                  i="Dim<%(ndim)s>::FifthRankTensor::size_type", 
                  j="Dim<%(ndim)s>::FifthRankTensor::size_type",
@@ -51,6 +53,23 @@ class FifthRankTensor:
                  n="Dim<%(ndim)s>::FifthRankTensor::size_type"):
         "Extract the (i,j,k,m,n) element."
         return "double"
+
+    @PYB11pycppname("__call__")
+    @PYB11implementation("""[](Dim<%(ndim)s>::FifthRankTensor& self, 
+                               Dim<%(ndim)s>::FifthRankTensor::size_type i,
+                               Dim<%(ndim)s>::FifthRankTensor::size_type j,
+                               Dim<%(ndim)s>::FifthRankTensor::size_type k,
+                               Dim<%(ndim)s>::FifthRankTensor::size_type m,
+                               Dim<%(ndim)s>::FifthRankTensor::size_type n,
+                               double val) { self(i,j,k,m,n) = val; }""")
+    def assignCall(self,
+                   i="Dim<%(ndim)s>::FifthRankTensor::size_type", 
+                   j="Dim<%(ndim)s>::FifthRankTensor::size_type",
+                   k="Dim<%(ndim)s>::FifthRankTensor::size_type",
+                   m="Dim<%(ndim)s>::FifthRankTensor::size_type",
+                   n="Dim<%(ndim)s>::FifthRankTensor::size_type",
+                   val="double"):
+        return "void"
 
     # Methods
     def Zero(self):

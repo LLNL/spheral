@@ -59,11 +59,20 @@ class Tensor:
         "Python iteration through a Tensor."
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def __call__(self,
                  row="Dim<%(ndim)s>::Tensor::size_type", 
                  col="Dim<%(ndim)s>::Tensor::size_type"):
         "Extract the (row, column) element."
         return "double"
+
+    @PYB11pycppname("__call__")
+    @PYB11implementation("[](Dim<%(ndim)s>::Tensor& self, Dim<%(ndim)s>::Tensor::size_type row, Dim<%(ndim)s>::Tensor::size_type col, double val) { self(row,col) = val; }")
+    def assignCall(self,
+                   row="Dim<%(ndim)s>::Tensor::size_type", 
+                   col="Dim<%(ndim)s>::Tensor::size_type",
+                   val="double"):
+        return "void"
 
     # String representation
     @PYB11implementation("""

@@ -42,7 +42,9 @@ class FourthRankTensor:
     @PYB11implementation("[](const Dim<%(ndim)s>::FourthRankTensor &s) { return py::make_iterator(s.begin(), s.end()); }")
     def __iter__(self):
         "Python iteration through a FourthRankTensor."
+
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def __call__(self,
                  i="Dim<%(ndim)s>::FourthRankTensor::size_type", 
                  j="Dim<%(ndim)s>::FourthRankTensor::size_type",
@@ -50,6 +52,21 @@ class FourthRankTensor:
                  m="Dim<%(ndim)s>::FourthRankTensor::size_type"):
         "Extract the (i,j,k,m) element."
         return "double"
+
+    @PYB11pycppname("__call__")
+    @PYB11implementation("""[](Dim<%(ndim)s>::FourthRankTensor& self, 
+                               Dim<%(ndim)s>::FourthRankTensor::size_type i,
+                               Dim<%(ndim)s>::FourthRankTensor::size_type j,
+                               Dim<%(ndim)s>::FourthRankTensor::size_type k,
+                               Dim<%(ndim)s>::FourthRankTensor::size_type m,
+                               double val) { self(i,j,k,m) = val; }""")
+    def assignCall(self,
+                   i="Dim<%(ndim)s>::FourthRankTensor::size_type", 
+                   j="Dim<%(ndim)s>::FourthRankTensor::size_type",
+                   k="Dim<%(ndim)s>::FourthRankTensor::size_type",
+                   m="Dim<%(ndim)s>::FourthRankTensor::size_type",
+                   val="double"):
+        return "void"
 
     # Methods
     def Zero(self):

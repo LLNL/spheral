@@ -125,6 +125,7 @@ class Vector:
         "Python iteration through a Vector."
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def __call__(self, i="Dim<%(ndim)s>::Vector::size_type"):
         "Index for a coordinate using parens."
         return "double"

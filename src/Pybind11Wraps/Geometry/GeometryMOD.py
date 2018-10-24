@@ -126,14 +126,14 @@ def innerProductScalarR(A = "const %(ValueType)s&",
 for VT in ("Vector", "Tensor", "SymTensor", "ThirdRankTensor", "FourthRankTensor", "FifthRankTensor"):
     for ndim in (1, 2, 3):
         exec("""
-innerProduct%(VT)sScalar = PYB11TemplateFunction(innerProductScalar,
-                                                template_parameters = "Dim<%(ndim)i>::%(VT)s",
-                                                pyname = "innerProduct",
-                                                cppname = "innerProduct<Dim<%(ndim)i>::%(VT)s>")
-innerProductScalar%(VT)s = PYB11TemplateFunction(innerProductScalarR,
-                                                 template_parameters = "Dim<%(ndim)i>::%(VT)s",
-                                                 pyname = "innerProduct",
-                                                 cppname = "innerProduct<Dim<%(ndim)i>::%(VT)s>")
+innerProduct%(VT)sScalar%(ndim)id = PYB11TemplateFunction(innerProductScalar,
+                                                          template_parameters = "Dim<%(ndim)i>::%(VT)s",
+                                                          pyname = "innerProduct",
+                                                          cppname = "innerProduct<Dim<%(ndim)i>::%(VT)s>")
+innerProductScalar%(VT)s%(ndim)id = PYB11TemplateFunction(innerProductScalarR,
+                                                          template_parameters = "Dim<%(ndim)i>::%(VT)s",
+                                                          pyname = "innerProduct",
+                                                          cppname = "innerProduct<Dim<%(ndim)i>::%(VT)s>")
 """ % {"VT" : VT,
        "ndim" : ndim})
 
@@ -155,6 +155,10 @@ IPRT = {("Vector", "Vector")           : "double",
 
         ("Tensor", "Tensor")           : "Tensor",
         ("Tensor", "SymTensor")        : "Tensor",
+        ("SymTensor", "Tensor")        : "Tensor",
+        ("Tensor", "SymTensor")        : "Tensor",
+        ("SymTensor", "SymTensor")     : "Tensor",
+
         ("Tensor", "ThirdRankTensor")  : "ThirdRankTensor",
         ("Tensor", "FourthRankTensor") : "FourthRankTensor",
 
@@ -176,10 +180,10 @@ if "%(RT)s" == "double":
     rt = "%(RT)s"
 else:
     rt = "Dim<%(ndim)i>::" + "%(RT)s"
-innerProduct%(A)s%(B)s = PYB11TemplateFunction(innerProduct,
-                                               template_parameters = (a, b, rt),
-                                               pyname = "innerProduct",
-                                               cppname = "innerProduct<Dim<%(ndim)i>>")
+innerProduct%(A)s%(B)s%(ndim)id = PYB11TemplateFunction(innerProduct,
+                                                        template_parameters = (a, b, rt),
+                                                        pyname = "innerProduct",
+                                                        cppname = "innerProduct<Dim<%(ndim)i>>")
 """ % {"A"  : A,
        "B"  : B,
        "RT" : IPRT[(A, B)],
@@ -203,14 +207,14 @@ def outerProductScalarR(A = "const %(ValueType)s&",
 for VT in ("Vector", "Tensor", "SymTensor", "ThirdRankTensor", "FourthRankTensor", "FifthRankTensor"):
     for ndim in (1, 2, 3):
         exec("""
-outerProduct%(VT)sScalar = PYB11TemplateFunction(outerProductScalar,
-                                                template_parameters = "Dim<%(ndim)i>::%(VT)s",
-                                                pyname = "outerProduct",
-                                                cppname = "outerProduct<Dim<%(ndim)i>::%(VT)s>")
-outerProductScalar%(VT)s = PYB11TemplateFunction(outerProductScalarR,
-                                                 template_parameters = "Dim<%(ndim)i>::%(VT)s",
-                                                 pyname = "outerProduct",
-                                                 cppname = "outerProduct<Dim<%(ndim)i>::%(VT)s>")
+outerProduct%(VT)sScalar%(ndim)id = PYB11TemplateFunction(outerProductScalar,
+                                                          template_parameters = "Dim<%(ndim)i>::%(VT)s",
+                                                          pyname = "outerProduct",
+                                                          cppname = "outerProduct<Dim<%(ndim)i>::%(VT)s>")
+outerProductScalar%(VT)s%(ndim)id = PYB11TemplateFunction(outerProductScalarR,
+                                                          template_parameters = "Dim<%(ndim)i>::%(VT)s",
+                                                          pyname = "outerProduct",
+                                                          cppname = "outerProduct<Dim<%(ndim)i>::%(VT)s>")
 """ % {"VT" : VT,
        "ndim" : ndim})
 
@@ -248,10 +252,10 @@ if "%(RT)s" == "double":
     rt = "%(RT)s"
 else:
     rt = "Dim<%(ndim)i>::" + "%(RT)s"
-outerProduct%(A)s%(B)s = PYB11TemplateFunction(outerProduct,
-                                               template_parameters = (a, b, rt),
-                                               pyname = "outerProduct",
-                                               cppname = "outerProduct<Dim<%(ndim)i>>")
+outerProduct%(A)s%(B)s%(ndim)id = PYB11TemplateFunction(outerProduct,
+                                                        template_parameters = (a, b, rt),
+                                                        pyname = "outerProduct",
+                                                        cppname = "outerProduct<Dim<%(ndim)i>>")
 """ % {"A"  : A,
        "B"  : B,
        "RT" : OPRT[(A, B)],
@@ -297,10 +301,10 @@ if "%(RT)s" == "double":
     rt = "%(RT)s"
 else:
     rt = "Dim<%(ndim)i>::" + "%(RT)s"
-innerDoubleProduct%(A)s%(B)s = PYB11TemplateFunction(innerDoubleProduct,
-                                                     template_parameters = (a, b, rt),
-                                                     pyname = "innerDoubleProduct",
-                                                     cppname = "innerDoubleProduct<Dim<%(ndim)i>>")
+innerDoubleProduct%(A)s%(B)s%(ndim)id = PYB11TemplateFunction(innerDoubleProduct,
+                                                              template_parameters = (a, b, rt),
+                                                              pyname = "innerDoubleProduct",
+                                                              cppname = "innerDoubleProduct<Dim<%(ndim)i>>")
 """ % {"A"  : A,
        "B"  : B,
        "RT" : IDPRT[(A, B)],

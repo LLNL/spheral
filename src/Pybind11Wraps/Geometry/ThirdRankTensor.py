@@ -42,13 +42,28 @@ class ThirdRankTensor:
     @PYB11implementation("[](const Dim<%(ndim)s>::ThirdRankTensor &s) { return py::make_iterator(s.begin(), s.end()); }")
     def __iter__(self):
         "Python iteration through a ThirdRankTensor."
+
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
     def __call__(self,
                  i="Dim<%(ndim)s>::ThirdRankTensor::size_type", 
                  j="Dim<%(ndim)s>::ThirdRankTensor::size_type",
                  k="Dim<%(ndim)s>::ThirdRankTensor::size_type"):
         "Extract the (i,j,k) element."
         return "double"
+
+    @PYB11pycppname("__call__")
+    @PYB11implementation("""[](Dim<%(ndim)s>::ThirdRankTensor& self, 
+                               Dim<%(ndim)s>::ThirdRankTensor::size_type i,
+                               Dim<%(ndim)s>::ThirdRankTensor::size_type j,
+                               Dim<%(ndim)s>::ThirdRankTensor::size_type k,
+                               double val) { self(i,j,k) = val; }""")
+    def assignCall(self,
+                   i="Dim<%(ndim)s>::ThirdRankTensor::size_type", 
+                   j="Dim<%(ndim)s>::ThirdRankTensor::size_type",
+                   k="Dim<%(ndim)s>::ThirdRankTensor::size_type",
+                   val="double"):
+        return "void"
 
     # Methods
     def Zero(self):
