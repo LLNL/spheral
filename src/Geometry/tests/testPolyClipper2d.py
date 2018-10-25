@@ -53,10 +53,9 @@ for coords in [(0,0), (1,0), (1,0), (1,1), (0,1), (0,1)]:
 #-------------------------------------------------------------------------------
 def vertexNeighbors(points):
     n = len(points)
-    neighbors = vector_of_vector_of_int(n, vector_of_int(2))
+    neighbors = []
     for i in xrange(n):
-        neighbors[i][0] = (i - 1) % n
-        neighbors[i][1] = (i + 1) % n
+        neighbors.append([(i - 1) % n, (i + 1) % n])
     return neighbors
 
 #-------------------------------------------------------------------------------
@@ -64,10 +63,9 @@ def vertexNeighbors(points):
 #-------------------------------------------------------------------------------
 def facets(points):
     n = len(points)
-    facets = vector_of_vector_of_unsigned(n, vector_of_unsigned(2))
+    facets = []
     for i in xrange(n):
-        facets[i][0] = i
-        facets[i][1] = (i + 1) % n
+        facets.append([i, (i + 1) % n])
     return facets
 
 #-------------------------------------------------------------------------------
