@@ -80,11 +80,11 @@ class TestPolyhedron(unittest.TestCase):
     def innerOuterRadii(self, polyhedron):
         rinner = 1e10
         router = 0.0
-        centroid = polyhedron.centroid()
-        for f in self.polyhedron.facets():
+        centroid = polyhedron.centroid
+        for f in self.polyhedron.facets:
             r = abs((f.point(0) - centroid).dot(f.normal))
             rinner = min(rinner, r)
-        for v in self.polyhedron.vertices():
+        for v in self.polyhedron.vertices:
             r = (v - centroid).magnitude()
             router = max(router, r)
         router *= 1.0 + 1.0e-5
@@ -98,8 +98,8 @@ class TestPolyhedron(unittest.TestCase):
         for p in self.points: # rangen.sample(self.points, 10000):
             result = self.polyhedron.contains(p)
             if not result:
-                print "Bad polyhedron:  ", [str(x) for x in self.polyhedron.vertices()]
-                print "Test if point on polyhedron:  ", pointOnPolyhedron(p, self.polyhedron.vertices())
+                print "Bad polyhedron:  ", [str(x) for x in self.polyhedron.vertices]
+                print "Test if point on polyhedron:  ", pointOnPolyhedron(p, self.polyhedron.vertices)
             self.failUnless(result,
                             "Polyhedron does not contain seed point: %s" % str(p))
         return
@@ -112,10 +112,10 @@ class TestPolyhedron(unittest.TestCase):
         for p in rangen.sample(self.points, 5000):
             result = pointInPolyhedron(p, self.polyhedron, True)
             if not result:
-                print "Bad polyhedron:  ", [str(x) for x in self.polyhedron.vertices()]
+                print "Bad polyhedron:  ", [str(x) for x in self.polyhedron.vertices]
                 print "Distance from polyhedron: ", self.polyhedron.distance(p)
                 print "Test if point on polyhedron:  ", pointOnPolyhedron(p, self.polyhedron)
-                print "Min zray distance:  ", min([(Vector2d(p.x, p.y) - Vector2d(vi.x, vi.y)).magnitude() for vi in self.polyhedron.vertices()])
+                print "Min zray distance:  ", min([(Vector2d(p.x, p.y) - Vector2d(vi.x, vi.y)).magnitude() for vi in self.polyhedron.vertices])
             self.failUnless(result,
                             "Polyhedron does not contain seed point: %s" % str(p))
         return
@@ -135,7 +135,7 @@ class TestPolyhedron(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testRandomInnerPoints(self):
         rinner, router = self.innerOuterRadii(self.polyhedron)
-        centroid = self.polyhedron.centroid()
+        centroid = self.polyhedron.centroid
         for i in xrange(self.ntests):
             p = centroid + randomVector(0.0, rinner)
             self.failUnless(self.polyhedron.contains(p),
@@ -148,7 +148,7 @@ class TestPolyhedron(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testRandomOuterPoints(self):
         rinner, router = self.innerOuterRadii(self.polyhedron)
-        centroid = self.polyhedron.centroid()
+        centroid = self.polyhedron.centroid
         for i in xrange(self.ntests):
             p = centroid + randomVector(router, 2.0*router)
             self.failUnless(not self.polyhedron.contains(p),
@@ -159,7 +159,7 @@ class TestPolyhedron(unittest.TestCase):
     # Test vertex containment.
     #---------------------------------------------------------------------------
     def testVertexPointContainment(self):
-        vertices = self.polyhedron.vertices()
+        vertices = self.polyhedron.vertices
         for v in vertices:
             self.failUnless(self.polyhedron.contains(v),
                             "%s vertex position should be contained." % str(v))
@@ -171,8 +171,8 @@ class TestPolyhedron(unittest.TestCase):
     # Test that nested polyhedrons intersect.
     #---------------------------------------------------------------------------
     def testIntersectInterior(self):
-        centroid = self.polyhedron.centroid()
-        vertices = vector_of_Vector(self.polyhedron.vertices())
+        centroid = self.polyhedron.centroid
+        vertices = vector_of_Vector(self.polyhedron.vertices)
         numVerts = len(vertices)
         for i in xrange(numVerts):
             vertices[i] = 0.5*(centroid + vertices[i])
@@ -189,7 +189,7 @@ class TestPolyhedron(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testIntersectTouchingPolyhedrons(self):
         xmin = self.polyhedron.xmin.x
-        vertices = vector_of_Vector(self.polyhedron.vertices())
+        vertices = vector_of_Vector(self.polyhedron.vertices)
         numVerts = len(vertices)
         for i in xrange(numVerts):
             xv = vertices[i].x
@@ -207,7 +207,7 @@ class TestPolyhedron(unittest.TestCase):
     def testNotIntersectPolyhedrons(self):
         xmin = self.polyhedron.xmin.x
         xlength = self.polyhedron.xmax.x - self.polyhedron.xmin.x
-        vertices = vector_of_Vector(self.polyhedron.vertices())
+        vertices = vector_of_Vector(self.polyhedron.vertices)
         numVerts = len(vertices)
         for i in xrange(numVerts):
             xv = vertices[i].x
@@ -238,9 +238,9 @@ class TestPolyhedron(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testIntersectBoxInterior(self):
         rinner, router = self.innerOuterRadii(self.polyhedron)
-        centroid = self.polyhedron.centroid()
-        box = pair_Vector3d_Vector3d(centroid - 0.95*rinner*Vector.one,
-                                     centroid + 0.95*rinner*Vector.one)
+        centroid = self.polyhedron.centroid
+        box = (centroid - 0.95*rinner*Vector.one,
+               centroid + 0.95*rinner*Vector.one)
         self.failUnless(self.polyhedron.intersect(box),
                         "Failed to intersect with a contained box.")
         return
@@ -250,9 +250,9 @@ class TestPolyhedron(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testIntersectBoxExterior(self):
         rinner, router = self.innerOuterRadii(self.polyhedron)
-        centroid = self.polyhedron.centroid()
-        box = pair_Vector3d_Vector3d(centroid - 2.0*router*Vector.one,
-                                     centroid + 2.0*router*Vector.one)
+        centroid = self.polyhedron.centroid
+        box = (centroid - 2.0*router*Vector.one,
+               centroid + 2.0*router*Vector.one)
         self.failUnless(self.polyhedron.intersect(box),
                         "Failed to intersect with a box we are in.")
         return
@@ -263,11 +263,11 @@ class TestPolyhedron(unittest.TestCase):
     def testIntersectTouchingBox(self):
         xmin = self.polyhedron.xmin.x
         vertex = None
-        for v in self.polyhedron.vertices():
+        for v in self.polyhedron.vertices:
             if fuzzyEqual(v.x, xmin, 1.0e-10):
                 vertex = v
         assert not vertex is None
-        box = pair_Vector3d_Vector3d(Vector(v.x - 2.0, v.y - 2.0, v.z - 2.0), v)
+        box = (Vector(v.x - 2.0, v.y - 2.0, v.z - 2.0), v)
         self.failUnless(self.polyhedron.intersect(box),
                         "Failed to intersect with a box touching on one side.")
 
@@ -277,7 +277,7 @@ class TestPolyhedron(unittest.TestCase):
     def testNotIntersectBox(self):
         xmin, xmax = self.polyhedron.xmin, self.polyhedron.xmax
         delta = xmax - xmin
-        box = pair_Vector3d_Vector3d(xmin - 2.0*delta, xmax - 2.0*delta)
+        box = (xmin - 2.0*delta, xmax - 2.0*delta)
         self.failUnless(not self.polyhedron.intersect(box),
                         "Erroneously intersect external box.")
 
@@ -286,7 +286,7 @@ class TestPolyhedron(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testReconstruct(self):
         polyhedron2 = Polyhedron()
-        polyhedron2.reconstruct(self.polyhedron.vertices(),
+        polyhedron2.reconstruct(self.polyhedron.vertices,
                                 self.polyhedron.facetVertices,
                                 self.polyhedron.facetNormals)
         self.failUnless(polyhedron2 == self.polyhedron,
@@ -297,8 +297,8 @@ class TestPolyhedron(unittest.TestCase):
     # Test volume
     #---------------------------------------------------------------------------
     def testVolume(self):
-        facets = self.polyhedron.facets()
-        c = self.polyhedron.centroid()
+        facets = self.polyhedron.facets
+        c = self.polyhedron.centroid
         answer = 0.0
         for f in facets:
             answer += f.area * (f.normal.dot(f.point(0) - c))
@@ -311,7 +311,7 @@ class TestPolyhedron(unittest.TestCase):
     # Closest point to vertices.
     #---------------------------------------------------------------------------
     def testClosestPointToVertices(self):
-        verts = self.polyhedron.vertices()
+        verts = self.polyhedron.vertices
         for p in verts:
             cp = self.polyhedron.closestPoint(p)
             self.failUnless(fuzzyEqual((cp - p).magnitude(), 0.0, 1.0e-10),
@@ -321,7 +321,7 @@ class TestPolyhedron(unittest.TestCase):
     # Closest point on facets.
     #---------------------------------------------------------------------------
     def testClosestPointOnFacets(self):
-        facets = self.polyhedron.facets()
+        facets = self.polyhedron.facets
         for f in facets:
             p = f.position
             cp = self.polyhedron.closestPoint(p)
@@ -332,7 +332,7 @@ class TestPolyhedron(unittest.TestCase):
     # Closest point above facets.
     #---------------------------------------------------------------------------
     def testClosestPointAboveFacets(self):
-        facets = self.polyhedron.facets()
+        facets = self.polyhedron.facets
         for f in facets:
             chi = rangen.uniform(0.1, 10.0)
             cp0 = f.position
@@ -372,8 +372,8 @@ class TestPolyhedron(unittest.TestCase):
                        rangen.uniform(-10.0, -10.0))
         polyhedron2 = Polyhedron(self.polyhedron)
         polyhedron2 += shift
-        for p0, p1 in zip([self.polyhedron.xmin, self.polyhedron.xmax] + list(self.polyhedron.vertices()),
-                          [polyhedron2.xmin, polyhedron2.xmax] + list(polyhedron2.vertices())):
+        for p0, p1 in zip([self.polyhedron.xmin, self.polyhedron.xmax] + list(self.polyhedron.vertices),
+                          [polyhedron2.xmin, polyhedron2.xmax] + list(polyhedron2.vertices)):
             pshift = p0 + shift
             self.failUnless(pshift == p1, "In-place shift point comparison failed: %s != %s" % (pshift, p1))
 
