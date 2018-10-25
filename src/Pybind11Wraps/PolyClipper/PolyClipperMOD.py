@@ -5,6 +5,7 @@ Binds the PolyClipper geometry operations for clipping polygons & polyhedra.
 """
 
 from PYB11Generator import *
+from CXXTypesMOD import *
 import types
 
 # Include files.
@@ -110,6 +111,66 @@ class Vertex3d:
     """Vertex class for polyclipper in 3 dimensions."""
 
 addVertexMethods(Vertex3d, 3)
+
+#-------------------------------------------------------------------------------
+# Polygon
+#-------------------------------------------------------------------------------
+PYB11namespace("PolyClipper")
+class Polygon:
+
+    def pyinit(self):
+        "Default constructor"
+
+    def pyinit1(self, rhs="const Polygon&"):
+        "Copy constructor"
+
+    @PYB11cppname("size")
+    @PYB11const
+    def __len__(self):
+        return "unsigned"
+
+    @PYB11cppname("operator[]")
+    @PYB11returnpolicy("reference_internal")
+    def __getitem__(self, i="size_t"):
+        return "Vertex2d&"
+
+    @PYB11implementation("[](Polygon& self, size_t i, const Vertex2d& v) { if (i >= self.size()) throw py::index_error(); self[i] = v; }") 
+    def __setitem__(self, i="size_t", v="Vertex2d&"):
+        "Set a value"
+
+    @PYB11implementation("[](const Polygon& self) { return py::make_iterator(self.begin(), self.end()); }")
+    def __iter__(self):
+        "Python iteration through a Polygon."
+
+#-------------------------------------------------------------------------------
+# Polyhedron
+#-------------------------------------------------------------------------------
+PYB11namespace("PolyClipper")
+class Polyhedron:
+
+    def pyinit(self):
+        "Default constructor"
+
+    def pyinit1(self, rhs="const Polyhedron&"):
+        "Copy constructor"
+
+    @PYB11cppname("size")
+    @PYB11const
+    def __len__(self):
+        return "unsigned"
+
+    @PYB11cppname("operator[]")
+    @PYB11returnpolicy("reference_internal")
+    def __getitem__(self, i="size_t"):
+        return "Vertex3d&"
+
+    @PYB11implementation("[](Polyhedron& self, size_t i, const Vertex3d& v) { if (i >= self.size()) throw py::index_error(); self[i] = v; }") 
+    def __setitem__(self, i="size_t", v="Vertex3d&"):
+        "Set a value"
+
+    @PYB11implementation("[](const Polyhedron& self) { return py::make_iterator(self.begin(), self.end()); }")
+    def __iter__(self):
+        "Python iteration through a Polyhedron."
 
 #-------------------------------------------------------------------------------
 # Polygon methods.
