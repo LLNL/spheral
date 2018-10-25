@@ -48,19 +48,19 @@ def addPlaneMethods(cls, ndim):
 # Helper to add methods for Vertex.
 #-------------------------------------------------------------------------------
 @PYB11ignore
-def addVertexMethods(cls, ndim):
+class VertexBase:
 
     # Constructors
     def pyinit0(self):
         "Default constructor"
 
-    def pyinit1(rhs = "const Vertex%id" % ndim):
+    def pyinit1(rhs = "const Vertex%(ndim)sd"):
         "Copy constructor"
 
-    def pyinit2(position = "const Plane%id::Vector&" % ndim):
+    def pyinit2(position = "const Plane%(ndim)sd::Vector&"):
         "Construct with a position."
 
-    def pyinit3(position = "const Plane%id::Vector&" % ndim,
+    def pyinit3(position = "const Plane%(ndim)sd::Vector&",
                 c = "int"):
         "Construct with a position and initial compare flag."
 
@@ -72,9 +72,6 @@ def addVertexMethods(cls, ndim):
 
     def __eq__(self, other="py::self"):
         return
-
-    for x in [x for x in dir() if type(eval(x)) == types.FunctionType]: 
-        exec("cls.%s = %s" % (x, x))
 
 #-------------------------------------------------------------------------------
 # Plane2d
@@ -97,80 +94,24 @@ addPlaneMethods(PolyClipperPlane3d, 3)
 #-------------------------------------------------------------------------------
 # Vertex2d
 #-------------------------------------------------------------------------------
-@PYB11cppname("Vertex2d")
+@PYB11template_dict({"ndim" : "2"})
 class Vertex2d:
     """Vertex class for polyclipper in 2 dimensions."""
-
-addVertexMethods(Vertex2d, 2)
+PYB11inject(VertexBase, Vertex2d)
 
 #-------------------------------------------------------------------------------
 # Vertex3d
 #-------------------------------------------------------------------------------
-@PYB11cppname("Vertex3d")
+@PYB11template_dict({"ndim" : "3"})
 class Vertex3d:
     """Vertex class for polyclipper in 3 dimensions."""
-
-addVertexMethods(Vertex3d, 3)
-
-#-------------------------------------------------------------------------------
-# Polygon
-#-------------------------------------------------------------------------------
-PYB11namespace("PolyClipper")
-class Polygon:
-
-    def pyinit(self):
-        "Default constructor"
-
-    def pyinit1(self, rhs="const Polygon&"):
-        "Copy constructor"
-
-    @PYB11cppname("size")
-    @PYB11const
-    def __len__(self):
-        return "unsigned"
-
-    @PYB11cppname("operator[]")
-    @PYB11returnpolicy("reference_internal")
-    def __getitem__(self, i="size_t"):
-        return "Vertex2d&"
-
-    @PYB11implementation("[](Polygon& self, size_t i, const Vertex2d& v) { if (i >= self.size()) throw py::index_error(); self[i] = v; }") 
-    def __setitem__(self, i="size_t", v="Vertex2d&"):
-        "Set a value"
-
-    @PYB11implementation("[](const Polygon& self) { return py::make_iterator(self.begin(), self.end()); }")
-    def __iter__(self):
-        "Python iteration through a Polygon."
+PYB11inject(VertexBase, Vertex3d)
 
 #-------------------------------------------------------------------------------
-# Polyhedron
+# Polygon & Polyhedron
 #-------------------------------------------------------------------------------
-PYB11namespace("PolyClipper")
-class Polyhedron:
-
-    def pyinit(self):
-        "Default constructor"
-
-    def pyinit1(self, rhs="const Polyhedron&"):
-        "Copy constructor"
-
-    @PYB11cppname("size")
-    @PYB11const
-    def __len__(self):
-        return "unsigned"
-
-    @PYB11cppname("operator[]")
-    @PYB11returnpolicy("reference_internal")
-    def __getitem__(self, i="size_t"):
-        return "Vertex3d&"
-
-    @PYB11implementation("[](Polyhedron& self, size_t i, const Vertex3d& v) { if (i >= self.size()) throw py::index_error(); self[i] = v; }") 
-    def __setitem__(self, i="size_t", v="Vertex3d&"):
-        "Set a value"
-
-    @PYB11implementation("[](const Polyhedron& self) { return py::make_iterator(self.begin(), self.end()); }")
-    def __iter__(self):
-        "Python iteration through a Polyhedron."
+Polygon    = PYB11_bind_vector("PolyClipper::Vertex2d", opaque=True, local=False)
+Polyhedron = PYB11_bind_vector("PolyClipper::Vertex3d", opaque=True, local=False)
 
 #-------------------------------------------------------------------------------
 # Polygon methods.
@@ -180,36 +121,47 @@ def initializePolygon(poly = "Polygon&",
                       positions = "const std::vector<Spheral::Dim<2>::Vector>&",
                       neighbors = "const std::vector<std::vector<int>>&"):
     "Initialize a PolyClipper::Polygon from vertex positions and vertex neighbors."
+    return "void"
 
 @PYB11namespace("PolyClipper")
 def polygon2string(poly = "Polygon&"):
     "Return a formatted string representation for a PolyClipper::Polygon."
+    return "std::string"
 
 @PYB11namespace("PolyClipper")
 def convertToPolygon(polygon = "Polygon&",
                      Spheral_polygon = "const Spheral::Dim<2>::FacetedVolume&"):
     "Construct a PolyClipper::Polygon from a Spheral::Polygon."
+    return "void"
 
 @PYB11namespace("PolyClipper")
 def convertFromPolygon(Spheral_polygon = "Spheral::Dim<2>::FacetedVolume&",
                        polygon = "const Polygon&"):
     "Construct a Spheral::Polygon from a PolyClipper::Polygon."
+    return "void"
 
 @PYB11namespace("PolyClipper")
-def moments(zerothMoment = "double&",
-            firstMoment = "Spheral::Dim<2>::Vector&",
-            poly = "const Polygon&"):
+@PYB11implementation("""[](const Polygon& self) {
+                                                  double zerothMoment;
+                                                  Spheral::Dim<2>::Vector firstMoment;
+                                                  moments(zerothMoment, firstMoment, self);
+                                                  return py::make_tuple(zerothMoment, firstMoment);
+                                                }""")
+@PYB11pycppname("moments")
+def momentsPolygon(poly = "const Polygon&"):
     "Compute the zeroth and first moment of a PolyClipper::Polygon."
-    return "void"
+    return "py::tuple"
 
 @PYB11namespace("PolyClipper")
 def clipPolygon(poly = "Polygon&",
                 planes = "const std::vector<Plane2d>&"):
     "Clip a PolyClipper::Polygon with a collection of planes."
+    return "void"
 
 @PYB11namespace("PolyClipper")
-def collapseDegenerates(poly = "Polygon&",
-                        tol = "const double"):
+@PYB11pycppname("collapseDegenerates")
+def collapseDegeneratesPolygon(poly = "Polygon&",
+                               tol = "const double"):
     "Collapse edges in a PolyClipper::Polygon below the given tolerance."
     return "void"
 
