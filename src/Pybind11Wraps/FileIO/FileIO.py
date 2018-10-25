@@ -126,70 +126,64 @@ def readPlane%(ndim)i(self,
     return "void"
 ''' % {"ndim" : ndim})
 
-    @PYB11template("Dimension", "Value")
-    @PYB11cppname("write")
-    def writeFieldList(self,
-                       fieldList = "const FieldList<%(Dimension)s, %(Value)s>&",
-                       pathName = "const std::string"):
-        "Write a FieldList<%(Dimension)s, %(Value)s>"
-        return "void"
-
-    @PYB11template("Dimension", "Value")
-    @PYB11const
-    @PYB11cppname("read")
-    def readFieldList(self,
-                      fieldList = "FieldList<%(Dimension)s, %(Value)s>&",
-                      pathName = "const std::string"):
-        "Read a FieldList<%(Dimension)s, %(Value)s>"
-        return "void"
-
-    @PYB11template("Dimension", "Value")
-    @PYB11cppname("write")
-    def writeFieldVec(self,
-                      field = "const Field<%(Dimension)s, std::vector<%(Value)s>>&",
-                      pathName = "const std::string"):
-        "Write a Field<%(Dimension)s, vector<%(Value)s>>"
-        return "void"
-
-    @PYB11template("Dimension", "Value")
-    @PYB11const
-    @PYB11cppname("read")
-    def readFieldVec(self,
-                     field = "Field<%(Dimension)s, std::vector<%(Value)s>>&",
-                     pathName = "const std::string"):
-        "Read a Field<%(Dimension)s, vector<%(Value)s>>"
-        return "void"
-
     for ndim in dims:
-        types = ["int",
-                 "Dim<%i>::Scalar" % ndim,
-                 "Dim<%i>::Vector" % ndim,
-                 "Dim<%i>::Tensor" % ndim,
-                 "Dim<%i>::SymTensor" % ndim,
-                 "Dim<%i>::ThirdRankTensor" % ndim]
-        for T in types:
+        for T in ["int",
+                  "Dim<%i>::Scalar" % ndim,
+                  "Dim<%i>::Vector" % ndim,
+                  "Dim<%i>::Tensor" % ndim,
+                  "Dim<%i>::SymTensor" % ndim,
+                  "Dim<%i>::ThirdRankTensor" % ndim]:
             exec('''
-writeFieldList%(Tmangle)s = PYB11TemplateMethod(writeFieldList,
-                                                template_parameters=("Dim<%(ndim)i>", "%(T)s"),
-                                                pyname = "write")
-readFieldList%(Tmangle)s = PYB11TemplateMethod(readFieldList,
-                                               template_parameters=("Dim<%(ndim)i>", "%(T)s"),
-                                               pyname = "read")
-writeFieldListVec%(Tmangle)s = PYB11TemplateMethod(writeFieldList,
-                                                  template_parameters=("Dim<%(ndim)i>", "std::vector<%(T)s>"),
-                                                  pyname = "write")
-readFieldListVec%(Tmangle)s = PYB11TemplateMethod(readFieldList,
-                                                  template_parameters=("Dim<%(ndim)i>", "std::vector<%(T)s>"),
-                                                  pyname = "read")
-writeFieldVec%(Tmangle)s = PYB11TemplateMethod(writeFieldVec,
-                                               template_parameters=("Dim<%(ndim)i>", "%(T)s"),
-                                               pyname = "write")
-readFieldVec%(Tmangle)s = PYB11TemplateMethod(readFieldVec,
-                                              template_parameters=("Dim<%(ndim)i>", "%(T)s"),
-                                              pyname = "read")
-''' % {"ndim"    : ndim,
-       "T"       : T,
-       "Tmangle" : ("Field<%i%s>" % (ndim, T)).replace(":", "_").replace("<", "_").replace(">", "_")})
+@PYB11pycppname("write")
+def writeFieldList%(Tmangle)s(self,
+                              fieldList = "const FieldList<%(Dimension)s, %(T)s>&",
+                              pathName = "const std::string"):
+    "Write a FieldList<%(Dimension)s, %(T)s>"
+    return "void"
+
+@PYB11pycppname("read")
+@PYB11const
+def readFieldList%(Tmangle)s(self,
+                             fieldList = "FieldList<%(Dimension)s, %(T)s>&",
+                             pathName = "const std::string"):
+    "Read a FieldList<%(Dimension)s, %(T)s>"
+    return "void"
+
+@PYB11pycppname("write")
+def writeFieldListVec%(Tmangle)s(self,
+                                 fieldList = "const FieldList<%(Dimension)s, std::vector<%(T)s>>&",
+                                 pathName = "const std::string"):
+    "Write a FieldList<%(Dimension)s, std::vector<%(T)s>>"
+    return "void"
+
+@PYB11pycppname("read")
+@PYB11const
+def readFieldListVec%(Tmangle)s(self,
+                                fieldList = "FieldList<%(Dimension)s, std::vector<%(T)s>>&",
+                                pathName = "const std::string"):
+    "Read a FieldList<%(Dimension)s, std::vector<%(T)s>>"
+    return "void"
+
+
+@PYB11pycppname("write")
+def writeFieldVec%(Tmangle)s(self,
+                             field = "const Field<%(Dimension)s, std::vector<%(T)s>>&",
+                             pathName = "const std::string"):
+    "Write a Field<%(Dimension)s, std::vector<%(T)s>>"
+    return "void"
+
+@PYB11pycppname("read")
+@PYB11const
+def readFieldVec%(Tmangle)s(self,
+                            field = "Field<%(Dimension)s, std::vector<%(T)s>>&",
+                            pathName = "const std::string"):
+    "Read a Field<%(Dimension)s, std::vector<%(T)s>>"
+    return "void"
+
+''' % {"ndim"      : ndim,
+       "Dimension" : "Dim<" + str(ndim) + ">",
+       "T"         : T,
+       "Tmangle"   : ("Field<%i%s>" % (ndim, T)).replace(":", "_").replace("<", "_").replace(">", "_")})
 
     @PYB11const
     def splitPathComponents(self, pathName="const std::string&"):
