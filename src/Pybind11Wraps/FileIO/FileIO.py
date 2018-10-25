@@ -127,11 +127,37 @@ def readPlane%(ndim)i(self,
 ''' % {"ndim" : ndim})
 
     @PYB11template("Dimension", "Value")
-    @PYB11pycppname("write")
+    @PYB11cppname("write")
+    def writeFieldList(self,
+                       fieldList = "const FieldList<%(Dimension)s, %(Value)s>&",
+                       pathName = "const std::string"):
+        "Write a FieldList<%(Dimension)s, %(Value)s>"
+        return "void"
+
+    @PYB11template("Dimension", "Value")
+    @PYB11const
+    @PYB11cppname("read")
+    def readFieldList(self,
+                      fieldList = "FieldList<%(Dimension)s, %(Value)s>&",
+                      pathName = "const std::string"):
+        "Read a FieldList<%(Dimension)s, %(Value)s>"
+        return "void"
+
+    @PYB11template("Dimension", "Value")
+    @PYB11cppname("write")
     def writeFieldVec(self,
                       field = "const Field<%(Dimension)s, std::vector<%(Value)s>>&",
                       pathName = "const std::string"):
         "Write a Field<%(Dimension)s, vector<%(Value)s>>"
+        return "void"
+
+    @PYB11template("Dimension", "Value")
+    @PYB11const
+    @PYB11cppname("read")
+    def readFieldVec(self,
+                     field = "Field<%(Dimension)s, std::vector<%(Value)s>>&",
+                     pathName = "const std::string"):
+        "Read a Field<%(Dimension)s, vector<%(Value)s>>"
         return "void"
 
     for ndim in dims:
@@ -143,9 +169,24 @@ def readPlane%(ndim)i(self,
                  "Dim<%i>::ThirdRankTensor" % ndim]
         for T in types:
             exec('''
+writeFieldList%(Tmangle)s = PYB11TemplateMethod(writeFieldList,
+                                                template_parameters=("Dim<%(ndim)i>", "%(T)s"),
+                                                pyname = "write")
+readFieldList%(Tmangle)s = PYB11TemplateMethod(readFieldList,
+                                               template_parameters=("Dim<%(ndim)i>", "%(T)s"),
+                                               pyname = "read")
+writeFieldListVec%(Tmangle)s = PYB11TemplateMethod(writeFieldList,
+                                                  template_parameters=("Dim<%(ndim)i>", "std::vector<%(T)s>"),
+                                                  pyname = "write")
+readFieldListVec%(Tmangle)s = PYB11TemplateMethod(readFieldList,
+                                                  template_parameters=("Dim<%(ndim)i>", "std::vector<%(T)s>"),
+                                                  pyname = "read")
 writeFieldVec%(Tmangle)s = PYB11TemplateMethod(writeFieldVec,
                                                template_parameters=("Dim<%(ndim)i>", "%(T)s"),
                                                pyname = "write")
+readFieldVec%(Tmangle)s = PYB11TemplateMethod(readFieldVec,
+                                              template_parameters=("Dim<%(ndim)i>", "%(T)s"),
+                                              pyname = "read")
 ''' % {"ndim"    : ndim,
        "T"       : T,
        "Tmangle" : ("Field<%i%s>" % (ndim, T)).replace(":", "_").replace("<", "_").replace(">", "_")})
@@ -178,7 +219,7 @@ writeFieldVec%(Tmangle)s = PYB11TemplateMethod(writeFieldVec,
     def readObject(self,
                    path = "py::handle"):
         "Return a generic python object from deserialization."
-        return "PyObject*"
+        return "py::handle"
 
     #...........................................................................
     # Properties
