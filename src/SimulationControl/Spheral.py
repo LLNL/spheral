@@ -38,9 +38,10 @@ from MaterialUnits import *
 from MaterialEquationsOfState import *
 
 # ------------------------------------------------------------------------------
-# Import the various FluidNodeLists.
+# Import the various NodeLists.
 # ------------------------------------------------------------------------------
 from FluidNodeLists import *
+from SolidNodeLists import *
 from VoidNodeLists import *
 
 # ------------------------------------------------------------------------------
