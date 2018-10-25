@@ -107,6 +107,11 @@ from SpheralController import *
 from SpheralOptionParser import commandLine
 
 # ------------------------------------------------------------------------------
+# Import PolyClipper
+# ------------------------------------------------------------------------------
+import SpheralPolyClipper as PolyClipper
+
+# ------------------------------------------------------------------------------
 # See if we can import the polytope bindings.
 # ------------------------------------------------------------------------------
 try:
