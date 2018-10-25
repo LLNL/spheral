@@ -14,38 +14,45 @@ includes = ['"Geometry/polyclipper.hh"']
 namespaces = ["PolyClipper"]
 
 #-------------------------------------------------------------------------------
-# Helper to add methods to Planes.
+# Planes.
 #-------------------------------------------------------------------------------
 @PYB11ignore
-def addPlaneMethods(cls, ndim):
+class PlaneBase:
 
     # Constructors
     def pyinit0(self):
         "Default constructor"
 
     def pyinit1(self,
-                rhs = "const Plane%id" % ndim):
+                rhs = "const Plane%(ndim)sd"):
         "Copy constructor"
 
     def pyinit2(self,
                 dist = "double",
-                normal = "const Plane%id::Vector&" % ndim):
+                normal = "const Plane%(ndim)sd::Vector&"):
         "Construct with a distance and normal."
 
     def pyinit3(self,
-                point = "const Plane%id::Vector&" % ndim,
-                normal = "const Plane%id::Vector&" % ndim):
+                point = "const Plane%(ndim)sd::Vector&",
+                normal = "const Plane%(ndim)sd::Vector&"):
         "Construct with a point and normal."
 
     # Attributes
     dist = PYB11readwrite(doc="The distance to the origin along the normal.")
     normal = PYB11readwrite(doc="The normal to the plane.")
 
-    for __x in [x for x in dir() if type(eval(x)) == types.FunctionType]: 
-        exec("cls.%s = %s" % (__x, __x))
+@PYB11template_dict({"ndim" : "2"})
+class Plane2d:
+    """Plane class for polyclipper in 2 dimensions."""
+PYB11inject(PlaneBase, Plane2d)
+
+@PYB11template_dict({"ndim" : "3"})
+class Plane3d:
+    """Plane class for polyclipper in 3 dimensions."""
+PYB11inject(PlaneBase, Plane3d)
 
 #-------------------------------------------------------------------------------
-# Helper to add methods for Vertex.
+# Vertex
 #-------------------------------------------------------------------------------
 @PYB11ignore
 class VertexBase:
@@ -70,38 +77,14 @@ class VertexBase:
     comp = PYB11readwrite(doc="The current comparison flag.")
     ID = PYB11readwrite(doc="The ID or index of the vertex.")
 
-    def __eq__(self, other="py::self"):
+    def __eq__(self):
         return
 
-#-------------------------------------------------------------------------------
-# Plane2d
-#-------------------------------------------------------------------------------
-@PYB11cppname("Plane2d")
-class PolyClipperPlane2d:
-    """Plane class for polyclipper in 2 dimensions."""
-
-addPlaneMethods(PolyClipperPlane2d, 2)
-
-#-------------------------------------------------------------------------------
-# Plane3d
-#-------------------------------------------------------------------------------
-@PYB11cppname("Plane3d")
-class PolyClipperPlane3d:
-    """Plane class for polyclipper in 3 dimensions."""
-
-addPlaneMethods(PolyClipperPlane3d, 3)
-
-#-------------------------------------------------------------------------------
-# Vertex2d
-#-------------------------------------------------------------------------------
 @PYB11template_dict({"ndim" : "2"})
 class Vertex2d:
     """Vertex class for polyclipper in 2 dimensions."""
 PYB11inject(VertexBase, Vertex2d)
 
-#-------------------------------------------------------------------------------
-# Vertex3d
-#-------------------------------------------------------------------------------
 @PYB11template_dict({"ndim" : "3"})
 class Vertex3d:
     """Vertex class for polyclipper in 3 dimensions."""

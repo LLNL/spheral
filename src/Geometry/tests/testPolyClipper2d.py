@@ -153,8 +153,8 @@ class TestPolyClipper2d(unittest.TestCase):
                             rangen.uniform(0.0, 1.0))
                 phat = Vector(rangen.uniform(-1.0, 1.0), 
                               rangen.uniform(-1.0, 1.0)).unitVector()
-                planes1.append(PolyClipper.PolyClipperPlane2d(p0,  phat))
-                planes2.append(PolyClipper.PolyClipperPlane2d(p0, -phat))
+                planes1.append(PolyClipper.Plane2d(p0,  phat))
+                planes2.append(PolyClipper.Plane2d(p0, -phat))
                 PCchunk1 = PolyClipper.Polygon(PCpoly)
                 PCchunk2 = PolyClipper.Polygon(PCpoly)
                 PolyClipper.clipPolygon(PCchunk1, planes1)
@@ -195,9 +195,9 @@ class TestPolyClipper2d(unittest.TestCase):
                             rangen.uniform(0.0, 1.0))
                 phat = Vector(rangen.uniform(-1.0, 1.0), 
                               rangen.uniform(-1.0, 1.0)).unitVector()
-                planes1.append(PolyClipper.PolyClipperPlane2d(p0,  phat))
-                planes2.append(PolyClipper.PolyClipperPlane2d(p0,  phat))
-                planes2.append(PolyClipper.PolyClipperPlane2d(p0,  phat))
+                planes1.append(PolyClipper.Plane2d(p0,  phat))
+                planes2.append(PolyClipper.Plane2d(p0,  phat))
+                planes2.append(PolyClipper.Plane2d(p0,  phat))
                 PCchunk1 = PolyClipper.Polygon(PCpoly)
                 PCchunk2 = PolyClipper.Polygon(PCpoly)
                 PolyClipper.clipPolygon(PCchunk1, planes1)
@@ -235,7 +235,7 @@ class TestPolyClipper2d(unittest.TestCase):
                 phat = Vector(cos(theta), sin(theta))
                 p0 = poly.centroid + r*phat
                 planes = []
-                planes.append(PolyClipper.PolyClipperPlane2d(p0, -phat))
+                planes.append(PolyClipper.Plane2d(p0, -phat))
                 PCchunk = PolyClipper.Polygon()
                 PolyClipper.convertToPolygon(PCchunk, poly)
                 PolyClipper.clipPolygon(PCchunk, planes)
@@ -260,7 +260,7 @@ class TestPolyClipper2d(unittest.TestCase):
                 theta = rangen.uniform(0.0, 2.0*pi)
                 phat = Vector(cos(theta), sin(theta))
                 p0 = poly.centroid + r*phat
-                planes.append(PolyClipper.PolyClipperPlane2d(p0, phat))
+                planes.append(PolyClipper.Plane2d(p0, phat))
                 PCchunk = PolyClipper.Polygon()
                 PolyClipper.convertToPolygon(PCchunk, poly)
                 PolyClipper.clipPolygon(PCchunk, planes)
@@ -289,17 +289,17 @@ class TestPolyClipper2d(unittest.TestCase):
                 norm2 = Vector(rangen.uniform(-1.0, 1.0), 
                                rangen.uniform(-1.0, 1.0)).unitVector()
                 planes1 = []
-                planes1.append(PolyClipper.PolyClipperPlane2d(p0,  norm1))
-                planes1.append(PolyClipper.PolyClipperPlane2d(p0,  norm2))
+                planes1.append(PolyClipper.Plane2d(p0,  norm1))
+                planes1.append(PolyClipper.Plane2d(p0,  norm2))
                 planes2 = []
-                planes2.append(PolyClipper.PolyClipperPlane2d(p0,  norm1))
-                planes2.append(PolyClipper.PolyClipperPlane2d(p0, -norm2))
+                planes2.append(PolyClipper.Plane2d(p0,  norm1))
+                planes2.append(PolyClipper.Plane2d(p0, -norm2))
                 planes3 = []
-                planes3.append(PolyClipper.PolyClipperPlane2d(p0, -norm1))
-                planes3.append(PolyClipper.PolyClipperPlane2d(p0,  norm2))
+                planes3.append(PolyClipper.Plane2d(p0, -norm1))
+                planes3.append(PolyClipper.Plane2d(p0,  norm2))
                 planes4 = []
-                planes4.append(PolyClipper.PolyClipperPlane2d(p0, -norm1))
-                planes4.append(PolyClipper.PolyClipperPlane2d(p0, -norm2))
+                planes4.append(PolyClipper.Plane2d(p0, -norm1))
+                planes4.append(PolyClipper.Plane2d(p0, -norm2))
                 PCchunk1 = PolyClipper.Polygon(PCpoly)
                 PCchunk2 = PolyClipper.Polygon(PCpoly)
                 PCchunk3 = PolyClipper.Polygon(PCpoly)
