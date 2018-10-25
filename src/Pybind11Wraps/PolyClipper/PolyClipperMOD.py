@@ -176,19 +176,23 @@ class Polyhedron:
 # Polygon methods.
 #-------------------------------------------------------------------------------
 @PYB11namespace("PolyClipper")
-def initializePolygon(poly, positions, neighbors):
+def initializePolygon(poly = "Polygon&",
+                      positions = "const std::vector<Spheral::Dim<2>::Vector>&",
+                      neighbors = "const std::vector<std::vector<int>>&"):
     "Initialize a PolyClipper::Polygon from vertex positions and vertex neighbors."
 
 @PYB11namespace("PolyClipper")
-def polygon2string(poly, positions, neighbors):
+def polygon2string(poly = "Polygon&"):
     "Return a formatted string representation for a PolyClipper::Polygon."
 
 @PYB11namespace("PolyClipper")
-def convertToPolygon(polygon, Spheral_polygon):
+def convertToPolygon(polygon = "Polygon&",
+                     Spheral_polygon = "const Spheral::Dim<2>::FacetedVolume&"):
     "Construct a PolyClipper::Polygon from a Spheral::Polygon."
 
 @PYB11namespace("PolyClipper")
-def convertFromPolygon(Spheral_polygon, polygon):
+def convertFromPolygon(Spheral_polygon = "Spheral::Dim<2>::FacetedVolume&",
+                       polygon = "const Polygon&"):
     "Construct a Spheral::Polygon from a PolyClipper::Polygon."
 
 @PYB11namespace("PolyClipper")
@@ -199,7 +203,8 @@ def moments(zerothMoment = "double&",
     return "void"
 
 @PYB11namespace("PolyClipper")
-def clipPolygon(poly, planes):
+def clipPolygon(poly = "Polygon&",
+                planes = "const std::vector<Plane2d>&"):
     "Clip a PolyClipper::Polygon with a collection of planes."
 
 @PYB11namespace("PolyClipper")
@@ -220,19 +225,23 @@ def splitIntoTriangles(poly = "const Polygon&",
 # Polyhedron methods.
 #-------------------------------------------------------------------------------
 @PYB11namespace("PolyClipper")
-def initializePolyhedron(poly, positions, neighbors):
+def initializePolyhedron(poly = "Polyhedron&",
+                         positions = "const std::vector<Spheral::Dim<3>::Vector>&",
+                         neighbors = "const std::vector<std::vector<int>>&"):
     "Initialize a PolyClipper::Polyhedron from vertex positions and vertex neighbors."
 
 @PYB11namespace("PolyClipper")
-def polyhedron2string(poly, positions, neighbors):
+def polyhedron2string(poly = "Polyhedron&"):
     "Return a formatted string representation for a PolyClipper::Polyhedron."
 
 @PYB11namespace("PolyClipper")
-def convertToPolyhedron(polyhedron, Spheral_polyhedron):
+def convertToPolyhedron(polyhedron = "Polyhedron&",
+                        Spheral_polyhedron = "const Spheral::Dim<3>::FacetedVolume&"):
     "Construct a PolyClipper::Polyhedron from a Spheral::Polyhedron."
 
 @PYB11namespace("PolyClipper")
-def convertFromPolyhedron(Spheral_polyhedron, polyhedron):
+def convertFromPolyhedron(Spheral_polyhedron = "Spheral::Dim<3>::FacetedVolume&",
+                          polyhedron = "const Polyhedron&"):
     "Construct a Spheral::Polyhedron from a PolyClipper::Polyhedron."
 
 @PYB11namespace("PolyClipper")
@@ -243,7 +252,8 @@ def moments(zerothMoment = "double&",
     return "void"
 
 @PYB11namespace("PolyClipper")
-def clipPolyhedron(poly, planes):
+def clipPolyhedron(poly = "Polyhedron&",
+                   planes = "const std::vector<Plane3d>&"):
     "Clip a PolyClipper::Polyhedron with a collection of planes."
 
 @PYB11namespace("PolyClipper")
