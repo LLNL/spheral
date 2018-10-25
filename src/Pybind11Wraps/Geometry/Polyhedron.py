@@ -17,6 +17,10 @@ class Polyhedron:
     def pyinit(self):
         "Default constructor"
 
+    def pyinit0(self,
+                rhs = "const Polyhedron&"):
+        "Copy constructor"
+
     def pyinit1(self,
                 points = "const std::vector<Vector>&"):
         """Note this constructor constructs the convex hull of the given points,
@@ -68,16 +72,6 @@ meaning that the full set of points passed in may not appear in the vertices."""
     def edges(self):
         "Get the edges as integer (node) pairs."
         return "std::vector<std::pair<unsigned, unsigned> >"
-
-    @PYB11const
-    def facetVertices(self):
-        "Spit out a vector<vector<unsigned> > that encodes the facets."
-        return "std::vector<std::vector<unsigned> >"
-
-    @PYB11const
-    def facetNormals(self):
-        "Compute effective surface normals at the facets."
-        return "std::vector<Vector>"
 
     def reconstruct(self,
                     vertices = "const std::vector<Vector>&",
@@ -148,6 +142,12 @@ indices that define the facets, and outward normals at the facets."""
     centroid = PYB11property("Vector")
     vertices = PYB11property("std::vector<Vector>&", returnpolicy="reference_internal")
     facets = PYB11property("std::vector<Facet>&", returnpolicy="reference_internal")
+    facetVertices = PYB11property("std::vector<std::vector<unsigned> >",
+                                  doc="Spit out a vector<vector<unsigned> > that encodes the facets.")
+    facetNormals = PYB11property("std::vector<Vector>",
+                                 doc="Compute effective surface normals at the facets.")
+    facetVertices = PYB11property("std::vector<std::vector<unsigned> >",
+                                  doc="Spit out a vector<vector<unsigned> > that encodes the facets.")
     vertexUnitNorms = PYB11property("std::vector<Vector>&", returnpolicy="reference_internal")
     vertexFacetConnectivity = PYB11property("std::vector<std::vector<unsigned> >&", returnpolicy="reference_internal")
     facetFacetConnectivity = PYB11property("std::vector<std::vector<unsigned> >&", returnpolicy="reference_internal")
