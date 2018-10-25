@@ -1,4 +1,4 @@
 #-------------------------------------------------------------------------------
 # Common PYB11 initialization code for all Spheral modules.
 #-------------------------------------------------------------------------------
-from CXXTypes import *
+from CXXTypesMOD import *
