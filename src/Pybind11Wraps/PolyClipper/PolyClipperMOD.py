@@ -151,9 +151,9 @@ def collapseDegeneratesPolygon(poly = "Polygon&",
 @PYB11namespace("PolyClipper")
 def splitIntoTriangles(poly = "const Polygon&",
                        tol = ("const double", "0.0")):
-    "Split a PolyClipper::Polygon into triangles.\n"
-    "The result is returned as a vector<vector<int>>, where each inner vector is a triple of\n"
-    "ints representing vertex indices in the input Polygon."
+    """Split a PolyClipper::Polygon into triangles.
+The result is returned as a vector<vector<int>>, where each inner vector is a triple of
+ints representing vertex indices in the input Polygon."""
     return "std::vector<std::vector<int>>"
 
 #-------------------------------------------------------------------------------
@@ -164,43 +164,55 @@ def initializePolyhedron(poly = "Polyhedron&",
                          positions = "const std::vector<Spheral::Dim<3>::Vector>&",
                          neighbors = "const std::vector<std::vector<int>>&"):
     "Initialize a PolyClipper::Polyhedron from vertex positions and vertex neighbors."
+    return "void"
 
 @PYB11namespace("PolyClipper")
 def polyhedron2string(poly = "Polyhedron&"):
     "Return a formatted string representation for a PolyClipper::Polyhedron."
+    return "std::string"
 
 @PYB11namespace("PolyClipper")
 def convertToPolyhedron(polyhedron = "Polyhedron&",
                         Spheral_polyhedron = "const Spheral::Dim<3>::FacetedVolume&"):
     "Construct a PolyClipper::Polyhedron from a Spheral::Polyhedron."
+    return "void"
 
 @PYB11namespace("PolyClipper")
 def convertFromPolyhedron(Spheral_polyhedron = "Spheral::Dim<3>::FacetedVolume&",
                           polyhedron = "const Polyhedron&"):
     "Construct a Spheral::Polyhedron from a PolyClipper::Polyhedron."
+    return "void"
 
 @PYB11namespace("PolyClipper")
-def moments(zerothMoment = "double&",
-            firstMoment = "Spheral::Dim<3>::Vector&",
-            poly = "const Polyhedron&"):
+@PYB11implementation("""[](const Polyhedron& self) {
+                                                     double zerothMoment;
+                                                     Spheral::Dim<3>::Vector firstMoment;
+                                                     moments(zerothMoment, firstMoment, self);
+                                                     return py::make_tuple(zerothMoment, firstMoment);
+                                                   }""")
+@PYB11pycppname("moments")
+def momentsPolyhedron(poly = "const Polyhedron&"):
     "Compute the zeroth and first moment of a PolyClipper::Polyhedron."
-    return "void"
+    return "py::tuple"
 
 @PYB11namespace("PolyClipper")
 def clipPolyhedron(poly = "Polyhedron&",
                    planes = "const std::vector<Plane3d>&"):
     "Clip a PolyClipper::Polyhedron with a collection of planes."
+    return "void"
 
 @PYB11namespace("PolyClipper")
-def collapseDegenerates(poly = "Polyhedron&",
-                        tol = "const double"):
+@PYB11pycppname("collapseDegenerates")
+def collapseDegeneratesPolyhedron(poly = "Polyhedron&",
+                                  tol = "const double"):
     "Collapse edges in a PolyClipper::Polyhedron below the given tolerance."
     return "void"
 
 @PYB11namespace("PolyClipper")
 def splitIntoTetrahedra(poly = "const Polyhedron&",
                         tol = ("const double", "0.0")):
-    "Split a PolyClipper::Polyhedron into tetrahedra.\n"
-    "The result is returned as a vector<vector<int>>, where each inner vector is a set of four\n"
-    "ints representing vertex indices in the input Polyhedron."
+    """Split a PolyClipper::Polyhedron into tetrahedra.
+The result is returned as a vector<vector<int>>, where each inner vector is a set of four
+ints representing vertex indices in the input Polyhedron."""
     return "std::vector<std::vector<int>>"
+

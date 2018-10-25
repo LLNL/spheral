@@ -24,31 +24,24 @@ rangen = random.Random()
 #  |_____|/
 #  4     5
 #
-cube_points = vector_of_Vector()
+cube_points = []
 for coords in [(0,0,0),  (10,0,0),  (10,10,0),  (0,10,0),
                (0,0,10), (10,0,10), (10,10,10), (0,10,10)]:
     cube_points.append(Vector(*coords))
-cube_neighbors = vector_of_vector_of_int(8, vector_of_int(3))
-for i, nghbs in enumerate([(1, 4, 3),
-                           (5, 0, 2),
-                           (3, 6, 1),
-                           (7, 2, 0),
-                           (5, 7, 0),
-                           (1, 6, 4),
-                           (5, 2, 7),
-                           (4, 6, 3)]):
-    for j, val in enumerate(nghbs):
-        cube_neighbors[i][j] = val
-
-cube_facets = vector_of_vector_of_unsigned(6, vector_of_unsigned(4))
-for i, vinds in enumerate([(4, 5, 6, 7),
-                           (1, 2, 6, 5),
-                           (0, 3, 2, 1),
-                           (4, 7, 3, 0),
-                           (6, 2, 3, 7),
-                           (1, 5, 4, 0)]):
-    for j, val in enumerate(vinds):
-        cube_facets[i][j] = val
+cube_neighbors = [[1, 4, 3],
+                  [5, 0, 2],
+                  [3, 6, 1],
+                  [7, 2, 0],
+                  [5, 7, 0],
+                  [1, 6, 4],
+                  [5, 2, 7],
+                  [4, 6, 3]]
+cube_facets = [[4, 5, 6, 7],
+               [1, 2, 6, 5],
+               [0, 3, 2, 1],
+               [4, 7, 3, 0],
+               [6, 2, 3, 7],
+               [1, 5, 4, 0]]
 
 #-------------------------------------------------------------------------------
 # Make a non-convex notched thingy.                            |y     
@@ -69,52 +62,43 @@ for i, vinds in enumerate([(4, 5, 6, 7),
 #    |------------------------------/
 #    7                             8
 
-notched_points = vector_of_Vector()
+notched_points = []
 for coords in [(0,0,0), (4,0,0), (4,2,0), (3,2,0), (2,1,0), (1,2,0), (0,2,0),
                (0,0,1), (4,0,1), (4,2,1), (3,2,1), (2,1,1), (1,2,1), (0,2,1)]:
     notched_points.append(Vector(*coords))
-notched_neighbors = vector_of_vector_of_int(14, vector_of_int(3))
-for i, nghbs in enumerate([(7, 6, 1),   # 0
-                           (0, 2, 8),   # 1
-                           (1, 3, 9),   # 2
-                           (4, 10, 2),  # 3
-                           (5, 11, 3),  # 4
-                           (6, 12, 4),  # 5
-                           (13, 5, 0),  # 6
-                           (8, 13, 0),  # 7
-                           (1, 9, 7),   # 8
-                           (2, 10, 8),  # 9
-                           (9, 3, 11),  # 10
-                           (10, 4, 12), # 11
-                           (11, 5, 13), # 12
-                           (7, 12, 6)]):# 13
-    for j, val in enumerate(nghbs):
-        notched_neighbors[i][j] = val
-
-notched_facets = vector_of_vector_of_unsigned()
-for fac in [(6, 5, 4, 3, 2, 1, 0),
-            (7, 8, 9, 10, 11, 12, 13),
-            (1, 2, 9, 8),
-            (2, 3, 10, 9),
-            (3, 4, 11, 10),
-            (4, 5, 12, 11),
-            (5, 6, 13, 12),
-            (7, 13, 6, 0),
-            (0, 1, 8, 7)]:
-    face = vector_of_unsigned()
-    for i in fac:
-        face.append(i)
-    notched_facets.append(face)
+notched_neighbors = [[7, 6, 1],   # 0
+                     [0, 2, 8],   # 1
+                     [1, 3, 9],   # 2
+                     [4, 10, 2],  # 3
+                     [5, 11, 3],  # 4
+                     [6, 12, 4],  # 5
+                     [13, 5, 0],  # 6
+                     [8, 13, 0],  # 7
+                     [1, 9, 7],   # 8
+                     [2, 10, 8],  # 9
+                     [9, 3, 11],  # 10
+                     [10, 4, 12], # 11
+                     [11, 5, 13], # 12
+                     [7, 12, 6]]  # 13
+notched_facets = [[6, 5, 4, 3, 2, 1, 0],
+                  [7, 8, 9, 10, 11, 12, 13],
+                  [1, 2, 9, 8],
+                  [2, 3, 10, 9],
+                  [3, 4, 11, 10],
+                  [4, 5, 12, 11],
+                  [5, 6, 13, 12],
+                  [7, 13, 6, 0],
+                  [0, 1, 8, 7]]
 
 #-------------------------------------------------------------------------------
 # A degenerate pyramid.  Just reuse the cube, but collapse one face.
-degenerate_cube_points1 = vector_of_Vector()
+degenerate_cube_points1 = []
 for coords in [(0,0,0), (1,0,0), (1,1,0), (0,1,0),
                (0,0,1), (0,0,1), (0,0,1), (0,0,1)]:
     degenerate_cube_points1.append(Vector(*coords))
 
 # Another one collapsing a different vertex.
-degenerate_cube_points2 = vector_of_Vector()
+degenerate_cube_points2 = []
 for coords in [(0,0,0),  (10,0,0),  (10,10,0),  (10,10,0),
                (0,0,10), (10,0,10), (10,10,0), (10,10,0)]:
     degenerate_cube_points2.append(Vector(*coords))
@@ -149,8 +133,8 @@ class TestPolyhedronClipping(unittest.TestCase):
             vol, centroid = PolyClipper.moments(PCpoly)
             self.failUnless(vol == poly.volume,
                             "Volume comparison failure: %g != %g" % (vol, poly.volume))
-            self.failUnless(centroid == poly.centroid(),
-                            "Centroid comparison failure: %s != %s" % (centroid, poly.centroid()))
+            self.failUnless(centroid == poly.centroid,
+                            "Centroid comparison failure: %s != %s" % (centroid, poly.centroid))
 
     #---------------------------------------------------------------------------
     # collapseDegenerates
@@ -159,10 +143,10 @@ class TestPolyhedronClipping(unittest.TestCase):
         for points, neighbors, facets in self.degeneratePolyData:
             PCpoly0 = PolyClipper.Polyhedron()
             PolyClipper.initializePolyhedron(PCpoly0, points, neighbors)
-            assert PCpoly0.size() == len(points)
+            assert len(PCpoly0) == len(points)
             PCpoly1 = PolyClipper.Polyhedron(PCpoly0)
             PolyClipper.collapseDegenerates(PCpoly1, 1.0e-10)
-            assert PCpoly1.size() == 5
+            assert len(PCpoly1) == 5
             vol0, centroid0 = PolyClipper.moments(PCpoly0)
             vol1, centroid1 = PolyClipper.moments(PCpoly1)
             assert vol1 == vol0
@@ -176,12 +160,12 @@ class TestPolyhedronClipping(unittest.TestCase):
             poly = Polyhedron(points, facets)
             PCpoly = PolyClipper.Polyhedron()
             PolyClipper.convertToPolyhedron(PCpoly, poly)
-            assert poly.vertices().size() == PCpoly.size()
+            assert len(poly.vertices) == len(PCpoly)
             vol, centroid = PolyClipper.moments(PCpoly)
             self.failUnless(vol == poly.volume,
                             "Volume comparison failure: %g != %g" % (vol, poly.volume))
-            self.failUnless(centroid == poly.centroid(),
-                            "Centroid comparison failure: %s != %s" % (centroid, poly.centroid()))
+            self.failUnless(centroid == poly.centroid,
+                            "Centroid comparison failure: %s != %s" % (centroid, poly.centroid))
 
 
     #---------------------------------------------------------------------------
@@ -192,11 +176,11 @@ class TestPolyhedronClipping(unittest.TestCase):
             poly = Polyhedron(points, facets)
             PCpoly = PolyClipper.Polyhedron()
             PolyClipper.convertToPolyhedron(PCpoly, poly)
-            assert poly.vertices().size() == PCpoly.size()
+            assert len(poly.vertices) == len(PCpoly)
             poly1 = Polyhedron()
             PolyClipper.convertFromPolyhedron(poly1, PCpoly)
             assert poly1.volume == poly.volume
-            assert poly1.centroid() == poly.centroid()
+            assert poly1.centroid == poly.centroid
 
     #---------------------------------------------------------------------------
     # Clip with planes passing through the polyhedron.
@@ -207,15 +191,15 @@ class TestPolyhedronClipping(unittest.TestCase):
             PCpoly = PolyClipper.Polyhedron()
             PolyClipper.convertToPolyhedron(PCpoly, poly)
             for i in xrange(self.ntests):
-                planes1, planes2 = vector_of_PolyClipperPlane(), vector_of_PolyClipperPlane()
+                planes1, planes2 = [], []
                 p0 = Vector(rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0))
                 phat = Vector(rangen.uniform(-1.0, 1.0), 
                               rangen.uniform(-1.0, 1.0), 
                               rangen.uniform(-1.0, 1.0)).unitVector()
-                planes1.append(PolyClipper.PolyClipperPlane3d(p0,  phat))
-                planes2.append(PolyClipper.PolyClipperPlane3d(p0, -phat))
+                planes1.append(PolyClipper.Plane3d(p0,  phat))
+                planes2.append(PolyClipper.Plane3d(p0, -phat))
                 PCchunk1 = PolyClipper.Polyhedron(PCpoly)
                 PCchunk2 = PolyClipper.Polyhedron(PCpoly)
                 PolyClipper.clipPolyhedron(PCchunk1, planes1)
@@ -252,14 +236,14 @@ class TestPolyhedronClipping(unittest.TestCase):
             PCpoly = PolyClipper.Polyhedron()
             PolyClipper.convertToPolyhedron(PCpoly, poly)
             for i in xrange(self.ntests):
-                planes1, planes2 = vector_of_PolyClipperPlane(), vector_of_PolyClipperPlane()
+                planes1, planes2 = [], []
                 p0 = Vector(rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0))
                 phat = Vector(rangen.uniform(-1.0, 1.0), 
                               rangen.uniform(-1.0, 1.0)).unitVector()
-                planes1.append(PolyClipper.PolyClipperPlane3d(p0,  phat))
-                planes2.append(PolyClipper.PolyClipperPlane3d(p0,  phat))
-                planes2.append(PolyClipper.PolyClipperPlane3d(p0,  phat))
+                planes1.append(PolyClipper.Plane3d(p0,  phat))
+                planes2.append(PolyClipper.Plane3d(p0,  phat))
+                planes2.append(PolyClipper.Plane3d(p0,  phat))
                 PCchunk1 = PolyClipper.Polyhedron(PCpoly)
                 PCchunk2 = PolyClipper.Polyhedron(PCpoly)
                 PolyClipper.clipPolyhedron(PCchunk1, planes1)
@@ -296,9 +280,9 @@ class TestPolyhedronClipping(unittest.TestCase):
                 r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
                 theta = rangen.uniform(0.0, 2.0*pi)
                 phat = Vector(cos(theta), sin(theta))
-                p0 = poly.centroid() + r*phat
-                planes = vector_of_PolyClipperPlane()
-                planes.append(PolyClipper.PolyClipperPlane3d(p0, -phat))
+                p0 = poly.centroid + r*phat
+                planes = []
+                planes.append(PolyClipper.Plane3d(p0, -phat))
                 PCchunk = PolyClipper.Polyhedron()
                 PolyClipper.convertToPolyhedron(PCchunk, poly)
                 PolyClipper.clipPolyhedron(PCchunk, planes)
@@ -319,12 +303,12 @@ class TestPolyhedronClipping(unittest.TestCase):
         for points, neighbors, facets in self.polyData:
             poly = Polyhedron(points, facets)
             for i in xrange(self.ntests):
-                planes = vector_of_PolyClipperPlane()
+                planes = []
                 r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
                 theta = rangen.uniform(0.0, 2.0*pi)
                 phat = Vector(cos(theta), sin(theta))
-                p0 = poly.centroid() + r*phat
-                planes.append(PolyClipper.PolyClipperPlane3d(p0, phat))
+                p0 = poly.centroid + r*phat
+                planes.append(PolyClipper.Plane3d(p0, phat))
                 PCchunk = PolyClipper.Polyhedron()
                 PolyClipper.convertToPolyhedron(PCchunk, poly)
                 PolyClipper.clipPolyhedron(PCchunk, planes)
@@ -356,18 +340,18 @@ class TestPolyhedronClipping(unittest.TestCase):
                 norm2 = Vector(rangen.uniform(-1.0, 1.0), 
                                rangen.uniform(-1.0, 1.0),
                                rangen.uniform(-1.0, 1.0)).unitVector()
-                planes1 = vector_of_PolyClipperPlane()
-                planes1.append(PolyClipper.PolyClipperPlane3d(p0,  norm1))
-                planes1.append(PolyClipper.PolyClipperPlane3d(p0,  norm2))
-                planes2 = vector_of_PolyClipperPlane()
-                planes2.append(PolyClipper.PolyClipperPlane3d(p0,  norm1))
-                planes2.append(PolyClipper.PolyClipperPlane3d(p0, -norm2))
-                planes3 = vector_of_PolyClipperPlane()
-                planes3.append(PolyClipper.PolyClipperPlane3d(p0, -norm1))
-                planes3.append(PolyClipper.PolyClipperPlane3d(p0,  norm2))
-                planes4 = vector_of_PolyClipperPlane()
-                planes4.append(PolyClipper.PolyClipperPlane3d(p0, -norm1))
-                planes4.append(PolyClipper.PolyClipperPlane3d(p0, -norm2))
+                planes1 = []
+                planes1.append(PolyClipper.Plane3d(p0,  norm1))
+                planes1.append(PolyClipper.Plane3d(p0,  norm2))
+                planes2 = []
+                planes2.append(PolyClipper.Plane3d(p0,  norm1))
+                planes2.append(PolyClipper.Plane3d(p0, -norm2))
+                planes3 = []
+                planes3.append(PolyClipper.Plane3d(p0, -norm1))
+                planes3.append(PolyClipper.Plane3d(p0,  norm2))
+                planes4 = []
+                planes4.append(PolyClipper.Plane3d(p0, -norm1))
+                planes4.append(PolyClipper.Plane3d(p0, -norm2))
                 PCchunk1 = PolyClipper.Polyhedron(PCpoly)
                 PCchunk2 = PolyClipper.Polyhedron(PCpoly)
                 PCchunk3 = PolyClipper.Polyhedron(PCpoly)
