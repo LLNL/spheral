@@ -306,7 +306,7 @@ SiloFileIO::read(unsigned& value, const string pathName) const {
 void
 SiloFileIO::read(int& value, const string pathName) const {
   const string varname = this->setDir(pathName);
-  VERIFY2(DBReadVar(mFilePtr, varname.c_str(), (void*) &value) == 0,
+  CHECK2(DBReadVar(mFilePtr, varname.c_str(), (void*) &value) == 0,
           "SiloFileIO ERROR: unable to read variable " << pathName);
 }
 
