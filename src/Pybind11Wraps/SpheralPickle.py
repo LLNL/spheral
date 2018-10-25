@@ -212,10 +212,10 @@ copy_reg.constructor(construct_vector_of_%(value_type)s)
 copy_reg.pickle(vector_of_%(value_type)s, reduce_vector_of_%(value_type)s, construct_vector_of_%(value_type)s)
 """
 
-for t in ("int", "unsigned", "ULL", "double", "string", 
-          "Vector1d", "Vector2d", "Vector3d", 
-          "Tensor1d", "Tensor2d", "Tensor3d", 
-          "SymTensor1d", "SymTensor2d", "SymTensor3d", 
-          "ThirdRankTensor1d", "ThirdRankTensor2d", "ThirdRankTensor3d"):
+for t in ("int", "unsigned", "ULL", "double", "string"):
+          # "Vector1d", "Vector2d", "Vector3d", 
+          # "Tensor1d", "Tensor2d", "Tensor3d", 
+          # "SymTensor1d", "SymTensor2d", "SymTensor3d", 
+          # "ThirdRankTensor1d", "ThirdRankTensor2d", "ThirdRankTensor3d"):
     exec(vector_template % {"value_type" : t})
 

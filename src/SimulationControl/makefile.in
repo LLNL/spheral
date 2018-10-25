@@ -42,7 +42,6 @@ PYTHONTARGETS = \
 	$(srcdir)/SpheralHadesDump.py \
 	$(srcdir)/siloPointmeshDump.py \
 	$(srcdir)/SpheralPointmeshSiloDump.py \
-	$(srcdir)/PolyhedronFileUtilities.py \
 	$(srcdir)/resampleNodeList.py \
 	$(srcdir)/overlayNodeList.py
 

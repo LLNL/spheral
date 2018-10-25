@@ -13,7 +13,8 @@ INSTALLTARGETS = Spheral.pth
 
 PYTHONTARGETS = \
 	$(BUILDTOP)/Pybind11Wraps/SpheralCompiledPackages.py \
-	$(srcdir)/SpheralPickle.py
+	$(srcdir)/SpheralPickle.py \
+	$(srcdir)/PolyhedronFileUtilities.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

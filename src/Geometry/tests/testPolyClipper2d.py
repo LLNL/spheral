@@ -19,7 +19,7 @@ rangen = random.Random()
 #   |    |
 #   |----|
 #   0    1
-square_points = vector_of_Vector()
+square_points = []
 for coords in [(0,0), (10,0), (10,10), (0,10)]:
     square_points.append(Vector(*coords))
 
@@ -33,7 +33,7 @@ for coords in [(0,0), (10,0), (10,10), (0,10)]:
 #    |                             |
 #    |------------------------------
 #    0                             1
-notched_points = vector_of_Vector()
+notched_points = []
 for coords in [(0,0), (4,0), (4,2), (3,2), (2,1), (1,2), (0,2)]:
     notched_points.append(Vector(*coords))
 
@@ -44,7 +44,7 @@ for coords in [(0,0), (4,0), (4,2), (3,2), (2,1), (1,2), (0,2)]:
 #   |    |
 #   |----|2
 #   0    1
-degenerate_square_points = vector_of_Vector()
+degenerate_square_points = []
 for coords in [(0,0), (1,0), (1,0), (1,1), (0,1), (0,1)]:
     degenerate_square_points.append(Vector(*coords))
 
@@ -53,9 +53,9 @@ for coords in [(0,0), (1,0), (1,0), (1,1), (0,1), (0,1)]:
 #-------------------------------------------------------------------------------
 def vertexNeighbors(points):
     n = len(points)
-    neighbors = vector_of_vector_of_int()
+    neighbors = []
     for i in xrange(n):
-        neighbors.append(vector_of_int([(i - 1) % n, (i + 1) % n]))
+        neighbors.append([(i - 1) % n, (i + 1) % n])
     return neighbors
 
 #-------------------------------------------------------------------------------
@@ -63,9 +63,9 @@ def vertexNeighbors(points):
 #-------------------------------------------------------------------------------
 def facets(points):
     n = len(points)
-    facets = vector_of_vector_of_unsigned()
+    facets = []
     for i in xrange(n):
-        facets.append(vector_of_unsigned([i, (i + 1) % n]))
+        facets.append([i, (i + 1) % n])
     return facets
 
 #-------------------------------------------------------------------------------
