@@ -33,7 +33,7 @@ namespaces = ["Spheral"]
 #-------------------------------------------------------------------------------
 # Enums
 #-------------------------------------------------------------------------------
-NeighborSearchType = PYB11enum(("None", "Gather", "Scatter", "GatherScatter"), export_values=True,
+NeighborSearchType = PYB11enum(("Gather", "Scatter", "GatherScatter"), export_values=True,
                                doc="Choice for how nodes should look for neighbors")
 
 #-------------------------------------------------------------------------------

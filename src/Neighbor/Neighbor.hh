@@ -18,7 +18,7 @@ template<typename Dimension> class NodeList;
 template<typename Dimension, typename DataType> class Field;
 
 enum class NeighborSearchType {
-  None = 0,
+  //None = 0,
   Gather = 1,
   Scatter = 2,
   GatherScatter = 3

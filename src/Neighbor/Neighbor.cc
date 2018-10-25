@@ -355,8 +355,7 @@ template<typename Dimension>
 bool
 Neighbor<Dimension>::
 valid() const {
-  return (kernelExtent() > 0.0 and
-          neighborSearchType() != NeighborSearchType::None);
+  return (kernelExtent() > 0.0);
 }
 
 // //------------------------------------------------------------------------------
