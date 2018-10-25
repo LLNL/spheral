@@ -50,6 +50,16 @@ def PYB11inject(fromcls, tocls,
                                                static = fromcls.%(name)s.static,
                                                returnpolicy = fromcls.%(name)s.returnpolicy)''' % {"name": name})
 
+    # Attributes
+    from PYB11ClassAttribute import PYB11ClassAttribute
+    names = [x for x in dir(fromcls) if isinstance(eval('fromcls.%s' % x), PYB11ClassAttribute)]
+    for name in names:
+        exec('''tocls.%(name)s = PYB11ClassAttribute(static = fromcls.%(name)s.static,
+                                                     pyname = fromcls.%(name)s.pyname,
+                                                     cppname = fromcls.%(name)s.cppname,
+                                                     doc = fromcls.%(name)s.doc,
+                                                     deftype = fromcls.%(name)s.deftype)''' % {"name": name})
+
     return
 
 #-------------------------------------------------------------------------------
