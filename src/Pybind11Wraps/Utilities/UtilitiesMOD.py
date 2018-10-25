@@ -433,18 +433,19 @@ def fromString(x = "const std::string&"):
 
 for type, suffix in (("int", "Int"),
                      ("double", "Double"),
-                     ("uint32_t", "Uint32_t"),
-                     ("uint64_t", "Uint64_t"),
+                     ("uint32_t", "UL"),
+                     ("uint64_t", "ULL"),
                      ("Dim<1>::FacetedVolume", "Box1d"),
                      ("Dim<2>::FacetedVolume", "Polygon"),
                      ("Dim<3>::FacetedVolume", "Polyhedron")):
     exec('''
-packElement%(suffix)s       = PYB11TemplateFunction(packElement,       template_parameters="%(type)s",              pyname="packElement")
-packElementVector%(suffix)s = PYB11TemplateFunction(packElementVector, template_parameters="%(type)s",              pyname="packElement")
+packElement%(suffix)s       = PYB11TemplateFunction(packElement,       template_parameters="%(type)s")
+packElementVector%(suffix)s = PYB11TemplateFunction(packElementVector, template_parameters="%(type)s")
 toString%(suffix)s          = PYB11TemplateFunction(toString,          template_parameters="%(type)s",              pyname="toString")
 toStringVector%(suffix)s    = PYB11TemplateFunction(toString,          template_parameters="std::vector<%(type)s>", pyname="toString")
 to%(suffix)s                = PYB11TemplateFunction(fromString,        template_parameters="%(type)s")
 toVector%(suffix)s          = PYB11TemplateFunction(fromString,        template_parameters="std::vector<%(type)s>")
+unpackElement%(suffix)s     = PYB11TemplateFunction(fromString,        template_parameters="%(type)s")
 ''' % {"type"   : type,
        "suffix" : suffix})
 
