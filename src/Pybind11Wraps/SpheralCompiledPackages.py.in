@@ -3,4 +3,5 @@
 # ------------------------------------------------------------------------------
 pkgs = "@PYTHONPKGS@"
 for package in pkgs.split():
-    exec("from Spheral%s import *" % package)
+    if package != "PolyClipper":
+        exec("from Spheral%s import *" % package)
