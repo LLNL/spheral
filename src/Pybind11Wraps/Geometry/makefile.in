@@ -11,11 +11,18 @@ PKGDIR = $(PKGNAME)/
 PYB11SRCS = \
 	Vector.py \
 	Tensor.py \
+	SymTensor.py \
 	ThirdRankTensor.py \
 	FourthRankTensor.py \
 	FifthRankTensor.py \
 	EigenStruct.py \
-	Plane.py
+	Plane.py \
+	Box1d.py \
+	Polygon.py \
+	Polyhedron.py \
+	Facet2d.py \
+	Facet3d.py
+
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------

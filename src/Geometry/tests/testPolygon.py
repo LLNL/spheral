@@ -77,11 +77,11 @@ class TestPolygon(unittest.TestCase):
     def innerOuterRadii(self, polygon):
         rinner = 1e10
         router = 0.0
-        centroid = polygon.centroid()
-        for f in self.polygon.facets():
+        centroid = polygon.centroid
+        for f in self.polygon.facets:
             r = abs((f.point1 - centroid).dot(f.normal))
             rinner = min(rinner, r)
-        for v in polygon.vertices():
+        for v in polygon.vertices:
             r = (v - centroid).magnitude()
             router = max(router, r)
         router *= 1.0 + 1.0e-5
@@ -111,7 +111,7 @@ class TestPolygon(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testRandomInnerPoints(self):
         rinner, router = self.innerOuterRadii(self.polygon)
-        centroid = self.polygon.centroid()
+        centroid = self.polygon.centroid
         for i in xrange(self.ntests):
             theta = rangen.uniform(0.0, 2.0*pi)
             p = centroid + rangen.uniform(0.0, rinner) * Vector(cos(theta), sin(theta))
@@ -124,7 +124,7 @@ class TestPolygon(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testRandomOuterPoints(self):
         rinner, router = self.innerOuterRadii(self.polygon)
-        centroid = self.polygon.centroid()
+        centroid = self.polygon.centroid
         for i in xrange(self.ntests):
             theta = rangen.uniform(0.0, 2.0*pi)
             p = centroid + rangen.uniform(router, 2.0*router) * Vector(cos(theta), sin(theta))
@@ -136,7 +136,7 @@ class TestPolygon(unittest.TestCase):
     # Test vertex containment.
     #---------------------------------------------------------------------------
     def testVertexPointContainment(self):
-        vertices = self.polygon.vertices()
+        vertices = self.polygon.vertices
         for v in vertices:
             self.failUnless(self.polygon.contains(v),
                             "%s vertex position should be contained." % str(v))
@@ -148,8 +148,8 @@ class TestPolygon(unittest.TestCase):
     # Test that nested polygons intersect.
     #---------------------------------------------------------------------------
     def testIntersectInterior(self):
-        centroid = self.polygon.centroid()
-        vertices = vector_of_Vector(self.polygon.vertices())
+        centroid = self.polygon.centroid
+        vertices = vector_of_Vector(self.polygon.vertices)
         numVerts = len(vertices)
         for i in xrange(numVerts):
             vertices[i] = 0.5*(centroid + vertices[i])
@@ -166,7 +166,7 @@ class TestPolygon(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testIntersectTouchingPolygons(self):
         xmin = self.polygon.xmin.x
-        vertices = vector_of_Vector(self.polygon.vertices())
+        vertices = vector_of_Vector(self.polygon.vertices)
         numVerts = len(vertices)
         for i in xrange(numVerts):
             xv = vertices[i].x
@@ -184,7 +184,7 @@ class TestPolygon(unittest.TestCase):
     def testNotIntersectPolygons(self):
         xmin = self.polygon.xmin.x
         xlength = self.polygon.xmax.x - self.polygon.xmin.x
-        vertices = vector_of_Vector(self.polygon.vertices())
+        vertices = vector_of_Vector(self.polygon.vertices)
         numVerts = len(vertices)
         for i in xrange(numVerts):
             xv = vertices[i].x
@@ -217,9 +217,9 @@ class TestPolygon(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testIntersectBoxInterior(self):
         rinner, router = self.innerOuterRadii(self.polygon)
-        centroid = self.polygon.centroid()
-        box = pair_Vector2d_Vector2d(centroid - 0.95*rinner*Vector.one,
-                                     centroid + 0.95*rinner*Vector.one)
+        centroid = self.polygon.centroid
+        box = (centroid - 0.95*rinner*Vector.one,
+               centroid + 0.95*rinner*Vector.one)
         self.failUnless(self.polygon.intersect(box),
                         "Failed to intersect with a contained box.")
         return
@@ -229,9 +229,9 @@ class TestPolygon(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testIntersectBoxExterior(self):
         rinner, router = self.innerOuterRadii(self.polygon)
-        centroid = self.polygon.centroid()
-        box = pair_Vector2d_Vector2d(centroid - 2.0*router*Vector.one,
-                                     centroid + 2.0*router*Vector.one)
+        centroid = self.polygon.centroid
+        box = (centroid - 2.0*router*Vector.one,
+               centroid + 2.0*router*Vector.one)
         self.failUnless(self.polygon.intersect(box),
                         "Failed to intersect with a box we are in.")
         return
@@ -242,11 +242,11 @@ class TestPolygon(unittest.TestCase):
     def testIntersectTouchingBox(self):
         xmin = self.polygon.xmin.x
         vertex = None
-        for v in self.polygon.vertices():
+        for v in self.polygon.vertices:
             if fuzzyEqual(v.x, xmin, 1.0e-10):
                 vertex = v
         assert not vertex is None
-        box = pair_Vector2d_Vector2d(Vector(v.x - 2.0, v.y - 2.0), v)
+        box = (Vector(v.x - 2.0, v.y - 2.0), v)
         self.failUnless(self.polygon.intersect(box),
                         "Failed to intersect with a box touching on one side.")
 
@@ -256,7 +256,7 @@ class TestPolygon(unittest.TestCase):
     def testNotIntersectBox(self):
         xmin, xmax = self.polygon.xmin, self.polygon.xmax
         delta = xmax - xmin
-        box = pair_Vector2d_Vector2d(xmin - 2.0*delta, xmax - 2.0*delta)
+        box = (xmin - 2.0*delta, xmax - 2.0*delta)
         self.failUnless(not self.polygon.intersect(box),
                         "Erroneously intersect external box.")
 
@@ -265,7 +265,7 @@ class TestPolygon(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testReconstruct(self):
         polygon2 = Polygon()
-        polygon2.reconstruct(self.polygon.vertices(),
+        polygon2.reconstruct(self.polygon.vertices,
                              self.polygon.facetVertices)
         self.failUnless(polygon2 == self.polygon,
                         "Failed to properly reconstruct polygon from vertices and facets.")
@@ -275,8 +275,8 @@ class TestPolygon(unittest.TestCase):
     # Test volume
     #---------------------------------------------------------------------------
     def testVolume(self):
-        verts0 = self.polygon.vertices()
-        c = self.polygon.centroid()
+        verts0 = self.polygon.vertices
+        c = self.polygon.centroid
         cmpmethod = SortCounterClockwise(c)
         verts = sorted(list(verts0), cmpmethod)
         p0 = verts[0]
@@ -294,7 +294,7 @@ class TestPolygon(unittest.TestCase):
     # Closest point to vertices.
     #---------------------------------------------------------------------------
     def testClosestPointToVertices(self):
-        verts = self.polygon.vertices()
+        verts = self.polygon.vertices
         for p in verts:
             cp = self.polygon.closestPoint(p)
             self.failUnless(fuzzyEqual((cp - p).magnitude(), 0.0, 1.0e-10),
@@ -304,7 +304,7 @@ class TestPolygon(unittest.TestCase):
     # Closest point on facets.
     #---------------------------------------------------------------------------
     def testClosestPointOnFacets(self):
-        facets = self.polygon.facets()
+        facets = self.polygon.facets
         for f in facets:
             p = f.position
             cp = self.polygon.closestPoint(p)
@@ -315,7 +315,7 @@ class TestPolygon(unittest.TestCase):
     # Closest point above facets.
     #---------------------------------------------------------------------------
     def testClosestPointAboveFacets(self):
-        facets = self.polygon.facets()
+        facets = self.polygon.facets
         for f in facets:
             chi = rangen.uniform(0.1, 10.0)
             cp0 = f.position
@@ -355,8 +355,8 @@ class TestPolygon(unittest.TestCase):
                        rangen.uniform(-10.0, -10.0))
         polygon2 = Polygon(self.polygon)
         polygon2 += shift
-        for p0, p1 in zip([self.polygon.xmin, self.polygon.xmax] + list(self.polygon.vertices()),
-                          [polygon2.xmin, polygon2.xmax] + list(polygon2.vertices())):
+        for p0, p1 in zip([self.polygon.xmin, self.polygon.xmax] + list(self.polygon.vertices),
+                          [polygon2.xmin, polygon2.xmax] + list(polygon2.vertices)):
             pshift = p0 + shift
             self.failUnless(pshift == p1, "In-place shift point comparison failed: %s != %s" % (pshift, p1))
 

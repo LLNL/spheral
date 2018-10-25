@@ -58,8 +58,9 @@ meaning that the full set of points passed in may not appear in the vertices."""
         return "bool"
 
     @PYB11const
-    def intersect(self,
-                  rhs = "const std::pair<Vector, Vector>&"):
+    @PYB11pycppname("intersect")
+    def intersect1(self,
+                   rhs = "const std::pair<Vector, Vector>&"):
         "Test if we intersect a box represented by a min/max pair of coordinates."
         return "bool"
 
