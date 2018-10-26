@@ -47,13 +47,13 @@ includes = ['"Geometry/Dimension.hh"',
             '<vector>',
             '<sstream>']
 
-# # STL containers
-# for gtype in geomtypes + ["Plane"]:
-#     for suffix in ("1d", "2d", "3d"):
-#         element = gtype + suffix
-#         exec('vector_of_%s = PYB11_bind_vector("%s", opaque=True)' % (element, element))
-# vector_of_Facet2d = PYB11_bind_vector("GeomFacet2d", opaque=True)
-# vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True)
+# STL containers
+for gtype in geomtypes + ["Plane"]:
+    for suffix in ("1d", "2d", "3d"):
+        element = gtype + suffix
+        exec('vector_of_%s = PYB11_bind_vector("%s", opaque=True, local=False)' % (element, element))
+vector_of_Facet2d = PYB11_bind_vector("GeomFacet2d", opaque=True, local=False)
+vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True, local=False)
 
 # Get the objects wrapped in other files.
 from Vector import Vector1d, Vector2d, Vector3d
