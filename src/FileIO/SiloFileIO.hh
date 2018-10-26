@@ -78,45 +78,6 @@ public:
   virtual void read(Dim<3>::SymTensor& value, const std::string pathName) const;
   virtual void read(Dim<3>::ThirdRankTensor& value, const std::string pathName) const;
 
-  // We also require that FileIO objects write vectors of the primitive types.
-  virtual void write(const std::vector<int>& value, const std::string pathName);
-  virtual void write(const std::vector<double>& value, const std::string pathName);
-  virtual void write(const std::vector<std::string>& value, const std::string pathName);
-
-  virtual void write(const std::vector<Dim<1>::Vector>& value, const std::string pathName);
-  virtual void write(const std::vector<Dim<1>::Tensor>& value, const std::string pathName);
-  virtual void write(const std::vector<Dim<1>::SymTensor>& value, const std::string pathName);
-  virtual void write(const std::vector<Dim<1>::ThirdRankTensor>& value, const std::string pathName);
-
-  virtual void write(const std::vector<Dim<2>::Vector>& value, const std::string pathName);
-  virtual void write(const std::vector<Dim<2>::Tensor>& value, const std::string pathName);
-  virtual void write(const std::vector<Dim<2>::SymTensor>& value, const std::string pathName);
-  virtual void write(const std::vector<Dim<2>::ThirdRankTensor>& value, const std::string pathName);
-
-  virtual void write(const std::vector<Dim<3>::Vector>& value, const std::string pathName);
-  virtual void write(const std::vector<Dim<3>::Tensor>& value, const std::string pathName);
-  virtual void write(const std::vector<Dim<3>::SymTensor>& value, const std::string pathName);
-  virtual void write(const std::vector<Dim<3>::ThirdRankTensor>& value, const std::string pathName);
-
-  virtual void read(std::vector<int>& value, const std::string pathName) const;
-  virtual void read(std::vector<double>& value, const std::string pathName) const;
-  virtual void read(std::vector<std::string>& value, const std::string pathName) const;
-
-  virtual void read(std::vector<Dim<1>::Vector>& value, const std::string pathName) const;
-  virtual void read(std::vector<Dim<1>::Tensor>& value, const std::string pathName) const;
-  virtual void read(std::vector<Dim<1>::SymTensor>& value, const std::string pathName) const;
-  virtual void read(std::vector<Dim<1>::ThirdRankTensor>& value, const std::string pathName) const;
-
-  virtual void read(std::vector<Dim<2>::Vector>& value, const std::string pathName) const;
-  virtual void read(std::vector<Dim<2>::Tensor>& value, const std::string pathName) const;
-  virtual void read(std::vector<Dim<2>::SymTensor>& value, const std::string pathName) const;
-  virtual void read(std::vector<Dim<2>::ThirdRankTensor>& value, const std::string pathName) const;
-
-  virtual void read(std::vector<Dim<3>::Vector>& value, const std::string pathName) const;
-  virtual void read(std::vector<Dim<3>::Tensor>& value, const std::string pathName) const;
-  virtual void read(std::vector<Dim<3>::SymTensor>& value, const std::string pathName) const;
-  virtual void read(std::vector<Dim<3>::ThirdRankTensor>& value, const std::string pathName) const;
-
   // Require that all FileIO objects provide methods to read and write
   // Fields of specific DataTypes.
 #ifdef SPHERAL1D

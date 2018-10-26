@@ -175,25 +175,6 @@ public:
   virtual void write(const Dim<3>::SymTensor& value, const std::string pathName) { write_SymTensor3d(value, pathName); }
   virtual void write(const Dim<3>::ThirdRankTensor& value, const std::string pathName) { write_ThirdRankTensor3d(value, pathName); }
 
-  virtual void write(const std::vector<int>& value, const std::string pathName) { write_vector_of_int(value, pathName); }
-  virtual void write(const std::vector<double>& value, const std::string pathName) { write_vector_of_double(value, pathName); }
-  virtual void write(const std::vector<std::string>& value, const std::string pathName) { write_vector_of_string(value, pathName); }
-
-  virtual void write(const std::vector<Dim<1>::Vector>& value, const std::string pathName) { write_vector_of_Vector1d(value, pathName); }
-  virtual void write(const std::vector<Dim<1>::Tensor>& value, const std::string pathName) { write_vector_of_Tensor1d(value, pathName); }
-  virtual void write(const std::vector<Dim<1>::SymTensor>& value, const std::string pathName) { write_vector_of_SymTensor1d(value, pathName); }
-  virtual void write(const std::vector<Dim<1>::ThirdRankTensor>& value, const std::string pathName) { write_vector_of_ThirdRankTensor1d(value, pathName); }
-
-  virtual void write(const std::vector<Dim<2>::Vector>& value, const std::string pathName) { write_vector_of_Vector2d(value, pathName); }
-  virtual void write(const std::vector<Dim<2>::Tensor>& value, const std::string pathName) { write_vector_of_Tensor2d(value, pathName); }
-  virtual void write(const std::vector<Dim<2>::SymTensor>& value, const std::string pathName) { write_vector_of_SymTensor2d(value, pathName); }
-  virtual void write(const std::vector<Dim<2>::ThirdRankTensor>& value, const std::string pathName) { write_vector_of_ThirdRankTensor2d(value, pathName); }
-
-  virtual void write(const std::vector<Dim<3>::Vector>& value, const std::string pathName) { write_vector_of_Vector3d(value, pathName); }
-  virtual void write(const std::vector<Dim<3>::Tensor>& value, const std::string pathName) { write_vector_of_Tensor3d(value, pathName); }
-  virtual void write(const std::vector<Dim<3>::SymTensor>& value, const std::string pathName) { write_vector_of_SymTensor3d(value, pathName); }
-  virtual void write(const std::vector<Dim<3>::ThirdRankTensor>& value, const std::string pathName) { write_vector_of_ThirdRankTensor3d(value, pathName); }
-
 #ifdef SPHERAL1D
   virtual void write(const Field<Dim<1>, Dim<1>::Scalar>& value, const std::string pathName) { write_ScalarField1d(value, pathName); }
   virtual void write(const Field<Dim<1>, Dim<1>::Vector>& value, const std::string pathName) { write_VectorField1d(value, pathName); }
@@ -242,25 +223,6 @@ public:
   virtual void read(Dim<3>::Tensor& value, const std::string pathName) const { read_Tensor3d(value, pathName); }
   virtual void read(Dim<3>::SymTensor& value, const std::string pathName) const { read_SymTensor3d(value, pathName); }
   virtual void read(Dim<3>::ThirdRankTensor& value, const std::string pathName) const { read_ThirdRankTensor3d(value, pathName); }
-
-  virtual void read(std::vector<int>& value, const std::string pathName) const { read_vector_of_int(value, pathName); }
-  virtual void read(std::vector<double>& value, const std::string pathName) const { read_vector_of_double(value, pathName); }
-  virtual void read(std::vector<std::string>& value, const std::string pathName) const { read_vector_of_string(value, pathName); }
-
-  virtual void read(std::vector<Dim<1>::Vector>& value, const std::string pathName) const { read_vector_of_Vector1d(value, pathName); }
-  virtual void read(std::vector<Dim<1>::Tensor>& value, const std::string pathName) const { read_vector_of_Tensor1d(value, pathName); }
-  virtual void read(std::vector<Dim<1>::SymTensor>& value, const std::string pathName) const { read_vector_of_SymTensor1d(value, pathName); }
-  virtual void read(std::vector<Dim<1>::ThirdRankTensor>& value, const std::string pathName) const { read_vector_of_ThirdRankTensor1d(value, pathName); }
-
-  virtual void read(std::vector<Dim<2>::Vector>& value, const std::string pathName) const { read_vector_of_Vector2d(value, pathName); }
-  virtual void read(std::vector<Dim<2>::Tensor>& value, const std::string pathName) const { read_vector_of_Tensor2d(value, pathName); }
-  virtual void read(std::vector<Dim<2>::SymTensor>& value, const std::string pathName) const { read_vector_of_SymTensor2d(value, pathName); }
-  virtual void read(std::vector<Dim<2>::ThirdRankTensor>& value, const std::string pathName) const { read_vector_of_ThirdRankTensor2d(value, pathName); }
-
-  virtual void read(std::vector<Dim<3>::Vector>& value, const std::string pathName) const { read_vector_of_Vector3d(value, pathName); }
-  virtual void read(std::vector<Dim<3>::Tensor>& value, const std::string pathName) const { read_vector_of_Tensor3d(value, pathName); }
-  virtual void read(std::vector<Dim<3>::SymTensor>& value, const std::string pathName) const { read_vector_of_SymTensor3d(value, pathName); }
-  virtual void read(std::vector<Dim<3>::ThirdRankTensor>& value, const std::string pathName) const { read_vector_of_ThirdRankTensor3d(value, pathName); }
 
 #ifdef SPHERAL1D
   virtual void read(Field<Dim<1>, Dim<1>::Scalar>& value, const std::string pathName) const { read_ScalarField1d(value, pathName); }

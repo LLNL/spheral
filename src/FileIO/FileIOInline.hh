@@ -196,7 +196,7 @@ FileIO::write(const std::vector<DataType>& x, const std::string pathName) {
   write(numElements, pathName + "/numElements");
   for (int i = 0; i != numElements; ++i) {
     std::stringstream elementPathName;
-    elementPathName << pathName << "/" << i << std::ends;
+    elementPathName << pathName << "/" << i;
     write(x[i], elementPathName.str());
   }
 }
@@ -214,7 +214,7 @@ FileIO::read(std::vector<DataType>& x, const std::string pathName) const {
   CHECK(x.size() == numElements);
   for (int i = 0; i != numElements; ++i) {
     std::stringstream elementPathName;
-    elementPathName << pathName << "/" << i << std::ends;
+    elementPathName << pathName << "/" << i;
     read(x[i], elementPathName.str());
   }
 }
