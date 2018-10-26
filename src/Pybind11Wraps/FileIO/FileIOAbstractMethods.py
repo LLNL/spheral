@@ -11,13 +11,50 @@ class FileIOAbstractMethods:
 
     #...........................................................................
     # Abstract interface (primitives)
-    types = ["unsigned", "int", "bool", "double", "std::string"]
+    # These types require specially mangled names to avoid bad casts
+    for T, Tmangle in [("unsigned", "unsigned_int"),
+                       ("int", "int"),
+                       ("bool", "bool"),
+                       ("double", "double"),
+                       ("std::string", "string")]:
+        exec("""
+def write_%(Tmangle)s(self,
+    value = "const %(T)s",
+    pathName = "const std::string"):
+    "Write %(T)s"
+    return "void"
+
+@PYB11const
+def read_%(Tmangle)s(self,
+    pathName = "const std::string"):
+    "Read %(T)s"
+    return "%(T)s"
+
+@PYB11pycppname("write")
+def write%(Tmangle)s(self,
+    value = "const %(T)s&",
+    pathName = "const std::string"):
+    "Write %(T)s"
+    return "void"
+
+@PYB11pycppname("read")
+@PYB11const
+def read%(Tmangle)s(self,
+    value = "%(T)s&",
+    pathName = "const std::string"):
+    "Read %(T)s"
+    return "void"
+
+""" % {"T"       : T,
+       "Tmangle" : Tmangle})
+
+    # More primitive types
+    types = []
     for ndim in dims:
         types += ["Dim<%i>::Vector" % ndim,
                   "Dim<%i>::Tensor" % ndim,
                   "Dim<%i>::SymTensor" % ndim,
                   "Dim<%i>::ThirdRankTensor" % ndim]
-
     for T in types:
         exec("""
 @PYB11pycppname("write")
