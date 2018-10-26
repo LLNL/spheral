@@ -460,7 +460,7 @@ def PYB11generateClass(klass, klassattrs, ssout):
             inst(tname, klass, klassattrs, ss)
 
     # Helper method to check if the given method spec is already in allmethods
-    def newOverloadedMethod(mname, meth, allmethods):
+    def newOverloadedMethod(meth, allmethods):
         methattrs = PYB11attrs(meth)
         args = PYB11parseArgs(meth)
         overload = False
@@ -492,7 +492,7 @@ def PYB11generateClass(klass, klassattrs, ssout):
         for mname, meth in PYB11ThisClassMethods(bklass):
             if ((not PYB11attrs(meth)["ignore"]) and            # Ignore the method?
                 (mname[:6] != "pyinit") and                     # Ignore constructors
-                newOverloadedMethod(mname, meth, allmethods)):  # New overload?
+                newOverloadedMethod(meth, allmethods)):  # New overload?
                 methattrs = PYB11attrs(meth)
                 PYB11generic_class_method(bklass, bklassattrs, meth, methattrs, ss)
 
@@ -503,7 +503,13 @@ def PYB11generateClass(klass, klassattrs, ssout):
                 inst = eval("bklass.%s" % tname)
                 meth = inst.func_template
                 methattrs = PYB11attrs(meth)
-                inst(tname, bklass, bklassattrs, ss)
+                if newOverloadedMethod(meth, allmethods):
+                    try:
+                        inst(tname, bklass, bklassattrs, ss)
+                    except Exception as excpt:
+                        #import sys
+                        #sys.stderr.write("Encountered ERROR: %s\n" % excpt)
+                        raise RuntimeError, "ERROR encountered processing (%s, %s) template instantiation\n    ERROR was: %s %s %s " % (tname, meth, excpt, type(excpt), excpt.args)
 
     # Look for any class scope enums and bind them
     enums = [x for x in dir(klassinst) if isinstance(eval("klassinst.%s" % x), PYB11enum) and x in klass.__dict__]
