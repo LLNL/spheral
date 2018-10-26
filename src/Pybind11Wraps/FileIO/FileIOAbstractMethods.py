@@ -75,34 +75,6 @@ def read%(Tmangle)s(self,
        "Tmangle" : T.replace(":", "_").replace("<", "_").replace(">", "_")})
 
     #...........................................................................
-    # Abstract interface (std::vector<primitives>)
-    types = ["int", "double", "std::string"]
-    for ndim in dims:
-        types += ["Dim<%i>::Vector" % ndim,
-                  "Dim<%i>::Tensor" % ndim,
-                  "Dim<%i>::SymTensor" % ndim,
-                  "Dim<%i>::ThirdRankTensor" % ndim]
-
-    for T in types:
-        exec("""
-@PYB11pycppname("write")
-def write%(Tmangle)s(self,
-    value = "const %(T)s&",
-    pathName = "const std::string"):
-    "Write %(T)s"
-    return "void"
-
-@PYB11pycppname("read")
-@PYB11const
-def read%(Tmangle)s(self,
-    value = "%(T)s&",
-    pathName = "const std::string"):
-    "Read %(T)s"
-    return "void"
-""" % {"T"       : "std::vector<%s>" % T,
-       "Tmangle" : ("vector<%s>" % T).replace(":", "_").replace("<", "_").replace(">", "_")})
-
-    #...........................................................................
     # Abstract interface (Field<primitives>)
     for ndim in dims:
         types = ["int",

@@ -35,4 +35,6 @@ class SiloFileIOTest(FileIOTestBase, unittest.TestCase):
 # Run those tests.
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":
+    #print "waiting..."
+    #raw_input()
     unittest.main()

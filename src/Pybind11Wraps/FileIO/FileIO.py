@@ -157,6 +157,24 @@ def readPlane%(ndim)i(self,
         return "py::handle"
 
     #...........................................................................
+    # We have to explicitly list the template instatiations for std::vector<std::string>
+    # first due to poor overloading selection in pybind11
+    @PYB11pycppname("write")
+    def writeVecString(self,
+                 x = "const std::vector<std::string>&",
+                 pathName = "const std::string"):
+        "Write a std::vector<std::string>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecString(self,
+                x = "std::vector<std::string>&",
+                pathName = "const std::string"):
+        "Read a std::vector<std::string>"
+        return "void"
+    
+    #...........................................................................
     # Templates
     @PYB11template("Dimension", "Value")
     @PYB11pycppname("write")
@@ -226,6 +244,20 @@ def readPlane%(ndim)i(self,
         "Read a std::vector<%(Value)s>"
         return "void"
 
+    for T in ["int",
+              "double",
+              #"std::string",
+              "Dim<%i>::Scalar" % ndim,
+              "Dim<%i>::Vector" % ndim,
+              "Dim<%i>::Tensor" % ndim,
+              "Dim<%i>::SymTensor" % ndim,
+              "Dim<%i>::ThirdRankTensor" % ndim]:
+        exec('''
+writeVec%(Tmangle)s = PYB11TemplateMethod(writeVec, template_parameters="%(T)s", pyname="write")
+readVec%(Tmangle)s  = PYB11TemplateMethod(readVec,  template_parameters="%(T)s", pyname="read")
+''' % {"T"         : T,
+       "Tmangle"   : T.replace(":", "_").replace("<", "_").replace(">", "_")})
+
     for ndim in dims:
         for T in ["int",
                   "Dim<%i>::Scalar" % ndim,
@@ -246,18 +278,6 @@ readFieldVec%(Tmangle)s =  PYB11TemplateMethod(readFieldVec,  template_parameter
        "Dimension" : "Dim<" + str(ndim) + ">",
        "T"         : T,
        "Tmangle"   : ("Field<%i%s>" % (ndim, T)).replace(":", "_").replace("<", "_").replace(">", "_")})
-
-    for T in ["int",
-              "Dim<%i>::Scalar" % ndim,
-              "Dim<%i>::Vector" % ndim,
-              "Dim<%i>::Tensor" % ndim,
-              "Dim<%i>::SymTensor" % ndim,
-              "Dim<%i>::ThirdRankTensor" % ndim]:
-        exec('''
-writeVec%(Tmangle)s = PYB11TemplateMethod(writeVec, template_parameters="%(T)s", pyname="write")
-readVec%(Tmangle)s  = PYB11TemplateMethod(readVec,  template_parameters="%(T)s", pyname="read")
-''' % {"T"         : T,
-       "Tmangle"   : T.replace(":", "_").replace("<", "_").replace(">", "_")})
 
     #...........................................................................
     # Properties
