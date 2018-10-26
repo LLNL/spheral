@@ -443,6 +443,22 @@ def PYB11generateClass(klass, klassattrs, ssout):
             methattrs = PYB11attrs(meth)
             PYB11generic_class_method(klass, klassattrs, meth, methattrs, ss)
 
+    # Bind attributes
+    PYB11GenerateClassAttributes(klass, klassinst, klassattrs, ss)
+
+    # Bind properties
+    PYB11GenerateClassProperties(klass, klassinst, klassattrs, ss)
+
+    # Bind any templated methods
+    templates = [x for x in dir(klassinst) if isinstance(eval("klassinst.%s" % x), PYB11TemplateMethod) and x in klass.__dict__]
+    if templates:
+        ss("\n    // %(cppname)s template methods\n" % klassattrs)
+        for tname in templates:
+            inst = eval("klassinst.%s" % tname)
+            meth = inst.func_template
+            methattrs = PYB11attrs(meth)
+            inst(tname, klass, klassattrs, ss)
+
     # Helper method to check if the given method spec is already in allmethods
     def newOverloadedMethod(mname, meth, allmethods):
         methattrs = PYB11attrs(meth)
@@ -480,21 +496,14 @@ def PYB11generateClass(klass, klassattrs, ssout):
                 methattrs = PYB11attrs(meth)
                 PYB11generic_class_method(bklass, bklassattrs, meth, methattrs, ss)
 
-    # Bind attributes
-    PYB11GenerateClassAttributes(klass, klassinst, klassattrs, ss)
-
-    # Bind properties
-    PYB11GenerateClassProperties(klass, klassinst, klassattrs, ss)
-
-    # Bind any templated methods
-    templates = [x for x in dir(klassinst) if isinstance(eval("klassinst.%s" % x), PYB11TemplateMethod) and x in klass.__dict__]
-    if templates:
-        ss("\n    // %(cppname)s template methods\n" % klassattrs)
-        for tname in templates:
-            inst = eval("klassinst.%s" % tname)
-            meth = inst.func_template
-            methattrs = PYB11attrs(meth)
-            inst(tname, klass, klassattrs, ss)
+        # Same thing with any base templated methods
+        templates = [x for x in dir(bklass) if isinstance(eval("bklass.%s" % x), PYB11TemplateMethod) and x in bklass.__dict__]
+        if templates:
+            for tname in templates:
+                inst = eval("bklass.%s" % tname)
+                meth = inst.func_template
+                methattrs = PYB11attrs(meth)
+                inst(tname, bklass, bklassattrs, ss)
 
     # Look for any class scope enums and bind them
     enums = [x for x in dir(klassinst) if isinstance(eval("klassinst.%s" % x), PYB11enum) and x in klass.__dict__]
