@@ -123,233 +123,233 @@ class FileIOTestBase:
         self.removeFile("TestVector1d")
         return
 
-    # #---------------------------------------------------------------------------
-    # # Tensor1d
-    # #---------------------------------------------------------------------------
-    # def testTensor1d(self):
-    #     x0 = Tensor1d(g.uniform(self.doublemin, self.doublemax))
-    #     x1 = Tensor1d()
-    #     f = self.constructor("TestTensor1d", Write)
-    #     f.write(x0, "FileIOTestBase/TestTensor1d")
-    #     f.close()
-    #     f = self.constructor("TestTensor1d", Read)
-    #     f.read(x1, "FileIOTestBase/TestTensor1d")
-    #     f.close()
-    #     self.failUnless(x1 == x0,
-    #                     "%s != %s in Tensor1d test" % (str(x1), str(x0)))
-    #     self.removeFile("TestTensor1d")
-    #     return
+    #---------------------------------------------------------------------------
+    # Tensor1d
+    #---------------------------------------------------------------------------
+    def testTensor1d(self):
+        x0 = Tensor1d(g.uniform(self.doublemin, self.doublemax))
+        x1 = Tensor1d()
+        f = self.constructor("TestTensor1d", Write)
+        f.write(x0, "FileIOTestBase/TestTensor1d")
+        f.close()
+        f = self.constructor("TestTensor1d", Read)
+        f.read(x1, "FileIOTestBase/TestTensor1d")
+        f.close()
+        self.failUnless(x1 == x0,
+                        "%s != %s in Tensor1d test" % (str(x1), str(x0)))
+        self.removeFile("TestTensor1d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # SymTensor1d
-    # #---------------------------------------------------------------------------
-    # def testSymTensor1d(self):
-    #     x0 = SymTensor1d(g.uniform(self.doublemin, self.doublemax))
-    #     x1 = SymTensor1d()
-    #     f = self.constructor("TestSymTensor1d", Write)
-    #     f.write(x0, "FileIOTestBase/TestSymTensor1d")
-    #     f.close()
-    #     f = self.constructor("TestSymTensor1d", Read)
-    #     f.read(x1, "FileIOTestBase/TestSymTensor1d")
-    #     f.close()
-    #     self.failUnless(x1 == x0,
-    #                     "%s != %s in SymTensor1d test" % (str(x1), str(x0)))
-    #     self.removeFile("TestSymTensor1d")
-    #     return
+    #---------------------------------------------------------------------------
+    # SymTensor1d
+    #---------------------------------------------------------------------------
+    def testSymTensor1d(self):
+        x0 = SymTensor1d(g.uniform(self.doublemin, self.doublemax))
+        x1 = SymTensor1d()
+        f = self.constructor("TestSymTensor1d", Write)
+        f.write(x0, "FileIOTestBase/TestSymTensor1d")
+        f.close()
+        f = self.constructor("TestSymTensor1d", Read)
+        f.read(x1, "FileIOTestBase/TestSymTensor1d")
+        f.close()
+        self.failUnless(x1 == x0,
+                        "%s != %s in SymTensor1d test" % (str(x1), str(x0)))
+        self.removeFile("TestSymTensor1d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # ThirdRankTensor1d
-    # #---------------------------------------------------------------------------
-    # def testThirdRankTensor1d(self):
-    #     x0 = ThirdRankTensor1d()
-    #     for i in xrange(ThirdRankTensor1d.nDimensions):
-    #         for j in xrange(ThirdRankTensor1d.nDimensions):
-    #             for k in xrange(ThirdRankTensor1d.nDimensions):
-    #                 x0(i, j, k, g.uniform(self.doublemin, self.doublemax))
-    #     x1 = ThirdRankTensor1d()
-    #     f = self.constructor("TestThirdRankTensor1d", Write)
-    #     f.write(x0, "FileIOTestBase/TestThirdRankTensor1d")
-    #     f.close()
-    #     f = self.constructor("TestThirdRankTensor1d", Read)
-    #     f.read(x1, "FileIOTestBase/TestThirdRankTensor1d")
-    #     f.close()
-    #     self.failUnless(x1 == x0,
-    #                     "%s != %s in ThirdRankTensor1d test" % (str(x1), str(x0)))
-    #     self.removeFile("TestThirdRankTensor1d")
-    #     return
+    #---------------------------------------------------------------------------
+    # ThirdRankTensor1d
+    #---------------------------------------------------------------------------
+    def testThirdRankTensor1d(self):
+        x0 = ThirdRankTensor1d()
+        for i in xrange(ThirdRankTensor1d.nDimensions):
+            for j in xrange(ThirdRankTensor1d.nDimensions):
+                for k in xrange(ThirdRankTensor1d.nDimensions):
+                    x0(i, j, k, g.uniform(self.doublemin, self.doublemax))
+        x1 = ThirdRankTensor1d()
+        f = self.constructor("TestThirdRankTensor1d", Write)
+        f.write(x0, "FileIOTestBase/TestThirdRankTensor1d")
+        f.close()
+        f = self.constructor("TestThirdRankTensor1d", Read)
+        f.read(x1, "FileIOTestBase/TestThirdRankTensor1d")
+        f.close()
+        self.failUnless(x1 == x0,
+                        "%s != %s in ThirdRankTensor1d test" % (str(x1), str(x0)))
+        self.removeFile("TestThirdRankTensor1d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # Vector2d
-    # #---------------------------------------------------------------------------
-    # def testVector2d(self):
-    #     x0 = Vector2d(g.uniform(self.doublemin, self.doublemax),
-    #                   g.uniform(self.doublemin, self.doublemax))
-    #     x1 = Vector2d()
-    #     f = self.constructor("TestVector2d", Write)
-    #     f.write(x0, "FileIOTestBase/TestVector2d")
-    #     f.close()
-    #     f = self.constructor("TestVector2d", Read)
-    #     f.read(x1, "FileIOTestBase/TestVector2d")
-    #     f.close()
-    #     self.failUnless(x1 == x0,
-    #                     "%s != %s in Vector2d test" % (str(x1), str(x0)))
-    #     self.removeFile("TestVector2d")
-    #     return
+    #---------------------------------------------------------------------------
+    # Vector2d
+    #---------------------------------------------------------------------------
+    def testVector2d(self):
+        x0 = Vector2d(g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax))
+        x1 = Vector2d()
+        f = self.constructor("TestVector2d", Write)
+        f.write(x0, "FileIOTestBase/TestVector2d")
+        f.close()
+        f = self.constructor("TestVector2d", Read)
+        f.read(x1, "FileIOTestBase/TestVector2d")
+        f.close()
+        self.failUnless(x1 == x0,
+                        "%s != %s in Vector2d test" % (str(x1), str(x0)))
+        self.removeFile("TestVector2d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # Tensor2d
-    # #---------------------------------------------------------------------------
-    # def testTensor2d(self):
-    #     x0 = Tensor2d(g.uniform(self.doublemin, self.doublemax),
-    #                   g.uniform(self.doublemin, self.doublemax),
-    #                   g.uniform(self.doublemin, self.doublemax),
-    #                   g.uniform(self.doublemin, self.doublemax))
-    #     x1 = Tensor2d()
-    #     f = self.constructor("TestTensor2d", Write)
-    #     f.write(x0, "FileIOTestBase/TestTensor2d")
-    #     f.close()
-    #     f = self.constructor("TestTensor2d", Read)
-    #     f.read(x1, "FileIOTestBase/TestTensor2d")
-    #     f.close()
-    #     self.failUnless(x1 == x0,
-    #                     "%s != %s in Tensor2d test" % (str(x1), str(x0)))
-    #     self.removeFile("TestTensor2d")
-    #     return
+    #---------------------------------------------------------------------------
+    # Tensor2d
+    #---------------------------------------------------------------------------
+    def testTensor2d(self):
+        x0 = Tensor2d(g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax))
+        x1 = Tensor2d()
+        f = self.constructor("TestTensor2d", Write)
+        f.write(x0, "FileIOTestBase/TestTensor2d")
+        f.close()
+        f = self.constructor("TestTensor2d", Read)
+        f.read(x1, "FileIOTestBase/TestTensor2d")
+        f.close()
+        self.failUnless(x1 == x0,
+                        "%s != %s in Tensor2d test" % (str(x1), str(x0)))
+        self.removeFile("TestTensor2d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # SymTensor2d
-    # #---------------------------------------------------------------------------
-    # def testSymTensor2d(self):
-    #     xy = g.uniform(self.doublemin, self.doublemax)
-    #     x0 = SymTensor2d(g.uniform(self.doublemin, self.doublemax),
-    #                      xy,
-    #                      xy,
-    #                      g.uniform(self.doublemin, self.doublemax))
-    #     x1 = SymTensor2d()
-    #     f = self.constructor("TestSymTensor2d", Write)
-    #     f.write(x0, "FileIOTestBase/TestSymTensor2d")
-    #     f.close()
-    #     f = self.constructor("TestSymTensor2d", Read)
-    #     f.read(x1, "FileIOTestBase/TestSymTensor2d")
-    #     f.close()
-    #     self.failUnless(x1 == x0,
-    #                     "%s != %s in SymTensor2d test" % (str(x1), str(x0)))
-    #     self.removeFile("TestSymTensor2d")
-    #     return
+    #---------------------------------------------------------------------------
+    # SymTensor2d
+    #---------------------------------------------------------------------------
+    def testSymTensor2d(self):
+        xy = g.uniform(self.doublemin, self.doublemax)
+        x0 = SymTensor2d(g.uniform(self.doublemin, self.doublemax),
+                         xy,
+                         xy,
+                         g.uniform(self.doublemin, self.doublemax))
+        x1 = SymTensor2d()
+        f = self.constructor("TestSymTensor2d", Write)
+        f.write(x0, "FileIOTestBase/TestSymTensor2d")
+        f.close()
+        f = self.constructor("TestSymTensor2d", Read)
+        f.read(x1, "FileIOTestBase/TestSymTensor2d")
+        f.close()
+        self.failUnless(x1 == x0,
+                        "%s != %s in SymTensor2d test" % (str(x1), str(x0)))
+        self.removeFile("TestSymTensor2d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # ThirdRankTensor2d
-    # #---------------------------------------------------------------------------
-    # def testThirdRankTensor2d(self):
-    #     x0 = ThirdRankTensor2d()
-    #     for i in xrange(ThirdRankTensor2d.nDimensions):
-    #         for j in xrange(ThirdRankTensor2d.nDimensions):
-    #             for k in xrange(ThirdRankTensor2d.nDimensions):
-    #                 x0(i, j, k, g.uniform(self.doublemin, self.doublemax))
-    #     x1 = ThirdRankTensor2d()
-    #     f = self.constructor("TestThirdRankTensor2d", Write)
-    #     f.write(x0, "FileIOTestBase/TestThirdRankTensor2d")
-    #     f.close()
-    #     f = self.constructor("TestThirdRankTensor2d", Read)
-    #     f.read(x1, "FileIOTestBase/TestThirdRankTensor2d")
-    #     f.close()
-    #     self.failUnless(x1 == x0,
-    #                     "%s != %s in ThirdRankTensor2d test" % (str(x1), str(x0)))
-    #     self.removeFile("TestThirdRankTensor2d")
-    #     return
+    #---------------------------------------------------------------------------
+    # ThirdRankTensor2d
+    #---------------------------------------------------------------------------
+    def testThirdRankTensor2d(self):
+        x0 = ThirdRankTensor2d()
+        for i in xrange(ThirdRankTensor2d.nDimensions):
+            for j in xrange(ThirdRankTensor2d.nDimensions):
+                for k in xrange(ThirdRankTensor2d.nDimensions):
+                    x0(i, j, k, g.uniform(self.doublemin, self.doublemax))
+        x1 = ThirdRankTensor2d()
+        f = self.constructor("TestThirdRankTensor2d", Write)
+        f.write(x0, "FileIOTestBase/TestThirdRankTensor2d")
+        f.close()
+        f = self.constructor("TestThirdRankTensor2d", Read)
+        f.read(x1, "FileIOTestBase/TestThirdRankTensor2d")
+        f.close()
+        self.failUnless(x1 == x0,
+                        "%s != %s in ThirdRankTensor2d test" % (str(x1), str(x0)))
+        self.removeFile("TestThirdRankTensor2d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # Vector3d
-    # #---------------------------------------------------------------------------
-    # def testVector3d(self):
-    #     x0 = Vector3d(g.uniform(self.doublemin, self.doublemax),
-    #                   g.uniform(self.doublemin, self.doublemax),
-    #                   g.uniform(self.doublemin, self.doublemax))
-    #     x1 = Vector3d()
-    #     f = self.constructor("TestVector3d", Write)
-    #     f.write(x0, "FileIOTestBase/TestVector3d")
-    #     f.close()
-    #     f = self.constructor("TestVector3d", Read)
-    #     f.read(x1, "FileIOTestBase/TestVector3d")
-    #     f.close()
-    #     self.failUnless(x1 == x0,
-    #                     "%s != %s in Vector3d test" % (str(x1), str(x0)))
-    #     self.removeFile("TestVector3d")
-    #     return
+    #---------------------------------------------------------------------------
+    # Vector3d
+    #---------------------------------------------------------------------------
+    def testVector3d(self):
+        x0 = Vector3d(g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax))
+        x1 = Vector3d()
+        f = self.constructor("TestVector3d", Write)
+        f.write(x0, "FileIOTestBase/TestVector3d")
+        f.close()
+        f = self.constructor("TestVector3d", Read)
+        f.read(x1, "FileIOTestBase/TestVector3d")
+        f.close()
+        self.failUnless(x1 == x0,
+                        "%s != %s in Vector3d test" % (str(x1), str(x0)))
+        self.removeFile("TestVector3d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # Tensor3d
-    # #---------------------------------------------------------------------------
-    # def testTensor3d(self):
-    #     x0 = Tensor3d(g.uniform(self.doublemin, self.doublemax),
-    #                   g.uniform(self.doublemin, self.doublemax),
-    #                   g.uniform(self.doublemin, self.doublemax),
-    #                   g.uniform(self.doublemin, self.doublemax),
-    #                   g.uniform(self.doublemin, self.doublemax),
-    #                   g.uniform(self.doublemin, self.doublemax),
-    #                   g.uniform(self.doublemin, self.doublemax),
-    #                   g.uniform(self.doublemin, self.doublemax),
-    #                   g.uniform(self.doublemin, self.doublemax))
-    #     x1 = Tensor3d()
-    #     f = self.constructor("TestTensor3d", Write)
-    #     f.write(x0, "FileIOTestBase/TestTensor3d")
-    #     f.close()
-    #     f = self.constructor("TestTensor3d", Read)
-    #     f.read(x1, "FileIOTestBase/TestTensor3d")
-    #     f.close()
-    #     self.failUnless(x1 == x0,
-    #                     "%s != %s in Tensor3d test" % (str(x1), str(x0)))
-    #     self.removeFile("TestTensor3d")
-    #     return
+    #---------------------------------------------------------------------------
+    # Tensor3d
+    #---------------------------------------------------------------------------
+    def testTensor3d(self):
+        x0 = Tensor3d(g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax))
+        x1 = Tensor3d()
+        f = self.constructor("TestTensor3d", Write)
+        f.write(x0, "FileIOTestBase/TestTensor3d")
+        f.close()
+        f = self.constructor("TestTensor3d", Read)
+        f.read(x1, "FileIOTestBase/TestTensor3d")
+        f.close()
+        self.failUnless(x1 == x0,
+                        "%s != %s in Tensor3d test" % (str(x1), str(x0)))
+        self.removeFile("TestTensor3d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # SymTensor3d
-    # #---------------------------------------------------------------------------
-    # def testSymTensor3d(self):
-    #     xy = g.uniform(self.doublemin, self.doublemax)
-    #     xz = g.uniform(self.doublemin, self.doublemax)
-    #     yz = g.uniform(self.doublemin, self.doublemax)
-    #     x0 = SymTensor3d(g.uniform(self.doublemin, self.doublemax),
-    #                      xy,
-    #                      xz,
-    #                      xy,
-    #                      g.uniform(self.doublemin, self.doublemax),
-    #                      yz,
-    #                      xz,
-    #                      yz,
-    #                      g.uniform(self.doublemin, self.doublemax))
-    #     x1 = SymTensor3d()
-    #     f = self.constructor("TestSymTensor3d", Write)
-    #     f.write(x0, "FileIOTestBase/TestSymTensor3d")
-    #     f.close()
-    #     f = self.constructor("TestSymTensor3d", Read)
-    #     f.read(x1, "FileIOTestBase/TestSymTensor3d")
-    #     f.close()
-    #     self.failUnless(x1 == x0,
-    #                     "%s != %s in SymTensor3d test" % (str(x1), str(x0)))
-    #     self.removeFile("TestSymTensor3d")
-    #     return
+    #---------------------------------------------------------------------------
+    # SymTensor3d
+    #---------------------------------------------------------------------------
+    def testSymTensor3d(self):
+        xy = g.uniform(self.doublemin, self.doublemax)
+        xz = g.uniform(self.doublemin, self.doublemax)
+        yz = g.uniform(self.doublemin, self.doublemax)
+        x0 = SymTensor3d(g.uniform(self.doublemin, self.doublemax),
+                         xy,
+                         xz,
+                         xy,
+                         g.uniform(self.doublemin, self.doublemax),
+                         yz,
+                         xz,
+                         yz,
+                         g.uniform(self.doublemin, self.doublemax))
+        x1 = SymTensor3d()
+        f = self.constructor("TestSymTensor3d", Write)
+        f.write(x0, "FileIOTestBase/TestSymTensor3d")
+        f.close()
+        f = self.constructor("TestSymTensor3d", Read)
+        f.read(x1, "FileIOTestBase/TestSymTensor3d")
+        f.close()
+        self.failUnless(x1 == x0,
+                        "%s != %s in SymTensor3d test" % (str(x1), str(x0)))
+        self.removeFile("TestSymTensor3d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # ThirdRankTensor3d
-    # #---------------------------------------------------------------------------
-    # def testThirdRankTensor3d(self):
-    #     x0 = ThirdRankTensor3d()
-    #     for i in xrange(ThirdRankTensor3d.nDimensions):
-    #         for j in xrange(ThirdRankTensor3d.nDimensions):
-    #             for k in xrange(ThirdRankTensor3d.nDimensions):
-    #                 x0(i, j, k, g.uniform(self.doublemin, self.doublemax))
-    #     x1 = ThirdRankTensor3d()
-    #     f = self.constructor("TestThirdRankTensor3d", Write)
-    #     f.write(x0, "FileIOTestBase/TestThirdRankTensor3d")
-    #     f.close()
-    #     f = self.constructor("TestThirdRankTensor3d", Read)
-    #     f.read(x1, "FileIOTestBase/TestThirdRankTensor3d")
-    #     f.close()
-    #     self.failUnless(x1 == x0,
-    #                     "%s != %s in ThirdRankTensor3d test" % (str(x1), str(x0)))
-    #     self.removeFile("TestThirdRankTensor3d")
-    #     return
+    #---------------------------------------------------------------------------
+    # ThirdRankTensor3d
+    #---------------------------------------------------------------------------
+    def testThirdRankTensor3d(self):
+        x0 = ThirdRankTensor3d()
+        for i in xrange(ThirdRankTensor3d.nDimensions):
+            for j in xrange(ThirdRankTensor3d.nDimensions):
+                for k in xrange(ThirdRankTensor3d.nDimensions):
+                    x0(i, j, k, g.uniform(self.doublemin, self.doublemax))
+        x1 = ThirdRankTensor3d()
+        f = self.constructor("TestThirdRankTensor3d", Write)
+        f.write(x0, "FileIOTestBase/TestThirdRankTensor3d")
+        f.close()
+        f = self.constructor("TestThirdRankTensor3d", Read)
+        f.read(x1, "FileIOTestBase/TestThirdRankTensor3d")
+        f.close()
+        self.failUnless(x1 == x0,
+                        "%s != %s in ThirdRankTensor3d test" % (str(x1), str(x0)))
+        self.removeFile("TestThirdRankTensor3d")
+        return
 
 #     #---------------------------------------------------------------------------
 #     # vector<int>

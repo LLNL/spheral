@@ -45,8 +45,7 @@ class Tensor:
     def __len__(self):
         "The size (number of elements) of the Tensor."
 
-    @PYB11implementation("[](const Dim<%(ndim)s>::Tensor &s, size_t i) { if (i >= Dim<%(ndim)s>::Tensor::numElements) throw py::index_error(); return s[i]; }") 
-    @PYB11returnpolicy("reference_internal")
+    @PYB11implementation("[](const Dim<%(ndim)s>::Tensor &s, size_t i) -> double { if (i >= Dim<%(ndim)s>::Tensor::numElements) throw py::index_error(); return s[i]; }") 
     def __getitem__(self):
         "Python indexing to get an element."
 
