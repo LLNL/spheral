@@ -107,8 +107,7 @@ class FileIOTestBase:
     # Vector1d
     #---------------------------------------------------------------------------
     def testVector1d(self):
-        x0 = Vector1d(0.123456789123456789)
-        #x0 = Vector1d(g.uniform(self.doublemin, self.doublemax))
+        x0 = Vector1d(g.uniform(self.doublemin, self.doublemax))
         x1 = Vector1d()
         f = self.constructor("TestVector1d", Write)
         f.write(x0, "FileIOTestBase/TestVector1d")
@@ -116,13 +115,9 @@ class FileIOTestBase:
         f = self.constructor("TestVector1d", Read)
         f.read(x1, "FileIOTestBase/TestVector1d")
         f.close()
-
-        print x0.x, x1.x
-
         f = self.constructor("TestVector1d-check", Write)
         f.write(x1, "FileIOTestBase/TestVector1d")
         f.close()
-
         self.failUnless(x1 == x0,
                         "%s != %s in Vector1d test" % (str(x1), str(x0)))
         self.removeFile("TestVector1d")
