@@ -323,6 +323,9 @@ class GzipFileIO(PyFileIO):
 
     def read_Vector1d(self, val, pathName):
         self.copyContainer(self.readObject(pathName), val, 1)
+        # stuff = self.readObject(pathName)
+        # print " VECTOR1D> ", stuff[0]
+        # val.x = stuff[0]
 
     def read_Tensor1d(self, val, pathName):
         self.copyContainer(self.readObject(pathName), val, 1)

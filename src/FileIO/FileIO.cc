@@ -334,14 +334,14 @@ readObject(PyObject* pathObj) const {
     return NULL;
   }
 
-//   PyObject* result = PyObject_CallMethod(mPickleMod, "loads", "s", thpt);
+  // PyObject* result = PyObject_CallMethod(mPickleMod, "loads", "s", thpt);
 
-//   cerr << "      result is ";
-//   PyObject_Print(result, stderr, 0);
-//   cerr << "   from   ";
-//   cerr << "           "
-//        << encodedThing 
-//        << endl;
+  cerr << "      result is ";
+  PyObject_Print(result, stderr, 0);
+  cerr << "   from   ";
+  cerr << "           "
+       << encodedThing 
+       << endl;
 
   // Deallocate stuff.
   Py_DECREF(pyEncodedThing);

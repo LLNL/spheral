@@ -91,19 +91,19 @@ class Vector:
         return
 
     @PYB11pycppname("__mul__")
-    def __mul__f(self, rhs="float()"):
+    def __mul__f(self, rhs="double()"):
         return
     @PYB11pycppname("__rmul__")
-    def __rmul__f(self, rhs="float()"):
+    def __rmul__f(self, rhs="double()"):
         return
     @PYB11pycppname("__div__")
-    def __div__f(self, rhs="float()"):
+    def __div__f(self, rhs="double()"):
         return
     @PYB11pycppname("__imul__")
-    def __imul__f(self, rhs="float()"):
+    def __imul__f(self, rhs="double()"):
         return
     @PYB11pycppname("__idiv__")
-    def __idiv__f(self, rhs="float()"):
+    def __idiv__f(self, rhs="double()"):
         return
 
     # Sequence methods
@@ -111,14 +111,16 @@ class Vector:
     def __len__(self):
         "The size (in number of coordinates) of the Vector."
 
-    @PYB11implementation("[](const Dim<%(ndim)s>::Vector &s, size_t i) { if (i >= Dim<%(ndim)s>::Vector::numElements) throw py::index_error(); return s[i]; }") 
+    @PYB11implementation("[](const Dim<%(ndim)s>::Vector &s, size_t i) -> double { if (i >= Dim<%(ndim)s>::Vector::numElements) throw py::index_error(); return s[i]; }") 
     @PYB11returnpolicy("reference_internal")
     def __getitem__(self):
         "Python indexing to get a coordinate."
+        return "double"
 
-    @PYB11implementation("[](Dim<%(ndim)s>::Vector &s, size_t i, float v) { if (i >= Dim<%(ndim)s>::Vector::numElements) throw py::index_error(); s[i] = v; }") 
+    @PYB11implementation("[](Dim<%(ndim)s>::Vector &s, size_t i, double v) { if (i >= Dim<%(ndim)s>::Vector::numElements) throw py::index_error(); s[i] = v; }") 
     def __setitem__(self):
         "Python indexing to set a coordinate."
+        return "void"
 
     @PYB11implementation("[](const Dim<%(ndim)s>::Vector &s) { return py::make_iterator(s.begin(), s.end()); }")
     def __iter__(self):

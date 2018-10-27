@@ -150,7 +150,7 @@ def readPlane%(ndim)i(self,
 
     @PYB11returnpolicy("take_ownership")
     @PYB11const
-    @PYB11implementation("[](FileIO& self, py::handle path) { return self.readObject(path.ptr()); }")
+    @PYB11implementation("[](FileIO& self, py::handle path) { return py::handle(self.readObject(path.ptr())); }")
     def readObject(self,
                    path = "py::handle"):
         "Return a generic python object from deserialization."
