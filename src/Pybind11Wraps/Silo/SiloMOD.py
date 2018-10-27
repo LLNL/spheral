@@ -313,7 +313,7 @@ def DBPutQuadvar():
 def DBPutPointvar():
     "Write a point mesh variable of %(T)s to a silo database."
 
-for d in ("int", "float", "double"):
+for d in ("int", "double", "double"):
     exec('''
 DBWrite_%(d)s = PYB11TemplateFunction(DBWrite, ("%(d)s",), pyname="DBWrite")
 DBWrite_vector_%(d)s = PYB11TemplateFunction(DBWrite_vector, ("%(d)s",), pyname="DBWrite")

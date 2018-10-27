@@ -50,7 +50,7 @@ class SymTensor:
     def __getitem__(self):
         "Python indexing to get an element."
 
-    @PYB11implementation("[](Dim<%(ndim)s>::SymTensor &s, size_t i, float v) { if (i >= Dim<%(ndim)s>::SymTensor::numElements) throw py::index_error(); s[i] = v; }") 
+    @PYB11implementation("[](Dim<%(ndim)s>::SymTensor &s, size_t i, double v) { if (i >= Dim<%(ndim)s>::SymTensor::numElements) throw py::index_error(); s[i] = v; }") 
     def __setitem__(self):
         "Python indexing to set an element."
 
@@ -110,19 +110,19 @@ class SymTensor:
         return
 
     @PYB11pycppname("__mul__")
-    def __mul__f(self, rhs="float()"):
+    def __mul__f(self, rhs="double()"):
         return
     @PYB11pycppname("__rmul__")
-    def __rmul__f(self, rhs="float()"):
+    def __rmul__f(self, rhs="double()"):
         return
     @PYB11pycppname("__div__")
-    def __div__f(self, rhs="float()"):
+    def __div__f(self, rhs="double()"):
         return
     @PYB11pycppname("__imul__")
-    def __imul__f(self, rhs="float()"):
+    def __imul__f(self, rhs="double()"):
         return
     @PYB11pycppname("__idiv__")
-    def __idiv__f(self, rhs="float()"):
+    def __idiv__f(self, rhs="double()"):
         return
 
     @PYB11pycppname("__mul__")

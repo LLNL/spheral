@@ -90,7 +90,7 @@ class GridCellIndex:
     def __getitem__(self):
         "Python indexing to get a coordinate."
 
-    @PYB11implementation("[](GridCellIndex<%(Dimension)s> &s, int i, float v) { if (i >= %(Dimension)s::nDim) throw py::index_error(); s(i) = v; }") 
+    @PYB11implementation("[](GridCellIndex<%(Dimension)s> &s, int i, double v) { if (i >= %(Dimension)s::nDim) throw py::index_error(); s(i) = v; }") 
     def __setitem__(self):
         "Python indexing to set a coordinate."
 

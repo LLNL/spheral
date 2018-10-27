@@ -15,11 +15,11 @@ class MinMaxField(FieldBase):
 """
 
     def applyScalarMin(self):
-        "Enforce a float floor on the values of the Field."
+        "Enforce a double floor on the values of the Field."
         return
 
     def applyScalarMax(self):
-        "Enforce a float ceiling on the values of the Field."
+        "Enforce a double ceiling on the values of the Field."
         return
 
 #-------------------------------------------------------------------------------

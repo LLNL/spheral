@@ -35,7 +35,7 @@ class FourthRankTensor:
     def __getitem__(self):
         "Python indexing to get an element."
 
-    @PYB11implementation("[](Dim<%(ndim)s>::FourthRankTensor &s, size_t i, float v) { if (i >= Dim<%(ndim)s>::FourthRankTensor::numElements) throw py::index_error(); s[i] = v; }") 
+    @PYB11implementation("[](Dim<%(ndim)s>::FourthRankTensor &s, size_t i, double v) { if (i >= Dim<%(ndim)s>::FourthRankTensor::numElements) throw py::index_error(); s[i] = v; }") 
     def __setitem__(self):
         "Python indexing to set an element."
 
@@ -96,13 +96,13 @@ class FourthRankTensor:
         return
     def __sub__(self):
         return
-    def __imul__(self, rhs="float()"):
+    def __imul__(self, rhs="double()"):
         return
-    def __idiv__(self, rhs="float()"):
+    def __idiv__(self, rhs="double()"):
         return
-    def __mul__(self, rhs="float()"):
+    def __mul__(self, rhs="double()"):
         return
-    def __div__(self, rhs="float()"):
+    def __div__(self, rhs="double()"):
         return
                  
     # Comparisons
