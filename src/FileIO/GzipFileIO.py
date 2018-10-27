@@ -32,8 +32,6 @@ class GzipFileIO(PyFileIO):
             fileName += ".gz"
         
         PyFileIO.__init__(self, fileName, access)
-        self.fileName = fileName
-        self.access = access
         self.precision = precision # "%" + "%i.%ie" % (precision + 3, precision)
         self.readToMemory = readToMemory
         self.open(fileName, access)
