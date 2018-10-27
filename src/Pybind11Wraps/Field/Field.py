@@ -136,7 +136,8 @@ class Field(FieldBase):
         "Serialize to a string"
         return "std::string"
 
-    def string(self, s="const std::string&"):
+    @PYB11pycppname("string")
+    def string1(self, s="const std::string&"):
         "Deserialize from a string"
         return "void"
 
