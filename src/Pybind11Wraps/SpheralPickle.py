@@ -40,7 +40,7 @@ copy_reg.pickle(Tensor1d, reduce_Tensor1d)
 def reduce_Tensor2d(obj):
     return Tensor2d, (obj.xx, obj.xy,
                       obj.yx, obj.yy)
-copy_reg.pickle(Tensor2d(), reduce_Tensor2d)
+copy_reg.pickle(Tensor2d, reduce_Tensor2d)
 
 #-------------------------------------------------------------------------------
 # Tensor3d
