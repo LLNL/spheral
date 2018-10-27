@@ -43,25 +43,6 @@ public:
   virtual void write_SymTensor3d(const Dim<3>::SymTensor& value, const std::string pathName) = 0;
   virtual void write_ThirdRankTensor3d(const Dim<3>::ThirdRankTensor& value, const std::string pathName) = 0;
 
-  virtual void write_vector_of_int(const std::vector<int>& value, const std::string pathName) = 0;
-  virtual void write_vector_of_double(const std::vector<double>& value, const std::string pathName) = 0;
-  virtual void write_vector_of_string(const std::vector<std::string>& value, const std::string pathName) = 0;
-
-  virtual void write_vector_of_Vector1d(const std::vector<Dim<1>::Vector>& value, const std::string pathName) = 0;
-  virtual void write_vector_of_Tensor1d(const std::vector<Dim<1>::Tensor>& value, const std::string pathName) = 0;
-  virtual void write_vector_of_SymTensor1d(const std::vector<Dim<1>::SymTensor>& value, const std::string pathName) = 0;
-  virtual void write_vector_of_ThirdRankTensor1d(const std::vector<Dim<1>::ThirdRankTensor>& value, const std::string pathName) = 0;
-
-  virtual void write_vector_of_Vector2d(const std::vector<Dim<2>::Vector>& value, const std::string pathName) = 0;
-  virtual void write_vector_of_Tensor2d(const std::vector<Dim<2>::Tensor>& value, const std::string pathName) = 0;
-  virtual void write_vector_of_SymTensor2d(const std::vector<Dim<2>::SymTensor>& value, const std::string pathName) = 0;
-  virtual void write_vector_of_ThirdRankTensor2d(const std::vector<Dim<2>::ThirdRankTensor>& value, const std::string pathName) = 0;
-
-  virtual void write_vector_of_Vector3d(const std::vector<Dim<3>::Vector>& value, const std::string pathName) = 0;
-  virtual void write_vector_of_Tensor3d(const std::vector<Dim<3>::Tensor>& value, const std::string pathName) = 0;
-  virtual void write_vector_of_SymTensor3d(const std::vector<Dim<3>::SymTensor>& value, const std::string pathName) = 0;
-  virtual void write_vector_of_ThirdRankTensor3d(const std::vector<Dim<3>::ThirdRankTensor>& value, const std::string pathName) = 0;
-
 #ifdef SPHERAL1D
   virtual void write_ScalarField1d(const Field<Dim<1>, Dim<1>::Scalar>& field, const std::string pathName) = 0;
   virtual void write_VectorField1d(const Field<Dim<1>, Dim<1>::Vector>& field, const std::string pathName) = 0;
@@ -104,25 +85,6 @@ public:
   virtual void read_Tensor3d(Dim<3>::Tensor& value, const std::string pathName) const = 0;
   virtual void read_SymTensor3d(Dim<3>::SymTensor& value, const std::string pathName) const = 0;
   virtual void read_ThirdRankTensor3d(Dim<3>::ThirdRankTensor& value, const std::string pathName) const = 0;
-
-  virtual void read_vector_of_int(std::vector<int>& value, const std::string pathName) const = 0;
-  virtual void read_vector_of_double(std::vector<double>& value, const std::string pathName) const = 0;
-  virtual void read_vector_of_string(std::vector<std::string>& value, const std::string pathName) const = 0;
-
-  virtual void read_vector_of_Vector1d(std::vector<Dim<1>::Vector>& value, const std::string pathName) const = 0;
-  virtual void read_vector_of_Tensor1d(std::vector<Dim<1>::Tensor>& value, const std::string pathName) const = 0;
-  virtual void read_vector_of_SymTensor1d(std::vector<Dim<1>::SymTensor>& value, const std::string pathName) const = 0;
-  virtual void read_vector_of_ThirdRankTensor1d(std::vector<Dim<1>::ThirdRankTensor>& value, const std::string pathName) const = 0;
-
-  virtual void read_vector_of_Vector2d(std::vector<Dim<2>::Vector>& value, const std::string pathName) const = 0;
-  virtual void read_vector_of_Tensor2d(std::vector<Dim<2>::Tensor>& value, const std::string pathName) const = 0;
-  virtual void read_vector_of_SymTensor2d(std::vector<Dim<2>::SymTensor>& value, const std::string pathName) const = 0;
-  virtual void read_vector_of_ThirdRankTensor2d(std::vector<Dim<2>::ThirdRankTensor>& value, const std::string pathName) const = 0;
-
-  virtual void read_vector_of_Vector3d(std::vector<Dim<3>::Vector>& value, const std::string pathName) const = 0;
-  virtual void read_vector_of_Tensor3d(std::vector<Dim<3>::Tensor>& value, const std::string pathName) const = 0;
-  virtual void read_vector_of_SymTensor3d(std::vector<Dim<3>::SymTensor>& value, const std::string pathName) const = 0;
-  virtual void read_vector_of_ThirdRankTensor3d(std::vector<Dim<3>::ThirdRankTensor>& value, const std::string pathName) const = 0;
 
 #ifdef SPHERAL1D
   virtual void read_ScalarField1d(Field<Dim<1>, Dim<1>::Scalar>& field, const std::string pathName) const = 0;

@@ -187,7 +187,6 @@ class GzipFileIO(PyFileIO):
         self.writeObject(val, pathName)
 
     def write_Tensor2d(self, val, pathName):
-        sys.stderr.write("write_Tensor2d: %s\n" % val)
         self.writeObject(val, pathName)
 
     def write_SymTensor2d(self, val, pathName):
@@ -207,51 +206,6 @@ class GzipFileIO(PyFileIO):
 
     def write_ThirdRankTensor3d(self, val, pathName):
         self.writeObject(val, pathName)
-
-    def write_vector_of_int(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_double(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_string(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_Vector1d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_Tensor1d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_SymTensor1d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_ThirdRankTensor1d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_Vector2d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_Tensor2d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_SymTensor2d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_ThirdRankTensor2d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_Vector3d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_Tensor3d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_SymTensor3d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_ThirdRankTensor3d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
 
     def write_ScalarField1d(self, val, pathName):
         self.writeFieldObject(val, pathName)
@@ -341,7 +295,6 @@ class GzipFileIO(PyFileIO):
         self.copyContainer(self.readObject(pathName), val, 2)
 
     def read_Tensor2d(self, val, pathName):
-        sys.stderr.write("read_Tensor2d\n")
         self.copyContainer(self.readObject(pathName), val, 4)
 
     def read_SymTensor2d(self, val, pathName):
@@ -361,81 +314,6 @@ class GzipFileIO(PyFileIO):
 
     def read_ThirdRankTensor3d(self, val, pathName):
         self.copyContainer(self.readObject(pathName), val, 27)
-
-    def read_vector_of_int(self, val, pathName):
-        val0 = string2vector_of_int(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_double(self, val, pathName):
-        val0 = string2vector_of_double(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_string(self, val, pathName):
-        val0 = string2vector_of_string(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_Vector1d(self, val, pathName):
-        val0 = string2vector_of_Vector1d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_Tensor1d(self, val, pathName):
-        val0 = string2vector_of_Tensor1d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_SymTensor1d(self, val, pathName):
-        val0 = string2vector_of_SymTensor1d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_ThirdRankTensor1d(self, val, pathName):
-        val0 = string2vector_of_ThirdRankTensor1d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_Vector2d(self, val, pathName):
-        val0 = string2vector_of_Vector2d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_Tensor2d(self, val, pathName):
-        val0 = string2vector_of_Tensor2d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_SymTensor2d(self, val, pathName):
-        val0 = string2vector_of_SymTensor2d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_ThirdRankTensor2d(self, val, pathName):
-        val0 = string2vector_of_ThirdRankTensor2d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_Vector3d(self, val, pathName):
-        val0 = string2vector_of_Vector3d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_Tensor3d(self, val, pathName):
-        val0 = string2vector_of_Tensor3d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_SymTensor3d(self, val, pathName):
-        val0 = string2vector_of_SymTensor3d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_ThirdRankTensor3d(self, val, pathName):
-        val0 = string2vector_of_ThirdRankTensor3d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
 
     def read_ScalarField1d(self, val, pathName):
         self.readFieldObject(val, pathName)
