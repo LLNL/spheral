@@ -187,7 +187,7 @@ class GzipFileIO(PyFileIO):
         self.writeObject(val, pathName)
 
     def write_Tensor2d(self, val, pathName):
-        sys.stderr.write("write_Tensor2d\n")
+        sys.stderr.write("write_Tensor2d: %s\n" % val)
         self.writeObject(val, pathName)
 
     def write_SymTensor2d(self, val, pathName):
