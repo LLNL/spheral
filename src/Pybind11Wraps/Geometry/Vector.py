@@ -169,6 +169,19 @@ class Vector:
     def __repr__(self):
         return
 
+    # # Pickle support
+    # @PYB11implementation("[](const Dim<%(ndim)s>::Vector& self) { return py::make_tuple(self.x(), self.y(), self.z()); }")
+    # def __getnewargs__(self):
+    #     return "py::tuple"
+
+    # @PYB11implementation("[](const Dim<%(ndim)s>::Vector& self) { return py::make_tuple(self.x(), self.y(), self.z()); }")
+    # def __getstate__(self):
+    #     return "py::tuple"
+
+    # @PYB11implementation("[](Dim<%(ndim)s>::Vector& self, const py::tuple& state) { self.x(state[0]); self.y(state[1]); self.z(state[2]); }")
+    # def __setstate__(self):
+    #     return
+
     # Properties
     x = PYB11property("double", getter="x", setter="x", doc="The x coordinate.")
     y = PYB11property("double", getter="y", setter="y", doc="The y coordinate.")
