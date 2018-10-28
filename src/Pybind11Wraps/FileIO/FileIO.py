@@ -157,7 +157,7 @@ def readPlane%(ndim)i(self,
         return "py::handle"
 
     #...........................................................................
-    # We have to explicitly list the template instatiations for std::vector<std::string>
+    # We have to explicitly list the template instatiations for std::vector<>
     # first due to poor overloading selection in pybind11
     @PYB11pycppname("write")
     def writeVecString(self,
@@ -172,6 +172,216 @@ def readPlane%(ndim)i(self,
                 x = "std::vector<std::string>&",
                 pathName = "const std::string"):
         "Read a std::vector<std::string>"
+        return "void"
+    
+    @PYB11pycppname("write")
+    def writeVecInt(self,
+                      x = "const std::vector<int>&",
+                      pathName = "const std::string"):
+        "Write a std::vector<int>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecInt(self,
+                   x = "std::vector<int>&",
+                   pathName = "const std::string"):
+        "Read a std::vector<int>"
+        return "void"
+    
+    @PYB11pycppname("write")
+    def writeVecDouble(self,
+                      x = "const std::vector<double>&",
+                      pathName = "const std::string"):
+        "Write a std::vector<double>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecDouble(self,
+                   x = "std::vector<double>&",
+                   pathName = "const std::string"):
+        "Read a std::vector<double>"
+        return "void"
+    
+    @PYB11pycppname("write")
+    def writeVecVec1d(self,
+                      x = "const std::vector<Dim<1>::Vector>&",
+                      pathName = "const std::string"):
+        "Write a std::vector<Vector1d>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecVec1d(self,
+                     x = "std::vector<Dim<1>::Vector>&",
+                     pathName = "const std::string"):
+        "Read a std::vector<Vector1d>"
+        return "void"
+    
+    @PYB11pycppname("write")
+    def writeVecTen1d(self,
+                      x = "const std::vector<Dim<1>::Tensor>&",
+                      pathName = "const std::string"):
+        "Write a std::vector<Tensor1d>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecTen1d(self,
+                     x = "std::vector<Dim<1>::Tensor>&",
+                     pathName = "const std::string"):
+        "Read a std::vector<Tensor1d>"
+        return "void"
+    
+    @PYB11pycppname("write")
+    def writeVecSymTens1d(self,
+                          x = "const std::vector<Dim<1>::SymTensor>&",
+                          pathName = "const std::string"):
+        "Write a std::vector<SymTensor1d>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecSymTen1d(self,
+                        x = "std::vector<Dim<1>::SymTensor>&",
+                        pathName = "const std::string"):
+        "Read a std::vector<SymTensor1d>"
+        return "void"
+    
+    @PYB11pycppname("write")
+    def writeVecThirdRankTen1d(self,
+                               x = "const std::vector<Dim<1>::ThirdRankTensor>&",
+                               pathName = "const std::string"):
+        "Write a std::vector<ThirdRankTensor1d>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecThirdRankTen1d(self,
+                              x = "std::vector<Dim<1>::ThirdRankTensor>&",
+                              pathName = "const std::string"):
+        "Read a std::vector<ThirdRankTensor1d>"
+        return "void"
+    
+    @PYB11pycppname("write")
+    def writeVecVec2d(self,
+                      x = "const std::vector<Dim<2>::Vector>&",
+                      pathName = "const std::string"):
+        "Write a std::vector<Vector2d>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecVec2d(self,
+                     x = "std::vector<Dim<2>::Vector>&",
+                     pathName = "const std::string"):
+        "Read a std::vector<Vector2d>"
+        return "void"
+    
+    @PYB11pycppname("write")
+    def writeVecTen2d(self,
+                      x = "const std::vector<Dim<2>::Tensor>&",
+                      pathName = "const std::string"):
+        "Write a std::vector<Tensor2d>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecTen2d(self,
+                     x = "std::vector<Dim<2>::Tensor>&",
+                     pathName = "const std::string"):
+        "Read a std::vector<Tensor2d>"
+        return "void"
+    
+    @PYB11pycppname("write")
+    def writeVecSymTens2d(self,
+                          x = "const std::vector<Dim<2>::SymTensor>&",
+                          pathName = "const std::string"):
+        "Write a std::vector<SymTensor2d>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecSymTen2d(self,
+                        x = "std::vector<Dim<2>::SymTensor>&",
+                        pathName = "const std::string"):
+        "Read a std::vector<SymTensor2d>"
+        return "void"
+    
+    @PYB11pycppname("write")
+    def writeVecThirdRankTen2d(self,
+                               x = "const std::vector<Dim<2>::ThirdRankTensor>&",
+                               pathName = "const std::string"):
+        "Write a std::vector<ThirdRankTensor2d>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecThirdRankTen2d(self,
+                              x = "std::vector<Dim<2>::ThirdRankTensor>&",
+                              pathName = "const std::string"):
+        "Read a std::vector<ThirdRankTensor2d>"
+        return "void"
+    
+    @PYB11pycppname("write")
+    def writeVecVec3d(self,
+                      x = "const std::vector<Dim<3>::Vector>&",
+                      pathName = "const std::string"):
+        "Write a std::vector<Vector3d>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecVec3d(self,
+                     x = "std::vector<Dim<3>::Vector>&",
+                     pathName = "const std::string"):
+        "Read a std::vector<Vector3d>"
+        return "void"
+    
+    @PYB11pycppname("write")
+    def writeVecTen3d(self,
+                      x = "const std::vector<Dim<3>::Tensor>&",
+                      pathName = "const std::string"):
+        "Write a std::vector<Tensor3d>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecTen3d(self,
+                     x = "std::vector<Dim<3>::Tensor>&",
+                     pathName = "const std::string"):
+        "Read a std::vector<Tensor3d>"
+        return "void"
+    
+    @PYB11pycppname("write")
+    def writeVecSymTens3d(self,
+                          x = "const std::vector<Dim<3>::SymTensor>&",
+                          pathName = "const std::string"):
+        "Write a std::vector<SymTensor3d>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecSymTen3d(self,
+                        x = "std::vector<Dim<3>::SymTensor>&",
+                        pathName = "const std::string"):
+        "Read a std::vector<SymTensor3d>"
+        return "void"
+    
+    @PYB11pycppname("write")
+    def writeVecThirdRankTen3d(self,
+                               x = "const std::vector<Dim<3>::ThirdRankTensor>&",
+                               pathName = "const std::string"):
+        "Write a std::vector<ThirdRankTensor3d>"
+        return "void"
+
+    @PYB11const
+    @PYB11pycppname("read")
+    def readVecThirdRankTen3d(self,
+                              x = "std::vector<Dim<3>::ThirdRankTensor>&",
+                              pathName = "const std::string"):
+        "Read a std::vector<ThirdRankTensor3d>"
         return "void"
     
     #...........................................................................
@@ -195,23 +405,6 @@ def readPlane%(ndim)i(self,
 
     @PYB11template("Dimension", "Value")
     @PYB11pycppname("write")
-    def writeFieldListVec(self,
-                          fieldList = "const FieldList<%(Dimension)s, std::vector<%(Value)s>>&",
-                          pathName = "const std::string"):
-        "Write a FieldList<%(Dimension)s, std::vector<%(Value)s>>"
-        return "void"
-
-    @PYB11template("Dimension", "Value")
-    @PYB11const
-    @PYB11pycppname("read")
-    def readFieldListVec(self,
-                         fieldList = "FieldList<%(Dimension)s, std::vector<%(Value)s>>&",
-                         pathName = "const std::string"):
-        "Read a FieldList<%(Dimension)s, std::vector<%(Value)s>>"
-        return "void"
-
-    @PYB11template("Dimension", "Value")
-    @PYB11pycppname("write")
     def writeFieldVec(self,
                       field = "const Field<%(Dimension)s, std::vector<%(Value)s>>&",
                       pathName = "const std::string"):
@@ -227,37 +420,6 @@ def readPlane%(ndim)i(self,
         "Read a Field<%(Dimension)s, std::vector<%(Value)s>>"
         return "void"
 
-    @PYB11template("Value")
-    @PYB11pycppname("write")
-    def writeVec(self,
-                 x = "const std::vector<%(Value)s>&",
-                 pathName = "const std::string"):
-        "Write a std::vector<%(Value)s>"
-        return "void"
-
-    @PYB11template("Value")
-    @PYB11const
-    @PYB11pycppname("read")
-    def readVec(self,
-                x = "std::vector<%(Value)s>&",
-                pathName = "const std::string"):
-        "Read a std::vector<%(Value)s>"
-        return "void"
-
-    for T in ["int",
-              "double",
-              #"std::string",
-              "Dim<%i>::Scalar" % ndim,
-              "Dim<%i>::Vector" % ndim,
-              "Dim<%i>::Tensor" % ndim,
-              "Dim<%i>::SymTensor" % ndim,
-              "Dim<%i>::ThirdRankTensor" % ndim]:
-        exec('''
-writeVec%(Tmangle)s = PYB11TemplateMethod(writeVec, template_parameters="%(T)s", pyname="write")
-readVec%(Tmangle)s  = PYB11TemplateMethod(readVec,  template_parameters="%(T)s", pyname="read")
-''' % {"T"         : T,
-       "Tmangle"   : T.replace(":", "_").replace("<", "_").replace(">", "_")})
-
     for ndim in dims:
         for T in ["int",
                   "Dim<%i>::Scalar" % ndim,
@@ -268,9 +430,6 @@ readVec%(Tmangle)s  = PYB11TemplateMethod(readVec,  template_parameters="%(T)s",
             exec('''
 writeFieldList%(Tmangle)s = PYB11TemplateMethod(writeFieldList, template_parameters=("%(Dimension)s", "%(T)s"), pyname="write")
 readFieldList%(Tmangle)s =  PYB11TemplateMethod(readFieldList,  template_parameters=("%(Dimension)s", "%(T)s"), pyname="read")
-
-#writeFieldListVec%(Tmangle)s = PYB11TemplateMethod(writeFieldListVec, template_parameters=("%(Dimension)s", "%(T)s"), pyname="write")
-#readFieldListVec%(Tmangle)s =  PYB11TemplateMethod(readFieldListVec,  template_parameters=("%(Dimension)s", "%(T)s"), pyname="read")
 
 writeFieldVec%(Tmangle)s = PYB11TemplateMethod(writeFieldVec, template_parameters=("%(Dimension)s", "%(T)s"), pyname="write")
 readFieldVec%(Tmangle)s =  PYB11TemplateMethod(readFieldVec,  template_parameters=("%(Dimension)s", "%(T)s"), pyname="read")
