@@ -92,9 +92,6 @@ class GzipFileIO(PyFileIO):
     # Support for writing and reading Fields.
     #---------------------------------------------------------------------------
     def writeFieldObject(self, val, pathName):
-        print "BLAGO"
-        print val.string(self.precision)
-        print "BLAGO"
         self.writeObject(val.string(self.precision), pathName)
         return
 

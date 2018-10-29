@@ -796,457 +796,457 @@ class FileIOTestBase:
             self.removeFile(filename)
         return
 
-    # #---------------------------------------------------------------------------
-    # # IntField1d
-    # #---------------------------------------------------------------------------
-    # def testIntField1d(self):
-    #     v0 = IntField1d("int field 1d control", nodes1d)
-    #     for i in xrange(self.n):
-    #         v0[i] = g.randint(self.intmin, self.intmax)
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestIntField1d", Write)
-    #     f.write(v0, "FileIOTestBase/IntField1d")
-    #     f.close()
-    #     f = self.constructor("TestIntField1d", Read)
-    #     v = IntField1d("int field 1d test", nodes1d)
-    #     f.read(v, "FileIOTestBase/IntField1d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%i != %i @ %i of %i in IntField1d test" %
-    #                         (v[i], v0[i], i, self.n))
-    #     self.removeFile("TestIntField1d")
-    #     return
+    #---------------------------------------------------------------------------
+    # IntField1d
+    #---------------------------------------------------------------------------
+    def testIntField1d(self):
+        v0 = IntField1d("int field 1d control", nodes1d)
+        for i in xrange(self.n):
+            v0[i] = g.randint(self.intmin, self.intmax)
+        assert len(v0) == self.n
+        f = self.constructor("TestIntField1d", Write)
+        f.write(v0, "FileIOTestBase/IntField1d")
+        f.close()
+        f = self.constructor("TestIntField1d", Read)
+        v = IntField1d("int field 1d test", nodes1d)
+        f.read(v, "FileIOTestBase/IntField1d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%i != %i @ %i of %i in IntField1d test" %
+                            (v[i], v0[i], i, self.n))
+        self.removeFile("TestIntField1d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # IntField2d
-    # #---------------------------------------------------------------------------
-    # def testIntField2d(self):
-    #     v0 = IntField2d("int field 2d control", nodes2d)
-    #     for i in xrange(self.n):
-    #         v0[i] = g.randint(self.intmin, self.intmax)
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestIntField2d", Write)
-    #     f.write(v0, "FileIOTestBase/IntField2d")
-    #     f.close()
-    #     f = self.constructor("TestIntField2d", Read)
-    #     v = IntField2d("int field 2d test", nodes2d)
-    #     f.read(v, "FileIOTestBase/IntField2d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%i != %i @ %i of %i in IntField2d test" %
-    #                         (v[i], v0[i], i, self.n))
-    #     self.removeFile("TestIntField2d")
-    #     return
+    #---------------------------------------------------------------------------
+    # IntField2d
+    #---------------------------------------------------------------------------
+    def testIntField2d(self):
+        v0 = IntField2d("int field 2d control", nodes2d)
+        for i in xrange(self.n):
+            v0[i] = g.randint(self.intmin, self.intmax)
+        assert len(v0) == self.n
+        f = self.constructor("TestIntField2d", Write)
+        f.write(v0, "FileIOTestBase/IntField2d")
+        f.close()
+        f = self.constructor("TestIntField2d", Read)
+        v = IntField2d("int field 2d test", nodes2d)
+        f.read(v, "FileIOTestBase/IntField2d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%i != %i @ %i of %i in IntField2d test" %
+                            (v[i], v0[i], i, self.n))
+        self.removeFile("TestIntField2d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # IntField3d
-    # #---------------------------------------------------------------------------
-    # def testIntField3d(self):
-    #     v0 = IntField3d("int field 3d control", nodes3d)
-    #     for i in xrange(self.n):
-    #         v0[i] = g.randint(self.intmin, self.intmax)
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestIntField3d", Write)
-    #     f.write(v0, "FileIOTestBase/IntField3d")
-    #     f.close()
-    #     f = self.constructor("TestIntField3d", Read)
-    #     v = IntField3d("int field 3d test", nodes3d)
-    #     f.read(v, "FileIOTestBase/IntField3d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%i != %i @ %i of %i in IntField3d test" %
-    #                         (v[i], v0[i], i, self.n))
-    #     self.removeFile("TestIntField3d")
-    #     return
+    #---------------------------------------------------------------------------
+    # IntField3d
+    #---------------------------------------------------------------------------
+    def testIntField3d(self):
+        v0 = IntField3d("int field 3d control", nodes3d)
+        for i in xrange(self.n):
+            v0[i] = g.randint(self.intmin, self.intmax)
+        assert len(v0) == self.n
+        f = self.constructor("TestIntField3d", Write)
+        f.write(v0, "FileIOTestBase/IntField3d")
+        f.close()
+        f = self.constructor("TestIntField3d", Read)
+        v = IntField3d("int field 3d test", nodes3d)
+        f.read(v, "FileIOTestBase/IntField3d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%i != %i @ %i of %i in IntField3d test" %
+                            (v[i], v0[i], i, self.n))
+        self.removeFile("TestIntField3d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # ScalarField1d
-    # #---------------------------------------------------------------------------
-    # def testScalarField1d(self):
-    #     v0 = ScalarField1d("scalar field 1d control", nodes1d)
-    #     for i in xrange(self.n):
-    #         v0[i] = g.uniform(self.doublemin, self.doublemax)
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestScalarField1d", Write)
-    #     f.write(v0, "FileIOTestBase/ScalarField1d")
-    #     f.close()
-    #     f = self.constructor("TestScalarField1d", Read)
-    #     v = ScalarField1d("scalar field 1d test", nodes1d)
-    #     f.read(v, "FileIOTestBase/ScalarField1d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%g != %g @ %i of %i in ScalarField1d test" %
-    #                         (v[i], v0[i], i, self.n))
-    #     self.removeFile("TestScalarField1d")
-    #     return
+    #---------------------------------------------------------------------------
+    # ScalarField1d
+    #---------------------------------------------------------------------------
+    def testScalarField1d(self):
+        v0 = ScalarField1d("scalar field 1d control", nodes1d)
+        for i in xrange(self.n):
+            v0[i] = g.uniform(self.doublemin, self.doublemax)
+        assert len(v0) == self.n
+        f = self.constructor("TestScalarField1d", Write)
+        f.write(v0, "FileIOTestBase/ScalarField1d")
+        f.close()
+        f = self.constructor("TestScalarField1d", Read)
+        v = ScalarField1d("scalar field 1d test", nodes1d)
+        f.read(v, "FileIOTestBase/ScalarField1d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%g != %g @ %i of %i in ScalarField1d test" %
+                            (v[i], v0[i], i, self.n))
+        self.removeFile("TestScalarField1d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # ScalarField2d
-    # #---------------------------------------------------------------------------
-    # def testScalarField2d(self):
-    #     v0 = ScalarField2d("scalar field 2d control", nodes2d)
-    #     for i in xrange(self.n):
-    #         v0[i] = g.uniform(self.doublemin, self.doublemax)
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestScalarField2d", Write)
-    #     f.write(v0, "FileIOTestBase/ScalarField2d")
-    #     f.close()
-    #     f = self.constructor("TestScalarField2d", Read)
-    #     v = ScalarField2d("scalar field 2d test", nodes2d)
-    #     f.read(v, "FileIOTestBase/ScalarField2d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%g != %g @ %i of %i in ScalarField2d test" %
-    #                         (v[i], v0[i], i, self.n))
-    #     self.removeFile("TestScalarField2d")
-    #     return
+    #---------------------------------------------------------------------------
+    # ScalarField2d
+    #---------------------------------------------------------------------------
+    def testScalarField2d(self):
+        v0 = ScalarField2d("scalar field 2d control", nodes2d)
+        for i in xrange(self.n):
+            v0[i] = g.uniform(self.doublemin, self.doublemax)
+        assert len(v0) == self.n
+        f = self.constructor("TestScalarField2d", Write)
+        f.write(v0, "FileIOTestBase/ScalarField2d")
+        f.close()
+        f = self.constructor("TestScalarField2d", Read)
+        v = ScalarField2d("scalar field 2d test", nodes2d)
+        f.read(v, "FileIOTestBase/ScalarField2d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%g != %g @ %i of %i in ScalarField2d test" %
+                            (v[i], v0[i], i, self.n))
+        self.removeFile("TestScalarField2d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # ScalarField3d
-    # #---------------------------------------------------------------------------
-    # def testScalarField3d(self):
-    #     v0 = ScalarField3d("scalar field 3d control", nodes3d)
-    #     for i in xrange(self.n):
-    #         v0[i] = g.uniform(self.doublemin, self.doublemax)
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestScalarField3d", Write)
-    #     f.write(v0, "FileIOTestBase/ScalarField3d")
-    #     f.close()
-    #     f = self.constructor("TestScalarField3d", Read)
-    #     v = ScalarField3d("scalar field 3d test", nodes3d)
-    #     f.read(v, "FileIOTestBase/ScalarField3d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%g != %g @ %i of %i in ScalarField3d test" %
-    #                         (v[i], v0[i], i, self.n))
-    #     self.removeFile("TestScalarField3d")
-    #     return
+    #---------------------------------------------------------------------------
+    # ScalarField3d
+    #---------------------------------------------------------------------------
+    def testScalarField3d(self):
+        v0 = ScalarField3d("scalar field 3d control", nodes3d)
+        for i in xrange(self.n):
+            v0[i] = g.uniform(self.doublemin, self.doublemax)
+        assert len(v0) == self.n
+        f = self.constructor("TestScalarField3d", Write)
+        f.write(v0, "FileIOTestBase/ScalarField3d")
+        f.close()
+        f = self.constructor("TestScalarField3d", Read)
+        v = ScalarField3d("scalar field 3d test", nodes3d)
+        f.read(v, "FileIOTestBase/ScalarField3d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%g != %g @ %i of %i in ScalarField3d test" %
+                            (v[i], v0[i], i, self.n))
+        self.removeFile("TestScalarField3d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # VectorField1d
-    # #---------------------------------------------------------------------------
-    # def testVectorField1d(self):
-    #     v0 = VectorField1d("vector field 1d control", nodes1d)
-    #     for i in xrange(self.n):
-    #         v0[i] = Vector1d(g.uniform(self.doublemin, self.doublemax))
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestVectorField1d", Write)
-    #     f.write(v0, "FileIOTestBase/VectorField1d")
-    #     f.close()
-    #     f = self.constructor("TestVectorField1d", Read)
-    #     v = VectorField1d("vector field 1d test", nodes1d)
-    #     f.read(v, "FileIOTestBase/VectorField1d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%s != %s @ %i of %i in VectorField1d test" %
-    #                         (str(v[i]), str(v0[i]), i, self.n))
-    #     self.removeFile("TestVectorField1d")
-    #     return
+    #---------------------------------------------------------------------------
+    # VectorField1d
+    #---------------------------------------------------------------------------
+    def testVectorField1d(self):
+        v0 = VectorField1d("vector field 1d control", nodes1d)
+        for i in xrange(self.n):
+            v0[i] = Vector1d(g.uniform(self.doublemin, self.doublemax))
+        assert len(v0) == self.n
+        f = self.constructor("TestVectorField1d", Write)
+        f.write(v0, "FileIOTestBase/VectorField1d")
+        f.close()
+        f = self.constructor("TestVectorField1d", Read)
+        v = VectorField1d("vector field 1d test", nodes1d)
+        f.read(v, "FileIOTestBase/VectorField1d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%s != %s @ %i of %i in VectorField1d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestVectorField1d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # VectorField2d
-    # #---------------------------------------------------------------------------
-    # def testVectorField2d(self):
-    #     v0 = VectorField2d("vector field 2d control", nodes2d)
-    #     for i in xrange(self.n):
-    #         v0[i] = Vector2d(g.uniform(self.doublemin, self.doublemax),
-    #                          g.uniform(self.doublemin, self.doublemax))
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestVectorField2d", Write)
-    #     f.write(v0, "FileIOTestBase/VectorField2d")
-    #     f.close()
-    #     f = self.constructor("TestVectorField2d", Read)
-    #     v = VectorField2d("vector field 2d test", nodes2d)
-    #     f.read(v, "FileIOTestBase/VectorField2d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%s != %s @ %i of %i in VectorField2d test" %
-    #                         (str(v[i]), str(v0[i]), i, self.n))
-    #     self.removeFile("TestVectorField2d")
-    #     return
+    #---------------------------------------------------------------------------
+    # VectorField2d
+    #---------------------------------------------------------------------------
+    def testVectorField2d(self):
+        v0 = VectorField2d("vector field 2d control", nodes2d)
+        for i in xrange(self.n):
+            v0[i] = Vector2d(g.uniform(self.doublemin, self.doublemax),
+                             g.uniform(self.doublemin, self.doublemax))
+        assert len(v0) == self.n
+        f = self.constructor("TestVectorField2d", Write)
+        f.write(v0, "FileIOTestBase/VectorField2d")
+        f.close()
+        f = self.constructor("TestVectorField2d", Read)
+        v = VectorField2d("vector field 2d test", nodes2d)
+        f.read(v, "FileIOTestBase/VectorField2d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%s != %s @ %i of %i in VectorField2d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestVectorField2d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # VectorField3d
-    # #---------------------------------------------------------------------------
-    # def testVectorField3d(self):
-    #     v0 = VectorField3d("vector field 3d control", nodes3d)
-    #     for i in xrange(self.n):
-    #         v0[i] = Vector3d(g.uniform(self.doublemin, self.doublemax),
-    #                          g.uniform(self.doublemin, self.doublemax),
-    #                          g.uniform(self.doublemin, self.doublemax))
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestVectorField3d", Write)
-    #     f.write(v0, "FileIOTestBase/VectorField3d")
-    #     f.close()
-    #     f = self.constructor("TestVectorField3d", Read)
-    #     v = VectorField3d("vector field 3d test", nodes3d)
-    #     f.read(v, "FileIOTestBase/VectorField3d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%s != %s @ %i of %i in VectorField3d test" %
-    #                         (str(v[i]), str(v0[i]), i, self.n))
-    #     self.removeFile("TestVectorField3d")
-    #     return
+    #---------------------------------------------------------------------------
+    # VectorField3d
+    #---------------------------------------------------------------------------
+    def testVectorField3d(self):
+        v0 = VectorField3d("vector field 3d control", nodes3d)
+        for i in xrange(self.n):
+            v0[i] = Vector3d(g.uniform(self.doublemin, self.doublemax),
+                             g.uniform(self.doublemin, self.doublemax),
+                             g.uniform(self.doublemin, self.doublemax))
+        assert len(v0) == self.n
+        f = self.constructor("TestVectorField3d", Write)
+        f.write(v0, "FileIOTestBase/VectorField3d")
+        f.close()
+        f = self.constructor("TestVectorField3d", Read)
+        v = VectorField3d("vector field 3d test", nodes3d)
+        f.read(v, "FileIOTestBase/VectorField3d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%s != %s @ %i of %i in VectorField3d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestVectorField3d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # TensorField1d
-    # #---------------------------------------------------------------------------
-    # def testTensorField1d(self):
-    #     v0 = TensorField1d("tensor field 1d control", nodes1d)
-    #     for i in xrange(self.n):
-    #         v0[i] = Tensor1d(g.uniform(self.doublemin, self.doublemax))
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestTensorField1d", Write)
-    #     f.write(v0, "FileIOTestBase/TensorField1d")
-    #     f.close()
-    #     f = self.constructor("TestTensorField1d", Read)
-    #     v = TensorField1d("tensor field 1d test", nodes1d)
-    #     f.read(v, "FileIOTestBase/TensorField1d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%s != %s @ %i of %i in TensorField1d test" %
-    #                         (str(v[i]), str(v0[i]), i, self.n))
-    #     self.removeFile("TestTensorField1d")
-    #     return
+    #---------------------------------------------------------------------------
+    # TensorField1d
+    #---------------------------------------------------------------------------
+    def testTensorField1d(self):
+        v0 = TensorField1d("tensor field 1d control", nodes1d)
+        for i in xrange(self.n):
+            v0[i] = Tensor1d(g.uniform(self.doublemin, self.doublemax))
+        assert len(v0) == self.n
+        f = self.constructor("TestTensorField1d", Write)
+        f.write(v0, "FileIOTestBase/TensorField1d")
+        f.close()
+        f = self.constructor("TestTensorField1d", Read)
+        v = TensorField1d("tensor field 1d test", nodes1d)
+        f.read(v, "FileIOTestBase/TensorField1d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%s != %s @ %i of %i in TensorField1d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestTensorField1d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # TensorField2d
-    # #---------------------------------------------------------------------------
-    # def testTensorField2d(self):
-    #     v0 = TensorField2d("tensor field 2d control", nodes2d)
-    #     for i in xrange(self.n):
-    #         v0[i] = Tensor2d(g.uniform(self.doublemin, self.doublemax),
-    #                          g.uniform(self.doublemin, self.doublemax),
-    #                          g.uniform(self.doublemin, self.doublemax),
-    #                          g.uniform(self.doublemin, self.doublemax))
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestTensorField2d", Write)
-    #     f.write(v0, "FileIOTestBase/TensorField2d")
-    #     f.close()
-    #     f = self.constructor("TestTensorField2d", Read)
-    #     v = TensorField2d("tensor field 2d test", nodes2d)
-    #     f.read(v, "FileIOTestBase/TensorField2d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%s != %s @ %i of %i in TensorField2d test" %
-    #                         (str(v[i]), str(v0[i]), i, self.n))
-    #     self.removeFile("TestTensorField2d")
-    #     return
+    #---------------------------------------------------------------------------
+    # TensorField2d
+    #---------------------------------------------------------------------------
+    def testTensorField2d(self):
+        v0 = TensorField2d("tensor field 2d control", nodes2d)
+        for i in xrange(self.n):
+            v0[i] = Tensor2d(g.uniform(self.doublemin, self.doublemax),
+                             g.uniform(self.doublemin, self.doublemax),
+                             g.uniform(self.doublemin, self.doublemax),
+                             g.uniform(self.doublemin, self.doublemax))
+        assert len(v0) == self.n
+        f = self.constructor("TestTensorField2d", Write)
+        f.write(v0, "FileIOTestBase/TensorField2d")
+        f.close()
+        f = self.constructor("TestTensorField2d", Read)
+        v = TensorField2d("tensor field 2d test", nodes2d)
+        f.read(v, "FileIOTestBase/TensorField2d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%s != %s @ %i of %i in TensorField2d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestTensorField2d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # TensorField3d
-    # #---------------------------------------------------------------------------
-    # def testTensorField3d(self):
-    #     v0 = TensorField3d("tensor field 3d control", nodes3d)
-    #     for i in xrange(self.n):
-    #         v0[i] = Tensor3d(g.uniform(self.doublemin, self.doublemax),
-    #                          g.uniform(self.doublemin, self.doublemax),
-    #                          g.uniform(self.doublemin, self.doublemax),
-    #                          g.uniform(self.doublemin, self.doublemax),
-    #                          g.uniform(self.doublemin, self.doublemax),
-    #                          g.uniform(self.doublemin, self.doublemax),
-    #                          g.uniform(self.doublemin, self.doublemax),
-    #                          g.uniform(self.doublemin, self.doublemax),
-    #                          g.uniform(self.doublemin, self.doublemax))
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestTensorField3d", Write)
-    #     f.write(v0, "FileIOTestBase/TensorField3d")
-    #     f.close()
-    #     f = self.constructor("TestTensorField3d", Read)
-    #     v = TensorField3d("tensor field 3d test", nodes3d)
-    #     f.read(v, "FileIOTestBase/TensorField3d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%s != %s @ %i of %i in TensorField3d test" %
-    #                         (str(v[i]), str(v0[i]), i, self.n))
-    #     self.removeFile("TestTensorField3d")
-    #     return
+    #---------------------------------------------------------------------------
+    # TensorField3d
+    #---------------------------------------------------------------------------
+    def testTensorField3d(self):
+        v0 = TensorField3d("tensor field 3d control", nodes3d)
+        for i in xrange(self.n):
+            v0[i] = Tensor3d(g.uniform(self.doublemin, self.doublemax),
+                             g.uniform(self.doublemin, self.doublemax),
+                             g.uniform(self.doublemin, self.doublemax),
+                             g.uniform(self.doublemin, self.doublemax),
+                             g.uniform(self.doublemin, self.doublemax),
+                             g.uniform(self.doublemin, self.doublemax),
+                             g.uniform(self.doublemin, self.doublemax),
+                             g.uniform(self.doublemin, self.doublemax),
+                             g.uniform(self.doublemin, self.doublemax))
+        assert len(v0) == self.n
+        f = self.constructor("TestTensorField3d", Write)
+        f.write(v0, "FileIOTestBase/TensorField3d")
+        f.close()
+        f = self.constructor("TestTensorField3d", Read)
+        v = TensorField3d("tensor field 3d test", nodes3d)
+        f.read(v, "FileIOTestBase/TensorField3d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%s != %s @ %i of %i in TensorField3d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestTensorField3d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # SymTensorField1d
-    # #---------------------------------------------------------------------------
-    # def testSymTensorField1d(self):
-    #     v0 = SymTensorField1d("symtensor field 1d control", nodes1d)
-    #     for i in xrange(self.n):
-    #         v0[i] = SymTensor1d(g.uniform(self.doublemin, self.doublemax))
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestSymTensorField1d", Write)
-    #     f.write(v0, "FileIOTestBase/SymTensorField1d")
-    #     f.close()
-    #     f = self.constructor("TestSymTensorField1d", Read)
-    #     v = SymTensorField1d("symtensor field 1d test", nodes1d)
-    #     f.read(v, "FileIOTestBase/SymTensorField1d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%s != %s @ %i of %i in SymTensorField1d test" %
-    #                         (str(v[i]), str(v0[i]), i, self.n))
-    #     self.removeFile("TestSymTensorField1d")
-    #     return
+    #---------------------------------------------------------------------------
+    # SymTensorField1d
+    #---------------------------------------------------------------------------
+    def testSymTensorField1d(self):
+        v0 = SymTensorField1d("symtensor field 1d control", nodes1d)
+        for i in xrange(self.n):
+            v0[i] = SymTensor1d(g.uniform(self.doublemin, self.doublemax))
+        assert len(v0) == self.n
+        f = self.constructor("TestSymTensorField1d", Write)
+        f.write(v0, "FileIOTestBase/SymTensorField1d")
+        f.close()
+        f = self.constructor("TestSymTensorField1d", Read)
+        v = SymTensorField1d("symtensor field 1d test", nodes1d)
+        f.read(v, "FileIOTestBase/SymTensorField1d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%s != %s @ %i of %i in SymTensorField1d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestSymTensorField1d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # SymTensorField2d
-    # #---------------------------------------------------------------------------
-    # def testSymTensorField2d(self):
-    #     v0 = SymTensorField2d("symtensor field 2d control", nodes2d)
-    #     for i in xrange(self.n):
-    #         xx = g.uniform(self.doublemin, self.doublemax)
-    #         xy = g.uniform(self.doublemin, self.doublemax)
-    #         yy = g.uniform(self.doublemin, self.doublemax)
-    #         v0[i] = SymTensor2d(xx, xy,
-    #                             xy, yy)
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestSymTensorField2d", Write)
-    #     f.write(v0, "FileIOTestBase/SymTensorField2d")
-    #     f.close()
-    #     f = self.constructor("TestSymTensorField2d", Read)
-    #     v = SymTensorField2d("symtensor field 2d test", nodes2d)
-    #     f.read(v, "FileIOTestBase/SymTensorField2d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%s != %s @ %i of %i in SymTensorField2d test" %
-    #                         (str(v[i]), str(v0[i]), i, self.n))
-    #     self.removeFile("TestSymTensorField2d")
-    #     return
+    #---------------------------------------------------------------------------
+    # SymTensorField2d
+    #---------------------------------------------------------------------------
+    def testSymTensorField2d(self):
+        v0 = SymTensorField2d("symtensor field 2d control", nodes2d)
+        for i in xrange(self.n):
+            xx = g.uniform(self.doublemin, self.doublemax)
+            xy = g.uniform(self.doublemin, self.doublemax)
+            yy = g.uniform(self.doublemin, self.doublemax)
+            v0[i] = SymTensor2d(xx, xy,
+                                xy, yy)
+        assert len(v0) == self.n
+        f = self.constructor("TestSymTensorField2d", Write)
+        f.write(v0, "FileIOTestBase/SymTensorField2d")
+        f.close()
+        f = self.constructor("TestSymTensorField2d", Read)
+        v = SymTensorField2d("symtensor field 2d test", nodes2d)
+        f.read(v, "FileIOTestBase/SymTensorField2d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%s != %s @ %i of %i in SymTensorField2d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestSymTensorField2d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # SymTensorField3d
-    # #---------------------------------------------------------------------------
-    # def testSymTensorField3d(self):
-    #     v0 = SymTensorField3d("symtensor field 3d control", nodes3d)
-    #     for i in xrange(self.n):
-    #         xx = g.uniform(self.doublemin, self.doublemax)
-    #         xy = g.uniform(self.doublemin, self.doublemax)
-    #         xz = g.uniform(self.doublemin, self.doublemax)
-    #         yy = g.uniform(self.doublemin, self.doublemax)
-    #         yz = g.uniform(self.doublemin, self.doublemax)
-    #         zz = g.uniform(self.doublemin, self.doublemax)
-    #         v0[i] = SymTensor3d(xx, xy, xz,
-    #                             xy, yy, yz,
-    #                             xz, yz, zz)
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestSymTensorField3d", Write)
-    #     f.write(v0, "FileIOTestBase/SymTensorField3d")
-    #     f.close()
-    #     f = self.constructor("TestSymTensorField3d", Read)
-    #     v = SymTensorField3d("symtensor field 3d test", nodes3d)
-    #     f.read(v, "FileIOTestBase/SymTensorField3d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%s != %s @ %i of %i in SymTensorField3d test" %
-    #                         (str(v[i]), str(v0[i]), i, self.n))
-    #     self.removeFile("TestSymTensorField3d")
-    #     return
+    #---------------------------------------------------------------------------
+    # SymTensorField3d
+    #---------------------------------------------------------------------------
+    def testSymTensorField3d(self):
+        v0 = SymTensorField3d("symtensor field 3d control", nodes3d)
+        for i in xrange(self.n):
+            xx = g.uniform(self.doublemin, self.doublemax)
+            xy = g.uniform(self.doublemin, self.doublemax)
+            xz = g.uniform(self.doublemin, self.doublemax)
+            yy = g.uniform(self.doublemin, self.doublemax)
+            yz = g.uniform(self.doublemin, self.doublemax)
+            zz = g.uniform(self.doublemin, self.doublemax)
+            v0[i] = SymTensor3d(xx, xy, xz,
+                                xy, yy, yz,
+                                xz, yz, zz)
+        assert len(v0) == self.n
+        f = self.constructor("TestSymTensorField3d", Write)
+        f.write(v0, "FileIOTestBase/SymTensorField3d")
+        f.close()
+        f = self.constructor("TestSymTensorField3d", Read)
+        v = SymTensorField3d("symtensor field 3d test", nodes3d)
+        f.read(v, "FileIOTestBase/SymTensorField3d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%s != %s @ %i of %i in SymTensorField3d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestSymTensorField3d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # ThirdRankTensorField1d
-    # #---------------------------------------------------------------------------
-    # def testThirdRankTensorField1d(self):
-    #     v0 = ThirdRankTensorField1d("third rank tensor field 1d control", nodes1d)
-    #     for ii in xrange(self.n):
-    #         v0[ii] = ThirdRankTensor1d()
-    #         for i in xrange(ThirdRankTensor1d.nDimensions):
-    #             for j in xrange(ThirdRankTensor1d.nDimensions):
-    #                 for k in xrange(ThirdRankTensor1d.nDimensions):
-    #                     v0[ii](i, j, k, g.uniform(self.doublemin, self.doublemax))
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestThirdRankTensorField1d", Write)
-    #     f.write(v0, "FileIOTestBase/ThirdRankTensorField1d")
-    #     f.close()
-    #     f = self.constructor("TestThirdRankTensorField1d", Read)
-    #     v = ThirdRankTensorField1d("third rank tensor field 1d test", nodes1d)
-    #     f.read(v, "FileIOTestBase/ThirdRankTensorField1d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%s != %s @ %i of %i in ThirdRankTensorField1d test" %
-    #                         (str(v[i]), str(v0[i]), i, self.n))
-    #     self.removeFile("TestThirdRankTensorField1d")
-    #     return
+    #---------------------------------------------------------------------------
+    # ThirdRankTensorField1d
+    #---------------------------------------------------------------------------
+    def testThirdRankTensorField1d(self):
+        v0 = ThirdRankTensorField1d("third rank tensor field 1d control", nodes1d)
+        for ii in xrange(self.n):
+            v0[ii] = ThirdRankTensor1d()
+            for i in xrange(ThirdRankTensor1d.nDimensions):
+                for j in xrange(ThirdRankTensor1d.nDimensions):
+                    for k in xrange(ThirdRankTensor1d.nDimensions):
+                        v0[ii](i, j, k, g.uniform(self.doublemin, self.doublemax))
+        assert len(v0) == self.n
+        f = self.constructor("TestThirdRankTensorField1d", Write)
+        f.write(v0, "FileIOTestBase/ThirdRankTensorField1d")
+        f.close()
+        f = self.constructor("TestThirdRankTensorField1d", Read)
+        v = ThirdRankTensorField1d("third rank tensor field 1d test", nodes1d)
+        f.read(v, "FileIOTestBase/ThirdRankTensorField1d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%s != %s @ %i of %i in ThirdRankTensorField1d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestThirdRankTensorField1d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # ThirdRankTensorField2d
-    # #---------------------------------------------------------------------------
-    # def testThirdRankTensorField2d(self):
-    #     v0 = ThirdRankTensorField2d("third rank tensor field 2d control", nodes2d)
-    #     for ii in xrange(self.n):
-    #         v0[ii] = ThirdRankTensor2d()
-    #         for i in xrange(ThirdRankTensor2d.nDimensions):
-    #             for j in xrange(ThirdRankTensor2d.nDimensions):
-    #                 for k in xrange(ThirdRankTensor2d.nDimensions):
-    #                     v0[ii](i, j, k, g.uniform(self.doublemin, self.doublemax))
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestThirdRankTensorField2d", Write)
-    #     f.write(v0, "FileIOTestBase/ThirdRankTensorField2d")
-    #     f.close()
-    #     f = self.constructor("TestThirdRankTensorField2d", Read)
-    #     v = ThirdRankTensorField2d("third rank tensor field 2d test", nodes2d)
-    #     f.read(v, "FileIOTestBase/ThirdRankTensorField2d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%s != %s @ %i of %i in ThirdRankTensorField2d test" %
-    #                         (str(v[i]), str(v0[i]), i, self.n))
-    #     self.removeFile("TestThirdRankTensorField2d")
-    #     return
+    #---------------------------------------------------------------------------
+    # ThirdRankTensorField2d
+    #---------------------------------------------------------------------------
+    def testThirdRankTensorField2d(self):
+        v0 = ThirdRankTensorField2d("third rank tensor field 2d control", nodes2d)
+        for ii in xrange(self.n):
+            v0[ii] = ThirdRankTensor2d()
+            for i in xrange(ThirdRankTensor2d.nDimensions):
+                for j in xrange(ThirdRankTensor2d.nDimensions):
+                    for k in xrange(ThirdRankTensor2d.nDimensions):
+                        v0[ii](i, j, k, g.uniform(self.doublemin, self.doublemax))
+        assert len(v0) == self.n
+        f = self.constructor("TestThirdRankTensorField2d", Write)
+        f.write(v0, "FileIOTestBase/ThirdRankTensorField2d")
+        f.close()
+        f = self.constructor("TestThirdRankTensorField2d", Read)
+        v = ThirdRankTensorField2d("third rank tensor field 2d test", nodes2d)
+        f.read(v, "FileIOTestBase/ThirdRankTensorField2d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%s != %s @ %i of %i in ThirdRankTensorField2d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestThirdRankTensorField2d")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # ThirdRankTensorField3d
-    # #---------------------------------------------------------------------------
-    # def testThirdRankTensorField3d(self):
-    #     v0 = ThirdRankTensorField3d("third rank tensor field 3d control", nodes3d)
-    #     for ii in xrange(self.n):
-    #         v0[ii] = ThirdRankTensor3d()
-    #         for i in xrange(ThirdRankTensor3d.nDimensions):
-    #             for j in xrange(ThirdRankTensor3d.nDimensions):
-    #                 for k in xrange(ThirdRankTensor3d.nDimensions):
-    #                     v0[ii](i, j, k, g.uniform(self.doublemin, self.doublemax))
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestThirdRankTensorField3d", Write)
-    #     f.write(v0, "FileIOTestBase/ThirdRankTensorField3d")
-    #     f.close()
-    #     f = self.constructor("TestThirdRankTensorField3d", Read)
-    #     v = ThirdRankTensorField3d("third rank tensor field 3d test", nodes3d)
-    #     f.read(v, "FileIOTestBase/ThirdRankTensorField3d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in xrange(self.n):
-    #         self.failUnless(v[i] == v0[i],
-    #                         "%s != %s @ %i of %i in ThirdRankTensorField3d test" %
-    #                         (str(v[i]), str(v0[i]), i, self.n))
-    #     self.removeFile("TestThirdRankTensorField3d")
-    #     return
+    #---------------------------------------------------------------------------
+    # ThirdRankTensorField3d
+    #---------------------------------------------------------------------------
+    def testThirdRankTensorField3d(self):
+        v0 = ThirdRankTensorField3d("third rank tensor field 3d control", nodes3d)
+        for ii in xrange(self.n):
+            v0[ii] = ThirdRankTensor3d()
+            for i in xrange(ThirdRankTensor3d.nDimensions):
+                for j in xrange(ThirdRankTensor3d.nDimensions):
+                    for k in xrange(ThirdRankTensor3d.nDimensions):
+                        v0[ii](i, j, k, g.uniform(self.doublemin, self.doublemax))
+        assert len(v0) == self.n
+        f = self.constructor("TestThirdRankTensorField3d", Write)
+        f.write(v0, "FileIOTestBase/ThirdRankTensorField3d")
+        f.close()
+        f = self.constructor("TestThirdRankTensorField3d", Read)
+        v = ThirdRankTensorField3d("third rank tensor field 3d test", nodes3d)
+        f.read(v, "FileIOTestBase/ThirdRankTensorField3d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%s != %s @ %i of %i in ThirdRankTensorField3d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestThirdRankTensorField3d")
+        return
 
     # #---------------------------------------------------------------------------
     # # IntFieldList1d

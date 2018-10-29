@@ -132,12 +132,14 @@ class Field(FieldBase):
     #...........................................................................
     # Methods
     @PYB11const
+    @PYB11implementation("[](const Field<%(Dimension)s, %(Value)s>& self, const int precision) -> py::bytes { return py::bytes(self.string(precision)); }")
     def string(self, precision=("const int", "20")):
-        "Serialize to a string"
-        return "std::string"
+        "Serialize Field to a string"
+        return "py::bytes"
 
     @PYB11pycppname("string")
-    def string1(self, s="const std::string&"):
+    @PYB11implementation("[](Field<%(Dimension)s, %(Value)s>& self, const py::bytes& buf) -> void { self.string(static_cast<std::string>(buf)); }")
+    def string1(self, buf="py::bytes&"):
         "Deserialize from a string"
         return "void"
 
