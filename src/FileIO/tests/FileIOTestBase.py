@@ -121,6 +121,7 @@ class FileIOTestBase:
         self.failUnless(x1 == x0,
                         "%s != %s in Vector1d test" % (str(x1), str(x0)))
         self.removeFile("TestVector1d")
+        self.removeFile("TestVector1d-check")
         return
 
     #---------------------------------------------------------------------------
@@ -351,450 +352,449 @@ class FileIOTestBase:
         self.removeFile("TestThirdRankTensor3d")
         return
 
-#     #---------------------------------------------------------------------------
-#     # vector<int>
-#     #---------------------------------------------------------------------------
-#     def testVectorInt(self):
-#         for n in (0, self.n):
-#             filename = "TestVectorInt_%i" % n
-#             v0 = []
-#             for i in xrange(n):
-#                 v0.append(g.randint(self.intmin, self.intmax))
-#             assert len(v0) == n
-#             f = self.constructor(filename, Write)
-#             f.write(v0, "FileIOTestBase/vector_of_int")
-#             f.close()
-#             f = self.constructor(filename, Read)
-#             v = []
-#             f.read(v, "FileIOTestBase/vector_of_int")
-#             f.close()
-#             assert len(v) == len(v0)
-#             for i in xrange(n):
-#                 self.failUnless(v[i] == v0[i],
-#                                 "%i != %i @ %i of %i in vector<int> test" %
-#                                 (v[i], v0[i], i, n))
-#             self.removeFile(filename)
-#             return
+    #---------------------------------------------------------------------------
+    # vector<int>
+    #---------------------------------------------------------------------------
+    def testVectorInt(self):
+        for n in (0, self.n):
+            filename = "TestVectorInt_%i" % n
+            v0 = vector_of_int()
+            for i in xrange(n):
+                v0.append(g.randint(self.intmin, self.intmax))
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_int")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_int()
+            f.read(v, "FileIOTestBase/vector_of_int")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(v[i] == v0[i],
+                                "%i != %i @ %i of %i in vector<int> test" %
+                                (v[i], v0[i], i, n))
+            self.removeFile(filename)
+        return
 
-# ##     #---------------------------------------------------------------------------
-# ##     # vector<bool>
-# ##     #---------------------------------------------------------------------------
-# ##     def testVectorBool(self):
-# ##         v0 = vector_of_bool()
-# ##         for i in xrange(self.n):
-# ##             v0.append(g.choice([True, False]))
-# ##         assert len(v0) == self.n
-# ##         f = self.constructor("TestVectorBool", Write)
-# ##         f.write(v0, "FileIOTestBase/vector_of_bool")
-# ##         f.close()
-# ##         f = self.constructor("TestVectorBool", Read)
-# ##         v = vector_of_bool()
-# ##         f.read(v, "FileIOTestBase/vector_of_bool")
-# ##         f.close()
-# ##         assert len(v) == len(v0)
-# ##         for i in xrange(self.n):
-# ##             self.failUnless(v[i] == v0[i],
-# ##                             "%i != %i @ %i of %i in vector<bool> test" %
-# ##                             (v[i], v0[i], i, self.n))
-# ##         self.removeFile("TestVectorBool")
-# ##         return
+##     #---------------------------------------------------------------------------
+##     # vector<bool>
+##     #---------------------------------------------------------------------------
+##     def testVectorBool(self):
+##         v0 = vector_of_bool()
+##         for i in xrange(self.n):
+##             v0.append(g.choice([True, False]))
+##         assert len(v0) == self.n
+##         f = self.constructor("TestVectorBool", Write)
+##         f.write(v0, "FileIOTestBase/vector_of_bool")
+##         f.close()
+##         f = self.constructor("TestVectorBool", Read)
+##         v = vector_of_bool()
+##         f.read(v, "FileIOTestBase/vector_of_bool")
+##         f.close()
+##         assert len(v) == len(v0)
+##         for i in xrange(self.n):
+##             self.failUnless(v[i] == v0[i],
+##                             "%i != %i @ %i of %i in vector<bool> test" %
+##                             (v[i], v0[i], i, self.n))
+##         self.removeFile("TestVectorBool")
+##         return
 
-#     #---------------------------------------------------------------------------
-#     # vector<double>
-#     #---------------------------------------------------------------------------
-#     def testVectorDouble(self):
-#         v0 = []
-#         for n in (0, self.n):
-#             filename = "TestVectorDouble_%i" % n
-#             for i in xrange(n):
-#                 v0.append(g.uniform(self.doublemin, self.doublemax))
-#             assert len(v0) == n
-#             f = self.constructor(filename, Write)
-#             f.write(v0, "FileIOTestBase/vector_of_double")
-#             f.close()
-#             f = self.constructor(filename, Read)
-#             v = vector_of_double()
-#             f.read(v, "FileIOTestBase/vector_of_double")
-#             f.close()
-#             assert len(v) == len(v0)
-#             for i in xrange(n):
-#                 self.failUnless(v[i] == v0[i],
-#                                 "%g != %g @ %i of %i in vector<double> test" %
-#                                 (v[i], v0[i], i, n))
-#             self.removeFile(filename)
-#             return
+    #---------------------------------------------------------------------------
+    # vector<double>
+    #---------------------------------------------------------------------------
+    def testVectorDouble(self):
+        v0 = vector_of_double()
+        for n in (0, self.n):
+            filename = "TestVectorDouble_%i" % n
+            for i in xrange(n):
+                v0.append(g.uniform(self.doublemin, self.doublemax))
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_double")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_double()
+            f.read(v, "FileIOTestBase/vector_of_double")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(v[i] == v0[i],
+                                "%g != %g @ %i of %i in vector<double> test" %
+                                (v[i], v0[i], i, n))
+            self.removeFile(filename)
+        return
 
-#     #---------------------------------------------------------------------------
-#     # vector<string>
-#     #---------------------------------------------------------------------------
-#     def testVectorString(self):
-#         chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+"
-#         for n in (0, self.n):
-#             filename = "TestVectorString_%i" % n
-#             v0 = vector_of_string()
-#             for i in xrange(n):
-#                 word = ""
-#                 wordlen = g.randint(2, 10)
-#                 for j in xrange(wordlen):
-#                     word += g.choice(chars)
-#                 v0.append(word)
-#             assert len(v0) == n
-#             f = self.constructor(filename, Write)
-#             f.write(v0, "FileIOTestBase/vector_of_string")
-#             f.close()
-#             f = self.constructor(filename, Read)
-#             v = vector_of_string()
-#             f.read(v, "FileIOTestBase/vector_of_string")
-#             f.close()
-#             assert len(v) == len(v0)
-#             for i in xrange(n):
-#                 self.failUnless(str(v[i]) == str(v0[i]),
-#                                 ".%s. != .%s. @ %i of %i in vector<string> test" %
-#                                 (v[i], v0[i], i, n))
-#             self.removeFile(filename)
-#         return
+    #---------------------------------------------------------------------------
+    # vector<string>
+    #---------------------------------------------------------------------------
+    def testVectorString(self):
+        chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+"
+        for n in (0, self.n):
+            filename = "TestVectorString_%i" % n
+            v0 = vector_of_string()
+            for i in xrange(n):
+                word = ""
+                wordlen = g.randint(2, 10)
+                for j in xrange(wordlen):
+                    word += g.choice(chars)
+                v0.append(word)
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_string")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_string()
+            f.read(v, "FileIOTestBase/vector_of_string")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(str(v[i]) == str(v0[i]),
+                                ".%s. != .%s. @ %i of %i in vector<string> test" %
+                                (v[i], v0[i], i, n))
+            self.removeFile(filename)
+        return
 
-#     #---------------------------------------------------------------------------
-#     # vector<Vector1d>
-#     #---------------------------------------------------------------------------
-#     def testVectorVector1d(self):
-#         for n in (0, self.n):
-#             filename = "TestVectorVector1d_%i" % n
-#             v0 = []
-#             for i in xrange(n):
-#                 v0.append(Vector1d(g.uniform(self.doublemin, self.doublemax)))
-#             assert len(v0) == n
-#             f = self.constructor(filename, Write)
-#             f.write(v0, "FileIOTestBase/vector_of_Vector1d")
-#             f.close()
-#             f = self.constructor(filename, Read)
-#             v = vector_of_Vector1d()
-#             f.read(v, "FileIOTestBase/vector_of_Vector1d")
-#             f.close()
-#             assert len(v) == len(v0)
-#             for i in xrange(n):
-#                 self.failUnless(v[i] == v0[i],
-#                                 "%s != %s @ %i of %i in vector<Vector1d> test" %
-#                                 (str(v[i]), str(v0[i]), i, n))
-#             self.removeFile(filename)
-#             return
+    #---------------------------------------------------------------------------
+    # vector<Vector1d>
+    #---------------------------------------------------------------------------
+    def testVectorVector1d(self):
+        for n in (0, self.n):
+            filename = "TestVectorVector1d_%i" % n
+            v0 = vector_of_Vector1d()
+            for i in xrange(n):
+                v0.append(Vector1d(g.uniform(self.doublemin, self.doublemax)))
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_Vector1d")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_Vector1d()
+            f.read(v, "FileIOTestBase/vector_of_Vector1d")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(v[i] == v0[i],
+                                "%s != %s @ %i of %i in vector<Vector1d> test" %
+                                (str(v[i]), str(v0[i]), i, n))
+            self.removeFile(filename)
+        return
 
-    # #---------------------------------------------------------------------------
-    # # vector<Vector2d>
-    # #---------------------------------------------------------------------------
-    # def testVectorVector2d(self):
-    #     for n in (0, self.n):
-    #         filename = "TestVectorVector2d_%i" % n
-    #         v0 = vector_of_Vector2d()
-    #         for i in xrange(n):
-    #             v0.append(Vector2d(g.uniform(self.doublemin, self.doublemax),
-    #                                g.uniform(self.doublemin, self.doublemax)))
-    #         assert len(v0) == n
-    #         f = self.constructor(filename, Write)
-    #         f.write(v0, "FileIOTestBase/vector_of_Vector2d")
-    #         f.close()
-    #         f = self.constructor(filename, Read)
-    #         v = vector_of_Vector2d()
-    #         f.read(v, "FileIOTestBase/vector_of_Vector2d")
-    #         f.close()
-    #         assert len(v) == len(v0)
-    #         for i in xrange(n):
-    #             self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-    #                             "%s != %s @ %i of %i in vector<Vector2d> test" %
-    #                             (str(v[i]), str(v0[i]), i, n))
-    #         self.removeFile(filename)
-    #     del v0, v
-    #     return
+    #---------------------------------------------------------------------------
+    # vector<Vector2d>
+    #---------------------------------------------------------------------------
+    def testVectorVector2d(self):
+        for n in (0, self.n):
+            filename = "TestVectorVector2d_%i" % n
+            v0 = vector_of_Vector2d()
+            for i in xrange(n):
+                v0.append(Vector2d(g.uniform(self.doublemin, self.doublemax),
+                                   g.uniform(self.doublemin, self.doublemax)))
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_Vector2d")
+            f.close()
+            f = self.constructor(filename, Read)
+            v1 = vector_of_Vector2d()
+            f.read(v1, "FileIOTestBase/vector_of_Vector2d")
+            f.close()
+            assert len(v1) == len(v0)
+            for i in xrange(n):
+                self.failUnless(fuzzyEqual(list(v1[i]), list(v0[i])),
+                                "%s != %s @ %i of %i in vector<Vector2d> test" %
+                                (str(v1[i]), str(v0[i]), i, n))
+            self.removeFile(filename)
+        return
 
-    # #---------------------------------------------------------------------------
-    # # vector<Vector3d>
-    # #---------------------------------------------------------------------------
-    # def testVectorVector3d(self):
-    #     for n in (0, self.n):
-    #         filename = "TestVectorVector3d_%i" % n
-    #         v0 = []
-    #         for i in xrange(n):
-    #             v0.append(Vector3d(g.uniform(self.doublemin, self.doublemax),
-    #                                g.uniform(self.doublemin, self.doublemax),
-    #                                g.uniform(self.doublemin, self.doublemax)))
-    #         assert len(v0) == n
-    #         f = self.constructor(filename, Write)
-    #         f.write(v0, "FileIOTestBase/vector_of_Vector3d")
-    #         f.close()
-    #         f = self.constructor(filename, Read)
-    #         v = vector_of_Vector3d()
-    #         f.read(v, "FileIOTestBase/vector_of_Vector3d")
-    #         f.close()
-    #         assert len(v) == len(v0)
-    #         for i in xrange(n):
-    #             self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-    #                             "%s != %s @ %i of %i in vector<Vector3d> test" %
-    #                             (str(v[i]), str(v0[i]), i, n))
-    #         self.removeFile(filename)
-    #     return
+    #---------------------------------------------------------------------------
+    # Vector<Vector3d>
+    #---------------------------------------------------------------------------
+    def testVectorVector3d(self):
+        for n in (0, self.n):
+            filename = "TestVectorVector3d_%i" % n
+            v0 = vector_of_Vector3d()
+            for i in xrange(n):
+                v0.append(Vector3d(g.uniform(self.doublemin, self.doublemax),
+                                   g.uniform(self.doublemin, self.doublemax),
+                                   g.uniform(self.doublemin, self.doublemax)))
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_Vector3d")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_Vector3d()
+            f.read(v, "FileIOTestBase/vector_of_Vector3d")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
+                                "%s != %s @ %i of %i in vector<Vector3d> test" %
+                                (str(v[i]), str(v0[i]), i, n))
+            self.removeFile(filename)
+        return
 
-    # #---------------------------------------------------------------------------
-    # # vector<Tensor1d>
-    # #---------------------------------------------------------------------------
-    # def testVectorTensor1d(self):
-    #     for n in (0, self.n):
-    #         filename = "TestVectorTensor1d_%i" % n
-    #         v0 = []
-    #         for i in xrange(n):
-    #             v0.append(Tensor1d(g.uniform(self.doublemin, self.doublemax)))
-    #         assert len(v0) == n
-    #         f = self.constructor(filename, Write)
-    #         f.write(v0, "FileIOTestBase/vector_of_Tensor1d")
-    #         f.close()
-    #         f = self.constructor(filename, Read)
-    #         v = vector_of_Tensor1d()
-    #         f.read(v, "FileIOTestBase/vector_of_Tensor1d")
-    #         f.close()
-    #         assert len(v) == len(v0)
-    #         for i in xrange(n):
-    #             self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-    #                             "%s != %s @ %i of %i in vector<Tensor1d> test" %
-    #                             (str(v[i]), str(v0[i]), i, n))
-    #         self.removeFile(filename)
-    #     return
+    #---------------------------------------------------------------------------
+    # vector<Tensor1d>
+    #---------------------------------------------------------------------------
+    def testVectorTensor1d(self):
+        for n in (0, self.n):
+            filename = "TestVectorTensor1d_%i" % n
+            v0 = vector_of_Tensor1d()
+            for i in xrange(n):
+                v0.append(Tensor1d(g.uniform(self.doublemin, self.doublemax)))
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_Tensor1d")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_Tensor1d()
+            f.read(v, "FileIOTestBase/vector_of_Tensor1d")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
+                                "%s != %s @ %i of %i in vector<Tensor1d> test" %
+                                (str(v[i]), str(v0[i]), i, n))
+            self.removeFile(filename)
+        return
 
-    # #---------------------------------------------------------------------------
-    # # vector<Tensor2d>
-    # #---------------------------------------------------------------------------
-    # def testVectorTensor2d(self):
-    #     for n in (0, self.n):
-    #         filename = "TestVectorTensor2d_%i" % n
-    #         v0 = []
-    #         for i in xrange(n):
-    #             v0.append(Tensor2d(g.uniform(self.doublemin, self.doublemax),
-    #                                g.uniform(self.doublemin, self.doublemax),
-    #                                g.uniform(self.doublemin, self.doublemax),
-    #                                g.uniform(self.doublemin, self.doublemax)))
-    #         assert len(v0) == n
-    #         f = self.constructor(filename, Write)
-    #         f.write(v0, "FileIOTestBase/vector_of_Tensor2d")
-    #         f.close()
-    #         f = self.constructor(filename, Read)
-    #         v = vector_of_Tensor2d()
-    #         f.read(v, "FileIOTestBase/vector_of_Tensor2d")
-    #         f.close()
-    #         assert len(v) == len(v0)
-    #         for i in xrange(n):
-    #             self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-    #                             "%s != %s @ %i of %i in vector<Tensor2d> test" %
-    #                             (str(v[i]), str(v0[i]), i, n))
-    #         self.removeFile(filename)
-    #     return
+    #---------------------------------------------------------------------------
+    # vector<Tensor2d>
+    #---------------------------------------------------------------------------
+    def testVectorTensor2d(self):
+        for n in (0, self.n):
+            filename = "TestVectorTensor2d_%i" % n
+            v0 = vector_of_Tensor2d()
+            for i in xrange(n):
+                v0.append(Tensor2d(g.uniform(self.doublemin, self.doublemax),
+                                   g.uniform(self.doublemin, self.doublemax),
+                                   g.uniform(self.doublemin, self.doublemax),
+                                   g.uniform(self.doublemin, self.doublemax)))
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_Tensor2d")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_Tensor2d()
+            f.read(v, "FileIOTestBase/vector_of_Tensor2d")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
+                                "%s != %s @ %i of %i in vector<Tensor2d> test" %
+                                (str(v[i]), str(v0[i]), i, n))
+            self.removeFile(filename)
+        return
 
-    # #---------------------------------------------------------------------------
-    # # vector<Tensor3d>
-    # #---------------------------------------------------------------------------
-    # def testVectorTensor3d(self):
-    #     for n in (0, self.n):
-    #         filename = "TestVectorTensor3d_%i" % n
-    #         v0 = []
-    #         for i in xrange(n):
-    #             v0.append(Tensor3d(g.uniform(self.doublemin, self.doublemax),
-    #                                g.uniform(self.doublemin, self.doublemax),
-    #                                g.uniform(self.doublemin, self.doublemax),
-    #                                g.uniform(self.doublemin, self.doublemax),
-    #                                g.uniform(self.doublemin, self.doublemax),
-    #                                g.uniform(self.doublemin, self.doublemax),
-    #                                g.uniform(self.doublemin, self.doublemax),
-    #                                g.uniform(self.doublemin, self.doublemax),
-    #                                g.uniform(self.doublemin, self.doublemax)))
-    #         assert len(v0) == n
-    #         f = self.constructor(filename, Write)
-    #         f.write(v0, "FileIOTestBase/vector_of_Tensor3d")
-    #         f.close()
-    #         f = self.constructor(filename, Read)
-    #         v = vector_of_Tensor3d()
-    #         f.read(v, "FileIOTestBase/vector_of_Tensor3d")
-    #         f.close()
-    #         assert len(v) == len(v0)
-    #         for i in xrange(n):
-    #             self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-    #                             "%s != %s @ %i of %i in vector<Tensor3d> test" %
-    #                             (str(v[i]), str(v0[i]), i, n))
-    #         self.removeFile(filename)
-    #     return
+    #---------------------------------------------------------------------------
+    # vector<Tensor3d>
+    #---------------------------------------------------------------------------
+    def testVectorTensor3d(self):
+        for n in (0, self.n):
+            filename = "TestVectorTensor3d_%i" % n
+            v0 = vector_of_Tensor3d()
+            for i in xrange(n):
+                v0.append(Tensor3d(g.uniform(self.doublemin, self.doublemax),
+                                   g.uniform(self.doublemin, self.doublemax),
+                                   g.uniform(self.doublemin, self.doublemax),
+                                   g.uniform(self.doublemin, self.doublemax),
+                                   g.uniform(self.doublemin, self.doublemax),
+                                   g.uniform(self.doublemin, self.doublemax),
+                                   g.uniform(self.doublemin, self.doublemax),
+                                   g.uniform(self.doublemin, self.doublemax),
+                                   g.uniform(self.doublemin, self.doublemax)))
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_Tensor3d")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_Tensor3d()
+            f.read(v, "FileIOTestBase/vector_of_Tensor3d")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
+                                "%s != %s @ %i of %i in vector<Tensor3d> test" %
+                                (str(v[i]), str(v0[i]), i, n))
+            self.removeFile(filename)
+        return
 
-    # #---------------------------------------------------------------------------
-    # # vector<SymTensor1d>
-    # #---------------------------------------------------------------------------
-    # def testVectorSymTensor1d(self):
-    #     for n in (0, self.n):
-    #         filename = "TestVectorSymTensor1d_%i" % n
-    #         v0 = []
-    #         for i in xrange(n):
-    #             v0.append(SymTensor1d(g.uniform(self.doublemin, self.doublemax)))
-    #         assert len(v0) == n
-    #         f = self.constructor(filename, Write)
-    #         f.write(v0, "FileIOTestBase/vector_of_SymTensor1d")
-    #         f.close()
-    #         f = self.constructor(filename, Read)
-    #         v = vector_of_SymTensor1d()
-    #         f.read(v, "FileIOTestBase/vector_of_SymTensor1d")
-    #         f.close()
-    #         assert len(v) == len(v0)
-    #         for i in xrange(n):
-    #             self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-    #                             "%s != %s @ %i of %i in vector<SymTensor1d> test" %
-    #                             (str(v[i]), str(v0[i]), i, n))
-    #         self.removeFile(filename)
-    #     return
+    #---------------------------------------------------------------------------
+    # vector<SymTensor1d>
+    #---------------------------------------------------------------------------
+    def testVectorSymTensor1d(self):
+        for n in (0, self.n):
+            filename = "TestVectorSymTensor1d_%i" % n
+            v0 = vector_of_SymTensor1d()
+            for i in xrange(n):
+                v0.append(SymTensor1d(g.uniform(self.doublemin, self.doublemax)))
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_SymTensor1d")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_SymTensor1d()
+            f.read(v, "FileIOTestBase/vector_of_SymTensor1d")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
+                                "%s != %s @ %i of %i in vector<SymTensor1d> test" %
+                                (str(v[i]), str(v0[i]), i, n))
+            self.removeFile(filename)
+        return
 
-    # #---------------------------------------------------------------------------
-    # # vector<SymTensor2d>
-    # #---------------------------------------------------------------------------
-    # def testVectorSymTensor2d(self):
-    #     for n in (0, self.n):
-    #         filename = "TestVectorSymTensor2d_%i" % n
-    #         v0 = []
-    #         for i in xrange(n):
-    #             xx = g.uniform(self.doublemin, self.doublemax)
-    #             xy = g.uniform(self.doublemin, self.doublemax)
-    #             yy = g.uniform(self.doublemin, self.doublemax)
-    #             v0.append(SymTensor2d(xx, xy,
-    #                                   xy, yy))
-    #         assert len(v0) == n
-    #         f = self.constructor(filename, Write)
-    #         f.write(v0, "FileIOTestBase/vector_of_SymTensor2d")
-    #         f.close()
-    #         f = self.constructor(filename, Read)
-    #         v = vector_of_SymTensor2d()
-    #         f.read(v, "FileIOTestBase/vector_of_SymTensor2d")
-    #         f.close()
-    #         assert len(v) == len(v0)
-    #         for i in xrange(n):
-    #             self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-    #                             "%s != %s @ %i of %i in vector<SymTensor2d> test" %
-    #                             (str(v[i]), str(v0[i]), i, n))
-    #         self.removeFile(filename)
-    #     return
+    #---------------------------------------------------------------------------
+    # vector<SymTensor2d>
+    #---------------------------------------------------------------------------
+    def testVectorSymTensor2d(self):
+        for n in (0, self.n):
+            filename = "TestVectorSymTensor2d_%i" % n
+            v0 = vector_of_SymTensor2d()
+            for i in xrange(n):
+                xx = g.uniform(self.doublemin, self.doublemax)
+                xy = g.uniform(self.doublemin, self.doublemax)
+                yy = g.uniform(self.doublemin, self.doublemax)
+                v0.append(SymTensor2d(xx, xy,
+                                      xy, yy))
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_SymTensor2d")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_SymTensor2d()
+            f.read(v, "FileIOTestBase/vector_of_SymTensor2d")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
+                                "%s != %s @ %i of %i in vector<SymTensor2d> test" %
+                                (str(v[i]), str(v0[i]), i, n))
+            self.removeFile(filename)
+        return
 
-    # #---------------------------------------------------------------------------
-    # # vector<SymTensor3d>
-    # #---------------------------------------------------------------------------
-    # def testVectorSymTensor3d(self):
-    #     for n in (0, self.n):
-    #         filename = "TestVectorSymTensor3d_%i" % n
-    #         v0 = []
-    #         for i in xrange(n):
-    #             xx = g.uniform(self.doublemin, self.doublemax)
-    #             xy = g.uniform(self.doublemin, self.doublemax)
-    #             xz = g.uniform(self.doublemin, self.doublemax)
-    #             yy = g.uniform(self.doublemin, self.doublemax)
-    #             yz = g.uniform(self.doublemin, self.doublemax)
-    #             zz = g.uniform(self.doublemin, self.doublemax)
-    #             v0.append(SymTensor3d(xx, xy, xz,
-    #                                   xy, yy, yz,
-    #                                   xz, yz, zz))
-    #         assert len(v0) == n
-    #         f = self.constructor(filename, Write)
-    #         f.write(v0, "FileIOTestBase/vector_of_SymTensor3d")
-    #         f.close()
-    #         f = self.constructor(filename, Read)
-    #         v = vector_of_SymTensor3d()
-    #         f.read(v, "FileIOTestBase/vector_of_SymTensor3d")
-    #         f.close()
-    #         assert len(v) == len(v0)
-    #         for i in xrange(n):
-    #             self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-    #                             "%s != %s @ %i of %i in vector<SymTensor3d> test" %
-    #                             (str(v[i]), str(v0[i]), i, n))
-    #         self.removeFile(filename)
-    #     return
+    #---------------------------------------------------------------------------
+    # vector<SymTensor3d>
+    #---------------------------------------------------------------------------
+    def testVectorSymTensor3d(self):
+        for n in (0, self.n):
+            filename = "TestVectorSymTensor3d_%i" % n
+            v0 = vector_of_SymTensor3d()
+            for i in xrange(n):
+                xx = g.uniform(self.doublemin, self.doublemax)
+                xy = g.uniform(self.doublemin, self.doublemax)
+                xz = g.uniform(self.doublemin, self.doublemax)
+                yy = g.uniform(self.doublemin, self.doublemax)
+                yz = g.uniform(self.doublemin, self.doublemax)
+                zz = g.uniform(self.doublemin, self.doublemax)
+                v0.append(SymTensor3d(xx, xy, xz,
+                                      xy, yy, yz,
+                                      xz, yz, zz))
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_SymTensor3d")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_SymTensor3d()
+            f.read(v, "FileIOTestBase/vector_of_SymTensor3d")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
+                                "%s != %s @ %i of %i in vector<SymTensor3d> test" %
+                                (str(v[i]), str(v0[i]), i, n))
+            self.removeFile(filename)
+        return
 
-    # #---------------------------------------------------------------------------
-    # # vector<ThirdRankTensor1d>
-    # #---------------------------------------------------------------------------
-    # def testVectorThirdRankTensor1d(self):
-    #     for n in (0, self.n):
-    #         filename = "TestVectorThirdRankTensor1d_%i" % n
-    #         v0 = []
-    #         for i in xrange(n):
-    #             val = ThirdRankTensor1d()
-    #             for i in xrange(ThirdRankTensor1d.nDimensions):
-    #                 for j in xrange(ThirdRankTensor1d.nDimensions):
-    #                     for k in xrange(ThirdRankTensor1d.nDimensions):
-    #                         val(i, j, k, g.uniform(self.doublemin, self.doublemax))
-    #             v0.append(val)
-    #         assert len(v0) == n
-    #         f = self.constructor(filename, Write)
-    #         f.write(v0, "FileIOTestBase/vector_of_ThirdRankTensor1d")
-    #         f.close()
-    #         f = self.constructor(filename, Read)
-    #         v = vector_of_ThirdRankTensor1d()
-    #         f.read(v, "FileIOTestBase/vector_of_ThirdRankTensor1d")
-    #         f.close()
-    #         assert len(v) == len(v0)
-    #         for i in xrange(n):
-    #             self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-    #                             "%s != %s @ %i of %i in vector<ThirdRankTensor1d> test" %
-    #                             (str(v[i]), str(v0[i]), i, n))
-    #         self.removeFile(filename)
-    #     return
+    #---------------------------------------------------------------------------
+    # vector<ThirdRankTensor1d>
+    #---------------------------------------------------------------------------
+    def testVectorThirdRankTensor1d(self):
+        for n in (0, self.n):
+            filename = "TestVectorThirdRankTensor1d_%i" % n
+            v0 = vector_of_ThirdRankTensor1d()
+            for i in xrange(n):
+                val = ThirdRankTensor1d()
+                for i in xrange(ThirdRankTensor1d.nDimensions):
+                    for j in xrange(ThirdRankTensor1d.nDimensions):
+                        for k in xrange(ThirdRankTensor1d.nDimensions):
+                            val(i, j, k, g.uniform(self.doublemin, self.doublemax))
+                v0.append(val)
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_ThirdRankTensor1d")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_ThirdRankTensor1d()
+            f.read(v, "FileIOTestBase/vector_of_ThirdRankTensor1d")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
+                                "%s != %s @ %i of %i in vector<ThirdRankTensor1d> test" %
+                                (str(v[i]), str(v0[i]), i, n))
+            self.removeFile(filename)
+        return
 
-    # #---------------------------------------------------------------------------
-    # # vector<ThirdRankTensor2d>
-    # #---------------------------------------------------------------------------
-    # def testVectorThirdRankTensor2d(self):
-    #     for n in (0, self.n):
-    #         filename = "TestVectorThirdRankTensor2d_%i" % n
-    #         v0 = []
-    #         for i in xrange(n):
-    #             val = ThirdRankTensor2d()
-    #             for i in xrange(ThirdRankTensor2d.nDimensions):
-    #                 for j in xrange(ThirdRankTensor2d.nDimensions):
-    #                     for k in xrange(ThirdRankTensor2d.nDimensions):
-    #                         val(i, j, k, g.uniform(self.doublemin, self.doublemax))
-    #             v0.append(val)
-    #         assert len(v0) == n
-    #         f = self.constructor(filename, Write)
-    #         f.write(v0, "FileIOTestBase/vector_of_ThirdRankTensor2d")
-    #         f.close()
-    #         f = self.constructor(filename, Read)
-    #         v = vector_of_ThirdRankTensor2d()
-    #         f.read(v, "FileIOTestBase/vector_of_ThirdRankTensor2d")
-    #         f.close()
-    #         assert len(v) == len(v0)
-    #         for i in xrange(n):
-    #             self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-    #                             "%s != %s @ %i of %i in vector<ThirdRankTensor2d> test" %
-    #                             (str(v[i]), str(v0[i]), i, n))
-    #         self.removeFile(filename)
-    #     return
+    #---------------------------------------------------------------------------
+    # vector<ThirdRankTensor2d>
+    #---------------------------------------------------------------------------
+    def testVectorThirdRankTensor2d(self):
+        for n in (0, self.n):
+            filename = "TestVectorThirdRankTensor2d_%i" % n
+            v0 = vector_of_ThirdRankTensor2d()
+            for i in xrange(n):
+                val = ThirdRankTensor2d()
+                for i in xrange(ThirdRankTensor2d.nDimensions):
+                    for j in xrange(ThirdRankTensor2d.nDimensions):
+                        for k in xrange(ThirdRankTensor2d.nDimensions):
+                            val(i, j, k, g.uniform(self.doublemin, self.doublemax))
+                v0.append(val)
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_ThirdRankTensor2d")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_ThirdRankTensor2d()
+            f.read(v, "FileIOTestBase/vector_of_ThirdRankTensor2d")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
+                                "%s != %s @ %i of %i in vector<ThirdRankTensor2d> test" %
+                                (str(v[i]), str(v0[i]), i, n))
+            self.removeFile(filename)
+        return
 
-    # #---------------------------------------------------------------------------
-    # # vector<ThirdRankTensor3d>
-    # #---------------------------------------------------------------------------
-    # def testVectorThirdRankTensor3d(self):
-    #     for n in (0, self.n):
-    #         filename = "TestVectorThirdRankTensor3d_%i" % n
-    #         v0 = []
-    #         for i in xrange(n):
-    #             val = ThirdRankTensor3d()
-    #             for i in xrange(ThirdRankTensor2d.nDimensions):
-    #                 for j in xrange(ThirdRankTensor2d.nDimensions):
-    #                     for k in xrange(ThirdRankTensor2d.nDimensions):
-    #                         val(i, j, k, g.uniform(self.doublemin, self.doublemax))
-    #             v0.append(val)
-    #         assert len(v0) == n
-    #         f = self.constructor(filename, Write)
-    #         f.write(v0, "FileIOTestBase/vector_of_ThirdRankTensor3d")
-    #         f.close()
-    #         f = self.constructor(filename, Read)
-    #         v = vector_of_ThirdRankTensor3d()
-    #         f.read(v, "FileIOTestBase/vector_of_ThirdRankTensor3d")
-    #         f.close()
-    #         assert len(v) == len(v0)
-    #         for i in xrange(n):
-    #             self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-    #                             "%s != %s @ %i of %i in vector<ThirdRankTensor3d> test" %
-    #                             (str(v[i]), str(v0[i]), i, n))
-    #         self.removeFile(filename)
-    #     return
+    #---------------------------------------------------------------------------
+    # vector<ThirdRankTensor3d>
+    #---------------------------------------------------------------------------
+    def testVectorThirdRankTensor3d(self):
+        for n in (0, self.n):
+            filename = "TestVectorThirdRankTensor3d_%i" % n
+            v0 = vector_of_ThirdRankTensor3d()
+            for i in xrange(n):
+                val = ThirdRankTensor3d()
+                for i in xrange(ThirdRankTensor2d.nDimensions):
+                    for j in xrange(ThirdRankTensor2d.nDimensions):
+                        for k in xrange(ThirdRankTensor2d.nDimensions):
+                            val(i, j, k, g.uniform(self.doublemin, self.doublemax))
+                v0.append(val)
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_ThirdRankTensor3d")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_ThirdRankTensor3d()
+            f.read(v, "FileIOTestBase/vector_of_ThirdRankTensor3d")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
+                                "%s != %s @ %i of %i in vector<ThirdRankTensor3d> test" %
+                                (str(v[i]), str(v0[i]), i, n))
+            self.removeFile(filename)
+        return
 
     # #---------------------------------------------------------------------------
     # # IntField1d

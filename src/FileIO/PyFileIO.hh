@@ -71,20 +71,20 @@ public:
 #endif
 
   // Descendent python objects should provide these read methods.
-  virtual void read_Vector1d(Dim<1>::Vector& value, const std::string pathName) const = 0;
-  virtual void read_Tensor1d(Dim<1>::Tensor& value, const std::string pathName) const = 0;
-  virtual void read_SymTensor1d(Dim<1>::SymTensor& value, const std::string pathName) const = 0;
-  virtual void read_ThirdRankTensor1d(Dim<1>::ThirdRankTensor& value, const std::string pathName) const = 0;
+  virtual Dim<1>::Vector read_Vector1d(const std::string pathName) const = 0;
+  virtual Dim<1>::Tensor read_Tensor1d(const std::string pathName) const = 0;
+  virtual Dim<1>::SymTensor read_SymTensor1d(const std::string pathName) const = 0;
+  virtual Dim<1>::ThirdRankTensor read_ThirdRankTensor1d(const std::string pathName) const = 0;
 
-  virtual void read_Vector2d(Dim<2>::Vector& value, const std::string pathName) const = 0;
-  virtual void read_Tensor2d(Dim<2>::Tensor& value, const std::string pathName) const = 0;
-  virtual void read_SymTensor2d(Dim<2>::SymTensor& value, const std::string pathName) const = 0;
-  virtual void read_ThirdRankTensor2d(Dim<2>::ThirdRankTensor& value, const std::string pathName) const = 0;
+  virtual Dim<2>::Vector read_Vector2d(const std::string pathName) const = 0;
+  virtual Dim<2>::Tensor read_Tensor2d(const std::string pathName) const = 0;
+  virtual Dim<2>::SymTensor read_SymTensor2d(const std::string pathName) const = 0;
+  virtual Dim<2>::ThirdRankTensor read_ThirdRankTensor2d(const std::string pathName) const = 0;
 
-  virtual void read_Vector3d(Dim<3>::Vector& value, const std::string pathName) const = 0;
-  virtual void read_Tensor3d(Dim<3>::Tensor& value, const std::string pathName) const = 0;
-  virtual void read_SymTensor3d(Dim<3>::SymTensor& value, const std::string pathName) const = 0;
-  virtual void read_ThirdRankTensor3d(Dim<3>::ThirdRankTensor& value, const std::string pathName) const = 0;
+  virtual Dim<3>::Vector read_Vector3d(const std::string pathName) const = 0;
+  virtual Dim<3>::Tensor read_Tensor3d(const std::string pathName) const = 0;
+  virtual Dim<3>::SymTensor read_SymTensor3d(const std::string pathName) const = 0;
+  virtual Dim<3>::ThirdRankTensor read_ThirdRankTensor3d(const std::string pathName) const = 0;
 
 #ifdef SPHERAL1D
   virtual void read_ScalarField1d(Field<Dim<1>, Dim<1>::Scalar>& field, const std::string pathName) const = 0;
@@ -171,20 +171,20 @@ public:
   virtual void read(double& value, const std::string pathName) const {value = read_double(pathName); }
   virtual void read(std::string& value, const std::string pathName) const { value = read_string(pathName); }
 
-  virtual void read(Dim<1>::Vector& value, const std::string pathName) const { read_Vector1d(value, pathName); }
-  virtual void read(Dim<1>::Tensor& value, const std::string pathName) const { read_Tensor1d(value, pathName); }
-  virtual void read(Dim<1>::SymTensor& value, const std::string pathName) const { read_SymTensor1d(value, pathName); }
-  virtual void read(Dim<1>::ThirdRankTensor& value, const std::string pathName) const { read_ThirdRankTensor1d(value, pathName); }
+  virtual void read(Dim<1>::Vector& value, const std::string pathName) const { value = read_Vector1d(pathName); }
+  virtual void read(Dim<1>::Tensor& value, const std::string pathName) const { value = read_Tensor1d(pathName); }
+  virtual void read(Dim<1>::SymTensor& value, const std::string pathName) const { value = read_SymTensor1d(pathName); }
+  virtual void read(Dim<1>::ThirdRankTensor& value, const std::string pathName) const { value = read_ThirdRankTensor1d(pathName); }
 
-  virtual void read(Dim<2>::Vector& value, const std::string pathName) const { read_Vector2d(value, pathName); }
-  virtual void read(Dim<2>::Tensor& value, const std::string pathName) const { read_Tensor2d(value, pathName); }
-  virtual void read(Dim<2>::SymTensor& value, const std::string pathName) const { read_SymTensor2d(value, pathName); }
-  virtual void read(Dim<2>::ThirdRankTensor& value, const std::string pathName) const { read_ThirdRankTensor2d(value, pathName); }
+  virtual void read(Dim<2>::Vector& value, const std::string pathName) const { value = read_Vector2d(pathName); }
+  virtual void read(Dim<2>::Tensor& value, const std::string pathName) const { value = read_Tensor2d(pathName); }
+  virtual void read(Dim<2>::SymTensor& value, const std::string pathName) const { value = read_SymTensor2d(pathName); }
+  virtual void read(Dim<2>::ThirdRankTensor& value, const std::string pathName) const { value = read_ThirdRankTensor2d(pathName); }
 
-  virtual void read(Dim<3>::Vector& value, const std::string pathName) const { read_Vector3d(value, pathName); }
-  virtual void read(Dim<3>::Tensor& value, const std::string pathName) const { read_Tensor3d(value, pathName); }
-  virtual void read(Dim<3>::SymTensor& value, const std::string pathName) const { read_SymTensor3d(value, pathName); }
-  virtual void read(Dim<3>::ThirdRankTensor& value, const std::string pathName) const { read_ThirdRankTensor3d(value, pathName); }
+  virtual void read(Dim<3>::Vector& value, const std::string pathName) const { value = read_Vector3d(pathName); }
+  virtual void read(Dim<3>::Tensor& value, const std::string pathName) const { value = read_Tensor3d(pathName); }
+  virtual void read(Dim<3>::SymTensor& value, const std::string pathName) const { value = read_SymTensor3d(pathName); }
+  virtual void read(Dim<3>::ThirdRankTensor& value, const std::string pathName) const { value = read_ThirdRankTensor3d(pathName); }
 
 #ifdef SPHERAL1D
   virtual void read(Field<Dim<1>, Dim<1>::Scalar>& value, const std::string pathName) const { read_ScalarField1d(value, pathName); }

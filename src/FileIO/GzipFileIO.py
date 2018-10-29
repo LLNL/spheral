@@ -92,6 +92,9 @@ class GzipFileIO(PyFileIO):
     # Support for writing and reading Fields.
     #---------------------------------------------------------------------------
     def writeFieldObject(self, val, pathName):
+        print "BLAGO"
+        print val.string(self.precision)
+        print "BLAGO"
         self.writeObject(val.string(self.precision), pathName)
         return
 
@@ -276,44 +279,41 @@ class GzipFileIO(PyFileIO):
     def read_double(self, pathName):
         return self.readObject(pathName)
 
-    def read_Vector1d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 1)
-        # stuff = self.readObject(pathName)
-        # print " VECTOR1D> ", stuff[0]
-        # val.x = stuff[0]
+    def read_Vector1d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_Tensor1d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 1)
+    def read_Tensor1d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_SymTensor1d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 1)
+    def read_SymTensor1d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_ThirdRankTensor1d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 1)
+    def read_ThirdRankTensor1d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_Vector2d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 2)
+    def read_Vector2d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_Tensor2d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 4)
+    def read_Tensor2d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_SymTensor2d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 3)
+    def read_SymTensor2d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_ThirdRankTensor2d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 8)
+    def read_ThirdRankTensor2d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_Vector3d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 3)
+    def read_Vector3d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_Tensor3d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 9)
+    def read_Tensor3d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_SymTensor3d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 6)
+    def read_SymTensor3d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_ThirdRankTensor3d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 27)
+    def read_ThirdRankTensor3d(self, pathName):
+        return self.readObject(pathName)
 
     def read_ScalarField1d(self, val, pathName):
         self.readFieldObject(val, pathName)

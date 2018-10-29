@@ -26,6 +26,61 @@ includes = ['"Geometry/Dimension.hh"',
 #-------------------------------------------------------------------------------
 namespaces = ["Spheral"]
 
+preamble = """
+typedef GeomPlane<Dim<1>> Plane1d;
+typedef Dim<1>::Vector Vector1d;
+typedef Dim<1>::Tensor Tensor1d;
+typedef Dim<1>::SymTensor SymTensor1d;
+typedef Dim<1>::ThirdRankTensor ThirdRankTensor1d;
+typedef Dim<1>::FourthRankTensor FourthRankTensor1d;
+typedef Dim<1>::FifthRankTensor FifthRankTensor1d;
+typedef Dim<1>::FacetedVolume FacetedVolume1d;
+typedef GeomPlane<Dim<2>> Plane2d;
+typedef Dim<2>::Vector Vector2d;
+typedef Dim<2>::Tensor Tensor2d;
+typedef Dim<2>::SymTensor SymTensor2d;
+typedef Dim<2>::ThirdRankTensor ThirdRankTensor2d;
+typedef Dim<2>::FourthRankTensor FourthRankTensor2d;
+typedef Dim<2>::FifthRankTensor FifthRankTensor2d;
+typedef Dim<2>::FacetedVolume FacetedVolume2d;
+typedef GeomPlane<Dim<3>> Plane3d;
+typedef Dim<3>::Vector Vector3d;
+typedef Dim<3>::Tensor Tensor3d;
+typedef Dim<3>::SymTensor SymTensor3d;
+typedef Dim<3>::ThirdRankTensor ThirdRankTensor3d;
+typedef Dim<3>::FourthRankTensor FourthRankTensor3d;
+typedef Dim<3>::FifthRankTensor FifthRankTensor3d;
+typedef Dim<3>::FacetedVolume FacetedVolume3d;
+
+
+PYBIND11_MAKE_OPAQUE(std::vector<GeomFacet2d>)
+PYBIND11_MAKE_OPAQUE(std::vector<GeomFacet3d>)
+PYBIND11_MAKE_OPAQUE(std::vector<FacetedVolume1d>)
+PYBIND11_MAKE_OPAQUE(std::vector<FacetedVolume2d>)
+PYBIND11_MAKE_OPAQUE(std::vector<FacetedVolume3d>)
+PYBIND11_MAKE_OPAQUE(std::vector<FifthRankTensor1d>)
+PYBIND11_MAKE_OPAQUE(std::vector<FifthRankTensor2d>)
+PYBIND11_MAKE_OPAQUE(std::vector<FifthRankTensor3d>)
+PYBIND11_MAKE_OPAQUE(std::vector<FourthRankTensor1d>)
+PYBIND11_MAKE_OPAQUE(std::vector<FourthRankTensor2d>)
+PYBIND11_MAKE_OPAQUE(std::vector<FourthRankTensor3d>)
+PYBIND11_MAKE_OPAQUE(std::vector<Plane1d>)
+PYBIND11_MAKE_OPAQUE(std::vector<Plane2d>)
+PYBIND11_MAKE_OPAQUE(std::vector<Plane3d>)
+PYBIND11_MAKE_OPAQUE(std::vector<SymTensor1d>)
+PYBIND11_MAKE_OPAQUE(std::vector<SymTensor2d>)
+PYBIND11_MAKE_OPAQUE(std::vector<SymTensor3d>)
+PYBIND11_MAKE_OPAQUE(std::vector<Tensor1d>)
+PYBIND11_MAKE_OPAQUE(std::vector<Tensor2d>)
+PYBIND11_MAKE_OPAQUE(std::vector<Tensor3d>)
+PYBIND11_MAKE_OPAQUE(std::vector<ThirdRankTensor1d>)
+PYBIND11_MAKE_OPAQUE(std::vector<ThirdRankTensor2d>)
+PYBIND11_MAKE_OPAQUE(std::vector<ThirdRankTensor3d>)
+PYBIND11_MAKE_OPAQUE(std::vector<Vector1d>)
+PYBIND11_MAKE_OPAQUE(std::vector<Vector2d>)
+PYBIND11_MAKE_OPAQUE(std::vector<Vector3d>)
+"""
+
 #-------------------------------------------------------------------------------
 # Enums
 #-------------------------------------------------------------------------------

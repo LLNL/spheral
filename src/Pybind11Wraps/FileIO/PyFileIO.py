@@ -98,86 +98,74 @@ class PyFileIO(FileIO):
     @PYB11pure_virtual
     @PYB11const
     def read_Vector1d(self,
-                      value = "Dim<1>::Vector&",
                       pathName = "const std::string"):
-        return "void"
+        return "Dim<1>::Vector"
   
     @PYB11pure_virtual
     @PYB11const
     def read_Tensor1d(self,
-                      value = "Dim<1>::Tensor&",
                       pathName = "const std::string"):
-        return "void"
+        return "Dim<1>::Tensor"
   
     @PYB11pure_virtual
     @PYB11const
     def read_SymTensor1d(self,
-                         value = "Dim<1>::SymTensor&",
                          pathName = "const std::string"):
-        return "void"
+        return "Dim<1>::SymTensor"
   
     @PYB11pure_virtual
     @PYB11const
     def read_ThirdRankTensor1d(self,
-                               value = "Dim<1>::ThirdRankTensor&",
                                pathName = "const std::string"):
-        return "void"
+        return "Dim<1>::ThirdRankTensor"
   
     @PYB11pure_virtual
     @PYB11const
     def read_Vector2d(self,
-                      value = "Dim<2>::Vector&",
                       pathName = "const std::string"):
-        return "void"
+        return "Dim<2>::Vector"
   
     @PYB11pure_virtual
     @PYB11const
     def read_Tensor2d(self,
-                      value = "Dim<2>::Tensor&",
                       pathName = "const std::string"):
-        return "void"
+        return "Dim<2>::Tensor"
   
     @PYB11pure_virtual
     @PYB11const
     def read_SymTensor2d(self,
-                         value = "Dim<2>::SymTensor&",
                          pathName = "const std::string"):
-        return "void"
+        return "Dim<2>::SymTensor"
   
     @PYB11pure_virtual
     @PYB11const
     def read_ThirdRankTensor2d(self,
-                               value = "Dim<2>::ThirdRankTensor&",
                                pathName = "const std::string"):
-        return "void"
+        return "Dim<2>::ThirdRankTensor"
   
     @PYB11pure_virtual
     @PYB11const
     def read_Vector3d(self,
-                      value = "Dim<3>::Vector&",
                       pathName = "const std::string"):
-        return "void"
+        return "Dim<3>::Vector"
   
     @PYB11pure_virtual
     @PYB11const
     def read_Tensor3d(self,
-                      value = "Dim<3>::Tensor&",
                       pathName = "const std::string"):
-        return "void"
+        return "Dim<3>::Tensor"
   
     @PYB11pure_virtual
     @PYB11const
     def read_SymTensor3d(self,
-                         value = "Dim<3>::SymTensor&",
                          pathName = "const std::string"):
-        return "void"
+        return "Dim<3>::SymTensor"
   
     @PYB11pure_virtual
     @PYB11const
     def read_ThirdRankTensor3d(self,
-                               value = "Dim<3>::ThirdRankTensor&",
                                pathName = "const std::string"):
-        return "void"
+        return "Dim<3>::ThirdRankTensor"
   
     for ndim in dims:
         exec('''
