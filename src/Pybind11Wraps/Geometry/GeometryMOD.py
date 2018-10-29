@@ -15,10 +15,10 @@ preamble = """
 using namespace Spheral;
 
 """
-for ndim in (1, 2, 3):
-    preamble += "typedef GeomPlane<Dim<%i>> Plane%id;\n" % (ndim, ndim)
-    for gtype in geomtypes:
-        preamble += "typedef Dim<%i>::%s %s%id;\n" % (ndim, gtype, gtype, ndim)
+# for ndim in (1, 2, 3):
+#     preamble += "typedef GeomPlane<Dim<%i>> Plane%id;\n" % (ndim, ndim)
+#     for gtype in geomtypes:
+#         preamble += "typedef Dim<%i>::%s %s%id;\n" % (ndim, gtype, gtype, ndim)
 
 # Include files
 includes = ['"Geometry/Dimension.hh"',
@@ -48,12 +48,15 @@ includes = ['"Geometry/Dimension.hh"',
             '<sstream>']
 
 # STL containers
-for gtype in geomtypes + ["Plane"]:
-    for suffix in ("1d", "2d", "3d"):
-        element = gtype + suffix
-        exec('vector_of_%s = PYB11_bind_vector("%s", opaque=True, local=False)' % (element, element))
+for element in geomtypes:
+    for ndim in (1, 2, 3):
+        exec('vector_of_%(mangle)s = PYB11_bind_vector("%(element)s", opaque=True, local=False)' % {"element": "Dim<" + str(ndim) + ">::" + element,
+                                                                                                    "mangle" : element + str(ndim) + "d"})
 vector_of_Facet2d = PYB11_bind_vector("GeomFacet2d", opaque=True, local=False)
 vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True, local=False)
+vector_of_Plane1d = PYB11_bind_vector("GeomPlane<Dim<1>>", opaque=True, local=False)
+vector_of_Plane2d = PYB11_bind_vector("GeomPlane<Dim<2>>", opaque=True, local=False)
+vector_of_Plane3d = PYB11_bind_vector("GeomPlane<Dim<3>>", opaque=True, local=False)
 
 # Get the objects wrapped in other files.
 from Vector import Vector1d, Vector2d, Vector3d
