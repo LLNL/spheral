@@ -13,6 +13,7 @@ dims = spheralDimensions()
 # Includes
 #-------------------------------------------------------------------------------
 includes = ['"Strength/SolidFieldNames.hh"',
+            '"Geometry/Dimension.hh"',
             '<string>']
 
 #-------------------------------------------------------------------------------
