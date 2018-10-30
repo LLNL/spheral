@@ -35,6 +35,12 @@ This method is symplectic in the absence of dissipation."""
     #...........................................................................
     # Virtual methods
     @PYB11virtual
+    @PYB11pycppname("step")
+    def step1(self, maxTime="Scalar"):
+        "Take a step"
+        return "void"
+
+    @PYB11virtual
     @PYB11const
     def label(self):
         return "std::string"

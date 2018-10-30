@@ -39,6 +39,12 @@ sacrificing some accuracy vs. the the true RK2 algorithm."""
     #...........................................................................
     # Virtual methods
     @PYB11virtual
+    @PYB11pycppname("step")
+    def step1(self, maxTime="Scalar"):
+        "Take a step"
+        return "void"
+
+    @PYB11virtual
     @PYB11const
     def label(self):
         return "std::string"
