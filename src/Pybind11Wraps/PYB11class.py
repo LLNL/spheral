@@ -458,57 +458,58 @@ def PYB11generateClass(klass, klassattrs, ssout):
             inst = eval("klassinst.%s" % tname)
             inst(tname, klass, klassattrs, ss)
 
-    # # Helper method to check if the given method spec is already in allmethods
-    # def newOverloadedMethod(meth, allmethods):
-    #     methattrs = PYB11attrs(meth)
-    #     args = PYB11parseArgs(meth)
-    #     overload = False
-    #     for (othername, othermeth) in allmethods:
-    #         othermethattrs = PYB11attrs(othermeth)
-    #         if methattrs["cppname"] == othermethattrs["cppname"]:
-    #             overload = True
-    #             otherargs = PYB11parseArgs(othermeth)
-    #             if otherargs == args:
-    #                 return False
-    #     return overload
+    # Helper method to check if the given method spec is already in allmethods
+    def newOverloadedMethod(meth, allmethods):
+        methattrs = PYB11attrs(meth)
+        args = PYB11parseArgs(meth)
+        overload = False
+        for (othername, othermeth) in allmethods:
+            othermethattrs = PYB11attrs(othermeth)
+            if methattrs["cppname"] == othermethattrs["cppname"]:
+                overload = True
+                otherargs = PYB11parseArgs(othermeth)
+                if otherargs == args:
+                    return False
+        return overload
 
-    # # We also need any overloaded methods from the base classes.
-    # # I'm pretty sure this is a pybind11 bug -- we shouldn't have to explicitly add
-    # # base class overloads.
-    # ss("\n    // Overloaded base methods\n")
-    # for bklass in inspect.getmro(klass)[1:]:
-    #     bklassattrs = PYB11attrs(bklass)
-    #     bcppname = "%(cppname)s" % bklassattrs
-    #     if bklassattrs["template"]:
-    #         bcppname += "<"
-    #         for i, t in enumerate(bklassattrs["template"]):
-    #             if i < len(bklassattrs["template"]) - 1:
-    #                 bcppname += ("%(" + t + ")s, ")
-    #             else:
-    #                 bcppname += ("%(" + t + ")s>")
-    #         bcppname = bcppname % klassattrs["template_dict"]
-    #         bklassattrs["cppname"] = bcppname
-    #     for mname, meth in PYB11ThisClassMethods(bklass):
-    #         if ((not PYB11attrs(meth)["ignore"]) and            # Ignore the method?
-    #             (mname[:6] != "pyinit") and                     # Ignore constructors
-    #             newOverloadedMethod(meth, allmethods)):  # New overload?
-    #             methattrs = PYB11attrs(meth)
-    #             PYB11generic_class_method(bklass, bklassattrs, meth, methattrs, ss)
+    # We also need any overloaded methods from the base classes.
+    # I'm pretty sure this is a pybind11 bug -- we shouldn't have to explicitly add
+    # base class overloads.
+    if klassattrs["exposeBaseOverloads"]:
+        ss("\n    // Overloaded base methods\n")
+        for bklass in inspect.getmro(klass)[1:]:
+            bklassattrs = PYB11attrs(bklass)
+            bcppname = "%(cppname)s" % bklassattrs
+            if bklassattrs["template"]:
+                bcppname += "<"
+                for i, t in enumerate(bklassattrs["template"]):
+                    if i < len(bklassattrs["template"]) - 1:
+                        bcppname += ("%(" + t + ")s, ")
+                    else:
+                        bcppname += ("%(" + t + ")s>")
+                bcppname = bcppname % klassattrs["template_dict"]
+                bklassattrs["cppname"] = bcppname
+            for mname, meth in PYB11ThisClassMethods(bklass):
+                if ((not PYB11attrs(meth)["ignore"]) and            # Ignore the method?
+                    (mname[:6] != "pyinit") and                     # Ignore constructors
+                    newOverloadedMethod(meth, allmethods)):  # New overload?
+                    methattrs = PYB11attrs(meth)
+                    PYB11generic_class_method(bklass, bklassattrs, meth, methattrs, ss)
 
-    #     # Same thing with any base templated methods
-    #     templates = [x for x in dir(bklass) if isinstance(eval("bklass.%s" % x), PYB11TemplateMethod) and x in bklass.__dict__]
-    #     if templates:
-    #         for tname in templates:
-    #             inst = eval("bklass.%s" % tname)
-    #             meth = inst.func_template
-    #             methattrs = PYB11attrs(meth)
-    #             if newOverloadedMethod(meth, allmethods):
-    #                 try:
-    #                     inst(tname, bklass, bklassattrs, ss)
-    #                 except Exception as excpt:
-    #                     #import sys
-    #                     #sys.stderr.write("Encountered ERROR: %s\n" % excpt)
-    #                     raise RuntimeError, "ERROR encountered processing (%s, %s) template instantiation\n    ERROR was: %s %s %s " % (tname, meth, excpt, type(excpt), excpt.args)
+            # Same thing with any base templated methods
+            templates = [x for x in dir(bklass) if isinstance(eval("bklass.%s" % x), PYB11TemplateMethod) and x in bklass.__dict__]
+            if templates:
+                for tname in templates:
+                    inst = eval("bklass.%s" % tname)
+                    meth = inst.func_template
+                    methattrs = PYB11attrs(meth)
+                    if newOverloadedMethod(meth, allmethods):
+                        try:
+                            inst(tname, bklass, bklassattrs, ss)
+                        except Exception as excpt:
+                            #import sys
+                            #sys.stderr.write("Encountered ERROR: %s\n" % excpt)
+                            raise RuntimeError, "ERROR encountered processing (%s, %s) template instantiation\n    ERROR was: %s %s %s " % (tname, meth, excpt, type(excpt), excpt.args)
 
     # Look for any class scope enums and bind them
     enums = [x for x in dir(klassinst) if isinstance(eval("klassinst.%s" % x), PYB11enum) and x in klass.__dict__]

@@ -369,22 +369,23 @@ def PYB11docstring(doc, ss):
 # Read the possible PYB11 generation attributes from the obj
 #-------------------------------------------------------------------------------
 def PYB11attrs(obj):
-    d = {"pyname"         : obj.__name__,
-         "cppname"        : obj.__name__,
-         "ignore"         : False,
-         "namespace"      : "",
-         "singleton"      : False,
-         "dynamic_attr"   : None,
-         "virtual"        : False,
-         "pure_virtual"   : False,
-         "protected"      : False,
-         "const"          : False,
-         "static"         : False,
-         "implementation" : None,
-         "returnpolicy"   : None,
-         "template"       : (),
-         "template_dict"  : {},
-         "module"         : {}}
+    d = {"pyname"                : obj.__name__,
+         "cppname"               : obj.__name__,
+         "ignore"                : False,
+         "namespace"             : "",
+         "singleton"             : False,
+         "exposeBaseOverloads"   : True,
+         "dynamic_attr"          : None,
+         "virtual"               : False,
+         "pure_virtual"          : False,
+         "protected"             : False,
+         "const"                 : False,
+         "static"                : False,
+         "implementation"        : None,
+         "returnpolicy"          : None,
+         "template"              : (),
+         "template_dict"         : {},
+         "module"                : {}}
     for key in d:
         if hasattr(obj, "PYB11" + key):
             d[key] = eval("obj.PYB11%s" % key)
