@@ -180,26 +180,16 @@ public:
   void read(std::vector<float>& value, const std::string pathName) const;
 
   // Write/read FieldLists.
-  template<typename Dimension, typename DataType>
-  void write(const FieldList<Dimension, DataType>& fieldList,
-             const std::string pathName);
-  template<typename Dimension, typename DataType>
-  void read(FieldList<Dimension, DataType>& fieldList,
-            const std::string pathName) const;
+  template<typename Dimension, typename DataType> void write(const FieldList<Dimension, DataType>& fieldList, const std::string pathName);
+  template<typename Dimension, typename DataType> void read(FieldList<Dimension, DataType>& fieldList, const std::string pathName) const;
 
   // Write/read Fields of vectors.
-  template<typename Dimension, typename DataType>
-  void write(const Field<Dimension, std::vector<DataType> >& field,
-             const std::string pathName);
-  template<typename Dimension, typename DataType>
-  void read(Field<Dimension, std::vector<DataType> >& field,
-            const std::string pathName) const;
+  template<typename Dimension, typename DataType> void write(const Field<Dimension, std::vector<DataType> >& field, const std::string pathName);
+  template<typename Dimension, typename DataType> void read(Field<Dimension, std::vector<DataType> >& field, const std::string pathName) const;
 
   // Write/read a vector<DataType> if DataType is a primitive we already know about.
-  template<typename DataType>
-  void write(const std::vector<DataType>& x, const std::string pathName);
-  template<typename DataType>
-  void read(std::vector<DataType>& x, const std::string pathName) const;
+  template<typename DataType> void write(const std::vector<DataType>& x, const std::string pathName);
+  template<typename DataType> void read(std::vector<DataType>& x, const std::string pathName) const;
 
   // A helper function to split a string up into substrings delimited by '/'.
   std::vector<std::string> splitPathComponents(const std::string path) const;

@@ -4,6 +4,7 @@
 from PYB11Generator import *
 from FileIO import *
 from FileIOAbstractMethods import *
+from FileIOTemplateMethods import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
@@ -57,4 +58,4 @@ class FlatFileIO(FileIO):
 # Override the required virtual interface
 #-------------------------------------------------------------------------------
 PYB11inject(FileIOAbstractMethods, FlatFileIO, virtual=True, pure_virtual=False)
-
+PYB11inject(FileIOTemplateMethods, FlatFileIO)

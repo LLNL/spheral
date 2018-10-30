@@ -10,6 +10,7 @@ PKGNAME = FileIO
 PKGDIR = $(PKGNAME)/
 PYB11SRCS = \
 	FileIOAbstractMethods.py \
+	FileIOTemplateMethods.py \
 	FileIO.py \
 	FlatFileIO.py \
 	SiloFileIO.py \

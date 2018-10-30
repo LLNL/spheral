@@ -25,13 +25,13 @@ class GzipFileIO(PyFileIO):
                  access,
                  precision = 20,
                  readToMemory = True):
+        PyFileIO.__init__(self, fileName, access)
 
         # We enforce the convention that gziped files will have the .gz
         # extension.
         if fileName[-3:] != ".gz":
             fileName += ".gz"
         
-        PyFileIO.__init__(self, fileName, access)
         self.precision = precision # "%" + "%i.%ie" % (precision + 3, precision)
         self.readToMemory = readToMemory
         self.open(fileName, access)

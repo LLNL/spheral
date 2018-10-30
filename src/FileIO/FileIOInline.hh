@@ -103,6 +103,7 @@ FileIO::read(FieldList<Dimension, DataType>& fieldList,
     varPath << pathName << "/Field" << elementID;
 
     read(**fieldItr, varPath.str());
+    // std::cerr << "  AFTER READING Field: " << (**fieldItr).size() << std::endl;
   }
 }
 
@@ -212,12 +213,10 @@ FileIO::read(std::vector<DataType>& x, const std::string pathName) const {
   read(numElements, pathName + "/numElements");
   x.resize(numElements);
   CHECK(x.size() == numElements);
-  DataType val;
   for (int i = 0; i < numElements; ++i) {
     std::stringstream elementPathName;
     elementPathName << pathName << "/" << i;
-    read(val, elementPathName.str());
-    x[i] = val;
+    read(x[i], elementPathName.str());
   }
 }
 

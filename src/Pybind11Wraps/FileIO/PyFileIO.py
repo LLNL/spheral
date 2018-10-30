@@ -4,6 +4,7 @@
 from PYB11Generator import *
 from FileIO import *
 from FileIOAbstractMethods import *
+from FileIOTemplateMethods import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
@@ -252,3 +253,4 @@ def read_IntField%(ndim)id(self,
 # Override the required virtual interface
 #-------------------------------------------------------------------------------
 PYB11inject(FileIOAbstractMethods, PyFileIO, virtual=True, pure_virtual=False)
+PYB11inject(FileIOTemplateMethods, PyFileIO)

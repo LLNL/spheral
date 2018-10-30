@@ -36,6 +36,16 @@ def PYB11inject(fromcls, tocls,
             exec('tocls.%s.__dict__["PYB11pure_virtual"] = %s' % (name, pure_virtual))
 
     # Properties
+    from PYB11class import PYB11TemplateMethod
+    names = [x for x in dir(fromcls) if isinstance(eval('fromcls.%s' % x), PYB11TemplateMethod)]
+    for name in names:
+        exec('''tocls.%(name)s = PYB11TemplateMethod(func_template = fromcls.%(name)s.func_template,
+                                                     template_parameters = [x[1] for x in fromcls.%(name)s.template_parameters],
+                                                     cppname = fromcls.%(name)s.cppname,
+                                                     pyname = fromcls.%(name)s.pyname,
+                                                     docext = fromcls.%(name)s.docext)''' % {"name": name})
+
+    # Properties
     from PYB11property import PYB11property
     names = [x for x in dir(fromcls) if isinstance(eval('fromcls.%s' % x), PYB11property)]
     for name in names:
