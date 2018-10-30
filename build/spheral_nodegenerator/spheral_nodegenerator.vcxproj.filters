@@ -27,6 +27,12 @@
     <ClCompile Include="..\..\src\NodeGenerators\readSiloPolyMesh.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\NodeGenerators\compactFacetedVolumesInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\NodeGenerators\compactFacetedVolumesInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\NodeGenerators\fillFacetedVolume.hh">
@@ -38,9 +44,6 @@
     <None Include="..\..\src\NodeGenerators\relaxNodeDistribution.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\NodeGenerators\compactFacetedVolumesInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
     <None Include="..\..\src\NodeGenerators\centroidalRelaxNodesImplInst.cc.py">
       <Filter>Inst Files</Filter>
     </None>
@@ -50,6 +53,9 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\NodeGenerators\relaxNodeDistributionInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\NodeGenerators\compactFacetedVolumesInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
   </ItemGroup>
