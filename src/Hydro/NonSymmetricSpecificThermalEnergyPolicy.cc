@@ -9,9 +9,6 @@
 //
 // Created by JMO, Sat Aug 10 23:03:39 PDT 2013
 //----------------------------------------------------------------------------//
-#include <vector>
-#include <limits>
-
 #include "NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "HydroFieldNames.hh"
 #include "NodeList/NodeList.hh"
@@ -29,8 +26,15 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
 
-namespace Spheral {
+#include <vector>
+#include <limits>
+using std::vector;
+using std::numeric_limits;
+using std::abs;
+using std::min;
+using std::max;
 
+namespace Spheral {
 
 // namespace {
 
