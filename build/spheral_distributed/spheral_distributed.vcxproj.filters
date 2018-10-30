@@ -45,12 +45,6 @@
     <ClCompile Include="..\..\src\Distributed\NestedGridDistributedBoundaryInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\NestedGridRedistributeNodesInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\NestedGridRedistributeNodesInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Distributed\PeanoHilbertOrderRedistributeNodesInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -197,9 +191,6 @@
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Distributed\NestedGridDistributedBoundaryInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Distributed\NestedGridRedistributeNodesInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Distributed\PeanoHilbertOrderRedistributeNodesInst.cc.py">

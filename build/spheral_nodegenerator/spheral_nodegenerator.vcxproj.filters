@@ -13,16 +13,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\NodeGenerators\fillFacetedVolume.cc">
-      <Filter>Inst Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\NodeGenerators\generateCylDistributionFromRZ.cc">
-      <Filter>Inst Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\NodeGenerators\relaxNodeDistributionInst.cc.2.cc">
-      <Filter>Inst Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\NodeGenerators\relaxNodeDistributionInst.cc.3.cc">
-      <Filter>Inst Files</Filter>
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\NodeGenerators\readSiloPolyMesh.cc">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -35,10 +38,33 @@
     <None Include="..\..\src\NodeGenerators\relaxNodeDistribution.hh">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="..\..\src\NodeGenerators\compactFacetedVolumesInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </None>
+    <None Include="..\..\src\NodeGenerators\centroidalRelaxNodesImplInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </None>
+    <None Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenterInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\NodeGenerators\relaxNodeDistributionInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\NodeGenerators\centroidalRelaxNodesImpl.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenter.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\NodeGenerators\compactFacetedVolumes.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\NodeGenerators\readSiloPolyMesh.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

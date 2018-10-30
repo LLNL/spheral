@@ -372,10 +372,14 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\NodeGenerators\fillFacetedVolume.cc" />
     <ClCompile Include="..\..\src\NodeGenerators\generateCylDistributionFromRZ.cc" />
+    <ClCompile Include="..\..\src\NodeGenerators\readSiloPolyMesh.cc" />
     <ClCompile Include="..\..\src\NodeGenerators\relaxNodeDistributionInst.cc.2.cc" />
     <ClCompile Include="..\..\src\NodeGenerators\relaxNodeDistributionInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\src\NodeGenerators\centroidalRelaxNodesImplInst.cc.py" />
+    <None Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenterInst.cc.py" />
+    <None Include="..\..\src\NodeGenerators\compactFacetedVolumesInst.cc.py" />
     <None Include="..\..\src\NodeGenerators\fillFacetedVolume.hh">
       <FileType>Document</FileType>
     </None>
@@ -393,6 +397,12 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\NodeGenerators\centroidalRelaxNodesImpl.hh" />
+    <ClInclude Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenter.hh" />
+    <ClInclude Include="..\..\src\NodeGenerators\compactFacetedVolumes.hh" />
+    <ClInclude Include="..\..\src\NodeGenerators\readSiloPolyMesh.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
