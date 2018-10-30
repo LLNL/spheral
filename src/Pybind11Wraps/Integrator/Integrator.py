@@ -124,6 +124,12 @@ several times during a time step."""
         return "bool"
 
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
+    def physicsPackages(self):
+        "The set of Physics packages registered with the Integrator"
+        return "const std::vector<Physics<%(Dimension)s>*>&"
+
+    @PYB11const
     def uniqueBoundaryConditions(self):
         "Get the unique set of boundary conditions across all physics packages."
         return "std::vector<Boundary<%(Dimension)s>*>"
@@ -169,7 +175,7 @@ into compliance."""
     lastDt = PYB11property("Scalar", "lastDt", "lastDt", doc="Last timestep used")
     dtGrowth = PYB11property("Scalar", "dtGrowth", "dtGrowth", doc="Maximum allowed fractional time step growth")
     dataBase = PYB11property("DataBase<%(Dimension)s>&", "dataBase", returnpolicy="reference_internal", doc="The DataBase of NodeLists")
-    physicsPackages = PYB11property("const std::vector<Physics<%(Dimension)s>*>&", returnpolicy="reference_internal", doc="The set of physics packages")
+    #physicsPackages = PYB11property("const std::vector<Physics<%(Dimension)s>*>&", returnpolicy="reference_internal", doc="The set of physics packages")
     rigorousBoundaries = PYB11property("bool", "rigorousBoundaries", "rigorousBoundaries", doc="Toggle if ghost nodes should be recomputed every derivative estimate")
     updateBoundaryFrequency = PYB11property("int", "updateBoundaryFrequency", "updateBoundaryFrequency", doc="Optionally update the boundary ghost nodes only on this frequency of cycles")
     verbose = PYB11property("bool", "verbose", "verbose", doc="Verbose time step information every step")

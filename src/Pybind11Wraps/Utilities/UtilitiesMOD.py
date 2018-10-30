@@ -409,49 +409,37 @@ def simpsonsIntegrationDouble(function = "const PythonBoundFunctors::SpheralFunc
 # packElement/unpackElement
 #-------------------------------------------------------------------------------
 @PYB11template("T")
-def packElement(x = "const %(T)s&",
-                buffer = "std::vector<char>&"):
-    "Serialize a %(T)s onto a buffer of vector<char>"
-    return "void"
+@PYB11implementation("[](const %(T)s& x) -> py::bytes { std::vector<char> buf; packElement(x, buf); return py::bytes(std::string(buf.begin(), buf.end())); }")
+def packElement(x = "const %(T)s&"):
+    "Serialize a %(T)s into a buffer of py::bytes"
+    return "py::bytes"
 
 @PYB11template("T")
-@PYB11cppname("packElement")
-def packElementVector(x = "const std::vector<%(T)s>&",
-                      buffer = "std::vector<char>&"):
-    "Serialize a vector<%(T)s> onto a buffer of vector<char>"
-    return "void"
-
-@PYB11template("T")
-@PYB11implementation("[](const %(T)s& x) { std::vector<char> buf; packElement(x, buf); return std::string(buf.begin(), buf.end()); }")
-def toString(x = "const %(T)s&"):
-    return "std:string"
-
-@PYB11template("T")
-@PYB11implementation("[](const std::string& x) { %(T)s result; const std::vector<char> buf(x.begin(), x.end()); auto itr = buf.begin(); unpackElement(result, itr, buf.end()); return result; }")
-def fromString(x = "const std::string&"):
+@PYB11implementation("[](const py::bytes& x) -> %(T)s { %(T)s result; const auto sbuf = static_cast<std::string>(x); const std::vector<char> buf(sbuf.begin(), sbuf.end()); auto itr = buf.begin(); unpackElement(result, itr, buf.end()); return result; }")
+def unpackElement(x = "const py::bytes&"):
+    "Deserialize a %(T)s from a py::bytes buffer"
     return "%(T)s"
 
 for type, suffix in (("int", "Int"),
+                     ("unsigned", "Unsigned"),
                      ("double", "Double"),
                      ("uint32_t", "UL"),
                      ("uint64_t", "ULL"),
                      ("Dim<1>::FacetedVolume", "Box1d"),
                      ("Dim<2>::FacetedVolume", "Polygon"),
-                     ("Dim<3>::FacetedVolume", "Polyhedron")):
+                     ("Dim<3>::FacetedVolume", "Polyhedron"),
+                     ("std::vector<int>", "VectorOfInt"),
+                     ("std::vector<unsigned>", "VectorOfUnsigned"),
+                     ("std::vector<float>", "VectorOfFloat"),
+                     ("std::vector<double>", "VectorOfDouble"),
+                     ("std::vector<uint64_t>", "VectorOfULL"),
+                     ("std::vector<std::vector<unsigned>>", "VectorOfVectorOfUnsigned")):
     exec('''
-packElement%(suffix)s       = PYB11TemplateFunction(packElement,       template_parameters="%(type)s")
-packElementVector%(suffix)s = PYB11TemplateFunction(packElementVector, template_parameters="%(type)s")
-toString%(suffix)s          = PYB11TemplateFunction(toString,          template_parameters="%(type)s",              pyname="toString")
-toStringVector%(suffix)s    = PYB11TemplateFunction(toString,          template_parameters="std::vector<%(type)s>", pyname="toString")
-to%(suffix)s                = PYB11TemplateFunction(fromString,        template_parameters="%(type)s")
-toVector%(suffix)s          = PYB11TemplateFunction(fromString,        template_parameters="std::vector<%(type)s>")
-unpackElement%(suffix)s     = PYB11TemplateFunction(fromString,        template_parameters="%(type)s")
+packElement%(suffix)s       = PYB11TemplateFunction(packElement,   template_parameters="%(type)s")   # Backwards compatible name
+packElement2%(suffix)s      = PYB11TemplateFunction(packElement,   template_parameters="%(type)s", pyname="packElement")
+unpackElement%(suffix)s     = PYB11TemplateFunction(unpackElement, template_parameters="%(type)s")
 ''' % {"type"   : type,
        "suffix" : suffix})
-
-packElementVecVecU     = PYB11TemplateFunction(packElementVector, template_parameters="std::vector<unsigned>",              pyname="packElement")
-toStringVecVecU        = PYB11TemplateFunction(toString,          template_parameters="std::vector<std::vector<unsigned>>", pyname="toString")
-toVectorVectorUnsigned = PYB11TemplateFunction(fromString,        template_parameters="std::vector<std::vector<unsigned>>")
 
 #-------------------------------------------------------------------------------
 # Geometry operations only available in 2D/3D.
