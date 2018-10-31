@@ -24,6 +24,41 @@ class PyFileIO(FileIO):
 
     #...........................................................................
     # Abstract interface
+    @PYB11virtual
+    def write_unsigned_int(self,
+                           value = "const unsigned int",
+                           pathName = "const std::string"):
+        "Write an unsigned int"
+        return "void"
+
+    @PYB11virtual
+    def write_int(self,
+                  value = "const int",
+                  pathName = "const std::string"):
+        "Write an int"
+        return "void"
+
+    @PYB11virtual
+    def write_bool(self,
+                   value = "const bool",
+                   pathName = "const std::string"):
+        "Write a bool"
+        return "void"
+
+    @PYB11virtual
+    def write_double(self,
+                     value = "const double",
+                     pathName = "const std::string"):
+        "Write a double"
+        return "void"
+
+    @PYB11virtual
+    def write_string(self,
+                     value = "const std::string",
+                     pathName = "const std::string"):
+        "Write a std::string"
+        return "void"
+
     @PYB11pure_virtual
     def write_Vector1d(self,
                        value = "const Dim<1>::Vector&",
@@ -96,6 +131,41 @@ class PyFileIO(FileIO):
                                 pathName = "const std::string"):
         return "void"
   
+    @PYB11virtual
+    @PYB11const
+    def read_unsigned_int(self,
+                          pathName = "const std::string"):
+        "Read an unsigned int"
+        return "unsigned int"
+
+    @PYB11virtual
+    @PYB11const
+    def read_int(self,
+                 pathName = "const std::string"):
+        "Read an int"
+        return "int"
+
+    @PYB11virtual
+    @PYB11const
+    def read_bool(self,
+                  pathName = "const std::string"):
+        "Read a bool"
+        return "bool"
+
+    @PYB11virtual
+    @PYB11const
+    def read_double(self,
+                    pathName = "const std::string"):
+        "Read a double"
+        return "double"
+
+    @PYB11virtual
+    @PYB11const
+    def read_string(self,
+                    pathName = "const std::string"):
+        "Read a std::string"
+        return "std::string"
+
     @PYB11pure_virtual
     @PYB11const
     def read_Vector1d(self,
