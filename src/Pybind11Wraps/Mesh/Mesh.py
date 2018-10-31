@@ -88,9 +88,10 @@ class Mesh:
         "Reconstruct from a set of generators in a box."
         return "void"
 
-    def reconstruct(self,
-                    generators = "const std::vector<Vector>&",
-                    boundary = "const FacetedVolume&"):
+    @PYB11pycppname("reconstruct")
+    def reconstruct1(self,
+                     generators = "const std::vector<Vector>&",
+                     boundary = "const FacetedVolume&"):
         "Reconstruct from a set of generators in a bounding volume."
         return "void"
 
@@ -129,6 +130,24 @@ class Mesh:
         "Return a Mesh::Zone by index"
         return "const Mesh<%(Dimension)s>::Zone&"
 
+    @PYB11returnpolicy("reference_internal")
+    @PYB11const
+    @PYB11pycppname("zone")
+    def zone1(self,
+              nodeList = "const NodeList<%(Dimension)s>&",
+              i = "const unsigned"):
+        "We also provide the ability to extract the zone corresponding to the given node in a NodeList."
+        return "const Mesh<%(Dimension)s>::Zone&"
+
+    @PYB11returnpolicy("reference_internal")
+    @PYB11const
+    @PYB11pycppname("zone")
+    def zone2(self,
+              nodeListi = "const unsigned",
+              i = "const unsigned"):
+        "We also provide the ability to extract the zone corresponding to the given node in a NodeList."
+        return "const Mesh<%(Dimension)s>::Zone&"
+
     @PYB11const
     @PYB11implementation("[](const Mesh<%(Dimension)s>& self) { return py::make_iterator(self.nodeBegin(), self.nodeEnd()); }, py::keep_alive<0, 1>()")
     def nodes(self):
@@ -154,26 +173,13 @@ class Mesh:
         return "py::list"
 
     @PYB11const
-    def zone(self,
-             nodeList = "const NodeList<%(Dimension)s>&",
-             i = "const unsigned"):
-        "We also provide the ability to extract the zone corresponding to the given node in a NodeList."
-        return "const Mesh<%(Dimension)s>::Zone&"
-
-    @PYB11const
-    def zone(self,
-             nodeListi = "const unsigned",
-             i = "const unsigned"):
-        "We also provide the ability to extract the zone corresponding to the given node in a NodeList."
-        return "const Mesh<%(Dimension)s>::Zone&"
-
-    @PYB11const
     def offset(self, nodeList = "const NodeList<%(Dimension)s>&"):
         "Extract the zone offset for the given NodeList."
         return "unsigned"
 
     @PYB11const
-    def offset(self, nodeListi = "const unsigned"):
+    @PYB11pycppname("offset")
+    def offset1(self, nodeListi = "const unsigned"):
         "Extract the zone offset for the given NodeList."
         return "unsigned"
 
@@ -197,9 +203,10 @@ procedure, so following this operation those shared elements are no longer
 on the surface of the local mesh!"""
         return "void"
 
-    def generateParallelRind(self,
-                             generators = "std::vector<Vector>&",
-                             Hs = "std::vector<SymTensor>&"):
+    @PYB11pycppname("generateParallelRind")
+    def generateParallelRind1(self,
+                              generators = "std::vector<Vector>&",
+                              Hs = "std::vector<SymTensor>&"):
         "This version also exchanges the generators for the rind cells."
         return "void"
 
@@ -265,7 +272,7 @@ on the surface of the local mesh!"""
 
         ID = PYB11property("unsigned")
         position = PYB11property("Vector")
-        zoneIDs = PYB11property("const std::vector<unsigned>&")
+        zoneIDs = PYB11property("const std::vector<unsigned>&", returnpolicy="reference_internal")
 
     #---------------------------------------------------------------------------
     # Mesh::Edge

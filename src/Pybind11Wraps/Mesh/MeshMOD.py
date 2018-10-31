@@ -74,14 +74,15 @@ Return tuple contains (positions, Hs, offsets)."""
                            const bool generateParallelConnectivity,
                            const bool removeBoundaryZones,
                            const double voidThreshold) {
-                               Mesh<%(Dimension)s> mesh;
-                               NodeList<%(Dimension)s> voidNodes("void", 0, 0);
+                               auto mesh = new Mesh<%(Dimension)s>();
+                               auto voidNodes = std::shared_ptr<NodeList<%(Dimension)s>>(new NodeList<%(Dimension)s>("void", 0, 0));
+                               nodeLists.push_back(voidNodes.get());
                                Spheral::generateMesh<%(Dimension)s>(nodeLists.begin(), nodeLists.end(),
                                                                     boundaries.begin(), boundaries.end(),
                                                                     xmin, xmax, meshGhostNodes, generateVoid,
                                                                     generateParallelConnectivity,
                                                                     removeBoundaryZones, voidThreshold,
-                                                                    mesh, voidNodes);
+                                                                    *mesh, *voidNodes);
                                return py::make_tuple(mesh, voidNodes);
                            }''')
 def generateMesh(nodeLists = "const std::vector<NodeList<%(Dimension)s>*>&",
@@ -101,7 +102,7 @@ def generateMesh(nodeLists = "const std::vector<NodeList<%(Dimension)s>*>&",
 #-------------------------------------------------------------------------------
 for ndim in dims:
     exec('''
-%(prefix)sMesh%(ndim)id = PYB11TemplateClass(Mesh, template_parameters="%(Dimension)s")
+%(prefix)sMesh = PYB11TemplateClass(Mesh, template_parameters="%(Dimension)s")
 
 computeGenerators%(ndim)id = PYB11TemplateFunction(computeGenerators, template_parameters="%(Dimension)s")
 generateMesh%(ndim)id = PYB11TemplateFunction(generateMesh, template_parameters="%(Dimension)s")

@@ -181,6 +181,8 @@ mesh, void = generateLineMesh([nodes1],
                               bounds,
                               generateVoid = False,
                               removeBoundaryZones = False)
+sys.stderr.write("BLAGO\n")
+sys.stderr.write("BLAGO: %s %s %i\n" % (str(mesh), str(void), mesh.numZones))
 
 #-------------------------------------------------------------------------------
 # Prepare variables to accumulate the test values.
@@ -233,7 +235,7 @@ for i in xrange(nodes1.numInternalNodes):
     Hi = H[i]
     Hdeti = H[i].Determinant()
     mi = mass[i]
-    Vi = mesh.zone(i).volume()
+    Vi = mesh.zone(i).volume
     fi = f[i]
     Gi = G[i]
 
@@ -243,7 +245,7 @@ for i in xrange(nodes1.numInternalNodes):
     fSVPH[i] = Vi*W0 * fi
     norm[i] = Vi*W0
     if linearConsistent:
-        dfSVPH[i] += Vi*W0 * Gi
+        dfSVPH[i] += Vector(Vi*W0 * Gi)
 
     # Go over them neighbors.
     neighbors = cm.connectivityForNode(nodes1, i)
@@ -253,7 +255,7 @@ for i in xrange(nodes1.numInternalNodes):
         Hj = H[j]
         Hdetj = H[j].Determinant()
         mj = mass[j]
-        Vj = mesh.zone(j).volume()
+        Vj = mesh.zone(j).volume
         fj = f[j]
         Gj = G[j]
 
@@ -269,7 +271,7 @@ for i in xrange(nodes1.numInternalNodes):
         norm[i] += Vj*Wj
         if linearConsistent:
             fSVPH[i] += Vj*Wj * (fj + Gj*rij.x)
-            dfSVPH[i] += Vj*((fj - fi + Gj*rij.x)*gradWj + Gj*Wj)
+            dfSVPH[i] += Vj*((fj - fi + Gj*rij.x)*gradWj + Vector(Gj*Wj))
         else:
             fSVPH[i] += Vj*Wj * fj
             dfSVPH[i] += Vj*gradWj * (fj - fi)
