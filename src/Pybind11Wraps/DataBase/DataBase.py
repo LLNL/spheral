@@ -296,6 +296,7 @@ will get the new value regardless of resetValues."""
     newGlobalThirdRankTensorFieldList  = PYB11TemplateMethod(newGlobalFieldList, template_parameters="ThirdRankTensor")
     newGlobalFourthRankTensorFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="FourthRankTensor")
     newGlobalFifthRankTensorFieldList  = PYB11TemplateMethod(newGlobalFieldList, template_parameters="FifthRankTensor")
+    newGlobalFacetedVolumeFieldList    = PYB11TemplateMethod(newGlobalFieldList, template_parameters="FacetedVolume")
     newGlobalvector_of_doubleFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<double>")
     newGlobalvector_of_VectorFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<Vector>")
 
@@ -307,6 +308,7 @@ will get the new value regardless of resetValues."""
     newFluidThirdRankTensorFieldList  = PYB11TemplateMethod(newFluidFieldList, template_parameters="ThirdRankTensor")
     newFluidFourthRankTensorFieldList = PYB11TemplateMethod(newFluidFieldList, template_parameters="FourthRankTensor")
     newFluidFifthRankTensorFieldList  = PYB11TemplateMethod(newFluidFieldList, template_parameters="FifthRankTensor")
+    newFluidFacetedVolumeFieldList    = PYB11TemplateMethod(newFluidFieldList, template_parameters="FacetedVolume")
     newFluidvector_of_doubleFieldList = PYB11TemplateMethod(newFluidFieldList, template_parameters="std::vector<double>")
     newFluidvector_of_VectorFieldList = PYB11TemplateMethod(newFluidFieldList, template_parameters="std::vector<Vector>")
 
@@ -318,6 +320,7 @@ will get the new value regardless of resetValues."""
     newSolidThirdRankTensorFieldList  = PYB11TemplateMethod(newSolidFieldList, template_parameters="ThirdRankTensor")
     newSolidFourthRankTensorFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="FourthRankTensor")
     newSolidFifthRankTensorFieldList  = PYB11TemplateMethod(newSolidFieldList, template_parameters="FifthRankTensor")
+    newSolidFacetedVolumeFieldList    = PYB11TemplateMethod(newSolidFieldList, template_parameters="FacetedVolume")
     newSolidvector_of_doubleFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<double>")
     newSolidvector_of_VectorFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<Vector>")
 
@@ -329,6 +332,7 @@ will get the new value regardless of resetValues."""
     resizeGlobalThirdRankTensorFieldList  = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="ThirdRankTensor")
     resizeGlobalFourthRankTensorFieldList = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="FourthRankTensor")
     resizeGlobalFifthRankTensorFieldList  = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="FifthRankTensor")
+    resizeGlobalFacetedVolumeFieldList    = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="FacetedVolume")
     resizeGlobalvector_of_doubleFieldList = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="std::vector<double>")
     resizeGlobalvector_of_VectorFieldList = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="std::vector<Vector>")
 
@@ -340,6 +344,7 @@ will get the new value regardless of resetValues."""
     resizeFluidThirdRankTensorFieldList  = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="ThirdRankTensor")
     resizeFluidFourthRankTensorFieldList = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="FourthRankTensor")
     resizeFluidFifthRankTensorFieldList  = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="FifthRankTensor")
+    resizeFluidFacetedVolumeFieldList    = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="FacetedVolume")
     resizeFluidvector_of_doubleFieldList = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="std::vector<double>")
     resizeFluidvector_of_VectorFieldList = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="std::vector<Vector>")
 
@@ -351,6 +356,7 @@ will get the new value regardless of resetValues."""
     resizeSolidThirdRankTensorFieldList  = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="ThirdRankTensor")
     resizeSolidFourthRankTensorFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="FourthRankTensor")
     resizeSolidFifthRankTensorFieldList  = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="FifthRankTensor")
+    resizeSolidFacetedVolumeFieldList    = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="FacetedVolume")
     resizeSolidvector_of_doubleFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="std::vector<double>")
     resizeSolidvector_of_VectorFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="std::vector<Vector>")
 
