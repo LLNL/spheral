@@ -7,7 +7,7 @@ from EOSAbstractMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralSolidMaterial")
-class TillotsonEquationOfState(EquationOfState):
+class TillotsonEquationOfState(SolidEquationOfState):
     """TillotsonEquationOfState -- Tillotson  equation of state.
 
 This equation of state is designed to represent metallic materials
