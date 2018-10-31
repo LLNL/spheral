@@ -24,24 +24,29 @@ rangen = random.Random()
 #  |_____|/
 #  4     5
 #
-cube_points = []
+cube_points = vector_of_Vector()
 for coords in [(0,0,0),  (10,0,0),  (10,10,0),  (0,10,0),
                (0,0,10), (10,0,10), (10,10,10), (0,10,10)]:
     cube_points.append(Vector(*coords))
-cube_neighbors = [[1, 4, 3],
-                  [5, 0, 2],
-                  [3, 6, 1],
-                  [7, 2, 0],
-                  [5, 7, 0],
-                  [1, 6, 4],
-                  [5, 2, 7],
-                  [4, 6, 3]]
-cube_facets = [[4, 5, 6, 7],
-               [1, 2, 6, 5],
-               [0, 3, 2, 1],
-               [4, 7, 3, 0],
-               [6, 2, 3, 7],
-               [1, 5, 4, 0]]
+cube_neighbors = vector_of_vector_of_int()
+for x in [[1, 4, 3],
+          [5, 0, 2],
+          [3, 6, 1],
+          [7, 2, 0],
+          [5, 7, 0],
+          [1, 6, 4],
+          [5, 2, 7],
+          [4, 6, 3]]:
+    cube_neighbors.append(vector_of_int(x))
+
+cube_facets = vector_of_vector_of_unsigned()
+for x in [[4, 5, 6, 7],
+          [1, 2, 6, 5],
+          [0, 3, 2, 1],
+          [4, 7, 3, 0],
+          [6, 2, 3, 7],
+          [1, 5, 4, 0]]:
+    cube_facets.append(vector_of_unsigned(x))
 
 #-------------------------------------------------------------------------------
 # Make a non-convex notched thingy.                            |y     
@@ -62,43 +67,47 @@ cube_facets = [[4, 5, 6, 7],
 #    |------------------------------/
 #    7                             8
 
-notched_points = []
+notched_points = vector_of_Vector()
 for coords in [(0,0,0), (4,0,0), (4,2,0), (3,2,0), (2,1,0), (1,2,0), (0,2,0),
                (0,0,1), (4,0,1), (4,2,1), (3,2,1), (2,1,1), (1,2,1), (0,2,1)]:
     notched_points.append(Vector(*coords))
-notched_neighbors = [[7, 6, 1],   # 0
-                     [0, 2, 8],   # 1
-                     [1, 3, 9],   # 2
-                     [4, 10, 2],  # 3
-                     [5, 11, 3],  # 4
-                     [6, 12, 4],  # 5
-                     [13, 5, 0],  # 6
-                     [8, 13, 0],  # 7
-                     [1, 9, 7],   # 8
-                     [2, 10, 8],  # 9
-                     [9, 3, 11],  # 10
-                     [10, 4, 12], # 11
-                     [11, 5, 13], # 12
-                     [7, 12, 6]]  # 13
-notched_facets = [[6, 5, 4, 3, 2, 1, 0],
-                  [7, 8, 9, 10, 11, 12, 13],
-                  [1, 2, 9, 8],
-                  [2, 3, 10, 9],
-                  [3, 4, 11, 10],
-                  [4, 5, 12, 11],
-                  [5, 6, 13, 12],
-                  [7, 13, 6, 0],
-                  [0, 1, 8, 7]]
+notched_neighbors = vector_of_vector_of_int()
+for x in [[7, 6, 1],   # 0
+          [0, 2, 8],   # 1
+          [1, 3, 9],   # 2
+          [4, 10, 2],  # 3
+          [5, 11, 3],  # 4
+          [6, 12, 4],  # 5
+          [13, 5, 0],  # 6
+          [8, 13, 0],  # 7
+          [1, 9, 7],   # 8
+          [2, 10, 8],  # 9
+          [9, 3, 11],  # 10
+          [10, 4, 12], # 11
+          [11, 5, 13], # 12
+          [7, 12, 6]]: # 13
+    notched_neighbors.append(vector_of_int(x))
+notched_facets = vector_of_vector_of_unsigned()
+for x in [[6, 5, 4, 3, 2, 1, 0],
+          [7, 8, 9, 10, 11, 12, 13],
+          [1, 2, 9, 8],
+          [2, 3, 10, 9],
+          [3, 4, 11, 10],
+          [4, 5, 12, 11],
+          [5, 6, 13, 12],
+          [7, 13, 6, 0],
+          [0, 1, 8, 7]]:
+    notched_facets.append(vector_of_unsigned(x))
 
 #-------------------------------------------------------------------------------
 # A degenerate pyramid.  Just reuse the cube, but collapse one face.
-degenerate_cube_points1 = []
+degenerate_cube_points1 = vector_of_Vector()
 for coords in [(0,0,0), (1,0,0), (1,1,0), (0,1,0),
                (0,0,1), (0,0,1), (0,0,1), (0,0,1)]:
     degenerate_cube_points1.append(Vector(*coords))
 
 # Another one collapsing a different vertex.
-degenerate_cube_points2 = []
+degenerate_cube_points2 = vector_of_Vector()
 for coords in [(0,0,0),  (10,0,0),  (10,10,0),  (10,10,0),
                (0,0,10), (10,0,10), (10,10,0), (10,10,0)]:
     degenerate_cube_points2.append(Vector(*coords))
