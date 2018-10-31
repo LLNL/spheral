@@ -75,8 +75,8 @@ Return tuple contains (positions, Hs, offsets)."""
                            const bool removeBoundaryZones,
                            const double voidThreshold) {
                                auto mesh = new Mesh<%(Dimension)s>();
-                               auto voidNodes = std::shared_ptr<NodeList<%(Dimension)s>>(new NodeList<%(Dimension)s>("void", 0, 0));
-                               nodeLists.push_back(voidNodes.get());
+                               auto voidNodes = new NodeList<%(Dimension)s>("void", 0, 0);
+                               nodeLists.push_back(voidNodes);
                                Spheral::generateMesh<%(Dimension)s>(nodeLists.begin(), nodeLists.end(),
                                                                     boundaries.begin(), boundaries.end(),
                                                                     xmin, xmax, meshGhostNodes, generateVoid,

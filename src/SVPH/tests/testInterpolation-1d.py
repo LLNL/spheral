@@ -181,8 +181,6 @@ mesh, void = generateLineMesh([nodes1],
                               bounds,
                               generateVoid = False,
                               removeBoundaryZones = False)
-sys.stderr.write("BLAGO\n")
-sys.stderr.write("BLAGO: %s %s %i\n" % (str(mesh), str(void), mesh.numZones))
 
 #-------------------------------------------------------------------------------
 # Prepare variables to accumulate the test values.
