@@ -17,6 +17,9 @@ class TestSampleMultipleFields2Lattice:
     #---------------------------------------------------------------------------
     def testSample(self):
 
+        for bc in self.bcs:
+            print "REDUX Ghost nodes for ", bc, " : ", bc.numGhostNodes
+
         if self.ndim == 1:
             from Spheral1d import (ScalarFieldList, VectorFieldList, TensorFieldList, SymTensorFieldList, 
                                    FieldListSet, sampleMultipleFields2LatticeMash,
@@ -175,26 +178,26 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
         p0 = Plane1d(Vector1d(0.0), Vector1d(1.0))
         p1 = Plane1d(Vector1d(1.0), Vector1d(-1.0))
         xbc = PeriodicBoundary1d(p0, p1)
-        bcs = [xbc]
-        try:
+        self.bcs = [xbc]
+        if mpi.procs > 1:
             dbc = BoundingVolumeDistributedBoundary1d.instance()
-            bcs.append(dbc)
-        except:
-            pass
+            self.bcs.append(dbc)
+        print "self.bcs: ", self.bcs
 
         # Enforce boundaries.
         db = DataBase1d()
         db.appendNodeList(self.nodes)
-        for bc in bcs:
+        for bc in self.bcs:
             bc.setAllGhostNodes(db)
             bc.finalizeGhostBoundary()
             self.neighbor.updateNodes()
-        for bc in bcs:
+            print "Ghost nodes for ", bc, " : ", bc.numGhostNodes
+        for bc in self.bcs:
             bc.applyGhostBoundary(self.nodes.mass())
             bc.applyGhostBoundary(self.nodes.massDensity())
             bc.applyGhostBoundary(self.nodes.specificThermalEnergy())
             bc.applyGhostBoundary(self.nodes.velocity())
-        for bc in bcs:
+        for bc in self.bcs:
             bc.finalizeGhostBoundary()
 
         self.H0 = self.nodes.Hfield()[0]
@@ -262,26 +265,24 @@ class TestSampleMultipleFields2Lattice2d(TestSampleMultipleFields2Lattice,
         py1 = Plane2d(Vector2d(0.0, 1.0), Vector2d(0.0, -1.0))
         xbc = PeriodicBoundary2d(px0, px1)
         ybc = PeriodicBoundary2d(py0, py1)
-        bcs = [xbc, ybc]
-        try:
+        self.bcs = [xbc, ybc]
+        if mpi.procs > 1:
             dbc = BoundingVolumeDistributedBoundary2d.instance()
-            bcs.append(dbc)
-        except:
-            pass
+            self.bcs.append(dbc)
 
         # Enforce boundaries.
         db = DataBase2d()
         db.appendNodeList(self.nodes)
-        for bc in bcs:
+        for bc in self.bcs:
             bc.setAllGhostNodes(db)
             bc.finalizeGhostBoundary()
             self.neighbor.updateNodes()
-        for bc in bcs:
+        for bc in self.bcs:
             bc.applyGhostBoundary(self.nodes.mass())
             bc.applyGhostBoundary(self.nodes.massDensity())
             bc.applyGhostBoundary(self.nodes.specificThermalEnergy())
             bc.applyGhostBoundary(self.nodes.velocity())
-        for bc in bcs:
+        for bc in self.bcs:
             bc.finalizeGhostBoundary()
 
         self.H0 = self.nodes.Hfield()[0]
