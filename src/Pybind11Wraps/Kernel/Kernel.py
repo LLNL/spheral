@@ -11,9 +11,6 @@ class Kernel:
     typedef typename %(Dimension)s::SymTensor SymTensor;
 """
 
-    # def pyinit(self):
-    #     "Default constructor"
-
     @PYB11const
     def __call__(self,
                  etaMagnitude = "double",
@@ -21,100 +18,31 @@ class Kernel:
         "Return the kernel value at the given normalized radius"
         return "double"
 
-    #...........................................................................
+    @PYB11pyname("__call__")
+    @PYB11cppname("operator()")
     @PYB11const
-    def kernelValue(self,
-                    etaMagnitude = "double",
-                    Hdet = "const double&"):
-        "Return the value of the kernel"
-        return "double"
-
-    @PYB11pycppname("kernelValue")
-    @PYB11const
-    def kernelValue1(self,
-              etaMagnitude = "double",
+    def call1(self,
+              eta = "const Vector&",
               H = "const SymTensor&"):
-        "Return the value of the kernel"
+        "Return the kernel value at the given normalized radius"
         return "double"
 
-    @PYB11pycppname("kernelValue")
+    @PYB11pyname("__call__")
+    @PYB11cppname("operator()")
     @PYB11const
-    def kernelValue2(self,
+    def call2(self,
+              etaMagnitude = "double",
+              Hdet = "const double&"):
+        "Return the kernel value at the given normalized radius"
+        return "double"
+
+    @PYB11pyname("__call__")
+    @PYB11cppname("operator()")
+    @PYB11const
+    def call3(self,
               eta = "const Vector&",
               Hdet = "const double&"):
-        "Return the value of the kernel"
-        return "double"
-
-    @PYB11pycppname("kernelValue")
-    @PYB11const
-    def kernelValue3(self,
-              eta = "const Vector&",
-              H = "const SymTensor&"):
-        "Return the value of the kernel"
-        return "double"
-
-    #...........................................................................
-    @PYB11const
-    def gradValue(self,
-                    etaMagnitude = "double",
-                    Hdet = "const double&"):
-        "Return the value of the gradient of the kernel"
-        return "double"
-
-    @PYB11pycppname("gradValue")
-    @PYB11const
-    def gradValue1(self,
-              etaMagnitude = "double",
-              H = "const SymTensor&"):
-        "Return the value of the gradient of the kernel"
-        return "double"
-
-    @PYB11pycppname("gradValue")
-    @PYB11const
-    def gradValue2(self,
-              eta = "const Vector&",
-              Hdet = "const double&"):
-        "Return the value of the gradient of the kernel"
-        return "double"
-
-    @PYB11pycppname("gradValue")
-    @PYB11const
-    def gradValue3(self,
-              eta = "const Vector&",
-              H = "const SymTensor&"):
-        "Return the value of the gradient of the kernel"
-        return "double"
-
-    #...........................................................................
-    @PYB11const
-    def grad2Value(self,
-                   etaMagnitude = "double",
-                   Hdet = "const double&"):
-        "Return the value of the second derivative of the kernel"
-        return "double"
-
-    @PYB11pycppname("grad2Value")
-    @PYB11const
-    def grad2Value1(self,
-              etaMagnitude = "double",
-              H = "const SymTensor&"):
-        "Return the value of the second derivative of the kernel"
-        return "double"
-
-    @PYB11pycppname("grad2Value")
-    @PYB11const
-    def grad2Value2(self,
-              eta = "const Vector&",
-              Hdet = "const double&"):
-        "Return the value of the second derivative of the kernel"
-        return "double"
-
-    @PYB11pycppname("grad2Value")
-    @PYB11const
-    def grad2Value3(self,
-              eta = "const Vector&",
-              H = "const SymTensor&"):
-        "Return the value of the second derivative of the kernel"
+        "Return the kernel value at the given normalized radius"
         return "double"
 
     #...........................................................................
@@ -217,6 +145,28 @@ class Kernel:
         return "double"
 
     #...........................................................................
+    @PYB11const
+    def kernelValue(self,
+                    etaMagnitude = "double",
+                    Hdet = "double"):
+        "Return the value of the kernel"
+        return "double"
+
+    @PYB11const
+    def gradValue(self,
+                  etaMagnitude = "double",
+                  Hdet = "double"):
+        "Return the value of the gradient of the kernel"
+        return "double"
+
+    @PYB11const
+    def grad2Value(self,
+                   etaMagnitude = "double",
+                   Hdet = "const double&"):
+        "Return the value of the second derivative of the kernel"
+        return "double"
+
+    #...........................................................................
     # Protected methods
     @PYB11protected
     @PYB11const
@@ -295,16 +245,7 @@ class PiGaussianKernel(Kernel):
                K = "double"):
         "Construct with K"
 
-    @PYB11ignore
-    @PYB11const
-    def getK(self):
-        return "double"
-
-    @PYB11ignore
-    def setK(self, val="double"):
-        return "void"
-
-    K = property(getK, setK, "Set the K constant")
+    K = PYB11property("double", "getK", "setK", "Set the K constant")
 
 #-------------------------------------------------------------------------------
 # Hat
@@ -316,31 +257,9 @@ class HatKernel(Kernel):
                eta0 = "double",
                W0 = "double"):
         "Construct with (eta0, K)"
-
-    @PYB11ignore
-    @PYB11pycppname("eta0")
-    @PYB11const
-    def geteta0(self):
-        return "double"
-
-    @PYB11ignore
-    @PYB11cppname("eta0")
-    def seteta0(self, val="double"):
-        return "void"
     
-    @PYB11ignore
-    @PYB11pycppname("W0")
-    @PYB11const
-    def getW0(self):
-        return "double"
-
-    @PYB11ignore
-    @PYB11cppname("W0")
-    def setW0(self, val="double"):
-        return "void"
-    
-    eta0 = property(geteta0, seteta0, "eta0")
-    W0 = property(geteta0, seteta0, "W0")
+    eta0 = PYB11property("double", "eta0", "eta0")
+    W0 = PYB11property("double", "W0", "W0")
 
 #-------------------------------------------------------------------------------
 # Sinc
@@ -383,17 +302,7 @@ class NBSplineKernel(Kernel):
     def oneSidedPowerFunction(self, s="double", exponent="int"):
         return "double"
 
-    @PYB11ignore
-    @PYB11const
-    @PYB11pycppname("order")
-    def getOrder(self):
-        return "int"
-
-    @PYB11ignore
-    def setOrder(self, val="int"):
-        return "void"
-
-    order = property(getOrder, setOrder, "The order of the kernel")
+    order = PYB11property("int", "order", "setOrder", "The order of the kernel")
 
 #-------------------------------------------------------------------------------
 # Table
@@ -542,36 +451,11 @@ class TableKernel(Kernel):
 
     #...........................................................................
     # Properties
-    @PYB11pycppname("nperhValues")
-    @PYB11const
-    def getnperhValues(self):
-        return "std::vector<double>"
-
-    @PYB11pycppname("WsumValues")
-    @PYB11const
-    def getWsumValues(self):
-        return "std::vector<double>"
-
-    @PYB11pycppname("numPoints")
-    @PYB11const
-    def getnumPoints(self):
-        return "int"
-
-    @PYB11pycppname("stepSize")
-    @PYB11const
-    def getstepSize(self):
-        return "double"
-
-    @PYB11pycppname("stepSizeInv")
-    @PYB11const
-    def getstepSizeInv(self):
-        return "double"
-
-    nperhValues = property(getnperhValues, doc="The lookup table used for finding nperh")
-    WsumValues = property(getWsumValues, doc="The lookup table of Wsum values")
-    numPoints = property(getnumPoints, doc="The number of points in the table")
-    stepSize = property(getstepSize, doc="The step size in eta for the lookup table")
-    stepSizeInv = property(getstepSizeInv, doc="1/(step size) in eta for the lookup table")
+    nperhValues = PYB11property("const std::vector<double>&", returnpolicy="reference_internal", doc="The lookup table used for finding nperh")
+    WsumValues = PYB11property("const std::vector<double>&", returnpolicy="reference_internal", doc="The lookup table of Wsum values")
+    numPoints = PYB11property("int", doc="The number of points in the table")
+    stepSize = PYB11property("double", doc="The step size in eta for the lookup table")
+    stepSizeInv = PYB11property("double", doc="1/(step size) in eta for the lookup table")
 
 #-------------------------------------------------------------------------------
 # WendlandC2
