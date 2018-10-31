@@ -172,11 +172,12 @@ class DataBase:
         return "void"
 
     @PYB11const
-    def boundingBox(self,
-                    xmin = "Vector&",
-                    xmax = "Vector&",
-                    mask = "const FieldList<%(Dimension)s, int>&",
-                    ghost = ("const bool", "true")):
+    @PYB11pycppname("boundingBox")
+    def boundingBox1(self,
+                     xmin = "Vector&",
+                     xmax = "Vector&",
+                     mask = "const FieldList<%(Dimension)s, int>&",
+                     ghost = ("const bool", "true")):
         "Compute coordinates bounding all nodes in the DataBase."
         return "void"
 
