@@ -7,7 +7,7 @@ from EOSAbstractMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralSolidMaterial")
-class LinearPolynomialEquationOfState(EquationOfState):
+class LinearPolynomialEquationOfState(SolidEquationOfState):
     """LinearPolynomialEquationOfState -- An equation of state approximated by a
 linear polynomial, i.e.:
 

@@ -7,7 +7,7 @@ from EOSAbstractMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralSolidMaterial")
-class GruneisenEquationOfState(EquationOfState):
+class GruneisenEquationOfState(SolidEquationOfState):
     """GruneisenEquationOfState -- Gruneisen  equation of state.
 
 Reference: Equation of State and Strength of Properties of Selected Materials

@@ -7,7 +7,7 @@ from EOSAbstractMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralSolidMaterial")
-class MurnahanEquationOfState(EquationOfState):
+class MurnahanEquationOfState(SolidEquationOfState):
     """MurnahanEquationOfState -- Murnahan  equation of state.
 
   P(rho) = 1/(nK) * (eta^n - 1)
