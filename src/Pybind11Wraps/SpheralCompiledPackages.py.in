@@ -3,5 +3,8 @@
 # ------------------------------------------------------------------------------
 pkgs = "@PYTHONPKGS@"
 for package in pkgs.split():
-    if package != "PolyClipper":
+    if not package in ("PolyClipper", "SpheralSilo"):
         exec("from Spheral%s import *" % package)
+
+if "Silo" in pkgs:
+    import SpheralSilo as silo
