@@ -40,7 +40,7 @@ class PYB11property:
         return
 
     def __call__(self, propname, klassattrs, ss):
-        if self.getter is None:
+        if not self.getterraw and self.getter is None:
             self.getter = propname
 
         if self.static:
@@ -49,17 +49,18 @@ class PYB11property:
             else:
                 proptype = "_readonly_static"
         else:
-            if self.setter:
+            if self.setter or self.setterraw:
                 proptype = ""
             else:
                 proptype = "_readonly"
 
-        ss('    obj.def_property%s("%s", (%s ' % (proptype, propname, self.returnType))
+        ss('    obj.def_property%s("%s", ' % (proptype, propname))
 
         # getter code
         if self.getterraw:
             ss(self.getterraw)
         else:
+            ss('(%s ' % self.returnType)
             if self.static:
                 ss('(%(namespace)s*)()' % klassattrs)
             else:
