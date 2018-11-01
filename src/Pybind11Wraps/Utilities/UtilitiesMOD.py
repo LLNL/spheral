@@ -50,7 +50,7 @@ includes = ['"Geometry/Dimension.hh"',
             '<string>',
             '<iterator>']
 
-preamble = """
+preamble += """
 #ifndef NOR3D
 #include "Utilities/r3d_utils.hh"
 #else

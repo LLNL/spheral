@@ -38,7 +38,6 @@ namespaces = ["Spheral"]
 #-------------------------------------------------------------------------------
 # preamble
 #-------------------------------------------------------------------------------
-preamble = ""
 for ndim in dims:
     preamble += "typedef std::pair<NodeList<Dim<%(ndim)i>>*, std::string> pair_NodeList%(ndim)idptr_string;\n" % {"ndim": ndim}
 

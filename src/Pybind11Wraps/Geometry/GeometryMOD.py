@@ -7,14 +7,14 @@ from PYB11Generator import *
 from SpheralCommon import *
 import types
 
+# Forcibly override the common preamble
+preamble = ""
+
 # Define some useful type collections we're going to be wrapping in this module.
 geomtypes = ["Vector", "Tensor", "SymTensor", "ThirdRankTensor", "FourthRankTensor", "FifthRankTensor", "FacetedVolume"]
 
-# The code preamble
-preamble = """
-using namespace Spheral;
+namespaces = ["Spheral"]
 
-"""
 # for ndim in (1, 2, 3):
 #     preamble += "typedef GeomPlane<Dim<%i>> Plane%id;\n" % (ndim, ndim)
 #     for gtype in geomtypes:

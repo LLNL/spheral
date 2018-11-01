@@ -17,9 +17,6 @@ class TestSampleMultipleFields2Lattice:
     #---------------------------------------------------------------------------
     def testSample(self):
 
-        for bc in self.bcs:
-            print "REDUX Ghost nodes for ", bc, " : ", bc.numGhostNodes
-
         if self.ndim == 1:
             from Spheral1d import (ScalarFieldList, VectorFieldList, TensorFieldList, SymTensorFieldList, 
                                    FieldListSet, sampleMultipleFields2LatticeMash,
@@ -50,14 +47,6 @@ class TestSampleMultipleFields2Lattice:
         fieldListSet.ScalarFieldLists.append(eps)
         fieldListSet.VectorFieldLists.append(vel)
         fieldListSet.SymTensorFieldLists.append(Hfl)
-
-        print " --> ", len(fieldListSet.ScalarFieldLists)
-        # from Spheral1d import vector_of_ScalarFieldList
-        # stuff = vector_of_ScalarFieldList()
-        # stuff.append(rho)
-        # stuff.append(eps)
-        # fieldListSet.ScalarFieldLists = stuff
-        # print " --> ", len(fieldListSet.ScalarFieldLists)
 
         # Build the mask.
         mask = self.db.newGlobalIntFieldList(1)
@@ -192,7 +181,6 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
             self.bcs.append(dbc)
         except:
             pass
-        print "self.bcs: ", len(self.bcs)
 
         # Enforce boundaries.
         db = DataBase1d()
@@ -201,7 +189,6 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
             bc.setAllGhostNodes(db)
             bc.finalizeGhostBoundary()
             self.neighbor.updateNodes()
-            print "Ghost nodes for ", bc, " : ", bc.numGhostNodes
         for bc in self.bcs:
             bc.applyGhostBoundary(self.nodes.mass())
             bc.applyGhostBoundary(self.nodes.massDensity())

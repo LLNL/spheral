@@ -13,6 +13,7 @@ dims = spheralDimensions()
 # Includes
 #-------------------------------------------------------------------------------
 includes = ['"Geometry/Dimension.hh"',
+            '"Geometry/GeomPlane.hh"',
             '"Kernel/BSplineKernel.hh"',
             '"Kernel/W4SplineKernel.hh"',
             '"Kernel/GaussianKernel.hh"',

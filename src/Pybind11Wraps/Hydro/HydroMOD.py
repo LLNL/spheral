@@ -13,6 +13,7 @@ dims = spheralDimensions()
 # Includes
 #-------------------------------------------------------------------------------
 includes = ['"Geometry/Dimension.hh"',
+            '"Geometry/GeomPlane.hh"',
             '"Hydro/HydroFieldNames.hh"',
             '<vector>',
             '<string>']

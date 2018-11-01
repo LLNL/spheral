@@ -6,12 +6,11 @@ from PYB11Generator import *
 from SpheralCommon import *
 
 includes = ['"Geometry/Dimension.hh"',
+            '"Geometry/GeomPlane.hh"',
             '"SiloWrappers.hh"']
 
-preamble = """
-using namespace silo;
-using namespace Spheral;
-"""
+namespaces = ["silo",
+              "Spheral"]
 
 #-------------------------------------------------------------------------------
 class DBfile:
