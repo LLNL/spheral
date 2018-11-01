@@ -296,8 +296,9 @@ SiloFileIO::write(const Dim<3>::ThirdRankTensor& value, const string pathName) {
 void
 SiloFileIO::read(unsigned& value, const string pathName) const {
   const string varname = this->setDir(pathName);
-  VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &value) == 0,
-          "SiloFileIO ERROR: unable to read variable " << pathName);
+  // VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &value) == 0,
+  //         "SiloFileIO ERROR: unable to read variable " << pathName);
+  value = *static_cast<unsigned*>(DBGetVar(mFilePtr, varname.c_str()));
 }
 
 //------------------------------------------------------------------------------
@@ -306,8 +307,9 @@ SiloFileIO::read(unsigned& value, const string pathName) const {
 void
 SiloFileIO::read(int& value, const string pathName) const {
   const string varname = this->setDir(pathName);
-  CHECK2(DBReadVar(mFilePtr, varname.c_str(), (void*) &value) == 0,
-          "SiloFileIO ERROR: unable to read variable " << pathName);
+  // CHECK2(DBReadVar(mFilePtr, varname.c_str(), &value) == 0,
+  //         "SiloFileIO ERROR: unable to read variable " << pathName);
+  value = *static_cast<int*>(DBGetVar(mFilePtr, varname.c_str()));
 }
 
 //------------------------------------------------------------------------------
@@ -316,9 +318,9 @@ SiloFileIO::read(int& value, const string pathName) const {
 void
 SiloFileIO::read(bool& value, const string pathName) const {
   const string varname = this->setDir(pathName);
-  int ivalue;
-  VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &ivalue) == 0,
-          "SiloFileIO ERROR: unable to read variable " << pathName);
+  const int ivalue = *static_cast<int*>(DBGetVar(mFilePtr, varname.c_str()));
+  // VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &ivalue) == 0,
+  //         "SiloFileIO ERROR: unable to read variable " << pathName);
   value = (ivalue == 1 ? true : false);
 }
 
@@ -328,8 +330,9 @@ SiloFileIO::read(bool& value, const string pathName) const {
 void
 SiloFileIO::read(double& value, const string pathName) const {
   const string varname = this->setDir(pathName);
-  VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &value) == 0,
-          "SiloFileIO ERROR: unable to read variable " << pathName);
+  value = *static_cast<double*>(DBGetVar(mFilePtr, varname.c_str()));
+  // VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &value) == 0,
+  //         "SiloFileIO ERROR: unable to read variable " << pathName);
 }
 
 //------------------------------------------------------------------------------
