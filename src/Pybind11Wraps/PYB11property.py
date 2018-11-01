@@ -14,7 +14,7 @@ import inspect, types
 class PYB11property:
 
     def __init__(self,
-                 returnType,
+                 returnType = None,
                  getter = None,
                  setter = None,
                  doc = None,
@@ -60,29 +60,33 @@ class PYB11property:
         if self.getterraw:
             ss(self.getterraw)
         else:
-            ss('(%s ' % self.returnType)
-            if self.static:
-                ss('(%(namespace)s*)()' % klassattrs)
-            else:
-                ss('(%(namespace)s%(cppname)s::*)()' % klassattrs)
-                if self.getterconst:
-                    ss(' const')
-            ss(') &%(namespace)s%(cppname)s::' % klassattrs + self.getter)
+            if self.returnType:
+                ss('(%s ' % self.returnType)
+                if self.static:
+                    ss('(%(namespace)s*)()' % klassattrs)
+                else:
+                    ss('(%(namespace)s%(cppname)s::*)()' % klassattrs)
+                    if self.getterconst:
+                        ss(' const')
+                    ss(') ')
+            ss('&%(namespace)s%(cppname)s::' % klassattrs + self.getter)
 
         # setter, if any
         if self.setterraw:
             ss(', %s' % self.setterraw)
         else:
             if self.setter:
-                if self.static:
-                    ss(', (void (%(namespace)s*)' % klassattrs)
-                else:
-                    ss(', (void (%(namespace)s%(cppname)s::*)' % klassattrs)
-                ss('(%s) ' % self.returnType)
-                if self.setterconst:
-                    ss(' const)')
-                else:
-                    ss(')')
+                ss(', ')
+                if self.returnType:
+                    if self.static:
+                        ss('(void (%(namespace)s*)' % klassattrs)
+                    else:
+                        ss('(void (%(namespace)s%(cppname)s::*)' % klassattrs)
+                    ss('(%s) ' % self.returnType)
+                    if self.setterconst:
+                        ss(' const)')
+                    else:
+                        ss(')')
                 ss(' &%(namespace)s%(cppname)s::' % klassattrs + self.setter)
 
         # Is there a return policy?
