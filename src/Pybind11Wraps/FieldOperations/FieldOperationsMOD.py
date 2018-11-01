@@ -257,34 +257,6 @@ def sampleMultipleFields2Lattice(fieldListSet = "const FieldListSet<%(Dimension)
     return "void"
 
 @PYB11template("Dimension")
-@PYB11implementation("""[](const FieldListSet<%(Dimension)s>& fieldListSet,
-                           const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>& position,
-                           const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>& weight,
-                           const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>& Hfield,
-                           const FieldList<%(Dimension)s, int>& mask,
-                           const TableKernel<%(Dimension)s>& W,
-                           const typename %(Dimension)s::Vector& xmin,
-                           const typename %(Dimension)s::Vector& xmax,
-                           const std::vector<int>& nsample,
-                           std::vector< std::vector<typename %(Dimension)s::Scalar> >* scalarValues,
-                           std::vector< std::vector<typename %(Dimension)s::Vector> >* vectorValues,
-                           std::vector< std::vector<typename %(Dimension)s::Tensor> >* tensorValues,
-                           std::vector< std::vector<typename %(Dimension)s::SymTensor> >* symTensorValues) -> void {
-                               sampleMultipleFields2LatticeMash(fieldListSet,
-                                                                position,
-                                                                weight,
-                                                                Hfield,
-                                                                mask,
-                                                                W,
-                                                                xmin,
-                                                                xmax,
-                                                                nsample,
-                                                                *scalarValues,
-                                                                *vectorValues,
-                                                                *tensorValues,
-                                                                *symTensorValues);
-                               printf("SIZE OF vectorValues: %%d\\n", vectorValues->size());
-                               }""")
 def sampleMultipleFields2LatticeMash(fieldListSet = "const FieldListSet<%(Dimension)s>&",
                                      position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
                                      weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
@@ -294,10 +266,10 @@ def sampleMultipleFields2LatticeMash(fieldListSet = "const FieldListSet<%(Dimens
                                      xmin = "const typename %(Dimension)s::Vector&",
                                      xmax = "const typename %(Dimension)s::Vector&",
                                      nsample = "const std::vector<int>&",
-                                     scalarValues = "std::vector< std::vector<typename %(Dimension)s::Scalar> >*",
-                                     vectorValues = "std::vector< std::vector<typename %(Dimension)s::Vector> >*",
-                                     tensorValues = "std::vector< std::vector<typename %(Dimension)s::Tensor> >*",
-                                     symTensorValues = "std::vector< std::vector<typename %(Dimension)s::SymTensor> >*"):
+                                     scalarValues = "std::vector< std::vector<typename %(Dimension)s::Scalar> >&",
+                                     vectorValues = "std::vector< std::vector<typename %(Dimension)s::Vector> >&",
+                                     tensorValues = "std::vector< std::vector<typename %(Dimension)s::Tensor> >&",
+                                     symTensorValues = "std::vector< std::vector<typename %(Dimension)s::SymTensor> >&"):
     "Simultaneously MASH sample multiple FieldLists to a lattice."
     return "void"
 
