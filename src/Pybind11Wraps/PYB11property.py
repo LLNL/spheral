@@ -68,7 +68,7 @@ class PYB11property:
                     ss('(%(namespace)s%(cppname)s::*)()' % klassattrs)
                     if self.getterconst:
                         ss(' const')
-                    ss(') ')
+                ss(') ')
             ss('&%(namespace)s%(cppname)s::' % klassattrs + self.getter)
 
         # setter, if any
@@ -84,9 +84,8 @@ class PYB11property:
                         ss('(void (%(namespace)s%(cppname)s::*)' % klassattrs)
                     ss('(%s) ' % self.returnType)
                     if self.setterconst:
-                        ss(' const)')
-                    else:
-                        ss(')')
+                        ss(' const')
+                    ss(')')
                 ss(' &%(namespace)s%(cppname)s::' % klassattrs + self.setter)
 
         # Is there a return policy?
