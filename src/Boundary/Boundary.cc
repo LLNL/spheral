@@ -75,7 +75,7 @@ Boundary<Dimension>::ghostNodes(const NodeList<Dimension>& nodeList) const {
   if (itr != mBoundaryNodes.end()) {
     return itr->second.ghostNodes;
   } else {
-    std::cerr << "Number known NodeList: " << mBoundaryNodes.size() << std::endl;
+    std::cerr << "Number of known NodeLists: " << mBoundaryNodes.size() << std::endl;
     VERIFY2(false, "Boundary::ghostNodes: no entry for NodeList: " << nodeList.name());
   }
 }

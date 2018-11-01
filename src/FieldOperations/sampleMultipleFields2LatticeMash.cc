@@ -304,6 +304,8 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
   const size_t numTensorFieldLists = fieldListSet.TensorFieldLists.size();
   const size_t numSymTensorFieldLists = fieldListSet.SymTensorFieldLists.size();
 
+  std::cerr << "sample initial sizes: " << numScalarFieldLists << " " << numVectorFieldLists << " " << numTensorFieldLists << " " << numSymTensorFieldLists << std::endl;
+
   // Pre-conditions.
   for (typename vector< FieldList<Dimension, Scalar> >::const_iterator fieldListItr = fieldListSet.ScalarFieldLists.begin();
        fieldListItr != fieldListSet.ScalarFieldLists.end();
@@ -794,6 +796,8 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
     MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
   }
 #endif
+
+  std::cerr << "sample final sizes: " << scalarValues.size() << " " << vectorValues.size() << " " << tensorValues.size() << " " << symTensorValues.size() << std::endl;
 
   // That's it.
 }

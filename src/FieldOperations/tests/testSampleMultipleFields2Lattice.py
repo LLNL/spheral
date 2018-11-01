@@ -51,6 +51,14 @@ class TestSampleMultipleFields2Lattice:
         fieldListSet.VectorFieldLists.append(vel)
         fieldListSet.SymTensorFieldLists.append(Hfl)
 
+        print " --> ", len(fieldListSet.ScalarFieldLists)
+        # from Spheral1d import vector_of_ScalarFieldList
+        # stuff = vector_of_ScalarFieldList()
+        # stuff.append(rho)
+        # stuff.append(eps)
+        # fieldListSet.ScalarFieldLists = stuff
+        # print " --> ", len(fieldListSet.ScalarFieldLists)
+
         # Build the mask.
         mask = self.db.newGlobalIntFieldList(1)
 
@@ -179,10 +187,12 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
         p1 = Plane1d(Vector1d(1.0), Vector1d(-1.0))
         xbc = PeriodicBoundary1d(p0, p1)
         self.bcs = [xbc]
-        if mpi.procs > 1:
+        try:
             dbc = BoundingVolumeDistributedBoundary1d.instance()
             self.bcs.append(dbc)
-        print "self.bcs: ", self.bcs
+        except:
+            pass
+        print "self.bcs: ", len(self.bcs)
 
         # Enforce boundaries.
         db = DataBase1d()
@@ -206,87 +216,87 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
 #===============================================================================
 # 2-D tests.
 #===============================================================================
-class TestSampleMultipleFields2Lattice2d(TestSampleMultipleFields2Lattice,
-                                         unittest.TestCase):
+# class TestSampleMultipleFields2Lattice2d(TestSampleMultipleFields2Lattice,
+#                                          unittest.TestCase):
 
-    #---------------------------------------------------------------------------
-    # Initialize the problem.
-    #---------------------------------------------------------------------------
-    def setUp(self):
+#     #---------------------------------------------------------------------------
+#     # Initialize the problem.
+#     #---------------------------------------------------------------------------
+#     def setUp(self):
 
-        self.ndim = 2
-        self.genxmin = (0.0, 0.0)
-        self.genxmax = (1.0, 1.0)
-        self.xmin = Vector2d(0.2, 0.2)
-        self.xmax = Vector2d(0.8, 0.8)
-        self.nsample = vector_of_int()
-        [self.nsample.append(x) for x in (100, 100)]
+#         self.ndim = 2
+#         self.genxmin = (0.0, 0.0)
+#         self.genxmax = (1.0, 1.0)
+#         self.xmin = Vector2d(0.2, 0.2)
+#         self.xmax = Vector2d(0.8, 0.8)
+#         self.nsample = vector_of_int()
+#         [self.nsample.append(x) for x in (100, 100)]
 
-        # Tolerances for the test
-        self.scalarTol = 1.0e-2
-        self.vectorTol = 1.0e-2
-        self.tensorTol = 1.0e-2
+#         # Tolerances for the test
+#         self.scalarTol = 1.0e-2
+#         self.vectorTol = 1.0e-2
+#         self.tensorTol = 1.0e-2
 
-        nx, ny = 50, 50
-        self.rho0 = 10.0
-        self.v0 = Vector2d(1.0, -1.0)
-        self.eps0 = -1.0
-        self.gradv0 = Tensor2d(8.5, -4.0,
-                               2.2, 1.3)
+#         nx, ny = 50, 50
+#         self.rho0 = 10.0
+#         self.v0 = Vector2d(1.0, -1.0)
+#         self.eps0 = -1.0
+#         self.gradv0 = Tensor2d(8.5, -4.0,
+#                                2.2, 1.3)
 
-        # Create the nodes and such.
-        self.eos = GammaLawGasMKS2d(5.0/3.0, 1.0)
-        self.WT = TableKernel2d(BSplineKernel2d())
-        self.nodes = makeFluidNodeList2d("nodes", self.eos)
-        self.neighbor = self.nodes.neighbor()
+#         # Create the nodes and such.
+#         self.eos = GammaLawGasMKS2d(5.0/3.0, 1.0)
+#         self.WT = TableKernel2d(BSplineKernel2d())
+#         self.nodes = makeFluidNodeList2d("nodes", self.eos)
+#         self.neighbor = self.nodes.neighbor()
 
-        # Distribute the nodes.
-        from GenerateNodeDistribution2d import GenerateNodeDistribution2d
-        from DistributeNodes import distributeNodes2d
-        generator = GenerateNodeDistribution2d(nx, ny,
-                                               self.rho0,
-                                               "lattice",
-                                               xmin = self.genxmin,
-                                               xmax = self.genxmax,
-                                               nNodePerh = 2.01)
-        distributeNodes2d((self.nodes, generator))
+#         # Distribute the nodes.
+#         from GenerateNodeDistribution2d import GenerateNodeDistribution2d
+#         from DistributeNodes import distributeNodes2d
+#         generator = GenerateNodeDistribution2d(nx, ny,
+#                                                self.rho0,
+#                                                "lattice",
+#                                                xmin = self.genxmin,
+#                                                xmax = self.genxmax,
+#                                                nNodePerh = 2.01)
+#         distributeNodes2d((self.nodes, generator))
 
-        # Set the velocities and energies.
-        self.nodes.velocity(VectorField2d("tmp", self.nodes, self.v0))
-        self.nodes.specificThermalEnergy(ScalarField2d("tmp", self.nodes, self.eps0))
+#         # Set the velocities and energies.
+#         self.nodes.velocity(VectorField2d("tmp", self.nodes, self.v0))
+#         self.nodes.specificThermalEnergy(ScalarField2d("tmp", self.nodes, self.eps0))
 
-        self.db = DataBase2d()
-        self.db.appendNodeList(self.nodes)
+#         self.db = DataBase2d()
+#         self.db.appendNodeList(self.nodes)
 
-        # Create the boundary conditions.
-        px0 = Plane2d(Vector2d(0.0, 0.0), Vector2d(1.0, 0.0))
-        px1 = Plane2d(Vector2d(1.0, 0.0), Vector2d(-1.0, 0.0))
-        py0 = Plane2d(Vector2d(0.0, 0.0), Vector2d(0.0, 1.0))
-        py1 = Plane2d(Vector2d(0.0, 1.0), Vector2d(0.0, -1.0))
-        xbc = PeriodicBoundary2d(px0, px1)
-        ybc = PeriodicBoundary2d(py0, py1)
-        self.bcs = [xbc, ybc]
-        if mpi.procs > 1:
-            dbc = BoundingVolumeDistributedBoundary2d.instance()
-            self.bcs.append(dbc)
+#         # Create the boundary conditions.
+#         px0 = Plane2d(Vector2d(0.0, 0.0), Vector2d(1.0, 0.0))
+#         px1 = Plane2d(Vector2d(1.0, 0.0), Vector2d(-1.0, 0.0))
+#         py0 = Plane2d(Vector2d(0.0, 0.0), Vector2d(0.0, 1.0))
+#         py1 = Plane2d(Vector2d(0.0, 1.0), Vector2d(0.0, -1.0))
+#         xbc = PeriodicBoundary2d(px0, px1)
+#         ybc = PeriodicBoundary2d(py0, py1)
+#         self.bcs = [xbc, ybc]
+#         if mpi.procs > 1:
+#             dbc = BoundingVolumeDistributedBoundary2d.instance()
+#             self.bcs.append(dbc)
 
-        # Enforce boundaries.
-        db = DataBase2d()
-        db.appendNodeList(self.nodes)
-        for bc in self.bcs:
-            bc.setAllGhostNodes(db)
-            bc.finalizeGhostBoundary()
-            self.neighbor.updateNodes()
-        for bc in self.bcs:
-            bc.applyGhostBoundary(self.nodes.mass())
-            bc.applyGhostBoundary(self.nodes.massDensity())
-            bc.applyGhostBoundary(self.nodes.specificThermalEnergy())
-            bc.applyGhostBoundary(self.nodes.velocity())
-        for bc in self.bcs:
-            bc.finalizeGhostBoundary()
+#         # Enforce boundaries.
+#         db = DataBase2d()
+#         db.appendNodeList(self.nodes)
+#         for bc in self.bcs:
+#             bc.setAllGhostNodes(db)
+#             bc.finalizeGhostBoundary()
+#             self.neighbor.updateNodes()
+#         for bc in self.bcs:
+#             bc.applyGhostBoundary(self.nodes.mass())
+#             bc.applyGhostBoundary(self.nodes.massDensity())
+#             bc.applyGhostBoundary(self.nodes.specificThermalEnergy())
+#             bc.applyGhostBoundary(self.nodes.velocity())
+#         for bc in self.bcs:
+#             bc.finalizeGhostBoundary()
 
-        self.H0 = self.nodes.Hfield()[0]
-        return
+#         self.H0 = self.nodes.Hfield()[0]
+#         return
 
 #===============================================================================
 # 3-D tests.
