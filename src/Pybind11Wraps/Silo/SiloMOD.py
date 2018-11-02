@@ -26,69 +26,35 @@ class DBoptlist:
                maxopts = ("int", "1024")):
         "Construct with the given number of avilable option slots."
 
-    def addOption(self,
-                  option = "int",
-                  value = "const int&"):
-        return "int"
+    for (T, Label) in (("int", "Int"),
+                       ("double", "Double"),
+                       ("std::string", "String")):
+        exec('''
+@PYB11pycppname("addOption")
+def addOption%(Label)s(self,
+                       option = "int",
+                       value = "%(T)s"):
+    return "int"
 
-    @PYB11pycppname("addOption")
-    def addOption1(self,
-                   option = "int",
-                   value = "const double&"):
-        return "int"
+@PYB11pycppname("getOption")
+def getOption%(Label)s(self,
+                       option = "int"):
+            return "%(T)s"
 
-    @PYB11pycppname("addOption")
-    def addOption2(self,
-                   option = "int",
-                   value = "const std::string&"):
-        return "int"
+@PYB11pycppname("addOption")
+def addOptionVec%(Label)s(self,
+                          option = "int",
+                          option_size = "int",
+                          value = "std::vector<%(T)s>"):
+    return "int"
 
-    @PYB11pycppname("addOption")
-    def addOption3(self,
-                   option = "int",
-                   value = "const std::vector<int>&"):
-        return "int"
-
-    @PYB11pycppname("addOption")
-    def addOption4(self,
-                   option = "int",
-                   value = "const std::vector<double>&"):
-        return "int"
-
-    @PYB11pycppname("addOption")
-    def addOption5(self,
-                   option = "int",
-                   value = "const std::vector<std::string>&"):
-        return "int"
-
-    def getOption(self,
-                  option = "int"):
-        return "int"
-
-    @PYB11pycppname("getOption")
-    def getOption1(self,
-                   option = "int"):
-        return "double"
-
-    @PYB11pycppname("getOption")
-    def getOption2(self,
-                   option = "int"):
-        return "std::string"
-
-    @PYB11pycppname("getOption")
-    def getOption3(self,
-                   option = "int"):
-        return "std::vector<int>"
-
-    @PYB11pycppname("getOption")
-    def getOption4(self,
-                   option = "int"):
-        return "std::vector<double>"
-
-    @PYB11pycppname("getOption")
-    def getOption5(self,
-                   option = "int"):
-        return "std::vector<std::string>"
+@PYB11pycppname("getOption")
+def getOptionVec%(Label)s(self,
+                          option = "int",
+                          option_size = "int"):
+    return "std::vector<%(T)s>"
+''' % {"T" : T,
+       "Label" : Label})
 
 #-------------------------------------------------------------------------------
 @PYB11cppname("DBmrgtree_wrapper")
@@ -168,7 +134,7 @@ class DBmrgtree:
 
 #-------------------------------------------------------------------------------
 # STL types
-vector_of_DBoptlist = PYB11_bind_vector("silo::DBoptlist_wrapper")
+# vector_of_DBoptlist = PYB11_bind_vector("silo::DBoptlist_wrapper", opaque=True)
 
 #-------------------------------------------------------------------------------
 # Module methods
