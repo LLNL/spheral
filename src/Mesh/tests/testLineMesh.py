@@ -103,7 +103,7 @@ class LineMeshGenericTests:
         pos = self.nodes.positions()
         for i in xrange(self.nodes.numInternalNodes):
             zone = mesh.zone(i)
-            zonehull = zone.convexHull()
+            zonehull = zone.convexHull
             self.failUnless(zonehull.contains(pos[i]),
                             "Zone does not contain generator %s %s %s %s" %
                             (pos[i], zone.position, 
@@ -341,7 +341,7 @@ class UniformLineMeshTests(unittest.TestCase, LineMeshGenericTests):
         if void.numNodes == 1:
             self.failUnless(voidpos[0].x > maxpos, "%f %f" % (voidpos[0].x, maxpos))
             voidzone = mesh.zone(self.nodes.numInternalNodes)
-            voidhull = voidzone.convexHull()
+            voidhull = voidzone.convexHull
             assert voidhull.contains(voidpos[0])
         return
 

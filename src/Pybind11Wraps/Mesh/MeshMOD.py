@@ -108,12 +108,19 @@ computeGenerators%(ndim)id = PYB11TemplateFunction(computeGenerators, template_p
 generateMesh%(ndim)id = PYB11TemplateFunction(generateMesh, template_parameters="%(Dimension)s")
 
 @PYB11pycppname("hashPosition")
+@PYB11implementation("""[](const %(Vector)s& position,
+                           const %(Vector)s& xmin,
+                           const %(Vector)s& xmax,
+                           const %(Vector)s& boxInv) -> py::tuple { 
+    const auto result = hashPosition(position, xmin, xmax, boxInv);
+    return py::make_tuple(boost::get<0>(result), boost::get<1>(result), boost::get<2>(result));
+  }""")
 def hashPosition%(ndim)id(position = "const %(Vector)s&",
                           xmin = "const %(Vector)s&",
                           xmax = "const %(Vector)s&",
                           boxInv = "const %(Vector)s&"):
     "Hash a position for meshing -- complementary with quantizedPosition"
-    return "boost::tuple<uint64_t, uint64_t, uint64_t>"
+    return "py::tuple"
 
 @PYB11pycppname("quantizedPosition")
 def quantizedPosition%(ndim)id(hash = "const boost::tuple<uint64_t, uint64_t, uint64_t>&",
