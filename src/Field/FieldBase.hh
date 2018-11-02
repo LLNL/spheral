@@ -42,7 +42,7 @@ public:
 
   // Access the name.
   FieldName name() const;
-  void name(const FieldName& name);
+  void name(FieldName name);
 
   // Provide methods to access and set the NodeList.
   const NodeList<Dimension>& nodeList() const;

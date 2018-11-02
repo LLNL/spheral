@@ -72,3 +72,7 @@ class FieldBase:
                      buffer = "const std::vector<char>&"):
         "Deserialize values from the given buffer"
         return "void"
+
+    #...........................................................................
+    # Properties
+    name = PYB11property("std::string", getter="name", setter="name", doc="Name for the field")
