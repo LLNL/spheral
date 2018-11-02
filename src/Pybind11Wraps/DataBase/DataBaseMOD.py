@@ -10,6 +10,21 @@ from spheralDimensions import *
 dims = spheralDimensions()
 
 #-------------------------------------------------------------------------------
+# More preamble
+#-------------------------------------------------------------------------------
+preamble += """
+PYBIND11_MAKE_OPAQUE(std::vector<FluidNodeList<Dim<1>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<FluidNodeList<Dim<2>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<FluidNodeList<Dim<3>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<NodeList<Dim<1>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<NodeList<Dim<2>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<NodeList<Dim<3>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<SolidNodeList<Dim<1>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<SolidNodeList<Dim<2>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<SolidNodeList<Dim<3>>*>)
+"""
+
+#-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
 includes = ['"Geometry/Dimension.hh"',
