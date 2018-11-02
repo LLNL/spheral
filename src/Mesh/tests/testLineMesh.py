@@ -100,12 +100,13 @@ class LineMeshGenericTests:
                                       xmin = xmin,
                                       xmax = xmax)
         assert mesh.numZones >= self.nodes.numInternalNodes
+        pos = self.nodes.positions()
         for i in xrange(self.nodes.numInternalNodes):
             zone = mesh.zone(i)
             zonehull = zone.convexHull()
-            self.failUnless(zonehull.contains(self.pos[i]),
+            self.failUnless(zonehull.contains(pos[i]),
                             "Zone does not contain generator %s %s %s %s" %
-                            (self.pos[i], zone.position, 
+                            (pos[i], zone.position, 
                              mesh.node(zone.nodeIDs[0]).position,
                              mesh.node(zone.nodeIDs[1]).position))
         return
@@ -275,8 +276,8 @@ class UniformLineMeshTests(unittest.TestCase, LineMeshGenericTests):
         self.nodes = makeFluidNodeList("test nodes", eos,
                                        numInternal = nxperdomain,
                                        nPerh = 2.01)
-        self.pos = self.nodes.positions()
-        self.H = self.nodes.Hfield()
+        pos = self.nodes.positions()
+        H = self.nodes.Hfield()
 
         # Generate initial positions, and split them up between domains appropriately.
         dxavg = (x1 - x0)/nx
@@ -295,8 +296,8 @@ class UniformLineMeshTests(unittest.TestCase, LineMeshGenericTests):
 
         # Now we can set the node conditions.
         for i in xrange(nxperdomain):
-            self.pos[i] = Vector(xnodes[i])
-            self.H[i] = SymTensor(1.0/(2.0*self.dxmax))
+            pos[i] = Vector(xnodes[i])
+            H[i] = SymTensor(1.0/(2.0*self.dxmax))
         self.nodes.neighbor().updateNodes()
 
         # Iterate the H tensors to somthing reasonable.
@@ -332,10 +333,11 @@ class UniformLineMeshTests(unittest.TestCase, LineMeshGenericTests):
                                       xmin = xmin,
                                       xmax = 2.0*xmax)
         voidpos = void.positions()
+        pos = self.nodes.positions()
         self.failUnless(mpi.allreduce(void.numNodes, mpi.SUM) == 1, 
                         "Bad number of void nodes:  %i %s" % (mpi.allreduce(void.numNodes, mpi.SUM), str([x.x for x in void.positions().allValues()])))
         assert mpi.allreduce(mesh.numZones, mpi.SUM) == mpi.allreduce(self.nodes.numInternalNodes, mpi.SUM) + 1
-        maxpos = mpi.allreduce(max([self.pos[i].x for i in xrange(self.nodes.numInternalNodes)]), mpi.MAX)
+        maxpos = mpi.allreduce(max([pos[i].x for i in xrange(self.nodes.numInternalNodes)]), mpi.MAX)
         if void.numNodes == 1:
             self.failUnless(voidpos[0].x > maxpos, "%f %f" % (voidpos[0].x, maxpos))
             voidzone = mesh.zone(self.nodes.numInternalNodes)
@@ -357,8 +359,8 @@ class UniformGapLineMeshTests(unittest.TestCase, LineMeshGenericTests):
         self.nodes = makeFluidNodeList("test nodes", eos,
                                        numInternal = nxperdomain,
                                        nPerh = 2.01)
-        self.pos = self.nodes.positions()
-        self.H = self.nodes.Hfield()
+        pos = self.nodes.positions()
+        H = self.nodes.Hfield()
 
         # Generate initial positions, and split them up between domains appropriately.
         gap = 0.9
@@ -378,8 +380,8 @@ class UniformGapLineMeshTests(unittest.TestCase, LineMeshGenericTests):
 
         # Now we can set the node conditions.
         for i in xrange(nxperdomain):
-            self.pos[i] = Vector(xnodes[i])
-            self.H[i] = SymTensor(1.0/(2.0*dxavg))
+            pos[i] = Vector(xnodes[i])
+            H[i] = SymTensor(1.0/(2.0*dxavg))
         self.nodes.neighbor().updateNodes()
 
         # Iterate the H tensors to somthing reasonable.
@@ -437,8 +439,8 @@ class RandomLineMeshTests(unittest.TestCase, LineMeshGenericTests):
         self.nodes = makeFluidNodeList("test nodes", eos,
                                        numInternal = nxperdomain,
                                        nPerh = 2.01)
-        self.pos = self.nodes.positions()
-        self.H = self.nodes.Hfield()
+        pos = self.nodes.positions()
+        H = self.nodes.Hfield()
 
         # Generate initial positions, and split them up between domains appropriately.
         dxavg = (x1 - x0)/nx
@@ -457,8 +459,8 @@ class RandomLineMeshTests(unittest.TestCase, LineMeshGenericTests):
 
         # Now we can set the node conditions.
         for i in xrange(nxperdomain):
-            self.pos[i] = Vector(xnodes[i])
-            self.H[i] = SymTensor(1.0/(2.0*self.dxmax))
+            pos[i] = Vector(xnodes[i])
+            H[i] = SymTensor(1.0/(2.0*self.dxmax))
         self.nodes.neighbor().updateNodes()
 
         # Iterate the H tensors to somthing reasonable.
