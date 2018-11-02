@@ -220,11 +220,6 @@ on the surface of the local mesh!"""
         "Compute unique global IDs for each face."
         return "std::vector<unsigned>"
 
-    @PYB11const
-    def minimumScale(self):
-        "Compute the minimum scale (distance between nodes)."
-        return "double"
-
     def storeNodeListOffsets(self,
                              nodeListPtrs = "const std::vector<NodeList<%(Dimension)s>*>&",
                              offsets = "const std::vector<unsigned>&"):
@@ -252,6 +247,7 @@ on the surface of the local mesh!"""
     neighborDomains = PYB11property("std::vector<unsigned>&", returnpolicy="reference_internal")
     sharedNodes = PYB11property("std::vector<std::vector<unsigned>>&", returnpolicy="reference_internal")
     sharedFaces = PYB11property("std::vector<std::vector<unsigned>>&", returnpolicy="reference_internal")
+    minimumScale = PYB11property(doc="Compute the minimum scale (distance between nodes).")
 
     #---------------------------------------------------------------------------
     # Mesh::Node

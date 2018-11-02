@@ -123,7 +123,11 @@ def hashPosition%(ndim)id(position = "const %(Vector)s&",
     return "py::tuple"
 
 @PYB11pycppname("quantizedPosition")
-def quantizedPosition%(ndim)id(hash = "const boost::tuple<uint64_t, uint64_t, uint64_t>&",
+@PYB11implementation("""[](const py::tuple hash, const %(Vector)s& xmin, const %(Vector)s& xmax) -> %(Vector)s { 
+      if (hash.size() != 3) throw std::runtime_error("quantizedPosition ERROR: hash must be a 3-tuple");
+      return quantizedPosition(boost::make_tuple(hash[0].cast<uint64_t>(), hash[1].cast<uint64_t>(), hash[2].cast<uint64_t>()), xmin, xmax);
+    }""")
+def quantizedPosition%(ndim)id(hash = "py::tuple",
                                xmin = "const %(Vector)s&",
                                xmax = "const %(Vector)s&"):
     "Turn a position hash back into a cell center position -- complementary with hashPosition"
