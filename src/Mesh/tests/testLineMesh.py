@@ -105,9 +105,9 @@ class LineMeshGenericTests:
             zonehull = zone.convexHull()
             self.failUnless(zonehull.contains(self.pos[i]),
                             "Zone does not contain generator %s %s %s %s" %
-                            (self.pos[i], zone.position(), 
-                             mesh.node(zone.nodeIDs[0]).position(),
-                             mesh.node(zone.nodeIDs[1]).position()))
+                            (self.pos[i], zone.position, 
+                             mesh.node(zone.nodeIDs[0]).position,
+                             mesh.node(zone.nodeIDs[1]).position))
         return
 
     #---------------------------------------------------------------------------
@@ -118,7 +118,7 @@ class LineMeshGenericTests:
                                       xmin = xmin,
                                       xmax = xmax)
         for i in xrange(mesh.numNodes - 1):
-            assert mesh.node(i).position().x < mesh.node(i + 1).position().x
+            assert mesh.node(i).position.x < mesh.node(i + 1).position.x
         return
 
     #---------------------------------------------------------------------------
@@ -158,7 +158,7 @@ class LineMeshGenericTests:
 
         # # for irank in xrange(numDomains):
         # #     if rank == irank:
-        # #         sys.stderr.write("node positions : %s\n" % [mesh.node(i).position().x for i in xrange(mesh.numNodes)])
+        # #         sys.stderr.write("node positions : %s\n" % [mesh.node(i).position.x for i in xrange(mesh.numNodes)])
         # #         sys.stderr.write("zone volumes   : %s\n" % [mesh.zone(i).volume() for i in xrange(mesh.numZones)])
         # #         sys.stderr.write("mesh.neighborDomains : %s\n" % neighborDomains)
         # #         for i in xrange(len(neighborDomains)):
@@ -183,16 +183,16 @@ class LineMeshGenericTests:
         #         else:
         #             ksafe = 0
         #         recvProc = mpi.bcast(neighborDomains[ksafe], root=sendProc)
-        #         recvHashes = mpi.bcast([hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in sharedNodes[ksafe]], root=sendProc)
+        #         recvHashes = mpi.bcast([hashPosition(mesh.node(i).position, xmin, xmax, boxInv) for i in sharedNodes[ksafe]], root=sendProc)
         #         ok = True
         #         msg = ""
         #         if rank == recvProc:
         #             assert sendProc in neighborDomains
         #             kk = neighborDomains.index(sendProc)
         #             assert kk < len(sharedNodes)
-        #             ok = ([hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in sharedNodes[kk]] == recvHashes)
+        #             ok = ([hashPosition(mesh.node(i).position, xmin, xmax, boxInv) for i in sharedNodes[kk]] == recvHashes)
         #             msg = "Shared node indicies don't match %i %i : %s != %s" % (rank, sendProc, 
-        #                                                                          str([hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in sharedNodes[kk]]),
+        #                                                                          str([hashPosition(mesh.node(i).position, xmin, xmax, boxInv) for i in sharedNodes[kk]]),
         #                                                                          recvHashes)
         #         self.failUnless(mpi.allreduce(ok, mpi.MIN), msg)
 
@@ -205,7 +205,7 @@ class LineMeshGenericTests:
         mesh, void = generateLineMesh([self.nodes],
                                       xmin = xmin,
                                       xmax = xmax)
-        pos = [mesh.zone(i).position() for i in xrange(mesh.numZones)] + [mesh.node(i).position() for i in xrange(mesh.numNodes)]
+        pos = [mesh.zone(i).position for i in xrange(mesh.numZones)] + [mesh.node(i).position for i in xrange(mesh.numNodes)]
         xpos = [x.x for x in pos]
         xpos.sort()
         boxInv = Vector(1.0/(xmax.x - xmin.x))
@@ -224,7 +224,7 @@ class LineMeshGenericTests:
         mesh, void = generateLineMesh([self.nodes],
                                       xmin = xmin,
                                       xmax = xmax)
-        zoneList = [(mesh.zone(i).position().x, i) for i in xrange(mesh.numZones)]
+        zoneList = [(mesh.zone(i).position.x, i) for i in xrange(mesh.numZones)]
         zoneList.sort()
         for inode in xrange(1, mesh.numNodes - 1):
             zoneIDs = mesh.node(inode).zoneIDs
@@ -256,8 +256,8 @@ class LineMeshGenericTests:
 
         # Check that all mesh nodes are contained.
         for i in xrange(mesh.numNodes):
-            self.failUnless(bs.contains(mesh.node(i).position()),
-                            "Failed containment for mesh node %i @ %s" % (i, mesh.node(i).position()))
+            self.failUnless(bs.contains(mesh.node(i).position),
+                            "Failed containment for mesh node %i @ %s" % (i, mesh.node(i).position))
 
         return
 
