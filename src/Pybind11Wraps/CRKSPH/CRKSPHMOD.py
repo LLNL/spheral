@@ -309,7 +309,7 @@ CRKSPHHydroBase%(ndim)id = PYB11TemplateClass(CRKSPHHydroBase, template_paramete
 SolidCRKSPHHydroBase%(ndim)id = PYB11TemplateClass(SolidCRKSPHHydroBase, template_parameters="%(Dimension)s")
 CRKSPHVariant%(ndim)id = PYB11TemplateClass(CRKSPHVariant, template_parameters="%(Dimension)s")
 
-@PYB11cppname("computeVoronoiVolume")
+@PYB11pycppname("computeVoronoiVolume")
 def computeVoronoiVolume%(ndim)id(position = "const FieldList<%(Dimension)s, %(Dimension)s::Vector>&",
                                   H = "const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>&",
                                   rho = "const FieldList<%(Dimension)s, %(Dimension)s::Scalar>&",

@@ -70,7 +70,6 @@ class StateBase:
         return "bool"
 
     @PYB11const
-    @PYB11pycppname("registered")
     def fieldNameRegistered(self, fieldName="const std::string&"):
         "Test if the a Field with the given name is registered"
         return "bool"
