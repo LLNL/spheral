@@ -153,7 +153,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
         # Also write out the points as a point mesh.
         if nodeLists and mpi.rank == 0:
             domainNames = vector_of_string()
-            meshTypes = vector_of_int(mpi.procs, silo.DB_POINTMESH)
+            meshTypes = vector_of_int([silo.DB_POINTMESH]*mpi.procs)
             for p in domainNamePatterns:
                 domainNames.append(p % "PointMESH")
             optlist = silo.DBoptlist(1024)
@@ -228,7 +228,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
                 silo.DBPutCompoundarray(db, "VAR_ATTRIBUTES", attrNames, attrs, nullOpts)
         
             # Write the variables descriptors.
-            ucdTypes = vector_of_int(numDomains, silo.DB_UCDVAR)
+            ucdTypes = vector_of_int([silo.DB_UCDVAR]*numDomains)
             for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
                 domainVarNames = vector_of_string()
                 for p in domainNamePatterns:
@@ -245,7 +245,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
         
             # HACK: repeating for point values -- remove when vardefs work
             # Write the variables descriptors.
-            ptTypes = vector_of_int(numDomains, silo.DB_POINTVAR)
+            ptTypes = vector_of_int([silo.DB_POINTVAR]*numDomains)
             for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
                 domainVarNames = vector_of_string()
                 for p in domainNamePatterns:
@@ -329,9 +329,9 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             assert len(shapesize) == numZones
         
             assert silo.DBPutZonelist2(db, zonelistName[nDim], nDim, zoneNodes, 0, 0,
-                                       vector_of_int(numZones, silo.DB_ZONETYPE_POLYGON),
+                                       vector_of_int([silo.DB_ZONETYPE_POLYGON]*numZones),
                                        shapesize,
-                                       vector_of_int(numZones, 1),
+                                       vector_of_int([numZones]),
                                        nullOpts) == 0
         
         # Write a Polyhedral zone list.
@@ -339,8 +339,9 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         
             # Construct the face-node lists.
             numFaces = len(mesh.faces)
-            faceNodes = vector_of_vector_of_int(numFaces)
+            faceNodes = vector_of_vector_of_int()
             for iface in xrange(numFaces):
+                faceNodes.append(vector_of_int())
                 for j in xrange(len(mesh.faces[iface])):
                     faceNodes[iface].append(mesh.faces[iface][j])
                 assert len(faceNodes[iface]) == len(mesh.faces[iface])
@@ -357,7 +358,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         # Construct the mesh node coordinates.
         assert len(mesh.nodes) % nDim == 0
         numNodes = len(mesh.nodes)/nDim
-        coords = vector_of_vector_of_double(nDim, vector_of_double(numNodes))
+        coords = vector_of_vector_of_double([vector_of_double(range(numNodes))]*nDim)
         for nodeID in xrange(numNodes):
             for idim in xrange(nDim):
                 coords[idim][nodeID] = mesh.nodes[nDim*nodeID + idim]
@@ -386,7 +387,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             for i in xrange(len(nodeLists)):
                 matnos.append(i)
             assert len(matnos) == len(nodeLists)
-            matlist = vector_of_int(numZones)
+            matlist = vector_of_int(range(numZones))
             matnames = vector_of_string()
             offset = 0
             for (nodeList, imat) in zip(nodeLists, xrange(len(nodeLists))):
@@ -435,11 +436,8 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
                         assert silo.DBPutPointvar1(db, "POINTS_" + subname, "PointMESH", vals, varOpts) == 0
 
         # Write the set of neighbor domains.
-        thpt = vector_of_vector_of_int()
-        thpt.append(vector_of_int(1, len(mesh.neighborDomains)))
-        thpt.append(vector_of_int())
-        for i in mesh.neighborDomains:
-            thpt[-1].append(i)
+        thpt = vector_of_vector_of_int([[len(mesh.neighborDomains)],
+                                        list(mesh.neighborDomains)])
         elemNames = vector_of_string()
         elemNames.append("num neighbor domains")
         elemNames.append("neighbor domains")
@@ -448,13 +446,11 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         # Write the shared nodes for each neighbor domain.
         sharedNodes = mesh.sharedNodes
         for ineighborDomain in xrange(len(mesh.neighborDomains)):
-            nodes = vector_of_int()
-            for i in sharedNodes[ineighborDomain]:
-                nodes.append(i)
+            nodes = vector_of_vector_of_int([list(sharedNodes[ineighborDomain])])
             assert len(nodes) == len(sharedNodes[ineighborDomain])
             assert silo.DBPutCompoundarray(db, "DOMAIN_NEIGHBOR%i" % ineighborDomain,
-                                           vector_of_string(1, "shared_nodes"),
-                                           vector_of_vector_of_int(1, nodes),
+                                           vector_of_string(["shared_nodes"]),
+                                           nodes,
                                            nullOpts) == 0
         
         # If requested, write out annotations for the nodes, zones, and faces.
@@ -497,7 +493,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         # Write the point mesh.
         if nodeLists:
             ntot = sum([n.numInternalNodes for n in nodeLists])
-            coords = vector_of_vector_of_double(nDim)
+            coords = vector_of_vector_of_double([vector_of_double()]*nDim)
             for nodes in nodeLists:
                 pos = nodes.positions().internalValues()
                 n = len(pos)
@@ -577,9 +573,9 @@ def extractIntField(name, field, vals, dim):
 
 def dummyIntField(name, n, vals, dim):
     if vals == []:
-        vals = [[name, vector_of_int(n, 0)]]
+        vals = [[name, vector_of_int([0]*n)]]
     else:
-        vals[0][1] += vector_of_int(n, 0)
+        vals[0][1] += vector_of_int([0]*n)
     return vals
 
 def metaDataIntField(name, time, cycle, dim):
@@ -604,9 +600,9 @@ def extractScalarField(name, field, vals, dim):
 
 def dummyScalarField(name, n, vals, dim):
     if vals == []:
-        vals = [[name, vector_of_double(n, 0.0)]]
+        vals = [[name, vector_of_double([0.0]*n)]]
     else:
-        vals[0][1] += vector_of_double(n, 0.0)
+        vals[0][1] += vector_of_double([0.0]*n)
     return vals
 
 def metaDataScalarField(name, time, cycle, dim):
@@ -659,7 +655,7 @@ def dummyVectorField(name, n, vals, dim):
                     ["%s_z" % name, vector_of_double(n, 0.0)]]
     else:
         for i in xrange(dim):
-            vals[i][1] += vector_of_double(n, 0.0)
+            vals[i][1] += vector_of_double([0.0]*n)
     return vals
 
 def metaDataVectorField(name, time, cycle, dim):
@@ -720,23 +716,23 @@ def dummyTensorField(name, n, vals, dim):
     assert dim in (2,3)
     if vals == []:
         if dim == 2:
-            vals = [["%s_xx" % name, vector_of_double(n, 0.0)],
-                    ["%s_xy" % name, vector_of_double(n, 0.0)],
-                    ["%s_yx" % name, vector_of_double(n, 0.0)],
-                    ["%s_yy" % name, vector_of_double(n, 0.0)]]
+            vals = [["%s_xx" % name, vector_of_double([0.0]*n)],
+                    ["%s_xy" % name, vector_of_double([0.0]*n)],
+                    ["%s_yx" % name, vector_of_double([0.0]*n)],
+                    ["%s_yy" % name, vector_of_double([0.0]*n)]]
         else:
-            vals = [["%s_xx" % name, vector_of_double(n, 0.0)],
-                    ["%s_xy" % name, vector_of_double(n, 0.0)],
-                    ["%s_xz" % name, vector_of_double(n, 0.0)],
-                    ["%s_yx" % name, vector_of_double(n, 0.0)],
-                    ["%s_yy" % name, vector_of_double(n, 0.0)],
-                    ["%s_yz" % name, vector_of_double(n, 0.0)],
-                    ["%s_zx" % name, vector_of_double(n, 0.0)],
-                    ["%s_zy" % name, vector_of_double(n, 0.0)],
-                    ["%s_zz" % name, vector_of_double(n, 0.0)]]
+            vals = [["%s_xx" % name, vector_of_double([0.0]*n)],
+                    ["%s_xy" % name, vector_of_double([0.0]*n)],
+                    ["%s_xz" % name, vector_of_double([0.0]*n)],
+                    ["%s_yx" % name, vector_of_double([0.0]*n)],
+                    ["%s_yy" % name, vector_of_double([0.0]*n)],
+                    ["%s_yz" % name, vector_of_double([0.0]*n)],
+                    ["%s_zx" % name, vector_of_double([0.0]*n)],
+                    ["%s_zy" % name, vector_of_double([0.0]*n)],
+                    ["%s_zz" % name, vector_of_double([0.0]*n)]]
     else:
         for i in xrange(dim*dim):
-            vals[i][1] += vector_of_double(n, 0.0)
+            vals[i][1] += vector_of_double([0.0]*n)
     return vals
 
 def metaDataTensorField(name, time, cycle, dim):
@@ -766,7 +762,7 @@ def metaDataTensorField(name, time, cycle, dim):
 def writeDefvars(db, fieldwad):
 
     # Write the variable descriptors for non-scalar types (vector and tensor).
-    names, defs, types, opts = vector_of_string(), vector_of_string(), vector_of_int(), vector_of_DBoptlist()
+    names, defs, types, opts = vector_of_string(), vector_of_string(), vector_of_int(), [] # vector_of_DBoptlist()
     for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
         if desc != None:
             assert optlistDef != None
@@ -774,6 +770,7 @@ def writeDefvars(db, fieldwad):
             names.append("CELLS/" + name)
             defs.append(desc)
             types.append(type)
+            print " ---> ", optlistDef
             opts.append(optlistDef)
     
             # Make a point version as well.
