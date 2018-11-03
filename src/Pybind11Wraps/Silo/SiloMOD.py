@@ -13,6 +13,7 @@ namespaces = ["silo",
               "Spheral"]
 
 #-------------------------------------------------------------------------------
+@PYB11returnpolicy("take_ownership")
 class DBfile:
     "Opaque object for silo file struct"
 
@@ -33,7 +34,7 @@ class DBoptlist:
 @PYB11pycppname("addOption")
 def addOption%(Label)s(self,
                        option = "int",
-                       value = "%(T)s"):
+                       value = "const %(T)s&"):
     return "int"
 
 @PYB11pycppname("getOption")
@@ -45,7 +46,7 @@ def getOption%(Label)s(self,
 def addOptionVec%(Label)s(self,
                           option = "int",
                           option_size = "int",
-                          value = "std::vector<%(T)s>"):
+                          value = "const std::vector<%(T)s>&"):
     return "int"
 
 @PYB11pycppname("getOption")
