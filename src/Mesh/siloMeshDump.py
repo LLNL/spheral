@@ -273,8 +273,6 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
         # That's it.
         assert silo.DBClose(db) == 0
         sys.stderr.write("FINISHED MASTER FILE SYMLINK 2\n")
-        #del db
-        sys.stderr.write("FINISHED MASTER FILE SYMLINK 3\n")
 
     # Everyone gets the link file name.
     linkfile = mpi.bcast(linkfile, root=0)
