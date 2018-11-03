@@ -161,7 +161,7 @@ struct SiloTraits<long long> {
 };
 
 //------------------------------------------------------------------------------
-// Wrapper class to handle the memory managemnt necessary with DBoptlist.
+// Wrapper class to handle the memory management necessary with DBoptlist.
 //------------------------------------------------------------------------------
 struct DBoptlist_wrapper {
   DBoptlist* mOptlistPtr;

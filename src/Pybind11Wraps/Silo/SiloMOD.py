@@ -13,7 +13,6 @@ namespaces = ["silo",
               "Spheral"]
 
 #-------------------------------------------------------------------------------
-@PYB11returnpolicy("take_ownership")
 class DBfile:
     "Opaque object for silo file struct"
 
