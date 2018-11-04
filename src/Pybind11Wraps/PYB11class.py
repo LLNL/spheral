@@ -152,13 +152,15 @@ class PYB11TemplateMethod:
         for name, val in self.template_parameters:
             funcattrs["template_dict"][name] = val
 
-        doc0 = copy.deepcopy(self.func_template.__doc__)
-        self.func_template.__doc__ += self.docext
+        if self.func_template.__doc__:
+            doc0 = copy.deepcopy(self.func_template.__doc__)
+            self.func_template.__doc__ += self.docext
         fs = StringIO.StringIO()
         PYB11generic_class_method(klass, klassattrs, self.func_template, funcattrs, fs.write)
         ss(fs.getvalue() % PYB11union_dict(klassattrs["template_dict"], funcattrs["template_dict"]))
         fs.close()
-        self.func_template.__doc__ = doc0
+        if self.func_template.__doc__:
+            self.func_template.__doc__ = doc0
         return
         
 
@@ -236,17 +238,20 @@ def PYB11generateClass(klass, klassattrs, ssout):
     #...........................................................................
     # pyinit<>
     def pyinit(meth, methattrs, args):
-        ss("    obj.def(py::init<")
-        argString = ""
-        for i, (argType, argName, default) in enumerate(args):
-            if i < len(args) - 1:
-                ss("%s, " % argType)
-            else:
-                ss("%s" % argType)
-            argString += ', "%s"_a' % argName
-            if default:
-                argString += "=%s" % default
-        ss(">()%s" % argString)
+        if methattrs["implementation"]:
+            ss("    obj.def(py::init(%(implementation)s)" % methattrs)
+        else:
+            ss("    obj.def(py::init<")
+            argString = ""
+            for i, (argType, argName, default) in enumerate(args):
+                if i < len(args) - 1:
+                    ss("%s, " % argType)
+                else:
+                    ss("%s" % argType)
+                argString += ', "%s"_a' % argName
+                if default:
+                    argString += "=%s" % default
+            ss(">()%s" % argString)
         doc = inspect.getdoc(meth)
         if doc:
             ss(", ")
@@ -389,6 +394,10 @@ def PYB11generateClass(klass, klassattrs, ssout):
     # Is this a singleton?
     if klassattrs["singleton"]:
         ss(", std::unique_ptr<%(namespace)s%(cppname)s, py::nodelete>" % klassattrs)
+
+    # Did we specify a holder type?
+    elif klassattrs["holder"]:
+        ss(", %(holder)s<%(namespace)s%(cppname)s>" % klassattrs)
 
     # Close the template declaration
     ss('> obj(m, "%(pyname)s"' % klassattrs)
