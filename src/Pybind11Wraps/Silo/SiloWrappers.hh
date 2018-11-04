@@ -1076,11 +1076,11 @@ DBPutZonelist2(DBfile& file,
   // Preconditions.
   const unsigned nzones = zoneNodes.size();
   const unsigned nshapes = shapetype.size();
-  VERIFY(shapetype.size() <= nzones);
-  VERIFY(shapesize.size() <= nzones);
-  VERIFY(shapecount.size() <= nzones);
-  VERIFY(shapesize.size() == nshapes);
-  VERIFY(shapecount.size() == nshapes);
+  VERIFY2(shapetype.size() <= nzones, "Bad size: " << shapetype.size() << " !<= " << nzones);
+  VERIFY2(shapesize.size() <= nzones, "Bad size: " << shapesize.size() << " !<= " << nzones);
+  VERIFY2(shapecount.size() <= nzones, "Bad size: " << shapecount.size() << " !<= " << nzones);
+  VERIFY2(shapesize.size() == nshapes, "Bad size: " << shapesize.size() << " != " << nshapes);
+  VERIFY2(shapecount.size() == nshapes, "Bad size: " << shapecount.size() << " != " << nshapes);
 
   // Construct the flat array of zone nodes.
   std::vector<int> nodelist;

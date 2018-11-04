@@ -80,12 +80,10 @@ def siloMeshDump(dirName, mesh,
 
     # If we're domain 0 we write the master file.
     masterfile = writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldwad)
-    sys.stderr.write("FINISHED MASTER FILE OUTPUT 2\n")
 
     # Each domain writes it's domain file.
     writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, cycle, fieldwad,
                             pretendRZ, nodeArrays, zoneArrays, faceArrays)
-    sys.stderr.write("FINISHED DOMAIN FILE OUTPUT 2\n")
 
     # That's it.
     return masterfile
@@ -268,15 +266,12 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
             os.remove(fullpath)
         targetfile = os.path.join(p1, "OvlTop.silo")
         os.symlink(targetfile, os.path.join(p0, linkfile))
-        sys.stderr.write("FINISHED MASTER FILE SYMLINK 1\n")
 
         # That's it.
         assert silo.DBClose(db) == 0
-        sys.stderr.write("FINISHED MASTER FILE SYMLINK 2\n")
 
     # Everyone gets the link file name.
     linkfile = mpi.bcast(linkfile, root=0)
-    sys.stderr.write("FINISHED MASTER FILE OUTPUT 1\n")
 
     return linkfile
 
@@ -334,7 +329,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             assert silo.DBPutZonelist2(db, zonelistName[nDim], nDim, zoneNodes, 0, 0,
                                        vector_of_int([silo.DB_ZONETYPE_POLYGON]*numZones),
                                        shapesize,
-                                       vector_of_int([numZones]),
+                                       vector_of_int([1]*numZones),
                                        nullOpts) == 0
         
         # Write a Polyhedral zone list.
@@ -439,8 +434,9 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
                         assert silo.DBPutPointvar1(db, "POINTS_" + subname, "PointMESH", vals, varOpts) == 0
 
         # Write the set of neighbor domains.
-        thpt = vector_of_vector_of_int([[len(mesh.neighborDomains)],
-                                        list(mesh.neighborDomains)])
+        thpt = vector_of_vector_of_int()
+        thpt.append(vector_of_int([len(mesh.neighborDomains)]))
+        thpt.append(vector_of_int(mesh.neighborDomains))
         elemNames = vector_of_string()
         elemNames.append("num neighbor domains")
         elemNames.append("neighbor domains")
@@ -773,7 +769,6 @@ def writeDefvars(db, fieldwad):
             names.append("CELLS/" + name)
             defs.append(desc)
             types.append(type)
-            print " ---> ", optlistDef
             opts.append(optlistDef)
     
             # Make a point version as well.

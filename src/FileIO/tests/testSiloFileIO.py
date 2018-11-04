@@ -38,12 +38,12 @@ class SiloFileIOTest(FileIOTestBase, unittest.TestCase):
 
         db = silo.DBCreate("TestCompoundarray.silo", 
                            silo.DB_CLOBBER, silo.DB_LOCAL, "some file", silo.DB_HDF5)
-        thpt = vector_of_vector_of_int([vector_of_int(range(100))])
-        elemNames = vector_of_string(["num neighbor domains"])
+        thpt = vector_of_vector_of_int([vector_of_int(range(100)), vector_of_int(range(10))])
+        elemNames = vector_of_string(["range(100)", "range(10)"])
         opts = silo.DBoptlist(1024)
         assert opts.addOption(silo.DBOPT_CYCLE, 10) == 0
         assert opts.addOption(silo.DBOPT_DTIME, 100.0) == 0
-        assert silo.DBPutCompoundarray(db, "DOMAIN_NEIGHBOR_NUMS", elemNames, thpt, opts) == 0
+        assert silo.DBPutCompoundarray(db, "stuff", elemNames, thpt, opts) == 0
         assert silo.DBClose(db) == 0
         return
 

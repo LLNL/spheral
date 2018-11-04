@@ -13,11 +13,13 @@ namespaces = ["silo",
               "Spheral"]
 
 #-------------------------------------------------------------------------------
+@PYB11holder("std::shared_ptr")
 class DBfile:
     "Opaque object for silo file struct"
 
 #-------------------------------------------------------------------------------
 @PYB11cppname("DBoptlist_wrapper")
+@PYB11holder("std::shared_ptr")
 class DBoptlist:
     "The silo optlist collection."
 
@@ -25,6 +27,62 @@ class DBoptlist:
     def pyinit(self,
                maxopts = ("int", "1024")):
         "Construct with the given number of avilable option slots."
+
+    #...........................................................................
+    # addOption
+    # @PYB11template("T")
+    # @PYB11implementation("""[](DBoptlist_wrapper& self,
+    #                            int option,
+    #                            %(T)s& value) {
+    #                                return DBAddOption(self.mOptlistPtr, option, static_cast<void*>(&value));
+    #                            }""")
+    # def addOption(self, option="int", value="%(T)s&"):
+    #     return "int"
+
+    # @PYB11template("T")
+    # @PYB11implementation("""[](DBoptlist_wrapper& self,
+    #                            int option,
+    #                            int option_size,
+    #                            std::vector<%(T)s>& value) {
+    #                                auto value_size = value.size();
+    #                                auto result = DBAddOption(self.mOptlistPtr, option_size, static_cast<void*>(&value_size));
+    #                                if (result != 0) return result;
+    #                                return DBAddOption(self.mOptlistPtr, option, static_cast<void*>(&(value.front())));
+    #                            }""")
+    # def addOptionVec(self, option="int", value="std::vector<%(T)s>&"):
+    #     return "int"
+
+    # addOptionInt =       PYB11TemplateMethod(addOption,    template_parameters="int",    pyname="addOption")
+    # addOptionDouble =    PYB11TemplateMethod(addOption,    template_parameters="double", pyname="addOption")
+    # addOptionVecInt =    PYB11TemplateMethod(addOptionVec, template_parameters="int",    pyname="addOption")
+    # addOptionVecDouble = PYB11TemplateMethod(addOptionVec, template_parameters="double", pyname="addOption")
+
+    # @PYB11pyname("addOption")
+    # @PYB11implementation("""[](DBoptlist_wrapper& self,
+    #                            int option,
+    #                            std::string& value) {
+    #                                return DBAddOption(self.mOptlistPtr, option, const_cast<char*>(value.c_str()));
+    #                            }""")
+    # def addOptionString(self, option="int", value="std::string&"):
+    #     return "int"
+
+    # @PYB11pyname("addOption")
+    # @PYB11implementation("""[](DBoptlist_wrapper& self,
+    #                            int option,
+    #                            int option_size,
+    #                            std::vector<std::string>& value) {
+    #                                auto value_size = value.size();
+    #                                auto result = DBAddOption(self.mOptlistPtr, option_size, static_cast<void*>(&value_size));
+    #                                if (result != 0) return result;
+    #                                char** charArray = new char*[value.size()];
+    #                                for (auto k = 0; k < value.size(); ++k) {
+    #                                  charArray[k] = new char[value[k].size() + 1];
+    #                                  strcpy(charArray[k], value[k].c_str());
+    #                                }
+    #                                return DBAddOption(self.mOptlistPtr, option, static_cast<void*>(charArray));
+    #                            }""")
+    # def addOptionVecString(self, option="int", value="std::vector<std::string>&"):
+    #     return "int"
 
     for (T, Label) in (("int", "Int"),
                        ("double", "Double"),
@@ -138,13 +196,23 @@ class DBmrgtree:
 
 #-------------------------------------------------------------------------------
 # Module methods
-@PYB11cppname("silo::DBCreate_wrap")
-def DBCreate():
+@PYB11returnpolicy("reference")
+@PYB11cppname("DBCreate_wrap")
+def DBCreate(pathName = "std::string",
+             mode = "int",
+             target = "int",
+             fileInfo = "std::string",
+             fileType = "int"):
     "Create a silo database"
+    return "DBfile*"
 
-@PYB11cppname("silo::DBOpen_wrap")
-def DBOpen():
+@PYB11returnpolicy("reference")
+@PYB11cppname("DBOpen_wrap")
+def DBOpen(name = "std::string",
+           type = "int",
+           mode = "int"):
     "Open a silo database"
+    return "DBfile*"
 
 @PYB11namespace("silo")
 def DBClose():

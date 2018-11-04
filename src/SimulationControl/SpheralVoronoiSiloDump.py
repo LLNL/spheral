@@ -314,7 +314,6 @@ class SpheralVoronoiSiloDump:
                                  vectorFields = vectorFields,
                                  tensorFields = tensorFields,
                                  symTensorFields = symTensorFields)
-        sys.stderr.write("I'M FREE!\n")
 
         # Write the master file listing all the time slices.
         if mpi.rank == 0:
