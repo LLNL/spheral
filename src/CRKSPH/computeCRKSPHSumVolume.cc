@@ -2,11 +2,12 @@
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
 
-namespace Spheral {
-
+using std::vector;
 using std::min;
 using std::max;
 using std::abs;
+
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Function to compute the per dimension volume multiplier.
