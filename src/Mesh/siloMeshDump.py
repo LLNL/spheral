@@ -415,20 +415,17 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             varOpts = silo.DBoptlist(1024)
             assert varOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
             assert varOpts.addOption(silo.DBOPT_DTIME, time) == 0
-            for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+            for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
                 for subname, vals in subvars:
                     if len(vals) > 0:
-                        if isinstance(vals, vector_of_double):
-                            assert silo.DBPutUcdvar1(db, "CELLS_" + subname, "MESH", vals, vector_of_double(), centering, varOpts) == 0
-                        elif isinstance(vals, vector_of_int):
-                            assert silo.DBPutUcdvar1(db, "CELLS_" + subname, "MESH", vals, vector_of_int(), centering, varOpts) == 0
+                        assert silo.DBPutUcdvar1(db, "CELLS_" + subname, "MESH", vals, [], centering, varOpts) == 0
         
             # HACK: Write the field components on the point mesh as well.  Remove when the vardef version is working.
             centering = silo.DB_ZONECENT
             varOpts = silo.DBoptlist(1024)
             assert varOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
             assert varOpts.addOption(silo.DBOPT_DTIME, time) == 0
-            for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+            for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
                 for subname, vals in subvars:
                     if len(vals) > 0:
                         assert silo.DBPutPointvar1(db, "POINTS_" + subname, "PointMESH", vals, varOpts) == 0
@@ -762,29 +759,29 @@ def writeDefvars(db, fieldwad):
 
     # Write the variable descriptors for non-scalar types (vector and tensor).
     names, defs, types, opts = vector_of_string(), vector_of_string(), vector_of_int(), [] # vector_of_DBoptlist()
-    for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+    for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
         if desc != None:
             assert optlistDef != None
             assert len(subvars) > 1
             names.append("CELLS/" + name)
             defs.append(desc)
-            types.append(type)
+            types.append(vtype)
             opts.append(optlistDef)
     
             # Make a point version as well.
             names.append("POINTS/" + name)
             defs.append(desc.replace("CELLS", "POINTS"))
-            types.append(type)
+            types.append(vtype)
             opts.append(optlistDef)
 
     # HACK: put back when vardef mapping is working
     # # Similaly map all variables from the MMESH -> MPointMesh.
     # hideOptlist = silo.DBoptlist()
     # assert hideOptlist.addOption(silo.DBOPT_HIDE_FROM_GUI, 0) == 0
-    # for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+    # for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
     #     names.append("POINTS/" + name)
     #     defs.append('recenter(pos_cmfe(<[0]id:CELLS/%s>,<MPointMESH>,0.0), "nodal")' % name)
-    #     types.append(type)
+    #     types.append(vtype)
     #     opts.append(hideOptlist)
 
     if len(names) > 0:
