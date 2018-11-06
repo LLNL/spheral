@@ -63,7 +63,7 @@ class Field(FieldBase):
     def __setitem__(self):
         "Set a value"
 
-    @PYB11implementation("[](const FieldType& self) { return py::make_iterator(self.begin(), self.end()); }")
+    @PYB11implementation("[](const FieldType& self) { return py::make_iterator(self.begin(), self.end()); }, py::keep_alive<0,1>()")
     def __iter__(self):
         "Python iteration through a Field."
 

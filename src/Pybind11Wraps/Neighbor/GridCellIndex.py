@@ -94,7 +94,7 @@ class GridCellIndex:
     def __setitem__(self):
         "Python indexing to set a coordinate."
 
-    @PYB11implementation("[](const GridCellIndex<%(Dimension)s> &s) { return py::make_iterator(std::begin(s), std::end(s)); }")
+    @PYB11implementation("[](const GridCellIndex<%(Dimension)s> &s) { return py::make_iterator(std::begin(s), std::end(s)); }, py::keep_alive<0,1>()")
     def __iter__(self):
         "Python iteration through a GridCellIndex."
 

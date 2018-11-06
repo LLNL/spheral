@@ -39,7 +39,7 @@ class FifthRankTensor:
     def __setitem__(self):
         "Python indexing to set an element."
 
-    @PYB11implementation("[](const Dim<%(ndim)s>::FifthRankTensor &s) { return py::make_iterator(s.begin(), s.end()); }")
+    @PYB11implementation("[](const Dim<%(ndim)s>::FifthRankTensor &s) { return py::make_iterator(s.begin(), s.end()); }, py::keep_alive<0,1>()")
     def __iter__(self):
         "Python iteration through a FifthRankTensor."
 

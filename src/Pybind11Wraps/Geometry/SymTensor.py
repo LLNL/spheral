@@ -54,7 +54,7 @@ class SymTensor:
     def __setitem__(self):
         "Python indexing to set an element."
 
-    @PYB11implementation("[](const Dim<%(ndim)s>::SymTensor &s) { return py::make_iterator(s.begin(), s.end()); }")
+    @PYB11implementation("[](const Dim<%(ndim)s>::SymTensor &s) { return py::make_iterator(s.begin(), s.end()); }, py::keep_alive<0,1>()")
     def __iter__(self):
         "Python iteration through a SymTensor."
 
