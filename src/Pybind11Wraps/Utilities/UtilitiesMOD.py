@@ -267,7 +267,7 @@ globalBoundingVolumes%(ndim)id = PYB11TemplateFunction(globalBoundingVolumes, te
 
 collinear%(ndim)id = PYB11TemplateFunction(collinear, template_parameters="%(Vector)s", pyname="collinear")
 between%(ndim)id = PYB11TemplateFunction(between, template_parameters="%(Vector)s", pyname="between")
-segmentSegmentIntersection%(ndim)id = PYB11TemplateFunction(segmentSegmentIntersectionTest, template_parameters="%(Vector)s", pyname="segmentSegmentIntersection")
+segmentSegmentIntersectionTest%(ndim)id = PYB11TemplateFunction(segmentSegmentIntersectionTest, template_parameters="%(Vector)s", pyname="segmentSegmentIntersectionTest")
 
 #...............................................................................
 # segment-segment intersections (return intersect)
@@ -305,7 +305,6 @@ def segmentSegmentDistance%(ndim)id(a0 = "const %(Vector)s&",
     return "double"
 
 #...............................................................................
-numGlobalNodes%(ndim)id = PYB11TemplateFunction(numGlobalNodesNL, template_parameters="%(Dimension)s")
 numGlobalNodes%(ndim)id = PYB11TemplateFunction(numGlobalNodesNL, template_parameters="%(Dimension)s")
 numGlobalNodesAll%(ndim)id = PYB11TemplateFunction(numGlobalNodesDB, template_parameters="%(Dimension)s")
 globalNodeIDs%(ndim)id = PYB11TemplateFunction(globalNodeIDsNL, template_parameters="%(Dimension)s")
