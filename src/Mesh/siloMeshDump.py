@@ -40,6 +40,11 @@ def siloMeshDump(dirName, mesh,
                  faceArrays = None,
                  pretendRZ = False):
 
+    print "siloMeshDump: scalarFields: ", [x.name for x in scalarFields]
+    print "              vectorFields: ", [x.name for x in vectorFields]
+    print "              tensorFields: ", [x.name for x in tensorFields]
+    print "           symTensorFields: ", [x.name for x in symTensorFields]
+
     assert (isinstance(mesh, polytope.Tessellation2d) or
             isinstance(mesh, polytope.Tessellation3d))
     if isinstance(mesh, polytope.Tessellation2d):

@@ -385,6 +385,7 @@ def dumpPhysicsState(stateThingy,
                      boundaries = None,
                      splitCells = False):
     assert not dumpGhosts
+    sys.stderr.write(" ---> dumpPhysicsState\n")
 
     # What did we get passed?
     if max([isinstance(stateThingy, x) for x in [Integrator1d, Integrator2d, Integrator3d]]):
@@ -414,6 +415,7 @@ def dumpPhysicsState(stateThingy,
         dataBase = eval("DataBase%id()" % ndim)
         assert state.fieldNameRegistered(HydroFieldName.mass)
         mass = state.scalarFields(HydroFieldNames.mass)
+        sys.stderr.write("mass: %i\n" % len(mass))
         for nodes in mass.nodeListPtrs():
             dataBase.appendNodeList(nodes)
 
@@ -434,6 +436,7 @@ def dumpPhysicsState(stateThingy,
     fields += [x for x in state.allVectorFields()]
     fields += [x for x in state.allTensorFields()]
     fields += [x for x in state.allSymTensorFields()]
+    sys.stderr.write("fields: %i\n" % len(fields))
 
     # Are we also dumping the derivative fields?
     if not derivs is None:
@@ -442,6 +445,7 @@ def dumpPhysicsState(stateThingy,
         fields += [x for x in derivs.allVectorFields()]
         fields += [x for x in derivs.allTensorFields()]
         fields += [x for x in derivs.allSymTensorFields()]
+    sys.stderr.write("fields: %i\n" % len(fields))
 
     # If available, add the work, H inverse and hmin, hmax, & hmin_hmax_ratio by default.
     if dataBase:
@@ -477,6 +481,7 @@ def dumpPhysicsState(stateThingy,
         W = eval("TableKernel%id(BSplineKernel%id(), 1000)" % (dataBase.nDim, dataBase.nDim))
         zerothAndFirstNodalMoments(dataBase.nodeLists(), W, True, zerothMoment, firstMoment)
         fieldLists += [zerothMoment, firstMoment]
+    sys.stderr.write("fieldLists: %i\n" % len(fieldLists))
 
     # Add a domain decomposition tag (if we're parallel).
     try:

@@ -12,13 +12,11 @@ namespaces = ["silo",
               "Spheral"]
 
 #-------------------------------------------------------------------------------
-@PYB11holder("std::shared_ptr")
 class DBfile:
     "Opaque object for silo file struct"
 
 #-------------------------------------------------------------------------------
 @PYB11cppname("DBoptlist_wrapper")
-@PYB11holder("std::shared_ptr")
 class DBoptlist:
     "The silo optlist collection."
 

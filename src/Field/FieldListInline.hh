@@ -553,7 +553,7 @@ inline
 typename FieldList<Dimension, DataType>::ElementType
 FieldList<Dimension, DataType>::
 operator[](const unsigned int index) {
-  REQUIRE(index < mFieldPtrs.size());
+  REQUIRE2(index < mFieldPtrs.size(), "FieldList index ERROR: out of bounds " << index << " !< " << mFieldPtrs.size());
   return mFieldPtrs[index];
 }
 
