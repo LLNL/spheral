@@ -142,9 +142,11 @@ class FieldList:
 
     @PYB11cppname("operator[]")
     @PYB11returnpolicy("reference")
+    @PYB11keepalive(0,1)
     def __getitem__(self, index="const unsigned"):
         return "FieldType*"
 
+    @PYB11returnpolicy("reference")
     @PYB11implementation("[](const FieldListType& self) { return py::make_iterator(self.begin(), self.end()); }, py::keep_alive<0,1>()")
     def __iter__(self):
         "Python iteration through a FieldList."
