@@ -223,4 +223,5 @@ AC_OUTPUT(helpers/makefile_master \
           Pybind11Wraps/Strength/makefile \
           Pybind11Wraps/ArtificialConduction/makefile \
           Pybind11Wraps/Distributed/makefile \
+          Pybind11Wraps/CXXTests/makefile \
           SimulationControl/spheralDimensions.py)

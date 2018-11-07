@@ -20,7 +20,10 @@
 
 namespace Spheral {
 
-
+using std::vector;
+using std::map;
+using std::string;
+  
 //------------------------------------------------------------------------------
 // Workhorse method to test that a given pair of NodeIterators walks the given 
 // set of node IDs.

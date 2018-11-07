@@ -181,9 +181,9 @@ AC_ARG_WITH(cxxtests,
 [  --with-cxxtests .......................... optionally build the C++ testing methods],
 [
    AC_MSG_RESULT(yes)
-   CXXPKGS="$CXXPKGS CXXTests"
-   CXXPKGLIBS="$CXXPKGLIBS CXXTests"
-   PYTHONPKGS="$PYTHONPKGS CXXTests"
+   CXXPKGS+=" CXXTests"
+   CXXPKGLIBS+=" CXXTests"
+   PYTHONPKGS+=" CXXTests"
 ],
 [
    AC_MSG_RESULT(no)
