@@ -94,45 +94,45 @@ def PYB11generateFunction(meth, methattrs, ssout):
     # Arguments
     stuff = inspect.getargspec(meth)
     nargs = len(stuff.args)
+    argNames = stuff.args
+    argTypes, argDefaults = [], []
+    for thing in stuff.defaults:
+        if isinstance(thing, tuple):
+            assert len(thing) == 2
+            argTypes.append(thing[0])
+            argDefaults.append(thing[1])
+        else:
+            argTypes.append(thing)
+            argDefaults.append(None)
+    assert len(argNames) == nargs
+    assert len(argTypes) == nargs
+    assert len(argDefaults) == nargs
 
     # Return type
     returnType = meth(*tuple(stuff.args))
     methattrs["returnType"] = returnType
+
+    # Build the argument string if any
+    argString = ""
+    for argType, argName, default in zip(argTypes, argNames, argDefaults):
+        argString += (', "%s"_a' % argName)
+        if not default is None:
+            argString += ("=" + default)
 
     # Write the binding
     ss('  m.def("%(pyname)s", ' % methattrs)
 
     # If there is an implementation, short-circuit the rest of our work.
     if methattrs["implementation"]:
-        ss(methattrs["implementation"])
+        ss(methattrs["implementation"] + argString)
 
     elif returnType:
-        assert not stuff.args is None
-        assert not stuff.defaults is None
-        assert len(stuff.args) == len(stuff.defaults)
-        argNames = stuff.args
-        argTypes, argDefaults = [], []
-        for thing in stuff.defaults:
-            if isinstance(thing, tuple):
-                assert len(thing) == 2
-                argTypes.append(thing[0])
-                argDefaults.append(thing[1])
-            else:
-                argTypes.append(thing)
-                argDefaults.append(None)
-        assert len(argNames) == nargs
-        assert len(argTypes) == nargs
-        assert len(argDefaults) == nargs
         ss("(%s (*)(" % returnType)
         for i, argType in enumerate(argTypes):
             ss(argType)
             if i < nargs - 1:
                 ss(", ")
-        ss(")) &%(namespace)s%(cppname)s" % methattrs)
-        for argType, argName, default in zip(argTypes, argNames, argDefaults):
-            ss(', "%s"_a' % argName)
-            if not default is None:
-                ss("=" + default)
+        ss(")) &%(namespace)s%(cppname)s" % methattrs + argString)
     else:
         ss("&%(namespace)s%(cppname)s" % methattrs)
 

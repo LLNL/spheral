@@ -182,9 +182,17 @@ def PYB11generic_class_method(klass, klassattrs, meth, methattrs, ss):
     else:
         ss('    obj.def("%(pyname)s", ' % methattrs)
 
+    # Check for argument specs
+    argString = ""
+    for i, (argType, argName, default) in enumerate(args):
+        argString += ', "%s"_a' % argName
+        if default:
+            argString += "=%s" % default
+
     # If there is an implementation, short-circuit the rest.
     if methattrs["implementation"]:
-        ss(methattrs["implementation"])
+        ss(methattrs["implementation"] + argString)
+
     elif methattrs["returnType"] is None:
         if methattrs["static"]:
             ss("&%(namespace)s%(cppname)s" % methattrs)
@@ -196,14 +204,10 @@ def PYB11generic_class_method(klass, klassattrs, meth, methattrs, ss):
             ss("(%(namespace)s*)(" % methattrs)
         else:
             ss("(%(namespace)s%(cppname)s::*)(" % klassattrs)
-        argString = ""
         for i, (argType, argName, default) in enumerate(args):
             ss(argType)
             if i < len(args) - 1:
                 ss(", ")
-            argString += ', "%s"_a' % argName
-            if default:
-                argString += "=%s" % default
         if methattrs["const"]:
             ss(") const) &%(namespace)s%(classcppname)s::%(cppname)s" % methattrs + argString)
         else:
