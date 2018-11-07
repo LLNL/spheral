@@ -40,10 +40,10 @@ def siloMeshDump(dirName, mesh,
                  faceArrays = None,
                  pretendRZ = False):
 
-    print "siloMeshDump: scalarFields: ", [x.name for x in scalarFields]
-    print "              vectorFields: ", [x.name for x in vectorFields]
-    print "              tensorFields: ", [x.name for x in tensorFields]
-    print "           symTensorFields: ", [x.name for x in symTensorFields]
+    # print "siloMeshDump: scalarFields: ", [x.name for x in scalarFields]
+    # print "              vectorFields: ", [x.name for x in vectorFields]
+    # print "              tensorFields: ", [x.name for x in tensorFields]
+    # print "           symTensorFields: ", [x.name for x in symTensorFields]
 
     assert (isinstance(mesh, polytope.Tessellation2d) or
             isinstance(mesh, polytope.Tessellation3d))
@@ -512,7 +512,6 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
 
         # That's it.
         assert silo.DBClose(db) == 0
-        del db
 
     return
 
