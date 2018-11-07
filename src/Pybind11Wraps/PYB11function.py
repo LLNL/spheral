@@ -96,14 +96,15 @@ def PYB11generateFunction(meth, methattrs, ssout):
     nargs = len(stuff.args)
     argNames = stuff.args
     argTypes, argDefaults = [], []
-    for thing in stuff.defaults:
-        if isinstance(thing, tuple):
-            assert len(thing) == 2
-            argTypes.append(thing[0])
-            argDefaults.append(thing[1])
-        else:
-            argTypes.append(thing)
-            argDefaults.append(None)
+    if nargs > 0:
+        for thing in stuff.defaults:
+            if isinstance(thing, tuple):
+                assert len(thing) == 2
+                argTypes.append(thing[0])
+                argDefaults.append(thing[1])
+            else:
+                argTypes.append(thing)
+                argDefaults.append(None)
     assert len(argNames) == nargs
     assert len(argTypes) == nargs
     assert len(argDefaults) == nargs

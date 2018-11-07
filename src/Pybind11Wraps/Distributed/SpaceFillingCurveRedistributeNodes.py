@@ -136,9 +136,7 @@ This returns the set sorted by the index."""
                             count = "const std::vector<int>&",
                             work = "const std::vector<Scalar>&",
                             lowerBound = "const Key",
-                            upperBound = "const Key",
-                            countInRange = "int&",
-                            workInRange = "Scalar&"):
+                            upperBound = "const Key"):
         "Combines numIndicesInRange and workInRange"
         return "py::tuple"
 

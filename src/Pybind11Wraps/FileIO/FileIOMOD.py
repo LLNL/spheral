@@ -13,6 +13,9 @@ dims = spheralDimensions()
 # Includes
 #-------------------------------------------------------------------------------
 includes = ['"Geometry/Dimension.hh"',
+            '"NodeList/NodeList.hh"',
+            '"NodeList/FluidNodeList.hh"',
+            '"NodeList/SolidNodeList.hh"',
             '"FileIO/FileIO.hh"',
             '"FileIO/FlatFileIO.hh"',
             '"FileIO/SiloFileIO.hh"',
@@ -22,64 +25,115 @@ includes = ['"Geometry/Dimension.hh"',
             '<string>']
 
 #-------------------------------------------------------------------------------
+# More preamble
+#-------------------------------------------------------------------------------
+preamble += """
+PYBIND11_MAKE_OPAQUE(std::vector<FluidNodeList<Dim<1>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<FluidNodeList<Dim<2>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<FluidNodeList<Dim<3>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<NodeList<Dim<1>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<NodeList<Dim<2>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<NodeList<Dim<3>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<SolidNodeList<Dim<1>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<SolidNodeList<Dim<2>>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<SolidNodeList<Dim<3>>*>)
+
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  int>>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  int>>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  int>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  int>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  int>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  int>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  int>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  int>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  int>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  int>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  int>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  int>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  double>>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  double>>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  double>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  double>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  double>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  double>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  double>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  double>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  double>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  double>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  double>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  double>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::SymTensor>>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::SymTensor>>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::SymTensor>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::SymTensor>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::SymTensor>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::SymTensor>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::SymTensor>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::SymTensor>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::SymTensor>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::SymTensor>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::SymTensor>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::SymTensor>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::Tensor>>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::Tensor>>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::Tensor>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::Tensor>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::Tensor>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::Tensor>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::Tensor>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::Tensor>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::Tensor>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::Tensor>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::Tensor>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::Tensor>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::Vector>>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::Vector>>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::Vector>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::Vector>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::Vector>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::Vector>>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::Vector>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::Vector>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::Vector>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::Vector>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::Vector>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::Vector>*>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<1> PYB11COMMA  int>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<2> PYB11COMMA  int>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<3> PYB11COMMA  int>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<1> PYB11COMMA  int>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<2> PYB11COMMA  int>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<3> PYB11COMMA  int>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<1> PYB11COMMA  double>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<2> PYB11COMMA  double>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<3> PYB11COMMA  double>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<1> PYB11COMMA  double>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<2> PYB11COMMA  double>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<3> PYB11COMMA  double>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::SymTensor>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::SymTensor>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::SymTensor>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::SymTensor>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::SymTensor>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::SymTensor>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::Tensor>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::Tensor>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::Tensor>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::Tensor>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::Tensor>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::Tensor>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::Vector>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::Vector>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::Vector>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::Vector>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::Vector>>>)
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::Vector>>>)
+"""
+
+#-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
 namespaces = ["Spheral"]
-
-# preamble = """
-# typedef GeomPlane<Dim<1>> Plane1d;
-# typedef Dim<1>::Vector Vector1d;
-# typedef Dim<1>::Tensor Tensor1d;
-# typedef Dim<1>::SymTensor SymTensor1d;
-# typedef Dim<1>::ThirdRankTensor ThirdRankTensor1d;
-# typedef Dim<1>::FourthRankTensor FourthRankTensor1d;
-# typedef Dim<1>::FifthRankTensor FifthRankTensor1d;
-# typedef Dim<1>::FacetedVolume FacetedVolume1d;
-# typedef GeomPlane<Dim<2>> Plane2d;
-# typedef Dim<2>::Vector Vector2d;
-# typedef Dim<2>::Tensor Tensor2d;
-# typedef Dim<2>::SymTensor SymTensor2d;
-# typedef Dim<2>::ThirdRankTensor ThirdRankTensor2d;
-# typedef Dim<2>::FourthRankTensor FourthRankTensor2d;
-# typedef Dim<2>::FifthRankTensor FifthRankTensor2d;
-# typedef Dim<2>::FacetedVolume FacetedVolume2d;
-# typedef GeomPlane<Dim<3>> Plane3d;
-# typedef Dim<3>::Vector Vector3d;
-# typedef Dim<3>::Tensor Tensor3d;
-# typedef Dim<3>::SymTensor SymTensor3d;
-# typedef Dim<3>::ThirdRankTensor ThirdRankTensor3d;
-# typedef Dim<3>::FourthRankTensor FourthRankTensor3d;
-# typedef Dim<3>::FifthRankTensor FifthRankTensor3d;
-# typedef Dim<3>::FacetedVolume FacetedVolume3d;
-
-
-# PYBIND11_MAKE_OPAQUE(std::vector<GeomFacet2d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<GeomFacet3d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<FacetedVolume1d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<FacetedVolume2d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<FacetedVolume3d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<FifthRankTensor1d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<FifthRankTensor2d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<FifthRankTensor3d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<FourthRankTensor1d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<FourthRankTensor2d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<FourthRankTensor3d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<Plane1d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<Plane2d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<Plane3d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<SymTensor1d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<SymTensor2d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<SymTensor3d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<Tensor1d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<Tensor2d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<Tensor3d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<ThirdRankTensor1d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<ThirdRankTensor2d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<ThirdRankTensor3d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<Vector1d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<Vector2d>)
-# PYBIND11_MAKE_OPAQUE(std::vector<Vector3d>)
-# """
 
 #-------------------------------------------------------------------------------
 # Enums

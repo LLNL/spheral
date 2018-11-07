@@ -120,9 +120,6 @@ def CRKSPHKernel(W = "const TableKernel<%(Dimension)s>&",
                                return py::make_tuple(WCRKSPH, gradWSPH, gradWCRKSPH);
                            }""")
 def CRKSPHKernelAndGradient(
-        WCRKSPH = "typename %(Dimension)s::Scalar&",
-        gradWSPH = "typename %(Dimension)s::Scalar&",
-        gradWCRKSPH = "typename %(Dimension)s::Vector&",
         W = "const TableKernel<%(Dimension)s>&",
         correctionOrder = "const CRKOrder",
         rij = "const typename %(Dimension)s::Vector&",
