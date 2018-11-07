@@ -527,7 +527,6 @@ def segmentPlaneIntersection(s0 = "const Dim<3>::Vector&",
                              s1 = "const Dim<3>::Vector&",
                              point = "const Dim<3>::Vector&",
                              normal = "const Dim<3>::Vector&",
-                             result = "Dim<3>::Vector&",
                              tol = ("const double", "1.0e-8")):
     """Intersection of a line segment with a plane.
 The line segment is characterized by it's endpoints:     seg = (s0, s1)
@@ -560,7 +559,6 @@ def segmentPlaneIntersection1(s0 = "const Dim<3>::Vector&",
                               p0 = "const Dim<3>::Vector&",
                               p1 = "const Dim<3>::Vector&",
                               p2 = "const Dim<3>::Vector&",
-                              result = "Dim<3>::Vector&",
                               tol = ("const double", "1.0e-8")):
     """Intersection of a line segment with a plane.
 The line segment is characterized by it's endpoints:     seg = (s0, s1)

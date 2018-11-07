@@ -19,7 +19,7 @@ class TestSegmentSegmentIntersection(unittest.TestCase):
     def setUp(self):
         self.ntests = 100
         self.multMin = 0.001
-        self.multMax = 1.0e6
+        self.multMax = 1.0e5
         return
 
     #===========================================================================
