@@ -170,6 +170,18 @@ class PYB11returnpolicy:
         return thing
 
 #-------------------------------------------------------------------------------
+# keepalive
+#-------------------------------------------------------------------------------
+class PYB11keepalive:
+    def __init__(self, *args):
+        self.val = tuple(args)
+        assert len(self.val) == 2
+        return
+    def __call__(self, thing):
+        thing.PYB11keepalive = self.val
+        return thing
+
+#-------------------------------------------------------------------------------
 # module
 #-------------------------------------------------------------------------------
 class PYB11module:
