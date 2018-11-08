@@ -134,31 +134,22 @@ def neighborStats(connectivityMap):
 #-------------------------------------------------------------------------------
 def internalValues(fieldList):
     result = []
-    if not hasattr(fieldList, "__cache__"):
-        fieldList.__cache__ = []
     for f in fieldList:
         vals = f.internalValues()
-        fieldList.__cache__.append(vals)
         result.extend(vals)
     return result
 
 def ghostValues(fieldList):
     result = []
-    if not hasattr(fieldList, "__cache__"):
-        fieldList.__cache__ = []
     for f in fieldList:
         vals = f.ghostValues()
-        fieldList.__cache__.append(vals)
         result.extend(vals)
     return result
 
 def allValues(fieldList):
     result = []
-    if not hasattr(fieldList, "__cache__"):
-        fieldList.__cache__ = []
     for f in fieldList:
         vals = f.allValues()
-        fieldList.__cache__.append(vals)
         result.extend(vals)
     return result
 
