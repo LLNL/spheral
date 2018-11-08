@@ -440,8 +440,8 @@ output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
+output("hydro.kernel")
+output("hydro.PiKernel")
 
 #-------------------------------------------------------------------------------
 # Construct a damage model.
