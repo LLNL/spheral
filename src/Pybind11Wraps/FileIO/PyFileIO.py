@@ -313,14 +313,6 @@ def read_ThirdRankTensorField%(ndim)id(self,
 
 @PYB11pure_virtual
 @PYB11const
-@PYB11implementation("""[](const PyFileIO& self,
-                         Field<Dim<%(ndim)i>, int>& field,
-                         const std::string pathName) { 
-        self.read(field, pathName);
-        std::cerr << "  INTERSTITIAL Field: " << field.size() << " :";
-        for (const auto x: field) std::cerr << " " << x;
-        std::cerr << std::endl;
-        }""")
 def read_IntField%(ndim)id(self,
                     field = "Field<Dim<%(ndim)i>, int>&",
                     pathName = "const std::string"):
