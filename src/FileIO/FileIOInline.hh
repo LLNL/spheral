@@ -50,67 +50,6 @@ FileIO::write(const FieldList<Dimension, DataType>& fieldList,
 //------------------------------------------------------------------------------
 // Read a FieldList of arbitrary DataType.
 //------------------------------------------------------------------------------
-template<>
-inline
-void
-FileIO::read(FieldList<Dim<1>, int>& fieldList,
-             const std::string pathName) const {
-
-  const std::string divider = "|";
-
-  // Is the FieldList responsible for it's own memory?  If so, we have to 
-  // first make sure it has memory for each of the NodeLists it's defined against.
-  if (fieldList.storageType() == FieldStorageType::CopyFields) {
-    // We need the NodeListRegistrar.
-    const NodeListRegistrar<Dim<1>>& registrar = NodeListRegistrar<Dim<1>>::instance();
-    const size_t numNodeLists = registrar.numNodeLists();
-    const std::vector<std::string> registeredNames = registrar.registeredNames();
-
-    // Read the set of NodeLists this FieldList is associated with.
-    std::string names;
-    read(names, pathName + "/NodeListNames");
-    while (names.find(divider) != std::string::npos) {
-
-      // Read the name of the next NodeList.
-      const size_t len = names.find(divider);
-      CHECK(len < names.size());
-      const std::string name = names.substr(0, len);
-   
-      // Find the NodeList this is.
-      const size_t nodeListi = std::distance(registeredNames.begin(), 
-                                             find(registeredNames.begin(), registeredNames.end(), name));
-      VERIFY(nodeListi < numNodeLists);
-      const NodeList<Dim<1>>& nodeList = **(registrar.begin() + nodeListi);
-
-      // If necessary, insert a field into this FieldList for this NodeList.
-      if (not fieldList.haveNodeList(nodeList)) {
-        fieldList.appendNewField("Unnamed Field", nodeList, DataTypeTraits<int>::zero());
-      }
-
-      // Remove this name from the list of potentials.
-      names = names.substr(len + 1, names.size());
-    }
-  }
-
-  // Loop over each Field, and read each one using the descendent method.
-  for (typename FieldList<Dim<1>, int>::iterator fieldItr = fieldList.begin();
-       fieldItr != fieldList.end();
-       ++fieldItr) {
-
-    // Build the path name for the individual Field.
-    std::stringstream varPath;
-    int elementID = std::distance(fieldList.begin(), fieldItr);
-    varPath << pathName << "/Field" << elementID;
-
-    std::cerr << "  BEFORE READING Field: " << (**fieldItr).size() << std::endl;
-    for (auto i = 0; i < (**fieldItr).size(); ++i) (**fieldItr)(i) = -1;
-    read(**fieldItr, varPath.str());
-    std::cerr << "   AFTER READING Field: " << (**fieldItr).size() << " :";
-    for (const auto x: (**fieldItr)) std::cerr << " " << x;
-    std::cerr << std::endl;
-  }
-}
-
 template<typename Dimension, typename DataType>
 inline
 void

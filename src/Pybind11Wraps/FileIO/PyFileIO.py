@@ -279,42 +279,42 @@ def write_IntField%(ndim)id(self,
 @PYB11pure_virtual
 @PYB11const
 def read_ScalarField%(ndim)id(self,
-                       field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::Scalar>&",
+                       field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::Scalar>*",
                        pathName = "const std::string"):
     return "void"
 
 @PYB11pure_virtual
 @PYB11const
 def read_VectorField%(ndim)id(self,
-                       field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::Vector>&",
+                       field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::Vector>*",
                        pathName = "const std::string"):
     return "void"
 
 @PYB11pure_virtual
 @PYB11const
 def read_TensorField%(ndim)id(self,
-                       field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::Tensor>&",
+                       field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::Tensor>*",
                        pathName = "const std::string"):
     return "void"
 
 @PYB11pure_virtual
 @PYB11const
 def read_SymTensorField%(ndim)id(self,
-                          field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::SymTensor>&",
+                          field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::SymTensor>*",
                           pathName = "const std::string"):
     return "void"
 
 @PYB11pure_virtual
 @PYB11const
 def read_ThirdRankTensorField%(ndim)id(self,
-                                field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::ThirdRankTensor>&",
+                                field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::ThirdRankTensor>*",
                                 pathName = "const std::string"):
     return "void"
 
 @PYB11pure_virtual
 @PYB11const
 def read_IntField%(ndim)id(self,
-                    field = "Field<Dim<%(ndim)i>, int>&",
+                    field = "Field<Dim<%(ndim)i>, int>*",
                     pathName = "const std::string"):
     return "void"
 ''' % {"ndim" : ndim})

@@ -329,9 +329,7 @@ class GzipFileIO(PyFileIO):
         self.readFieldObject(val, pathName)
 
     def read_IntField1d(self, val, pathName):
-        print " PRE read_IntField1d: ", list(val)
         self.readFieldObject(val, pathName)
-        print "POST read_IntField1d: ", list(val)
 
     def read_ScalarField2d(self, val, pathName):
         self.readFieldObject(val, pathName)
