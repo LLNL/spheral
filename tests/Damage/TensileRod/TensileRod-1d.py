@@ -216,9 +216,9 @@ class AverageStrain:
         return
 
     def sample(self, cycle, atime, dt):
-        nodes = self.damageModel.nodeList()
+        nodes = self.damageModel.nodeList
         mass = nodes.mass()
-        strain = self.damageModel.strain()
+        strain = self.damageModel.strain
 
         n = nodes.numInternalNodes
         result = (mpi.allreduce(sum([mass[i]*(strain[i].Trace()) for i in xrange(n)]), mpi.SUM)/
