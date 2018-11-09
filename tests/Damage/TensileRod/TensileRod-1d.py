@@ -645,7 +645,7 @@ if graphics:
              (edPlot, "effdamage.png")]
 
     if isinstance(damageModel, GradyKippTensorDamageBenzAsphaug) or isinstance(damageModel, GradyKippTensorDamageOwen):
-        ts = damageModel.strain()
+        ts = damageModel.strain
         s = ScalarField("strain", nodes)
         for i in xrange(nodes.numInternalNodes):
             s[i] = ts[i].xx
@@ -653,8 +653,8 @@ if graphics:
         sl.appendField(s)
         sPlot = plotFieldList(sl, winTitle="strain @ %g %i" % (control.time(), mpi.procs),
                               plotStyle="o-")
-        eps = damageModel.sumActivationEnergiesPerNode()
-        nflaws = damageModel.numFlawsPerNode()
+        eps = damageModel.sumActivationEnergiesPerNode
+        nflaws = damageModel.numFlawsPerNode
         for i in xrange(nodes.numInternalNodes):
             assert nflaws[i] > 0
             eps[i] /= nflaws[i]
