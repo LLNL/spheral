@@ -21,7 +21,7 @@ PIPTARGETS+=" pybindgen==0.17.0"      # if nothing else, polytope currently requ
 
 AC_MSG_CHECKING(for --without-pybindgen)
 AC_ARG_WITH(pybindgen,
-[  --with-pybindgen ............................ use pybindgen wrappings],
+[  --with-pybindgen ......................... use pybindgen wrappings],
 [
     AC_MSG_RESULT(no)
     PYTHONBINDING="PYBINDGEN"
@@ -45,7 +45,7 @@ AC_ARG_WITH(pybindgen,
 # -----------------------------------------------------------------
 AC_MSG_CHECKING(for --without-pybind11)
 AC_ARG_WITH(pybind11,
-[  --without-pybind11 ....................... use pybind11 wrappings],
+[  --without-pybind11 ....................... do not use pybind11 wrappings],
 [
     AC_MSG_RESULT(no)
 ],
