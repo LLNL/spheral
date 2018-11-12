@@ -485,9 +485,7 @@ SiloFileIO::read(Dim<3>::ThirdRankTensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<1>, Dim<1>::Scalar>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<double> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -495,9 +493,7 @@ SiloFileIO::write(const Field<Dim<1>, Dim<1>::Scalar>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<1>, Dim<1>::Vector>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<1>::Vector> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -505,9 +501,7 @@ SiloFileIO::write(const Field<Dim<1>, Dim<1>::Vector>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<1>, Dim<1>::Tensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<1>::Tensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -515,9 +509,7 @@ SiloFileIO::write(const Field<Dim<1>, Dim<1>::Tensor>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<1>, Dim<1>::SymTensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<1>::SymTensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -525,9 +517,7 @@ SiloFileIO::write(const Field<Dim<1>, Dim<1>::SymTensor>& value, const string pa
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<1>::ThirdRankTensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -535,9 +525,7 @@ SiloFileIO::write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const str
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<1>, int>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<int> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -545,13 +533,7 @@ SiloFileIO::write(const Field<Dim<1>, int>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<1>, Dim<1>::Scalar>& value, const string pathName) const {
-  string fieldname;
-  std::vector<double> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -559,13 +541,7 @@ SiloFileIO::read(Field<Dim<1>, Dim<1>::Scalar>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<1>, Dim<1>::Vector>& value, const string pathName) const {
-  string fieldname;
-  std::vector<Dim<1>::Vector> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -573,13 +549,7 @@ SiloFileIO::read(Field<Dim<1>, Dim<1>::Vector>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<1>, Dim<1>::Tensor>& value, const string pathName) const {
-  string fieldname;
-  std::vector<Dim<1>::Tensor> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -587,13 +557,7 @@ SiloFileIO::read(Field<Dim<1>, Dim<1>::Tensor>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<1>, Dim<1>::SymTensor>& value, const string pathName) const {
-  string fieldname;
-  std::vector<Dim<1>::SymTensor> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -601,13 +565,7 @@ SiloFileIO::read(Field<Dim<1>, Dim<1>::SymTensor>& value, const string pathName)
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const string pathName) const {
-  string fieldname;
-  std::vector<Dim<1>::ThirdRankTensor> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -615,13 +573,7 @@ SiloFileIO::read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const string pat
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<1>, int>& value, const string pathName) const {
-  string fieldname;
-  std::vector<int> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 #endif
 
@@ -631,9 +583,7 @@ SiloFileIO::read(Field<Dim<1>, int>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<2>, Dim<2>::Scalar>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<double> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -641,9 +591,7 @@ SiloFileIO::write(const Field<Dim<2>, Dim<2>::Scalar>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<2>, Dim<2>::Vector>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<2>::Vector> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -651,9 +599,7 @@ SiloFileIO::write(const Field<Dim<2>, Dim<2>::Vector>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<2>, Dim<2>::Tensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<2>::Tensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -661,9 +607,7 @@ SiloFileIO::write(const Field<Dim<2>, Dim<2>::Tensor>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<2>, Dim<2>::SymTensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<2>::SymTensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -671,9 +615,7 @@ SiloFileIO::write(const Field<Dim<2>, Dim<2>::SymTensor>& value, const string pa
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<2>::ThirdRankTensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -681,9 +623,7 @@ SiloFileIO::write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const str
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<2>, int>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<int> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -691,13 +631,7 @@ SiloFileIO::write(const Field<Dim<2>, int>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<2>, Dim<2>::Scalar>& value, const string pathName) const {
-  string fieldname;
-  std::vector<double> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -705,13 +639,7 @@ SiloFileIO::read(Field<Dim<2>, Dim<2>::Scalar>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<2>, Dim<2>::Vector>& value, const string pathName) const {
-  string fieldname;
-  std::vector<Dim<2>::Vector> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -719,13 +647,7 @@ SiloFileIO::read(Field<Dim<2>, Dim<2>::Vector>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<2>, Dim<2>::Tensor>& value, const string pathName) const {
-  string fieldname;
-  std::vector<Dim<2>::Tensor> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -733,13 +655,7 @@ SiloFileIO::read(Field<Dim<2>, Dim<2>::Tensor>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<2>, Dim<2>::SymTensor>& value, const string pathName) const {
-  string fieldname;
-  std::vector<Dim<2>::SymTensor> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -747,13 +663,7 @@ SiloFileIO::read(Field<Dim<2>, Dim<2>::SymTensor>& value, const string pathName)
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pathName) const {
-  string fieldname;
-  std::vector<Dim<2>::ThirdRankTensor> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -761,13 +671,7 @@ SiloFileIO::read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pat
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<2>, int>& value, const string pathName) const {
-  string fieldname;
-  std::vector<int> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 #endif
 
@@ -777,9 +681,7 @@ SiloFileIO::read(Field<Dim<2>, int>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<double> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -787,9 +689,7 @@ SiloFileIO::write(const Field<Dim<3>, Dim<3>::Scalar>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<3>::Vector> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -797,9 +697,7 @@ SiloFileIO::write(const Field<Dim<3>, Dim<3>::Vector>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<3>::Tensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -807,9 +705,7 @@ SiloFileIO::write(const Field<Dim<3>, Dim<3>::Tensor>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<3>::SymTensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -817,9 +713,7 @@ SiloFileIO::write(const Field<Dim<3>, Dim<3>::SymTensor>& value, const string pa
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<3>::ThirdRankTensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -827,9 +721,7 @@ SiloFileIO::write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const str
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<3>, int>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<int> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
+  this->writeField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -837,13 +729,7 @@ SiloFileIO::write(const Field<Dim<3>, int>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) const {
-  string fieldname;
-  std::vector<double> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -851,13 +737,7 @@ SiloFileIO::read(Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) const {
-  string fieldname;
-  std::vector<Dim<3>::Vector> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -865,13 +745,7 @@ SiloFileIO::read(Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) const {
-  string fieldname;
-  std::vector<Dim<3>::Tensor> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -879,13 +753,7 @@ SiloFileIO::read(Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName) const {
-  string fieldname;
-  std::vector<Dim<3>::SymTensor> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -893,13 +761,7 @@ SiloFileIO::read(Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName)
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pathName) const {
-  string fieldname;
-  std::vector<Dim<3>::ThirdRankTensor> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -907,13 +769,7 @@ SiloFileIO::read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pat
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<3>, int>& value, const string pathName) const {
-  string fieldname;
-  std::vector<int> values;
-  this->read(fieldname, pathName + "/name");
-  this->read(values, pathName + "/values");
-  value.name(fieldname);
-  CHECK(value.numInternalElements() == values.size());
-  copy(values.begin(), values.end(), value.begin());
+  this->readField(value, pathName);
 }
 #endif
 
@@ -987,46 +843,38 @@ SiloFileIO::setDir(const string& ipathName) const {
 }
 
 //------------------------------------------------------------------------------
-// Worker method to write a sequentially accessed type to a silo file.
+// Worker method to write a generic Field
 //------------------------------------------------------------------------------
-template<typename Container>
+template<typename FieldType>
 void
 SiloFileIO::
-writeValueSequence(const Container& value, 
-                   const string pathName,
-                   const int nvali) {
-  const int n = value.size();
-  const int ntot = nvali*n;
-  int dims[1] = {ntot};
-  this->write(dims[0], pathName + "/size");
-  if (dims[0] > 0) {
-    const string varname = this->setDir(pathName + "/value");
-    vector<double> cvalue(ntot);
-    unsigned i = 0;
-    for (unsigned i = 0; i != n; ++i) std::copy(value[i].begin(), value[i].end(), &cvalue[nvali*i]);
-    VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
-            "SiloFileIO ERROR: unable to write variable " << pathName);
-  }
+writeField(const FieldType& value, 
+           const string pathName) {
+  const unsigned n = value.numInternalElements();
+  std::vector<int> packIndices(n);
+  for (auto i = 0; i < n; ++i) packIndices[i] = i;
+  const auto buffer = packFieldValues(value, packIndices);
+  this->write(value.name(), pathName + "/name");
+  this->write(n, pathName + "/size");
+  this->write(std::string(buffer.begin(), buffer.end()), pathName + "/values");
 }
   
-template<typename Container>
+template<typename FieldType>
 void
 SiloFileIO::
-readValueSequence(Container& value, 
-                  const string pathName,
-                  const int nvali) const {
-  int n;
+readField(FieldType& value, 
+          const string pathName) const {
+  unsigned n;
   this->read(n, pathName + "/size");
-  if (n == 0) {
-    value = Container();
-  } else {
-    CHECK(n % nvali == 0);
-    const string varname = this->setDir(pathName + "/value");
-    double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
-    VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
-    value = Container(n/nvali);
-    for (unsigned i = 0; i != n/nvali; ++i) std::copy(&cvalue[nvali*i], &cvalue[nvali*(i+1)], value[i].begin());
-  }
+  CHECK(value.numInternalElements() == n);
+  std::string name;
+  this->read(name, pathName + "/name");
+  std::vector<int> packIndices(n);
+  for (auto i = 0; i < n; ++i) packIndices[i] = i;
+  std::string stuff;
+  this->read(stuff, pathName + "/values");
+  unpackFieldValues(value, packIndices, std::vector<char>(stuff.begin(), stuff.end()));
+  value.name(name);
 }
   
 }
