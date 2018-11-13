@@ -158,10 +158,6 @@ private:
   // while the const version will abort if the directory does not exist.
   std::string setDir(const std::string& pathName);
   std::string setDir(const std::string& pathName) const;
-
-  // Helper methods to read/write Fields
-  template<typename FieldType> void writeField(const FieldType& value, const std::string pathName);
-  template<typename FieldType> void readField(FieldType& value, const std::string pathName) const;
 };
 
 }
