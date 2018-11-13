@@ -6,6 +6,7 @@
 #include "SiloFileIO.hh"
 #include "Field/Field.hh"
 
+#include "boost/algorithm/string.hpp"
 #include "boost/algorithm/string/replace.hpp"
 
 #include <algorithm>
@@ -23,6 +24,7 @@ using std::abs;
 namespace Spheral {
 
 namespace {
+  
 //------------------------------------------------------------------------------
 // Mangle a path name for silo consumption.
 //------------------------------------------------------------------------------
@@ -35,69 +37,240 @@ string SILO_mangle(const string& x) {
   return result;
 }
 
-//------------------------------------------------------------------------------
-// Get the double* start of a type.
-//------------------------------------------------------------------------------
-template<typename Dimension> int*    beginval(int& val)                                 { return &val; }
-template<typename Dimension> double* beginval(double& val)                              { return &val; }
-template<typename Dimension> double* beginval(typename Dimension::Vector& val)          { return &val[0]; }
-template<typename Dimension> double* beginval(typename Dimension::Tensor& val)          { return &val[0]; }
-template<typename Dimension> double* beginval(typename Dimension::SymTensor& val)       { return &val[0]; }
-template<typename Dimension> double* beginval(typename Dimension::ThirdRankTensor& val) { return &val(0,0,0); }
+// //------------------------------------------------------------------------------
+// // Get the double* start of a type.
+// //------------------------------------------------------------------------------
+// template<typename Dimension> int*    beginval(int& val)                                 { return &val; }
+// template<typename Dimension> double* beginval(double& val)                              { return &val; }
+// template<typename Dimension> double* beginval(typename Dimension::Vector& val)          { return &val[0]; }
+// template<typename Dimension> double* beginval(typename Dimension::Tensor& val)          { return &val[0]; }
+// template<typename Dimension> double* beginval(typename Dimension::SymTensor& val)       { return &val[0]; }
+// template<typename Dimension> double* beginval(typename Dimension::ThirdRankTensor& val) { return &val(0,0,0); }
 
-template<typename Dimension> const int*    beginval(const int& val)                                 { return &val; }
-template<typename Dimension> const double* beginval(const double& val)                              { return &val; }
-template<typename Dimension> const double* beginval(const typename Dimension::Vector& val)          { return &(val[0]); }
-template<typename Dimension> const double* beginval(const typename Dimension::Tensor& val)          { return &(val[0]); }
-template<typename Dimension> const double* beginval(const typename Dimension::SymTensor& val)       { return &(val[0]); }
-template<typename Dimension> const double* beginval(const typename Dimension::ThirdRankTensor& val) { return &(val(0,0,0)); }
+// template<typename Dimension> const int*    beginval(const int& val)                                 { return &val; }
+// template<typename Dimension> const double* beginval(const double& val)                              { return &val; }
+// template<typename Dimension> const double* beginval(const typename Dimension::Vector& val)          { return &(val[0]); }
+// template<typename Dimension> const double* beginval(const typename Dimension::Tensor& val)          { return &(val[0]); }
+// template<typename Dimension> const double* beginval(const typename Dimension::SymTensor& val)       { return &(val[0]); }
+// template<typename Dimension> const double* beginval(const typename Dimension::ThirdRankTensor& val) { return &(val(0,0,0)); }
 
-template<typename T> struct SiloTraits      { typedef double Vtype; static int Stype() { return DB_DOUBLE; } };
-template<>           struct SiloTraits<int> { typedef int Vtype;    static int Stype() { return DB_INT; } };
+// template<typename T> struct SiloTraits      { typedef double Vtype; static int Stype() { return DB_DOUBLE; } };
+// template<>           struct SiloTraits<int> { typedef int Vtype;    static int Stype() { return DB_INT; } };
 
 //------------------------------------------------------------------------------
-// Worker method to write a generic Field
+// Set the directory in the current silo file to the path portion of a pathName,
+// and return the variable name section.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Value>
-void
-writeField(DBfile* filePtr,
-           const Field<Dimension, Value>& value, 
-           const string pathName) {
-  const int n = value.numInternalElements();
+string setdir(DBfile* filePtr, const string& ipathName) {
+
+  // Mangle the path into something acceptable to silo.
+  string pathName = SILO_mangle(ipathName);
+
+  // We always start from the top.
+  VERIFY2(DBSetDir(filePtr, "/") == 0,
+          "SiloFileIO ERROR: unable to change to path /");
+
+  // Split up the path into directories and the var name.
+  vector<string> components;
+  boost::split(components, pathName, boost::is_any_of("/"));
+  CHECK(components.size() > 0);
+
+  // Set the path and return just the variable name.
+  for (unsigned i = 0; i != components.size() - 1; ++i) {
+    const string dirName = components[i];
+
+    // Check if this directory already exists or not.
+    DBtoc* toc = DBGetToc(filePtr);
+    bool exists = false;
+    size_t j = 0;
+    while (not exists and j != toc->ndir) {
+      exists = (dirName == string(toc->dir_names[j]));
+      ++j;
+    }
+    if (not exists) {
+      VERIFY2(DBMkDir(filePtr, dirName.c_str()) == 0,
+              "SiloFileIO ERROR: unable to create path " << dirName);
+    }
+    VERIFY2(DBSetDir(filePtr, dirName.c_str()) == 0,
+            "SiloFileIO ERROR: unable to change to path " << dirName);
+  }
+
+  return components.back();
+}
+
+
+//------------------------------------------------------------------------------
+// Common methods for reading/writing a lowly int to a silo file.
+//------------------------------------------------------------------------------
+void writeInt(DBfile* filePtr, const int& value, const string pathName) {
+  const string varname = setdir(filePtr, pathName);
   int dims[1] = {1};
-  VERIFY2(DBWrite(filePtr, (pathName + "/size").c_str(), &n, dims, 1, DB_INT) == 0,
-          "SiloFileIO ERROR: unable to write Field size " << pathName);
-  if (n > 0) {
-    const int ne = DataTypeTraits<Value>::numElements(Value());
-    std::vector<typename SiloTraits<Value>::Vtype> buf(n*ne);
-    for (auto i = 0; i < n; ++i) std::copy(beginval<Dimension>(value(i)), beginval<Dimension>(value(i))+ne, &buf[i*ne]);
-    int dims[1] = {n*ne};
-    VERIFY2(DBWrite(filePtr, (pathName + "/values").c_str(), static_cast<void*>(&buf.front()), dims, 1, SiloTraits<Value>::Stype()) == 0,
-            "SiloFileIO ERROR: unable to write Field values " << pathName);
+  VERIFY2(DBWrite(filePtr, varname.c_str(), &value, dims, 1, DB_INT) == 0,
+          "SiloFileIO ERROR: unable to write int variable " << pathName);
+}
+
+void readInt(DBfile* filePtr, int& value, const string pathName) {
+  // const string varname = this->setDir(pathName);
+  // CHECK2(DBReadVar(filePtr, varname.c_str(), &value) == 0,
+  //         "SiloFileIO ERROR: unable to read variable " << pathName);
+  value = *static_cast<int*>(DBGetVar(filePtr, pathName.c_str()));
+}
+
+//------------------------------------------------------------------------------
+// Common methods for reading/writing a std::string to a silo file.
+//------------------------------------------------------------------------------
+void writeString(DBfile* filePtr, const string& value, const string pathName) {
+  const char* cvalue = value.c_str();
+  int dims[1] = {int(strlen(cvalue))};
+  writeInt(filePtr, dims[0], pathName + "/size");
+  if (dims[0] > 0) {
+    const string varname = setdir(filePtr, pathName + "/value");
+    VERIFY2(DBWrite(filePtr, varname.c_str(), cvalue, dims, 1, DB_CHAR) == 0,
+            "SiloFileIO ERROR: unable to write string variable " << pathName);
   }
 }
-  
+
+void readString(DBfile* filePtr, string& value, const string pathName) {
+  int valsize;
+  readInt(filePtr, valsize, pathName + "/size");
+  if (valsize == 0) {
+    value = "";
+  } else {
+    char cvalue[valsize + 1];  // Do we need to allow space for trailing null?
+    VERIFY2(DBReadVar(filePtr, (pathName + "/value").c_str(), cvalue) == 0,
+            "SiloFileIO ERROR: failed to read string variable " << pathName);
+    value = string(&cvalue[0], &cvalue[valsize]);
+  }
+}
+
 //------------------------------------------------------------------------------
-// Worker method to read a generic Field
+// Generic methods to read/write a Field
+// These methods work for types Vector, Tensor, ThirdRankTensor, ...
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
-void
-readField(DBfile* filePtr,
-          Field<Dimension, Value>& value, 
-          const string pathName) {
-  const int n = value.numInternalElements();
-  int n1 = *static_cast<int*>(DBGetVar(filePtr, (pathName + "/size").c_str()));
-  VERIFY2(n == n1, "SiloFileIO ERROR: bad Field size " << n << " != " << n1);
-  if (n > 0) {
-    const int ne = DataTypeTraits<Value>::numElements(Value());
-    std::vector<typename SiloTraits<Value>::Vtype> buf(n*ne);
-    VERIFY2(DBReadVar(filePtr, (pathName + "/values").c_str(), static_cast<void*>(&buf.front())) == 0,
-            "SiloFileIO ERROR: unable to read Field values " << pathName);
-    for (auto i = 0; i < n; ++i) std::copy(&buf[i*ne], &buf[(i+1)*ne], beginval<Dimension>(value(i)));
+struct FieldIO {
+
+  //...........................................................................
+  static void write(DBfile* filePtr,
+                    const Field<Dimension, Value>& value, 
+                    const string pathName) {
+    const int n = value.numInternalElements();
+    writeInt(filePtr, n, pathName + "/size");
+    writeString(filePtr, value.name(), pathName + "/name");
+    if (n > 0) {
+      const int ne = Value::numElements;
+      std::vector<double> buf(n*ne);
+      for (auto i = 0; i < n; ++i) std::copy(value(i).begin(), value(i).end(), &buf[i*ne]);
+      int dims[1] = {n*ne};
+      const string varname = setdir(filePtr, pathName + "/values");
+      VERIFY2(DBWrite(filePtr, varname.c_str(), static_cast<void*>(&buf.front()), dims, 1, DB_DOUBLE) == 0,
+              "SiloFileIO ERROR: unable to write Field values " << pathName);
+    }
   }
-}
-  
-}
+
+  //...........................................................................
+  static void read(DBfile* filePtr,
+                   Field<Dimension, Value>& value, 
+                   const string pathName) {
+    const int n = value.numInternalElements();
+    int n1;
+    string fieldname;
+    readInt(filePtr, n1, pathName + "/size");
+    readString(filePtr, fieldname, pathName + "/name");
+    value.name(fieldname);
+    VERIFY2(n == n1, "SiloFileIO ERROR: bad Field size " << n << " != " << n1);
+    if (n > 0) {
+      const int ne = Value::numElements;
+      std::vector<double> buf(n*ne);
+      VERIFY2(DBReadVar(filePtr, (pathName + "/values").c_str(), static_cast<void*>(&buf.front())) == 0,
+              "SiloFileIO ERROR: unable to read Field values " << pathName);
+      for (auto i = 0; i < n; ++i) std::copy(&buf[i*ne], &buf[(i+1)*ne], value(i).begin());
+    }
+  }
+};
+
+//------------------------------------------------------------------------------
+// Specialize to read/write a Field<int>
+//------------------------------------------------------------------------------
+template<typename Dimension>
+struct FieldIO<Dimension, int> {
+
+  //...........................................................................
+  static void write(DBfile* filePtr,
+                    const Field<Dimension, int>& value, 
+                    const string pathName) {
+    const int n = value.numInternalElements();
+    writeInt(filePtr, n, pathName + "/size");
+    writeString(filePtr, value.name(), pathName + "/name");
+    if (n > 0) {
+      int dims[1] = {n};
+      const string varname = setdir(filePtr, pathName + "/values");
+      VERIFY2(DBWrite(filePtr, varname.c_str(), static_cast<void*>(const_cast<int*>(&value[0])), dims, 1, DB_INT) == 0,
+              "SiloFileIO ERROR: unable to write Field values " << pathName);
+    }
+  }
+
+  //...........................................................................
+  static void read(DBfile* filePtr,
+                   Field<Dimension, int>& value, 
+                   const string pathName) {
+    const int n = value.numInternalElements();
+    int n1;
+    string fieldname;
+    readInt(filePtr, n1, pathName + "/size");
+    readString(filePtr, fieldname, pathName + "/name");
+    value.name(fieldname);
+    VERIFY2(n == n1, "SiloFileIO ERROR: bad Field size " << n << " != " << n1);
+    if (n > 0) {
+      const string varname = setdir(filePtr, pathName + "/values");
+      VERIFY2(DBReadVar(filePtr, varname.c_str(), static_cast<void*>(&value[0])) == 0,
+              "SiloFileIO ERROR: unable to read Field values " << pathName);
+    }
+  }
+};
+
+
+//------------------------------------------------------------------------------
+// Specialize to read/write a Field<double>
+//------------------------------------------------------------------------------
+template<typename Dimension>
+struct FieldIO<Dimension, double> {
+
+  //...........................................................................
+  static void write(DBfile* filePtr,
+                    const Field<Dimension, double>& value, 
+                    const string pathName) {
+    const int n = value.numInternalElements();
+    writeInt(filePtr, n, pathName + "/size");
+    writeString(filePtr, value.name(), pathName + "/name");
+    if (n > 0) {
+      int dims[1] = {n};
+      const string varname = setdir(filePtr, pathName + "/values");
+      VERIFY2(DBWrite(filePtr, varname.c_str(), static_cast<void*>(const_cast<double*>(&value[0])), dims, 1, DB_DOUBLE) == 0,
+              "SiloFileIO ERROR: unable to write Field values " << pathName);
+    }
+  }
+
+  //...........................................................................
+  static void read(DBfile* filePtr,
+                   Field<Dimension, double>& value, 
+                   const string pathName) {
+    const int n = value.numInternalElements();
+    int n1;
+    string fieldname;
+    readInt(filePtr, n1, pathName + "/size");
+    readString(filePtr, fieldname, pathName + "/name");
+    value.name(fieldname);
+    VERIFY2(n == n1, "SiloFileIO ERROR: bad Field size " << n << " != " << n1);
+    if (n > 0) {
+      const string varname = setdir(filePtr, pathName + "/values");
+      VERIFY2(DBReadVar(filePtr, varname.c_str(), static_cast<void*>(&value[0])) == 0,
+              "SiloFileIO ERROR: unable to read Field values " << pathName);
+    }
+  }
+};
+
+}   // anonymous namespace
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -176,10 +349,7 @@ SiloFileIO::write(const unsigned& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const int& value, const string pathName) {
-  const string varname = this->setDir(pathName);
-  int dims[1] = {1};
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &value, dims, 1, DB_INT) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  writeInt(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -210,14 +380,7 @@ SiloFileIO::write(const double& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const string& value, const string pathName) {
-  const char* cvalue = value.c_str();
-  int dims[1] = {int(strlen(cvalue))};
-  this->write(dims[0], pathName + "/size");
-  if (dims[0] > 0) {
-    const string varname = this->setDir(pathName + "/value");
-    VERIFY2(DBWrite(mFilePtr, varname.c_str(), cvalue, dims, 1, DB_CHAR) == 0,
-            "SiloFileIO ERROR: unable to write variable " << pathName);
-  }
+  writeString(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -364,14 +527,11 @@ SiloFileIO::read(unsigned& value, const string pathName) const {
 }
 
 //------------------------------------------------------------------------------
-// Read an int from the file.
+// Read an int to the file.
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(int& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  // CHECK2(DBReadVar(mFilePtr, varname.c_str(), &value) == 0,
-  //         "SiloFileIO ERROR: unable to read variable " << pathName);
-  value = *static_cast<int*>(DBGetVar(mFilePtr, varname.c_str()));
+  readInt(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -402,23 +562,7 @@ SiloFileIO::read(double& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(string& value, const string pathName) const {
-  int valsize;
-  this->read(valsize, pathName + "/size");
-  if (valsize == 0) {
-    value = "";
-  } else {
-    const string varname = this->setDir(pathName + "/value");
-    // char* cvalue = (char*) DBGetVar(mFilePtr, varname.c_str());
-    // VERIFY2(cvalue != NULL,
-    //         "SiloFileIO ERROR: unable to read variable " << pathName);
-    // value = string(cvalue);
-    // CHECK2(value.size() == valsize, value << " " << value.size() << " " << valsize);
-    // free(cvalue);
-    char cvalue[valsize + 1];  // Do we need to allow space for trailing null?
-    VERIFY2(DBReadVar(mFilePtr, varname.c_str(), cvalue) == 0,
-            "SiloFileIO ERROR: failed to read variable " << pathName);
-    value = string(&cvalue[0], &cvalue[valsize]);
-  }
+  readString(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -547,7 +691,7 @@ SiloFileIO::read(Dim<3>::ThirdRankTensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<1>, Dim<1>::Scalar>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<1>, Dim<1>::Scalar>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -555,7 +699,7 @@ SiloFileIO::write(const Field<Dim<1>, Dim<1>::Scalar>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<1>, Dim<1>::Vector>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<1>, Dim<1>::Vector>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -563,7 +707,7 @@ SiloFileIO::write(const Field<Dim<1>, Dim<1>::Vector>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<1>, Dim<1>::Tensor>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<1>, Dim<1>::Tensor>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -571,7 +715,7 @@ SiloFileIO::write(const Field<Dim<1>, Dim<1>::Tensor>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<1>, Dim<1>::SymTensor>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<1>, Dim<1>::SymTensor>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -579,7 +723,7 @@ SiloFileIO::write(const Field<Dim<1>, Dim<1>::SymTensor>& value, const string pa
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<1>, Dim<1>::ThirdRankTensor>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -587,7 +731,7 @@ SiloFileIO::write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const str
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<1>, int>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<1>, int>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -595,7 +739,7 @@ SiloFileIO::write(const Field<Dim<1>, int>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<1>, Dim<1>::Scalar>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<1>, Dim<1>::Scalar>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -603,7 +747,7 @@ SiloFileIO::read(Field<Dim<1>, Dim<1>::Scalar>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<1>, Dim<1>::Vector>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<1>, Dim<1>::Vector>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -611,7 +755,7 @@ SiloFileIO::read(Field<Dim<1>, Dim<1>::Vector>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<1>, Dim<1>::Tensor>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<1>, Dim<1>::Tensor>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -619,7 +763,7 @@ SiloFileIO::read(Field<Dim<1>, Dim<1>::Tensor>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<1>, Dim<1>::SymTensor>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<1>, Dim<1>::SymTensor>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -627,7 +771,7 @@ SiloFileIO::read(Field<Dim<1>, Dim<1>::SymTensor>& value, const string pathName)
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<1>, Dim<1>::ThirdRankTensor>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -635,7 +779,7 @@ SiloFileIO::read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const string pat
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<1>, int>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<1>, int>::read(mFilePtr, value, pathName);
 }
 #endif
 
@@ -645,7 +789,7 @@ SiloFileIO::read(Field<Dim<1>, int>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<2>, Dim<2>::Scalar>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<2>, Dim<2>::Scalar>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -653,7 +797,7 @@ SiloFileIO::write(const Field<Dim<2>, Dim<2>::Scalar>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<2>, Dim<2>::Vector>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<2>, Dim<2>::Vector>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -661,7 +805,7 @@ SiloFileIO::write(const Field<Dim<2>, Dim<2>::Vector>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<2>, Dim<2>::Tensor>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<2>, Dim<2>::Tensor>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -669,7 +813,7 @@ SiloFileIO::write(const Field<Dim<2>, Dim<2>::Tensor>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<2>, Dim<2>::SymTensor>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<2>, Dim<2>::SymTensor>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -677,7 +821,7 @@ SiloFileIO::write(const Field<Dim<2>, Dim<2>::SymTensor>& value, const string pa
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<2>, Dim<2>::ThirdRankTensor>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -685,7 +829,7 @@ SiloFileIO::write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const str
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<2>, int>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<2>, int>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -693,7 +837,7 @@ SiloFileIO::write(const Field<Dim<2>, int>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<2>, Dim<2>::Scalar>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<2>, Dim<2>::Scalar>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -701,7 +845,7 @@ SiloFileIO::read(Field<Dim<2>, Dim<2>::Scalar>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<2>, Dim<2>::Vector>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<2>, Dim<2>::Vector>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -709,7 +853,7 @@ SiloFileIO::read(Field<Dim<2>, Dim<2>::Vector>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<2>, Dim<2>::Tensor>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<2>, Dim<2>::Tensor>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -717,7 +861,7 @@ SiloFileIO::read(Field<Dim<2>, Dim<2>::Tensor>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<2>, Dim<2>::SymTensor>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<2>, Dim<2>::SymTensor>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -725,7 +869,7 @@ SiloFileIO::read(Field<Dim<2>, Dim<2>::SymTensor>& value, const string pathName)
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<2>, Dim<2>::ThirdRankTensor>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -733,7 +877,7 @@ SiloFileIO::read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pat
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<2>, int>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<2>, int>::read(mFilePtr, value, pathName);
 }
 #endif
 
@@ -743,7 +887,7 @@ SiloFileIO::read(Field<Dim<2>, int>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<3>, Dim<3>::Scalar>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -751,7 +895,7 @@ SiloFileIO::write(const Field<Dim<3>, Dim<3>::Scalar>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<3>, Dim<3>::Vector>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -759,7 +903,7 @@ SiloFileIO::write(const Field<Dim<3>, Dim<3>::Vector>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<3>, Dim<3>::Tensor>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -767,7 +911,7 @@ SiloFileIO::write(const Field<Dim<3>, Dim<3>::Tensor>& value, const string pathN
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<3>, Dim<3>::SymTensor>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -775,7 +919,7 @@ SiloFileIO::write(const Field<Dim<3>, Dim<3>::SymTensor>& value, const string pa
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<3>, Dim<3>::ThirdRankTensor>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -783,7 +927,7 @@ SiloFileIO::write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const str
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<3>, int>& value, const string pathName) {
-  writeField(mFilePtr, value, pathName);
+  FieldIO<Dim<3>, int>::write(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -791,7 +935,7 @@ SiloFileIO::write(const Field<Dim<3>, int>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<3>, Dim<3>::Scalar>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -799,7 +943,7 @@ SiloFileIO::read(Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<3>, Dim<3>::Vector>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -807,7 +951,7 @@ SiloFileIO::read(Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<3>, Dim<3>::Tensor>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -815,7 +959,7 @@ SiloFileIO::read(Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) co
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<3>, Dim<3>::SymTensor>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -823,7 +967,7 @@ SiloFileIO::read(Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName)
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<3>, Dim<3>::ThirdRankTensor>::read(mFilePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -831,7 +975,7 @@ SiloFileIO::read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pat
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Field<Dim<3>, int>& value, const string pathName) const {
-  readField(mFilePtr, value, pathName);
+  FieldIO<Dim<3>, int>::read(mFilePtr, value, pathName);
 }
 #endif
 
