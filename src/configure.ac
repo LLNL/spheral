@@ -225,4 +225,5 @@ AC_OUTPUT(helpers/makefile_master \
           Pybind11Wraps/Distributed/makefile \
           Pybind11Wraps/CXXTests/makefile \
           Pybind11Wraps/Helmholtz/makefile \
+          Pybind11Wraps/ANEOS/makefile \
           SimulationControl/spheralDimensions.py)
