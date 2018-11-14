@@ -114,7 +114,8 @@ void readInt(DBfile* filePtr, int& value, const string pathName) {
   // CHECK2(DBReadVar(filePtr, varname.c_str(), &value) == 0,
   //         "SiloFileIO ERROR: unable to read variable " << pathName);
   std::cerr << "Reading from " << pathName << std::endl;
-  value = *static_cast<int*>(DBGetVar(filePtr, pathName.c_str()));
+  const string varname = setdir(filePtr, pathName);
+  value = *static_cast<int*>(DBGetVar(filePtr, varname.c_str()));
 }
 
 //------------------------------------------------------------------------------
@@ -138,7 +139,8 @@ void readString(DBfile* filePtr, string& value, const string pathName) {
     value = "";
   } else {
     char cvalue[valsize + 1];  // Do we need to allow space for trailing null?
-    VERIFY2(DBReadVar(filePtr, (pathName + "/value").c_str(), cvalue) == 0,
+    const string varname = setdir(filePtr, pathName + "/value");
+    VERIFY2(DBReadVar(filePtr, varname.c_str(), cvalue) == 0,
             "SiloFileIO ERROR: failed to read string variable " << pathName);
     value = string(&cvalue[0], &cvalue[valsize]);
   }
