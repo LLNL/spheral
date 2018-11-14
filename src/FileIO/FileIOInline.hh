@@ -193,13 +193,9 @@ template<typename DataType>
 inline
 void
 FileIO::write(const std::vector<DataType>& x, const std::string pathName) {
-  const int numElements = x.size();
-  write(numElements, pathName + "/numElements");
-  for (int i = 0; i < numElements; ++i) {
-    std::stringstream elementPathName;
-    elementPathName << pathName << "/" << i;
-    write(x[i], elementPathName.str());
-  }
+  std::vector<char> buf;
+  packElement(x, buf);
+  this->write(std::string(buf.begin(), buf.end()), pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -209,15 +205,12 @@ template<typename DataType>
 inline
 void
 FileIO::read(std::vector<DataType>& x, const std::string pathName) const {
-  int numElements;
-  read(numElements, pathName + "/numElements");
-  x.resize(numElements);
-  CHECK(x.size() == numElements);
-  for (int i = 0; i < numElements; ++i) {
-    std::stringstream elementPathName;
-    elementPathName << pathName << "/" << i;
-    read(x[i], elementPathName.str());
-  }
+  std::string bufstr;
+  this->read(bufstr, pathName);
+  std::vector<char> buf(bufstr.begin(), bufstr.end());
+  auto itr = buf.begin();
+  unpackElement(x, itr, buf.end());
+  ENSURE(itr == buf.end());
 }
 
 }
