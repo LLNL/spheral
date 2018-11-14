@@ -113,6 +113,7 @@ void readInt(DBfile* filePtr, int& value, const string pathName) {
   // const string varname = this->setDir(pathName);
   // CHECK2(DBReadVar(filePtr, varname.c_str(), &value) == 0,
   //         "SiloFileIO ERROR: unable to read variable " << pathName);
+  std::cerr << "Reading from " << pathName << std::endl;
   value = *static_cast<int*>(DBGetVar(filePtr, pathName.c_str()));
 }
 
@@ -155,14 +156,14 @@ struct FieldIO {
                     const Field<Dimension, Value>& value, 
                     const string pathName) {
     const int n = value.numInternalElements();
-    writeInt(filePtr, n, pathName + "/size");
+    const int ne = Value::numElements;
+    int dims[1] = {n*ne};
+    writeInt(filePtr, dims[0], pathName + "/values/size");
     writeString(filePtr, value.name(), pathName + "/name");
     if (n > 0) {
-      const int ne = Value::numElements;
       std::vector<double> buf(n*ne);
       for (auto i = 0; i < n; ++i) std::copy(value(i).begin(), value(i).end(), &buf[i*ne]);
-      int dims[1] = {n*ne};
-      const string varname = setdir(filePtr, pathName + "/values");
+      const string varname = setdir(filePtr, pathName + "/values/value");
       VERIFY2(DBWrite(filePtr, varname.c_str(), static_cast<void*>(&buf.front()), dims, 1, DB_DOUBLE) == 0,
               "SiloFileIO ERROR: unable to write Field values " << pathName);
     }
@@ -173,16 +174,17 @@ struct FieldIO {
                    Field<Dimension, Value>& value, 
                    const string pathName) {
     const int n = value.numInternalElements();
+    const int ne = Value::numElements;
     int n1;
     string fieldname;
-    readInt(filePtr, n1, pathName + "/size");
+    readInt(filePtr, n1, pathName + "/values/size");
     readString(filePtr, fieldname, pathName + "/name");
+    VERIFY2(n*ne == n1, "SiloFileIO ERROR: bad Field size " << n << " != " << n1);
     value.name(fieldname);
-    VERIFY2(n == n1, "SiloFileIO ERROR: bad Field size " << n << " != " << n1);
     if (n > 0) {
-      const int ne = Value::numElements;
       std::vector<double> buf(n*ne);
-      VERIFY2(DBReadVar(filePtr, (pathName + "/values").c_str(), static_cast<void*>(&buf.front())) == 0,
+      const string varname = setdir(filePtr, pathName + "/values/value");
+      VERIFY2(DBReadVar(filePtr, varname.c_str(), static_cast<void*>(&buf.front())) == 0,
               "SiloFileIO ERROR: unable to read Field values " << pathName);
       for (auto i = 0; i < n; ++i) std::copy(&buf[i*ne], &buf[(i+1)*ne], value(i).begin());
     }
@@ -200,11 +202,11 @@ struct FieldIO<Dimension, int> {
                     const Field<Dimension, int>& value, 
                     const string pathName) {
     const int n = value.numInternalElements();
-    writeInt(filePtr, n, pathName + "/size");
+    writeInt(filePtr, n, pathName + "/values/size");
     writeString(filePtr, value.name(), pathName + "/name");
     if (n > 0) {
       int dims[1] = {n};
-      const string varname = setdir(filePtr, pathName + "/values");
+      const string varname = setdir(filePtr, pathName + "/values/value");
       VERIFY2(DBWrite(filePtr, varname.c_str(), static_cast<void*>(const_cast<int*>(&value[0])), dims, 1, DB_INT) == 0,
               "SiloFileIO ERROR: unable to write Field values " << pathName);
     }
@@ -217,12 +219,12 @@ struct FieldIO<Dimension, int> {
     const int n = value.numInternalElements();
     int n1;
     string fieldname;
-    readInt(filePtr, n1, pathName + "/size");
+    readInt(filePtr, n1, pathName + "/values/size");
     readString(filePtr, fieldname, pathName + "/name");
-    value.name(fieldname);
     VERIFY2(n == n1, "SiloFileIO ERROR: bad Field size " << n << " != " << n1);
+    value.name(fieldname);
     if (n > 0) {
-      const string varname = setdir(filePtr, pathName + "/values");
+      const string varname = setdir(filePtr, pathName + "/values/value");
       VERIFY2(DBReadVar(filePtr, varname.c_str(), static_cast<void*>(&value[0])) == 0,
               "SiloFileIO ERROR: unable to read Field values " << pathName);
     }
@@ -234,18 +236,18 @@ struct FieldIO<Dimension, int> {
 // Specialize to read/write a Field<double>
 //------------------------------------------------------------------------------
 template<typename Dimension>
-struct FieldIO<Dimension, double> {
+struct FieldIO<Dimension, typename Dimension::Scalar> {
 
   //...........................................................................
   static void write(DBfile* filePtr,
                     const Field<Dimension, double>& value, 
                     const string pathName) {
     const int n = value.numInternalElements();
-    writeInt(filePtr, n, pathName + "/size");
+    writeInt(filePtr, n, pathName + "/values/size");
     writeString(filePtr, value.name(), pathName + "/name");
     if (n > 0) {
       int dims[1] = {n};
-      const string varname = setdir(filePtr, pathName + "/values");
+      const string varname = setdir(filePtr, pathName + "/values/value");
       VERIFY2(DBWrite(filePtr, varname.c_str(), static_cast<void*>(const_cast<double*>(&value[0])), dims, 1, DB_DOUBLE) == 0,
               "SiloFileIO ERROR: unable to write Field values " << pathName);
     }
@@ -258,12 +260,12 @@ struct FieldIO<Dimension, double> {
     const int n = value.numInternalElements();
     int n1;
     string fieldname;
-    readInt(filePtr, n1, pathName + "/size");
+    readInt(filePtr, n1, pathName + "/values/size");
     readString(filePtr, fieldname, pathName + "/name");
-    value.name(fieldname);
     VERIFY2(n == n1, "SiloFileIO ERROR: bad Field size " << n << " != " << n1);
+    value.name(fieldname);
     if (n > 0) {
-      const string varname = setdir(filePtr, pathName + "/values");
+      const string varname = setdir(filePtr, pathName + "/values/value");
       VERIFY2(DBReadVar(filePtr, varname.c_str(), static_cast<void*>(&value[0])) == 0,
               "SiloFileIO ERROR: unable to read Field values " << pathName);
     }
