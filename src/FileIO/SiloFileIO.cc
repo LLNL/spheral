@@ -113,7 +113,6 @@ void readInt(DBfile* filePtr, int& value, const string pathName) {
   // const string varname = this->setDir(pathName);
   // CHECK2(DBReadVar(filePtr, varname.c_str(), &value) == 0,
   //         "SiloFileIO ERROR: unable to read variable " << pathName);
-  std::cerr << "Reading from " << pathName << std::endl;
   const string varname = setdir(filePtr, pathName);
   value = *static_cast<int*>(DBGetVar(filePtr, varname.c_str()));
 }
