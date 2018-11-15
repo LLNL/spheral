@@ -16,20 +16,21 @@ class FileIOAbstractMethods:
                        ("int", "int"),
                        ("bool", "bool"),
                        ("double", "double"),
-                       ("std::string", "string")]:
+                       ("std::string", "string"),
+                       ("std::vector<double>", "VectorDouble")]:
         exec("""
 @PYB11pycppname("write")
 def write%(Tmangle)s(self,
-    value = "const %(T)s&",
-    pathName = "const std::string"):
+                     value = "const %(T)s&",
+                     pathName = "const std::string"):
     "Write %(T)s"
     return "void"
 
 @PYB11pycppname("read")
 @PYB11const
 def read%(Tmangle)s(self,
-    value = "%(T)s&",
-    pathName = "const std::string"):
+                    value = "%(T)s&",
+                    pathName = "const std::string"):
     "Read %(T)s"
     return "void"
 
@@ -47,16 +48,16 @@ def read%(Tmangle)s(self,
         exec("""
 @PYB11pycppname("write")
 def write%(Tmangle)s(self,
-    value = "const %(T)s&",
-    pathName = "const std::string"):
+                     value = "const %(T)s&",
+                     pathName = "const std::string"):
     "Write %(T)s"
     return "void"
 
 @PYB11pycppname("read")
 @PYB11const
 def read%(Tmangle)s(self,
-    value = "%(T)s&",
-    pathName = "const std::string"):
+                    value = "%(T)s&",
+                    pathName = "const std::string"):
     "Read %(T)s"
     return "void"
 """ % {"T"       : T,
@@ -76,16 +77,16 @@ def read%(Tmangle)s(self,
             exec("""
 @PYB11pycppname("write")
 def writeField%(Tmangle)s(self,
-    value = "const Field<Dim<%(ndim)i>, %(T)s>&",
-    pathName = "const std::string"):
+                value = "const Field<Dim<%(ndim)i>, %(T)s>&",
+                pathName = "const std::string"):
     "Write Field<Dim<%(ndim)i, %(T)s>"
     return "void"
 
 @PYB11pycppname("read")
 @PYB11const
 def readField%(Tmangle)s(self,
-    value = "Field<Dim<%(ndim)i>, %(T)s>&",
-    pathName = "const std::string"):
+                         value = "Field<Dim<%(ndim)i>, %(T)s>&",
+                         pathName = "const std::string"):
     "Read %(T)s"
     return "void"
 """ % {"ndim" : ndim,

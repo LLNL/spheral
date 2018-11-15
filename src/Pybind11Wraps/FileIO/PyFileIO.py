@@ -59,6 +59,13 @@ class PyFileIO(FileIO):
         "Write a std::string"
         return "void"
 
+    @PYB11virtual
+    def write_vector_double(self,
+                            value = "const std::vector<double>&",
+                            pathName = "const std::string"):
+        "Write a std::string"
+        return "void"
+
     @PYB11pure_virtual
     def write_Vector1d(self,
                        value = "const Dim<1>::Vector&",
@@ -165,6 +172,14 @@ class PyFileIO(FileIO):
                     pathName = "const std::string"):
         "Read a std::string"
         return "std::string"
+
+    @PYB11virtual
+    @PYB11const
+    def read_vector_double(self,
+                           value = "std::vector<double>&",
+                           pathName = "const std::string"):
+        "Read a std::vector<double>"
+        return "void"
 
     @PYB11pure_virtual
     @PYB11const

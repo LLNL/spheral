@@ -29,11 +29,12 @@ public:
   virtual ~PyFileIO();
 
   // Descendent python objects should provide these write methods.
-  virtual void write_unsigned_int(const unsigned value, const std::string pathName) override { VERIFY2(false, "write_unsigned_int not overriden"); }
-  virtual void write_int(const int value, const std::string pathName)               override { VERIFY2(false, "write_int not overriden"); }
-  virtual void write_bool(const bool value, const std::string pathName)             override { VERIFY2(false, "write_bool not overriden"); }
-  virtual void write_double(const double value, const std::string pathName)         override { VERIFY2(false, "write_double not overriden"); }
-  virtual void write_string(const std::string value, const std::string pathName)    override { VERIFY2(false, "write_string not overriden"); }
+  virtual void write_unsigned_int(const unsigned value, const std::string pathName)              override { VERIFY2(false, "write_unsigned_int not overriden"); }
+  virtual void write_int(const int value, const std::string pathName)                            override { VERIFY2(false, "write_int not overriden"); }
+  virtual void write_bool(const bool value, const std::string pathName)                          override { VERIFY2(false, "write_bool not overriden"); }
+  virtual void write_double(const double value, const std::string pathName)                      override { VERIFY2(false, "write_double not overriden"); }
+  virtual void write_string(const std::string value, const std::string pathName)                 override { VERIFY2(false, "write_string not overriden"); }
+  virtual void write_vector_double(const std::vector<double>& value, const std::string pathName)          { VERIFY2(false, "write_string not overriden"); }
 
   virtual void write_Vector1d(const Dim<1>::Vector& value, const std::string pathName) = 0;
   virtual void write_Tensor1d(const Dim<1>::Tensor& value, const std::string pathName) = 0;
@@ -78,11 +79,12 @@ public:
 #endif
 
   // Descendent python objects should provide these read methods.
-  virtual unsigned read_unsigned_int(const std::string pathName) const override { VERIFY2(false, "read_unsigned_int not overriden"); }
-  virtual int read_int(const std::string pathName)               const override { VERIFY2(false, "read_int not overriden"); }
-  virtual bool read_bool(const std::string pathName)             const override { VERIFY2(false, "read_bool not overriden"); }
-  virtual double read_double(const std::string pathName)         const override { VERIFY2(false, "read_double not overriden"); }
-  virtual std::string read_string(const std::string pathName)    const override { VERIFY2(false, "read_string not overriden"); }
+  virtual unsigned read_unsigned_int(const std::string pathName)                          const override { VERIFY2(false, "read_unsigned_int not overriden"); }
+  virtual int read_int(const std::string pathName)                                        const override { VERIFY2(false, "read_int not overriden"); }
+  virtual bool read_bool(const std::string pathName)                                      const override { VERIFY2(false, "read_bool not overriden"); }
+  virtual double read_double(const std::string pathName)                                  const override { VERIFY2(false, "read_double not overriden"); }
+  virtual std::string read_string(const std::string pathName)                             const override { VERIFY2(false, "read_string not overriden"); }
+  virtual void read_vector_double(std::vector<double>& value, const std::string pathName) const          { VERIFY2(false, "read_vector_double not overriden"); }
 
   virtual Dim<1>::Vector read_Vector1d(const std::string pathName) const = 0;
   virtual Dim<1>::Tensor read_Tensor1d(const std::string pathName) const = 0;
@@ -134,6 +136,7 @@ public:
   virtual void write(const bool& value, const std::string pathName) override { write_bool(value, pathName); }
   virtual void write(const double& value, const std::string pathName) override { write_double(value, pathName); }
   virtual void write(const std::string& value, const std::string pathName) override { write_string(value, pathName); }
+  virtual void write(const std::vector<double>& value, const std::string pathName) override { write_vector_double(value, pathName); }
 
   virtual void write(const Dim<1>::Vector& value, const std::string pathName) override { write_Vector1d(value, pathName); }
   virtual void write(const Dim<1>::Tensor& value, const std::string pathName) override { write_Tensor1d(value, pathName); }
@@ -183,6 +186,7 @@ public:
   virtual void read(bool& value, const std::string pathName) const override { value = read_bool(pathName); }
   virtual void read(double& value, const std::string pathName) const override {value = read_double(pathName); }
   virtual void read(std::string& value, const std::string pathName) const override { value = read_string(pathName); }
+  virtual void read(std::vector<double>& value, const std::string pathName) const override { read_vector_double(value, pathName); }
 
   virtual void read(Dim<1>::Vector& value, const std::string pathName) const override { value = read_Vector1d(pathName); }
   virtual void read(Dim<1>::Tensor& value, const std::string pathName) const override { value = read_Tensor1d(pathName); }

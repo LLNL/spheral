@@ -37,26 +37,6 @@ string SILO_mangle(const string& x) {
   return result;
 }
 
-// //------------------------------------------------------------------------------
-// // Get the double* start of a type.
-// //------------------------------------------------------------------------------
-// template<typename Dimension> int*    beginval(int& val)                                 { return &val; }
-// template<typename Dimension> double* beginval(double& val)                              { return &val; }
-// template<typename Dimension> double* beginval(typename Dimension::Vector& val)          { return &val[0]; }
-// template<typename Dimension> double* beginval(typename Dimension::Tensor& val)          { return &val[0]; }
-// template<typename Dimension> double* beginval(typename Dimension::SymTensor& val)       { return &val[0]; }
-// template<typename Dimension> double* beginval(typename Dimension::ThirdRankTensor& val) { return &val(0,0,0); }
-
-// template<typename Dimension> const int*    beginval(const int& val)                                 { return &val; }
-// template<typename Dimension> const double* beginval(const double& val)                              { return &val; }
-// template<typename Dimension> const double* beginval(const typename Dimension::Vector& val)          { return &(val[0]); }
-// template<typename Dimension> const double* beginval(const typename Dimension::Tensor& val)          { return &(val[0]); }
-// template<typename Dimension> const double* beginval(const typename Dimension::SymTensor& val)       { return &(val[0]); }
-// template<typename Dimension> const double* beginval(const typename Dimension::ThirdRankTensor& val) { return &(val(0,0,0)); }
-
-// template<typename T> struct SiloTraits      { typedef double Vtype; static int Stype() { return DB_DOUBLE; } };
-// template<>           struct SiloTraits<int> { typedef int Vtype;    static int Stype() { return DB_INT; } };
-
 //------------------------------------------------------------------------------
 // Set the directory in the current silo file to the path portion of a pathName,
 // and return the variable name section.
@@ -110,7 +90,7 @@ void writeInt(DBfile* filePtr, const int& value, const string pathName) {
 }
 
 void readInt(DBfile* filePtr, int& value, const string pathName) {
-  // const string varname = this->setDir(pathName);
+  // const string varname = setdir(mFilePtr, pathName);
   // CHECK2(DBReadVar(filePtr, varname.c_str(), &value) == 0,
   //         "SiloFileIO ERROR: unable to read variable " << pathName);
   const string varname = setdir(filePtr, pathName);
@@ -341,7 +321,7 @@ SiloFileIO::close() {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const unsigned& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {1};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &value, dims, 1, DB_INT) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -360,7 +340,7 @@ SiloFileIO::write(const int& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const bool& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {1};
   int ivalue = value ? 1 : 0;
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &ivalue, dims, 1, DB_INT) == 0,
@@ -372,7 +352,7 @@ SiloFileIO::write(const bool& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const double& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {1};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &value, dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -387,11 +367,26 @@ SiloFileIO::write(const string& value, const string pathName) {
 }
 
 //------------------------------------------------------------------------------
+// Write a vector<double> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const std::vector<double>& value, const string pathName) {
+  const int size = value.size();
+  writeInt(mFilePtr, size, pathName + "/size");
+  if (size > 0) {
+    const string varname = setdir(mFilePtr, pathName + "/elements");
+    int dims[1] = {size};
+    VERIFY2(DBWrite(mFilePtr, varname.c_str(), static_cast<void*>(const_cast<double*>(&value[0])), dims, 1, DB_DOUBLE) == 0,
+            "SiloFileIO ERROR: unable to write std::vector " << pathName);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Write a Dim<1>::Vector to the file.
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Dim<1>::Vector& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {int(Dim<1>::Vector::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -402,7 +397,7 @@ SiloFileIO::write(const Dim<1>::Vector& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Dim<1>::Tensor& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {int(Dim<1>::Tensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -413,7 +408,7 @@ SiloFileIO::write(const Dim<1>::Tensor& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Dim<1>::SymTensor& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {int(Dim<1>::SymTensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -424,7 +419,7 @@ SiloFileIO::write(const Dim<1>::SymTensor& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Dim<1>::ThirdRankTensor& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {int(Dim<1>::ThirdRankTensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -435,7 +430,7 @@ SiloFileIO::write(const Dim<1>::ThirdRankTensor& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Dim<2>::Vector& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {int(Dim<2>::Vector::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -446,7 +441,7 @@ SiloFileIO::write(const Dim<2>::Vector& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Dim<2>::Tensor& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {int(Dim<2>::Tensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -457,7 +452,7 @@ SiloFileIO::write(const Dim<2>::Tensor& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Dim<2>::SymTensor& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {int(Dim<2>::SymTensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -468,7 +463,7 @@ SiloFileIO::write(const Dim<2>::SymTensor& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Dim<2>::ThirdRankTensor& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {int(Dim<2>::ThirdRankTensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -479,7 +474,7 @@ SiloFileIO::write(const Dim<2>::ThirdRankTensor& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Dim<3>::Vector& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {int(Dim<3>::Vector::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -490,7 +485,7 @@ SiloFileIO::write(const Dim<3>::Vector& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Dim<3>::Tensor& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {int(Dim<3>::Tensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -501,7 +496,7 @@ SiloFileIO::write(const Dim<3>::Tensor& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Dim<3>::SymTensor& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {int(Dim<3>::SymTensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -512,7 +507,7 @@ SiloFileIO::write(const Dim<3>::SymTensor& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Dim<3>::ThirdRankTensor& value, const string pathName) {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   int dims[1] = {int(Dim<3>::ThirdRankTensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -523,7 +518,7 @@ SiloFileIO::write(const Dim<3>::ThirdRankTensor& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(unsigned& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   // VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &value) == 0,
   //         "SiloFileIO ERROR: unable to read variable " << pathName);
   value = *static_cast<unsigned*>(DBGetVar(mFilePtr, varname.c_str()));
@@ -542,7 +537,7 @@ SiloFileIO::read(int& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(bool& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   const int ivalue = *static_cast<int*>(DBGetVar(mFilePtr, varname.c_str()));
   // VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &ivalue) == 0,
   //         "SiloFileIO ERROR: unable to read variable " << pathName);
@@ -554,7 +549,7 @@ SiloFileIO::read(bool& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(double& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   value = *static_cast<double*>(DBGetVar(mFilePtr, varname.c_str()));
   // VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &value) == 0,
   //         "SiloFileIO ERROR: unable to read variable " << pathName);
@@ -569,11 +564,26 @@ SiloFileIO::read(string& value, const string pathName) const {
 }
 
 //------------------------------------------------------------------------------
+// Read a vector<double> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::read(std::vector<double>& value, const string pathName) const {
+  int size;
+  readInt(mFilePtr, size, pathName + "/size");
+  value.resize(size);
+  if (size > 0) {
+    const string varname = setdir(mFilePtr, pathName + "/elements");
+    VERIFY2(DBReadVar(mFilePtr, varname.c_str(), static_cast<void*>(&value[0])) == 0,
+            "SiloFileIO ERROR: unable to read std::vector " << pathName);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Read a Dim<1>::Vector from the file.
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Dim<1>::Vector& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &(*value.begin())) == 0,
           "SiloFileIO ERROR: unable to read variable " << pathName);
 }
@@ -583,7 +593,7 @@ SiloFileIO::read(Dim<1>::Vector& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Dim<1>::Tensor& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &(*value.begin())) == 0,
           "SiloFileIO ERROR: unable to read variable " << pathName);
 }
@@ -593,7 +603,7 @@ SiloFileIO::read(Dim<1>::Tensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Dim<1>::SymTensor& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &(*value.begin())) == 0,
           "SiloFileIO ERROR: unable to read variable " << pathName);
 }
@@ -603,7 +613,7 @@ SiloFileIO::read(Dim<1>::SymTensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Dim<1>::ThirdRankTensor& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &(*value.begin())) == 0,
           "SiloFileIO ERROR: unable to read variable " << pathName);
 }
@@ -613,7 +623,7 @@ SiloFileIO::read(Dim<1>::ThirdRankTensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Dim<2>::Vector& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &(*value.begin())) == 0,
           "SiloFileIO ERROR: unable to read variable " << pathName);
 }
@@ -623,7 +633,7 @@ SiloFileIO::read(Dim<2>::Vector& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Dim<2>::Tensor& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &(*value.begin())) == 0,
           "SiloFileIO ERROR: unable to read variable " << pathName);
 }
@@ -633,7 +643,7 @@ SiloFileIO::read(Dim<2>::Tensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Dim<2>::SymTensor& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &(*value.begin())) == 0,
           "SiloFileIO ERROR: unable to read variable " << pathName);
 }
@@ -643,7 +653,7 @@ SiloFileIO::read(Dim<2>::SymTensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Dim<2>::ThirdRankTensor& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &(*value.begin())) == 0,
           "SiloFileIO ERROR: unable to read variable " << pathName);
 }
@@ -653,7 +663,7 @@ SiloFileIO::read(Dim<2>::ThirdRankTensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Dim<3>::Vector& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &(*value.begin())) == 0,
           "SiloFileIO ERROR: unable to read variable " << pathName);
 }
@@ -663,7 +673,7 @@ SiloFileIO::read(Dim<3>::Vector& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Dim<3>::Tensor& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &(*value.begin())) == 0,
           "SiloFileIO ERROR: unable to read variable " << pathName);
 }
@@ -673,7 +683,7 @@ SiloFileIO::read(Dim<3>::Tensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Dim<3>::SymTensor& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &(*value.begin())) == 0,
           "SiloFileIO ERROR: unable to read variable " << pathName);
 }
@@ -683,7 +693,7 @@ SiloFileIO::read(Dim<3>::SymTensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(Dim<3>::ThirdRankTensor& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
+  const string varname = setdir(mFilePtr, pathName);
   VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &(*value.begin())) == 0,
           "SiloFileIO ERROR: unable to read variable " << pathName);
 }
@@ -981,74 +991,5 @@ SiloFileIO::read(Field<Dim<3>, int>& value, const string pathName) const {
   FieldIO<Dim<3>, int>::read(mFilePtr, value, pathName);
 }
 #endif
-
-//------------------------------------------------------------------------------
-// Set the directory in the current silo file to the path portion of a pathName,
-// and return the variable name section.
-//------------------------------------------------------------------------------
-// Non-const version creates directory.
-string 
-SiloFileIO::setDir(const string& ipathName) {
-  REQUIRE(mFileOpen and mFilePtr != 0);
-
-  // Mangle the path into something acceptable to silo.
-  string pathName = SILO_mangle(ipathName);
-
-  // We always start from the top.
-  VERIFY2(DBSetDir(mFilePtr, "/") == 0,
-          "SiloFileIO ERROR: unable to change to path /");
-
-  // Split up the path into directories and the var name.
-  vector<string> components = this->splitPathComponents(pathName);
-  CHECK(components.size() > 0);
-
-  // Set the path and return just the variable name.
-  for (unsigned i = 0; i != components.size() - 1; ++i) {
-    const string dirName = components[i];
-
-    // Check if this directory already exists or not.
-    DBtoc* toc = DBGetToc(mFilePtr);
-    bool exists = false;
-    size_t j = 0;
-    while (not exists and j != toc->ndir) {
-      exists = (dirName == string(toc->dir_names[j]));
-      ++j;
-    }
-    if (not exists) {
-      VERIFY2(DBMkDir(mFilePtr, dirName.c_str()) == 0,
-              "SiloFileIO ERROR: unable to create path " << dirName);
-    }
-    VERIFY2(DBSetDir(mFilePtr, dirName.c_str()) == 0,
-            "SiloFileIO ERROR: unable to change to path " << dirName);
-  }
-
-  return components.back();
-}
-
-// const version only changes directory.
-string 
-SiloFileIO::setDir(const string& ipathName) const {
-  REQUIRE(mFileOpen and mFilePtr != 0);
-
-  // Mangle the path into something acceptable to silo.
-  string pathName = SILO_mangle(ipathName);
-
-  // We always start from the top.
-  VERIFY2(DBSetDir(mFilePtr, "/") == 0,
-          "SiloFileIO ERROR: unable to change to path /");
-
-  // If there is no absolute path specified, we just go with the cwd.
-  const size_t i = pathName.find_last_of("/");
-  if (i >= pathName.size()) {
-    return pathName;
-  }
-
-  // Otherwise set the path and return just the variable name.
-  const string dirName = pathName.substr(0,i);
-  const string varName = pathName.substr(i+1);
-  VERIFY2(DBSetDir(mFilePtr, dirName.c_str()) == 0,
-          "SiloFileIO ERROR: unable to change to path " << dirName);
-  return varName;
-}
 
 }

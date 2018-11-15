@@ -11,6 +11,8 @@
 #endif
 
 #include "Geometry/Dimension.hh"
+#include "Utilities/DataTypeTraits.hh"
+#include "Utilities/packElement.hh"
 
 #include <vector>
 #include <string>

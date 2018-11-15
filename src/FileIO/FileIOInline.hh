@@ -207,7 +207,7 @@ void
 FileIO::read(std::vector<DataType>& x, const std::string pathName) const {
   std::string bufstr;
   this->read(bufstr, pathName);
-  std::vector<char> buf(bufstr.begin(), bufstr.end());
+  const std::vector<char> buf(bufstr.begin(), bufstr.end());
   auto itr = buf.begin();
   unpackElement(x, itr, buf.end());
   ENSURE(itr == buf.end());
