@@ -45,6 +45,7 @@ class SiloFileIOTest(FileIOTestBase, unittest.TestCase):
         assert opts.addOption(silo.DBOPT_DTIME, 100.0) == 0
         assert silo.DBPutCompoundarray(db, "stuff", elemNames, thpt, opts) == 0
         assert silo.DBClose(db) == 0
+        self.remove("TestCompoundarray.silo")
         return
 
 #-------------------------------------------------------------------------------
