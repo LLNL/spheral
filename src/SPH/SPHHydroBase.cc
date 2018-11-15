@@ -49,6 +49,8 @@
 #include "omp.h"
 #endif
 
+#include "RAJA/RAJA.hpp"
+
 #include <limits.h>
 #include <float.h>
 #include <algorithm>
@@ -581,10 +583,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     // Get the work field for this NodeList.
     auto& workFieldi = nodeList.work();
 
-    for (auto iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const auto i = *iItr;
+//mjc
+    auto iItr0 = connectivityMap.begin(nodeListi);
+    int ni = connectivityMap.numNodes(nodeListi);
+
+          RAJA::forall<RAJA::simd_exec>(
+          RAJA::RangeSegment(0,ni), [&](RAJA::Index_type kct) {
+    
+ //   for(int kct=0; kct< ni; ++kct ) {
+       const auto i = *(iItr0+kct);
+//    for (auto iItr = connectivityMap.begin(nodeListi);
+//         iItr != connectivityMap.end(nodeListi);
+//         ++iItr) {
+//      const auto i = *iItr;
+// end mjc
 
       // Prepare to accumulate the time.
       const auto start = Timing::currentTime();
@@ -645,30 +657,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 	  auto jItr0 = connectivity.begin();
           const auto nj = connectivity.size();
 
-#ifdef _OPENMP
-
-#ifdef USE_UVM
-          #pragma omp target parallel for    \
-          reduction(max: maxvp) \
-          reduction(+: ncalc, weightedNeighborSumi, rhoSumi, normi,  \
-                  effViscousPressurei, viscousWorki, DepsDti, XSPHWeightSumi ) \
-          reduction(vecadd: DvDti, XSPHDeltaVi ) \
-          reduction(symtensadd: massSecondMomenti ) \
-	  reduction(tensadd: Mi, localMi, DvDxi, localDvDxi) 
-// #else
-//                          // // rhoSumj, normj,          DepsDtj, effViscousPressurej, viscousWorkj, XSPHWeightSumj, weightedNeighborSumj) \
-//                               // DvDtj, XSPHDeltaVj )                                           \, massSecondMomentj
-//           #pragma omp parallel for                                                \
-//             default(shared)                                             \
-//             reduction(max: maxvp, maxViscousPressurei) \
-//             reduction(+: ncalc,  \
-//                          rhoSumi, normi, DrhoDti, DepsDti, effViscousPressurei, viscousWorki, XSPHWeightSumi, weightedNeighborSumi, worki) \
-//             reduction(vecadd: DvDti, XSPHDeltaVi) \
-//             reduction(symtensadd: massSecondMomenti )                \
-//             reduction(tensadd: Mi, localMi, DvDxi, localDvDxi)
-#endif
-
-#endif
           for (int jct=0; jct < nj; ++jct) {
             const int j = *(jItr0+jct);
 
@@ -929,7 +917,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         }
       }
     }
-  }
+  );}; 
 }
 
 //------------------------------------------------------------------------------
