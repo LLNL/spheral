@@ -370,6 +370,21 @@ SiloFileIO::write(const string& value, const string pathName) {
 }
 
 //------------------------------------------------------------------------------
+// Write a vector<int> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const std::vector<int>& value, const string pathName) {
+  const int size = value.size();
+  writeInt(mFilePtr, size, pathName + "/size");
+  if (size > 0) {
+    const string varname = setdir(mFilePtr, pathName + "/elements");
+    int dims[1] = {size};
+    VERIFY2(DBWrite(mFilePtr, varname.c_str(), static_cast<void*>(const_cast<int*>(&value[0])), dims, 1, DB_INT) == 0,
+            "SiloFileIO ERROR: unable to write std::vector " << pathName);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Write a vector<double> to the file.
 //------------------------------------------------------------------------------
 void
@@ -567,7 +582,22 @@ SiloFileIO::read(string& value, const string pathName) const {
 }
 
 //------------------------------------------------------------------------------
-// Read a vector<double> to the file.
+// Read a vector<int> from the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::read(std::vector<int>& value, const string pathName) const {
+  int size;
+  readInt(mFilePtr, size, pathName + "/size");
+  value.resize(size);
+  if (size > 0) {
+    const string varname = setdir(mFilePtr, pathName + "/elements");
+    VERIFY2(DBReadVar(mFilePtr, varname.c_str(), static_cast<void*>(&value[0])) == 0,
+            "SiloFileIO ERROR: unable to read std::vector " << pathName);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Read a vector<double> from the file.
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(std::vector<double>& value, const string pathName) const {

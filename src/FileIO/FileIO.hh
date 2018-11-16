@@ -177,14 +177,6 @@ public:
   void write(const char* value, const std::string pathName);
   void read(char* value, const std::string pathName) const;
 
-  // Provide float read/write methods, which will simply call the Scalar
-  // methods provided by descendents.
-  void write(const float& value, const std::string pathName);
-  void read(float& value, const std::string pathName) const;
-
-  void write(const std::vector<float>& value, const std::string pathName);
-  void read(std::vector<float>& value, const std::string pathName) const;
-
   // Write/read FieldLists.
   template<typename Dimension, typename DataType> void write(const FieldList<Dimension, DataType>& fieldList, const std::string pathName);
   template<typename Dimension, typename DataType> void read(FieldList<Dimension, DataType>& fieldList, const std::string pathName) const;

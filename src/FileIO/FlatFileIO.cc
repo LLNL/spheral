@@ -242,6 +242,18 @@ write(const string& value, const string pathName) {
 }
 
 //------------------------------------------------------------------------------
+// Write a std::vector<int> to the file.
+//------------------------------------------------------------------------------
+void
+FlatFileIO::
+write(const std::vector<int>& value, const string pathName) {
+  std::vector<char> buf;
+  packElement(value, buf);
+  std::string strbuf(buf.begin(), buf.end());
+  writeGenericType(strbuf, pathName);
+}
+
+//------------------------------------------------------------------------------
 // Write a std::vector<double> to the file.
 //------------------------------------------------------------------------------
 void
@@ -374,6 +386,21 @@ FlatFileIO::read(string& value, const string pathName) const {
 
   // We pick up the leading space in the string, so get rid of that.
   if (value.size() > 0) value.erase(0,1);
+}
+
+//------------------------------------------------------------------------------
+// Read a std::vector<int> to the file.
+//------------------------------------------------------------------------------
+void
+FlatFileIO::
+read(std::vector<int>& value, const string pathName) const {
+  std::string strbuf;
+  this->read(strbuf, pathName);
+  const std::vector<char> buf(strbuf.begin(), strbuf.end());
+  auto itr = buf.begin();
+  value.clear();
+  unpackElement(value, itr, buf.end());
+  CHECK(itr == buf.end());
 }
 
 //------------------------------------------------------------------------------

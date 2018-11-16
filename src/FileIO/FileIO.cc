@@ -175,51 +175,6 @@ FileIO::read(char* value, const string pathName) const {
 }
 
 //------------------------------------------------------------------------------
-// Provide access to the Scalar write method with float
-//------------------------------------------------------------------------------
-void
-FileIO::write(const float& value, const string pathName) {
-  write(double(value), pathName);
-}
-
-//------------------------------------------------------------------------------
-// Provide access to the Scalar read method with float
-//------------------------------------------------------------------------------
-void
-FileIO::read(float& value, const string pathName) const {
-  double scalarValue;
-  read(scalarValue, pathName);
-  value = float(scalarValue);
-}
-
-//------------------------------------------------------------------------------
-// Provide access to the vector<Scalar> write method with vector<float>
-//------------------------------------------------------------------------------
-void
-FileIO::write(const vector<float>& value, const string pathName) {
-  vector<double> scalarValue;
-  scalarValue.reserve(value.size());
-  for (vector<float>::const_iterator valItr = value.begin();
-       valItr != value.end();
-       ++valItr) scalarValue.push_back(*valItr);
-  write(scalarValue, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Provide access to the vector<Scalar> read method with vector<float>
-//------------------------------------------------------------------------------
-void
-FileIO::read(vector<float>& value, const string pathName) const {
-  vector<double> scalarValue;
-  read(scalarValue, pathName);
-  value.resize(0);
-  value.reserve(scalarValue.size());
-  for (vector<double>::const_iterator valItr = scalarValue.begin();
-       valItr != scalarValue.end();
-       ++valItr) value.push_back(*valItr);
-}
-
-//------------------------------------------------------------------------------
 // Return the group (directory) component of the given path.
 //------------------------------------------------------------------------------
 string

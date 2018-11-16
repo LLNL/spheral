@@ -17,6 +17,7 @@ class FileIOAbstractMethods:
                        ("bool", "bool"),
                        ("double", "double"),
                        ("std::string", "string"),
+                       ("std::vector<int>", "VectorInt"),
                        ("std::vector<double>", "VectorDouble")]:
         exec("""
 @PYB11pycppname("write")
