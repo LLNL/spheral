@@ -57,6 +57,7 @@ public:
   virtual void write(const bool& value, const std::string pathName) = 0;
   virtual void write(const double& value, const std::string pathName) = 0;
   virtual void write(const std::string& value, const std::string pathName) = 0;
+  virtual void write(const std::vector<int>& value, const std::string pathName) = 0;
   virtual void write(const std::vector<double>& value, const std::string pathName) = 0;
 
   virtual void write(const Dim<1>::Vector& value, const std::string pathName) = 0;
@@ -79,6 +80,7 @@ public:
   virtual void read(bool& value, const std::string pathName) const = 0;
   virtual void read(double& value, const std::string pathName) const = 0;
   virtual void read(std::string& value, const std::string pathName) const = 0;
+  virtual void read(std::vector<int>& value, const std::string pathName) const = 0;
   virtual void read(std::vector<double>& value, const std::string pathName) const = 0;
 
   virtual void read(Dim<1>::Vector& value, const std::string pathName) const = 0;
@@ -208,6 +210,10 @@ public:
   const std::string& fileName() const;
   AccessType access() const;
   bool fileOpen() const;
+
+  // Private methods to help with std::vector specializations
+  template<typename Value> void writeVector(const std::vector<Value>& x, const std::string pathName);
+  template<typename Value> void readVector(std::vector<Value>& x, const std::string pathName) const;
 
 #ifndef CXXONLY
   // These methods are particular to Python file objects.
