@@ -27,8 +27,8 @@ class FileIOTemplateMethods:
         "Read a std::vector<%(Value)s>"
         return "void"
 
-    #writeVecInt = PYB11TemplateMethod(writeVec, template_parameters="int", pyname="write")
-    #readVecInt  = PYB11TemplateMethod( readVec, template_parameters="int", pyname="read")
+    writeVecInt = PYB11TemplateMethod(writeVec, template_parameters="int", pyname="write")
+    readVecInt  = PYB11TemplateMethod( readVec, template_parameters="int", pyname="read")
     #writeVecDouble = PYB11TemplateMethod(writeVec, template_parameters="double", pyname="write")
     #readVecDouble  = PYB11TemplateMethod( readVec, template_parameters="double", pyname="read")
     writeVecString = PYB11TemplateMethod(writeVec, template_parameters="std::string", pyname="write")
