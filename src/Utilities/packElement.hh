@@ -382,7 +382,7 @@ unpackElement<std::string>(std::string& value,
   itr += size;
 }
 
-// std::pari<T1,T2>
+// std::pair<T1,T2>
 template<typename T1, typename T2>
 inline
 void
@@ -421,7 +421,6 @@ unpackElement(std::vector<DataType>& value,
   // Read the size of the vector.
   unsigned size;
   unpackElement(size, itr, endPackedVector);
-  std::cerr << "UNPACKING VECTOR SIZE: " << size << std::endl;
   CHECK2(size <= std::distance(itr, endPackedVector),
          "Crazy buffer size:  " << size << " " << std::distance(itr, endPackedVector));
 

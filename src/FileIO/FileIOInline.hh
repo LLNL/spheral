@@ -195,7 +195,8 @@ void
 FileIO::write(const std::vector<DataType>& x, const std::string pathName) {
   std::vector<char> buf;
   packElement(x, buf);
-  this->write(std::string(buf.begin(), buf.end()), pathName);
+  std::string bufstr(buf.begin(), buf.end());
+  this->write(bufstr, pathName);
 }
 
 //------------------------------------------------------------------------------
