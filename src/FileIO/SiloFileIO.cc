@@ -69,10 +69,10 @@ string setdir(DBfile* filePtr, const string& ipathName) {
     }
     if (not exists) {
       VERIFY2(DBMkDir(filePtr, dirName.c_str()) == 0,
-              "SiloFileIO ERROR: unable to create path " << dirName);
+              "SiloFileIO ERROR: unable to create path " << dirName << " of " << pathName);
     }
     VERIFY2(DBSetDir(filePtr, dirName.c_str()) == 0,
-            "SiloFileIO ERROR: unable to change to path " << dirName);
+            "SiloFileIO ERROR: unable to change to path " << dirName << " of " << pathName);
   }
 
   return components.back();
