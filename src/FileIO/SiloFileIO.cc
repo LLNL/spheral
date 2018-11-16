@@ -101,8 +101,11 @@ void readInt(DBfile* filePtr, int& value, const string pathName) {
 // Common methods for reading/writing a std::string to a silo file.
 //------------------------------------------------------------------------------
 void writeString(DBfile* filePtr, const string& value, const string pathName) {
-  const char* cvalue = value.c_str();
-  int dims[1] = {int(strlen(cvalue))};
+  const int size = value.size();
+  char cvalue[size];
+  std::copy(value.begin(), value.end(), cvalue);
+  //cvalue[size] = '\0';
+  int dims[1] = {size};
   writeInt(filePtr, dims[0], pathName + "/size");
   if (dims[0] > 0) {
     const string varname = setdir(filePtr, pathName + "/value");
