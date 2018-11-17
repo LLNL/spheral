@@ -559,7 +559,8 @@ for package in integrator.physicsPackages():
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            restartBaseName = restartBaseName)
+                            restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle)
 output("control")
 
 #-------------------------------------------------------------------------------
