@@ -268,11 +268,13 @@ protected:
 
   FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
 
-private:
-  //--------------------------- Private Interface ---------------------------//
+protected:
+  //--------------------------- Protected Interface ---------------------------//
   // The restart registration.
   RestartRegistrationType mRestart;
 
+private:
+  //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
   SPHHydroBase();
   SPHHydroBase(const SPHHydroBase&);

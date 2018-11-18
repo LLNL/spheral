@@ -125,9 +125,6 @@ private:
   FieldList<Dimension, Scalar> mPlasticStrain0;
   FieldList<Dimension, SymTensor> mHfield0;
 
-  // The restart registration.
-  RestartRegistrationType mRestart;
-
   // No default constructor, copying, or assignment.
   SolidCRKSPHHydroBase();
   SolidCRKSPHHydroBase(const SolidCRKSPHHydroBase&);

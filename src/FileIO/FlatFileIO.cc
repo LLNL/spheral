@@ -116,6 +116,19 @@ FlatFileIO::close() {
 }
 
 //------------------------------------------------------------------------------
+// Check if the specified path is in the file.
+//------------------------------------------------------------------------------
+bool
+FlatFileIO::pathExists(const std::string pathName) const {
+  try {
+    findPathName(pathName);
+    return true;
+  } catch(...) {
+    return false;
+  }
+}
+
+//------------------------------------------------------------------------------
 // Write an unsigned to the file.
 //------------------------------------------------------------------------------
 void

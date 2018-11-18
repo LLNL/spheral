@@ -50,6 +50,9 @@ public:
   //******************************************************************************
   // Methods all FileIO descendent classes must provide.
   //******************************************************************************
+  // Check if the specified path is in the file.
+  virtual bool pathExists(const std::string pathName) const = 0;
+
   // All FileIO objects had better be able to read and write the primitive 
   // DataTypes.
   virtual void write(const unsigned& value, const std::string pathName) = 0;
@@ -189,8 +192,9 @@ public:
   template<typename DataType> void write(const std::vector<DataType>& x, const std::string pathName);
   template<typename DataType> void read(std::vector<DataType>& x, const std::string pathName) const;
 
-  // A helper function to split a string up into substrings delimited by '/'.
+  // Helper functions to split/join a string up into substrings delimited by '/'.
   std::vector<std::string> splitPathComponents(const std::string path) const;
+  std::string joinPathComponents(const std::vector<std::string>& components) const;
 
   // Return the group (directory) component of a path.
   std::string groupName(const std::string pathName) const;

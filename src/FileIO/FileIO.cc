@@ -88,21 +88,17 @@ FileIO::~FileIO() {
 //------------------------------------------------------------------------------
 vector<string>
 FileIO::splitPathComponents(const string path) const {
-
   vector<string> components;
   boost::split(components, path, boost::is_any_of("/"));
-
-  // string currentComponent = "";
-  // for (string::const_iterator itr = path.begin(); itr < path.end(); ++itr) {
-  //   currentComponent += *itr;
-  //   if (*itr == '/') {
-  //     components.push_back(currentComponent);
-  //     currentComponent = "";
-  //   }
-  // }
-  // if (*(components.end() - 1) != currentComponent) components.push_back(currentComponent);
-
   return components;
+}
+
+// Reverse operation
+std::string
+FileIO::joinPathComponents(const std::vector<std::string>& components) const {
+  string result = "";
+  for (const auto s: components) result += "/" + s;
+  return result;
 }
 
 //------------------------------------------------------------------------------

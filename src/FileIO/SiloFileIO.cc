@@ -320,6 +320,14 @@ SiloFileIO::close() {
 }
 
 //------------------------------------------------------------------------------
+// Check if the specified path is in the file.
+//------------------------------------------------------------------------------
+bool
+SiloFileIO::pathExists(const std::string pathName) const {
+  return DBInqVarExists(mFilePtr, pathName.c_str()) != 0;
+}
+
+//------------------------------------------------------------------------------
 // Write an unsigned to the file.
 //------------------------------------------------------------------------------
 void

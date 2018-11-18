@@ -11,6 +11,11 @@ class FileIOAbstractMethods:
 
     #...........................................................................
     # Abstract interface (primitives)
+    @PYB11const
+    def pathExists(self,
+                   pathName = "const std::string"):
+        return "bool"
+
     # These types require specially mangled names to avoid bad casts
     for T, Tmangle in [("unsigned", "unsigned_int"),
                        ("int", "int"),
