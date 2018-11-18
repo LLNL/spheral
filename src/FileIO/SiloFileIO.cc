@@ -58,21 +58,25 @@ string setdir(DBfile* filePtr, const string& ipathName) {
   // Set the path and return just the variable name.
   for (unsigned i = 0; i != components.size() - 1; ++i) {
     const string dirName = components[i];
-
-    // Check if this directory already exists or not.
-    DBtoc* toc = DBGetToc(filePtr);
-    bool exists = false;
-    size_t j = 0;
-    while (not exists and j != toc->ndir) {
-      exists = (dirName == string(toc->dir_names[j]));
-      ++j;
+    if (dirName.size() > 0) {
+      // Check if this directory already exists or not.
+      DBtoc* toc = DBGetToc(filePtr);
+      bool exists = false;
+      size_t j = 0;
+      while (not exists and j != toc->ndir) {
+        exists = (dirName == string(toc->dir_names[j]));
+        ++j;
+      }
+      if (not exists) {
+        std::cerr << " --> " << pathName << std::endl
+                  << " --> " << dirName.size() << std::endl
+                  << " --> " << dirName << std::endl;
+        VERIFY2(DBMkDir(filePtr, dirName.c_str()) == 0,
+                "SiloFileIO ERROR: unable to create path " << dirName << " of " << pathName);
+      }
+      VERIFY2(DBSetDir(filePtr, dirName.c_str()) == 0,
+              "SiloFileIO ERROR: unable to change to path " << dirName << " of " << pathName);
     }
-    if (not exists) {
-      VERIFY2(DBMkDir(filePtr, dirName.c_str()) == 0,
-              "SiloFileIO ERROR: unable to create path " << dirName << " of " << pathName);
-    }
-    VERIFY2(DBSetDir(filePtr, dirName.c_str()) == 0,
-            "SiloFileIO ERROR: unable to change to path " << dirName << " of " << pathName);
   }
 
   return components.back();
@@ -385,7 +389,7 @@ SiloFileIO::write(const std::vector<int>& value, const string pathName) {
   const int size = value.size();
   writeInt(mFilePtr, size, pathName + "/size");
   if (size > 0) {
-    const string varname = setdir(mFilePtr, pathName + "/elements");
+    const string varname = setdir(mFilePtr, pathName + "/value");
     int dims[1] = {size};
     VERIFY2(DBWrite(mFilePtr, varname.c_str(), static_cast<void*>(const_cast<int*>(&value[0])), dims, 1, DB_INT) == 0,
             "SiloFileIO ERROR: unable to write std::vector " << pathName);
@@ -400,7 +404,7 @@ SiloFileIO::write(const std::vector<double>& value, const string pathName) {
   const int size = value.size();
   writeInt(mFilePtr, size, pathName + "/size");
   if (size > 0) {
-    const string varname = setdir(mFilePtr, pathName + "/elements");
+    const string varname = setdir(mFilePtr, pathName + "/value");
     int dims[1] = {size};
     VERIFY2(DBWrite(mFilePtr, varname.c_str(), static_cast<void*>(const_cast<double*>(&value[0])), dims, 1, DB_DOUBLE) == 0,
             "SiloFileIO ERROR: unable to write std::vector " << pathName);
@@ -598,7 +602,7 @@ SiloFileIO::read(std::vector<int>& value, const string pathName) const {
   readInt(mFilePtr, size, pathName + "/size");
   value.resize(size);
   if (size > 0) {
-    const string varname = setdir(mFilePtr, pathName + "/elements");
+    const string varname = setdir(mFilePtr, pathName + "/value");
     VERIFY2(DBReadVar(mFilePtr, varname.c_str(), static_cast<void*>(&value[0])) == 0,
             "SiloFileIO ERROR: unable to read std::vector " << pathName);
   }
@@ -613,7 +617,7 @@ SiloFileIO::read(std::vector<double>& value, const string pathName) const {
   readInt(mFilePtr, size, pathName + "/size");
   value.resize(size);
   if (size > 0) {
-    const string varname = setdir(mFilePtr, pathName + "/elements");
+    const string varname = setdir(mFilePtr, pathName + "/value");
     VERIFY2(DBReadVar(mFilePtr, varname.c_str(), static_cast<void*>(&value[0])) == 0,
             "SiloFileIO ERROR: unable to read std::vector " << pathName);
   }
