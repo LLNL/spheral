@@ -204,11 +204,10 @@ copy_reg.pickle(type(Polyhedron()), reduce_Polyhedron, construct_Polyhedron)
 # std::vectors
 #------------------------------------------------------------------------------
 vector_template = """
-def construct_vector_of_%(value_type)s(encoded_string):
-    return string2vector_of_%(value_type)s(encoded_string)
 def reduce_vector_of_%(value_type)s(obj):
-    return construct_vector_of_%(value_type)s, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_%(value_type)s)
+    return vector2string(obj)
+def construct_vector_of_%(value_type)s(strobj):
+    return string2vector_of_%(value_type)s(strobj)
 copy_reg.pickle(vector_of_%(value_type)s, reduce_vector_of_%(value_type)s, construct_vector_of_%(value_type)s)
 """
 
