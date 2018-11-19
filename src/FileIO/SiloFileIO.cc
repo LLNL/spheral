@@ -68,9 +68,9 @@ string setdir(DBfile* filePtr, const string& ipathName) {
         ++j;
       }
       if (not exists) {
-        std::cerr << " --> " << pathName << std::endl
-                  << " --> " << dirName.size() << std::endl
-                  << " --> " << dirName << std::endl;
+        // std::cerr << " --> " << pathName << std::endl
+        //           << " --> " << dirName.size() << std::endl
+        //           << " --> " << dirName << std::endl;
         VERIFY2(DBMkDir(filePtr, dirName.c_str()) == 0,
                 "SiloFileIO ERROR: unable to create path " << dirName << " of " << pathName);
       }
