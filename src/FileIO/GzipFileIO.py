@@ -157,6 +157,16 @@ class GzipFileIO(PyFileIO):
             pass
 
     #---------------------------------------------------------------------------
+    # pathExists
+    #---------------------------------------------------------------------------
+    def pathExists(self, pathName):
+        try:
+            p = self.findPath(pathName)
+            return True
+        except:
+            return False
+
+    #---------------------------------------------------------------------------
     # Use pickling for the majority of the write methods.  Most objects we just
     # convert to strings and pickle that.
     #---------------------------------------------------------------------------
