@@ -279,6 +279,18 @@ write(const std::vector<double>& value, const string pathName) {
 }
 
 //------------------------------------------------------------------------------
+// Write a std::vector<string> to the file.
+//------------------------------------------------------------------------------
+void
+FlatFileIO::
+write(const std::vector<string>& value, const string pathName) {
+  std::vector<char> buf;
+  packElement(value, buf);
+  std::string strbuf(buf.begin(), buf.end());
+  writeGenericType(strbuf, pathName);
+}
+
+//------------------------------------------------------------------------------
 // Read an unsigned from the file.
 //------------------------------------------------------------------------------
 void
@@ -402,7 +414,7 @@ FlatFileIO::read(string& value, const string pathName) const {
 }
 
 //------------------------------------------------------------------------------
-// Read a std::vector<int> to the file.
+// Read a std::vector<int> from the file.
 //------------------------------------------------------------------------------
 void
 FlatFileIO::
@@ -417,11 +429,26 @@ read(std::vector<int>& value, const string pathName) const {
 }
 
 //------------------------------------------------------------------------------
-// Read a std::vector<double> to the file.
+// Read a std::vector<double> from the file.
 //------------------------------------------------------------------------------
 void
 FlatFileIO::
 read(std::vector<double>& value, const string pathName) const {
+  std::string strbuf;
+  this->read(strbuf, pathName);
+  const std::vector<char> buf(strbuf.begin(), strbuf.end());
+  auto itr = buf.begin();
+  value.clear();
+  unpackElement(value, itr, buf.end());
+  CHECK(itr == buf.end());
+}
+
+//------------------------------------------------------------------------------
+// Read a std::vector<string> from the file.
+//------------------------------------------------------------------------------
+void
+FlatFileIO::
+read(std::vector<string>& value, const string pathName) const {
   std::string strbuf;
   this->read(strbuf, pathName);
   const std::vector<char> buf(strbuf.begin(), strbuf.end());

@@ -23,7 +23,8 @@ class FileIOAbstractMethods:
                        ("double", "double"),
                        ("std::string", "string"),
                        ("std::vector<int>", "VectorInt"),
-                       ("std::vector<double>", "VectorDouble")]:
+                       ("std::vector<double>", "VectorDouble"),
+                       ("std::vector<std::string>", "VectorString")]:
         exec("""
 @PYB11pycppname("write")
 def write%(Tmangle)s(self,

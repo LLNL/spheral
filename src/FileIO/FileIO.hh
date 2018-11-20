@@ -62,6 +62,7 @@ public:
   virtual void write(const std::string& value, const std::string pathName) = 0;
   virtual void write(const std::vector<int>& value, const std::string pathName) = 0;
   virtual void write(const std::vector<double>& value, const std::string pathName) = 0;
+  virtual void write(const std::vector<std::string>& value, const std::string pathName) = 0;
 
   virtual void write(const Dim<1>::Vector& value, const std::string pathName) = 0;
   virtual void write(const Dim<1>::Tensor& value, const std::string pathName) = 0;
@@ -85,6 +86,7 @@ public:
   virtual void read(std::string& value, const std::string pathName) const = 0;
   virtual void read(std::vector<int>& value, const std::string pathName) const = 0;
   virtual void read(std::vector<double>& value, const std::string pathName) const = 0;
+  virtual void read(std::vector<std::string>& value, const std::string pathName) const = 0;
 
   virtual void read(Dim<1>::Vector& value, const std::string pathName) const = 0;
   virtual void read(Dim<1>::Tensor& value, const std::string pathName) const = 0;

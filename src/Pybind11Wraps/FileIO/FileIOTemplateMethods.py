@@ -31,8 +31,8 @@ class FileIOTemplateMethods:
     #readVecInt  = PYB11TemplateMethod( readVec, template_parameters="int", pyname="read")
     #writeVecDouble = PYB11TemplateMethod(writeVec, template_parameters="double", pyname="write")
     #readVecDouble  = PYB11TemplateMethod( readVec, template_parameters="double", pyname="read")
-    writeVecString = PYB11TemplateMethod(writeVec, template_parameters="std::string", pyname="write")
-    readVecString  = PYB11TemplateMethod( readVec, template_parameters="std::string", pyname="read")
+    #writeVecString = PYB11TemplateMethod(writeVec, template_parameters="std::string", pyname="write")
+    #readVecString  = PYB11TemplateMethod( readVec, template_parameters="std::string", pyname="read")
 
     for ndim in dims:
         for T in ["Dim<%i>::Vector" % ndim,

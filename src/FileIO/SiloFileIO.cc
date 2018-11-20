@@ -412,6 +412,22 @@ SiloFileIO::write(const std::vector<double>& value, const string pathName) {
 }
 
 //------------------------------------------------------------------------------
+// Write a vector<string> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const std::vector<string>& value, const string pathName) {
+  const unsigned n = value.size();
+  vector<int> dim_stuff(n);
+  string stuff;
+  for (unsigned i = 0; i != n; ++i) {
+    dim_stuff[i] = value[i].size();
+    stuff += value[i];
+  }
+  this->write(dim_stuff, pathName + "/dim_stuff");
+  this->write(stuff, pathName + "/stuff");
+}
+
+//------------------------------------------------------------------------------
 // Write a Dim<1>::Vector to the file.
 //------------------------------------------------------------------------------
 void
@@ -620,6 +636,24 @@ SiloFileIO::read(std::vector<double>& value, const string pathName) const {
     const string varname = setdir(mFilePtr, pathName + "/value");
     VERIFY2(DBReadVar(mFilePtr, varname.c_str(), static_cast<void*>(&value[0])) == 0,
             "SiloFileIO ERROR: unable to read std::vector " << pathName);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Read a vector<string> from the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::read(vector<string>& value, const string pathName) const {
+  vector<int> dim_stuff;
+  string stuff;
+  this->read(dim_stuff, pathName + "/dim_stuff");
+  this->read(stuff, pathName + "/stuff");
+  const unsigned n = dim_stuff.size();
+  value = vector<string>(n);
+  unsigned i = 0;
+  for (unsigned k = 0; k != n; ++k) {
+    value[k] = stuff.substr(i, dim_stuff[k]);
+    i += dim_stuff[k];
   }
 }
 
