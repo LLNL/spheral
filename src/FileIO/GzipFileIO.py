@@ -189,6 +189,9 @@ class GzipFileIO(PyFileIO):
     def write_vector_double(self, val, pathName):
         self.writeObject(list(val), pathName)
 
+    def write_vector_string(self, val, pathName):
+        self.writeObject(list(val), pathName)
+
     def write_Vector1d(self, val, pathName):
         self.writeObject(val, pathName)
 
@@ -298,6 +301,9 @@ class GzipFileIO(PyFileIO):
         self.copyContainer(self.readObject(pathName), val)
 
     def read_vector_double(self, val, pathName):
+        self.copyContainer(self.readObject(pathName), val)
+
+    def read_vector_string(self, val, pathName):
         self.copyContainer(self.readObject(pathName), val)
 
     def read_Vector1d(self, pathName):
