@@ -377,29 +377,6 @@ class FileIOTestBase:
             self.removeFile(filename)
         return
 
-##     #---------------------------------------------------------------------------
-##     # vector<bool>
-##     #---------------------------------------------------------------------------
-##     def testVectorBool(self):
-##         v0 = vector_of_bool()
-##         for i in xrange(self.n):
-##             v0.append(g.choice([True, False]))
-##         assert len(v0) == self.n
-##         f = self.constructor("TestVectorBool", Write)
-##         f.write(v0, "FileIOTestBase/vector_of_bool")
-##         f.close()
-##         f = self.constructor("TestVectorBool", Read)
-##         v = vector_of_bool()
-##         f.read(v, "FileIOTestBase/vector_of_bool")
-##         f.close()
-##         assert len(v) == len(v0)
-##         for i in xrange(self.n):
-##             self.failUnless(v[i] == v0[i],
-##                             "%i != %i @ %i of %i in vector<bool> test" %
-##                             (v[i], v0[i], i, self.n))
-##         self.removeFile("TestVectorBool")
-##         return
-
     #---------------------------------------------------------------------------
     # vector<double>
     #---------------------------------------------------------------------------
