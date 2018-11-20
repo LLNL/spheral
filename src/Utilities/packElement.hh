@@ -170,7 +170,7 @@ packElement<std::string>(const std::string& value,
                          std::vector<char>& buffer) {
   const size_t size = value.size();
   packElement(size, buffer);
-  buffer.insert(buffer.end(), value.begin(), value.end());
+  buffer.insert(buffer.end(), value.begin(), value.begin() + size);
 }
 
 // Specialization for a std::pair of known types.

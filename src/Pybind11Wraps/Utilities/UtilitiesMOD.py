@@ -408,15 +408,15 @@ def simpsonsIntegrationDouble(function = "const PythonBoundFunctors::SpheralFunc
 # packElement/unpackElement
 #-------------------------------------------------------------------------------
 @PYB11template("T")
-@PYB11implementation("[](const %(T)s& x) -> py::bytes { std::vector<char> buf; packElement(x, buf); return py::bytes(std::string(buf.begin(), buf.end())); }")
+@PYB11implementation("[](const %(T)s& x) -> py::bytes { std::vector<char> buf; packElement(x, buf); std::string strbuf; strbuf.resize(buf.size()); std::copy(buf.begin(), buf.end(), strbuf.begin()); return py::bytes(strbuf); }")
 def packElement(x = "const %(T)s&"):
     "Serialize a %(T)s into a buffer of py::bytes"
     return "py::bytes"
 
 @PYB11template("T")
-@PYB11implementation("[](const py::bytes& x) -> %(T)s { %(T)s result; const auto sbuf = static_cast<std::string>(x); const std::vector<char> buf(sbuf.begin(), sbuf.end()); auto itr = buf.begin(); unpackElement(result, itr, buf.end()); return result; }")
-def unpackElement(x = "const py::bytes&"):
-    "Deserialize a %(T)s from a py::bytes buffer"
+@PYB11implementation("[](const std::string& x) -> %(T)s { %(T)s result; std::vector<char> buf(x.size()); std::copy(x.begin(), x.begin() + x.size(), buf.begin()); std::vector<char>::const_iterator itr = buf.begin(); std::vector<char>::const_iterator endItr = buf.end(); unpackElement(result, itr, endItr); return result; }")
+def unpackElement(x = "const std::string&"):
+    "Deserialize a %(T)s from a string buffer"
     return "%(T)s"
 
 for type, suffix in (("int", "Int"),

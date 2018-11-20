@@ -151,7 +151,8 @@ class GzipFileIO(PyFileIO):
 
     def read_string(self, pathName):
         try:
-            return self.findPath(pathName)
+            result = self.findPath(pathName)
+            return result
         except Exception as excp:
             print "WARNING : Unable to restore %s due to exception message: %s" % (pathName, excp)
             pass
@@ -183,10 +184,10 @@ class GzipFileIO(PyFileIO):
         self.writeObject(val, pathName)
 
     def write_vector_int(self, val, pathName):
-        self.writeObject(val, pathName)
+        self.writeObject(list(val), pathName)
 
     def write_vector_double(self, val, pathName):
-        self.writeObject(val, pathName)
+        self.writeObject(list(val), pathName)
 
     def write_Vector1d(self, val, pathName):
         self.writeObject(val, pathName)
@@ -294,10 +295,10 @@ class GzipFileIO(PyFileIO):
         return self.readObject(pathName)
 
     def read_vector_int(self, val, pathName):
-        val = self.readObject(pathName)
+        self.copyContainer(self.readObject(pathName), val)
 
     def read_vector_double(self, val, pathName):
-        val = self.readObject(pathName)
+        self.copyContainer(self.readObject(pathName), val)
 
     def read_Vector1d(self, pathName):
         return self.readObject(pathName)
@@ -392,22 +393,7 @@ class GzipFileIO(PyFileIO):
     #---------------------------------------------------------------------------
     # Copy Vectors.
     #---------------------------------------------------------------------------
-    def copyContainer(self, v0, v1, size):
-        for i in xrange(size):
-            v1[i] = v0[i]
+    def copyContainer(self, v0, v1):
+        for x in v0:
+            v1.append(x)
         return
-
-    def copyGeomTensor(self, v0, v1, ndim):
-        v1.xx = v0.xx
-        if ndim > 1:
-            v1.xy = v0.xy
-            v1.yx = v0.yx
-            v1.yy = v0.yy
-        if ndim > 2:
-            v1.xz = v0.xz
-            v1.yz = v0.yz
-            v1.zx = v0.zx
-            v1.zy = v0.zy
-            v1.zz = v0.zz
-        return
-
