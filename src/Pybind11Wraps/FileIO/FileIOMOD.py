@@ -12,17 +12,14 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"NodeList/NodeList.hh"',
-            '"NodeList/FluidNodeList.hh"',
-            '"NodeList/SolidNodeList.hh"',
-            '"FileIO/FileIO.hh"',
-            '"FileIO/FlatFileIO.hh"',
-            '"FileIO/SiloFileIO.hh"',
-            '"FileIO/PyFileIO.hh"',
-            '"FileIO/vectorstringUtilities.hh"',
-            '<vector>',
-            '<string>']
+includes += ['"NodeList/NodeList.hh"',
+             '"NodeList/FluidNodeList.hh"',
+             '"NodeList/SolidNodeList.hh"',
+             '"FileIO/FileIO.hh"',
+             '"FileIO/FlatFileIO.hh"',
+             '"FileIO/SiloFileIO.hh"',
+             '"FileIO/PyFileIO.hh"',
+             '"FileIO/vectorstringUtilities.hh"']
 
 #-------------------------------------------------------------------------------
 # More preamble

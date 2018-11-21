@@ -16,18 +16,14 @@ from JohnsonCookDamage import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"NodeList/SolidNodeList.hh"',
-            '"Strength/SolidFieldNames.hh"',
-            '"Damage/DamageModel.hh"',
-            '"Damage/TensorDamageModel.hh"',
-            '"Damage/JohnsonCookDamage.hh"',
-            '"Damage/weibullFlawDistribution.hh"',
-            '"Damage/computeFragmentField.hh"',
-            '"FileIO/FileIO.hh"',
-            '<vector>',
-            '<string>',
-            '<iterator>']
+includes += ['"NodeList/SolidNodeList.hh"',
+             '"Strength/SolidFieldNames.hh"',
+             '"Damage/DamageModel.hh"',
+             '"Damage/TensorDamageModel.hh"',
+             '"Damage/JohnsonCookDamage.hh"',
+             '"Damage/weibullFlawDistribution.hh"',
+             '"Damage/computeFragmentField.hh"',
+             '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

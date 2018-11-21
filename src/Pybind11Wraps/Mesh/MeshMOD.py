@@ -14,21 +14,17 @@ from Mesh import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"Mesh/Mesh.hh"',
-            '"Mesh/Node.hh"',
-            '"Mesh/Edge.hh"',
-            '"Mesh/Face.hh"',
-            '"Mesh/Zone.hh"',
-            '"Mesh/computeGenerators.hh"',
-            '"Mesh/generateMesh.hh"',
-            '"Mesh/MeshConstructionUtilities.hh"',
-            '"FileIO/FileIO.hh"',
-            '"Boundary/Boundary.hh"',
-            '"NodeList/NodeList.hh"',
-            '<vector>',
-            '<string>',
-            '<iterator>']
+includes += ['"Mesh/Mesh.hh"',
+             '"Mesh/Node.hh"',
+             '"Mesh/Edge.hh"',
+             '"Mesh/Face.hh"',
+             '"Mesh/Zone.hh"',
+             '"Mesh/computeGenerators.hh"',
+             '"Mesh/generateMesh.hh"',
+             '"Mesh/MeshConstructionUtilities.hh"',
+             '"FileIO/FileIO.hh"',
+             '"Boundary/Boundary.hh"',
+             '"NodeList/NodeList.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

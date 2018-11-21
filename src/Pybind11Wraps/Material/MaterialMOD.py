@@ -12,15 +12,12 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"Material/PhysicalConstants.hh"',
-            '"Material/EquationOfState.hh"',
-            '"Material/GammaLawGas.hh"',
-            '"Material/PolytropicEquationOfState.hh"',
-            '"Material/IsothermalEquationOfState.hh"',
-            '"Field/Field.hh"',
-            '<vector>',
-            '<string>']
+includes += ['"Material/PhysicalConstants.hh"',
+             '"Material/EquationOfState.hh"',
+             '"Material/GammaLawGas.hh"',
+             '"Material/PolytropicEquationOfState.hh"',
+             '"Material/IsothermalEquationOfState.hh"',
+             '"Field/Field.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

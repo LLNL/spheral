@@ -13,13 +13,10 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"Physics/GenericBodyForce.hh"',
-            '"ExternalForce/PointPotential.hh"',
-            '"ExternalForce/ConstantAcceleration.hh"',
-            '"ExternalForce/LinearAcceleration.hh"',
-            '<vector>',
-            '<string>']
+includes += ['"Physics/GenericBodyForce.hh"',
+             '"ExternalForce/PointPotential.hh"',
+             '"ExternalForce/ConstantAcceleration.hh"',
+             '"ExternalForce/LinearAcceleration.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

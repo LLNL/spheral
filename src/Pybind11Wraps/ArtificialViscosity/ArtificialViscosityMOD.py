@@ -12,21 +12,18 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"ArtificialViscosity/ArtificialViscosity.hh"',
-            '"ArtificialViscosity/MonaghanGingoldViscosity.hh"',
-            '"ArtificialViscosity/CRKSPHMonaghanGingoldViscosity.hh"',
-            '"ArtificialViscosity/MorrisMonaghanReducingViscosity.hh"',
-            '"ArtificialViscosity/CullenDehnenViscosity.hh"',
-            '"ArtificialViscosity/TensorMonaghanGingoldViscosity.hh"',
-            '"ArtificialViscosity/FiniteVolumeViscosity.hh"',
-            '"ArtificialViscosity/TensorSVPHViscosity.hh"',
-            '"ArtificialViscosity/TensorCRKSPHViscosity.hh"',
-            '"ArtificialViscosity/VonNeumanViscosity.hh"',
-            '"ArtificialViscosity/MonaghanGingoldViscosityGSRZ.hh"',
-            '"FileIO/FileIO.hh"',
-            '<vector>',
-            '<string>']
+includes += ['"ArtificialViscosity/ArtificialViscosity.hh"',
+             '"ArtificialViscosity/MonaghanGingoldViscosity.hh"',
+             '"ArtificialViscosity/CRKSPHMonaghanGingoldViscosity.hh"',
+             '"ArtificialViscosity/MorrisMonaghanReducingViscosity.hh"',
+             '"ArtificialViscosity/CullenDehnenViscosity.hh"',
+             '"ArtificialViscosity/TensorMonaghanGingoldViscosity.hh"',
+             '"ArtificialViscosity/FiniteVolumeViscosity.hh"',
+             '"ArtificialViscosity/TensorSVPHViscosity.hh"',
+             '"ArtificialViscosity/TensorCRKSPHViscosity.hh"',
+             '"ArtificialViscosity/VonNeumanViscosity.hh"',
+             '"ArtificialViscosity/MonaghanGingoldViscosityGSRZ.hh"',
+             '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

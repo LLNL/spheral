@@ -13,20 +13,17 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"Field/Field.hh"',
-            '"Field/FieldList.hh"',
-            '"Field/FieldListSet.hh"',
-            '"Kernel/TableKernel.hh"',
-            '"Boundary/Boundary.hh"',
-            '"FieldOperations/FieldListFunctions.hh"',
-            '"FieldOperations/FieldListFunctionsMash.hh"',
-            '"FieldOperations/FieldListSecondDerivatives.hh"',
-            '"FieldOperations/PairWiseFieldListFunctions.hh"',
-            '"FieldOperations/sampleMultipleFields2Lattice.hh"',
-            '"FieldOperations/binFieldList2Lattice.hh"',
-            '<vector>',
-            '<string>']
+includes += ['"Field/Field.hh"',
+             '"Field/FieldList.hh"',
+             '"Field/FieldListSet.hh"',
+             '"Kernel/TableKernel.hh"',
+             '"Boundary/Boundary.hh"',
+             '"FieldOperations/FieldListFunctions.hh"',
+             '"FieldOperations/FieldListFunctionsMash.hh"',
+             '"FieldOperations/FieldListSecondDerivatives.hh"',
+             '"FieldOperations/PairWiseFieldListFunctions.hh"',
+             '"FieldOperations/sampleMultipleFields2Lattice.hh"',
+             '"FieldOperations/binFieldList2Lattice.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

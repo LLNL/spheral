@@ -12,23 +12,19 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"DataBase/DataBase.hh"',
-            '"DataBase/State.hh"',
-            '"DataBase/StateDerivatives.hh"',
-            '"Physics/Physics.hh"',
-            '"Boundary/Boundary.hh"',
-            '"FileIO/FileIO.hh"',
-            '"Integrator/Integrator.hh"',
-            '"Integrator/PredictorCorrector.hh"',
-            '"Integrator/SynchronousRK1.hh"',
-            '"Integrator/SynchronousRK2.hh"',
-            '"Integrator/SynchronousRK4.hh"',
-            '"Integrator/CheapSynchronousRK2.hh"',
-            '"Integrator/Verlet.hh"',
-            '<vector>',
-            '<string>',
-            '<iterator>']
+includes += ['"DataBase/DataBase.hh"',
+             '"DataBase/State.hh"',
+             '"DataBase/StateDerivatives.hh"',
+             '"Physics/Physics.hh"',
+             '"Boundary/Boundary.hh"',
+             '"FileIO/FileIO.hh"',
+             '"Integrator/Integrator.hh"',
+             '"Integrator/PredictorCorrector.hh"',
+             '"Integrator/SynchronousRK1.hh"',
+             '"Integrator/SynchronousRK2.hh"',
+             '"Integrator/SynchronousRK4.hh"',
+             '"Integrator/CheapSynchronousRK2.hh"',
+             '"Integrator/Verlet.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

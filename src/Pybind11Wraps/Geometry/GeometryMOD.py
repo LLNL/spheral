@@ -4,8 +4,6 @@ etc.) and associated methods such as products and eigenvalues.
 """
 
 from PYB11Generator import *
-from CXXTypesMOD import *
-#from SpheralCommon import *
 import types
 
 # Forcibly override the common preamble

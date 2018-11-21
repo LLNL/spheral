@@ -5,7 +5,6 @@ Binds the PolyClipper geometry operations for clipping polygons & polyhedra.
 """
 
 from PYB11Generator import *
-#from CXXTypesMOD import *
 import types
 
 # Include files.

@@ -12,15 +12,12 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"Physics/Physics.hh"',
-            '"Physics/GenericHydro.hh"',
-            '"Physics/GenericBodyForce.hh"',
-            '"Boundary/Boundary.hh"',
-            '"ArtificialViscosity/ArtificialViscosity.hh"',
-            '"Kernel/TableKernel.hh"',
-            '<vector>',
-            '<string>']
+includes += ['"Physics/Physics.hh"',
+             '"Physics/GenericHydro.hh"',
+             '"Physics/GenericBodyForce.hh"',
+             '"Boundary/Boundary.hh"',
+             '"ArtificialViscosity/ArtificialViscosity.hh"',
+             '"Kernel/TableKernel.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

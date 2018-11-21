@@ -14,8 +14,7 @@ from ArtificialConduction import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"ArtificialConduction/ArtificialConduction.hh"',
-            '<string>']
+includes += ['"ArtificialConduction/ArtificialConduction.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

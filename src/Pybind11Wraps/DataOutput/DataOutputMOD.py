@@ -11,12 +11,9 @@ from RestartableObject import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"DataOutput/RestartRegistrar.hh"',
-            '"RestartableObject.hh"',
-            '"FileIO/FileIO.hh"',
-            "<vector>",
-            "<string>"]
+includes += ['"DataOutput/RestartRegistrar.hh"',
+             '"RestartableObject.hh"',
+             '"FileIO/FileIO.hh"']
             
 #-------------------------------------------------------------------------------
 # Namespaces the module is in.

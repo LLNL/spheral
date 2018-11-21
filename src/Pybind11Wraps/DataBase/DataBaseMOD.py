@@ -118,17 +118,14 @@ PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"DataBase/DataBase.hh"',
-            '"DataBase/StateBase.hh"',
-            '"DataBase/State.hh"',
-            '"DataBase/StateDerivatives.hh"',
-            '"Field/Field.hh"',
-            '"Neighbor/ConnectivityMap.hh"',
-            '"Physics/Physics.hh"',
-            '"Utilities/DataTypeTraits.hh"',
-            '<vector>',
-            '<string>']
+includes += ['"DataBase/DataBase.hh"',
+             '"DataBase/StateBase.hh"',
+             '"DataBase/State.hh"',
+             '"DataBase/StateDerivatives.hh"',
+             '"Field/Field.hh"',
+             '"Neighbor/ConnectivityMap.hh"',
+             '"Physics/Physics.hh"',
+             '"Utilities/DataTypeTraits.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

@@ -12,18 +12,14 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"Geometry/GeomPlane.hh"',
-            '"Boundary/Boundary.hh"',
-            '"Neighbor/GridCellIndex.hh"',
-            '"Neighbor/GridCellPlane.hh"',
-            '"Neighbor/Neighbor.hh"',
-            '"Neighbor/NestedGridNeighbor.hh"',
-            '"Neighbor/TreeNeighbor.hh"',
-            '"Neighbor/ConnectivityMap.hh"',
-            '<vector>',
-            '<string>',
-            '<iterator>']
+includes += ['"Geometry/GeomPlane.hh"',
+             '"Boundary/Boundary.hh"',
+             '"Neighbor/GridCellIndex.hh"',
+             '"Neighbor/GridCellPlane.hh"',
+             '"Neighbor/Neighbor.hh"',
+             '"Neighbor/NestedGridNeighbor.hh"',
+             '"Neighbor/TreeNeighbor.hh"',
+             '"Neighbor/ConnectivityMap.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

@@ -15,14 +15,10 @@ from TreeGravity import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"Physics/GenericBodyForce.hh"',
-            '"Gravity/NBodyGravity.hh"',
-            '"Gravity/TreeGravity.hh"',
-            '"FileIO/FileIO.hh"',
-            '<vector>',
-            '<string>',
-            '<iterator>']
+includes += ['"Physics/GenericBodyForce.hh"',
+             '"Gravity/NBodyGravity.hh"',
+             '"Gravity/TreeGravity.hh"',
+             '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

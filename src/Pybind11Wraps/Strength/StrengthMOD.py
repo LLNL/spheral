@@ -12,10 +12,9 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Strength/SolidFieldNames.hh"',
-            '"Geometry/Dimension.hh"',
-            '"Geometry/GeomPlane.hh"',
-            '<string>']
+includes += ['"Strength/SolidFieldNames.hh"',
+             '"Geometry/Dimension.hh"',
+             '"Geometry/GeomPlane.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

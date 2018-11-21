@@ -33,29 +33,25 @@ from PhysicsEvolvingMaterialLibrary import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"SolidMaterial/SolidEquationOfState.hh"',
-            '"SolidMaterial/LinearPolynomialEquationOfState.hh"',
-            '"SolidMaterial/GruneisenEquationOfState.hh"',
-            '"SolidMaterial/OsborneEquationOfState.hh"',
-            '"SolidMaterial/TillotsonEquationOfState.hh"',
-            '"SolidMaterial/MurnahanEquationOfState.hh"',
-            '"SolidMaterial/StrengthModel.hh"',
-            '"SolidMaterial/ConstantStrength.hh"',
-            '"SolidMaterial/NullStrength.hh"',
-            '"SolidMaterial/PolynomialFit.hh"',
-            '"SolidMaterial/SteinbergGuinanStrength.hh"',
-            '"SolidMaterial/SteinbergGuinanLundStrength.hh"',
-            '"SolidMaterial/JohnsonCookStrength.hh"',
-            '"SolidMaterial/CollinsStrength.hh"',
-            '"SolidMaterial/PorousEquationOfState.hh"',
-            '"SolidMaterial/PorousStrengthModel.hh"',
-            '"SolidMaterial/StrainPorosity.hh"',
-            '"SolidMaterial/PhysicsEvolvingMaterialLibrary.hh"',
-            '"FileIO/FileIO.hh"',
-            '<vector>',
-            '<string>',
-            '<iterator>']
+includes += ['"SolidMaterial/SolidEquationOfState.hh"',
+             '"SolidMaterial/LinearPolynomialEquationOfState.hh"',
+             '"SolidMaterial/GruneisenEquationOfState.hh"',
+             '"SolidMaterial/OsborneEquationOfState.hh"',
+             '"SolidMaterial/TillotsonEquationOfState.hh"',
+             '"SolidMaterial/MurnahanEquationOfState.hh"',
+             '"SolidMaterial/StrengthModel.hh"',
+             '"SolidMaterial/ConstantStrength.hh"',
+             '"SolidMaterial/NullStrength.hh"',
+             '"SolidMaterial/PolynomialFit.hh"',
+             '"SolidMaterial/SteinbergGuinanStrength.hh"',
+             '"SolidMaterial/SteinbergGuinanLundStrength.hh"',
+             '"SolidMaterial/JohnsonCookStrength.hh"',
+             '"SolidMaterial/CollinsStrength.hh"',
+             '"SolidMaterial/PorousEquationOfState.hh"',
+             '"SolidMaterial/PorousStrengthModel.hh"',
+             '"SolidMaterial/StrainPorosity.hh"',
+             '"SolidMaterial/PhysicsEvolvingMaterialLibrary.hh"',
+             '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

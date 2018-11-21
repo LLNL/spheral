@@ -5,6 +5,7 @@ Provides implementations of SVPH (Smoothed Voronoi Particle Hydrodynamics)
 """
 
 from PYB11Generator import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
@@ -13,17 +14,13 @@ from SVPHFacetedHydroBase import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"SVPH/sampleFieldListSVPH.hh"',
-            '"SVPH/gradientFieldListSVPH.hh"',
-            '"SVPH/SVPHHydroBase.hh"',
-            '"SVPH/SVPHFacetedHydroBase.hh"',
-            '"Neighbor/ConnectivityMap.hh"',
-            '"FileIO/FileIO.hh"',
-            '"ArtificialViscosity/ArtificialViscosity.hh"',
-            '<vector>',
-            '<string>',
-            '<iterator>']
+includes += ['"SVPH/sampleFieldListSVPH.hh"',
+             '"SVPH/gradientFieldListSVPH.hh"',
+             '"SVPH/SVPHHydroBase.hh"',
+             '"SVPH/SVPHFacetedHydroBase.hh"',
+             '"Neighbor/ConnectivityMap.hh"',
+             '"FileIO/FileIO.hh"',
+             '"ArtificialViscosity/ArtificialViscosity.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

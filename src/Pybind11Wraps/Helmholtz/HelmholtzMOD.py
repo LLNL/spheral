@@ -14,13 +14,9 @@ from HelmholtzEquationOfState import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"Material/PhysicalConstants.hh"',
-            '"Material/EquationOfState.hh"',
-            '"Material/HelmholtzEquationOfState.hh"',
-            '<vector>',
-            '<string>',
-            '<iterator>']
+includes += ['"Material/PhysicalConstants.hh"',
+             '"Material/EquationOfState.hh"',
+             '"Material/HelmholtzEquationOfState.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

@@ -12,27 +12,25 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Boundary/Boundary.hh"',
-            '"Boundary/PlanarBoundary.hh"',
-            '"Boundary/ReflectingBoundary.hh"',
-            '"Boundary/RigidBoundary.hh"',
-            '"Boundary/PeriodicBoundary.hh"',
-            '"Boundary/ConstantVelocityBoundary.hh"',
-            '"Boundary/ConstantXVelocityBoundary.hh"',
-            '"Boundary/ConstantYVelocityBoundary.hh"',
-            '"Boundary/ConstantZVelocityBoundary.hh"',
-            '"Boundary/ConstantRVelocityBoundary.hh"',
-            '"Boundary/ConstantBoundary.hh"',
-            '"Boundary/SphericalBoundary.hh"',
-            '"Boundary/CylindricalBoundary.hh"',
-            '"Boundary/AxialSymmetryBoundary.hh"',
-            '"Boundary/AxisBoundaryRZ.hh"',
-            '"Boundary/CRKSPHVoidBoundary.hh"',
-            '"Field/Field.hh"',
-            '"Field/FieldList.hh"',
-            '"FileIO/FileIO.hh"',
-            '<vector>',
-            '<string>']
+includes += ['"Boundary/Boundary.hh"',
+             '"Boundary/PlanarBoundary.hh"',
+             '"Boundary/ReflectingBoundary.hh"',
+             '"Boundary/RigidBoundary.hh"',
+             '"Boundary/PeriodicBoundary.hh"',
+             '"Boundary/ConstantVelocityBoundary.hh"',
+             '"Boundary/ConstantXVelocityBoundary.hh"',
+             '"Boundary/ConstantYVelocityBoundary.hh"',
+             '"Boundary/ConstantZVelocityBoundary.hh"',
+             '"Boundary/ConstantRVelocityBoundary.hh"',
+             '"Boundary/ConstantBoundary.hh"',
+             '"Boundary/SphericalBoundary.hh"',
+             '"Boundary/CylindricalBoundary.hh"',
+             '"Boundary/AxialSymmetryBoundary.hh"',
+             '"Boundary/AxisBoundaryRZ.hh"',
+             '"Boundary/CRKSPHVoidBoundary.hh"',
+             '"Field/Field.hh"',
+             '"Field/FieldList.hh"',
+             '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

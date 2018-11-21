@@ -12,23 +12,22 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"NodeList/NodeListRegistrar.hh"',
-            '"NodeList/NodeList.hh"',
-            '"NodeList/FluidNodeList.hh"',
-            '"NodeList/SolidNodeList.hh"',
-            '"NodeList/SmoothingScaleBase.hh"',
-            '"NodeList/FixedSmoothingScale.hh"',
-            '"NodeList/SPHSmoothingScale.hh"',
-            '"NodeList/ASPHSmoothingScale.hh"',
-            '"NodeList/generateVoidNodes.hh"',
-            '"NodeList/nthNodalMoment.hh"',
-            '"Material/EquationOfState.hh"',
-            '"SolidMaterial/StrengthModel.hh"',
-            '"Kernel/TableKernel.hh"',
-            '"Neighbor/ConnectivityMap.hh"',
-            '"Mesh/Mesh.hh"',
-            '"FileIO/FileIO.hh"']
+includes += ['"NodeList/NodeListRegistrar.hh"',
+             '"NodeList/NodeList.hh"',
+             '"NodeList/FluidNodeList.hh"',
+             '"NodeList/SolidNodeList.hh"',
+             '"NodeList/SmoothingScaleBase.hh"',
+             '"NodeList/FixedSmoothingScale.hh"',
+             '"NodeList/SPHSmoothingScale.hh"',
+             '"NodeList/ASPHSmoothingScale.hh"',
+             '"NodeList/generateVoidNodes.hh"',
+             '"NodeList/nthNodalMoment.hh"',
+             '"Material/EquationOfState.hh"',
+             '"SolidMaterial/StrengthModel.hh"',
+             '"Kernel/TableKernel.hh"',
+             '"Neighbor/ConnectivityMap.hh"',
+             '"Mesh/Mesh.hh"',
+             '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

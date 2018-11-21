@@ -5,7 +5,7 @@ Provides the Field classes.
 """
 
 from PYB11Generator import *
-#from SpheralCommon import *
+from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
@@ -21,13 +21,13 @@ from FieldListSet import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"Field/FieldBase.hh"',
-            '"Field/Field.hh"',
-            '"Field/FieldList.hh"',
-            '"Field/FieldListSet.hh"',
-            '"Utilities/FieldDataTypeTraits.hh"',
-            '<vector>']
+includes += ['"Geometry/Dimension.hh"',
+             '"Field/FieldBase.hh"',
+             '"Field/Field.hh"',
+             '"Field/FieldList.hh"',
+             '"Field/FieldListSet.hh"',
+             '"Utilities/FieldDataTypeTraits.hh"',
+             '<vector>']
 
 #-------------------------------------------------------------------------------
 # Namespaces

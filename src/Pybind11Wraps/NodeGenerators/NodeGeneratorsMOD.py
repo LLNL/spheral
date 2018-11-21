@@ -14,17 +14,13 @@ from WeightingFunctor import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"NodeGenerators/generateCylDistributionFromRZ.hh"',
-            '"NodeGenerators/fillFacetedVolume.hh"',
-            '"NodeGenerators/relaxNodeDistribution.hh"',
-            '"NodeGenerators/readSiloPolyMesh.hh"',
-            '"NodeGenerators/centroidalRelaxNodesImpl.hh"',
-            '"NodeGenerators/compactFacetedVolumes.hh"',
-            '"NodeGenerators/chooseRandomNonoverlappingCenter.hh"',
-            '<vector>',
-            '<string>',
-            '<iterator>']
+includes += ['"NodeGenerators/generateCylDistributionFromRZ.hh"',
+             '"NodeGenerators/fillFacetedVolume.hh"',
+             '"NodeGenerators/relaxNodeDistribution.hh"',
+             '"NodeGenerators/readSiloPolyMesh.hh"',
+             '"NodeGenerators/centroidalRelaxNodesImpl.hh"',
+             '"NodeGenerators/compactFacetedVolumes.hh"',
+             '"NodeGenerators/chooseRandomNonoverlappingCenter.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

@@ -17,23 +17,19 @@ from SolidSPHHydroBase import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"SPH/SPHHydroBase.hh"',
-            '"SPH/PSPHHydroBase.hh"',
-            '"SPH/computeSPHSumMassDensity.hh"',
-            '"SPH/computeSPHOmegaGradhCorrection.hh"',
-            '"SPH/SPHHydroBaseRZ.hh"',
-            '"SPH/SPHHydroBaseGSRZ.hh"',
-            '"SPH/SolidSPHHydroBase.hh"',
-            '"SPH/SolidSPHHydroBaseRZ.hh"',
-            '"SPH/NodeCoupling.hh"',
-            '"SPH/DamagedNodeCoupling.hh"',
-            '"SPH/DamagedNodeCouplingWithFrags.hh"',
-            '"FileIO/FileIO.hh"',
-            '"ArtificialViscosity/ArtificialViscosity.hh"',
-            '<vector>',
-            '<string>',
-            '<iterator>']
+includes += ['"SPH/SPHHydroBase.hh"',
+             '"SPH/PSPHHydroBase.hh"',
+             '"SPH/computeSPHSumMassDensity.hh"',
+             '"SPH/computeSPHOmegaGradhCorrection.hh"',
+             '"SPH/SPHHydroBaseRZ.hh"',
+             '"SPH/SPHHydroBaseGSRZ.hh"',
+             '"SPH/SolidSPHHydroBase.hh"',
+             '"SPH/SolidSPHHydroBaseRZ.hh"',
+             '"SPH/NodeCoupling.hh"',
+             '"SPH/DamagedNodeCoupling.hh"',
+             '"SPH/DamagedNodeCouplingWithFrags.hh"',
+             '"FileIO/FileIO.hh"',
+             '"ArtificialViscosity/ArtificialViscosity.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

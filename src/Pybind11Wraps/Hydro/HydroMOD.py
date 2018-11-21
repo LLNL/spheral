@@ -12,11 +12,8 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"Geometry/GeomPlane.hh"',
-            '"Hydro/HydroFieldNames.hh"',
-            '<vector>',
-            '<string>']
+includes += ['"Geometry/GeomPlane.hh"',
+             '"Hydro/HydroFieldNames.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
