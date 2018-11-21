@@ -144,19 +144,22 @@ class Field(FieldBase):
         return "void"
 
     @PYB11const
+    @PYB11implementation("[](const Field<%(Dimension)s, %(Value)s>& self) -> py::list { const auto vals = self.internalValues(); py::list result; for (const auto& x: vals) result.append(x); return result; }")
     def internalValues(self):
-        "Return a vector<%(Value)s> of just the internal values"
-        return "std::vector<%(Value)s>"
+        "Return a python list (as a copy) of just the internal values"
+        return "py::list"
 
     @PYB11const
+    @PYB11implementation("[](const Field<%(Dimension)s, %(Value)s>& self) -> py::list { const auto vals = self.ghostValues(); py::list result; for (const auto& x: vals) result.append(x); return result; }")
     def ghostValues(self):
-        "Return a vector<%(Value)s> of just the ghost values"
-        return "std::vector<%(Value)s>"
+        "Return a python list (as a copy) of just the ghost values"
+        return "py::list"
 
     @PYB11const
+    @PYB11implementation("[](const Field<%(Dimension)s, %(Value)s>& self) -> py::list { const auto vals = self.allValues(); py::list result; for (const auto& x: vals) result.append(x); return result; }")
     def allValues(self):
-        "Return a vector<%(Value)s> of all values"
-        return "std::vector<%(Value)s>"
+        "Return a python list (as a copy) of all values in the Field"
+        return "py::list"
 
     #...........................................................................
     # operators
