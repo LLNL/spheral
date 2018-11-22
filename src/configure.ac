@@ -192,7 +192,6 @@ AC_OUTPUT(helpers/makefile_master \
           Pybind11Wraps/makefile \
           Pybind11Wraps/SpheralCompiledPackages.py \
           Pybind11Wraps/OpenMP/makefile \
-          Pybind11Wraps/CXXTypes/makefile \
           Pybind11Wraps/PolyClipper/makefile \
           Pybind11Wraps/Geometry/makefile \
           Pybind11Wraps/Silo/makefile \
