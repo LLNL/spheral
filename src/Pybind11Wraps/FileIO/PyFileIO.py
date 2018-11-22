@@ -190,7 +190,7 @@ class PyFileIO(FileIO):
     @PYB11virtual
     @PYB11const
     def read_vector_int(self,
-                        value = "std::vector<int>&",
+                        value = "std::vector<int>*",
                         pathName = "const std::string"):
         "Read a std::vector<int>"
         return "void"
@@ -198,15 +198,15 @@ class PyFileIO(FileIO):
     @PYB11virtual
     @PYB11const
     def read_vector_double(self,
-                           value = "std::vector<double>&",
+                           value = "std::vector<double>*",
                            pathName = "const std::string"):
-        "Read a std::vector<double>"
+        "Read a std::vector<double>*"
         return "void"
 
     @PYB11virtual
     @PYB11const
     def read_vector_string(self,
-                           value = "std::vector<std::string>&",
+                           value = "std::vector<std::string>*",
                            pathName = "const std::string"):
         "Read a std::vector<string>"
         return "void"

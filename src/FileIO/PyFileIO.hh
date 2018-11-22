@@ -89,9 +89,9 @@ public:
   virtual bool read_bool(const std::string pathName)                                      const override { VERIFY2(false, "read_bool not overridden"); }
   virtual double read_double(const std::string pathName)                                  const override { VERIFY2(false, "read_double not overridden"); }
   virtual std::string read_string(const std::string pathName)                             const override { VERIFY2(false, "read_string not overridden"); }
-  virtual void read_vector_int(std::vector<int>& value, const std::string pathName) const                { VERIFY2(false, "read_vector_int not overridden"); }
-  virtual void read_vector_double(std::vector<double>& value, const std::string pathName) const          { VERIFY2(false, "read_vector_double not overridden"); }
-  virtual void read_vector_string(std::vector<std::string>& value, const std::string pathName) const     { VERIFY2(false, "read_vector_string not overridden"); }
+  virtual void read_vector_int(std::vector<int>* value, const std::string pathName) const                { VERIFY2(false, "read_vector_int not overridden"); }
+  virtual void read_vector_double(std::vector<double>* value, const std::string pathName) const          { VERIFY2(false, "read_vector_double not overridden"); }
+  virtual void read_vector_string(std::vector<std::string>* value, const std::string pathName) const     { VERIFY2(false, "read_vector_string not overridden"); }
 
   virtual Dim<1>::Vector read_Vector1d(const std::string pathName) const = 0;
   virtual Dim<1>::Tensor read_Tensor1d(const std::string pathName) const = 0;
@@ -195,9 +195,9 @@ public:
   virtual void read(bool& value, const std::string pathName) const override                     { value = read_bool(pathName); }
   virtual void read(double& value, const std::string pathName) const override                   { value = read_double(pathName); }
   virtual void read(std::string& value, const std::string pathName) const override              { value = read_string(pathName); }
-  virtual void read(std::vector<int>& value, const std::string pathName) const override         { read_vector_int(value, pathName); }
-  virtual void read(std::vector<double>& value, const std::string pathName) const override      { read_vector_double(value, pathName); }
-  virtual void read(std::vector<std::string>& value, const std::string pathName) const override { read_vector_string(value, pathName); }
+  virtual void read(std::vector<int>& value, const std::string pathName) const override         { read_vector_int(&value, pathName); }
+  virtual void read(std::vector<double>& value, const std::string pathName) const override      { read_vector_double(&value, pathName); }
+  virtual void read(std::vector<std::string>& value, const std::string pathName) const override { read_vector_string(&value, pathName); }
 
   virtual void read(Dim<1>::Vector& value, const std::string pathName) const override { value = read_Vector1d(pathName); }
   virtual void read(Dim<1>::Tensor& value, const std::string pathName) const override { value = read_Tensor1d(pathName); }
