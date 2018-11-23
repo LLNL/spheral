@@ -89,14 +89,18 @@ using namespace pybind11::literals;
 
     # Preamble
     if hasattr(modobj, "preamble"):
-        if modobj.preamble:
-            ss(modobj.preamble + "\n")
+        ss(modobj.preamble + "\n")
         ss("\n")
 
     # Some pybind11 types need their own preamble.
     for objname, obj in PYB11STLobjs(modobj):
         obj.preamble(modobj, ss, objname)
     ss("\n")
+
+    # Does anyone have any opaque types?
+    if hasattr(modobj, "PYB11opaque"):
+        for x in modobj.PYB11opaque:
+            ss("PYBIND11_MAKE_OPAQUE(" + x.replace(",", " PYB11COMMA ") + ")\n")
 
     # Trampolines
     PYB11generateModuleTrampolines(modobj, ss)

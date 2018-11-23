@@ -24,108 +24,106 @@ includes += ['"NodeList/NodeList.hh"',
 #-------------------------------------------------------------------------------
 # More preamble
 #-------------------------------------------------------------------------------
-preamble += """
-PYBIND11_MAKE_OPAQUE(std::vector<FluidNodeList<Dim<1>>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<FluidNodeList<Dim<2>>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<FluidNodeList<Dim<3>>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<NodeList<Dim<1>>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<NodeList<Dim<2>>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<NodeList<Dim<3>>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<SolidNodeList<Dim<1>>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<SolidNodeList<Dim<2>>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<SolidNodeList<Dim<3>>*>)
+PYB11opaque = ["std::vector<FluidNodeList<Dim<1>>*>",
+               "std::vector<FluidNodeList<Dim<2>>*>)",
+               "std::vector<FluidNodeList<Dim<3>>*>)",
+               "std::vector<NodeList<Dim<1>>*>)",
+               "std::vector<NodeList<Dim<2>>*>)",
+               "std::vector<NodeList<Dim<3>>*>)",
+               "std::vector<SolidNodeList<Dim<1>>*>)",
+               "std::vector<SolidNodeList<Dim<2>>*>)",
+               "std::vector<SolidNodeList<Dim<3>>*>)",
 
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  int>>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  int>>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  int>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  int>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  int>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  int>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  int>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  int>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  int>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  int>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  int>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  int>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  double>>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  double>>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  double>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  double>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  double>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  double>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  double>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  double>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  double>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  double>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  double>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  double>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::SymTensor>>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::SymTensor>>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::SymTensor>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::SymTensor>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::SymTensor>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::SymTensor>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::SymTensor>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::SymTensor>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::SymTensor>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::SymTensor>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::SymTensor>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::SymTensor>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::Tensor>>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::Tensor>>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::Tensor>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::Tensor>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::Tensor>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::Tensor>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::Tensor>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::Tensor>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::Tensor>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::Tensor>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::Tensor>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::Tensor>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::Vector>>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::Vector>>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::Vector>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::Vector>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::Vector>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::Vector>>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::Vector>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::Vector>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::Vector>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::Vector>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::Vector>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::Vector>*>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<1> PYB11COMMA  int>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<2> PYB11COMMA  int>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<3> PYB11COMMA  int>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<1> PYB11COMMA  int>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<2> PYB11COMMA  int>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<3> PYB11COMMA  int>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<1> PYB11COMMA  double>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<2> PYB11COMMA  double>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<3> PYB11COMMA  double>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<1> PYB11COMMA  double>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<2> PYB11COMMA  double>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<3> PYB11COMMA  double>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::SymTensor>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::SymTensor>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::SymTensor>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::SymTensor>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::SymTensor>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::SymTensor>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::Tensor>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::Tensor>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::Tensor>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::Tensor>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::Tensor>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::Tensor>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<1> PYB11COMMA  Dim<1>::Vector>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<2> PYB11COMMA  Dim<2>::Vector>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Field<Dim<3> PYB11COMMA  Dim<3>::Vector>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<1> PYB11COMMA  Dim<1>::Vector>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<2> PYB11COMMA  Dim<2>::Vector>>>)
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<FieldList<Dim<3> PYB11COMMA  Dim<3>::Vector>>>)
-"""
+               "std::vector<Field<Dim<1> , int>>)",
+               "std::vector<Field<Dim<2> , int>>)",
+               "std::vector<Field<Dim<3> , int>>)",
+               "std::vector<FieldList<Dim<1> , int>>)",
+               "std::vector<FieldList<Dim<2> , int>>)",
+               "std::vector<FieldList<Dim<3> , int>>)",
+               "std::vector<FieldList<Dim<1> , int>*>)",
+               "std::vector<FieldList<Dim<2> , int>*>)",
+               "std::vector<FieldList<Dim<3> , int>*>)",
+               "std::vector<Field<Dim<1> , int>*>)",
+               "std::vector<Field<Dim<2> , int>*>)",
+               "std::vector<Field<Dim<3> , int>*>)",
+               "std::vector<Field<Dim<1> , double>>)",
+               "std::vector<Field<Dim<2> , double>>)",
+               "std::vector<Field<Dim<3> , double>>)",
+               "std::vector<FieldList<Dim<1> , double>>)",
+               "std::vector<FieldList<Dim<2> , double>>)",
+               "std::vector<FieldList<Dim<3> , double>>)",
+               "std::vector<FieldList<Dim<1> , double>*>)",
+               "std::vector<FieldList<Dim<2> , double>*>)",
+               "std::vector<FieldList<Dim<3> , double>*>)",
+               "std::vector<Field<Dim<1> , double>*>)",
+               "std::vector<Field<Dim<2> , double>*>)",
+               "std::vector<Field<Dim<3> , double>*>)",
+               "std::vector<Field<Dim<1> , Dim<1>::SymTensor>>)",
+               "std::vector<Field<Dim<2> , Dim<2>::SymTensor>>)",
+               "std::vector<Field<Dim<3> , Dim<3>::SymTensor>>)",
+               "std::vector<FieldList<Dim<1> , Dim<1>::SymTensor>>)",
+               "std::vector<FieldList<Dim<2> , Dim<2>::SymTensor>>)",
+               "std::vector<FieldList<Dim<3> , Dim<3>::SymTensor>>)",
+               "std::vector<FieldList<Dim<1> , Dim<1>::SymTensor>*>)",
+               "std::vector<FieldList<Dim<2> , Dim<2>::SymTensor>*>)",
+               "std::vector<FieldList<Dim<3> , Dim<3>::SymTensor>*>)",
+               "std::vector<Field<Dim<1> , Dim<1>::SymTensor>*>)",
+               "std::vector<Field<Dim<2> , Dim<2>::SymTensor>*>)",
+               "std::vector<Field<Dim<3> , Dim<3>::SymTensor>*>)",
+               "std::vector<Field<Dim<1> , Dim<1>::Tensor>>)",
+               "std::vector<Field<Dim<2> , Dim<2>::Tensor>>)",
+               "std::vector<Field<Dim<3> , Dim<3>::Tensor>>)",
+               "std::vector<FieldList<Dim<1> , Dim<1>::Tensor>>)",
+               "std::vector<FieldList<Dim<2> , Dim<2>::Tensor>>)",
+               "std::vector<FieldList<Dim<3> , Dim<3>::Tensor>>)",
+               "std::vector<FieldList<Dim<1> , Dim<1>::Tensor>*>)",
+               "std::vector<FieldList<Dim<2> , Dim<2>::Tensor>*>)",
+               "std::vector<FieldList<Dim<3> , Dim<3>::Tensor>*>)",
+               "std::vector<Field<Dim<1> , Dim<1>::Tensor>*>)",
+               "std::vector<Field<Dim<2> , Dim<2>::Tensor>*>)",
+               "std::vector<Field<Dim<3> , Dim<3>::Tensor>*>)",
+               "std::vector<Field<Dim<1> , Dim<1>::Vector>>)",
+               "std::vector<Field<Dim<2> , Dim<2>::Vector>>)",
+               "std::vector<Field<Dim<3> , Dim<3>::Vector>>)",
+               "std::vector<FieldList<Dim<1> , Dim<1>::Vector>>)",
+               "std::vector<FieldList<Dim<2> , Dim<2>::Vector>>)",
+               "std::vector<FieldList<Dim<3> , Dim<3>::Vector>>)",
+               "std::vector<FieldList<Dim<1> , Dim<1>::Vector>*>)",
+               "std::vector<FieldList<Dim<2> , Dim<2>::Vector>*>)",
+               "std::vector<FieldList<Dim<3> , Dim<3>::Vector>*>)",
+               "std::vector<Field<Dim<1> , Dim<1>::Vector>*>)",
+               "std::vector<Field<Dim<2> , Dim<2>::Vector>*>)",
+               "std::vector<Field<Dim<3> , Dim<3>::Vector>*>)",
+               "std::vector<std::vector<Field<Dim<1> , int>>>)",
+               "std::vector<std::vector<Field<Dim<2> , int>>>)",
+               "std::vector<std::vector<Field<Dim<3> , int>>>)",
+               "std::vector<std::vector<FieldList<Dim<1> , int>>>)",
+               "std::vector<std::vector<FieldList<Dim<2> , int>>>)",
+               "std::vector<std::vector<FieldList<Dim<3> , int>>>)",
+               "std::vector<std::vector<Field<Dim<1> , double>>>)",
+               "std::vector<std::vector<Field<Dim<2> , double>>>)",
+               "std::vector<std::vector<Field<Dim<3> , double>>>)",
+               "std::vector<std::vector<FieldList<Dim<1> , double>>>)",
+               "std::vector<std::vector<FieldList<Dim<2> , double>>>)",
+               "std::vector<std::vector<FieldList<Dim<3> , double>>>)",
+               "std::vector<std::vector<Field<Dim<1> , Dim<1>::SymTensor>>>)",
+               "std::vector<std::vector<Field<Dim<2> , Dim<2>::SymTensor>>>)",
+               "std::vector<std::vector<Field<Dim<3> , Dim<3>::SymTensor>>>)",
+               "std::vector<std::vector<FieldList<Dim<1> , Dim<1>::SymTensor>>>)",
+               "std::vector<std::vector<FieldList<Dim<2> , Dim<2>::SymTensor>>>)",
+               "std::vector<std::vector<FieldList<Dim<3> , Dim<3>::SymTensor>>>)",
+               "std::vector<std::vector<Field<Dim<1> , Dim<1>::Tensor>>>)",
+               "std::vector<std::vector<Field<Dim<2> , Dim<2>::Tensor>>>)",
+               "std::vector<std::vector<Field<Dim<3> , Dim<3>::Tensor>>>)",
+               "std::vector<std::vector<FieldList<Dim<1> , Dim<1>::Tensor>>>)",
+               "std::vector<std::vector<FieldList<Dim<2> , Dim<2>::Tensor>>>)",
+               "std::vector<std::vector<FieldList<Dim<3> , Dim<3>::Tensor>>>)",
+               "std::vector<std::vector<Field<Dim<1> , Dim<1>::Vector>>>)",
+               "std::vector<std::vector<Field<Dim<2> , Dim<2>::Vector>>>)",
+               "std::vector<std::vector<Field<Dim<3> , Dim<3>::Vector>>>)",
+               "std::vector<std::vector<FieldList<Dim<1> , Dim<1>::Vector>>>)",
+               "std::vector<std::vector<FieldList<Dim<2> , Dim<2>::Vector>>>)",
+               "std::vector<std::vector<FieldList<Dim<3> , Dim<3>::Vector>>>)"]
 
 #-------------------------------------------------------------------------------
 # Namespaces
