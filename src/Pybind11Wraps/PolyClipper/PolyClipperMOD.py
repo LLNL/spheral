@@ -8,9 +8,9 @@ from PYB11Generator import *
 import types
 
 # Include files.
-includes = ['"Geometry/polyclipper.hh"']
+PYB11includes = ['"Geometry/polyclipper.hh"']
 
-namespaces = ["PolyClipper"]
+PYB11namespaces = ["PolyClipper"]
 
 #-------------------------------------------------------------------------------
 # Planes.

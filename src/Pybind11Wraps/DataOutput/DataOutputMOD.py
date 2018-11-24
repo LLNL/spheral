@@ -11,14 +11,14 @@ from RestartableObject import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"DataOutput/RestartRegistrar.hh"',
-             '"RestartableObject.hh"',
-             '"FileIO/FileIO.hh"']
+PYB11includes += ['"DataOutput/RestartRegistrar.hh"',
+                  '"RestartableObject.hh"',
+                  '"FileIO/FileIO.hh"']
             
 #-------------------------------------------------------------------------------
 # Namespaces the module is in.
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # RestartRegistrar

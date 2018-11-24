@@ -12,17 +12,17 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"Physics/Physics.hh"',
-             '"Physics/GenericHydro.hh"',
-             '"Physics/GenericBodyForce.hh"',
-             '"Boundary/Boundary.hh"',
-             '"ArtificialViscosity/ArtificialViscosity.hh"',
-             '"Kernel/TableKernel.hh"']
+PYB11includes += ['"Physics/Physics.hh"',
+                  '"Physics/GenericHydro.hh"',
+                  '"Physics/GenericBodyForce.hh"',
+                  '"Boundary/Boundary.hh"',
+                  '"ArtificialViscosity/ArtificialViscosity.hh"',
+                  '"Kernel/TableKernel.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Enums

@@ -21,18 +21,18 @@ from FieldListSet import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"Geometry/Dimension.hh"',
-             '"Field/FieldBase.hh"',
-             '"Field/Field.hh"',
-             '"Field/FieldList.hh"',
-             '"Field/FieldListSet.hh"',
-             '"Utilities/FieldDataTypeTraits.hh"',
-             '<vector>']
+PYB11includes += ['"Geometry/Dimension.hh"',
+                  '"Field/FieldBase.hh"',
+                  '"Field/Field.hh"',
+                  '"Field/FieldList.hh"',
+                  '"Field/FieldListSet.hh"',
+                  '"Utilities/FieldDataTypeTraits.hh"',
+                  '<vector>']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Enums

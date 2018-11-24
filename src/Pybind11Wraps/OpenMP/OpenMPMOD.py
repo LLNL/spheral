@@ -4,7 +4,7 @@ Spheral OpenMP module.
 This module provide thin front-end wrappers for the OpenMP methods.
 """
 
-preamble = """
+PYB11preamble = """
 //------------------------------------------------------------------------------
 // Provide dummy OpenMP methods for when we compile without OpenMP support.
 //------------------------------------------------------------------------------

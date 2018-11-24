@@ -15,38 +15,38 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"Utilities/packElement.hh"',
-             '"boost/math/special_functions/legendre.hpp"',
-             '"Utilities/Functors.hh"',
-             '"Utilities/erff.hh"',
-             '"Utilities/newtonRaphson.hh"',
-             '"Utilities/simpsonsIntegration.hh"',
-             '"Utilities/globalNodeIDs.hh"',
-             '"Utilities/rotationMatrix.hh"',
-             '"Utilities/iterateIdealH.hh"',
-             '"Utilities/nodeOrdering.hh"',
-             '"Utilities/mortonOrderIndices.hh"',
-             '"Utilities/peanoHilbertOrderIndices.hh"',
-             '"Utilities/boundingBox.hh"',
-             '"Utilities/globalBoundingVolumes.hh"',
-             '"Utilities/testBoxIntersection.hh"',
-             '"Utilities/lineSegmentIntersections.hh"',
-             '"Utilities/pointDistances.hh"',
-             '"Utilities/segmentIntersectEdges.hh"',
-             '"Utilities/integrateThroughMeshAlongSegment.hh"',
-             '"Utilities/numberDensity.hh"',
-             '"Utilities/planarReflectingOperator.hh"',
-             '"Utilities/KeyTraits.hh"',
-             '"Utilities/pointInPolygon.hh"',
-             '"Utilities/pointOnPolygon.hh"',
-             '"Utilities/pointInPolyhedron.hh"',
-             '"Utilities/pointOnPolyhedron.hh"',
-             '"Utilities/refinePolyhedron.hh"',
-             '"Utilities/overlayRemapFields.hh"',
-             '"Utilities/computeShepardsInterpolation.hh"',
-             '"Utilities/Timer.hh"']
+PYB11includes += ['"Utilities/packElement.hh"',
+                  '"boost/math/special_functions/legendre.hpp"',
+                  '"Utilities/Functors.hh"',
+                  '"Utilities/erff.hh"',
+                  '"Utilities/newtonRaphson.hh"',
+                  '"Utilities/simpsonsIntegration.hh"',
+                  '"Utilities/globalNodeIDs.hh"',
+                  '"Utilities/rotationMatrix.hh"',
+                  '"Utilities/iterateIdealH.hh"',
+                  '"Utilities/nodeOrdering.hh"',
+                  '"Utilities/mortonOrderIndices.hh"',
+                  '"Utilities/peanoHilbertOrderIndices.hh"',
+                  '"Utilities/boundingBox.hh"',
+                  '"Utilities/globalBoundingVolumes.hh"',
+                  '"Utilities/testBoxIntersection.hh"',
+                  '"Utilities/lineSegmentIntersections.hh"',
+                  '"Utilities/pointDistances.hh"',
+                  '"Utilities/segmentIntersectEdges.hh"',
+                  '"Utilities/integrateThroughMeshAlongSegment.hh"',
+                  '"Utilities/numberDensity.hh"',
+                  '"Utilities/planarReflectingOperator.hh"',
+                  '"Utilities/KeyTraits.hh"',
+                  '"Utilities/pointInPolygon.hh"',
+                  '"Utilities/pointOnPolygon.hh"',
+                  '"Utilities/pointInPolyhedron.hh"',
+                  '"Utilities/pointOnPolyhedron.hh"',
+                  '"Utilities/refinePolyhedron.hh"',
+                  '"Utilities/overlayRemapFields.hh"',
+                  '"Utilities/computeShepardsInterpolation.hh"',
+                  '"Utilities/Timer.hh"']
 
-preamble += """
+PYB11preamble = """
 #ifndef NOR3D
 #include "Utilities/r3d_utils.hh"
 #else
@@ -70,7 +70,7 @@ namespace Spheral {
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Instantiate types and add dimension dependent functions.

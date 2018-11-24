@@ -14,12 +14,12 @@ from ArtificialConduction import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"ArtificialConduction/ArtificialConduction.hh"']
+PYB11includes += ['"ArtificialConduction/ArtificialConduction.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Instantiate our dimensional types

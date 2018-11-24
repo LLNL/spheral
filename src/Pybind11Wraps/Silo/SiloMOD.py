@@ -4,12 +4,12 @@ Provides wrappers for the Silo library.
 
 from PYB11Generator import *
 
-includes = ['"Geometry/Dimension.hh"',
-            '"Geometry/GeomPlane.hh"',
-            '"SiloWrappers.hh"']
+PYB11includes = ['"Geometry/Dimension.hh"',
+                 '"Geometry/GeomPlane.hh"',
+                 '"SiloWrappers.hh"']
 
-namespaces = ["silo",
-              "Spheral"]
+PYB11namespaces = ["silo",
+                   "Spheral"]
 
 #-------------------------------------------------------------------------------
 class DBfile:

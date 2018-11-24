@@ -116,19 +116,19 @@ PYB11opaque = ["std::vector<FluidNodeList<Dim<1>>*>",
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"DataBase/DataBase.hh"',
-             '"DataBase/StateBase.hh"',
-             '"DataBase/State.hh"',
-             '"DataBase/StateDerivatives.hh"',
-             '"Field/Field.hh"',
-             '"Neighbor/ConnectivityMap.hh"',
-             '"Physics/Physics.hh"',
-             '"Utilities/DataTypeTraits.hh"']
+PYB11includes += ['"DataBase/DataBase.hh"',
+                  '"DataBase/StateBase.hh"',
+                  '"DataBase/State.hh"',
+                  '"DataBase/StateDerivatives.hh"',
+                  '"Field/Field.hh"',
+                  '"Neighbor/ConnectivityMap.hh"',
+                  '"Physics/Physics.hh"',
+                  '"Utilities/DataTypeTraits.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Instantiate our types

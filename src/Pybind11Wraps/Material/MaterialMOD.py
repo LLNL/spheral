@@ -12,17 +12,17 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"Material/PhysicalConstants.hh"',
-             '"Material/EquationOfState.hh"',
-             '"Material/GammaLawGas.hh"',
-             '"Material/PolytropicEquationOfState.hh"',
-             '"Material/IsothermalEquationOfState.hh"',
-             '"Field/Field.hh"']
+PYB11includes += ['"Material/PhysicalConstants.hh"',
+                  '"Material/EquationOfState.hh"',
+                  '"Material/GammaLawGas.hh"',
+                  '"Material/PolytropicEquationOfState.hh"',
+                  '"Material/IsothermalEquationOfState.hh"',
+                  '"Field/Field.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Enums

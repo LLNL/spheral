@@ -13,15 +13,15 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"Physics/GenericBodyForce.hh"',
-             '"ExternalForce/PointPotential.hh"',
-             '"ExternalForce/ConstantAcceleration.hh"',
-             '"ExternalForce/LinearAcceleration.hh"']
+PYB11includes += ['"Physics/GenericBodyForce.hh"',
+                  '"ExternalForce/PointPotential.hh"',
+                  '"ExternalForce/ConstantAcceleration.hh"',
+                  '"ExternalForce/LinearAcceleration.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Do our dimension dependent instantiations.

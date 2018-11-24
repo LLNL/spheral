@@ -3,13 +3,13 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 
-includes = ['"Geometry/Dimension.hh"',
-            "<vector>",
-            "<map>",
-            "<set>",
-            "<string>"]
+PYB11includes = ['"Geometry/Dimension.hh"',
+                 "<vector>",
+                 "<map>",
+                 "<set>",
+                 "<string>"]
 
-preamble = """
+PYB11preamble = """
 typedef Spheral::GeomPlane<Spheral::Dim<1>> Plane1d;
 typedef Spheral::Dim<1>::Vector Vector1d;
 typedef Spheral::Dim<1>::Tensor Tensor1d;

@@ -17,24 +17,24 @@ from SolidSPHHydroBase import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"SPH/SPHHydroBase.hh"',
-             '"SPH/PSPHHydroBase.hh"',
-             '"SPH/computeSPHSumMassDensity.hh"',
-             '"SPH/computeSPHOmegaGradhCorrection.hh"',
-             '"SPH/SPHHydroBaseRZ.hh"',
-             '"SPH/SPHHydroBaseGSRZ.hh"',
-             '"SPH/SolidSPHHydroBase.hh"',
-             '"SPH/SolidSPHHydroBaseRZ.hh"',
-             '"SPH/NodeCoupling.hh"',
-             '"SPH/DamagedNodeCoupling.hh"',
-             '"SPH/DamagedNodeCouplingWithFrags.hh"',
-             '"FileIO/FileIO.hh"',
-             '"ArtificialViscosity/ArtificialViscosity.hh"']
+PYB11includes += ['"SPH/SPHHydroBase.hh"',
+                  '"SPH/PSPHHydroBase.hh"',
+                  '"SPH/computeSPHSumMassDensity.hh"',
+                  '"SPH/computeSPHOmegaGradhCorrection.hh"',
+                  '"SPH/SPHHydroBaseRZ.hh"',
+                  '"SPH/SPHHydroBaseGSRZ.hh"',
+                  '"SPH/SolidSPHHydroBase.hh"',
+                  '"SPH/SolidSPHHydroBaseRZ.hh"',
+                  '"SPH/NodeCoupling.hh"',
+                  '"SPH/DamagedNodeCoupling.hh"',
+                  '"SPH/DamagedNodeCouplingWithFrags.hh"',
+                  '"FileIO/FileIO.hh"',
+                  '"ArtificialViscosity/ArtificialViscosity.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Methods

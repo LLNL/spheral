@@ -16,36 +16,36 @@ from CRKSPHVariant import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"CRKSPH/CRKSPHUtilities.hh"',
-             '"CRKSPH/CRKSPHHydroBase.hh"',
-             '"CRKSPH/CRKSPHHydroBaseRZ.hh"',
-             '"CRKSPH/SolidCRKSPHHydroBase.hh"',
-             '"CRKSPH/SolidCRKSPHHydroBaseRZ.hh"',
-             '"CRKSPH/CRKSPHVariant.hh"',
-             '"CRKSPH/computeVoronoiVolume.hh"',
-             '"CRKSPH/computeOccupancyVolume.hh"',
-             '"CRKSPH/computeCRKSPHSumVolume.hh"',
-             '"CRKSPH/computeCRKSPHSumMassDensity.hh"',
-             '"CRKSPH/computeSolidCRKSPHSumMassDensity.hh"',
-             '"CRKSPH/computeCRKSPHMoments.hh"',
-             '"CRKSPH/detectSurface.hh"',
-             '"CRKSPH/computeCRKSPHCorrections.hh"',
-             '"CRKSPH/centerOfMass.hh"',
-             '"CRKSPH/computeHullVolumes.hh"',
-             '"CRKSPH/computeNeighborHull.hh"',
-             '"CRKSPH/computeHVolumes.hh"',
-             '"CRKSPH/computeOccupancyVolume.hh"',
-             '"CRKSPH/gradientCRKSPH.hh"',
-             '"CRKSPH/interpolateCRKSPH.hh"',
-             '"SPH/NodeCoupling.hh"',
-             '"FileIO/FileIO.hh"',
-             '"ArtificialViscosity/ArtificialViscosity.hh"',
-             '<iterator>']
+PYB11includes += ['"CRKSPH/CRKSPHUtilities.hh"',
+                  '"CRKSPH/CRKSPHHydroBase.hh"',
+                  '"CRKSPH/CRKSPHHydroBaseRZ.hh"',
+                  '"CRKSPH/SolidCRKSPHHydroBase.hh"',
+                  '"CRKSPH/SolidCRKSPHHydroBaseRZ.hh"',
+                  '"CRKSPH/CRKSPHVariant.hh"',
+                  '"CRKSPH/computeVoronoiVolume.hh"',
+                  '"CRKSPH/computeOccupancyVolume.hh"',
+                  '"CRKSPH/computeCRKSPHSumVolume.hh"',
+                  '"CRKSPH/computeCRKSPHSumMassDensity.hh"',
+                  '"CRKSPH/computeSolidCRKSPHSumMassDensity.hh"',
+                  '"CRKSPH/computeCRKSPHMoments.hh"',
+                  '"CRKSPH/detectSurface.hh"',
+                  '"CRKSPH/computeCRKSPHCorrections.hh"',
+                  '"CRKSPH/centerOfMass.hh"',
+                  '"CRKSPH/computeHullVolumes.hh"',
+                  '"CRKSPH/computeNeighborHull.hh"',
+                  '"CRKSPH/computeHVolumes.hh"',
+                  '"CRKSPH/computeOccupancyVolume.hh"',
+                  '"CRKSPH/gradientCRKSPH.hh"',
+                  '"CRKSPH/interpolateCRKSPH.hh"',
+                  '"SPH/NodeCoupling.hh"',
+                  '"FileIO/FileIO.hh"',
+                  '"ArtificialViscosity/ArtificialViscosity.hh"',
+                  '<iterator>']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # enums

@@ -12,24 +12,24 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"DataBase/DataBase.hh"',
-             '"DataBase/State.hh"',
-             '"DataBase/StateDerivatives.hh"',
-             '"Physics/Physics.hh"',
-             '"Boundary/Boundary.hh"',
-             '"FileIO/FileIO.hh"',
-             '"Integrator/Integrator.hh"',
-             '"Integrator/PredictorCorrector.hh"',
-             '"Integrator/SynchronousRK1.hh"',
-             '"Integrator/SynchronousRK2.hh"',
-             '"Integrator/SynchronousRK4.hh"',
-             '"Integrator/CheapSynchronousRK2.hh"',
-             '"Integrator/Verlet.hh"']
+PYB11includes += ['"DataBase/DataBase.hh"',
+                  '"DataBase/State.hh"',
+                  '"DataBase/StateDerivatives.hh"',
+                  '"Physics/Physics.hh"',
+                  '"Boundary/Boundary.hh"',
+                  '"FileIO/FileIO.hh"',
+                  '"Integrator/Integrator.hh"',
+                  '"Integrator/PredictorCorrector.hh"',
+                  '"Integrator/SynchronousRK1.hh"',
+                  '"Integrator/SynchronousRK2.hh"',
+                  '"Integrator/SynchronousRK4.hh"',
+                  '"Integrator/CheapSynchronousRK2.hh"',
+                  '"Integrator/Verlet.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Instantiate our types

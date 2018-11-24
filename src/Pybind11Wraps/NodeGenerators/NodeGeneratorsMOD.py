@@ -14,18 +14,18 @@ from WeightingFunctor import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"NodeGenerators/generateCylDistributionFromRZ.hh"',
-             '"NodeGenerators/fillFacetedVolume.hh"',
-             '"NodeGenerators/relaxNodeDistribution.hh"',
-             '"NodeGenerators/readSiloPolyMesh.hh"',
-             '"NodeGenerators/centroidalRelaxNodesImpl.hh"',
-             '"NodeGenerators/compactFacetedVolumes.hh"',
-             '"NodeGenerators/chooseRandomNonoverlappingCenter.hh"']
+PYB11includes += ['"NodeGenerators/generateCylDistributionFromRZ.hh"',
+                  '"NodeGenerators/fillFacetedVolume.hh"',
+                  '"NodeGenerators/relaxNodeDistribution.hh"',
+                  '"NodeGenerators/readSiloPolyMesh.hh"',
+                  '"NodeGenerators/centroidalRelaxNodesImpl.hh"',
+                  '"NodeGenerators/compactFacetedVolumes.hh"',
+                  '"NodeGenerators/chooseRandomNonoverlappingCenter.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Instantiate types and add dimension dependent functions.

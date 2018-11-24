@@ -5,7 +5,7 @@ This is a test module for enum binding in PYB11.
 from PYB11Generator import *
 
 # List the files we want to include.
-includes = ['<iostream>']
+PYB11includes = ['<iostream>']
 
 # We can specify arbitrary C++ to be inserted at the beginning of the file.
 preamble = """

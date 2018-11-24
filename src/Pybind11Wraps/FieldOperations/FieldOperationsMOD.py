@@ -13,22 +13,22 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"Field/Field.hh"',
-             '"Field/FieldList.hh"',
-             '"Field/FieldListSet.hh"',
-             '"Kernel/TableKernel.hh"',
-             '"Boundary/Boundary.hh"',
-             '"FieldOperations/FieldListFunctions.hh"',
-             '"FieldOperations/FieldListFunctionsMash.hh"',
-             '"FieldOperations/FieldListSecondDerivatives.hh"',
-             '"FieldOperations/PairWiseFieldListFunctions.hh"',
-             '"FieldOperations/sampleMultipleFields2Lattice.hh"',
-             '"FieldOperations/binFieldList2Lattice.hh"']
+PYB11includes += ['"Field/Field.hh"',
+                  '"Field/FieldList.hh"',
+                  '"Field/FieldListSet.hh"',
+                  '"Kernel/TableKernel.hh"',
+                  '"Boundary/Boundary.hh"',
+                  '"FieldOperations/FieldListFunctions.hh"',
+                  '"FieldOperations/FieldListFunctionsMash.hh"',
+                  '"FieldOperations/FieldListSecondDerivatives.hh"',
+                  '"FieldOperations/PairWiseFieldListFunctions.hh"',
+                  '"FieldOperations/sampleMultipleFields2Lattice.hh"',
+                  '"FieldOperations/binFieldList2Lattice.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Define the templated methods

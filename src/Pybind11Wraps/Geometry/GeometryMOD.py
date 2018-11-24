@@ -7,12 +7,12 @@ from PYB11Generator import *
 import types
 
 # Forcibly override the common preamble
-preamble = ""
+PYB11preamble = ""
 
 # Define some useful type collections we're going to be wrapping in this module.
 geomtypes = ["Vector", "Tensor", "SymTensor", "ThirdRankTensor", "FourthRankTensor", "FifthRankTensor", "FacetedVolume"]
 
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 # for ndim in (1, 2, 3):
 #     preamble += "typedef GeomPlane<Dim<%i>> Plane%id;\n" % (ndim, ndim)
@@ -20,31 +20,31 @@ namespaces = ["Spheral"]
 #         preamble += "typedef Dim<%i>::%s %s%id;\n" % (ndim, gtype, gtype, ndim)
 
 # Include files
-includes = ['"Geometry/Dimension.hh"',
-            '"Geometry/GeomVector.hh"',
-            '"Geometry/Geom3Vector.hh"',
-            '"Geometry/GeomTensor.hh"',
-            '"Geometry/GeomSymmetricTensor.hh"',
-            '"Geometry/GeomThirdRankTensor.hh"',
-            '"Geometry/GeomFourthRankTensor.hh"',
-            '"Geometry/GeomFifthRankTensor.hh"',
-            '"Geometry/EigenStruct.hh"',
-            '"Geometry/computeEigenValues.hh"',
-            '"Geometry/GeomPlane.hh"',
-            '"Geometry/GeomPolygon.hh"',
-            '"Geometry/GeomPolyhedron.hh"',
-            '"Geometry/GeomFacet2d.hh"',
-            '"Geometry/GeomFacet3d.hh"',
-            '"Geometry/invertRankNTensor.hh"',
-            '"Geometry/innerProduct.hh"',
-            '"Geometry/outerProduct.hh"',
-            '"Geometry/innerDoubleProduct.hh"',
-            '"Geometry/aggregateFacetedVolumes.hh"',
-            '"Field/Field.hh"',
-            '"Utilities/DataTypeTraits.hh"',
+PYB11includes = ['"Geometry/Dimension.hh"',
+                 '"Geometry/GeomVector.hh"',
+                 '"Geometry/Geom3Vector.hh"',
+                 '"Geometry/GeomTensor.hh"',
+                 '"Geometry/GeomSymmetricTensor.hh"',
+                 '"Geometry/GeomThirdRankTensor.hh"',
+                 '"Geometry/GeomFourthRankTensor.hh"',
+                 '"Geometry/GeomFifthRankTensor.hh"',
+                 '"Geometry/EigenStruct.hh"',
+                 '"Geometry/computeEigenValues.hh"',
+                 '"Geometry/GeomPlane.hh"',
+                 '"Geometry/GeomPolygon.hh"',
+                 '"Geometry/GeomPolyhedron.hh"',
+                 '"Geometry/GeomFacet2d.hh"',
+                 '"Geometry/GeomFacet3d.hh"',
+                 '"Geometry/invertRankNTensor.hh"',
+                 '"Geometry/innerProduct.hh"',
+                 '"Geometry/outerProduct.hh"',
+                 '"Geometry/innerDoubleProduct.hh"',
+                 '"Geometry/aggregateFacetedVolumes.hh"',
+                 '"Field/Field.hh"',
+                 '"Utilities/DataTypeTraits.hh"',
 
-            '<vector>',
-            '<sstream>']
+                 '<vector>',
+                 '<sstream>']
 
 # # STL containers
 # for element in geomtypes:

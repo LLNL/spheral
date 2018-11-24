@@ -12,19 +12,19 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"Geometry/GeomPlane.hh"',
-             '"Boundary/Boundary.hh"',
-             '"Neighbor/GridCellIndex.hh"',
-             '"Neighbor/GridCellPlane.hh"',
-             '"Neighbor/Neighbor.hh"',
-             '"Neighbor/NestedGridNeighbor.hh"',
-             '"Neighbor/TreeNeighbor.hh"',
-             '"Neighbor/ConnectivityMap.hh"']
+PYB11includes += ['"Geometry/GeomPlane.hh"',
+                  '"Boundary/Boundary.hh"',
+                  '"Neighbor/GridCellIndex.hh"',
+                  '"Neighbor/GridCellPlane.hh"',
+                  '"Neighbor/Neighbor.hh"',
+                  '"Neighbor/NestedGridNeighbor.hh"',
+                  '"Neighbor/TreeNeighbor.hh"',
+                  '"Neighbor/ConnectivityMap.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Enums

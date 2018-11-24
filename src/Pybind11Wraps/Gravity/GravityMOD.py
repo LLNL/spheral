@@ -15,15 +15,15 @@ from TreeGravity import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"Physics/GenericBodyForce.hh"',
-             '"Gravity/NBodyGravity.hh"',
-             '"Gravity/TreeGravity.hh"',
-             '"FileIO/FileIO.hh"']
+PYB11includes += ['"Physics/GenericBodyForce.hh"',
+                  '"Gravity/NBodyGravity.hh"',
+                  '"Gravity/TreeGravity.hh"',
+                  '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Enums

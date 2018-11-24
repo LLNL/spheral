@@ -16,19 +16,19 @@ from JohnsonCookDamage import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"NodeList/SolidNodeList.hh"',
-             '"Strength/SolidFieldNames.hh"',
-             '"Damage/DamageModel.hh"',
-             '"Damage/TensorDamageModel.hh"',
-             '"Damage/JohnsonCookDamage.hh"',
-             '"Damage/weibullFlawDistribution.hh"',
-             '"Damage/computeFragmentField.hh"',
-             '"FileIO/FileIO.hh"']
+PYB11includes += ['"NodeList/SolidNodeList.hh"',
+                  '"Strength/SolidFieldNames.hh"',
+                  '"Damage/DamageModel.hh"',
+                  '"Damage/TensorDamageModel.hh"',
+                  '"Damage/JohnsonCookDamage.hh"',
+                  '"Damage/weibullFlawDistribution.hh"',
+                  '"Damage/computeFragmentField.hh"',
+                  '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # enums

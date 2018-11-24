@@ -12,14 +12,14 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"Strength/SolidFieldNames.hh"',
-             '"Geometry/Dimension.hh"',
-             '"Geometry/GeomPlane.hh"']
+PYB11includes += ['"Strength/SolidFieldNames.hh"',
+                  '"Geometry/Dimension.hh"',
+                  '"Geometry/GeomPlane.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # SolidFieldNames

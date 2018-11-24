@@ -8,12 +8,12 @@ from PYB11Generator import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
-includes = ['"CXXTests/testNodeIterators.hh"',
-            '"CXXTests/test_r3d_utils.hh"',
-            '"Geometry/Dimension.hh"',
-            '"DataBase/DataBase.hh"']
+PYB11includes = ['"CXXTests/testNodeIterators.hh"',
+                 '"CXXTests/test_r3d_utils.hh"',
+                 '"Geometry/Dimension.hh"',
+                 '"DataBase/DataBase.hh"']
 
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 # #-------------------------------------------------------------------------------
 # # Node iterator tests

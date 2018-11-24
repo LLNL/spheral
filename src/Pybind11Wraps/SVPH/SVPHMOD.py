@@ -14,18 +14,18 @@ from SVPHFacetedHydroBase import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"SVPH/sampleFieldListSVPH.hh"',
-             '"SVPH/gradientFieldListSVPH.hh"',
-             '"SVPH/SVPHHydroBase.hh"',
-             '"SVPH/SVPHFacetedHydroBase.hh"',
-             '"Neighbor/ConnectivityMap.hh"',
-             '"FileIO/FileIO.hh"',
-             '"ArtificialViscosity/ArtificialViscosity.hh"']
+PYB11includes += ['"SVPH/sampleFieldListSVPH.hh"',
+                  '"SVPH/gradientFieldListSVPH.hh"',
+                  '"SVPH/SVPHHydroBase.hh"',
+                  '"SVPH/SVPHFacetedHydroBase.hh"',
+                  '"Neighbor/ConnectivityMap.hh"',
+                  '"FileIO/FileIO.hh"',
+                  '"ArtificialViscosity/ArtificialViscosity.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Methods

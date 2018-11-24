@@ -14,20 +14,20 @@ from ANEOS import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes = ['"Geometry/Dimension.hh"',
-            '"Material/PhysicalConstants.hh"',
-            '"Material/EquationOfState.hh"',
-            '"Field/Field.hh"',
-            '"SolidMaterial/ANEOS.hh"',
-            '"ANEOSWrappers.hh"',
-            '<vector>',
-            '<string>',
-            '<iterator>']
+PYB11includes = ['"Geometry/Dimension.hh"',
+                 '"Material/PhysicalConstants.hh"',
+                 '"Material/EquationOfState.hh"',
+                 '"Field/Field.hh"',
+                 '"SolidMaterial/ANEOS.hh"',
+                 '"ANEOSWrappers.hh"',
+                 '<vector>',
+                 '<string>',
+                 '<iterator>']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Functions

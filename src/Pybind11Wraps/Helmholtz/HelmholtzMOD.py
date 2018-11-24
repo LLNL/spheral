@@ -14,14 +14,14 @@ from HelmholtzEquationOfState import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"Material/PhysicalConstants.hh"',
-             '"Material/EquationOfState.hh"',
-             '"Material/HelmholtzEquationOfState.hh"']
+PYB11includes += ['"Material/PhysicalConstants.hh"',
+                  '"Material/EquationOfState.hh"',
+                  '"Material/HelmholtzEquationOfState.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # Instantiate our dimensional types

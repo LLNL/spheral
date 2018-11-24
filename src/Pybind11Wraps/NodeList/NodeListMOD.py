@@ -12,33 +12,33 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-includes += ['"NodeList/NodeListRegistrar.hh"',
-             '"NodeList/NodeList.hh"',
-             '"NodeList/FluidNodeList.hh"',
-             '"NodeList/SolidNodeList.hh"',
-             '"NodeList/SmoothingScaleBase.hh"',
-             '"NodeList/FixedSmoothingScale.hh"',
-             '"NodeList/SPHSmoothingScale.hh"',
-             '"NodeList/ASPHSmoothingScale.hh"',
-             '"NodeList/generateVoidNodes.hh"',
-             '"NodeList/nthNodalMoment.hh"',
-             '"Material/EquationOfState.hh"',
-             '"SolidMaterial/StrengthModel.hh"',
-             '"Kernel/TableKernel.hh"',
-             '"Neighbor/ConnectivityMap.hh"',
-             '"Mesh/Mesh.hh"',
-             '"FileIO/FileIO.hh"']
+PYB11includes += ['"NodeList/NodeListRegistrar.hh"',
+                  '"NodeList/NodeList.hh"',
+                  '"NodeList/FluidNodeList.hh"',
+                  '"NodeList/SolidNodeList.hh"',
+                  '"NodeList/SmoothingScaleBase.hh"',
+                  '"NodeList/FixedSmoothingScale.hh"',
+                  '"NodeList/SPHSmoothingScale.hh"',
+                  '"NodeList/ASPHSmoothingScale.hh"',
+                  '"NodeList/generateVoidNodes.hh"',
+                  '"NodeList/nthNodalMoment.hh"',
+                  '"Material/EquationOfState.hh"',
+                  '"SolidMaterial/StrengthModel.hh"',
+                  '"Kernel/TableKernel.hh"',
+                  '"Neighbor/ConnectivityMap.hh"',
+                  '"Mesh/Mesh.hh"',
+                  '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
-namespaces = ["Spheral"]
+PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
 # preamble
 #-------------------------------------------------------------------------------
 for ndim in dims:
-    preamble += "typedef std::pair<NodeList<Dim<%(ndim)i>>*, std::string> pair_NodeList%(ndim)idptr_string;\n" % {"ndim": ndim}
+    PYB11preamble += "typedef std::pair<NodeList<Dim<%(ndim)i>>*, std::string> pair_NodeList%(ndim)idptr_string;\n" % {"ndim": ndim}
 
 #-------------------------------------------------------------------------------
 # Enums

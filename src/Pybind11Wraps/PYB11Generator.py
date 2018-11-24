@@ -70,26 +70,26 @@ using namespace pybind11::literals;
 """ % {"name" : name})
 
     # Includes
-    if hasattr(modobj, "includes"):
-        for inc in modobj.includes:
+    if hasattr(modobj, "PYB11includes"):
+        for inc in modobj.PYB11includes:
             ss('#include %s\n' % inc)
         ss("\n")
 
     # Use  namespaces
-    if hasattr(modobj, "namespaces"):
-        for ns in modobj.namespaces:
+    if hasattr(modobj, "PYB11namespaces"):
+        for ns in modobj.PYB11namespaces:
             ss("using namespace " + ns + ";\n")
         ss("\n")
 
     # Use objects from scopes
-    if hasattr(modobj, "scopenames"):
-        for scopename in modobj.scopenames:
+    if hasattr(modobj, "PYB11scopenames"):
+        for scopename in modobj.PYB11scopenames:
             ss("using " + scopename + "\n")
         ss("\n")
 
     # Preamble
-    if hasattr(modobj, "preamble"):
-        ss(modobj.preamble + "\n")
+    if hasattr(modobj, "PYB11preamble"):
+        ss(modobj.PYB11preamble + "\n")
         ss("\n")
 
     # Some pybind11 types need their own preamble.
