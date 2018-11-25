@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to PYB11Generator's documentation!
+PYB11Generator's documentation
 ==========================================
 
 PYB11Generator is a python based code generator that creates `pybind11 <https://github.com/pybind/pybind11>`_ code for binding C++ libraries as extensions in Python. PYB11Generator parses input that is very close to writing the desired interface in native python, turning this into the corresponding pybind11 C++ code.
