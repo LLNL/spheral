@@ -42,7 +42,7 @@ Now executing the command::
 
   python -c 'from PYB11Generator import *; import simple_example; PYB11generateModule(simple_example, "example")'
 
-creates a file ``example.cc`` with (ignoring the boilerplate preamble code with ``#include``'s)::
+creates a file ``example.cc``, which looks like (omitting the boilerplate preamble code with ``#include``'s)::
 
   int add(int i, int j) {
     return i + j;
@@ -63,3 +63,17 @@ creates a file ``example.cc`` with (ignoring the boilerplate preamble code with 
 This is identical to the pybind11 code shown for this case in the `pybind11 tutorial <https://pybind11.readthedocs.io/en/stable/basics.html>`_, modulo some comments.  This code can now be compiled to the final Python shared module as described in the pybind11 tutorial::
 
   $ c++ -O3 -Wall -shared -std=c++11 -fPIC `python -m pybind11 --includes` example.cc -o example.so
+
+A few things worth noting in this example:
+
+* Note we make use of the fact that if the function being wrapped is unambiguous, allowing us to use a compact function pointer without the full explicit function prescription.  This is reflected in the PYB11Generator syntax when we write the ``def add()`` function in python without arguments or a return type.
+* In order to directly insert the C++ function definition into the resulting C++ file we have used the special variable ``PYB11preamble`` variable.  A more typical use case will require ``#include``ing the necessary C++ header files in the generated code, which is accomplished through another special variable, ``PYB11includes``, described later.
+* This example also demonstrates how doc strings (both for the module and function) are picked up from the ordinary python syntax in ``simple_example.py`` and propagated to the pybind11 bindings.
+
+This example demonstrates the steps necessary to create a usable python module using PYB11Generator:
+
+* Create a python file describing the desired interface using ordinary python syntax, based on the C++ methods and classes to be bound.
+* Run a python line like above to generate the ``pybind11`` C++ code from this python input.
+* Compile the resulting ``pybind11`` C++ code to create the python shared module.
+
+In the following sections we describe the nuances of creating the PYB11 python input files in much more detail; we will not show the compilation examples beyond this point since it is no different than using ``pybind11`` directly, and the above example pretty much covers it.
