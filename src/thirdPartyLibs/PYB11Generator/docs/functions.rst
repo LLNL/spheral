@@ -100,3 +100,16 @@ The full list of allowed arguments to ``PYB11TemplateFunction`` is::
 
 ``docext``
   Optional -- a string to tack onto the documentation string specified in ``func_template``, if any.
+
+.. _functions-implementation:
+
+Explicitly defining the binding implementation for a function
+-------------------------------------------------------------
+
+In some instances it is useful to take direct control of or modify how a given function is exposed to Python.  PYB11Generator allows the user to directly specify what is passed in-place of the function pointer in such cases via the ``@PYB11implementation`` decorator.  There are far too many possible use cases for this direct control to possibly discuss, but as an example suppose we had a function like the following that uses an exotic container type as an argument::
+
+  void ExoticContainer permutate(const ExoticContainer& c);
+
+If ``pybind11`` knows nothing about the ``ExoticContainer`` class, and we would rather expose this to Python using ordinary Python lists, we could use the following pattern::
+
+  
