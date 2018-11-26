@@ -1,3 +1,5 @@
+.. _intro:
+
 Introduction to PYB11Generator
 ==============================
 
@@ -14,7 +16,8 @@ We can define the PYB11Generator prescription for binding this method by writing
 
 Wherever possible we try to use ordinary python syntax to correspond to pybind11/C++ constructs: python functions correspond to and generate binding code for C++ functions as above; a python class generates binding code for pybind11 to bind a C++ class; arguments for functions and methods in python generate corresponding argument specifications in C++ function pointer syntax.  Because Python is not a strongly typed language, we specify C++ types using strings (if needed) as above, where we specify the return ``int`` type by returning the string ``"int"`` from ``func``.  We also use Python decorators to annotate Python methods with uniquely C++ concepts such as ``const``, ``virtual``, etc., as will be discussed in succeeding sections.
 
--------------------------------
+.. _first-example:
+
 A first example start to finish
 -------------------------------
 
