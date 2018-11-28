@@ -29,13 +29,13 @@ PYB11Generator decorators
   Specifies that object should be treated as a C++ singleton.
 
 ``@PYB11holder(holder_type)``
-  Specify a special C++ holder for the generated type in ``pybind``, rather than the usual default ``std::unique_ptr``.  See ``pybind11`` documentation...
+  Specify a special C++ holder for the generated type in ``pybind``, rather than the usual default ``std::unique_ptr``.  See pybind11 documentation...
 
   .. todo::
     find the pybind11 link for this
 
 ``@PYB11dynamic_attr``
-  Make the wrapped class modifiable (as in allow attributes to be added) from python.   See ``pybind11`` documentation...
+  Make the wrapped class modifiable (as in allow attributes to be added) from python.   See pybind11 documentation...
 
   .. todo::
     find the pybind11 link for this
@@ -71,7 +71,7 @@ PYB11Generator decorators
   Give an implementation for the bound function or method.  This is typically used to specify lambda function implementations.
 
 ``@PYB11returnpolicy("val")``
-  Specify a ``pybind11`` return policy for the return value of a function or method.  See ``pybind11`` documentation...
+  Specify a pybind11 return policy for the return value of a function or method.  See pybind11 documentation...
 
   .. todo::
     find the pybind11 link for this

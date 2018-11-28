@@ -13,7 +13,7 @@ Note, since PYB11Generator blindly generates C++ pybind11 code, it is essential 
 An important caveat about Python versions
 -----------------------------------------
 
-As currently implemented, PYB11Generator assumes Python 2, and will not work with Python 3 input syntax!  This is due to the fact PYB11Generator grew from an internal utility in the `Spheral <https://github.com/jmikeowen/spheral>`_ astrophysics modeling project, which uses Python 2.* syntax for backwards compatability with Spheral work that predates the existence of Python 3.  The generated ``pybind11`` code itself is not restricted to Python 2 however, so the generated modules should be compatible with Python 2 or 3 -- only the input files to PYB11Generator need to be in Python 2 syntax.
+As currently implemented, PYB11Generator assumes Python 2, and will not work with Python 3 input syntax!  This is due to the fact PYB11Generator grew from an internal utility in the `Spheral <https://github.com/jmikeowen/spheral>`_ astrophysics modeling project, which uses Python 2.* syntax for backwards compatability with Spheral work that predates the existence of Python 3.  The generated pybind11 code itself is not restricted to Python 2 however, so the generated modules should be compatible with Python 2 or 3 -- only the input files to PYB11Generator need to be in Python 2 syntax.
 
 .. toctree::
    :maxdepth: 2
@@ -23,6 +23,7 @@ As currently implemented, PYB11Generator assumes Python 2, and will not work wit
    functions
    classes
    decorators
+   PYB11functions
 
 Indices and tables
 ==================
