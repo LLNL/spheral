@@ -32,7 +32,7 @@ resulting in the creation of a C++ source file ``mymodule.cc``.  A full descript
 A first example start to finish
 -------------------------------
 
-To explicitly demonstrate the stages of creating bindings using PYB11Generator, here we recreate an early example in the pybind11 documentation: `Creating bindings for a simple function <https://pybind11.readthedocs.io/en/stable/basics.html>`_.  Say we want to wrap the following C++ method::
+To explicitly demonstrate the stages of creating bindings using PYB11Generator, here we recreate an early example in the pybind11 documentation: :ref:`pybind11:simple_example`.  Say we want to wrap the following C++ method::
 
   int add(int i, int j) {
     return i + j;
@@ -74,17 +74,15 @@ creates a file ``example.cc``, which looks like (omitting the boilerplate preamb
     m.def("add", &add, "A function which adds two numbers");
   }
 
-This is identical to the pybind11 code shown for this case in the `pybind11 tutorial <https://pybind11.readthedocs.io/en/stable/basics.html>`_, modulo some comments.  This code can now be compiled to the final Python shared module as described in the pybind11 tutorial::
+This is identical to the native pybind11 binding code from the pybind11 tutorial :ref:`pybind11:simple_example`, modulo some comments.  This code can now be compiled to the final Python shared module as described this same pybind11 tutorial::
 
   $ c++ -O3 -Wall -shared -std=c++11 -fPIC `python -m pybind11 --includes` example.cc -o example.so
 
-A few things worth noting in this example:
+A few things worth noting:
 
-* This example uses the fact that if the function being wrapped is unambiguous, the C++ function pointer does not need the full explicit function prescription.  This is reflected in the PYB11Generator syntax when we write the ``def add()`` function in python without arguments or a return type.
+* This example uses the fact that if the function being wrapped is unambiguous, we can use a bare C++ function pointer (without the full explicit function prescription).  This is reflected in the PYB11Generator syntax when we write the ``def add()`` function in python without arguments or a return type.
 * In order to directly insert the C++ function definition into the resulting C++ file, we have used the special variable ``PYB11preamble`` variable.  A more typical use case will require ``#include`` ing the necessary C++ header files in the generated code, which is accomplished through another special variable, ``PYB11includes``, described later.
-
-  * In general special variables and commands to PYB11Generator use the prefix ``PYB11`` such as ``PYB11preamble`` in this example.
-
+* In general special variables and commands to PYB11Generator use the prefix ``PYB11`` such as ``PYB11preamble`` in this example.
 * Note also that ordinary Python doc strings (both for the module and function) are picked up from ``simple_example.py`` and propagated to the pybind11 bindings.
 
 This example demonstrates the steps necessary to create a usable python module using PYB11Generator:

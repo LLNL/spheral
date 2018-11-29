@@ -3,7 +3,9 @@
 Binding classes
 ===============
 
-Binding classes in PYB11Generator is based on writing the desired interface as a Python class, similar to the process for :ref:`functions`.  As a first example consider the example struct used as the first such example in the `pybind11 documentation <https://pybind11.readthedocs.io/en/stable/classes.html>`_::
+Binding classes in PYB11Generator is based on writing the desired interface as a Python class, similar to the process for :ref:`functions`.  As a first example consider the example struct used as the first such example in the pybind11 class documentation :ref:`pybind11:classes`:
+
+.. code-block:: cpp
 
   struct Pet {
     Pet(const std::string &name) : name(name) { }
@@ -13,7 +15,9 @@ Binding classes in PYB11Generator is based on writing the desired interface as a
     std::string name;
   };
 
-This struct can be wrapped in straighforward fashion in PYB11Generator as::
+This struct can be wrapped in straighforward fashion in PYB11Generator as:
+
+.. code-block:: python
 
   class Pet:
 
@@ -28,7 +32,9 @@ This struct can be wrapped in straighforward fashion in PYB11Generator as::
       def getName(self):
           return "const std::string"
 
-Processing this Python class definition through PYB11Generator results in the following (omitting generic preamble code)::
+Processing this Python class definition through PYB11Generator results in the following (omitting generic preamble code):
+
+.. code-block:: cpp
 
   // Class Pet
   {
@@ -42,7 +48,7 @@ Processing this Python class definition through PYB11Generator results in the fo
     obj.def("getName", (const std::string (Pet::*)()) &Pet::getName);
   }
 
-which is very similar to the native pybind11 `pybind11 code <https://pybind11.readthedocs.io/en/stable/classes.html>`_.  This example demonstrates a few important aspects of generating class bindings with PYB11Generator:
+which is very similar to the native pybind11 code presented in :ref:`pybind11:classes`.  This example demonstrates a few important aspects of generating class bindings with PYB11Generator:
 
 * A python class results in the generation of a pybind11 ``class_<>`` declaration.
 
