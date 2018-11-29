@@ -3,10 +3,14 @@
 PYB11Generator decorators
 =========================
 
-``@PYB11ignore``
+.. #############################################################################
+.. decorator:: PYB11ignore
+
   Specifies that the decorated object should be ignored by PYB11Generator, i.e., not processed to produce any pybind11 binding output.
 
-``@PYB11template("type1", "type2", ...)``
+.. #############################################################################
+.. decorator:: PYB11template("type1", "type2", ...)
+
   Indicates the object should be treated as a C++ template.  Accepts any number of strings which represent the names of the template arguments.
 
   The succeeding python class or function can use the specified template argument strings as patterns for substitation with python dictionary string replacement.  So if we are binding a C++ templated function::
@@ -20,67 +24,101 @@ PYB11Generator decorators
     def manipulate(val = "const %(T)s"):
         return "%(T)s"
 
-``@PYB11template_dict``
+.. #############################################################################
+.. decorator:: PYB11template_dict
+
   Explicitly specifies the dictionary of template args to values for use with ``@PYB11template`` types.
 
   *NOTE: this is a highly unusual pattern to need/use.  It is preferable to use the ordinary PYB11 template instantion methods* ``PYB11TemplateClass``, ``PYB11TemplateMethod``, *or* ``PYB11TemplateFunction``.
 
-``@PYB11singleton``
+.. #############################################################################
+.. decorator:: PYB11singleton
+
   Specifies that object should be treated as a C++ singleton.
 
-``@PYB11holder(holder_type)``
+.. #############################################################################
+.. decorator:: PYB11holder(holder_type)
+
   Specify a special C++ holder for the generated type in ``pybind``, rather than the usual default ``std::unique_ptr``.  See pybind11 documentation...
 
   .. todo::
     find the pybind11 link for this
 
-``@PYB11dynamic_attr``
+.. #############################################################################
+.. decorator:: PYB11dynamic_attr
+
   Make the wrapped class modifiable (as in allow attributes to be added) from python.   See pybind11 documentation...
 
   .. todo::
     find the pybind11 link for this
 
-``@PYB11namespace("val")``
+.. #############################################################################
+.. decorator:: PYB11namespace("val")
+
   Set the namespace the C++ type should be found in.
 
-``@PYB11cppname("val")``
+.. #############################################################################
+.. decorator:: PYB11cppname("val")
+
   Give a value for the C++ name of the decorated function, class, or method.  Overrides the default assumption that the C++ name is the same as that given for the object in the PYB11 python binding file.
 
-``@PYB11pyname("val")``
+.. #############################################################################
+.. decorator PYB11pyname("val")
+
   Give a value for the generated Python name of the decorated function, class, or method.  Overrides the default assumption that the Python name is the same as that given for the object in the PYB11 python binding file.
 
-``@PYB11pycppname("val")``
+.. #############################################################################
+.. decorator:: PYB11pycppname("val")
+
   Simultaneously set the Python and C++ name of the decorated function, class, or method.  Shorthand for specifying both ``@PYB11pyname`` and ``@PYB11cppname`` to the given ``"val"``.
 
-``@PYB11virtual``
+.. #############################################################################
+.. decorator:: PYB11virtual
+
   Mark a class method as virtual.
 
-``@PYB11pure_virtual``
+.. #############################################################################
+.. decorator:: PYB11pure_virtual
+
   Mark a class method as pure virtual, making the class abstract.
 
-``@PYB11protected``
+.. #############################################################################
+.. decorator:: PYB11protected
+
   Mark a class method as protected.
 
-``@PYB11const``
+.. #############################################################################
+.. decorator:: PYB11const
+
   Mark a class method as const.
 
-``@PYB11static``
+.. #############################################################################
+.. decorator:: PYB11static
+
   Mark a class method as static.
 
-``@PYB11implementation("val")``
+.. #############################################################################
+.. decorator:: PYB11implementation("val")
+
   Give an implementation for the bound function or method.  This is typically used to specify lambda function implementations.
 
-``@PYB11returnpolicy("val")``
+.. #############################################################################
+.. decorator:: PYB11returnpolicy("val")
+
   Specify a pybind11 return policy for the return value of a function or method.  See pybind11 documentation...
 
   .. todo::
     find the pybind11 link for this
 
-``@PYB11keepalive(a, b)``
+.. #############################################################################
+.. decorator:: PYB11keepalive(a, b)
+
   Tie the lifetime of objects in the return value/argument spec together.  See the ``pybind`` documentation...
 
 .. todo::
     find the pybind11 link for this
 
-``@PYB11module("val")``
+.. #############################################################################
+.. decorator:: PYB11module("val")
+
   Indicate the object should be imported from the specified python module.  This is useful for classes wrapped in one module which are needed in another.
