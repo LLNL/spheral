@@ -47,6 +47,8 @@ TPLIBS=
 BOOSTTARGET=
 SILOTARGET=
 
+PIPTARGETS+=" sphinx sphinx_rtd_theme"
+
 AC_MSG_CHECKING(for spheral build directory)
 #SPHERALBUILDDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`
 SPHERALBUILDDIR=`echo $PWD`
