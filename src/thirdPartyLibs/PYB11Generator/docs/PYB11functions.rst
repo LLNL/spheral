@@ -67,7 +67,7 @@ This section describes the special functions and classes defined in PYB11Generat
 .. #############################################################################
 .. py:function:: PYB11_bind_vector(element[, opaque=False, local=None])
 
-   Bind an STL::vector explicitly.  This is essentially a thin wrapper around the pybind11 ``py::bind_vector`` function (see :ref:`pybind11::stl_bind`).
+   Bind an STL::vector explicitly.  This is essentially a thin wrapper around the pybind11 ``py::bind_vector`` function (see :ref:`pybind11:stl_bind`).
 
    * ``element``: the C++ element type of the ``std::vector``
 
@@ -75,3 +75,28 @@ This section describes the special functions and classes defined in PYB11Generat
 
    * ``local``: determines whether the binding of the STL vector should be module local or not; once again, see :ref:`pybind11:stl_bind`.
 
+.. #############################################################################
+.. py:function:: PYB11_bind_map(key, value[, opaque=False, local=None])
+
+   Bind an STL::map explicitly.  This is a thin wrapper around the pybind11 ``py::bind_map`` function (see :ref:`pybind11:stl_bind`).
+
+   * ``key``: the C++ key type
+
+   * ``value``: the C++ value type
+
+   * ``opaque``: if ``True``, causes the bound STL map to be "opaque", so elements can be changed in place rather than accessed as copies.  See :ref:`pybind11:stl_bind`.
+
+   * ``local``: determines whether the binding of the STL map should be module local or not; once again, see :ref:`pybind11:stl_bind`.
+
+.. #############################################################################
+.. py:function:: PYB11_inject(fromcls, tocls[, virtual=None, pure_virtual=None])
+
+   Convenience method to inject methods from class ``fromcls`` into ``tocls``.  This is intended as a utility to help avoiding writing redundant methods common to many classes over and over again.  Instead a convenience class can be defined containing the shared methods (typically screened from generation by ``@PYB11ignore``), and then ``PYB11_inject`` is used to copy those methods into the target classes.
+
+   * ``fromcls``: Python class with methods we want to copy from.
+
+   * ``tocls``: Python class we're copying methods to.
+
+   * ``virtual``: if ``True``, force all methods we're copying to be treated as virtual.
+
+   * ``pure_virtual``: if ``True``, force all methods we're copying to be treated as pure virtual.
