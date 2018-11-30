@@ -379,7 +379,7 @@ cache/$(PYTHONDIST):
 	@$(MKDIR) cache
 	$(CURL) "$(PYTHONURL)" -o cache/$(PYTHONDIST)
 
-$(PYTHONBUILDDATE):	$(PYTHON) cache/$(PYTHONDIST) $(ZLIBBUILDDATE)
+$(PYTHONBUILDDATE):	$(PYTHON) cache/$(PYTHONDIST)
 	@echo "################################################################################"
 	@echo "# Building $(PYTHONDIST)"
 	@echo "################################################################################"
@@ -400,7 +400,6 @@ $(PYTHONBUILDDATE):	$(PYTHON) cache/$(PYTHONDIST) $(ZLIBBUILDDATE)
 	rm -f $(PYTHONBUILDDATE); \
 	exit 1; \
 	fi
-	#$(SPHERALTOP)/helpers/runexecstack $(PYTHONEXE)
 	rm -fr $(PYTHONDIR)
 	touch $(PYTHONBUILDDATE)
 
