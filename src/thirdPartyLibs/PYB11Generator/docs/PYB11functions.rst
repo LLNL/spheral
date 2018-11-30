@@ -50,7 +50,7 @@ This section describes the special functions and classes defined in PYB11Generat
   * ``doc``: Optionally give a docstring.
 
 .. #############################################################################
-.. py::function:: PYB11TemplateClass(klass_template, template_parameters[, cppname = None, pyname = None, docext = ""])
+.. py:function:: PYB11TemplateClass(klass_template, template_parameters[, cppname = None, pyname = None, docext = ""])
 
   Instantiate a class template (``klass_template``) that was decorated by ``@PYB11template``.
 
@@ -63,4 +63,15 @@ This section describes the special functions and classes defined in PYB11Generat
   * ``pyname``: The name of the resulting Python class; defaults to the name of the instance created for this invocation of ``PYB11TemplateClass``.
 
   * ``docext``: An optional string extension to be applied to the docstring associated with ``klass_template``.
+
+.. #############################################################################
+.. py:function:: PYB11_bind_vector(element[, opaque=False, local=None])
+
+   Bind an STL::vector explicitly.  This is essentially a thin wrapper around the pybind11 ``py::bind_vector`` function (see :ref:`pybind11::stl_bind`).
+
+   * ``element``: the C++ element type of the ``std::vector``
+
+   * ``opaque``: if ``True``, causes the bound STL vector to be "opaque", so elements can be changed in place rather than accessed as copies.  See :ref:`pybind11:stl_bind`.
+
+   * ``local``: determines whether the binding of the STL vector should be module local or not; once again, see :ref:`pybind11:stl_bind`.
 
