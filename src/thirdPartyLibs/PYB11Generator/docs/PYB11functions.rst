@@ -64,5 +64,3 @@ This section describes the special functions and classes defined in PYB11Generat
 
   * ``docext``: An optional string extension to be applied to the docstring associated with ``klass_template``.
 
-.. #############################################################################
-.. py::function:: Blago
