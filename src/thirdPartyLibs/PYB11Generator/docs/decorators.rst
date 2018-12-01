@@ -34,23 +34,17 @@ PYB11Generator decorators
 .. #############################################################################
 .. decorator:: PYB11singleton
 
-  Specifies that object should be treated as a C++ singleton.
+  Specifies that the decorated object should be treated as a C++ singleton.
 
 .. #############################################################################
 .. decorator:: PYB11holder(holder_type)
 
-  Specify a special C++ holder for the generated type in ``pybind``, rather than the usual default ``std::unique_ptr``.  See pybind11 documentation...
-
-  .. todo::
-    find the pybind11 link for this
+  Specify a special C++ holder for the generated type in ``pybind``, rather than the usual default ``std::unique_ptr``.  See pybind11 documentation on using `shared_ptr as a holder type <https://pybind11.readthedocs.io/en/stable/advanced/smart_ptrs.html#std-shared-ptr>`_.
 
 .. #############################################################################
 .. decorator:: PYB11dynamic_attr
 
-  Make the wrapped class modifiable (as in allow attributes to be added) from python.   See pybind11 documentation...
-
-  .. todo::
-    find the pybind11 link for this
+  Make the wrapped class modifiable, i.e., allow attributes to be added dynamically to an instance of the class in python.  See pybind11 documentation about `dynamic attributes <https://pybind11.readthedocs.io/en/stable/classes.html?highlight=dynamic_attr#dynamic-attributes>`_.
 
 .. #############################################################################
 .. decorator:: PYB11namespace("val")
@@ -100,25 +94,20 @@ PYB11Generator decorators
 .. #############################################################################
 .. decorator:: PYB11implementation("val")
 
-  Give an implementation for the bound function or method.  This is typically used to specify lambda function implementations.
+  Give an implementation for the bound function or method.  This is typically used to specify lambda function implementations, or explicitly call a helper method.
 
 .. #############################################################################
+.. _returnpolicy:
 .. decorator:: PYB11returnpolicy("val")
 
-  Specify a pybind11 return policy for the return value of a function or method.  See pybind11 documentation...
-
-  .. todo::
-    find the pybind11 link for this
+  Specify a pybind11 return policy for the return value of a function or method.  This is a tricky topic that if misused can create memory errors, but is at times absolutely necessary to get the expected behavior from the underlying C++ code and types.  Before using this method carefully read the pybind11 discussion about :ref:`pybind11:return_value_policies`.
 
 .. #############################################################################
 .. decorator:: PYB11keepalive(a, b)
 
-  Tie the lifetime of objects in the return value/argument spec together.  See the ``pybind`` documentation...
-
-.. todo::
-    find the pybind11 link for this
+  Tie the lifetime of objects in the return value/argument spec together, where the arguments (``a``, ``b``) are integers indicating the order of the arguments to tie together (0 refers to the return value).  This is another way of specifying memory policies, similar to returnpolicy_.  Carefully read the pybind11 discussion of the ``keep_alive`` directive in :ref:`pybind11:call_policies`.
 
 .. #############################################################################
 .. decorator:: PYB11module("val")
 
-  Indicate the object should be imported from the specified python module.  This is useful for classes wrapped in one module which are needed in another.
+  Indicate the object should be imported from the specified python module.  This is useful for classes wrapped in one module which are needed in another, such as for inheritance.
