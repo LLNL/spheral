@@ -1,5 +1,6 @@
 .. _classes:
 
+===============
 Binding classes
 ===============
 
@@ -62,6 +63,7 @@ which is very similar to the native pybind11 code presented in :ref:`pybind11:cl
 
 .. _class-constructors:
 
+------------------
 Class constructors
 ------------------
 
@@ -90,14 +92,20 @@ We can bind these three different constructors using the following Python specif
 
 .. _class-methods:
 
+-------------
 Class methods
 -------------
 
-Class methods are wrapped much like free functions using PYB11Generator: we simply define a python class method with the desired name.
+Class methods are wrapped much like free functions using PYB11Generator: we simply define a python class method with the desired name.  If the method is unambiguous (not overloaded), we do not necessarily have to specify the return types and arguments (though full specifications are always allowed, and at times preferable to generate more explicit help in Python).  The syntax for specifying C++ return types and arguments for methods is identical to that used for for :ref:`functions`, as is evident in the examples below.
 
-* If the method is unambiguous (not overloaded), we do not necessarily have to specify the return types and arguments (though full specifications are always allowed, and at times preferable to generate more explicit help in Python).
+.. _overloaded-class-methods:
 
-* Just as with :ref:`function-overloads`, Overloaded methods require full call specifications, as well as unique names in python.  We use the PYB11 decorators ``@PYB11pyname``, ``@PYB11cppname``, or ``@PYB11pycppname`` to link the proper C++/Python names as needed.  As an example, in order to bind the methods in the following C++ class::
+Overloaded class methods
+------------------------
+
+Just as with :ref:`function-overloads`, overloaded methods require full call specifications, as well as unique names in python.  We use the PYB11 decorators ``@PYB11pyname``, ``@PYB11cppname``, or ``@PYB11pycppname`` to link the proper C++/Python names as needed.  As an example, consider the following C++ class:
+
+.. code-block:: cpp
 
     class A {
     public:
@@ -123,4 +131,124 @@ In this case we have one unambiguous method (``process``), and two overloaded me
           "Return a string label including a specified suffix"
           return "std::string"
 
-In this example we have chosen to bind the ``A::process`` method using the shorthand with no method specification (i.e., no return type or arguments) for brevity.  The overloaded ``A::label`` methods however require the complete method prescriptions be specified in order for the compiler to know which C++ ``A::label`` we are referring to.  Because Python does not allow class methods with the same name however, we must use unique method names in our Python class binding (hence ``A.label`` and ``A.label1``).  We use the PYB11 decorator ``@PYB11pycppname`` on ``A.label1`` to indicate we want the bound Python and C++ names to be ``label``.   This is identical to how this overloading problem is handled for :ref:`function-overloads`.
+We have chosen to bind the unambiguous ``A::process`` method using no method signature (i.e., no return type or arguments) for brevity.  The overloaded ``A::label`` methods however require the complete method prescriptions be specified in order for the compiler to know which C++ ``A::label`` we are referring to.  Because Python does not allow class methods with the same name however, we must use unique method names in our Python class binding (hence ``A.label`` and ``A.label1``).  We use the PYB11 decorator ``@PYB11pycppname`` on ``A.label1`` to indicate we want the bound Python and C++ names to be ``label``.   This is identical to how this overloading problem is handled for :ref:`function-overloads`.
+
+.. Note::
+
+   In this example we have made the typical choice to overload the ``label`` method in Python just as in C++.  We could, however, decide to leave the Python ``label`` and ``label1`` methods with unique names, removing the unpythonic overloading concept from the python interface.  If we want to leave the Python name of the second binding of ``A::label`` as ``A.label1``, we still need to tell PYB11Generator that the C++ name is ``A::label`` rather than ``A::label1``.  In this case we would simply change the decorator to specify the C++ name alone::
+
+      @PYB11cppname("label")
+      def label1(self, suffix="const std::string"):
+          "Return a string label including a specified suffix"
+          return "std::string"
+
+.. _const-methods:
+
+Const class methods
+-------------------
+
+Const'ness is a concept in C++ not shared by Python, so we use a decorator (``@PYB11const``) to denote a const method when needed.  For instance, the following C++ class definition:
+
+.. code-block:: cpp
+
+  class A {
+  public:
+    int square(const int x) const { return x*x; }  // Return the square of the argument
+  };
+
+can be specfied in PYB11 using::
+
+  class A:
+
+      @PYB11const
+      def square(self, x="const int"):
+          "Return the square of the argument"
+          return "int"
+
+.. _protected-methods:
+
+Protected class methods
+-----------------------
+
+It is possible to bind protected class methods in pybind11 as described in `the pybind11 documentation <https://pybind11.readthedocs.io/en/stable/advanced/classes.html#binding-protected-member-functions>`_.  In the pybind11 code this requires writing an intermediate C++ class to publish the protected methods.  PYB11Generator automates the production of such publisher classes as needed, however, so all that is required to expose a protected class method is to decorate the PYB11 binding with ``@PYB11protected``.  In order to expose the protected method of the following example:
+
+.. code-block:: cpp
+
+  class A {
+  protected:
+    void some_protected_method(const int x);     // A protected method to apply x->A somehow
+  }
+
+we simply provide a decorated PYB11 binding as::
+
+  class A:
+
+      @PYB11protected
+      def some_protected_method(self, x="int"):
+          "A protected method to apply x->A somehow"
+          return "void"
+
+.. _static-methods:
+
+Static class methods
+--------------------
+
+Static C++ methods are denoted to PYB11Generator using the ``@PYB11static`` decorator as in the following example.
+
+C++ class with a static method:
+
+.. code-block:: cpp
+
+  class A {
+  public:
+    static int func(int x);    // This method does something with x
+  };
+
+PYB11 binding code::
+
+  class A:
+
+      @PYB11static
+      def func(x = "int"):
+          "This method does something with x"
+          return "int"
+
+.. _class-inheritance:
+
+-----------------
+Class inheritance
+-----------------
+
+Class inheritance hierarchies in C++ are simple to reflect in PYB11Generator, as this is an OO concept shared by both C++ and Python: all that is required is to reflect the inheritance hierarchy in the Python PYB11 code.  In order to expose the following C++ classes:
+
+.. code-block:: cpp
+
+  class A {
+    A();                    // Default constructor
+    int func(int x);        // Some useful function of A
+  };
+
+  class B: public A {
+    B();                    // Default constructor
+    double dfunc(double x); // Some useful function of B
+  };
+
+we can simply reflect this object hiearchy in the PYB11Generator code::
+
+  class A:
+
+      def pyinit(self):
+          "Default constructor"
+
+      def func(self, x="int"):
+          "Some useful function of A"
+          return "int"
+
+  class B(A):
+
+      def pyinit(self):
+          "Default constructor"
+
+      def dfunc(self, x="double"):
+          "Some useful function of B"
+          return "double"
