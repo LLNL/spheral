@@ -5,7 +5,7 @@ Binding functions
 
 We have already introduced a quick example of binding a function in :ref:`first-example`; this section will go into more detail on how to generate pybind11 bindings for functions, including complications such as overloaded methods and C++ templates.
 
-.. _functions-overload:
+.. _function-overloads:
 
 Ordinary and overloaded functions
 ---------------------------------

@@ -59,3 +59,46 @@ which is very similar to the native pybind11 code presented in :ref:`pybind11:cl
   * If a default value for an argument is desirable, simply set the argument equal to a tuple of two strings: ``arg = ("C++ type", "C++ default value")``, identically to the treatment of functions in :ref:`functions-default-args`.
 
 * Constructors are specified by any class method starting with the string ``pyinit``.
+
+.. _class-constructors:
+
+Class constructors
+------------------
+
+In general PYB11Generator interprets methods of classes as ordinary methods to exposed via pybind11 -- the one exception to this rule is class constructors.  Any method that begins with the name ``pyinit`` is interpreted as a class constructor, allowing the specification of an arbitrary number of constructors.  For instance, if we have a C++ class with the following constructors:
+
+.. code-block:: cpp
+
+  class A {
+  public:
+
+    A();                                             // Default constructor
+    A(const std::string name);                       // Build with a name, default priority
+    A(const std::string name, const int priority);   // Build with a name and priority
+  };
+
+We can bind these three different constructors using the following Python specification:
+
+.. code-block:: py
+
+  class A:
+
+      def pyinit(self):
+          "Default constructor"
+
+      def pyinit1(self, name="const std::string"):
+          "Build with a name, default priority"
+
+      def pyinit2(self, name="const std::string", priority="const int"):
+          "Build with a name and priority"
+
+.. _class-methods:
+
+Class methods
+-------------
+
+Class methods are wrapped much like free functions using PYB11Generator: we simply define a python class method with the desired name.
+
+* If the method is unambiguous (not overloaded), we do not necessarily have to specify the return types and arguments (though full specifications are always allowed, and at times preferable to generate more explicit help in Python).
+
+* Just as with :ref:`function-overloads`, Overloaded methods require full call specifications, as well as unique names in python.  We use the PYB11 decorators ``@PYB11pyname``, ``@PYB11cppname``, or ``@PYB11pycppname`` to link the proper C++/Python names as needed.

@@ -12,7 +12,7 @@ This section describes the special functions and classes defined in PYB11Generat
 
   * ``pymodule``: the module to be introspected for the interface
 
-  * ``"basename"``: a basename for the generated C++ file.  If specified, the output is written to ``basename.cc``, otherwise output will be written to ``mymodule.cc``
+  * ``"basename"``: a basename for the generated C++ file.  If specified, the output is written to ``basename.cc``, otherwise output will be written to ``pymodule.cc``
 
 .. #############################################################################
 .. py:function:: PYB11attr([value=None, pyname=None])
