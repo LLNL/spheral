@@ -9,12 +9,13 @@
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
 
-namespace Spheral {
-
+using std::vector;
 using std::min;
 using std::max;
 using std::abs;
 using std::vector;
+
+namespace Spheral {
 
 template<typename Dimension>
 void

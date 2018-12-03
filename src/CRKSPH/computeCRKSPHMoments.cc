@@ -15,12 +15,13 @@
 #include "Geometry/innerDoubleProduct.hh"
 #include "Geometry/invertRankNTensor.hh"
 
-namespace Spheral {
-
+using std::vector;
 using std::min;
 using std::max;
 using std::abs;
 using std::vector;
+
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Compute the moments.

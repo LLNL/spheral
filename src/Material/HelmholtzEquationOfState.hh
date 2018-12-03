@@ -129,7 +129,6 @@ private:
 };
 
 }
-}
 
 #else
         
