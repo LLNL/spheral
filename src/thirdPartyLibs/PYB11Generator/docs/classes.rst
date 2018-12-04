@@ -63,9 +63,9 @@ which is very similar to the native pybind11 code presented in :ref:`pybind11:cl
 
 .. _class-constructors:
 
-------------------
-Class constructors
-------------------
+------------
+Constructors
+------------
 
 In general PYB11Generator interprets methods of classes as ordinary methods to exposed via pybind11 -- the one exception to this rule is class constructors.  Any method that begins with the name ``pyinit`` is interpreted as a class constructor, allowing the specification of an arbitrary number of constructors.  For instance, if we have a C++ class with the following constructors:
 
@@ -96,9 +96,9 @@ For constructors it does not matter what names are used past the ``pyinit`` stri
 
 .. _class-inheritance:
 
------------------
-Class inheritance
------------------
+-----------
+Inheritance
+-----------
 
 Class inheritance hierarchies in C++ are simple to reflect in PYB11Generator, as this is an OO concept shared by both C++ and Python: all that is required is to reflect the inheritance hierarchy in the Python PYB11 code.  In order to expose the following C++ classes:
 
@@ -136,16 +136,16 @@ we can simply reflect this object hiearchy in the PYB11Generator code::
 
 .. _class-methods:
 
--------------
-Class methods
--------------
+-------
+Methods
+-------
 
 Class methods are wrapped much like free functions using PYB11Generator: we simply define a python class method with the desired name.  If the method is unambiguous (not overloaded), we do not necessarily have to specify the return types and arguments (though full specifications are always allowed, and at times preferable to generate more explicit help in Python).  The syntax for specifying C++ return types and arguments for methods is identical to that used for for :ref:`functions`, as is evident in the examples below.
 
 .. _overloaded-class-methods:
 
-Overloaded class methods
-------------------------
+Overloaded methods
+------------------
 
 Just as with :ref:`function-overloads`, overloaded methods require full call specifications, as well as unique names in python.  We use the PYB11 decorators ``@PYB11pyname``, ``@PYB11cppname``, or ``@PYB11pycppname`` to link the proper C++/Python names as needed.  As an example, consider the following C++ class:
 
@@ -188,8 +188,8 @@ We have chosen to bind the unambiguous ``A::process`` method using no method sig
 
 .. _const-methods:
 
-Const class methods
--------------------
+Const methods
+-------------
 
 Const'ness is a concept in C++ not shared by Python, so we use a decorator (``@PYB11const``) to denote a const method when needed.  For instance, the following C++ class definition:
 
@@ -211,8 +211,8 @@ can be specfied in PYB11 using::
 
 .. _virtual-methods:
 
-Virtual class methods
----------------------
+Virtual methods
+---------------
 
 If we simply wish to expose C++ virtual methods as ordinary class methods in Python (i.e., not allowing overriding the implementation of such methods from Python), then nothing extra need be done in the method binding for PYB11.  However, in pybind11 it is also possible to expose C++ virtual methods such that they *can* be overridden from Python descendants, which is a very powerful capability.  Exposing such overridable virtual methods in pybind11 involves writing an intermediate "trampoline" class as described in the pybind11 documentation :ref:`pybind11:overriding_virtuals`.  PYB11Generator automates the generation of such intermediate redundant code (this was in fact the motivating factor in the creation of PYB11Generator), removing much of the bookkeeping necessary to maintain such coding in face of a changing interface.  In PYB11Generator all that is required for making a virtual method overridable from Python is decorating such virtual methods with ``@PYB11virtual``/``@PYB11pure_virtual`` as appropriate.  Consider binding the C++ example from the pybind11 documentation :ref:`pybind11:overriding_virtuals`:
 
@@ -262,8 +262,8 @@ Now both ``Animal`` and ``Dog`` are accessible from Python, and PYB11Generator a
 
 .. _protected-methods:
 
-Protected class methods
------------------------
+Protected methods
+-----------------
 
 It is possible to bind protected class methods in pybind11 as described in `the pybind11 documentation <https://pybind11.readthedocs.io/en/stable/advanced/classes.html#binding-protected-member-functions>`_.  In the pybind11 code this requires writing an intermediate C++ class to publish the protected methods.  PYB11Generator automates the production of such publisher classes as needed, however, so all that is required to expose a protected class method is to decorate the PYB11 binding with ``@PYB11protected``.  In order to expose the protected method of the following example:
 
@@ -285,8 +285,8 @@ we simply provide a decorated PYB11 binding as::
 
 .. _static-methods:
 
-Static class methods
---------------------
+Static methods
+--------------
 
 Static C++ methods are denoted to PYB11Generator using the ``@PYB11static`` decorator as in the following example.
 
@@ -310,9 +310,9 @@ PYB11 binding code::
 
 .. _class-attributes:
 
-----------------
-Class attributes
-----------------
+----------
+Attributes
+----------
 
 C++ structs and classes can have attributes, such as:
 
@@ -335,9 +335,9 @@ In this example we have used the optional arguments ``doc`` to add document stri
 
 .. _class-properties:
 
-----------------
-Class properties
-----------------
+----------
+Properties
+----------
 
 A related concept to attributes is class properties, where we use getter and setter methods for data of classes as though they were attributes.  Consider the following C++ class definition:
 
@@ -381,13 +381,23 @@ This method has the advantage we are using all ordinary python constructs, which
 
 .. Note::
 
-   In this example we have also exposed the ``getx`` and ``setx`` methods to be bound in pybind11.  If this is not desired, we can decorate these methods with :func:`PYB11ignore`, allowing these methods to be used in the :py:func:`property` definition while preventing them from being directly exposed themselves.
+   In this example we have also exposed the ``getx`` and ``setx`` methods to be bound in pybind11.  If this is not desired, we can decorate these methods with ``@PYB11ignore``, allowing these methods to be used in the :py:func:`property` definition while preventing them from being directly exposed themselves.
+
+.. _class-operators:
+
+-----------------------------------
+Special class operators and methods
+-----------------------------------
+
+Python has a number of special methods for classes, such as ``__len__``, ``__add__``, etc., which allow the object behavior to be controlled for operations such as +, +=, ``len()``, and so forth.  pybind11 supports `these operators <https://pybind11.readthedocs.io/en/stable/advanced/classes.html#operator-overloading>`_, so naturally PYB11Generator does as well.
+
+
 
 .. _class-templates:
 
----------------
-Class templates
----------------
+---------
+Templates
+---------
 
 PYB11 handles C++ class templates similarly to :ref:`function-templates`: we decorate a class definition with ``@PYB11template``, which takes an arbitrary number of string arguments representing the template parameters.  We then use the :func:`PYB11TemplateClass` function to create instantiations of the template class.  Consider a C++ template class definition:
 
