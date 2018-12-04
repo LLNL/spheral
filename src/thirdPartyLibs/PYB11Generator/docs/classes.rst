@@ -382,3 +382,39 @@ This method has the advantage we are using all ordinary python constructs, which
 .. Note::
 
    In this example we have also exposed the ``getx`` and ``setx`` methods to be bound in pybind11.  If this is not desired, we can decorate these methods with :func:`PYB11ignore`, allowing these methods to be used in the :py:func:`property` definition while preventing them from being directly exposed themselves.
+
+.. _class-templates:
+
+---------------
+Class templates
+---------------
+
+PYB11 handles C++ class templates similarly to :ref:`function-templates`: we decorate a class definition with :func:`PYB11template`, which takes an arbitrary number of string arguments representing the template parameters.  We then use the :func:`PYB11TemplateClass` function to create instantiations of the template class.  Consider a C++ template class definition:
+
+.. code-block:: cpp
+
+  template<typename Scalar>
+  class Vector {
+  public:
+    Scalar x, y, z;                        // Coordinate attributes
+
+    Vector(Scalar x, Scalar y, Scalar z);  // Constructor
+    Scalar magnitude() const;              // Compute the magnitude (norm)
+  };
+
+We can create PYB11Generator instantiations of this class for ``double`` and ``float`` types using::
+
+  @PYB11template("Scalar")
+  class Vector:
+      "A simple three-dimensional Vector type using %(Scalar)s coordinates"
+
+      def pyinit(self, x="%(Scalar)s", y="%(Scalar)s", z="%(Scalar)s"):
+          "Construct with specified coordinates"
+
+      @PYB11const
+      def magnitude(self):
+          "Compute the magnitude (norm)"
+          return "%(Scalar)s"
+
+  FloatVector = PYB11TemplateClass(Vector, template_parameters="float")
+  DoubleVector = PYB11TemplateClass(Vector, template_parameters="double")

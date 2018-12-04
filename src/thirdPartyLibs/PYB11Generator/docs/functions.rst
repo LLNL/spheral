@@ -61,13 +61,15 @@ and we want to use the default values ``1`` and ``"Trogdor"`` for these argument
                        name = ("std::string", "Trogdor")):
       return "void"
 
-.. _functions-template:
+.. _function-templates:
 
 ----------------------
 C++ template functions
 ----------------------
 
-C++ templates present another challenge, as this another concept not found in Python.  Suppose we wish to expose several instantiations of the following method::
+C++ templates present another challenge, as this another concept not found in Python.  Suppose we wish to expose several instantiations of the following method:
+
+.. code-block:: cpp
 
   template<typename ValueA, typename ValueB, typename ValueC>
   ValueC
