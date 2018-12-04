@@ -339,7 +339,7 @@ In this example we have used the optional arguments ``doc`` to add document stri
 Class properties
 ----------------
 
-A related concept to attributes is class properties, where we want to use getter and setter methods for data of classes as though they were attributes.  Consider the following C++ class definition:
+A related concept to attributes is class properties, where we use getter and setter methods for data of classes as though they were attributes.  Consider the following C++ class definition:
 
 .. code-block:: cpp
 
@@ -349,7 +349,7 @@ A related concept to attributes is class properties, where we want to use getter
     void setx(double val);   // Setter for a double named "x"
   };
 
-There are several ways we could go about binding ``A`` in python such that we can access ``A.x`` as though it were an attribute.
+There are at least two ways we can go about creating ``A.x`` as a property.
 
 Option 1: use ``PYB11property``
 -------------------------------
@@ -357,14 +357,15 @@ Option 1: use ``PYB11property``
 The most convenient method (or at least most succinct) to treat ``A.x`` as a property is via the ``PYB11property`` helper type.  In this example we could simply write::
 
   class A:
-      x = PYB11property(getter="getx", settter="setx", doc="Some helpful description of x for this class")
+      x = PYB11property(getter="getx", settter="setx",
+                        doc="Some helpful description of x for this class")
 
 This minimal example demonstrates that using ``PYB11property`` we can expose properties in a single line like this -- see full description of :func:`PYB11property`.
 
-Option 2: use ordinary python property definitions
---------------------------------------------------
+Option 2: use an ordinary python property definition
+----------------------------------------------------
 
-The above option is quite succinct, but we can also leverage Python's built in ``property`` method as follows::
+Python has native support for properties via the built-in :py:func:`property`; PYB11Generator is able to interpret use of this function to define pybind11 properties as well.  We can use this method to create ``A.x`` as follows::
 
   class A:
 
@@ -376,4 +377,8 @@ The above option is quite succinct, but we can also leverage Python's built in `
 
       x = property(getx, setx, doc="Some helpful description of x for this class")
 
-This method has the advantage we are using all ordinary python constructs, which PYB11Generator is able to parse and create the property as desired.  Note, in this example we have also exposed the ``getx`` and ``setx`` methods to be bound as well.  If this is not desired, we can decorate these methods with :func:`PYB11ignore`.
+This method has the advantage we are using all ordinary python constructs, which PYB11Generator is able to parse and create the property as desired.
+
+.. Note::
+
+   In this example we have also exposed the ``getx`` and ``setx`` methods to be bound in pybind11.  If this is not desired, we can decorate these methods with :func:`PYB11ignore`, allowing these methods to be used in the :py:func:`property` definition while preventing them from being directly exposed themselves.
