@@ -389,7 +389,7 @@ This method has the advantage we are using all ordinary python constructs, which
 Class templates
 ---------------
 
-PYB11 handles C++ class templates similarly to :ref:`function-templates`: we decorate a class definition with :func:`PYB11template`, which takes an arbitrary number of string arguments representing the template parameters.  We then use the :func:`PYB11TemplateClass` function to create instantiations of the template class.  Consider a C++ template class definition:
+PYB11 handles C++ class templates similarly to :ref:`function-templates`: we decorate a class definition with ``@PYB11template``, which takes an arbitrary number of string arguments representing the template parameters.  We then use the :func:`PYB11TemplateClass` function to create instantiations of the template class.  Consider a C++ template class definition:
 
 .. code-block:: cpp
 
@@ -408,6 +408,10 @@ We can create PYB11Generator instantiations of this class for ``double`` and ``f
   class Vector:
       "A simple three-dimensional Vector type using %(Scalar)s coordinates"
 
+      x = PYB11readwrite()
+      y = PYB11readwrite()
+      z = PYB11readwrite()
+
       def pyinit(self, x="%(Scalar)s", y="%(Scalar)s", z="%(Scalar)s"):
           "Construct with specified coordinates"
 
@@ -418,3 +422,5 @@ We can create PYB11Generator instantiations of this class for ``double`` and ``f
 
   FloatVector = PYB11TemplateClass(Vector, template_parameters="float")
   DoubleVector = PYB11TemplateClass(Vector, template_parameters="double")
+
+Just as is the case with template functions, classes decorated with ``@PYB11template`` are implicitly ignored by PYB11Generator until an instantiation is created with :func:`PYB11TemplateClass`.  Additionally, template parameters specified in ``@PYB11template`` become named patterns which can be substituted with the types used to instantiate the templates.  So, in the ``Vector`` example above, ``%(Scalar)s`` becomes ``float`` in the first instantiation and ``double`` in the second.  See :func:`PYB11template` and :func:`PYB11TemplateClass` for further details.
