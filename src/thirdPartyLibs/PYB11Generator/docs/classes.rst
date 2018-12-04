@@ -389,17 +389,261 @@ This method has the advantage we are using all ordinary python constructs, which
 Special class operators and methods
 -----------------------------------
 
-Python has a number of special methods for classes, such as ``__len__``, ``__add__``, etc., which allow the object behavior to be controlled for operations such as +, +=, ``len()``, and so forth.  pybind11 supports `these operators <https://pybind11.readthedocs.io/en/stable/advanced/classes.html#operator-overloading>`_, so naturally PYB11Generator does as well.
+Python has a number of `special methods for classes <https://docs.python.org/2/reference/datamodel.html#special-method-names>`_, such as ``__len__``, ``__add__``, etc., which allow the object behavior to be controlled for operations such as +, +=, ``len()``, and so forth.  pybind11 supports `these operators <https://pybind11.readthedocs.io/en/stable/advanced/classes.html#operator-overloading>`_, so naturally PYB11Generator does as well.  In keeping with PYB11Generators interface, these are specified by providing these special method names in your Python class description.
+
+Numeric operators
+-----------------
+
+The numeric operators supported by PYB11Generator are ``__add__``, ``__sub__``, ``__mul__``, ``__div__``, ``__mod__``, ``__and__``, ``__xor__``, ``__or__``, ``__radd__``, ``__rsub__``, ``__rmul__``, ``__rdiv__``, ``__rmod__``, ``__rand__``, ``__rxor__``, ``__ror__``, 
+``__iadd__``, ``__isub__``, ``__imul__``, ``__idiv__``, ``__imod__``, ``__iand__``, ``__ixor__``, ``__ior__``, ``__neg__``, and ``__invert__``.
+
+In the common case for binary operators where the argument is of the same type as the class we're binding, we can omit the the argument specification and return type.  However, in the case where the binary operator accepts a different C++ type, we need to specify this argument type in the usual PYB11 syntax for arguments and return types.
+
+It is also important to remember that Python does not allow us to define a method name more than once in a class, so if we have overloaded C++ math operators (say ``operator+`` can accept more than one type), we must give each binding a unique name, but then use decorators such as ``@PYB11pyname`` to force the special operator name for the method.
+
+As an example, consider the following C++ class which supports addition with itself or a ``double``, multiplication by a ``double``, and the unary negative operator:
+
+.. code-block:: cpp
+
+  class Vector3d {
+  public:
+     Vector3d  operator-() const;
+
+     Vector3d& operator+=(const Vector3d& rhs);
+     Vector3d  operator+ (const Vector3d& rhs) const;
+
+     Vector3d& operator+=(const double rhs);
+     Vector3d  operator+ (const double rhs) const;
+
+     Vector3d& operator*=(const double rhs);
+     Vector3d  operator* (const double rhs) const;
+  };
+
+We can bind these numeric operations for the Python version of ``Vector3d`` with PYB11Generator using normal Python operator syntax::
+
+  class Vector3d:
+
+      def __neg__(self):
+          return
+
+      def __iadd__(self):
+          return
+
+      def __add__(self):
+          return
+
+      @PYB11pyname("__iadd__")
+      def __iadd__double(self, rhs="const double"):
+          return
+
+      @PYB11pyname("__add__")
+      def __add__double(self, rhs="const double"):
+          return
+
+      def __imul__(self, rhs="const double"):
+          return "Vector3d&"
+
+      def __mul__(self, rhs="const double"):
+          return "Vector3d"
+    
+
+Comparison operators
+--------------------
+
+The comparison operators supported are ``__lt__``, ``__le__``, ``__eq__``, ``__ne__``, ``__gt__``, and ``__ge__``.  Usage of these methods (naturally all binary operators in this case) follow the same pattern as the numeric binary operators.  As an example, suppose our ``Vector3d`` class in the previous example also defined comparisons with with either ``Vector3d`` or ``double``:
+
+.. code-block:: cpp
+
+  class Vector3d {
+  public:
+    bool operator==(const Vector3d& rhs) const;
+    bool operator!=(const Vector3d& rhs) const;
+    bool operator< (const Vector3d& rhs) const;
+
+    bool operator==(const double rhs) const;
+    bool operator!=(const double rhs) const;
+    bool operator< (const double rhs) const;
+  };
+
+We can expose these operations to Python similarly to the binary math operators::
+
+  class Vector3d:
+
+      def __eq__(self):
+          return
+
+      def __ne__(self):
+          return
+
+      def __lt__(self):
+          return
+
+      @PYB11pyname("__eq__")
+      def __eq__double(self, rhs="const double"):
+          return "bool"
+          
+      @PYB11pyname("__ne__")
+      def __ne__double(self, rhs="const double"):
+          return "bool"
+          
+      @PYB11pyname("__lt__")
+      def __lt__double(self, rhs="const double"):
+          return "bool"
 
 
+Functor (call) operator
+-----------------------
+
+A special class operator in Python is the ``__call__`` operator (corresponding to the C++ ``operator()`` method), which allows a class to operate like a function.  If we have a C++ functor class, we can expose this functor behavior by binding the C++ ``operator()`` call as ``__call__``.  As an example, suppose we have C++ functor like the following:
+
+.. code-block:: cpp
+
+  class Transmute {
+  public:
+    double operator()(const double x);
+  };
+
+we can expose this functor nature of ``Transmute`` via this sort of PYB11 binding::
+
+  class Transmute:
+
+      def __call__(self, x="const double"):
+          return "double"
+
+PYB11Generator automatically associates ``__call__`` with the C++ method ``operator()``, unless overridden with something like ``@PYB11implementation``.
 
 .. _class-templates:
+
+Miscellaneous operators
+-----------------------
+
+Another pair other useful operators supported are ``__repr__`` and ``__str__``.  These are used to create string representations of objects or slightly different purposes, as explained in the offcial Python documentation for ``__repr__`` and ``__str__`` -- essentially ``__repr__`` should return a string representation of the object such that it could be reconstructed, vs. ``__str__`` which should produce a human friendly string.
+
+Any function or method that produces such strings is fine to bind to these names (often via renaming such as ``@PYB11pyname("__str__")``), but a very common pattern I have found is to use lambda functions with the :func:`PYB11implementation` decorator to implement these methods directly in the binding code.  As one example, we might bind useful versions of these operators for the example C++ class ``Vector3d`` above as::
+
+  class Vector3d:
+
+      @PYB11implementation("[](const Vector3d& self) -> std::string { return "[" + self.x + ", " + self.y + ", " + self.z + "]" }")
+      def __repr__(self):
+          return "std::string"
+
+      @PYB11implementation("[](const Vector3d& self) -> std::string { return "Vector3d(" + self.x + " " + self.y + " " + self.z + ")" }")
+      def __str__(self):
+          return "std::string"
+
+Sequence methods
+----------------
+
+Binding the Python sequence methods for your own C++ types can at times be a complicated process, and there is not necessarily a single solution that fits all cases.  There are several interfaces in Python you can override to provide sequence information: ``__len__``, ``__getitem__``, ``__setitem__``, ``__getslice__``, ``__setslice__``, ``__iter__``, etc.  PYB11Generator allows all these methods to be used via pybind11, but it definitely behooves the interested user to thoroughly understand the `pybind11 <https://pybind11.readthedocs.io/en/stable/advanced/misc.html#binding-sequence-data-types-iterators-the-slicing-protocol-etc>`_ and `Python <https://docs.python.org/2/reference/datamodel.html#emulating-container-types>`_ documentation on this subject.  It will often require writing some lightweight interstitial code to translate C++ container information to Python and back, for which lambda functions and the :py:func:`PYB11implementation` decorator are handy.
+
+As the bare beginning of an example, here is a version of one of the pybind11 test C++ sequence classes (stripped to just the interface) drawn from the ``pybind11/tests/test_sequences_and_iterators.cpp`` test code:
+
+.. code-block:: cpp
+
+  class Sequence {
+    public:
+        Sequence(size_t size);
+        Sequence(const std::vector<float> &value);
+        Sequence(const Sequence &s);
+
+        bool operator==(const Sequence &s) const;
+        bool operator!=(const Sequence &s) const;
+
+        float operator[](size_t index) const;
+        float &operator[](size_t index);
+
+        bool contains(float v) const;
+
+        Sequence reversed() const;
+
+        size_t size() const;
+
+        const float *begin() const;
+        const float *end() const;
+    };
+
+and here is an example binding for these methods translated from the pybind11 test code in ``pybind11/tests/test_sequences_and_iterators.cpp`` to PYB11Generator Python syntax:
+
+.. code-block:: py
+
+  class Sequence:
+
+     def pyinit0(self, size="size_t"):
+         return
+     def pyinit1(self, value="const std::vector<float>&"):
+         return
+     def pyinit2(self, s="const Sequence&"):
+         return
+
+     def __eq__(self):
+         return
+     def __ne__(self):
+         return
+
+     # Sequence methods
+     @PYB11cppname("size")
+     def __len__(self):
+         return "size_t"
+
+     @PYB11implementation("[](const Sequence &s, size_t i) { if (i >= s.size()) throw py::index_error(); return s[i]; }")
+     def __getitem__(self, i="size_t"):
+         return "float"
+
+     @PYB11implementation("[](Sequence &s, size_t i, float v) { if (i >= s.size()) throw py::index_error(); s[i] = v; }")
+     def __setitem__(self, i="size_t", v="float"):
+         return "void"
+
+     # Optional sequence methods
+     @PYB11keepalive(0, 1)   # Essential: keep object alive while iterator exists
+     @PYB11implementation("[](const Sequence &s) { return py::make_iterator(s.begin(), s.end()); }")
+     def __iter__(self):
+         return "py::iterator"
+
+     @PYB11cppname("contains")
+     @PYB11const
+     def __contains__(self, v="float"):
+         return "bool"
+
+     @PYB11cppname("reversed")
+     @PYB11const
+     def __reversed__(self):
+         return "Sequence"
+
+     # Slicing protocol
+     @PYB11pyname("__getitem__")
+     @PYB11implementation("""[](const Sequence &s, py::slice slice) -> Sequence* {
+                            size_t start, stop, step, slicelength;
+                            if (!slice.compute(s.size(), &start, &stop, &step, &slicelength)) throw py::error_already_set();
+                             Sequence *seq = new Sequence(slicelength);
+                             for (size_t i = 0; i < slicelength; ++i) {
+                               (*seq)[i] = s[start]; start += step;
+                             }
+                            return seq;
+                          }""")
+     def __getitem__slice(self, slice="py::slice"):
+         return "Sequence*"
+
+     @PYB11pyname("__setitem__")
+     @PYB11implementation("""[](Sequence &s, py::slice slice, const Sequence &value) {
+                            size_t start, stop, step, slicelength;
+                            if (!slice.compute(s.size(), &start, &stop, &step, &slicelength))
+                                throw py::error_already_set();
+                            if (slicelength != value.size())
+                                throw std::runtime_error("Left and right hand size of slice assignment have different sizes!");
+                            for (size_t i = 0; i < slicelength; ++i) {
+                                s[start] = value[i]; start += step;
+                            }"""
+                          }""")
+     def __getitem__slice(self, slice="py::slice", value="const Sequence&"):
+         return "void"
+
+This rather in-depth example uses a few concepts not introduced yet (such as ``@PYB11keepalive``) which are discussed later, but hopefully gives a flavor of what is needed.  Mapping types are also supported through the same sort of overriding of built-in Python methods analogous to above.
 
 ---------
 Templates
 ---------
 
-PYB11 handles C++ class templates similarly to :ref:`function-templates`: we decorate a class definition with ``@PYB11template``, which takes an arbitrary number of string arguments representing the template parameters.  We then use the :func:`PYB11TemplateClass` function to create instantiations of the template class.  Consider a C++ template class definition:
+PYB11 handles C++ class templates similarly to :ref:`function-templates`: first, we decorate a class definition with ``@PYB11template``, which takes an arbitrary number of string arguments representing the template parameters; second, we use the :func:`PYB11TemplateClass` function to create instantiations of the template class.  Consider a C++ template class definition:
 
 .. code-block:: cpp
 
