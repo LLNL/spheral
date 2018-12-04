@@ -1,7 +1,7 @@
 #!/bin/sh
-COMP=clang-ibm
+#COMP=clang-ibm
 #COMP=vacpp
 #COMP=gnu
+COMP=nvcc-clang-ibm
 #export CXXFLAGS="-mcpu=power8 -mtune=power8 -O3 -mcmodel=medium"
-
-../configure LIBS="-lm" --with-compilers=$COMP --with-openmp   --without-scipy  --with-opt=3 
+../configure  --with-compilers=$COMP  --without-scipy  --with-opt=3 
