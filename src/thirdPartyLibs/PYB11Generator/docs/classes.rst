@@ -308,81 +308,6 @@ PYB11 binding code::
           "This method does something with x"
           return "int"
 
-.. _class-attributes:
-
-----------
-Attributes
-----------
-
-C++ structs and classes can have attributes, such as:
-
-.. code-block:: cpp
-
-  struct A {
-    double x;                // An ordinary attribute
-    const double y;          // A readonly attribute
-    static double xstatic;   // A static attribute
-  };
-
-Attributes in pybind11 are discussed in :ref:`pybind11:properties`; PYB11Generator exposes these kinds of attributes via the special PYB11 types ``PYB1readwrite`` and ``PYB11readonly``.  We can expose the attributes of ``A`` in this case via PYB11Generator using::
-
-  class A:
-      x = PYB11readwrite(doc="An ordinary attribute")
-      y = PYB11readonly(doc="A readonly attribute")
-      xstatic = PYB11readwrite(static=True, doc="A static attribute")
-
-In this example we have used the optional arguments ``doc`` to add document strings to our attributes, and ``static`` to indicate a static attribute -- for the full set of options to these functions see :func:`PYB11readwrite` and :func:`PYB11readonly`.
-
-.. _class-properties:
-
-----------
-Properties
-----------
-
-A related concept to attributes is class properties, where we use getter and setter methods for data of classes as though they were attributes.  Consider the following C++ class definition:
-
-.. code-block:: cpp
-
-  class A {
-    public:
-    double getx() const;     // Getter for a double named "x"
-    void setx(double val);   // Setter for a double named "x"
-  };
-
-There are at least two ways we can go about creating ``A.x`` as a property.
-
-Option 1: use ``PYB11property``
--------------------------------
-
-The most convenient method (or at least most succinct) to treat ``A.x`` as a property is via the ``PYB11property`` helper type.  In this example we could simply write::
-
-  class A:
-      x = PYB11property(getter="getx", settter="setx",
-                        doc="Some helpful description of x for this class")
-
-This minimal example demonstrates that using ``PYB11property`` we can expose properties in a single line like this -- see full description of :func:`PYB11property`.
-
-Option 2: use an ordinary python property definition
-----------------------------------------------------
-
-Python has native support for properties via the built-in :py:func:`property`; PYB11Generator is able to interpret use of this function to define pybind11 properties as well.  We can use this method to create ``A.x`` as follows::
-
-  class A:
-
-      def getx(self):
-          return
-
-      def setx(self):
-          return
-
-      x = property(getx, setx, doc="Some helpful description of x for this class")
-
-This method has the advantage we are using all ordinary python constructs, which PYB11Generator is able to parse and create the property as desired.
-
-.. Note::
-
-   In this example we have also exposed the ``getx`` and ``setx`` methods to be bound in pybind11.  If this is not desired, we can decorate these methods with ``@PYB11ignore``, allowing these methods to be used in the :py:func:`property` definition while preventing them from being directly exposed themselves.
-
 .. _class-operators:
 
 -----------------------------------
@@ -512,7 +437,7 @@ we can expose this functor nature of ``Transmute`` via this sort of PYB11 bindin
 
 PYB11Generator automatically associates ``__call__`` with the C++ method ``operator()``, unless overridden with something like ``@PYB11implementation``.
 
-.. _class-templates:
+.. _class-misc-operators:
 
 Miscellaneous operators
 -----------------------
@@ -639,9 +564,119 @@ and here is an example binding for these methods translated from the pybind11 te
 
 This rather in-depth example uses a few concepts not introduced yet (such as ``@PYB11keepalive``) which are discussed later, but hopefully gives a flavor of what is needed.  Mapping types are also supported through the same sort of overriding of built-in Python methods analogous to above.
 
----------
-Templates
----------
+.. _template_methods:
+
+-----------------
+Templated methods
+-----------------
+
+Templated methods are handled in a very similar manner to :ref:`function-templates`.  Suppose we want to bind the templated method in the following C++ class:
+
+.. code-block:: cpp
+
+  class A {
+  public:
+
+    template<typename ValueA, typename ValueB, typename ValueC>
+    ValueC
+    transmogrify(const ValueA& x, const ValueB& y);
+
+  };
+
+In order to bind this method we first create a python class method and decorate it with ``@PYB11template`` and the template types as strings.  We then create however many instantiations of this method as we like using :func:`PYB11TemplateMethod`::
+
+  class A:
+
+      @PYB11template("ValueA", "ValueB", "ValueC")
+      def transmogrify(self, x="%(ValueA)s", y="%(ValueB)s"):
+          "I'm sure this does something useful..."
+          return "%(ValueC)s"
+
+      transmogrifyIntIntDouble = PYB11TemplateMethod(transmogrify, ("int", "int", "double"),             pyname="transmogrify")
+      transmogrifyI32I32I64    = PYB11TemplateMethod(transmogrify, ("uint32_t", "uint32_t", "uint64_t"), pyname="transmogrify")
+
+Comparing this with the example in :ref:`function-templates`, we see that handling template class methods is nearly identical to template functions.  The only real difference is we instantiate the template class method using ``PYB11TemplateMethod`` (assigned to class attributes) instead of ``PYB11TemplateFunction``.
+
+.. _class-attributes:
+
+----------
+Attributes
+----------
+
+C++ structs and classes can have attributes, such as:
+
+.. code-block:: cpp
+
+  struct A {
+    double x;                // An ordinary attribute
+    const double y;          // A readonly attribute
+    static double xstatic;   // A static attribute
+  };
+
+Attributes in pybind11 are discussed in :ref:`pybind11:properties`; PYB11Generator exposes these kinds of attributes via the special PYB11 types ``PYB1readwrite`` and ``PYB11readonly``.  We can expose the attributes of ``A`` in this case via PYB11Generator using::
+
+  class A:
+      x = PYB11readwrite(doc="An ordinary attribute")
+      y = PYB11readonly(doc="A readonly attribute")
+      xstatic = PYB11readwrite(static=True, doc="A static attribute")
+
+In this example we have used the optional arguments ``doc`` to add document strings to our attributes, and ``static`` to indicate a static attribute -- for the full set of options to these functions see :func:`PYB11readwrite` and :func:`PYB11readonly`.
+
+.. _class-properties:
+
+----------
+Properties
+----------
+
+A related concept to attributes is class properties, where we use getter and setter methods for data of classes as though they were attributes.  Consider the following C++ class definition:
+
+.. code-block:: cpp
+
+  class A {
+    public:
+    double getx() const;     // Getter for a double named "x"
+    void setx(double val);   // Setter for a double named "x"
+  };
+
+There are at least two ways we can go about creating ``A.x`` as a property.
+
+Option 1: use ``PYB11property``
+-------------------------------
+
+The most convenient method (or at least most succinct) to treat ``A.x`` as a property is via the ``PYB11property`` helper type.  In this example we could simply write::
+
+  class A:
+      x = PYB11property(getter="getx", settter="setx",
+                        doc="Some helpful description of x for this class")
+
+This minimal example demonstrates that using ``PYB11property`` we can expose properties in a single line like this -- see full description of :func:`PYB11property`.
+
+Option 2: use an ordinary python property definition
+----------------------------------------------------
+
+Python has native support for properties via the built-in :py:func:`property`; PYB11Generator is able to interpret use of this function to define pybind11 properties as well.  We can use this method to create ``A.x`` as follows::
+
+  class A:
+
+      def getx(self):
+          return
+
+      def setx(self):
+          return
+
+      x = property(getx, setx, doc="Some helpful description of x for this class")
+
+This method has the advantage we are using all ordinary python constructs, which PYB11Generator is able to parse and create the property as desired.
+
+.. Note::
+
+   In this example we have also exposed the ``getx`` and ``setx`` methods to be bound in pybind11.  If this is not desired, we can decorate these methods with ``@PYB11ignore``, allowing these methods to be used in the :py:func:`property` definition while preventing them from being directly exposed themselves.
+
+.. _class-templates:
+
+-----------------
+Templated classes
+-----------------
 
 PYB11 handles C++ class templates similarly to :ref:`function-templates`: first, we decorate a class definition with ``@PYB11template``, which takes an arbitrary number of string arguments representing the template parameters; second, we use the :func:`PYB11TemplateClass` function to create instantiations of the template class.  Consider a C++ template class definition:
 
