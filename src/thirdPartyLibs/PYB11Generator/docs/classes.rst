@@ -1,8 +1,8 @@
 .. _classes:
 
-===============
-Binding classes
-===============
+=======
+Classes
+=======
 
 Binding classes in PYB11Generator is based on writing the desired interface as a Python class, similar to the process for :ref:`functions`.  As a first example consider the example struct used as the first such example in the pybind11 class documentation :ref:`pybind11:classes`:
 

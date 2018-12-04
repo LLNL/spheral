@@ -1,12 +1,14 @@
 .. _functions:
 
-Binding functions
-=================
+=========
+Functions
+=========
 
 We have already introduced a quick example of binding a function in :ref:`first-example`; this section will go into more detail on how to generate pybind11 bindings for functions, including complications such as overloaded methods and C++ templates.
 
 .. _function-overloads:
 
+---------------------------------
 Ordinary and overloaded functions
 ---------------------------------
 
@@ -45,6 +47,7 @@ Note we have also now specified the arguments and return types for both bindings
 
 .. _functions-default-args:
 
+-----------------------
 Default argument values
 -----------------------
 
@@ -60,6 +63,7 @@ and we want to use the default values ``1`` and ``"Trogdor"`` for these argument
 
 .. _functions-template:
 
+----------------------
 C++ template functions
 ----------------------
 
@@ -107,6 +111,7 @@ The full list of allowed arguments to ``PYB11TemplateFunction`` is::
 
 .. _functions-implementation:
 
+-------------------------------------------------------------
 Explicitly defining the binding implementation for a function
 -------------------------------------------------------------
 
