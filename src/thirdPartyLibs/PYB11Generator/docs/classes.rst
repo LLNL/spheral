@@ -67,7 +67,9 @@ which is very similar to the native pybind11 code presented in :ref:`pybind11:cl
 Class constructors
 ------------------
 
-In general PYB11Generator interprets methods of classes as ordinary methods to exposed via pybind11 -- the one exception to this rule is class constructors.  Any method that begins with the name ``pyinit`` is interpreted as a class constructor, allowing the specification of an arbitrary number of constructors.  For instance, if we have a C++ class with the following constructors::
+In general PYB11Generator interprets methods of classes as ordinary methods to exposed via pybind11 -- the one exception to this rule is class constructors.  Any method that begins with the name ``pyinit`` is interpreted as a class constructor, allowing the specification of an arbitrary number of constructors.  For instance, if we have a C++ class with the following constructors:
+
+.. code-block:: cpp
 
   class A {
   public:
@@ -89,6 +91,48 @@ We can bind these three different constructors using the following Python specif
 
       def pyinit2(self, name="const std::string", priority="const int"):
           "Build with a name and priority"
+
+For constructors it does not matter what names are used past the ``pyinit`` string: any such name will be interpreted as a constructor.  All that is required is that any class ``pyinit*`` name be unique -- remember, python does not allow overloading, so defining successive methods with the same name simply causes the earlier method definitions to be lost.  Not that the author has made such mistakes in creating my own binding code...
+
+.. _class-inheritance:
+
+-----------------
+Class inheritance
+-----------------
+
+Class inheritance hierarchies in C++ are simple to reflect in PYB11Generator, as this is an OO concept shared by both C++ and Python: all that is required is to reflect the inheritance hierarchy in the Python PYB11 code.  In order to expose the following C++ classes:
+
+.. code-block:: cpp
+
+  class A {
+    A();                    // Default constructor
+    int func(int x);        // Some useful function of A
+  };
+
+  class B: public A {
+    B();                    // Default constructor
+    double dfunc(double x); // Some useful function of B
+  };
+
+we can simply reflect this object hiearchy in the PYB11Generator code::
+
+  class A:
+
+      def pyinit(self):
+          "Default constructor"
+
+      def func(self, x="int"):
+          "Some useful function of A"
+          return "int"
+
+  class B(A):
+
+      def pyinit(self):
+          "Default constructor"
+
+      def dfunc(self, x="double"):
+          "Some useful function of B"
+          return "double"
 
 .. _class-methods:
 
@@ -165,6 +209,57 @@ can be specfied in PYB11 using::
           "Return the square of the argument"
           return "int"
 
+.. _virtual-methods:
+
+Virtual class methods
+---------------------
+
+If we simply wish to expose C++ virtual methods as ordinary class methods in Python (i.e., not allowing overriding the implementation of such methods from Python), then nothing extra need be done in the method binding for PYB11.  However, in pybind11 it is also possible to expose C++ virtual methods such that they *can* be overridden from Python descendants, which is a very powerful capability.  Exposing such overridable virtual methods in pybind11 involves writing an intermediate "trampoline" class as described in the pybind11 documentation :ref:`pybind11:overriding_virtuals`.  PYB11Generator automates the generation of such intermediate redundant code (this was in fact the motivating factor in the creation of PYB11Generator), removing much of the bookkeeping necessary to maintain such coding in face of a changing interface.  In PYB11Generator all that is required for making a virtual method overridable from Python is decorating such virtual methods with ``@PYB11virtual``/``@PYB11pure_virtual`` as appropriate.  Consider binding the C++ example from the pybind11 documentation :ref:`pybind11:overriding_virtuals`:
+
+.. code-block:: cpp
+
+    class Animal {
+    public:
+        virtual ~Animal() { }
+        virtual std::string go(int n_times) = 0;
+    };
+
+    class Dog : public Animal {
+    public:
+        virtual std::string go(int n_times) override {
+            std::string result;
+            for (int i=0; i<n_times; ++i)
+                result += "woof! ";
+            return result;
+        }
+    };
+
+All that is necessary to bind this code using PYB11Generator is the following::
+
+  class Animal:
+
+      def pyinit(self):
+          "Default constructor"
+
+      @PYB11pure_virtual
+      def go(self, n_times="int"):
+          return "std::string"
+
+  class Dog(Animal):
+
+      def pyinit(self):
+          "Default constructor"
+
+      @PYB11virtual
+      def go(self, n_times="int"):
+          return "std::string"
+
+Now both ``Animal`` and ``Dog`` are accessible from Python, and PYB11Generator automatically generates the necessary trampoline classes such that the ``go`` method can be overriden by descendant Python classes as desired.  Note we have now introduced two new PYB11 decorators: ``PYB11virtual`` and ``PYB11pure_virtual``.  The use of these two should evident from their names and uses in this example:
+
+* ``PYB11virtual`` decorates C++ methods that are virtual (such as ``Dog::go``).
+
+* ``PYB11pure_virtual`` decorates C++ methods are pure virtual (such as ``Animal::go``), marking such classes as abstract.
+
 .. _protected-methods:
 
 Protected class methods
@@ -213,42 +308,72 @@ PYB11 binding code::
           "This method does something with x"
           return "int"
 
-.. _class-inheritance:
+.. _class-attributes:
 
------------------
-Class inheritance
------------------
+----------------
+Class attributes
+----------------
 
-Class inheritance hierarchies in C++ are simple to reflect in PYB11Generator, as this is an OO concept shared by both C++ and Python: all that is required is to reflect the inheritance hierarchy in the Python PYB11 code.  In order to expose the following C++ classes:
+C++ structs and classes can have attributes, such as:
+
+.. code-block:: cpp
+
+  struct A {
+    double x;                // An ordinary attribute
+    const double y;          // A readonly attribute
+    static double xstatic;   // A static attribute
+  };
+
+Attributes in pybind11 are discussed in :ref:`pybind11:properties`; PYB11Generator exposes these kinds of attributes via the special PYB11 types ``PYB1readwrite`` and ``PYB11readonly``.  We can expose the attributes of ``A`` in this case via PYB11Generator using::
+
+  class A:
+      x = PYB11readwrite(doc="An ordinary attribute")
+      y = PYB11readonly(doc="A readonly attribute")
+      xstatic = PYB11readwrite(static=True, doc="A static attribute")
+
+In this example we have used the optional arguments ``doc`` to add document strings to our attributes, and ``static`` to indicate a static attribute -- for the full set of options to these functions see :func:`PYB11readwrite` and :func:`PYB11readonly`.
+
+.. _class-properties:
+
+----------------
+Class properties
+----------------
+
+A related concept to attributes is class properties, where we want to use getter and setter methods for data of classes as though they were attributes.  Consider the following C++ class definition:
 
 .. code-block:: cpp
 
   class A {
-    A();                    // Default constructor
-    int func(int x);        // Some useful function of A
+    public:
+    double getx() const;     // Getter for a double named "x"
+    void setx(double val);   // Setter for a double named "x"
   };
 
-  class B: public A {
-    B();                    // Default constructor
-    double dfunc(double x); // Some useful function of B
-  };
+There are several ways we could go about binding ``A`` in python such that we can access ``A.x`` as though it were an attribute.
 
-we can simply reflect this object hiearchy in the PYB11Generator code::
+Option 1: use ``PYB11property``
+-------------------------------
+
+The most convenient method (or at least most succinct) to treat ``A.x`` as a property is via the ``PYB11property`` helper type.  In this example we could simply write::
+
+  class A:
+      x = PYB11property(getter="getx", settter="setx", doc="Some helpful description of x for this class")
+
+This minimal example demonstrates that using ``PYB11property`` we can expose properties in a single line like this -- see full description of :func:`PYB11property`.
+
+Option 2: use ordinary python property definitions
+--------------------------------------------------
+
+The above option is quite succinct, but we can also leverage Python's built in ``property`` method as follows::
 
   class A:
 
-      def pyinit(self):
-          "Default constructor"
+      def getx(self):
+          return
 
-      def func(self, x="int"):
-          "Some useful function of A"
-          return "int"
+      def setx(self):
+          return
 
-  class B(A):
+      x = property(getx, setx, doc="Some helpful description of x for this class")
 
-      def pyinit(self):
-          "Default constructor"
-
-      def dfunc(self, x="double"):
-          "Some useful function of B"
-          return "double"
+This method has the advantage we are using all ordinary python constructs, which PYB11Generator is able to parse and create the property as desired.  Note, in this example we have also exposed the ``getx`` and ``setx`` methods to be bound as well.  If this is not desired, we can decorate these methods with :func:`PYB11ignore`.

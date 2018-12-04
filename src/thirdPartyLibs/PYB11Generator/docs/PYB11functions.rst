@@ -24,7 +24,7 @@ This section describes the special functions and classes defined in PYB11Generat
   * ``pyname``: define the generated python attribte name.  If ``None``, defaults to the name of the local python variable.
 
 .. #############################################################################
-.. py:function:: PYB11readwrite([static=False, pyname=False, cppname=False, doc=None])
+.. py:function:: PYB11readwrite([static=False, pyname=None, cppname=None, doc=None])
 
   Define a readwrite class attribute; corresponds to pybind11 ``def_readwrite``.
 
@@ -37,7 +37,7 @@ This section describes the special functions and classes defined in PYB11Generat
   * ``doc``: Optionally give a docstring.
 
 .. #############################################################################
-.. py:function:: PYB11readonly([static=False, pyname=False, cppname=False, doc=None])
+.. py:function:: PYB11readonly([static=False, pyname=None, cppname=None, doc=None])
 
   Define a readonly class attribute; corresponds to pybind11 ``def_readonly``.
 
@@ -48,6 +48,31 @@ This section describes the special functions and classes defined in PYB11Generat
   * ``cppname``: Optionally specify the C++ name of the attribute.  If ``None``, assumes the C++ name is the name of Python variable instance.
 
   * ``doc``: Optionally give a docstring.
+
+.. #############################################################################
+.. py:function:: PYB11property([returnType = None, getter = None, setter = None, doc = None, getterraw = None, setterraw = None,  getterconst = True, setterconst = False, static = None, returnpolicy = None])
+                 
+   Helper to setup a class property.
+
+   * ``returnType``: Specify the C++ type of the property
+
+   * ``getter``: A string with the name of the getter method.  If ``None``, assumes the getter C++ specification looks like ``returnType (klass::*)() const``.
+
+   * ``setter``: A string with the name of the setter method.  If ``None``, assumes the setter C++ specification looks like ``void (klass::*)(returnType& val)``.
+
+   * ``doc``: Specify a document string for the property.
+
+   * ``getterraw``: Optionally specify raw coding for the getter method.  Generally this is used to insert a C++ lambda function.  Only one of ``getter`` or ``getterraw`` may be specified.
+
+   * ``setterraw``: Optionally specify raw coding for the setter method.  Generally this is used to insert a C++ lambda function.  Only one of ``setter`` or ``setterraw`` may be specified.
+
+   * ``getterconst``: Specify if ``getter`` is a const method.
+
+   * ``setterconst``: Specify if ``setter`` is a const method.
+
+   * ``static``: If ``True``, make this a static property.
+
+   * ``returnPolicy``: Specify a special return policy for how to handle the memory of the return value.  Read pybind11 documentation at :ref:`pybind11:return_value_policies`.
 
 .. #############################################################################
 .. py:function:: PYB11TemplateClass(klass_template, template_parameters[, cppname = None, pyname = None, docext = ""])
