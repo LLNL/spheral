@@ -444,7 +444,7 @@ Miscellaneous operators
 
 Another pair other useful operators supported are ``__repr__`` and ``__str__``.  These are used to create string representations of objects or slightly different purposes, as explained in the offcial Python documentation for ``__repr__`` and ``__str__`` -- essentially ``__repr__`` should return a string representation of the object such that it could be reconstructed, vs. ``__str__`` which should produce a human friendly string.
 
-Any function or method that produces such strings is fine to bind to these names (often via renaming such as ``@PYB11pyname("__str__")``), but a very common pattern I have found is to use lambda functions with the :func:`PYB11implementation` decorator to implement these methods directly in the binding code.  As one example, we might bind useful versions of these operators for the example C++ class ``Vector3d`` above as::
+Any function or method that produces such strings is fine to bind to these names (often via renaming such as ``@PYB11pyname("__str__")``), but a very common pattern is to use lambda functions with the :func:`PYB11implementation` decorator to implement these methods directly in the binding code.  As one example, we might bind useful versions of these operators for the example C++ class ``Vector3d`` above as::
 
   class Vector3d:
 

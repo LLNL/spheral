@@ -23,6 +23,7 @@ As currently implemented, PYB11Generator assumes Python 2, and will not work wit
    functions
    classes
    memory
+   stl
    PYB11decorators
    PYB11functions
 
