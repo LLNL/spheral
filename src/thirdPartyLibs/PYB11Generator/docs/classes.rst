@@ -674,6 +674,28 @@ This method has the advantage we are using all ordinary python constructs, which
 
    In this example we have also exposed the ``getx`` and ``setx`` methods to be bound in pybind11.  If this is not desired, we can decorate these methods with ``@PYB11ignore``, allowing these methods to be used in the :py:func:`property` definition while preventing them from being directly exposed themselves.
 
+.. _dynamic-attributes:
+
+------------------
+Dynamic attributes
+------------------
+
+By default pybind11 classes are immutable from Python, so it is an error to try and insert new attributes to an instance of a pybind11 bound C++ class.  This is different than default behavior in Python however, which allows instances of classes to be modified with new attributes.  For example, the following is legal Python code:
+
+.. code-block:: pycon
+
+   >>> class Strongbadia:
+   ...     headOfState = "Strong Bad"
+   ...
+   >>> country = Strongbadia()
+   >>> country.population = "Tire"    # Valid, we just dynamically added a new attribute
+
+pybind11 allows us to specify if we want classes to be modifiable in this way (see `pybind11 docs <https://pybind11.readthedocs.io/en/stable/classes.html#dynamic-attributes>`_), which is reflected in PYB11Generator by using the decorator ``@PYB11dynamic_attr``.  So if we wanted to modify one of our class bindings for ``A`` above to allow dynamic attributes, we can simply decorate the class declaration like::
+
+  @PYB11dynamic_attr
+  class A:
+  ...
+
 .. _class-templates:
 
 -----------------
