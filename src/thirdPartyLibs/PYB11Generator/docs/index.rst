@@ -22,7 +22,7 @@ As currently implemented, PYB11Generator assumes Python 2, and will not work wit
    intro
    functions
    classes
-   decorators
+   PYB11decorators
    PYB11functions
 
 Indices and tables
