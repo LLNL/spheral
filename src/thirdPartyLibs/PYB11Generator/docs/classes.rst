@@ -459,6 +459,8 @@ Any function or method that produces such strings is fine to bind to these names
 Sequence methods
 ----------------
 
+Probably the first thing to point out here is this section is *not* necessary for handling STL containers: pybind11 has built-in support for :ref:`pybind11:stl_bind`, which PYB11Generator provides convenient wrappers for.  In fact, so long as implicit copying of STL containers through the Python-C++ interface is acceptable, nothing need be done with STL containers at all -- they will automatically be handled by pybind11 transparently.
+
 Binding the Python sequence methods for your own C++ types can at times be a complicated process, and there is not necessarily a single solution that fits all cases.  There are several interfaces in Python you can override to provide sequence information: ``__len__``, ``__getitem__``, ``__setitem__``, ``__getslice__``, ``__setslice__``, ``__iter__``, etc.  PYB11Generator allows all these methods to be used via pybind11, but it definitely behooves the interested user to thoroughly understand the `pybind11 <https://pybind11.readthedocs.io/en/stable/advanced/misc.html#binding-sequence-data-types-iterators-the-slicing-protocol-etc>`_ and `Python <https://docs.python.org/2/reference/datamodel.html#emulating-container-types>`_ documentation on this subject.  It will often require writing some lightweight interstitial code to translate C++ container information to Python and back, for which lambda functions and the :py:func:`PYB11implementation` decorator are handy.
 
 As the bare beginning of an example, here is a version of one of the pybind11 test C++ sequence classes (stripped to just the interface) drawn from the ``pybind11/tests/test_sequences_and_iterators.cpp`` test code:
