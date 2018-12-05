@@ -90,6 +90,23 @@ This section describes the special functions and classes defined in PYB11Generat
   * ``docext``: An optional string extension to be applied to the docstring associated with ``klass_template``.
 
 .. #############################################################################
+.. py:function:: PYB11enum(values[, name=None, namespace="", cppname=None, export_values=False, doc=None])
+
+   Declare a C++ enum for wrapping in pybind11 -- see `pybind11 docs <https://pybind11.readthedocs.io/en/stable/classes.html#enumerations-and-internal-types>`_.
+
+   * ``values``: a tuple of strings listing the possible values for the enum
+
+   * name: set the name of enum type in Python.  ``None`` defaults to the name of the instance given this enum declaration instance.
+
+   * namespace: an optional C++ namespace the enum lives in.
+
+   * cppname: the C++ name of the enum.  ``None`` defaults to the same as ``name``.
+
+   * export_values: if ``True``, causes the enum values to be exported into the enclosing scope (like an old-style C enum).
+
+   * doc: an optional document string.
+
+.. #############################################################################
 .. py:function:: PYB11_bind_vector(element[, opaque=False, local=None])
 
    Bind an STL::vector explicitly.  This is essentially a thin wrapper around the pybind11 ``py::bind_vector`` function (see :ref:`pybind11:stl_bind`).

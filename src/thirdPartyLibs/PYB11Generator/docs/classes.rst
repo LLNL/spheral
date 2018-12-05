@@ -696,6 +696,40 @@ pybind11 allows us to specify if we want classes to be modifiable in this way (s
   class A:
   ...
 
+.. _class-singletons:
+
+----------
+Singletons
+----------
+
+Suppose we have declared a C++ class to be a singleton object (i.e., declared all constructors and destructors private) like so:
+
+.. code-block:: cpp
+
+  class Asingleton {
+  public:
+    static A* instance() { return instanceptr; }
+
+  private:
+    static A* instanceptr;
+    A();
+    A(const A&);
+    A& operator=(const A&);
+    ~A();
+  };
+
+pybind11 (via its use of ``std::unique_ptr`` to hold Python instances) assumes bound objects are destructible, but for singletons such as ``Asingleton`` above the destructor is private.  We must notify pybind11 that singletons such as this are different (as discussed in pybind11 for :ref:`pybind11:classes_with_non_public_destructors`) -- PYB11Generator accomplishes this via the decorator ``@PYB11singleton`` like so::
+
+  @PYB11singleton
+  class Asingleton:
+
+      @PYB11static
+      @PYB11returnpolicy("reference")
+      def instance(self):
+          return "Asingleton*"
+
+This example also involves setting a policy for handling the memory of the ``Asingle*`` returned by ``A.instance``: these sorts of memory mangement details are discussed in :ref:`return-policies`.
+
 .. _class-templates:
 
 -----------------
