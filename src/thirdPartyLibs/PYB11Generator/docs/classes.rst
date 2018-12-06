@@ -134,6 +134,10 @@ we can simply reflect this object hiearchy in the PYB11Generator code::
           "Some useful function of B"
           return "double"
 
+.. Note::
+
+   Cross module inheritance (binding a class in one module that inherits from a class bound in another) is a slightly trickier case.  See the discussion in :ref:`cross-module-inheritance` for an example of how to do this.
+
 .. _class-methods:
 
 -------
