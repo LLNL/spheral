@@ -38,7 +38,8 @@ It is also straightforward to declare an enum type that is inside a class scope;
       Homsar = 2,
       PaintingOfGuyWithBigKnife = 3,
       FrankBennedetto = 4,
-    }
+    };
+  };
 
 We can bind this enum using PYB11Generator with::
 
