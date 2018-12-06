@@ -72,7 +72,7 @@ Let's suppose the above binding source is stored in file ``Amodule_bindings.py``
 
 .. Note::
 
-   It is critical here in our bindings for ``Bmodule`` that we use ``import Amodule_bindings``, and do *not* import ``A`` into our scope using ``from Amodule_bindings import A``!  If we put ``A`` in the top-level scope of our bindings for ``B``, the binding code for ``A`` will be generated redundantly in the new bindings, and cause a conflict when we try to import the two modules together.
+   It is critical here in the bindings for ``Bmodule`` that we use ``import Amodule_bindings``, and do *not* import ``A`` into the local scope using ``from Amodule_bindings import A``!  If we put ``A`` in the top-level scope of our bindings for ``B``, the binding code for ``A`` will be generated redundantly in the new bindings, and cause a conflict when we try to import the two modules together.
 
 The ``@PYB11module`` decoration on ``A`` tells PYB11Generator how to generate the pybind11 code to correctly import ``A`` rather than generate ``A`` locally, as described in the `pybind11 documentation <https://pybind11.readthedocs.io/en/stable/advanced/misc.html#partitioning-code-over-multiple-extension-modules>`_.
 
