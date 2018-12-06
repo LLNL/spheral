@@ -1,5 +1,6 @@
 .. _decorators:
 
+================
 PYB11 decorators
 ================
 
