@@ -141,7 +141,7 @@ class PYB11sort_by_inheritance:
                 else:
                     klass = obj
                 for bklass in inspect.getmro(klass)[1:]:
-                    if self.keys[klass] <= self.keys[bklass]:
+                    if (bklass in self.keys) and (self.keys[klass] <= self.keys[bklass]):
                         self.keys[klass] = self.keys[bklass] + 1
                         changed = True
 
