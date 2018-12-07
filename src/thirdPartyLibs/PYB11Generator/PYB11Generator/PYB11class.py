@@ -479,14 +479,22 @@ def PYB11generateClass(klass, klassattrs, ssout):
 
     # Helper method to check if the given method spec is already in allmethods
     def newOverloadedMethod(meth, allmethods, klassattrs):
+        def extractArgs(mmeth):
+            result = [x[0] for x in PYB11parseArgs(mmeth)]
+            for i in xrange(len(result)):
+                try:
+                    result[i] = result[i] % klassattrs["template_dict"]
+                except:
+                    pass
+            return result
         methattrs = PYB11attrs(meth)
-        args = [x[0] % klassattrs["template_dict"] for x in PYB11parseArgs(meth)]
+        args = extractArgs(meth)
         overload = False
         for (othername, othermeth) in allmethods:
             othermethattrs = PYB11attrs(othermeth)
             if methattrs["cppname"] == othermethattrs["cppname"]:
                 overload = True
-                otherargs = [x[0] % klassattrs["template_dict"] for x in PYB11parseArgs(othermeth)]
+                otherargs = extractArgs(othermeth)
                 if otherargs == args:
                     return False
         return overload
