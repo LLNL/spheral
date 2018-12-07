@@ -478,22 +478,20 @@ def PYB11generateClass(klass, klassattrs, ssout):
             inst(tname, klass, klassattrs, ss)
 
     # Helper method to check if the given method spec is already in allmethods
-    def newOverloadedMethod(meth, allmethods):
+    def newOverloadedMethod(meth, allmethods, klassattrs):
         methattrs = PYB11attrs(meth)
-        args = PYB11parseArgs(meth)
+        args = [x[0] % klassattrs["template_dict"] for x in PYB11parseArgs(meth)]
         overload = False
         for (othername, othermeth) in allmethods:
             othermethattrs = PYB11attrs(othermeth)
             if methattrs["cppname"] == othermethattrs["cppname"]:
                 overload = True
-                otherargs = PYB11parseArgs(othermeth)
+                otherargs = [x[0] % klassattrs["template_dict"] for x in PYB11parseArgs(othermeth)]
                 if otherargs == args:
                     return False
         return overload
 
-    # We also need any overloaded methods from the base classes.
-    # I'm pretty sure this is a pybind11 bug -- we shouldn't have to explicitly add
-    # base class overloads.
+    # If we're choosing to expose base hidden methods, check for those too.
     if klassattrs["exposeBaseOverloads"]:
         ss("\n    // Overloaded base methods\n")
         for bklass in inspect.getmro(klass)[1:]:
@@ -509,9 +507,9 @@ def PYB11generateClass(klass, klassattrs, ssout):
                 bcppname = bcppname % klassattrs["template_dict"]
                 bklassattrs["cppname"] = bcppname
             for mname, meth in PYB11ThisClassMethods(bklass):
-                if ((not PYB11attrs(meth)["ignore"]) and            # Ignore the method?
-                    (mname[:6] != "pyinit") and                     # Ignore constructors
-                    newOverloadedMethod(meth, allmethods)):  # New overload?
+                if ((not PYB11attrs(meth)["ignore"]) and                # Ignore the method?
+                    (mname[:6] != "pyinit") and                         # Ignore constructors
+                    newOverloadedMethod(meth, allmethods, klassattrs)): # New overload?
                     methattrs = PYB11attrs(meth)
                     PYB11generic_class_method(bklass, bklassattrs, meth, methattrs, ss)
 
@@ -522,7 +520,7 @@ def PYB11generateClass(klass, klassattrs, ssout):
                     inst = eval("bklass.%s" % tname)
                     meth = inst.func_template
                     methattrs = PYB11attrs(meth)
-                    if newOverloadedMethod(meth, allmethods):
+                    if newOverloadedMethod(meth, allmethods, klassattrs):
                         try:
                             inst(tname, bklass, bklassattrs, ss)
                         except Exception as excpt:

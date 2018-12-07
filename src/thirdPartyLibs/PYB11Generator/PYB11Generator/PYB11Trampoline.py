@@ -66,10 +66,11 @@ def PYB11generateTrampoline(klass, ssout):
     ss = fs.write
 
     # Build the dictionary of template substitutions.
+    Tdict = {key:key for key in klassattrs["template"]}
     if klassattrs["template_dict"]:
-        Tdict = {key:key for key in klassattrs["template_dict"]}
-    else:
-        Tdict = {key:key for key in klassattrs["template"]}
+        for key in klassattrs["template_dict"]:
+            if not key in Tdict:
+                Tdict[key] = klassattrs["template_dict"][key]
 
     # Compiler guard.
     ss("""//------------------------------------------------------------------------------
@@ -100,7 +101,11 @@ def PYB11generateTrampoline(klass, ssout):
         if len(bklassattrs["template"]) > 0:
             bklassname += "<"
             for i, name in enumerate(bklassattrs["template"]):
-                bklassname += name
+                if name in klassattrs["template"]:
+                    bklassname += name
+                else:
+                    assert name in klassattrs["template_dict"]
+                    bklassname += klassattrs["template_dict"][name]
                 if i < len(bklassattrs["template"]) - 1:
                     bklassname += ", "
             bklassname += ">"
@@ -144,6 +149,13 @@ public:
                    if (not PYB11attrs(meth)["ignore"] and
                        (PYB11attrs(meth)["virtual"] or PYB11attrs(meth)["pure_virtual"]) and
                        mname in bklass.__dict__)]
+
+        # Look for any template parameters of the base not shared by the class in question
+        bklasssubs = {}
+        for name in bklassattrs["template"]:
+            if not name in klassattrs["template"]:
+                assert name in klassattrs["template_dict"]
+                bklasssubs[name] = klassattrs["template_dict"][name]
 
         for mname, meth in methods:
             
