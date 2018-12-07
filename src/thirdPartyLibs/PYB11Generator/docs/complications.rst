@@ -84,7 +84,13 @@ Non-templated class inheriting from a templated class
 
 PYB11Generator needs to know template parameters for templated classes in order to create concrete instantiations, but since Python does not have the concept of templates we have adopted a two-stage process for creating template class instantiations in PYB11 as described in :ref:`class-templates`.  However, if we have a non-templated class which inherits from a templated base, there is no longer the second-stage of this proceedure using :func:`PYB11TemplateClass` to instantiate the base with the proper template parameters.
 
-PYB11 offers a slightly kludgy way to handle this problem: since template parameters in PYB11Generator are really just specified with python dictionary matching, we can directly insert the proper template parameter choices in the appropriate dictionary for our non-templated descendant using ``@PYB11template_dict``.  This is best demonstrated by an example -- consider the following C++ class hierarchy:
+It is possible to handle this situation, but it requires two decorations be applied to the non-templated descendant:
+
+#. Because the descendant will inherit the template decoration of the base class, we must explicitly state that the descendant has no template parameters with ``@PYB11template()``.
+
+#. We still need to specify what template parameters should be used for the base class.  Template parameters in PYB11Generator are specified using python dictionary matching, so we can directly insert the proper template parameter choices in the appropriate dictionary for our non-templated descendant using ``@PYB11template_dict``.
+
+These two steps are best demonstrated by an example -- consider the following C++ class hierarchy:
 
 .. code-block:: cpp
 
