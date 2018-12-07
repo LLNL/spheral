@@ -104,7 +104,8 @@ def PYB11generateTrampoline(klass, ssout):
                 if name in klassattrs["template"]:
                     bklassname += name
                 else:
-                    assert name in klassattrs["template_dict"]
+                    if not name in klassattrs["template_dict"]:
+                        raise RuntimeError, "Trampoline template base class error: %s is missing from specified template parameters %s\n  (class, base) = (%s, %s)" % (name, klassattrs["template_dict"], klass, bklass)
                     bklassname += klassattrs["template_dict"][name]
                 if i < len(bklassattrs["template"]) - 1:
                     bklassname += ", "

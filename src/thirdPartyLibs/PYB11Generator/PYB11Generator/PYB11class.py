@@ -58,7 +58,8 @@ class PYB11TemplateClass:
         else:
             assert isinstance(template_parameters, dict)
             for key in klassattrs["template"]:
-                assert key in template_parameters
+                if not key in template_parameters:
+                    raise RuntimeError, "Template parameter dictionary spec error: %s is missing from %s" % (key, template_parameters)
             self.template_parameters = template_parameters
             
         # Record the order of instantiations
