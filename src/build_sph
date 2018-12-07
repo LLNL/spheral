@@ -2,6 +2,6 @@
 #COMP=clang-ibm
 #COMP=vacpp
 #COMP=gnu
-COMP=nvcc-clang-ibm
+COMP=clang8
 #export CXXFLAGS="-mcpu=power8 -mtune=power8 -O3 -mcmodel=medium"
 ../configure  --with-compilers=$COMP  --without-scipy  --with-opt=3 

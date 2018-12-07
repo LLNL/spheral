@@ -185,6 +185,28 @@ case $COMPILERS in
       CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
       ;;
 
+   clang8)
+      CC=clang
+      CXX=clang++
+      FORT=gfortran
+      MPICC=mpiclang
+      MPICXX=mpiclang++
+      MPICCFLAGS=
+      MPICXXFLAGS=
+      CMAKECC=gcc
+      CMAKECXX=g++
+      GCCXMLCC=$CMAKECC
+      GCCXMLCXX=$CMAKECXX
+      PYTHONCC=gcc
+      PYTHONCXX=g++
+      PARMETISCC=$MPICC
+      MPI4PYCC=$MPICC
+      CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
+      EXTRAFLAGS+=" -x cuda --cuda-gpu-arch=sm_70 --cuda-path=/usr/tce/packages/cuda/cuda-9.2.148" 
+      EXTRAINCLUDES+=" -I/g/g0/cordery1/raja/install_clangcuda/include -I/usr/tce/packages/cuda/cuda-9.2.148/include"
+      LDFLAGS+=" -L/usr/tce/packages/cuda/cuda-9.2.148/lib64 -L/g/g0/cordery1/raja/install_clangcuda/lib -lcudart -lcudart_static -ldl -lrt -pthread -lRAJA"
+      ;;
+
    gcc-bg)
       CC=mpigcc
       CXX=mpig++

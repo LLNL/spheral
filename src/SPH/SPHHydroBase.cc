@@ -587,18 +587,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto iItr0 = connectivityMap.begin(nodeListi);
     int ni = connectivityMap.numNodes(nodeListi);
 
-/* example of how to do raja cuda kernel
-          RAJA::forall<RAJA::cuda_exec<CUDA_BLOCK_SIZE>>(
+// example of how to do raja cuda kernel
+          RAJA::forall<RAJA::cuda_exec<32>>(
           RAJA::RangeSegment(0,ni),  [=] RAJA_DEVICE (RAJA::Index_type kct) {
-         ..lambda code goes here..
-        });	
-*/
 
-//          RAJA::forall<RAJA::seq_exec>(
-//          RAJA::RangeSegment(0,ni), [&](RAJA::Index_type kct) {
+	printf("%d \n", kct );	
+
+        });	
+
+
+          RAJA::forall<RAJA::seq_exec>(
+          RAJA::RangeSegment(0,ni), [&](RAJA::Index_type kct) {
    
-          RAJA::forall<RAJA::cuda_exec<256>>(
-          RAJA::RangeSegment(0,ni), [=] RAJA_DEVICE (RAJA::Index_type kct) {
+//          RAJA::forall<RAJA::cuda_exec<256>>(
+//          RAJA::RangeSegment(0,ni), [=] RAJA_DEVICE (RAJA::Index_type kct) {
 
  
    // for(int kct=0; kct< ni; ++kct ) {

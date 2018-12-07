@@ -214,7 +214,7 @@ SILOTARGET = @SILOTARGET@
 EIGENDIST = default.tar.bz2
 #EIGENURL = https://bitbucket.org/eigen/eigen/get/3.3.5.tar.bz2
 EIGENURL = https://bitbucket.org/eigen/eigen/get/default.tar.bz2 
-EIGENDIR = eigen-eigen-d244e1fa21d2
+EIGENDIR = eigen-eigen-81172653b67b
 EIGENBUILDDATE = .eigen.date
 
 
