@@ -21,6 +21,7 @@
 #include "Kernel/GaussianKernel.hh"
 #include "Kernel/PiGaussianKernel.hh"
 #include "NodeGenerators/fillFacetedVolume.hh"
+#include "NodeGenerators/generateCylDistributionFromRZ.hh"
 #include "NodeList/SPHSmoothingScale.hh"
 #include "NodeList/ASPHSmoothingScale.hh"
 #include "SPH/SolidSPHHydroBase.hh"
@@ -1166,6 +1167,54 @@ fillVolume(const int*     nnodes,
 
 }
 
+//------------------------------------------------------------------------------
+// Generate 3D particles from particles in RZ space.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SpheralPseudoScript<Dimension>::
+generateCylFromRZ(const int*     nnodes,
+                  const double** coords,
+                  const double*  mass,
+                  const double** htensor,
+                  int*           nparticles,
+                  double**       sphcoords,
+                  double*        sphmass,
+                  double**       sphhtensor) {
+
+  std::vector< double > xvec, yvec, zvec, mvec;
+  std::vector< Dim<3>::SymTensor > Hvec;
+  std::vector<int> gids;
+  std::vector< vector<double> > extras;
+  double nodesperh(1.5), kernelext(1.0), phi(2.0*M_PI);
+  int proc(0), nprocs(1), counter(0);
+  for (int i = 0 ; i < nnodes[0] ; ++i) {
+    xvec.push_back(coords[0][i]);
+    yvec.push_back(coords[1][i]);
+    zvec.push_back(0.0);
+    mvec.push_back(mass[i]);
+    gids.push_back(counter);
+    ++counter;
+  }
+  generateCylDistributionFromRZ(xvec,yvec,zvec,mvec,Hvec,gids,extras,
+                                nodesperh,kernelext,phi,proc,nprocs);
+  int n3d = xvec.size();
+  VERIFY(yvec.size() == n3d && zvec.size() == n3d &&
+         mvec.size() == n3d && Hvec.size() == n3d);
+  nparticles[0] = n3d;
+  double * sphcoordx = new double[n3d];
+  double * sphcoordy = new double[n3d];
+  double * sphcoordz = new double[n3d];
+  for (int i = 0 ; i < n3d ; ++i) {
+    sphcoordx[i] = xvec[i] ;
+    sphcoordy[i] = yvec[i] ;
+    sphcoordz[i] = zvec[i] ;
+  }
+  sphcoords[0] = sphcoordx ;
+  sphcoords[1] = sphcoordy ;
+  sphcoords[2] = sphcoordz ;
+
+}
 
 //------------------------------------------------------------------------------
 // Update the connectivity between nodes using Spheral's internal neighbor
