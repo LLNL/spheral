@@ -53,12 +53,6 @@ PIPEXE = $(prefix)/bin/pip
 PYBINDGENBUILDDATE=.pybindgen==0.17.0_pip_install.date
 PYBINDGENPATCHDATE=.pybindgen_patch.date
 
-# pybind11
-PYBIND11DIST = pybind11-2.2.1.tar.gz
-PYBIND11URL = https://github.com/pybind/pybind11/archive/v2.2.1.tar.gz
-PYBIND11DIR = $(PYBIND11DIST:.tar.gz=)
-PYBIND11BUILDDATE = $(patsubst %.tar.gz, .%.date, $(PYBIND11DIST))
-
 # PYB11Generator
 PYB11GENDIR = $(srcdir)/PYB11Generator
 PYB11GENBUILDDATE = .PYB11Generator.date
@@ -331,7 +325,6 @@ all:	$(PYTHONTARGET) \
 	$(PETSCTARGETS) \
 	$(ATSBUILDDATE) \
 	$(OPENSUBDIVTARGETS) \
-	$(PYBIND11BUILDDATE) \
 	$(EXTRATHIRDPARTYTARGETS) \
 	piptargets
 #	$(HYPREBUILDDATE)
@@ -343,7 +336,6 @@ clean:
 	       $(GNUPLOTDIR) $(GNUPLOTBUILDDATE) \
 	       $(PSYCODIR) $(PSYCOBUILDDATE) \
 	       $(BOOSTDIR) $(BOOSTDATE) \
-	       $(PYBIND11BUILDDATE) \
 	       $(CMAKEDIR) \
 	       $(PSYCODIR) \
 	       $(PARMETISDIR) $(PARMETISBUILDDATE) \
@@ -1242,29 +1234,6 @@ $(R3DBUILDDATE):	cache/$(R3DDIST)
 	$(CP) -f $(R3DDIR)/libr3d.a $(prefix)/lib
 	rm -fr $(R3DDIR)
 	touch $(R3DBUILDDATE)
-
-#-------------------------------------------------------------------------------
-# pybind11
-#-------------------------------------------------------------------------------
-cache/$(PYBIND11DIST):
-	@$(MKDIR) cache
-	$(CURL) -k "$(PYBIND11URL)" -o cache/$(PYBIND11DIST)
-
-$(PYBIND11BUILDDATE):  cache/$(PYBIND11DIST)
-	@echo "################################################################################"
-	@echo "# Building $(PYBIND11DIST)"
-	@echo "################################################################################"
-	@$(MKDIR) $(LIBDIR) $(prefix)/include
-	rm -fr $(PYBIND11DIR)
-	$(GZIP) -dc cache/$(PYBIND11DIST) | $(TAR) -xf -
-	$(SHELL) -ec 'cd $(PYBIND11DIR)/include; $(CP) -fr pybind11 $(prefix)/include'
-	@if ! test -e $(prefix)/include/pybind11; then \
-	echo "ERROR building PYBIND11."; \
-	rm -f $(PYBIND11BUILDDATE); \
-	exit 1; \
-	fi
-	rm -fr $(PYBIND11DIR)
-	touch $(PYBIND11BUILDDATE)
 
 #-------------------------------------------------------------------------------
 # Easy profile
