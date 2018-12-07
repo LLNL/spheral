@@ -76,3 +76,59 @@ Let's suppose the above binding source is stored in file ``Amodule_bindings.py``
 
 The ``@PYB11module`` decoration on ``A`` tells PYB11Generator how to generate the pybind11 code to correctly import ``A`` rather than generate ``A`` locally, as described in the `pybind11 documentation <https://pybind11.readthedocs.io/en/stable/advanced/misc.html#partitioning-code-over-multiple-extension-modules>`_.
 
+.. _non-template-to-template-inheritance:
+
+-----------------------------------------------------
+Non-templated class inheriting from a templated class
+-----------------------------------------------------
+
+PYB11Generator needs to know template parameters for templated classes in order to create concrete instantiations, but since Python does not have the concept of templates we have adopted a two-stage process for creating template class instantiations in PYB11 as described in :ref:`class-templates`.  However, if we have a non-templated class which inherits from a templated base, there is no longer the second-stage of this proceedure using :func:`PYB11TemplateClass` to instantiate the base with the proper template parameters.
+
+PYB11 offers a slightly kludgy way to handle this problem: since template parameters in PYB11Generator are really just specified with python dictionary matching, we can directly insert the proper template parameter choices in the appropriate dictionary for our non-templated descendant using ``@PYB11template_dict``.  This is best demonstrated by an example -- consider the following C++ class hierarchy:
+
+.. code-block:: cpp
+
+  template<typename Value1, typename Value2>
+  class A {
+  public:
+    A();
+    virtual ~A();
+    virtual std::string func(const Value1& x, const Value2& y) const;
+  };
+
+  class B: public A<double, int> {
+  public:
+    B();
+    virtual ~B();
+    virtual std::string func(const double& x, const int& y) const;
+  };
+
+PYB11Generator can represent this hierarchy with::
+
+  @PYB11template("Value1", "Value2")
+  class A:
+
+      def pyinit(self):
+          "Default A()"
+
+      @PYB11virtual
+      @PYB11const
+      def func(self, x="const %(Value1)s&", y="const %(Value2)s&"):
+          "Default A::func"
+          return "std::string"
+
+  @PYB11template()                                             # <--- force not to inherit template parameters from A
+  @PYB11template_dict({"Value1" : "double", "Value2" : "int"}) # <--- specify the template parameter substitutions
+  class B(A):
+
+      def pyinit(self):
+          "Default B()"
+
+      @PYB11virtual
+      @PYB11const
+      def func(self, x="const double&", y="const int&"):
+          "B::func override"
+          return "std::string"
+
+  # We still need to instantiate any versions of A that we need/use.
+  A_double_int = PYB11TemplateClass(A, template_parameters=("double", "int"))

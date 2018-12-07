@@ -138,6 +138,10 @@ we can simply reflect this object hiearchy in the PYB11Generator code::
 
    Cross module inheritance (binding a class in one module that inherits from a class bound in another) is a slightly trickier case.  See the discussion in :ref:`cross-module-inheritance` for an example of how to do this.
 
+.. Note::
+
+   Another esoteric case is having a non-templated class inherit from a templated one.  A method of handling this situation is discussed in :ref:`non-template-to-template-inheritance`.
+
 .. _class-methods:
 
 -------
