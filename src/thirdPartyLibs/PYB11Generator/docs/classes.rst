@@ -16,7 +16,7 @@ Binding classes in PYB11Generator is based on writing the desired interface as a
     std::string name;
   };
 
-This struct can be wrapped in straighforward fashion in PYB11Generator as:
+This struct can be wrapped in straightforward fashion in PYB11Generator as:
 
 .. code-block:: python
 
@@ -27,7 +27,7 @@ This struct can be wrapped in straighforward fashion in PYB11Generator as:
          return
 
       def setName(self,
-                 name = "const std::string&"):
+                  name = "const std::string&"):
           return "void"
 
       def getName(self):
@@ -208,7 +208,7 @@ Const'ness is a concept in C++ not shared by Python, so we use a decorator (``@P
     int square(const int x) const { return x*x; }  // Return the square of the argument
   };
 
-can be specfied in PYB11 using::
+can be specified in PYB11 using::
 
   class A:
 
@@ -262,7 +262,7 @@ All that is necessary to bind this code using PYB11Generator is the following::
       def go(self, n_times="int"):
           return "std::string"
 
-Now both ``Animal`` and ``Dog`` are accessible from Python, and PYB11Generator automatically generates the necessary trampoline classes such that the ``go`` method can be overriden by descendant Python classes as desired.  Note we have now introduced two new PYB11 decorators: ``PYB11virtual`` and ``PYB11pure_virtual``.  The use of these two should evident from their names and uses in this example:
+Now both ``Animal`` and ``Dog`` are accessible from Python, and PYB11Generator automatically generates the necessary trampoline classes such that the ``go`` method can be overridden by descendant Python classes as desired.  Note the use of the PYB11 decorators: ``PYB11virtual`` and ``PYB11pure_virtual``.  The use of these two should evident from their names and uses in this example:
 
 * ``PYB11virtual`` decorates C++ methods that are virtual (such as ``Dog::go``).
 
@@ -328,7 +328,7 @@ Numeric operators
 -----------------
 
 The numeric operators supported by PYB11Generator are ``__add__``, ``__sub__``, ``__mul__``, ``__div__``, ``__mod__``, ``__and__``, ``__xor__``, ``__or__``, ``__radd__``, ``__rsub__``, ``__rmul__``, ``__rdiv__``, ``__rmod__``, ``__rand__``, ``__rxor__``, ``__ror__``, 
-``__iadd__``, ``__isub__``, ``__imul__``, ``__idiv__``, ``__imod__``, ``__iand__``, ``__ixor__``, ``__ior__``, ``__neg__``, and ``__invert__``.
+``__iadd__``, ``__isub__``, ``__imul__``, ``__idiv__``, ``__imod__``, ``__iand__``, ``__ixor__``, ``__ior__``, ``__neg__``, and ``__invert__``.  Python descriptions of these methods are available `here <https://docs.python.org/2/reference/datamodel.html#emulating-numeric-types>`_.
 
 In the common case for binary operators where the argument is of the same type as the class we're binding, we can omit the the argument specification and return type.  However, in the case where the binary operator accepts a different C++ type, we need to specify this argument type in the usual PYB11 syntax for arguments and return types.
 
@@ -383,7 +383,7 @@ We can bind these numeric operations for the Python version of ``Vector3d`` with
 Comparison operators
 --------------------
 
-The comparison operators supported are ``__lt__``, ``__le__``, ``__eq__``, ``__ne__``, ``__gt__``, and ``__ge__``.  Usage of these methods (naturally all binary operators in this case) follow the same pattern as the numeric binary operators.  As an example, suppose our ``Vector3d`` class in the previous example also defined comparisons with with either ``Vector3d`` or ``double``:
+The `comparison operators <https://docs.python.org/2/reference/datamodel.html#object.__lt__>`_ supported are ``__lt__``, ``__le__``, ``__eq__``, ``__ne__``, ``__gt__``, and ``__ge__``.  Usage of these methods (naturally all binary operators in this case) follow the same pattern as the numeric binary operators.  As an example, suppose our ``Vector3d`` class in the previous example also defined comparisons with with either ``Vector3d`` or ``double``:
 
 .. code-block:: cpp
 
@@ -450,7 +450,7 @@ PYB11Generator automatically associates ``__call__`` with the C++ method ``opera
 Miscellaneous operators
 -----------------------
 
-Another pair other useful operators supported are ``__repr__`` and ``__str__``.  These are used to create string representations of objects or slightly different purposes, as explained in the offcial Python documentation for ``__repr__`` and ``__str__`` -- essentially ``__repr__`` should return a string representation of the object such that it could be reconstructed, vs. ``__str__`` which should produce a human friendly string.
+Another pair other useful operators supported are ``__repr__`` and ``__str__``.  These are used to create string representations of objects for slightly different purposes, as explained in the official `Python documentation <https://docs.python.org/2/reference/datamodel.html#object.__repr__>`_ -- essentially ``__repr__`` should return a string representation of the object such that it could be reconstructed, vs. ``__str__`` which should produce a human friendly string.
 
 Any function or method that produces such strings is fine to bind to these names (often via renaming such as ``@PYB11pyname("__str__")``), but a very common pattern is to use lambda functions with the :func:`PYB11implementation` decorator to implement these methods directly in the binding code.  As one example, we might bind useful versions of these operators for the example C++ class ``Vector3d`` above as::
 
@@ -469,7 +469,7 @@ Sequence methods
 
 Probably the first thing to point out here is this section is *not* necessary for handling STL containers: pybind11 has built-in support for :ref:`pybind11:stl_bind`, which PYB11Generator provides convenient wrappers for.  In fact, so long as implicit copying of STL containers through the Python-C++ interface is acceptable, nothing need be done with STL containers at all -- they will automatically be handled by pybind11 transparently.
 
-Binding the Python sequence methods for your own C++ types can at times be a complicated process, and there is not necessarily a single solution that fits all cases.  There are several interfaces in Python you can override to provide sequence information: ``__len__``, ``__getitem__``, ``__setitem__``, ``__getslice__``, ``__setslice__``, ``__iter__``, etc.  PYB11Generator allows all these methods to be used via pybind11, but it definitely behooves the interested user to thoroughly understand the `pybind11 <https://pybind11.readthedocs.io/en/stable/advanced/misc.html#binding-sequence-data-types-iterators-the-slicing-protocol-etc>`_ and `Python <https://docs.python.org/2/reference/datamodel.html#emulating-container-types>`_ documentation on this subject.  It will often require writing some lightweight interstitial code to translate C++ container information to Python and back, for which lambda functions and the :py:func:`PYB11implementation` decorator are handy.
+Binding the Python sequence methods for your own C++ types can at times be a complicated process, and there is not necessarily a single solution that fits all cases.  There are `several methods <https://docs.python.org/2/reference/datamodel.html#emulating-container-types>`_ in Python you can override to provide sequence information: ``__len__``, ``__getitem__``, ``__setitem__``, ``__getslice__``, ``__setslice__``, ``__iter__``, etc.  PYB11Generator allows all these methods to be used via pybind11, but it definitely behooves the interested user to thoroughly understand the `pybind11 <https://pybind11.readthedocs.io/en/stable/advanced/misc.html#binding-sequence-data-types-iterators-the-slicing-protocol-etc>`_ and `Python <https://docs.python.org/2/reference/datamodel.html#emulating-container-types>`_ documentation on this subject.  It will often require writing some lightweight interstitial code to translate C++ container information to Python and back, for which lambda functions and the :py:func:`PYB11implementation` decorator are handy.
 
 As the bare beginning of an example, here is a version of one of the pybind11 test C++ sequence classes (stripped to just the interface) drawn from the ``pybind11/tests/test_sequences_and_iterators.cpp`` test code:
 
@@ -680,7 +680,7 @@ This method has the advantage we are using all ordinary python constructs, which
 
 .. Note::
 
-   In this example we have also exposed the ``getx`` and ``setx`` methods to be bound in pybind11.  If this is not desired, we can decorate these methods with ``@PYB11ignore``, allowing these methods to be used in the :py:func:`property` definition while preventing them from being directly exposed themselves.
+   In this second example we have also exposed the ``getx`` and ``setx`` methods to be bound in pybind11.  If this is not desired, we can decorate these methods with ``@PYB11ignore``, allowing these methods to be used in the :py:func:`property` definition while preventing them from being directly exposed themselves.
 
 .. _dynamic-attributes:
 
@@ -736,7 +736,7 @@ pybind11 (via its use of ``std::unique_ptr`` to hold Python instances) assumes b
       def instance(self):
           return "Asingleton*"
 
-This example also involves setting a policy for handling the memory of the ``Asingle*`` returned by ``A.instance``: these sorts of memory mangement details are discussed in :ref:`return-policies`.
+This example also involves setting a policy for handling the memory of the ``Asingleton*`` returned by ``A.instance``: these sorts of memory management details are discussed in :ref:`return-policies`.
 
 .. _class-templates:
 

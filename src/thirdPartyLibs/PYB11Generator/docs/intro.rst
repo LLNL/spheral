@@ -1,9 +1,12 @@
 .. _intro:
 
+==============================
 Introduction to PYB11Generator
 ==============================
 
-Using PYB11Generator to write the interface for a C++ binding is intended to emulate writing that same interface in Python, so if you're familiar with Python it should be easy to get started with PYB11Generator.  As an example, if we have a header for a C++ function that looks like::
+Using PYB11Generator to write the interface for a C++ binding is intended to emulate writing that same interface in Python, so if you're familiar with Python it should be easy to get started with PYB11Generator.  As an example, if we have a header for a C++ function that looks like:
+
+.. code-block:: cpp
 
    // A really important function!
    int func();
@@ -15,6 +18,23 @@ We can define the PYB11Generator prescription for binding this method by writing
       return "int"
 
 Wherever possible we try to use ordinary python syntax to correspond to pybind11/C++ constructs: python functions correspond to and generate binding code for C++ functions as above; a python class generates binding code for pybind11 to bind a C++ class; arguments for functions and methods in python generate corresponding argument specifications in C++ function pointer syntax.  Because Python is not a strongly typed language, we specify C++ types using strings (if needed) as above, where we specify the return ``int`` type by returning the string ``"int"`` from ``func``.  We also use Python decorators to annotate Python methods with uniquely C++ concepts such as ``const``, ``virtual``, etc., as will be discussed in succeeding sections.
+
+.. _installation:
+
+Installation
+------------
+
+PYB11Generator uses the Python Package Index `PyPI <https://pypi.org/>`_ to simplify installation of PYB11Generator, so installing PYB11Generator is simply a matter of requesting it using `pip <https://packaging.python.org/tutorials/installing-packages/>`_::
+
+  $ pip install PYB11Generator
+
+This command installs PYB11Generator as a package in the python you are using (i.e., the associated with the ``pip`` command).  pybind11 should automatically be installed by ``pip`` as a dependency of PYB11Generator, so after this command you are ready to try out pybind11 and PYB11Generator.
+
+For those curious, the source for PYB11Generator is hosted on `github <https://github.com/jmikeowen/pyb11generator>`_.
+
+.. todo::
+
+   Don't forget to get this stuff installed on PyPI!
 
 .. _the-basics:
 
@@ -32,7 +52,9 @@ resulting in the creation of a C++ source file ``mymodule.cc``.  A full descript
 A first example start to finish
 -------------------------------
 
-To explicitly demonstrate the stages of creating bindings using PYB11Generator, here we recreate an early example in the pybind11 documentation: :ref:`pybind11:simple_example`.  Say we want to wrap the following C++ method::
+To explicitly demonstrate the stages of creating bindings using PYB11Generator, here we recreate an early example in the pybind11 documentation: :ref:`pybind11:simple_example`.  Say we want to wrap the following C++ method:
+
+.. code-block:: cpp
 
   int add(int i, int j) {
     return i + j;
@@ -54,9 +76,11 @@ We can use PYB11Generator to create the same pybind11 code used to wrap this met
 
 Now executing the command::
 
-  python -c 'from PYB11Generator import *; import simple_example; PYB11generateModule(simple_example, "example")'
+  $ python -c 'from PYB11Generator import *; import simple_example; PYB11generateModule(simple_example, "example")'
 
-creates a file ``example.cc``, which looks like (omitting the boilerplate preamble code with ``#include``'s)::
+creates a file ``example.cc``, which looks like (omitting the boilerplate preamble code with ``#include``'s):
+
+.. code-block:: cpp
 
   int add(int i, int j) {
     return i + j;
@@ -81,14 +105,14 @@ This is identical to the native pybind11 binding code from the pybind11 tutorial
 A few things worth noting:
 
 * This example uses the fact that if the function being wrapped is unambiguous, we can use a bare C++ function pointer (without the full explicit function prescription).  This is reflected in the PYB11Generator syntax when we write the ``def add()`` function in python without arguments or a return type.
-* In order to directly insert the C++ function definition into the resulting C++ file, we have used the special variable ``PYB11preamble`` variable.  A more typical use case will require ``#include`` ing the necessary C++ header files in the generated code, which is accomplished through another special variable, ``PYB11includes``, described later.
+* In order to directly insert the C++ function definition into the resulting C++ file, we have used the special variable ``PYB11preamble`` variable.  A more typical use case will require ``#include``-ing the necessary C++ header files in the generated code, which is accomplished through another special variable, ``PYB11includes``, described in :ref:`variables`.
 * In general special variables and commands to PYB11Generator use the prefix ``PYB11`` such as ``PYB11preamble`` in this example.
 * Note also that ordinary Python doc strings (both for the module and function) are picked up from ``simple_example.py`` and propagated to the pybind11 bindings.
 
 This example demonstrates the steps necessary to create a usable python module using PYB11Generator:
 
-* Create a python file describing the desired interface using ordinary python syntax, based on the C++ methods and classes to be bound.
-* Run a python line like above to generate the pybind11 C++ code from this python input.
-* Compile the resulting pybind11 C++ code to create the python shared module.
+#. Create a python file describing the desired interface using ordinary python syntax, based on the C++ methods and classes to be bound.
+#. Run a python line like above to generate the pybind11 C++ code from this python input.
+#. Compile the resulting pybind11 C++ code to create the python shared module.
 
 In the following sections we describe the nuances of creating the PYB11 python input files in much more detail; we will not show the compilation examples beyond this point since it is no different than using pybind11 directly, and the above example pretty much covers it.
