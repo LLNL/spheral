@@ -52,7 +52,7 @@ Decorating return values from class methods is identical to functions: simply us
 Call policies
 =============
 
-While :ref:`return-policies` are specific to return types from functions or methods, call policies allow the user to tie together the lifetimes of return values and/or arguments.  This is discussed in depth in the pybind11 documentation :ref:`pybind11:call_policies`.  PYB11 provides the decorator ``@PYB11keepalive(a, b)`` for direct access to the pybind11 command ``py::keep_alive<a, b>``.  The arguments to the decorator ``a`` and ``b`` are integers indicating arguments in the call signature by positon index, with the convention:
+While :ref:`return-policies` are specific to return types from functions or methods, call policies allow the user to tie together the lifetimes of return values and/or arguments.  This is discussed in depth in the pybind11 documentation :ref:`pybind11:call_policies`.  PYB11 provides the decorator ``@PYB11keepalive(a, b)`` for direct access to the pybind11 command ``py::keep_alive<a, b>``.  The arguments to the decorator ``a`` and ``b`` are integers indicating arguments in the call signature by position index, with the convention:
 
    * 0 denotes the return value of the function/method.
 

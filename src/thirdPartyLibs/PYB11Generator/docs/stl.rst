@@ -18,7 +18,7 @@ Suppose we want to bind ``std::vector<int>`` and ``std::vector<Aclass>`` in our 
   vector_of_int = PYB11_bind_vector("int", opaque=True)
   vector_of_Aclass = PYB11_bind_vector("Aclass", opaque=True)
 
-When we import the resulting compiled module it will now include the types ``vector_of_int`` and ``vector_of_Aclass`` explicitly, and we need to deal in those types rather than the more convenient Python lists for arguments of those types.  The ``opaque`` argument here is what makes pybind11 treat these vector's as mutable refrences through the Python/C++ interface.  We also have the option of making these bindings local to the module or global: see :func:`PYB11_bind_vector` for the full description.
+When we import the resulting compiled module it will now include the types ``vector_of_int`` and ``vector_of_Aclass`` explicitly, and we need to deal in those types rather than the more convenient Python lists for arguments of those types.  The ``opaque`` argument here is what makes pybind11 treat these vector's as mutable references through the Python/C++ interface.  We also have the option of making these bindings local to the module or global: see :func:`PYB11_bind_vector` for the full description.
 
 std::map
 ========

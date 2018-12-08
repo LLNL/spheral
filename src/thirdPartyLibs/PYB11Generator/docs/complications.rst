@@ -70,11 +70,11 @@ Let's suppose the above binding source is stored in file ``Amodule_bindings.py``
           "B::func"
           return "int"
 
+The ``@PYB11module`` decoration on ``A`` tells PYB11Generator how to generate the pybind11 code to correctly import ``A`` rather than generate ``A`` locally, as described in the `pybind11 documentation <https://pybind11.readthedocs.io/en/stable/advanced/misc.html#partitioning-code-over-multiple-extension-modules>`_.
+
 .. Note::
 
    It is critical here in the bindings for ``Bmodule`` that we use ``import Amodule_bindings``, and do *not* import ``A`` into the local scope using ``from Amodule_bindings import A``!  If we put ``A`` in the top-level scope of our bindings for ``B``, the binding code for ``A`` will be generated redundantly in the new bindings, and cause a conflict when we try to import the two modules together.
-
-The ``@PYB11module`` decoration on ``A`` tells PYB11Generator how to generate the pybind11 code to correctly import ``A`` rather than generate ``A`` locally, as described in the `pybind11 documentation <https://pybind11.readthedocs.io/en/stable/advanced/misc.html#partitioning-code-over-multiple-extension-modules>`_.
 
 .. _non-template-to-template-inheritance:
 
@@ -82,7 +82,7 @@ The ``@PYB11module`` decoration on ``A`` tells PYB11Generator how to generate th
 Non-templated class inheriting from a templated class
 -----------------------------------------------------
 
-PYB11Generator needs to know template parameters for templated classes in order to create concrete instantiations, but since Python does not have the concept of templates we have adopted a two-stage process for creating template class instantiations in PYB11 as described in :ref:`class-templates`.  However, if we have a non-templated class which inherits from a templated base, there is no longer the second-stage of this proceedure using :func:`PYB11TemplateClass` to instantiate the base with the proper template parameters.
+PYB11Generator needs to know template parameters for templated classes in order to create concrete instantiations, but since Python does not have the concept of templates we have adopted a two-stage process for creating template class instantiations in PYB11 as described in :ref:`class-templates`.  However, if we have a non-templated class which inherits from a templated base, there is no longer the second-stage of this procedure using :func:`PYB11TemplateClass` to instantiate the base with the proper template parameters.
 
 It is possible to handle this situation, but it requires two decorations be applied to the non-templated descendant:
 
