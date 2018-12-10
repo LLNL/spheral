@@ -1175,11 +1175,9 @@ void
 SpheralPseudoScript<Dimension>::
 generateCylFromRZ(const int*     nnodes,
                   const double** coords,
-                  const double*  mass,
                   const double** htensor,
                   int*           nparticles,
                   double**       sphcoords,
-                  double*        sphmass,
                   double**       sphhtensor) {
 
   std::vector< double > xvec, yvec, zvec, mvec;
@@ -1192,7 +1190,7 @@ generateCylFromRZ(const int*     nnodes,
     xvec.push_back(coords[0][i]);
     yvec.push_back(coords[1][i]);
     zvec.push_back(0.0);
-    mvec.push_back(mass[i]);
+    mvec.push_back(1.0);
     gids.push_back(counter);
     ++counter;
   }

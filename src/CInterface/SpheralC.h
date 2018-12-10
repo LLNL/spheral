@@ -355,11 +355,9 @@ SPHERALDLL_API
 void spheral_generate_cyl(const int      ndims,
                           const int*     nnodes,
                           const double** coords,
-                          const double*  mass,
                           const double** htensor,
                           int*           nparticles,
                           double**       sphcoords,
-                          double*        sphmass,
                           double**       sphhtensor);
 
 /*------------------------------------------------------------------------------
