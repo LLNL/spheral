@@ -46,19 +46,19 @@ PYB11includes = ['"Geometry/Dimension.hh"',
                  '<vector>',
                  '<sstream>']
 
-# STL containers
-for element in geomtypes:
-    for ndim in (1, 2, 3):
-        exec('''
-vector_of_%(mangle)s = PYB11_bind_vector("%(element)s", opaque=True, local=False)
-vector_of_vector_of_%(mangle)s = PYB11_bind_vector("std::vector<%(element)s>", opaque=True, local=False)
-''' % {"element": "Dim<" + str(ndim) + ">::" + element,
-       "mangle" : element + str(ndim) + "d"})
-vector_of_Facet2d = PYB11_bind_vector("GeomFacet2d", opaque=True, local=False)
-vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True, local=False)
-vector_of_Plane1d = PYB11_bind_vector("GeomPlane<Dim<1>>", opaque=True, local=False)
-vector_of_Plane2d = PYB11_bind_vector("GeomPlane<Dim<2>>", opaque=True, local=False)
-vector_of_Plane3d = PYB11_bind_vector("GeomPlane<Dim<3>>", opaque=True, local=False)
+# # STL containers
+# for element in geomtypes:
+#     for ndim in (1, 2, 3):
+#         exec('''
+# vector_of_%(mangle)s = PYB11_bind_vector("%(element)s", opaque=True, local=False)
+# vector_of_vector_of_%(mangle)s = PYB11_bind_vector("std::vector<%(element)s>", opaque=True, local=False)
+# ''' % {"element": "Dim<" + str(ndim) + ">::" + element,
+#        "mangle" : element + str(ndim) + "d"})
+# vector_of_Facet2d = PYB11_bind_vector("GeomFacet2d", opaque=True, local=False)
+# vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True, local=False)
+# vector_of_Plane1d = PYB11_bind_vector("GeomPlane<Dim<1>>", opaque=True, local=False)
+# vector_of_Plane2d = PYB11_bind_vector("GeomPlane<Dim<2>>", opaque=True, local=False)
+# vector_of_Plane3d = PYB11_bind_vector("GeomPlane<Dim<3>>", opaque=True, local=False)
 
 # Get the objects wrapped in other files.
 from Vector import Vector1d, Vector2d, Vector3d
