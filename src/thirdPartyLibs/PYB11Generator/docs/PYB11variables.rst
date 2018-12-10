@@ -30,6 +30,11 @@ PYB11namespaces = [...]
     using namespace extreme;
     using namespace measures;
 
+PYB11scopenames = [...]
+  A list of C++ types we want to directly declare with ``use`` (more focused than importing an entire namespace.  In order to decare we want to use ``std::vector`` and ``MyNameSpace::A``, we could use::
+
+    PYB11scopenames = ["std::vector", "MyNameSpace::A"]
+
 PYB11preamble = "..."
   PYB11preamble is used to specify a string of arbitrary C++ code that will be inserted near the top of the generated pybind11 source file.  ``PYB11preamble`` is a bit of catch-all, we could for instance directly perform the tasks of ``PYB11includes`` and ``PYB11namespace`` using ``PYB11preamble`` by simply typing the final C++ code in here.  One typical usage of this preamble variable is to insert small inline utility methods directly in the final C++ code.  For instance, if we had need of a simple function we want to use in the subsequent bindings, we could do something like::
   
@@ -39,6 +44,11 @@ PYB11preamble = "..."
     }"""
 
   and now our generated code will include this function.
+
+PYB11opaque = [...]
+  A list of C++ types we want to be treated as opaque: typically STL types declared as opaque and global in another module.  See :ref:`stl` for further information.  As an example, to declare that ``std::vector<int>`` and ``std::vector<std::string>`` are declared as opaque in another module::
+
+    PYB11opaque = ["std::vector<int>", "std::vector<std::string>"]
 
 Note all three of these reserved variables affect the start of the generated pybind11 C++ code, coming before any of the function, class, module, or other pybind11 declarations that are subsequently generated.  The order that these methods are executed in is the same as they are listed above: first any ``PYB11includes``, then ``PYB11namespaces``, and finally ``PYB11preamble``.  If we were to include all three of the above examples (in any order) in a single source code for instance like so::
 
