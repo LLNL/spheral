@@ -5,7 +5,7 @@
 # passing in the units as a constructor argument.  The interfaces & names for 
 # the equations of state provided here emulate the original interfaces.
 #-------------------------------------------------------------------------------
-from SpheralModules.Spheral import PhysicalConstants
+from SpheralCompiledPackages import PhysicalConstants
 from MaterialUnits import MKS, CGS, Cosmological, Solar
 from SolidMaterialUnits import CGuS
 
@@ -14,11 +14,11 @@ dims = spheralDimensions()
 
 for dim in dims:
     exec("""
-from SpheralModules.Spheral import (LinearPolynomialEquationOfState%(dim)sd,
-                                    GruneisenEquationOfState%(dim)sd,
-                                    MurnahanEquationOfState%(dim)sd,
-                                    TillotsonEquationOfState%(dim)sd,
-                                    SteinbergGuinanStrength%(dim)sd)
+from SpheralCompiledPackages import (LinearPolynomialEquationOfState%(dim)sd,
+                                     GruneisenEquationOfState%(dim)sd,
+                                     MurnahanEquationOfState%(dim)sd,
+                                     TillotsonEquationOfState%(dim)sd,
+                                     SteinbergGuinanStrength%(dim)sd)
 """ % {"dim" : dim})
 
 EOSFactoryString = """

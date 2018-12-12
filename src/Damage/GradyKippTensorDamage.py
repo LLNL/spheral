@@ -1,5 +1,5 @@
 import copy
-from SolidSpheral import *
+from SpheralCompiledPackages import *
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
 from spheralDimensions import spheralDimensions
@@ -188,18 +188,18 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
                    file,
                    pathName):
         TensorDamageModel%(dim)s.dumpState(self, file, pathName)
-        file.writeObject(self.kWeibull, pathName + "/kWeibull")
-        file.writeObject(self.mWeibull, pathName + "/mWeibull")
-        file.writeObject(self.seed, pathName + "/seed")
+        #file.writeObject(self.kWeibull, pathName + "/kWeibull")
+        #file.writeObject(self.mWeibull, pathName + "/mWeibull")
+        #file.writeObject(self.seed, pathName + "/seed")
         return
 
     def restoreState(self,
                       file,
                       pathName):
         TensorDamageModel%(dim)s.restoreState(self, file, pathName)
-        self.kWeibull = file.readObject(pathName + "/kWeibull")
-        self.mWeibull = file.readObject(pathName + "/mWeibull")
-        self.seed = file.readObject(pathName + "/seed")
+        #self.kWeibull = file.readObject(pathName + "/kWeibull")
+        #self.mWeibull = file.readObject(pathName + "/mWeibull")
+        #self.seed = file.readObject(pathName + "/seed")
         return
 
 """
@@ -321,18 +321,18 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
                    file,
                    pathName):
         TensorDamageModel%(dim)s.dumpState(self, file, pathName)
-        file.writeObject(self.kWeibull, pathName + "/kWeibull")
-        file.writeObject(self.mWeibull, pathName + "/mWeibull")
-        file.writeObject(self.seed, pathName + "/seed")
+        # file.writeObject(self.kWeibull, pathName + "/kWeibull")
+        # file.writeObject(self.mWeibull, pathName + "/mWeibull")
+        # file.writeObject(self.seed, pathName + "/seed")
         return
 
     def restoreState(self,
                       file,
                       pathName):
         TensorDamageModel%(dim)s.restoreState(self, file, pathName)
-        self.kWeibull = file.readObject(pathName + "/kWeibull")
-        self.mWeibull = file.readObject(pathName + "/mWeibull")
-        self.seed = file.readObject(pathName + "/seed")
+        # self.kWeibull = file.readObject(pathName + "/kWeibull")
+        # self.mWeibull = file.readObject(pathName + "/mWeibull")
+        # self.seed = file.readObject(pathName + "/seed")
         return
 
 """

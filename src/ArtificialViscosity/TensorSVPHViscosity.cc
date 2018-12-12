@@ -245,7 +245,7 @@ fslice() const {
 template<typename Dimension>
 void
 TensorSVPHViscosity<Dimension>::
-fslice(const typename Dimension::Scalar x) {
+fslice(typename Dimension::Scalar x) {
   VERIFY(x >= 0.0 and x <= 1.0);
   mfslice = x;
 }

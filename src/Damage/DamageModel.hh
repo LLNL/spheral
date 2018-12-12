@@ -104,7 +104,7 @@ public:
 
   // Allow the user to specify a set of nodes to be excluded from damage.
   std::vector<int> excludeNodes() const;
-  void excludeNodes(const std::vector<int>& ids);
+  void excludeNodes(std::vector<int> ids);
 
   // Provide access to the state fields we maintain.
   const Field<Dimension, Scalar>& youngsModulus() const;
@@ -126,7 +126,7 @@ public:
   // The effective critical number of nodes per smoothing scale, below which we
   // assume all flaws are active on a node.
   double criticalNodesPerSmoothingScale() const;
-  void criticalNodesPerSmoothingScale(const double x);
+  void criticalNodesPerSmoothingScale(double x);
 
   //**************************************************************************
   // Restart methods.

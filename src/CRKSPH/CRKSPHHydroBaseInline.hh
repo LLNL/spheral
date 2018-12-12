@@ -15,7 +15,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-densityUpdate(const MassDensityType type) {
+densityUpdate(MassDensityType type) {
   mDensityUpdate = type;
 }
 
@@ -33,7 +33,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-HEvolution(const HEvolutionType type) {
+HEvolution(HEvolutionType type) {
   mHEvolution = type;
 }
 
@@ -51,7 +51,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-correctionOrder(const CRKOrder order) {
+correctionOrder(CRKOrder order) {
   mCorrectionOrder = order;
 }
 
@@ -69,7 +69,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-volumeType(const CRKVolumeType x) {
+volumeType(CRKVolumeType x) {
   mVolumeType = x;
 }
 
@@ -87,7 +87,7 @@ CRKSPHHydroBase<Dimension>::compatibleEnergyEvolution() const {
 template<typename Dimension>
 inline
 void
-CRKSPHHydroBase<Dimension>::compatibleEnergyEvolution(const bool val) {
+CRKSPHHydroBase<Dimension>::compatibleEnergyEvolution(bool val) {
   mCompatibleEnergyEvolution = val;
 }
 
@@ -104,7 +104,7 @@ CRKSPHHydroBase<Dimension>::evolveTotalEnergy() const {
 template<typename Dimension>
 inline
 void
-CRKSPHHydroBase<Dimension>::evolveTotalEnergy(const bool val) {
+CRKSPHHydroBase<Dimension>::evolveTotalEnergy(bool val) {
   mEvolveTotalEnergy = val;
 }
 
@@ -121,7 +121,7 @@ CRKSPHHydroBase<Dimension>::XSPH() const {
 template<typename Dimension>
 inline
 void
-CRKSPHHydroBase<Dimension>::XSPH(const bool val) {
+CRKSPHHydroBase<Dimension>::XSPH(bool val) {
   mXSPH = val;
 }
 
@@ -149,7 +149,7 @@ CRKSPHHydroBase<Dimension>::filter() const {
 template<typename Dimension>
 inline
 void
-CRKSPHHydroBase<Dimension>::filter(const double val) {
+CRKSPHHydroBase<Dimension>::filter(double val) {
   // VERIFY(val >= 0.0 and val <= 1.0);
   mfilter = val;
 }
@@ -168,7 +168,7 @@ epsilonTensile() const {
 template<typename Dimension>
 void
 CRKSPHHydroBase<Dimension>::
-epsilonTensile(const typename Dimension::Scalar val) {
+epsilonTensile(typename Dimension::Scalar val) {
   mEpsTensile = val;
 }
 
@@ -187,7 +187,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-nTensile(const typename Dimension::Scalar val) {
+nTensile(typename Dimension::Scalar val) {
   mnTensile = val;
 }
     
@@ -206,7 +206,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-correctionMin(const double val) {
+correctionMin(double val) {
   mCorrectionMin = val;
 }
     
@@ -222,7 +222,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-correctionMax(const double val) {
+correctionMax(double val) {
   mCorrectionMax = val;
 }
     

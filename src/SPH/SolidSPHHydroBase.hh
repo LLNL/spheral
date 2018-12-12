@@ -107,7 +107,7 @@ public:
 
   // Control whether allow damaged material to have stress relieved.
   bool damageRelieveRubble() const;
-  void damageRelieveRubble(const bool x);
+  void damageRelieveRubble(bool x);
 
   //****************************************************************************
   // Methods required for restarting.
@@ -128,9 +128,6 @@ private:
   FieldList<Dimension, Scalar> mYieldStrength;
   FieldList<Dimension, Scalar> mPlasticStrain0;
   FieldList<Dimension, SymTensor> mHfield0;
-
-  // The restart registration.
-  RestartRegistrationType mRestart;
 
   // No default constructor, copying, or assignment.
   SolidSPHHydroBase();

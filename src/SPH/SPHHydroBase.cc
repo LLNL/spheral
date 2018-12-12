@@ -1288,7 +1288,7 @@ updateVolume(State<Dimension>& state,
 template<typename Dimension>
 void
 SPHHydroBase<Dimension>::
-dumpState(FileIO& file, string pathName) const {
+dumpState(FileIO& file, const string& pathName) const {
   file.write(mTimeStepMask, pathName + "/timeStepMask");
   file.write(mPressure, pathName + "/pressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
@@ -1328,7 +1328,7 @@ dumpState(FileIO& file, string pathName) const {
 template<typename Dimension>
 void
 SPHHydroBase<Dimension>::
-restoreState(const FileIO& file, string pathName) {
+restoreState(const FileIO& file, const string& pathName) {
  
   file.read(mTimeStepMask, pathName + "/timeStepMask");
   file.read(mPressure, pathName + "/pressure");

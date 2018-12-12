@@ -189,7 +189,7 @@ if iterateH:
 weight = ScalarFieldList()                         # No weights
 damage = SymTensorFieldList()                      # No damage
 gradRho = db.newFluidVectorFieldList(Vector.zero, "grad rho")
-holes = vector_of_vector_of_FacetedVolume(1)
+holes = vector_of_vector_of_FacetedVolume([vector_of_FacetedVolume()])
 surfacePoint = db.newFluidIntFieldList(0, HydroFieldNames.surfacePoint)
 voidPoint = db.newFluidIntFieldList(0, HydroFieldNames.voidPoint)
 vol = db.newFluidScalarFieldList(0.0, HydroFieldNames.volume)

@@ -291,9 +291,6 @@ public:
   void globalSamplingBoundingBoxes(std::vector<Vector>& xminima,
                                    std::vector<Vector>& xmaxima) const;
 
-  // Make each fluid node list update their mass densities.
-  void updateFluidMassDensity() const;
-
   // Provide a method to determine if the DataBase is in a minimally defined
   // valid state.
   bool valid() const;

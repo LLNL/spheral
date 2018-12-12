@@ -11,9 +11,13 @@
 
 #include <vector>
 #include <random>
+#include <string>
 
 namespace Spheral {
 
+using std::vector;
+using std::string;
+using std::to_string;
 
 namespace {  // anonymous
 

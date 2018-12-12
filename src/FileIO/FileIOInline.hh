@@ -103,6 +103,7 @@ FileIO::read(FieldList<Dimension, DataType>& fieldList,
     varPath << pathName << "/Field" << elementID;
 
     read(**fieldItr, varPath.str());
+    // std::cerr << "  AFTER READING Field: " << (**fieldItr).size() << std::endl;
   }
 }
 
@@ -188,35 +189,82 @@ FileIO::read(Field<Dimension, std::vector<DataType> >& field,
 //------------------------------------------------------------------------------
 // Write a std::vector<DataType>.
 //------------------------------------------------------------------------------
+// Generic method
 template<typename DataType>
 inline
 void
 FileIO::write(const std::vector<DataType>& x, const std::string pathName) {
-  const int numElements = x.size();
-  write(numElements, pathName + "/numElements");
-  for (int i = 0; i != numElements; ++i) {
-    std::stringstream elementPathName;
-    elementPathName << pathName << "/" << i << std::ends;
-    write(x[i], elementPathName.str());
-  }
+  std::vector<char> buf;
+  packElement(x, buf);
+  std::string bufstr(buf.begin(), buf.end());
+  this->write(bufstr, pathName);
 }
+
+// Specialize for some types that can be treated as arrays of doubles more efficiently/portably
+//..............................................................................
+template<typename Value>
+inline
+void
+FileIO::writeVector(const std::vector<Value>& x, const std::string pathName) {
+  const auto n = x.size();
+  const auto ne = Value::numElements;
+  std::vector<double> buf(n*ne);
+  for (auto i = 0; i < n; ++i) std::copy(x[i].begin(), x[i].end(), &buf[i*ne]);
+  this->write(buf, pathName);
+}
+template<> inline void FileIO::write<Dim<1>::Vector>         (const std::vector<Dim<1>::Vector>& x,          const std::string pathName) { this->writeVector(x, pathName); }
+template<> inline void FileIO::write<Dim<1>::Tensor>         (const std::vector<Dim<1>::Tensor>& x,          const std::string pathName) { this->writeVector(x, pathName); }
+template<> inline void FileIO::write<Dim<1>::SymTensor>      (const std::vector<Dim<1>::SymTensor>& x,       const std::string pathName) { this->writeVector(x, pathName); }
+template<> inline void FileIO::write<Dim<1>::ThirdRankTensor>(const std::vector<Dim<1>::ThirdRankTensor>& x, const std::string pathName) { this->writeVector(x, pathName); }
+template<> inline void FileIO::write<Dim<2>::Vector>         (const std::vector<Dim<2>::Vector>& x,          const std::string pathName) { this->writeVector(x, pathName); }
+template<> inline void FileIO::write<Dim<2>::Tensor>         (const std::vector<Dim<2>::Tensor>& x,          const std::string pathName) { this->writeVector(x, pathName); }
+template<> inline void FileIO::write<Dim<2>::SymTensor>      (const std::vector<Dim<2>::SymTensor>& x,       const std::string pathName) { this->writeVector(x, pathName); }
+template<> inline void FileIO::write<Dim<2>::ThirdRankTensor>(const std::vector<Dim<2>::ThirdRankTensor>& x, const std::string pathName) { this->writeVector(x, pathName); }
+template<> inline void FileIO::write<Dim<3>::Vector>         (const std::vector<Dim<3>::Vector>& x,          const std::string pathName) { this->writeVector(x, pathName); }
+template<> inline void FileIO::write<Dim<3>::Tensor>         (const std::vector<Dim<3>::Tensor>& x,          const std::string pathName) { this->writeVector(x, pathName); }
+template<> inline void FileIO::write<Dim<3>::SymTensor>      (const std::vector<Dim<3>::SymTensor>& x,       const std::string pathName) { this->writeVector(x, pathName); }
+template<> inline void FileIO::write<Dim<3>::ThirdRankTensor>(const std::vector<Dim<3>::ThirdRankTensor>& x, const std::string pathName) { this->writeVector(x, pathName); }
 
 //------------------------------------------------------------------------------
 // Read a std::vector<DataType>.
 //------------------------------------------------------------------------------
+// Generic method
 template<typename DataType>
 inline
 void
 FileIO::read(std::vector<DataType>& x, const std::string pathName) const {
-  int numElements;
-  read(numElements, pathName + "/numElements");
-  x.resize(numElements);
-  CHECK(x.size() == numElements);
-  for (int i = 0; i != numElements; ++i) {
-    std::stringstream elementPathName;
-    elementPathName << pathName << "/" << i << std::ends;
-    read(x[i], elementPathName.str());
-  }
+  std::string bufstr;
+  this->read(bufstr, pathName);
+  const std::vector<char> buf(bufstr.begin(), bufstr.end());
+  auto itr = buf.begin();
+  unpackElement(x, itr, buf.end());
+  ENSURE(itr == buf.end());
 }
+
+// Specialize for some types that can be treated as arrays of doubles more efficiently/portably
+//..............................................................................
+template<typename Value>
+inline
+void
+FileIO::readVector(std::vector<Value>& x, const std::string pathName) const {
+  std::vector<double> buf;
+  this->read(buf, pathName);
+  const auto ne = Value::numElements;
+  const auto n = buf.size()/ne;
+  x.resize(n);
+  for (auto i = 0; i < n; ++i) std::copy(&buf[i*ne], &buf[(i+1)*ne], x[i].begin());
+}
+template<> inline void FileIO::read<Dim<1>::Vector>          (std::vector<Dim<1>::Vector>& x,          const std::string pathName) const { this->readVector(x, pathName); }
+template<> inline void FileIO::read<Dim<1>::Tensor>          (std::vector<Dim<1>::Tensor>& x,          const std::string pathName) const { this->readVector(x, pathName); }
+template<> inline void FileIO::read<Dim<1>::SymTensor>       (std::vector<Dim<1>::SymTensor>& x,       const std::string pathName) const { this->readVector(x, pathName); }
+template<> inline void FileIO::read<Dim<1>::ThirdRankTensor> (std::vector<Dim<1>::ThirdRankTensor>& x, const std::string pathName) const { this->readVector(x, pathName); }
+template<> inline void FileIO::read<Dim<2>::Vector>          (std::vector<Dim<2>::Vector>& x,          const std::string pathName) const { this->readVector(x, pathName); }
+template<> inline void FileIO::read<Dim<2>::Tensor>          (std::vector<Dim<2>::Tensor>& x,          const std::string pathName) const { this->readVector(x, pathName); }
+template<> inline void FileIO::read<Dim<2>::SymTensor>       (std::vector<Dim<2>::SymTensor>& x,       const std::string pathName) const { this->readVector(x, pathName); }
+template<> inline void FileIO::read<Dim<2>::ThirdRankTensor> (std::vector<Dim<2>::ThirdRankTensor>& x, const std::string pathName) const { this->readVector(x, pathName); }
+template<> inline void FileIO::read<Dim<3>::Vector>          (std::vector<Dim<3>::Vector>& x,          const std::string pathName) const { this->readVector(x, pathName); }
+template<> inline void FileIO::read<Dim<3>::Tensor>          (std::vector<Dim<3>::Tensor>& x,          const std::string pathName) const { this->readVector(x, pathName); }
+template<> inline void FileIO::read<Dim<3>::SymTensor>       (std::vector<Dim<3>::SymTensor>& x,       const std::string pathName) const { this->readVector(x, pathName); }
+template<> inline void FileIO::read<Dim<3>::ThirdRankTensor> (std::vector<Dim<3>::ThirdRankTensor>& x, const std::string pathName) const { this->readVector(x, pathName); }
 
 }

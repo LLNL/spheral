@@ -234,7 +234,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 MorrisMonaghanReducingViscosity<Dimension>::
-dumpState(FileIO& file, string pathName) const {
+dumpState(FileIO& file, const string& pathName) const {
   file.write(mDrvAlphaDtQ, pathName + "/DrvAlphaDtQ");
   file.write(mDrvAlphaDtL, pathName + "/DrvAlphaDtL");
 }
@@ -245,7 +245,7 @@ dumpState(FileIO& file, string pathName) const {
 template<typename Dimension>
 void
 MorrisMonaghanReducingViscosity<Dimension>::
-restoreState(const FileIO& file, string pathName) {
+restoreState(const FileIO& file, const string& pathName) {
   file.read(mDrvAlphaDtQ, pathName + "/DrvAlphaDtQ");
   file.read(mDrvAlphaDtL, pathName + "/DrvAlphaDtL");
 }

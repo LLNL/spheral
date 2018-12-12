@@ -98,11 +98,15 @@ class TestDistributedBoundary1d:
         for nodes in self.dataBase.nodeLists():
             nodes.neighbor().updateNodes()
 
+        sys.stderr.write("STAGE 1\n")
+
         # Exchange the global node ID fields.
         self.domainbc.applyGhostBoundary(self.globalIDField1)
         self.domainbc.applyGhostBoundary(self.globalIDField2)
         self.domainbc.applyGhostBoundary(self.globalIDField3)
         self.domainbc.finalizeGhostBoundary()
+
+        sys.stderr.write("STAGE 2\n")
 
         # Iterate over each domain.
         for testProc in xrange(mpi.procs):
@@ -137,8 +141,11 @@ class TestDistributedBoundary1d:
                         masterLists = vector_of_vector_of_int()
                         coarseNeighbors = vector_of_vector_of_int()
                         refineNeighbors = vector_of_vector_of_int()
+                        sys.stderr.write("STAGE 3 : %d\n" % testProc)
                         self.dataBase.setMasterNodeLists(ri, Hi, masterLists, coarseNeighbors)
+                        sys.stderr.write("STAGE 4 : %d %d %d\n" % (testProc, len(masterLists), len(coarseNeighbors)))
                         self.dataBase.setRefineNodeLists(ri, Hi, coarseNeighbors, refineNeighbors)
+                        sys.stderr.write("STAGE 5 : %d %d %d %d\n" % (testProc, len(masterLists), len(coarseNeighbors), len(refineNeighbors)))
                         assert len(refineNeighbors) == 3
                         refine = []
                         for k, globalIDs in enumerate([self.globalIDField1,

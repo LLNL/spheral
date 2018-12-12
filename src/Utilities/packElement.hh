@@ -12,6 +12,7 @@
 #include <vector>
 #include <map>
 #include <iterator>
+#include <string>
 #include "DataTypeTraits.hh"
 
 #ifdef USE_MPI
@@ -159,6 +160,17 @@ packElement<double>(const double& value,
   for (int i = 0; i != packSize; ++i) {
     buffer.push_back(*(data + i));
   }
+}
+
+// Specialization for a std::string.
+template<>
+inline
+void
+packElement<std::string>(const std::string& value, 
+                         std::vector<char>& buffer) {
+  const size_t size = value.size();
+  packElement(size, buffer);
+  buffer.insert(buffer.end(), value.begin(), value.begin() + size);
 }
 
 // Specialization for a std::pair of known types.
@@ -355,7 +367,22 @@ unpackElement<double>(double& value,
   ENSURE(itr <= endPackedVector);
 }
 
-// std::pari<T1,T2>
+// Specialization for a std::string
+template<>
+inline
+void
+unpackElement<std::string>(std::string& value,
+                           std::vector<char>::const_iterator& itr,
+                           const std::vector<char>::const_iterator& endPackedVector) {
+  size_t size;
+  unpackElement(size, itr, endPackedVector);
+  CHECK(itr + size <= endPackedVector);
+  std::string result(itr, itr + size);
+  value = result;
+  itr += size;
+}
+
+// std::pair<T1,T2>
 template<typename T1, typename T2>
 inline
 void
@@ -399,6 +426,7 @@ unpackElement(std::vector<DataType>& value,
 
   // Now iterate over the number of elements we will unpack, and push them onto
   // the value.
+  value.clear();
   for (int i = 0; i != size; ++i) {
     DataType element;
     unpackElement(element, itr, endPackedVector);

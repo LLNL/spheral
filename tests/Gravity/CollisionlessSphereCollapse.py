@@ -1,10 +1,10 @@
-#ATS:t0 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps=40 --restartStep 20  --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.gnu' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_20180814.gnu'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) INITIAL RUN")
+#ATS:t0 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps=40 --restartStep 20  --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.gnu' --checkRef True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) INITIAL RUN")
 #
-#ATS:t1 = testif(t0, SELF, "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps 20 --restartStep 100 --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.gnu' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_20180814.gnu' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) RESTARTED CHECK")
+#ATS:t1 = testif(t0, SELF, "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps 20 --restartStep 100 --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.gnu' --checkRef True --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) RESTARTED CHECK")
 #
-#ATS:t2 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps=40 --restartStep 20   --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.gnu' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_20180125.gnu'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) INITIAL RUN")
+#ATS:t2 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps=40 --restartStep 20   --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.gnu' --checkRef True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) INITIAL RUN")
 #
-#ATS:t3 = testif(t2, SELF, "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps 20 --restartStep 100  --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.gnu' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_20180125.gnu' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) RESTARTED CHECK")
+#ATS:t3 = testif(t2, SELF, "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps 20 --restartStep 100  --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.gnu' --checkRef True --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) RESTARTED CHECK")
 
 #-------------------------------------------------------------------------------
 # Create a spherical distribution of collisionless points, which will of course 
@@ -17,6 +17,7 @@ from NodeHistory import *
 from GenerateNodeDistribution3d import *
 from PeanoHilbertDistributeNodes import distributeNodes3d
 from math import *
+import numpy as np
 
 print "3-D N-Body Gravity test -- collisionless sphere."
 
@@ -50,11 +51,22 @@ commandLine(
     numViz = 200,
     verbosedt = False,
 
+    graphics = True,
+
     # Parameters purely for test checking
-    checkRestart = False,
     outputFile = "Collisionless_sphere_collapse.gnu",
-    comparisonFile = "None",
+    checkRestart = False,
+    checkRef = False,
+    tol = 1.0e-5,
     )
+
+# Reference values for tests
+if timeStepChoice == AccelerationRatio:
+    coefsRef = np.array([ 8.33169105e+00,  1.24358171e-12, -2.83895427e-23])
+    sigmaPhiRef = 9.25789817527
+elif timeStepChoice == DynamicalTime:
+    coefsRef = np.array([ 8.29005915e+00,  1.20195868e-12, -2.60750402e-23])
+    sigmaPhiRef = 8.96752745023
 
 # Convert to MKS units.
 AU = 149597870700.0  # m
@@ -214,33 +226,56 @@ else:
     control.advance(goalTime)
 
 #-------------------------------------------------------------------------------
-# If requested, write out the state in a global ordering to a file.
+# Compute the radial profiles
 #-------------------------------------------------------------------------------
-if outputFile != "None":
-    outputFile = os.path.join(dataDir, outputFile)
+from SpheralTestUtilities import multiSort
+import numpy.polynomial.polynomial as poly
+xprof = mpi.reduce(nodes.positions().internalValues(), mpi.SUM)
+rprof = [x.magnitude() for x in xprof]
+vprof = mpi.reduce(nodes.velocity().internalValues(), mpi.SUM)
+Hprof = mpi.reduce(nodes.Hfield().internalValues(), mpi.SUM)
+phi = gravity.potential
+phiprof = mpi.reduce(phi[0].internalValues(), mpi.SUM)
+mof = mortonOrderIndices(db)
+mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
+coefs, phifit = None, None
+if mpi.rank == 0:
     from SpheralTestUtilities import multiSort
-    xprof = mpi.reduce(nodes.positions().internalValues(), mpi.SUM)
-    rprof = [x.magnitude() for x in xprof]
-    vprof = mpi.reduce(nodes.velocity().internalValues(), mpi.SUM)
-    Hprof = mpi.reduce(nodes.Hfield().internalValues(), mpi.SUM)
-    phi = gravity.potential()
-    phiprof = mpi.reduce(phi[0].internalValues(), mpi.SUM)
-    mof = mortonOrderIndices(db)
-    mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
-    if mpi.rank == 0:
-        from SpheralTestUtilities import multiSort
-        multiSort(mo, rprof, xprof, vprof, Hprof, phiprof)
-        f = open(outputFile, "w")
-        f.write(("# " + 14*"%15s " + "\n") % ("r", "x", "y", "z", "vx", "vy", "vz", "Hxx", "Hxy", "Hxz", "Hyy", "Hyz", "Hzz", "phi"))
-        for (ri, xi, vi, Hi, phii, moi) in zip(rprof, xprof, vprof, Hprof, phiprof, mo):
-            f.write((14*" %16.12e" + "\n") % (ri, xi.x, xi.y, xi.z, vi.x, vi.y, vi.z, 
-                                              Hi.xx, Hi.xy, Hi.xz, Hi.yy, Hi.yz, Hi.zz, phii))
-        f.close()
+    multiSort(rprof, mo, xprof, vprof, Hprof, phiprof)
 
-        #---------------------------------------------------------------------------
-        # Also we can optionally compare the current results with another file.
-        #---------------------------------------------------------------------------
-        if comparisonFile != "None":
-            print "Comparing to reference %s" % comparisonFile
-            import filearraycmp as fcomp
-            assert fcomp.filearraycmp(outputFile, comparisonFile)
+    # Fit phi(r)
+    coefs = poly.polyfit(rprof, np.log(-np.array(phiprof)), 2)
+    phifit = -np.exp(poly.polyval(rprof, coefs))
+    print "Fit coefficients: ", coefs
+    sigphi = np.std(np.array(phiprof) - phifit)
+    print "Standard deviation: ", sigphi
+
+coefs = mpi.bcast(coefs, root=0)
+phifit = mpi.bcast(phifit, root=0)
+
+if graphics:
+    from SpheralMatplotlib import *
+    EPlot = plotEHistory(control.conserve)
+    phiPlot = plotFieldList(gravity.potential, xFunction="%s.magnitude()", plotStyle="bo", winTitle="Gravitational potential $\phi$")
+    phiPlot.plot(rprof, phifit, "k-", label="Fit")
+    phiPlot.axes.legend()
+
+#-------------------------------------------------------------------------------
+# If requested, write out the profiles
+#-------------------------------------------------------------------------------
+if outputFile != "None" and mpi.rank == 0:
+    outputFile = os.path.join(dataDir, outputFile)
+    f = open(outputFile, "w")
+    f.write(("# " + 14*"%15s " + "\n") % ("r", "x", "y", "z", "vx", "vy", "vz", "Hxx", "Hxy", "Hxz", "Hyy", "Hyz", "Hzz", "phi"))
+    for (ri, xi, vi, Hi, phii, moi) in zip(rprof, xprof, vprof, Hprof, phiprof, mo):
+        f.write((14*" %16.12e" + "\n") % (ri, xi.x, xi.y, xi.z, vi.x, vi.y, vi.z, 
+                                          Hi.xx, Hi.xy, Hi.xz, Hi.yy, Hi.yz, Hi.zz, phii))
+    f.close()
+
+#-------------------------------------------------------------------------------
+# Check the answer againt references
+#-------------------------------------------------------------------------------
+if checkRef:
+    assert np.absolute(coefs - coefsRef).max() < tol
+    assert abs(sigphi - sigmaPhiRef)/sigmaPhiRef < tol
+    print "Pass"

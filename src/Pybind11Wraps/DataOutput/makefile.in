@@ -8,11 +8,12 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = DataOutput
 PKGDIR = $(PKGNAME)/
+SRCTARGETS = \
+	$(srcdir)/RestartableObject.cc
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-
-SRCTARGETS += \
-	$(srcdir)/RestartableObject.cc \
-	$(srcdir)/SpheralDataOutput.cc
+PYB11SRCS = \
+	RestartableObject.py \
+	RestartMethods.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

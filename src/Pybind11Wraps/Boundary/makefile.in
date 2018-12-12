@@ -9,9 +9,23 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Boundary
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-
-SRCTARGETS += \
-	$(srcdir)/SpheralBoundary.cc
+PYB11SRCS = \
+	BoundaryAbstractMethods.py \
+	Boundary.py \
+	PlanarBoundary.py \
+	ReflectingBoundary.py \
+	RigidBoundary.py \
+	PeriodicBoundary.py \
+	ConstantVelocityBoundary.py \
+	ConstantXVelocityBoundary.py \
+	ConstantYVelocityBoundary.py \
+	ConstantZVelocityBoundary.py \
+	ConstantRVelocityBoundary.py \
+	ConstantBoundary.py \
+	CRKSPHVoidBoundary.py \
+	AxisBoundaryRZ.py \
+	CylindricalBoundary.py \
+	SphericalBoundary.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

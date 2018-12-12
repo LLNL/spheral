@@ -697,7 +697,7 @@ opening() const {
 template<typename Dimension>
 void
 TreeGravity<Dimension>::
-opening(const double x) {
+opening(double x) {
   VERIFY(x > 0.0);
   mOpening2 = x*x;
 }
@@ -715,7 +715,7 @@ softeningLength() const {
 template<typename Dimension>
 void
 TreeGravity<Dimension>::
-softeningLength(const double x) {
+softeningLength(double x) {
   VERIFY(x > 0.0);
   mSofteningLength = x;
 }
@@ -733,7 +733,7 @@ ftimestep() const {
 template<typename Dimension>
 void
 TreeGravity<Dimension>::
-ftimestep(const double x) {
+ftimestep(double x) {
   VERIFY(x > 0.0);
   mftimestep = x;
 }
@@ -751,7 +751,7 @@ timeStepChoice() const {
 template<typename Dimension>
 void
 TreeGravity<Dimension>::
-timeStepChoice(const GravityTimeStepType x) {
+timeStepChoice(GravityTimeStepType x) {
   mTimeStepChoice = x;
 }
 

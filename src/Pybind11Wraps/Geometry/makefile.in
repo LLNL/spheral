@@ -8,10 +8,22 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = Geometry
 PKGDIR = $(PKGNAME)/
-PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
+PYB11SRCS = \
+	Vector.py \
+	Tensor.py \
+	SymTensor.py \
+	ThirdRankTensor.py \
+	FourthRankTensor.py \
+	FifthRankTensor.py \
+	EigenStruct.py \
+	Plane.py \
+	Box1d.py \
+	Polygon.py \
+	Polyhedron.py \
+	Facet2d.py \
+	Facet3d.py
 
-SRCTARGETS += \
-	$(srcdir)/SpheralGeometry.cc
+PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

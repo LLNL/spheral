@@ -1,0 +1,19 @@
+# -*-makefile-*-
+# Spheral++ ExternalForce pybind11 package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = ExternalForce
+PKGDIR = $(PKGNAME)/
+PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
+PYB11SRCS = \
+	PointPotential.py \
+	ConstantAcceleration.py \
+	LinearAcceleration.py
+
+#------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
+EXTRALIBS += $(LDRPATH)

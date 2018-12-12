@@ -124,36 +124,36 @@ public:
   // Flag to choose whether we want to sum for density, or integrate
   // the continuity equation.
   MassDensityType densityUpdate() const;
-  void densityUpdate(const MassDensityType type);
+  void densityUpdate(MassDensityType type);
 
   // Flag to select how we want to evolve the H tensor.
   HEvolutionType HEvolution() const;
-  void HEvolution(const HEvolutionType type);
+  void HEvolution(HEvolutionType type);
 
   // Flag to determine if we're using the total energy conserving compatible energy
   // evolution scheme.
   bool compatibleEnergyEvolution() const;
-  void compatibleEnergyEvolution(const bool val);
+  void compatibleEnergyEvolution(bool val);
 
   // Flag to determine if we're using the XSVPH algorithm.
   bool XSVPH() const;
-  void XSVPH(const bool val);
+  void XSVPH(bool val);
 
   // Flag to select whether or not to use the linear corrections.
   bool linearConsistent() const;
-  void linearConsistent(const bool val);
+  void linearConsistent(bool val);
 
   // Flag to select whether or not to generate void points in the tessellation.
   bool generateVoid() const;
-  void generateVoid(const bool val);
+  void generateVoid(bool val);
 
   // Fraction of centroidal motion to apply each step.
   Scalar fcentroidal() const;
-  void fcentroidal(const Scalar val);
+  void fcentroidal(Scalar val);
 
   // Fraction of the pressure to take from local cell.
   Scalar fcellPressure() const;
-  void fcellPressure(const Scalar val);
+  void fcellPressure(Scalar val);
 
   // Optionally we can provide a bounding box for use generating the mesh.
   const Vector& xmin() const;

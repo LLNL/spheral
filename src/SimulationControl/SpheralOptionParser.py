@@ -4,8 +4,7 @@
 #-------------------------------------------------------------------------------
 import optparse
 
-from SpheralModules import *
-from SpheralModules.Spheral import *
+from SpheralCompiledPackages import *
 
 from SpheralTestUtilities import globalFrame
 

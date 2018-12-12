@@ -3,8 +3,7 @@
 # radiographs with Hades.
 #-------------------------------------------------------------------------------
 import Spheral
-from SpheralModules import silo
-from SpheralModules.silo import SiloAttributes as SA
+from SpheralCompiledPackages import silo
 import mpi
 import sys, os, struct, time, bisect
 from operator import mul
@@ -275,17 +274,17 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
     if mpi.rank == 0:
         fileName = os.path.join(baseDirectory, baseName + ".silo")
         f = silo.DBCreate(fileName, 
-                          SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
+                          silo.DB_CLOBBER, silo.DB_LOCAL, label, silo.DB_HDF5)
         nullOpts = silo.DBoptlist()
 
         # Write the domain file names and types.
         domainNames = Spheral.vector_of_string()
-        meshTypes = Spheral.vector_of_int(maxproc, SA._DB_QUADMESH)
+        meshTypes = Spheral.vector_of_int(maxproc, silo.DB_QUADMESH)
         for p in domainNamePatterns:
             domainNames.append(p % "hblk0/hydro_mesh")
         optlist = silo.DBoptlist(1024)
-        assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
-        assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+        assert optlist.addOption(silo.DBOPT_CYCLE, cycle) == 0
+        assert optlist.addOption(silo.DBOPT_DTIME, time) == 0
         assert silo.DBPutMultimesh(f, "hydro_mesh", domainNames, meshTypes, optlist) == 0
 
         # Write material names.
@@ -301,29 +300,29 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
         assert len(matnames) == len(materials) + 1
         assert len(matnos) == len(materials) + 1
         optlist = silo.DBoptlist(1024)
-        assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
-        assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
-        assert optlist.addOption(SA._DBOPT_MMESH_NAME, "hydro_mesh") == 0
-        assert optlist.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
-        assert optlist.addOption(SA._DBOPT_MATNOS, SA._DBOPT_NMATNOS, matnos) == 0
+        assert optlist.addOption(silo.DBOPT_CYCLE, cycle) == 0
+        assert optlist.addOption(silo.DBOPT_DTIME, time) == 0
+        assert optlist.addOption(silo.DBOPT_MMESH_NAME, "hydro_mesh") == 0
+        assert optlist.addOption(silo.DBOPT_MATNAMES, silo.DBOPT_NMATNOS, matnames) == 0
+        assert optlist.addOption(silo.DBOPT_MATNOS, silo.DBOPT_NMATNOS, matnos) == 0
         assert silo.DBPutMultimat(f, "Materials", material_names, optlist) == 0
         
         # Write the variables descriptors.
         # We currently hardwire for the single density variable.
-        types = Spheral.vector_of_int(maxproc, SA._DB_QUADVAR)
+        types = Spheral.vector_of_int(maxproc, silo.DB_QUADVAR)
         assert len(domainVarNames) == maxproc
         optlistMV = silo.DBoptlist()
-        assert optlistMV.addOption(SA._DBOPT_CYCLE, cycle) == 0
-        assert optlistMV.addOption(SA._DBOPT_DTIME, time) == 0
-        #assert optlistMV.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
-        assert optlistMV.addOption(SA._DBOPT_BLOCKORIGIN, 0) == 0
-        assert optlistMV.addOption(SA._DBOPT_MMESH_NAME, "hydro_mesh") == 0
+        assert optlistMV.addOption(silo.DBOPT_CYCLE, cycle) == 0
+        assert optlistMV.addOption(silo.DBOPT_DTIME, time) == 0
+        #assert optlistMV.addOption(silo.DBOPT_TENSOR_RANK, silo.DB_VARTYPE_SCALAR) == 0
+        assert optlistMV.addOption(silo.DBOPT_BLOCKORIGIN, 0) == 0
+        assert optlistMV.addOption(silo.DBOPT_MMESH_NAME, "hydro_mesh") == 0
         assert silo.DBPutMultivar(f, "den", domainVarNames, types, optlistMV) == 0
 
         # Write the dummy variable "akap_0" to tell Hades we're actually Hydra or something.
         assert silo.DBPutQuadvar1(f, "akap_0", "hydro_mesh",
                                   Spheral.vector_of_double(ndim*ndim, 0.0), Spheral.vector_of_double(),
-                                  SA._DB_ZONECENT, Spheral.vector_of_int(ndim, ndim), nullOpts) == 0
+                                  silo.DB_ZONECENT, Spheral.vector_of_int(ndim, ndim), nullOpts) == 0
 
         # Write domain and mesh size info.
         assert silo.DBMkDir(f, "Decomposition") == 0
@@ -397,7 +396,7 @@ def writeDomainSiloFile(ndim, maxproc,
         # Create the file.
         fileName = os.path.join(baseDirectory, procDirBaseName, "domain%i.silo" % mpi.rank)
         f = silo.DBCreate(fileName, 
-                          SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
+                          silo.DB_CLOBBER, silo.DB_LOCAL, label, silo.DB_HDF5)
         nullOpts = silo.DBoptlist()
 
         # Make the hblk0 directory.
@@ -411,12 +410,12 @@ def writeDomainSiloFile(ndim, maxproc,
             for i in xrange(nblocknodes[jdim]):
                 coords[jdim][i] = xminblock[jdim] + i*dx
         optlist = silo.DBoptlist()
-        assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
-        assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+        assert optlist.addOption(silo.DBOPT_CYCLE, cycle) == 0
+        assert optlist.addOption(silo.DBOPT_DTIME, time) == 0
         if pretendRZ:
-            assert optlist.addOption(SA._DBOPT_COORDSYS, SA._DB_CYLINDRICAL) == 0
+            assert optlist.addOption(silo.DBOPT_COORDSYS, silo.DB_CYLINDRICAL) == 0
         else:
-            assert optlist.addOption(SA._DBOPT_COORDSYS, SA._DB_CARTESIAN) == 0
+            assert optlist.addOption(silo.DBOPT_COORDSYS, silo.DB_CARTESIAN) == 0
         assert silo.DBPutQuadmesh(f, "hblk0/hydro_mesh", coords, optlist) == 0
         
         # # Domain neighbors.
@@ -471,19 +470,19 @@ def writeDomainSiloFile(ndim, maxproc,
             assert len(matlist) == numZones
             assert len(matnames) == len(materials) + 1
             matOpts = silo.DBoptlist(1024)
-            assert matOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
-            assert matOpts.addOption(SA._DBOPT_DTIME, time) == 0
-            assert matOpts.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
+            assert matOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
+            assert matOpts.addOption(silo.DBOPT_DTIME, time) == 0
+            assert matOpts.addOption(silo.DBOPT_MATNAMES, silo.DBOPT_NMATNOS, matnames) == 0
             assert silo.DBPutMaterial(f, "hblk0/Materials", "hydro_mesh", matnos, matlist, nblock_vec,
                                       Spheral.vector_of_int(), Spheral.vector_of_int(), Spheral.vector_of_int(), Spheral.vector_of_double(),
                                       matOpts) == 0
         
         # Write the field variables.
         varOpts = silo.DBoptlist(1024)
-        assert varOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
-        assert varOpts.addOption(SA._DBOPT_DTIME, time) == 0
+        assert varOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
+        assert varOpts.addOption(silo.DBOPT_DTIME, time) == 0
         assert silo.DBPutQuadvar1(f, "hblk0/den", "hydro_mesh", rhosamp, 
-                                  Spheral.vector_of_double(), SA._DB_ZONECENT, nblock_vec, varOpts) == 0
+                                  Spheral.vector_of_double(), silo.DB_ZONECENT, nblock_vec, varOpts) == 0
 
         # That's it.
         assert silo.DBClose(f) == 0

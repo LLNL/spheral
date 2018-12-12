@@ -87,20 +87,20 @@ public:
   // Flag for whether we should compute the work per node or strictly balance by
   // node count.
   bool workBalance() const;
-  void workBalance(const bool val);
+  void workBalance(bool val);
 
   // Should we try to work balance between generators?
   // node count.
   bool balanceGenerators() const;
-  void balanceGenerators(const bool val);
+  void balanceGenerators(bool val);
 
   // The tolerance we're using to check for convergence of the generators.
   double tolerance() const;
-  void tolerance(const double val);
+  void tolerance(double val);
 
   // The maximum number of iterations to try and converge the generator positions.
   unsigned maxIterations() const;
-  void maxIterations(const unsigned val);
+  void maxIterations(unsigned val);
 
 private:
   //--------------------------- Private Interface ---------------------------//

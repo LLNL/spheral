@@ -8,10 +8,14 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = Neighbor
 PKGDIR = $(PKGNAME)/
+PYB11SRCS = \
+	GridCellIndex.py \
+	NeighborAbstractMethods.py \
+	Neighbor.py \
+	NestedGridNeighbor.py \
+	TreeNeighbor.py \
+	ConnectivityMap.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-
-SRCTARGETS += \
-	$(srcdir)/SpheralNeighbor.cc
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

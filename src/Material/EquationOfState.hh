@@ -87,12 +87,12 @@ public:
   // The min and max allowed pressures.
   double minimumPressure() const;
   double maximumPressure() const;
-  void minimumPressure(const double x);
-  void maximumPressure(const double x);
+  void minimumPressure(double x);
+  void maximumPressure(double x);
   
   // The algorithm for applying the minimum pressure.
   MaterialPressureMinType minimumPressureType() const;
-  void minimumPressureType(const MaterialPressureMinType x);
+  void minimumPressureType(MaterialPressureMinType x);
 
   // Equations of state should have a valid test.
   virtual bool valid() const = 0;

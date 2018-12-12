@@ -96,23 +96,23 @@ public:
   double epsVapor() const;
   double atomicWeight() const;
   
-  void etamin_solid(const double x);
-  void etamax_solid(const double x);
-  void a(const double x);
-  void b(const double x);
-  void A(const double x);
-  void B(const double x);
-  void alpha(const double x);
-  void beta(const double x);
-  void eps0(const double x);
-  void epsLiquid(const double x);
-  void epsVapor(const double x);
-  void atomicWeight(const double x);
+  void etamin_solid(double x);
+  void etamax_solid(double x);
+  void a(double x);
+  void b(double x);
+  void A(double x);
+  void B(double x);
+  void alpha(double x);
+  void beta(double x);
+  void eps0(double x);
+  void epsLiquid(double x);
+  void epsVapor(double x);
+  void atomicWeight(double x);
   
   // If requested, the user can specify an external pressure to be applied
   // in the pressure calculation.
   double externalPressure() const;
-  void externalPressure(const double x);
+  void externalPressure(double x);
 
   // Compute the derivative of the pressure with respect to the density.
   double computeDPDrho(const Scalar massDensity,

@@ -11,6 +11,8 @@
 #endif
 
 #include "Geometry/Dimension.hh"
+#include "Utilities/DataTypeTraits.hh"
+#include "Utilities/packElement.hh"
 
 #include <vector>
 #include <string>
@@ -48,13 +50,19 @@ public:
   //******************************************************************************
   // Methods all FileIO descendent classes must provide.
   //******************************************************************************
+  // Check if the specified path is in the file.
+  virtual bool pathExists(const std::string pathName) const = 0;
+
   // All FileIO objects had better be able to read and write the primitive 
   // DataTypes.
-  virtual void write(const unsigned value, const std::string pathName) = 0;
-  virtual void write(const int value, const std::string pathName) = 0;
-  virtual void write(const bool value, const std::string pathName) = 0;
-  virtual void write(const double value, const std::string pathName) = 0;
-  virtual void write(const std::string value, const std::string pathName) = 0;
+  virtual void write(const unsigned& value, const std::string pathName) = 0;
+  virtual void write(const int& value, const std::string pathName) = 0;
+  virtual void write(const bool& value, const std::string pathName) = 0;
+  virtual void write(const double& value, const std::string pathName) = 0;
+  virtual void write(const std::string& value, const std::string pathName) = 0;
+  virtual void write(const std::vector<int>& value, const std::string pathName) = 0;
+  virtual void write(const std::vector<double>& value, const std::string pathName) = 0;
+  virtual void write(const std::vector<std::string>& value, const std::string pathName) = 0;
 
   virtual void write(const Dim<1>::Vector& value, const std::string pathName) = 0;
   virtual void write(const Dim<1>::Tensor& value, const std::string pathName) = 0;
@@ -76,6 +84,9 @@ public:
   virtual void read(bool& value, const std::string pathName) const = 0;
   virtual void read(double& value, const std::string pathName) const = 0;
   virtual void read(std::string& value, const std::string pathName) const = 0;
+  virtual void read(std::vector<int>& value, const std::string pathName) const = 0;
+  virtual void read(std::vector<double>& value, const std::string pathName) const = 0;
+  virtual void read(std::vector<std::string>& value, const std::string pathName) const = 0;
 
   virtual void read(Dim<1>::Vector& value, const std::string pathName) const = 0;
   virtual void read(Dim<1>::Tensor& value, const std::string pathName) const = 0;
@@ -91,45 +102,6 @@ public:
   virtual void read(Dim<3>::Tensor& value, const std::string pathName) const = 0;
   virtual void read(Dim<3>::SymTensor& value, const std::string pathName) const = 0;
   virtual void read(Dim<3>::ThirdRankTensor& value, const std::string pathName) const = 0;
-
-  // We also require that FileIO objects write vectors of the primitive types.
-  virtual void write(const std::vector<int>& value, const std::string pathName) = 0;
-  virtual void write(const std::vector<double>& value, const std::string pathName) = 0;
-  virtual void write(const std::vector<std::string>& value, const std::string pathName) = 0;
-
-  virtual void write(const std::vector<Dim<1>::Vector>& value, const std::string pathName) = 0;
-  virtual void write(const std::vector<Dim<1>::Tensor>& value, const std::string pathName) = 0;
-  virtual void write(const std::vector<Dim<1>::SymTensor>& value, const std::string pathName) = 0;
-  virtual void write(const std::vector<Dim<1>::ThirdRankTensor>& value, const std::string pathName) = 0;
-
-  virtual void write(const std::vector<Dim<2>::Vector>& value, const std::string pathName) = 0;
-  virtual void write(const std::vector<Dim<2>::Tensor>& value, const std::string pathName) = 0;
-  virtual void write(const std::vector<Dim<2>::SymTensor>& value, const std::string pathName) = 0;
-  virtual void write(const std::vector<Dim<2>::ThirdRankTensor>& value, const std::string pathName) = 0;
-
-  virtual void write(const std::vector<Dim<3>::Vector>& value, const std::string pathName) = 0;
-  virtual void write(const std::vector<Dim<3>::Tensor>& value, const std::string pathName) = 0;
-  virtual void write(const std::vector<Dim<3>::SymTensor>& value, const std::string pathName) = 0;
-  virtual void write(const std::vector<Dim<3>::ThirdRankTensor>& value, const std::string pathName) = 0;
-
-  virtual void read(std::vector<int>& value, const std::string pathName) const = 0;
-  virtual void read(std::vector<double>& value, const std::string pathName) const = 0;
-  virtual void read(std::vector<std::string>& value, const std::string pathName) const = 0;
-
-  virtual void read(std::vector<Dim<1>::Vector>& value, const std::string pathName) const = 0;
-  virtual void read(std::vector<Dim<1>::Tensor>& value, const std::string pathName) const = 0;
-  virtual void read(std::vector<Dim<1>::SymTensor>& value, const std::string pathName) const = 0;
-  virtual void read(std::vector<Dim<1>::ThirdRankTensor>& value, const std::string pathName) const = 0;
-
-  virtual void read(std::vector<Dim<2>::Vector>& value, const std::string pathName) const = 0;
-  virtual void read(std::vector<Dim<2>::Tensor>& value, const std::string pathName) const = 0;
-  virtual void read(std::vector<Dim<2>::SymTensor>& value, const std::string pathName) const = 0;
-  virtual void read(std::vector<Dim<2>::ThirdRankTensor>& value, const std::string pathName) const = 0;
-
-  virtual void read(std::vector<Dim<3>::Vector>& value, const std::string pathName) const = 0;
-  virtual void read(std::vector<Dim<3>::Tensor>& value, const std::string pathName) const = 0;
-  virtual void read(std::vector<Dim<3>::SymTensor>& value, const std::string pathName) const = 0;
-  virtual void read(std::vector<Dim<3>::ThirdRankTensor>& value, const std::string pathName) const = 0;
 
   // Require that all FileIO objects provide methods to read and write
   // Fields of specific DataTypes.
@@ -210,38 +182,21 @@ public:
   void write(const char* value, const std::string pathName);
   void read(char* value, const std::string pathName) const;
 
-  // Provide float read/write methods, which will simply call the Scalar
-  // methods provided by descendents.
-  void write(const float& value, const std::string pathName);
-  void read(float& value, const std::string pathName) const;
-
-  void write(const std::vector<float>& value, const std::string pathName);
-  void read(std::vector<float>& value, const std::string pathName) const;
-
   // Write/read FieldLists.
-  template<typename Dimension, typename DataType>
-  void write(const FieldList<Dimension, DataType>& fieldList,
-             const std::string pathName);
-  template<typename Dimension, typename DataType>
-  void read(FieldList<Dimension, DataType>& fieldList,
-            const std::string pathName) const;
+  template<typename Dimension, typename DataType> void write(const FieldList<Dimension, DataType>& fieldList, const std::string pathName);
+  template<typename Dimension, typename DataType> void read(FieldList<Dimension, DataType>& fieldList, const std::string pathName) const;
 
   // Write/read Fields of vectors.
-  template<typename Dimension, typename DataType>
-  void write(const Field<Dimension, std::vector<DataType> >& field,
-             const std::string pathName);
-  template<typename Dimension, typename DataType>
-  void read(Field<Dimension, std::vector<DataType> >& field,
-            const std::string pathName) const;
+  template<typename Dimension, typename DataType> void write(const Field<Dimension, std::vector<DataType> >& field, const std::string pathName);
+  template<typename Dimension, typename DataType> void read(Field<Dimension, std::vector<DataType> >& field, const std::string pathName) const;
 
   // Write/read a vector<DataType> if DataType is a primitive we already know about.
-  template<typename DataType>
-  void write(const std::vector<DataType>& x, const std::string pathName);
-  template<typename DataType>
-  void read(std::vector<DataType>& x, const std::string pathName) const;
+  template<typename DataType> void write(const std::vector<DataType>& x, const std::string pathName);
+  template<typename DataType> void read(std::vector<DataType>& x, const std::string pathName) const;
 
-  // A helper function to split a string up into substrings delimited by '/'.
+  // Helper functions to split/join a string up into substrings delimited by '/'.
   std::vector<std::string> splitPathComponents(const std::string path) const;
+  std::string joinPathComponents(const std::vector<std::string>& components) const;
 
   // Return the group (directory) component of a path.
   std::string groupName(const std::string pathName) const;
@@ -253,6 +208,10 @@ public:
   const std::string& fileName() const;
   AccessType access() const;
   bool fileOpen() const;
+
+  // Private methods to help with std::vector specializations
+  template<typename Value> void writeVector(const std::vector<Value>& x, const std::string pathName);
+  template<typename Value> void readVector(std::vector<Value>& x, const std::string pathName) const;
 
 #ifndef CXXONLY
   // These methods are particular to Python file objects.

@@ -11,7 +11,7 @@ import unittest
 class GzipFileIOTest(FileIOTestBase, unittest.TestCase):
 
     def setUp(self):
-        self.n = 2 # 1000
+        self.n = 10 # 1000
         self.intmin = -2**24
         self.intmax = 2**24
         self.doublemin = -1e50

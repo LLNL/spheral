@@ -78,11 +78,11 @@ public:
 
   // Access the flag determing if we're applying box culling.
   bool boxCulling() const;
-  void boxCulling(const bool x);
+  void boxCulling(bool x);
 
   // The grid cell influence radius to use for communicating.
   int gridCellInfluenceRadius() const;
-  void gridCellInfluenceRadius(const int x);
+  void gridCellInfluenceRadius(int x);
 
 private:
   //--------------------------- Private Interface ---------------------------//

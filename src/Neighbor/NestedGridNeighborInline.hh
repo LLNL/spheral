@@ -236,7 +236,7 @@ occupiedGridCells(const int gridLevel) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-typename Dimension::Vector
+const typename Dimension::Vector&
 NestedGridNeighbor<Dimension>::origin() const {
   return mGridOrigin;
 }
@@ -257,7 +257,7 @@ endOfLinkList() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+const int
 NestedGridNeighbor<Dimension>::
 gridCellInfluenceRadius() const {
   return mGridCellInfluenceRadius;
@@ -343,7 +343,7 @@ origin(const typename Dimension::Vector& origin) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-double
+const double
 NestedGridNeighbor<Dimension>::topGridSize() const {
   if (mMaxGridLevels > 0) {
     return 1.0/(mGridCellSizeInv[0] + FLT_MIN);

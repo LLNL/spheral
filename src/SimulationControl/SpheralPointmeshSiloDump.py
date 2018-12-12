@@ -8,8 +8,7 @@
 # 1.1 -- replacing all spaces in strings with underscores, so Visit can
 #        manipulate them.
 #-------------------------------------------------------------------------------
-from SpheralModules import *
-from SpheralModules.Spheral import *
+from SpheralCompiledPackages import *
 
 import os, time, mpi
 from siloPointmeshDump import siloPointmeshDump

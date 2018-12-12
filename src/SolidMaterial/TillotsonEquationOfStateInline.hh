@@ -17,7 +17,7 @@ template<typename Dimension>
 inline
 void
 TillotsonEquationOfState<Dimension>::
-etamin_solid(const double x) {
+etamin_solid(double x) {
   mEtaMinSolid = x;
 }
 
@@ -36,7 +36,7 @@ template<typename Dimension>
 inline
 void
 TillotsonEquationOfState<Dimension>::
-etamax_solid(const double x) {
+etamax_solid(double x) {
   mEtaMaxSolid = x;
 }
 
@@ -55,7 +55,7 @@ template<typename Dimension>
 inline
 void
 TillotsonEquationOfState<Dimension>::
-a(const double x) {
+a(double x) {
   ma = x;
 }
 
@@ -74,7 +74,7 @@ template<typename Dimension>
 inline
 void
 TillotsonEquationOfState<Dimension>::
-b(const double x) {
+b(double x) {
   mb = x;
 }
 
@@ -93,7 +93,7 @@ template<typename Dimension>
 inline
 void
 TillotsonEquationOfState<Dimension>::
-A(const double x) {
+A(double x) {
   mA = x;
 }
 
@@ -112,7 +112,7 @@ template<typename Dimension>
 inline
 void
 TillotsonEquationOfState<Dimension>::
-B(const double x) {
+B(double x) {
   mB = x;
 }
 
@@ -131,7 +131,7 @@ template<typename Dimension>
 inline
 void
 TillotsonEquationOfState<Dimension>::
-alpha(const double x) {
+alpha(double x) {
   malpha = x;
 }
 
@@ -150,7 +150,7 @@ template<typename Dimension>
 inline
 void
 TillotsonEquationOfState<Dimension>::
-beta(const double x) {
+beta(double x) {
   mbeta = x;
 }
 
@@ -169,7 +169,7 @@ template<typename Dimension>
 inline
 void
 TillotsonEquationOfState<Dimension>::
-eps0(const double x) {
+eps0(double x) {
   meps0 = x;
 }
 
@@ -188,7 +188,7 @@ template<typename Dimension>
 inline
 void
 TillotsonEquationOfState<Dimension>::
-epsLiquid(const double x) {
+epsLiquid(double x) {
   mepsLiquid = x;
 }
 
@@ -207,7 +207,7 @@ template<typename Dimension>
 inline
 void
 TillotsonEquationOfState<Dimension>::
-epsVapor(const double x) {
+epsVapor(double x) {
   mepsVapor = x;
 }
 
@@ -226,7 +226,7 @@ template<typename Dimension>
 inline
 void
 TillotsonEquationOfState<Dimension>::
-atomicWeight(const double x) {
+atomicWeight(double x) {
   mAtomicWeight = x;
 }
 
@@ -245,7 +245,7 @@ template<typename Dimension>
 inline
 void
 TillotsonEquationOfState<Dimension>::
-externalPressure(const double val) {
+externalPressure(double val) {
   mExternalPressure = val;
 }
 

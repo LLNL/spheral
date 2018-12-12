@@ -148,9 +148,7 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mShearModulus(FieldStorageType::CopyFields),
   mYieldStrength(FieldStorageType::CopyFields),
   mPlasticStrain0(FieldStorageType::CopyFields),
-  mHfield0(FieldStorageType::CopyFields),
-  mFragIDs(FieldStorageType::ReferenceFields),
-  mRestart(registerWithRestart(*this)) {
+  mHfield0(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -184,9 +182,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
        itr != dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
-
-    // Add the NodeList fragment IDs to our local FieldList.
-    mFragIDs.appendField((*itr)->fragmentIDs());
 
     // Set the moduli.
     (*itr)->bulkModulus(*mBulkModulus[nodeListi]);
@@ -251,7 +246,8 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(gradD);
 
   // Register the fragment IDs.
-  state.enroll(mFragIDs);
+  auto fragIDs = dataBase.solidFragmentIDs();
+  state.enroll(fragIDs);
 
   // And finally the intial plastic strain.
   mPlasticStrain0 = ps;
@@ -361,7 +357,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mYieldStrength, pathName + "/yieldStrength");
   file.write(mPlasticStrain0, pathName + "/plasticStrain0");
   file.write(mHfield0, pathName + "/Hfield0");
-  file.write(mFragIDs, pathName + "/fragIDs");
 }
 
 //------------------------------------------------------------------------------
@@ -381,7 +376,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mYieldStrength, pathName + "/yieldStrength");
   file.read(mPlasticStrain0, pathName + "/plasticStrain0");
   file.read(mHfield0, pathName + "/Hfield0");
-  file.read(mFragIDs, pathName + "/fragIDs");
 }
 
 }

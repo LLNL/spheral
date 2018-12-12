@@ -126,58 +126,53 @@ public:
   // Flag to choose whether we want to sum for density, or integrate
   // the continuity equation.
   MassDensityType densityUpdate() const;
-  void densityUpdate(const MassDensityType type);
+  void densityUpdate(MassDensityType type);
 
   // Flag to select how we want to evolve the H tensor.
-  // the continuity equation.
   HEvolutionType HEvolution() const;
-  void HEvolution(const HEvolutionType type);
+  void HEvolution(HEvolutionType type);
 
   // Flag to choose CRK Correction Order
   CRKOrder correctionOrder() const;
-  void correctionOrder(const CRKOrder order);
+  void correctionOrder(CRKOrder order);
 
   // Flag for the CRK volume weighting definition
   CRKVolumeType volumeType() const;
-  void volumeType(const CRKVolumeType x);
+  void volumeType(CRKVolumeType x);
 
   // Flag to determine if we're using the total energy conserving compatible energy
   // evolution scheme.
   bool compatibleEnergyEvolution() const;
-  void compatibleEnergyEvolution(const bool val);
+  void compatibleEnergyEvolution(bool val);
 
   // Flag controlling if we evolve total or specific energy.
   bool evolveTotalEnergy() const;
-  void evolveTotalEnergy(const bool val);
-
-  // Flag to determine if we're using the grad h correction.
-  bool gradhCorrection() const;
-  void gradhCorrection(const bool val);
+  void evolveTotalEnergy(bool val);
 
   // Flag to determine if we're using the XSPH algorithm.
   bool XSPH() const;
-  void XSPH(const bool val);
+  void XSPH(bool val);
 
   // The object defining how we evolve smoothing scales.
   const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
 
   // Fraction of centroidal filtering to apply.
   double filter() const;
-  void filter(const double val);
+  void filter(double val);
 
   // Parameters for the tensile correction force at small scales.
   Scalar epsilonTensile() const;
-  void epsilonTensile(const Scalar val);
+  void epsilonTensile(Scalar val);
 
   Scalar nTensile() const;
-  void nTensile(const Scalar val);
+  void nTensile(Scalar val);
     
   // Limits to impose on node by node corrections.
   double correctionMin() const;
-  void correctionMin(const double val);
+  void correctionMin(double val);
 
   double correctionMax() const;
-  void correctionMax(const double val);
+  void correctionMax(double val);
 
   // We maintain a special boundary condition to handle void points.
   const CRKSPHVoidBoundary<Dimension>& voidBoundary() const;
@@ -195,7 +190,6 @@ public:
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldList<Dimension, SymTensor>& massSecondMoment() const;
   const FieldList<Dimension, Scalar>&    volume() const;
-  const FieldList<Dimension, Scalar>&    volume0() const;
   const FieldList<Dimension, Vector>&    massDensityGradient() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
@@ -234,8 +228,8 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "CRKSPHHydroBase"; }
-  virtual void dumpState(FileIO& file, std::string pathName) const;
-  virtual void restoreState(const FileIO& file, std::string pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 protected:
@@ -248,7 +242,7 @@ protected:
   HEvolutionType mHEvolution;
   CRKOrder mCorrectionOrder;
   CRKVolumeType mVolumeType;
-  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mGradhCorrection, mXSPH;
+  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mXSPH;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
   bool mDetectSurfaces;
@@ -271,7 +265,6 @@ protected:
   FieldList<Dimension, SymTensor> mMassSecondMoment;
 
   FieldList<Dimension, Scalar>    mVolume;
-  FieldList<Dimension, Scalar>    mVolume0;
   FieldList<Dimension, Vector>    mMassDensityGradient;
 
   FieldList<Dimension, Vector>    mXSPHDeltaV;

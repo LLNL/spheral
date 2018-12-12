@@ -14,7 +14,7 @@ rangen = random.Random()
 # We'll just use a gamma-law gas to base our tests on.
 gamma = 5.0/3.0
 mu = 5.0
-units = CGS()
+units = CGS
 eos = GammaLawGas(gamma = gamma,
                   mu = mu,
                   constants = units)
@@ -30,6 +30,7 @@ class EOSTest(unittest.TestCase):
         rhoMin, rhoMax = 1e-5, 1000.0    # range of densities
         Pmin, Pmax = 0.0, 1e5            # range of target pressures
         epsTol, Ptol = 1e-10, 1e-10      # tolerances
+        Perrcheck = 1e-5                 # error check
         maxIterations = 100
         rho0 = np.random.uniform(rhoMin, rhoMax, n)
         P0 = np.random.uniform(Pmin, Pmax, n)
@@ -61,8 +62,8 @@ class EOSTest(unittest.TestCase):
         #                 "Pressure error out of tolerance: %s vs %s" % (Perr.max(), Ptol))
         # assert passfailLookup(P, P0).all()
         Perr = np.minimum(P0, np.abs((P - P0)/np.maximum(1.0e-10, P0)))
-        self.failUnless((Perr < 1e4*Ptol).all(),
-                        "Pressure error out of tolerance: %s > %s" % (Perr.max(), 5e4*Ptol))
+        self.failUnless((Perr < Perrcheck).all(),
+                        "Pressure error out of tolerance: %s > %s" % (Perr.max(), Perrcheck))
         return
 
 #-------------------------------------------------------------------------------

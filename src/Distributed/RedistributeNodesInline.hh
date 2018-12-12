@@ -44,7 +44,7 @@ RedistributeNodes<Dimension>::computeWork() const {
 template<typename Dimension>
 inline
 void
-RedistributeNodes<Dimension>::computeWork(const bool x) {
+RedistributeNodes<Dimension>::computeWork(bool x) {
   mComputeWork = x;
 }
 

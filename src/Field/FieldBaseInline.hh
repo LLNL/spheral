@@ -80,7 +80,7 @@ FieldBase<Dimension>::name() const {
 template<typename Dimension>
 inline
 void
-FieldBase<Dimension>::name(const typename FieldBase<Dimension>::FieldName& name) {
+FieldBase<Dimension>::name(typename FieldBase<Dimension>::FieldName name) {
   mName = name;
 }
 

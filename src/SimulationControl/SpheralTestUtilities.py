@@ -134,31 +134,22 @@ def neighborStats(connectivityMap):
 #-------------------------------------------------------------------------------
 def internalValues(fieldList):
     result = []
-    if not hasattr(fieldList, "__cache__"):
-        fieldList.__cache__ = []
     for f in fieldList:
         vals = f.internalValues()
-        fieldList.__cache__.append(vals)
         result.extend(vals)
     return result
 
 def ghostValues(fieldList):
     result = []
-    if not hasattr(fieldList, "__cache__"):
-        fieldList.__cache__ = []
     for f in fieldList:
         vals = f.ghostValues()
-        fieldList.__cache__.append(vals)
         result.extend(vals)
     return result
 
 def allValues(fieldList):
     result = []
-    if not hasattr(fieldList, "__cache__"):
-        fieldList.__cache__ = []
     for f in fieldList:
         vals = f.allValues()
-        fieldList.__cache__.append(vals)
         result.extend(vals)
     return result
 
@@ -324,7 +315,7 @@ def testParallelConsistency(mesh, xmin, xmax):
         return msg
 
     # Check that the communicated mesh nodes.
-    nodeHashes = [hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in xrange(mesh.numNodes)]
+    nodeHashes = [hashPosition(mesh.node(i).position, xmin, xmax, boxInv) for i in xrange(mesh.numNodes)]
     msg = checkConsistentCommInfo(nodeHashes, sharedNodes)
     if msg != "ok":
         return "Node failure : " + msg
@@ -333,7 +324,7 @@ def testParallelConsistency(mesh, xmin, xmax):
         return "Node failure : " + msg
 
     # Check that the communicated mesh faces.
-    faceHashes = [hashPosition(mesh.face(i).position(), xmin, xmax, boxInv) for i in xrange(mesh.numFaces)]
+    faceHashes = [hashPosition(mesh.face(i).position, xmin, xmax, boxInv) for i in xrange(mesh.numFaces)]
     msg = checkConsistentCommInfo(faceHashes, sharedFaces)
     if msg != "ok":
         return "Face failure : " + msg

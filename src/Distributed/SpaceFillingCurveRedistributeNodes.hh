@@ -112,7 +112,7 @@ public:
                     const Key maxIndex) const;
 
   // Find the domain for the given index given the set of index ranges for 
-  // each processors.
+  // each processor.
   int domainForIndex(const Key index,
                      const std::vector<std::pair<Key, Key> >& indexRanges) const;
 
@@ -120,18 +120,18 @@ public:
   double minNodesPerDomainFraction() const;
   double maxNodesPerDomainFraction() const;
 
-  void minNodesPerDomainFraction(const double x);
-  void maxNodesPerDomainFraction(const double x);
+  void minNodesPerDomainFraction(double x);
+  void maxNodesPerDomainFraction(double x);
 
   // Flag for whether we should compute the work per node or strictly balance by
   // node count.
   bool workBalance() const;
-  void workBalance(const bool val);
+  void workBalance(bool val);
 
   // Flag that will cause us not to repartition between domains, but only sort locally on 
   // each domain.
   bool localReorderOnly() const;
-  void localReorderOnly(const bool val);
+  void localReorderOnly(bool val);
 
 private:
   //--------------------------- Private Interface ---------------------------//

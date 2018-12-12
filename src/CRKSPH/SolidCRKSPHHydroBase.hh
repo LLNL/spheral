@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidCRKSPHHydroBase -- The SPH/ASPH solid material hydrodynamic package for Spheral++.
+// SolidCRKSPHHydroBase -- The CRKSPH/ACRKSPH solid material hydrodynamic package for Spheral++.
 //
 // Created by JMO, Fri Jul 30 11:07:33 PDT 2010
 //----------------------------------------------------------------------------//
@@ -101,11 +101,10 @@ public:
   const FieldList<Dimension, Scalar>& yieldStrength() const;
   const FieldList<Dimension, Scalar>& plasticStrain0() const;
   const FieldList<Dimension, SymTensor>& Hfield0() const;
-  const FieldList<Dimension, int>& fragIDs() const;
 
   // Control whether allow damaged material to have stress relieved.
   bool damageRelieveRubble() const;
-  void damageRelieveRubble(const bool x);
+  void damageRelieveRubble(bool x);
 
   //****************************************************************************
   // Methods required for restarting.
@@ -125,10 +124,6 @@ private:
   FieldList<Dimension, Scalar> mYieldStrength;
   FieldList<Dimension, Scalar> mPlasticStrain0;
   FieldList<Dimension, SymTensor> mHfield0;
-  FieldList<Dimension, int> mFragIDs;
-
-  // The restart registration.
-  RestartRegistrationType mRestart;
 
   // No default constructor, copying, or assignment.
   SolidCRKSPHHydroBase();

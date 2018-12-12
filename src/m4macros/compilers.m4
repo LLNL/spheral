@@ -428,7 +428,7 @@ AC_ARG_WITH(python-CXX,
 # =======================================================================
 AC_MSG_CHECKING(for MPI4PYCC)
 AC_ARG_WITH(MPI4PYCC,
-[  --with-MPI4PYCC=ARG ....................... manually set the CC compiler for mpi4py],
+[  --with-MPI4PYCC=ARG ...................... manually set the CC compiler for mpi4py],
 [
    MPI4PYCC=$withval
    AC_MSG_RESULT($MPI4PYCC)
@@ -843,7 +843,7 @@ AC_ARG_WITH(gprof,
 # =======================================================================
 AC_MSG_CHECKING(for --with-gperftools)
 AC_ARG_WITH(gperftools,
-[  --with-gperftools ....................... compile linking with gperftools (optionally specify link path to libprofiler)],
+[  --with-gperftools ........................ compile linking with gperftools (optionally specify link path to libprofiler)],
 [
   PYTHONPKGS+=" Gperftools"
   if test $withval = "yes"; then

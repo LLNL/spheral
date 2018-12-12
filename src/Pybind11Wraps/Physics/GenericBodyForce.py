@@ -1,0 +1,44 @@
+#-------------------------------------------------------------------------------
+# GenericBodyForce base class
+#-------------------------------------------------------------------------------
+from PYB11Generator import *
+from Physics import *
+
+@PYB11template("Dimension")
+@PYB11module("SpheralPhysics")
+class GenericBodyForce(Physics):
+
+    PYB11typedefs = """
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+"""
+
+    #...........................................................................
+    # Constructors
+    def pyinit(self):
+        "GenericBodyForce constructor"
+
+    #...........................................................................
+    # Virtual methods
+    @PYB11virtual
+    def registerState(self,
+                      dataBase = "DataBase<%(Dimension)s>&", 
+                      state = "State<%(Dimension)s>&"):
+        "Default state registration for an acceleration source"
+        return "void"
+
+    @PYB11virtual
+    def registerDerivatives(self,
+                            dataBase = "DataBase<%(Dimension)s>&", 
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Default state derivative registration for an acceleration source"
+        return "void"
+
+    #...........................................................................
+    # Attributes
+    DxDt = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DxDt", doc="Time derivative for position")
+    DvDt = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DvDt", doc="Time derivative for velocity")

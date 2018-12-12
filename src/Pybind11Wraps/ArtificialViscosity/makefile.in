@@ -9,9 +9,18 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = ArtificialViscosity
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-
-SRCTARGETS += \
-	$(srcdir)/SpheralArtificialViscosity.cc
+PYB11SRCS += \
+	$(srcdir)/ArtificialViscosityAbstractMethods.py \
+	$(srcdir)/ArtificialViscosity.py \
+	$(srcdir)/MonaghanGingoldViscosity.py \
+	$(srcdir)/TensorMonaghanGingoldViscosity.py \
+	$(srcdir)/CRKSPHMonaghanGingoldViscosity.py \
+	$(srcdir)/MorrisMonaghanReducingViscosity.py \
+	$(srcdir)/CullenDehnenViscosity.py \
+	$(srcdir)/FiniteVolumeViscosity.py \
+	$(srcdir)/TensorSVPHViscosity.py \
+	$(srcdir)/TensorCRKSPHViscosity.py \
+	$(srcdir)/VonNeumanViscosity.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
