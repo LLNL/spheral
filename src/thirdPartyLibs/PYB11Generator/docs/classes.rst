@@ -105,11 +105,13 @@ Class inheritance hierarchies in C++ are simple to reflect in PYB11Generator, as
 .. code-block:: cpp
 
   class A {
+  public:
     A();                    // Default constructor
     int func(int x);        // Some useful function of A
   };
 
   class B: public A {
+  public:
     B();                    // Default constructor
     double dfunc(double x); // Some useful function of B
   };
