@@ -103,3 +103,38 @@ the generated pybind11 code would look like:
   // Make the module
   //------------------------------------------------------------------------------
   ...
+
+.. _class-variables:
+
+---------------------------
+PYB11 variables for classes
+---------------------------
+
+There is also one reserved variable for class scope in PYB11:
+
+PYB11typedefs = "...."
+  A string of C++ to be inserted at the beginning of a class declaration.  This is a bit of a misnomer; the string can be any valid C++ for use in the class declaration scope.  Suppose for instance we are defining a class ``A``, and we want to declare some typedefs only for use in the scope of ``A``::
+
+    class A:
+
+        PYB11typedefs = """
+    typedef int    IntType;
+    typedef double ScalarType;
+    """
+
+  which results in the following C++ code:
+
+  .. code-block:: cpp
+
+    //............................................................................
+    // Class A
+    {
+
+      typedef int    IntType;
+      typedef double ScalarType;
+
+      class_<A> obj(m, "A");
+      ...
+    }
+
+  so now ``IntType`` and ``ScalarType`` are avaiable as types in the scope where we are defining A.
