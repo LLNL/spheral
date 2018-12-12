@@ -9,8 +9,8 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = CXXTests
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-INSTSRCTARGETS = \
-	$(srcdir)/testNodeIteratorsInst.cc.py
+#INSTSRCTARGETS = \
+#	$(srcdir)/testNodeIteratorsInst.cc.py
 SRCTARGETS = \
 	$(srcdir)/test_r3d_utils.cc
 

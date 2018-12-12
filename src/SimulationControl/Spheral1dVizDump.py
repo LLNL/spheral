@@ -7,8 +7,7 @@
 #-------------------------------------------------------------------------------
 import os, time, gc, mpi
 
-from SpheralModules import *
-from SpheralModules.Spheral import *
+from SpheralCompiledPackages import *
 
 class Spheral1dVizDump:
 

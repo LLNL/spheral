@@ -179,7 +179,7 @@ NodeList<Dimension>::nodesPerSmoothingScale() const {
 
 template<typename Dimension>
 void
-NodeList<Dimension>::nodesPerSmoothingScale(const typename Dimension::Scalar val) {
+NodeList<Dimension>::nodesPerSmoothingScale(typename Dimension::Scalar val) {
   mNodesPerSmoothingScale = val;
 }
 
@@ -195,7 +195,7 @@ NodeList<Dimension>::maxNumNeighbors() const {
 
 template<typename Dimension>
 void
-NodeList<Dimension>::maxNumNeighbors(const unsigned val) {
+NodeList<Dimension>::maxNumNeighbors(unsigned val) {
   mMaxNumNeighbors = val;
 }
 
@@ -212,7 +212,7 @@ NodeList<Dimension>::hmin() const {
 template<typename Dimension>
 inline
 void
-NodeList<Dimension>::hmin(const typename Dimension::Scalar val) {
+NodeList<Dimension>::hmin(typename Dimension::Scalar val) {
   mhmin = val;
 }
 
@@ -229,7 +229,7 @@ NodeList<Dimension>::hmax() const {
 template<typename Dimension>
 inline
 void
-NodeList<Dimension>::hmax(const typename Dimension::Scalar val) {
+NodeList<Dimension>::hmax(typename Dimension::Scalar val) {
   mhmax = val;
 }
 
@@ -246,7 +246,7 @@ NodeList<Dimension>::hminratio() const {
 template<typename Dimension>
 inline
 void
-NodeList<Dimension>::hminratio(const typename Dimension::Scalar val) {
+NodeList<Dimension>::hminratio(typename Dimension::Scalar val) {
   mhminratio = val;
 }
 

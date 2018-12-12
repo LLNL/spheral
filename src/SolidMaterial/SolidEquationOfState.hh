@@ -40,8 +40,8 @@ public:
   double etamax() const;
   
   virtual void referenceDensity(const double x);
-  void etamin(const double x);
-  void etamax(const double x);
+  void etamin(double x);
+  void etamax(double x);
   
   // Compute eta = rho/refrho, bounded to be in [etamin, etamax].
   double boundedEta(const double rho) const;

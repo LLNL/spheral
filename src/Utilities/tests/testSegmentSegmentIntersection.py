@@ -19,7 +19,7 @@ class TestSegmentSegmentIntersection(unittest.TestCase):
     def setUp(self):
         self.ntests = 100
         self.multMin = 0.001
-        self.multMax = 1.0e6
+        self.multMax = 1.0e5
         return
 
     #===========================================================================
@@ -39,10 +39,9 @@ class TestSegmentSegmentIntersection(unittest.TestCase):
         a1 = Vector(2.0, 2.0)
         b0 = Vector(1.0, 2.0)
         b1 = Vector(2.0, 3.0)
-        result1, result2 = Vector(), Vector()
         for i in xrange(self.ntests):
             aa0, aa1, bb0, bb1, T = self.randomDistortion(a0, a1, b0, b1)
-            assert segmentSegmentIntersection(aa0, aa1, bb0, bb1, result1, result2) == '0'
+            assert segmentSegmentIntersection(aa0, aa1, bb0, bb1)[0] == '0'
 
     #===========================================================================
     # Intersecting 
@@ -52,10 +51,9 @@ class TestSegmentSegmentIntersection(unittest.TestCase):
         a1 = Vector(2.0, 2.0)
         b0 = Vector(1.0, 2.0)
         b1 = Vector(2.0, 1.0)
-        result1, result2 = Vector(), Vector()
         for i in xrange(self.ntests):
             aa0, aa1, bb0, bb1, T = self.randomDistortion(a0, a1, b0, b1)
-            code = segmentSegmentIntersection(aa0, aa1, bb0, bb1, result1, result2)
+            code, result1, result2 = segmentSegmentIntersection(aa0, aa1, bb0, bb1)
             assert code == '1'
             assert result1 == result2
             assert fuzzyEqual((result1 - T*Vector(1.5, 1.5)).magnitude(), 0.0)
@@ -68,10 +66,9 @@ class TestSegmentSegmentIntersection(unittest.TestCase):
         a1 = Vector(2.0, 2.0)
         b0 = Vector(1.0, 2.0)
         b1 = Vector(1.5, 1.5)
-        result1, result2 = Vector(), Vector()
         for i in xrange(self.ntests):
             aa0, aa1, bb0, bb1, T = self.randomDistortion(a0, a1, b0, b1)
-            code = segmentSegmentIntersection(aa0, aa1, bb0, bb1, result1, result2)
+            code, result1, result2 = segmentSegmentIntersection(aa0, aa1, bb0, bb1)
             assert code == 'v'
             assert result1 == result2
             assert fuzzyEqual((result1 - T*Vector(1.5, 1.5)).magnitude(), 0.0)
@@ -84,10 +81,9 @@ class TestSegmentSegmentIntersection(unittest.TestCase):
         a1 = Vector(2.0, 2.0)
         b0 = Vector(3.0, 3.0)
         b1 = Vector(1.5, 1.5)
-        result1, result2 = Vector(), Vector()
         for i in xrange(self.ntests):
             aa0, aa1, bb0, bb1, T = self.randomDistortion(a0, a1, b0, b1)
-            code = segmentSegmentIntersection(aa0, aa1, bb0, bb1, result1, result2)
+            code, result1, result2 = segmentSegmentIntersection(aa0, aa1, bb0, bb1)
             assert code == 'e'
             assert result1 != result2
             if result1.magnitude2() > result2.magnitude2():

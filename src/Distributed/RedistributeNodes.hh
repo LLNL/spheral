@@ -83,7 +83,7 @@ public:
 
   // Flag controlling how we set the work field.
   bool computeWork() const;
-  void computeWork(const bool x);
+  void computeWork(bool x);
 
 protected:
   //--------------------------- Protected Interface ---------------------------//

@@ -78,7 +78,7 @@ template<typename Dimension>
 inline
 void
 TensorDamageModel<Dimension>::
-useDamageGradient(const bool x) {
+useDamageGradient(bool x) {
   mUseDamageGradient = x;
 }
 
@@ -97,7 +97,7 @@ template<typename Dimension>
 inline
 void
 TensorDamageModel<Dimension>::
-damageInCompression(const bool x) {
+damageInCompression(bool x) {
   mDamageInCompression = x;
 }
 
@@ -117,7 +117,7 @@ template<typename Dimension>
 inline
 void
 TensorDamageModel<Dimension>::
-criticalDamageThreshold(const double x) {
+criticalDamageThreshold(double x) {
   mCriticalDamageThreshold = x;
 }
 

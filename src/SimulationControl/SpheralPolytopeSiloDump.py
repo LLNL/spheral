@@ -10,8 +10,7 @@
 #-------------------------------------------------------------------------------
 import os, sys, time, gc, mpi
 
-from SpheralModules import *
-from SpheralModules.Spheral import *
+from SpheralCompiledPackages import *
 from PolytopeModules import polytope
 
 class SpheralPolytopeSiloDump:

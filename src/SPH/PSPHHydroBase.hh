@@ -108,7 +108,7 @@ public:
 
   // Flag determining if we're applying Hopkins 2014 conductivity.
   bool HopkinsConductivity() const;
-  void HopkinsConductivity(const bool val);
+  void HopkinsConductivity(bool val);
 
   // The state field lists we're maintaining.
   const FieldList<Dimension, Scalar>&    gamma() const;
@@ -117,8 +117,8 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "PSPHHydroBase"; }
-  virtual void dumpState(FileIO& file, std::string pathName) const;
-  virtual void restoreState(const FileIO& file, std::string pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 protected:

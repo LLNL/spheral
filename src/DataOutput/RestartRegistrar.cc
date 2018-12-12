@@ -6,6 +6,7 @@
 // Created by JMO, Wed May 27 13:44:32 PDT 2009
 //----------------------------------------------------------------------------//
 #include "RestartRegistrar.hh"
+#include "FileIO/FileIO.hh"
 #include "Utilities/removeElements.hh"
 
 #include <algorithm>
@@ -197,8 +198,23 @@ RestartRegistrar::
 restoreState(const FileIO& file) const {
   const vector<string> labels = this->uniqueLabels();
   CHECK(labels.size() == mRestartHandles.size());
-  for (size_t i = 0; i != labels.size(); ++i) {
-    mRestartHandles[i].lock()->restoreState(file, labels[i]);
+  for (auto i = 0; i != labels.size(); ++i) {
+
+    // We do a bit of chicanery here for backwards-comparability with the Pybindgen version of Spheral.
+    auto label = labels[i];
+    auto dirPath = file.groupName(label);
+    auto varName = file.variableName(label);
+    if (varName == "SolidSPHHydroBase" and file.pathExists(dirPath + "/SolidSPHHydroBase_1")) {
+      label = dirPath + "/SolidSPHHydroBase_1";
+    } else if (varName == "SolidSPHHydroBaseRZ" and file.pathExists(dirPath + "/SolidSPHHydroBaseRZ_1")) {
+      label = dirPath + "/SolidSPHHydroBaseRZ_1";
+    } else if (varName == "SolidCRKSPHHydroBase" and file.pathExists(dirPath + "SolidCRKSPHHydroBase_1")) {
+      label = dirPath + "/SolidCRKSPHHydroBase_1";
+    } else if (varName == "SolidCRKSPHHydroBaseRZ" and file.pathExists(dirPath + "SolidCRKSPHHydroBaseRZ_1")) {
+      label = dirPath + "/SolidCRKSPHHydroBaseRZ_1";
+    }
+
+    mRestartHandles[i].lock()->restoreState(file, label);
   }
 }
 

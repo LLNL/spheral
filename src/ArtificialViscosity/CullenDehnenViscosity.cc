@@ -518,7 +518,7 @@ finalize(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 CullenDehnenViscosity<Dimension>::
-dumpState(FileIO& file, string pathName) const {
+dumpState(FileIO& file, const string& pathName) const {
     file.write(mPrevDvDt, pathName + "/prevDvDt");
     file.write(mPrevDivV, pathName + "/prevDivV");
     file.write(mCullAlpha, pathName + "/cullAlpha");
@@ -534,7 +534,7 @@ dumpState(FileIO& file, string pathName) const {
 template<typename Dimension>
 void
 CullenDehnenViscosity<Dimension>::
-restoreState(const FileIO& file, string pathName) {
+restoreState(const FileIO& file, const string& pathName) {
     file.read(mPrevDvDt, pathName + "/prevDvDt");
     file.read(mPrevDivV, pathName + "/prevDivV");
     file.read(mCullAlpha, pathName + "/cullAlpha");

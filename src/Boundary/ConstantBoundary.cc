@@ -446,7 +446,7 @@ ConstantBoundary<Dimension>::label() const {
 template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
-dumpState(FileIO& file, string pathName) const {
+dumpState(FileIO& file, const string& pathName) const {
   file.write(mNumConstantNodes, pathName + "/numConstantNodes");
   file.write(mActive, pathName + "/active");
   file.write(mBoundaryCount, pathName + "/boundaryCount");
@@ -514,7 +514,7 @@ dumpState(FileIO& file, string pathName) const {
 template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
-restoreState(const FileIO& file, string pathName)  {
+restoreState(const FileIO& file, const string& pathName)  {
   file.read(mNumConstantNodes, pathName + "/numConstantNodes");
   file.read(mActive, pathName + "/active");
   file.read(mBoundaryCount, pathName + "/boundaryCount");

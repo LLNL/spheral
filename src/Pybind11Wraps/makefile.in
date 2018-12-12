@@ -12,23 +12,31 @@ PKGDIR = Pybind11Wraps
 INSTALLTARGETS = Spheral.pth
 
 PYTHONTARGETS = \
-	$(BUILDTOP)/Pybind11Wraps/Spheral.py \
-	$(srcdir)/SolidSpheral.py
+	$(BUILDTOP)/Pybind11Wraps/SpheralCompiledPackages.py \
+	$(srcdir)/SpheralPickle.py \
+	$(srcdir)/PolyhedronFileUtilities.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 LIBS += -lsiloh5 -lhdf5 $(LDRPATH)
 
 #-------------------------------------------------------------------------------
-CP = cp
+.PHONY:	all
 
 force_build:
 
-all:	@PYTHONPKGS@
+#FILTEREDPYTHONPKGS = $(filter-out $(PKGNAME), $(filter-out Python, $(PYTHONPKGS)))
 
-$(PYTHONPKGS):	force_build
-	cd $(BUILDTOP)/$(PKGDIR)/$@; \
+all:	$(FILTEREDPYTHONPKGS)
+
+$(FILTEREDPYTHONPKGS):	force_build
+	cd $(BUILDTOP)/Pybind11Wraps/$@; \
 	$(MAKE) all
 
 Spheral.pth:	force_build
 	cp -f $(srcdir)/Spheral.pth $(PYTHONLIBDIR)
+
+clean:
+	for pckg in $(FILTEREDPYTHONPKGS); do \
+	$(MAKE) -C $(BUILDTOP)/Pybind11Wraps/$$pckg clean; \
+	done

@@ -19,7 +19,6 @@ job.out*
 runit
 spam
 *.a
-*makefile
 job.out
 job.err
 out.job
@@ -31,17 +30,13 @@ src/BUILD/**
 dumps-*
 
 # These are files automatically generated in our configure process.
-src/PBGWraps/makefile
 src/aclocal.m4
 src/autom4te.cache
 src/config.log
 src/config.status
 src/configure
-src/helpers/makefile_master
-src/helpers/makefile_taumaster
 src/helpers/mpic++
 src/helpers/mpicc
-src/makefile
 src/PBGWraps/SpheralModulesBindings.py
 
 src/thirdPartyLibs/tau-2.21.4

@@ -8,10 +8,14 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = Material
 PKGDIR = $(PKGNAME)/
+PYB11SRCS = \
+	PhysicalConstants.py \
+	EOSAbstractMethods.py \
+	EquationOfState.py \
+	GammaLawGas.py \
+	PolytropicEquationOfState.py \
+	IsothermalEquationOfState.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-
-SRCTARGETS += \
-	$(srcdir)/SpheralMaterial.cc
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

@@ -249,7 +249,7 @@ alpha0() const {
 template<typename Dimension>
 void
 PorousEquationOfState<Dimension>::
-alpha0(const typename Dimension::Scalar x) {
+alpha0(typename Dimension::Scalar x) {
   mAlpha0 = x;
 }
 
@@ -266,7 +266,7 @@ c0() const {
 template<typename Dimension>
 void
 PorousEquationOfState<Dimension>::
-c0(const typename Dimension::Scalar x) {
+c0(typename Dimension::Scalar x) {
   mC0 = x;
 }
 

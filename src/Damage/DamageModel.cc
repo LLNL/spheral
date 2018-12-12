@@ -375,7 +375,7 @@ excludeNodes() const {
 template<typename Dimension>
 void
 DamageModel<Dimension>::
-excludeNodes(const vector<int>& ids) {
+excludeNodes(vector<int> ids) {
   mExcludeNode = 0;
   for (vector<int>::const_iterator itr = ids.begin();
        itr != ids.end();

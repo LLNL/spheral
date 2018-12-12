@@ -79,7 +79,7 @@ public:
 
   // Access the HExtent we're using.
   double Hextent() const;
-  void Hextent(const double val);
+  void Hextent(double val);
 
 private:
   //--------------------------- Private Interface ---------------------------//

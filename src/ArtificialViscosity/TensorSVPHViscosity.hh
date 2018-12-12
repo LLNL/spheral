@@ -56,7 +56,7 @@ public:
 
   // Access our internal state.
   Scalar fslice() const;
-  void fslice(const Scalar x);
+  void fslice(Scalar x);
 
   const std::vector<Tensor>& DvDx() const;
   const std::vector<Scalar>& shearCorrection() const;

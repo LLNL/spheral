@@ -1,0 +1,12 @@
+# ------------------------------------------------------------------------------
+# Import the compiled packages.
+# ------------------------------------------------------------------------------
+from SpheralModules import *
+from SpheralModules.Spheral import *
+from SpheralModules.Spheral.PythonBoundFunctors import *
+from SpheralModules.Spheral.SolidMaterial import *
+
+# ------------------------------------------------------------------------------
+# PolyCliper
+# ------------------------------------------------------------------------------
+import SpheralModules.PolyClipper as PolyClipper

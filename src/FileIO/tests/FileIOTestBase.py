@@ -115,9 +115,13 @@ class FileIOTestBase:
         f = self.constructor("TestVector1d", Read)
         f.read(x1, "FileIOTestBase/TestVector1d")
         f.close()
+        f = self.constructor("TestVector1d-check", Write)
+        f.write(x1, "FileIOTestBase/TestVector1d")
+        f.close()
         self.failUnless(x1 == x0,
                         "%s != %s in Vector1d test" % (str(x1), str(x0)))
         self.removeFile("TestVector1d")
+        self.removeFile("TestVector1d-check")
         return
 
     #---------------------------------------------------------------------------
@@ -371,30 +375,7 @@ class FileIOTestBase:
                                 "%i != %i @ %i of %i in vector<int> test" %
                                 (v[i], v0[i], i, n))
             self.removeFile(filename)
-            return
-
-##     #---------------------------------------------------------------------------
-##     # vector<bool>
-##     #---------------------------------------------------------------------------
-##     def testVectorBool(self):
-##         v0 = vector_of_bool()
-##         for i in xrange(self.n):
-##             v0.append(g.choice([True, False]))
-##         assert len(v0) == self.n
-##         f = self.constructor("TestVectorBool", Write)
-##         f.write(v0, "FileIOTestBase/vector_of_bool")
-##         f.close()
-##         f = self.constructor("TestVectorBool", Read)
-##         v = vector_of_bool()
-##         f.read(v, "FileIOTestBase/vector_of_bool")
-##         f.close()
-##         assert len(v) == len(v0)
-##         for i in xrange(self.n):
-##             self.failUnless(v[i] == v0[i],
-##                             "%i != %i @ %i of %i in vector<bool> test" %
-##                             (v[i], v0[i], i, self.n))
-##         self.removeFile("TestVectorBool")
-##         return
+        return
 
     #---------------------------------------------------------------------------
     # vector<double>
@@ -419,8 +400,8 @@ class FileIOTestBase:
                                 "%g != %g @ %i of %i in vector<double> test" %
                                 (v[i], v0[i], i, n))
             self.removeFile(filename)
-            return
-    
+        return
+
     #---------------------------------------------------------------------------
     # vector<string>
     #---------------------------------------------------------------------------
@@ -474,7 +455,7 @@ class FileIOTestBase:
                                 "%s != %s @ %i of %i in vector<Vector1d> test" %
                                 (str(v[i]), str(v0[i]), i, n))
             self.removeFile(filename)
-            return
+        return
 
     #---------------------------------------------------------------------------
     # vector<Vector2d>
@@ -491,20 +472,19 @@ class FileIOTestBase:
             f.write(v0, "FileIOTestBase/vector_of_Vector2d")
             f.close()
             f = self.constructor(filename, Read)
-            v = vector_of_Vector2d()
-            f.read(v, "FileIOTestBase/vector_of_Vector2d")
+            v1 = vector_of_Vector2d()
+            f.read(v1, "FileIOTestBase/vector_of_Vector2d")
             f.close()
-            assert len(v) == len(v0)
+            assert len(v1) == len(v0)
             for i in xrange(n):
-                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
+                self.failUnless(fuzzyEqual(list(v1[i]), list(v0[i])),
                                 "%s != %s @ %i of %i in vector<Vector2d> test" %
-                                (str(v[i]), str(v0[i]), i, n))
+                                (str(v1[i]), str(v0[i]), i, n))
             self.removeFile(filename)
-        del v0, v
         return
 
     #---------------------------------------------------------------------------
-    # vector<Vector3d>
+    # Vector<Vector3d>
     #---------------------------------------------------------------------------
     def testVectorVector3d(self):
         for n in (0, self.n):
@@ -704,6 +684,36 @@ class FileIOTestBase:
         return
 
     #---------------------------------------------------------------------------
+    # vector<ThirdRankTensor1d>
+    #---------------------------------------------------------------------------
+    def testVectorThirdRankTensor1d(self):
+        for n in (0, self.n):
+            filename = "TestVectorThirdRankTensor1d_%i" % n
+            v0 = vector_of_ThirdRankTensor1d()
+            for i in xrange(n):
+                val = ThirdRankTensor1d()
+                for i in xrange(ThirdRankTensor1d.nDimensions):
+                    for j in xrange(ThirdRankTensor1d.nDimensions):
+                        for k in xrange(ThirdRankTensor1d.nDimensions):
+                            val(i, j, k, g.uniform(self.doublemin, self.doublemax))
+                v0.append(val)
+            assert len(v0) == n
+            f = self.constructor(filename, Write)
+            f.write(v0, "FileIOTestBase/vector_of_ThirdRankTensor1d")
+            f.close()
+            f = self.constructor(filename, Read)
+            v = vector_of_ThirdRankTensor1d()
+            f.read(v, "FileIOTestBase/vector_of_ThirdRankTensor1d")
+            f.close()
+            assert len(v) == len(v0)
+            for i in xrange(n):
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
+                                "%s != %s @ %i of %i in vector<ThirdRankTensor1d> test" %
+                                (str(v[i]), str(v0[i]), i, n))
+            self.removeFile(filename)
+        return
+
+    #---------------------------------------------------------------------------
     # vector<ThirdRankTensor2d>
     #---------------------------------------------------------------------------
     def testVectorThirdRankTensor2d(self):
@@ -764,7 +774,7 @@ class FileIOTestBase:
         return
 
     #---------------------------------------------------------------------------
-    # IntField1d
+    # Intfield1d
     #---------------------------------------------------------------------------
     def testIntField1d(self):
         v0 = IntField1d("int field 1d control", nodes1d)
@@ -1244,7 +1254,7 @@ class FileIOTestBase:
         return
 
     #---------------------------------------------------------------------------
-    # IntFieldList1d
+    # IntFieldList2d
     #---------------------------------------------------------------------------
     def testIntFieldList2d(self):
         fl0 = IntFieldList2d()

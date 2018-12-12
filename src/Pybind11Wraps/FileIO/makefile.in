@@ -8,10 +8,14 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = FileIO
 PKGDIR = $(PKGNAME)/
+PYB11SRCS = \
+	FileIOAbstractMethods.py \
+	FileIOTemplateMethods.py \
+	FileIO.py \
+	FlatFileIO.py \
+	SiloFileIO.py \
+	PyFileIO.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-
-SRCTARGETS += \
-	$(srcdir)/SpheralFileIO.cc
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

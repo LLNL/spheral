@@ -94,11 +94,11 @@ public:
 
   //! The current softening length.
   double softeningLength() const;
-  void softeningLength(const double x);
+  void softeningLength(double x);
 
   //! Flag for using the compatible velocity update.
   bool compatibleVelocityUpdate() const;
-  void compatibleVelocityUpdate(const bool x);
+  void compatibleVelocityUpdate(bool x);
 
 private:
   

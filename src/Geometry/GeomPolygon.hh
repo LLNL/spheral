@@ -77,7 +77,7 @@ public:
   // Spit out a vector<vector<unsigned> > that encodes the facets.
   std::vector<std::vector<unsigned> > facetVertices() const;
 
-  // Reconstruct the internal data given a set of verticies and the vertex
+  // Reconstruct the internal data given a set of vertices and the vertex
   // indicies that define the facets.
   void reconstruct(const std::vector<Vector>& vertices,
                    const std::vector<std::vector<unsigned> >& facetVertices);

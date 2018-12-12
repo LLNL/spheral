@@ -43,10 +43,19 @@ sys.stdout = __mpi_stdoutfile__
 """, globalscope)
 
 #-------------------------------------------------------------------------------
+# A common helper to convert vector_of_* types to lists for communication
+#-------------------------------------------------------------------------------
+def __listify(obj):
+    if hasattr(obj, "__qualname__") and "vector_of" in obj.__qualname__:
+        return list(obj)
+    else:
+        return obj
+
+#-------------------------------------------------------------------------------
 # send
 #-------------------------------------------------------------------------------
 def send(obj, dest=0, tag=100):
-    comm.send(obj=obj, dest=dest, tag=tag)
+    comm.send(obj=__listify(obj), dest=dest, tag=tag)
 
 #-------------------------------------------------------------------------------
 # recv
@@ -58,37 +67,37 @@ def recv(source=0, tag=100):
 # isend
 #-------------------------------------------------------------------------------
 def isend(obj, dest=0, tag=100):
-    return comm.isend(obj=obj, dest=dest, tag=tag)
+    return comm.isend(obj=__listify(obj), dest=dest, tag=tag)
 
 #-------------------------------------------------------------------------------
 # reduce
 #-------------------------------------------------------------------------------
 def reduce(obj, op=SUM, root=0):
-    return comm.reduce(sendobj=obj, op=op, root=root)
+    return comm.reduce(sendobj=__listify(obj), op=op, root=root)
 
 #-------------------------------------------------------------------------------
 # allreduce
 #-------------------------------------------------------------------------------
 def allreduce(obj, op=SUM):
-    return comm.allreduce(sendobj=obj, op=op)
+    return comm.allreduce(sendobj=__listify(obj), op=op)
 
 #-------------------------------------------------------------------------------
 # gather
 #-------------------------------------------------------------------------------
 def gather(obj, root=0):
-    return comm.gather(sendobj=obj, root=root)
+    return comm.gather(sendobj=__listify(obj), root=root)
 
 #-------------------------------------------------------------------------------
 # allgather
 #-------------------------------------------------------------------------------
 def allgather(obj):
-    return comm.allgather(sendobj=obj)
+    return comm.allgather(sendobj=__listify(obj))
 
 #-------------------------------------------------------------------------------
 # bcast
 #-------------------------------------------------------------------------------
 def bcast(obj, root=0):
-    return comm.bcast(obj, root=root)
+    return comm.bcast(__listify(obj), root=root)
 
 #-------------------------------------------------------------------------------
 # barrier

@@ -216,9 +216,9 @@ class AverageStrain:
         return
 
     def sample(self, cycle, atime, dt):
-        nodes = self.damageModel.nodeList()
+        nodes = self.damageModel.nodeList
         mass = nodes.mass()
-        strain = self.damageModel.strain()
+        strain = self.damageModel.strain
 
         n = nodes.numInternalNodes
         result = (mpi.allreduce(sum([mass[i]*(strain[i].Trace()) for i in xrange(n)]), mpi.SUM)/
@@ -440,8 +440,8 @@ output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
+output("hydro.kernel")
+output("hydro.PiKernel")
 
 #-------------------------------------------------------------------------------
 # Construct a damage model.
@@ -559,7 +559,8 @@ for package in integrator.physicsPackages():
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            restartBaseName = restartBaseName)
+                            restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle)
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -645,7 +646,7 @@ if graphics:
              (edPlot, "effdamage.png")]
 
     if isinstance(damageModel, GradyKippTensorDamageBenzAsphaug) or isinstance(damageModel, GradyKippTensorDamageOwen):
-        ts = damageModel.strain()
+        ts = damageModel.strain
         s = ScalarField("strain", nodes)
         for i in xrange(nodes.numInternalNodes):
             s[i] = ts[i].xx
@@ -653,8 +654,8 @@ if graphics:
         sl.appendField(s)
         sPlot = plotFieldList(sl, winTitle="strain @ %g %i" % (control.time(), mpi.procs),
                               plotStyle="o-")
-        eps = damageModel.sumActivationEnergiesPerNode()
-        nflaws = damageModel.numFlawsPerNode()
+        eps = damageModel.sumActivationEnergiesPerNode
+        nflaws = damageModel.numFlawsPerNode
         for i in xrange(nodes.numInternalNodes):
             assert nflaws[i] > 0
             eps[i] /= nflaws[i]

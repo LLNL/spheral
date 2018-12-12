@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <string>
 #include "boost/tuple/tuple.hpp"
 #include "Geometry/Dimension.hh"
 #include "Geometry/polyclipper.hh"
@@ -114,6 +115,15 @@ struct DataTypeTraits<double> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_DOUBLE; }
 #endif
+};
+
+//------------------------------------------------------------------------------
+template<>
+struct DataTypeTraits<std::string> {
+  typedef std::string ElementType;
+  static bool fixedSize() { return false; }
+  static int numElements(const ElementType& x) { return x.size(); }
+  static ElementType zero() { return ""; }
 };
 
 //------------------------------------------------------------------------------

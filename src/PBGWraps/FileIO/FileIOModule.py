@@ -20,10 +20,10 @@ class FileIO:
             exec("""
 self.FileIOTypes += [
         "Vector%(dim)s", "Tensor%(dim)s", "SymTensor%(dim)s", "ThirdRankTensor%(dim)s",
-        "vector_of_Vector%(dim)s",
-        "vector_of_Tensor%(dim)s",
-        "vector_of_SymTensor%(dim)s",
-        "vector_of_ThirdRankTensor%(dim)s",
+        # "vector_of_Vector%(dim)s",
+        # "vector_of_Tensor%(dim)s",
+        # "vector_of_SymTensor%(dim)s",
+        # "vector_of_ThirdRankTensor%(dim)s",
         ]""" % {"dim" : "%id" % ndim,
                 "Dim" : "Spheral::Dim<%i>" % ndim})
         for ndim in self.dims:
@@ -46,7 +46,7 @@ self.FileIOTemplateTypes += [
         ("Spheral::VectorDoubleFieldList%(dim)s", ["%(Dim)s", "vector_of_double"]),
         ]""" % {"dim" : "%id" % ndim,
                 "Dim" : "Spheral::Dim<%i>" % ndim})
-        self.FileIOTypes += ["vector_of_int", "vector_of_double", "vector_of_string",
+        self.FileIOTypes += [#"vector_of_int", "vector_of_double", "vector_of_string",
                              "double", "std::string", "int", "bool", "unsigned int"]
 
         # Includes.
@@ -270,7 +270,7 @@ self.FileIOTemplateTypes += [
                                [param("std::string", "pathName")],
                                is_const = True,
                                is_virtual = True)
-            fio_obj.add_method("write", None, [param(val, "value"),
+            fio_obj.add_method("write", None, [constrefparam(val, "value"),
                                                param("std::string", "pathName")],
                                is_virtual = True,
                                is_pure_virtual = pureVirtual)
@@ -314,10 +314,18 @@ self.FileIOTemplateTypes += [
                                  [constrefparam(val, "value"),
                                   param("const std::string", "pathName")],
                                  is_pure_virtual = True)
-            pyfio_obj.add_method("read_%s" % stripval,
-                                 None, 
-                                 [refparam(val, "value"),
-                                  param("const std::string", "pathName")],
-                                 is_const = True,
-                                 is_pure_virtual = True)
+            if "Field" in val:
+                pyfio_obj.add_method("read_%s" % stripval,
+                                     None, 
+                                     [inputptrparam(val, "value"),
+                                      param("const std::string", "pathName")],
+                                     is_const = True,
+                                     is_pure_virtual = True)
+            else:
+                pyfio_obj.add_method("read_%s" % stripval,
+                                     None, 
+                                     [refparam(val, "value"),
+                                      param("const std::string", "pathName")],
+                                     is_const = True,
+                                     is_pure_virtual = True)
         return

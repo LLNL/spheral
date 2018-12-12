@@ -97,24 +97,24 @@ public:
   double atomicWeight() const;
   double Cv() const;
 
-  void a1(const double val);
-  void a2pos(const double val);
-  void a2neg(const double val);
-  void b0(const double val);
-  void b1(const double val);
-  void b2pos(const double val);
-  void b2neg(const double val);
-  void c0(const double val);
-  void c1(const double val);
-  void c2pos(const double val);
-  void c2neg(const double val);
-  void E0(const double val);
-  void atomicWeight(const double val);
+  void a1(double val);
+  void a2pos(double val);
+  void a2neg(double val);
+  void b0(double val);
+  void b1(double val);
+  void b2pos(double val);
+  void b2neg(double val);
+  void c0(double val);
+  void c1(double val);
+  void c2pos(double val);
+  void c2neg(double val);
+  void E0(double val);
+  void atomicWeight(double val);
 
   // If requested, the user can specify an external pressure to be applied
   // in the pressure calculation.
   double externalPressure() const;
-  void externalPressure(const double P);
+  void externalPressure(double P);
 
   // Compute an individual value for DPDrho.
   double DPDrho(const double massDensity,

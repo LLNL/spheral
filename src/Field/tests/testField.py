@@ -19,9 +19,12 @@ WT = TableKernel(BSplineKernel(), 1000)
 #-------------------------------------------------------------------------------
 def vector_from_list(l):
     n = len(l)
-    result = vector_of_int(n)
-    for i in xrange(n):
-        result[i] = l[i]
+    try:
+        result = vector_of_int(n)    # pybindgen
+        for i in xrange(n):
+            result[i] = l[i]
+    except:
+        result = vector_of_int(l)    # pybind11
     return result
 
 #-------------------------------------------------------------------------------

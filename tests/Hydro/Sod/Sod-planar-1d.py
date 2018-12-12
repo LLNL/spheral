@@ -515,7 +515,7 @@ answer = SodSolution(nPoints=nx1 + nx2,
 
 #cs = db.newFluidScalarFieldList(0.0, "sound speed")
 #db.fluidSoundSpeed(cs)
-cs = hydro.soundSpeed()
+cs = hydro.soundSpeed
 
 # Make a flat list from a FieldList
 def createList(x):
@@ -527,7 +527,7 @@ def createList(x):
 
 # Compute the simulated specific entropy.
 rho = createList(db.fluidMassDensity)
-P = createList(hydro.pressure())
+P = createList(hydro.pressure)
 A = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
 
 # The analytic solution for the simulated entropy.
@@ -572,20 +572,20 @@ if graphics:
              (Aplot, "Sod-planar-entropy.png")]
     
     if crksph:
-        volPlot = plotFieldList(hydro.volume(), 
+        volPlot = plotFieldList(hydro.volume, 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
-        aplot = plotFieldList(hydro.A(),
+        aplot = plotFieldList(hydro.A,
                               winTitle = "A",
                               colorNodeLists = False)
-        bplot = plotFieldList(hydro.B(),
+        bplot = plotFieldList(hydro.B,
                               yFunction = "%s.x",
                               winTitle = "B",
                               colorNodeLists = False)
-        splot = plotFieldList(hydro.surfacePoint(),
+        splot = plotFieldList(hydro.surfacePoint,
                               winTitle = "surface point",
                               colorNodeLists = False)
-        voidplot = plotFieldList(hydro.voidPoint(),
+        voidplot = plotFieldList(hydro.voidPoint,
                                  winTitle = "void point",
                                  plotStyle = "points",
                                  plotGhosts = True,
@@ -596,21 +596,21 @@ if graphics:
                    (splot, "Sod-planar-surfacePoint.png"),
                    (voidplot, "Sod-planar-voidPoint.png")]
     
-    viscPlot = plotFieldList(hydro.maxViscousPressure(),
+    viscPlot = plotFieldList(hydro.maxViscousPressure,
                              winTitle = "max(rho^2 Piij)",
                              colorNodeLists = False)
     plots.append((viscPlot, "Sod-planar-viscosity.png"))
     
     if boolCullenViscosity:
-        cullAlphaPlot = plotFieldList(q.ClMultiplier(),
+        cullAlphaPlot = plotFieldList(q.ClMultiplier,
                                       winTitle = "Cullen alpha")
-        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
+        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt,
                                        winTitle = "Cullen DalphaDt")
         plots += [(cullAlphaPlot, "Sod-planar-Cullen-alpha.png"),
                   (cullDalphaPlot, "Sod-planar-Cullen-DalphaDt.png")]
 
     if boolReduceViscosity:
-        alphaPlot = plotFieldList(q.ClMultiplier(),
+        alphaPlot = plotFieldList(q.ClMultiplier,
                                   winTitle = "rvAlpha",
                                   colorNodeLists = False)
 
@@ -629,7 +629,7 @@ from SpheralGnuPlotUtilities import multiSort
 mof = mortonOrderIndices(db)
 mo = createList(mof)
 rhoprof = createList(db.fluidMassDensity)
-Pprof = createList(hydro.pressure())
+Pprof = createList(hydro.pressure)
 vprof = [v.x for v in createList(db.fluidVelocity)]
 epsprof = createList(db.fluidSpecificThermalEnergy)
 hprof = [1.0/Hi.xx for Hi in createList(db.fluidHfield)]

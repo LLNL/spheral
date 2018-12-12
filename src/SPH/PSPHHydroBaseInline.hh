@@ -14,7 +14,7 @@ PSPHHydroBase<Dimension>::HopkinsConductivity() const {
 template<typename Dimension>
 inline
 void
-PSPHHydroBase<Dimension>::HopkinsConductivity(const bool val) {
+PSPHHydroBase<Dimension>::HopkinsConductivity(bool val) {
   mHopkinsConductivity = val;
 }
 

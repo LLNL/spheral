@@ -75,7 +75,7 @@ public:
                                   const Field<Dimension, Scalar>& density,
                                   const Field<Dimension, Scalar>& specficThermalEnergy) const override;
 
-  virtual void coldSpecificEnergy(Field<Dimension, Scalar>& meltSpecificEnergy,
+  virtual void coldSpecificEnergy(Field<Dimension, Scalar>& coldSpecificEnergy,
                                   const Field<Dimension, Scalar>& density,
                                   const Field<Dimension, Scalar>& specficThermalEnergy) const override;
 

@@ -212,7 +212,7 @@ extent() const {
 inline
 void
 Box1d::
-extent(const double val) {
+extent(double val) {
   mExtent = val;
   mVertices = std::vector<Vector>();
   mVertices.push_back(mCenter - mExtent);

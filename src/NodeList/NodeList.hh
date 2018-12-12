@@ -143,21 +143,21 @@ public:
 
   // The target number of nodes per smoothing scale (for calculating the ideal H).
   Scalar nodesPerSmoothingScale() const;
-  void nodesPerSmoothingScale(const Scalar val);
+  void nodesPerSmoothingScale(Scalar val);
 
   // The maximum number of neighbors we want to have (for calculating the ideal H).
   unsigned maxNumNeighbors() const;
-  void maxNumNeighbors(const unsigned val);
+  void maxNumNeighbors(unsigned val);
 
   // Allowed range of smoothing scales for use in calculating H.
   Scalar hmin() const;
-  void hmin(const Scalar val);
+  void hmin(Scalar val);
 
   Scalar hmax() const;
-  void hmax(const Scalar val);
+  void hmax(Scalar val);
 
   Scalar hminratio() const;
-  void hminratio(const Scalar val);
+  void hminratio(Scalar val);
 
   //****************************************************************************
   // Methods for adding/removing individual nodes to/from the NodeList

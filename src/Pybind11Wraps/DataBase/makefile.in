@@ -8,10 +8,12 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = DataBase
 PKGDIR = $(PKGNAME)/
+PYB11SRCS = \
+	StateBase.py \
+	State.py \
+	StateDerivatives.py \
+	DataBase.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-
-SRCTARGETS += \
-	$(srcdir)/SpheralDataBase.cc
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

@@ -47,6 +47,8 @@ TPLIBS=
 BOOSTTARGET=
 SILOTARGET=
 
+PIPTARGETS+=" pybind11 sphinx sphinx_rtd_theme"
+
 AC_MSG_CHECKING(for spheral build directory)
 #SPHERALBUILDDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`
 SPHERALBUILDDIR=`echo $PWD`
@@ -181,9 +183,9 @@ AC_ARG_WITH(cxxtests,
 [  --with-cxxtests .......................... optionally build the C++ testing methods],
 [
    AC_MSG_RESULT(yes)
-   CXXPKGS="$CXXPKGS CXXTests"
-   CXXPKGLIBS="$CXXPKGLIBS CXXTests"
-   PYTHONPKGS="$PYTHONPKGS CXXTests"
+   CXXPKGS+=" CXXTests"
+   CXXPKGLIBS+=" CXXTests"
+   PYTHONPKGS+=" CXXTests"
 ],
 [
    AC_MSG_RESULT(no)

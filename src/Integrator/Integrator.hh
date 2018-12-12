@@ -131,7 +131,7 @@ public:
   // Find the nodes in violation of the boundary conditions.
   void setViolationNodes();
 
-  // Rest any internal nodes in violation of boundary conditions to be brought 
+  // Reset any internal nodes in violation of boundary conditions to be brought 
   // into compliance.
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs);
@@ -187,7 +187,7 @@ public:
   // If we're not being rigorous about boundary conditions, how frequently
   // do we update them?
   int updateBoundaryFrequency() const;
-  void updateBoundaryFrequency(const int value);
+  void updateBoundaryFrequency(int value);
 
   // Select whether the integrator is verbose or not during a cycle.
   bool verbose() const;
@@ -196,11 +196,11 @@ public:
   // Select whether we should run in a mode the ensures domain decomposition independence.
   // Possibly some performance impact.
   bool domainDecompositionIndependent() const;
-  void domainDecompositionIndependent(const bool x);
+  void domainDecompositionIndependent(bool x);
 
   // Select whether we're going to enforce culling of ghost nodes or not.
   bool cullGhostNodes() const;
-  void cullGhostNodes(const bool x);
+  void cullGhostNodes(bool x);
 
   //****************************************************************************
   // Methods required for restarting.

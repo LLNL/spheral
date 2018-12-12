@@ -1233,13 +1233,13 @@ unpackValues(const int numElements,
   const int endIndex = beginInsertionIndex + numElements;
   REQUIRE(endIndex <= this->size());
 
-  // The unpackFieldValues method requires the insertion indicies explicitly.
-  std::vector<int> indicies;
-  indicies.reserve(numElements);
-  for (int i = 0; i != numElements; ++i) indicies.push_back(beginInsertionIndex + i);
+  // The unpackFieldValues method requires the insertion indices explicitly.
+  std::vector<int> indices;
+  indices.reserve(numElements);
+  for (int i = 0; i != numElements; ++i) indices.push_back(beginInsertionIndex + i);
 
   // Now we're ready to do the deed...
-  unpackFieldValues(*this, indicies, buffer);
+  unpackFieldValues(*this, indices, buffer);
 }
 
 //------------------------------------------------------------------------------
@@ -1330,11 +1330,11 @@ std::string
 Field<Dimension, DataType>::
 string(const int precision) const {
   const int n = numInternalElements();
-  std::vector<int> indicies;
-  indicies.reserve(n);
-  for (int i = 0; i != n; ++i) indicies.push_back(i);
-  CHECK(indicies.size() == n);
-  const std::vector<char> packedValues = packFieldValues(*this, indicies);
+  std::vector<int> indices;
+  indices.reserve(n);
+  for (int i = 0; i != n; ++i) indices.push_back(i);
+  CHECK(indices.size() == n);
+  const std::vector<char> packedValues = packFieldValues(*this, indices);
   return std::string(this->name()) + "|" + std::string(packedValues.begin(), packedValues.end());
 }
 
@@ -1347,16 +1347,16 @@ void
 Field<Dimension, DataType>::
 string(const std::string& s) {
   const int n = numInternalElements();
-  std::vector<int> indicies;
-  indicies.reserve(n);
-  for (int i = 0; i != n; ++i) indicies.push_back(i);
-  CHECK(indicies.size() == n);
+  std::vector<int> indices;
+  indices.reserve(n);
+  for (int i = 0; i != n; ++i) indices.push_back(i);
+  CHECK(indices.size() == n);
   const size_t j = s.find("|");
   CHECK(j != std::string::npos and
         j < s.size());
   this->name(s.substr(0, j));
   const std::vector<char> packedValues(s.begin() + j + 1, s.end());
-  unpackFieldValues(*this, indicies, packedValues);
+  unpackFieldValues(*this, indices, packedValues);
 }
 
 //------------------------------------------------------------------------------

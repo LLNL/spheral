@@ -123,48 +123,48 @@ public:
   // Flag to choose whether we want to sum for density, or integrate
   // the continuity equation.
   MassDensityType densityUpdate() const;
-  void densityUpdate(const MassDensityType type);
+  void densityUpdate(MassDensityType type);
 
   // Flag to select how we want to evolve the H tensor.
   // the continuity equation.
   HEvolutionType HEvolution() const;
-  void HEvolution(const HEvolutionType type);
+  void HEvolution(HEvolutionType type);
 
   // Flag to determine if we're using the total energy conserving compatible energy
   // evolution scheme.
   bool compatibleEnergyEvolution() const;
-  void compatibleEnergyEvolution(const bool val);
+  void compatibleEnergyEvolution(bool val);
 
   // Flag controlling if we evolve total or specific energy.
   bool evolveTotalEnergy() const;
-  void evolveTotalEnergy(const bool val);
+  void evolveTotalEnergy(bool val);
 
   // Flag to determine if we're using the grad h correction.
   bool gradhCorrection() const;
-  void gradhCorrection(const bool val);
+  void gradhCorrection(bool val);
 
   // Flag to determine if we're using the XSPH algorithm.
   bool XSPH() const;
-  void XSPH(const bool val);
+  void XSPH(bool val);
 
   // Flag to determine if we're applying the linear correction for the velocity gradient.
   bool correctVelocityGradient() const;
-  void correctVelocityGradient(const bool val);
+  void correctVelocityGradient(bool val);
 
   // Flag to determine if the sum density definition extends over neighbor NodeLists.
   bool sumMassDensityOverAllNodeLists() const;
-  void sumMassDensityOverAllNodeLists(const bool val);
+  void sumMassDensityOverAllNodeLists(bool val);
 
   // Fraction of position filtering to apply.
   double filter() const;
-  void filter(const double val);
+  void filter(double val);
 
   // Parameters for the tensile correction force at small scales.
   Scalar epsilonTensile() const;
-  void epsilonTensile(const Scalar val);
+  void epsilonTensile(Scalar val);
 
   Scalar nTensile() const;
-  void nTensile(const Scalar val);
+  void nTensile(Scalar val);
 
   // Optionally we can provide a bounding box for use generating the mesh
   // for the Voronoi mass density update.
@@ -209,8 +209,8 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "SPHHydroBase"; }
-  virtual void dumpState(FileIO& file, std::string pathName) const;
-  virtual void restoreState(const FileIO& file, std::string pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 protected:
@@ -268,11 +268,13 @@ protected:
 
   FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
 
-private:
-  //--------------------------- Private Interface ---------------------------//
+protected:
+  //--------------------------- Protected Interface ---------------------------//
   // The restart registration.
   RestartRegistrationType mRestart;
 
+private:
+  //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
   SPHHydroBase();
   SPHHydroBase(const SPHHydroBase&);

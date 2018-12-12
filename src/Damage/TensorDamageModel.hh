@@ -123,15 +123,15 @@ public:
   // Flag to determine if we compute the gradient of the damage at the start 
   // of a timestep.
   bool useDamageGradient() const;
-  void useDamageGradient(const bool x);
+  void useDamageGradient(bool x);
 
   // Flag to determine if damage in compression is allowed.
   bool damageInCompression() const;
-  void damageInCompression(const bool x);
+  void damageInCompression(bool x);
 
   // The critical damage threshold for not setting the time step.
   double criticalDamageThreshold() const; 
-  void criticalDamageThreshold(const double x);
+  void criticalDamageThreshold(double x);
 
   //**************************************************************************
   // Restart methods.

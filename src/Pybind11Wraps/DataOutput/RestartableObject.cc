@@ -13,14 +13,14 @@
 #include "FileIO/FileIO.hh"
 
 namespace Spheral {
-namespace DataOutput {
 
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
 RestartableObject::
-RestartableObject(const unsigned priority):
-  mRestart(registerWithRestart(*this, priority)) {
+RestartableObject(py::handle self, const unsigned priority):
+  mRestart(registerWithRestart(*this, priority)),
+  mSelf(self.ptr()) {
 }
 
 //------------------------------------------------------------------------------
@@ -30,5 +30,35 @@ RestartableObject::
 ~RestartableObject() {
 }
 
+//------------------------------------------------------------------------------
+// label
+//------------------------------------------------------------------------------
+std::string
+RestartableObject::
+label() const {
+  py::handle self = mSelf;
+  auto result = self.attr("label")();
+  return py::str(result);
 }
+
+//------------------------------------------------------------------------------
+// dumpState
+//------------------------------------------------------------------------------
+void
+RestartableObject::
+dumpState(FileIO& fileIO, const std::string& pathName) const {
+  py::handle self = mSelf;
+  auto self_dumpState = self.attr("dumpState")(fileIO, pathName);
+}
+
+//------------------------------------------------------------------------------
+// restoreState
+//------------------------------------------------------------------------------
+void
+RestartableObject::
+restoreState(const FileIO& fileIO, const std::string& pathName) {
+  py::handle self = mSelf;
+  auto self_restoreState = self.attr("restoreState")(fileIO, pathName);
+}
+
 }

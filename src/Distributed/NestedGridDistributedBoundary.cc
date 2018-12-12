@@ -341,7 +341,7 @@ boxCulling() const {
 template<typename Dimension>
 void
 NestedGridDistributedBoundary<Dimension>::
-boxCulling(const bool x) {
+boxCulling(bool x) {
   mBoxCulling = x;
 }
 
@@ -358,7 +358,7 @@ gridCellInfluenceRadius() const {
 template<typename Dimension>
 void
 NestedGridDistributedBoundary<Dimension>::
-gridCellInfluenceRadius(const int x) {
+gridCellInfluenceRadius(int x) {
   mGridCellInfluenceRadius = x;
 }
 

@@ -9,10 +9,7 @@ units = PhysicalConstants(0.01,     # Unit length in meters
 #-------------------------------------------------------------------------------
 # Build an ANEOS SiO2 like thing.
 #-------------------------------------------------------------------------------
-izetl = vector_of_int(3)
-izetl[0] = -1
-izetl[1] = -2
-izetl[2] = -3
+izetl = [-1, -2, -3]
 initializeANEOS("ANEOS.INPUT", "ANEOS.barf", izetl)
 etaMin, etaMax = 0.2, 5.0
 Tmin, Tmax = 1.0e3, 1.0e8

@@ -790,7 +790,7 @@ enforceBoundaries(State<Dimension>& state,
 template<typename Dimension>
 void
 PSPHHydroBase<Dimension>::
-dumpState(FileIO& file, string pathName) const {
+dumpState(FileIO& file, const string& pathName) const {
 
   // SPH does most of it.
   SPHHydroBase<Dimension>::dumpState(file, pathName);
@@ -805,7 +805,7 @@ dumpState(FileIO& file, string pathName) const {
 template<typename Dimension>
 void
 PSPHHydroBase<Dimension>::
-restoreState(const FileIO& file, string pathName) {
+restoreState(const FileIO& file, const string& pathName) {
  
   // SPH does most of it.
   SPHHydroBase<Dimension>::restoreState(file, pathName);

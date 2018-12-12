@@ -279,7 +279,7 @@ etaCritFrac() const {
 template<typename Dimension>
 void
 CRKSPHMonaghanGingoldViscosity<Dimension>::
-etaCritFrac(const double val) {
+etaCritFrac(double val) {
   VERIFY(val >= 0.0);
   mEtaCritFrac = val;
 }
@@ -297,7 +297,7 @@ etaFoldFrac() const {
 template<typename Dimension>
 void
 CRKSPHMonaghanGingoldViscosity<Dimension>::
-etaFoldFrac(const double val) {
+etaFoldFrac(double val) {
   VERIFY(val > 0.0);
   mEtaFoldFrac = val;
 }

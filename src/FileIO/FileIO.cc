@@ -88,21 +88,17 @@ FileIO::~FileIO() {
 //------------------------------------------------------------------------------
 vector<string>
 FileIO::splitPathComponents(const string path) const {
-
   vector<string> components;
   boost::split(components, path, boost::is_any_of("/"));
-
-  // string currentComponent = "";
-  // for (string::const_iterator itr = path.begin(); itr < path.end(); ++itr) {
-  //   currentComponent += *itr;
-  //   if (*itr == '/') {
-  //     components.push_back(currentComponent);
-  //     currentComponent = "";
-  //   }
-  // }
-  // if (*(components.end() - 1) != currentComponent) components.push_back(currentComponent);
-
   return components;
+}
+
+// Reverse operation
+std::string
+FileIO::joinPathComponents(const std::vector<std::string>& components) const {
+  string result = "";
+  for (const auto s: components) result += "/" + s;
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -172,51 +168,6 @@ FileIO::read(char* value, const string pathName) const {
   string strValue;
   read(strValue, pathName);
   strcpy(value, strValue.c_str());
-}
-
-//------------------------------------------------------------------------------
-// Provide access to the Scalar write method with float
-//------------------------------------------------------------------------------
-void
-FileIO::write(const float& value, const string pathName) {
-  write(double(value), pathName);
-}
-
-//------------------------------------------------------------------------------
-// Provide access to the Scalar read method with float
-//------------------------------------------------------------------------------
-void
-FileIO::read(float& value, const string pathName) const {
-  double scalarValue;
-  read(scalarValue, pathName);
-  value = float(scalarValue);
-}
-
-//------------------------------------------------------------------------------
-// Provide access to the vector<Scalar> write method with vector<float>
-//------------------------------------------------------------------------------
-void
-FileIO::write(const vector<float>& value, const string pathName) {
-  vector<double> scalarValue;
-  scalarValue.reserve(value.size());
-  for (vector<float>::const_iterator valItr = value.begin();
-       valItr != value.end();
-       ++valItr) scalarValue.push_back(*valItr);
-  write(scalarValue, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Provide access to the vector<Scalar> read method with vector<float>
-//------------------------------------------------------------------------------
-void
-FileIO::read(vector<float>& value, const string pathName) const {
-  vector<double> scalarValue;
-  read(scalarValue, pathName);
-  value.resize(0);
-  value.reserve(scalarValue.size());
-  for (vector<double>::const_iterator valItr = scalarValue.begin();
-       valItr != scalarValue.end();
-       ++valItr) value.push_back(*valItr);
 }
 
 //------------------------------------------------------------------------------
@@ -334,14 +285,12 @@ readObject(PyObject* pathObj) const {
     return NULL;
   }
 
-//   PyObject* result = PyObject_CallMethod(mPickleMod, "loads", "s", thpt);
-
-//   cerr << "      result is ";
-//   PyObject_Print(result, stderr, 0);
-//   cerr << "   from   ";
-//   cerr << "           "
-//        << encodedThing 
-//        << endl;
+  // cerr << "      result is ";
+  // PyObject_Print(result, stderr, 0);
+  // cerr << "   from   ";
+  // cerr << "           "
+  //      << encodedThing 
+  //      << endl;
 
   // Deallocate stuff.
   Py_DECREF(pyEncodedThing);
