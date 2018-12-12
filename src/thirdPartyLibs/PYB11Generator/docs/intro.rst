@@ -104,7 +104,7 @@ This is identical to the native pybind11 binding code from the pybind11 tutorial
 
 A few things worth noting:
 
-* This example uses the fact that if the function being wrapped is unambiguous, we can use a bare C++ function pointer (without the full explicit function prescription).  This is reflected in the PYB11Generator syntax when we write the ``def add()`` function in python without arguments or a return type.
+* This example uses the fact that if the function being wrapped is unambiguous, allowing us to use a bare C++ function pointer (without the full explicit function prescription).  This is reflected in the PYB11Generator syntax when we write the ``def add()`` function in python without arguments or a return type.
 * In order to directly insert the C++ function definition into the resulting C++ file, we have used the special variable ``PYB11preamble`` variable.  A more typical use case will require ``#include``-ing the necessary C++ header files in the generated code, which is accomplished through another special variable, ``PYB11includes``, described in :ref:`variables`.
 * In general special variables and commands to PYB11Generator use the prefix ``PYB11`` such as ``PYB11preamble`` in this example.
 * Note also that ordinary Python doc strings (both for the module and function) are picked up from ``simple_example.py`` and propagated to the pybind11 bindings.
