@@ -10,7 +10,7 @@ from RestartMethods import *
 @PYB11template("Dimension")
 class ReflectingBoundary(PlanarBoundary):
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

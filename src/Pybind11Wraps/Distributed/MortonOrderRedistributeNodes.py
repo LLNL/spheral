@@ -14,7 +14,7 @@ each NodeList, not just redistributing them between processors.
 
 Warren & Salmon (1995), Computer Physics Communications, 87, 266-290."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename KeyTraits::Key Key;
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;

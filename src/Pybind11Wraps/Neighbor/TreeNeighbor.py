@@ -8,7 +8,7 @@ from NeighborAbstractMethods import *
 @PYB11template("Dimension")
 class TreeNeighbor(Neighbor):
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename TreeNeighbor<%(Dimension)s>::LevelKey LevelKey;
     typedef typename TreeNeighbor<%(Dimension)s>::CellKey CellKey;
     typedef typename %(Dimension)s::Scalar Scalar;

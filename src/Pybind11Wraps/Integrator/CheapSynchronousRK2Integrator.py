@@ -15,7 +15,7 @@ the derivatives at the beginning of this step.  This allows us to only do a sing
 call to evaluate derivatives per timestep, maintaining formal second-order but 
 sacrificing some accuracy vs. the the true RK2 algorithm."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

@@ -6,7 +6,7 @@ from PYB11Generator import *
 @PYB11template("Dimension", "Descendant")
 class Kernel:
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::SymTensor SymTensor;
 """

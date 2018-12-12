@@ -16,7 +16,7 @@ References:
   Morris, J. P., & Monaghan, J. J. 1997, J. Comput. Phys., 136, 41
 """
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

@@ -74,8 +74,8 @@ public:
 """ % klassattrs)
 
     # Any typedefs?
-    if hasattr(klass, "typedefs"):
-        ss(klass.typedefs + "\n")
+    if hasattr(klass, "PYB11typedefs"):
+        ss(klass.PYB11typedefs + "\n")
 
     # Publish the virtual methods of this class.
     methods = [(mname, meth) for (mname, meth) in PYB11ClassMethods(klass)

@@ -22,7 +22,7 @@ This class implements three distinct Spheral interfaces:
                     this class implements the Physics interface to support
                     that."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

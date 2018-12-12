@@ -15,7 +15,7 @@ repelled by one and other.  These generator points then become the seeds to
 draw the Voronoi tessellation about, each cell of which then represents a 
 computational domain."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

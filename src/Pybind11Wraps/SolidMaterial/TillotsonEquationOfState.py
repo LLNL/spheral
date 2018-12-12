@@ -17,7 +17,7 @@ vapor states.
 Reference: Tillotson 1962
     """
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
 """

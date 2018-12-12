@@ -9,7 +9,7 @@ from BoundaryAbstractMethods import *
 @PYB11template_dict({"Dimension" : "Dim<2>"})
 class AxisBoundaryRZ(Boundary):
 
-    typedefs = """
+    PYB11typedefs = """
     typedef %(Dimension)s::Scalar Scalar;
     typedef %(Dimension)s::Vector Vector;
     typedef %(Dimension)s::Tensor Tensor;

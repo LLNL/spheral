@@ -9,7 +9,7 @@ from FieldBase import FieldBase
 @PYB11module("SpheralField")
 class Field(FieldBase):
 
-    typedefs="""
+    PYB11typedefs = """
   typedef Field<%(Dimension)s, %(Value)s> FieldType;
 """
 

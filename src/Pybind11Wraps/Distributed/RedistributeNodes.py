@@ -8,7 +8,7 @@ class RedistributeNodes:
     """RedistributeNodes -- An abstract base class for methods that repartition
 the Spheral++ NodeLists among domains."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

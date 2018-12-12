@@ -5,7 +5,7 @@ from PYB11Generator import *
 
 class Box1d:
 
-    typedefs = """
+    PYB11typedefs = """
     typedef Box1d::Vector Vector;
 """
 

@@ -17,7 +17,7 @@ just split up the ideas of what provides shear modulus and yield strength?
 
    See Collins, Melosh, Ivanov, 2004 Appendix, MAPS"""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
 """

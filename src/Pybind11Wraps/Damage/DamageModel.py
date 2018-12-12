@@ -11,7 +11,7 @@ class DamageModel(Physics):
 This class just provides the basic interface for damage models, and does 
 not fill out the complete physics package interface."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

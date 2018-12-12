@@ -12,7 +12,7 @@ This method is described in
 Owen, J Michael (2004), 'A tensor artficial visocity for SPH', Journal of Computational Physics, 201(2), 601-629
 """
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

@@ -11,7 +11,7 @@ Note a Facet does not maintain it's own copies of it's end points -- the
 assumption is that this is a Facet of a GeomPolygon and that polygon owns
 the set of vertex positions."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef GeomFacet2d Facet2d;
     typedef GeomFacet2d::Vector Vector;
 """

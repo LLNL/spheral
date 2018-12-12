@@ -10,7 +10,7 @@ from RestartMethods import *
 class SolidSPHHydroBase(SPHHydroBase):
     "SolidSPHHydroBase -- The SPH/ASPH solid material hydrodynamic package for Spheral++."
 
-    typedefs = """
+    PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
   typedef typename %(Dimension)s::Vector Vector;
   typedef typename %(Dimension)s::Tensor Tensor;

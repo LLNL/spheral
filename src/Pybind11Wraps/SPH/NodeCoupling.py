@@ -28,7 +28,7 @@ class NodeCoupling:
 class DamagedNodeCoupling(NodeCoupling):
     "A functor class encapsulating how we couple solid nodes in the presence of multiple materials and damage."
 
-    typedefs = """
+    PYB11typedefs = """
   typedef typename %(Dimension)s::Vector Vector;
   typedef typename %(Dimension)s::SymTensor SymTensor;
 """
@@ -59,7 +59,7 @@ class DamagedNodeCouplingWithFrags(DamagedNodeCoupling):
 multiple materials and damage.  This version adds logic to decouple based
 on fragment ID as well."""
 
-    typedefs = """
+    PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
   typedef typename %(Dimension)s::Vector Vector;
   typedef typename %(Dimension)s::Tensor Tensor;

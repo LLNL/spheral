@@ -10,7 +10,7 @@ from RestartMethods import *
 class Integrator:
     "Base class for all Spheral time integration algorithms"
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

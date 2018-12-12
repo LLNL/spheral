@@ -14,7 +14,7 @@ each NodeList, not just redistributing them between processors.
 
 Springel V. (2005), MNRAS"""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename KeyTraits::Key Key;
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;

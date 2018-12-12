@@ -8,7 +8,7 @@ from ArtificialViscosityAbstractMethods import *
 @PYB11template("Dimension")
 class CRKSPHMonaghanGingoldViscosity(MonaghanGingoldViscosity):
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

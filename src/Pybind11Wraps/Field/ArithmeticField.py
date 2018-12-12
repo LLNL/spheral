@@ -10,7 +10,7 @@ from Field import Field
 @PYB11pycppname("Field")
 class ArithmeticField(FieldBase):
 
-    typedefs="""
+    PYB11typedefs = """
   typedef Field<%(Dimension)s, %(Value)s> FieldType;
 """
 

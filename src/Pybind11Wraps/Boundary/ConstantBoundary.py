@@ -15,7 +15,7 @@ This boundary is very specialized -- it explicitly works on only one
 NodeList.
 """
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

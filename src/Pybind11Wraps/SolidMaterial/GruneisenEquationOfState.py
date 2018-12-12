@@ -13,7 +13,7 @@ class GruneisenEquationOfState(SolidEquationOfState):
 Reference: Equation of State and Strength of Properties of Selected Materials
            Daniel J. Steinberg, UCRL-MA-106439, February 13, 1991"""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
 """

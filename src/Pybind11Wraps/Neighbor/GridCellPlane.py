@@ -6,7 +6,7 @@ from PYB11Generator import *
 @PYB11template("Dimension")
 class GridCellPlane:
 
-    typedefs="""
+    PYB11typedefs = """
     typedef GridCellIndex<%(Dimension)s> GridCellIndexType;
 """
 

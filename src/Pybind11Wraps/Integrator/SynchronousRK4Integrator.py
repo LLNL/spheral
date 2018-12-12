@@ -10,7 +10,7 @@ from Integrator import *
 class SynchronousRK4Integrator(Integrator):
     "Fourth-order in time explicit Runge-Kutta time integration scheme"
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

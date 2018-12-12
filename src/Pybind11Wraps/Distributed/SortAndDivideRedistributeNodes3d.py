@@ -10,7 +10,7 @@ class SortAndDivideRedistributeNodes3d(SortAndDivideRedistributeNodes):
     """SortAndDivideRedistributeNodes3d -- 3-D implementation of the sort and 
 divide algorithm for domain decomposition."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename KeyTraits::Key Key;
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;

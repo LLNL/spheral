@@ -8,7 +8,7 @@ from EOSAbstractMethods import *
 @PYB11template("Dimension")
 class HelmholtzEquationOfState(EquationOfState):
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
 """

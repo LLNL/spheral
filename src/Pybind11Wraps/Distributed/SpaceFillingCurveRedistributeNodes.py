@@ -13,7 +13,7 @@ repartitioners.  The assumption is that the descendent classes will provide
 the computeHashedIndices method to assign unique keys to each point in the
 order that that algorithm wants the points distributed."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename KeyTraits::Key Key;
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;

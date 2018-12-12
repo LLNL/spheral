@@ -14,7 +14,7 @@ linear polynomial, i.e.:
   P(rho, e) = A0 + A1*mu + a2*mu^2 + a3*mu^3 + (B0 + B1*mu + B2*mu^2)*e
   mu = rho/rho0 - 1.0"""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
 """

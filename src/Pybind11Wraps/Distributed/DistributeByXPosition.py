@@ -9,7 +9,7 @@ class DistributeByXPosition(RedistributeNodes):
     """DistributeByXPosition -- Redistribute nodes by sorting their positions
 in x coordinate.  Really only useful in 1-D, as a test."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename KeyTraits::Key Key;
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;

@@ -132,8 +132,8 @@ public:
     #     ss("%(cppname)s %(cppname)s;\n" % nklassattrs)
 
     # Any typedefs?
-    if hasattr(klass, "typedefs"):
-        typedefs = str(klass.typedefs)
+    if hasattr(klass, "PYB11typedefs"):
+        typedefs = str(klass.PYB11typedefs)
     else:
         typedefs = ""
 

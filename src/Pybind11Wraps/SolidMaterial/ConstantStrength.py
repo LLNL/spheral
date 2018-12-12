@@ -11,7 +11,7 @@ class ConstantStrength(StrengthModel):
     """ConstantStrength -- An implentation of StrengthModel returning constant
 values for the shear modulus and yield strength."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
 """

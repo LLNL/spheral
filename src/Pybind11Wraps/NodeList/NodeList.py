@@ -10,7 +10,7 @@ from RestartMethods import *
 class NodeList:
     "Spheral NodeList base class in %(Dimension)s"
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

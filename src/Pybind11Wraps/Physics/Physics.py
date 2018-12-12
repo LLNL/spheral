@@ -8,7 +8,7 @@ from PhysicsAbstractMethods import *
 @PYB11module("SpheralPhysics")
 class Physics:
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

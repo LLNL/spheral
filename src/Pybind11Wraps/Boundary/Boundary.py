@@ -8,7 +8,7 @@ from BoundaryAbstractMethods import *
 @PYB11module("SpheralBoundary")
 class Boundary:
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

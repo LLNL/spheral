@@ -9,7 +9,7 @@ from EquationOfState import *
 class SolidEquationOfState(EquationOfState):
     "Abstract base for equations of state for solids"
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
 """

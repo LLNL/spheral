@@ -13,7 +13,7 @@ class MurnahanEquationOfState(SolidEquationOfState):
   P(rho) = 1/(nK) * (eta^n - 1)
   eta = rho/rho0"""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
 """

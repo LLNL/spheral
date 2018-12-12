@@ -7,7 +7,7 @@ from PYB11Generator import *
 class Plane:
     "The geometric representation for a plane in %(ndim)s dimensions."
 
-    typedefs="""
+    PYB11typedefs = """
     typedef Dim<%(ndim)s>::Vector Vector;
     typedef GeomPlane<Dim<%(ndim)s>> PlaneType;
 """

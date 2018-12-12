@@ -10,7 +10,7 @@ from Integrator import *
 class SynchronousRK1Integrator(Integrator):
     "First-order in time explicit (forward Euler) integration scheme"
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

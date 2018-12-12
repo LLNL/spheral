@@ -14,7 +14,7 @@ Build a distributed boundary based on testing for intersecting bounding
 volumes of domains."""
 
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

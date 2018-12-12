@@ -7,7 +7,7 @@ from PYB11Generator import *
 @PYB11module("SpheralField")
 class FieldList:
 
-    typedefs="""
+    PYB11typedefs = """
     typedef FieldList<%(Dimension)s, %(Value)s> FieldListType;
     typedef Field<%(Dimension)s, %(Value)s> FieldType;
     typedef NodeList<%(Dimension)s> NodeListType;

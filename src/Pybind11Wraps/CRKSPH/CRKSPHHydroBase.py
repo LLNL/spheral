@@ -10,7 +10,7 @@ from RestartMethods import *
 class CRKSPHHydroBase(GenericHydro):
     "CRKSPHHydroBase -- The CRKSPH/ACRKSPH hydrodynamic package for Spheral++."
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

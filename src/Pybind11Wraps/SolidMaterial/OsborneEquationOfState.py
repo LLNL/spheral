@@ -11,7 +11,7 @@ class OsborneEquationOfState(SolidEquationOfState):
     """OsborneEquationOfState -- Osborne  equation of state.
 Reference: PAGOSA Physics manual, LA-14425-M"""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
 """

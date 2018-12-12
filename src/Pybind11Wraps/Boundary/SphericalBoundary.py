@@ -10,7 +10,7 @@ from RestartMethods import *
 @PYB11template_dict({"Dimension" : "Dim<3>"})
 class SphericalBoundary(Boundary):
 
-    typedefs = """
+    PYB11typedefs = """
     typedef Dim<3>::Scalar Scalar;
     typedef Dim<3>::Vector Vector;
     typedef Dim<3>::Tensor Tensor;

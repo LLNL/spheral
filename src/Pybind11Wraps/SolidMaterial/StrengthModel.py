@@ -9,7 +9,7 @@ from StrengthModelAbstractMethods import *
 class StrengthModel:
     "Abstract base for strength models"
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
 """

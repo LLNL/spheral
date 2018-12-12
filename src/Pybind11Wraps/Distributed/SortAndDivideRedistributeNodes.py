@@ -15,7 +15,7 @@ are:
   SortAndDivideRedistributeNodes2d
   SortAndDivideRedistributeNodes3d"""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename KeyTraits::Key Key;
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;

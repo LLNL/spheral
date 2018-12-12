@@ -15,7 +15,7 @@ Cullen, L., & Dehnen, W. 2010, MNRAS, 408, 669
 Hopkins arXiv:1409.7395
 """
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

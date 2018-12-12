@@ -11,7 +11,7 @@ class NestedGridDistributedBoundary(DistributedBoundary):
     """NestedGridDistributedBoundary -- Implementation of the Distributed Boundary
 condition for use with NestedGridNeighbor based NodeLists."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

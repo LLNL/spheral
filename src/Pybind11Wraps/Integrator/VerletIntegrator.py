@@ -11,7 +11,7 @@ class VerletIntegrator(Integrator):
     """Second-order in time explicit Verlet time integration scheme
 This method is symplectic in the absence of dissipation."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

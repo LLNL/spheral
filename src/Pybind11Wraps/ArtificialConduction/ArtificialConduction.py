@@ -8,7 +8,7 @@ from Physics import *
 class ArtificialConduction(Physics):
     "ArtificialConduction -- Artificial smoothing of energy discontinuities"
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

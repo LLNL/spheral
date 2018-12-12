@@ -10,7 +10,7 @@ class Mesh:
 2D:  Arbitrary polygons.
 3D:  Arbitrary polyhedra."""
 
-    typedefs = """
+    PYB11typedefs = """
   typedef typename %(Dimension)s::Vector Vector;
   typedef typename %(Dimension)s::SymTensor SymTensor;
   typedef typename %(Dimension)s::ConvexHull ConvexHull;
@@ -255,7 +255,7 @@ on the surface of the local mesh!"""
     class Node:
         "Mesh::Node -- a node (or vertex) of a Mesh"
 
-        typedefs = """
+        PYB11typedefs = """
   typedef typename %(Dimension)s::Vector Vector;
   typedef typename %(Dimension)s::SymTensor SymTensor;
 """
@@ -276,7 +276,7 @@ on the surface of the local mesh!"""
     class Edge:
         "Mesh::Edge -- an edge (segment connecting two Nodes) of a Mesh"
 
-        typedefs = """
+        PYB11typedefs = """
   typedef typename %(Dimension)s::Vector Vector;
   typedef typename %(Dimension)s::SymTensor SymTensor;
 """
@@ -302,7 +302,7 @@ on the surface of the local mesh!"""
     class Face:
         "Mesh::Face -- an planar facet of a Zone bounded by a closed loop of Edges"
 
-        typedefs = """
+        PYB11typedefs = """
   typedef typename %(Dimension)s::Vector Vector;
   typedef typename %(Dimension)s::SymTensor SymTensor;
 """
@@ -347,7 +347,7 @@ on the surface of the local mesh!"""
     class Zone:
         "Mesh::Zone -- a volume bounded by planar Faces"
 
-        typedefs = """
+        PYB11typedefs = """
   typedef typename %(Dimension)s::Vector Vector;
   typedef typename %(Dimension)s::SymTensor SymTensor;
 """

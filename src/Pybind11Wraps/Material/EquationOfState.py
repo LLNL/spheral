@@ -8,7 +8,7 @@ from EOSAbstractMethods import *
 @PYB11module("SpheralMaterial")
 class EquationOfState:
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
 """

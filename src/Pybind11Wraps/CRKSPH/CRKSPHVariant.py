@@ -9,7 +9,7 @@ from CRKSPHHydroBase import *
 class CRKSPHVariant(CRKSPHHydroBase):
     "CRKSPHVariant -- A development variant of CRKSPH for experimentation."
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

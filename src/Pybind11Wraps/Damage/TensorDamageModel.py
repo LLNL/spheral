@@ -11,7 +11,7 @@ class TensorDamageModel(DamageModel):
 This class does not know how to seed the flaw distribution -- that is 
 required of descendant classes."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

@@ -11,7 +11,7 @@ Note a Facet does not maintain it's own copies of its vertices -- the
 assumption is that this is a Facet of a GeomPolyhedron and that polyhedron
 owns the set of vertex positions."""
 
-    typedefs = """
+    PYB11typedefs = """
     typedef GeomFacet3d Facet3d;
     typedef GeomFacet3d::Vector Vector;
 """

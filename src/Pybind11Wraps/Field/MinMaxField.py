@@ -10,7 +10,7 @@ from ArithmeticField import *
 @PYB11pycppname("Field")
 class MinMaxField(FieldBase):
 
-    typedefs="""
+    PYB11typedefs = """
   typedef Field<%(Dimension)s, %(Value)s> FieldType;
 """
 

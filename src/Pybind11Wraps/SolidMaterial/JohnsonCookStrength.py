@@ -10,7 +10,7 @@ from StrengthModelAbstractMethods import *
 class JohnsonCookStrength(StrengthModel):
     "JohnsonCookStrength -- Implements the Johnson-Cook strength model."
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
 """

@@ -10,7 +10,7 @@ from StrengthModelAbstractMethods import *
 class NullStrength(StrengthModel):
     "NullStrength -- mimics a zero strength fluid"
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
 """

@@ -10,7 +10,7 @@ from CRKSPHHydroBase import *
 class CRKSPHHydroBaseRZ(CRKSPHHydroBase):
     "An area weighted RZ specialization of CRKSPH for cylindrical coordinates"
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

@@ -11,7 +11,7 @@ from RestartMethods import *
 class SVPHFacetedHydroBase(GenericHydro):
     "SVPHFacetedHydroBase -- The fluid SVPH faceted hydro algorithm"
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

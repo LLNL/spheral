@@ -9,7 +9,7 @@ from RestartMethods import *
 @PYB11module("SpheralBoundary")
 class PlanarBoundary(Boundary):
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;

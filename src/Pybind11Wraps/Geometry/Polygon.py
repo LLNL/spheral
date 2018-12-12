@@ -6,7 +6,7 @@ from PYB11Generator import *
 @PYB11cppname("GeomPolygon")
 class Polygon:
 
-    typedefs = """
+    PYB11typedefs = """
     typedef GeomPolygon Polygon;
     typedef GeomPolygon::Vector Vector;
     typedef GeomPolygon::Facet Facet;

@@ -35,7 +35,7 @@ StrainPorosity is the physics module which time evolves the distention
 parameter (alpha) and gives it to the PorousEquationOfState."""
 
 
-    typedefs = """
+    PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
