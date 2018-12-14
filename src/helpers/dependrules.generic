@@ -19,15 +19,14 @@
 
 Spheral%.d:	%MOD.py
 	$(eval mod = $(subst MOD,,$(basename $(<F))))
-	$(SHELL) -ec 'echo "Building dependencies for $*MOD.py"'
-	echo "Spheral$(mod).o Spheral$(mod).d : $(mod)MOD.py \\" > $@
-	env PYTHONPATH="$(srcdir):$(SPHERALTOP)/Pybind11Wraps:$(subst $(SPACE),:,$(patsubst %,$(SPHERALTOP)/Pybind11Wraps/%,$(PYTHONPKGS))):$(PYLIBDIR)" $(exec_prefix)/bin/sfood $(srcdir)/$(mod)MOD.py > Spheral$(mod).pydeps
-	env PYTHONPATH="$(SPHERALTOP)/helpers" $(PYTHONEXE) -c "from parse_sfood_deps import *; parse_sfood_deps('Spheral$(mod).pydeps', '$@')"
-	env PYTHONPATH="$(srcdir):$(SPHERALTOP)/Pybind11Wraps:$(subst $(SPACE),:,$(patsubst %,$(SPHERALTOP)/Pybind11Wraps/%,$(PYTHONPKGS))):$(PYLIBDIR)" $(PYTHONEXE) -c "from PYB11Generator import *; import $(mod)MOD; PYB11generateModule($(mod)MOD, 'Spheral$(mod)')"
-	$(MPICXX) $(DEPFLAG) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c Spheral$(mod).cc > $*MOD.u
-	$(SHELL) -ec 'cat $*MOD.u | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' >> $@; \
-	rm -f  Spheral$(mod).pydeps Spheral$(mod).cc $*MOD.u; \
-	[ -s $@ ] || rm -f $@'
+	@$(SHELL) -ec 'echo "Building dependencies for $*MOD.py"'
+	@echo "Spheral$(mod).o Spheral$(mod).d : $(mod)MOD.py \\" > $@
+	@env PYTHONPATH="$(srcdir):$(SPHERALTOP)/Pybind11Wraps:$(subst $(SPACE),:,$(patsubst %,$(SPHERALTOP)/Pybind11Wraps/%,$(PYTHONPKGS))):$(PYLIBDIR)" $(exec_prefix)/bin/sfood $(srcdir)/$(mod)MOD.py > Spheral$(mod).pydeps
+	@env PYTHONPATH="$(SPHERALTOP)/helpers" $(PYTHONEXE) -c "from parse_sfood_deps import *; parse_sfood_deps('Spheral$(mod).pydeps', '$@')"
+	@env PYTHONPATH="$(srcdir):$(SPHERALTOP)/Pybind11Wraps:$(subst $(SPACE),:,$(patsubst %,$(SPHERALTOP)/Pybind11Wraps/%,$(PYTHONPKGS))):$(PYLIBDIR)" $(PYTHONEXE) -c "from PYB11Generator import *; import $(mod)MOD; PYB11generateModule($(mod)MOD, 'Spheral$(mod)')"
+	@($(MPICXX) $(DEPFLAG) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c Spheral$(mod).cc | tail -n +2) >> $@
+	@rm -f  Spheral$(mod).pydeps Spheral$(mod).cc
+	@$(SHELL) -ec '[ -s $@ ] || rm -f $@'
 
 %.d:	%.C
 	@$(SHELL) -ec 'echo "Building dependencies for $*.C"; \
