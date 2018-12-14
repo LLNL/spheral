@@ -32,7 +32,9 @@ class DataBase:
         return "void"
 
     @PYB11const
-    def updateConnectivityMap(self, computeGhostConnectivity="const bool"):
+    def updateConnectivityMap(self,
+                              computeGhostConnectivity = ("const bool", "false"),
+                              computeOverlapConnectivity = ("const bool", "false")):
         "Update the internal connectivity map."
         return "void"
 
@@ -45,13 +47,17 @@ class DataBase:
 
     @PYB11returnpolicy("reference_internal")
     @PYB11const
-    def connectivityMap(self, computeGhostConnectivity=("const bool", "false")):
-        "Get the connectivity map, optionally including ghost connectivity"
+    def connectivityMap(self,
+                        computeGhostConnectivity=("const bool", "false"),
+                        computeOverlapConnectivity=("const bool", "false")):
+        "Get the connectivity map, optionally including ghost or overlap connectivity"
         return "const ConnectivityMap<%(Dimension)s>&"
 
     @PYB11const
-    def connectivityMapPtr(self, computeGhostConnectivity=("const bool", "false")):
-        "Get the connectivity map as a std::shared_ptr, optionally including ghost connectivity"
+    def connectivityMapPtr(self,
+                           computeGhostConnectivity=("const bool", "false"),
+                           computeOverlapConnectivity=("const bool", "false")):
+        "Get the connectivity map as a std::shared_ptr, optionally including ghost or overlap connectivity"
         return "ConnectivityMapPtr"
 
     def appendNodeList(self, nodeList="SolidNodeList<%(Dimension)s>&"):

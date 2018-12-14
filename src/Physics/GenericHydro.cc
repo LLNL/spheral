@@ -127,7 +127,8 @@ dt(const DataBase<Dimension>& dataBase,
   const auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   const auto  DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   const auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  const auto& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity());
+  const auto& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity(),
+                                                         this->requireOverlapConnectivity());
   const auto  numNodeLists = connectivityMap.nodeLists().size();
 
   // Check for deviatoric stress.

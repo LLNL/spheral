@@ -51,6 +51,7 @@ Integrator<Dimension>::Integrator():
   mVerbose(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
+  mRequireOverlapConnectivity(false),
   mDataBasePtr(0),
   mPhysicsPackages(0),
   mRigorousBoundaries(false),
@@ -74,6 +75,7 @@ Integrator(DataBase<Dimension>& dataBase):
   mVerbose(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
+  mRequireOverlapConnectivity(false),
   mDataBasePtr(&dataBase),
   mPhysicsPackages(0),
   mRigorousBoundaries(false),
@@ -135,6 +137,7 @@ operator=(const Integrator<Dimension>& rhs) {
     mVerbose = rhs.mVerbose;
     mRequireConnectivity = rhs.mRequireConnectivity;
     mRequireGhostConnectivity = rhs.mRequireGhostConnectivity;
+    mRequireOverlapConnectivity = rhs.mRequireOverlapConnectivity;
   }
   return *this;
 }
@@ -218,11 +221,13 @@ Integrator<Dimension>::preStepInitialize(State<Dimension>& state,
   // Check if we need to construct connectivity.
   mRequireConnectivity = false;
   mRequireGhostConnectivity = false;
+  mRequireOverlapConnectivity = false;
   for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = physicsPackagesBegin();
        physicsItr != physicsPackagesEnd();
        ++physicsItr) {
     mRequireConnectivity = (mRequireConnectivity or (*physicsItr)->requireConnectivity());
     mRequireGhostConnectivity = (mRequireGhostConnectivity or (*physicsItr)->requireGhostConnectivity());
+    mRequireOverlapConnectivity = (mRequireOverlapConnectivity or (*physicsItr)->requireOverlapConnectivity());
   }
 
   // Intialize neighbors if need be.
@@ -237,7 +242,7 @@ Integrator<Dimension>::preStepInitialize(State<Dimension>& state,
 
   // Register the now updated connectivity with the state.
   if (mRequireConnectivity) {
-    state.enrollConnectivityMap(db.connectivityMapPtr(mRequireGhostConnectivity));
+    state.enrollConnectivityMap(db.connectivityMapPtr(mRequireGhostConnectivity, mRequireOverlapConnectivity));
   }
 
   // Loop over the physics packages and perform any necessary initializations.
@@ -487,12 +492,13 @@ Integrator<Dimension>::setGhostNodes() {
   if (mRequireConnectivity) {
 
     // Update the connectivity.
-    db.updateConnectivityMap(mRequireGhostConnectivity);
+    db.updateConnectivityMap(mRequireGhostConnectivity, mRequireOverlapConnectivity);
 
     // If we're culling ghost nodes, do it now.
     if (mCullGhostNodes and 
         (not this->domainDecompositionIndependent()) and
-        (not mRequireGhostConnectivity)) {
+        (not mRequireGhostConnectivity) and
+        (not mRequireOverlapConnectivity)) {
 
       // First build the set of flags indicating which nodes are used.
       FieldList<Dimension, int> flags = db.newGlobalFieldList(int(0), "active nodes");

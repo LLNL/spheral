@@ -145,6 +145,9 @@ public:
   // Some physics algorithms require ghost connectivity to be constructed.
   virtual bool requireGhostConnectivity() const;
 
+  // Some physics algorithms require overlap connectivity.
+  virtual bool requireOverlapConnectivity() const;
+
   // Many physics packages will have their own representations of energy in the
   // system (gravitational potential energy, radiative losses, etc.)
   virtual Scalar extraEnergy() const;
