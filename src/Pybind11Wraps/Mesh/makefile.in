@@ -9,9 +9,6 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Mesh
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-PYB11SRCS = \
-	Mesh.py
-
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

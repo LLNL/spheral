@@ -8,8 +8,6 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = Kernel
 PKGDIR = $(PKGNAME)/
-PYB11SRCS = \
-	Kernel.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------

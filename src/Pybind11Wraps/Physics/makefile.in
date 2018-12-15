@@ -9,11 +9,6 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Physics
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-PYB11SRCS = \
-	$(srcdir)/PhysicsAbstractMethods.py \
-	$(srcdir)/Physics.py \
-	$(srcdir)/GenericHydro.py \
-	$(srcdir)/GenericBodyForce.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

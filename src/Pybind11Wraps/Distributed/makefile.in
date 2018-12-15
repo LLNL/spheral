@@ -9,22 +9,6 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Distributed
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-PYB11SRCS = \
-	DistributedBoundary.py \
-	NestedGridDistributedBoundary.py \
-	TreeDistributedBoundary.py \
-	BoundingVolumeDistributedBoundary.py \
-	DomainNode.py \
-	RedistributeNodes.py \
-	SpaceFillingCurveRedistributeNodes.py \
-	MortonOrderRedistributeNodes.py \
-	PeanoHilbertOrderRedistributeNodes.py \
-	SortAndDivideRedistributeNodes.py \
-	VoronoiRedistributeNodes.py \
-	DistributeByXPosition.py \
-	SortAndDivideRedistributeNodes1d.py \
-	SortAndDivideRedistributeNodes2d.py \
-	SortAndDivideRedistributeNodes3d.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

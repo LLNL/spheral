@@ -9,14 +9,6 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Integrator
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-PYB11SRCS = \
-	Integrator.py \
-	PredictorCorrectorIntegrator.py \
-	SynchronousRK1Integrator.py \
-	SynchronousRK2Integrator.py \
-	SynchronousRK4Integrator.py \
-	CheapSynchronousRK2Integrator.py \
-	VerletIntegrator.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

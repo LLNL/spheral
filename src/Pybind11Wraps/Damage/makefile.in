@@ -9,10 +9,6 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Damage
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-PYB11SRCS = \
-	DamageModel.py \
-	TensorDamageModel.py \
-	JohnsonCookDamage.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
