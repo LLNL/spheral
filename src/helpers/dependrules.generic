@@ -21,7 +21,7 @@ Spheral%.d:	%MOD.py
 	$(eval mod = $(subst MOD,,$(basename $(<F))))
 	@$(SHELL) -ec 'echo "Building dependencies for $*MOD.py"'
 	@echo "Spheral$(mod).o Spheral$(mod).d : $(mod)MOD.py \\" > $@
-	@env PYTHONPATH="$(srcdir):$(SPHERALTOP)/Pybind11Wraps:$(subst $(SPACE),:,$(patsubst %,$(SPHERALTOP)/Pybind11Wraps/%,$(PYTHONPKGS))):$(PYLIBDIR)" $(exec_prefix)/bin/sfood --internal --follow --quiet $(srcdir)/$(mod)MOD.py > Spheral$(mod).pydeps
+	@env PYTHONPATH="$(srcdir):$(SPHERALTOP)/Pybind11Wraps:$(subst $(SPACE),:,$(patsubst %,$(SPHERALTOP)/Pybind11Wraps/%,$(PYTHONPKGS))):$(PYLIBDIR)" $(exec_prefix)/bin/sfood --follow --quiet $(srcdir)/$(mod)MOD.py | grep -v '$(libdir)' > Spheral$(mod).pydeps
 	@env PYTHONPATH="$(SPHERALTOP)/helpers" $(PYTHONEXE) -c "from parse_sfood_deps import *; parse_sfood_deps('Spheral$(mod).pydeps', '$@')"
 	@env PYTHONPATH="$(srcdir):$(SPHERALTOP)/Pybind11Wraps:$(subst $(SPACE),:,$(patsubst %,$(SPHERALTOP)/Pybind11Wraps/%,$(PYTHONPKGS))):$(PYLIBDIR)" $(PYTHONEXE) -c "from PYB11Generator import *; import $(mod)MOD; PYB11generateModule($(mod)MOD, 'Spheral$(mod)')"
 	@($(MPICXX) $(DEPFLAG) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c Spheral$(mod).cc | tail -n +2) >> $@
