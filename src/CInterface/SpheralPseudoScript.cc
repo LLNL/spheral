@@ -1192,6 +1192,13 @@ generateCylFromRZ(const int*     nnodes,
     zvec.push_back(0.0);
     mvec.push_back(1.0);
     gids.push_back(counter);
+    double hxx = htensor[0][i];
+    double hyy = htensor[3][i];
+    double hzz = htensor[5][i];
+    Dim<3>::SymTensor hh(hxx, 0.0, 0.0,
+                         0.0, hyy, 0.0,
+                         0.0, 0.0, hzz);
+    Hvec.push_back(hh);
     ++counter;
   }
   generateCylDistributionFromRZ(xvec,yvec,zvec,mvec,Hvec,gids,extras,
@@ -1203,15 +1210,32 @@ generateCylFromRZ(const int*     nnodes,
   double * sphcoordx = new double[n3d];
   double * sphcoordy = new double[n3d];
   double * sphcoordz = new double[n3d];
+  double * sphhxx = new double[n3d];
+  double * sphhxy = new double[n3d];
+  double * sphhxz = new double[n3d];
+  double * sphhyy = new double[n3d];
+  double * sphhyz = new double[n3d];
+  double * sphhzz = new double[n3d];
   for (int i = 0 ; i < n3d ; ++i) {
     sphcoordx[i] = xvec[i] ;
     sphcoordy[i] = yvec[i] ;
     sphcoordz[i] = zvec[i] ;
+    sphhxx[i] = Hvec[i][0] ;
+    sphhxy[i] = Hvec[i][1] ;
+    sphhxz[i] = Hvec[i][2] ;
+    sphhyy[i] = Hvec[i][3] ;
+    sphhyz[i] = Hvec[i][4] ;
+    sphhzz[i] = Hvec[i][5] ;
   }
   sphcoords[0] = sphcoordx ;
   sphcoords[1] = sphcoordy ;
   sphcoords[2] = sphcoordz ;
-
+  sphhtensor[0] = sphhxx ;
+  sphhtensor[1] = sphhxy ;
+  sphhtensor[2] = sphhxz ;
+  sphhtensor[3] = sphhyy ;
+  sphhtensor[4] = sphhyz ;
+  sphhtensor[5] = sphhzz ;
 }
 
 //------------------------------------------------------------------------------
