@@ -146,7 +146,12 @@ generateCylDistributionFromRZ(vector<double>& x,
   {
     int nlocal = x.size();
     int nglobal;
-    MPI_Allreduce(&nlocal, &nglobal, 1, MPI_INT, MPI_SUM, Communicator::communicator());
+    if (nProcs > 1) {
+      MPI_Allreduce(&nlocal, &nglobal, 1, MPI_INT, MPI_SUM, Communicator::communicator());
+    }
+    else {
+      nglobal = nlocal;
+    }
     VERIFY(nglobal == ntot);
   }
 #endif
