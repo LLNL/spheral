@@ -22,7 +22,7 @@ UNZIP = unzip
 TAR = tar
 CP = cp
 MV = mv
-PATCH = patch
+PATCH = patch -t
 MKDIR = mkdir -p
 CURL = curl -k -L
 AR = ar
@@ -670,7 +670,7 @@ $(PETSC4PYBUILDDATE): cache/$(PETSC4PYDIST)
 	@echo "################################################################################"
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	$(GZIP) -dc cache/$(PETSC4PYDIST) | $(TAR) -xf -
-#	$(PATCH) $(SCIPYDIR)/setup.py $(srcdir)/$(SCIPYDIR)-setup.py-patch 
+#	$(PATCH) $(SCIPYDIR)/setup.py $(srcdir)/$(SCIPYDIR)-setup.py-patch
 	$(SHELL) -ec "cd $(PETSC4PYDIR); \
 	env CC=$(srcdir)/helpers/mpicc $(PYTHONEXE) setup.py install --prefix $(prefix)"
 	@if test -n "`$(PYTHONEXE) -c 'import petsc4py'`"; then \
