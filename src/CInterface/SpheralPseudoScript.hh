@@ -161,9 +161,11 @@ public:
   static void generateCylFromRZ(const int*     nnodes,
                                 const double** coords,
                                 const double** htensor,
+                                const double** volume,
                                 int*           nparticles,
                                 double**       sphcoords,
-                                double**       sphhtensor);
+                                double**       sphhtensor,
+                                double**       sphvolume);
 
   // Update the connectivity between nodes using Spheral's internal neighbor
   // finding.

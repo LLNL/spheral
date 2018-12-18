@@ -422,25 +422,31 @@ void spheral_generate_cyl(const int      ndims,
                           const int*     nnodes,
                           const double** coords,
                           const double** htensor,
+                          const double** volume,
                           int*           nparticles,
                           double**       sphcoords,
-                          double**       sphhtensor) {
+                          double**       sphhtensor,
+                          double**       sphvolume) {
   if (ndims == 3) {
     typedef Spheral::Dim<3> Dimension;
     Spheral::SpheralPseudoScript<Dimension>::generateCylFromRZ(nnodes,
                                                                coords,
                                                                htensor,
+                                                               volume,
                                                                nparticles,
                                                                sphcoords,
-                                                               sphhtensor);
+                                                               sphhtensor,
+                                                               sphvolume);
   } else if (ndims == 2) {
     typedef Spheral::Dim<2> Dimension;
     Spheral::SpheralPseudoScript<Dimension>::generateCylFromRZ(nnodes,
                                                                coords,
                                                                htensor,
+                                                               volume,
                                                                nparticles,
                                                                sphcoords,
-                                                               sphhtensor);
+                                                               sphhtensor,
+                                                               sphvolume);
   } else {
     VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
   }

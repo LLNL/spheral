@@ -1176,9 +1176,11 @@ SpheralPseudoScript<Dimension>::
 generateCylFromRZ(const int*     nnodes,
                   const double** coords,
                   const double** htensor,
+                  const double** volume,
                   int*           nparticles,
                   double**       sphcoords,
-                  double**       sphhtensor) {
+                  double**       sphhtensor,
+                  double**       sphvolume) {
 
   std::vector< double > xvec, yvec, zvec, mvec;
   std::vector< Dim<3>::SymTensor > Hvec;
@@ -1190,7 +1192,7 @@ generateCylFromRZ(const int*     nnodes,
     xvec.push_back(coords[0][i]);
     yvec.push_back(coords[1][i]);
     zvec.push_back(0.0);
-    mvec.push_back(1.0);
+    mvec.push_back(volume[0][i]);
     gids.push_back(counter);
     double hxx = htensor[0][i];
     double hyy = htensor[3][i];
@@ -1216,6 +1218,7 @@ generateCylFromRZ(const int*     nnodes,
   double * sphhyy = new double[n3d];
   double * sphhyz = new double[n3d];
   double * sphhzz = new double[n3d];
+  double * sphvol = new double[n3d];
   for (int i = 0 ; i < n3d ; ++i) {
     sphcoordx[i] = xvec[i] ;
     sphcoordy[i] = yvec[i] ;
@@ -1226,6 +1229,7 @@ generateCylFromRZ(const int*     nnodes,
     sphhyy[i] = Hvec[i][3] ;
     sphhyz[i] = Hvec[i][4] ;
     sphhzz[i] = Hvec[i][5] ;
+    sphvol[i] = mvec[i] ;
   }
   sphcoords[0] = sphcoordx ;
   sphcoords[1] = sphcoordy ;
@@ -1236,6 +1240,7 @@ generateCylFromRZ(const int*     nnodes,
   sphhtensor[3] = sphhyy ;
   sphhtensor[4] = sphhyz ;
   sphhtensor[5] = sphhzz ;
+  sphvolume[0] = sphvol ;
 }
 
 //------------------------------------------------------------------------------

@@ -356,9 +356,11 @@ void spheral_generate_cyl(const int      ndims,
                           const int*     nnodes,
                           const double** coords,
                           const double** htensor,
+                          const double** volume,
                           int*           nparticles,
                           double**       sphcoords,
-                          double**       sphhtensor);
+                          double**       sphhtensor,
+                          double**       sphvolume);
 
 /*------------------------------------------------------------------------------
   spheral_update_connectivity
