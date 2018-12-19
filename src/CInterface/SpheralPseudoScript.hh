@@ -162,6 +162,7 @@ public:
                                 const double** coords,
                                 const double** htensor,
                                 const double** volume,
+                                const double   frac,
                                 int*           nparticles,
                                 double**       sphcoords,
                                 double**       sphhtensor,

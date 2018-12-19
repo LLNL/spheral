@@ -1177,6 +1177,7 @@ generateCylFromRZ(const int*     nnodes,
                   const double** coords,
                   const double** htensor,
                   const double** volume,
+                  const double   frac,
                   int*           nparticles,
                   double**       sphcoords,
                   double**       sphhtensor,
@@ -1204,7 +1205,7 @@ generateCylFromRZ(const int*     nnodes,
     ++counter;
   }
   generateCylDistributionFromRZ(xvec,yvec,zvec,mvec,Hvec,gids,extras,
-                                nodesperh,kernelext,phi,proc,nprocs);
+                                nodesperh,kernelext,phi*frac,proc,nprocs);
   int n3d = xvec.size();
   VERIFY(yvec.size() == n3d && zvec.size() == n3d &&
          mvec.size() == n3d && Hvec.size() == n3d);
