@@ -4,6 +4,7 @@
 from PYB11Generator import *
 
 PYB11includes = ['"Geometry/Dimension.hh"',
+                 '"Geometry/GeomPlane.hh"',
                  "<vector>",
                  "<map>",
                  "<set>",
