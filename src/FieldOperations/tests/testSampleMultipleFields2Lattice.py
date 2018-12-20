@@ -47,9 +47,6 @@ class TestSampleMultipleFields2Lattice:
         fieldListSet.ScalarFieldLists.append(eps)
         fieldListSet.VectorFieldLists.append(vel)
         fieldListSet.SymTensorFieldLists.append(Hfl)
-        print len(fieldListSet.ScalarFieldLists)
-        print len(fieldListSet.VectorFieldLists)
-        print len(fieldListSet.SymTensorFieldLists)
 
         # Build the mask.
         mask = self.db.newGlobalIntFieldList(1)
@@ -72,11 +69,6 @@ class TestSampleMultipleFields2Lattice:
                                                                                                              self.nsample)
 
         # Did we get back the correct numbers of sampled values?
-        print scalar_samples
-        print len(scalar_samples)
-        print len(vector_samples)
-        print len(tensor_samples)
-        print len(symtensor_samples)
         assert len(scalar_samples) == 2
         assert len(vector_samples) == 1
         assert len(tensor_samples) == 0
