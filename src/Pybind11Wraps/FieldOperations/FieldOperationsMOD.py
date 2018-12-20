@@ -307,6 +307,7 @@ def sampleMultipleFields2Lattice(fieldListSet = "const FieldListSet<%(Dimension)
                                                                 vectorValues,
                                                                 tensorValues,
                                                                 symTensorValues);
+                               std::cerr << "***INTERNAL SIZE CHECK***: " << scalarValues.size() << " " << vectorValues.size() << " " << tensorValues.size() << " " << symTensorValues.size() << std::endl;
                                return py::make_tuple(scalarValues,
                                                      vectorValues,
                                                      tensorValues,
