@@ -66,11 +66,19 @@ def output(cmd, dict=None):
 #-------------------------------------------------------------------------------
 # Functions to help testing neighbor selection.
 #-------------------------------------------------------------------------------
-def findNeighborNodes(r0, radius, nodes):
-    r = nodes.positions()
+def findNeighborNodes(pos1, radius, nodes):
+    pos = nodes.positions()
     H = nodes.Hfield()
-    result = [i for i in range(nodes.numInternalNodes)
-              if (H[i]*(r[i] - r0)).magnitude() <= radius]
+    result = [i for i in xrange(nodes.numInternalNodes)
+              if (H[i]*(pos[i] - pos1)).magnitude() <= radius]
+    return result
+
+def findOverlapNeighbors(pos1, pos2, radius, nodes):
+    pos = nodes.positions()
+    H = nodes.Hfield()
+    result = [i for i in xrange(nodes.numInternalNodes)
+              if ((H[i]*(pos[i] - pos1)).magnitude() <= radius and
+                  (H[i]*(pos[i] - pos2)).magnitude() <= radius)]
     return result
 
 def checkNeighbors(neighborList, neighborList0):
