@@ -66,19 +66,30 @@ def output(cmd, dict=None):
 #-------------------------------------------------------------------------------
 # Functions to help testing neighbor selection.
 #-------------------------------------------------------------------------------
-def findNeighborNodes(pos1, radius, nodes):
+def findNeighborNodes(pos1, H1, radius, nodes,
+                      potentials = None):
     pos = nodes.positions()
     H = nodes.Hfield()
-    result = [i for i in xrange(nodes.numInternalNodes)
-              if (H[i]*(pos[i] - pos1)).magnitude() <= radius]
+    if potentials is None:
+        potentials = range(nodes.numInternalNodes)
+    return [i for i in potentials
+            if (min((H1*(pos[i] - pos1)).magnitude(),
+                    (H[i]*(pos[i] - pos1)).magnitude()) <= radius)]
+
+def findOverlapNeighbors(pos1, H1, radius, nodes):
+    potentials = findNeighborNodes(pos1, H1, 2.0*radius, nodes)
+    myneighbors = findNeighborNodes(pos1, H1, radius, nodes, potentials)
+    pos = nodes.positions()
+    H = nodes.Hfield()
+    result = [i for i in potentials
+              if findNeighborNodes(pos[i], H[i], radius, nodes, potentials)]
     return result
 
-def findOverlapNeighbors(pos1, pos2, radius, nodes):
+def findOverlapRegion(pos1, H1, pos2, H2, radius, nodes):
     pos = nodes.positions()
-    H = nodes.Hfield()
     result = [i for i in xrange(nodes.numInternalNodes)
-              if ((H[i]*(pos[i] - pos1)).magnitude() <= radius and
-                  (H[i]*(pos[i] - pos2)).magnitude() <= radius)]
+              if ((H1*(pos[i] - pos1)).magnitude() <= radius and
+                  (H2*(pos[i] - pos2)).magnitude() <= radius)]
     return result
 
 def checkNeighbors(neighborList, neighborList0):
