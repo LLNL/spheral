@@ -815,6 +815,7 @@ computeConnectivity() {
         const auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
         CHECK(neighbors.size() == numNodeLists);
         const auto& ri = position(iNodeList, i);
+        const auto& Hi = H(iNodeList, i);
 
         // Make sure each of our neighbors knows about the others.  We keep these lists in
         // a sorted state to quickly avoid duplicates.
@@ -823,16 +824,16 @@ computeConnectivity() {
             const auto j1 = neighbors[jN1][k1];                                            // Node 1
             const auto& rj1 = position(jN1, j1);
             const auto& Hj1 = H(jN1, j1);
-            if (true) { // ((Hj1*(ri - rj1)).magnitude2() <= kernelExtent2) {                          // is i a gather neighbor of j1?
+            if ((Hj1*(ri - rj1)).magnitude2() <= kernelExtent2) {                          // is i a gather neighbor of j1?
 
               for (auto jN2 = jN1; jN2 < numNodeLists; ++jN2) {                            // NodeList 2
-                const auto kstart = jN2 == jN1 ? k1 + 1 : 0;
+                const auto kstart = (jN2 == jN1 ? k1 + 1 : 0);
                 for (auto k2 = kstart; k2 < neighbors[jN2].size(); ++k2) {
                   const auto j2 = neighbors[jN2][k2];                                      // Node 2
                   const auto& rj2 = position(jN2, j2);
                   const auto& Hj2 = H(jN2, j2);
 
-                  if (true) { // ((Hj2*(ri - rj2)).magnitude2() <= kernelExtent2) {                    // is i a gather neighbor of j2?
+                  if ((Hj2*(ri - rj2)).magnitude2() <= kernelExtent2) {                    // is i a gather neighbor of j2?
                     auto& overlap1 = mOverlapConnectivity[mOffsets[jN1] + j1][jN2];        // vector<int>: current overlap for Node 1
                     auto itr = std::lower_bound(overlap1.begin(), overlap1.end(), j2);
                     if (itr == overlap1.end() or *itr != j2) {
@@ -844,6 +845,21 @@ computeConnectivity() {
                     }
                   }
                 }
+              }
+            }
+
+            // Also check the neighbor directly.
+            if (( Hi*(ri - rj1)).magnitude2() <= kernelExtent2 and
+                (Hj1*(ri - rj1)).magnitude2() <= kernelExtent2) {
+              {
+                auto& overlap = mOverlapConnectivity[mOffsets[iNodeList] + i][jN1];
+                auto itr = std::lower_bound(overlap.begin(), overlap.end(), j1);
+                if (itr == overlap.end() or *itr != j1) overlap.insert(itr, j1);
+              }
+              {
+                auto& overlap = mOverlapConnectivity[mOffsets[jN1] + j1][iNodeList];
+                auto itr = std::lower_bound(overlap.begin(), overlap.end(), i);
+                if (itr == overlap.end() or *itr != i) overlap.insert(itr, i);
               }
             }
           }

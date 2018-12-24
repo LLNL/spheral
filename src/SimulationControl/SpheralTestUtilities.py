@@ -78,11 +78,11 @@ def findNeighborNodes(pos1, H1, radius, nodes,
 
 def findOverlapNeighbors(pos1, H1, radius, nodes):
     potentials = findNeighborNodes(pos1, H1, 2.0*radius, nodes)
-    myneighbors = findNeighborNodes(pos1, H1, radius, nodes, potentials)
+    myneighbors = set(findNeighborNodes(pos1, H1, radius, nodes, potentials))
     pos = nodes.positions()
     H = nodes.Hfield()
     result = [i for i in potentials
-              if findNeighborNodes(pos[i], H[i], radius, nodes, potentials)]
+              if (myneighbors & set(findNeighborNodes(pos[i], H[i], radius, nodes, potentials)))]
     return result
 
 def findOverlapRegion(pos1, H1, pos2, H2, radius, nodes):

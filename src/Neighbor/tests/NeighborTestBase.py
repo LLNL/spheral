@@ -128,108 +128,70 @@ class NeighborTestBase:
 
         return
 
-    #---------------------------------------------------------------------------
-    # Test raw Neighbor object calls.
-    #---------------------------------------------------------------------------
-    def testNeighborCalls(self):
-        from SpheralTestUtilities import findNeighborNodes, checkNeighbors
-        import time
-
-        # Iterate over the NodeLists.
-        for nodes in self.dataBase.nodeLists():
-            pos = nodes.positions()
-            H = nodes.Hfield()
-
-            # Randomly select nodes from each NodeList to explicitly test.
-            for nodeID in random.sample(range(nodes.numInternalNodes - 1), self.ncheck):
-                ri = pos[nodeID]
-                Hi = H[nodeID]
-
-                # Have the neighbor objects select neighbors for this node.
-                t0 = time.time()
-                masterLists = vector_of_vector_of_int()
-                coarseNeighbors = vector_of_vector_of_int()
-                refineNeighbors = vector_of_vector_of_int()
-                self.dataBase.setMasterNodeLists(ri, Hi, masterLists, coarseNeighbors)
-                self.dataBase.setRefineNodeLists(ri, Hi, coarseNeighbors, refineNeighbors)
-                neighborIDs = []
-                offset = 0
-                for inds, nds in enumerate(self.dataBase.nodeLists()):
-                    neighborIDs.extend([i + offset for i in refineNeighbors[inds]])
-                    offset += nds.numInternalNodes
-                t1 = time.time()
-
-                # Now build the checks.
-                answerIDs = []
-                offset = 0
-                for nds in self.dataBase.nodeLists():
-                    answerIDs.extend([i + offset for i in findNeighborNodes(ri, Hi, self.kernelExtent, nds)])
-                    offset += nds.numInternalNodes
-                t2 = time.time()
-
-                # Check the answer.
-                test = checkNeighbors(neighborIDs, answerIDs)
-                t3 = time.time()
-                if not test:
-                    neighborIDs.sort()
-                    answerIDs.sort()
-                    print 'SPH Neighbor test FAILED'
-                    print ' refine: ', neighborIDs
-                    print ' answer: ', answerIDs
-                    missing = [i for i in answerIDs if i not in neighborIDs]
-                    print 'missing: ', missing
-                    print 'deltas: ', [((Hi*(pos[i] - ri)).x, (H[i]*(pos[i] - ri)).x) for i in missing]
-                else:
-                    print "Passed for node %i : %f %f %f" % (nodeID, t1 - t0, t2 - t1, t3 - t2)
-                assert test
-
-    #---------------------------------------------------------------------------
-    # Test ConnectivityMap neighbors
-    #---------------------------------------------------------------------------
-    def testConnectivityMapNeighbors(self):
-        from SpheralTestUtilities import findNeighborNodes, checkNeighbors
-        import time
-
-        self.dataBase.updateConnectivityMap(False, False)
-        cm = self.dataBase.connectivityMap(False, False)
-
-        # Iterate over the NodeLists.
-        for iNL, inodes in enumerate(self.dataBase.nodeLists()):
-            pos = inodes.positions()
-            H = inodes.Hfield()
-
-            # Randomly select nodes from each NodeList to explicitly test.
-            for i in random.sample(range(inodes.numInternalNodes - 1), self.ncheck):
-                ri = pos[i]
-                Hi = H[i]
-                cmneighbors = cm.connectivityForNode(inodes, i)
-
-                # Check ConnectivityMap vs. N^2 neighbor search.
-                for jNL, jnodes in enumerate(self.dataBase.nodeLists()):
-                    cmcheck = sorted(cmneighbors[jNL])
-                    answer = sorted(findNeighborNodes(ri, Hi, self.kernelExtent, jnodes))
-                    if iNL == jNL:
-                        answer.remove(i)
-                    if not cmcheck == answer:
-                        print 'SPH ConnectivityMap neighbor test FAILED for node %i' % i
-                        print '     CM: ', cmcheck
-                        print ' answer: ', answer
-                        missing = [i for i in answer if i not in cmcheck]
-                        print 'missing: ', missing
-                        print 'deltas: ', [((Hi*(pos[i] - ri)).x, (H[i]*(pos[i] - ri)).x) for i in missing]
-                        raise RuntimeError, "Failed test"
-                    else:
-                        print "Passed for node %i" % i
-
     # #---------------------------------------------------------------------------
-    # # Test ConnectivityMap overlap neighbors
+    # # Test raw Neighbor object calls.
     # #---------------------------------------------------------------------------
-    # def testConnectivityMapOverlapNeighbors(self):
-    #     from SpheralTestUtilities import findOverlapNeighbors, checkNeighbors
+    # def testNeighborCalls(self):
+    #     from SpheralTestUtilities import findNeighborNodes, checkNeighbors
     #     import time
 
-    #     self.dataBase.updateConnectivityMap(False, True)
-    #     cm = self.dataBase.connectivityMap(False, True)
+    #     # Iterate over the NodeLists.
+    #     for nodes in self.dataBase.nodeLists():
+    #         pos = nodes.positions()
+    #         H = nodes.Hfield()
+
+    #         # Randomly select nodes from each NodeList to explicitly test.
+    #         for nodeID in random.sample(range(nodes.numInternalNodes - 1), self.ncheck):
+    #             ri = pos[nodeID]
+    #             Hi = H[nodeID]
+
+    #             # Have the neighbor objects select neighbors for this node.
+    #             t0 = time.time()
+    #             masterLists = vector_of_vector_of_int()
+    #             coarseNeighbors = vector_of_vector_of_int()
+    #             refineNeighbors = vector_of_vector_of_int()
+    #             self.dataBase.setMasterNodeLists(ri, Hi, masterLists, coarseNeighbors)
+    #             self.dataBase.setRefineNodeLists(ri, Hi, coarseNeighbors, refineNeighbors)
+    #             neighborIDs = []
+    #             offset = 0
+    #             for inds, nds in enumerate(self.dataBase.nodeLists()):
+    #                 neighborIDs.extend([i + offset for i in refineNeighbors[inds]])
+    #                 offset += nds.numInternalNodes
+    #             t1 = time.time()
+
+    #             # Now build the checks.
+    #             answerIDs = []
+    #             offset = 0
+    #             for nds in self.dataBase.nodeLists():
+    #                 answerIDs.extend([i + offset for i in findNeighborNodes(ri, Hi, self.kernelExtent, nds)])
+    #                 offset += nds.numInternalNodes
+    #             t2 = time.time()
+
+    #             # Check the answer.
+    #             test = checkNeighbors(neighborIDs, answerIDs)
+    #             t3 = time.time()
+    #             if not test:
+    #                 neighborIDs.sort()
+    #                 answerIDs.sort()
+    #                 print 'SPH Neighbor test FAILED'
+    #                 print ' refine: ', neighborIDs
+    #                 print ' answer: ', answerIDs
+    #                 missing = [i for i in answerIDs if i not in neighborIDs]
+    #                 print 'missing: ', missing
+    #                 print 'deltas: ', [((Hi*(pos[i] - ri)).x, (H[i]*(pos[i] - ri)).x) for i in missing]
+    #             else:
+    #                 print "Passed for node %i : %f %f %f" % (nodeID, t1 - t0, t2 - t1, t3 - t2)
+    #             assert test
+
+    # #---------------------------------------------------------------------------
+    # # Test ConnectivityMap neighbors
+    # #---------------------------------------------------------------------------
+    # def testConnectivityMapNeighbors(self):
+    #     from SpheralTestUtilities import findNeighborNodes, checkNeighbors
+    #     import time
+
+    #     self.dataBase.updateConnectivityMap(False, False)
+    #     cm = self.dataBase.connectivityMap(False, False)
 
     #     # Iterate over the NodeLists.
     #     for iNL, inodes in enumerate(self.dataBase.nodeLists()):
@@ -240,28 +202,72 @@ class NeighborTestBase:
     #         for i in random.sample(range(inodes.numInternalNodes - 1), self.ncheck):
     #             ri = pos[i]
     #             Hi = H[i]
-    #             cmneighbors = cm.overlapConnectivityForNode(inodes, i)
+    #             cmneighbors = cm.connectivityForNode(inodes, i)
 
     #             # Check ConnectivityMap vs. N^2 neighbor search.
     #             for jNL, jnodes in enumerate(self.dataBase.nodeLists()):
     #                 cmcheck = sorted(cmneighbors[jNL])
-    #                 answer = sorted(findOverlapNeighbors(ri, Hi, self.kernelExtent, jnodes))
+    #                 answer = sorted(findNeighborNodes(ri, Hi, self.kernelExtent, jnodes))
     #                 if iNL == jNL:
     #                     answer.remove(i)
     #                 if not cmcheck == answer:
-    #                     print 'SPH ConnectivityMap overlap neighbor test FAILED for node %i' % i
+    #                     print 'SPH ConnectivityMap neighbor test FAILED for node %i' % i
     #                     print '     CM: ', cmcheck
     #                     print ' answer: ', answer
-    #                     missing = [j for j in answer if j not in cmcheck]
+    #                     missing = [i for i in answer if i not in cmcheck]
     #                     print 'missing: ', missing
-    #                     print 'intersections for missing:'
-    #                     for j in missing:
-    #                         print '   %i: ' % j, [list(x) for x in cm.connectivityIntersectionForNodes(iNL, i, jNL, j)]
+    #                     print 'deltas: ', [((Hi*(pos[i] - ri)).x, (H[i]*(pos[i] - ri)).x) for i in missing]
     #                     raise RuntimeError, "Failed test"
     #                 else:
     #                     print "Passed for node %i" % i
 
-    #     return
+    #---------------------------------------------------------------------------
+    # Test ConnectivityMap overlap neighbors
+    #---------------------------------------------------------------------------
+    def testConnectivityMapOverlapNeighbors(self):
+        from SpheralTestUtilities import findNeighborNodes, findOverlapNeighbors, checkNeighbors
+        import time
+
+        self.dataBase.updateConnectivityMap(False, True)
+        cm = self.dataBase.connectivityMap(False, True)
+        pos = self.dataBase.globalPosition
+        H = self.dataBase.globalHfield
+
+        # Iterate over the NodeLists.
+        for iNL, inodes in enumerate(self.dataBase.nodeLists()):
+
+            # Randomly select nodes from each NodeList to explicitly test.
+            for i in random.sample(range(inodes.numInternalNodes - 1), self.ncheck):
+                print "Checking ", i
+                ri = pos(iNL, i)
+                Hi = H(iNL, i)
+                cmneighbors = cm.overlapConnectivityForNode(inodes, i)
+
+                # Check ConnectivityMap vs. N^2 neighbor search.
+                for jNL, jnodes in enumerate(self.dataBase.nodeLists()):
+                    cmcheck = sorted(cmneighbors[jNL])
+                    answer = sorted(findOverlapNeighbors(ri, Hi, self.kernelExtent, jnodes))
+                    if iNL == jNL:
+                        assert answer.index(i)
+                        answer.remove(i)
+                    if not cmcheck == answer:
+                        print 'SPH ConnectivityMap overlap neighbor test FAILED for node %i' % i
+                        print '     CM: ', cmcheck
+                        print ' answer: ', answer
+                        missing = [j for j in answer if j not in cmcheck]
+                        print 'missing: ', missing
+                        print 'intersections for missing:'
+                        for j in missing:
+                            print '   %i: ' % j, [list(x) for x in cm.connectivityIntersectionForNodes(iNL, i, jNL, j)]
+                            for nds in self.dataBase.nodeLists():
+                                ineighbors = findNeighborNodes(pos(iNL, i), H(iNL, i), self.kernelExtent, nds)
+                                jneighbors = findNeighborNodes(pos(jNL, j), H(jNL, j), self.kernelExtent, nds)
+                                print '\t: ', [x for x in ineighbors if x in jneighbors]
+                        raise RuntimeError, "Failed test"
+                    else:
+                        print "Passed for node %i" % i
+
+        return
 
 #===============================================================================
 # Radom node distribution -- 1-D.
