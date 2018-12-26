@@ -49,6 +49,25 @@ appendSTLvectors(std::vector<T>& v1, std::vector<T>& v2) {
   v1.reserve(v1.size() + v2.size());
   v1.insert(v1.end(), v2.begin(), v2.end());
 }
+
+//------------------------------------------------------------------------------
+// Helper to insert into a sorted list of IDs.
+//------------------------------------------------------------------------------
+inline
+bool
+insertUnique(const std::vector<int>& offsets,
+             std::vector<std::vector<std::vector<int>>>& indices,
+             const int jN1, const int j1,
+             const int jN2, const int j2) {
+  auto& overlap = indices[offsets[jN1] + j1][jN2];
+  auto itr = std::lower_bound(overlap.begin(), overlap.end(), j2);
+  if (itr == overlap.end() or *itr != j2) {
+    overlap.insert(itr, j2);
+    return true;
+  } else {
+    return false;
+  }
+}
 }
 
 //------------------------------------------------------------------------------
@@ -834,14 +853,10 @@ computeConnectivity() {
                   const auto& Hj2 = H(jN2, j2);
 
                   if ((Hj2*(ri - rj2)).magnitude2() <= kernelExtent2) {                    // is i a gather neighbor of j2?
-                    auto& overlap1 = mOverlapConnectivity[mOffsets[jN1] + j1][jN2];        // vector<int>: current overlap for Node 1
-                    auto itr = std::lower_bound(overlap1.begin(), overlap1.end(), j2);
-                    if (itr == overlap1.end() or *itr != j2) {
-                      overlap1.insert(itr, j2);
-                      auto& overlap2 = mOverlapConnectivity[mOffsets[jN2] + j2][jN1];      // vector<int>: current overlap for Node 2
-                      auto itr = std::lower_bound(overlap2.begin(), overlap2.end(), j1);
-                      CHECK(itr == overlap2.end() or *itr != j1);
-                      overlap2.insert(itr, j1);
+                    if (insertUnique(mOffsets, mOverlapConnectivity,
+                                     jN1, j1, jN2, j2)) {
+                      insertUnique(mOffsets, mOverlapConnectivity,
+                                   jN2, j2, jN1, j1);
                     }
                   }
                 }
@@ -851,15 +866,10 @@ computeConnectivity() {
             // Also check the neighbor directly.
             if (( Hi*(ri - rj1)).magnitude2() <= kernelExtent2 and
                 (Hj1*(ri - rj1)).magnitude2() <= kernelExtent2) {
-              {
-                auto& overlap = mOverlapConnectivity[mOffsets[iNodeList] + i][jN1];
-                auto itr = std::lower_bound(overlap.begin(), overlap.end(), j1);
-                if (itr == overlap.end() or *itr != j1) overlap.insert(itr, j1);
-              }
-              {
-                auto& overlap = mOverlapConnectivity[mOffsets[jN1] + j1][iNodeList];
-                auto itr = std::lower_bound(overlap.begin(), overlap.end(), i);
-                if (itr == overlap.end() or *itr != i) overlap.insert(itr, i);
+              if (insertUnique(mOffsets, mOverlapConnectivity,
+                               iNodeList, i, jN1, j1)) {
+                insertUnique(mOffsets, mOverlapConnectivity,
+                             jN1, j1, iNodeList, i);
               }
             }
           }
