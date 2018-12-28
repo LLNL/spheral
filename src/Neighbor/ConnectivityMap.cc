@@ -222,28 +222,25 @@ ConnectivityMap<Dimension>::
 connectivityIntersectionForNodes(const int nodeListi, const int i,
                                  const int nodeListj, const int j) const {
 
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-
   // Pre-conditions.
-  const unsigned numNodeLists = mNodeLists.size();
+  const auto numNodeLists = mNodeLists.size();
   REQUIRE(nodeListi < numNodeLists and
           nodeListj < numNodeLists);
-  const unsigned firstGhostNodei = mNodeLists[nodeListi]->firstGhostNode();
-  const unsigned firstGhostNodej = mNodeLists[nodeListj]->firstGhostNode();
+  const auto firstGhostNodei = mNodeLists[nodeListi]->firstGhostNode();
+  const auto firstGhostNodej = mNodeLists[nodeListj]->firstGhostNode();
   REQUIRE(i < firstGhostNodei or j < firstGhostNodej);
 
   // Prepare the result.
-  vector<vector<int> > result(numNodeLists);
+  vector<vector<int>> result(numNodeLists);
 
   // If both nodes are internal, we simply intersect their neighbor lists.
   if (i < firstGhostNodei and j < firstGhostNodej) {
-    vector<vector<int> > neighborsi = this->connectivityForNode(nodeListi, i);
-    vector<vector<int> > neighborsj = this->connectivityForNode(nodeListj, j);
+    vector<vector<int>> neighborsi = this->connectivityForNode(nodeListi, i);
+    vector<vector<int>> neighborsj = this->connectivityForNode(nodeListj, j);
     CHECK(neighborsi.size() == numNodeLists);
     CHECK(neighborsj.size() == numNodeLists);
+    neighborsi[nodeListi].push_back(i);
+    neighborsj[nodeListj].push_back(j);
     for (unsigned k = 0; k != numNodeLists; ++k) {
       sort(neighborsi[k].begin(), neighborsi[k].end());
       sort(neighborsj[k].begin(), neighborsj[k].end());
@@ -864,11 +861,10 @@ computeConnectivity() {
 
               // Also check the neighbor directly.
               if ((Hi*(ri - rj1)).magnitude2() <= kernelExtent2) {
-                if (insertUnique(mOffsets, mOverlapConnectivity,
-                                 iNodeList, i, jN1, j1)) {
-                  insertUnique(mOffsets, mOverlapConnectivity,
-                               jN1, j1, iNodeList, i);
-                }
+                insertUnique(mOffsets, mOverlapConnectivity,
+                             iNodeList, i, jN1, j1);
+                insertUnique(mOffsets, mOverlapConnectivity,
+                             jN1, j1, iNodeList, i);
               }
             }
           }
