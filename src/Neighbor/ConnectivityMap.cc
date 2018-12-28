@@ -861,15 +861,14 @@ computeConnectivity() {
                   }
                 }
               }
-            }
 
-            // Also check the neighbor directly.
-            if (( Hi*(ri - rj1)).magnitude2() <= kernelExtent2 and
-                (Hj1*(ri - rj1)).magnitude2() <= kernelExtent2) {
-              if (insertUnique(mOffsets, mOverlapConnectivity,
-                               iNodeList, i, jN1, j1)) {
-                insertUnique(mOffsets, mOverlapConnectivity,
-                             jN1, j1, iNodeList, i);
+              // Also check the neighbor directly.
+              if ((Hi*(ri - rj1)).magnitude2() <= kernelExtent2) {
+                if (insertUnique(mOffsets, mOverlapConnectivity,
+                                 iNodeList, i, jN1, j1)) {
+                  insertUnique(mOffsets, mOverlapConnectivity,
+                               jN1, j1, iNodeList, i);
+                }
               }
             }
           }
