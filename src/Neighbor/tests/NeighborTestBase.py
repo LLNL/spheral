@@ -225,13 +225,33 @@ class NeighborTestBase:
     # Test ConnectivityMap overlap neighbors
     #---------------------------------------------------------------------------
     def testConnectivityMapOverlapNeighbors(self):
-        from SpheralTestUtilities import findNeighborNodes, findOverlapNeighbors, checkNeighbors
+        from SpheralTestUtilities import findNeighborNodes, findOverlapNeighbors, findOverlapRegion, checkNeighbors
         import time
 
         self.dataBase.updateConnectivityMap(False, True)
         cm = self.dataBase.connectivityMap(False, True)
         pos = self.dataBase.globalPosition
         H = self.dataBase.globalHfield
+
+        # Local extra info method
+        def actualIntersection(iNL, i, jNL, j):
+            actual = []
+            ri = pos(iNL, i)
+            Hi = H(iNL, i)
+            rj = pos(jNL, j)
+            Hj = H(jNL, j)
+            for nodes in self.dataBase.nodeLists():
+                actual.append(findOverlapRegion(ri, Hi, rj, Hj, self.kernelExtent, nodes))
+            # gs = cm.connectivityIntersectionForNodes(iNL, i, jNL, j)
+            # for kNL, potentials in enumerate(gs):
+            #     actual.append([])
+            #     for k in potentials:
+            #         etai = (Hi*(ri - pos(kNL, k))).magnitude()
+            #         etaj = (Hj*(rj - pos(kNL, k))).magnitude()
+            #         if etai <= self.kernelExtent and etaj <= self.kernelExtent:
+            #             actual[kNL].append(k)
+            #         print " --> etas for ", k, " : ", etai, etaj
+            return actual
 
         # Iterate over the NodeLists.
         for iNL, inodes in enumerate(self.dataBase.nodeLists()):
@@ -248,24 +268,33 @@ class NeighborTestBase:
                     cmcheck = sorted(cmneighbors[jNL])
                     answer = sorted(findOverlapNeighbors(ri, Hi, self.kernelExtent, jnodes))
                     if iNL == jNL:
-                        assert answer.index(i)
                         answer.remove(i)
                     if not cmcheck == answer:
                         print 'SPH ConnectivityMap overlap neighbor test FAILED for node %i' % i
                         print '     CM: ', cmcheck
                         print ' answer: ', answer
-                        missing = [j for j in answer if j not in cmcheck]
+                        missing = [j for j in answer if not j in cmcheck]
                         print 'missing: ', missing
                         print 'intersections for missing:'
                         for j in missing:
+                            rj = pos(jNL, j)
+                            Hj = H(jNL, j)
                             print '   %i: ' % j, [list(x) for x in cm.connectivityIntersectionForNodes(iNL, i, jNL, j)]
-                        extra = [j for j in cmcheck if j not in answer]
+                            actual = actualIntersection(iNL, i, jNL, j)
+                            print '   %i: ' % j, actual
+                            print "Finished"
+                        extra = [j for j in cmcheck if not j in answer]
                         print 'extra: ', extra
                         print 'intersections for extra:'
                         for j in extra:
                             print '   %i: ' % j, [list(x) for x in cm.connectivityIntersectionForNodes(iNL, i, jNL, j)]
+                            actual = actualIntersection(iNL, i, jNL, j)
+                            print '   %i: ' % j, actual
+                            print "Finished"
+                        print "REALLY Finished"
+                        sys.stdin.flush()
                         raise RuntimeError, "Failed test"
-                print "Passed for node %i" % i
+                print "    Passed for node %i" % i
 
         return
 

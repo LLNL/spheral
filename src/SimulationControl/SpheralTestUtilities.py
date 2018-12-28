@@ -83,7 +83,7 @@ def findGatherNeighborNodes(pos1, H1, radius, nodes,
     if potentials is None:
         potentials = range(nodes.numInternalNodes)
     return [i for i in potentials
-            if (H1*(pos[i] - pos1)).magnitude() <= radius]
+            if (H1*(pos1 - pos[i])).magnitude() <= radius]
 
 def findScatterNeighborNodes(pos1, radius, nodes,
                              potentials = None):
@@ -92,12 +92,12 @@ def findScatterNeighborNodes(pos1, radius, nodes,
     if potentials is None:
         potentials = range(nodes.numInternalNodes)
     return [i for i in potentials
-            if (H[i]*(pos[i] - pos1)).magnitude() <= radius]
+            if (H[i]*(pos1 - pos[i])).magnitude() <= radius]
 
 def findOverlapNeighbors(pos1, H1, radius, nodes):
     pos = nodes.positions()
     H = nodes.Hfield()
-    myneighbors = set(findGatherNeighborNodes(pos1, H1, radius, nodes))
+    myneighbors = findGatherNeighborNodes(pos1, H1, radius, nodes)
     result = []
     for j in myneighbors:
         result += findScatterNeighborNodes(pos[j], radius, nodes)
