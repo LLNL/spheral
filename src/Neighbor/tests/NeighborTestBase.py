@@ -259,13 +259,13 @@ class NeighborTestBase:
                         print 'intersections for missing:'
                         for j in missing:
                             print '   %i: ' % j, [list(x) for x in cm.connectivityIntersectionForNodes(iNL, i, jNL, j)]
-                            for nds in self.dataBase.nodeLists():
-                                ineighbors = findNeighborNodes(pos(iNL, i), H(iNL, i), self.kernelExtent, nds)
-                                jneighbors = findNeighborNodes(pos(jNL, j), H(jNL, j), self.kernelExtent, nds)
-                                print '\t: ', [x for x in ineighbors if x in jneighbors]
+                        extra = [j for j in cmcheck if j not in answer]
+                        print 'extra: ', extra
+                        print 'intersections for extra:'
+                        for j in extra:
+                            print '   %i: ' % j, [list(x) for x in cm.connectivityIntersectionForNodes(iNL, i, jNL, j)]
                         raise RuntimeError, "Failed test"
-                    else:
-                        print "Passed for node %i" % i
+                print "Passed for node %i" % i
 
         return
 
