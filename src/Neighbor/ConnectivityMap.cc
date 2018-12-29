@@ -850,11 +850,19 @@ computeConnectivity() {
                   const auto& Hj2 = H(jN2, j2);
 
                   if ((Hj2*(ri - rj2)).magnitude2() <= kernelExtent2) {                    // is i a gather neighbor of j2?
-                    if (insertUnique(mOffsets, mOverlapConnectivity,
-                                     jN1, j1, jN2, j2)) {
+                    insertUnique(mOffsets, mOverlapConnectivity,
+                                 jN1, j1, jN2, j2);
+                    insertUnique(mOffsets, mOverlapConnectivity,
+                                 jN2, j2, jN1, j1);
+
+                    // Also check the neighbor directly.
+                    if ((Hi*(ri - rj2)).magnitude2() <= kernelExtent2) {
                       insertUnique(mOffsets, mOverlapConnectivity,
-                                   jN2, j2, jN1, j1);
+                                   iNodeList, i, jN2, j2);
+                      insertUnique(mOffsets, mOverlapConnectivity,
+                                   jN2, j2, iNodeList, i);
                     }
+
                   }
                 }
               }

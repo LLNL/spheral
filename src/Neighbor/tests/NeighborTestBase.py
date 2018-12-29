@@ -234,6 +234,16 @@ class NeighborTestBase:
         H = self.dataBase.globalHfield
 
         # Local extra info method
+        def etaNeighborStats(iNL, i, jNL, j, actual):
+            ri = pos(iNL, i)
+            Hi = H(iNL, i)
+            rj = pos(jNL, j)
+            Hj = H(jNL, j)
+            for (kNL, nghbs) in enumerate(actual):
+                for k in nghbs:
+                    rk = pos(kNL, k)
+                    print "    --> ", k, (Hi*(ri - rk)).magnitude(), (Hj*(rj - rk)).magnitude()
+
         def actualIntersection(iNL, i, jNL, j):
             actual = []
             ri = pos(iNL, i)
@@ -282,6 +292,7 @@ class NeighborTestBase:
                             print '   %i: ' % j, [list(x) for x in cm.connectivityIntersectionForNodes(iNL, i, jNL, j)]
                             actual = actualIntersection(iNL, i, jNL, j)
                             print '   %i: ' % j, actual
+                            etaNeighborStats(iNL, i, jNL, j, actual)
                             print "Finished"
                         extra = [j for j in cmcheck if not j in answer]
                         print 'extra: ', extra
@@ -290,6 +301,7 @@ class NeighborTestBase:
                             print '   %i: ' % j, [list(x) for x in cm.connectivityIntersectionForNodes(iNL, i, jNL, j)]
                             actual = actualIntersection(iNL, i, jNL, j)
                             print '   %i: ' % j, actual
+                            etaNeighborStats(iNL, i, jNL, j, actual)
                             print "Finished"
                         print "REALLY Finished"
                         sys.stdin.flush()
