@@ -94,14 +94,16 @@ def findScatterNeighborNodes(pos1, radius, nodes,
     return [i for i in potentials
             if (H[i]*(pos1 - pos[i])).magnitude() <= radius]
 
-def findOverlapNeighbors(pos1, H1, radius, nodes):
-    pos = nodes.positions()
-    H = nodes.Hfield()
-    myneighbors = findGatherNeighborNodes(pos1, H1, radius, nodes)
-    result = []
-    for j in myneighbors:
-        result += findScatterNeighborNodes(pos[j], radius, nodes)
-        result = list(set(result))
+def findOverlapNeighbors(pos1, H1, radius, db):
+    pos = db.globalPosition
+    H = db.globalHfield
+    result = [findNeighborNodes(pos1, H1, radius, nodes) for nodes in db.nodeLists()]
+    for iNL, inodes in enumerate(db.nodeLists()):
+        mygather = findGatherNeighborNodes(pos1, H1, radius, inodes)
+        for i in mygather:
+            for jNL, jnodes in enumerate(db.nodeLists()):
+                result[jNL] += findScatterNeighborNodes(pos(iNL, i), radius, jnodes)
+        result = [list(set(x)) for x in result]
     return result
 
 def findOverlapRegion(pos1, H1, pos2, H2, radius, nodes):
