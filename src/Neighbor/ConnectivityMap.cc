@@ -59,14 +59,17 @@ insertUnique(const std::vector<int>& offsets,
              std::vector<std::vector<std::vector<int>>>& indices,
              const int jN1, const int j1,
              const int jN2, const int j2) {
-  auto& overlap = indices[offsets[jN1] + j1][jN2];
-  auto itr = std::lower_bound(overlap.begin(), overlap.end(), j2);
-  if (itr == overlap.end() or *itr != j2) {
-    overlap.insert(itr, j2);
-    return true;
-  } else {
-    return false;
+  if (jN1 != jN2 or j1 != j2) {
+    auto& overlap = indices[offsets[jN1] + j1][jN2];
+    auto itr = std::lower_bound(overlap.begin(), overlap.end(), j2);
+    if (itr == overlap.end() or *itr != j2) {
+      overlap.insert(itr, j2);
+      return true;
+    } else {
+      return false;
+    }
   }
+  return false;
 }
 }
 
@@ -824,55 +827,47 @@ computeConnectivity() {
   // Do we need overlap connectivity?
   if (mBuildOverlapConnectivity) {
     TIME_ConnectivityMap_computeOverlapConnectivity.start();
-    mOverlapConnectivity = ConnectivityStorageType(connectivitySize, vector<vector<int> >(numNodeLists));
+
+    // To start out, *all* neighbors of a node (gather and scatter) are overlap neighbors.  Therefore we
+    // first just copy the neighbor connectivity.
+    mOverlapConnectivity = mConnectivity;
+
     for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
       const auto* nodeListPtr = mNodeLists[iNodeList];
       for (auto i = 0; i < nodeListPtr->numNodes(); ++i) {
-        const auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
-        CHECK(neighbors.size() == numNodeLists);
+        const auto& neighborsi = mConnectivity[mOffsets[iNodeList] + i];
+        CHECK(neighborsi.size() == numNodeLists);
         const auto& ri = position(iNodeList, i);
         const auto& Hi = H(iNodeList, i);
 
-        // Make sure each of our neighbors knows about the others.  We keep these lists in
-        // a sorted state to quickly avoid duplicates.
-        for (auto jN1 = 0; jN1 < numNodeLists; ++jN1) {                                    // NodeList 1
-          for (auto k1 = 0; k1 < neighbors[jN1].size(); ++k1) {
-            const auto j1 = neighbors[jN1][k1];                                            // Node 1
+        // Find all the gather neighbors of i.
+        for (auto jN1 = 0; jN1 < numNodeLists; ++jN1) {
+          for (const auto j1: neighborsi[jN1]) {
             const auto& rj1 = position(jN1, j1);
             const auto& Hj1 = H(jN1, j1);
-            if ((Hj1*(ri - rj1)).magnitude2() <= kernelExtent2) {                          // is i a gather neighbor of j1?
+            if ((Hi*(rj1 - ri)).magnitude2() <= kernelExtent2) {                           // Is j1 a gather neighbor of i?
 
-              for (auto jN2 = jN1; jN2 < numNodeLists; ++jN2) {                            // NodeList 2
-                const auto kstart = (jN2 == jN1 ? k1 + 1 : 0);
-                for (auto k2 = kstart; k2 < neighbors[jN2].size(); ++k2) {
-                  const auto j2 = neighbors[jN2][k2];                                      // Node 2
-                  const auto& rj2 = position(jN2, j2);
-                  const auto& Hj2 = H(jN2, j2);
-
-                  if ((Hj2*(ri - rj2)).magnitude2() <= kernelExtent2) {                    // is i a gather neighbor of j2?
-                    insertUnique(mOffsets, mOverlapConnectivity,
-                                 jN1, j1, jN2, j2);
-                    insertUnique(mOffsets, mOverlapConnectivity,
-                                 jN2, j2, jN1, j1);
-
-                    // Also check the neighbor directly.
-                    if ((Hi*(ri - rj2)).magnitude2() <= kernelExtent2) {
-                      insertUnique(mOffsets, mOverlapConnectivity,
-                                   iNodeList, i, jN2, j2);
-                      insertUnique(mOffsets, mOverlapConnectivity,
-                                   jN2, j2, iNodeList, i);
-                    }
-
-                  }
-                }
-              }
-
-              // Also check the neighbor directly.
-              if ((Hi*(ri - rj1)).magnitude2() <= kernelExtent2) {
+              // Check if i and j1 have overlap directly.
+              if ((Hj1*(rj1 - ri)).magnitude2() <= kernelExtent2) {
                 insertUnique(mOffsets, mOverlapConnectivity,
                              iNodeList, i, jN1, j1);
                 insertUnique(mOffsets, mOverlapConnectivity,
                              jN1, j1, iNodeList, i);
+              }
+
+              // Find the gather neighbors of j1, all of which share overlap with i.
+              const auto& neighborsj1 = mConnectivity[mOffsets[jN1] + j1];
+              for (auto jN2 = 0; jN2 < numNodeLists; ++jN2) {
+                for (const auto j2: neighborsj1[jN2]) {
+                  const auto& rj2 = position(jN2, j2);
+                  const auto& Hj2 = H(jN2, j2);
+                  if ((Hj2*(rj2 - rj1)).magnitude2() <= kernelExtent2) {                   // Is j2 a scatter neighbor of j1?
+                    insertUnique(mOffsets, mOverlapConnectivity,
+                                 iNodeList, i, jN2, j2);
+                    insertUnique(mOffsets, mOverlapConnectivity,
+                                 jN2, j2, iNodeList, i);
+                  }
+                }
               }
             }
           }
