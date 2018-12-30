@@ -128,98 +128,98 @@ class NeighborTestBase:
 
         return
 
-    # #---------------------------------------------------------------------------
-    # # Test raw Neighbor object calls.
-    # #---------------------------------------------------------------------------
-    # def testNeighborCalls(self):
-    #     from SpheralTestUtilities import findNeighborNodes, checkNeighbors
-    #     import time
+    #---------------------------------------------------------------------------
+    # Test raw Neighbor object calls.
+    #---------------------------------------------------------------------------
+    def testNeighborCalls(self):
+        from SpheralTestUtilities import findNeighborNodes, checkNeighbors
+        import time
 
-    #     # Iterate over the NodeLists.
-    #     for nodes in self.dataBase.nodeLists():
-    #         pos = nodes.positions()
-    #         H = nodes.Hfield()
+        # Iterate over the NodeLists.
+        for nodes in self.dataBase.nodeLists():
+            pos = nodes.positions()
+            H = nodes.Hfield()
 
-    #         # Randomly select nodes from each NodeList to explicitly test.
-    #         for nodeID in random.sample(range(nodes.numInternalNodes - 1), self.ncheck):
-    #             ri = pos[nodeID]
-    #             Hi = H[nodeID]
+            # Randomly select nodes from each NodeList to explicitly test.
+            for nodeID in random.sample(range(nodes.numInternalNodes - 1), self.ncheck):
+                ri = pos[nodeID]
+                Hi = H[nodeID]
 
-    #             # Have the neighbor objects select neighbors for this node.
-    #             t0 = time.time()
-    #             masterLists = vector_of_vector_of_int()
-    #             coarseNeighbors = vector_of_vector_of_int()
-    #             refineNeighbors = vector_of_vector_of_int()
-    #             self.dataBase.setMasterNodeLists(ri, Hi, masterLists, coarseNeighbors)
-    #             self.dataBase.setRefineNodeLists(ri, Hi, coarseNeighbors, refineNeighbors)
-    #             neighborIDs = []
-    #             offset = 0
-    #             for inds, nds in enumerate(self.dataBase.nodeLists()):
-    #                 neighborIDs.extend([i + offset for i in refineNeighbors[inds]])
-    #                 offset += nds.numInternalNodes
-    #             t1 = time.time()
+                # Have the neighbor objects select neighbors for this node.
+                t0 = time.time()
+                masterLists = vector_of_vector_of_int()
+                coarseNeighbors = vector_of_vector_of_int()
+                refineNeighbors = vector_of_vector_of_int()
+                self.dataBase.setMasterNodeLists(ri, Hi, masterLists, coarseNeighbors)
+                self.dataBase.setRefineNodeLists(ri, Hi, coarseNeighbors, refineNeighbors)
+                neighborIDs = []
+                offset = 0
+                for inds, nds in enumerate(self.dataBase.nodeLists()):
+                    neighborIDs.extend([i + offset for i in refineNeighbors[inds]])
+                    offset += nds.numInternalNodes
+                t1 = time.time()
 
-    #             # Now build the checks.
-    #             answerIDs = []
-    #             offset = 0
-    #             for nds in self.dataBase.nodeLists():
-    #                 answerIDs.extend([i + offset for i in findNeighborNodes(ri, Hi, self.kernelExtent, nds)])
-    #                 offset += nds.numInternalNodes
-    #             t2 = time.time()
+                # Now build the checks.
+                answerIDs = []
+                offset = 0
+                for nds in self.dataBase.nodeLists():
+                    answerIDs.extend([i + offset for i in findNeighborNodes(ri, Hi, self.kernelExtent, nds)])
+                    offset += nds.numInternalNodes
+                t2 = time.time()
 
-    #             # Check the answer.
-    #             test = checkNeighbors(neighborIDs, answerIDs)
-    #             t3 = time.time()
-    #             if not test:
-    #                 neighborIDs.sort()
-    #                 answerIDs.sort()
-    #                 print 'SPH Neighbor test FAILED'
-    #                 print ' refine: ', neighborIDs
-    #                 print ' answer: ', answerIDs
-    #                 missing = [i for i in answerIDs if i not in neighborIDs]
-    #                 print 'missing: ', missing
-    #                 print 'deltas: ', [((Hi*(pos[i] - ri)).x, (H[i]*(pos[i] - ri)).x) for i in missing]
-    #             else:
-    #                 print "Passed for node %i : %f %f %f" % (nodeID, t1 - t0, t2 - t1, t3 - t2)
-    #             assert test
+                # Check the answer.
+                test = checkNeighbors(neighborIDs, answerIDs)
+                t3 = time.time()
+                if not test:
+                    neighborIDs.sort()
+                    answerIDs.sort()
+                    print 'SPH Neighbor test FAILED'
+                    print ' refine: ', neighborIDs
+                    print ' answer: ', answerIDs
+                    missing = [i for i in answerIDs if i not in neighborIDs]
+                    print 'missing: ', missing
+                    print 'deltas: ', [((Hi*(pos[i] - ri)).x, (H[i]*(pos[i] - ri)).x) for i in missing]
+                else:
+                    print "Passed for node %i : %f %f %f" % (nodeID, t1 - t0, t2 - t1, t3 - t2)
+                assert test
 
-    # #---------------------------------------------------------------------------
-    # # Test ConnectivityMap neighbors
-    # #---------------------------------------------------------------------------
-    # def testConnectivityMapNeighbors(self):
-    #     from SpheralTestUtilities import findNeighborNodes, checkNeighbors
-    #     import time
+    #---------------------------------------------------------------------------
+    # Test ConnectivityMap neighbors
+    #---------------------------------------------------------------------------
+    def testConnectivityMapNeighbors(self):
+        from SpheralTestUtilities import findNeighborNodes, checkNeighbors
+        import time
 
-    #     self.dataBase.updateConnectivityMap(False, False)
-    #     cm = self.dataBase.connectivityMap(False, False)
+        self.dataBase.updateConnectivityMap(False, False)
+        cm = self.dataBase.connectivityMap(False, False)
 
-    #     # Iterate over the NodeLists.
-    #     for iNL, inodes in enumerate(self.dataBase.nodeLists()):
-    #         pos = inodes.positions()
-    #         H = inodes.Hfield()
+        # Iterate over the NodeLists.
+        for iNL, inodes in enumerate(self.dataBase.nodeLists()):
+            pos = inodes.positions()
+            H = inodes.Hfield()
 
-    #         # Randomly select nodes from each NodeList to explicitly test.
-    #         for i in random.sample(range(inodes.numInternalNodes - 1), self.ncheck):
-    #             ri = pos[i]
-    #             Hi = H[i]
-    #             cmneighbors = cm.connectivityForNode(inodes, i)
+            # Randomly select nodes from each NodeList to explicitly test.
+            for i in random.sample(range(inodes.numInternalNodes - 1), self.ncheck):
+                ri = pos[i]
+                Hi = H[i]
+                cmneighbors = cm.connectivityForNode(inodes, i)
 
-    #             # Check ConnectivityMap vs. N^2 neighbor search.
-    #             for jNL, jnodes in enumerate(self.dataBase.nodeLists()):
-    #                 cmcheck = sorted(cmneighbors[jNL])
-    #                 answer = sorted(findNeighborNodes(ri, Hi, self.kernelExtent, jnodes))
-    #                 if iNL == jNL:
-    #                     answer.remove(i)
-    #                 if not cmcheck == answer:
-    #                     print 'SPH ConnectivityMap neighbor test FAILED for node %i' % i
-    #                     print '     CM: ', cmcheck
-    #                     print ' answer: ', answer
-    #                     missing = [i for i in answer if i not in cmcheck]
-    #                     print 'missing: ', missing
-    #                     print 'deltas: ', [((Hi*(pos[i] - ri)).x, (H[i]*(pos[i] - ri)).x) for i in missing]
-    #                     raise RuntimeError, "Failed test"
-    #                 else:
-    #                     print "Passed for node %i" % i
+                # Check ConnectivityMap vs. N^2 neighbor search.
+                for jNL, jnodes in enumerate(self.dataBase.nodeLists()):
+                    cmcheck = sorted(cmneighbors[jNL])
+                    answer = sorted(findNeighborNodes(ri, Hi, self.kernelExtent, jnodes))
+                    if iNL == jNL:
+                        answer.remove(i)
+                    if not cmcheck == answer:
+                        print 'SPH ConnectivityMap neighbor test FAILED for node %i' % i
+                        print '     CM: ', cmcheck
+                        print ' answer: ', answer
+                        missing = [i for i in answer if i not in cmcheck]
+                        print 'missing: ', missing
+                        print 'deltas: ', [((Hi*(pos[i] - ri)).x, (H[i]*(pos[i] - ri)).x) for i in missing]
+                        raise RuntimeError, "Failed test"
+                    else:
+                        print "Passed for node %i" % i
 
     #---------------------------------------------------------------------------
     # Test ConnectivityMap overlap neighbors
@@ -252,22 +252,13 @@ class NeighborTestBase:
             Hj = H(jNL, j)
             for nodes in self.dataBase.nodeLists():
                 actual.append(findOverlapRegion(ri, Hi, rj, Hj, self.kernelExtent, nodes))
-            # gs = cm.connectivityIntersectionForNodes(iNL, i, jNL, j)
-            # for kNL, potentials in enumerate(gs):
-            #     actual.append([])
-            #     for k in potentials:
-            #         etai = (Hi*(ri - pos(kNL, k))).magnitude()
-            #         etaj = (Hj*(rj - pos(kNL, k))).magnitude()
-            #         if etai <= self.kernelExtent and etaj <= self.kernelExtent:
-            #             actual[kNL].append(k)
-            #         print " --> etas for ", k, " : ", etai, etaj
             return actual
 
         # Iterate over the NodeLists.
         for iNL, inodes in enumerate(self.dataBase.nodeLists()):
 
             # Randomly select nodes from each NodeList to explicitly test.
-            for i in random.sample(range(inodes.numInternalNodes - 1), self.ncheck):
+            for i in random.sample(range(inodes.numInternalNodes - 1), self.noverlapcheck):
                 print "Checking ", i
                 ri = pos(iNL, i)
                 Hi = H(iNL, i)
@@ -325,6 +316,7 @@ class NeighborRandom1d(unittest.TestCase, NeighborTestBase):
         print "--------------------------------------------------------------------------------"
 
         self.ncheck = 10
+        self.noverlapcheck = 10
 
         # Generic parameters for 1-D tests.
         n1 = 1000
@@ -361,146 +353,149 @@ class NeighborRandom1d(unittest.TestCase, NeighborTestBase):
         del self.dataBase, self.nodes1, self.nodes2, self.nodes3
         return
 
-# #===============================================================================
-# # Radom node distribution -- 2-D.
-# #===============================================================================
-# class NeighborRandom2d(unittest.TestCase, NeighborTestBase):
+#===============================================================================
+# Radom node distribution -- 2-D.
+#===============================================================================
+class NeighborRandom2d(unittest.TestCase, NeighborTestBase):
 
-#     #---------------------------------------------------------------------------
-#     # Set up method called before test is run.
-#     #---------------------------------------------------------------------------
-#     def setUp(self):
+    #---------------------------------------------------------------------------
+    # Set up method called before test is run.
+    #---------------------------------------------------------------------------
+    def setUp(self):
 
-#         print "--------------------------------------------------------------------------------"
-#         print "2-D %s random test." % NeighborRandom2d._NeighborType.__name__
-#         print "--------------------------------------------------------------------------------"
+        print "--------------------------------------------------------------------------------"
+        print "2-D %s random test." % NeighborRandom2d._NeighborType.__name__
+        print "--------------------------------------------------------------------------------"
 
-#         self.ncheck = 10
+        self.ncheck = 10
+        self.noverlapcheck = 10
 
-#         # Generic parameters for 2-D tests.
-#         n1 = 10000
-#         n2 = 25000
-#         n3 = 5000
+        # Generic parameters for 2-D tests.
+        n1 = 10000
+        n2 = 25000
+        n3 = 5000
 
-#         range1 = ((-2.0, -1.0), (0.0, 1.0))
-#         range2 = ((-1.0, -0.5), (0.0, 1.0))
-#         range3 = ((-0.5, 0.0), (0.0, 1.0))
+        range1 = ((-2.0, -1.0), (0.0, 1.0))
+        range2 = ((-1.0, -0.5), (0.0, 1.0))
+        range3 = ((-0.5, 0.0), (0.0, 1.0))
 
-#         self.kernelExtent = 2.0
+        self.kernelExtent = 2.0
 
-#         self.genericSetUp(n1, n2, n3,
-#                           range1, range2, range3,
-#                           GammaLawGasMKS2d,
-#                           makeFluidNodeList2d,
-#                           TableKernel2d,
-#                           BSplineKernel2d,
-#                           Vector2d,
-#                           SymTensor2d,
-#                           NeighborRandom2d._NeighborType,
-#                           DataBase2d,
-#                           self.randomDistribute)
+        self.genericSetUp(n1, n2, n3,
+                          range1, range2, range3,
+                          GammaLawGasMKS2d,
+                          makeFluidNodeList2d,
+                          TableKernel2d,
+                          BSplineKernel2d,
+                          Vector2d,
+                          SymTensor2d,
+                          NeighborRandom2d._NeighborType,
+                          DataBase2d,
+                          self.randomDistribute)
 
-#         return
+        return
 
-#     #---------------------------------------------------------------------------
-#     # Method called after test is completed.
-#     #---------------------------------------------------------------------------
-#     def tearDown(self):
-#         del self.dataBase, self.nodes1, self.nodes2, self.nodes3
-#         return
+    #---------------------------------------------------------------------------
+    # Method called after test is completed.
+    #---------------------------------------------------------------------------
+    def tearDown(self):
+        del self.dataBase, self.nodes1, self.nodes2, self.nodes3
+        return
 
-# #===============================================================================
-# # Radom node distribution -- 3-D.
-# #===============================================================================
-# class NeighborRandom3d(unittest.TestCase, NeighborTestBase):
+#===============================================================================
+# Radom node distribution -- 3-D.
+#===============================================================================
+class NeighborRandom3d(unittest.TestCase, NeighborTestBase):
 
-#     #---------------------------------------------------------------------------
-#     # Set up method called before test is run.
-#     #---------------------------------------------------------------------------
-#     def setUp(self):
+    #---------------------------------------------------------------------------
+    # Set up method called before test is run.
+    #---------------------------------------------------------------------------
+    def setUp(self):
 
-#         print "--------------------------------------------------------------------------------"
-#         print "3-D %s random test." % NeighborRandom3d._NeighborType.__name__
-#         print "--------------------------------------------------------------------------------"
+        print "--------------------------------------------------------------------------------"
+        print "3-D %s random test." % NeighborRandom3d._NeighborType.__name__
+        print "--------------------------------------------------------------------------------"
 
-#         self.ncheck = 10
+        self.ncheck = 10
+        self.noverlapcheck = 10
 
-#         # Generic parameters for 3-D tests.
-#         n1 = 1000
-#         n2 = 2500
-#         n3 = 1500
+        # Generic parameters for 3-D tests.
+        n1 = 1000
+        n2 = 2500
+        n3 = 1500
 
-#         range1 = ((0.0, 1.0), (0.0, 1.0), (0.0, 1.0))
-#         range2 = ((1.0, 1.5), (0.0, 1.0), (0.0, 1.0))
-#         range3 = ((1.5, 2.0), (0.0, 1.0), (0.0, 1.0))
+        range1 = ((0.0, 1.0), (0.0, 1.0), (0.0, 1.0))
+        range2 = ((1.0, 1.5), (0.0, 1.0), (0.0, 1.0))
+        range3 = ((1.5, 2.0), (0.0, 1.0), (0.0, 1.0))
 
-#         searchType = GatherScatter
-#         numGridLevels = 20
-#         topGridCellSize = 100.0
-#         origin = Vector3d(0.0, 0.0, 0.0)
-#         self.kernelExtent = 2.0
+        searchType = GatherScatter
+        numGridLevels = 20
+        topGridCellSize = 100.0
+        origin = Vector3d(0.0, 0.0, 0.0)
+        self.kernelExtent = 2.0
 
-#         self.genericSetUp(n1, n2, n3,
-#                           range1, range2, range3,
-#                           GammaLawGasMKS3d,
-#                           makeFluidNodeList3d,
-#                           TableKernel3d,
-#                           BSplineKernel3d,
-#                           Vector3d,
-#                           SymTensor3d,
-#                           NeighborRandom3d._NeighborType,
-#                           DataBase3d,
-#                           self.randomDistribute)
+        self.genericSetUp(n1, n2, n3,
+                          range1, range2, range3,
+                          GammaLawGasMKS3d,
+                          makeFluidNodeList3d,
+                          TableKernel3d,
+                          BSplineKernel3d,
+                          Vector3d,
+                          SymTensor3d,
+                          NeighborRandom3d._NeighborType,
+                          DataBase3d,
+                          self.randomDistribute)
 
-#         return
+        return
 
-#     #---------------------------------------------------------------------------
-#     # Method called after test is completed.
-#     #---------------------------------------------------------------------------
-#     def tearDown(self):
-#         del self.dataBase, self.nodes1, self.nodes2, self.nodes3
-#         return
+    #---------------------------------------------------------------------------
+    # Method called after test is completed.
+    #---------------------------------------------------------------------------
+    def tearDown(self):
+        del self.dataBase, self.nodes1, self.nodes2, self.nodes3
+        return
 
-# #===============================================================================
-# # Cylindrical node distribution -- 2-D.
-# #===============================================================================
-# class NeighborCylindrical2d(unittest.TestCase, NeighborTestBase):
+#===============================================================================
+# Cylindrical node distribution -- 2-D.
+#===============================================================================
+class NeighborCylindrical2d(unittest.TestCase, NeighborTestBase):
 
-#     #---------------------------------------------------------------------------
-#     # Set up method called before test is run.
-#     #---------------------------------------------------------------------------
-#     def setUp(self):
+    #---------------------------------------------------------------------------
+    # Set up method called before test is run.
+    #---------------------------------------------------------------------------
+    def setUp(self):
 
-#         print "--------------------------------------------------------------------------------"
-#         print "2-D %s regular cylindrical test." % self._NeighborType
-#         print "--------------------------------------------------------------------------------"
+        print "--------------------------------------------------------------------------------"
+        print "2-D %s regular cylindrical test." % self._NeighborType
+        print "--------------------------------------------------------------------------------"
 
-#         self.ncheck = 50
+        self.ncheck = 50
+        self.noverlapcheck = 10
 
-#         from GenerateNodeDistribution2d import GenerateNodeDistribution2d
-#         from DistributeNodes import distributeNodes2d
-#         self.eos = GammaLawGasMKS2d(2.0, 2.0)
-#         self.WT = TableKernel2d(BSplineKernel2d(), 100)
-#         self.nodes1 = makeFluidNodeList2d("cylindrical nodes 1", self.eos, NeighborType=NeighborCylindrical2d._NeighborType)
-#         self.kernelExtent = 2.0
-#         generator = GenerateNodeDistribution2d(nRadial = 100,
-#                                                nTheta = 100,
-#                                                rho = 1.0,
-#                                                distributionType = "constantDTheta",
-#                                                rmin = 0.0,
-#                                                rmax = 1.0,
-#                                                theta = 0.5*pi,
-#                                                nNodePerh = 2.01)
-#         distributeNodes2d((self.nodes1, generator))
-#         self.dataBase = DataBase2d()
-#         self.dataBase.appendNodeList(self.nodes1)
+        from GenerateNodeDistribution2d import GenerateNodeDistribution2d
+        from DistributeNodes import distributeNodes2d
+        self.eos = GammaLawGasMKS2d(2.0, 2.0)
+        self.WT = TableKernel2d(BSplineKernel2d(), 100)
+        self.nodes1 = makeFluidNodeList2d("cylindrical nodes 1", self.eos, NeighborType=NeighborCylindrical2d._NeighborType)
+        self.kernelExtent = 2.0
+        generator = GenerateNodeDistribution2d(nRadial = 100,
+                                               nTheta = 100,
+                                               rho = 1.0,
+                                               distributionType = "constantDTheta",
+                                               rmin = 0.0,
+                                               rmax = 1.0,
+                                               theta = 0.5*pi,
+                                               nNodePerh = 2.01)
+        distributeNodes2d((self.nodes1, generator))
+        self.dataBase = DataBase2d()
+        self.dataBase.appendNodeList(self.nodes1)
 
-#         return
+        return
 
-#     #---------------------------------------------------------------------------
-#     # Method called after test is completed.
-#     #---------------------------------------------------------------------------
-#     def tearDown(self):
-#         del self.dataBase, self.nodes1
-#         return
+    #---------------------------------------------------------------------------
+    # Method called after test is completed.
+    #---------------------------------------------------------------------------
+    def tearDown(self):
+        del self.dataBase, self.nodes1
+        return
 
