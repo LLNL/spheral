@@ -263,11 +263,12 @@ class NeighborTestBase:
                 ri = pos(iNL, i)
                 Hi = H(iNL, i)
                 cmneighbors = cm.overlapConnectivityForNode(inodes, i)
+                fullanswer = findOverlapNeighbors(ri, Hi, self.kernelExtent, self.dataBase)
 
                 # Check ConnectivityMap vs. N^2 neighbor search.
                 for jNL, jnodes in enumerate(self.dataBase.nodeLists()):
                     cmcheck = sorted(cmneighbors[jNL])
-                    answer = sorted(findOverlapNeighbors(ri, Hi, self.kernelExtent, jnodes))
+                    answer = sorted(fullanswer[jNL])
                     if iNL == jNL:
                         answer.remove(i)
                     if not cmcheck == answer:

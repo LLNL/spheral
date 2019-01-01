@@ -71,7 +71,11 @@ def findNeighborNodes(pos1, H1, radius, nodes,
     pos = nodes.positions()
     H = nodes.Hfield()
     if potentials is None:
-        potentials = range(nodes.numInternalNodes)
+        from Spheral import vector_of_int
+        master, coarse, refine = vector_of_int(), vector_of_int(), vector_of_int()
+        nodes.neighbor().setMasterList(pos1, H1, master, coarse)
+        nodes.neighbor().setRefineNeighborList(pos1, H1, coarse, refine)
+        potentials = list(refine)
     return [i for i in potentials
             if (min((H1*(pos[i] - pos1)).magnitude(),
                     (H[i]*(pos[i] - pos1)).magnitude()) <= radius)]
@@ -81,7 +85,11 @@ def findGatherNeighborNodes(pos1, H1, radius, nodes,
     pos = nodes.positions()
     H = nodes.Hfield()
     if potentials is None:
-        potentials = range(nodes.numInternalNodes)
+        from Spheral import vector_of_int
+        master, coarse, refine = vector_of_int(), vector_of_int(), vector_of_int()
+        nodes.neighbor().setMasterList(pos1, H1, master, coarse)
+        nodes.neighbor().setRefineNeighborList(pos1, H1, coarse, refine)
+        potentials = list(refine)
     return [i for i in potentials
             if (H1*(pos1 - pos[i])).magnitude() <= radius]
 
@@ -90,7 +98,11 @@ def findScatterNeighborNodes(pos1, radius, nodes,
     pos = nodes.positions()
     H = nodes.Hfield()
     if potentials is None:
-        potentials = range(nodes.numInternalNodes)
+        from Spheral import vector_of_int
+        master, coarse, refine = vector_of_int(), vector_of_int(), vector_of_int()
+        nodes.neighbor().setMasterList(pos1, master, coarse)
+        nodes.neighbor().setRefineNeighborList(pos1, coarse, refine)
+        potentials = list(refine)
     return [i for i in potentials
             if (H[i]*(pos1 - pos[i])).magnitude() <= radius]
 
@@ -103,7 +115,7 @@ def findOverlapNeighbors(pos1, H1, radius, db):
         for i in mygather:
             for jNL, jnodes in enumerate(db.nodeLists()):
                 result[jNL] += findScatterNeighborNodes(pos(iNL, i), radius, jnodes)
-        result = [list(set(x)) for x in result]
+    result = [list(set(x)) for x in result]
     return result
 
 def findOverlapRegion(pos1, H1, pos2, H2, radius, nodes):
