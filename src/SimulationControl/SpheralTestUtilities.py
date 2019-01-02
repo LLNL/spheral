@@ -125,22 +125,8 @@ def findOverlapRegion(pos1, H1, pos2, H2, radius, nodes):
                   (H2*(pos[i] - pos2)).magnitude() <= radius)]
     return result
 
-def checkNeighbors(neighborList, neighborList0):
-    if len(neighborList) < len(neighborList0):
-        return False
-    neighborList.sort()
-    neighborList0.sort()
-    i = 0
-    j = 0
-    while i < len(neighborList0) and j < len(neighborList):
-        if neighborList[j] == neighborList0[i]:
-            i += 1
-            j += 1
-        elif neighborList[j] > neighborList0[i]:
-            return False
-        else:
-            j += 1
-    return i == len(neighborList0) 
+def checkNeighbors(neighborList, answer):
+    return len([x for x in answer if x not in neighborList]) == 0
 
 #-------------------------------------------------------------------------------
 # Print statistic about the H tensors for a set of NodeLists.

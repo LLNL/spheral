@@ -98,15 +98,11 @@ class TestDistributedBoundary1d:
         for nodes in self.dataBase.nodeLists():
             nodes.neighbor().updateNodes()
 
-        sys.stderr.write("STAGE 1\n")
-
         # Exchange the global node ID fields.
         self.domainbc.applyGhostBoundary(self.globalIDField1)
         self.domainbc.applyGhostBoundary(self.globalIDField2)
         self.domainbc.applyGhostBoundary(self.globalIDField3)
         self.domainbc.finalizeGhostBoundary()
-
-        sys.stderr.write("STAGE 2\n")
 
         # Iterate over each domain.
         for testProc in xrange(mpi.procs):
@@ -131,9 +127,9 @@ class TestDistributedBoundary1d:
                     Hi = mpi.bcast(Hilocal, testProc)
 
                     # Get the global answer set for this node.
-                    answer = mpi.allreduce([self.globalIDField1[j] for j in findNeighborNodes(ri, self.kernelExtent, self.nodes1)] +
-                                           [self.globalIDField2[j] for j in findNeighborNodes(ri, self.kernelExtent, self.nodes2)] +
-                                           [self.globalIDField3[j] for j in findNeighborNodes(ri, self.kernelExtent, self.nodes3)],
+                    answer = mpi.allreduce([self.globalIDField1[j] for j in findNeighborNodes(ri, Hi, self.kernelExtent, self.nodes1)] +
+                                           [self.globalIDField2[j] for j in findNeighborNodes(ri, Hi, self.kernelExtent, self.nodes2)] +
+                                           [self.globalIDField3[j] for j in findNeighborNodes(ri, Hi, self.kernelExtent, self.nodes3)],
                                            mpi.SUM)
 
                     # Have the testing processor build it's own version.
@@ -141,11 +137,8 @@ class TestDistributedBoundary1d:
                         masterLists = vector_of_vector_of_int()
                         coarseNeighbors = vector_of_vector_of_int()
                         refineNeighbors = vector_of_vector_of_int()
-                        sys.stderr.write("STAGE 3 : %d\n" % testProc)
                         self.dataBase.setMasterNodeLists(ri, Hi, masterLists, coarseNeighbors)
-                        sys.stderr.write("STAGE 4 : %d %d %d\n" % (testProc, len(masterLists), len(coarseNeighbors)))
                         self.dataBase.setRefineNodeLists(ri, Hi, coarseNeighbors, refineNeighbors)
-                        sys.stderr.write("STAGE 5 : %d %d %d %d\n" % (testProc, len(masterLists), len(coarseNeighbors), len(refineNeighbors)))
                         assert len(refineNeighbors) == 3
                         refine = []
                         for k, globalIDs in enumerate([self.globalIDField1,
@@ -159,10 +152,10 @@ class TestDistributedBoundary1d:
                             sys.stderr.write("FAILED for node %i\n" % i)
                             refine.sort()
                             answer.sort()
-                            sys.stderr.write("refine: %s\n" % str(refine))
-                            sys.stderr.write("answer: %s\n" % str(answer))
-                            sys.stderr.write("%s\n" % str([x for x in refine if x not in answer]))
-                            sys.stderr.write("%s\n" % str([x for x in answer if x not in refine]))
+                            sys.stderr.write(" refine: %s\n" % str(refine))
+                            sys.stderr.write(" answer: %s\n" % str(answer))
+                            sys.stderr.write("  extra: %s\n" % str([x for x in refine if x not in answer]))
+                            sys.stderr.write("missing: %s\n" % str([x for x in answer if x not in refine]))
                         else:
                             sys.stderr.write("PASSED for node %i\n" % i)
                         assert test

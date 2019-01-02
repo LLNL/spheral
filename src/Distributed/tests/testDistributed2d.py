@@ -120,9 +120,9 @@ class TestDistributedBoundary2d:
                     Hi = mpi.bcast(Hilocal, testProc)
 
                     # Get the global answer set for this node.
-                    answer = mpi.allreduce([self.globalIDField1[j] for j in findNeighborNodes(ri, self.kernelExtent, self.nodes1)] +
-                                           [self.globalIDField2[j] for j in findNeighborNodes(ri, self.kernelExtent, self.nodes2)] +
-                                           [self.globalIDField3[j] for j in findNeighborNodes(ri, self.kernelExtent, self.nodes3)],
+                    answer = mpi.allreduce([self.globalIDField1[j] for j in findNeighborNodes(ri, Hi, self.kernelExtent, self.nodes1)] +
+                                           [self.globalIDField2[j] for j in findNeighborNodes(ri, Hi, self.kernelExtent, self.nodes2)] +
+                                           [self.globalIDField3[j] for j in findNeighborNodes(ri, Hi, self.kernelExtent, self.nodes3)],
                                            mpi.SUM)
 
                     # Have the testing processor build it's own version.
