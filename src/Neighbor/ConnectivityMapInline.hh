@@ -16,9 +16,11 @@ inline
 ConnectivityMap<Dimension>::
 ConnectivityMap(const NodeListIterator& begin,
                 const NodeListIterator& end,
-                const bool buildGhostConnectivity):
+                const bool buildGhostConnectivity,
+                const bool buildOverlapConnectivity):
   mNodeLists(),
   mBuildGhostConnectivity(buildGhostConnectivity),
+  mBuildOverlapConnectivity(buildOverlapConnectivity),
   mOffsets(),
   mConnectivity(),
   mNodeTraversalIndices(),
@@ -26,7 +28,7 @@ ConnectivityMap(const NodeListIterator& begin,
 
   // The private method does the grunt work of filling in the connectivity once we have
   // established the set of NodeLists.
-  this->rebuild(begin, end, buildGhostConnectivity);
+  this->rebuild(begin, end, buildGhostConnectivity, buildOverlapConnectivity);
 
   // We'd better be valid after the constructor is finished!
   ENSURE(valid());
@@ -42,8 +44,10 @@ void
 ConnectivityMap<Dimension>::
 rebuild(const NodeListIterator& begin,
         const NodeListIterator& end, 
-        const bool buildGhostConnectivity) {
+        const bool buildGhostConnectivity,
+        const bool buildOverlapConnectivity) {
   mBuildGhostConnectivity = buildGhostConnectivity;
+  mBuildOverlapConnectivity = buildOverlapConnectivity;
 
   // Copy the set of NodeLists in the order prescribed by the NodeListRegistrar.
   NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
@@ -81,6 +85,17 @@ bool
 ConnectivityMap<Dimension>::
 buildGhostConnectivity() const {
   return mBuildGhostConnectivity;
+}
+
+//------------------------------------------------------------------------------
+// Are we computing overlap connectivity?
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+ConnectivityMap<Dimension>::
+buildOverlapConnectivity() const {
+  return mBuildOverlapConnectivity;
 }
 
 //------------------------------------------------------------------------------
@@ -132,6 +147,47 @@ connectivityForNode(const int nodeListID,
           (ghostValid and nodeID < mNodeLists[nodeListID]->numNodes()));
   REQUIRE(mOffsets[nodeListID] + nodeID < mConnectivity.size());
   return mConnectivity[mOffsets[nodeListID] + nodeID];
+}
+
+//------------------------------------------------------------------------------
+// Get the set of neighbors we have some overlap with (common neighbors) for the
+// given node in the given NodeList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const std::vector< std::vector<int> >&
+ConnectivityMap<Dimension>::
+overlapConnectivityForNode(const NodeList<Dimension>* nodeListPtr,
+                           const int nodeID) const {
+  const bool ghostValid = (mBuildGhostConnectivity or
+                           NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
+  REQUIRE(nodeID >= 0 and 
+          (nodeID < nodeListPtr->numInternalNodes()) or
+          (ghostValid and nodeID < nodeListPtr->numNodes()));
+  const int nodeListID = std::distance(mNodeLists.begin(),
+                                       std::find(mNodeLists.begin(), mNodeLists.end(), nodeListPtr));
+  REQUIRE(nodeListID < mConnectivity.size() and nodeListID < mOffsets.size());
+  REQUIRE(mOffsets[nodeListID] + nodeID < mConnectivity.size());
+  return mOverlapConnectivity[mOffsets[nodeListID] + nodeID];
+}
+
+//------------------------------------------------------------------------------
+// Same as above, indicating the NodeList as an integer index.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const std::vector< std::vector<int> >&
+ConnectivityMap<Dimension>::
+overlapConnectivityForNode(const int nodeListID,
+                           const int nodeID) const {
+  const bool ghostValid = (mBuildGhostConnectivity or
+                           NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
+  REQUIRE(nodeListID >= 0 and nodeListID < mConnectivity.size());
+  REQUIRE(nodeID >= 0 and 
+          (nodeID < mNodeLists[nodeListID]->numInternalNodes()) or
+          (ghostValid and nodeID < mNodeLists[nodeListID]->numNodes()));
+  REQUIRE(mOffsets[nodeListID] + nodeID < mConnectivity.size());
+  return mOverlapConnectivity[mOffsets[nodeListID] + nodeID];
 }
 
 //------------------------------------------------------------------------------

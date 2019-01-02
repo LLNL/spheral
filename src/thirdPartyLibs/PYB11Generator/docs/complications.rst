@@ -17,8 +17,8 @@ A.hh:
 .. code-block:: cpp
 
   struct A {
-    A()                          { printf("A::A()\n"); }
-    ~A()                          { printf("A::~A()\n"); }
+    A()                           { printf("A::A()\n"); }
+    virtual ~A()                  { printf("A::~A()\n"); }
     virtual int func(const int x) { printf("A::func(%d)\n", x); return x; }
   };
 
@@ -30,7 +30,7 @@ B.hh:
 
   struct B: public A {
     B(): A()                               { printf("B::B()\n"); }
-    ~B()                                   { printf("B::~B()\n"); }
+    virtual ~B()                           { printf("B::~B()\n"); }
     virtual int func(const int x) override { printf("B::func(%d)\n", x); return x*x; }
   };
 

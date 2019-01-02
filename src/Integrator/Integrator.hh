@@ -218,7 +218,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   Scalar mDtMin, mDtMax, mDtGrowth, mLastDt, mCurrentTime;
   int mCurrentCycle, mUpdateBoundaryFrequency;
-  bool mVerbose, mRequireConnectivity, mRequireGhostConnectivity;
+  bool mVerbose, mRequireConnectivity, mRequireGhostConnectivity, mRequireOverlapConnectivity;
   DataBase<Dimension>* mDataBasePtr;
   std::vector<Physics<Dimension>*> mPhysicsPackages;
   bool mRigorousBoundaries, mCullGhostNodes;

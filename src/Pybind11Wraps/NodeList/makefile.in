@@ -8,15 +8,6 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = NodeList
 PKGDIR = $(PKGNAME)/
-PYB11SRCS = \
-	NodeList.py \
-	FluidNodeList.py \
-	SolidNodeList.py \
-	SmoothingScaleAbstractMethods.py \
-	SmoothingScaleBase.py \
-	FixedSmoothingScale.py \
-	SPHSmoothingScale.py \
-	ASPHSmoothingScale.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------

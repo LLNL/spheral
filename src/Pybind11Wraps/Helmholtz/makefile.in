@@ -8,8 +8,6 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = Helmholtz
 PKGDIR = $(PKGNAME)/
-PYB11SRCS = \
-	HelmholtzEquationOfState.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------

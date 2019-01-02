@@ -375,7 +375,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     }
 
     // Update the connectivity.
-    dataBase.updateConnectivityMap(false);
+    dataBase.updateConnectivityMap(false, false);
 
     // Get the local description of the domain distribution, with the work per node filled in.
     if (this->workBalance()) workField = this->workPerNode(dataBase, 1.0);

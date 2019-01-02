@@ -34,13 +34,15 @@ public:
   template<typename NodeListIterator>
   ConnectivityMap(const NodeListIterator& begin,
                   const NodeListIterator& end,
-                  const bool buildGhostConnectivity);
+                  const bool buildGhostConnectivity,
+                  const bool buildOverlapConnectivity);
 
   // Rebuild for a given set of NodeLists.
   template<typename NodeListIterator>
   void rebuild(const NodeListIterator& begin, 
                const NodeListIterator& end, 
-               const bool computeGhostConnectivity);
+               const bool computeGhostConnectivity,
+               const bool buildOverlapConnectivity);
 
   // Patch the connectivity information:
   // flags   -- (0,1): 0 => node deleted, 1 => node preserved
@@ -51,9 +53,13 @@ public:
   // Are we computing neighbors for ghosts?
   bool buildGhostConnectivity() const;
 
+  // Do we compute overlap connectivity?
+  bool buildOverlapConnectivity() const;
+
   // Get the set of NodeLists.
   const std::vector<const NodeList<Dimension>*>& nodeLists() const;
 
+  //............................................................................
   // Get the set of neighbors for the given (internal!) node in the given NodeList.
   const std::vector< std::vector<int> >&
   connectivityForNode(const NodeList<Dimension>* nodeListPtr,
@@ -64,6 +70,22 @@ public:
   connectivityForNode(const int nodeListID,
                       const int nodeID) const;
 
+  //............................................................................
+  // Note the following two methods return the points we have neighbors in common with,
+  // not the common neighbors.  You need to query ConnectivityMap::connectivityIntersectionForNodes
+  // to get the overlapping set of points.
+  // Get the set of neighbors we have overlap with (common neighbors).
+  const std::vector< std::vector<int> >&
+  overlapConnectivityForNode(const NodeList<Dimension>* nodeListPtr,
+                             const int nodeID) const;
+
+  // Same as above, just referencing the NodeList by an integer index.
+  const std::vector< std::vector<int> >&
+  overlapConnectivityForNode(const int nodeListID,
+                             const int nodeID) const;
+
+
+  //............................................................................
   // Compute the common neighbors for a pair of nodes.  Note this method 
   // returns by value since this information is not stored by ConnectivityMap.
   std::vector< std::vector<int> >
@@ -119,17 +141,20 @@ private:
   // The set of NodeLists.
   std::vector<const NodeList<Dimension>*> mNodeLists;
 
-  // Are we building ghost connectivity?
-  bool mBuildGhostConnectivity;
+  // Are we building ghost and/or overlap connectivity?
+  bool mBuildGhostConnectivity, mBuildOverlapConnectivity;
 
   // The full connectivity map.  This might be quite large!
   // [offset[NodeList] + nodeID] [NodeListID] [neighborIndex]
-  typedef std::vector<std::vector<std::vector<int> > > ConnectivityStorageType;
+  typedef std::vector<std::vector<std::vector<int>>> ConnectivityStorageType;
   std::vector<int> mOffsets;
   ConnectivityStorageType mConnectivity;
 
+  // Same for overlap connectivity.
+  ConnectivityStorageType mOverlapConnectivity;
+
   // The set of node indices per Nodelist in order for traversal.
-  std::vector< std::vector<int> > mNodeTraversalIndices;
+  std::vector<std::vector<int>> mNodeTraversalIndices;
 
   // The set of keys we may compute for each node.
   typedef typename KeyTraits::Key Key;

@@ -108,7 +108,7 @@ vector_of_vector_of_%(label)sField%(ndim)id = PYB11_bind_vector("std::vector<Fie
 vector_of_%(label)sFieldList%(ndim)id = PYB11_bind_vector("FieldList<%(Dimension)s, %(value)s>", opaque=True, local=False)
 vector_of_%(label)sFieldListPtr%(ndim)id = PYB11_bind_vector("FieldList<%(Dimension)s, %(value)s>*", opaque=True, local=False)
 vector_of_vector_of_%(label)sFieldList%(ndim)id = PYB11_bind_vector("std::vector<FieldList<%(Dimension)s, %(value)s>>", opaque=True, local=False)
-''' % {"ndim": ndim,
-       "Dimension" : "Dim<%i>" % ndim,
+''' % {"ndim" : ndim,
        "value" : value,
-       "label" : label})
+       "label" : label,
+       "Dimension" : "Dim<" + str(ndim) + ">"})

@@ -242,8 +242,9 @@ template<typename Dimension>
 inline
 const ConnectivityMap<Dimension>&
 DataBase<Dimension>::
-connectivityMap(const bool buildConnectivityMap) const {
-  if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap(buildConnectivityMap);
+connectivityMap(const bool computeGhostConnectivity,
+                const bool computeOverlapConnectivity) const {
+  if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap(computeGhostConnectivity, computeOverlapConnectivity);
   return *mConnectivityMapPtr;
 }
 
@@ -251,8 +252,9 @@ template<typename Dimension>
 inline
 typename DataBase<Dimension>::ConnectivityMapPtr
 DataBase<Dimension>::
-connectivityMapPtr(const bool buildConnectivityMap) const {
-  if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap(buildConnectivityMap);
+connectivityMapPtr(const bool computeGhostConnectivity,
+                   const bool computeOverlapConnectivity) const {
+  if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap(computeGhostConnectivity, computeOverlapConnectivity);
   return mConnectivityMapPtr;
 }
 

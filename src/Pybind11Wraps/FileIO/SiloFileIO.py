@@ -39,4 +39,4 @@ class SiloFileIO(FileIO):
 # Override the required virtual interface
 #-------------------------------------------------------------------------------
 PYB11inject(FileIOAbstractMethods, SiloFileIO, virtual=True, pure_virtual=False)
-PYB11inject(FileIOTemplateMethods, SiloFileIO)
+#PYB11inject(FileIOTemplateMethods, SiloFileIO)

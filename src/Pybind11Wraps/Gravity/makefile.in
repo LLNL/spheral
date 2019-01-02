@@ -9,8 +9,6 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Gravity
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-PYB11SRCS += \
-	$(srcdir)/NBodyGravity.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

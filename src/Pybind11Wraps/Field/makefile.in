@@ -8,15 +8,6 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = Field
 PKGDIR = $(PKGNAME)/
-PYB11SRCS = \
-	ArithmeticField.py \
-	ArithmeticFieldList.py \
-	Field.py \
-	FieldBase.py \
-	FieldList.py \
-	FieldListSet.py \
-	MinMaxField.py \
-	MinMaxFieldList.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------

@@ -419,7 +419,11 @@ $(BPLMODTARGET): $(BPLOBJS) $(OBJS)
 # 	cp -f $(PYB11TARGET) $(PYTHONLIBDIR)/Spheral
 
 #-------------------------------------------------------------------------------
-$(PYB11TARGET): $(subst Spheral,,$(PYB11TARGET:.$(SHLIBEXT)=MOD.py)) $(PYB11SRCS) $(OBJS)
+PYB11OBJ = $(PYB11TARGET:.so=.o)
+
+$(PYB11TARGET): $(PYB11OBJ)
+
+$(PYB11OBJ): $(subst Spheral,,$(PYB11TARGET:.$(SHLIBEXT)=MOD.py)) $(PYB11SRCS) $(OBJS)
 	@echo "################################################################################"
 	@echo "# Building module $(PYB11TARGET)"
 	@echo "################################################################################"
@@ -480,7 +484,7 @@ docs:
 
 #-------------------------------------------------------------------------------
 clean:
-	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(OBJS:.o=.d) $(BPLOBJS:.o=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) $(PYTHONDATEFILE) $(PBGTARGETS:.py=.C) $(notdir $(EXTRAINSTSRCTARGETS)) $(EXTRAINSTOBJS) $(EXTRAINSTOBJS:.o=.d) $(PYB11GENTARGETS)  $(PYB11TARGET) $(PYB11TARGET:.$(SHLIBEXT)=.cc) $(PYB11TARGET:.$(SHLIBEXT)=.o)
+	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(OBJS:.o=.d) $(BPLOBJS:.o=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) $(PYTHONDATEFILE) $(PBGTARGETS:.py=.C) $(notdir $(EXTRAINSTSRCTARGETS)) $(EXTRAINSTOBJS) $(EXTRAINSTOBJS:.o=.d) $(PYB11GENTARGETS)  $(PYB11TARGET) $(PYB11TARGET:.$(SHLIBEXT)=.cc) $(PYB11TARGET:.$(SHLIBEXT)=.o) $(PYB11TARGET:.$(SHLIBEXT)=.d)
 
 #-------------------------------------------------------------------------------
 spotless:

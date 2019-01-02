@@ -9,14 +9,6 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = SPH
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-PYB11SRCS = \
-	NodeCoupling.py \
-	SPHHydroBase.py \
-	PSPHHydroBase.py \
-	SolidSPHHydroBase.py \
-	SPHHydroBaseRZ.py \
-	SPHHydroBaseGSRZ.py \
-	SolidSPHHydroBaseRZ.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

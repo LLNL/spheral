@@ -44,6 +44,23 @@ class ConnectivityMap:
         "Get the set of neighbors for the given (internal!) node in the given NodeList."
         return "const std::vector<std::vector<int>>&"
 
+    @PYB11returnpolicy("reference_internal")
+    @PYB11const
+    def overlapConnectivityForNode(self,
+                                   nodeList = "const NodeListType*",
+                                   nodeID = "const int"):
+        "The set of points that have non-zero overlap with the given point."
+        return "const std::vector<std::vector<int>>&"
+
+    @PYB11returnpolicy("reference_internal")
+    @PYB11const
+    @PYB11pycppname("overlapConnectivityForNode")
+    def overlapConnectivityForNode1(self,
+                                    nodeListID = "const int",
+                                    nodeID = "const int"):
+        "The set of points that have non-zero overlap with the given point."
+        return "const std::vector<std::vector<int>>&"
+
     @PYB11const
     def connectivityIntersectionForNodes(self,
                                          nodeListi = "const int",
@@ -123,5 +140,6 @@ class ConnectivityMap:
 
     #...........................................................................
     # Properties
-    buildGhostConnectivity = PYB11property("bool", "buildGhostConnectivity", doc="Are we building connectivity for ghost nodes?")
+    buildGhostConnectivity = PYB11property(doc="Are we building connectivity for ghost nodes?")
+    buildOverlapConnectivity = PYB11property(doc="Are we building connectivity for nodes that overlap?")
     nodeLists = PYB11property("const std::vector<NodeListType*>", "nodeLists", doc="The set of NodeLists we have connectivity for")

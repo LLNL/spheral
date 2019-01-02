@@ -368,4 +368,4 @@ def read_IntField%(ndim)id(self,
 # Override the required virtual interface
 #-------------------------------------------------------------------------------
 PYB11inject(FileIOAbstractMethods, PyFileIO, virtual=True, pure_virtual=False)
-PYB11inject(FileIOTemplateMethods, PyFileIO)
+#PYB11inject(FileIOTemplateMethods, PyFileIO)

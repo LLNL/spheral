@@ -8,8 +8,6 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = ANEOS
 PKGDIR = $(PKGNAME)/
-PYB11SRCS = \
-	ANEOS.py
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
 #------------------------------------------------------------------------------

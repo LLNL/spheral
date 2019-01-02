@@ -47,7 +47,7 @@ TPLIBS=
 BOOSTTARGET=
 SILOTARGET=
 
-PIPTARGETS+=" pybind11 sphinx sphinx_rtd_theme"
+PIPTARGETS+=" pybind11 snakefood sphinx sphinx_rtd_theme"
 
 AC_MSG_CHECKING(for spheral build directory)
 #SPHERALBUILDDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`

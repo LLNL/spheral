@@ -9,23 +9,6 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = SolidMaterial
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
-PYB11SRCS = \
-	SolidEquationOfState.py \
-	StrainPorosity.py \
-	LinearPolynomialEquationOfState.py \
-	GruneisenEquationOfState.py \
-	OsborneEquationOfState.py \
-	TillotsonEquationOfState.py \
-	MurnahanEquationOfState.py \
-	StrengthModel.py \
-	NullStrength.py \
-	ConstantStrength.py \
-	SteinbergGuinanStrength.py \
-	JohnsonCookStrength.py \
-	CollinsStrength.py \
-	PorousEquationOfState.py \
-	PorousStrengthModel.py \
-	PhysicsEvolvingMaterialLibrary.py
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

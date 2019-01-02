@@ -58,23 +58,15 @@ class TestSampleMultipleFields2Lattice:
         r.appendField(self.nodes.positions())
         w.appendField(self.nodes.mass())
         H.appendField(self.nodes.Hfield())
-        scalar_samples = vector_of_vector_of_double()
-        vector_samples = vector_of_vector_of_Vector()
-        tensor_samples = vector_of_vector_of_Tensor()
-        symtensor_samples = vector_of_vector_of_SymTensor()
-        result = sampleMultipleFields2LatticeMash(fieldListSet,
-                                                  r,
-                                                  w,
-                                                  H,
-                                                  mask,
-                                                  self.WT,
-                                                  self.xmin,
-                                                  self.xmax,
-                                                  self.nsample,
-                                                  scalar_samples,
-                                                  vector_samples,
-                                                  tensor_samples,
-                                                  symtensor_samples)
+        scalar_samples, vector_samples, tensor_samples, symtensor_samples = sampleMultipleFields2LatticeMash(fieldListSet,
+                                                                                                             r,
+                                                                                                             w,
+                                                                                                             H,
+                                                                                                             mask,
+                                                                                                             self.WT,
+                                                                                                             self.xmin,
+                                                                                                             self.xmax,
+                                                                                                             self.nsample)
 
         # Did we get back the correct numbers of sampled values?
         assert len(scalar_samples) == 2
