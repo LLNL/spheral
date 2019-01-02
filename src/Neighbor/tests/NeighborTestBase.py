@@ -317,7 +317,7 @@ class NeighborRandom1d(unittest.TestCase, NeighborTestBase):
         print "--------------------------------------------------------------------------------"
 
         self.ncheck = 10
-        self.noverlapcheck = 10
+        self.noverlapcheck = 2
 
         # Generic parameters for 1-D tests.
         n1 = 1000
@@ -369,7 +369,7 @@ class NeighborRandom2d(unittest.TestCase, NeighborTestBase):
         print "--------------------------------------------------------------------------------"
 
         self.ncheck = 10
-        self.noverlapcheck = 10
+        self.noverlapcheck = 2
 
         # Generic parameters for 2-D tests.
         n1 = 10000
@@ -418,7 +418,7 @@ class NeighborRandom3d(unittest.TestCase, NeighborTestBase):
         print "--------------------------------------------------------------------------------"
 
         self.ncheck = 10
-        self.noverlapcheck = 10
+        self.noverlapcheck = 0
 
         # Generic parameters for 3-D tests.
         n1 = 1000
@@ -471,7 +471,7 @@ class NeighborCylindrical2d(unittest.TestCase, NeighborTestBase):
         print "--------------------------------------------------------------------------------"
 
         self.ncheck = 50
-        self.noverlapcheck = 10
+        self.noverlapcheck = 2
 
         from GenerateNodeDistribution2d import GenerateNodeDistribution2d
         from DistributeNodes import distributeNodes2d
