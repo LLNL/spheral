@@ -109,6 +109,12 @@ PYB11 decorators
   Tie the lifetime of objects in the return value/argument spec together, where the arguments (``a``, ``b``) are integers indicating the order of the arguments to tie together (0 refers to the return value).  This is another way of specifying memory policies, similar to returnpolicy_.  Carefully read the pybind11 discussion of the ``keep_alive`` directive in :ref:`pybind11:call_policies`.
 
 .. #############################################################################
+.. _call_guard:
+.. decorator:: PYB11call_guard("val")
+
+  Specify a pybind11 call_guard for a function or method.  See the discussion of `pybind11:call_policies` for examples of call_guards.
+
+.. #############################################################################
 .. decorator:: PYB11module("val")
 
   Indicate the object should be imported from the specified python module.  This is useful for classes wrapped in one module which are needed in another, such as for inheritance.

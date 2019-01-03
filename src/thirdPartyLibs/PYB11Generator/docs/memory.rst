@@ -67,3 +67,15 @@ To recreate the example from the pybind11 documentation, if we have a custom ``L
           return "void"
 
 This tells pybind11 to keep the the second argument (``x``, the element being appended) alive so long as the first argument (``self``, our container class) is alive.
+
+.. _call_guards:
+
+Call guards
+===========
+
+Another variation on wrapping functions/methods is to provide ``call_guard`` as discussed in the `pybind11 call_guard documentation <https://pybind11.readthedocs.io/en/stable/advanced/functions.html#call-guard>`_.  Call guards must be default constructable C++ types, and will be built in scope just before calling the wrapped method.  One typical usage would be to release the Python Global Interpreter Lock (GIL) before calling a wrapped method, so something like::
+
+  @PYB11call_guard("py::gil_scoped_release")
+  def my_wrapped_method():
+      "Some C++ method that needs to have the GIL released."
+      return
