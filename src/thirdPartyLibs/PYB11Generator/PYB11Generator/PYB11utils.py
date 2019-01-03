@@ -385,6 +385,7 @@ def PYB11attrs(obj):
          "implementation"        : None,
          "returnpolicy"          : None,
          "keepalive"             : None,
+         "call_guard"            : None,
          "template"              : (),
          "template_dict"         : {},
          "module"                : {}}

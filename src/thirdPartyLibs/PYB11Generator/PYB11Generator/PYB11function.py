@@ -141,6 +141,10 @@ def PYB11generateFunction(meth, methattrs, ssout):
     if methattrs["returnpolicy"]:
         ss(", py::return_value_policy::%s" % methattrs["returnpolicy"])
 
+    # Is there a call guard?
+    if methattrs["call_guard"]:
+        ss(", py::call_guard<%s>()" % methattrs["call_guard"])
+
     # Write the doc string
     doc = inspect.getdoc(meth)
     if doc:
