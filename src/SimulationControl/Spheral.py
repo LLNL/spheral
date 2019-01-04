@@ -66,15 +66,6 @@ from JohnsonCookDamageFactories import (JohnsonCookDamageConstant,
                                         JohnsonCookDamageWeibull)
 
 # ------------------------------------------------------------------------------
-# Import our shadow layers for augmenting C++ types.
-# ------------------------------------------------------------------------------
-for shadowedthing in ("TillotsonEquationOfState",
-                      "ConstantStrength"):
-    for dim in dims:
-        exec("from Shadow%(thing)s import %(thing)s%(dim)sd" % {"thing" : shadowedthing,
-                                                                "dim"   : dim})
-
-# ------------------------------------------------------------------------------
 # Helpful things with strings.
 # ------------------------------------------------------------------------------
 ## import CXXTypes
@@ -119,6 +110,15 @@ try:
     from PolytopeModules import polytope
 except:
     print "WARNING: unable to import polytope python bindings."
+
+# ------------------------------------------------------------------------------
+# Import our shadow layers for augmenting C++ types.
+# ------------------------------------------------------------------------------
+for shadowedthing in ("TillotsonEquationOfState",
+                      "ConstantStrength"):
+    for dim in dims:
+        exec("from Shadow%(thing)s import %(thing)s%(dim)sd" % {"thing" : shadowedthing,
+                                                                "dim"   : dim})
 
 # ------------------------------------------------------------------------------
 # Prepare for timing

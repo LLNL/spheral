@@ -49,7 +49,8 @@ PYTHONTARGETS = \
 # This stuff is for generating git revision info in the python.
 # Based on our former mercurial logic from:
 #   https://www.mercurial-scm.org/wiki/VersioningWithMake
-GITVERSION:= $(shell git --git-dir $(SPHERALTOP)/../.git rev-parse --short HEAD) $(shell git --git-dir $(SPHERALTOP)/../.git rev-list --all --count HEAD)
+#GITVERSION:= $(shell git --git-dir $(SPHERALTOP)/../.git rev-parse --short HEAD) $(shell git --git-dir $(SPHERALTOP)/../.git rev-list --all --count HEAD)
+GITVERSION:= $(shell git --git-dir $(SPHERALTOP)/../.git rev-parse --abbrev-ref HEAD) $(shell git --git-dir $(SPHERALTOP)/../.git rev-parse --short HEAD) $(shell git --git-dir $(SPHERALTOP)/../.git log --oneline | wc -l)
 Spheral.py: gitstamp
 .PHONY: update_gitstamp
 gitstamp: update_gitstamp

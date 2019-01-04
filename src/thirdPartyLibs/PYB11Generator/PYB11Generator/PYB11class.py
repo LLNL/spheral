@@ -218,12 +218,17 @@ def PYB11generic_class_method(klass, klassattrs, meth, methattrs, ss):
     if methattrs["returnpolicy"]:
         ss(", py::return_value_policy::%s" % methattrs["returnpolicy"])
 
+    # Is there a call guard?
+    if methattrs["call_guard"]:
+        ss(", py::call_guard<%s>()" % methattrs["call_guard"])
+
     # Is there a keep_alive policy?
     if methattrs["keepalive"]:
         assert isinstance(methattrs["keepalive"], tuple)
         assert len(methattrs["keepalive"]) == 2
         ss(", py::keep_alive<%i, %i>()" % methattrs["keepalive"])
 
+    # Write the doc string
     doc = inspect.getdoc(meth)
     if doc:
         ss(", ")

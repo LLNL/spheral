@@ -34,6 +34,7 @@ using std::abs;
 extern Timer TIME_ConnectivityMap_patch;
 extern Timer TIME_ConnectivityMap_valid;
 extern Timer TIME_ConnectivityMap_computeConnectivity;
+extern Timer TIME_ConnectivityMap_computeOverlapConnectivity;
 
 namespace Spheral {
 
@@ -47,6 +48,28 @@ void
 appendSTLvectors(std::vector<T>& v1, std::vector<T>& v2) {
   v1.reserve(v1.size() + v2.size());
   v1.insert(v1.end(), v2.begin(), v2.end());
+}
+
+//------------------------------------------------------------------------------
+// Helper to insert into a sorted list of IDs.
+//------------------------------------------------------------------------------
+inline
+bool
+insertUnique(const std::vector<int>& offsets,
+             std::vector<std::vector<std::vector<int>>>& indices,
+             const int jN1, const int j1,
+             const int jN2, const int j2) {
+  if (jN1 != jN2 or j1 != j2) {
+    auto& overlap = indices[offsets[jN1] + j1][jN2];
+    auto itr = std::lower_bound(overlap.begin(), overlap.end(), j2);
+    if (itr == overlap.end() or *itr != j2) {
+      overlap.insert(itr, j2);
+      return true;
+    } else {
+      return false;
+    }
+  }
+  return false;
 }
 }
 
@@ -202,28 +225,25 @@ ConnectivityMap<Dimension>::
 connectivityIntersectionForNodes(const int nodeListi, const int i,
                                  const int nodeListj, const int j) const {
 
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-
   // Pre-conditions.
-  const unsigned numNodeLists = mNodeLists.size();
+  const auto numNodeLists = mNodeLists.size();
   REQUIRE(nodeListi < numNodeLists and
           nodeListj < numNodeLists);
-  const unsigned firstGhostNodei = mNodeLists[nodeListi]->firstGhostNode();
-  const unsigned firstGhostNodej = mNodeLists[nodeListj]->firstGhostNode();
+  const auto firstGhostNodei = mNodeLists[nodeListi]->firstGhostNode();
+  const auto firstGhostNodej = mNodeLists[nodeListj]->firstGhostNode();
   REQUIRE(i < firstGhostNodei or j < firstGhostNodej);
 
   // Prepare the result.
-  vector<vector<int> > result(numNodeLists);
+  vector<vector<int>> result(numNodeLists);
 
   // If both nodes are internal, we simply intersect their neighbor lists.
   if (i < firstGhostNodei and j < firstGhostNodej) {
-    vector<vector<int> > neighborsi = this->connectivityForNode(nodeListi, i);
-    vector<vector<int> > neighborsj = this->connectivityForNode(nodeListj, j);
+    vector<vector<int>> neighborsi = this->connectivityForNode(nodeListi, i);
+    vector<vector<int>> neighborsj = this->connectivityForNode(nodeListj, j);
     CHECK(neighborsi.size() == numNodeLists);
     CHECK(neighborsj.size() == numNodeLists);
+    neighborsi[nodeListi].push_back(i);
+    neighborsj[nodeListj].push_back(j);
     for (unsigned k = 0; k != numNodeLists; ++k) {
       sort(neighborsi[k].begin(), neighborsi[k].end());
       sort(neighborsj[k].begin(), neighborsj[k].end());
@@ -804,42 +824,58 @@ computeConnectivity() {
     }
   }
 
-  // // Do we need overlap connectivity?
-  // if (mBuildOverlapConnectivity) {
-  //   mOverlapConnectivity = ConnectivityStorageType(connectivitySize, vector<vector<int> >(numNodeLists));
-  //   for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
-  //     const auto* nodeListPtr = mNodeLists[iNodeList];
-  //     for (auto i = nodeListPtr->firstGhostNode();
-  //          i != nodeListPtr->numNodes();
-  //          ++i) {
-  //       const auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
-  //       CHECK(neighbors.size() == numNodeLists);
+  // Do we need overlap connectivity?
+  if (mBuildOverlapConnectivity) {
+    TIME_ConnectivityMap_computeOverlapConnectivity.start();
 
-  //       // Make sure each of our neighbors knows about the others.  We keep these lists in
-  //       // a sorted state to quickly avoid duplicates.
-  //       for (auto jN1 = 0; jN1 < numNodeLists; ++jN1) {                                // NodeList 1
-  //         for (auto k1 = 0; k1 < neighbors[jN1].size(); ++k1) {
-  //           const auto j1 = neighbors[jN1][k1];                                        // Node 1
-  //           for (auto jN2 = jN1; jN2 < numNodeLists; ++jN2) {                          // NodeList 2
-  //             const auto kstart = jN2 == jN1 ? k1 + 1 : 0;
-  //             for (auto k2 = kstart; k2 < neighbors[jN2].size(); ++k2) {
-  //               const auto j2 = neighbors[jN2][k2];                                    // Node 2
-  //               auto& overlap1 = mOverlapConnectivity[mOffsets[jN2] + j1][jN2];        // vector<int>: current overlap for Node 1
-  //               auto itr = std::lower_bound(overlap1.begin(), overlap1.begin(), j2);
-  //               if (itr == overlap1.end() or *itr != j2) {
-  //                 overlap1.insert(itr, j2);
-  //                 auto& overlap2 = mOverlapConnectivity[mOffsets[jN2] + j2][jN1];      // vector<int>: current overlap for Node 2
-  //                 auto itr = std::lower_bound(overlap2.begin(), overlap2.begin(), j1);
-  //                 CHECK(itr == overlap2.end() or *itr != j1);
-  //                 overlap2.insert(itr, j1);
-  //               }
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
+    // To start out, *all* neighbors of a node (gather and scatter) are overlap neighbors.  Therefore we
+    // first just copy the neighbor connectivity.
+    mOverlapConnectivity = mConnectivity;
+
+    for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
+      const auto* nodeListPtr = mNodeLists[iNodeList];
+      for (auto i = 0; i < nodeListPtr->numNodes(); ++i) {
+        const auto& neighborsi = mConnectivity[mOffsets[iNodeList] + i];
+        CHECK(neighborsi.size() == numNodeLists);
+        const auto& ri = position(iNodeList, i);
+        const auto& Hi = H(iNodeList, i);
+
+        // Find all the gather neighbors of i.
+        for (auto jN1 = 0; jN1 < numNodeLists; ++jN1) {
+          for (const auto j1: neighborsi[jN1]) {
+            const auto& rj1 = position(jN1, j1);
+            const auto& Hj1 = H(jN1, j1);
+            if ((Hi*(rj1 - ri)).magnitude2() <= kernelExtent2) {                           // Is j1 a gather neighbor of i?
+
+              // Check if i and j1 have overlap directly.
+              if ((Hj1*(rj1 - ri)).magnitude2() <= kernelExtent2) {
+                insertUnique(mOffsets, mOverlapConnectivity,
+                             iNodeList, i, jN1, j1);
+                insertUnique(mOffsets, mOverlapConnectivity,
+                             jN1, j1, iNodeList, i);
+              }
+
+              // Find the gather neighbors of j1, all of which share overlap with i.
+              const auto& neighborsj1 = mConnectivity[mOffsets[jN1] + j1];
+              for (auto jN2 = 0; jN2 < numNodeLists; ++jN2) {
+                for (const auto j2: neighborsj1[jN2]) {
+                  const auto& rj2 = position(jN2, j2);
+                  const auto& Hj2 = H(jN2, j2);
+                  if ((Hj2*(rj2 - rj1)).magnitude2() <= kernelExtent2) {                   // Is j2 a scatter neighbor of j1?
+                    insertUnique(mOffsets, mOverlapConnectivity,
+                                 iNodeList, i, jN2, j2);
+                    insertUnique(mOffsets, mOverlapConnectivity,
+                                 jN2, j2, iNodeList, i);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    TIME_ConnectivityMap_computeOverlapConnectivity.stop();
+  }
 
   // {
   //   tpre = allReduce(unsigned(tpre), MPI_SUM, Communicator::communicator()) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;
