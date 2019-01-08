@@ -39,8 +39,8 @@ def readPolyhedronOBJ(filename):
 #-------------------------------------------------------------------------------
 def writePolyhedronOBJ(poly, filename, forceTriangles=False):
     f = open(filename, "w")
-    verts = poly.vertices()
-    facets = poly.facets()
+    verts = poly.vertices
+    facets = poly.facets
     for v in verts:
         f.write("v %g %g %g\n" % (v.x, v.y, v.z))
 
@@ -129,8 +129,8 @@ def readPolyhedronOFF(filename):
 #-------------------------------------------------------------------------------
 def writePolyhedronOFF(poly, filename):
     f = open(filename, "w")
-    verts = poly.vertices()
-    facets = poly.facets()
+    verts = poly.vertices
+    facets = poly.facets
     f.write("OFF\n")
 
     # Check for 2d/3d.
@@ -198,8 +198,8 @@ def writePolyhedraSTL(polys,
     assert len(polys) == len(names)
     f = open(filename, "w")
     for name, poly in zip(names, polys):
-        verts = poly.vertices()
-        facets = poly.facets()
+        verts = poly.vertices
+        facets = poly.facets
         f.write("solid %s\n" % name)
         for facet in facets:
             ipoints = facet.ipoints
