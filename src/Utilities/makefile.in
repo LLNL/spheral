@@ -51,8 +51,7 @@ INSTSRCTARGETS = \
 # A few of our target files are only valid for certain dimensions.
 ifneq (,$(filter "yes", "@INST2D@" "@INST3D@"))
 INSTSRCTARGETS += \
-	$(srcdir)/overlayRemapFieldsInst.cc.py \
-	$(srcdir)/copy2polytopeInst.cc.py
+	$(srcdir)/overlayRemapFieldsInst.cc.py
 endif
 
 PYTHONTARGETS = \

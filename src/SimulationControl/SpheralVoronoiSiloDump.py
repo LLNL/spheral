@@ -182,6 +182,7 @@ class SpheralVoronoiSiloDump:
 
             else:
                 index2zone = None
+                #copy2polytope(self.cells, mesh)
                 for nodeListi in xrange(len(self.cells)):
                     n = self.cells[nodeListi].numInternalElements
                     noldcells = len(mesh.cells)
