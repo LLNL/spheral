@@ -7,11 +7,11 @@
 # Format version:
 # 1.0 -- original release
 #-------------------------------------------------------------------------------
-import os, time, gc, mpi
+import os, gc, mpi
 
 from SpheralCompiledPackages import *
 
-from PolytopeModules import polytope
+#from PolytopeModules import polytope
 from siloMeshDump import *
 
 class SpheralVoronoiSiloDump:
@@ -110,7 +110,7 @@ class SpheralVoronoiSiloDump:
         if self.cells:
 
             # Yep, so we build a disjoint set of cells as a polytope tessellation.
-            mesh = eval("polytope.Tessellation%s()" % self.dimension)
+            mesh = eval("Tessellation%s()" % self.dimension)
             nDim = eval("Vector%s.nDimensions" % self.dimension)
 
             # Are we splitting into triangles/tets, or writing the native polygons/polyhera?
@@ -182,26 +182,26 @@ class SpheralVoronoiSiloDump:
 
             else:
                 index2zone = None
-                #copy2polytope(self.cells, mesh)
-                for nodeListi in xrange(len(self.cells)):
-                    n = self.cells[nodeListi].numInternalElements
-                    noldcells = len(mesh.cells)
-                    mesh.cells.resize(noldcells + n)
-                    for i in xrange(n):
-                        celli = self.cells(nodeListi, i)
-                        verts = celli.vertices
-                        facets = celli.facets
-                        noldnodes = len(mesh.nodes)/nDim
-                        noldfaces = len(mesh.faces)
-                        mesh.faces.resize(noldfaces + len(facets))
-                        for j in xrange(len(verts)):
-                            for k in xrange(nDim):
-                                mesh.nodes.append(verts[j][k])
-                        for j in xrange(len(facets)):
-                            mesh.cells[noldcells + i].append(noldfaces + j)
-                            ipoints = facets[j].ipoints
-                            for k in ipoints:
-                                mesh.faces[noldfaces + j].append(noldnodes + k)
+                copy2polytope(self.cells, mesh)
+                # for nodeListi in xrange(len(self.cells)):
+                #     n = self.cells[nodeListi].numInternalElements
+                #     noldcells = len(mesh.cells)
+                #     mesh.cells.resize(noldcells + n)
+                #     for i in xrange(n):
+                #         celli = self.cells(nodeListi, i)
+                #         verts = celli.vertices
+                #         facets = celli.facets
+                #         noldnodes = len(mesh.nodes)/nDim
+                #         noldfaces = len(mesh.faces)
+                #         mesh.faces.resize(noldfaces + len(facets))
+                #         for j in xrange(len(verts)):
+                #             for k in xrange(nDim):
+                #                 mesh.nodes.append(verts[j][k])
+                #         for j in xrange(len(facets)):
+                #             mesh.cells[noldcells + i].append(noldfaces + j)
+                #             ipoints = facets[j].ipoints
+                #             for k in ipoints:
+                #                 mesh.faces[noldfaces + j].append(noldnodes + k)
 
         else:
             # We need to do the full up polytope tessellation.

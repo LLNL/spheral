@@ -45,9 +45,9 @@ def siloMeshDump(dirName, mesh,
     # print "              tensorFields: ", [x.name for x in tensorFields]
     # print "           symTensorFields: ", [x.name for x in symTensorFields]
 
-    assert (isinstance(mesh, polytope.Tessellation2d) or
-            isinstance(mesh, polytope.Tessellation3d))
-    if isinstance(mesh, polytope.Tessellation2d):
+    assert (isinstance(mesh, Tessellation2d) or
+            isinstance(mesh, Tessellation3d))
+    if isinstance(mesh, Tessellation2d):
         nDim = 2
     else:
         nDim = 3
@@ -302,16 +302,19 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         assert silo.DBMkDir(db, "POINTS") == 0      # HACK
 
         # Determine our dimensionality
-        if isinstance(mesh, polytope.Tessellation2d):
+        if isinstance(mesh, Tessellation2d):
             nDim = 2
         else:
-            assert isinstance(mesh, polytope.Tessellation3d)
+            assert isinstance(mesh, Tessellation3d)
             nDim = 3
 
         # Write a Polygonal zone list.
         zonelistName = { 2 : "zonelist",
                          3 : "PHzonelist" }
 
+        cells = mesh.cells
+        faces = mesh.faces
+        nodes = mesh.nodes
         if nDim == 2:
         
             # Read out the zone nodes.  We rely on these already being arranged
@@ -319,18 +322,16 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             zoneNodes = vector_of_vector_of_int()
             shapesize = vector_of_int()
             for zoneID in xrange(numZones):
-                zone = mesh.cells[zoneID]
-                nodes = vector_of_int()
-                for iface in zone:
+                znodes = []
+                for iface in cells[zoneID]:
                     if iface < 0:
-                        nodes.append(mesh.faces[~iface][1])
+                        znodes.append(faces[~iface][1])
                     else:
-                        nodes.append(mesh.faces[iface][0])
-                zoneNodes.append(nodes)
+                        znodes.append(faces[iface][0])
+                zoneNodes.append(vector_of_int(znodes))
                 shapesize.append(len(nodes))
             assert len(zoneNodes) == numZones
             assert len(shapesize) == numZones
-        
             assert silo.DBPutZonelist2(db, zonelistName[nDim], nDim, zoneNodes, 0, 0,
                                        vector_of_int([silo.DB_ZONETYPE_POLYGON]*numZones),
                                        shapesize,
@@ -341,30 +342,27 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         if nDim == 3:
         
             # Construct the face-node lists.
-            numFaces = len(mesh.faces)
+            numFaces = len(faces)
             faceNodes = vector_of_vector_of_int()
             for iface in xrange(numFaces):
                 faceNodes.append(vector_of_int())
-                for j in xrange(len(mesh.faces[iface])):
-                    faceNodes[iface].append(mesh.faces[iface][j])
-                assert len(faceNodes[iface]) == len(mesh.faces[iface])
+                for j in xrange(len(faces[iface])):
+                    faceNodes[iface].append(faces[iface][j])
+                assert len(faceNodes[iface]) == len(faces[iface])
             assert len(faceNodes) == numFaces
         
             # Construct the zone-face list.  We use the ones complement of a face ID
             # to indicate that face needs to be reversed in reference to this zone.
             # This is the same convention as polytope, so just copy it.
-            zoneFaces = mesh.cells
-            assert len(zoneFaces) == numZones
-        
-            assert silo.DBPutPHZonelist(db, zonelistName[nDim], faceNodes, zoneFaces, 0, (numZones - 1), nullOpts) == 0
+            assert silo.DBPutPHZonelist(db, zonelistName[nDim], faceNodes, cells, 0, (numZones - 1), nullOpts) == 0
         
         # Construct the mesh node coordinates.
-        assert len(mesh.nodes) % nDim == 0
-        numNodes = len(mesh.nodes)/nDim
+        assert len(nodes) % nDim == 0
+        numNodes = len(nodes)/nDim
         coords = vector_of_vector_of_double([vector_of_double(range(numNodes))]*nDim)
         for nodeID in xrange(numNodes):
             for idim in xrange(nDim):
-                coords[idim][nodeID] = mesh.nodes[nDim*nodeID + idim]
+                coords[idim][nodeID] = nodes[nDim*nodeID + idim]
         assert len(coords) == nDim
         
         # Write the mesh itself.
