@@ -706,6 +706,8 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
                 Time = None,
                 dt = None):
         mpi.barrier()
+        import time
+        start = time.clock()
         db = self.integrator.dataBase
         db.updateConnectivityMap(False)
         bcs = self.integrator.uniqueBoundaryConditions()
@@ -719,6 +721,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
                        dumpGhosts = self.vizGhosts,
                        dumpDerivatives = self.vizDerivs,
                        boundaries = bcs)
+        print "Wrote viz file in %0.2f seconds" % (time.clock() - start)
         return
 
     #--------------------------------------------------------------------------
