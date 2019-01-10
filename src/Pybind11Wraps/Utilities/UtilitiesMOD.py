@@ -44,6 +44,7 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/refinePolyhedron.hh"',
                   '"Utilities/overlayRemapFields.hh"',
                   '"Utilities/computeShepardsInterpolation.hh"',
+                  '"Utilities/copy2polytope.hh"',
                   '"Utilities/Timer.hh"']
 
 PYB11preamble = """
@@ -246,6 +247,12 @@ def computeShepardsInterpolation(fieldList = "const FieldList<%(Dimension)s, %(D
                                  weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&"):
     "Compute the Shepard interpolation of a FieldList."
     return "FieldList<%(Dimension)s, %(DataType)s>"
+
+@PYB11template("Dimension", "nDim")
+def copy2polytope(cells = "const FieldList<%(Dimension)s, %(Dimension)s::FacetedVolume>&",
+                  mesh = "polytope::Tessellation<%(nDim)s, double>&"):
+    "Copy a FieldList of polygons/polyhedra to a polytope Tessellation."
+    return "void"
 
 #...............................................................................
 # Instantiate stuff for the dimensions Spheral is building
@@ -472,9 +479,9 @@ for ndim in (x for x in dims if x in (2, 3)):
 closestPointOnSegment%(ndim)id = PYB11TemplateFunction(closestPointOnSegment, template_parameters="%(Vector)s", pyname="closestPointOnSegment")
 pointPlaneDistance%(ndim)id = PYB11TemplateFunction(pointPlaneDistance, template_parameters="%(Vector)s", pyname="pointPlaneDistance")
 overlayRemapFields%(ndim)id = PYB11TemplateFunction(overlayRemapFields, template_parameters="Dim<%(ndim)i>", pyname="overlayRemapFields")
+copy2polytope%(ndim)id = PYB11TemplateFunction(copy2polytope, template_parameters=("Dim<%(ndim)i>", "%(ndim)i"), pyname="copy2polytope")
 ''' % {"ndim"   : ndim,
        "Vector" : "Dim<" + str(ndim) + ">::Vector"})
-
 
 #-------------------------------------------------------------------------------
 # Geometry operations only available in 3D.
