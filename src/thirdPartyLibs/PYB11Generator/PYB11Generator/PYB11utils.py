@@ -67,6 +67,7 @@ def PYB11inject(fromcls, tocls,
         exec('''tocls.%(name)s = PYB11ClassAttribute(static = fromcls.%(name)s.static,
                                                      pyname = fromcls.%(name)s.pyname,
                                                      cppname = fromcls.%(name)s.cppname,
+                                                     returnpolicy = fromcls.%(name)s.returnpolicy,
                                                      doc = fromcls.%(name)s.doc,
                                                      deftype = fromcls.%(name)s.deftype)''' % {"name": name})
 
