@@ -24,8 +24,6 @@ typedef NodeListRegistrar<Dim<1> > NodeListRegistrar1d;
 typedef NodeListRegistrar<Dim<2> > NodeListRegistrar2d;
 typedef NodeListRegistrar<Dim<3> > NodeListRegistrar3d;
 
-namespace NodeSpace {
-
 typedef NodeList<Dim<1> > NodeList1d;
 typedef NodeList<Dim<2> > NodeList2d;
 typedef NodeList<Dim<3> > NodeList3d;
@@ -61,7 +59,7 @@ typedef ASPHSmoothingScale<Dim<3> > ASPHSmoothingScale3d;
 // inline
 // void
 // generateVoidNodes(const std::vector<NodeList<Dimension>*>& nodeLists,
-//                   const MeshSpace::Mesh<Dimension>& mesh,
+//                   const Mesh<Dimension>& mesh,
 //                   const typename Dimension::Vector& xmin,
 //                   const typename Dimension::Vector& xmax,
 //                   NodeList<Dimension>& voidNodes,
@@ -75,9 +73,9 @@ typedef ASPHSmoothingScale<Dim<3> > ASPHSmoothingScale3d;
 //------------------------------------------------------------------------------
 template<typename Dimension, unsigned moment>
 inline
-FieldSpace::FieldList<Dimension, typename MomentTraits<Dimension, moment>::Moment>
+FieldList<Dimension, typename MomentTraits<Dimension, moment>::Moment>
 nthNodalMoment(const std::vector<NodeList<Dimension>*>& nodeLists,
-               const KernelSpace::TableKernel<Dimension>& W,
+               const TableKernel<Dimension>& W,
                const bool renormalize) {
   return nthNodalMoment<Dimension, typename std::vector<NodeList<Dimension>*>::const_iterator, moment>
     (nodeLists.begin(), nodeLists.end(), W, renormalize);
@@ -90,65 +88,65 @@ template<typename Dimension>
 inline
 void
 zerothAndFirstNodalMoments(const std::vector<NodeList<Dimension>*>& nodeLists,
-                           const KernelSpace::TableKernel<Dimension>& W,
+                           const TableKernel<Dimension>& W,
                            const bool useGradientAsKernel,
-                           FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& zerothMoment,
-                           FieldSpace::FieldList<Dimension, typename Dimension::Vector>& firstMoment) {
+                           FieldList<Dimension, typename Dimension::Scalar>& zerothMoment,
+                           FieldList<Dimension, typename Dimension::Vector>& firstMoment) {
   zerothAndFirstNodalMoments<Dimension, typename std::vector<NodeList<Dimension>*>::const_iterator>
     (nodeLists.begin(), nodeLists.end(), W, useGradientAsKernel, zerothMoment, firstMoment);
 }
 
 }
-}
 
-typedef std::vector<Spheral::NodeSpace::NodeList<Spheral::Dim<1> >*> vector_of_NodeList1d;
-typedef std::vector<Spheral::NodeSpace::NodeList<Spheral::Dim<2> >*> vector_of_NodeList2d;
-typedef std::vector<Spheral::NodeSpace::NodeList<Spheral::Dim<3> >*> vector_of_NodeList3d;
+typedef std::vector<Spheral::NodeList<Spheral::Dim<1> >*> vector_of_NodeList1d;
+typedef std::vector<Spheral::NodeList<Spheral::Dim<2> >*> vector_of_NodeList2d;
+typedef std::vector<Spheral::NodeList<Spheral::Dim<3> >*> vector_of_NodeList3d;
 
-typedef std::vector<const Spheral::NodeSpace::NodeList<Spheral::Dim<1> >*> vector_of_const_NodeList1d;
-typedef std::vector<const Spheral::NodeSpace::NodeList<Spheral::Dim<2> >*> vector_of_const_NodeList2d;
-typedef std::vector<const Spheral::NodeSpace::NodeList<Spheral::Dim<3> >*> vector_of_const_NodeList3d;
+typedef std::vector<const Spheral::NodeList<Spheral::Dim<1> >*> vector_of_const_NodeList1d;
+typedef std::vector<const Spheral::NodeList<Spheral::Dim<2> >*> vector_of_const_NodeList2d;
+typedef std::vector<const Spheral::NodeList<Spheral::Dim<3> >*> vector_of_const_NodeList3d;
 
-typedef std::vector<Spheral::NodeSpace::FluidNodeList<Spheral::Dim<1> >*> vector_of_FluidNodeList1d;
-typedef std::vector<Spheral::NodeSpace::FluidNodeList<Spheral::Dim<2> >*> vector_of_FluidNodeList2d;
-typedef std::vector<Spheral::NodeSpace::FluidNodeList<Spheral::Dim<3> >*> vector_of_FluidNodeList3d;
+typedef std::vector<Spheral::FluidNodeList<Spheral::Dim<1> >*> vector_of_FluidNodeList1d;
+typedef std::vector<Spheral::FluidNodeList<Spheral::Dim<2> >*> vector_of_FluidNodeList2d;
+typedef std::vector<Spheral::FluidNodeList<Spheral::Dim<3> >*> vector_of_FluidNodeList3d;
 
-typedef std::vector<const Spheral::NodeSpace::FluidNodeList<Spheral::Dim<1> >*> vector_of_const_FluidNodeList1d;
-typedef std::vector<const Spheral::NodeSpace::FluidNodeList<Spheral::Dim<2> >*> vector_of_const_FluidNodeList2d;
-typedef std::vector<const Spheral::NodeSpace::FluidNodeList<Spheral::Dim<3> >*> vector_of_const_FluidNodeList3d;
+typedef std::vector<const Spheral::FluidNodeList<Spheral::Dim<1> >*> vector_of_const_FluidNodeList1d;
+typedef std::vector<const Spheral::FluidNodeList<Spheral::Dim<2> >*> vector_of_const_FluidNodeList2d;
+typedef std::vector<const Spheral::FluidNodeList<Spheral::Dim<3> >*> vector_of_const_FluidNodeList3d;
 
-typedef std::pair<const Spheral::NodeSpace::NodeList<Spheral::Dim<1> >*, std::string> pair_NodeList1d_string;
-typedef std::pair<const Spheral::NodeSpace::NodeList<Spheral::Dim<2> >*, std::string> pair_NodeList2d_string;
-typedef std::pair<const Spheral::NodeSpace::NodeList<Spheral::Dim<3> >*, std::string> pair_NodeList3d_string;
+typedef std::pair<const Spheral::NodeList<Spheral::Dim<1> >*, std::string> pair_NodeList1d_string;
+typedef std::pair<const Spheral::NodeList<Spheral::Dim<2> >*, std::string> pair_NodeList2d_string;
+typedef std::pair<const Spheral::NodeList<Spheral::Dim<3> >*, std::string> pair_NodeList3d_string;
 
 typedef std::vector<pair_NodeList1d_string> vector_of_pair_NodeList1d_string;
 typedef std::vector<pair_NodeList2d_string> vector_of_pair_NodeList2d_string;
 typedef std::vector<pair_NodeList3d_string> vector_of_pair_NodeList3d_string;
 
-typedef std::vector<Spheral::NodeSpace::NodeList<Spheral::Dim<1> >*>::iterator vector_of_NodeList1d_iterator;
-typedef std::vector<Spheral::NodeSpace::NodeList<Spheral::Dim<2> >*>::iterator vector_of_NodeList2d_iterator;
-typedef std::vector<Spheral::NodeSpace::NodeList<Spheral::Dim<3> >*>::iterator vector_of_NodeList3d_iterator;
+typedef std::vector<Spheral::NodeList<Spheral::Dim<1> >*>::iterator vector_of_NodeList1d_iterator;
+typedef std::vector<Spheral::NodeList<Spheral::Dim<2> >*>::iterator vector_of_NodeList2d_iterator;
+typedef std::vector<Spheral::NodeList<Spheral::Dim<3> >*>::iterator vector_of_NodeList3d_iterator;
 
-typedef std::vector<Spheral::NodeSpace::FluidNodeList<Spheral::Dim<1> >*>::iterator vector_of_FluidNodeList1d_iterator;
-typedef std::vector<Spheral::NodeSpace::FluidNodeList<Spheral::Dim<2> >*>::iterator vector_of_FluidNodeList2d_iterator;
-typedef std::vector<Spheral::NodeSpace::FluidNodeList<Spheral::Dim<3> >*>::iterator vector_of_FluidNodeList3d_iterator;
+typedef std::vector<Spheral::FluidNodeList<Spheral::Dim<1> >*>::iterator vector_of_FluidNodeList1d_iterator;
+typedef std::vector<Spheral::FluidNodeList<Spheral::Dim<2> >*>::iterator vector_of_FluidNodeList2d_iterator;
+typedef std::vector<Spheral::FluidNodeList<Spheral::Dim<3> >*>::iterator vector_of_FluidNodeList3d_iterator;
 
-typedef std::vector<Spheral::NodeSpace::SolidNodeList<Dim<1> >*> vector_of_SolidNodeList1d;
-typedef std::vector<Spheral::NodeSpace::SolidNodeList<Dim<2> >*> vector_of_SolidNodeList2d;
-typedef std::vector<Spheral::NodeSpace::SolidNodeList<Dim<3> >*> vector_of_SolidNodeList3d;
+typedef std::vector<Spheral::SolidNodeList<Dim<1> >*> vector_of_SolidNodeList1d;
+typedef std::vector<Spheral::SolidNodeList<Dim<2> >*> vector_of_SolidNodeList2d;
+typedef std::vector<Spheral::SolidNodeList<Dim<3> >*> vector_of_SolidNodeList3d;
 
-typedef std::vector<const Spheral::NodeSpace::SolidNodeList<Dim<1> >*> vector_of_const_SolidNodeList1d;
-typedef std::vector<const Spheral::NodeSpace::SolidNodeList<Dim<2> >*> vector_of_const_SolidNodeList2d;
-typedef std::vector<const Spheral::NodeSpace::SolidNodeList<Dim<3> >*> vector_of_const_SolidNodeList3d;
+typedef std::vector<const Spheral::SolidNodeList<Dim<1> >*> vector_of_const_SolidNodeList1d;
+typedef std::vector<const Spheral::SolidNodeList<Dim<2> >*> vector_of_const_SolidNodeList2d;
+typedef std::vector<const Spheral::SolidNodeList<Dim<3> >*> vector_of_const_SolidNodeList3d;
 
-typedef std::vector<Spheral::NodeSpace::SolidNodeList<Dim<1> >*>::iterator vector_of_SolidNodeList1d_iterator;
-typedef std::vector<Spheral::NodeSpace::SolidNodeList<Dim<2> >*>::iterator vector_of_SolidNodeList2d_iterator;
-typedef std::vector<Spheral::NodeSpace::SolidNodeList<Dim<3> >*>::iterator vector_of_SolidNodeList3d_iterator;
+typedef std::vector<Spheral::SolidNodeList<Dim<1> >*>::iterator vector_of_SolidNodeList1d_iterator;
+typedef std::vector<Spheral::SolidNodeList<Dim<2> >*>::iterator vector_of_SolidNodeList2d_iterator;
+typedef std::vector<Spheral::SolidNodeList<Dim<3> >*>::iterator vector_of_SolidNodeList3d_iterator;
 
 //------------------------------------------------------------------------------
 // Extract the NodeListRegistrar instance.
 //------------------------------------------------------------------------------
 namespace Spheral {
+
 template<typename Dimension>
 inline
 static NodeListRegistrar<Dimension>*

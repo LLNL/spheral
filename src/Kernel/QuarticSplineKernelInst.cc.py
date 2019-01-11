@@ -14,8 +14,6 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 namespace Spheral {
-  namespace KernelSpace {
-    template class QuarticSplineKernel< Dim< %(ndim)s >  >;
-  }
+  template class QuarticSplineKernel< Dim< %(ndim)s >  >;
 }
 """

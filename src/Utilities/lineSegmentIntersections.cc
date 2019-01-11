@@ -17,12 +17,22 @@
 #include "lineSegmentIntersections.hh"
 #include "pointInPolygon.hh"
 
-using namespace std;
 namespace bg = boost::geometry;
 
 BOOST_GEOMETRY_REGISTER_POINT_2D_GET_SET(Spheral::Dim<2>::Vector, double, bg::cs::cartesian, 
                                          Spheral::Dim<2>::Vector::x, Spheral::Dim<2>::Vector::y, 
                                          Spheral::Dim<2>::Vector::x, Spheral::Dim<2>::Vector::y);
+
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
 

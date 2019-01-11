@@ -19,15 +19,9 @@ namespace Spheral {
 // Forward declarations.
 // template<typename Dimension> class UpdatePolicyBase;
 template<typename Dimension> class StateDerivatives;
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
-}
-namespace DataBaseSpace {
-  template<typename Dimension> class DataBase;
-}
-namespace PhysicsSpace {
-  template<typename Dimension> class Physics;
-}
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension> class DataBase;
+template<typename Dimension> class Physics;
 
 template<typename Dimension>
 class State: public StateBase<Dimension> {
@@ -43,14 +37,14 @@ public:
 
   typedef typename StateBase<Dimension>::KeyType KeyType;
 
-  typedef std::vector<PhysicsSpace::Physics<Dimension>*> PackageList;
+  typedef std::vector<Physics<Dimension>*> PackageList;
   typedef typename PackageList::iterator PackageIterator;
   typedef typename std::shared_ptr<UpdatePolicyBase<Dimension> > PolicyPointer;
 
   // Constructors, destructor.
   State();
-  State(DataBaseSpace::DataBase<Dimension>& dataBase,  PackageList& physicsPackages);
-  State(DataBaseSpace::DataBase<Dimension>& dataBase,
+  State(DataBase<Dimension>& dataBase,  PackageList& physicsPackages);
+  State(DataBase<Dimension>& dataBase,
         PackageIterator physicsPackageBegin,
         PackageIterator physicsPackageEnd);
   State(const State& rhs);
@@ -73,20 +67,21 @@ public:
 
   // Remove a policy.
   void removePolicy(const KeyType& key);
-  void removePolicy(FieldSpace::FieldBase<Dimension>& field);
-  void removePolicy(FieldSpace::FieldListBase<Dimension>& field);
+  void removePolicy(FieldBase<Dimension>& field);
+  void removePolicy(FieldListBase<Dimension>& field);
 
   // Enroll the given Field and associated update policy
-  void enroll(FieldSpace::FieldBase<Dimension>& field, PolicyPointer policy);
+  void enroll(FieldBase<Dimension>& field, PolicyPointer policy);
 
   // Enroll the given FieldList and associated update policy
-  void enroll(FieldSpace::FieldListBase<Dimension>& fieldList, PolicyPointer policy);
+  void enroll(FieldListBase<Dimension>& fieldList, PolicyPointer policy);
 
   // The base class method for just registering a field.
-  virtual void enroll(FieldSpace::FieldBase<Dimension>& field);
+  virtual void enroll(FieldBase<Dimension>& field) override;
+  virtual void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) override;
 
   // The base class method for just registering a field list.
-  virtual void enroll(FieldSpace::FieldListBase<Dimension>& fieldList);
+  virtual void enroll(FieldListBase<Dimension>& fieldList) override;
 
   // The full set of keys for all policies.
   std::vector<KeyType> policyKeys() const;
@@ -96,7 +91,7 @@ public:
 
   // Return the policy for the specified field.
   template<typename Value>
-  PolicyPointer policy(const FieldSpace::Field<Dimension, Value>& field) const;
+  PolicyPointer policy(const Field<Dimension, Value>& field) const;
 
   // Optionally trip a flag indicating policies should time advance only -- no replacing state!
   // This is useful when you're trying to cheat and reuse derivatives from a prior advance.

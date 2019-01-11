@@ -6,12 +6,12 @@
 # the equations of state provided here emulate the original interfaces.
 #-------------------------------------------------------------------------------
 from MaterialUnits import MKS, CGS, Cosmological, Solar
-from SpheralModules.Spheral.Material import PhysicalConstants
+from SpheralCompiledPackages import PhysicalConstants
 from spheralDimensions import spheralDimensions
 
 dims = spheralDimensions()
 for dim in dims:
-    exec("from SpheralModules.Spheral.Material import GammaLawGas%(dim)id, PolytropicEquationOfState%(dim)id, IsothermalEquationOfState%(dim)id" % {"dim" : dim})
+    exec("from SpheralCompiledPackages import GammaLawGas%(dim)id, PolytropicEquationOfState%(dim)id, IsothermalEquationOfState%(dim)id" % {"dim" : dim})
 
 EOSFactoryString = """
 #-------------------------------------------------------------------------------

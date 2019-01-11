@@ -1,12 +1,11 @@
 namespace Spheral {
-namespace BoundarySpace {
 
 //------------------------------------------------------------------------------
 // Return the NodeList we're using.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NodeSpace::NodeList<Dimension>&
+const NodeList<Dimension>&
 ConstantVelocityBoundary<Dimension>::
 nodeList() const {
   return *mNodeListPtr;
@@ -42,5 +41,4 @@ velocityCondition() const {
   return result;
 }
 
-}
 }

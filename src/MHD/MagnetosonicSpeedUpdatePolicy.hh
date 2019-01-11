@@ -6,17 +6,12 @@
 #include "DataBase/UpdatePolicyBase.hh"
 #include "Geometry/Dimension.hh"
 
-
 namespace Spheral {
 
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace FieldSpace {
-   template<typename Dimension, typename DataType> class Field;
-}
-
-namespace MHDSpace {
+template<typename Dimension, typename DataType> class Field;
 
 //! \class MagnetosonicSpeedUpdatePolicy
 //! This class alters the sound speed to account for MHD waves.  Currently,
@@ -24,7 +19,7 @@ namespace MHDSpace {
 //! is the faster hydromagnetic propagation.  The slow magnetosonic wave is,
 //! hence, not represented.
 class MagnetosonicSpeedUpdatePolicy:
-   public Spheral::UpdatePolicyBase<Dim<3>, FieldSpace::Field<Dim<3>, Dim<3>::Scalar> >
+   public Spheral::UpdatePolicyBase<Dim<3>, Field<Dim<3>, Dim<3>::Scalar> >
 {
    public:
 
@@ -44,7 +39,7 @@ class MagnetosonicSpeedUpdatePolicy:
                        const double dt); 
 
    //! Equivalence.
-   virtual bool operator==(const Spheral::UpdatePolicyBase<Dim<3>, FieldSpace::Field<Dim<3>, Dim<3>::Scalar> >& rhs) const;
+   virtual bool operator==(const Spheral::UpdatePolicyBase<Dim<3>, Field<Dim<3>, Dim<3>::Scalar> >& rhs) const;
 
    private:
 
@@ -63,9 +58,7 @@ class MagnetosonicSpeedUpdatePolicy:
 
 // Forward declaration.
 namespace Spheral {
-namespace MHDSpace {
-   class MagnetosonicSpeedUpdatePolicy;
-}
+  class MagnetosonicSpeedUpdatePolicy;
 }
 
 #endif

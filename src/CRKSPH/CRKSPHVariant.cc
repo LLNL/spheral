@@ -65,30 +65,18 @@
 #include <fstream>
 #include <map>
 #include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace CRKSPHSpace {
-
-using namespace std;
-using PhysicsSpace::Physics;
-using PhysicsSpace::GenericHydro;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using Geometry::innerProduct;
-using Geometry::outerProduct;
-using BoundarySpace::Boundary;
-using BoundarySpace::CRKSPHVoidBoundary;
-
-using PhysicsSpace::MassDensityType;
-using PhysicsSpace::HEvolutionType;
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -263,7 +251,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // This breaks domain independence, so we'll try being inconsistent on the first step.
   // // We need to initialize the velocity gradient if we're using the CRKSPH artificial viscosity.
   // const FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
-  // mDvDx.assignFields(CRKSPHSpace::gradientCRKSPH(velocity, position, mVolume, H, mA, mB, mC, mGradA, mGradB, mGradC, connectivityMap, correctionOrder(), W, NodeCoupling()));
+  // mDvDx.assignFields(gradientCRKSPH(velocity, position, mVolume, H, mA, mB, mC, mGradA, mGradB, mGradC, connectivityMap, correctionOrder(), W, NodeCoupling()));
 
   // Initialize the pressure, sound speed, and entropy.
   dataBase.fluidPressure(this->mPressure);
@@ -763,6 +751,5 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 }
 
-}
 }
 

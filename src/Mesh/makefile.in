@@ -50,11 +50,11 @@ endif
 
 ifneq (,$(filter "yes", "@INST2D@" "@INST3D@"))
 INSTSRCTARGETS += \
-	$(srcdir)/findMatchingVertexInst.cc.py
+	$(srcdir)/findMatchingVertexInst.cc.py \
+	$(srcdir)/copy2polytopeInst.cc.py
 endif
-
-
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 EXTRAFLAGS += -DUSE_TRIANGLE=$(USE_TRIANGLE) -DUSE_TETGEN=$(USE_TETGEN)
+EXTRALIBS += $(POLYTOPELIBS)

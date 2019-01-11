@@ -14,11 +14,10 @@
 #include "Field/FieldList.hh"
 #include "Kernel/TableKernel.hh"
 #include "boost/python/handle.hpp"
-#ifndef __GCCXML__
+
 #include "petsc.h"
 #include "petscksp.h"
 #include <map>
-#endif
 
 namespace Spheral {
 
@@ -28,7 +27,7 @@ template<typename Dimension> class StateDerivatives;
 namespace GravitySpace {
 
 template <typename Dimension>
-class SPHGravity: public PhysicsSpace::Physics<Dimension> {
+class SPHGravity: public Physics<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
@@ -36,15 +35,15 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  typedef typename PhysicsSpace::Physics<Dimension>::TimeStepType TimeStepType;
-  typedef typename PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
+  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   //! Constructor.
   //! \param W -- An SPHKernel used to compute SPH interpolants.
   //! \param G -- Cavendish's gravitational constant expressed in the desired units.
   //! \param maxDeltaVelocity -- Maximum factor by which the velocity can be changed by an acceleration per timestep.
   //! \param safetyFactor -- The safety factor to apply to the timestep.  Must be between 0 and 1.
-  SPHGravity(const KernelSpace::TableKernel<Dimension>& W,
+  SPHGravity(const TableKernel<Dimension>& W,
              Scalar G, 
              Scalar maxDeltaVelocity = 2.0,
              Scalar safetyFactor = 0.5);
@@ -56,18 +55,18 @@ public:
   virtual 
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const;
 
   //! Register the state for gravitational acceleration.
   virtual 
-  void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state);
 
   // Register the derivatives/change fields for updating state.
   virtual
-  void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+  void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs);
 
   // Apply boundary conditions to the fields.
@@ -79,7 +78,7 @@ public:
                                  StateDerivatives<Dimension>& derivs);
 
   //! Vote on the timestep.  This uses a velocity-limiting rule.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
@@ -87,7 +86,7 @@ public:
   //! Make sure that Gadget's internal state is initialized before cycling.
   virtual void initialize(const Scalar& time, 
                           const Scalar& dt,
-                          const DataBaseSpace::DataBase<Dimension>& db, 
+                          const DataBase<Dimension>& db, 
                           State<Dimension>& state,
                           StateDerivatives<Dimension>& derivs);
 
@@ -108,7 +107,7 @@ public:
   virtual Scalar extraEnergy() const;
 
   //! Return the gravitational potential created by the particle distribution.
-  const FieldSpace::FieldList<Dimension, Scalar>& potential() const;
+  const FieldList<Dimension, Scalar>& potential() const;
 
   //! Test if the package is valid, i.e., ready to use.
   virtual bool valid() const;
@@ -129,13 +128,13 @@ private:
 
 #ifndef __GCCXML__
   //! SPH kernel.
-  const KernelSpace::TableKernel<Dimension>& mKernel;
+  const TableKernel<Dimension>& mKernel;
   
   //! The maximum allowed change in velocity, by factors of velocity.
   Scalar mMaxVChangeFactor;
 
   //! The gravitational potential of the particles.
-  mutable FieldSpace::FieldList<Dimension, Scalar> mPotential;
+  mutable FieldList<Dimension, Scalar> mPotential;
 
   //! The total potential energy of the particles.  Also mutable.
   mutable Scalar mExtraEnergy;
@@ -169,18 +168,18 @@ private:
   mutable KSP mSolver;
 
   //! A global indexing scheme for all the nodes in our problem of interest.
-  mutable FieldSpace::FieldList<Dimension, int> mNodeIndices;
+  mutable FieldList<Dimension, int> mNodeIndices;
 
   //! A mapping of nodes to other nodes that overlap them.
   mutable std::map<int, int> mOverlapNodes;
 
   //! Compute the Laplacian matrix structure given a set of nodal data.
-  void mComputeMatrixStructure(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  void mComputeMatrixStructure(const DataBase<Dimension>& dataBase,
                                const State<Dimension>& state) const;
   
   //! Update the Laplacian matrix given a set of nodal data (but don't alter its
   //! non-zero structure).
-  void mUpdateLaplacianMatrix(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  void mUpdateLaplacianMatrix(const DataBase<Dimension>& dataBase,
                               const State<Dimension>& state) const;
   
   //! Create a right-hand-side vector for the linear system representing the 
@@ -189,7 +188,7 @@ private:
   
   //! Compute the gravitational potential given a set of nodal data.
   void mComputeGravitationalPotential(
-          const DataBaseSpace::DataBase<Dimension>& dataBase,
+          const DataBase<Dimension>& dataBase,
           const State<Dimension>& state) const;
 #endif
   
@@ -203,8 +202,6 @@ private:
   SPHGravity& operator=(const SPHGravity&);
 
 }; // end class SPHGravity
-
-} // end namespace GravitySpace
 
 } // end namespace Spheral
 

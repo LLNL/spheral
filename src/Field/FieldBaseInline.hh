@@ -1,8 +1,8 @@
-#include <algorithm>
 #include "Utilities/DBC.hh"
+#include <algorithm>
 
 namespace Spheral {
-namespace FieldSpace {
+
 //------------------------------------------------------------------------------
 // Construct with the given name.
 //------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ template<typename Dimension>
 inline
 FieldBase<Dimension>::
 FieldBase(typename FieldBase<Dimension>::FieldName name,
-          const NodeSpace::NodeList<Dimension>& nodeList):
+          const NodeList<Dimension>& nodeList):
   mName(name),
   mNodeListPtr(&nodeList),
   mFieldListBaseList() {
@@ -80,7 +80,7 @@ FieldBase<Dimension>::name() const {
 template<typename Dimension>
 inline
 void
-FieldBase<Dimension>::name(const typename FieldBase<Dimension>::FieldName& name) {
+FieldBase<Dimension>::name(typename FieldBase<Dimension>::FieldName name) {
   mName = name;
 }
 
@@ -89,7 +89,7 @@ FieldBase<Dimension>::name(const typename FieldBase<Dimension>::FieldName& name)
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NodeSpace::NodeList<Dimension>&
+const NodeList<Dimension>&
 FieldBase<Dimension>::nodeList() const {
   CHECK(mNodeListPtr != 0);
   return *mNodeListPtr;
@@ -100,7 +100,7 @@ FieldBase<Dimension>::nodeList() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NodeSpace::NodeList<Dimension>*
+const NodeList<Dimension>*
 FieldBase<Dimension>::nodeListPtr() const {
   return mNodeListPtr;
 }
@@ -122,7 +122,7 @@ FieldBase<Dimension>::unregisterNodeList() {
 template<typename Dimension>
 inline
 void
-FieldBase<Dimension>::setFieldBaseNodeList(const NodeSpace::NodeList<Dimension>& nodeList) {
+FieldBase<Dimension>::setFieldBaseNodeList(const NodeList<Dimension>& nodeList) {
   CHECK(&nodeList);
   if (mNodeListPtr != 0) unregisterNodeList();
   mNodeListPtr = &nodeList;
@@ -171,5 +171,3 @@ haveFieldList(const FieldListBase<Dimension>& fieldListBase) const {
 }
 
 }
-}
-

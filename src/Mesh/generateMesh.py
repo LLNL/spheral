@@ -44,29 +44,20 @@ def genericGenerateMesh(nodeLists,
     nodeListsVec = vector_of_NodeList()
     for x in nodeLists:
         nodeListsVec.append(x)
-    mesh = Mesh()
-    voidNodes = makeVoidNodeList("void", 
-                                 hmin = nodeLists[0].hmin,
-                                 hmax = nodeLists[0].hmax,
-                                 hminratio = nodeLists[0].hminratio,
-                                 nPerh = nodeLists[0].nodesPerSmoothingScale)
-    nodeListsVec.append(voidNodes)
 
     boundVec = vector_of_Boundary()
     for x in boundaries:
         boundVec.append(x)
 
     t0 = time.time()
-    generateMesh(nodeListsVec,
-                 boundVec,
-                 xmin, xmax, 
-                 meshGhostNodes,
-                 generateVoid,
-                 generateParallelConnectivity,
-                 removeBoundaryZones,
-                 voidThreshold,
-                 mesh,
-                 voidNodes)
+    mesh, voidNodes = generateMesh(nodeListsVec,
+                                   boundVec,
+                                   xmin, xmax, 
+                                   meshGhostNodes,
+                                   generateVoid,
+                                   generateParallelConnectivity,
+                                   removeBoundaryZones,
+                                   voidThreshold)
     print "Required %g seconds to generate mesh." % (time.time() - t0)
     del nodeListsVec
     return mesh, voidNodes

@@ -7,15 +7,24 @@
 //
 // Created by JMO, Tue Apr 23 14:55:28 PDT 2013
 //----------------------------------------------------------------------------//
-#include <iostream>
-using namespace std;
-
 #include "ANEOS.hh"
 #include "Field/Field.hh"
 #include "Utilities/bisectSearch.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
+
+#include <iostream>
+using std::vector;
+using std::string;
+using std::pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 
 // Fortran baby!
 extern "C" {
@@ -27,13 +36,6 @@ extern "C" {
 }
 
 namespace Spheral {
-namespace SolidMaterial {
-
-using namespace std;
-using std::min;
-using std::max;
-using std::abs;
-using FieldSpace::Field;
 
 // //------------------------------------------------------------------------------
 // // Define an inline common method to handle calling ANEOS1.
@@ -60,14 +62,14 @@ ANEOS(const int materialNumber,
       const double rhoMax,
       const double Tmin,
       const double Tmax,
-      const Material::PhysicalConstants& constants,
+      const PhysicalConstants& constants,
       const double externalPressure,
       const double minimumPressure,
       const double maximumPressure,
-      const Material::MaterialPressureMinType minPressureType):
+      const MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(get_aneos_referencedensity_(const_cast<int*>(&materialNumber)),  // not in the right units yet!
                                   0.0,                                           // dummy etamin
-                                  numeric_limits<double>::max(),                 // dummy etamax
+                                  std::numeric_limits<double>::max(),            // dummy etamax
                                   constants,
                                   minimumPressure,
                                   maximumPressure,
@@ -530,6 +532,5 @@ atomicWeight() const {
   return mAtomicWeight;
 }
 
-}
 }
 

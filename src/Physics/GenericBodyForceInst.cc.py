@@ -6,8 +6,6 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace PhysicsSpace {
-    template class GenericBodyForce< Dim< %(ndim)s > >;
-  }
+  template class GenericBodyForce< Dim< %(ndim)s > >;
 }
 """

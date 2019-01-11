@@ -18,8 +18,7 @@ class Kernel:
         mod.add_include('"%s/KernelTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("KernelSpace")
+        space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
         self.types = ("BSpline", "W4Spline", "Gaussian", "SuperGaussian", "PiGaussian",
@@ -132,20 +131,20 @@ self.generateTableKernelBindings(self.TableKernel%(dim)s, %(ndim)i)
     #---------------------------------------------------------------------------
     def generateTableKernelBindings(self, x, ndim):
 
-        bsplinekernel = "Spheral::KernelSpace::BSplineKernel%id" % ndim
-        w4splinekernel = "Spheral::KernelSpace::W4SplineKernel%id" % ndim
-        gaussiankernel = "Spheral::KernelSpace::GaussianKernel%id" % ndim
-        supergaussiankernel = "Spheral::KernelSpace::SuperGaussianKernel%id" % ndim
-        pigaussiankernel = "Spheral::KernelSpace::PiGaussianKernel%id" % ndim
-        hatkernel = "Spheral::KernelSpace::HatKernel%id" % ndim
-        sinckernel = "Spheral::KernelSpace::SincKernel%id" % ndim
-        nsincpolynomialkernel = "Spheral::KernelSpace::NSincPolynomialKernel%id" % ndim
-        quarticsplinekernel = "Spheral::KernelSpace::QuarticSplineKernel%id" % ndim
-        quinticsplinekernel = "Spheral::KernelSpace::QuinticSplineKernel%id" % ndim
-        nbsplinekernel = "Spheral::KernelSpace::NBSplineKernel%id" % ndim
-        wendlandc2kernel = "Spheral::KernelSpace::WendlandC2Kernel%id" % ndim
-        wendlandc4kernel = "Spheral::KernelSpace::WendlandC4Kernel%id" % ndim
-        wendlandc6kernel = "Spheral::KernelSpace::WendlandC6Kernel%id" % ndim
+        bsplinekernel = "Spheral::BSplineKernel%id" % ndim
+        w4splinekernel = "Spheral::W4SplineKernel%id" % ndim
+        gaussiankernel = "Spheral::GaussianKernel%id" % ndim
+        supergaussiankernel = "Spheral::SuperGaussianKernel%id" % ndim
+        pigaussiankernel = "Spheral::PiGaussianKernel%id" % ndim
+        hatkernel = "Spheral::HatKernel%id" % ndim
+        sinckernel = "Spheral::SincKernel%id" % ndim
+        nsincpolynomialkernel = "Spheral::NSincPolynomialKernel%id" % ndim
+        quarticsplinekernel = "Spheral::QuarticSplineKernel%id" % ndim
+        quinticsplinekernel = "Spheral::QuinticSplineKernel%id" % ndim
+        nbsplinekernel = "Spheral::NBSplineKernel%id" % ndim
+        wendlandc2kernel = "Spheral::WendlandC2Kernel%id" % ndim
+        wendlandc4kernel = "Spheral::WendlandC4Kernel%id" % ndim
+        wendlandc6kernel = "Spheral::WendlandC6Kernel%id" % ndim
 
         # Constructors.
         for W in (bsplinekernel, w4splinekernel, gaussiankernel, supergaussiankernel, pigaussiankernel,

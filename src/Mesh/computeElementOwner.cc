@@ -10,10 +10,18 @@
 #include "computeElementOwner.hh"
 #include <algorithm>
 
-namespace Spheral {
-namespace MeshSpace {
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
+namespace Spheral {
 
 vector<unsigned>
 computeElementOwner(const unsigned numElements,
@@ -42,5 +50,4 @@ computeElementOwner(const unsigned numElements,
   return result;
 }
 
-}
 }

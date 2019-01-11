@@ -3,7 +3,6 @@
 #include "NodeList/NodeList.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Return the acceleration parameters.
@@ -24,5 +23,4 @@ aslope() const {
   return maslope;
 }
 
-}
 }

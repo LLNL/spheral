@@ -6,8 +6,6 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-    namespace PhysicsSpace {
-        template class ArtificialConduction< Dim< %(ndim)s > >;
-    }
+  template class ArtificialConduction< Dim< %(ndim)s > >;
 }
 """

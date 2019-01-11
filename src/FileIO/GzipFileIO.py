@@ -10,21 +10,7 @@ import pickle
 import time
 import sys
 
-from SpheralModules import *
-from SpheralModules.Spheral import *
-from SpheralModules.Spheral.NodeSpace import *
-from SpheralModules.Spheral.FieldSpace import *
-from SpheralModules.Spheral.DataBaseSpace import *
-from SpheralModules.Spheral.FileIOSpace import *
-from SpheralModules.Spheral.ArtificialViscositySpace import *
-from SpheralModules.Spheral.DataOutput import *
-from SpheralModules.Spheral.KernelSpace import *
-from SpheralModules.Spheral.NeighborSpace import *
-from SpheralModules.Spheral.Material import *
-from SpheralModules.Spheral.BoundarySpace import *
-from SpheralModules.Spheral.PhysicsSpace import *
-from SpheralModules.Spheral.GravitySpace import *
-from SpheralModules.Spheral.IntegratorSpace import *
+from SpheralCompiledPackages import *
 
 #-------------------------------------------------------------------------------
 # Generic class definition (all dimensions).
@@ -39,15 +25,13 @@ class GzipFileIO(PyFileIO):
                  access,
                  precision = 20,
                  readToMemory = True):
+        PyFileIO.__init__(self, fileName, access)
 
         # We enforce the convention that gziped files will have the .gz
         # extension.
         if fileName[-3:] != ".gz":
             fileName += ".gz"
         
-        PyFileIO.__init__(self, fileName, access)
-        self.fileName = fileName
-        self.access = access
         self.precision = precision # "%" + "%i.%ie" % (precision + 3, precision)
         self.readToMemory = readToMemory
         self.open(fileName, access)
@@ -113,6 +97,7 @@ class GzipFileIO(PyFileIO):
 
     def readFieldObject(self, val, pathName):
         val.string(self.readObject(pathName))
+        #print list(val)
         return
 
     #---------------------------------------------------------------------------
@@ -166,10 +151,21 @@ class GzipFileIO(PyFileIO):
 
     def read_string(self, pathName):
         try:
-            return self.findPath(pathName)
+            result = self.findPath(pathName)
+            return result
         except Exception as excp:
             print "WARNING : Unable to restore %s due to exception message: %s" % (pathName, excp)
             pass
+
+    #---------------------------------------------------------------------------
+    # pathExists
+    #---------------------------------------------------------------------------
+    def pathExists(self, pathName):
+        try:
+            p = self.findPath(pathName)
+            return True
+        except:
+            return False
 
     #---------------------------------------------------------------------------
     # Use pickling for the majority of the write methods.  Most objects we just
@@ -186,6 +182,15 @@ class GzipFileIO(PyFileIO):
 
     def write_double(self, val, pathName):
         self.writeObject(val, pathName)
+
+    def write_vector_int(self, val, pathName):
+        self.writeObject(list(val), pathName)
+
+    def write_vector_double(self, val, pathName):
+        self.writeObject(list(val), pathName)
+
+    def write_vector_string(self, val, pathName):
+        self.writeObject(list(val), pathName)
 
     def write_Vector1d(self, val, pathName):
         self.writeObject(val, pathName)
@@ -222,51 +227,6 @@ class GzipFileIO(PyFileIO):
 
     def write_ThirdRankTensor3d(self, val, pathName):
         self.writeObject(val, pathName)
-
-    def write_vector_of_int(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_double(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_string(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_Vector1d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_Tensor1d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_SymTensor1d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_ThirdRankTensor1d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_Vector2d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_Tensor2d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_SymTensor2d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_ThirdRankTensor2d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_Vector3d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_Tensor3d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_SymTensor3d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
-
-    def write_vector_of_ThirdRankTensor3d(self, val, pathName):
-        self.writeObject(vector2string(val, self.precision), pathName)
 
     def write_ScalarField1d(self, val, pathName):
         self.writeFieldObject(val, pathName)
@@ -337,116 +297,50 @@ class GzipFileIO(PyFileIO):
     def read_double(self, pathName):
         return self.readObject(pathName)
 
-    def read_Vector1d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 1)
+    def read_vector_int(self, val, pathName):
+        self.copyContainer(self.readObject(pathName), val)
 
-    def read_Tensor1d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 1)
+    def read_vector_double(self, val, pathName):
+        self.copyContainer(self.readObject(pathName), val)
 
-    def read_SymTensor1d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 1)
+    def read_vector_string(self, val, pathName):
+        self.copyContainer(self.readObject(pathName), val)
 
-    def read_ThirdRankTensor1d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 1)
+    def read_Vector1d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_Vector2d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 2)
+    def read_Tensor1d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_Tensor2d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 4)
+    def read_SymTensor1d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_SymTensor2d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 3)
+    def read_ThirdRankTensor1d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_ThirdRankTensor2d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 8)
+    def read_Vector2d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_Vector3d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 3)
+    def read_Tensor2d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_Tensor3d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 9)
+    def read_SymTensor2d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_SymTensor3d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 6)
+    def read_ThirdRankTensor2d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_ThirdRankTensor3d(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val, 27)
+    def read_Vector3d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_vector_of_int(self, val, pathName):
-        val0 = string2vector_of_int(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
+    def read_Tensor3d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_vector_of_double(self, val, pathName):
-        val0 = string2vector_of_double(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
+    def read_SymTensor3d(self, pathName):
+        return self.readObject(pathName)
 
-    def read_vector_of_string(self, val, pathName):
-        val0 = string2vector_of_string(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_Vector1d(self, val, pathName):
-        val0 = string2vector_of_Vector1d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_Tensor1d(self, val, pathName):
-        val0 = string2vector_of_Tensor1d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_SymTensor1d(self, val, pathName):
-        val0 = string2vector_of_SymTensor1d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_ThirdRankTensor1d(self, val, pathName):
-        val0 = string2vector_of_ThirdRankTensor1d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_Vector2d(self, val, pathName):
-        val0 = string2vector_of_Vector2d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_Tensor2d(self, val, pathName):
-        val0 = string2vector_of_Tensor2d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_SymTensor2d(self, val, pathName):
-        val0 = string2vector_of_SymTensor2d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_ThirdRankTensor2d(self, val, pathName):
-        val0 = string2vector_of_ThirdRankTensor2d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_Vector3d(self, val, pathName):
-        val0 = string2vector_of_Vector3d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_Tensor3d(self, val, pathName):
-        val0 = string2vector_of_Tensor3d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_SymTensor3d(self, val, pathName):
-        val0 = string2vector_of_SymTensor3d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
-
-    def read_vector_of_ThirdRankTensor3d(self, val, pathName):
-        val0 = string2vector_of_ThirdRankTensor3d(self.readObject(pathName))
-        val.resize(len(val0))
-        self.copyContainer(val0, val, len(val0))
+    def read_ThirdRankTensor3d(self, pathName):
+        return self.readObject(pathName)
 
     def read_ScalarField1d(self, val, pathName):
         self.readFieldObject(val, pathName)
@@ -505,22 +399,7 @@ class GzipFileIO(PyFileIO):
     #---------------------------------------------------------------------------
     # Copy Vectors.
     #---------------------------------------------------------------------------
-    def copyContainer(self, v0, v1, size):
-        for i in xrange(size):
-            v1[i] = v0[i]
+    def copyContainer(self, v0, v1):
+        for x in v0:
+            v1.append(x)
         return
-
-    def copyGeomTensor(self, v0, v1, ndim):
-        v1.xx = v0.xx
-        if ndim > 1:
-            v1.xy = v0.xy
-            v1.yx = v0.yx
-            v1.yy = v0.yy
-        if ndim > 2:
-            v1.xz = v0.xz
-            v1.yz = v0.yz
-            v1.zx = v0.zx
-            v1.zy = v0.zy
-            v1.zz = v0.zz
-        return
-

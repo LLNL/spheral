@@ -13,25 +13,24 @@
 #include "Utilities/SpheralFunctions.hh"
 #include "Geometry/innerProduct.hh"
 #include "Geometry/outerProduct.hh"
-
 #include "Geometry/Dimension.hh"
-
+#include "Utilities/FastMath.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-namespace PhysicsSpace {
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
+namespace Spheral {
+
 using namespace FastMath;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using Geometry::innerProduct;
-using Geometry::outerProduct;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -359,6 +358,5 @@ registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
 }
 
-}
 }
 

@@ -4,13 +4,6 @@
 //
 // Created by JMO, Wed Nov 24 10:51:32 2004
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <vector>
-#include <map>
-
-#include <fstream>
-#include <cstdlib>
-
 #include "NestedGridRedistributeNodes.hh"
 #include "DomainNode.hh"
 #include "NestedGridDistributedBoundary.hh"
@@ -28,19 +21,15 @@
 
 #include "Utilities/DBC.hh"
 
+#include <algorithm>
+#include <vector>
+#include <map>
+
+#include <fstream>
+#include <cstdlib>
+
+
 namespace Spheral {
-namespace PartitionSpace {
-
-using namespace std;
-
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using BoundarySpace::NestedGridDistributedBoundary;
-using BoundarySpace::DistributedBoundary;
-using BoundarySpace::Boundary;
-using FieldSpace::FieldList;
-using NeighborSpace::NestedGridNeighbor;
-using NeighborSpace::GridCellIndex;
 
 //------------------------------------------------------------------------------
 // Construct with the given node extent.
@@ -81,7 +70,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   }
 
   // Build the set of global node IDs.
-  const FieldList<Dimension, int> globalIDs = NodeSpace::globalNodeIDs(dataBase);
+  const FieldList<Dimension, int> globalIDs = globalNodeIDs(dataBase);
 
   // Get the local description of the domain distribution.
   vector<DomainNode<Dimension> > nodeDistribution = this->currentDomainDecomposition(dataBase, globalIDs);
@@ -885,5 +874,3 @@ assignNodesToDomain(const DataBase<Dimension>& dataBase,
 }
 
 }
-}
-

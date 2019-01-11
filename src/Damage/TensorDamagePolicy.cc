@@ -10,8 +10,6 @@
 //
 // Created by JMO, Sun Sep 26 16:15:17 PDT 2004
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
 #include "TensorDamagePolicy.hh"
 #include "TensorDamageModel.hh"
 #include "oneMinusDamage.hh"
@@ -28,14 +26,19 @@
 #include "Utilities/GeometricUtilities.hh"
 #include "Utilities/DBC.hh"
 
+#include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-
-using namespace std;
-
-using FieldSpace::Field;
-using NodeSpace::SolidNodeList;
-using PhysicsSpace::TensorDamageModel;
-using Material::EquationOfState;
 
 namespace {
 
@@ -75,7 +78,7 @@ inline
 void
 sortEigen(Dim<2>::SymTensor::EigenStructType& eigeni) {
   if (eigeni.eigenValues(0) < eigeni.eigenValues(1)) {
-    swap(eigeni.eigenValues(0), eigeni.eigenValues(1));
+    std::swap(eigeni.eigenValues(0), eigeni.eigenValues(1));
     eigeni.eigenVectors = Dim<2>::Tensor(eigeni.eigenVectors.xy(), eigeni.eigenVectors.xx(),
                                          eigeni.eigenVectors.yy(), eigeni.eigenVectors.yx());
   }
@@ -93,11 +96,11 @@ sortEigen(Dim<3>::SymTensor::EigenStructType& eigeni) {
     flipped = false;
     if (eigeni.eigenValues(i) < eigeni.eigenValues(j)) {
       flipped = true;
-      swap(i, j);
+      std::swap(i, j);
     }
     if (eigeni.eigenValues(j) < eigeni.eigenValues(k)) {
       flipped = true;
-      swap(j, k);
+      std::swap(j, k);
     }
   }
   eigeni.eigenValues = Dim<3>::Vector(eigeni.eigenValues(i),

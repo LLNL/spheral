@@ -8,10 +8,8 @@
 #define HDF5Traits_HH
 
 #include "H5Cpp.h"
-using namespace H5;
 
 namespace Spheral {
-namespace FileIO {
 
 template<typename DataType> 
 struct HDF5Traits {
@@ -20,15 +18,12 @@ struct HDF5Traits {
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace FileIO {
-    template<typename DataType> class HDF5Traits;
-  }
+  template<typename DataType> class HDF5Traits;
 }
 
 #endif

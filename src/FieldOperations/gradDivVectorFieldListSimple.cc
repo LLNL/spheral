@@ -6,8 +6,6 @@
 // Created by JMO, Wed Dec 18 22:46:54 PST 2002
 //----------------------------------------------------------------------------//
 
-#include <vector>
-
 #include "FieldListSecondDerivatives.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
@@ -18,14 +16,17 @@
 #include "Boundary/Boundary.hh"
 #include "Utilities/rotationMatrix.hh"
 
-namespace Spheral {
-namespace FieldSpace {
+#include <vector>
 
-using namespace std;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using KernelSpace::TableKernel;
-using BoundarySpace::Boundary;
+namespace Spheral {
+
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 //------------------------------------------------------------------------------
 // Calculate the gradient of the divergence of a Vector FieldList.
@@ -126,17 +127,17 @@ gradDivVectorFieldListSimple
             Scalar Wij;
             Vector gWij;
             switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-            case NeighborSpace::NeighborSearchType::GatherScatter:
+            case NeighborSearchType::GatherScatter:
               Wij = 0.5*(Wi + Wj);
               gWij = 0.5*(gWi + gWj);
               break;
 
-            case NeighborSpace::NeighborSearchType::Gather:
+            case NeighborSearchType::Gather:
               Wij = Wi;
               gWij = gWi;
               break;
 
-            case NeighborSpace::NeighborSearchType::Scatter:
+            case NeighborSearchType::Scatter:
               Wij = Wj;
               gWij = gWj;
               break;
@@ -355,5 +356,3 @@ gradDivVectorFieldListSimple
 // }
 
 }
-}
-

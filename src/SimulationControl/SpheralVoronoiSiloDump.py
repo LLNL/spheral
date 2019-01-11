@@ -7,25 +7,11 @@
 # Format version:
 # 1.0 -- original release
 #-------------------------------------------------------------------------------
-import os, time, gc, mpi
+import os, gc, mpi
 
-from SpheralModules import *
-from SpheralModules.Spheral import *
-from SpheralModules.Spheral.NodeSpace import *
-from SpheralModules.Spheral.FieldSpace import *
-from SpheralModules.Spheral.DataBaseSpace import *
-from SpheralModules.Spheral.FileIOSpace import *
-from SpheralModules.Spheral.ArtificialViscositySpace import *
-from SpheralModules.Spheral.DataOutput import *
-from SpheralModules.Spheral.KernelSpace import *
-from SpheralModules.Spheral.NeighborSpace import *
-from SpheralModules.Spheral.Material import *
-from SpheralModules.Spheral.BoundarySpace import *
-from SpheralModules.Spheral.PhysicsSpace import *
-from SpheralModules.Spheral.GravitySpace import *
-from SpheralModules.Spheral.IntegratorSpace import *
+from SpheralCompiledPackages import *
 
-from PolytopeModules import polytope
+#from PolytopeModules import polytope
 from siloMeshDump import *
 
 class SpheralVoronoiSiloDump:
@@ -124,7 +110,7 @@ class SpheralVoronoiSiloDump:
         if self.cells:
 
             # Yep, so we build a disjoint set of cells as a polytope tessellation.
-            mesh = eval("polytope.Tessellation%s()" % self.dimension)
+            mesh = eval("Tessellation%s()" % self.dimension)
             nDim = eval("Vector%s.nDimensions" % self.dimension)
 
             # Are we splitting into triangles/tets, or writing the native polygons/polyhera?
@@ -135,10 +121,10 @@ class SpheralVoronoiSiloDump:
                     for i in xrange(n):
                         celli = self.cells(nodeListi, i)
                         verts = celli.vertices()
-                        noldnodes = mesh.nodes.size()/nDim
-                        noldfaces = mesh.faces.size()
-                        noldcells = mesh.cells.size()
-                        for j in xrange(verts.size()):
+                        noldnodes = len(mesh.nodes)/nDim
+                        noldfaces = len(mesh.faces)
+                        noldcells = len(mesh.cells)
+                        for j in xrange(len(verts)):
                             for k in xrange(nDim):
                                 mesh.nodes.append(verts[j][k])
 
@@ -196,25 +182,26 @@ class SpheralVoronoiSiloDump:
 
             else:
                 index2zone = None
-                for nodeListi in xrange(len(self.cells)):
-                    n = self.cells[nodeListi].numInternalElements
-                    noldcells = mesh.cells.size()
-                    mesh.cells.resize(noldcells + n)
-                    for i in xrange(n):
-                        celli = self.cells(nodeListi, i)
-                        verts = celli.vertices()
-                        facets = celli.facets()
-                        noldnodes = mesh.nodes.size()/nDim
-                        noldfaces = mesh.faces.size()
-                        mesh.faces.resize(noldfaces + facets.size())
-                        for j in xrange(verts.size()):
-                            for k in xrange(nDim):
-                                mesh.nodes.append(verts[j][k])
-                        for j in xrange(facets.size()):
-                            mesh.cells[noldcells + i].append(noldfaces + j)
-                            ipoints = facets[j].ipoints
-                            for k in ipoints:
-                                mesh.faces[noldfaces + j].append(noldnodes + k)
+                copy2polytope(self.cells, mesh)
+                # for nodeListi in xrange(len(self.cells)):
+                #     n = self.cells[nodeListi].numInternalElements
+                #     noldcells = len(mesh.cells)
+                #     mesh.cells.resize(noldcells + n)
+                #     for i in xrange(n):
+                #         celli = self.cells(nodeListi, i)
+                #         verts = celli.vertices
+                #         facets = celli.facets
+                #         noldnodes = len(mesh.nodes)/nDim
+                #         noldfaces = len(mesh.faces)
+                #         mesh.faces.resize(noldfaces + len(facets))
+                #         for j in xrange(len(verts)):
+                #             for k in xrange(nDim):
+                #                 mesh.nodes.append(verts[j][k])
+                #         for j in xrange(len(facets)):
+                #             mesh.cells[noldcells + i].append(noldfaces + j)
+                #             ipoints = facets[j].ipoints
+                #             for k in ipoints:
+                #                 mesh.faces[noldfaces + j].append(noldnodes + k)
 
         else:
             # We need to do the full up polytope tessellation.
@@ -403,11 +390,13 @@ def dumpPhysicsState(stateThingy,
     # What did we get passed?
     if max([isinstance(stateThingy, x) for x in [Integrator1d, Integrator2d, Integrator3d]]):
         integrator = stateThingy
-        dataBase = integrator.dataBase()
-        state = eval("State%id(integrator.dataBase(), integrator.physicsPackages())" % integrator.dataBase().nDim)
+        dataBase = integrator.dataBase
+        state = eval("State%id(integrator.dataBase, integrator.physicsPackages())" % integrator.dataBase.nDim)
+        for p in integrator.physicsPackages():
+            p.registerAdditionalVisualizationState(dataBase, state)
         derivs = None
         if dumpDerivatives:
-            derivs = eval("StateDerivatives%id(integrator.dataBase(), integrator.physicsPackages())" % integrator.dataBase().nDim)
+            derivs = eval("StateDerivatives%id(integrator.dataBase, integrator.physicsPackages())" % integrator.dataBase.nDim)
         currentTime = integrator.currentTime
         currentCycle = integrator.currentCycle
     elif max([isinstance(stateThingy, x) for x in [State1d, State2d, State3d]]):

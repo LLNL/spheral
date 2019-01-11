@@ -10,7 +10,6 @@
 #include "Neighbor/ConnectivityMap.hh"
 
 namespace Spheral {
-namespace NeighborSpace {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -40,27 +39,25 @@ typedef ConnectivityMap<Dim<2> > ConnectivityMap2d;
 typedef ConnectivityMap<Dim<3> > ConnectivityMap3d;
 
 }
-}
 
-typedef std::vector<Spheral::NeighborSpace::GridCellIndex1d> vector_of_GridCellIndex1d;
-typedef std::vector<Spheral::NeighborSpace::GridCellIndex2d> vector_of_GridCellIndex2d;
-typedef std::vector<Spheral::NeighborSpace::GridCellIndex3d> vector_of_GridCellIndex3d;
+typedef std::vector<Spheral::GridCellIndex1d> vector_of_GridCellIndex1d;
+typedef std::vector<Spheral::GridCellIndex2d> vector_of_GridCellIndex2d;
+typedef std::vector<Spheral::GridCellIndex3d> vector_of_GridCellIndex3d;
 
-typedef std::vector<std::vector<Spheral::NeighborSpace::GridCellIndex1d> > vector_of_vector_of_GridCellIndex1d;
-typedef std::vector<std::vector<Spheral::NeighborSpace::GridCellIndex2d> > vector_of_vector_of_GridCellIndex2d;
-typedef std::vector<std::vector<Spheral::NeighborSpace::GridCellIndex3d> > vector_of_vector_of_GridCellIndex3d;
+typedef std::vector<std::vector<Spheral::GridCellIndex1d> > vector_of_vector_of_GridCellIndex1d;
+typedef std::vector<std::vector<Spheral::GridCellIndex2d> > vector_of_vector_of_GridCellIndex2d;
+typedef std::vector<std::vector<Spheral::GridCellIndex3d> > vector_of_vector_of_GridCellIndex3d;
 
 namespace Spheral {
-namespace NeighborSpace {
 
 //------------------------------------------------------------------------------
 // Get a NodeList from a ConnectivityMap.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-NodeSpace::NodeList<Dimension>*
+NodeList<Dimension>*
 nodeListFromConnectivityMap(ConnectivityMap<Dimension>& self, const int index) {
-  return const_cast<NodeSpace::NodeList<Dimension>*>(&(self.nodeList(index)));
+  return const_cast<NodeList<Dimension>*>(&(self.nodeList(index)));
 }
 
 //------------------------------------------------------------------------------
@@ -68,9 +65,9 @@ nodeListFromConnectivityMap(ConnectivityMap<Dimension>& self, const int index) {
 //------------------------------------------------------------------------------
 // template<typename Dimension>
 // inline
-// NodeSpace::FluidNodeList<Dimension>*
+// FluidNodeList<Dimension>*
 // fluidNodeListFromConnectivityMap(ConnectivityMap<Dimension>& self, const int index) {
-//   return const_cast<NodeSpace::FluidNodeList<Dimension>*>(&(self.fluidNodeList(index)));
+//   return const_cast<FluidNodeList<Dimension>*>(&(self.fluidNodeList(index)));
 // }
 
 //------------------------------------------------------------------------------
@@ -83,7 +80,6 @@ numNodeListsInConnectivityMap(ConnectivityMap<Dimension>& self) {
   return self.nodeLists().size();
 }
 
-}
 }
 
 #endif

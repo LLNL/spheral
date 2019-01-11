@@ -12,23 +12,19 @@
 #ifndef __Spheral_globalBoundingVolumes__
 #define __Spheral_globalBoundingVolumes__
 
-#include <vector>
 #include "Geometry/Dimension.hh"
 #include "Field/FieldList.hh"
 
-// Forward declarations.
-namespace Spheral {
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-}
+#include <vector>
 
 namespace Spheral {
+
+template<typename Dimension> class DataBase;
 
 // Minimum bounding box for a Field of positions.
 template<typename Dimension>
 void
-globalBoundingBox(const FieldSpace::Field<Dimension, typename Dimension::Vector>& positions,
+globalBoundingBox(const Field<Dimension, typename Dimension::Vector>& positions,
                   typename Dimension::Vector& xmin,
                   typename Dimension::Vector& xmax,
                   const bool ghost = false);
@@ -36,7 +32,7 @@ globalBoundingBox(const FieldSpace::Field<Dimension, typename Dimension::Vector>
 // Minimum bounding box for a FieldList of positions.
 template<typename Dimension>
 void
-globalBoundingBox(const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& positions,
+globalBoundingBox(const FieldList<Dimension, typename Dimension::Vector>& positions,
                   typename Dimension::Vector& xmin,
                   typename Dimension::Vector& xmax,
                   const bool ghost = false);
@@ -44,7 +40,7 @@ globalBoundingBox(const FieldSpace::FieldList<Dimension, typename Dimension::Vec
 // Minimum volume FacetedVolume for DataBases.
 template<typename Dimension>
 void 
-globalBoundingVolumes(const DataBaseSpace::DataBase<Dimension>& dataBase,
+globalBoundingVolumes(const DataBase<Dimension>& dataBase,
                       typename Dimension::ConvexHull& nodeVolume,
                       typename Dimension::ConvexHull& sampleVolume);
 

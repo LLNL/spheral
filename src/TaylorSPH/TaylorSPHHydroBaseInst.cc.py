@@ -6,8 +6,6 @@ text = """
 #include "TaylorSPHHydroBase.cc"
 
 namespace Spheral {
-  namespace TaylorSPHSpace {
-    template class TaylorSPHHydroBase< Dim< %(ndim)s > >;
-  }
+  template class TaylorSPHHydroBase< Dim< %(ndim)s > >;
 }
 """

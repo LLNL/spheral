@@ -15,19 +15,12 @@
 
 // Forward declarations.
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class SolidNodeList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
+  template<typename Dimension> class SolidNodeList;
+  template<typename Dimension> class DataBase;
+  template<typename Dimension> class TableKernel;
 }
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 template<typename Dimension>
 class GradyKippScalarDamage: 
@@ -45,12 +38,12 @@ public:
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors, destructor.
-  GradyKippScalarDamage(NodeSpace::SolidNodeList<Dimension>& nodeList,
-                        NodeSpace::FluidNodeList<Dimension>& damagedNodeList,
+  GradyKippScalarDamage(SolidNodeList<Dimension>& nodeList,
+                        FluidNodeList<Dimension>& damagedNodeList,
                         const double kWeibull,
                         const double mWeibull,
                         const double volume,
-                        const KernelSpace::TableKernel<Dimension>& kernel,
+                        const TableKernel<Dimension>& kernel,
                         const unsigned seed,
                         const double crackGrowthMultiplier = 0.4,
                         const int minFlawsPerNode = 1,
@@ -65,8 +58,8 @@ public:
 
   //**************************************************************************
   // Restart methods.
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //**************************************************************************
 
 private:
@@ -80,22 +73,16 @@ private:
   GradyKippScalarDamage(const GradyKippScalarDamage&);
   GradyKippScalarDamage& operator=(const GradyKippScalarDamage&);
 
-#ifndef __GCCXML__
   using ScalarDamageModel<Dimension>::mFlaws;
-#endif
-
 };
 
-}
 }
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace PhysicsSpace {
-    template<typename Dimension> class GradyKippScalarDamage;
-  }
+  template<typename Dimension> class GradyKippScalarDamage;
 }
 
 #endif

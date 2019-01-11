@@ -13,36 +13,21 @@
 #ifndef Spheral_SortAndDivideRedistributeNodes_hh
 #define Spheral_SortAndDivideRedistributeNodes_hh
 
-#ifndef __GCCXML__
+#include "RedistributeNodes.hh"
+
 #include <list>
 #include <vector>
-#else
-#include "fakestl.hh"
-#endif
 
 #ifdef USE_MPI
 #include "mpi.h"
 #endif
 
-#include "RedistributeNodes.hh"
-
 namespace Spheral {
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace BoundarySpace {
-    template<typename Dimension> class Boundary;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-}
 
-namespace Spheral {
-namespace PartitionSpace {
+template<typename Dimension> class DataBase;
+template<typename Dimension> class NodeList;
+template<typename Dimension> class Boundary;
+template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension>
 class SortAndDivideRedistributeNodes: public RedistributeNodes<Dimension> {
@@ -94,7 +79,7 @@ public:
 
   // Access the HExtent we're using.
   double Hextent() const;
-  void Hextent(const double val);
+  void Hextent(double val);
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -109,18 +94,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "SortAndDivideRedistributeNodesInline.hh"
-#endif
 
 #else
+
 // Forward declare the SortAndDivideRedistributeNodes class.
 namespace Spheral {
-  namespace PartitionSpace {
-    template<typename Dimension> class SortAndDivideRedistributeNodes;
-  }
+  template<typename Dimension> class SortAndDivideRedistributeNodes;
 }
 
 #endif

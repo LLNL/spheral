@@ -27,12 +27,12 @@ public:
   typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
 
   // Constructors, destructor.
-  MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
+  MeshPolicy(const Physics<Dimension>& package,
              const double voidThreshold = 2.0,
              const bool meshGhostNodes = true,
              const bool generateVoid = false,
              const bool removeBoundaryZones = true);
-  MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
+  MeshPolicy(const Physics<Dimension>& package,
              const Vector& xmin,
              const Vector& xmax,
              const double voidThreshold = 2.0,
@@ -54,7 +54,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const PhysicsSpace::Physics<Dimension>& mPackage;
+  const Physics<Dimension>& mPackage;
   double mVoidThreshold;
   bool mComputeBounds, mMeshGhostNodes, mGenerateVoid, mRemoveBoundaryZones;
   Vector mXmin, mXmax;

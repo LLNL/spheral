@@ -1,4 +1,4 @@
-from SpheralModules.Spheral.SPHSpace import *
+from SpheralCompiledPackages import *
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()

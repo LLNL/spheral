@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace DataOutput {
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -25,7 +24,7 @@ template<typename Object>
 inline
 void
 Restart<Object>::
-dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const {
+dumpState(FileIO& file, const std::string& pathName) const {
   mObjectPtr->dumpState(file, pathName);
 }
 
@@ -36,7 +35,7 @@ template<typename Object>
 inline
 void
 Restart<Object>::
-restoreState(const FileIOSpace::FileIO& file, const std::string& pathName) const {
+restoreState(const FileIO& file, const std::string& pathName) const {
   mObjectPtr->restoreState(file, pathName);
 }
 
@@ -51,5 +50,4 @@ label() const {
   return mObjectPtr->label();
 }
 
-}
 }

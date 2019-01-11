@@ -107,7 +107,7 @@ commandLine(seed = "lattice",
             # Johnson-Cook choices
             D1 = 0.0,
             D2 = 2.0,
-            D3 = 1.5,
+            D3 = -1.5,
             D4 = 0.0,
             D5 = 0.0,
             epsilondot0 = 0.01,
@@ -227,9 +227,9 @@ class AverageStrain:
         return
 
     def sample(self, cycle, atime, dt):
-        nodes = self.damageModel.nodeList()
+        nodes = self.damageModel.nodeList
         mass = nodes.mass()
-        strain = self.damageModel.strain()
+        strain = self.damageModel.strain
 
         n = nodes.numInternalNodes
         result = (mpi.allreduce(sum([mass[i]*(strain[i].Trace()) for i in xrange(n)]), mpi.SUM)/
@@ -463,8 +463,8 @@ output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
+output("hydro.kernel")
+output("hydro.PiKernel")
 
 #-------------------------------------------------------------------------------
 # Construct a damage model.
@@ -603,24 +603,6 @@ if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorD
     strainHistory = AverageStrain(damageModel,
                                       dataDir + "/strainhistory.txt")
     control.appendPeriodicWork(strainHistory.sample, 1)
-
-#-------------------------------------------------------------------------------
-# If we're doing CRK with the Voronoi volume, we can output an interesting view
-# of the cells for each point.
-#-------------------------------------------------------------------------------
-if crksph and volumeType == CRKVoronoiVolume:
-    import SpheralVoronoiSiloDump
-    def dropVViz(cycle, Time, dt):
-        SpheralVoronoiSiloDump.dumpPhysicsState(integrator,
-                                                baseFileName = vizBaseName,
-                                                baseDirectory = vizDirCRK,
-                                                currentTime = Time,
-                                                currentCycle = cycle,
-                                                dumpGhosts = False,
-                                                dumpDerivatives = False,
-                                                boundaries = integrator.uniqueBoundaryConditions())
-    control.appendPeriodicWork(dropVViz, vizCycle)
-    control.appendPeriodicTimeWork(dropVViz, vizTime)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.

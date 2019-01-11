@@ -14,20 +14,20 @@ namespace Spheral {
 
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
-struct DataTypeTraits<FieldSpace::Field<Dimension, Value> > {
+struct DataTypeTraits<Field<Dimension, Value> > {
   typedef Value ElementType;
   static bool fixedSize() { return false; }
-  static int numElements(const FieldSpace::Field<Dimension, Value>& x) { return x.size(); }
-  static FieldSpace::Field<Dimension, Value> zero() { return FieldSpace::Field<Dimension, Value>("Unnamed field"); }
+  static int numElements(const Field<Dimension, Value>& x) { return x.size(); }
+  static Field<Dimension, Value> zero() { return Field<Dimension, Value>("Unnamed field"); }
 };
 
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
-struct DataTypeTraits<FieldSpace::FieldList<Dimension, Value> > {
-  typedef FieldSpace::Field<Dimension, Value>* ElementType;
+struct DataTypeTraits<FieldList<Dimension, Value> > {
+  typedef Field<Dimension, Value>* ElementType;
   static bool fixedSize() { return false; }
-  static int numElements(const FieldSpace::FieldList<Dimension, Value>& x) { return x.size(); }
-  static FieldSpace::Field<Dimension, Value> zero() { return FieldSpace::FieldList<Dimension, Value>(); }
+  static int numElements(const FieldList<Dimension, Value>& x) { return x.size(); }
+  static Field<Dimension, Value> zero() { return FieldList<Dimension, Value>(); }
 };
 
 }

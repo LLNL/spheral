@@ -19,14 +19,8 @@
 namespace Spheral {
 
 // Forward declarations.
-namespace FieldSpace {
-  template<typename Dimension, typename Value> class FieldList;
-}
-namespace KernelSpace {
-  template<typename Dimension> class TableKernel;
-}
-
-namespace NodeSpace {
+template<typename Dimension, typename Value> class FieldList;
+template<typename Dimension> class TableKernel;
 
 // A trait class to figure out the result type.
 template<typename Dimension, unsigned n> struct MomentTraits;
@@ -36,10 +30,10 @@ template<typename Dimension> struct MomentTraits<Dimension, 2U> { typedef typena
 
 // Compute a particular moment.
 template<typename Dimension, typename NodeListIterator, unsigned moment>
-FieldSpace::FieldList<Dimension, typename MomentTraits<Dimension, moment>::Moment>
+FieldList<Dimension, typename MomentTraits<Dimension, moment>::Moment>
 nthNodalMoment(const NodeListIterator nodeListBegin,
                const NodeListIterator nodeListEnd,
-               const KernelSpace::TableKernel<Dimension>& W,
+               const TableKernel<Dimension>& W,
                const bool renormalize);
 
 // Compute the non-normalized zeroth and normalized first moment.
@@ -47,11 +41,11 @@ template<typename Dimension, typename NodeListIterator>
 void
 zerothAndFirstNodalMoments(const NodeListIterator nodeListBegin,
                            const NodeListIterator nodeListEnd,
-                           const KernelSpace::TableKernel<Dimension>& W,
+                           const TableKernel<Dimension>& W,
                            const bool useKernelAsGradient,
-                           FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& zerothMoment,
-                           FieldSpace::FieldList<Dimension, typename Dimension::Vector>& firstMoment);
-}
+                           FieldList<Dimension, typename Dimension::Scalar>& zerothMoment,
+                           FieldList<Dimension, typename Dimension::Vector>& firstMoment);
+
 }
 
 #endif

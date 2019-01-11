@@ -10,7 +10,6 @@
 #include "MonaghanGingoldViscosity.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 template<typename Dimension>
 class RadialViscosity: public MonaghanGingoldViscosity<Dimension> {
@@ -30,24 +29,22 @@ public:
 
   // Calculate the artificial internal energy term.
   virtual Scalar viscousInternalEnergy(const NodeIDIterator<Dimension>& nodeI,
-				       const NodeIDIterator<Dimension>& nodeJ,
-				       const Vector& rij, const Vector& vij,
-				       const Vector& etai, const Vector& etaj,
-				       const Scalar ci, const Scalar cj) const;
+                                       const NodeIDIterator<Dimension>& nodeJ,
+                                       const Vector& rij, const Vector& vij,
+                                       const Vector& etai, const Vector& etaj,
+                                       const Scalar ci, const Scalar cj) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
 };
-}
+
 }
 
 #else
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
-// Forward declaration.
-template<typename Dimension> class RadialViscosity;
-}
+  // Forward declaration.
+  template<typename Dimension> class RadialViscosity;
 }
 
 #endif

@@ -10,7 +10,6 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-namespace NeighborSpace {
 
 template<typename Dimension> class GridCellIndexBase {};
 
@@ -93,7 +92,6 @@ class GridCellIndexBase<Dim<3> > {
   int mz;
 };
 
-}
 }
 
 #endif

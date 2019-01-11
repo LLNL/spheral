@@ -1,25 +1,24 @@
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Access the state fields.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+const Field<Dimension, typename Dimension::SymTensor>&
 TensorDamageModel<Dimension>::
 strain() const {
   return mStrain;
 }
 
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+const Field<Dimension, typename Dimension::SymTensor>&
 TensorDamageModel<Dimension>::
 effectiveStrain() const {
   return mEffectiveStrain;
 }
 
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 TensorDamageModel<Dimension>::
 DdamageDt() const {
   return mDdamageDt;
@@ -27,7 +26,7 @@ DdamageDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+const Field<Dimension, typename Dimension::SymTensor>&
 TensorDamageModel<Dimension>::
 newEffectiveDamage() const {
   return mNewEffectiveDamage;
@@ -35,7 +34,7 @@ newEffectiveDamage() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Vector>&
+const Field<Dimension, typename Dimension::Vector>&
 TensorDamageModel<Dimension>::
 newDamageGradient() const {
   return mNewDamageGradient;
@@ -79,7 +78,7 @@ template<typename Dimension>
 inline
 void
 TensorDamageModel<Dimension>::
-useDamageGradient(const bool x) {
+useDamageGradient(bool x) {
   mUseDamageGradient = x;
 }
 
@@ -98,7 +97,7 @@ template<typename Dimension>
 inline
 void
 TensorDamageModel<Dimension>::
-damageInCompression(const bool x) {
+damageInCompression(bool x) {
   mDamageInCompression = x;
 }
 
@@ -118,9 +117,8 @@ template<typename Dimension>
 inline
 void
 TensorDamageModel<Dimension>::
-criticalDamageThreshold(const double x) {
+criticalDamageThreshold(double x) {
   mCriticalDamageThreshold = x;
 }
 
-}
 }

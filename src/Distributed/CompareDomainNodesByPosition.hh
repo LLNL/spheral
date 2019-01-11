@@ -13,7 +13,6 @@
 #include "DomainNode.hh"
 
 namespace Spheral {
-namespace PartitionSpace {
 
 template<typename Dimension>
 class CompareDomainNodesByPosition {
@@ -45,14 +44,11 @@ class CompareDomainNodesByPosition {
 };
 
 }
-}
 
 #else
 
 namespace Spheral {
-  namespace PartitionSpace {
-    template<typename Dimension> class CompareDomainNodesByPosition;
-  }
+  template<typename Dimension> class CompareDomainNodesByPosition;
 }
 
 #endif

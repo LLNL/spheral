@@ -17,7 +17,6 @@
 #include "StrengthModel.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
 template<typename Dimension>
 class CollinsStrength: public StrengthModel<Dimension> {
@@ -35,23 +34,23 @@ public:
 
   // Override the required generic interface.
   virtual bool providesSoundSpeed() const override { return mShearModulusModel.providesSoundSpeed(); }
-  virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
-                            const FieldSpace::Field<Dimension, Scalar>& density,
-                            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                            const FieldSpace::Field<Dimension, Scalar>& pressure) const;
+  virtual void shearModulus(Field<Dimension, Scalar>& shearModulus,
+                            const Field<Dimension, Scalar>& density,
+                            const Field<Dimension, Scalar>& specificThermalEnergy,
+                            const Field<Dimension, Scalar>& pressure) const;
 
-  virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
-                             const FieldSpace::Field<Dimension, Scalar>& density,
-                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                             const FieldSpace::Field<Dimension, Scalar>& pressure,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const;
+  virtual void yieldStrength(Field<Dimension, Scalar>& yieldStrength,
+                             const Field<Dimension, Scalar>& density,
+                             const Field<Dimension, Scalar>& specificThermalEnergy,
+                             const Field<Dimension, Scalar>& pressure,
+                             const Field<Dimension, Scalar>& plasticStrain,
+                             const Field<Dimension, Scalar>& plasticStrainRate) const;
 
-  virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
-                          const FieldSpace::Field<Dimension, Scalar>& density,
-                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                          const FieldSpace::Field<Dimension, Scalar>& pressure,
-                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const;
+  virtual void soundSpeed(Field<Dimension, Scalar>& soundSpeed,
+                          const Field<Dimension, Scalar>& density,
+                          const Field<Dimension, Scalar>& specificThermalEnergy,
+                          const Field<Dimension, Scalar>& pressure,
+                          const Field<Dimension, Scalar>& fluidSoundSpeed) const;
 
   // Access the strength parameters.
   const StrengthModel<Dimension>& shearModulusModel() const;
@@ -70,15 +69,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class CollinsStrength;
-  }
+  template<typename Dimension> class CollinsStrength;
 }
 
 #endif

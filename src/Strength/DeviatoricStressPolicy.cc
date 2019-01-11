@@ -17,11 +17,6 @@
 
 namespace Spheral {
 
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-using KernelSpace::TableKernel;
-
 //------------------------------------------------------------------------------
 // Constructors.
 //------------------------------------------------------------------------------

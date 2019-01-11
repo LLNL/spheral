@@ -1,9 +1,8 @@
-#include <math.h>
-
 #include "Geometry/Dimension.hh"
 
+#include <math.h>
+
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Empty constructor
@@ -152,5 +151,4 @@ PiGaussianKernel<Dimension>::setK(double K) {
   mKV = pow(K, double(Dimension::nDim)/4.0);
 }
 
-}
 }

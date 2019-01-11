@@ -58,23 +58,15 @@ class TestSampleMultipleFields2Lattice:
         r.appendField(self.nodes.positions())
         w.appendField(self.nodes.mass())
         H.appendField(self.nodes.Hfield())
-        scalar_samples = vector_of_vector_of_double()
-        vector_samples = vector_of_vector_of_Vector()
-        tensor_samples = vector_of_vector_of_Tensor()
-        symtensor_samples = vector_of_vector_of_SymTensor()
-        result = sampleMultipleFields2LatticeMash(fieldListSet,
-                                                  r,
-                                                  w,
-                                                  H,
-                                                  mask,
-                                                  self.WT,
-                                                  self.xmin,
-                                                  self.xmax,
-                                                  self.nsample,
-                                                  scalar_samples,
-                                                  vector_samples,
-                                                  tensor_samples,
-                                                  symtensor_samples)
+        scalar_samples, vector_samples, tensor_samples, symtensor_samples = sampleMultipleFields2LatticeMash(fieldListSet,
+                                                                                                             r,
+                                                                                                             w,
+                                                                                                             H,
+                                                                                                             mask,
+                                                                                                             self.WT,
+                                                                                                             self.xmin,
+                                                                                                             self.xmax,
+                                                                                                             self.nsample)
 
         # Did we get back the correct numbers of sampled values?
         assert len(scalar_samples) == 2
@@ -175,26 +167,29 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
         p0 = Plane1d(Vector1d(0.0), Vector1d(1.0))
         p1 = Plane1d(Vector1d(1.0), Vector1d(-1.0))
         xbc = PeriodicBoundary1d(p0, p1)
-        bcs = [xbc]
+        self.bcs = [xbc]
         try:
             dbc = BoundingVolumeDistributedBoundary1d.instance()
-            bcs.append(dbc)
+            self.bcs.append(dbc)
         except:
-            pass
+            if mpi.procs > 1:
+                raise RuntimeError, "Unable to get parallel boundary condition"
+            else:
+                pass
 
         # Enforce boundaries.
         db = DataBase1d()
         db.appendNodeList(self.nodes)
-        for bc in bcs:
+        for bc in self.bcs:
             bc.setAllGhostNodes(db)
             bc.finalizeGhostBoundary()
             self.neighbor.updateNodes()
-        for bc in bcs:
+        for bc in self.bcs:
             bc.applyGhostBoundary(self.nodes.mass())
             bc.applyGhostBoundary(self.nodes.massDensity())
             bc.applyGhostBoundary(self.nodes.specificThermalEnergy())
             bc.applyGhostBoundary(self.nodes.velocity())
-        for bc in bcs:
+        for bc in self.bcs:
             bc.finalizeGhostBoundary()
 
         self.H0 = self.nodes.Hfield()[0]
@@ -262,26 +257,29 @@ class TestSampleMultipleFields2Lattice2d(TestSampleMultipleFields2Lattice,
         py1 = Plane2d(Vector2d(0.0, 1.0), Vector2d(0.0, -1.0))
         xbc = PeriodicBoundary2d(px0, px1)
         ybc = PeriodicBoundary2d(py0, py1)
-        bcs = [xbc, ybc]
+        self.bcs = [xbc, ybc]
         try:
             dbc = BoundingVolumeDistributedBoundary2d.instance()
-            bcs.append(dbc)
+            self.bcs.append(dbc)
         except:
-            pass
+            if mpi.procs > 1:
+                raise RuntimeError, "Unable to get parallel boundary condition"
+            else:
+                pass
 
         # Enforce boundaries.
         db = DataBase2d()
         db.appendNodeList(self.nodes)
-        for bc in bcs:
+        for bc in self.bcs:
             bc.setAllGhostNodes(db)
             bc.finalizeGhostBoundary()
             self.neighbor.updateNodes()
-        for bc in bcs:
+        for bc in self.bcs:
             bc.applyGhostBoundary(self.nodes.mass())
             bc.applyGhostBoundary(self.nodes.massDensity())
             bc.applyGhostBoundary(self.nodes.specificThermalEnergy())
             bc.applyGhostBoundary(self.nodes.velocity())
-        for bc in bcs:
+        for bc in self.bcs:
             bc.finalizeGhostBoundary()
 
         self.H0 = self.nodes.Hfield()[0]

@@ -4,8 +4,6 @@
 //
 // Created by JMO, Mon Oct 17 10:56:28 PDT 2005
 //----------------------------------------------------------------------------//
-#include <vector>
-
 #include "TensorStrainPolicy.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/SolidNodeList.hh"
@@ -21,15 +19,19 @@
 #include "Utilities/GeometricUtilities.hh"
 #include "Kernel/TableKernel.hh"
 
+#include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-
-using namespace std;
-
-using FieldSpace::Field;
-using NodeSpace::NodeList;
-using NodeSpace::SolidNodeList;
-using KernelSpace::TableKernel;
-using PhysicsSpace::TensorStrainAlgorithm;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -115,7 +117,7 @@ update(const KeyType& key,
     // Begin the big bonanza of options!
 
     // PseudoPlasticStrain.
-    if (mStrainType == PhysicsSpace::TensorStrainAlgorithm::PseudoPlasticStrain) {
+    if (mStrainType == TensorStrainAlgorithm::PseudoPlasticStrain) {
 
       strain(i) += multiplier*safeInv(mu(i), 1.0e-10)*DSDt(i);
       stateField(i) = strain(i);
@@ -137,20 +139,20 @@ update(const KeyType& key,
       // Update the effective strain according to the specified algorithm.
       switch(mStrainType) {
 
-      case(PhysicsSpace::TensorStrainAlgorithm::BenzAsphaugStrain):
+      case(TensorStrainAlgorithm::BenzAsphaugStrain):
         CHECK(E(i) >= 0.0);
         stateField(i) = (S(i) - P(i)*SymTensor::one)/(E(i) + tiny); // thpt);
         break;
 
-      case(PhysicsSpace::TensorStrainAlgorithm::StrainHistory):
+      case(TensorStrainAlgorithm::StrainHistory):
         stateField(i) = strain(i);
         break;
 
-      case(PhysicsSpace::TensorStrainAlgorithm::MeloshRyanAsphaugStrain):
+      case(TensorStrainAlgorithm::MeloshRyanAsphaugStrain):
         stateField(i) = ((K(i) - 2.0*mu(i)/Dimension::nDim)*volstrain*SymTensor::one + 2.0*mu(i)*strain(i))/(E(i) + tiny); // thpt);
         break;
 
-      case(PhysicsSpace::TensorStrainAlgorithm::PlasticStrain):
+      case(TensorStrainAlgorithm::PlasticStrain):
         stateField(i) = plasticStrain(i)*SymTensor::one;
         break;
 

@@ -28,8 +28,8 @@ public:
   typedef typename ReplaceFieldList<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
-  SumVoronoiMassDensityPolicy(const KernelSpace::TableKernel<Dimension>& W,
-                              const PhysicsSpace::Physics<Dimension>& package,
+  SumVoronoiMassDensityPolicy(const TableKernel<Dimension>& W,
+                              const Physics<Dimension>& package,
                               const double rhoMin,
                               const double rhoMax);
   virtual ~SumVoronoiMassDensityPolicy();
@@ -55,8 +55,8 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   bool mEnforceBoundaries;
-  const KernelSpace::TableKernel<Dimension>& mW;
-  const PhysicsSpace::Physics<Dimension>& mPackage;
+  const TableKernel<Dimension>& mW;
+  const Physics<Dimension>& mPackage;
   double mRhoMin, mRhoMax;
   SumVoronoiMassDensityPolicy(const SumVoronoiMassDensityPolicy& rhs);
   SumVoronoiMassDensityPolicy& operator=(const SumVoronoiMassDensityPolicy& rhs);

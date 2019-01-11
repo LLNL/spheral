@@ -20,11 +20,7 @@
 
 namespace Spheral {
 
-namespace NodeSpace {
-  template<typename Dimension> class NodeList;
-}
-
-namespace MeshSpace {
+template<typename Dimension> class NodeList;
 
 template<typename Dimension>
 class Mesh {
@@ -139,11 +135,11 @@ public:
 
   // We also provide the ability to extract the zone corresponding to the given node
   // in a NodeList.
-  const Zone& zone(const NodeSpace::NodeList<Dimension>& nodeList, const unsigned i) const;
+  const Zone& zone(const NodeList<Dimension>& nodeList, const unsigned i) const;
   const Zone& zone(const unsigned nodeListi, const unsigned i) const;
 
   // Extract the zone offset for the given NodeList.
-  unsigned offset(const NodeSpace::NodeList<Dimension>& nodeList) const;
+  unsigned offset(const NodeList<Dimension>& nodeList) const;
   unsigned offset(const unsigned nodeListi) const;
 
   // Look up the (nodeListID, nodeID) corresponding to the given zoneID.
@@ -182,7 +178,7 @@ public:
   void storeNodeListOffsets(const NodeListIterator nodeListBegin, 
                             const NodeListIterator nodeListEnd,
                             const std::vector<unsigned>& offsets);
-  void storeNodeListOffsets(const std::vector<NodeSpace::NodeList<Dimension>*>& nodeListPtrs,
+  void storeNodeListOffsets(const std::vector<NodeList<Dimension>*>& nodeListPtrs,
                             const std::vector<unsigned>& offsets);
 
   // Compute the bounding surface of the mesh.
@@ -248,7 +244,6 @@ private:
 template<> inline void Mesh<Dim<1> >::cleanEdges(const double edgeTol) {}
 
 }
-}
 
 #include "Node.hh"
 #include "Edge.hh"
@@ -260,9 +255,7 @@ template<> inline void Mesh<Dim<1> >::cleanEdges(const double edgeTol) {}
 
 // Forward declaration.
 namespace Spheral {
-  namespace MeshSpace {
-    template<typename Dimension> class Mesh;
-  }
+  template<typename Dimension> class Mesh;
 }
 
 #endif

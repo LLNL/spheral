@@ -7,12 +7,15 @@
 #include "Physics.hh"
 #include "Boundary/Boundary.hh"
 
-namespace Spheral {
-namespace PhysicsSpace {
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using DataBaseSpace::DataBase;
-using BoundarySpace::Boundary;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Default constructor
@@ -20,7 +23,7 @@ using BoundarySpace::Boundary;
 template<typename Dimension>
 Physics<Dimension>::
 Physics():
-  mBoundaryConditions(0) {
+  mBoundaryConditions() {
 }
 
 //------------------------------------------------------------------------------
@@ -166,9 +169,11 @@ finalizeDerivatives(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 Physics<Dimension>::
-postStateUpdate(const DataBase<Dimension>& dataBase, 
+postStateUpdate(const Scalar time, 
+                const Scalar dt,
+                const DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
-                const StateDerivatives<Dimension>& derivs) const {
+                StateDerivatives<Dimension>& derivatives) {
 }
 
 //------------------------------------------------------------------------------
@@ -188,6 +193,16 @@ template<typename Dimension>
 bool
 Physics<Dimension>::
 requireGhostConnectivity() const {
+  return false;
+}
+
+//------------------------------------------------------------------------------
+// By default assume overlap connectivity is not needed.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+Physics<Dimension>::
+requireOverlapConnectivity() const {
   return false;
 }
 
@@ -213,6 +228,14 @@ extraMomentum() const {
   return typename Dimension::Vector();
 }
 
-}
+//------------------------------------------------------------------------------
+// Defaul noop for extra viz state.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+registerAdditionalVisualizationState(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state) {
 }
 
+}

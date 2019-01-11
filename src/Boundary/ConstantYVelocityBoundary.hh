@@ -14,23 +14,12 @@
 #include "ConstantVelocityBoundary.hh"
 
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
-}
 
-namespace Spheral {
-namespace BoundarySpace {
+template<typename Dimension> class NodeList;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class DataBase;
+class FileIO;
 
 template<typename Dimension>
 class ConstantYVelocityBoundary: 
@@ -45,29 +34,26 @@ public:
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
   // Constructors and destructors.
-  ConstantYVelocityBoundary(const NodeSpace::NodeList<Dimension>& nodeList,
+  ConstantYVelocityBoundary(const NodeList<Dimension>& nodeList,
                             const std::vector<int>& nodeIndicies);
   virtual ~ConstantYVelocityBoundary();
 
   //**********************************************************************
   // Override the vector enforceBoundary method.
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Vector>& field) const;
 
   // Restart methods.
   virtual std::string label() const { return "ConstantYVelocityBoundary"; }
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace BoundarySpace {
-    template<typename Dimension> class ConstantYVelocityBoundary;
-  }
+  template<typename Dimension> class ConstantYVelocityBoundary;
 }
 
 #endif

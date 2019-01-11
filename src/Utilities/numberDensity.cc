@@ -10,24 +10,26 @@
 #include "Field/FieldList.hh"
 #include "Kernel/TableKernel.hh"
 
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-
-using namespace std;
-
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using BoundarySpace::Boundary;
-using KernelSpace::TableKernel;
-using NeighborSpace::ConnectivityMap;
-using NodeSpace::NodeList;
 
 //------------------------------------------------------------------------------
 // Return the number density for all nodes in the DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FieldSpace::FieldList<Dimension, typename Dimension::Scalar>
-numberDensity(const DataBaseSpace::DataBase<Dimension>& dataBase,
-              const KernelSpace::TableKernel<Dimension>& W) {
+FieldList<Dimension, typename Dimension::Scalar>
+numberDensity(const DataBase<Dimension>& dataBase,
+              const TableKernel<Dimension>& W) {
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;

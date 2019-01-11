@@ -23,7 +23,8 @@ public:
   //******************************************************************************
   // Methods all notification objects must provide.
   //******************************************************************************
-  virtual void notifyOfRedistribution() const = 0;
+  virtual void notifyBeforeRedistribution() const = 0;
+  virtual void notifyAfterRedistribution() const = 0;
 
 private:
   //--------------------------- Private Interface ---------------------------//

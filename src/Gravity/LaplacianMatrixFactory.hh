@@ -17,14 +17,11 @@
 #define LAPLACIANMATRIXFACTORY_HH
 
 namespace Spheral {
-namespace GravitySpace { // for now...
 
 template <typename Dimension>
 class LaplacianMatrixFactory
 {
   public:
-
-  using Spheral::DataBaseSpace::DataBase;
 
   //! Here's the "grad squared" SPH Laplacian.
   static double** SPHGradSquared(const DataBase<Dimension>& db);
@@ -39,7 +36,6 @@ class LaplacianMatrixFactory
 
 }; // end class MatrixFactory
 
-} // end namespace GravitySpace
 } // end namespace Spheral
 
 #endif

@@ -8,19 +8,12 @@
 #define __Spheral_SteinbergGuinanStrength_hh__
 
 #include "StrengthModel.hh"
-#ifndef __GCCXML__
 #include "PolynomialFit.hh"
-#endif
 
 namespace Spheral {
-  namespace SolidMaterial {
-    class NinthOrderPolynomialFit;
-    template<typename Dimension> class SolidEquationOfState;
-  }
-}
 
-namespace Spheral {
-namespace SolidMaterial {
+class NinthOrderPolynomialFit;
+template<typename Dimension> class SolidEquationOfState;
 
 template<typename Dimension>
 class SteinbergGuinanStrength: public StrengthModel<Dimension> {
@@ -59,40 +52,40 @@ public:
 
   // Override the required generic interface.
   virtual bool providesSoundSpeed() const override { return true; }
-  virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
-                            const FieldSpace::Field<Dimension, Scalar>& density,
-                            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                            const FieldSpace::Field<Dimension, Scalar>& pressure) const override;
+  virtual void shearModulus(Field<Dimension, Scalar>& shearModulus,
+                            const Field<Dimension, Scalar>& density,
+                            const Field<Dimension, Scalar>& specificThermalEnergy,
+                            const Field<Dimension, Scalar>& pressure) const override;
 
-  virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
-                             const FieldSpace::Field<Dimension, Scalar>& density,
-                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                             const FieldSpace::Field<Dimension, Scalar>& pressure,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const override;
+  virtual void yieldStrength(Field<Dimension, Scalar>& yieldStrength,
+                             const Field<Dimension, Scalar>& density,
+                             const Field<Dimension, Scalar>& specificThermalEnergy,
+                             const Field<Dimension, Scalar>& pressure,
+                             const Field<Dimension, Scalar>& plasticStrain,
+                             const Field<Dimension, Scalar>& plasticStrainRate) const override;
 
-  virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
-                          const FieldSpace::Field<Dimension, Scalar>& density,
-                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                          const FieldSpace::Field<Dimension, Scalar>& pressure,
-                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const override;
+  virtual void soundSpeed(Field<Dimension, Scalar>& soundSpeed,
+                          const Field<Dimension, Scalar>& density,
+                          const Field<Dimension, Scalar>& specificThermalEnergy,
+                          const Field<Dimension, Scalar>& pressure,
+                          const Field<Dimension, Scalar>& fluidSoundSpeed) const override;
 
   // Steinberg-Guinan also can provide melt and cold energies.
-  virtual void meltSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
-                                  const FieldSpace::Field<Dimension, Scalar>& density,
-                                  const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const override;
+  virtual void meltSpecificEnergy(Field<Dimension, Scalar>& meltSpecificEnergy,
+                                  const Field<Dimension, Scalar>& density,
+                                  const Field<Dimension, Scalar>& specficThermalEnergy) const override;
 
-  virtual void coldSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
-                                  const FieldSpace::Field<Dimension, Scalar>& density,
-                                  const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const override;
+  virtual void coldSpecificEnergy(Field<Dimension, Scalar>& coldSpecificEnergy,
+                                  const Field<Dimension, Scalar>& density,
+                                  const Field<Dimension, Scalar>& specficThermalEnergy) const override;
 
   // Melt attenuation.
   double meltAttenuation(const double rho, const double eps) const;
 
   // Steinberg-Guinan "temperature".
-  void computeTemperature(FieldSpace::Field<Dimension, Scalar>& temperature,
-                          const FieldSpace::Field<Dimension, Scalar>& density,
-                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  void computeTemperature(Field<Dimension, Scalar>& temperature,
+                          const Field<Dimension, Scalar>& density,
+                          const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
   // Access the strength parameters.
   double G0() const;
@@ -110,7 +103,6 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-#ifndef __GCCXML__
   const SolidEquationOfState<Dimension>* mEOSPtr;
   double mG0;
   double mGmax;
@@ -124,7 +116,6 @@ private:
   double mnhard;
   NinthOrderPolynomialFit mColdEnergyFit;
   NinthOrderPolynomialFit mMeltEnergyFit;
-#endif
 
   // No copying or assignment.
   SteinbergGuinanStrength(const SteinbergGuinanStrength&);
@@ -132,15 +123,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class SteinbergGuinanStrength;
-  }
+  template<typename Dimension> class SteinbergGuinanStrength;
 }
 
 #endif

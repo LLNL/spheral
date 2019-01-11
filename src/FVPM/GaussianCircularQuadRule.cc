@@ -6,15 +6,13 @@
 
 #include "GaussianCircularQuadRule.hh"
 #include "gauss_legendre.hh"
-using namespace std;
+
 
 namespace Spheral {
 
-namespace FVPMSpace {
-
 //-------------------------------------------------------------------
 GaussianCircularQuadRule<Dim<1> >::
-GaussianCircularQuadRule(const KernelSpace::TableKernel<Dim<1> >& W, size_t N):
+GaussianCircularQuadRule(const TableKernel<Dim<1> >& W, size_t N):
   CircularQuadRule<Dim<1> >(W),
   mX(N),
   mW(N),
@@ -68,7 +66,7 @@ getPointsAndWeights(vector<Dim<1>::Vector>& points,
 
 //-------------------------------------------------------------------
 GaussianCircularQuadRule<Dim<2> >::
-GaussianCircularQuadRule(const KernelSpace::TableKernel<Dim<2> >& W):
+GaussianCircularQuadRule(const TableKernel<Dim<2> >& W):
   CircularQuadRule<Dim<2> >(W)
 {
   CHECK(false); // Nope!!
@@ -107,7 +105,7 @@ getPointsAndWeights(vector<Dim<2>::Vector>& points,
 
 //-------------------------------------------------------------------
 GaussianCircularQuadRule<Dim<3> >::
-GaussianCircularQuadRule(const KernelSpace::TableKernel<Dim<3> >& W):
+GaussianCircularQuadRule(const TableKernel<Dim<3> >& W):
   CircularQuadRule<Dim<3> >(W)
 {
   CHECK(false); // Nope!!
@@ -145,5 +143,3 @@ getPointsAndWeights(vector<Dim<3>::Vector>& points,
 //-------------------------------------------------------------------
 
 }
-}
-

@@ -6,7 +6,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace MeshSpace {
 
 //------------------------------------------------------------------------------
 // Mesh::Zone::ID
@@ -100,5 +99,4 @@ convexHull() const {
   return ConvexHull(points);
 }
 
-}
 }

@@ -6,7 +6,6 @@
 #include "FieldListBase.hh"
 
 namespace Spheral {
-namespace FieldSpace {
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -64,5 +63,4 @@ operator=(const FieldListBase& rhs) {
 //   mNewRefineNodes = true;
 // }
 
-}
 }

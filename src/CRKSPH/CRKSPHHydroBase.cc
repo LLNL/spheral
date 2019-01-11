@@ -66,29 +66,18 @@
 #include <map>
 #include <vector>
 
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-namespace CRKSPHSpace {
-
-using namespace std;
-using PhysicsSpace::Physics;
-using PhysicsSpace::GenericHydro;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using Geometry::innerProduct;
-using Geometry::outerProduct;
-using BoundarySpace::Boundary;
-using BoundarySpace::CRKSPHVoidBoundary;
-
-using PhysicsSpace::MassDensityType;
-using PhysicsSpace::HEvolutionType;
 
 namespace {
 
@@ -144,49 +133,49 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mnTensile(nTensile),
   mCorrectionMin(std::numeric_limits<Scalar>::lowest()),
   mCorrectionMax(std::numeric_limits<Scalar>::max()),
-  mTimeStepMask(FieldSpace::FieldStorageType::CopyFields),
-  mPressure(FieldSpace::FieldStorageType::CopyFields),
-  mSoundSpeed(FieldSpace::FieldStorageType::CopyFields),
-  mSpecificThermalEnergy0(FieldSpace::FieldStorageType::CopyFields),
-  mEntropy(FieldSpace::FieldStorageType::CopyFields),
-  mHideal(FieldSpace::FieldStorageType::CopyFields),
-  mMaxViscousPressure(FieldSpace::FieldStorageType::CopyFields),
-  mEffViscousPressure(FieldSpace::FieldStorageType::CopyFields),
-  mViscousWork(FieldSpace::FieldStorageType::CopyFields),
-  mVolume(FieldSpace::FieldStorageType::CopyFields),
-  mMassDensityGradient(FieldSpace::FieldStorageType::CopyFields),
-  mWeightedNeighborSum(FieldSpace::FieldStorageType::CopyFields),
-  mMassSecondMoment(FieldSpace::FieldStorageType::CopyFields),
-  mXSPHDeltaV(FieldSpace::FieldStorageType::CopyFields),
-  mDxDt(FieldSpace::FieldStorageType::CopyFields),
-  mDvDt(FieldSpace::FieldStorageType::CopyFields),
-  mDmassDensityDt(FieldSpace::FieldStorageType::CopyFields),
-  mDspecificThermalEnergyDt(FieldSpace::FieldStorageType::CopyFields),
-  mDHDt(FieldSpace::FieldStorageType::CopyFields),
-  mDvDx(FieldSpace::FieldStorageType::CopyFields),
-  mInternalDvDx(FieldSpace::FieldStorageType::CopyFields),
-  mPairAccelerations(FieldSpace::FieldStorageType::CopyFields),
-  mA(FieldSpace::FieldStorageType::CopyFields),
-  mB(FieldSpace::FieldStorageType::CopyFields),
-  mC(FieldSpace::FieldStorageType::CopyFields),
-  mGradA(FieldSpace::FieldStorageType::CopyFields),
-  mGradB(FieldSpace::FieldStorageType::CopyFields),
-  mGradC(FieldSpace::FieldStorageType::CopyFields),
-  mM0(FieldSpace::FieldStorageType::CopyFields),
-  mM1(FieldSpace::FieldStorageType::CopyFields),
-  mM2(FieldSpace::FieldStorageType::CopyFields),
-  mM3(FieldSpace::FieldStorageType::CopyFields),
-  mM4(FieldSpace::FieldStorageType::CopyFields),
-  mGradm0(FieldSpace::FieldStorageType::CopyFields),
-  mGradm1(FieldSpace::FieldStorageType::CopyFields),
-  mGradm2(FieldSpace::FieldStorageType::CopyFields),
-  mGradm3(FieldSpace::FieldStorageType::CopyFields),
-  mGradm4(FieldSpace::FieldStorageType::CopyFields),
-  mSurfacePoint(FieldSpace::FieldStorageType::CopyFields),
-  mVoidPoint(FieldSpace::FieldStorageType::CopyFields),
-  mEtaVoidPoints(FieldSpace::FieldStorageType::CopyFields),
+  mTimeStepMask(FieldStorageType::CopyFields),
+  mPressure(FieldStorageType::CopyFields),
+  mSoundSpeed(FieldStorageType::CopyFields),
+  mSpecificThermalEnergy0(FieldStorageType::CopyFields),
+  mEntropy(FieldStorageType::CopyFields),
+  mHideal(FieldStorageType::CopyFields),
+  mMaxViscousPressure(FieldStorageType::CopyFields),
+  mEffViscousPressure(FieldStorageType::CopyFields),
+  mViscousWork(FieldStorageType::CopyFields),
+  mVolume(FieldStorageType::CopyFields),
+  mMassDensityGradient(FieldStorageType::CopyFields),
+  mWeightedNeighborSum(FieldStorageType::CopyFields),
+  mMassSecondMoment(FieldStorageType::CopyFields),
+  mXSPHDeltaV(FieldStorageType::CopyFields),
+  mDxDt(FieldStorageType::CopyFields),
+  mDvDt(FieldStorageType::CopyFields),
+  mDmassDensityDt(FieldStorageType::CopyFields),
+  mDspecificThermalEnergyDt(FieldStorageType::CopyFields),
+  mDHDt(FieldStorageType::CopyFields),
+  mDvDx(FieldStorageType::CopyFields),
+  mInternalDvDx(FieldStorageType::CopyFields),
+  mPairAccelerations(FieldStorageType::CopyFields),
+  mA(FieldStorageType::CopyFields),
+  mB(FieldStorageType::CopyFields),
+  mC(FieldStorageType::CopyFields),
+  mGradA(FieldStorageType::CopyFields),
+  mGradB(FieldStorageType::CopyFields),
+  mGradC(FieldStorageType::CopyFields),
+  mM0(FieldStorageType::CopyFields),
+  mM1(FieldStorageType::CopyFields),
+  mM2(FieldStorageType::CopyFields),
+  mM3(FieldStorageType::CopyFields),
+  mM4(FieldStorageType::CopyFields),
+  mGradm0(FieldStorageType::CopyFields),
+  mGradm1(FieldStorageType::CopyFields),
+  mGradm2(FieldStorageType::CopyFields),
+  mGradm3(FieldStorageType::CopyFields),
+  mGradm4(FieldStorageType::CopyFields),
+  mSurfacePoint(FieldStorageType::CopyFields),
+  mVoidPoint(FieldStorageType::CopyFields),
+  mEtaVoidPoints(FieldStorageType::CopyFields),
   mVoidBoundary(mSurfacePoint, mEtaVoidPoints),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
   // this->appendBoundary(mVoidBoundary);  // Suspend actually building the void points.
 }
 
@@ -324,7 +313,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // This breaks domain independence, so we'll try being inconsistent on the first step.
   // // We need to initialize the velocity gradient if we're using the CRKSPH artificial viscosity.
   // const FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
-  // mDvDx.assignFields(CRKSPHSpace::gradientCRKSPH(velocity, position, mVolume, H, mA, mB, mC, mGradA, mGradB, mGradC, connectivityMap, correctionOrder(), W, NodeCoupling()));
+  // mDvDx.assignFields(gradientCRKSPH(velocity, position, mVolume, H, mA, mB, mC, mGradA, mGradB, mGradC, connectivityMap, correctionOrder(), W, NodeCoupling()));
 
   // Initialize the pressure, sound speed, and entropy.
   dataBase.fluidPressure(mPressure);
@@ -655,60 +644,6 @@ finalizeDerivatives(const typename Dimension::Scalar time,
 }
 
 //------------------------------------------------------------------------------
-// Finalize the state after state has been updated and boundary conditions 
-// enforced.  For CRKSPH this is where we update the volumes and RPKM corrections.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-CRKSPHHydroBase<Dimension>::
-postStateUpdate(const DataBase<Dimension>& dataBase,
-                State<Dimension>& state,
-                const StateDerivatives<Dimension>& derivs) const {
-
-  // // Grab state we're going to use.
-  //const TableKernel<Dimension>& W = this->kernel();
-  //const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  //const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  //const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  // const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-
-  // Compute the volume per node.
-  //FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
-  //computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
-  // computeHullVolumes(connectivityMap, position, vol);
-
-  // // We need boundary conditions enforced on the volume before we can compute corrections.
-  //for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //     boundItr != this->boundaryEnd();
-  //     ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
-  //for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //     boundItr != this->boundaryEnd();
-  //     ++boundItr) (*boundItr)->finalizeGhostBoundary();
-
-  // // Compute the kernel correction fields.
-  // FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
-  // FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-  // FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CRKSPH, Vector::zero);
-  // FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CRKSPH, Tensor::zero);
-  // FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
-  // FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-  // computeCRKSPHCorrections(connectivityMap, W, vol, position, H, A, B, C, D, gradA, gradB);
-  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //      boundItr != this->boundaryEnd();
-  //      ++boundItr) {
-  //   (*boundItr)->applyFieldListGhostBoundary(A);
-  //   (*boundItr)->applyFieldListGhostBoundary(B);
-  //   (*boundItr)->applyFieldListGhostBoundary(C);
-  //   (*boundItr)->applyFieldListGhostBoundary(D);
-  //   (*boundItr)->applyFieldListGhostBoundary(gradA);
-  //   (*boundItr)->applyFieldListGhostBoundary(gradB);
-  // }
-  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //      boundItr != this->boundaryEnd();
-  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
-}
-
-//------------------------------------------------------------------------------
 // Finalize the hydro.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -966,7 +901,7 @@ enforceBoundaries(State<Dimension>& state,
 template<typename Dimension>
 void
 CRKSPHHydroBase<Dimension>::
-dumpState(FileIO& file, string pathName) const {
+dumpState(FileIO& file, const string& pathName) const {
   file.write(mTimeStepMask, pathName + "/timeStepMask");
   file.write(mPressure, pathName + "/pressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
@@ -1004,7 +939,7 @@ dumpState(FileIO& file, string pathName) const {
 template<typename Dimension>
 void
 CRKSPHHydroBase<Dimension>::
-restoreState(const FileIO& file, string pathName) {
+restoreState(const FileIO& file, const string& pathName) {
   file.read(mTimeStepMask, pathName + "/timeStepMask");
   file.read(mPressure, pathName + "/pressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
@@ -1036,6 +971,5 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mSurfacePoint, pathName + "/surfacePoint");
 }
 
-}
 }
 

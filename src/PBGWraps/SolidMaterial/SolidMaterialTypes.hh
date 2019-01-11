@@ -21,10 +21,7 @@
 #include "SolidMaterial/StrainPorosity.hh"
 #include "SolidMaterial/PhysicsEvolvingMaterialLibrary.hh"
 
-using namespace Spheral::Material;
-
 namespace Spheral {
-namespace SolidMaterial {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -97,7 +94,6 @@ typedef PhysicsEvolvingMaterialLibrary<Dim<1> > PhysicsEvolvingMaterialLibrary1d
 typedef PhysicsEvolvingMaterialLibrary<Dim<2> > PhysicsEvolvingMaterialLibrary2d;
 typedef PhysicsEvolvingMaterialLibrary<Dim<3> > PhysicsEvolvingMaterialLibrary3d;
 
-}
 }
 
 #endif

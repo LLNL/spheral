@@ -2,7 +2,6 @@
 #include "NodeList/NodeListRegistrar.hh"
 
 namespace Spheral {
-namespace IntegratorSpace {
 
 //------------------------------------------------------------------------------
 // Access the current time.
@@ -117,7 +116,7 @@ dtGrowth(typename Dimension::Scalar fraction) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const DataBaseSpace::DataBase<Dimension>& 
+const DataBase<Dimension>& 
 Integrator<Dimension>::dataBase() const {
   CHECK(mDataBasePtr);
   return *mDataBasePtr;
@@ -128,7 +127,7 @@ Integrator<Dimension>::dataBase() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const std::vector<PhysicsSpace::Physics<Dimension>*>&
+const std::vector<Physics<Dimension>*>&
 Integrator<Dimension>::physicsPackages() const {
   return mPhysicsPackages;
 }
@@ -138,14 +137,14 @@ Integrator<Dimension>::physicsPackages() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-typename std::vector<PhysicsSpace::Physics<Dimension>*>::iterator
+typename std::vector<Physics<Dimension>*>::iterator
 Integrator<Dimension>::physicsPackagesBegin() {
   return mPhysicsPackages.begin();
 }
 
 template<typename Dimension>
 inline
-typename std::vector<PhysicsSpace::Physics<Dimension>*>::iterator
+typename std::vector<Physics<Dimension>*>::iterator
 Integrator<Dimension>::physicsPackagesEnd() {
   return mPhysicsPackages.end();
 }
@@ -155,14 +154,14 @@ Integrator<Dimension>::physicsPackagesEnd() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-typename std::vector<PhysicsSpace::Physics<Dimension>*>::const_iterator
+typename std::vector<Physics<Dimension>*>::const_iterator
 Integrator<Dimension>::physicsPackagesBegin() const {
   return mPhysicsPackages.begin();
 }
 
 template<typename Dimension>
 inline
-typename std::vector<PhysicsSpace::Physics<Dimension>*>::const_iterator
+typename std::vector<Physics<Dimension>*>::const_iterator
 Integrator<Dimension>::physicsPackagesEnd() const {
   return mPhysicsPackages.end();
 }
@@ -203,7 +202,7 @@ template<typename Dimension>
 inline
 void
 Integrator<Dimension>::
-updateBoundaryFrequency(const int value) {
+updateBoundaryFrequency(int value) {
   mUpdateBoundaryFrequency = value;
 }
 
@@ -240,7 +239,7 @@ template<typename Dimension>
 inline
 void
 Integrator<Dimension>::
-cullGhostNodes(const bool x) {
+cullGhostNodes(bool x) {
   mCullGhostNodes = x;
 }
 
@@ -249,11 +248,10 @@ cullGhostNodes(const bool x) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-DataBaseSpace::DataBase<Dimension>& 
+DataBase<Dimension>& 
 Integrator<Dimension>::accessDataBase() {
   CHECK(mDataBasePtr);
   return *mDataBasePtr;
 }
 
-}
 }

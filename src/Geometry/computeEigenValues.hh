@@ -9,15 +9,13 @@
 
 namespace Spheral {
 
-namespace FieldSpace {
-  template<typename Dimension, typename Value> class Field;
-}
+template<typename Dimension, typename Value> class Field;
 
 template<typename Dimension>
 void
-computeEigenValues(const FieldSpace::Field<Dimension, typename Dimension::SymTensor>& field,
-                   FieldSpace::Field<Dimension, typename Dimension::Vector>& eigenValues,
-                   FieldSpace::Field<Dimension, typename Dimension::Tensor>& eigenVectors);
+computeEigenValues(const Field<Dimension, typename Dimension::SymTensor>& field,
+                   Field<Dimension, typename Dimension::Vector>& eigenValues,
+                   Field<Dimension, typename Dimension::Tensor>& eigenVectors);
 
 }
 

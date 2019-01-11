@@ -8,7 +8,6 @@
 #include "SVPH/SVPHFacetedHydroBase.hh"
 
 namespace Spheral {
-namespace SVPHSpace {
 
 typedef SVPHHydroBase<Dim<1> > SVPHHydroBase1d;
 typedef SVPHHydroBase<Dim<2> > SVPHHydroBase2d;
@@ -18,7 +17,6 @@ typedef SVPHFacetedHydroBase<Dim<1> > SVPHFacetedHydroBase1d;
 typedef SVPHFacetedHydroBase<Dim<2> > SVPHFacetedHydroBase2d;
 typedef SVPHFacetedHydroBase<Dim<3> > SVPHFacetedHydroBase3d;
 
-}
 }
 
 #endif

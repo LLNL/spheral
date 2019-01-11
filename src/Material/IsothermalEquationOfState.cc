@@ -8,9 +8,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace Material {
-
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -259,5 +256,3 @@ IsothermalEquationOfState<Dimension>::valid() const {
 }
 
 }
-}
-

@@ -1,10 +1,4 @@
-from SpheralModules.Spheral import *
-from SpheralModules.Spheral.CRKSPHSpace import *
-from SpheralModules.Spheral.ArtificialViscositySpace import *
-from SpheralModules.Spheral.NodeSpace import *
-from SpheralModules.Spheral.PhysicsSpace import *
-from SpheralModules.Spheral.KernelSpace import *
-from SpheralModules.Spheral.BoundarySpace import *
+from SpheralCompiledPackages import *
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()

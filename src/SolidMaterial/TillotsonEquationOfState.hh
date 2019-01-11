@@ -12,15 +12,9 @@
 
 #include "SolidEquationOfState.hh"
 
-// Forward declarations.
 namespace Spheral {
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-  }
-}
 
-namespace Spheral {
-namespace SolidMaterial {
+template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
 class TillotsonEquationOfState: public SolidEquationOfState<Dimension> {
@@ -48,45 +42,45 @@ public:
                            const double epsLiquid,
                            const double epsVapor,
                            const double atomicWeight,
-                           const Material::PhysicalConstants& constants,
+                           const PhysicalConstants& constants,
                            const double externalPressure,
                            const double minimumPressure,
                            const double maximumPressure,
-                           const Material::MaterialPressureMinType minPressureType);
+                           const MaterialPressureMinType minPressureType);
   ~TillotsonEquationOfState();
 
   // We require any equation of state to define the following properties.
-  virtual void setPressure(FieldSpace::Field<Dimension, Scalar>& Pressure,
-                           const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setPressure(Field<Dimension, Scalar>& Pressure,
+                           const Field<Dimension, Scalar>& massDensity,
+                           const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setTemperature(FieldSpace::Field<Dimension, Scalar>& temperature,
-                              const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setTemperature(Field<Dimension, Scalar>& temperature,
+                              const Field<Dimension, Scalar>& massDensity,
+                              const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setSpecificThermalEnergy(FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                                        const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                                        const FieldSpace::Field<Dimension, Scalar>& temperature) const;
+  virtual void setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
+                                        const Field<Dimension, Scalar>& massDensity,
+                                        const Field<Dimension, Scalar>& temperature) const;
 
-  virtual void setSpecificHeat(FieldSpace::Field<Dimension, Scalar>& specificHeat,
-                               const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                               const FieldSpace::Field<Dimension, Scalar>& temperature) const;
+  virtual void setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
+                               const Field<Dimension, Scalar>& massDensity,
+                               const Field<Dimension, Scalar>& temperature) const;
 
-  virtual void setSoundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
-                             const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
+                             const Field<Dimension, Scalar>& massDensity,
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setGammaField(FieldSpace::Field<Dimension, Scalar>& gamma,
-			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
-			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setGammaField(Field<Dimension, Scalar>& gamma,
+                             const Field<Dimension, Scalar>& massDensity,
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setBulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
-			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
-			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
+                             const Field<Dimension, Scalar>& massDensity,
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setEntropy(FieldSpace::Field<Dimension, Scalar>& entropy,
-                          const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setEntropy(Field<Dimension, Scalar>& entropy,
+                          const Field<Dimension, Scalar>& massDensity,
+                          const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
   // Access the member data.
   double etamin_solid() const;
@@ -102,23 +96,23 @@ public:
   double epsVapor() const;
   double atomicWeight() const;
   
-  void etamin_solid(const double x);
-  void etamax_solid(const double x);
-  void a(const double x);
-  void b(const double x);
-  void A(const double x);
-  void B(const double x);
-  void alpha(const double x);
-  void beta(const double x);
-  void eps0(const double x);
-  void epsLiquid(const double x);
-  void epsVapor(const double x);
-  void atomicWeight(const double x);
+  void etamin_solid(double x);
+  void etamax_solid(double x);
+  void a(double x);
+  void b(double x);
+  void A(double x);
+  void B(double x);
+  void alpha(double x);
+  void beta(double x);
+  void eps0(double x);
+  void epsLiquid(double x);
+  void epsVapor(double x);
+  void atomicWeight(double x);
   
   // If requested, the user can specify an external pressure to be applied
   // in the pressure calculation.
   double externalPressure() const;
-  void externalPressure(const double x);
+  void externalPressure(double x);
 
   // Compute the derivative of the pressure with respect to the density.
   double computeDPDrho(const Scalar massDensity,
@@ -171,23 +165,18 @@ private:
   // Disallow default constructor
   TillotsonEquationOfState();
 
-  using Material::EquationOfState<Dimension>::mConstants;
+  using EquationOfState<Dimension>::mConstants;
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "TillotsonEquationOfStateInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class TillotsonEquationOfState;
-  }
+  template<typename Dimension> class TillotsonEquationOfState;
 }
 
 #endif

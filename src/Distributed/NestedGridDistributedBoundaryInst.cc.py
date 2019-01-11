@@ -6,8 +6,6 @@ text = """
 #include "NestedGridDistributedBoundary.cc"
 
 namespace Spheral {
-  namespace BoundarySpace {
-    template class NestedGridDistributedBoundary< Dim< %(ndim)s > >;
-  }
+  template class NestedGridDistributedBoundary< Dim< %(ndim)s > >;
 }
 """

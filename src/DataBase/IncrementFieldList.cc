@@ -11,11 +11,17 @@
 #include "Utilities/DBC.hh"
 
 #include <regex>
+#include <vector>
+using std::vector;
+using std::string;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-
-using FieldSpace::FieldList;
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Constructors.

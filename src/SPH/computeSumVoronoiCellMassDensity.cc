@@ -1,7 +1,6 @@
 //------------------------------------------------------------------------------
 // Compute the Voronoi cell mass density summation.
 //------------------------------------------------------------------------------
-
 #include "computeSumVoronoiCellMassDensity.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
@@ -11,19 +10,18 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/safeInv.hh"
 
-namespace Spheral {
-namespace SPHSpace {
-
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
+namespace Spheral {
 
 template<typename Dimension>
 void
@@ -49,7 +47,7 @@ computeSumVoronoiCellMassDensity(const ConnectivityMap<Dimension>& connectivityM
 
   // Zero out the result, and prepare a FieldList to hold the effective volume.
   massDensity = 0.0;
-  FieldList<Dimension, Scalar> Veff(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> Veff(FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = massDensity[nodeListi]->nodeList();
     Veff.appendNewField("effective volume", nodeList, 0.0);
@@ -121,5 +119,3 @@ computeSumVoronoiCellMassDensity(const ConnectivityMap<Dimension>& connectivityM
 }
 
 }
-}
-

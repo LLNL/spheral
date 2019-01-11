@@ -110,12 +110,12 @@ class NodeGenerators:
             poly = "Spheral::" + {2 : "Polygon", 3 : "Polyhedron"}[ndim]
             vector_of_facetedvolume = "vector_of_FacetedVolume%id" % ndim
             vector = "Vector%id" % ndim
-            database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-            boundary = "Spheral::BoundarySpace::Boundary%id" % ndim
+            database = "Spheral::DataBase%id" % ndim
+            boundary = "Spheral::Boundary%id" % ndim
             vector_of_boundary = "vector_of_Boundary%id" % ndim
             vector_of_Vector = "vector_of_Vector%id" % ndim
-            tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-            smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+            tablekernel = "Spheral::TableKernel%id" % ndim
+            smoothingscalebase = "Spheral::SmoothingScaleBase%id" % ndim
             weightingfunctor = "Spheral::WeightingFunctor%id" % ndim
 
             Spheral.add_function("relaxNodeDistribution", None,

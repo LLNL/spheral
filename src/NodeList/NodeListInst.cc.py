@@ -5,8 +5,6 @@ text = """
 #include "NodeList.cc"
 
 namespace Spheral {
-  namespace NodeSpace {
-    template class NodeList< Dim< %(ndim)s > >;
-  }
+  template class NodeList< Dim< %(ndim)s > >;
 }
 """

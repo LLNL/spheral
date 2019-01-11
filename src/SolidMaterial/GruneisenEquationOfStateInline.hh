@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace SolidMaterial {
 
 //------------------------------------------------------------------------------
 // Get and set C0.
@@ -14,7 +13,7 @@ GruneisenEquationOfState<Dimension>::C0() const {
 template<typename Dimension>
 inline
 void
-GruneisenEquationOfState<Dimension>::C0(const double C0) {
+GruneisenEquationOfState<Dimension>::C0(double C0) {
   mC0 = C0;
 }
 
@@ -31,7 +30,7 @@ GruneisenEquationOfState<Dimension>::S1() const {
 template<typename Dimension>
 inline
 void
-GruneisenEquationOfState<Dimension>::S1(const double S1) {
+GruneisenEquationOfState<Dimension>::S1(double S1) {
   mS1 = S1;
 }
 
@@ -48,7 +47,7 @@ GruneisenEquationOfState<Dimension>::S2() const {
 template<typename Dimension>
 inline
 void
-GruneisenEquationOfState<Dimension>::S2(const double S2) {
+GruneisenEquationOfState<Dimension>::S2(double S2) {
   mS2 = S2;
 }
 
@@ -65,7 +64,7 @@ GruneisenEquationOfState<Dimension>::S3() const {
 template<typename Dimension>
 inline
 void
-GruneisenEquationOfState<Dimension>::S3(const double S3) {
+GruneisenEquationOfState<Dimension>::S3(double S3) {
   mS3 = S3;
 }
 
@@ -82,7 +81,7 @@ GruneisenEquationOfState<Dimension>::gamma0() const {
 template<typename Dimension>
 inline
 void
-GruneisenEquationOfState<Dimension>::gamma0(const double gamma0) {
+GruneisenEquationOfState<Dimension>::gamma0(double gamma0) {
   mgamma0 = gamma0;
 }
 
@@ -99,7 +98,7 @@ GruneisenEquationOfState<Dimension>::b() const {
 template<typename Dimension>
 inline
 void
-GruneisenEquationOfState<Dimension>::b(const double b) {
+GruneisenEquationOfState<Dimension>::b(double b) {
   mb = b;
 }
 
@@ -116,7 +115,7 @@ GruneisenEquationOfState<Dimension>::atomicWeight() const {
 template<typename Dimension>
 inline
 void
-GruneisenEquationOfState<Dimension>::atomicWeight(const double val) {
+GruneisenEquationOfState<Dimension>::atomicWeight(double val) {
   mAtomicWeight = val;
 }
 
@@ -133,7 +132,7 @@ GruneisenEquationOfState<Dimension>::energyMultiplier() const {
 template<typename Dimension>
 inline
 void
-GruneisenEquationOfState<Dimension>::energyMultiplier(const double val) {
+GruneisenEquationOfState<Dimension>::energyMultiplier(double val) {
   mEnergyMultiplier = val;
 }
 
@@ -159,9 +158,8 @@ GruneisenEquationOfState<Dimension>::externalPressure() const {
 template<typename Dimension>
 inline
 void
-GruneisenEquationOfState<Dimension>::externalPressure(const double val) {
+GruneisenEquationOfState<Dimension>::externalPressure(double val) {
   mExternalPressure = val;
 }
 
-}
 }

@@ -10,9 +10,6 @@ PKGNAME = Neighbor
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
-SRCTARGETS += \
-	$(srcdir)/SpheralNeighbor.cc
-
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 EXTRALIBS += $(LDRPATH)

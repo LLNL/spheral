@@ -3,21 +3,20 @@
 #include "DataBase/StateDerivatives.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Provide iterators over over the boundary conditions.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-typename std::vector<BoundarySpace::Boundary<Dimension>*>::iterator
+typename std::vector<Boundary<Dimension>*>::iterator
 Physics<Dimension>::boundaryBegin() {
   return mBoundaryConditions.begin();
 }
 
 template<typename Dimension>
 inline
-typename std::vector<BoundarySpace::Boundary<Dimension>*>::iterator
+typename std::vector<Boundary<Dimension>*>::iterator
 Physics<Dimension>::boundaryEnd() {
   return mBoundaryConditions.end();
 }
@@ -27,14 +26,14 @@ Physics<Dimension>::boundaryEnd() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator
+typename std::vector<Boundary<Dimension>*>::const_iterator
 Physics<Dimension>::boundaryBegin() const {
   return mBoundaryConditions.begin();
 }
 
 template<typename Dimension>
 inline
-typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator
+typename std::vector<Boundary<Dimension>*>::const_iterator
 Physics<Dimension>::boundaryEnd() const {
   return mBoundaryConditions.end();
 }
@@ -44,10 +43,9 @@ Physics<Dimension>::boundaryEnd() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const std::vector<BoundarySpace::Boundary<Dimension>*>&
+const std::vector<Boundary<Dimension>*>&
 Physics<Dimension>::boundaryConditions() const {
   return mBoundaryConditions;
 }
 
-}
 }

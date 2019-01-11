@@ -7,7 +7,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace MeshSpace {
 
 //------------------------------------------------------------------------------
 // PolygonalMesh::Edge::Edge(mesh, node1ID, node2ID)
@@ -28,5 +27,4 @@ Edge(const Mesh<Dim<2> >& mesh,
   REQUIRE2(node1ID != node2ID, "Ack!  " << node1ID << " " << node2ID);
 }
 
-}
 }

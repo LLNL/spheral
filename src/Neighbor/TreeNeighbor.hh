@@ -12,14 +12,13 @@
 #ifndef __Spheral_TreeNeighbor_hh__
 #define __Spheral_TreeNeighbor_hh__
 
+#include "Neighbor.hh"
+
 #include <stdint.h>
 #include <unordered_map>
 #include <vector>
 
-#include "Neighbor.hh"
-
 namespace Spheral {
-namespace NeighborSpace {
 
 template<typename Dimension>
 class TreeNeighbor: public Neighbor<Dimension> {
@@ -38,7 +37,7 @@ public:
   typedef uint64_t CellKey;
 
   // Constructors and destructors
-  TreeNeighbor(NodeSpace::NodeList<Dimension>& nodeList, 
+  TreeNeighbor(NodeList<Dimension>& nodeList, 
                const NeighborSearchType searchType,
                const double kernelExtent,
                const Vector& xmin,
@@ -239,15 +238,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace NeighborSpace {
-    template<typename Dimension> class TreeNeighbor;
-  }
+  template<typename Dimension> class TreeNeighbor;
 }
 
 #endif

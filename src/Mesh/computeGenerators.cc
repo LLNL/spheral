@@ -8,9 +8,6 @@
 //
 // Created by JMO, Mon Dec  6 10:34:43 PST 2010
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <set>
-
 #include "computeGenerators.hh"
 #include "Mesh.hh"
 #include "MeshConstructionUtilities.hh"
@@ -28,14 +25,21 @@
 #include "mpi.h"
 #endif
 
-namespace Spheral {
-namespace MeshSpace {
+#include <algorithm>
+#include <set>
+using std::vector;
+using std::set;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using NodeSpace::NodeList;
-using BoundarySpace::Boundary;
-using FieldSpace::Field;
-using NeighborSpace::Neighbor;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // The method itself.
@@ -147,6 +151,5 @@ computeGenerators(NodeListIterator nodeListBegin,
   // That's it.
 }
 
-}
 }
 

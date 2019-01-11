@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace Material {
 
 //------------------------------------------------------------------------------
 // Access the polytropic constant.
@@ -42,5 +41,4 @@ setExternalPressure(double P) {
   mExternalPressure = P;
 }
 
-}
 }

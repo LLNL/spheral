@@ -7,22 +7,18 @@
 
 namespace Spheral {
 
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-  }
+template<typename Dimension> class NodeList;
+template<typename Dimension, typename DataType> class Field;
 
-  template<typename Dimension>
-  FieldSpace::Field<Dimension, int>
-  computeFragmentField(const NodeSpace::NodeList<Dimension>& nodeList,
-                       const double linkRadius,
-                       const FieldSpace::Field<Dimension, typename Dimension::Scalar>& density,
-                       const FieldSpace::Field<Dimension, typename Dimension::SymTensor>& damage,
-                       const double densityThreshold,
-                       const double damageThreshold,
-                       const bool assignDustToFragments);
+template<typename Dimension>
+Field<Dimension, int>
+computeFragmentField(const NodeList<Dimension>& nodeList,
+                     const double linkRadius,
+                     const Field<Dimension, typename Dimension::Scalar>& density,
+                     const Field<Dimension, typename Dimension::SymTensor>& damage,
+                     const double densityThreshold,
+                     const double damageThreshold,
+                     const bool assignDustToFragments);
 
 }
 

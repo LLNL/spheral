@@ -4,10 +4,6 @@
 //
 // Created by JMO, Mon Aug 27 16:57:11 PDT 2001
 //----------------------------------------------------------------------------//
-#include <sstream>
-#include <list>
-#include <algorithm>
-
 #include "DistributedBoundary.hh"
 #include "Communicator.hh"
 #include "Boundary/Boundary.hh"
@@ -19,14 +15,22 @@
 #include "Utilities/DBC.hh"
 #include "waitAllWithDeadlockDetection.hh"
 
-namespace Spheral {
-namespace BoundarySpace {
+#include <sstream>
+#include <list>
+#include <algorithm>
+using std::vector;
+using std::list;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldBase;
-using DataBaseSpace::DataBase;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Define a local trait class to map elements to MPI_DATATYPES.
@@ -139,7 +143,7 @@ template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
 communicatedProcs(vector<int>& sendProcs,
-		  vector<int>& recvProcs) const {
+                  vector<int>& recvProcs) const {
 
   // Clear out any preexisting info.
   sendProcs = vector<int>();
@@ -153,8 +157,8 @@ communicatedProcs(vector<int>& sendProcs,
        itr1 != mNodeListDomainBoundaryNodeMap.end();
        ++itr1) {
     for (typename DomainBoundaryNodeMap::const_iterator itr2 = itr1->second.begin();
-	 itr2 != itr1->second.end();
-	 ++itr2) {
+         itr2 != itr1->second.end();
+         ++itr2) {
       const int proc = itr2->first;
       CHECK(proc >= 0 and proc < numProcs);
       const DomainBoundaryNodes& domNodes = itr2->second;
@@ -305,7 +309,7 @@ communicatedProcs(vector<int>& sendProcs,
 //         int numValues = boundNodes.sendNodes.size()*numElementsInType;
 //         packedSendValues.push_back(vector<ElementType>(numValues));
 //         sendRequests.push_back(MPI_Request());
-// 	vector<ElementType>& sendValues = packedSendValues.back();
+//      vector<ElementType>& sendValues = packedSendValues.back();
 //         packFieldValues(field, boundNodes.sendNodes, sendValues);
 //         MPI_Isend(&(*sendValues.begin()), numValues, MPI_TYPE,
 //                   neighborDomainID, 1, Communicator::communicator(), &(sendRequests.back()));
@@ -740,7 +744,7 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
         VERIFY(mSendRequests.size() < mSendRequests.capacity() - 1);
         mSendRequests.push_back(MPI_Request());
         packedSendValues.push_back(packFieldValues(field, boundNodes.sendNodes));
-	vector<char>& sendValues = packedSendValues.back();
+        vector<char>& sendValues = packedSendValues.back();
         MPI_Isend(&(*sendValues.begin()), sendValues.size(), MPI_CHAR,
                   neighborDomainID, mMPIFieldTag, Communicator::communicator(), &(mSendRequests.back()));
 
@@ -1852,6 +1856,5 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
 
 }
 
-}
 }
 

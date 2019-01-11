@@ -3,14 +3,16 @@
 #include "Field/NodeIterators.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-namespace BoundarySpace {
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using KernelSpace::TableKernel;
+namespace Spheral {
+
 
 //------------------------------------------------------------------------------
 AxialSymmetryBoundary::
@@ -380,6 +382,3 @@ enforceBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field) const {
 //------------------------------------------------------------------------------
 
 }
-}
-
-

@@ -13,7 +13,8 @@
 #ifndef VoronoiRedistributeNodes_HH
 #define VoronoiRedistributeNodes_HH
 
-#ifndef __GCCXML__
+#include "RedistributeNodes.hh"
+#include "Utilities/KeyTraits.hh"
 
 #include <vector>
 #include <map>
@@ -21,29 +22,11 @@
 #include "mpi.h"
 #endif
 
-#else
-
-#include "fakestl.hh"
-
-#endif
-
-#include "RedistributeNodes.hh"
-#include "Utilities/KeyTraits.hh"
-
 namespace Spheral {
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace BoundarySpace {
-    template<typename Dimension> class Boundary;
-  }
-}
 
-namespace Spheral {
-namespace PartitionSpace {
+template<typename Dimension> class DataBase;
+template<typename Dimension> class NodeList;
+template<typename Dimension> class Boundary;
 
 template<typename Dimension>
 class VoronoiRedistributeNodes: public RedistributeNodes<Dimension> {
@@ -69,9 +52,9 @@ public:
 
   // Given a Spheral++ data base of NodeLists, repartition it among the processors.
   // This is the method required of all descendent classes.
-  virtual void redistributeNodes(DataBaseSpace::DataBase<Dimension>& dataBase,
-                                 std::vector<BoundarySpace::Boundary<Dimension>*> boundaries =
-                                 std::vector<BoundarySpace::Boundary<Dimension>*>()) override;
+  virtual void redistributeNodes(DataBase<Dimension>& dataBase,
+                                 std::vector<Boundary<Dimension>*> boundaries =
+                                 std::vector<Boundary<Dimension>*>()) override;
 
   // Given the set of DomainNodes with their domain assignments, compute the 
   // (work weighted) domain centroids.
@@ -104,20 +87,20 @@ public:
   // Flag for whether we should compute the work per node or strictly balance by
   // node count.
   bool workBalance() const;
-  void workBalance(const bool val);
+  void workBalance(bool val);
 
   // Should we try to work balance between generators?
   // node count.
   bool balanceGenerators() const;
-  void balanceGenerators(const bool val);
+  void balanceGenerators(bool val);
 
   // The tolerance we're using to check for convergence of the generators.
   double tolerance() const;
-  void tolerance(const double val);
+  void tolerance(double val);
 
   // The maximum number of iterations to try and converge the generator positions.
   unsigned maxIterations() const;
-  void maxIterations(const unsigned val);
+  void maxIterations(unsigned val);
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -131,14 +114,11 @@ private:
 };
 
 }
-}
 
 #else
 // Forward declare the VoronoiRedistributeNodes class.
 namespace Spheral {
-  namespace PartitionSpace {
-    template<typename Dimension> class VoronoiRedistributeNodes;
-  }
+  template<typename Dimension> class VoronoiRedistributeNodes;
 }
 
 #endif

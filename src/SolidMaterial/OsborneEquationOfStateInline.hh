@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace SolidMaterial {
 
 //------------------------------------------------------------------------------
 // a1
@@ -14,7 +13,7 @@ OsborneEquationOfState<Dimension>::a1() const {
 template<typename Dimension>
 inline
 void
-OsborneEquationOfState<Dimension>::a1(const double val) {
+OsborneEquationOfState<Dimension>::a1(double val) {
   mA1 = val;
 }
 
@@ -31,7 +30,7 @@ OsborneEquationOfState<Dimension>::a2pos() const {
 template<typename Dimension>
 inline
 void
-OsborneEquationOfState<Dimension>::a2pos(const double val) {
+OsborneEquationOfState<Dimension>::a2pos(double val) {
   mA2pos = val;
 }
 
@@ -48,7 +47,7 @@ OsborneEquationOfState<Dimension>::a2neg() const {
 template<typename Dimension>
 inline
 void
-OsborneEquationOfState<Dimension>::a2neg(const double val) {
+OsborneEquationOfState<Dimension>::a2neg(double val) {
   mA2neg = val;
 }
 
@@ -65,7 +64,7 @@ OsborneEquationOfState<Dimension>::b0() const {
 template<typename Dimension>
 inline
 void
-OsborneEquationOfState<Dimension>::b0(const double val) {
+OsborneEquationOfState<Dimension>::b0(double val) {
   mB0 = val;
 }
 
@@ -82,7 +81,7 @@ OsborneEquationOfState<Dimension>::b1() const {
 template<typename Dimension>
 inline
 void
-OsborneEquationOfState<Dimension>::b1(const double val) {
+OsborneEquationOfState<Dimension>::b1(double val) {
   mB1 = val;
 }
 
@@ -99,7 +98,7 @@ OsborneEquationOfState<Dimension>::b2pos() const {
 template<typename Dimension>
 inline
 void
-OsborneEquationOfState<Dimension>::b2pos(const double val) {
+OsborneEquationOfState<Dimension>::b2pos(double val) {
   mB2pos = val;
 }
 
@@ -116,7 +115,7 @@ OsborneEquationOfState<Dimension>::b2neg() const {
 template<typename Dimension>
 inline
 void
-OsborneEquationOfState<Dimension>::b2neg(const double val) {
+OsborneEquationOfState<Dimension>::b2neg(double val) {
   mB2neg = val;
 }
 
@@ -133,7 +132,7 @@ OsborneEquationOfState<Dimension>::c0() const {
 template<typename Dimension>
 inline
 void
-OsborneEquationOfState<Dimension>::c0(const double val) {
+OsborneEquationOfState<Dimension>::c0(double val) {
   mC0 = val;
 }
 
@@ -150,7 +149,7 @@ OsborneEquationOfState<Dimension>::c1() const {
 template<typename Dimension>
 inline
 void
-OsborneEquationOfState<Dimension>::c1(const double val) {
+OsborneEquationOfState<Dimension>::c1(double val) {
   mC1 = val;
 }
 
@@ -167,7 +166,7 @@ OsborneEquationOfState<Dimension>::c2pos() const {
 template<typename Dimension>
 inline
 void
-OsborneEquationOfState<Dimension>::c2pos(const double val) {
+OsborneEquationOfState<Dimension>::c2pos(double val) {
   mC2pos = val;
 }
 
@@ -184,7 +183,7 @@ OsborneEquationOfState<Dimension>::c2neg() const {
 template<typename Dimension>
 inline
 void
-OsborneEquationOfState<Dimension>::c2neg(const double val) {
+OsborneEquationOfState<Dimension>::c2neg(double val) {
   mC2neg = val;
 }
 
@@ -201,7 +200,7 @@ OsborneEquationOfState<Dimension>::E0() const {
 template<typename Dimension>
 inline
 void
-OsborneEquationOfState<Dimension>::E0(const double val) {
+OsborneEquationOfState<Dimension>::E0(double val) {
   mE0 = val;
 }
 
@@ -218,7 +217,7 @@ OsborneEquationOfState<Dimension>::atomicWeight() const {
 template<typename Dimension>
 inline
 void
-OsborneEquationOfState<Dimension>::atomicWeight(const double val) {
+OsborneEquationOfState<Dimension>::atomicWeight(double val) {
   mAtomicWeight = val;
 }
 
@@ -244,9 +243,8 @@ OsborneEquationOfState<Dimension>::externalPressure() const {
 template<typename Dimension>
 inline
 void
-OsborneEquationOfState<Dimension>::externalPressure(const double val) {
+OsborneEquationOfState<Dimension>::externalPressure(double val) {
   mExternalPressure = val;
 }
 
-}
 }

@@ -5,12 +5,6 @@
 //! \version $Revision: 2239 $
 //! \date $Date: 2007-05-28 23:58:39 -0700 (Mon, 28 May 2007) $
 //----------------------------------------------------------------------------//
-
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <sstream>
-#include <iostream>
 #include <algorithm>
 
 #include "MHD/MHD.hh"
@@ -42,26 +36,18 @@
 #include "Spasmos/MatFactory.h"
 #include "Distributed/Communicator.hh"
 
-namespace Spheral {
-namespace MHDSpace {
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <sstream>
+#include <iostream>
 
-using namespace std;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NodeSpace::globalNodeIDs;
-using NeighborSpace::ConnectivityMap;
-using BoundarySpace::Boundary;
-using BoundarySpace::PeriodicBoundary;
-using BoundarySpace::DistributedBoundary;
-using PhysicsSpace::Physics;
+namespace Spheral {
 
 
 //------------------------------------------------------------------------------
 MHD::
-MHD(const KernelSpace::TableKernel<Dim<3> >& kernel,
+MHD(const TableKernel<Dim<3> >& kernel,
     double mu0,
     double implicitness):
   mDiffResNorm(0.0),
@@ -91,7 +77,6 @@ MHD(const KernelSpace::TableKernel<Dim<3> >& kernel,
   mAvgDivB(0.0),
   mFirstStep(true) { 
 
-  using namespace std;
 
   // Make sure Spasmos is around.
   importConfig();
@@ -908,7 +893,6 @@ evaluateDerivatives(const Dim<3>::Scalar time,
                     const State<Dim<3> >& state,
                     StateDerivatives<Dim<3> >& derivs) const
 {
-  using namespace NodeSpace;
 
   // Access to pertinent fields in the database.
   const FieldList<Dim<3>, Scalar> m = state.scalarFields(HydroFieldNames::mass);
@@ -1686,6 +1670,4 @@ valid() const
 }
 
 //------------------------------------------------------------------------------
-} // end namespace MHDSpace
 } // end namespace Spheral
-

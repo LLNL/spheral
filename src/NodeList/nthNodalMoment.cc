@@ -22,17 +22,11 @@
 #include "Utilities/safeInv.hh"
 
 namespace Spheral {
-namespace NodeSpace {
 
-using namespace std;
+using std::vector;
 using std::abs;
 using std::min;
 using std::max;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using FieldSpace::FieldListBase;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
 
 //------------------------------------------------------------------------------
 // Specialized method to compute the pair-wise contribution to the moment.
@@ -68,13 +62,13 @@ nthNodalMoment(const NodeListIterator nodeListBegin,
 
   // Build a connectivity map for walking nodes.  This relies on the NodeLists 
   // Neighbor objects being up to date.
-  const ConnectivityMap<Dimension> cm(nodeListBegin, nodeListEnd, false);
+  const ConnectivityMap<Dimension> cm(nodeListBegin, nodeListEnd, false, false);
 
   // Build up the FieldLists of positions, H's, and the first moment that we're going
   // to build.
-  FieldList<Dimension, Vector> pos(FieldSpace::FieldStorageType::ReferenceFields);
-  FieldList<Dimension, SymTensor> H(FieldSpace::FieldStorageType::ReferenceFields);
-  FieldList<Dimension, Moment> result(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Vector> pos(FieldStorageType::ReferenceFields);
+  FieldList<Dimension, SymTensor> H(FieldStorageType::ReferenceFields);
+  FieldList<Dimension, Moment> result(FieldStorageType::CopyFields);
   for (NodeListIterator itr = nodeListBegin; itr != nodeListEnd; ++itr) {
     const NodeList<Dimension>& nodes = **itr;
     pos.appendField(nodes.positions());
@@ -136,15 +130,15 @@ zerothAndFirstNodalMoments(const NodeListIterator nodeListBegin,
 
   // Build a connectivity map for walking nodes.  This relies on the NodeLists 
   // Neighbor objects being up to date.
-  const ConnectivityMap<Dimension> cm(nodeListBegin, nodeListEnd, false);
+  const ConnectivityMap<Dimension> cm(nodeListBegin, nodeListEnd, false, false);
 
   // Value of the kernel at the center.
   const double W0 = 0.0; // useGradientAsKernel ?  abs(W.gradValue(0.0, 1.0)) : W.kernelValue(0.0, 1.0);
 
   // Build up the FieldLists of positions, H's, and the moments that we're going
   // to build.
-  FieldList<Dimension, Vector> pos(FieldSpace::FieldStorageType::ReferenceFields);
-  FieldList<Dimension, SymTensor> H(FieldSpace::FieldStorageType::ReferenceFields);
+  FieldList<Dimension, Vector> pos(FieldStorageType::ReferenceFields);
+  FieldList<Dimension, SymTensor> H(FieldStorageType::ReferenceFields);
   for (NodeListIterator itr = nodeListBegin; itr != nodeListEnd; ++itr) {
     const NodeList<Dimension>& nodes = **itr;
     pos.appendField(nodes.positions());
@@ -179,5 +173,4 @@ zerothAndFirstNodalMoments(const NodeListIterator nodeListBegin,
   }
 }
 
-}
 }

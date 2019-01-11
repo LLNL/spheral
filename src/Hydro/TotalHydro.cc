@@ -4,13 +4,6 @@
 //
 // Created by JMO, Mon Jul 12 21:07:52 PDT 2010
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
 #include "TotalHydro.hh"
 #include "HydroFieldNames.hh"
 #include "Physics/GenericHydro.hh"
@@ -34,19 +27,15 @@
 #include "Utilities/iterateIdealH.hh"
 #include "FileIO/FileIO.hh"
 
-namespace Spheral {
-namespace PhysicsSpace {
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
 
-using namespace std;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
+namespace Spheral {
+
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -78,7 +67,7 @@ TotalHydro(const TableKernel<Dimension>& W,
   mLinearMomentum(FieldList<Dimension, Vector>::Copy),
   mDpmomDt(FieldList<Dimension, Vector>::Copy),
   mMassSecondMoment(FieldList<Dimension, SymTensor>::Copy),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -279,9 +268,11 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 TotalHydro<Dimension>::
-postStateUpdate(const DataBase<Dimension>& dataBase,
+postStateUpdate(const Scalar time, 
+                const Scalar dt,
+                const DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
-                const StateDerivatives<Dimension>& derivs) const {
+                StateDerivatives<Dimension>& derivatives) {
 
   // Walk the FluidNodeLists.
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -394,7 +385,6 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
 
 //------------------------------------------------------------------------------
 // Explict instantiation.
@@ -402,9 +392,7 @@ restoreState(const FileIO& file, const string& pathName) {
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace PhysicsSpace {
-    template class TotalHydro< Dim<1> >;
-    template class TotalHydro< Dim<2> >;
-    template class TotalHydro< Dim<3> >;
-  }
+  template class TotalHydro< Dim<1> >;
+  template class TotalHydro< Dim<2> >;
+  template class TotalHydro< Dim<3> >;
 }

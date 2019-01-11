@@ -10,9 +10,6 @@ PKGNAME = Geometry
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
-SRCTARGETS += \
-	$(srcdir)/SpheralGeometry.cc
-
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 EXTRALIBS += $(LDRPATH)

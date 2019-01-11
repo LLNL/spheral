@@ -1,4 +1,4 @@
-import SolidSpheral
+import Spheral
 import mpi
 
 import sys
@@ -32,15 +32,15 @@ def identifyFragments(nodeList,
     startTime = time.time()
 
     # Decide what our dimensionality is.
-    if isinstance(nodeList, SolidSpheral.NodeList1d):
-        FieldConstructor = SolidSpheral.IntField1d
-        computeFragMethod = SolidSpheral.computeFragmentField1d
-    elif isinstance(nodeList, SolidSpheral.NodeList2d):
-        FieldConstructor = SolidSpheral.IntField2d
-        computeFragMethod = SolidSpheral.computeFragmentField2d
-    elif isinstance(nodeList, SolidSpheral.NodeList3d):
-        FieldConstructor = SolidSpheral.IntField3d
-        computeFragMethod = SolidSpheral.computeFragmentField3d
+    if isinstance(nodeList, Spheral.NodeList1d):
+        FieldConstructor = Spheral.IntField1d
+        computeFragMethod = Spheral.computeFragmentField1d
+    elif isinstance(nodeList, Spheral.NodeList2d):
+        FieldConstructor = Spheral.IntField2d
+        computeFragMethod = Spheral.computeFragmentField2d
+    elif isinstance(nodeList, Spheral.NodeList3d):
+        FieldConstructor = Spheral.IntField3d
+        computeFragMethod = Spheral.computeFragmentField3d
     else:
         raise "identifyFragments ERROR: What the heck is %s!  I expected a NodeList." % str(nodeList)
 
@@ -86,18 +86,18 @@ def fragmentProperties(nodeList,
     startTime = time.time()
 
     # Decide what our dimensionality is.
-    if isinstance(nodeList, SolidSpheral.NodeList1d):
-        Vector = SolidSpheral.Vector1d
-        SymTensor = SolidSpheral.SymTensor1d
-        ScalarField = SolidSpheral.ScalarField1d
-    elif isinstance(nodeList, SolidSpheral.NodeList2d):
-        Vector = SolidSpheral.Vector2d
-        SymTensor = SolidSpheral.SymTensor2d
-        ScalarField = SolidSpheral.ScalarField2d
-    elif isinstance(nodeList, SolidSpheral.NodeList3d):
-        Vector = SolidSpheral.Vector3d
-        SymTensor = SolidSpheral.SymTensor3d
-        ScalarField = SolidSpheral.ScalarField3d
+    if isinstance(nodeList, Spheral.NodeList1d):
+        Vector = Spheral.Vector1d
+        SymTensor = Spheral.SymTensor1d
+        ScalarField = Spheral.ScalarField1d
+    elif isinstance(nodeList, Spheral.NodeList2d):
+        Vector = Spheral.Vector2d
+        SymTensor = Spheral.SymTensor2d
+        ScalarField = Spheral.ScalarField2d
+    elif isinstance(nodeList, Spheral.NodeList3d):
+        Vector = Spheral.Vector3d
+        SymTensor = Spheral.SymTensor3d
+        ScalarField = Spheral.ScalarField3d
     else:
         raise "fragmentProperties ERROR: What the heck is %s!  I expected a NodeList." % str(nodeList)
 

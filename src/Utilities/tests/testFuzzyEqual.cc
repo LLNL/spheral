@@ -5,7 +5,6 @@
 #include <iostream>
 #include "../SpheralFunctions.hh"
 
-using namespace std;
 using namespace Spheral;
 
 int main() {

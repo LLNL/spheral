@@ -10,15 +10,14 @@
 #include "Utilities/bisectRoot.hh"
 
 namespace Spheral {
-namespace Material {
 
 namespace {
 
 template<typename Dimension>
 struct Pfunctor {
   const EquationOfState<Dimension>& mEOS;
-  NodeSpace::NodeList<Dimension> mNodes;
-  mutable FieldSpace::Field<Dimension, double> mRho0, mEps, mP;
+  NodeList<Dimension> mNodes;
+  mutable Field<Dimension, double> mRho0, mEps, mP;
   double mP0;
 
   Pfunctor(const EquationOfState<Dimension>& eos, const double rho0, const double P0):
@@ -77,5 +76,4 @@ specificThermalEnergyForPressure(const typename Dimension::Scalar Ptarget,
   return bisectRoot(pfunc, epsMin, epsMax, epsTol, Ptol, maxIterations);
 }
 
-}
 }

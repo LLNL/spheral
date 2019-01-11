@@ -15,10 +15,18 @@
 #include <random>
 #include <algorithm>
 #include <iostream>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-
-using namespace std;
 
 //------------------------------------------------------------------------------
 // The method in question -- test if a point is on the interior of a polyhedron.

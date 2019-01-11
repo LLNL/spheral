@@ -13,24 +13,18 @@
 #ifndef __Spheral_TensorDamagePolicy_hh__
 #define __Spheral_TensorDamagePolicy_hh__
 
-#include <string>
-
 #include "DataBase/UpdatePolicyBase.hh"
+
+#include <string>
 
 namespace Spheral {
 
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace NodeSpace {
-  template<typename Dimension> class FluidNodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
-}
-namespace PhysicsSpace {
-  template<typename Dimension> class TensorDamageModel;
-}
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension> class TensorDamageModel;
 
 template<typename Dimension>
 class TensorDamagePolicy: 
@@ -45,7 +39,7 @@ public:
   typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
 
   // Constructors, destructor.
-  explicit TensorDamagePolicy(const PhysicsSpace::TensorDamageModel<Dimension>& damageModel);
+  explicit TensorDamagePolicy(const TensorDamageModel<Dimension>& damageModel);
   virtual ~TensorDamagePolicy();
   
   // Overload the methods describing how to update Fields.
@@ -63,7 +57,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const PhysicsSpace::TensorDamageModel<Dimension>* mDamageModelPtr;
+  const TensorDamageModel<Dimension>* mDamageModelPtr;
 
   TensorDamagePolicy();
   TensorDamagePolicy(const TensorDamagePolicy& rhs);

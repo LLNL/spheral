@@ -8,21 +8,16 @@
 #ifndef __Spheral_NestedGridNeighbor_hh__
 #define __Spheral_NestedGridNeighbor_hh__
 
-namespace Spheral {
-  template<typename Dimension> class GeomPlane;
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-}
-
-#include <vector>
-#include "Utilities/SafeIndexMap.hh"
-
 #include "Neighbor.hh"
 #include "GridCellIndex.hh"
+#include "Utilities/SafeIndexMap.hh"
+
+#include <vector>
 
 namespace Spheral {
-namespace NeighborSpace {
+
+template<typename Dimension> class GeomPlane;
+template<typename Dimension> class NodeList;
 
 template<typename Dimension>
 class NestedGridNeighbor: public Neighbor<Dimension> {
@@ -38,7 +33,7 @@ public:
   typedef GridCellIndex<Dimension> GC;
 
   // Constructors and destructors.
-  NestedGridNeighbor(NodeSpace::NodeList<Dimension>& nodeList, 
+  NestedGridNeighbor(NodeList<Dimension>& nodeList, 
                      const NeighborSearchType searchType,
                      const int numGridLevels, 
                      const double topGridCellSize,
@@ -126,15 +121,15 @@ public:
   const std::vector<GC>& occupiedGridCells(const int gridLevelID) const;
 
   // Origin of the gridcell coordinates.
-  Vector origin() const;
+  const Vector& origin() const;
   void origin(const Vector& origin);
 
   // The top level grid size.
-  double topGridSize() const;
+  const double topGridSize() const;
   void topGridSize(const double gridSize);
 
   // The radius in gridcells a node can touch on it's home grid level.
-  int gridCellInfluenceRadius() const;
+  const int gridCellInfluenceRadius() const;
   void gridCellInfluenceRadius(const int x);
 
   // Find the head node for the link list of a grid cell (if it exists).
@@ -177,8 +172,6 @@ public:
   // Allow read only access to some of the more interesting member data.
   const std::vector<double>& gridCellSizeInv() const;
   const std::vector< std::vector<GC > >& nodeInCell() const;
-  int masterGridLevel() const;
-  const GC& masterGridCellIndex() const;
 
   // The flag indicating the end of a linked list of nodes.
   int endOfLinkList() const;
@@ -245,7 +238,6 @@ private:
 };
 
 }
-}
 
 #include "NestedGridNeighborInline.hh"
 
@@ -253,9 +245,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  namespace NeighborSpace {
-    template<typename Dimension> class NestedGridNeighbor;
-  }
+  template<typename Dimension> class NestedGridNeighbor;
 }
 
 #endif

@@ -66,29 +66,67 @@ def output(cmd, dict=None):
 #-------------------------------------------------------------------------------
 # Functions to help testing neighbor selection.
 #-------------------------------------------------------------------------------
-def findNeighborNodes(r0, radius, nodes):
-    r = nodes.positions()
+def findNeighborNodes(pos1, H1, radius, nodes,
+                      potentials = None):
+    pos = nodes.positions()
     H = nodes.Hfield()
-    result = [i for i in range(nodes.numInternalNodes)
-              if (H[i]*(r[i] - r0)).magnitude() <= radius]
+    if potentials is None:
+        from Spheral import vector_of_int
+        master, coarse, refine = vector_of_int(), vector_of_int(), vector_of_int()
+        nodes.neighbor().setMasterList(pos1, H1, master, coarse)
+        nodes.neighbor().setRefineNeighborList(pos1, H1, coarse, refine)
+        potentials = list(refine)
+    return [i for i in potentials
+            if (min((H1*(pos[i] - pos1)).magnitude(),
+                    (H[i]*(pos[i] - pos1)).magnitude()) <= radius)]
+
+def findGatherNeighborNodes(pos1, H1, radius, nodes,
+                            potentials = None):
+    pos = nodes.positions()
+    H = nodes.Hfield()
+    if potentials is None:
+        from Spheral import vector_of_int
+        master, coarse, refine = vector_of_int(), vector_of_int(), vector_of_int()
+        nodes.neighbor().setMasterList(pos1, H1, master, coarse)
+        nodes.neighbor().setRefineNeighborList(pos1, H1, coarse, refine)
+        potentials = list(refine)
+    return [i for i in potentials
+            if (H1*(pos1 - pos[i])).magnitude() <= radius]
+
+def findScatterNeighborNodes(pos1, radius, nodes,
+                             potentials = None):
+    pos = nodes.positions()
+    H = nodes.Hfield()
+    if potentials is None:
+        from Spheral import vector_of_int
+        master, coarse, refine = vector_of_int(), vector_of_int(), vector_of_int()
+        nodes.neighbor().setMasterList(pos1, master, coarse)
+        nodes.neighbor().setRefineNeighborList(pos1, coarse, refine)
+        potentials = list(refine)
+    return [i for i in potentials
+            if (H[i]*(pos1 - pos[i])).magnitude() <= radius]
+
+def findOverlapNeighbors(pos1, H1, radius, db):
+    pos = db.globalPosition
+    H = db.globalHfield
+    result = [findNeighborNodes(pos1, H1, radius, nodes) for nodes in db.nodeLists()]
+    for iNL, inodes in enumerate(db.nodeLists()):
+        mygather = findGatherNeighborNodes(pos1, H1, radius, inodes)
+        for i in mygather:
+            for jNL, jnodes in enumerate(db.nodeLists()):
+                result[jNL] += findScatterNeighborNodes(pos(iNL, i), radius, jnodes)
+    result = [list(set(x)) for x in result]
     return result
 
-def checkNeighbors(neighborList, neighborList0):
-    if len(neighborList) < len(neighborList0):
-        return False
-    neighborList.sort()
-    neighborList0.sort()
-    i = 0
-    j = 0
-    while i < len(neighborList0) and j < len(neighborList):
-        if neighborList[j] == neighborList0[i]:
-            i += 1
-            j += 1
-        elif neighborList[j] > neighborList0[i]:
-            return False
-        else:
-            j += 1
-    return i == len(neighborList0) 
+def findOverlapRegion(pos1, H1, pos2, H2, radius, nodes):
+    pos = nodes.positions()
+    result = [i for i in xrange(nodes.numInternalNodes)
+              if ((H1*(pos[i] - pos1)).magnitude() <= radius and
+                  (H2*(pos[i] - pos2)).magnitude() <= radius)]
+    return result
+
+def checkNeighbors(neighborList, answer):
+    return len([x for x in answer if x not in neighborList]) == 0
 
 #-------------------------------------------------------------------------------
 # Print statistic about the H tensors for a set of NodeLists.
@@ -134,31 +172,22 @@ def neighborStats(connectivityMap):
 #-------------------------------------------------------------------------------
 def internalValues(fieldList):
     result = []
-    if not hasattr(fieldList, "__cache__"):
-        fieldList.__cache__ = []
     for f in fieldList:
         vals = f.internalValues()
-        fieldList.__cache__.append(vals)
         result.extend(vals)
     return result
 
 def ghostValues(fieldList):
     result = []
-    if not hasattr(fieldList, "__cache__"):
-        fieldList.__cache__ = []
     for f in fieldList:
         vals = f.ghostValues()
-        fieldList.__cache__.append(vals)
         result.extend(vals)
     return result
 
 def allValues(fieldList):
     result = []
-    if not hasattr(fieldList, "__cache__"):
-        fieldList.__cache__ = []
     for f in fieldList:
         vals = f.allValues()
-        fieldList.__cache__.append(vals)
         result.extend(vals)
     return result
 
@@ -324,7 +353,7 @@ def testParallelConsistency(mesh, xmin, xmax):
         return msg
 
     # Check that the communicated mesh nodes.
-    nodeHashes = [hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in xrange(mesh.numNodes)]
+    nodeHashes = [hashPosition(mesh.node(i).position, xmin, xmax, boxInv) for i in xrange(mesh.numNodes)]
     msg = checkConsistentCommInfo(nodeHashes, sharedNodes)
     if msg != "ok":
         return "Node failure : " + msg
@@ -333,7 +362,7 @@ def testParallelConsistency(mesh, xmin, xmax):
         return "Node failure : " + msg
 
     # Check that the communicated mesh faces.
-    faceHashes = [hashPosition(mesh.face(i).position(), xmin, xmax, boxInv) for i in xrange(mesh.numFaces)]
+    faceHashes = [hashPosition(mesh.face(i).position, xmin, xmax, boxInv) for i in xrange(mesh.numFaces)]
     msg = checkConsistentCommInfo(faceHashes, sharedFaces)
     if msg != "ok":
         return "Face failure : " + msg

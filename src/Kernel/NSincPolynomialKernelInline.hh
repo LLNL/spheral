@@ -1,12 +1,11 @@
-#include <math.h>
-#include <vector>
-
 #include "Geometry/Dimension.hh"
 #include "VolumeIntegrationFunctions.hh"
 #include "Utilities/DBC.hh"
 
+#include <math.h>
+#include <vector>
+
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Construct with the given order (allowed values = 1, 3, 5, 7, & 9).
@@ -127,5 +126,4 @@ NSincPolynomialKernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) c
   }
 }
 
-}
 }

@@ -6,30 +6,19 @@
 
 namespace Spheral {
 
-  // Forward declarations.
-  namespace MeshSpace {
-    template<typename Dimension> class Mesh;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
+// Forward declarations.
+template<typename Dimension> class Mesh;
+template<typename Dimension> class DataBase;
+template<typename Dimension> class TableKernel;
+template<typename Dimension, typename DataType> class FieldList;
 
-  namespace SVPHSpace {
+template<typename Dimension>
+void
+computeSumVoronoiCellMassDensityFromFaces(const Mesh<Dimension>& mesh,
+                                          const TableKernel<Dimension>& W,
+                                          const DataBase<Dimension>& dataBase,
+                                          FieldList<Dimension, typename Dimension::Scalar>& massDensity);
 
-    template<typename Dimension>
-    void
-    computeSumVoronoiCellMassDensityFromFaces(const MeshSpace::Mesh<Dimension>& mesh,
-                                              const KernelSpace::TableKernel<Dimension>& W,
-                                              const DataBaseSpace::DataBase<Dimension>& dataBase,
-                                              FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity);
-
-  }
 }
 
 #endif

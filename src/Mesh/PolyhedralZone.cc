@@ -3,21 +3,25 @@
 //
 // Created by JMO, Thu Jan  6 09:12:50 PST 2011
 //----------------------------------------------------------------------------//
-#include <vector>
-#include <algorithm>
-
 #include "Mesh.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-namespace MeshSpace {
-
-using namespace std;
+#include <vector>
+#include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
+
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Comparator to help sorting the faces counter-clockwise about a position.
@@ -120,5 +124,4 @@ volume() const {
   return result;
 }
 
-}
 }

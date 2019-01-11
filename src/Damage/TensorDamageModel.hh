@@ -22,23 +22,14 @@
 namespace Spheral {
   template<typename Dimension> class State;
   template<typename Dimension> class StateDerivatives;
-  namespace NodeSpace {
-    template<typename Dimension> class SolidNodeList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
+  template<typename Dimension> class SolidNodeList;
+  template<typename Dimension> class DataBase;
+  template<typename Dimension, typename DataType> class Field;
+  template<typename Dimension, typename DataType> class FieldList;
+  class FileIO;
 }
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 // Enum for selecting the method of defining the tensor strain.
 enum class TensorStrainAlgorithm {
@@ -70,14 +61,14 @@ public:
 
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
-  typedef FieldSpace::Field<Dimension, std::vector<double> > FlawStorageType;
+  typedef Field<Dimension, std::vector<double> > FlawStorageType;
 
   // Constructors, destructor.
-  TensorDamageModel(NodeSpace::SolidNodeList<Dimension>& nodeList,
+  TensorDamageModel(SolidNodeList<Dimension>& nodeList,
                     const TensorStrainAlgorithm strainAlgorithm,
                     const EffectiveDamageAlgorithm effDamageAlgorithm,
                     const bool useDamageGradient,
-                    const KernelSpace::TableKernel<Dimension>& W,
+                    const TableKernel<Dimension>& W,
                     const double crackGrowthMultiplier,
                     const EffectiveFlawAlgorithm flawAlgorithm,
                     const double criticalDamageThreshold,
@@ -91,22 +82,22 @@ public:
   virtual 
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const;
 
   // Vote on a time step.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
 
   // Register our state.
-  virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state);
 
   // Register the derivatives/change fields for updating state.
-  virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerDerivatives(DataBase<Dimension>& dataBase,
                                    StateDerivatives<Dimension>& derivs);
 
   // Apply boundary conditions to the physics specific fields.
@@ -119,11 +110,11 @@ public:
   //...........................................................................
 
   // Provide access to the state fields we maintain.
-  const FieldSpace::Field<Dimension, SymTensor>& strain() const;
-  const FieldSpace::Field<Dimension, SymTensor>& effectiveStrain() const;
-  const FieldSpace::Field<Dimension, Scalar>& DdamageDt() const;
-  const FieldSpace::Field<Dimension, SymTensor>& newEffectiveDamage() const;
-  const FieldSpace::Field<Dimension, Vector>& newDamageGradient() const;
+  const Field<Dimension, SymTensor>& strain() const;
+  const Field<Dimension, SymTensor>& effectiveStrain() const;
+  const Field<Dimension, Scalar>& DdamageDt() const;
+  const Field<Dimension, SymTensor>& newEffectiveDamage() const;
+  const Field<Dimension, Vector>& newDamageGradient() const;
 
   // The algorithms being used to update the strain and effective damage.
   TensorStrainAlgorithm strainAlgorithm() const;
@@ -132,32 +123,30 @@ public:
   // Flag to determine if we compute the gradient of the damage at the start 
   // of a timestep.
   bool useDamageGradient() const;
-  void useDamageGradient(const bool x);
+  void useDamageGradient(bool x);
 
   // Flag to determine if damage in compression is allowed.
   bool damageInCompression() const;
-  void damageInCompression(const bool x);
+  void damageInCompression(bool x);
 
   // The critical damage threshold for not setting the time step.
   double criticalDamageThreshold() const; 
-  void criticalDamageThreshold(const double x);
+  void criticalDamageThreshold(double x);
 
   //**************************************************************************
   // Restart methods.
   virtual std::string label() const { return "TensorDamageModel"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //**************************************************************************
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
-#ifndef __GCCXML__
-  FieldSpace::Field<Dimension, SymTensor> mStrain;
-  FieldSpace::Field<Dimension, SymTensor> mEffectiveStrain;
-  FieldSpace::Field<Dimension, Scalar> mDdamageDt;
-  FieldSpace::Field<Dimension, SymTensor> mNewEffectiveDamage;
-  FieldSpace::Field<Dimension, Vector> mNewDamageGradient;
-#endif
+  Field<Dimension, SymTensor> mStrain;
+  Field<Dimension, SymTensor> mEffectiveStrain;
+  Field<Dimension, Scalar> mDdamageDt;
+  Field<Dimension, SymTensor> mNewEffectiveDamage;
+  Field<Dimension, Vector> mNewDamageGradient;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -173,19 +162,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "TensorDamageModelInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace PhysicsSpace {
-    template<typename Dimension> class TensorDamageModel;
-  }
+  template<typename Dimension> class TensorDamageModel;
 }
 
 #endif

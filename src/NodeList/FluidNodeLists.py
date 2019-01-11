@@ -1,6 +1,4 @@
-from SpheralModules.Spheral import Vector1d, Vector2d, Vector3d
-from SpheralModules.Spheral.NodeSpace import *
-from SpheralModules.Spheral.NeighborSpace import *
+from SpheralCompiledPackages import *
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()

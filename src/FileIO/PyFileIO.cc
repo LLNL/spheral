@@ -14,9 +14,7 @@
 #include <string>
 
 namespace Spheral {
-namespace FileIOSpace {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Constructors.
@@ -38,5 +36,4 @@ PyFileIO::
 ~PyFileIO() {
 }
 
-}
 }

@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace SPHSpace {
 
 //------------------------------------------------------------------------------
 // Control whether allow damaged material to have stress relieved.
@@ -16,7 +15,7 @@ template<typename Dimension>
 inline
 void
 SolidSPHHydroBase<Dimension>::
-damageRelieveRubble(const bool x) {
+damageRelieveRubble(bool x) {
   mDamageRelieveRubble = x;
 }
 
@@ -25,7 +24,7 @@ damageRelieveRubble(const bool x) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const KernelSpace::TableKernel<Dimension>&
+const TableKernel<Dimension>&
 SolidSPHHydroBase<Dimension>::
 GradKernel() const {
   return mGradKernel;
@@ -36,7 +35,7 @@ GradKernel() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 SolidSPHHydroBase<Dimension>::
 DdeviatoricStressDt() const {
   return mDdeviatoricStressDt;
@@ -44,7 +43,7 @@ DdeviatoricStressDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SolidSPHHydroBase<Dimension>::
 bulkModulus() const {
   return mBulkModulus;
@@ -52,7 +51,7 @@ bulkModulus() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SolidSPHHydroBase<Dimension>::
 shearModulus() const {
   return mShearModulus;
@@ -60,7 +59,7 @@ shearModulus() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SolidSPHHydroBase<Dimension>::
 yieldStrength() const {
   return mYieldStrength;
@@ -68,7 +67,7 @@ yieldStrength() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SolidSPHHydroBase<Dimension>::
 plasticStrain0() const {
   return mPlasticStrain0;
@@ -76,11 +75,10 @@ plasticStrain0() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 SolidSPHHydroBase<Dimension>::
 Hfield0() const {
   return mHfield0;
 }
 
-}
 }

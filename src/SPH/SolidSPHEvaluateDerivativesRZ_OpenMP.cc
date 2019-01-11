@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace SPHSpace {
 
 //------------------------------------------------------------------------------
 // Determine the principle derivatives.
@@ -505,5 +504,4 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   }
 }
 
-}
 }

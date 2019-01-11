@@ -19,8 +19,7 @@ class ANEOS:
         mod.add_include('"%s/ANEOSTypes.hh"' % srcdir)
 
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        self.space = Spheral.add_cpp_namespace("SolidMaterial")
+        self.space = mod.add_cpp_namespace("Spheral")
 
         for dim in self.dims:
             exec('''
@@ -60,7 +59,7 @@ generateANEOSBindings(self.ANEOS%(dim)id, %(dim)i)
 def generateANEOSBindings(x, ndim):
 
     dim = "Spheral::Dim< %i >" % ndim
-    me = "Spheral::SolidMaterial::ANEOS%id" % ndim
+    me = "Spheral::ANEOS%id" % ndim
 
     # Constructors.
     x.add_constructor([param("int", "materialNumber"),
@@ -74,7 +73,7 @@ def generateANEOSBindings(x, ndim):
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="Spheral::Material::MaterialPressureMinType::PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="Spheral::MaterialPressureMinType::PressureFloor")])
 
     # Generic EOS interface.
     generateEquationOfStateVirtualBindings(x, ndim, False)

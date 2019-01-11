@@ -17,14 +17,11 @@ AC_SUBST(PIPTARGETS)
 
 PYOPT=""
 BOOSTLIBTARGETS="math"
-PIPTARGETS+=" pybindgen==0.17.0"
+PIPTARGETS+=" pybindgen==0.17.0"      # if nothing else, polytope currently requires this
 
 AC_MSG_CHECKING(for --without-pybindgen)
 AC_ARG_WITH(pybindgen,
-[  --without-pybindgen ...................... do not use pybindgen wrappings],
-[
-    AC_MSG_RESULT(yes)
-],
+[  --with-pybindgen ......................... use pybindgen wrappings],
 [
     AC_MSG_RESULT(no)
     PYTHONBINDING="PYBINDGEN"
@@ -38,27 +35,31 @@ AC_ARG_WITH(pybindgen,
     if test "$CXXCOMPILERTYPE" = "INTEL"; then
        PYOPT=" -O0 -no-ipo"
     fi
+],
+[
+    AC_MSG_RESULT(yes)
 ])
 
 # -----------------------------------------------------------------
 # Configure using pybind11 library for python bindings
 # -----------------------------------------------------------------
-AC_MSG_CHECKING(for --with-pybind11)
+AC_MSG_CHECKING(for --without-pybind11)
 AC_ARG_WITH(pybind11,
-[  --with-pybind11 .......................... use pybind11 wrappings],
+[  --without-pybind11 ....................... do not use pybind11 wrappings],
+[
+    AC_MSG_RESULT(no)
+],
 [
     AC_MSG_RESULT(yes)
     PYTHONBINDING="PYBIND11"
     PYTHONPKGDIR="Pybind11Wraps"
-    PYTHONPKGS+=" CXXTypes Geometry Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro"
+    PYTHONPKGS+=" Geometry PolyClipper polytope Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics Hydro ExternalForce Gravity Integrator Utilities NodeGenerators FieldOperations SPH CRKSPH ArtificialViscosity SVPH Mesh Damage SolidMaterial Strength ArtificialConduction"
     INCS+="-I\$(prefix)/include -I\$prefix/include/python\$(PYTHONVERSION) \$(patsubst %, -I\$(SRCTOP)/%, \$(CXXPKGS))"
     MODULELINK="-L\$(LIBDIR) \$(PKGLIBS)"
+    PIPTARGETS+=" decorator"
     if test "`uname -s`" = "AIX"; then
        MODULELINK="$MODULELINK -e init\$(PKGNAME)"
     fi
-],
-[
-    AC_MSG_RESULT(no)
 ])
 
 AC_MSG_CHECKING(for --with-boostroot)

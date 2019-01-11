@@ -12,23 +12,9 @@ namespace Spheral {
 
 template <typename Dimension, typename Value> class UpdatePolicyBase;
 
-namespace FieldSpace {
-   template <typename Dimension, typename Value> class Field;
-}
-
-namespace KernelSpace {
-   template <typename Dimension> class TableKernel;
-}
-
-namespace FileIOSpace {
-  class FileIO;
-}
-namespace MHDSpace {
-
-
-using ::Spheral::NodeSpace::SphNodeList;
-using ::Spheral::Material::EquationOfState;
-using ::Spheral::FieldSpace::Field;
+template <typename Dimension, typename Value> class Field;
+template <typename Dimension> class TableKernel;
+class FileIO;
 
 class ConductingFluidNodeList: public SphNodeList<Dim<3> >
 {
@@ -54,8 +40,8 @@ class ConductingFluidNodeList: public SphNodeList<Dim<3> >
    //! \param numGhostNodes The number of ghost nodes in this list.
    ConductingFluidNodeList(const std::string& name,
       EquationOfState<Dim<3> >& eos,
-      KernelSpace::TableKernel<Dim<3> >& W,
-      KernelSpace::TableKernel<Dim<3> >& WQ,
+      TableKernel<Dim<3> >& W,
+      TableKernel<Dim<3> >& WQ,
       int numInternalNodes = 0,
       int numGhostNodes = 0);
 
@@ -70,8 +56,8 @@ class ConductingFluidNodeList: public SphNodeList<Dim<3> >
    //! \param numGhostNodes The number of ghost nodes in this list.
    ConductingFluidNodeList(const std::string& name,
       EquationOfState<Dim<3> >& eos,
-      KernelSpace::TableKernel<Dim<3> >& W,
-      KernelSpace::TableKernel<Dim<3> >& WQ,
+      TableKernel<Dim<3> >& W,
+      TableKernel<Dim<3> >& WQ,
       const Scalar& C,
       int numInternalNodes = 0,
       int numGhostNodes = 0);
@@ -87,8 +73,8 @@ class ConductingFluidNodeList: public SphNodeList<Dim<3> >
    //! \param numGhost TheNodes number of ghost nodes in this list.
    ConductingFluidNodeList(const std::string& name,
       EquationOfState<Dim<3> >& eos,
-      KernelSpace::TableKernel<Dim<3> >& W,
-      KernelSpace::TableKernel<Dim<3> >& WQ,
+      TableKernel<Dim<3> >& W,
+      TableKernel<Dim<3> >& WQ,
       double C,
       double Rmax,
       int numInternalNodes = 0,
@@ -107,8 +93,8 @@ class ConductingFluidNodeList: public SphNodeList<Dim<3> >
    //! \param numGhostNodes The number of ghost nodes in this list.
    ConductingFluidNodeList(const std::string& name,
       EquationOfState<Dim<3> >& eos,
-      KernelSpace::TableKernel<Dim<3> >& W,
-      KernelSpace::TableKernel<Dim<3> >& WQ,
+      TableKernel<Dim<3> >& W,
+      TableKernel<Dim<3> >& WQ,
       double C,
       double Rmax,
       double rhoMin,
@@ -168,10 +154,10 @@ class ConductingFluidNodeList: public SphNodeList<Dim<3> >
    std::shared_ptr<UpdatePolicyBase<Dim<3>, Field<Dim<3>, Scalar> > >& resistivityPolicy();
 
    //! Dump the state to a restart file.
-   void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
+   void dumpState(FileIO& file, const std::string& pathName) const;
 
    //! Restore the state from a restart file.
-   void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+   void restoreState(const FileIO& file, const std::string& pathName);
 
    private:
 
@@ -192,16 +178,12 @@ class ConductingFluidNodeList: public SphNodeList<Dim<3> >
 
 }; // end class ConductingFluidNodeList
 
-
-} // end namespace MHDSpace
 } // end namespace Spheral
 
 #else
 // Forward declare the ConductingFluidNodeList class.
 namespace Spheral {
-   namespace MHDSpace {
-      class ConductingFluidNodeList;
-   }
+   class ConductingFluidNodeList;
 }
 
 #endif

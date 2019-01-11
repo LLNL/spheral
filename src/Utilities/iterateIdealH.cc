@@ -2,24 +2,25 @@
 // Iterate the ideal H algorithm to converge on a new H field.
 // This routine replaces the H field in place.
 //------------------------------------------------------------------------------
-#include <ctime>
 #include "iterateIdealH.hh"
 #include "Field/FieldList.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
 
+#include <ctime>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-
-using namespace std;
-
-using DataBaseSpace::DataBase;
-using BoundarySpace::Boundary;
-using KernelSpace::TableKernel;
-using FieldSpace::FieldList;
-using FieldSpace::Field;
-using NeighborSpace::ConnectivityMap;
-using NodeSpace::SmoothingScaleBase;
 
 template<typename Dimension>
 void
@@ -143,7 +144,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     H1.copyFields();
 
     // Get the new connectivity.
-    dataBase.updateConnectivityMap(false);
+    dataBase.updateConnectivityMap(false, false);
     const auto& connectivityMap = dataBase.connectivityMap();
 
     // Iterate over the NodeLists.

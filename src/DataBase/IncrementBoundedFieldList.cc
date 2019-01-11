@@ -13,9 +13,14 @@
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using Spheral::FieldSpace::FieldList;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructors.
@@ -132,8 +137,8 @@ update(const KeyType& key,
 
   // Find the matching derivative FieldList from the StateDerivatives.
   KeyType incrementKey = prefix() + fieldKey;
-  FieldSpace::FieldList<Dimension, ValueType> f = state.fields(fieldKey, ValueType());
-  const FieldSpace::FieldList<Dimension, ValueType> df = derivs.fields(incrementKey, ValueType());
+  FieldList<Dimension, ValueType> f = state.fields(fieldKey, ValueType());
+  const FieldList<Dimension, ValueType> df = derivs.fields(incrementKey, ValueType());
   CHECK(f.size() == df.size());
 
   // Loop over the internal values of the field.

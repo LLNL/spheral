@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace CRKSPHSpace {
 
 //------------------------------------------------------------------------------
 // Determine the principle derivatives.
@@ -444,5 +443,4 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 }
 
-}
 }

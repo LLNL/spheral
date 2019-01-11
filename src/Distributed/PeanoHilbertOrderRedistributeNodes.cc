@@ -12,10 +12,6 @@
 #include "Field/FieldList.hh"
 
 namespace Spheral {
-namespace PartitionSpace {
-
-using DataBaseSpace::DataBase;
-using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -53,5 +49,3 @@ computeHashedIndices(const DataBase<Dimension>& dataBase) const {
 }
 
 }
-}
-

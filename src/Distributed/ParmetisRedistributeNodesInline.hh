@@ -1,7 +1,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace PartitionSpace {
 
 //------------------------------------------------------------------------------
 // The node extent.
@@ -23,5 +22,4 @@ setNormalizedNodeExtent(double extent) {
   mNormalizedNodeExtent = extent;
 }
 
-}
 }

@@ -5,7 +5,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace Geometry {
 
 using std::min;
 using std::max;
@@ -136,5 +135,4 @@ buildUniqueEigenVector(const Dim<3>::SymTensor& A,
   return V0;
 }
 
-}
 }

@@ -3,14 +3,15 @@
 //
 // Created by JMO, Tue Oct 12 23:07:22 PDT 2010
 //----------------------------------------------------------------------------//
-#include <limits>
-#include <numeric>
-#include <list>
-
 #include "boost/unordered_map.hpp"
 #include "boost/tuple/tuple_comparison.hpp"
 #include "boost/functional/hash.hpp"
 #include "boost/bimap.hpp"
+using namespace boost;
+using ::boost::unordered_map;
+using std::min;
+using std::max;
+using std::abs;
 
 #include "MeshConstructionUtilities.hh"
 #include "Utilities/removeElements.hh"
@@ -25,17 +26,24 @@
 #include "Utilities/packElement.hh"
 #endif
 
-namespace Spheral {
-namespace MeshSpace {
-
-using namespace std;
-using namespace boost;
-using ::boost::unordered_map;
+#include <limits>
+#include <numeric>
+#include <list>
+using std::vector;
+using std::set;
+using std::list;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using NodeSpace::NodeList;
+namespace Spheral {
+
 namespace { // anonymous
 
 #ifdef USE_MPI
@@ -525,7 +533,7 @@ cleanEdges(const double edgeTol) {
         nodeMap[n2] = n1;
       }
     }
-    replace_if(nodeMask.begin(), nodeMask.end(), bind2nd(equal_to<unsigned>(), 2), 1);
+    replace_if(nodeMask.begin(), nodeMask.end(), std::bind2nd(std::equal_to<unsigned>(), 2), 1);
     
     // Reassign the nodes we're renumbering before they get deleted.
     {
@@ -726,7 +734,7 @@ generateDomainInfo() {
   this->boundingBox(xmin, xmax);
 
   // Define the hashing scale.
-  const double dxhash = (xmax - xmin).maxElement() / numeric_limits<KeyElement>::max();
+  const double dxhash = (xmax - xmin).maxElement() / std::numeric_limits<KeyElement>::max();
 
   // Puff out the bounds a bit.  We do the all reduce just to ensure
   // bit perfect consistency across processors.
@@ -1009,7 +1017,7 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
     this->boundingBox(xmin, xmax);
 
     // Define the hashing scale.
-    const double dxhash = (xmax - xmin).maxElement() / numeric_limits<KeyElement>::max();
+    const double dxhash = (xmax - xmin).maxElement() / std::numeric_limits<KeyElement>::max();
 
     // Puff out the bounds a bit.  We do the all reduce just to ensure
     // bit perfect consistency across processors.
@@ -1737,6 +1745,6 @@ validDomainInfo(const typename Dimension::Vector& xmin,
 // Static initializations.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const unsigned Mesh<Dimension>::UNSETID = numeric_limits<int>::max();
-}
+const unsigned Mesh<Dimension>::UNSETID = std::numeric_limits<int>::max();
+
 }

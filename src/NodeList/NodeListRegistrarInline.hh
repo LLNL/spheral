@@ -1,8 +1,8 @@
-#include <algorithm>
-#include <sstream>
-
 #include "NodeList/NodeList.hh"
 #include "Field/FieldBase.hh"
+
+#include <algorithm>
+#include <sstream>
 
 namespace Spheral {
 
@@ -124,18 +124,18 @@ findInsertionPoint(const ThingyType& thingy,
   if (containerSize == 0) return end;
 
   // Get the sequence of NodeLists represented by the input.
-  std::vector<NodeSpace::NodeList<Dimension>*> nodeListPtrs;
+  std::vector<NodeList<Dimension>*> nodeListPtrs;
   nodeListPtrs.reserve(containerSize);
   for (IteratorType itr = begin; itr != end; ++itr) {
-    NodeSpace::NodeList<Dimension>* nodeListPtr = getNodeListPtr(*itr);
+    NodeList<Dimension>* nodeListPtr = getNodeListPtr(*itr);
     CHECK(itr == begin or (nodeListPtr->name() > getNodeListPtr(*(itr - 1))->name()));
     nodeListPtrs.push_back(nodeListPtr);
   }
   CHECK(nodeListPtrs.size() == containerSize);
 
   // Now we can find where the specified thingy should go.
-  NodeSpace::NodeList<Dimension>* nodeListPtr = getNodeListPtr(thingy);
-  typename std::vector<NodeSpace::NodeList<Dimension>*>::iterator orderItr = std::upper_bound(nodeListPtrs.begin(),
+  NodeList<Dimension>* nodeListPtr = getNodeListPtr(thingy);
+  typename std::vector<NodeList<Dimension>*>::iterator orderItr = std::upper_bound(nodeListPtrs.begin(),
                                                                                               nodeListPtrs.end(),
                                                                                               nodeListPtr,
                                                                                               NodeListComparator());

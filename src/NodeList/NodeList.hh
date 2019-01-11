@@ -16,34 +16,21 @@
 #include <vector>
 
 namespace Spheral {
-  template<typename Dimension> class AllNodeIterator;
-  template<typename Dimension> class InternalNodeIterator;
-  template<typename Dimension> class GhostNodeIterator;
-  template<typename Dimension> class MasterNodeIterator;
-  template<typename Dimension> class CoarseNodeIterator;
-  template<typename Dimension> class RefineNodeIterator;
-  template<typename Dimension> class State;
-  namespace NeighborSpace {
-    template<typename Dimension> class Neighbor;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace FieldSpace {
-    template<typename Dimension> class FieldBase;
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-}
 
-namespace Spheral {
-namespace NodeSpace {
+template<typename Dimension> class AllNodeIterator;
+template<typename Dimension> class InternalNodeIterator;
+template<typename Dimension> class GhostNodeIterator;
+template<typename Dimension> class MasterNodeIterator;
+template<typename Dimension> class CoarseNodeIterator;
+template<typename Dimension> class RefineNodeIterator;
+template<typename Dimension> class State;
+template<typename Dimension> class Neighbor;
+template<typename Dimension> class DataBase;
+template<typename Dimension> class TableKernel;
+template<typename Dimension> class FieldBase;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+class FileIO;
 
 enum class NodeType {
   InternalNode = 0,
@@ -60,8 +47,8 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  typedef typename std::vector<FieldSpace::FieldBase<Dimension>*>::iterator FieldBaseIterator;
-  typedef typename std::vector<FieldSpace::FieldBase<Dimension>*>::const_iterator const_FieldBaseIterator;
+  typedef typename std::vector<FieldBase<Dimension>*>::iterator FieldBaseIterator;
+  typedef typename std::vector<FieldBase<Dimension>*>::const_iterator const_FieldBaseIterator;
 
   // Constructors
   explicit NodeList(std::string name,
@@ -106,27 +93,27 @@ public:
   RefineNodeIterator<Dimension> refineNodeEnd() const;
 
   // The NodeList state Fields.
-  FieldSpace::Field<Dimension, Scalar>& mass();
-  FieldSpace::Field<Dimension, Vector>& positions();
-  FieldSpace::Field<Dimension, Vector>& velocity();
-  FieldSpace::Field<Dimension, SymTensor>& Hfield();
+  Field<Dimension, Scalar>& mass();
+  Field<Dimension, Vector>& positions();
+  Field<Dimension, Vector>& velocity();
+  Field<Dimension, SymTensor>& Hfield();
 
-  const FieldSpace::Field<Dimension, Scalar>& mass() const;
-  const FieldSpace::Field<Dimension, Vector>& positions() const;
-  const FieldSpace::Field<Dimension, Vector>& velocity() const;
-  const FieldSpace::Field<Dimension, SymTensor>& Hfield() const;
+  const Field<Dimension, Scalar>& mass() const;
+  const Field<Dimension, Vector>& positions() const;
+  const Field<Dimension, Vector>& velocity() const;
+  const Field<Dimension, SymTensor>& Hfield() const;
 
-  void mass(const FieldSpace::Field<Dimension, Scalar>& m);
-  void positions(const FieldSpace::Field<Dimension, Vector>& r);
-  void velocity(const FieldSpace::Field<Dimension, Vector>& v);
-  void Hfield(const FieldSpace::Field<Dimension, SymTensor>& H);
+  void mass(const Field<Dimension, Scalar>& m);
+  void positions(const Field<Dimension, Vector>& r);
+  void velocity(const Field<Dimension, Vector>& v);
+  void Hfield(const Field<Dimension, SymTensor>& H);
 
   // Anyone can acces the work field as a mutable field.
-  FieldSpace::Field<Dimension, Scalar>& work() const;
-  void work(const FieldSpace::Field<Dimension, Scalar>& w);
+  Field<Dimension, Scalar>& work() const;
+  void work(const Field<Dimension, Scalar>& w);
 
   // These are quantities which are not stored, but can be computed.
-  void Hinverse(FieldSpace::Field<Dimension, SymTensor>& field) const;
+  void Hinverse(Field<Dimension, SymTensor>& field) const;
 
   // Provide iterators over the set of FieldBases defined on this 
   // NodeList.
@@ -138,10 +125,10 @@ public:
 
   // Provide methods to add and subtract Fields which are defined over a
   // NodeList.
-  void registerField(FieldSpace::FieldBase<Dimension>& field) const;
-  void unregisterField(FieldSpace::FieldBase<Dimension>& field) const;
+  void registerField(FieldBase<Dimension>& field) const;
+  void unregisterField(FieldBase<Dimension>& field) const;
   int numFields() const;
-  bool haveField(const FieldSpace::FieldBase<Dimension>& field) const;
+  bool haveField(const FieldBase<Dimension>& field) const;
 
   // NodeLists can contain ghost nodes (either communicated from neighbor
   // processors, or simply created for boundary conditions).
@@ -149,28 +136,28 @@ public:
   unsigned firstGhostNode() const;
 
   // Access the neighbor object.
-  NeighborSpace::Neighbor<Dimension>& neighbor() const;
+  Neighbor<Dimension>& neighbor() const;
 
-  void registerNeighbor(NeighborSpace::Neighbor<Dimension>& neighbor);
+  void registerNeighbor(Neighbor<Dimension>& neighbor);
   void unregisterNeighbor();
 
   // The target number of nodes per smoothing scale (for calculating the ideal H).
   Scalar nodesPerSmoothingScale() const;
-  void nodesPerSmoothingScale(const Scalar val);
+  void nodesPerSmoothingScale(Scalar val);
 
   // The maximum number of neighbors we want to have (for calculating the ideal H).
   unsigned maxNumNeighbors() const;
-  void maxNumNeighbors(const unsigned val);
+  void maxNumNeighbors(unsigned val);
 
   // Allowed range of smoothing scales for use in calculating H.
   Scalar hmin() const;
-  void hmin(const Scalar val);
+  void hmin(Scalar val);
 
   Scalar hmax() const;
-  void hmax(const Scalar val);
+  void hmax(Scalar val);
 
   Scalar hminratio() const;
-  void hminratio(const Scalar val);
+  void hminratio(Scalar val);
 
   //****************************************************************************
   // Methods for adding/removing individual nodes to/from the NodeList
@@ -189,8 +176,8 @@ public:
   // Methods required for restarting.
   // Dump and restore the NodeList state.
   virtual std::string label() const { return "NodeList"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
   // Some operators.
@@ -202,20 +189,19 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-#ifndef __GCCXML__
   unsigned mNumNodes;
   unsigned mFirstGhostNode;
 
   std::string mName;
 
   // State fields.
-  FieldSpace::Field<Dimension, Scalar> mMass;
-  FieldSpace::Field<Dimension, Vector> mPositions;
-  FieldSpace::Field<Dimension, Vector> mVelocity;
-  FieldSpace::Field<Dimension, SymTensor> mH;
+  Field<Dimension, Scalar> mMass;
+  Field<Dimension, Vector> mPositions;
+  Field<Dimension, Vector> mVelocity;
+  Field<Dimension, SymTensor> mH;
 
   // The work field is mutable.
-  mutable FieldSpace::Field<Dimension, Scalar> mWork;
+  mutable Field<Dimension, Scalar> mWork;
 
   // Stuff for how H is handled.
   Scalar mhmin, mhmax, mhminratio;
@@ -223,15 +209,14 @@ private:
   unsigned mMaxNumNeighbors;
 
   // List of fields that are defined over this NodeList.
-  mutable std::vector<FieldSpace::FieldBase<Dimension>*> mFieldBaseList;
-  NeighborSpace::Neighbor<Dimension>* mNeighborPtr;
+  mutable std::vector<FieldBase<Dimension>*> mFieldBaseList;
+  Neighbor<Dimension>* mNeighborPtr;
 
   // Provide a dummy vector to buid NodeIterators against.
   std::vector<NodeList<Dimension>*> mDummyList;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
-#endif
+  RestartRegistrationType mRestart;
 
   // No default constructor, copying, or assignment.
   NodeList();
@@ -240,18 +225,13 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "NodeListInline.hh"
-#endif
 
 #else
 // Forward declare the NodeList class.
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
+  template<typename Dimension> class NodeList;
 }
 
 #endif

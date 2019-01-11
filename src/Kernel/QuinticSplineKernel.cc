@@ -2,7 +2,6 @@
 #include "Utilities/FastMath.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Destructor
@@ -77,5 +76,4 @@ QuinticSplineKernel<Dimension>::grad2Value(double eta, double Hdet) const {
   }
 }
 
-}
 }

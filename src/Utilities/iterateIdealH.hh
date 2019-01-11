@@ -5,24 +5,20 @@
 #ifndef __Spheral_iterateIdealH__
 #define __Spheral_iterateIdealH__
 
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "DataBase/DataBase.hh"
 #include "Boundary/Boundary.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 
+#include <vector>
+
 namespace Spheral {
 template<typename Dimension>
 void
-iterateIdealH(DataBaseSpace::DataBase<Dimension>& dataBase,
-              const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
-              const KernelSpace::TableKernel<Dimension>& W,
-              const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+iterateIdealH(DataBase<Dimension>& dataBase,
+              const std::vector<Boundary<Dimension>*>& boundaries,
+              const TableKernel<Dimension>& W,
+              const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
               const int maxIterations = 100,
               const double tolerance = 1.0e-10,
               const double nPerhForIteration = 0.0,

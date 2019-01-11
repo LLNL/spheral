@@ -8,13 +8,6 @@
 #include "Boundary/Boundary.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
-
-// using Spheral::DataBaseSpace::DataBase;
-using Spheral::FieldSpace::Field;
-using Spheral::FieldSpace::FieldList;
-// using Spheral::KernelSpace::TableKernel;
-// using Spheral::BoundarySpace::Boundary;
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -23,9 +16,6 @@ template<typename Dimension>
 CheapVonNeumanViscosity<Dimension>::
 CheapVonNeumanViscosity():
   VonNeumanViscosity<Dimension>() {
-#ifdef DEBUG
-  cerr << "CheapVonNeumanViscosity::CheapVonNeumanViscosity()" << endl;
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -35,9 +25,6 @@ template<typename Dimension>
 CheapVonNeumanViscosity<Dimension>::
 CheapVonNeumanViscosity(Scalar Clinear, Scalar Cquadratic):
   VonNeumanViscosity<Dimension>(Clinear, Cquadratic) {
-#ifdef DEBUG
-  cerr << "CheapVonNeumanViscosity::CheapVonNeumanViscosity(Cl, Cq)" << endl;
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -46,9 +33,6 @@ CheapVonNeumanViscosity(Scalar Clinear, Scalar Cquadratic):
 template<typename Dimension>
 CheapVonNeumanViscosity<Dimension>::
 ~CheapVonNeumanViscosity() {
-#ifdef DEBUG
-  cerr << "CheapVonNeumanViscosity::~CheapVonNeumanViscosity()" << endl;
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -60,12 +44,9 @@ CheapVonNeumanViscosity<Dimension>::
 initialize(const DataBase<Dimension>& dataBase,
            typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
            typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-	   const typename Dimension::Scalar time,
-	   const typename Dimension::Scalar dt,
+           const typename Dimension::Scalar time,
+           const typename Dimension::Scalar dt,
            const TableKernel<Dimension>& W) {
-#ifdef DEBUG
-  cerr << "CheapVonNeumanViscosity::initialize()" << endl;
-#endif
 
   typedef typename ArtificialViscosity<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
@@ -114,7 +95,7 @@ initialize(const DataBase<Dimension>& dataBase,
   }
 
 }
-}
+
 }
 
 //------------------------------------------------------------------------------
@@ -122,9 +103,7 @@ initialize(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 namespace Spheral {
-namespace ArtificialViscositySpace {
-template class CheapVonNeumanViscosity< Dim<1> >;
-template class CheapVonNeumanViscosity< Dim<2> >;
-template class CheapVonNeumanViscosity< Dim<3> >;
-}
+  template class CheapVonNeumanViscosity< Dim<1> >;
+  template class CheapVonNeumanViscosity< Dim<2> >;
+  template class CheapVonNeumanViscosity< Dim<3> >;
 }

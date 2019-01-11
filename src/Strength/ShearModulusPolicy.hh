@@ -7,18 +7,16 @@
 #ifndef __Spheral_ShearModulusPolicy_hh__
 #define __Spheral_ShearModulusPolicy_hh__
 
-#include <string>
-
 #include "DataBase/FieldListUpdatePolicyBase.hh"
+
+#include <string>
 
 namespace Spheral {
 
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
-}
+template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
 class ShearModulusPolicy: 

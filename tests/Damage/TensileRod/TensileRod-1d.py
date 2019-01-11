@@ -216,9 +216,9 @@ class AverageStrain:
         return
 
     def sample(self, cycle, atime, dt):
-        nodes = self.damageModel.nodeList()
+        nodes = self.damageModel.nodeList
         mass = nodes.mass()
-        strain = self.damageModel.strain()
+        strain = self.damageModel.strain
 
         n = nodes.numInternalNodes
         result = (mpi.allreduce(sum([mass[i]*(strain[i].Trace()) for i in xrange(n)]), mpi.SUM)/
@@ -440,8 +440,8 @@ output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
+output("hydro.kernel")
+output("hydro.PiKernel")
 
 #-------------------------------------------------------------------------------
 # Construct a damage model.
@@ -559,7 +559,8 @@ for package in integrator.physicsPackages():
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            restartBaseName = restartBaseName)
+                            restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle)
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -613,6 +614,13 @@ if graphics:
     PPlot = plotFieldList(state.scalarFields("pressure"),
                           plotStyle="o-",
                           winTitle="pressure @ %g %i" % (control.time(), mpi.procs))
+    uPlot = plotFieldList(state.scalarFields("specific thermal energy"),
+                          plotStyle="o-",
+                          winTitle="specific thermal energy @ %g %i" % (control.time(), mpi.procs))
+    SPlot = plotFieldList(state.symTensorFields("deviatoric stress"),
+                          yFunction = "%s.xx",
+                          plotStyle="o-",
+                          winTitle="$S_{xx}$ @ %g %i" % (control.time(), mpi.procs))
     hPlot = plotFieldList(h,
                           plotStyle="o-",
                           winTitle="h @ %g %i" % (control.time(), mpi.procs))
@@ -627,9 +635,18 @@ if graphics:
                            yFunction = "%s.xx",
                            winTitle="Effective damage @ %g %i" % (control.time(), mpi.procs),
                            plotStyle="o-")
+    plots = [(rhoPlot, "rho.png"),
+             (velPlot, "vel.png"),
+             (mPlot, "mass.png"),
+             (PPlot, "pressure.png"),
+             (SPlot, "devstress.png"),
+             (uPlot, "u.png"),
+             (hPlot, "h.png"),
+             (dPlot, "damage.png"),
+             (edPlot, "effdamage.png")]
 
     if isinstance(damageModel, GradyKippTensorDamageBenzAsphaug) or isinstance(damageModel, GradyKippTensorDamageOwen):
-        ts = damageModel.strain()
+        ts = damageModel.strain
         s = ScalarField("strain", nodes)
         for i in xrange(nodes.numInternalNodes):
             s[i] = ts[i].xx
@@ -637,8 +654,8 @@ if graphics:
         sl.appendField(s)
         sPlot = plotFieldList(sl, winTitle="strain @ %g %i" % (control.time(), mpi.procs),
                               plotStyle="o-")
-        eps = damageModel.sumActivationEnergiesPerNode()
-        nflaws = damageModel.numFlawsPerNode()
+        eps = damageModel.sumActivationEnergiesPerNode
+        nflaws = damageModel.numFlawsPerNode
         for i in xrange(nodes.numInternalNodes):
             assert nflaws[i] > 0
             eps[i] /= nflaws[i]
@@ -650,6 +667,9 @@ if graphics:
         eflawsPlot = plotFieldList(state.scalarFields("effective flaws"),
                                    plotStyle = "o-",
                                    winTitle = "Effective Flaws @ %g %i" % (control.time(), mpi.procs))
+        plots += [(sPlot, "strain.png"),
+                  (epsPlot, "flaws.png"),
+                  (eflawsPlot, "effective_flaws.png")]
 
     elif isinstance(damageModel, JohnsonCookDamage):
         eps = damageModel.failureStrain()
@@ -667,10 +687,18 @@ if graphics:
         D2l.appendField(D2)
         D2Plot = plotFieldList(D2l, winTitle="JC D2",
                                 plotStyle="o-")
+        plots += [(epsPlot, "JC_flaw.png"),
+                  (D1Plot, "D1.png"),
+                  (D2Plot, "D2.png")]
 
     fragPlot = plotFieldList(state.intFields(SolidFieldNames.fragmentIDs),
                              plotStyle = "o-",
                              winTitle = "Fragments @  %g %i" % (control.time(), mpi.procs))
+    plots.append((fragPlot, "fragIDs.png"))
+
+    # Save the figures.
+    for p, fname in plots:
+        savefig(p, os.path.join(dataDir, fname))
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.

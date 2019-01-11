@@ -17,22 +17,19 @@
 
 #include <algorithm>
 
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 using std::vector;
-using NodeSpace::NodeList;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using BoundarySpace::Boundary;
-using KernelSpace::TableKernel;
-using NeighborSpace::Neighbor;
-using FileIOSpace::FileIO;
-using NeighborSpace::ConnectivityMap;
-using NodeSpace::FluidNodeList;
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -42,20 +39,20 @@ ArtificialViscosity<Dimension>::
 ArtificialViscosity():
   mClinear(1.0),
   mCquadratic(1.0),
-  mQcorrectionOrder(CRKSPHSpace::CRKOrder::LinearOrder),  
+  mQcorrectionOrder(CRKOrder::LinearOrder),  
   mBalsaraShearCorrection(false),
-  mClMultiplier(FieldSpace::FieldStorageType::CopyFields),
-  mCqMultiplier(FieldSpace::FieldStorageType::CopyFields),
-  mShearCorrection(FieldSpace::FieldStorageType::CopyFields),
+  mClMultiplier(FieldStorageType::CopyFields),
+  mCqMultiplier(FieldStorageType::CopyFields),
+  mShearCorrection(FieldStorageType::CopyFields),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-2),
   mNegligibleSoundSpeed(1e-10),
   mCsMultiplier(1e-2),
   mEnergyMultiplier(1.0),
-  mSigma(FieldSpace::FieldStorageType::CopyFields),
-  mGradDivVelocity(FieldSpace::FieldStorageType::CopyFields),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mSigma(FieldStorageType::CopyFields),
+  mGradDivVelocity(FieldStorageType::CopyFields),
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -63,23 +60,23 @@ ArtificialViscosity():
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ArtificialViscosity<Dimension>::
-ArtificialViscosity(Scalar Clinear, Scalar Cquadratic, CRKSPHSpace::CRKOrder QcorrectionOrder):
+ArtificialViscosity(Scalar Clinear, Scalar Cquadratic, CRKOrder QcorrectionOrder):
   mClinear(Clinear),
   mCquadratic(Cquadratic),
   mQcorrectionOrder(QcorrectionOrder), 
   mBalsaraShearCorrection(false),
-  mClMultiplier(FieldSpace::FieldStorageType::CopyFields),
-  mCqMultiplier(FieldSpace::FieldStorageType::CopyFields),
-  mShearCorrection(FieldSpace::FieldStorageType::CopyFields),
+  mClMultiplier(FieldStorageType::CopyFields),
+  mCqMultiplier(FieldStorageType::CopyFields),
+  mShearCorrection(FieldStorageType::CopyFields),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-2),
   mNegligibleSoundSpeed(1e-10),
   mCsMultiplier(1e-2),
   mEnergyMultiplier(1.0),
-  mSigma(FieldSpace::FieldStorageType::CopyFields),
-  mGradDivVelocity(FieldSpace::FieldStorageType::CopyFields),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mSigma(FieldStorageType::CopyFields),
+  mGradDivVelocity(FieldStorageType::CopyFields),
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -439,5 +436,4 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
 
 }
 
-}
 }

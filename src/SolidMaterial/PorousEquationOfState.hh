@@ -21,16 +21,16 @@
 #ifndef __Spheral_PorousEquationOfState__
 #define __Spheral_PorousEquationOfState__
 
-#include <limits>
 #include "SolidEquationOfState.hh"
 #include "DataOutput/registerWithRestart.hh"
 
+#include <limits>
+
 namespace Spheral {
-namespace SolidMaterial {
 
 template<typename Dimension>
 class PorousEquationOfState: 
-    public Material::EquationOfState<Dimension> {
+    public EquationOfState<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -40,64 +40,64 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   // Constructors, destructors.
-  PorousEquationOfState(const Material::EquationOfState<Dimension>& solidEOS); // Solid EOS we're going to modify
+  PorousEquationOfState(const EquationOfState<Dimension>& solidEOS); // Solid EOS we're going to modify
   virtual ~PorousEquationOfState();
 
   //............................................................................
   // EOS methods.
   // We require any equation of state to define the following methods for Fields.
-  virtual void setPressure(FieldSpace::Field<Dimension, Scalar>& Pressure,
-                           const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setPressure(Field<Dimension, Scalar>& Pressure,
+                           const Field<Dimension, Scalar>& massDensity,
+                           const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setTemperature(FieldSpace::Field<Dimension, Scalar>& temperature,
-                              const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setTemperature(Field<Dimension, Scalar>& temperature,
+                              const Field<Dimension, Scalar>& massDensity,
+                              const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setSpecificThermalEnergy(FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                                        const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                                        const FieldSpace::Field<Dimension, Scalar>& temperature) const;
+  virtual void setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
+                                        const Field<Dimension, Scalar>& massDensity,
+                                        const Field<Dimension, Scalar>& temperature) const;
 
-  virtual void setSpecificHeat(FieldSpace::Field<Dimension, Scalar>& specificHeat,
-                               const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                               const FieldSpace::Field<Dimension, Scalar>& temperature) const;
+  virtual void setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
+                               const Field<Dimension, Scalar>& massDensity,
+                               const Field<Dimension, Scalar>& temperature) const;
 
-  virtual void setSoundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
-                             const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
+                             const Field<Dimension, Scalar>& massDensity,
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setGammaField(FieldSpace::Field<Dimension, Scalar>& gamma,
-			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
-			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setGammaField(Field<Dimension, Scalar>& gamma,
+                             const Field<Dimension, Scalar>& massDensity,
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setBulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
-			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
-			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
+                             const Field<Dimension, Scalar>& massDensity,
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setEntropy(FieldSpace::Field<Dimension, Scalar>& entropy,
-                          const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setEntropy(Field<Dimension, Scalar>& entropy,
+                          const Field<Dimension, Scalar>& massDensity,
+                          const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
   // Check if the underlying SolidEquationOfState is valid.
   virtual bool valid() const;
   //............................................................................
 
   // Access the material parameters.
-  const Material::EquationOfState<Dimension>& solidEOS() const;
+  const EquationOfState<Dimension>& solidEOS() const;
 
-  const FieldSpace::Field<Dimension, Scalar>& alpha() const;
-  void alpha(const FieldSpace::Field<Dimension, Scalar>& x);
+  const Field<Dimension, Scalar>& alpha() const;
+  void alpha(const Field<Dimension, Scalar>& x);
 
   Scalar alpha0() const;
-  void alpha0(const Scalar x);
+  void alpha0(Scalar x);
 
   Scalar c0() const;
-  void c0(const Scalar x);
+  void c0(Scalar x);
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const Material::EquationOfState<Dimension>& mSolidEOS;
-  const FieldSpace::Field<Dimension, Scalar>* mAlphaPtr;
+  const EquationOfState<Dimension>& mSolidEOS;
+  const Field<Dimension, Scalar>* mAlphaPtr;
   Scalar mAlpha0, mC0;   // Set by the porous physics package.
 
   // Disallow default constructor
@@ -105,15 +105,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class PorousEquationOfState;
-  }
+  template<typename Dimension> class PorousEquationOfState;
 }
 
 #endif

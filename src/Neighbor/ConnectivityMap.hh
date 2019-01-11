@@ -8,26 +8,18 @@
 #ifndef _Spheral_NeighborSpace_ConnectivityMap_hh_
 #define _Spheral_NeighborSpace_ConnectivityMap_hh_
 
-#include <vector>
-#include <map>
 #include "Utilities/KeyTraits.hh"
 #include "Field/FieldList.hh"
 
-namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-    template<typename Dimension> class FluidNodeList;
-  }
-  namespace BoundarySpace {
-    template<typename Dimension> class Boundary;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-}
+#include <vector>
+#include <map>
 
 namespace Spheral {
-namespace NeighborSpace {
+
+template<typename Dimension> class NodeList;
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension> class Boundary;
+template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension>
 class ConnectivityMap {
@@ -42,29 +34,35 @@ public:
   template<typename NodeListIterator>
   ConnectivityMap(const NodeListIterator& begin,
                   const NodeListIterator& end,
-                  const bool buildGhostConnectivity);
+                  const bool buildGhostConnectivity,
+                  const bool buildOverlapConnectivity);
 
   // Rebuild for a given set of NodeLists.
   template<typename NodeListIterator>
   void rebuild(const NodeListIterator& begin, 
                const NodeListIterator& end, 
-               const bool computeGhostConnectivity);
+               const bool computeGhostConnectivity,
+               const bool buildOverlapConnectivity);
 
   // Patch the connectivity information:
   // flags   -- (0,1): 0 => node deleted, 1 => node preserved
   // old2new -- maps old -> new node indices.
-  void patchConnectivity(const FieldSpace::FieldList<Dimension, int>& flags,
-                         const FieldSpace::FieldList<Dimension, int>& old2new);
+  void patchConnectivity(const FieldList<Dimension, int>& flags,
+                         const FieldList<Dimension, int>& old2new);
 
   // Are we computing neighbors for ghosts?
   bool buildGhostConnectivity() const;
 
-  // Get the set of NodeLists.
-  const std::vector<const NodeSpace::NodeList<Dimension>*>& nodeLists() const;
+  // Do we compute overlap connectivity?
+  bool buildOverlapConnectivity() const;
 
+  // Get the set of NodeLists.
+  const std::vector<const NodeList<Dimension>*>& nodeLists() const;
+
+  //............................................................................
   // Get the set of neighbors for the given (internal!) node in the given NodeList.
   const std::vector< std::vector<int> >&
-  connectivityForNode(const NodeSpace::NodeList<Dimension>* nodeListPtr,
+  connectivityForNode(const NodeList<Dimension>* nodeListPtr,
                       const int nodeID) const;
 
   // Same as above, just referencing the NodeList by an integer index.
@@ -72,6 +70,22 @@ public:
   connectivityForNode(const int nodeListID,
                       const int nodeID) const;
 
+  //............................................................................
+  // Note the following two methods return the points we have neighbors in common with,
+  // not the common neighbors.  You need to query ConnectivityMap::connectivityIntersectionForNodes
+  // to get the overlapping set of points.
+  // Get the set of neighbors we have overlap with (common neighbors).
+  const std::vector< std::vector<int> >&
+  overlapConnectivityForNode(const NodeList<Dimension>* nodeListPtr,
+                             const int nodeID) const;
+
+  // Same as above, just referencing the NodeList by an integer index.
+  const std::vector< std::vector<int> >&
+  overlapConnectivityForNode(const int nodeListID,
+                             const int nodeID) const;
+
+
+  //............................................................................
   // Compute the common neighbors for a pair of nodes.  Note this method 
   // returns by value since this information is not stored by ConnectivityMap.
   std::vector< std::vector<int> >
@@ -85,14 +99,14 @@ public:
                             const int nodeListj, const int j) const;
 
   // Compute the number of neighbors for the given node.
-  int numNeighborsForNode(const NodeSpace::NodeList<Dimension>* nodeListPtr,
+  int numNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
                           const int nodeID) const;
 
   int numNeighborsForNode(const int nodeListID,
                           const int nodeID) const;
 
   // Return the connectivity in terms of global node IDs.
-  std::map<int, std::vector<int> > globalConnectivity(std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries) const;
+  std::map<int, std::vector<int> > globalConnectivity(std::vector<Boundary<Dimension>*>& boundaries) const;
 
   // Function to determine if given node information (i and j), if the 
   // pair should already have been calculated by iterating over each
@@ -114,10 +128,10 @@ public:
   int ithNode(const int nodeList, const int index) const;
 
   // Get the ith NodeList or FluidNodeList.
-  const NodeSpace::NodeList<Dimension>& nodeList(const int index) const;
+  const NodeList<Dimension>& nodeList(const int index) const;
 
   // Return which NodeList index in order the given one would be in our connectivity.
-  unsigned nodeListIndex(const NodeSpace::NodeList<Dimension>* nodeListPtr) const;
+  unsigned nodeListIndex(const NodeList<Dimension>* nodeListPtr) const;
 
   // Check that the internal data structure is valid.
   bool valid() const;
@@ -125,23 +139,26 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // The set of NodeLists.
-  std::vector<const NodeSpace::NodeList<Dimension>*> mNodeLists;
+  std::vector<const NodeList<Dimension>*> mNodeLists;
 
-  // Are we building ghost connectivity?
-  bool mBuildGhostConnectivity;
+  // Are we building ghost and/or overlap connectivity?
+  bool mBuildGhostConnectivity, mBuildOverlapConnectivity;
 
   // The full connectivity map.  This might be quite large!
   // [offset[NodeList] + nodeID] [NodeListID] [neighborIndex]
-  typedef std::vector<std::vector<std::vector<int> > > ConnectivityStorageType;
+  typedef std::vector<std::vector<std::vector<int>>> ConnectivityStorageType;
   std::vector<int> mOffsets;
   ConnectivityStorageType mConnectivity;
 
+  // Same for overlap connectivity.
+  ConnectivityStorageType mOverlapConnectivity;
+
   // The set of node indices per Nodelist in order for traversal.
-  std::vector< std::vector<int> > mNodeTraversalIndices;
+  std::vector<std::vector<int>> mNodeTraversalIndices;
 
   // The set of keys we may compute for each node.
   typedef typename KeyTraits::Key Key;
-  FieldSpace::FieldList<Dimension, Key> mKeys;
+  FieldList<Dimension, Key> mKeys;
 
   // Internal method to fill in the connectivity, once the set of NodeLists 
   // is determined.
@@ -152,7 +169,6 @@ private:
   ConnectivityMap& operator=(const ConnectivityMap&);
 };
 
-}
 }
 
 #include "ConnectivityMapInline.hh"

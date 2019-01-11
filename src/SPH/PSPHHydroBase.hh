@@ -11,31 +11,16 @@
 #include "SPHHydroBase.hh"
 
 namespace Spheral {
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  namespace NodeSpace {
-    template<typename Dimension> class SmoothingScaleBase;
-  }
-  namespace ArtificialViscositySpace {
-    template<typename Dimension> class ArtificialViscosity;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
-}
 
-namespace Spheral {
-namespace SPHSpace {
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class SmoothingScaleBase;
+template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class TableKernel;
+template<typename Dimension> class DataBase;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+class FileIO;
 
 template<typename Dimension>
 class PSPHHydroBase: public SPHHydroBase<Dimension> {
@@ -47,13 +32,13 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  typedef typename PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  PSPHHydroBase(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
-                const KernelSpace::TableKernel<Dimension>& W,
-                const KernelSpace::TableKernel<Dimension>& WPi,
+  PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                ArtificialViscosity<Dimension>& Q,
+                const TableKernel<Dimension>& W,
+                const TableKernel<Dimension>& WPi,
                 const double filter,
                 const double cfl,
                 const bool useVelocityMagnitudeForDt,
@@ -63,8 +48,8 @@ public:
                 const bool correctVelocityGradient,
                 const bool HopkinsConductivity,
                 const bool sumMassDensityOverAllNodeLists,
-                const PhysicsSpace::MassDensityType densityUpdate,
-                const PhysicsSpace::HEvolutionType HUpdate,
+                const MassDensityType densityUpdate,
+                const HEvolutionType HUpdate,
                 const Vector& xmin,
                 const Vector& xmax);
 
@@ -73,65 +58,67 @@ public:
 
   // Tasks we do once on problem startup.
   virtual
-  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
-  void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
-                     State<Dimension>& state);
+  void registerState(DataBase<Dimension>& dataBase,
+                     State<Dimension>& state) override;
 
   // Pre-step initializations.
   virtual 
-  void preStepInitialize(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  void preStepInitialize(const DataBase<Dimension>& dataBase, 
                          State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivatives);
+                         StateDerivatives<Dimension>& derivatives) override;
 
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const;
+                           StateDerivatives<Dimension>& derivatives) const override;
 
   // Finalize the derivatives.
   virtual
   void finalizeDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const;
+                           StateDerivatives<Dimension>& derivs) const override;
 
   // Post-state update. For PSPH this is where we recompute the PSPH pressure and corrections.
   virtual 
-  void postStateUpdate(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  void postStateUpdate(const Scalar time, 
+                       const Scalar dt,
+                       const DataBase<Dimension>& dataBase, 
                        State<Dimension>& state,
-                       const StateDerivatives<Dimension>& derivatives) const;
+                       StateDerivatives<Dimension>& derivatives) override;
 
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivs);
+                            StateDerivatives<Dimension>& derivs) override;
 
   // Enforce boundary conditions for the physics specific fields.
   virtual
   void enforceBoundaries(State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs);
+                         StateDerivatives<Dimension>& derivs) override;
 
   // Flag determining if we're applying Hopkins 2014 conductivity.
   bool HopkinsConductivity() const;
-  void HopkinsConductivity(const bool val);
+  void HopkinsConductivity(bool val);
 
   // The state field lists we're maintaining.
-  const FieldSpace::FieldList<Dimension, Scalar>&    gamma() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    PSPHcorrection() const;
+  const FieldList<Dimension, Scalar>&    gamma() const;
+  const FieldList<Dimension, Scalar>&    PSPHcorrection() const;
 
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "PSPHHydroBase"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, std::string pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 protected:
@@ -139,8 +126,8 @@ protected:
   bool mHopkinsConductivity;
 
   //PSPH Fields
-  FieldSpace::FieldList<Dimension, Scalar>    mGamma;
-  FieldSpace::FieldList<Dimension, Scalar>    mPSPHcorrection;
+  FieldList<Dimension, Scalar>    mGamma;
+  FieldList<Dimension, Scalar>    mPSPHcorrection;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -151,7 +138,6 @@ private:
 };
 
 }
-}
 
 #include "PSPHHydroBaseInline.hh"
 
@@ -159,9 +145,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  namespace PSPHSpace {
-    template<typename Dimension> class PSPHHydroBase;
-  }
+  template<typename Dimension> class PSPHHydroBase;
 }
 
 #endif

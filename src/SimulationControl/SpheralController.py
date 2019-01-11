@@ -3,12 +3,7 @@
 #------------------------------------------------------------------------------
 import sys, os, gc, warnings, mpi
 
-from SpheralModules.Spheral import FileIOSpace
-from SpheralModules.Spheral.DataOutput import RestartableObject, RestartRegistrar
-from SpheralModules.Spheral import BoundarySpace
-from SpheralModules.Spheral.FieldSpace import *
-from SpheralModules.Spheral.FileIOSpace import *
-from SpheralModules import Timer
+from SpheralCompiledPackages import *
 from SpheralTimer import SpheralTimer
 from SpheralConservation import SpheralConservation
 from GzipFileIO import GzipFileIO
@@ -18,17 +13,6 @@ from findLastRestart import findLastRestart
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
-for dim in dims:
-    exec("""
-from SpheralModules.Spheral import State%(dim)sd
-from SpheralModules.Spheral import StateDerivatives%(dim)sd
-from SpheralModules.Spheral import iterateIdealH%(dim)sd
-from SpheralModules.Spheral.NodeSpace import ASPHSmoothingScale%(dim)sd
-from SpheralModules.Spheral.NodeSpace import SPHSmoothingScale%(dim)sd
-from SpheralModules.Spheral.KernelSpace import TableKernel%(dim)sd
-from SpheralModules.Spheral.KernelSpace import BSplineKernel%(dim)sd
-from SpheralModules import vector_of_Physics%(dim)sd
-""" % {"dim" : dim})
 
 class SpheralController:
 
@@ -71,7 +55,7 @@ class SpheralController:
         self._break = False
 
         # Determine the dimensionality of this run, based on the integrator.
-        self.dim = "%id" % self.integrator.dataBase().nDim
+        self.dim = "%id" % self.integrator.dataBase.nDim
 
         # Determine the visualization method.
         if self.dim == "1d":
@@ -159,7 +143,7 @@ class SpheralController:
         self.integrator.currentTime = initialTime
 
         # Prepare the neighbor objects.
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         db.reinitializeNeighbors()
         db.updateConnectivityMap(False)
 
@@ -207,7 +191,7 @@ class SpheralController:
 
         # Construct a fresh conservation check object.
         # Hopefully by this time all packages have initialized their own extra energy bins.
-        self.conserve = SpheralConservation(self.integrator.dataBase(),
+        self.conserve = SpheralConservation(self.integrator.dataBase,
                                             self.integrator.physicsPackages())
 
         # Force the periodic work to fire at problem initalization.
@@ -251,7 +235,7 @@ class SpheralController:
     # Smooth the physical variables.
     #--------------------------------------------------------------------------
     def smoothState(self, smoothIters=1):
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         scalarSmooth = eval("smoothScalarFields%id" % db.nDim)
         vectorSmooth = eval("smoothVectorFields%id" % db.nDim)
         tensorSmooth = eval("smoothSymTensorFields%id" % db.nDim)
@@ -325,7 +309,7 @@ class SpheralController:
             self.doPeriodicWork(force=True)
             self.redistribute = thpt
 
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         bcs = self.integrator.uniqueBoundaryConditions()
         numActualGhostNodes = 0
         for bc in bcs:
@@ -468,7 +452,7 @@ class SpheralController:
     # Periodically reinitialize neighbors.
     #--------------------------------------------------------------------------
     def reinitializeNeighbors(self, cycle, Time, dt):
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         db.reinitializeNeighbors()
         return
 
@@ -486,7 +470,7 @@ class SpheralController:
                 pass
 
             self.redistributeTimer.start()
-            self.redistribute.redistributeNodes(self.integrator.dataBase(),
+            self.redistribute.redistributeNodes(self.integrator.dataBase,
                                                 self.integrator.uniqueBoundaryConditions())
             self.redistributeTimer.stop()
             self.redistributeTimer.printStatus()
@@ -517,7 +501,7 @@ class SpheralController:
         import time
         start = time.clock()
         fileName = self.restartBaseName + "_cycle%i" % self.totalSteps
-        file = self.restartFileConstructor(fileName, FileIOSpace.Create)
+        file = self.restartFileConstructor(fileName, Create)
         RestartRegistrar.instance().dumpState(file)
         print "Wrote restart file in %0.2f seconds" % (time.clock() - start)
 
@@ -547,15 +531,15 @@ class SpheralController:
         import time
         start = time.clock()
         if self.restartFileConstructor is GzipFileIO:
-            file = self.restartFileConstructor(fileName, FileIOSpace.Read)
+            file = self.restartFileConstructor(fileName, Read)
                                                #readToMemory = True)
         else:
-            file = self.restartFileConstructor(fileName, FileIOSpace.Read)
+            file = self.restartFileConstructor(fileName, Read)
         RestartRegistrar.instance().restoreState(file)
         print "Finished: required %0.2f seconds" % (time.clock() - start)
 
         # Reset neighboring.
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         db.reinitializeNeighbors()
         db.updateConnectivityMap(False)
 
@@ -603,12 +587,12 @@ class SpheralController:
         # boundary, since their ghost nodes need to be communicated.
         precedeDistributed = []
         if 3 in dims:
-            precedeDistributed += [BoundarySpace.CylindricalBoundary,
-                                   BoundarySpace.SphericalBoundary]
+            precedeDistributed += [CylindricalBoundary,
+                                   SphericalBoundary]
         for dim in dims:
             exec("""
-precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
-                       BoundarySpace.ConstantBoundary%(dim)sd]
+precedeDistributed += [PeriodicBoundary%(dim)sd,
+                       ConstantBoundary%(dim)sd]
 """ % {"dim" : dim})
 
         # Check if this is a parallel process or not.
@@ -619,13 +603,13 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
         # boundary condition and insert it into the list of boundaries for each physics
         # package.
         else:
-            # exec("from SpheralModules.Spheral.BoundarySpace import NestedGridDistributedBoundary%s" % self.dim)
+            # exec("from SpheralCompiledPackages import NestedGridDistributedBoundary%s" % self.dim)
             # self.domainbc = eval("NestedGridDistributedBoundary%s.instance()" % self.dim)
-            # from SpheralModules.Spheral.BoundarySpace import BoundingVolumeDistributedBoundary1d, \
-            #                                                  BoundingVolumeDistributedBoundary2d, \
-            #                                                  BoundingVolumeDistributedBoundary3d
+            # from SpheralCompiledPackages import BoundingVolumeDistributedBoundary1d, \
+            #                                    BoundingVolumeDistributedBoundary2d, \
+            #                                    BoundingVolumeDistributedBoundary3d
             # self.domainbc = eval("BoundingVolumeDistributedBoundary%s.instance()" % self.dim)
-            exec("from SpheralModules.Spheral.BoundarySpace import TreeDistributedBoundary%s" % self.dim)
+            exec("from SpheralCompiledPackages import TreeDistributedBoundary%s" % self.dim)
             self.domainbc = eval("TreeDistributedBoundary%s.instance()" % self.dim)
 
             # Iterate over each of the physics packages.
@@ -679,12 +663,11 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
         self.redistribute = None
         self.redistributeTimer = SpheralTimer("Time for redistributing nodes.")
         if mpi.procs > 1:
-            from SpheralModules.Spheral import PartitionSpace
             try:
-                #self.redistribute = eval("PartitionSpace.ParmetisRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                #self.redistribute = eval("PartitionSpace.SortAndDivideRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                #self.redistribute = eval("PartitionSpace.PeanoHilbertOrderRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                self.redistribute = eval("PartitionSpace.VoronoiRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                #self.redistribute = eval("ParmetisRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                #self.redistribute = eval("SortAndDivideRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                #self.redistribute = eval("PeanoHilbertOrderRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                self.redistribute = eval("VoronoiRedistributeNodes%s(W.kernelExtent)" % self.dim)
             except:
                 print "Warning: this appears to be a parallel run, but Controller cannot construct"
                 print "         dynamic redistributer."
@@ -723,7 +706,9 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
                 Time = None,
                 dt = None):
         mpi.barrier()
-        db = self.integrator.dataBase()
+        import time
+        start = time.clock()
+        db = self.integrator.dataBase
         db.updateConnectivityMap(False)
         bcs = self.integrator.uniqueBoundaryConditions()
         self.vizMethod(self.integrator,
@@ -736,6 +721,7 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
                        dumpGhosts = self.vizGhosts,
                        dumpDerivatives = self.vizDerivs,
                        boundaries = bcs)
+        print "Wrote viz file in %0.2f seconds" % (time.clock() - start)
         return
 
     #--------------------------------------------------------------------------
@@ -746,7 +732,7 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
                       maxIdealHIterations = 50,
                       idealHTolerance = 1.0e-4):
         print "SpheralController: Initializing H's..."
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         bcs = self.integrator.uniqueBoundaryConditions()
         if self.SPH:
             method = eval("SPHSmoothingScale%s()" % self.dim)
@@ -763,7 +749,7 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
     #---------------------------------------------------------------------------
     def voronoiInitializeMass(self):
         from generateMesh import generateLineMesh, generatePolygonalMesh, generatePolyhedralMesh
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         nodeLists = db.fluidNodeLists()
         boundaries = self.integrator.uniqueBoundaryConditions()
         method = eval("generate%sMesh" % {1 : "Line", 2 : "Polygonal", 3 : "Polyhedral"}[db.nDim])
@@ -791,7 +777,7 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
         if type(rho) == type(1.0):
             rho = ConstantRho(rho)
 
-        db = self.integrator.dataBase()
+        db = self.integrator.dataBase
         nodeLists = db.fluidNodeLists()
         boundaries = self.integrator.uniqueBoundaryConditions()
         allpackages = self.integrator.physicsPackages()

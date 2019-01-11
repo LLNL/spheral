@@ -48,29 +48,18 @@
 #include <fstream>
 #include <map>
 #include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace SVPHSpace {
-
-using namespace std;
-using PhysicsSpace::GenericHydro;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using ArtificialViscositySpace::TensorSVPHViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using NeighborSpace::Neighbor;
-using MeshSpace::Mesh;
-using Material::EquationOfState;
-
-using PhysicsSpace::MassDensityType;
-using PhysicsSpace::HEvolutionType;
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -108,27 +97,27 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   // mA(),
   // mB(),
   // mGradB(),
-  mTimeStepMask(FieldSpace::FieldStorageType::CopyFields),
-  mPressure(FieldSpace::FieldStorageType::CopyFields),
-  mCellPressure(FieldSpace::FieldStorageType::CopyFields),
-  mSoundSpeed(FieldSpace::FieldStorageType::CopyFields),
-  mVolume(FieldSpace::FieldStorageType::CopyFields),
-  mSpecificThermalEnergy0(FieldSpace::FieldStorageType::CopyFields),
-  mHideal(FieldSpace::FieldStorageType::CopyFields),
-  mMaxViscousPressure(FieldSpace::FieldStorageType::CopyFields),
-  mMassDensitySum(FieldSpace::FieldStorageType::CopyFields),
-  mWeightedNeighborSum(FieldSpace::FieldStorageType::CopyFields),
-  mMassSecondMoment(FieldSpace::FieldStorageType::CopyFields),
-  mXSVPHDeltaV(FieldSpace::FieldStorageType::CopyFields),
-  mDxDt(FieldSpace::FieldStorageType::CopyFields),
-  mDvDt(FieldSpace::FieldStorageType::CopyFields),
-  mDmassDensityDt(FieldSpace::FieldStorageType::CopyFields),
-  mDspecificThermalEnergyDt(FieldSpace::FieldStorageType::CopyFields),
-  mDHDt(FieldSpace::FieldStorageType::CopyFields),
-  mDvDx(FieldSpace::FieldStorageType::CopyFields),
-  mInternalDvDx(FieldSpace::FieldStorageType::CopyFields),
-  mFaceForce(FieldSpace::FieldStorageType::CopyFields),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mTimeStepMask(FieldStorageType::CopyFields),
+  mPressure(FieldStorageType::CopyFields),
+  mCellPressure(FieldStorageType::CopyFields),
+  mSoundSpeed(FieldStorageType::CopyFields),
+  mVolume(FieldStorageType::CopyFields),
+  mSpecificThermalEnergy0(FieldStorageType::CopyFields),
+  mHideal(FieldStorageType::CopyFields),
+  mMaxViscousPressure(FieldStorageType::CopyFields),
+  mMassDensitySum(FieldStorageType::CopyFields),
+  mWeightedNeighborSum(FieldStorageType::CopyFields),
+  mMassSecondMoment(FieldStorageType::CopyFields),
+  mXSVPHDeltaV(FieldStorageType::CopyFields),
+  mDxDt(FieldStorageType::CopyFields),
+  mDvDt(FieldStorageType::CopyFields),
+  mDmassDensityDt(FieldStorageType::CopyFields),
+  mDspecificThermalEnergyDt(FieldStorageType::CopyFields),
+  mDHDt(FieldStorageType::CopyFields),
+  mDvDx(FieldStorageType::CopyFields),
+  mInternalDvDx(FieldStorageType::CopyFields),
+  mFaceForce(FieldStorageType::CopyFields),
+  mRestart(registerWithRestart(*this)) {
   // Delegate range checking to our assignment methods.
   this->fcentroidal(fcentroidal);
   this->fcellPressure(fcellPressure);
@@ -165,7 +154,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   vector<const NodeList<Dimension>*> nodeLists(dataBase.nodeListBegin(), dataBase.nodeListEnd());
   nodeLists.push_back(&voidNodes);
   // std::sort(nodeLists.begin(), nodeLists.end(), typename NodeListRegistrar<Dimension>::NodeListComparator());
-  MeshSpace::generateMesh<Dimension,
+  generateMesh<Dimension,
                           typename vector<const NodeList<Dimension>*>::iterator,
                           ConstBoundaryIterator>
     (nodeLists.begin(),
@@ -283,7 +272,7 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll((*itr)->mass());
 
     // Mass density.
-    if (densityUpdate() == PhysicsSpace::MassDensityType::IntegrateDensity) {
+    if (densityUpdate() == MassDensityType::IntegrateDensity) {
       PolicyPointer rhoPolicy(new IncrementBoundedState<Dimension, Scalar>((*itr)->rhoMin(),
                                                                            (*itr)->rhoMax()));
       state.enroll((*itr)->massDensity(), rhoPolicy);
@@ -321,11 +310,11 @@ registerState(DataBase<Dimension>& dataBase,
     // Register the H tensor.
     const Scalar hmaxInv = 1.0/(*itr)->hmax();
     const Scalar hminInv = 1.0/(*itr)->hmin();
-    if (HEvolution() == PhysicsSpace::HEvolutionType::IntegrateH) {
+    if (HEvolution() == HEvolutionType::IntegrateH) {
       PolicyPointer Hpolicy(new IncrementBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
       state.enroll((*itr)->Hfield(), Hpolicy);
     } else {
-      CHECK(HEvolution() == PhysicsSpace::HEvolutionType::IdealH);
+      CHECK(HEvolution() == HEvolutionType::IdealH);
       PolicyPointer Hpolicy(new MeshIdealHPolicy<Dimension>(mSmoothingScaleMethod,
                                                             (*itr)->hmin(),
                                                             (*itr)->hmax(),
@@ -1006,7 +995,7 @@ dt(const DataBase<Dimension>& dataBase,
     }
   }
 
-  stringstream reasonStream;
+  std::stringstream reasonStream;
   reasonStream << "mindt = " << minDt << endl
 	       << reason << endl
                << "  (nodeList, node) = (" << lastNodeListName << ", " << lastNodeID << ") | "
@@ -1022,7 +1011,7 @@ dt(const DataBase<Dimension>& dataBase,
 //               << "  dtcsq = " << lastNodeScale/(lastCsq + FLT_MIN) << endl
 //                << "  dtdivV = " << 1.0/(fabs(lastDivVelocity) + FLT_MIN) << endl
 //                << "  shearVelocity = " << lastShearVelocity << endl
-               << ends;
+               << std::ends;
 
   // Now build the result.
   TimeStepType result(this->cfl()*minDt, reasonStream.str());
@@ -1072,17 +1061,17 @@ finalize(const typename Dimension::Scalar time,
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
-  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::MassDensityType::SumVoronoiCellDensity) {
+  if (densityUpdate() == MassDensityType::RigorousSumDensity or
+      densityUpdate() == MassDensityType::SumVoronoiCellDensity) {
     const Mesh<Dimension>& mesh = state.mesh();
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     computeSumVoronoiCellMassDensityFromFaces(mesh, this->kernel(), dataBase, massDensity);
-  } else if (densityUpdate() == PhysicsSpace::MassDensityType::SumDensity) {
+  } else if (densityUpdate() == MassDensityType::SumDensity) {
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceState<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
                                                                 HydroFieldNames::massDensity, 0.0);
     massDensity.assignFields(massDensitySum);
-  } else if (densityUpdate() == PhysicsSpace::MassDensityType::VoronoiCellDensity) {
+  } else if (densityUpdate() == MassDensityType::VoronoiCellDensity) {
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
@@ -1244,6 +1233,5 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mFaceForce, pathName + "/faceForce");
 }
 
-}
 }
 

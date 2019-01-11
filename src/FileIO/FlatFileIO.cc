@@ -3,15 +3,22 @@
 //
 // Created by JMO, Fri Apr 13 01:19:02 PDT 2001
 //----------------------------------------------------------------------------//
-
 #include "FlatFileIO.hh"
 #include "Field/Field.hh"
 
-namespace Spheral {
-namespace FileIOSpace {
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+using std::ios;
 
-using namespace std;
-using FieldSpace::Field;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -59,7 +66,6 @@ FlatFileIO::~FlatFileIO() {
 void
 FlatFileIO::open(const string fileName, AccessType access) {
 
-
   // If we currently have a file open and attached to this object, close it!
   close();
   CHECK(mFilePtr == 0 && mFileOpen == false);
@@ -86,7 +92,7 @@ FlatFileIO::open(const string fileName, AccessType access) {
   if (mFileFormat == FlatFileFormat::binary) mode = mode | ios::binary;
 
   // Open a file stream and attach it to this objects pointer.
-  mFilePtr = new fstream(fileName.c_str(), mode);
+  mFilePtr = new std::fstream(fileName.c_str(), mode);
   mFileOpen = mFilePtr->is_open();
   ENSURE(mFilePtr != 0 && mFileOpen == true);
 
@@ -110,10 +116,23 @@ FlatFileIO::close() {
 }
 
 //------------------------------------------------------------------------------
+// Check if the specified path is in the file.
+//------------------------------------------------------------------------------
+bool
+FlatFileIO::pathExists(const std::string pathName) const {
+  try {
+    findPathName(pathName);
+    return true;
+  } catch(...) {
+    return false;
+  }
+}
+
+//------------------------------------------------------------------------------
 // Write an unsigned to the file.
 //------------------------------------------------------------------------------
 void
-FlatFileIO::write(const unsigned value, const string pathName) {
+FlatFileIO::write(const unsigned& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
@@ -121,7 +140,7 @@ FlatFileIO::write(const unsigned value, const string pathName) {
 // Write an int to the file.
 //------------------------------------------------------------------------------
 void
-FlatFileIO::write(const int value, const string pathName) {
+FlatFileIO::write(const int& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
@@ -129,7 +148,7 @@ FlatFileIO::write(const int value, const string pathName) {
 // Write a bool to the file.
 //------------------------------------------------------------------------------
 void
-FlatFileIO::write(const bool value, const string pathName) {
+FlatFileIO::write(const bool& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
@@ -138,7 +157,7 @@ FlatFileIO::write(const bool value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::
-write(const double value, const string pathName) {
+write(const double& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
@@ -231,8 +250,44 @@ write(const Dim<3>::ThirdRankTensor& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::
-write(const string value, const string pathName) {
+write(const string& value, const string pathName) {
   writeGenericType(value, pathName);
+}
+
+//------------------------------------------------------------------------------
+// Write a std::vector<int> to the file.
+//------------------------------------------------------------------------------
+void
+FlatFileIO::
+write(const std::vector<int>& value, const string pathName) {
+  std::vector<char> buf;
+  packElement(value, buf);
+  std::string strbuf(buf.begin(), buf.end());
+  writeGenericType(strbuf, pathName);
+}
+
+//------------------------------------------------------------------------------
+// Write a std::vector<double> to the file.
+//------------------------------------------------------------------------------
+void
+FlatFileIO::
+write(const std::vector<double>& value, const string pathName) {
+  std::vector<char> buf;
+  packElement(value, buf);
+  std::string strbuf(buf.begin(), buf.end());
+  writeGenericType(strbuf, pathName);
+}
+
+//------------------------------------------------------------------------------
+// Write a std::vector<string> to the file.
+//------------------------------------------------------------------------------
+void
+FlatFileIO::
+write(const std::vector<string>& value, const string pathName) {
+  std::vector<char> buf;
+  packElement(value, buf);
+  std::string strbuf(buf.begin(), buf.end());
+  writeGenericType(strbuf, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -359,264 +414,48 @@ FlatFileIO::read(string& value, const string pathName) const {
 }
 
 //------------------------------------------------------------------------------
-// Write a vector<int>.
+// Read a std::vector<int> from the file.
 //------------------------------------------------------------------------------
 void
 FlatFileIO::
-write(const vector<int>& value, const string pathName) {
-  writeGenericVector(value, pathName);
+read(std::vector<int>& value, const string pathName) const {
+  std::string strbuf;
+  this->read(strbuf, pathName);
+  const std::vector<char> buf(strbuf.begin(), strbuf.end());
+  auto itr = buf.begin();
+  value.clear();
+  unpackElement(value, itr, buf.end());
+  CHECK(itr == buf.end());
 }
 
 //------------------------------------------------------------------------------
-// Write a vector<bool>.
-//------------------------------------------------------------------------------
-// void
-// FlatFileIO::
-// write(const vector<bool>& value, const string pathName) {
-
-//   // Convert to a vector of int and store that.
-//   vector<int> tmp(value.size());
-//   for (int i = 0; i < value.size(); ++i) {
-//     if (value[i]) {
-//       tmp[i] = 1;
-//     } else {
-//       tmp[i] = 0;
-//     }
-//   }
-//   writeGenericVector(tmp, pathName);
-// }
-
-//------------------------------------------------------------------------------
-// Write a vector<Scalar>.
+// Read a std::vector<double> from the file.
 //------------------------------------------------------------------------------
 void
 FlatFileIO::
-write(const vector<double>& value, const string pathName) {
-  writeGenericVector(value, pathName);
+read(std::vector<double>& value, const string pathName) const {
+  std::string strbuf;
+  this->read(strbuf, pathName);
+  const std::vector<char> buf(strbuf.begin(), strbuf.end());
+  auto itr = buf.begin();
+  value.clear();
+  unpackElement(value, itr, buf.end());
+  CHECK(itr == buf.end());
 }
 
 //------------------------------------------------------------------------------
-// Write a vector<Vector>.
+// Read a std::vector<string> from the file.
 //------------------------------------------------------------------------------
 void
 FlatFileIO::
-write(const vector<Dim<1>::Vector>& value, const string pathName) {
-  writeGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-write(const vector<Dim<2>::Vector>& value, const string pathName) {
-  writeGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-write(const vector<Dim<3>::Vector>& value, const string pathName) {
-  writeGenericVector(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Write a vector<Tensor>.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-write(const vector<Dim<1>::Tensor>& value, const string pathName) {
-  writeGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-write(const vector<Dim<2>::Tensor>& value, const string pathName) {
-  writeGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-write(const vector<Dim<3>::Tensor>& value, const string pathName) {
-  writeGenericVector(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Write a vector<SymTensor>.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-write(const vector<Dim<1>::SymTensor>& value, const string pathName) {
-  writeGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-write(const vector<Dim<2>::SymTensor>& value, const string pathName) {
-  writeGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-write(const vector<Dim<3>::SymTensor>& value, const string pathName) {
-  writeGenericVector(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Write a vector<ThirdRankTensor>.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-write(const vector<Dim<1>::ThirdRankTensor>& value, const string pathName) {
-  writeGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-write(const vector<Dim<2>::ThirdRankTensor>& value, const string pathName) {
-  writeGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-write(const vector<Dim<3>::ThirdRankTensor>& value, const string pathName) {
-  writeGenericVector(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Write a vector<string>.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-write(const vector<std::string>& value, const string pathName) {
-  writeGenericVector(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Read a vector<int>.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-read(vector<int>& value, const string pathName) const {
-  readGenericVector(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Read a vector<bool>.
-//------------------------------------------------------------------------------
-// void
-// FlatFileIO::
-// read(vector<bool>& value, const string pathName) const {
-
-//   // Read to a temporary vector<int>, and convert it.
-//   vector<int> tmp(value.size());
-//   readGenericVector(tmp, pathName);
-//   value.resize(tmp.size());
-//   for (int i = 0; i < value.size(); ++i) {
-//     if (tmp[i] == 1) {
-//       value[i] = true;
-//     } else {
-//       value[i] = false;
-//     }
-//   }
-// }
-
-//------------------------------------------------------------------------------
-// Read a vector<Scalar>.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-read(vector<double>& value, const string pathName) const {
-  readGenericVector(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Read a vector<Vector>.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-read(vector<Dim<1>::Vector>& value, const string pathName) const {
-  readGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-read(vector<Dim<2>::Vector>& value, const string pathName) const {
-  readGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-read(vector<Dim<3>::Vector>& value, const string pathName) const {
-  readGenericVector(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Read a vector<Tensor>.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-read(vector<Dim<1>::Tensor>& value, const string pathName) const {
-  readGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-read(vector<Dim<2>::Tensor>& value, const string pathName) const {
-  readGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-read(vector<Dim<3>::Tensor>& value, const string pathName) const {
-  readGenericVector(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Read a vector<SymTensor>.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-read(vector<Dim<1>::SymTensor>& value, const string pathName) const {
-  readGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-read(vector<Dim<2>::SymTensor>& value, const string pathName) const {
-  readGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-read(vector<Dim<3>::SymTensor>& value, const string pathName) const {
-  readGenericVector(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Read a vector<ThirdRankTensor>.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-read(vector<Dim<1>::ThirdRankTensor>& value, const string pathName) const {
-  readGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-read(vector<Dim<2>::ThirdRankTensor>& value, const string pathName) const {
-  readGenericVector(value, pathName);
-}
-
-void
-FlatFileIO::
-read(vector<Dim<3>::ThirdRankTensor>& value, const string pathName) const {
-  readGenericVector(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Read a vector<string>.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-read(vector<std::string>& value, const string pathName) const {
-  readGenericVector(value, pathName);
+read(std::vector<string>& value, const string pathName) const {
+  std::string strbuf;
+  this->read(strbuf, pathName);
+  const std::vector<char> buf(strbuf.begin(), strbuf.end());
+  auto itr = buf.begin();
+  value.clear();
+  unpackElement(value, itr, buf.end());
+  CHECK(itr == buf.end());
 }
 
 //------------------------------------------------------------------------------
@@ -1061,8 +900,7 @@ FlatFileIO::beginningOfFile() const {
 //   open(fileName(), access());
 
   delete mFilePtr;
-  mFilePtr = new fstream(fileName().c_str(), ios::in);
+  mFilePtr = new std::fstream(fileName().c_str(), ios::in);
 }
 
-}
 }

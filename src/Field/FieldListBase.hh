@@ -9,7 +9,6 @@
 #include <vector>
 
 namespace Spheral {
-namespace FieldSpace {
 
 template<typename Dimension> class FieldBase;
 
@@ -62,19 +61,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "FieldListBaseInline.hh"
-#endif
 
 #else
 
 // Forward declare the FieldListBase class.
 namespace Spheral {
-  namespace FieldSpace {
-    class FieldListBase;
-  }
+  class FieldListBase;
 }
 
 #endif

@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace DataOutput {
 
 //------------------------------------------------------------------------------
 // The non-const iterators.
@@ -35,5 +34,4 @@ end() const {
    return mRestartHandles.end();
 }
 
-}
 }

@@ -5,8 +5,6 @@ text = """
 #include "PorousStrengthModel.cc"
 
 namespace Spheral {
-  namespace SolidMaterial {
-    template class PorousStrengthModel<Dim< %(ndim)s > >;
-  }
+  template class PorousStrengthModel<Dim< %(ndim)s > >;
 }
 """

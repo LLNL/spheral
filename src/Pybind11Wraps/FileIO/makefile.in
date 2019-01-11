@@ -10,9 +10,6 @@ PKGNAME = FileIO
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
-SRCTARGETS += \
-	$(srcdir)/SpheralFileIO.cc
-
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 EXTRALIBS += $(LDRPATH)

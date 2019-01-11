@@ -48,26 +48,18 @@
 #include <fstream>
 #include <map>
 #include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace SPHSpace {
-
-using namespace std;
-using PhysicsSpace::GenericHydro;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using MeshSpace::Mesh;
-
-using PhysicsSpace::MassDensityType;
-using PhysicsSpace::HEvolutionType;
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -111,8 +103,8 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           xmin,
                           xmax),
   mHopkinsConductivity(HopkinsConductivity),
-  mGamma(FieldSpace::FieldStorageType::CopyFields),
-  mPSPHcorrection(FieldSpace::FieldStorageType::CopyFields) {
+  mGamma(FieldStorageType::CopyFields),
+  mPSPHcorrection(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -193,7 +185,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, 
-                         (this->mDensityUpdate != PhysicsSpace::MassDensityType::IntegrateDensity),
+                         (this->mDensityUpdate != MassDensityType::IntegrateDensity),
                          rho, P, cs, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -215,9 +207,11 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 PSPHHydroBase<Dimension>::
-postStateUpdate(const DataBase<Dimension>& dataBase,
+postStateUpdate(const Scalar time, 
+                const Scalar dt,
+                const DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
-                const StateDerivatives<Dimension>& derivs) const {
+                StateDerivatives<Dimension>& derivatives) {
 
   // First we need out boundary conditions completed, which the time integrator hasn't 
   // verified yet.
@@ -238,7 +232,7 @@ postStateUpdate(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H,
-                         (this->mDensityUpdate != PhysicsSpace::MassDensityType::IntegrateDensity),
+                         (this->mDensityUpdate != MassDensityType::IntegrateDensity),
                          rho, P, cs, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -796,7 +790,7 @@ enforceBoundaries(State<Dimension>& state,
 template<typename Dimension>
 void
 PSPHHydroBase<Dimension>::
-dumpState(FileIO& file, string pathName) const {
+dumpState(FileIO& file, const string& pathName) const {
 
   // SPH does most of it.
   SPHHydroBase<Dimension>::dumpState(file, pathName);
@@ -811,7 +805,7 @@ dumpState(FileIO& file, string pathName) const {
 template<typename Dimension>
 void
 PSPHHydroBase<Dimension>::
-restoreState(const FileIO& file, string pathName) {
+restoreState(const FileIO& file, const string& pathName) {
  
   // SPH does most of it.
   SPHHydroBase<Dimension>::restoreState(file, pathName);
@@ -821,5 +815,3 @@ restoreState(const FileIO& file, string pathName) {
 }
 
 }
-}
-

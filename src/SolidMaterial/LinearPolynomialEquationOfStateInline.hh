@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace SolidMaterial {
 
 //------------------------------------------------------------------------------
 // Access the polynomial coefficients. (A0)
@@ -16,7 +15,7 @@ template<typename Dimension>
 inline
 void
 LinearPolynomialEquationOfState<Dimension>::
-a0(const double x) {
+a0(double x) {
   mA0 = x;
 }
 
@@ -35,7 +34,7 @@ template<typename Dimension>
 inline
 void
 LinearPolynomialEquationOfState<Dimension>::
-a1(const double x) {
+a1(double x) {
   mA1 = x;
 }
 
@@ -54,7 +53,7 @@ template<typename Dimension>
 inline
 void
 LinearPolynomialEquationOfState<Dimension>::
-a2(const double x) {
+a2(double x) {
   mA2 = x;
 }
 
@@ -73,7 +72,7 @@ template<typename Dimension>
 inline
 void
 LinearPolynomialEquationOfState<Dimension>::
-a3(const double x) {
+a3(double x) {
   mA3 = x;
 }
 
@@ -92,7 +91,7 @@ template<typename Dimension>
 inline
 void
 LinearPolynomialEquationOfState<Dimension>::
-b0(const double x) {
+b0(double x) {
   mB0 = x;
 }
 
@@ -111,7 +110,7 @@ template<typename Dimension>
 inline
 void
 LinearPolynomialEquationOfState<Dimension>::
-b1(const double x) {
+b1(double x) {
   mB1 = x;
 }
 
@@ -130,7 +129,7 @@ template<typename Dimension>
 inline
 void
 LinearPolynomialEquationOfState<Dimension>::
-b2(const double x) {
+b2(double x) {
   mB2 = x;
 }
 
@@ -149,7 +148,7 @@ template<typename Dimension>
 inline
 void
 LinearPolynomialEquationOfState<Dimension>::
-atomicWeight(const double x) {
+atomicWeight(double x) {
   mAtomicWeight = x;
 }
 
@@ -168,9 +167,8 @@ template<typename Dimension>
 inline
 void
 LinearPolynomialEquationOfState<Dimension>::
-externalPressure(const double val) {
+externalPressure(double val) {
   mExternalPressure = val;
 }
 
-}
 }

@@ -19,8 +19,7 @@ class Mesh:
         mod.add_include('"%s/MeshTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        self.space = Spheral.add_cpp_namespace("MeshSpace")
+        self.space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
         for ndim in self.dims:
@@ -63,27 +62,21 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         return
 
     #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return ["MeshSpace"]
-
-    #---------------------------------------------------------------------------
     # Mesh Bindings.
     #---------------------------------------------------------------------------
     def generateMeshBindings(self, x, name, ndim):
 
         # Object names.
         dim = "Spheral::Dim<%i>" % ndim
-        me = "Spheral::MeshSpace::%s" % name
-        node = "Spheral::MeshSpace::%s::Node" % name
-        edge = "Spheral::MeshSpace::%s::Edge" % name
-        face = "Spheral::MeshSpace::%s::Face" % name
-        zone = "Spheral::MeshSpace::%s::Zone" % name
+        me = "Spheral::%s" % name
+        node = "Spheral::%s::Node" % name
+        edge = "Spheral::%s::Edge" % name
+        face = "Spheral::%s::Face" % name
+        zone = "Spheral::%s::Zone" % name
         vector = "Spheral::Vector%id" % ndim
         vector_of_vector = "vector_of_Vector%id" % ndim
         vector_of_symtensor = "vector_of_SymTensor%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
         vector_of_nodelist = "vector_of_NodeList%id" % ndim
         facetedvolume = ("Box1d", "Polygon", "Polyhedron")[ndim - 1]
 
@@ -159,11 +152,11 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
     def generateNodeBindings(self, x, meshname, ndim):
 
         # Object names.
-        mesh = "Spheral::MeshSpace::%s" % meshname
-        node = "Spheral::MeshSpace::%s::Node" % meshname
-        edge = "Spheral::MeshSpace::%s::Edge" % meshname
-        face = "Spheral::MeshSpace::%s::Face" % meshname
-        zone = "Spheral::MeshSpace::%s::Zone" % meshname
+        mesh = "Spheral::%s" % meshname
+        node = "Spheral::%s::Node" % meshname
+        edge = "Spheral::%s::Edge" % meshname
+        face = "Spheral::%s::Face" % meshname
+        zone = "Spheral::%s::Zone" % meshname
         vector = "Spheral::Vector%id" % ndim
         vector_of_vector = "vector_of_Vector%id" % ndim
 
@@ -187,11 +180,11 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
     def generateEdgeBindings(self, x, meshname, ndim):
 
         # Object names.
-        mesh = "Spheral::MeshSpace::%s" % meshname
-        node = "Spheral::MeshSpace::%s::Node" % meshname
-        edge = "Spheral::MeshSpace::%s::Edge" % meshname
-        face = "Spheral::MeshSpace::%s::Face" % meshname
-        zone = "Spheral::MeshSpace::%s::Zone" % meshname
+        mesh = "Spheral::%s" % meshname
+        node = "Spheral::%s::Node" % meshname
+        edge = "Spheral::%s::Edge" % meshname
+        face = "Spheral::%s::Face" % meshname
+        zone = "Spheral::%s::Zone" % meshname
         vector = "Spheral::Vector%id" % ndim
         vector_of_vector = "vector_of_Vector%id" % ndim
 
@@ -220,11 +213,11 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
     def generateFaceBindings(self, x, meshname, ndim):
 
         # Object names.
-        mesh = "Spheral::MeshSpace::%s" % meshname
-        node = "Spheral::MeshSpace::%s::Node" % meshname
-        edge = "Spheral::MeshSpace::%s::Edge" % meshname
-        face = "Spheral::MeshSpace::%s::Face" % meshname
-        zone = "Spheral::MeshSpace::%s::Zone" % meshname
+        mesh = "Spheral::%s" % meshname
+        node = "Spheral::%s::Node" % meshname
+        edge = "Spheral::%s::Edge" % meshname
+        face = "Spheral::%s::Face" % meshname
+        zone = "Spheral::%s::Zone" % meshname
         vector = "Spheral::Vector%id" % ndim
         vector_of_vector = "vector_of_Vector%id" % ndim
 
@@ -259,11 +252,11 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
     def generateZoneBindings(self, x, meshname, ndim):
 
         # Object names.
-        mesh = "Spheral::MeshSpace::%s" % meshname
-        node = "Spheral::MeshSpace::%s::Node" % meshname
-        edge = "Spheral::MeshSpace::%s::Edge" % meshname
-        face = "Spheral::MeshSpace::%s::Face" % meshname
-        zone = "Spheral::MeshSpace::%s::Zone" % meshname
+        mesh = "Spheral::%s" % meshname
+        node = "Spheral::%s::Node" % meshname
+        edge = "Spheral::%s::Edge" % meshname
+        face = "Spheral::%s::Face" % meshname
+        zone = "Spheral::%s::Zone" % meshname
         vector = "Spheral::Vector%id" % ndim
         vector_of_vector = "vector_of_Vector%id" % ndim
         convexhull = ("Box1d", "Polygon", "Polyhedron")[ndim - 1]
@@ -296,7 +289,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
 
         # Object names.
         dim = "Spheral::Dim<%i>" % ndim
-        me = "Spheral::MeshSpace::MeshWall%s" % dim
+        me = "Spheral::MeshWall%s" % dim
 
         # Constructors.
         if ndim == 1:
@@ -314,7 +307,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
 
         # Object names.
         dim = "Spheral::Dim<%i>" % ndim
-        me = "Spheral::MeshSpace::PlanarMeshWall%s" % dim
+        me = "Spheral::PlanarMeshWall%s" % dim
         plane = "Plane%id" % ndim
 
         # Constructors.
@@ -331,7 +324,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
 
         # Object names.
         dim = "Spheral::Dim<%i>" % ndim
-        me = "Spheral::MeshSpace::FacetedMeshWall%s" % dim
+        me = "Spheral::FacetedMeshWall%s" % dim
         volume = ("Box1d", "Polygon", "Polyhedron")[ndim - 1]
 
         # Constructors.
@@ -346,11 +339,11 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
 
 ##         # Object names.
 ##         dim = "Spheral::Dim<%i>" % ndim
-##         me = "Spheral::MeshSpace::%s" % name
+##         me = "Spheral::%s" % name
 ##         vector = "Spheral::Vector%id" % ndim
 ##         vector_of_vector = "vector_of_Vector%id" % ndim
 ##         vector_of_vector_of_vector = "vector_of_vector_of_Vector%id" % ndim
-##         meshwall = "Spheral::MeshSpace::MeshWall%id" % ndim
+##         meshwall = "Spheral::MeshWall%id" % ndim
 
 ##         # Constructors.
 ##         x.add_constructor([constrefparam(vector_of_vector, "generators"),
@@ -375,11 +368,11 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
 
         # Object names.
         dim = "Spheral::Dim<%i>" % ndim
-        me = "Spheral::MeshSpace::%s" % name
+        me = "Spheral::%s" % name
         vector = "Spheral::Vector%id" % ndim
         vector_of_vector = "vector_of_Vector%id" % ndim
         vector_of_vector_of_vector = "vector_of_vector_of_Vector%id" % ndim
-        meshwall = "Spheral::MeshSpace::MeshWall%id" % ndim
+        meshwall = "Spheral::MeshWall%id" % ndim
 
         # Constructors.
         x.add_constructor([constrefparam(vector_of_vector, "generators"),
@@ -411,7 +404,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         vector_of_symtensor = "vector_of_SymTensor%id" % ndim
         vector_of_nodelist = "vector_of_NodeList%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
-        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        nodelist = "Spheral::NodeList%id" % ndim
 
         self.space.add_function("computeGenerators",
                                 None,

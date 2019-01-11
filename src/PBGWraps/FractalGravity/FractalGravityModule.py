@@ -17,10 +17,8 @@ class FractalGravity:
         mod.add_include('"%s/FractalGravity/FractalGravity.hh"' % topsrcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
-        space = Spheral.add_cpp_namespace("GravitySpace")
-        genericbodyforce3d = findObject(PhysicsSpace, "GenericBodyForce3d")
+        space = mod.add_cpp_namespace("Spheral")
+        genericbodyforce3d = findObject(space, "GenericBodyForce3d")
 
         # Expose types.
         self.FractalGravity = addObject(space, "FractalGravity", allow_subclassing=True, parent=genericbodyforce3d)
@@ -35,22 +33,16 @@ class FractalGravity:
         return
 
     #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return ["GravitySpace"]
-
-    #---------------------------------------------------------------------------
     # FractalGravity bindings.
     #---------------------------------------------------------------------------
     def generateFractalGravityBindings(self, x):
 
         # Object names.
-        me = "Spheral::GravitySpace::FractalGravity"
+        me = "Spheral::FractalGravity"
         state = "Spheral::State3d"
         derivatives = "Spheral::StateDerivatives3d"
-        database = "Spheral::DataBaseSpace::DataBase3d"
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList3d"
+        database = "Spheral::DataBase3d"
+        scalarfieldlist = "Spheral::ScalarFieldList3d"
 
         # Constructors.
         x.add_constructor([param("double", "G"),

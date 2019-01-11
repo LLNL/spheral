@@ -4,15 +4,14 @@ text = """
 //
 // Created by JMO, Wed Dec  1 22:38:21 PST 1999
 //----------------------------------------------------------------------------//
-#include <math.h>
-
 #include "SuperGaussianKernel.hh"
+
+#include <math.h>
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 namespace Spheral {
-  namespace KernelSpace {
 """
 
 if ndim == "1":
@@ -35,6 +34,5 @@ elif ndim == "3":
 
 text += """
     template class SuperGaussianKernel<Dim< %(ndim)s > >;
-  }
 }
 """

@@ -8,16 +8,11 @@
 #ifndef PredictorCorrector_HH
 #define PredictorCorrector_HH
 
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "Integrator.hh"
 
+#include <vector>
+
 namespace Spheral {
-namespace IntegratorSpace {
 
 template<typename Dimension>
 class PredictorCorrector: public Integrator<Dimension> {
@@ -30,9 +25,9 @@ public:
 
   // Constructors.
   PredictorCorrector();
-  PredictorCorrector(DataBaseSpace::DataBase<Dimension>& dataBase);
-  PredictorCorrector(DataBaseSpace::DataBase<Dimension>& dataBase,
-                     const std::vector<PhysicsSpace::Physics<Dimension>*>& physicsPackages);
+  PredictorCorrector(DataBase<Dimension>& dataBase);
+  PredictorCorrector(DataBase<Dimension>& dataBase,
+                     const std::vector<Physics<Dimension>*>& physicsPackages);
 
   // Destructor.
   ~PredictorCorrector();
@@ -52,16 +47,14 @@ public:
   virtual std::string label() const { return "PredictorCorrector"; }
 
 };
-}
+
 }
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace IntegratorSpace {
-    template<typename Dimension> class PredictorCorrector;
-  }
+  template<typename Dimension> class PredictorCorrector;
 }
 
 #endif

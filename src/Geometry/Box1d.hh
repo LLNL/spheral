@@ -56,7 +56,7 @@ public:
 
   double& extent();
   double extent() const;
-  void extent(const double val);
+  void extent(double val);
 
   const Vector& xmin() const;
   const Vector& xmax() const;

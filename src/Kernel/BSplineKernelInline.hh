@@ -1,7 +1,6 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Empty constructor
@@ -99,5 +98,4 @@ BSplineKernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) const {
   }
 }
 
-}
 }

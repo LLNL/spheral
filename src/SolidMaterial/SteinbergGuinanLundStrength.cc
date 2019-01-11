@@ -11,14 +11,10 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
-using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using namespace Spheral::Material;
 
 //------------------------------------------------------------------------------
 // Functor for use looking up the thermal yeild via our Newton-Raphson function.
@@ -215,5 +211,3 @@ YTmax() const {
 }
 
 }
-}
-

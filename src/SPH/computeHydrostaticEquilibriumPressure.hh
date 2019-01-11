@@ -8,28 +8,16 @@
 namespace Spheral {
 
   // Forward declarations.
-  namespace NeighborSpace {
-    template<typename Dimension> class ConnectivityMap;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
+  template<typename Dimension> class ConnectivityMap;
+  template<typename Dimension> class DataBase;
+  template<typename Dimension> class TableKernel;
+  template<typename Dimension, typename DataType> class FieldList;
 
-  namespace SPHSpace {
+  void computeSPHHydrostaticEquilibriumPressure(const DataBase<Dim<3> >& db,
+                                                const TableKernel<Dim<3> >& W,
+                                                const FieldList<Dim<3>, Dim<3>::Vector>& acceleration,
+                                                FieldList<Dim<3>, Dim<3>::Scalar>& pressure);
 
-    void
-    computeSPHHydrostaticEquilibriumPressure(const DataBaseSpace::DataBase<Dim<3> >& db,
-                                             const KernelSpace::TableKernel<Dim<3> >& W,
-                                             const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& acceleration,
-                                             FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& pressure);
-
-  }
 }
 
 #endif

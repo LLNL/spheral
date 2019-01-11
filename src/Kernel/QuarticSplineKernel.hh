@@ -13,7 +13,6 @@
 #include "Kernel.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 template<typename Dimension>
 class QuarticSplineKernel: public Kernel<Dimension, QuarticSplineKernel<Dimension> > {
@@ -42,19 +41,14 @@ public:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "QuarticSplineKernelInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace KernelSpace {
-    template<typename Dimension> class QuarticSplineKernel;
-  }
+  template<typename Dimension> class QuarticSplineKernel;
 }
 
 #endif

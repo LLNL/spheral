@@ -52,7 +52,7 @@ SETUP_GEOMMEM
 # -------------------------------------------------
 SETUP_POLYTOPE
 
-# -------------------------------------------------
+v# -------------------------------------------------
 # setup mpi (m4macros/mpi.m4)
 # -------------------------------------------------
 SETUP_MPI
@@ -188,9 +188,12 @@ AC_OUTPUT(helpers/makefile_master \
           PythonMPIInterfaces/makefile \
           PBGWraps/makefile \
           PBGWraps/SpheralModulesBindings.py \
+          PBGWraps/SpheralCompiledPackages.py \
           Pybind11Wraps/makefile \
-          Pybind11Wraps/Spheral.py \
-          Pybind11Wraps/CXXTypes/makefile \
+          Pybind11Wraps/SpheralCompiledPackages.py \
+          Pybind11Wraps/OpenMP/makefile \
+          Pybind11Wraps/PolyClipper/makefile \
+          Pybind11Wraps/polytope/makefile \
           Pybind11Wraps/Geometry/makefile \
           Pybind11Wraps/Silo/makefile \
           Pybind11Wraps/DataOutput/makefile \
@@ -205,4 +208,22 @@ AC_OUTPUT(helpers/makefile_master \
           Pybind11Wraps/Physics/makefile \
           Pybind11Wraps/ArtificialViscosity/makefile \
           Pybind11Wraps/Hydro/makefile \
+          Pybind11Wraps/ExternalForce/makefile \
+          Pybind11Wraps/Gravity/makefile \
+          Pybind11Wraps/Integrator/makefile \
+          Pybind11Wraps/Utilities/makefile \
+          Pybind11Wraps/NodeGenerators/makefile \
+          Pybind11Wraps/FieldOperations/makefile \
+          Pybind11Wraps/SPH/makefile \
+          Pybind11Wraps/CRKSPH/makefile \
+          Pybind11Wraps/SVPH/makefile \
+          Pybind11Wraps/Mesh/makefile \
+          Pybind11Wraps/Damage/makefile \
+          Pybind11Wraps/SolidMaterial/makefile \
+          Pybind11Wraps/Strength/makefile \
+          Pybind11Wraps/ArtificialConduction/makefile \
+          Pybind11Wraps/Distributed/makefile \
+          Pybind11Wraps/CXXTests/makefile \
+          Pybind11Wraps/Helmholtz/makefile \
+          Pybind11Wraps/ANEOS/makefile \
           SimulationControl/spheralDimensions.py)

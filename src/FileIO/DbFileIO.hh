@@ -19,16 +19,8 @@
 #endif
 
 namespace Spheral {
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-  }
-}
 
-namespace Spheral {
-namespace FileIOSpace {
-
-using namespace std;
-using Spheral::FieldSpace::Field;
+template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
 class DbFileIO: public FileIO<Dimension> {
@@ -123,7 +115,6 @@ private:
 
 };
 
-}
 }
 
 #endif

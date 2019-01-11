@@ -9,7 +9,6 @@
 #include "TensorMonaghanGingoldViscosity.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 template<typename Dimension>
 class TensorCRKSPHViscosity: public TensorMonaghanGingoldViscosity<Dimension> {
@@ -49,10 +48,10 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
-  virtual void calculateSigmaAndGradDivV(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
                                          const State<Dimension>& state,
                                          const StateDerivatives<Dimension>& derivs,
-                                         const KernelSpace::TableKernel<Dimension>& W,
+                                         const TableKernel<Dimension>& W,
                                          ConstBoundaryIterator boundaryBegin,
                                          ConstBoundaryIterator boundaryEnd);
 
@@ -62,19 +61,16 @@ private:
   TensorCRKSPHViscosity(const TensorCRKSPHViscosity&);
   TensorCRKSPHViscosity& operator=(const TensorCRKSPHViscosity&) const;
 
-  FieldSpace::FieldList<Dimension, Tensor> mGradVel;
+  FieldList<Dimension, Tensor> mGradVel;
 };
 
-}
 }
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace ArtificialViscositySpace {
-    template<typename Dimension> class TensorCRKSPHViscosity;
-  }
+  template<typename Dimension> class TensorCRKSPHViscosity;
 }
 
 #endif

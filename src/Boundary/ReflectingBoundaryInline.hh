@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace BoundarySpace {
 
 //------------------------------------------------------------------------------
 // Access the reflection operator.
@@ -11,5 +10,4 @@ ReflectingBoundary<Dimension>::reflectOperator() const {
   return mReflectOperator;
 }
 
-}
 }

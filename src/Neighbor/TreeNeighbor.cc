@@ -9,13 +9,6 @@
 //
 // Created by J. Michael Owen, Fri Mar 23 15:50:35 PDT 2012
 //----------------------------------------------------------------------------//
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <sstream>
-#include <iostream>
-#include <algorithm>
-
 #include "TreeNeighbor.hh"
 #include "NodeList/NodeList.hh"
 #include "Utilities/globalBoundingVolumes.hh"
@@ -28,13 +21,22 @@
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
-namespace NeighborSpace {
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
+using std::vector;
+using std::map;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Compute the vertex coordinates for a cell.
@@ -499,7 +501,7 @@ std::string
 TreeNeighbor<Dimension>::
 dumpTree(const Tree& tree,
          const bool globalTree) const {
-  stringstream ss;
+  std::stringstream ss;
   CellKey key, ix, iy, iz;
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
@@ -582,7 +584,7 @@ std::string
 TreeNeighbor<Dimension>::
 dumpTreeStatistics(const Tree& tree,
                    const bool globalTree) const {
-  stringstream ss;
+  std::stringstream ss;
   CellKey key, ix, iy, iz;
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
@@ -1231,5 +1233,4 @@ template<typename Dimension> const uint64_t TreeNeighbor<Dimension>::xkeymask = 
 template<typename Dimension> const uint64_t TreeNeighbor<Dimension>::ykeymask = TreeNeighbor<Dimension>::xkeymask << TreeNeighbor<Dimension>::num1dbits;
 template<typename Dimension> const uint64_t TreeNeighbor<Dimension>::zkeymask = TreeNeighbor<Dimension>::ykeymask << TreeNeighbor<Dimension>::num1dbits;
 
-}
 }

@@ -8,20 +8,13 @@
 
 #include "Physics/GenericBodyForce.hh"
 
-// Forward declarations.
 namespace Spheral {
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-}
 
-namespace Spheral {
-namespace PhysicsSpace {
+// Forward declarations.
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class NodeList;
+template<typename Dimension> class DataBase;
 
 template<typename Dimension>
 class PointPotential: public GenericBodyForce<Dimension> {
@@ -44,12 +37,12 @@ public:
   virtual 
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const;
 
   // Provide the timestep appropriate for this package.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
@@ -66,15 +59,15 @@ public:
 
   // Access G.
   Scalar G() const;
-  void setG(const Scalar G);
+  void setG(Scalar G);
 
   // Access the mass.
   Scalar mass() const;
-  void setMass(const Scalar m);
+  void setMass(Scalar m);
 
   // Access the core softening radius.
   Scalar coreRadius() const;
-  void setCoreRadius(const Scalar rc);
+  void setCoreRadius(Scalar rc);
 
   // Access the origin.
   const Vector& origin() const;
@@ -83,7 +76,7 @@ public:
   // The maximum allowed fractional change in a particles potential (for 
   // setting the timestep).
   Scalar deltaPotentialFraction() const;
-  void setDeltaPotentialFraction(const Scalar deltaPhi);
+  void setDeltaPotentialFraction(Scalar deltaPhi);
 
 private:
   //--------------------------- Public Interface ---------------------------//
@@ -101,19 +94,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "PointPotentialInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace PhysicsSpace {
-    template<typename Dimension> class PointPotential;
-  }
+  template<typename Dimension> class PointPotential;
 }
 
 #endif

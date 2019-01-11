@@ -2,16 +2,13 @@
 
 #include "TestFunction.hh"
 #include "Kernel/TableKernel.hh"
-using namespace std;
 
 namespace Spheral {
-
-namespace FVPMSpace {
 
 //-------------------------------------------------------------------
 template <typename Dimension>
 TestFunction<Dimension>::
-TestFunction(const KernelSpace::TableKernel<Dimension>& W,
+TestFunction(const TableKernel<Dimension>& W,
              const QuadRule<Dimension>& quadRule):
   mKernel(W),
   mQuadRule(quadRule)
@@ -117,5 +114,3 @@ interactionVector(const typename Dimension::Vector& xi,
 //-------------------------------------------------------------------
 
 }
-}
-

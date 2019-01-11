@@ -17,28 +17,19 @@
 #include <map>
 #include <memory>
 
-// Forward declarations.
 namespace Spheral {
-  template<typename Dimension> class NodeIteratorBase;
-  template<typename Dimension> class AllNodeIterator;
-  template<typename Dimension> class InternalNodeIterator;
-  template<typename Dimension> class GhostNodeIterator;
-  template<typename Dimension> class MasterNodeIterator;
-  template<typename Dimension> class CoarseNodeIterator;
-  template<typename Dimension> class RefineNodeIterator;
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-  }
-}
 
-namespace Spheral {
-namespace FieldSpace {
+// Forward declarations.
+template<typename Dimension> class NodeIteratorBase;
+template<typename Dimension> class AllNodeIterator;
+template<typename Dimension> class InternalNodeIterator;
+template<typename Dimension> class GhostNodeIterator;
+template<typename Dimension> class MasterNodeIterator;
+template<typename Dimension> class CoarseNodeIterator;
+template<typename Dimension> class RefineNodeIterator;
+template<typename Dimension> class NodeList;
+template<typename Dimension> class TableKernel;
+template<typename Dimension, typename DataType> class Field;
 
 // An enum for selecting how Fields are stored in FieldLists.
 enum class FieldStorageType {
@@ -91,7 +82,7 @@ public:
 
   // Test if the given field (or NodeList) is part of a FieldList.
   bool haveField(const Field<Dimension, DataType>& field) const;
-  bool haveNodeList(const NodeSpace::NodeList<Dimension>& nodeList) const;
+  bool haveNodeList(const NodeList<Dimension>& nodeList) const;
 
   // Force the Field members of this FieldList to be equal to those of
   // another FieldList.
@@ -103,8 +94,8 @@ public:
 
   // Construct a new field and add it to the FieldList.
   // Note this only makes sense when we're storing fields as copies!
-  void appendNewField(const typename FieldSpace::Field<Dimension, DataType>::FieldName name,
-                      const NodeSpace::NodeList<Dimension>& nodeList,
+  void appendNewField(const typename Field<Dimension, DataType>::FieldName name,
+                      const NodeList<Dimension>& nodeList,
                       const DataType value);
 
   // Provide the standard iterators over the Fields.
@@ -137,8 +128,8 @@ public:
   ElementType at(const unsigned index) const;
 
   // Return an iterator to the Field associated with the given NodeList.
-  iterator fieldForNodeList(const NodeSpace::NodeList<Dimension>& nodeList);
-  const_iterator fieldForNodeList(const NodeSpace::NodeList<Dimension>& nodeList) const;
+  iterator fieldForNodeList(const NodeList<Dimension>& nodeList);
+  const_iterator fieldForNodeList(const NodeList<Dimension>& nodeList) const;
 
   // Provide access to the Field elements via NodeIterators.
   DataType& operator()(const NodeIteratorBase<Dimension>& itr);
@@ -153,7 +144,7 @@ public:
 
   // Return the interpolated value of the FieldList at a position.
   DataType operator()(const Vector& position,
-                      const KernelSpace::TableKernel<Dimension>& W) const;
+                      const TableKernel<Dimension>& W) const;
 
   // Provide NodeIterators on the elements of the FieldList.
   AllNodeIterator<Dimension> nodeBegin() const;
@@ -259,13 +250,12 @@ public:
   unsigned numGhostNodes() const;
 
   // Get the NodeLists this FieldList is defined on.
-  const std::vector<NodeSpace::NodeList<Dimension>*>& nodeListPtrs() const;
+  const std::vector<NodeList<Dimension>*>& nodeListPtrs() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
-#ifndef __GCCXML__
   typedef std::list<std::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
-  typedef std::map<const NodeSpace::NodeList<Dimension>*, int> HashMapType;
+  typedef std::map<const NodeList<Dimension>*, int> HashMapType;
 
   std::vector<ElementType> mFieldPtrs;
   std::vector<BaseElementType> mFieldBasePtrs;
@@ -274,29 +264,21 @@ private:
 
   // Maintain a vector of the NodeLists this FieldList is defined in order to
   // construct NodeIterators.
-  std::vector<NodeSpace::NodeList<Dimension>*> mNodeListPtrs;
+  std::vector<NodeList<Dimension>*> mNodeListPtrs;
   HashMapType mNodeListIndexMap;
 
   // Internal method to build the NodeListIndexMap from scratch.
   void buildNodeListIndexMap();
-#endif
-
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "FieldListInline.hh"
-#endif
 
 #else
 
 namespace Spheral {
-  namespace FieldSpace {
-    // Forward declaration.
-    template<typename Dimension, typename DataType> class FieldList;
-  }
+  template<typename Dimension, typename DataType> class FieldList;
 }
 
 #endif

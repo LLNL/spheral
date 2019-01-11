@@ -10,7 +10,6 @@
 #include "ArtificialViscosity.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 template<typename Dimension>
 class TensorSVPHViscosity: public ArtificialViscosity<Dimension> {
@@ -20,7 +19,7 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
+  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
   // Constructors.
   TensorSVPHViscosity(Scalar Clinear, Scalar Cquadratic, Scalar fslice);
@@ -30,14 +29,14 @@ public:
 
   // Initialize the artificial viscosity for all FluidNodeLists in the given
   // DataBase.
-  virtual void initialize(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void initialize(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           ConstBoundaryIterator boundaryBegin,
                           ConstBoundaryIterator boundaryEnd,
-			  const Scalar time, 
-			  const Scalar dt,
-                          const KernelSpace::TableKernel<Dimension>& W);
+                          const Scalar time, 
+                          const Scalar dt,
+                          const TableKernel<Dimension>& W);
 
   // Required method to compute the tensor viscous P/rho^2.
   virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 
@@ -57,7 +56,7 @@ public:
 
   // Access our internal state.
   Scalar fslice() const;
-  void fslice(const Scalar x);
+  void fslice(Scalar x);
 
   const std::vector<Tensor>& DvDx() const;
   const std::vector<Scalar>& shearCorrection() const;
@@ -79,15 +78,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace ArtificialViscositySpace {
-    template<typename Dimension> class TensorSVPHViscosity;
-  }
+  template<typename Dimension> class TensorSVPHViscosity;
 }
 
 #endif

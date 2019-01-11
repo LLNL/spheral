@@ -21,25 +21,18 @@
 #include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
 
-namespace Spheral {
-namespace ArtificialViscositySpace {
-
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
 
-using DataOutput::Restart;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NeighborSpace::Neighbor;
-using Material::EquationOfState;
-using BoundarySpace::Boundary;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
+namespace Spheral {
 
 namespace {
 
@@ -105,7 +98,7 @@ CRKSPHMonaghanGingoldViscosity(const Scalar Clinear,
   mEtaFoldFrac(etaFoldFrac),
   mEtaCrit(0.0),
   mEtaFold(1.0),
-  mGradVel(FieldSpace::FieldStorageType::CopyFields) {
+  mGradVel(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -286,7 +279,7 @@ etaCritFrac() const {
 template<typename Dimension>
 void
 CRKSPHMonaghanGingoldViscosity<Dimension>::
-etaCritFrac(const double val) {
+etaCritFrac(double val) {
   VERIFY(val >= 0.0);
   mEtaCritFrac = val;
 }
@@ -304,10 +297,9 @@ etaFoldFrac() const {
 template<typename Dimension>
 void
 CRKSPHMonaghanGingoldViscosity<Dimension>::
-etaFoldFrac(const double val) {
+etaFoldFrac(double val) {
   VERIFY(val > 0.0);
   mEtaFoldFrac = val;
 }
 
-}
 }

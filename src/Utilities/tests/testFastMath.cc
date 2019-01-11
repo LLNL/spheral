@@ -7,7 +7,6 @@
 #include "Utilities/FastMath.hh"
 #include "Utilities/DBC.hh"
 
-using namespace std;
 using namespace Spheral;
 
 int main(int argc, char* argv[]) {

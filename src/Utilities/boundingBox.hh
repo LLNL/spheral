@@ -10,14 +10,9 @@
 
 #include <vector>
 
-// Forward declarations.
 namespace Spheral {
-  namespace FieldSpace {
-    template<typename Dimension, typename Value> class FieldList;
-  }
-}
 
-namespace Spheral {
+template<typename Dimension, typename Value> class FieldList;
 
 // Minimum bounding box for a vector of positions.
 template<typename Vector>
@@ -28,7 +23,7 @@ boundingBox(const std::vector<Vector>& positions,
 
 template<typename Dimension>
 void
-boundingBox(const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& positions,
+boundingBox(const FieldList<Dimension, typename Dimension::Vector>& positions,
             typename Dimension::Vector& xmin,
             typename Dimension::Vector& xmax,
             const bool useGhosts);

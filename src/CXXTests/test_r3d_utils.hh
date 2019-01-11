@@ -11,7 +11,6 @@
 #include <string>
 
 namespace Spheral {
-namespace Testing {
 
 //------------------------------------------------------------------------------
 // Test converting from r2d_poly <-> polygon.
@@ -32,7 +31,6 @@ std::string test_clip_polygon();
 std::string test_orphan_polygon();
 std::string test_clip_polyhedron();
 
-}
 }
 
 #endif

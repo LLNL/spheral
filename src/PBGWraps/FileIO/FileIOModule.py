@@ -20,33 +20,33 @@ class FileIO:
             exec("""
 self.FileIOTypes += [
         "Vector%(dim)s", "Tensor%(dim)s", "SymTensor%(dim)s", "ThirdRankTensor%(dim)s",
-        "vector_of_Vector%(dim)s",
-        "vector_of_Tensor%(dim)s",
-        "vector_of_SymTensor%(dim)s",
-        "vector_of_ThirdRankTensor%(dim)s",
+        # "vector_of_Vector%(dim)s",
+        # "vector_of_Tensor%(dim)s",
+        # "vector_of_SymTensor%(dim)s",
+        # "vector_of_ThirdRankTensor%(dim)s",
         ]""" % {"dim" : "%id" % ndim,
                 "Dim" : "Spheral::Dim<%i>" % ndim})
         for ndim in self.dims:
             exec("""
 self.FileIOTypes += [
-        "Spheral::FieldSpace::ScalarField%(dim)s",
-        "Spheral::FieldSpace::VectorField%(dim)s",
-        "Spheral::FieldSpace::TensorField%(dim)s",
-        "Spheral::FieldSpace::SymTensorField%(dim)s",
-        "Spheral::FieldSpace::ThirdRankTensorField%(dim)s",
-        "Spheral::FieldSpace::IntField%(dim)s",
+        "Spheral::ScalarField%(dim)s",
+        "Spheral::VectorField%(dim)s",
+        "Spheral::TensorField%(dim)s",
+        "Spheral::SymTensorField%(dim)s",
+        "Spheral::ThirdRankTensorField%(dim)s",
+        "Spheral::IntField%(dim)s",
         ]
 self.FileIOTemplateTypes += [
-        ("Spheral::FieldSpace::ScalarFieldList%(dim)s", ["%(Dim)s", "double"]),
-        ("Spheral::FieldSpace::VectorFieldList%(dim)s", ["%(Dim)s", "Vector%(dim)s"]),
-        ("Spheral::FieldSpace::TensorFieldList%(dim)s", ["%(Dim)s", "Tensor%(dim)s"]),
-        ("Spheral::FieldSpace::SymTensorFieldList%(dim)s", ["%(Dim)s", "SymTensor%(dim)s"]),
-        ("Spheral::FieldSpace::ThirdRankTensorFieldList%(dim)s", ["%(Dim)s", "ThirdRankTensor%(dim)s"]),
-        ("Spheral::FieldSpace::IntFieldList%(dim)s", ["%(Dim)s", "int"]),
-        ("Spheral::FieldSpace::VectorDoubleFieldList%(dim)s", ["%(Dim)s", "vector_of_double"]),
+        ("Spheral::ScalarFieldList%(dim)s", ["%(Dim)s", "double"]),
+        ("Spheral::VectorFieldList%(dim)s", ["%(Dim)s", "Vector%(dim)s"]),
+        ("Spheral::TensorFieldList%(dim)s", ["%(Dim)s", "Tensor%(dim)s"]),
+        ("Spheral::SymTensorFieldList%(dim)s", ["%(Dim)s", "SymTensor%(dim)s"]),
+        ("Spheral::ThirdRankTensorFieldList%(dim)s", ["%(Dim)s", "ThirdRankTensor%(dim)s"]),
+        ("Spheral::IntFieldList%(dim)s", ["%(Dim)s", "int"]),
+        ("Spheral::VectorDoubleFieldList%(dim)s", ["%(Dim)s", "vector_of_double"]),
         ]""" % {"dim" : "%id" % ndim,
                 "Dim" : "Spheral::Dim<%i>" % ndim})
-        self.FileIOTypes += ["vector_of_int", "vector_of_double", "vector_of_string",
+        self.FileIOTypes += [#"vector_of_int", "vector_of_double", "vector_of_string",
                              "double", "std::string", "int", "bool", "unsigned int"]
 
         # Includes.
@@ -57,8 +57,7 @@ self.FileIOTemplateTypes += [
         mod.add_include('"%s/FileIO/vectorstringUtilities.hh"' % topsrcdir)
 
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("FileIOSpace")
+        space = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
         self.FileIO = addObject(space, "FileIO", allow_subclassing=True)
@@ -66,14 +65,14 @@ self.FileIOTemplateTypes += [
         self.SiloFileIO = addObject(space, "SiloFileIO", parent=self.FileIO, allow_subclassing=True)
         self.PyFileIO = addObject(space, "PyFileIO", parent=self.FileIO, allow_subclassing=True)
         
-        self.AccessType = space.add_enum("AccessType", [("Undefined", "Spheral::FileIOSpace::AccessType::Undefined"),
-                                                        ("Create", "Spheral::FileIOSpace::AccessType::Create"),
-                                                        ("Read", "Spheral::FileIOSpace::AccessType::Read"),
-                                                        ("Write", "Spheral::FileIOSpace::AccessType::Write"),
-                                                        ("ReadWrite", "Spheral::FileIOSpace::AccessType::ReadWrite")])
+        self.AccessType = space.add_enum("AccessType", [("Undefined", "Spheral::AccessType::Undefined"),
+                                                        ("Create", "Spheral::AccessType::Create"),
+                                                        ("Read", "Spheral::AccessType::Read"),
+                                                        ("Write", "Spheral::AccessType::Write"),
+                                                        ("ReadWrite", "Spheral::AccessType::ReadWrite")])
 
-        self.FlatFileFormat = space.add_enum("FlatFileFormat", [("ascii", "Spheral::FileIOSpace::FlatFileFormat::ascii"),
-                                                                ("binary", "Spheral::FileIOSpace::FlatFileFormat::binary")])
+        self.FlatFileFormat = space.add_enum("FlatFileFormat", [("ascii", "Spheral::FlatFileFormat::ascii"),
+                                                                ("binary", "Spheral::FlatFileFormat::binary")])
 
         return
 
@@ -127,12 +126,6 @@ self.FileIOTemplateTypes += [
         return
 
     #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return ["FileIOSpace"]
-
-    #---------------------------------------------------------------------------
     # Add FileIO methods.
     #---------------------------------------------------------------------------
     def addFileIOMethods(self):
@@ -179,7 +172,7 @@ self.FileIOTemplateTypes += [
         x.add_constructor([])
         x.add_constructor([param("std::string", "filename"),
                            param("AccessType", "access"),
-                           param("FlatFileFormat", "format", default_value="Spheral::FileIOSpace::FlatFileFormat::ascii")])
+                           param("FlatFileFormat", "format", default_value="Spheral::FlatFileFormat::ascii")])
 
 
         # Methods.
@@ -277,7 +270,7 @@ self.FileIOTemplateTypes += [
                                [param("std::string", "pathName")],
                                is_const = True,
                                is_virtual = True)
-            fio_obj.add_method("write", None, [param(val, "value"),
+            fio_obj.add_method("write", None, [constrefparam(val, "value"),
                                                param("std::string", "pathName")],
                                is_virtual = True,
                                is_pure_virtual = pureVirtual)
@@ -321,10 +314,18 @@ self.FileIOTemplateTypes += [
                                  [constrefparam(val, "value"),
                                   param("const std::string", "pathName")],
                                  is_pure_virtual = True)
-            pyfio_obj.add_method("read_%s" % stripval,
-                                 None, 
-                                 [refparam(val, "value"),
-                                  param("const std::string", "pathName")],
-                                 is_const = True,
-                                 is_pure_virtual = True)
+            if "Field" in val:
+                pyfio_obj.add_method("read_%s" % stripval,
+                                     None, 
+                                     [inputptrparam(val, "value"),
+                                      param("const std::string", "pathName")],
+                                     is_const = True,
+                                     is_pure_virtual = True)
+            else:
+                pyfio_obj.add_method("read_%s" % stripval,
+                                     None, 
+                                     [refparam(val, "value"),
+                                      param("const std::string", "pathName")],
+                                     is_const = True,
+                                     is_pure_virtual = True)
         return

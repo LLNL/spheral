@@ -2,7 +2,6 @@
 #include "Field/Field.hh"
 
 namespace Spheral {
-namespace NodeSpace {
 
 //------------------------------------------------------------------------------
 // Get the name of the NodeList.
@@ -31,7 +30,7 @@ template<typename Dimension>
 inline
 unsigned 
 NodeList<Dimension>::numInternalNodes() const {
-  CHECK(mFirstGhostNode <= numNodes());
+  CHECK2(mFirstGhostNode <= numNodes(), "NodeList sizes: " << mFirstGhostNode << " " << numNodes());
   return mFirstGhostNode;
 }
 
@@ -51,7 +50,7 @@ NodeList<Dimension>::numGhostNodes() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+Field<Dimension, typename Dimension::Scalar>&
 NodeList<Dimension>::mass() {
   CHECK(mMass.nodeListPtr() == this);
   return mMass;
@@ -59,7 +58,7 @@ NodeList<Dimension>::mass() {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 NodeList<Dimension>::mass() const {
   CHECK(mMass.nodeListPtr() == this);
   return mMass;
@@ -70,7 +69,7 @@ NodeList<Dimension>::mass() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, typename Dimension::Vector>&
+Field<Dimension, typename Dimension::Vector>&
 NodeList<Dimension>::positions() {
   CHECK(mPositions.nodeListPtr() == this);
   return mPositions;
@@ -78,7 +77,7 @@ NodeList<Dimension>::positions() {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Vector>&
+const Field<Dimension, typename Dimension::Vector>&
 NodeList<Dimension>::positions() const {
   CHECK(mPositions.nodeListPtr() == this);
   return mPositions;
@@ -89,7 +88,7 @@ NodeList<Dimension>::positions() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, typename Dimension::Vector>&
+Field<Dimension, typename Dimension::Vector>&
 NodeList<Dimension>::velocity() {
   CHECK(mVelocity.nodeListPtr() == this);
   return mVelocity;
@@ -97,7 +96,7 @@ NodeList<Dimension>::velocity() {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Vector>&
+const Field<Dimension, typename Dimension::Vector>&
 NodeList<Dimension>::velocity() const {
   CHECK(mVelocity.nodeListPtr() == this);
   return mVelocity;
@@ -108,7 +107,7 @@ NodeList<Dimension>::velocity() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+Field<Dimension, typename Dimension::SymTensor>&
 NodeList<Dimension>::Hfield() {
   CHECK(mH.nodeListPtr() == this);
   return mH;
@@ -116,7 +115,7 @@ NodeList<Dimension>::Hfield() {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+const Field<Dimension, typename Dimension::SymTensor>&
 NodeList<Dimension>::Hfield() const {
   CHECK(mH.nodeListPtr() == this);
   return mH;
@@ -127,7 +126,7 @@ NodeList<Dimension>::Hfield() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+Field<Dimension, typename Dimension::Scalar>&
 NodeList<Dimension>::work() const {
   CHECK(mWork.nodeListPtr() == this);
   return mWork;
@@ -138,7 +137,7 @@ NodeList<Dimension>::work() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-typename std::vector<FieldSpace::FieldBase<Dimension>*>::iterator
+typename std::vector<FieldBase<Dimension>*>::iterator
 NodeList<Dimension>::
 registeredFieldsBegin() {
   return mFieldBaseList.begin();
@@ -146,7 +145,7 @@ registeredFieldsBegin() {
 
 template<typename Dimension>
 inline
-typename std::vector<FieldSpace::FieldBase<Dimension>*>::iterator
+typename std::vector<FieldBase<Dimension>*>::iterator
 NodeList<Dimension>::
 registeredFieldsEnd() {
   return mFieldBaseList.end();
@@ -154,7 +153,7 @@ registeredFieldsEnd() {
 
 template<typename Dimension>
 inline
-typename std::vector<FieldSpace::FieldBase<Dimension>*>::const_iterator
+typename std::vector<FieldBase<Dimension>*>::const_iterator
 NodeList<Dimension>::
 registeredFieldsBegin() const {
   return mFieldBaseList.begin();
@@ -162,7 +161,7 @@ registeredFieldsBegin() const {
 
 template<typename Dimension>
 inline
-typename std::vector<FieldSpace::FieldBase<Dimension>*>::const_iterator
+typename std::vector<FieldBase<Dimension>*>::const_iterator
 NodeList<Dimension>::
 registeredFieldsEnd() const {
   return mFieldBaseList.end();
@@ -180,7 +179,7 @@ NodeList<Dimension>::nodesPerSmoothingScale() const {
 
 template<typename Dimension>
 void
-NodeList<Dimension>::nodesPerSmoothingScale(const typename Dimension::Scalar val) {
+NodeList<Dimension>::nodesPerSmoothingScale(typename Dimension::Scalar val) {
   mNodesPerSmoothingScale = val;
 }
 
@@ -196,7 +195,7 @@ NodeList<Dimension>::maxNumNeighbors() const {
 
 template<typename Dimension>
 void
-NodeList<Dimension>::maxNumNeighbors(const unsigned val) {
+NodeList<Dimension>::maxNumNeighbors(unsigned val) {
   mMaxNumNeighbors = val;
 }
 
@@ -213,7 +212,7 @@ NodeList<Dimension>::hmin() const {
 template<typename Dimension>
 inline
 void
-NodeList<Dimension>::hmin(const typename Dimension::Scalar val) {
+NodeList<Dimension>::hmin(typename Dimension::Scalar val) {
   mhmin = val;
 }
 
@@ -230,7 +229,7 @@ NodeList<Dimension>::hmax() const {
 template<typename Dimension>
 inline
 void
-NodeList<Dimension>::hmax(const typename Dimension::Scalar val) {
+NodeList<Dimension>::hmax(typename Dimension::Scalar val) {
   mhmax = val;
 }
 
@@ -247,7 +246,7 @@ NodeList<Dimension>::hminratio() const {
 template<typename Dimension>
 inline
 void
-NodeList<Dimension>::hminratio(const typename Dimension::Scalar val) {
+NodeList<Dimension>::hminratio(typename Dimension::Scalar val) {
   mhminratio = val;
 }
 
@@ -268,5 +267,4 @@ NodeList<Dimension>::operator!=(const NodeList<Dimension>& rhs) const {
   return not (*this == rhs);
 }
 
-}
 }

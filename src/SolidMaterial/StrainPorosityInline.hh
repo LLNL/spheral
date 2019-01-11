@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace SolidMaterial {
 
 //------------------------------------------------------------------------------
 // Access various local state variables.
@@ -86,7 +85,15 @@ porousEOS() const {
 
 template<typename Dimension>
 inline
-const NodeSpace::NodeList<Dimension>&
+const PorousStrengthModel<Dimension>&
+StrainPorosity<Dimension>::
+porousStrength() const {
+  return mPorousStrength;
+}
+
+template<typename Dimension>
+inline
+const NodeList<Dimension>&
 StrainPorosity<Dimension>::
 nodeList() const {
   return mNodeList;
@@ -94,7 +101,7 @@ nodeList() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 StrainPorosity<Dimension>::
 alpha() const {
   return mAlpha;
@@ -102,7 +109,7 @@ alpha() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 StrainPorosity<Dimension>::
 DalphaDt() const {
   return mDalphaDt;
@@ -110,7 +117,7 @@ DalphaDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 StrainPorosity<Dimension>::
 strain() const {
   return mStrain;
@@ -118,11 +125,10 @@ strain() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 StrainPorosity<Dimension>::
 DstrainDt() const {
   return mDstrainDt;
 }
 
-}
 }

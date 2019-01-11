@@ -17,23 +17,19 @@
 
 #include "MorrisMonaghanReducingViscosity.hh"
 
-namespace Spheral {
-namespace ArtificialViscositySpace {
-    
-using namespace std;
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
-using FileIOSpace::FileIO;
 
-using PhysicsSpace::Physics;
-using DataOutput::Restart;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-
+namespace Spheral {
+    
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
 //------------------------------------------------------------------------------
@@ -45,14 +41,14 @@ MorrisMonaghanReducingViscosity(ArtificialViscosity<Dimension>& q,
                                 const Scalar aMin,
                                 const Scalar aMax):
   Physics<Dimension>(),
-  mDrvAlphaDtQ(FieldSpace::FieldStorageType::CopyFields),
-  mDrvAlphaDtL(FieldSpace::FieldStorageType::CopyFields),
+  mDrvAlphaDtQ(FieldStorageType::CopyFields),
+  mDrvAlphaDtL(FieldStorageType::CopyFields),
   mnhQ(nhQ),
   mnhL(nhL),
   maMin(aMin),
   maMax(aMax),
   myq(q),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -238,7 +234,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 MorrisMonaghanReducingViscosity<Dimension>::
-dumpState(FileIO& file, string pathName) const {
+dumpState(FileIO& file, const string& pathName) const {
   file.write(mDrvAlphaDtQ, pathName + "/DrvAlphaDtQ");
   file.write(mDrvAlphaDtL, pathName + "/DrvAlphaDtL");
 }
@@ -249,7 +245,7 @@ dumpState(FileIO& file, string pathName) const {
 template<typename Dimension>
 void
 MorrisMonaghanReducingViscosity<Dimension>::
-restoreState(const FileIO& file, string pathName) {
+restoreState(const FileIO& file, const string& pathName) {
   file.read(mDrvAlphaDtQ, pathName + "/DrvAlphaDtQ");
   file.read(mDrvAlphaDtL, pathName + "/DrvAlphaDtL");
 }
@@ -267,5 +263,4 @@ dt(const DataBase<Dimension>& dataBase,
   return TimeStepType(1.0e100, "Rate of viscosity change -- NO VOTE.");
 }
     
-}
 }

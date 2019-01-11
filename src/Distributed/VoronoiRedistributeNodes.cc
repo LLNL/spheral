@@ -10,14 +10,6 @@
 //
 // Created by JMO, Fri Jan 15 09:56:56 PST 2010
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <sstream>
-#include <fstream>
-#include <cstdlib>
-#include <bitset>
-
-#include <boost/assign.hpp>
-
 #include "VoronoiRedistributeNodes.hh"
 #include "DomainNode.hh"
 #include "Boundary/Boundary.hh"
@@ -39,19 +31,26 @@
 
 #include "Utilities/DBC.hh"
 
+#include <algorithm>
+#include <sstream>
+#include <fstream>
+#include <cstdlib>
+#include <bitset>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
+#include <boost/assign.hpp>
+
 namespace Spheral {
-namespace PartitionSpace {
 
-using namespace std;
-
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using BoundarySpace::Boundary;
-using FieldSpace::FieldList;
-using FieldSpace::Field;
-using FieldSpace::latticeIndex;
-using KernelSpace::TableKernel;
-using KernelSpace::BSplineKernel;
 
 //------------------------------------------------------------------------------
 // Helper method to find the nearest position in a vector of positions to the 
@@ -210,13 +209,7 @@ computeCellBoundaries<Dim<3> >(const Dim<3>::Vector& xmin,
 //------------------------------------------------------------------------------
 // Compute the subcell positions.
 //------------------------------------------------------------------------------
-template<typename Vector>
-vector<Vector>
-computeDaughterPositions(const Vector& xmin,
-                         const Vector& xmax);
-
 // 1-D
-template<>
 inline
 vector<Dim<1>::Vector>
 computeDaughterPositions(const Dim<1>::Vector& xmin,
@@ -231,7 +224,6 @@ computeDaughterPositions(const Dim<1>::Vector& xmin,
 }
 
 // 2-D
-template<>
 inline
 vector<Dim<2>::Vector>
 computeDaughterPositions(const Dim<2>::Vector& xmin,
@@ -248,7 +240,6 @@ computeDaughterPositions(const Dim<2>::Vector& xmin,
 }
 
 // 3-D
-template<>
 inline
 vector<Dim<3>::Vector>
 computeDaughterPositions(const Dim<3>::Vector& xmin,
@@ -358,7 +349,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   const int procID = this->domainID();
 
   // Get the global IDs.
-  const FieldList<Dimension, int> globalIDs = NodeSpace::globalNodeIDs(dataBase);
+  const FieldList<Dimension, int> globalIDs = globalNodeIDs(dataBase);
   const size_t numNodeLists = dataBase.numNodeLists();
 
   // Compute the work and number density per node.
@@ -384,7 +375,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     }
 
     // Update the connectivity.
-    dataBase.updateConnectivityMap(false);
+    dataBase.updateConnectivityMap(false, false);
 
     // Get the local description of the domain distribution, with the work per node filled in.
     if (this->workBalance()) workField = this->workPerNode(dataBase, 1.0);
@@ -989,7 +980,7 @@ workBalance() const {
 template<typename Dimension>
 void
 VoronoiRedistributeNodes<Dimension>::
-workBalance(const bool val) {
+workBalance(bool val) {
   mWorkBalance = val;
 }
 
@@ -1007,7 +998,7 @@ balanceGenerators() const {
 template<typename Dimension>
 void
 VoronoiRedistributeNodes<Dimension>::
-balanceGenerators(const bool val) {
+balanceGenerators(bool val) {
   mBalanceGenerators = val;
 }
 
@@ -1024,7 +1015,7 @@ tolerance() const {
 template<typename Dimension>
 void
 VoronoiRedistributeNodes<Dimension>::
-tolerance(const double val) {
+tolerance(double val) {
   mTolerance = val;
 }
 
@@ -1041,10 +1032,9 @@ maxIterations() const {
 template<typename Dimension>
 void
 VoronoiRedistributeNodes<Dimension>::
-maxIterations(const unsigned val) {
+maxIterations(unsigned val) {
   mMaxIterations = val;
 }
 
-}
 }
 

@@ -2,10 +2,6 @@
 // Use geometric clipping to remap a set of conserved fields.
 // Currently only works single NodeList -> single NodeList, no boundaries.
 //------------------------------------------------------------------------------
-
-#include <map>
-#include <algorithm>
-
 #include "overlayRemapFields.hh"
 #include "r3d_utils.hh"
 #include "DataBase/DataBase.hh"
@@ -13,17 +9,21 @@
 #include "Geometry/GeomPlane.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
+#include <map>
+#include <algorithm>
+using std::vector;
+using std::list;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using DataBaseSpace::DataBase;
-using NeighborSpace::ConnectivityMap;
-using BoundarySpace::Boundary;
-using NeighborSpace::Neighbor;
+namespace Spheral {
 
 template<typename Dimension>
 void
@@ -110,7 +110,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     for (Boundary<Dimension>* boundPtr: boundaries) boundPtr->setAllGhostNodes(db);
     for (Boundary<Dimension>* boundPtr: boundaries) boundPtr->finalizeGhostBoundary();
     neighborD.updateNodes();
-    db.updateConnectivityMap(false);
+    db.updateConnectivityMap(false, false);
     const auto& cm = db.connectivityMap();
     const auto position = db.fluidPosition();
     const auto H = db.fluidHfield();
@@ -123,9 +123,9 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     auto surfacePoint = db.newFluidFieldList(0, "surface point");
     auto vol = db.newFluidFieldList(0.0, "volume");
     auto deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
-    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::ReferenceFields);
+    FieldList<Dimension, FacetedVolume> cells_fl(FieldStorageType::ReferenceFields);
     cells_fl.appendField(localDonorCells);
-    CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, voidPoint,
+    computeVoronoiVolume(position, H, rho, gradrho, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, voidPoint,
                                       surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl);
     const_cast<NodeList<Dimension>*>(donorNodeListPtr)->numGhostNodes(0);
     neighborD.updateNodes();
@@ -141,7 +141,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     for (Boundary<Dimension>* boundPtr: boundaries) boundPtr->setAllGhostNodes(db);
     for (Boundary<Dimension>* boundPtr: boundaries) boundPtr->finalizeGhostBoundary();
     neighborA.updateNodes();
-    db.updateConnectivityMap(false);
+    db.updateConnectivityMap(false, false);
     const auto& cm = db.connectivityMap();
     const auto position = db.fluidPosition();
     const auto H = db.fluidHfield();
@@ -154,9 +154,9 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     auto surfacePoint = db.newFluidFieldList(0, "surface point");
     auto vol = db.newFluidFieldList(0.0, "volume");
     auto deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
-    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::ReferenceFields);
+    FieldList<Dimension, FacetedVolume> cells_fl(FieldStorageType::ReferenceFields);
     cells_fl.appendField(localAcceptorCells);
-    CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, voidPoint,
+    computeVoronoiVolume(position, H, rho, gradrho, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, voidPoint,
                                       surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl);
     const_cast<NodeList<Dimension>*>(acceptorNodeListPtr)->numGhostNodes(0);
     neighborA.updateNodes();

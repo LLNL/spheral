@@ -7,9 +7,8 @@
 #define __Spheral_Kernel_hh__
 
 namespace Spheral {
-namespace KernelSpace {
 
-template<typename Dimension, typename Descendent>
+template<typename Dimension, typename Descendant>
 class Kernel {
 
 public:
@@ -20,7 +19,7 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   // Cast as the descendent type.
-  Descendent& asDescendent() const;
+  Descendant& asDescendant() const;
 
   // Constructors, destructors.
   Kernel();
@@ -100,7 +99,7 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
-  // Descendent Kernel classes are allowed (in fact required!) to set the 
+  // Descendant Kernel classes are allowed (in fact required!) to set the 
   // volume normalization.
   void setVolumeNormalization(double volumeNormalization);
   void setKernelExtent(double extent);
@@ -115,19 +114,14 @@ protected:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "KernelInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace KernelSpace {
-    template<typename Dimension, typename Descendent> class Kernel;
-  }
+  template<typename Dimension, typename Descendant> class Kernel;
 }
 
 #endif

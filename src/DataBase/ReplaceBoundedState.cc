@@ -13,9 +13,14 @@
 #include "Utilities/DBC.hh"
 #include "Utilities/SpheralFunctions.hh"
 
-namespace Spheral {
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using Spheral::FieldSpace::Field;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructors.

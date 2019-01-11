@@ -11,7 +11,6 @@
 #include "Field/FieldList.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 template<typename Dimension>
 class FiniteVolumeViscosity: public ArtificialViscosity<Dimension> {
@@ -34,14 +33,14 @@ public:
 
   // Initialize the artificial viscosity for all FluidNodeLists in the given
   // DataBase.
-  virtual void initialize(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void initialize(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           ConstBoundaryIterator boundaryBegin,
                           ConstBoundaryIterator boundaryEnd,
-			  const Scalar time, 
-			  const Scalar dt,
-                          const KernelSpace::TableKernel<Dimension>& W);
+                          const Scalar time, 
+                          const Scalar dt,
+                          const TableKernel<Dimension>& W);
 
   // The required method to compute the artificial viscous P/rho^2.
   virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 
@@ -64,12 +63,12 @@ public:
 
   // Access the internal state.
   bool scalar() const;
-  const FieldSpace::FieldList<Dimension, Tensor>& DvDx() const;
+  const FieldList<Dimension, Tensor>& DvDx() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   bool mScalar;
-  FieldSpace::FieldList<Dimension, Tensor> mDvDx;
+  FieldList<Dimension, Tensor> mDvDx;
 
   FiniteVolumeViscosity();
   FiniteVolumeViscosity(const FiniteVolumeViscosity&);
@@ -77,15 +76,12 @@ private:
 };
 
 }
-}
 
 #else
 
 namespace Spheral {
-  namespace ArtificialViscositySpace {
-    // Forward declaration.
-    template<typename Dimension> class FiniteVolumeViscosity;
-  }
+  // Forward declaration.
+  template<typename Dimension> class FiniteVolumeViscosity;
 }
 
 #endif

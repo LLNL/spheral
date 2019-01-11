@@ -5,7 +5,6 @@
 //
 // Created by JMO, Tue Sep 14 22:27:08 2004
 //----------------------------------------------------------------------------//
-
 #include "VoronoiMassDensityPolicy.hh"
 #include "HydroFieldNames.hh"
 #include "DataBase/UpdatePolicyBase.hh"
@@ -15,11 +14,18 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/DBC.hh"
 
-namespace Spheral {
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using NodeSpace::NodeList;
-using FieldSpace::FieldList;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructor.

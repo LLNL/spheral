@@ -10,18 +10,10 @@
 #include "Hydro/HydroFieldNames.hh"
 
 namespace Spheral {
-namespace SPHSpace {
 
-using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
 
 template<typename Dimension>
 void
@@ -49,7 +41,7 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
   omegaGradh = 0.0;
 
   // Prepare a FieldList to hold the sum gradient.
-  FieldList<Dimension, Scalar> gradsum(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> gradsum(FieldStorageType::CopyFields);
   for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const auto& nodeList = omegaGradh[nodeListi]->nodeList();
     gradsum.appendNewField("sum of the gradient", nodeList, 0.0);
@@ -119,5 +111,3 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
 }
 
 }
-}
-

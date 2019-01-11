@@ -6,7 +6,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace MeshSpace {
 
 //------------------------------------------------------------------------------
 // Mesh::Node::Node(mesh, nodeID)
@@ -57,5 +56,4 @@ zoneIDs() const {
   return mZoneIDs;
 }
 
-}
 }

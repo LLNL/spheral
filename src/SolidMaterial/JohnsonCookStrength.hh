@@ -11,13 +11,8 @@
 #include "PolynomialFit.hh"
 
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class SolidEquationOfState;
-  }
-}
 
-namespace Spheral {
-namespace SolidMaterial {
+template<typename Dimension> class SolidEquationOfState;
 
 template<typename Dimension>
 class JohnsonCookStrength: public StrengthModel<Dimension> {
@@ -45,23 +40,23 @@ public:
 
   // Override the required generic interface.
   virtual bool providesSoundSpeed() const override { return true; }
-  virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
-                            const FieldSpace::Field<Dimension, Scalar>& density,
-                            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                            const FieldSpace::Field<Dimension, Scalar>& pressure) const override;
+  virtual void shearModulus(Field<Dimension, Scalar>& shearModulus,
+                            const Field<Dimension, Scalar>& density,
+                            const Field<Dimension, Scalar>& specificThermalEnergy,
+                            const Field<Dimension, Scalar>& pressure) const override;
 
-  virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
-                             const FieldSpace::Field<Dimension, Scalar>& density,
-                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                             const FieldSpace::Field<Dimension, Scalar>& pressure,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const override;
+  virtual void yieldStrength(Field<Dimension, Scalar>& yieldStrength,
+                             const Field<Dimension, Scalar>& density,
+                             const Field<Dimension, Scalar>& specificThermalEnergy,
+                             const Field<Dimension, Scalar>& pressure,
+                             const Field<Dimension, Scalar>& plasticStrain,
+                             const Field<Dimension, Scalar>& plasticStrainRate) const override;
 
-  virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
-                          const FieldSpace::Field<Dimension, Scalar>& density,
-                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                          const FieldSpace::Field<Dimension, Scalar>& pressure,
-                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const override;
+  virtual void soundSpeed(Field<Dimension, Scalar>& soundSpeed,
+                          const Field<Dimension, Scalar>& density,
+                          const Field<Dimension, Scalar>& specificThermalEnergy,
+                          const Field<Dimension, Scalar>& pressure,
+                          const Field<Dimension, Scalar>& fluidSoundSpeed) const override;
 
   // Access the strength parameters.
   double A() const;
@@ -90,15 +85,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class JohnsonCookStrength;
-  }
+  template<typename Dimension> class JohnsonCookStrength;
 }
 
 #endif

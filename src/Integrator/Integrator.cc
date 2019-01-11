@@ -19,25 +19,23 @@
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
-
 #include "Integrator.hh"
 
 #include <limits.h>
 #include <float.h>
 #include <algorithm>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace IntegratorSpace {
-
-using namespace std;
-
-using NodeSpace::NodeList;
-using DataBaseSpace::DataBase;
-using PhysicsSpace::Physics;
-using FileIOSpace::FileIO;
-using FieldSpace::FieldList;
-using BoundarySpace::Boundary;
-using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -53,12 +51,13 @@ Integrator<Dimension>::Integrator():
   mVerbose(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
+  mRequireOverlapConnectivity(false),
   mDataBasePtr(0),
   mPhysicsPackages(0),
   mRigorousBoundaries(false),
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -76,12 +75,13 @@ Integrator(DataBase<Dimension>& dataBase):
   mVerbose(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
+  mRequireOverlapConnectivity(false),
   mDataBasePtr(&dataBase),
   mPhysicsPackages(0),
   mRigorousBoundaries(false),
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -105,7 +105,7 @@ Integrator(DataBase<Dimension>& dataBase,
   mRigorousBoundaries(false),
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -137,6 +137,7 @@ operator=(const Integrator<Dimension>& rhs) {
     mVerbose = rhs.mVerbose;
     mRequireConnectivity = rhs.mRequireConnectivity;
     mRequireGhostConnectivity = rhs.mRequireGhostConnectivity;
+    mRequireOverlapConnectivity = rhs.mRequireOverlapConnectivity;
   }
   return *this;
 }
@@ -220,11 +221,13 @@ Integrator<Dimension>::preStepInitialize(State<Dimension>& state,
   // Check if we need to construct connectivity.
   mRequireConnectivity = false;
   mRequireGhostConnectivity = false;
+  mRequireOverlapConnectivity = false;
   for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = physicsPackagesBegin();
        physicsItr != physicsPackagesEnd();
        ++physicsItr) {
     mRequireConnectivity = (mRequireConnectivity or (*physicsItr)->requireConnectivity());
     mRequireGhostConnectivity = (mRequireGhostConnectivity or (*physicsItr)->requireGhostConnectivity());
+    mRequireOverlapConnectivity = (mRequireOverlapConnectivity or (*physicsItr)->requireOverlapConnectivity());
   }
 
   // Intialize neighbors if need be.
@@ -239,7 +242,7 @@ Integrator<Dimension>::preStepInitialize(State<Dimension>& state,
 
   // Register the now updated connectivity with the state.
   if (mRequireConnectivity) {
-    state.enrollConnectivityMap(db.connectivityMapPtr(mRequireGhostConnectivity));
+    state.enrollConnectivityMap(db.connectivityMapPtr(mRequireGhostConnectivity, mRequireOverlapConnectivity));
   }
 
   // Loop over the physics packages and perform any necessary initializations.
@@ -325,15 +328,17 @@ Integrator<Dimension>::finalizeDerivatives(const Scalar t,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Integrator<Dimension>::postStateUpdate(const DataBase<Dimension>& dataBase, 
+Integrator<Dimension>::postStateUpdate(const Scalar t,
+                                       const Scalar dt,
+                                       const DataBase<Dimension>& dataBase, 
                                        State<Dimension>& state,
-                                       const StateDerivatives<Dimension>& derivs) const {
+                                       StateDerivatives<Dimension>& derivs) const {
 
   // Loop over the physics packages.
   for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = physicsPackagesBegin();
        physicsItr != physicsPackagesEnd();
        ++physicsItr) {
-    (*physicsItr)->postStateUpdate(dataBase, state, derivs);
+    (*physicsItr)->postStateUpdate(t, dt, dataBase, state, derivs);
   }
 }
 
@@ -487,12 +492,13 @@ Integrator<Dimension>::setGhostNodes() {
   if (mRequireConnectivity) {
 
     // Update the connectivity.
-    db.updateConnectivityMap(mRequireGhostConnectivity);
+    db.updateConnectivityMap(mRequireGhostConnectivity, mRequireOverlapConnectivity);
 
     // If we're culling ghost nodes, do it now.
     if (mCullGhostNodes and 
         (not this->domainDecompositionIndependent()) and
-        (not mRequireGhostConnectivity)) {
+        (not mRequireGhostConnectivity) and
+        (not mRequireOverlapConnectivity)) {
 
       // First build the set of flags indicating which nodes are used.
       FieldList<Dimension, int> flags = db.newGlobalFieldList(int(0), "active nodes");
@@ -821,5 +827,3 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
-

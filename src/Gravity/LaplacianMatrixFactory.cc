@@ -7,7 +7,6 @@
 //----------------------------------------------------------------------------
 
 namespace Spheral {
-namespace GravitySpace {
 
 //----------------------------------------------------------------------------
 template <typename Dimension>
@@ -102,6 +101,5 @@ SPHGradSquared(const DataBase<Dimension>& db)
 } // end SPHGradSquared
 //----------------------------------------------------------------------------
 
-} // end GravitySpace
 } // end Spheral
 

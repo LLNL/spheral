@@ -8,24 +8,18 @@
 #ifndef __Spheral_CompatibleGravitationalVelocityPolicy_hh__
 #define __Spheral_CompatibleGravitationalVelocityPolicy_hh__
 
-#include <string>
-
 #include "DataBase/IncrementFieldList.hh"
+
+#include <string>
 
 namespace Spheral {
 
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace NodeSpace {
-  template<typename Dimension> class FluidNodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class FieldList;
-}
-namespace DataBaseSpace {
-  template<typename Dimension> class DataBase;
-}
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class DataBase;
 
 template<typename Dimension>
 class CompatibleGravitationalVelocityPolicy: 
@@ -38,7 +32,7 @@ public:
   typedef typename FieldListUpdatePolicyBase<Dimension, Vector>::KeyType KeyType;
 
   // Constructors, destructor.
-  CompatibleGravitationalVelocityPolicy(const DataBaseSpace::DataBase<Dimension>& db,
+  CompatibleGravitationalVelocityPolicy(const DataBase<Dimension>& db,
                                         const Scalar G,
                                         const Scalar softeningLength);
   virtual ~CompatibleGravitationalVelocityPolicy();
@@ -71,9 +65,9 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const DataBaseSpace::DataBase<Dimension>* mDataBasePtr;
+  const DataBase<Dimension>* mDataBasePtr;
   const Scalar mG, mSofteningLength;
-  FieldSpace::FieldList<Dimension, Vector> mPositions0, mVelocity0;
+  FieldList<Dimension, Vector> mPositions0, mVelocity0;
 
   CompatibleGravitationalVelocityPolicy(const CompatibleGravitationalVelocityPolicy& rhs);
   CompatibleGravitationalVelocityPolicy& operator=(const CompatibleGravitationalVelocityPolicy& rhs);

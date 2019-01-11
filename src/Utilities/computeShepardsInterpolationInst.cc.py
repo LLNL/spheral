@@ -15,8 +15,8 @@ for DT in ("Dim< %(ndim)s >::Scalar",
     text += """
 
 template
-FieldSpace::FieldList<Dim< %%(ndim)s >, %(DT)s>
-computeShepardsInterpolation(const FieldSpace::FieldList<Dim< %%(ndim)s >, %(DT)s>& fieldList,
+FieldList<Dim< %%(ndim)s >, %(DT)s>
+computeShepardsInterpolation(const FieldList<Dim< %%(ndim)s >, %(DT)s>& fieldList,
                              const ConnectivityMap<Dim< %%(ndim)s > >&, 
                              const TableKernel<Dim< %%(ndim)s > >&, 
                              const FieldList<Dim< %%(ndim)s >, Dim< %%(ndim)s >::Vector>& position,

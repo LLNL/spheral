@@ -6,18 +6,13 @@
 #ifndef OsborneEquationOfState_HH
 #define OsborneEquationOfState_HH
 
-#include <limits>
 #include "SolidEquationOfState.hh"
 
-// Forward declarations.
-namespace Spheral {
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-  }
-}
+#include <limits>
 
 namespace Spheral {
-namespace SolidMaterial {
+
+template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
 class OsborneEquationOfState: public SolidEquationOfState<Dimension> { 
@@ -46,45 +41,45 @@ public:
                          const double c2neg,
                          const double E0,
                          const double atomicWeight,
-                         const Material::PhysicalConstants& constants,
+                         const PhysicalConstants& constants,
                          const double externalPressure,
                          const double minimumPressure,
                          const double maximumPressure,
-                         const Material::MaterialPressureMinType minPressureType);
+                         const MaterialPressureMinType minPressureType);
   virtual ~OsborneEquationOfState();
 
   // We require any equation of state to define the following methods for Fields.
-  virtual void setPressure(FieldSpace::Field<Dimension, Scalar>& pressure,
-                           const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setPressure(Field<Dimension, Scalar>& pressure,
+                           const Field<Dimension, Scalar>& massDensity,
+                           const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setTemperature(FieldSpace::Field<Dimension, Scalar>& temperature,
-                              const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setTemperature(Field<Dimension, Scalar>& temperature,
+                              const Field<Dimension, Scalar>& massDensity,
+                              const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setSpecificThermalEnergy(FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                                        const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                                        const FieldSpace::Field<Dimension, Scalar>& temperature) const;
+  virtual void setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
+                                        const Field<Dimension, Scalar>& massDensity,
+                                        const Field<Dimension, Scalar>& temperature) const;
 
-  virtual void setSpecificHeat(FieldSpace::Field<Dimension, Scalar>& specificHeat,
-                               const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                               const FieldSpace::Field<Dimension, Scalar>& temperature) const;
+  virtual void setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
+                               const Field<Dimension, Scalar>& massDensity,
+                               const Field<Dimension, Scalar>& temperature) const;
 
-  virtual void setSoundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
-                             const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
+                             const Field<Dimension, Scalar>& massDensity,
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setGammaField(FieldSpace::Field<Dimension, Scalar>& gamma,
-			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
-			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setGammaField(Field<Dimension, Scalar>& gamma,
+                             const Field<Dimension, Scalar>& massDensity,
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setBulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
-                              const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
+                              const Field<Dimension, Scalar>& massDensity,
+                              const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
-  virtual void setEntropy(FieldSpace::Field<Dimension, Scalar>& entropy,
-                          const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+  virtual void setEntropy(Field<Dimension, Scalar>& entropy,
+                          const Field<Dimension, Scalar>& massDensity,
+                          const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
   // Access the member data.
   double a1() const;
@@ -102,24 +97,24 @@ public:
   double atomicWeight() const;
   double Cv() const;
 
-  void a1(const double val);
-  void a2pos(const double val);
-  void a2neg(const double val);
-  void b0(const double val);
-  void b1(const double val);
-  void b2pos(const double val);
-  void b2neg(const double val);
-  void c0(const double val);
-  void c1(const double val);
-  void c2pos(const double val);
-  void c2neg(const double val);
-  void E0(const double val);
-  void atomicWeight(const double val);
+  void a1(double val);
+  void a2pos(double val);
+  void a2neg(double val);
+  void b0(double val);
+  void b1(double val);
+  void b2pos(double val);
+  void b2neg(double val);
+  void c0(double val);
+  void c1(double val);
+  void c2pos(double val);
+  void c2neg(double val);
+  void E0(double val);
+  void atomicWeight(double val);
 
   // If requested, the user can specify an external pressure to be applied
   // in the pressure calculation.
   double externalPressure() const;
-  void externalPressure(const double P);
+  void externalPressure(double P);
 
   // Compute an individual value for DPDrho.
   double DPDrho(const double massDensity,
@@ -140,20 +135,18 @@ private:
   OsborneEquationOfState(const OsborneEquationOfState&);
   OsborneEquationOfState& operator=(const OsborneEquationOfState&);
 
-  using Material::EquationOfState<Dimension>::mConstants;
+  using EquationOfState<Dimension>::mConstants;
 };
 
-}
 }
 
 #include "OsborneEquationOfStateInline.hh"
 
 #else
+
 // Forward declaration.
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class OsborneEquationOfState;
-  }
+  template<typename Dimension> class OsborneEquationOfState;
 }
 
 #endif

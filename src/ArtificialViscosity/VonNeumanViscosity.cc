@@ -15,16 +15,18 @@
 
 #include "VonNeumanViscosity.hh"
 
-namespace Spheral {
-namespace ArtificialViscositySpace {
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
-using namespace std;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using KernelSpace::TableKernel;
-using BoundarySpace::Boundary;
-using NeighborSpace::ConnectivityMap;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
@@ -33,7 +35,7 @@ template<typename Dimension>
 VonNeumanViscosity<Dimension>::
 VonNeumanViscosity(Scalar Clinear, Scalar Cquadratic):
   ArtificialViscosity<Dimension>(Clinear, Cquadratic),
-  mViscousEnergy(FieldSpace::FieldStorageType::CopyFields) {
+  mViscousEnergy(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -55,8 +57,8 @@ initialize(const DataBase<Dimension>& dataBase,
            const StateDerivatives<Dimension>& derivs,
            typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
            typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-	   const typename Dimension::Scalar time,
-	   const typename Dimension::Scalar dt,
+           const typename Dimension::Scalar time,
+           const typename Dimension::Scalar dt,
            const TableKernel<Dimension>& W) {
 
   typedef typename ArtificialViscosity<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
@@ -89,30 +91,30 @@ initialize(const DataBase<Dimension>& dataBase,
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> vol = mass/massDensity;
 
-  const CRKSPHSpace::CRKOrder correctionOrder = this->QcorrectionOrder();
+  const CRKOrder correctionOrder = this->QcorrectionOrder();
 
   // We'll compute the higher-accuracy RK gradient.
   FieldList<Dimension, Scalar> m0 = dataBase.newFluidFieldList(0.0, HydroFieldNames::m0_CRKSPH);
   FieldList<Dimension, Vector> m1 = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::m1_CRKSPH);
   FieldList<Dimension, SymTensor> m2 = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::m2_CRKSPH);
-  FieldList<Dimension, ThirdRankTensor> m3(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, FourthRankTensor> m4(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, ThirdRankTensor> m3(FieldStorageType::CopyFields);
+  FieldList<Dimension, FourthRankTensor> m4(FieldStorageType::CopyFields);
   FieldList<Dimension, Vector> gradm0 = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradM0_CRKSPH);
   FieldList<Dimension, Tensor> gradm1 = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::gradM1_CRKSPH);
   FieldList<Dimension, ThirdRankTensor> gradm2 = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradM2_CRKSPH);
-  FieldList<Dimension, FourthRankTensor> gradm3(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, FifthRankTensor> gradm4(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, FourthRankTensor> gradm3(FieldStorageType::CopyFields);
+  FieldList<Dimension, FifthRankTensor> gradm4(FieldStorageType::CopyFields);
   FieldList<Dimension, Scalar> A = dataBase.newFluidFieldList(0.0, "Q A");
   FieldList<Dimension, Vector> B;
   FieldList<Dimension, Tensor> C;
   FieldList<Dimension, Vector> gradA = dataBase.newFluidFieldList(Vector::zero, "Q grad A");
   FieldList<Dimension, Tensor> gradB;
   FieldList<Dimension, ThirdRankTensor> gradC;
-  if (correctionOrder == CRKSPHSpace::CRKOrder::LinearOrder or correctionOrder == CRKSPHSpace::CRKOrder::QuadraticOrder) {
+  if (correctionOrder == CRKOrder::LinearOrder or correctionOrder == CRKOrder::QuadraticOrder) {
     B = dataBase.newFluidFieldList(Vector::zero, "Q B");
     gradB = dataBase.newFluidFieldList(Tensor::zero, "Q grad B");
   }
-  if (correctionOrder == CRKSPHSpace::CRKOrder::QuadraticOrder) {
+  if (correctionOrder == CRKOrder::QuadraticOrder) {
     m3 = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::m3_CRKSPH);
     m4 = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::m4_CRKSPH);
     gradm3 = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::gradM3_CRKSPH);
@@ -124,20 +126,20 @@ initialize(const DataBase<Dimension>& dataBase,
                        m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
   computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H,
                            correctionOrder, A, B, C, gradA, gradB, gradC);
-  const FieldList<Dimension, Tensor> velocityGradient = CRKSPHSpace::gradientCRKSPH(velocity,
-                                                                                    position,
-                                                                                    vol,
-                                                                                    H,
-                                                                                    A,
-                                                                                    B,
-                                                                                    C,
-                                                                                    gradA,
-                                                                                    gradB,
-                                                                                    gradC,
-                                                                                    connectivityMap,
-										    correctionOrder,
-                                                                                    W,
-                                                                                    NodeCoupling());
+  const FieldList<Dimension, Tensor> velocityGradient = gradientCRKSPH(velocity,
+                                                                       position,
+                                                                       vol,
+                                                                       H,
+                                                                       A,
+                                                                       B,
+                                                                       C,
+                                                                       gradA,
+                                                                       gradB,
+                                                                       gradC,
+                                                                       connectivityMap,
+                                                                       correctionOrder,
+                                                                       W,
+                                                                       NodeCoupling());
 
   // Set the viscous energy for each fluid node.
   const Scalar Cl = this->Cl();
@@ -226,5 +228,5 @@ restoreState(const FileIO& file, const string& pathName) {
   // Dump the viscous energy.
   file.read(mViscousEnergy, pathName + "/viscousEnergy");
 }  
-}
+
 }

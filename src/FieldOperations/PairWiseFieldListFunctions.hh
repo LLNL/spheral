@@ -8,37 +8,32 @@
 
 namespace Spheral {
 
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
+template<typename Dimension> class TableKernel;
 
-  namespace FieldSpace {
+template<typename Dimension, typename DataType> class FieldList;
 
-    template<typename Dimension, typename DataType> class FieldList;
+// Calculate the gradient of the given FieldList.
+template<typename Dimension, typename DataType>
+FieldList<Dimension, typename MathTraits<Dimension, DataType>::GradientType>
+gradientPairWise
+(const FieldList<Dimension, DataType>& fieldList,
+ const FieldList<Dimension, typename Dimension::Vector>& position,
+ const FieldList<Dimension, typename Dimension::Scalar>& weight,
+ const FieldList<Dimension, typename Dimension::Scalar>& mass,
+ const FieldList<Dimension, typename Dimension::Scalar>& rho,
+ const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
+ const TableKernel<Dimension>& kernel);
 
-    // Calculate the gradient of the given FieldList.
-    template<typename Dimension, typename DataType>
-    FieldList<Dimension, typename MathTraits<Dimension, DataType>::GradientType>
-    gradientPairWise
-    (const FieldList<Dimension, DataType>& fieldList,
-     const FieldList<Dimension, typename Dimension::Vector>& position,
-     const FieldList<Dimension, typename Dimension::Scalar>& weight,
-     const FieldList<Dimension, typename Dimension::Scalar>& mass,
-     const FieldList<Dimension, typename Dimension::Scalar>& rho,
-     const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
-     const KernelSpace::TableKernel<Dimension>& kernel);
+// Calculate the divergence of the given FieldList.
+template<typename Dimension, typename DataType>
+FieldList<Dimension, typename MathTraits<Dimension, DataType>::DivergenceType>
+divergencePairWise
+(const FieldList<Dimension, DataType>& fieldList,
+ const FieldList<Dimension, typename Dimension::Vector>& position,
+ const FieldList<Dimension, typename Dimension::Scalar>& weight,
+ const FieldList<Dimension, typename Dimension::Scalar>& mass,
+ const FieldList<Dimension, typename Dimension::Scalar>& rho,
+ const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
+ const TableKernel<Dimension>& kernel);
 
-    // Calculate the divergence of the given FieldList.
-    template<typename Dimension, typename DataType>
-    FieldList<Dimension, typename MathTraits<Dimension, DataType>::DivergenceType>
-    divergencePairWise
-    (const FieldList<Dimension, DataType>& fieldList,
-     const FieldList<Dimension, typename Dimension::Vector>& position,
-     const FieldList<Dimension, typename Dimension::Scalar>& weight,
-     const FieldList<Dimension, typename Dimension::Scalar>& mass,
-     const FieldList<Dimension, typename Dimension::Scalar>& rho,
-     const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
-     const KernelSpace::TableKernel<Dimension>& kernel);
-
-  }
 }

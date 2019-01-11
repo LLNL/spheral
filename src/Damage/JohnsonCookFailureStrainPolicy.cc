@@ -4,9 +4,6 @@
 //
 // Created by JMO, Thu Jul 12 13:40:45 PDT 2018
 //----------------------------------------------------------------------------//
-
-#include <vector>
-
 #include "JohnsonCookFailureStrainPolicy.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "Strength/SolidFieldNames.hh"
@@ -17,20 +14,27 @@
 #include "Field/Field.hh"
 #include "Utilities/DBC.hh"
 
+#include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
-
-using namespace std;
-
-using FieldSpace::Field;
-using NodeSpace::NodeList;
 
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 JohnsonCookFailureStrainPolicy<Dimension>::
-JohnsonCookFailureStrainPolicy(const FieldSpace::Field<Dimension, Scalar>& D1,
-                               const FieldSpace::Field<Dimension, Scalar>& D2,
+JohnsonCookFailureStrainPolicy(const Field<Dimension, Scalar>& D1,
+                               const Field<Dimension, Scalar>& D2,
                                const double D3,
                                const double D4,
                                const double D5,

@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace SolidMaterial {
 
 //------------------------------------------------------------------------------
 // Constructor
@@ -95,5 +94,4 @@ operator()(const double x) const {
           mC9*x*x*x*x*x*x*x*x*x);
 }
 
-}
 }

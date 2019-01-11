@@ -21,14 +21,12 @@ class ArtificialViscosity:
         mod.add_include('"%s/ArtificialViscosityTypes.hh"' % srcdir)
     
         # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("ArtificialViscositySpace")
-        physics = Spheral.add_cpp_namespace("PhysicsSpace")
+        space = mod.add_cpp_namespace("Spheral")
         
         # Expose types.
         for dim in self.dims:
             exec('''
-Physics%(dim)id = findObject(physics,"Physics%(dim)id")
+Physics%(dim)id = findObject(space,"Physics%(dim)id")
 self.ArtificialViscosity%(dim)id = addObject(space, "ArtificialViscosity%(dim)id", allow_subclassing=True)
 self.MonaghanGingoldViscosity%(dim)id = addObject(space, "MonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.CRKSPHMonaghanGingoldViscosity%(dim)id = addObject(space, "CRKSPHMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.MonaghanGingoldViscosity%(dim)id)
@@ -77,37 +75,37 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
     # The new sub modules (namespaces) introduced.
     #---------------------------------------------------------------------------
     def newSubModules(self):
-        return ["ArtificialViscositySpace"]
+        return []
 
     #---------------------------------------------------------------------------
     # Add methods to the ArtificialViscosity.
     #---------------------------------------------------------------------------
     def addArtificialViscosityMethods(self, x, ndim):
 
-        me = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
+        me = "Spheral::ArtificialViscosity%id" % ndim
 
         # External objects.
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
+        database = "Spheral::DataBase%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
+        fileio = "Spheral::FileIO"
 
         # Constructors.
         x.add_constructor([param("double", "Clinear", default_value="1.0"),
                            param("double", "Cquadratic", default_value="1.0"),
-                           param("CRKOrder", "QcorrectionOrder", default_value="Spheral::CRKSPHSpace::CRKOrder::LinearOrder")])
+                           param("CRKOrder", "QcorrectionOrder", default_value="Spheral::CRKOrder::LinearOrder")])
 
         # Attributes.
         x.add_instance_attribute("Cl", "double", getter="Cl", setter="Cl")
@@ -240,9 +238,9 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
     #---------------------------------------------------------------------------
     def addMorrisMonaghanReducingViscosityMethods(self, x, ndim):
         
-        me = "Spheral::ArtificialViscositySpace::MorrisMonaghanReducingViscosity%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
+        me = "Spheral::MorrisMonaghanReducingViscosity%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscosity%id" % ndim
         
         # Constructors.
         x.add_constructor([refparam(artificialviscosity,"q"),
@@ -271,11 +269,11 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
     #---------------------------------------------------------------------------
     def addCullenDehnenViscosityMethods(self, x, ndim):
 
-        me = "Spheral::ArtificialViscositySpace::CullenDehnenViscosity%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
-        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
+        me = "Spheral::CullenDehnenViscosity%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscosity%id" % ndim
+        tablekernel = "Spheral::TableKernel%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
 
         # Constructors.
         x.add_constructor([refparam(artificialviscosity,"q"),
@@ -331,8 +329,8 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
     #---------------------------------------------------------------------------
     def addFiniteVolumeViscosityMethods(self, x, ndim):
 
-        me = "Spheral::ArtificialViscositySpace::FiniteVolumeViscosity%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
+        me = "Spheral::FiniteVolumeViscosity%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
 
         # Constructors.
         x.add_constructor([param("double", "Clinear", default_value="1.0"),
@@ -353,7 +351,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
     #---------------------------------------------------------------------------
     def addTensorSVPHViscosityMethods(self, x, ndim):
 
-        me = "Spheral::ArtificialViscositySpace::TensorSVPHViscosity%id" % ndim
+        me = "Spheral::TensorSVPHViscosity%id" % ndim
         vector_of_tensor = "vector_of_Tensor%id" % ndim
 
         # Constructors.
@@ -377,7 +375,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
     #---------------------------------------------------------------------------
     def addTensorCRKSPHViscosityMethods(self, x, ndim):
 
-        me = "Spheral::ArtificialViscositySpace::TensorCRKSPHViscosity%id" % ndim
+        me = "Spheral::TensorCRKSPHViscosity%id" % ndim
 
         # Constructors.
         x.add_constructor([param("double", "Clinear", default_value="1.0"),
@@ -393,8 +391,8 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
     #---------------------------------------------------------------------------
     def addVonNeumanViscosityMethods(self, x, ndim):
 
-        me = "Spheral::ArtificialViscositySpace::VonNeumanViscosity%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
+        me = "Spheral::VonNeumanViscosity%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
 
         # Constructors.
         x.add_constructor([param("double", "Clinear", default_value="1.0"),
@@ -417,19 +415,19 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
+        scalarfield = "Spheral::ScalarField%id" % ndim
+        vectorfield = "Spheral::VectorField%id" % ndim
+        tensorfield = "Spheral::TensorField%id" % ndim
+        symtensorfield = "Spheral::SymTensorField%id" % ndim
+        scalarfieldlist = "Spheral::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::VectorFieldList%id" % ndim
+        tensorfieldlist = "Spheral::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::SymTensorFieldList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
-        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
-        fileio = "Spheral::FileIOSpace::FileIO"
+        database = "Spheral::DataBase%id" % ndim
+        connectivitymap = "Spheral::ConnectivityMap%id" % ndim
+        fileio = "Spheral::FileIO"
         pair_tensor_tensor = "pair_Tensor%id_Tensor%id" % (ndim, ndim)
 
         # Abstract Q interface.

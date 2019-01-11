@@ -13,7 +13,6 @@
 #include <vector>
 
 namespace Spheral {
-namespace KernelSpace {
 
 template<typename Dimension>
 class TableKernel: public Kernel<Dimension, TableKernel<Dimension> > {
@@ -139,19 +138,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "TableKernelInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
+  template<typename Dimension> class TableKernel;
 }
 
 #endif

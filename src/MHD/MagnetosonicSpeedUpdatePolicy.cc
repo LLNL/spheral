@@ -10,14 +10,7 @@
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
 
-
 namespace Spheral {
-
-namespace MHDSpace {
-
-using Spheral::FieldSpace::Field;
-using Spheral::FieldSpace::FieldList;
-using Spheral::NodeSpace::FluidNodeList;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -77,7 +70,7 @@ update(const KeyType& key,
    const FluidNodeList<Dim<3> >* fluidNodeListPtr = 
       (const FluidNodeList<Dim<3> >*) key.first;
    CHECK(fluidNodeListPtr != 0);
-   const Material::EquationOfState<Dim<3> >& eos = fluidNodeListPtr->equationOfState();
+   const EquationOfState<Dim<3> >& eos = fluidNodeListPtr->equationOfState();
 
    // Now set the sound speed.
    eos.setSoundSpeed(soundSpeed, massDensity, energy);
@@ -124,6 +117,3 @@ operator==(const Spheral::UpdatePolicyBase<Dim<3>, Field<Dim<3>, Dim<3>::Scalar>
 //----------------------------------------------------------------------------
 
 }
-}
-
-

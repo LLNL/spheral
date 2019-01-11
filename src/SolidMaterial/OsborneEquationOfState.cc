@@ -8,14 +8,10 @@
 #include "Field/Field.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
 
-using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Construct with the given Osborne constants.
@@ -38,11 +34,11 @@ OsborneEquationOfState(const double referenceDensity,
                        const double c2neg,
                        const double E0,
                        const double atomicWeight,
-                       const Material::PhysicalConstants& constants,
+                       const PhysicalConstants& constants,
                        const double externalPressure,
                        const double minimumPressure,
                        const double maximumPressure,
-                       const Material::MaterialPressureMinType minPressureType):
+                       const MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
                                   etamax,
@@ -249,5 +245,3 @@ OsborneEquationOfState<Dimension>::valid() const {
 }
 
 }
-}
-

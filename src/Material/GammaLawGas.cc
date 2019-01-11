@@ -3,16 +3,20 @@
 //
 // Created by JMO, Mon Dec  6 21:36:45 PST 1999
 //----------------------------------------------------------------------------//
-#include <cmath>
-
 #include "GammaLawGas.hh"
 #include "PhysicalConstants.hh"
 #include "Field/Field.hh"
 
-namespace Spheral {
-namespace Material {
+#include <cmath>
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+using std::pow;
 
-using FieldSpace::Field;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Construct with the given gamma and mu.
@@ -298,6 +302,5 @@ GammaLawGas<Dimension>::valid() const {
           mMolecularWeight > 0.0 &&
           mGamma1 == mGamma - 1.0);
 }
-}
-}
 
+}

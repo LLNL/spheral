@@ -43,24 +43,18 @@
 #include <fstream>
 #include <map>
 #include <vector>
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
 
 namespace Spheral {
-namespace SPHSpace {
-
-using namespace std;
-using SPHSpace::SPHHydroBase;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NodeSpace::SolidNodeList;
-using SolidMaterial::SolidEquationOfState;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // Compute the artificial tensile stress correction tensor for the given 
@@ -96,8 +90,8 @@ SolidSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                     const bool XSPH,
                     const bool correctVelocityGradient,
                     const bool sumMassDensityOverAllNodeLists,
-                    const PhysicsSpace::MassDensityType densityUpdate,
-                    const PhysicsSpace::HEvolutionType HUpdate,
+                    const MassDensityType densityUpdate,
+                    const HEvolutionType HUpdate,
                     const double epsTensile,
                     const double nTensile,
                     const bool damageRelieveRubble,
@@ -124,8 +118,8 @@ SolidSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                              damageRelieveRubble,
                              xmin,
                              xmax),
-  mDeviatoricStressTT(FieldSpace::FieldStorageType::CopyFields),
-  mDdeviatoricStressTTDt(FieldSpace::FieldStorageType::CopyFields) {
+  mDeviatoricStressTT(FieldStorageType::CopyFields),
+  mDdeviatoricStressTTDt(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -225,8 +219,8 @@ finalize(const Dim<2>::Scalar time,
 
   // If we're going to do the SPH summation density, we need to convert the mass
   // to mass per unit length first.
-  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
+  if (densityUpdate() == MassDensityType::RigorousSumDensity or
+      densityUpdate() == MassDensityType::CorrectedSumDensity) {
     FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
     const unsigned numNodeLists = mass.numFields();
@@ -244,8 +238,8 @@ finalize(const Dim<2>::Scalar time,
 
   // Now convert back to true masses and mass densities.  We also apply the RZ
   // correction factor to the mass density.
-  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
+  if (densityUpdate() == MassDensityType::RigorousSumDensity or
+      densityUpdate() == MassDensityType::CorrectedSumDensity) {
     const TableKernel<Dimension>& W = this->kernel();
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
@@ -383,7 +377,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mDdeviatoricStressTTDt, pathName + "/DdeviatoricStressTTDt");
 }
 
-}
 }
 
 // Include the appropriate evaluateDerivatvies.

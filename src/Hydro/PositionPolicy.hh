@@ -11,21 +11,17 @@
 #ifndef __Spheral_PositionPolicy_hh__
 #define __Spheral_PositionPolicy_hh__
 
-#include <string>
-
 #include "DataBase/IncrementFieldList.hh"
+
+#include <string>
 
 namespace Spheral {
 
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace NodeSpace {
-  template<typename Dimension> class FluidNodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class FieldList;
-}
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension>
 class PositionPolicy: 

@@ -11,15 +11,10 @@
 
 #include <limits>
 
-// Forward declarations.
 namespace Spheral {
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-  }
-}
 
-namespace Spheral {
-namespace Material {
+// Forward declarations.
+template<typename Dimension, typename DataType> class Field;
 
 enum class MaterialPressureMinType {
   PressureFloor = 0,
@@ -45,37 +40,37 @@ public:
   virtual ~EquationOfState();
 
   // We require any equation of state to define the following methods for Fields.
-  virtual void setPressure(FieldSpace::Field<Dimension, Scalar>& Pressure,
-                           const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
+  virtual void setPressure(Field<Dimension, Scalar>& Pressure,
+                           const Field<Dimension, Scalar>& massDensity,
+                           const Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
 
-  virtual void setTemperature(FieldSpace::Field<Dimension, Scalar>& temperature,
-                              const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
+  virtual void setTemperature(Field<Dimension, Scalar>& temperature,
+                              const Field<Dimension, Scalar>& massDensity,
+                              const Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
 
-  virtual void setSpecificThermalEnergy(FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                                        const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                                        const FieldSpace::Field<Dimension, Scalar>& temperature) const = 0;
+  virtual void setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
+                                        const Field<Dimension, Scalar>& massDensity,
+                                        const Field<Dimension, Scalar>& temperature) const = 0;
 
-  virtual void setSpecificHeat(FieldSpace::Field<Dimension, Scalar>& specificHeat,
-                               const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                               const FieldSpace::Field<Dimension, Scalar>& temperature) const = 0;
+  virtual void setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
+                               const Field<Dimension, Scalar>& massDensity,
+                               const Field<Dimension, Scalar>& temperature) const = 0;
 
-  virtual void setSoundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
-                             const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
+  virtual void setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
+                             const Field<Dimension, Scalar>& massDensity,
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
 
-  virtual void setGammaField(FieldSpace::Field<Dimension, Scalar>& gamma,
-			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
-			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
+  virtual void setGammaField(Field<Dimension, Scalar>& gamma,
+                             const Field<Dimension, Scalar>& massDensity,
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
 
-  virtual void setBulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
-			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
-			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
+  virtual void setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
+                             const Field<Dimension, Scalar>& massDensity,
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
 
-  virtual void setEntropy(FieldSpace::Field<Dimension, Scalar>& entropy,
-                          const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
+  virtual void setEntropy(Field<Dimension, Scalar>& entropy,
+                          const Field<Dimension, Scalar>& massDensity,
+                          const Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
 
   // Look up an energy that gives the requested pressure at the specified density.
   virtual Scalar specificThermalEnergyForPressure(const Scalar Ptarget,
@@ -92,12 +87,12 @@ public:
   // The min and max allowed pressures.
   double minimumPressure() const;
   double maximumPressure() const;
-  void minimumPressure(const double x);
-  void maximumPressure(const double x);
+  void minimumPressure(double x);
+  void maximumPressure(double x);
   
   // The algorithm for applying the minimum pressure.
   MaterialPressureMinType minimumPressureType() const;
-  void minimumPressureType(const MaterialPressureMinType x);
+  void minimumPressureType(MaterialPressureMinType x);
 
   // Equations of state should have a valid test.
   virtual bool valid() const = 0;
@@ -117,19 +112,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "EquationOfStateInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace Material {
-    template<typename Dimension> class EquationOfState;
-  }
+  template<typename Dimension> class EquationOfState;
 }
 
 #endif

@@ -6,19 +6,15 @@
 #ifndef HDF5IO_HH
 #define HDF5IO_HH
 
+#include "FileIO.hh"
+#include "H5Cpp.h"
+
 #include <string>
 #include <map>
-using namespace std;
-
-#include "H5Cpp.h"
-using namespace H5;
-
-#include "FileIO.hh"
 
 template<typename Dimension, typename DataType> class Field;
 
 namespace Spheral {
-namespace FileIO {
 
 template<typename Dimension>
 class HDF5IO: public FileIO<Dimension> {
@@ -140,15 +136,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-namespace FileIO {
-template<typename Dimension> class HDF5IO;
-}
+  template<typename Dimension> class HDF5IO;
 }
 
 #endif

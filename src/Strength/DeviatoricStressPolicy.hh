@@ -9,9 +9,9 @@
 #ifndef __Spheral_DeviatoricStress_hh__
 #define __Spheral_DeviatoricStress_hh__
 
-#include <string>
-
 #include "DataBase/IncrementFieldList.hh"
+
+#include <string>
 
 namespace Spheral {
 

@@ -127,9 +127,9 @@ class TestDistributedBoundary1d:
                     Hi = mpi.bcast(Hilocal, testProc)
 
                     # Get the global answer set for this node.
-                    answer = mpi.allreduce([self.globalIDField1[j] for j in findNeighborNodes(ri, self.kernelExtent, self.nodes1)] +
-                                           [self.globalIDField2[j] for j in findNeighborNodes(ri, self.kernelExtent, self.nodes2)] +
-                                           [self.globalIDField3[j] for j in findNeighborNodes(ri, self.kernelExtent, self.nodes3)],
+                    answer = mpi.allreduce([self.globalIDField1[j] for j in findNeighborNodes(ri, Hi, self.kernelExtent, self.nodes1)] +
+                                           [self.globalIDField2[j] for j in findNeighborNodes(ri, Hi, self.kernelExtent, self.nodes2)] +
+                                           [self.globalIDField3[j] for j in findNeighborNodes(ri, Hi, self.kernelExtent, self.nodes3)],
                                            mpi.SUM)
 
                     # Have the testing processor build it's own version.
@@ -152,10 +152,10 @@ class TestDistributedBoundary1d:
                             sys.stderr.write("FAILED for node %i\n" % i)
                             refine.sort()
                             answer.sort()
-                            sys.stderr.write("refine: %s\n" % str(refine))
-                            sys.stderr.write("answer: %s\n" % str(answer))
-                            sys.stderr.write("%s\n" % str([x for x in refine if x not in answer]))
-                            sys.stderr.write("%s\n" % str([x for x in answer if x not in refine]))
+                            sys.stderr.write(" refine: %s\n" % str(refine))
+                            sys.stderr.write(" answer: %s\n" % str(answer))
+                            sys.stderr.write("  extra: %s\n" % str([x for x in refine if x not in answer]))
+                            sys.stderr.write("missing: %s\n" % str([x for x in answer if x not in refine]))
                         else:
                             sys.stderr.write("PASSED for node %i\n" % i)
                         assert test

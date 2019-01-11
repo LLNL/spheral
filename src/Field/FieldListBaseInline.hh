@@ -1,7 +1,6 @@
 #include "FieldBase.hh"
 
 namespace Spheral {
-namespace FieldSpace {
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -71,5 +70,4 @@ unregisterFromField(const FieldBase<Dimension>& fieldBase) const {
   fieldBase.unregisterFieldList(*this);
 }
 
-}
 }

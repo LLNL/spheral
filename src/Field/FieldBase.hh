@@ -11,15 +11,9 @@
 #include <memory>
 
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-}
 
-namespace Spheral {
-namespace FieldSpace {
-
-// Forward declare the FieldListBase for the registration.
+// Forward declarations
+template<typename Dimension> class NodeList;
 template<typename Dimension> class FieldListBase;
 
 template<typename Dimension>
@@ -33,7 +27,7 @@ public:
   // Constructors.
   FieldBase(FieldName name);
   FieldBase(FieldName name,
-            const Spheral::NodeSpace::NodeList<Dimension>& nodeList);
+            const NodeList<Dimension>& nodeList);
   FieldBase(const FieldBase& fieldBase);
   virtual std::shared_ptr<FieldBase> clone() const = 0;
 
@@ -48,17 +42,17 @@ public:
 
   // Access the name.
   FieldName name() const;
-  void name(const FieldName& name);
+  void name(FieldName name);
 
   // Provide methods to access and set the NodeList.
-  const NodeSpace::NodeList<Dimension>& nodeList() const;
-  const NodeSpace::NodeList<Dimension>* nodeListPtr() const;
+  const NodeList<Dimension>& nodeList() const;
+  const NodeList<Dimension>* nodeListPtr() const;
   void unregisterNodeList();
 
   // Methods every field must provide.
   virtual unsigned size() const = 0;
   virtual void Zero() = 0;
-  virtual void setNodeList(const NodeSpace::NodeList<Dimension>& nodeList) = 0;
+  virtual void setNodeList(const NodeList<Dimension>& nodeList) = 0;
   virtual void resizeField(unsigned size) = 0;
   virtual void resizeFieldInternal(unsigned size, unsigned oldFirstGhostNode) = 0;
   virtual void resizeFieldGhost(unsigned size) = 0;
@@ -75,7 +69,7 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
-  void setFieldBaseNodeList(const NodeSpace::NodeList<Dimension>& nodeListPtr);
+  void setFieldBaseNodeList(const NodeList<Dimension>& nodeListPtr);
 
   // Make the FieldListBase a friend, so that it can use the registration
   // methods.
@@ -87,7 +81,7 @@ protected:
 private:
   //--------------------------- Private Interface ---------------------------//
   FieldName mName;
-  const NodeSpace::NodeList<Dimension>* mNodeListPtr;
+  const NodeList<Dimension>* mNodeListPtr;
 
   // The set of FieldLists currently referencing this Field.
   mutable std::vector<const FieldListBase<Dimension>*> mFieldListBaseList;
@@ -95,7 +89,7 @@ private:
   // Disallow the default constructor.
   FieldBase();
 };
-}
+
 }
 
 #include "FieldBaseInline.hh"
@@ -104,9 +98,7 @@ private:
 
 // Forward declare the FieldBase class.
 namespace Spheral {
-  namespace FieldSpace {
-    template<typename Dimension> class FieldBase;
-  }
+  template<typename Dimension> class FieldBase;
 }
 
 #endif

@@ -2,19 +2,12 @@
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
 
-namespace Spheral {
-namespace CRKSPHSpace {
-
-using namespace std;
+using std::vector;
 using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Function to compute the per dimension volume multiplier.
@@ -123,5 +116,3 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
 }
 
 }
-}
-

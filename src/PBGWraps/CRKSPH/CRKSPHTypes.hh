@@ -26,7 +26,6 @@
 #include "SPH/NodeCoupling.hh"
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 //------------------------------------------------------------------------------
 // Names!
@@ -51,7 +50,7 @@ void
 CRKSPHKernelAndGradient1d(Dim<1>::Scalar* WCRKSPH,
                           Dim<1>::Scalar* gradWSPH,
                           Dim<1>::Vector& gradWCRKSPH,
-                          const KernelSpace::TableKernel<Dim<1> >& W,
+                          const TableKernel<Dim<1> >& W,
                           const CRKOrder correctionOrder,
                           const Dim<1>::Vector& rij,
                           const Dim<1>::Vector& etai,
@@ -76,7 +75,7 @@ void
 CRKSPHKernelAndGradient2d(Dim<2>::Scalar* WCRKSPH,
                           Dim<2>::Scalar* gradWSPH,
                           Dim<2>::Vector& gradWCRKSPH,
-                          const KernelSpace::TableKernel<Dim<2> >& W,
+                          const TableKernel<Dim<2> >& W,
                           const CRKOrder correctionOrder,
                           const Dim<2>::Vector& rij,
                           const Dim<2>::Vector& etai,
@@ -101,7 +100,7 @@ void
 CRKSPHKernelAndGradient3d(Dim<3>::Scalar* WCRKSPH,
                           Dim<3>::Scalar* gradWSPH,
                           Dim<3>::Vector& gradWCRKSPH,
-                          const KernelSpace::TableKernel<Dim<3> >& W,
+                          const TableKernel<Dim<3> >& W,
                           const CRKOrder correctionOrder,
                           const Dim<3>::Vector& rij,
                           const Dim<3>::Vector& etai,
@@ -127,20 +126,18 @@ CRKSPHKernelAndGradient3d(Dim<3>::Scalar* WCRKSPH,
 // template<typename Dimension>
 // inline
 // void
-// computeCRKSPHSumMassDensity(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-//                             const KernelSpace::TableKernel<Dimension>& W,
-//                             const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-//                             const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
-//                             const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-//                             const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
-//                             FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
+// computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
+//                             const TableKernel<Dimension>& W,
+//                             const FieldList<Dimension, typename Dimension::Vector>& position,
+//                             const FieldList<Dimension, typename Dimension::Scalar>& mass,
+//                             const FieldList<Dimension, typename Dimension::SymTensor>& H,
+//                             const std::vector<Boundary<Dimension>*>& boundaries,
+//                             FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
 //   computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, H, 
 //                             boundaries.begin(), boundaries.end(),
 //                             massDensity);
 // }
 
-
-}
 }
 
 #endif

@@ -12,6 +12,7 @@
 #include <vector>
 #include <map>
 #include <iterator>
+#include <string>
 #include "DataTypeTraits.hh"
 
 #ifdef USE_MPI
@@ -20,12 +21,8 @@
 #endif
 
 namespace Spheral {
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-  }
-}
 
-namespace Spheral {
+template<typename Dimension, typename DataType> class Field;
 
 //------------------------------------------------------------------------------
 // A standalone method to pack a given DataType into a vector
@@ -163,6 +160,17 @@ packElement<double>(const double& value,
   for (int i = 0; i != packSize; ++i) {
     buffer.push_back(*(data + i));
   }
+}
+
+// Specialization for a std::string.
+template<>
+inline
+void
+packElement<std::string>(const std::string& value, 
+                         std::vector<char>& buffer) {
+  const size_t size = value.size();
+  packElement(size, buffer);
+  buffer.insert(buffer.end(), value.begin(), value.begin() + size);
 }
 
 // Specialization for a std::pair of known types.
@@ -359,7 +367,22 @@ unpackElement<double>(double& value,
   ENSURE(itr <= endPackedVector);
 }
 
-// std::pari<T1,T2>
+// Specialization for a std::string
+template<>
+inline
+void
+unpackElement<std::string>(std::string& value,
+                           std::vector<char>::const_iterator& itr,
+                           const std::vector<char>::const_iterator& endPackedVector) {
+  size_t size;
+  unpackElement(size, itr, endPackedVector);
+  CHECK(itr + size <= endPackedVector);
+  std::string result(itr, itr + size);
+  value = result;
+  itr += size;
+}
+
+// std::pair<T1,T2>
 template<typename T1, typename T2>
 inline
 void
@@ -403,6 +426,7 @@ unpackElement(std::vector<DataType>& value,
 
   // Now iterate over the number of elements we will unpack, and push them onto
   // the value.
+  value.clear();
   for (int i = 0; i != size; ++i) {
     DataType element;
     unpackElement(element, itr, endPackedVector);
@@ -418,7 +442,7 @@ unpackElement(std::vector<DataType>& value,
 template<typename Dimension, typename DataType>
 inline
 int
-computeBufferSize(const FieldSpace::Field<Dimension, DataType>& field,
+computeBufferSize(const Field<Dimension, DataType>& field,
                   const std::vector<int>& packIndicies,
                   const int sendProc,
                   const int recvProc) {
@@ -431,7 +455,7 @@ computeBufferSize(const FieldSpace::Field<Dimension, DataType>& field,
 template<typename Dimension, typename DataType>
 inline
 int
-computeBufferSize(const FieldSpace::Field<Dimension, std::vector<DataType> >& field,
+computeBufferSize(const Field<Dimension, std::vector<DataType> >& field,
                   const std::vector<int>& packIndicies,
                   const int sendProc,
                   const int recvProc) {
@@ -476,7 +500,7 @@ computeBufferSize(const FieldSpace::Field<Dimension, std::vector<DataType> >& fi
 template<typename Dimension, typename DataType>
 inline
 std::vector<char>
-packFieldValues(const FieldSpace::Field<Dimension, DataType>& field,
+packFieldValues(const Field<Dimension, DataType>& field,
                 const std::vector<int>& packIndicies) {
 
   // Prepare the return vector.
@@ -501,7 +525,7 @@ packFieldValues(const FieldSpace::Field<Dimension, DataType>& field,
 template<typename Dimension, typename DataType>
 inline
 void
-unpackFieldValues(FieldSpace::Field<Dimension, DataType>& field,
+unpackFieldValues(Field<Dimension, DataType>& field,
                   const std::vector<int>& packIndicies,
                   const std::vector<char>& packedValues) {
 

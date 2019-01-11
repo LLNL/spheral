@@ -1,22 +1,18 @@
 #ifndef MHD_SpitzerResistivityUpdatePolicy_HH
 #define MHD_SpitzerResistivityUpdatePolicy_HH
 
-#include <string>
 #include "DataBase/UpdatePolicyBase.hh"
 #include "Field/Field.hh"
 #include "Geometry/Dimension.hh"
 
+#include <string>
 
 namespace Spheral {
 
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace FieldSpace {
-   template<typename Dimension, typename DataType> class Field;
-}
-
-namespace MHDSpace {
+template<typename Dimension, typename DataType> class Field;
 
 //! \class SpitzerResistivityUpdatePolicy
 //! The classical Spitzer model for the resistivity of a plasma is 
@@ -36,7 +32,7 @@ namespace MHDSpace {
 //! a minimum threshhold, rhoMin.
 //! So this model has two parameters: C, Rmax, and rhoMin.
 class SpitzerResistivityUpdatePolicy:
-   public Spheral::UpdatePolicyBase<Dim<3>, FieldSpace::Field<Dim<3>, Dim<3>::Scalar> >
+   public Spheral::UpdatePolicyBase<Dim<3>, Field<Dim<3>, Dim<3>::Scalar> >
 {
    public:
 
@@ -70,7 +66,7 @@ class SpitzerResistivityUpdatePolicy:
    double rhoMin() const { return mRhoMin; }
 
    //! Equivalence.
-   virtual bool operator==(const Spheral::UpdatePolicyBase<Dim<3>, FieldSpace::Field<Dim<3>, Dim<3>::Scalar> >& rhs) const;
+   virtual bool operator==(const Spheral::UpdatePolicyBase<Dim<3>, Field<Dim<3>, Dim<3>::Scalar> >& rhs) const;
 
    private:
 
@@ -89,9 +85,7 @@ class SpitzerResistivityUpdatePolicy:
 
 // Forward declaration.
 namespace Spheral {
-namespace MHDSpace {
    class SpitzerResistivityUpdatePolicy;
-}
 }
 
 #endif

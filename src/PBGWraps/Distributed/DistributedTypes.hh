@@ -22,7 +22,6 @@
 // Names!
 //------------------------------------------------------------------------------
 namespace Spheral {
-namespace BoundarySpace {
 
 typedef DistributedBoundary<Dim<1> > DistributedBoundary1d;
 typedef DistributedBoundary<Dim<2> > DistributedBoundary2d;
@@ -43,10 +42,6 @@ typedef BoundingVolumeDistributedBoundary<Dim<3> > BoundingVolumeDistributedBoun
 typedef TreeDistributedBoundary<Dim<1> > TreeDistributedBoundary1d;
 typedef TreeDistributedBoundary<Dim<2> > TreeDistributedBoundary2d;
 typedef TreeDistributedBoundary<Dim<3> > TreeDistributedBoundary3d;
-
-}
-
-namespace PartitionSpace {
 
 typedef DomainNode<Dim<1> > DomainNode1d;
 typedef DomainNode<Dim<2> > DomainNode2d;
@@ -79,33 +74,31 @@ typedef VoronoiRedistributeNodes<Dim<1> > VoronoiRedistributeNodes1d;
 typedef VoronoiRedistributeNodes<Dim<2> > VoronoiRedistributeNodes2d;
 typedef VoronoiRedistributeNodes<Dim<3> > VoronoiRedistributeNodes3d;
 
-}
-}
+typedef std::pair<uint64_t, DomainNode1d> pair_ULL_DomainNode1d;
+typedef std::pair<uint64_t, DomainNode2d> pair_ULL_DomainNode2d;
+typedef std::pair<uint64_t, DomainNode3d> pair_ULL_DomainNode3d;
 
-typedef std::pair<uint64_t, Spheral::PartitionSpace::DomainNode1d> pair_ULL_DomainNode1d;
-typedef std::pair<uint64_t, Spheral::PartitionSpace::DomainNode2d> pair_ULL_DomainNode2d;
-typedef std::pair<uint64_t, Spheral::PartitionSpace::DomainNode3d> pair_ULL_DomainNode3d;
-
-typedef std::vector<Spheral::PartitionSpace::DomainNode1d> vector_of_DomainNode1d;
-typedef std::vector<Spheral::PartitionSpace::DomainNode2d> vector_of_DomainNode2d;
-typedef std::vector<Spheral::PartitionSpace::DomainNode3d> vector_of_DomainNode3d;
+typedef std::vector<DomainNode1d> vector_of_DomainNode1d;
+typedef std::vector<DomainNode2d> vector_of_DomainNode2d;
+typedef std::vector<DomainNode3d> vector_of_DomainNode3d;
 
 typedef std::vector<pair_ULL_DomainNode1d> vector_of_pair_ULL_DomainNode1d;
 typedef std::vector<pair_ULL_DomainNode2d> vector_of_pair_ULL_DomainNode2d;
 typedef std::vector<pair_ULL_DomainNode3d> vector_of_pair_ULL_DomainNode3d;
 
-namespace Spheral {
-namespace BoundarySpace {
+}
 
-//------------------------------------------------------------------------------
-// Get the NestedGridNeighbor from a NodeList.
-//------------------------------------------------------------------------------
+// namespace Spheral {
+
+// //------------------------------------------------------------------------------
+// // Get the NestedGridNeighbor from a NodeList.
+// //------------------------------------------------------------------------------
 
 // template<typename Dimension>
 // inline
-// NeighborSpace::NestedGridNeighbor<Dimension>*
+// NestedGridNeighbor<Dimension>*
 // getNestedGridNeighbor(const DistributedBoundary<Dimension>& self,
-//                       const NodeSpace::NodeList<Dimension>& nodeList) {
+//                       const NodeList<Dimension>& nodeList) {
 //   return &(self.getNestedGridNeighbor(&nodeList));
 // }
 
@@ -142,7 +135,6 @@ namespace BoundarySpace {
 //   return &(BoundingVolumeDistributedBoundary<Dimension>::instance());
 // }
 
-}
-}
+// }
 
 #endif
