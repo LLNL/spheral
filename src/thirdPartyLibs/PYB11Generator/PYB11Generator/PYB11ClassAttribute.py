@@ -27,11 +27,13 @@ class PYB11ClassAttribute:
                  static,
                  pyname,
                  cppname,
+                 returnpolicy,
                  doc,
                  deftype):
         self.static = static
         self.pyname = pyname
         self.cppname = cppname
+        self.returnpolicy = returnpolicy
         self.doc = doc
         self.deftype = deftype
         return
@@ -53,6 +55,8 @@ class PYB11ClassAttribute:
         else:
             ss('    obj.def_%s("%s", ' % (self.deftype, pyname))
         ss(("&%(namespace)s%(cppname)s::" % klassattrs) + cppname)
+        if self.returnpolicy:
+            ss(', py::return_value_policy::%s' % self.returnpolicy)
         if self.doc:
             ss(', ')
             PYB11docstring(self.doc, ss)
@@ -68,8 +72,9 @@ class PYB11readwrite(PYB11ClassAttribute):
                  static = False,
                  pyname = None,
                  cppname = None,
+                 returnpolicy = None,
                  doc = None):
-        PYB11ClassAttribute.__init__(self, static, pyname, cppname, doc, "readwrite")
+        PYB11ClassAttribute.__init__(self, static, pyname, cppname, returnpolicy, doc, "readwrite")
 
 #-------------------------------------------------------------------------------
 # readonly
@@ -80,6 +85,7 @@ class PYB11readonly(PYB11ClassAttribute):
                  static = False,
                  pyname = None,
                  cppname = None,
+                 returnpolicy = None,
                  doc = None):
-        PYB11ClassAttribute.__init__(self, static, pyname, cppname, doc, "readonly")
+        PYB11ClassAttribute.__init__(self, static, pyname, cppname, returnpolicy, doc, "readonly")
 

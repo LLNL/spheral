@@ -33,7 +33,7 @@ class EquationOfState:
                                          epsMax = "const Scalar",
                                          epsTol = "const Scalar",
                                          Ptol = "const Scalar",
-                                         maxIterations = "const unsigned"):
+                                         maxIterations = ("const unsigned", "100")):
         return "Scalar"
 
     #...........................................................................

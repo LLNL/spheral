@@ -475,7 +475,6 @@ overlayRemapFields%(ndim)id = PYB11TemplateFunction(overlayRemapFields, template
 ''' % {"ndim"   : ndim,
        "Vector" : "Dim<" + str(ndim) + ">::Vector"})
 
-
 #-------------------------------------------------------------------------------
 # Geometry operations only available in 3D.
 #-------------------------------------------------------------------------------

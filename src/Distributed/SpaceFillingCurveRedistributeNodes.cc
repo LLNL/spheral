@@ -581,12 +581,11 @@ findNextIndex(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension
     if (inext < indices.size() and indices[inext] > index) result = indices[inext];
     //   cerr << "  Local result: " << result << endl;
 
-    // Get the global answer.
-    result = allReduce(result, MPI_MIN, Communicator::communicator());
     //   cerr << "Global result: " << result << endl;
-  } else {
-    result = 0;
   }
+
+  // Get the global answer.
+  result = allReduce(result, MPI_MIN, Communicator::communicator());
 
   // That's it.
   ENSURE(result <= maxIndex);

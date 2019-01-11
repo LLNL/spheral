@@ -39,7 +39,7 @@ This section describes the special functions and classes defined in PYB11Generat
   * ``pyname``: define the generated python attribte name.  If ``None``, defaults to the name of the local python variable.
 
 .. #############################################################################
-.. py:function:: PYB11readwrite([static=False, pyname=None, cppname=None, doc=None])
+.. py:function:: PYB11readwrite([static=False, pyname=None, cppname=None, returnpolicy=None, doc=None])
 
   Define a readwrite class attribute; corresponds to pybind11 ``def_readwrite``.
 
@@ -49,10 +49,12 @@ This section describes the special functions and classes defined in PYB11Generat
 
   * ``cppname``: Optionally specify the C++ name of the attribute.  If ``None``, assumes the C++ name is the name of Python variable instance.
 
+ * ``returnpolicy``: Specify a special return policy for how to handle the memory of the return value.  Read pybind11 documentation at :ref:`pybind11:return_value_policies`.
+
   * ``doc``: Optionally give a docstring.
 
 .. #############################################################################
-.. py:function:: PYB11readonly([static=False, pyname=None, cppname=None, doc=None])
+.. py:function:: PYB11readonly([static=False, pyname=None, cppname=None, returnpolicy=None, doc=None])
 
   Define a readonly class attribute; corresponds to pybind11 ``def_readonly``.
 
@@ -61,6 +63,8 @@ This section describes the special functions and classes defined in PYB11Generat
   * ``pyname``: Optionally specify the Python name of the attribute.  If ``None``, assumes the Python name is the name of Python variable instance.
 
   * ``cppname``: Optionally specify the C++ name of the attribute.  If ``None``, assumes the C++ name is the name of Python variable instance.
+
+  * ``returnpolicy``: Specify a special return policy for how to handle the memory of the return value.  Read pybind11 documentation at :ref:`pybind11:return_value_policies`.
 
   * ``doc``: Optionally give a docstring.
 
@@ -87,7 +91,7 @@ This section describes the special functions and classes defined in PYB11Generat
 
    * ``static``: If ``True``, make this a static property.
 
-   * ``returnPolicy``: Specify a special return policy for how to handle the memory of the return value.  Read pybind11 documentation at :ref:`pybind11:return_value_policies`.
+   * ``returnpolicy``: Specify a special return policy for how to handle the memory of the return value.  Read pybind11 documentation at :ref:`pybind11:return_value_policies`.
 
 .. #############################################################################
 .. py:function:: PYB11TemplateMethod(func_template, template_parameters[, cppname = None, pyname = None, docext = ""])

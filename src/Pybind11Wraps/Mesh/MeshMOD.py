@@ -22,6 +22,7 @@ PYB11includes += ['"Mesh/Mesh.hh"',
                   '"Mesh/computeGenerators.hh"',
                   '"Mesh/generateMesh.hh"',
                   '"Mesh/MeshConstructionUtilities.hh"',
+                  '"Mesh/copy2polytope.hh"',
                   '"FileIO/FileIO.hh"',
                   '"Boundary/Boundary.hh"',
                   '"NodeList/NodeList.hh"']
@@ -93,6 +94,12 @@ def generateMesh(nodeLists = "const std::vector<NodeList<%(Dimension)s>*>&",
     "Generate a mesh for the given set of NodeLists: returns tuple(mesh, voidNodes)"
     return "py::tuple"
 
+@PYB11template("Dimension", "nDim")
+def copy2polytope(cells = "const FieldList<%(Dimension)s, %(Dimension)s::FacetedVolume>&",
+                  mesh = "polytope::Tessellation<%(nDim)s, double>&"):
+    "Copy a FieldList of polygons/polyhedra to a polytope Tessellation."
+    return "void"
+
 #-------------------------------------------------------------------------------
 # Instantiate our types
 #-------------------------------------------------------------------------------
@@ -133,4 +140,8 @@ def quantizedPosition%(ndim)id(hash = "py::tuple",
        "prefix"    : ("Line", "Polygonal", "Polyheral")[ndim-1],
        "Vector"    : "Dim<" + str(ndim) + ">::Vector"})
 
-
+# Some methods are only valid in 2D and 3D.
+for ndim in (x for x in dims if x in (2, 3)):
+    exec('''
+copy2polytope%(ndim)id = PYB11TemplateFunction(copy2polytope, template_parameters=("Dim<%(ndim)i>", "%(ndim)i"), pyname="copy2polytope")
+''' % {"ndim"   : ndim})
