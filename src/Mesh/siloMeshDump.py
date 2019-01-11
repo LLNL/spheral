@@ -5,6 +5,7 @@
 import os, mpi
 from Spheral import *
 from SpheralCompiledPackages import silo
+import time as TIME
 
 #-------------------------------------------------------------------------------
 # A few integer traits by name that Overlink wants.
@@ -342,27 +343,35 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         if nDim == 3:
         
             # Construct the face-node lists.
-            numFaces = len(faces)
-            faceNodes = vector_of_vector_of_int()
-            for iface in xrange(numFaces):
-                faceNodes.append(vector_of_int())
-                for j in xrange(len(faces[iface])):
-                    faceNodes[iface].append(faces[iface][j])
-                assert len(faceNodes[iface]) == len(faces[iface])
-            assert len(faceNodes) == numFaces
-        
+            # numFaces = len(faces)
+            # faceNodes = vector_of_vector_of_int()
+            # for iface in xrange(numFaces):
+            #     stuff = []
+            #     faceNodes.append(vector_of_int())
+            #     for j in xrange(len(faces[iface])):
+            #         faceNodes[iface].append(faces[iface][j])
+            #     assert len(faceNodes[iface]) == len(faces[iface])
+            # assert len(faceNodes) == numFaces
+       
             # Construct the zone-face list.  We use the ones complement of a face ID
             # to indicate that face needs to be reversed in reference to this zone.
             # This is the same convention as polytope, so just copy it.
-            assert silo.DBPutPHZonelist(db, zonelistName[nDim], faceNodes, cells, 0, (numZones - 1), nullOpts) == 0
+            assert silo.DBPutPHZonelist(db, zonelistName[nDim], faces, cells, 0, (numZones - 1), nullOpts) == 0
         
         # Construct the mesh node coordinates.
         assert len(nodes) % nDim == 0
         numNodes = len(nodes)/nDim
-        coords = vector_of_vector_of_double([vector_of_double(range(numNodes))]*nDim)
-        for nodeID in xrange(numNodes):
-            for idim in xrange(nDim):
-                coords[idim][nodeID] = nodes[nDim*nodeID + idim]
+        if nDim == 2:
+            coords = vector_of_vector_of_double([vector_of_double([nodes[i*nDim    ] for i in xrange(numNodes)]),
+                                                 vector_of_double([nodes[i*nDim + 1] for i in xrange(numNodes)])])
+        else:
+            coords = vector_of_vector_of_double([vector_of_double([nodes[i*nDim    ] for i in xrange(numNodes)]),
+                                                 vector_of_double([nodes[i*nDim + 1] for i in xrange(numNodes)]),
+                                                 vector_of_double([nodes[i*nDim + 2] for i in xrange(numNodes)])])
+        # coords = vector_of_vector_of_double([vector_of_double(range(numNodes))]*nDim)
+        # for nodeID in xrange(numNodes):
+        #     for idim in xrange(nDim):
+        #         coords[idim][nodeID] = nodes[nDim*nodeID + idim]
         assert len(coords) == nDim
         
         # Write the mesh itself.

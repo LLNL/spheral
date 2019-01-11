@@ -7,7 +7,7 @@
 # Format version:
 # 1.0 -- original release
 #-------------------------------------------------------------------------------
-import os, gc, mpi
+import os, gc, mpi, time
 
 from SpheralCompiledPackages import *
 
