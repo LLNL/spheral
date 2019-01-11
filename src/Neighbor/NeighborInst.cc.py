@@ -1,5 +1,5 @@
 text = """
-#include "Neighbor.cc"
+#include "Neighbor/Neighbor.cc"
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.

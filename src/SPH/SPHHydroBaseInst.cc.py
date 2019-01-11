@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "SPHHydroBase.cc"
+#include "SPH/SPHHydroBase.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

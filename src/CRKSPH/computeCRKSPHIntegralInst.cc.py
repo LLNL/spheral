@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "computeCRKSPHIntegral.cc"
+#include "CRKSPH/computeCRKSPHIntegral.cc"
 
 namespace Spheral {
 template std::pair<Dim< %(ndim)s >::Vector,Dim< %(ndim)s >::Vector> computeCRKSPHIntegral(const ConnectivityMap<Dim< %(ndim)s > >&, 

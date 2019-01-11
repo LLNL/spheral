@@ -4,8 +4,8 @@ text = """
 //
 // Created by JMO, Wed Dec 11 17:33:57 PST 2002
 //----------------------------------------------------------------------------//
-#include "Kernel.hh"
-#include "HatKernel.hh"
+#include "Kernel/Kernel.hh"
+#include "Kernel/HatKernel.hh"
 
 #include <math.h>
 

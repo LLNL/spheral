@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "TillotsonEquationOfState.cc"
+#include "SolidMaterial/TillotsonEquationOfState.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

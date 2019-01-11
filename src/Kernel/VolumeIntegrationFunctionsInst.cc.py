@@ -2,12 +2,12 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "VolumeIntegrationFunctions.cc"
-#include "TableKernel.hh"
-#include "GaussianKernel.hh"
-#include "SincKernel.hh"
-#include "NSincPolynomialKernel.hh"
-#include "NBSplineKernel.hh"
+#include "Kernel/VolumeIntegrationFunctions.cc"
+#include "Kernel/TableKernel.hh"
+#include "Kernel/GaussianKernel.hh"
+#include "Kernel/SincKernel.hh"
+#include "Kernel/NSincPolynomialKernel.hh"
+#include "Kernel/NBSplineKernel.hh"
 
 namespace Spheral {
 """

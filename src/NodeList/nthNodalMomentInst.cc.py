@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "nthNodalMoment.cc"
+#include "NodeList/nthNodalMoment.cc"
 
 namespace Spheral {
   template

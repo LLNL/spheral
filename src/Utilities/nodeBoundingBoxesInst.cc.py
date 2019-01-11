@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "nodeBoundingBoxes.cc"
+#include "Utilities/nodeBoundingBoxes.cc"
 
 namespace Spheral {
 

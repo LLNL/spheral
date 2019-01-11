@@ -1,3 +1,7 @@
+set(Geometry_inst
+    invertRankNTensor
+   )
+
 set(Geometry_sources
     Dimension.cc
     EigenStruct.cc
@@ -18,21 +22,11 @@ set(Geometry_sources
     buildEigenVector.cc
     computeEigenValues.cc
     fakemain.cc
-    clipConvexFacetedVolumeByPlanes2d.cc
-    clipConvexFacetedVolumeByPlanes3d.cc
-    clipFacetedVolumeByPlanes1d.cc
-    clipFacetedVolumeByPlanes3d.cc
     polyclipper2d.cc
     polyclipper3d.cc
-    )
+   )
 
-set(Geometry_sources2d
-    invertRankNTensorInst.cc.2.cc
-    )
-
-set(Geometry_sources3d
-    invertRankNTensorInst.cc.3.cc
-    )
+instantiate(Geometry_inst Geometry_sources)
 
 set(Geometry_headers
     Box1d.hh
@@ -100,15 +94,9 @@ set(Geometry_headers
     innerProduct.hh
     invertRankNTensor.hh
     outerProduct.hh
-    clipConvexFacetedVolumeByPlanes.hh
-    clipFacetedVolumeByPlanes.hh
     polyclipper.hh
     polyclipper_utilities.hh
     )
-
-INCLUDE_DIRECTORIES(../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
 
 blt_add_library(NAME        Spheral_Geometry
                 SOURCES     ${Geometry_sources} ${Geometry_sources2d} ${Geometry_sources3d}

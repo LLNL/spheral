@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "computeOccupancyVolume.cc"
+#include "CRKSPH/computeOccupancyVolume.cc"
 
 namespace Spheral {
 template void computeOccupancyVolume(const ConnectivityMap<Dim< %(ndim)s > >&, 

@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "BoundingVolumeDistributedBoundary.cc"
+#include "Distributed/BoundingVolumeDistributedBoundary.cc"
 
 namespace Spheral {
   template class BoundingVolumeDistributedBoundary< Dim< %(ndim)s > >;

@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "GridCellPlane.cc"
+#include "Neighbor/GridCellPlane.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "MasterNodeIterator.cc"
+#include "Field/MasterNodeIterator.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "GammaLawGas.cc"
+#include "Material/GammaLawGas.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

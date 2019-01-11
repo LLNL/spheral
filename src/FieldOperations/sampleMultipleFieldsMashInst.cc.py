@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "sampleMultipleFieldsMash.cc"
+#include "FieldOperations/sampleMultipleFieldsMash.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

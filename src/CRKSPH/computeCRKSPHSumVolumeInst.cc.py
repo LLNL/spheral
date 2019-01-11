@@ -6,9 +6,9 @@ text = """
 #include "Boundary/Boundary.hh"
 
 #ifdef _OPENMP
-#include "computeCRKSPHSumVolume_OpenMP.cc"
+#include "CRKSPH/computeCRKSPHSumVolume_OpenMP.cc"
 #else
-#include "computeCRKSPHSumVolume.cc"
+#include "CRKSPH/computeCRKSPHSumVolume.cc"
 #endif
 
 namespace Spheral {

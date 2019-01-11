@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "SmoothingScaleBase.cc"
+#include "NodeList/SmoothingScaleBase.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

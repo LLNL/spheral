@@ -5,9 +5,9 @@ text = """
 #include "Geometry/Dimension.hh"
 
 #ifdef _OPENMP
-#include "NonSymmetricSpecificThermalEnergyPolicy_OpenMP.cc"
+#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy_OpenMP.cc"
 #else
-#include "NonSymmetricSpecificThermalEnergyPolicy.cc"
+#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.cc"
 #endif
 
 namespace Spheral {

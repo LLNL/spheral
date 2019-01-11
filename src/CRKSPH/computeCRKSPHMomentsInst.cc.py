@@ -5,9 +5,9 @@ text = """
 #include "Geometry/Dimension.hh"
 
 #ifdef _OPENMP
-#include "computeCRKSPHMoments_OpenMP.cc"
+#include "CRKSPH/computeCRKSPHMoments_OpenMP.cc"
 #else
-#include "computeCRKSPHMoments.cc"
+#include "CRKSPH/computeCRKSPHMoments.cc"
 #endif
 
 namespace Spheral {

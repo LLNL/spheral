@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "splatMultipleFieldsMash.cc"
+#include "FieldOperations/splatMultipleFieldsMash.cc"
 #include "Geometry/Dimension.hh"
 #include "Boundary/Boundary.hh"
 

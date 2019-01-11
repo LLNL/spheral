@@ -318,6 +318,9 @@
     <ProjectReference Include="..\spheral_neighbor\spheral_neighbor.vcxproj">
       <Project>{67249894-d8f6-4c17-a5d9-ab52980f05fa}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\spheral_nodegenerator\spheral_nodegenerator.vcxproj">
+      <Project>{a60ef514-cfd9-4219-994a-bc88c46a332b}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\spheral_nodelist\spheral_nodelist.vcxproj">
       <Project>{75e44b95-5082-489f-a200-dca9b205361c}</Project>
     </ProjectReference>

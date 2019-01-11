@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "LinearPolynomialEquationOfState.cc"
+#include "SolidMaterial/LinearPolynomialEquationOfState.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

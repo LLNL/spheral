@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "ThirdMomentHourglassControl.cc"
+#include "Hydro/ThirdMomentHourglassControl.cc"
 
 namespace Spheral {
   template class ThirdMomentHourglassControl< Dim< %(ndim)s > >;

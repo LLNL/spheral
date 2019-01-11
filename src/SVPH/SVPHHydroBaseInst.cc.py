@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "SVPHHydroBase.cc"
+#include "SVPH/SVPHHydroBase.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

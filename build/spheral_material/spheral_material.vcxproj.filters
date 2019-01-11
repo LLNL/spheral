@@ -21,12 +21,6 @@
     <ClCompile Include="..\..\src\Material\GammaLawGasInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Material\HelmholtzEquationOfStateInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Material\HelmholtzEquationOfStateInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Material\IsothermalEquationOfStateInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -48,9 +42,6 @@
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Material\GammaLawGasInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Material\HelmholtzEquationOfStateInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Material\IsothermalEquationOfStateInst.cc.py">

@@ -5,9 +5,7 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace SolidMaterial {
-    template class SteinbergGuinanLundStrength<Dim<1> >;
-    template class SteinbergGuinanLundStrength<Dim<2> >;
-    template class SteinbergGuinanLundStrength<Dim<3> >;
-  }
+  template class SteinbergGuinanLundStrength<Dim<1> >;
+  template class SteinbergGuinanLundStrength<Dim<2> >;
+  template class SteinbergGuinanLundStrength<Dim<3> >;
 }

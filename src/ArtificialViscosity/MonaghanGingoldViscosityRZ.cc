@@ -21,6 +21,8 @@ namespace Spheral {
 using std::min;
 using std::max;
 using std::abs;
+using std::pair;
+using std::make_pair;
 
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.

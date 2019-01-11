@@ -7,7 +7,7 @@ text = """
 //
 // Created by JMO, Wed Jul  9 16:24:25 PDT 2008
 //----------------------------------------------------------------------------//
-#include "QuinticSplineKernel.cc"
+#include "Kernel/QuinticSplineKernel.cc"
 
 namespace Spheral {
 

@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "binFieldList2Lattice.cc"
+#include "FieldOperations/binFieldList2Lattice.cc"
 
 namespace Spheral {
 

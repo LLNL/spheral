@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "computeCRKSPHCorrections.cc"
+#include "CRKSPH/computeCRKSPHCorrections.cc"
 
 namespace Spheral {
 template void computeCRKSPHCorrections(const FieldList<Dim<%(ndim)s> , Dim<%(ndim)s> ::Scalar>& m0,

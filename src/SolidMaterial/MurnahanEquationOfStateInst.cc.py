@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "MurnahanEquationOfState.cc"
+#include "SolidMaterial/MurnahanEquationOfState.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

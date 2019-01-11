@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "generateVoidNodes.cc"
+#include "NodeList/generateVoidNodes.cc"
 
 namespace Spheral {
   template void generateVoidNodes<Dim< %(ndim)s > >(const vector<Dim< %(ndim)s >::Vector>& generators,
