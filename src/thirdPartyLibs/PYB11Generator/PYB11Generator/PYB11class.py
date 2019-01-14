@@ -187,6 +187,8 @@ def PYB11generic_class_method(klass, klassattrs, meth, methattrs, ss):
     argString = ""
     for i, (argType, argName, default) in enumerate(args):
         argString += ', "%s"_a' % argName
+        if methattrs["noconvert"]:
+            argString += '.noconvert()'
         if default:
             argString += "=%s" % default
 
@@ -265,6 +267,8 @@ def PYB11generateClass(klass, klassattrs, ssout):
                 else:
                     ss("%s" % argType)
                 argString += ', "%s"_a' % argName
+                if methattrs["noconvert"]:
+                    argString += '.noconvert()'
                 if default:
                     argString += "=%s" % default
             ss(">()%s" % argString)
@@ -319,6 +323,8 @@ def PYB11generateClass(klass, klassattrs, ssout):
                 if i < len(args) - 1:
                     ss(", ")
                 argString += ', "%s"_a' % argName
+                if methattrs["noconvert"]:
+                    argString += '.noconvert()'
                 if default:
                     argString += "=%s" % default
             if methattrs["const"]:

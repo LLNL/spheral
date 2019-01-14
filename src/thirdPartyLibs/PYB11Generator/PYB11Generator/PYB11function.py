@@ -117,6 +117,8 @@ def PYB11generateFunction(meth, methattrs, ssout):
     argString = ""
     for argType, argName, default in zip(argTypes, argNames, argDefaults):
         argString += (', "%s"_a' % argName)
+        if methattrs["noconvert"]:
+            argString += '.noconvert()'
         if not default is None:
             argString += ("=" + default)
 
