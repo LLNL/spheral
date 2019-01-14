@@ -110,7 +110,84 @@ class FileIO:
     #...........................................................................
     # Methods
     for ndim in xrange(1,4):   # all three always required
+        for ttype in ("Scalar",
+                      "Vector",
+                      "Tensor",
+                      "SymTensor",
+                      "ThirdRankTensor"):
+            exec('''
+@PYB11pycppname("write")
+@PYB11virtual
+def write%(ttype)sFL%(ndim)i(self,
+                             value = "const FieldList<Dim<%(ndim)i>, Dim<%(ndim)i>::%(ttype)s>&",
+                             pathName = "const std::string"):
+    "Write FieldList<Dim<%(ndim)i, %(ttype)s>"
+    return "void"
+
+@PYB11pycppname("read")
+@PYB11virtual
+@PYB11const
+def read%(ttype)sFL%(ndim)i(self,
+                            value = "FieldList<Dim<%(ndim)i>, Dim<%(ndim)i>::%(ttype)s>&",
+                            pathName = "const std::string"):
+    "Read FieldList<Dim<%(ndim)i, %(ttype)s>"
+    return "void"
+
+@PYB11pycppname("write")
+@PYB11virtual
+def write%(ttype)sFV%(ndim)i(self,
+                             value = "const Field<Dim<%(ndim)i>, std::vector<Dim<%(ndim)i>::%(ttype)s>>&",
+                             pathName = "const std::string"):
+    "Write Field<Dim<%(ndim)i, vector<%(ttype)s>>"
+    return "void"
+
+@PYB11pycppname("read")
+@PYB11virtual
+@PYB11const
+def read%(ttype)sFV%(ndim)i(self,
+                            value = "Field<Dim<%(ndim)i>, std::vector<Dim<%(ndim)i>::%(ttype)s>>&",
+                            pathName = "const std::string"):
+    "Read Field<Dim<%(ndim)i, vector<%(ttype)s>>"
+    return "void"
+''' % {"ndim" : ndim,
+       "ttype" : ttype})
+
+        #......................................................................
         exec('''
+@PYB11pycppname("write")
+@PYB11virtual
+def writeintFL%(ndim)i(self,
+                             value = "const FieldList<Dim<%(ndim)i>, int>&",
+                             pathName = "const std::string"):
+    "Write FieldList<Dim<%(ndim)i, int>"
+    return "void"
+
+@PYB11pycppname("read")
+@PYB11virtual
+@PYB11const
+def readintFL%(ndim)i(self,
+                            value = "FieldList<Dim<%(ndim)i>, int>&",
+                            pathName = "const std::string"):
+    "Read FieldList<Dim<%(ndim)i, int>"
+    return "void"
+
+@PYB11pycppname("write")
+@PYB11virtual
+def writeintFV%(ndim)i(self,
+                             value = "const Field<Dim<%(ndim)i>, std::vector<int>>&",
+                             pathName = "const std::string"):
+    "Write Field<Dim<%(ndim)i, vector<int>>"
+    return "void"
+
+@PYB11pycppname("read")
+@PYB11virtual
+@PYB11const
+def readintFV%(ndim)i(self,
+                            value = "Field<Dim<%(ndim)i>, std::vector<int>>&",
+                            pathName = "const std::string"):
+    "Read Field<Dim<%(ndim)i, vector<int>>"
+    return "void"
+
 @PYB11pycppname("write")
 def writePlane%(ndim)i(self,
                        value = "const GeomPlane<Dim<%(ndim)i>>&",
