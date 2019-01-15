@@ -125,6 +125,10 @@ PYBIND11_MODULE(%(name)s, m) {
         ss("  ;\n")
     ss("\n")
 
+    # Any module preamble?
+    if hasattr(modobj, "PYB11modulepreamble"):
+        ss(modobj.PYB11modulepreamble + "\n\n")
+
     # Are there any objects to import from other modules
     othermods = PYB11othermods(modobj)
     for (kname, klass) in PYB11classes(modobj):
@@ -137,7 +141,8 @@ PYBIND11_MODULE(%(name)s, m) {
     if othermods:
         ss("  // Import external modules\n")
         for othermod in othermods:
-            ss('  py::module::import("%s");\n' % othermod)
+            if othermod != name:
+                ss('  py::module::import("%s");\n' % othermod)
         ss("\n")
 
     return
