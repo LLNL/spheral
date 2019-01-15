@@ -38,6 +38,7 @@ class FileIO:
     #...........................................................................
     # Virtual methods
     @PYB11virtual
+    @PYB11noconvert
     def write_unsigned_int(self,
                            value = "const unsigned int",
                            pathName = "const std::string"):
@@ -45,6 +46,7 @@ class FileIO:
         return "void"
 
     @PYB11virtual
+    @PYB11noconvert
     def write_int(self,
                   value = "const int",
                   pathName = "const std::string"):
@@ -52,6 +54,7 @@ class FileIO:
         return "void"
 
     @PYB11virtual
+    @PYB11noconvert
     def write_bool(self,
                    value = "const bool",
                    pathName = "const std::string"):
@@ -59,6 +62,7 @@ class FileIO:
         return "void"
 
     @PYB11virtual
+    @PYB11noconvert
     def write_double(self,
                      value = "const double",
                      pathName = "const std::string"):
@@ -66,6 +70,7 @@ class FileIO:
         return "void"
 
     @PYB11virtual
+    @PYB11noconvert
     def write_string(self,
                      value = "const std::string",
                      pathName = "const std::string"):
@@ -74,6 +79,7 @@ class FileIO:
 
     @PYB11virtual
     @PYB11const
+    @PYB11noconvert
     def read_unsigned_int(self,
                           pathName = "const std::string"):
         "Read an unsigned int"
@@ -81,6 +87,7 @@ class FileIO:
 
     @PYB11virtual
     @PYB11const
+    @PYB11noconvert
     def read_int(self,
                  pathName = "const std::string"):
         "Read an int"
@@ -88,6 +95,7 @@ class FileIO:
 
     @PYB11virtual
     @PYB11const
+    @PYB11noconvert
     def read_bool(self,
                   pathName = "const std::string"):
         "Read a bool"
@@ -95,6 +103,7 @@ class FileIO:
 
     @PYB11virtual
     @PYB11const
+    @PYB11noconvert
     def read_double(self,
                     pathName = "const std::string"):
         "Read a double"
@@ -102,6 +111,7 @@ class FileIO:
 
     @PYB11virtual
     @PYB11const
+    @PYB11noconvert
     def read_string(self,
                     pathName = "const std::string"):
         "Read a std::string"
@@ -118,6 +128,7 @@ class FileIO:
             exec('''
 @PYB11pycppname("write")
 @PYB11virtual
+@PYB11noconvert
 def write%(ttype)sFL%(ndim)i(self,
                              value = "const FieldList<Dim<%(ndim)i>, Dim<%(ndim)i>::%(ttype)s>&",
                              pathName = "const std::string"):
@@ -127,6 +138,7 @@ def write%(ttype)sFL%(ndim)i(self,
 @PYB11pycppname("read")
 @PYB11virtual
 @PYB11const
+@PYB11noconvert
 def read%(ttype)sFL%(ndim)i(self,
                             value = "FieldList<Dim<%(ndim)i>, Dim<%(ndim)i>::%(ttype)s>&",
                             pathName = "const std::string"):
@@ -135,6 +147,7 @@ def read%(ttype)sFL%(ndim)i(self,
 
 @PYB11pycppname("write")
 @PYB11virtual
+@PYB11noconvert
 def write%(ttype)sFV%(ndim)i(self,
                              value = "const Field<Dim<%(ndim)i>, std::vector<Dim<%(ndim)i>::%(ttype)s>>&",
                              pathName = "const std::string"):
@@ -144,6 +157,7 @@ def write%(ttype)sFV%(ndim)i(self,
 @PYB11pycppname("read")
 @PYB11virtual
 @PYB11const
+@PYB11noconvert
 def read%(ttype)sFV%(ndim)i(self,
                             value = "Field<Dim<%(ndim)i>, std::vector<Dim<%(ndim)i>::%(ttype)s>>&",
                             pathName = "const std::string"):
@@ -156,6 +170,7 @@ def read%(ttype)sFV%(ndim)i(self,
         exec('''
 @PYB11pycppname("write")
 @PYB11virtual
+@PYB11noconvert
 def writeintFL%(ndim)i(self,
                              value = "const FieldList<Dim<%(ndim)i>, int>&",
                              pathName = "const std::string"):
@@ -165,6 +180,7 @@ def writeintFL%(ndim)i(self,
 @PYB11pycppname("read")
 @PYB11virtual
 @PYB11const
+@PYB11noconvert
 def readintFL%(ndim)i(self,
                             value = "FieldList<Dim<%(ndim)i>, int>&",
                             pathName = "const std::string"):
@@ -173,6 +189,7 @@ def readintFL%(ndim)i(self,
 
 @PYB11pycppname("write")
 @PYB11virtual
+@PYB11noconvert
 def writeintFV%(ndim)i(self,
                              value = "const Field<Dim<%(ndim)i>, std::vector<int>>&",
                              pathName = "const std::string"):
@@ -182,6 +199,7 @@ def writeintFV%(ndim)i(self,
 @PYB11pycppname("read")
 @PYB11virtual
 @PYB11const
+@PYB11noconvert
 def readintFV%(ndim)i(self,
                             value = "Field<Dim<%(ndim)i>, std::vector<int>>&",
                             pathName = "const std::string"):
@@ -189,6 +207,7 @@ def readintFV%(ndim)i(self,
     return "void"
 
 @PYB11pycppname("write")
+@PYB11noconvert
 def writePlane%(ndim)i(self,
                        value = "const GeomPlane<Dim<%(ndim)i>>&",
                        pathName = "const std::string"):
@@ -197,6 +216,7 @@ def writePlane%(ndim)i(self,
 
 @PYB11pycppname("read")
 @PYB11const
+@PYB11noconvert
 def readPlane%(ndim)i(self,
                       value = "GeomPlane<Dim<%(ndim)i>>&",
                       pathName = "const std::string"):
@@ -220,6 +240,7 @@ def readPlane%(ndim)i(self,
         return "std::string"
 
     @PYB11implementation("[](FileIO& self, py::handle thing, py::handle path) { self.writeObject(thing.ptr(), path.ptr()); }")
+    @PYB11noconvert
     def writeObject(self,
                     thing = "py::handle",
                     path = "py::handle"):
@@ -229,6 +250,7 @@ def readPlane%(ndim)i(self,
     @PYB11returnpolicy("take_ownership")
     @PYB11const
     @PYB11implementation("[](FileIO& self, py::handle path) { return py::handle(self.readObject(path.ptr())); }")
+    @PYB11noconvert
     def readObject(self,
                    path = "py::handle"):
         "Return a generic python object from deserialization."

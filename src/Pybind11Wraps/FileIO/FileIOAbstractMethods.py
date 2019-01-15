@@ -27,6 +27,7 @@ class FileIOAbstractMethods:
                        ("std::vector<std::string>", "VectorString")]:
         exec("""
 @PYB11pycppname("write")
+@PYB11noconvert
 def write%(Tmangle)s(self,
                      value = "const %(T)s&",
                      pathName = "const std::string"):
@@ -35,6 +36,7 @@ def write%(Tmangle)s(self,
 
 @PYB11pycppname("read")
 @PYB11const
+@PYB11noconvert
 def read%(Tmangle)s(self,
                     value = "%(T)s&",
                     pathName = "const std::string"):
@@ -54,6 +56,7 @@ def read%(Tmangle)s(self,
     for T in types:
         exec("""
 @PYB11pycppname("write")
+@PYB11noconvert
 def write%(Tmangle)s(self,
                      value = "const %(T)s&",
                      pathName = "const std::string"):
@@ -62,6 +65,7 @@ def write%(Tmangle)s(self,
 
 @PYB11pycppname("read")
 @PYB11const
+@PYB11noconvert
 def read%(Tmangle)s(self,
                     value = "%(T)s&",
                     pathName = "const std::string"):
@@ -83,6 +87,7 @@ def read%(Tmangle)s(self,
         for T in types:
             exec("""
 @PYB11pycppname("write")
+@PYB11noconvert
 def writeField%(Tmangle)s(self,
                 value = "const Field<Dim<%(ndim)i>, %(T)s>&",
                 pathName = "const std::string"):
@@ -91,6 +96,7 @@ def writeField%(Tmangle)s(self,
 
 @PYB11pycppname("read")
 @PYB11const
+@PYB11noconvert
 def readField%(Tmangle)s(self,
                          value = "Field<Dim<%(ndim)i>, %(T)s>&",
                          pathName = "const std::string"):
