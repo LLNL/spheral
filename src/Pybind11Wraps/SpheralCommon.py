@@ -92,18 +92,3 @@ PYB11opaque = ["std::vector<char>",
                "std::vector<Plane1d>",
                "std::vector<Plane2d>",
                "std::vector<Plane3d>"]
-
-# # STL containers of common geometric types
-# from GeometryMOD import geomtypes
-# for element in geomtypes:
-#     for ndim in (1, 2, 3):
-#         exec('''
-# vector_of_%(mangle)s = PYB11_bind_vector("%(element)s", opaque=True, local=True)
-# vector_of_vector_of_%(mangle)s = PYB11_bind_vector("std::vector<%(element)s>", opaque=True, local=True)
-# ''' % {"element": "Dim<" + str(ndim) + ">::" + element,
-#        "mangle" : element + str(ndim) + "d"})
-# vector_of_Facet2d = PYB11_bind_vector("GeomFacet2d", opaque=True, local=True)
-# vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True, local=True)
-# vector_of_Plane1d = PYB11_bind_vector("GeomPlane<Dim<1>>", opaque=True, local=True)
-# vector_of_Plane2d = PYB11_bind_vector("GeomPlane<Dim<2>>", opaque=True, local=True)
-# vector_of_Plane3d = PYB11_bind_vector("GeomPlane<Dim<3>>", opaque=True, local=True)
