@@ -46,7 +46,7 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/computeShepardsInterpolation.hh"',
                   '"Utilities/Timer.hh"']
 
-PYB11preamble = """
+PYB11preamble += """
 #ifndef NOR3D
 #include "Utilities/r3d_utils.hh"
 #else
