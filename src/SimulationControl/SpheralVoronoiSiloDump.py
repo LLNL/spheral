@@ -108,7 +108,7 @@ class SpheralVoronoiSiloDump:
 ##             raise ValueError, "File %s already exists!  Aborting." % filename
 
         # Did the user provide a FieldList of cell geometries already?
-        # start = TIME.clock()
+        start = TIME.clock()
         if self.cells:
 
             # Yep, so we build a disjoint set of cells as a polytope tessellation.
@@ -284,8 +284,8 @@ class SpheralVoronoiSiloDump:
                 tessellator = serial_tessellator
             index2zone = tessellator.tessellateDegenerate(gens, plccoords, plc, 1.0e-8, mesh)
 
-        # print "Took %g sec to generate cells" % (TIME.clock() - start)
-        # start = TIME.clock()
+        print "Took %g sec to generate cells" % (TIME.clock() - start)
+        start = TIME.clock()
 
         # Figure out how many of each type of field we're dumping.
         intFields = [x for x in self._fields if isinstance(x, eval("IntField%s" % self.dimension))]
@@ -308,8 +308,8 @@ class SpheralVoronoiSiloDump:
                 mineigen[i] = eigen.minElement()
                 maxeigen[i] = eigen.maxElement()
             scalarFields += [tr, det, mineigen, maxeigen]
-        # print "Took %g sec to build output fields" % (TIME.clock() - start)
-        # start = TIME.clock()
+        print "Took %g sec to build output fields" % (TIME.clock() - start)
+        start = TIME.clock()
 
         # Write the output.
         timeslice = siloMeshDump(filename, mesh,
@@ -323,8 +323,8 @@ class SpheralVoronoiSiloDump:
                                  tensorFields = tensorFields,
                                  symTensorFields = symTensorFields)
 
-        # print "Took %g sec to calls siloMeshDump" % (TIME.clock() - start)
-        # start = TIME.clock()
+        print "Took %g sec to calls siloMeshDump" % (TIME.clock() - start)
+        start = TIME.clock()
 
         # Write the master file listing all the time slices.
         if mpi.rank == 0:
