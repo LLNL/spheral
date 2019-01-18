@@ -119,3 +119,27 @@ NOTE: we implicitly assume that any domains of rank less than ours we
                                              }""",
                                 doc = "Same as 'faces' attribute, but returns vector<vector<int>> rather than vector<vector<unsigned>>")
 
+    zoneNodes = PYB11property(getterraw="""[](const Tessellation<%(Dimension)s, %(RealType)s>& self) -> std::vector<std::vector<int>> {
+                                             const auto nzones = self.cells.size();
+                                             std::vector<std::vector<int>> result(nzones);
+                                             if (%(Dimension)s == 2) {
+                                               // In 2D we read the points out ordered counterclockwise.
+                                               for (auto izone = 0; izone < nzones; ++izone) {
+                                                 std::transform(self.cells[izone].begin(), self.cells[izone].end(), std::back_inserter(result[izone]),
+                                                                [&](const int iface) { return iface < 0 ? self.faces[~iface][1] : self.faces[iface][0]; });
+                                               }
+                                             } else {
+                                               // In 3D we just return the unique set of nodes for each zone.
+                                               for (auto izone = 0; izone < nzones; ++izone) {
+                                                 for (auto iface: self.cells[izone]) {
+                                                   iface = iface < 0 ? ~iface : iface;
+                                                   std::copy(self.faces[iface].begin(), self.faces[iface].end(), std::back_inserter(result[izone]));
+                                                 }
+                                                 std::sort(result[izone].begin(), result[izone].end());
+                                                 result[izone].erase(std::unique(result[izone].begin(), result[izone].end()), result[izone].end());
+                                               }
+                                             }
+                                             return result;
+                                           }""",
+                              doc = "Return the unique node IDs for each zone.  In 2D these are arranged counterclockwise around the zone.")
+                                                   
