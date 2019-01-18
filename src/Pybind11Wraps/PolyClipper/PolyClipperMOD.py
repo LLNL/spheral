@@ -12,6 +12,22 @@ PYB11includes = ['"Geometry/polyclipper.hh"']
 
 PYB11namespaces = ["PolyClipper"]
 
+PYB11opaque = ["std::vector<char>",
+               "std::vector<unsigned>",
+               "std::vector<uint64_t>",
+               "std::vector<int>",
+               "std::vector<float>",
+               "std::vector<double>",
+               "std::vector<std::string>",
+
+               "std::vector<std::vector<char>>",
+               "std::vector<std::vector<unsigned>>",
+               "std::vector<std::vector<uint64_t>>",
+               "std::vector<std::vector<int>>",
+               "std::vector<std::vector<float>>",
+               "std::vector<std::vector<double>>",
+               "std::vector<std::vector<std::string>>"]
+
 #-------------------------------------------------------------------------------
 # Planes.
 #-------------------------------------------------------------------------------
