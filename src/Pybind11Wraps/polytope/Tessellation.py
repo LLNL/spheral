@@ -50,7 +50,7 @@ A negative face index indicates the actual face index is the 1's
 complement of the value (~cells[i][j]) and the face is oriented
 witih an inward pointing normal for cells[i].""")
 
-    faces = PYB11readwrite(returnpolicy = "reference_internal",
+    faces = PYB11readwrite(returnpolicy = "reference",
                            doc = """This two-dimensional array defines the topology of the faces of the 
 mesh. A face has an arbitrary number of nodes in 3D and 2 nodes in 2D. 
 faces[i][j] gives the index of the jth node of the ith face.
@@ -84,3 +84,38 @@ each neighbor domain.
 NOTE: we implicitly assume that any domains of rank less than ours we
       are receiving from, while any domains of greater rank we send
       to.""")
+
+    #...........................................................................
+    # A few handy properties that implement transformations on the Tessellation data.
+    xnodes = PYB11property(getterraw="""[](const Tessellation<%(Dimension)s, %(RealType)s>& self) -> std::vector<%(RealType)s> { 
+                                          const auto n = self.nodes.size()/%(Dimension)s;
+                                          std::vector<double> result(n);
+                                          for (auto i = 0; i < n; ++i) result[i] = self.nodes[%(Dimension)s*i];
+                                          return result;
+                                        }""",
+                           doc = "Extract the X coordinates of the nodes")
+
+    ynodes = PYB11property(getterraw="""[](const Tessellation<%(Dimension)s, %(RealType)s>& self) -> std::vector<%(RealType)s> { 
+                                          const auto n = self.nodes.size()/%(Dimension)s;
+                                          std::vector<double> result(n);
+                                          for (auto i = 0; i < n; ++i) result[i] = self.nodes[%(Dimension)s*i + 1];
+                                          return result;
+                                        }""",
+                           doc = "Extract the Y coordinates of the nodes")
+
+    znodes = PYB11property(getterraw="""[](const Tessellation<%(Dimension)s, %(RealType)s>& self) -> std::vector<%(RealType)s> { 
+                                          if (%(Dimension)s != 3) throw py::type_error("Cannot extract z component from 2D Tessellation");
+                                          const auto n = self.nodes.size()/%(Dimension)s;
+                                          std::vector<double> result(n);
+                                          for (auto i = 0; i < n; ++i) result[i] = self.nodes[%(Dimension)s*i + 2];
+                                          return result;
+                                        }""",
+                           doc = "Extract the Z coordinates of the nodes")
+
+    facesAsInts = PYB11property(getterraw="""[](const Tessellation<%(Dimension)s, %(RealType)s>& self) -> std::vector<std::vector<int>> {
+                                               std::vector<std::vector<int>> result;
+                                               for (const auto& inds: self.faces) { result.push_back(std::vector<int>(inds.begin(), inds.end())); }
+                                               return result;
+                                             }""",
+                                doc = "Same as 'faces' attribute, but returns vector<vector<int>> rather than vector<vector<unsigned>>")
+
