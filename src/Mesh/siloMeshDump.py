@@ -334,22 +334,11 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         
             # Read out the zone nodes.  We rely on these already being arranged
             # counter-clockwise.
-            zoneNodes = vector_of_vector_of_int()
-            shapesize = vector_of_int()
-            for zoneID in xrange(numZones):
-                znodes = []
-                for iface in mesh.cells[zoneID]:
-                    if iface < 0:
-                        znodes.append(faces[~iface][1])
-                    else:
-                        znodes.append(faces[iface][0])
-                zoneNodes.append(vector_of_int(znodes))
-                shapesize.append(len(mesh.nodes))
+            zoneNodes = mesh.zoneNodes
             assert len(zoneNodes) == numZones
-            assert len(shapesize) == numZones
             assert silo.DBPutZonelist2(db, zonelistName[nDim], nDim, zoneNodes, 0, 0,
                                        vector_of_int([silo.DB_ZONETYPE_POLYGON]*numZones),
-                                       shapesize,
+                                       vector_of_int([len(zn) for zn in zoneNodes]), # shapesize,
                                        vector_of_int([1]*numZones),
                                        nullOpts) == 0
         
