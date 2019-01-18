@@ -301,10 +301,11 @@ class SpheralVoronoiSiloDump:
             det = eval("ScalarField%s('%s_determinant', n)" % (self.dimension, f.name))
             mineigen = eval("ScalarField%s('%s_eigen_min', n)" % (self.dimension, f.name))
             maxeigen = eval("ScalarField%s('%s_eigen_max', n)" % (self.dimension, f.name))
+            fvals = f.internalValues()
             for i in xrange(n.numInternalNodes):
-                tr[i] = f[i].Trace()
-                det[i] = f[i].Determinant()
-                eigen = f[i].eigenValues()
+                tr[i] = fvals[i].Trace()
+                det[i] = fvals[i].Determinant()
+                eigen = fvals[i].eigenValues()
                 mineigen[i] = eigen.minElement()
                 maxeigen[i] = eigen.maxElement()
             scalarFields += [tr, det, mineigen, maxeigen]

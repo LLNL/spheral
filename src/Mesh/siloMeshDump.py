@@ -453,11 +453,11 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
                 for subname, vals in subvars:
                     if len(vals) > 0:
-                        if isinstance(vals, vector_of_double):
-                            mixvals = vector_of_double()
+                        if type(vals[0]) == float:
+                            ctor = vector_of_double
                         else:
-                            mixvals = vector_of_int()
-                        assert silo.DBPutUcdvar1(db, "CELLS_" + subname, "MESH", vals, mixvals, silo.DB_ZONECENT, varOpts) == 0
+                            ctor = vector_of_int
+                        assert silo.DBPutUcdvar1(db, "CELLS_" + subname, "MESH", ctor(vals), ctor([]), silo.DB_ZONECENT, varOpts) == 0
 
             print "      --> %g sec to DBPutUcdvar1" % (TIME.clock() - start)
             start = TIME.clock()
@@ -469,7 +469,11 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
                 for subname, vals in subvars:
                     if len(vals) > 0:
-                        assert silo.DBPutPointvar1(db, "POINTS_" + subname, "PointMESH", vals, varOpts) == 0
+                        if type(vals[0]) == float:
+                            ctor = vector_of_double
+                        else:
+                            ctor = vector_of_int
+                        assert silo.DBPutPointvar1(db, "POINTS_" + subname, "PointMESH", ctor(vals), varOpts) == 0
 
             print "      --> %g sec to DBPutPointvar1" % (TIME.clock() - start)
             start = TIME.clock()
@@ -581,7 +585,7 @@ def extractFields(nodeLists, time, cycle, fields,
 
         # Go through and build up the full set of values.
         for fieldName in fieldsByName:
-            start = TIME.clock()
+            # start = TIME.clock()
             subfields = fieldsByName[fieldName]
             assert len(subfields) <= len(nodeLists)
 
@@ -598,10 +602,12 @@ def extractFields(nodeLists, time, cycle, fields,
                     vals = dudMethod(name, nodes.numInternalNodes, vals, dim)
             for thpt in vals:
                 assert len(thpt) == 2
+                if len(thpt[1]) != nvals:
+                    print "BLAGO : ", name, len(thpt[1]), nvals, (nodes.name in subfields)
                 assert len(thpt[1]) == nvals
 
             result.append((name, varDef, varType, optlistDef, optlistMV, optlistVar, vals))
-            print "        **> %g secs for field %s" % (TIME.clock() - start, name)
+            # print "        **> %g secs for field %s" % (TIME.clock() - start, name)
 
     return result
 
@@ -610,16 +616,16 @@ def extractFields(nodeLists, time, cycle, fields,
 #-------------------------------------------------------------------------------
 def extractIntField(name, field, vals, dim):
     if vals == []:
-        vals = [[name, vector_of_int(field)]]
+        vals = [[name, field]]
     else:
         vals[0][1] += field
     return vals
 
 def dummyIntField(name, n, vals, dim):
     if vals == []:
-        vals = [[name, vector_of_int([0]*n)]]
+        vals = [[name, [0]*n]]
     else:
-        vals[0][1].extend(vector_of_int([0]*n))
+        vals[0][1].extend([0]*n)
     return vals
 
 def metaDataIntField(name, time, cycle, dim):
@@ -637,16 +643,16 @@ def metaDataIntField(name, time, cycle, dim):
 #-------------------------------------------------------------------------------
 def extractScalarField(name, field, vals, dim):
     if vals == []:
-        vals = [[name, vector_of_double(field)]]
+        vals = [[name, field]]
     else:
         vals[0][1] += field
     return vals
 
 def dummyScalarField(name, n, vals, dim):
     if vals == []:
-        vals = [[name, vector_of_double([0.0]*n)]]
+        vals = [[name, [0.0]*n]]
     else:
-        vals[0][1].extend(vector_of_double([0.0]*n))
+        vals[0][1].extend([0.0]*n)
     return vals
 
 def metaDataScalarField(name, time, cycle, dim):
@@ -668,14 +674,19 @@ def extractVectorField(name, field, vals, dim):
 
     if dim == 2:
         if vals == []:
-            vals = [["%s_x" % name, vector_of_double([v.x for v in field])],
-                    ["%s_y" % name, vector_of_double([v.y for v in field])]]
+            vals = [["%s_x" % name, []],
+                    ["%s_y" % name, []]]
+        vals[0][1] += [v.x for v in field]
+        vals[1][1] += [v.y for v in field]
 
     else:
         if vals == []:
-            vals = [["%s_x" % name, vector_of_double([v.x for v in field])],
-                    ["%s_y" % name, vector_of_double([v.y for v in field])],
-                    ["%s_z" % name, vector_of_double([v.z for v in field])]]
+            vals = [["%s_x" % name, []],
+                    ["%s_y" % name, []],
+                    ["%s_z" % name, []]]
+        vals[0][1] += [v.x for v in field]
+        vals[1][1] += [v.y for v in field]
+        vals[2][1] += [v.z for v in field]
 
     return vals
 
@@ -684,15 +695,15 @@ def dummyVectorField(name, n, vals, dim):
     assert dim in (2,3)
     if vals == []:
         if dim == 2:
-            vals = [["%s_x" % name, vector_of_double([0.0]*n)],
-                    ["%s_y" % name, vector_of_double([0.0]*n)]]
+            vals = [["%s_x" % name, [0.0]*n],
+                    ["%s_y" % name, [0.0]*n]]
         else:
-            vals = [["%s_x" % name, vector_of_double([0.0]*n)],
-                    ["%s_y" % name, vector_of_double([0.0]*n)],
-                    ["%s_z" % name, vector_of_double([0.0]*n)]]
+            vals = [["%s_x" % name, [0.0]*n],
+                    ["%s_y" % name, [0.0]*n],
+                    ["%s_z" % name, [0.0]*n]]
     else:
         for i in xrange(dim):
-            vals[i][1].extend(vector_of_double([0.0]*n))
+            vals[i][1].extend([0.0]*n)
     return vals
 
 def metaDataVectorField(name, time, cycle, dim):
@@ -722,22 +733,36 @@ def extractTensorField(name, field, vals, dim):
     assert dim in (2,3)
     if dim == 2:
         if vals == []:
-            vals = [["%s_xx" % name, vector_of_double([t.xx for t in field])],
-                    ["%s_xy" % name, vector_of_double([t.xy for t in field])],
-                    ["%s_yx" % name, vector_of_double([t.yx for t in field])],
-                    ["%s_yy" % name, vector_of_double([t.yy for t in field])]]
-
+            vals = [["%s_xx" % name, []],
+                    ["%s_xy" % name, []],
+                    ["%s_yx" % name, []],
+                    ["%s_yy" % name, []]]
+        vals[0][1] += [t.xx for t in field]
+        vals[1][1] += [t.xy for t in field]
+        vals[2][1] += [t.yx for t in field]
+        vals[3][1] += [t.yy for t in field]
+            
     else:
         if vals == []:
-            vals = [["%s_xx" % name, vector_of_double([t.xx for t in field])],
-                    ["%s_xy" % name, vector_of_double([t.xy for t in field])],
-                    ["%s_xz" % name, vector_of_double([t.xz for t in field])],
-                    ["%s_yx" % name, vector_of_double([t.yx for t in field])],
-                    ["%s_yy" % name, vector_of_double([t.yy for t in field])],
-                    ["%s_yz" % name, vector_of_double([t.yz for t in field])],
-                    ["%s_zx" % name, vector_of_double([t.zx for t in field])],
-                    ["%s_zy" % name, vector_of_double([t.zy for t in field])],
-                    ["%s_zz" % name, vector_of_double([t.zz for t in field])]]
+            vals = [["%s_xx" % name, []],
+                    ["%s_xy" % name, []],
+                    ["%s_xz" % name, []],
+                    ["%s_yx" % name, []],
+                    ["%s_yy" % name, []],
+                    ["%s_yz" % name, []],
+                    ["%s_zx" % name, []],
+                    ["%s_zy" % name, []],
+                    ["%s_zz" % name, []]]
+
+        vals[0][1] += [t.xx for t in field]
+        vals[1][1] += [t.xy for t in field]
+        vals[2][1] += [t.xz for t in field]
+        vals[3][1] += [t.yx for t in field]
+        vals[4][1] += [t.yy for t in field]
+        vals[5][1] += [t.yz for t in field]
+        vals[6][1] += [t.zx for t in field]
+        vals[7][1] += [t.zy for t in field]
+        vals[8][1] += [t.zz for t in field]
 
     return vals
 
@@ -746,23 +771,23 @@ def dummyTensorField(name, n, vals, dim):
     assert dim in (2,3)
     if vals == []:
         if dim == 2:
-            vals = [["%s_xx" % name, vector_of_double([0.0]*n)],
-                    ["%s_xy" % name, vector_of_double([0.0]*n)],
-                    ["%s_yx" % name, vector_of_double([0.0]*n)],
-                    ["%s_yy" % name, vector_of_double([0.0]*n)]]
+            vals = [["%s_xx" % name, [0.0]*n],
+                    ["%s_xy" % name, [0.0]*n],
+                    ["%s_yx" % name, [0.0]*n],
+                    ["%s_yy" % name, [0.0]*n]]
         else:
-            vals = [["%s_xx" % name, vector_of_double([0.0]*n)],
-                    ["%s_xy" % name, vector_of_double([0.0]*n)],
-                    ["%s_xz" % name, vector_of_double([0.0]*n)],
-                    ["%s_yx" % name, vector_of_double([0.0]*n)],
-                    ["%s_yy" % name, vector_of_double([0.0]*n)],
-                    ["%s_yz" % name, vector_of_double([0.0]*n)],
-                    ["%s_zx" % name, vector_of_double([0.0]*n)],
-                    ["%s_zy" % name, vector_of_double([0.0]*n)],
-                    ["%s_zz" % name, vector_of_double([0.0]*n)]]
+            vals = [["%s_xx" % name, [0.0]*n],
+                    ["%s_xy" % name, [0.0]*n],
+                    ["%s_xz" % name, [0.0]*n],
+                    ["%s_yx" % name, [0.0]*n],
+                    ["%s_yy" % name, [0.0]*n],
+                    ["%s_yz" % name, [0.0]*n],
+                    ["%s_zx" % name, [0.0]*n],
+                    ["%s_zy" % name, [0.0]*n],
+                    ["%s_zz" % name, [0.0]*n]]
     else:
         for i in xrange(dim*dim):
-            vals[i][1].extend(vector_of_double([0.0]*n))
+            vals[i][1].extend([0.0]*n)
     return vals
 
 def metaDataTensorField(name, time, cycle, dim):
