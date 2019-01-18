@@ -329,9 +329,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
 
         start = TIME.clock()
 
-        cells = mesh.cells
-        faces = mesh.faces
-        nodes = mesh.nodes
+        faces = mesh.facesAsInts
         if nDim == 2:
         
             # Read out the zone nodes.  We rely on these already being arranged
@@ -340,13 +338,13 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             shapesize = vector_of_int()
             for zoneID in xrange(numZones):
                 znodes = []
-                for iface in cells[zoneID]:
+                for iface in mesh.cells[zoneID]:
                     if iface < 0:
                         znodes.append(faces[~iface][1])
                     else:
                         znodes.append(faces[iface][0])
                 zoneNodes.append(vector_of_int(znodes))
-                shapesize.append(len(nodes))
+                shapesize.append(len(mesh.nodes))
             assert len(zoneNodes) == numZones
             assert len(shapesize) == numZones
             assert silo.DBPutZonelist2(db, zonelistName[nDim], nDim, zoneNodes, 0, 0,
@@ -358,38 +356,20 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         # Write a Polyhedral zone list.
         if nDim == 3:
         
-            # Construct the face-node lists.
-            # numFaces = len(faces)
-            # faceNodes = vector_of_vector_of_int()
-            # for iface in xrange(numFaces):
-            #     stuff = []
-            #     faceNodes.append(vector_of_int())
-            #     for j in xrange(len(faces[iface])):
-            #         faceNodes[iface].append(faces[iface][j])
-            #     assert len(faceNodes[iface]) == len(faces[iface])
-            # assert len(faceNodes) == numFaces
-       
             # Construct the zone-face list.  We use the ones complement of a face ID
             # to indicate that face needs to be reversed in reference to this zone.
             # This is the same convention as polytope, so just copy it.
-            assert silo.DBPutPHZonelist(db, zonelistName[nDim], 
-                                        vector_of_vector_of_int([vector_of_int(thing) for thing in faces]),
-                                        cells, # vector_of_vector_of_int([vector_of_int(thing) for thing in cells]),
-                                        0, (numZones - 1), nullOpts) == 0
+            assert silo.DBPutPHZonelist(db, zonelistName[nDim], faces, mesh.cells, 0, (numZones - 1), nullOpts) == 0
         
         print "    --> %g sec to write PHzonelist" % (TIME.clock() - start)
         start = TIME.clock()
 
         # Construct the mesh node coordinates.
-        assert len(nodes) % nDim == 0
-        numNodes = len(nodes)/nDim
+        assert len(mesh.nodes) % nDim == 0
         if nDim == 2:
-            coords = vector_of_vector_of_double([vector_of_double([nodes[i*nDim    ] for i in xrange(numNodes)]),
-                                                 vector_of_double([nodes[i*nDim + 1] for i in xrange(numNodes)])])
+            coords = vector_of_vector_of_double([mesh.xnodes, mesh.ynodes])
         else:
-            coords = vector_of_vector_of_double([vector_of_double([nodes[i*nDim    ] for i in xrange(numNodes)]),
-                                                 vector_of_double([nodes[i*nDim + 1] for i in xrange(numNodes)]),
-                                                 vector_of_double([nodes[i*nDim + 2] for i in xrange(numNodes)])])
+            coords = vector_of_vector_of_double([mesh.xnodes, mesh.ynodes, mesh.znodes])
         assert len(coords) == nDim
         
         print "    --> %g sec to compute coords" % (TIME.clock() - start)
