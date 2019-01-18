@@ -372,9 +372,9 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             # Construct the zone-face list.  We use the ones complement of a face ID
             # to indicate that face needs to be reversed in reference to this zone.
             # This is the same convention as polytope, so just copy it.
-            assert silo.DBPutPHZonelist(db, zonelistName[nDim],
+            assert silo.DBPutPHZonelist(db, zonelistName[nDim], 
                                         vector_of_vector_of_int([vector_of_int(thing) for thing in faces]),
-                                        vector_of_vector_of_int([vector_of_int(thing) for thing in cells]),
+                                        cells, # vector_of_vector_of_int([vector_of_int(thing) for thing in cells]),
                                         0, (numZones - 1), nullOpts) == 0
         
         print "    --> %g sec to write PHzonelist" % (TIME.clock() - start)
