@@ -62,14 +62,14 @@ def siloMeshDump(dirName, mesh,
             os.makedirs(dirName)
     mpi.barrier()
 
-    start = TIME.clock()
+    # start = TIME.clock()
 
     # Extract all the fields we're going to write.
     fieldwad = extractFieldComponents(nodeLists, time, cycle,
                                       intFields, scalarFields, vectorFields, tensorFields, symTensorFields)
 
-    print "  --> %g sec to extractFieldComponents" % (TIME.clock() - start)
-    start = TIME.clock()
+    # print "  --> %g sec to extractFieldComponents" % (TIME.clock() - start)
+    # start = TIME.clock()
 
     # index2zone is used to map a Node->(set of zones) if necessary, for instance when tetrahedralizing a polyhedral tessellation of the Nodes.
     if index2zone:
@@ -89,21 +89,21 @@ def siloMeshDump(dirName, mesh,
     else:
         index2zone = [[i,] for i in xrange(len(mesh.cells))]
 
-    print "  --> %g sec for index2zone" % (TIME.clock() - start)
-    start = TIME.clock()
+    # print "  --> %g sec for index2zone" % (TIME.clock() - start)
+    # start = TIME.clock()
 
     # If we're domain 0 we write the master file.
     masterfile = writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldwad)
 
-    print "  --> %g sec for masterfile" % (TIME.clock() - start)
-    start = TIME.clock()
+    # print "  --> %g sec for masterfile" % (TIME.clock() - start)
+    # start = TIME.clock()
 
     # Each domain writes it's domain file.
     writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, cycle, fieldwad,
                             pretendRZ, nodeArrays, zoneArrays, faceArrays)
 
-    print "  --> %g sec for domain file" % (TIME.clock() - start)
-    start = TIME.clock()
+    # print "  --> %g sec for domain file" % (TIME.clock() - start)
+    # start = TIME.clock()
 
     # That's it.
     return masterfile
@@ -327,7 +327,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         zonelistName = { 2 : "zonelist",
                          3 : "PHzonelist" }
 
-        start = TIME.clock()
+        # start = TIME.clock()
 
         faces = mesh.facesAsInts
         if nDim == 2:
@@ -350,8 +350,8 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             # This is the same convention as polytope, so just copy it.
             assert silo.DBPutPHZonelist(db, zonelistName[nDim], faces, mesh.cells, 0, (numZones - 1), nullOpts) == 0
         
-        print "    --> %g sec to write PHzonelist" % (TIME.clock() - start)
-        start = TIME.clock()
+        # print "    --> %g sec to write PHzonelist" % (TIME.clock() - start)
+        # start = TIME.clock()
 
         # Construct the mesh node coordinates.
         assert len(mesh.nodes) % nDim == 0
@@ -361,8 +361,8 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             coords = vector_of_vector_of_double([mesh.xnodes, mesh.ynodes, mesh.znodes])
         assert len(coords) == nDim
         
-        print "    --> %g sec to compute coords" % (TIME.clock() - start)
-        start = TIME.clock()
+        # print "    --> %g sec to compute coords" % (TIME.clock() - start)
+        # start = TIME.clock()
 
         # Write the mesh itself.
         meshOpts = silo.DBoptlist(1024)
@@ -381,8 +381,8 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             assert meshOpts.addOption(silo.DBOPT_PHZONELIST, zonelistName[nDim]) == 0
             assert silo.DBPutUcdmesh(db, "MESH", coords, numZones, "NULL", "NULL", meshOpts) == 0
         
-        print "    --> %g sec to write mesh" % (TIME.clock() - start)
-        start = TIME.clock()
+        # print "    --> %g sec to write mesh" % (TIME.clock() - start)
+        # start = TIME.clock()
 
         # Write materials.
         if nodeLists:
@@ -409,8 +409,8 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             assert silo.DBPutMaterial(db, "PointMATERIAL", "PointMESH", matnos, matlist, vector_of_int(),
                                       vector_of_int(), vector_of_int(), vector_of_int(), vector_of_double(),
                                       matOpts) == 0
-            print "      --> %g sec to DBPutMaterial" % (TIME.clock() - start)
-            start = TIME.clock()
+            # print "      --> %g sec to DBPutMaterial" % (TIME.clock() - start)
+            # start = TIME.clock()
         
             # Write the variable descriptions for non-scalar variables (vector and tensors).
             #writeDefvars(db, fieldwad)
@@ -428,8 +428,8 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
                             ctor = vector_of_int
                         assert silo.DBPutUcdvar1(db, "CELLS_" + subname, "MESH", ctor(vals), ctor([]), silo.DB_ZONECENT, varOpts) == 0
 
-            print "      --> %g sec to DBPutUcdvar1" % (TIME.clock() - start)
-            start = TIME.clock()
+            # print "      --> %g sec to DBPutUcdvar1" % (TIME.clock() - start)
+            # start = TIME.clock()
 
             # HACK: Write the field components on the point mesh as well.  Remove when the vardef version is working.
             varOpts = silo.DBoptlist(1024)
@@ -444,8 +444,8 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
                             ctor = vector_of_int
                         assert silo.DBPutPointvar1(db, "POINTS_" + subname, "PointMESH", ctor(vals), varOpts) == 0
 
-            print "      --> %g sec to DBPutPointvar1" % (TIME.clock() - start)
-            start = TIME.clock()
+            # print "      --> %g sec to DBPutPointvar1" % (TIME.clock() - start)
+            # start = TIME.clock()
 
         # print "    --> %g sec to write materials" % (TIME.clock() - start)
         # start = TIME.clock()
