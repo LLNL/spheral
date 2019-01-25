@@ -160,10 +160,10 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
                  nNodePerh = 2.01,
                  SPH = False):
         self.surface = surface
-        surfaceFacets = surface.facets()
-        surfaceVertices = surface.vertices()
-        vertexNorms = surface.vertexUnitNorms()
-        facetNeighbors = surface.facetFacetConnectivity()
+        surfaceFacets = surface.facets
+        surfaceVertices = surface.vertices
+        vertexNorms = surface.vertexUnitNorms
+        facetNeighbors = surface.facetFacetConnectivity
 
         assert lconstant <= lextrude
 
