@@ -44,28 +44,8 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/refinePolyhedron.hh"',
                   '"Utilities/overlayRemapFields.hh"',
                   '"Utilities/computeShepardsInterpolation.hh"',
+                  '"Utilities/clipFacetedVolume.hh"',
                   '"Utilities/Timer.hh"']
-
-PYB11preamble += """
-#ifndef NOR3D
-#include "Utilities/r3d_utils.hh"
-#else
-//------------------------------------------------------------------------------
-// Stub these methods out when we're not allowing R3D.
-//------------------------------------------------------------------------------
-namespace Spheral {
-  inline Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
-                                                 const std::vector<GeomPlane<Dim<2> > >& planes) {
-    VERIFY2(false, "ERROR: clipFacetedVolume unavailable without R3D.");
-  }
-
-  inline Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
-                                                 const std::vector<GeomPlane<Dim<3> > >& planes) {
-    VERIFY2(false, "ERROR: clipFacetedVolume unavailable without R3D.");
-  }
-}
-#endif
-"""
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -685,7 +665,7 @@ def refinePolyhedron(poly0 = "const Dim<3>::FacetedVolume&",
     return "Dim<3>::FacetedVolume"
 
 #-------------------------------------------------------------------------------
-# R2D/R3D utilities
+# PolyClipper utilities
 #-------------------------------------------------------------------------------
 @PYB11pycppname("clipFacetedVolume")
 def clipFacetedVolume1(poly = "const Dim<2>::FacetedVolume&",
