@@ -174,11 +174,7 @@ dx = xlength/nx
 dy = ylength/ny
 
 if crksph:
-    hydroname = os.path.join("CRKSPH", {0 : "CRKMassOverDensity",
-                                        1 : "CRKSumVolume",
-                                        2 : "CRKVoronoiVolume",
-                                        3 : "CRKHullVolume",
-                                        4 : "HVolume"}[volumeType])
+    hydroname = os.path.join("CRKSPH", str(volumeType))
     nPerh = 1.51
     order = 5
 else:
