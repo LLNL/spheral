@@ -21,7 +21,7 @@ find_path( HDF5_INCLUDE_DIRS hdf5.h
            NO_SYSTEM_ENVIRONMENT_PATH
            NO_CMAKE_SYSTEM_PATH)
 
-find_library( __HDF5_LIBRARY NAMES hdf5 libhdf5 hdf5_hl libhdf5_hl
+find_library( __HDF5_LIBRARY NAMES hdf5 libhdf5 hdf5_D hdf5_debug
               PATHS ${HDF5_DIR}/lib
               NO_DEFAULT_PATH
               NO_CMAKE_ENVIRONMENT_PATH
@@ -29,13 +29,14 @@ find_library( __HDF5_LIBRARY NAMES hdf5 libhdf5 hdf5_hl libhdf5_hl
               NO_SYSTEM_ENVIRONMENT_PATH
               NO_CMAKE_SYSTEM_PATH)
 
-find_library( __HDF5_HL_LIBRARY NAMES hdf5_hl libhdf5_hl
+find_library( __HDF5_HL_LIBRARY NAMES hdf5_hl libhdf5_hl hdf5_hl_D hdf5_hl_debug
               PATHS ${HDF5_DIR}/lib
               NO_DEFAULT_PATH
               NO_CMAKE_ENVIRONMENT_PATH
               NO_CMAKE_PATH
               NO_SYSTEM_ENVIRONMENT_PATH
               NO_CMAKE_SYSTEM_PATH)
+
 
 set(HDF5_LIBRARIES ${__HDF5_HL_LIBRARY} ${__HDF5_LIBRARY})
 
