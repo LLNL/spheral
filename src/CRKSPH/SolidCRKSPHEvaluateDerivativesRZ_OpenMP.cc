@@ -58,7 +58,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
   const auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
-  const auto voidPoint = state.fields(HydroFieldNames::voidPoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -80,7 +79,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   CHECK(gradB.size() == numNodeLists);
   CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
   CHECK(surfacePoint.size() == numNodeLists);
-  CHECK(voidPoint.size() == numNodeLists);
 
   const auto& Hfield0 = this->Hfield0();
 
@@ -325,13 +323,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
             // Zero'th and second moment of the node distribution -- used for the
             // ideal H calculation.
-            if (voidPoint(nodeListi, i) == 0 and voidPoint(nodeListj, j) == 0) {
-              const auto fweightij = nodeListi == nodeListj ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
-              const auto xij2 = xij.magnitude2();
-              const auto thpt = xij.selfdyad()*safeInvVar(xij2*xij2*xij2);
-              weightedNeighborSumi +=     fweightij*std::abs(gWi);
-              massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;
-            }
+            const auto fweightij = nodeListi == nodeListj ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
+            const auto xij2 = xij.magnitude2();
+            const auto thpt = xij.selfdyad()*safeInvVar(xij2*xij2*xij2);
+            weightedNeighborSumi +=     fweightij*std::abs(gWi);
+            massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;
 
             // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
             std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,

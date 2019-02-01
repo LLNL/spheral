@@ -172,7 +172,6 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mGradm3(FieldStorageType::CopyFields),
   mGradm4(FieldStorageType::CopyFields),
   mSurfacePoint(FieldStorageType::CopyFields),
-  mVoidPoint(FieldStorageType::CopyFields),
   mEtaVoidPoints(FieldStorageType::CopyFields),
   mVoidBoundary(mSurfacePoint, mEtaVoidPoints),
   mRestart(registerWithRestart(*this)) {
@@ -241,7 +240,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // We need volumes in order to prepare the surface detection.
   mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
-  mVoidPoint = dataBase.newFluidFieldList(0, HydroFieldNames::voidPoint);
   mEtaVoidPoints = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::etaVoidPoints);
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -265,7 +263,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                          vector<Boundary<Dimension>*>(this->boundaryBegin(),        // boundaries
                                                       this->boundaryEnd()),
                          FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
-                         mVoidPoint,                                                // void point flags
                          mSurfacePoint, mVolume, mDeltaCentroid, mEtaVoidPoints,    // return values
                          cells);                                                    // no return cells
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
@@ -359,7 +356,6 @@ registerState(DataBase<Dimension>& dataBase,
     dataBase.resizeFluidFieldList(mGradm4,   FifthRankTensor::zero, HydroFieldNames::m4_CRKSPH, false);
   }
   dataBase.resizeFluidFieldList(mSurfacePoint, 0, HydroFieldNames::surfacePoint, false);
-  dataBase.resizeFluidFieldList(mVoidPoint, 0, HydroFieldNames::voidPoint, false);
   dataBase.resizeFluidFieldList(mEtaVoidPoints, vector<Vector>(), HydroFieldNames::etaVoidPoints, false);
 
   // We have to choose either compatible or total energy evolution.
@@ -486,7 +482,6 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mGradm3);
   state.enroll(mGradm4);
   state.enroll(mSurfacePoint);
-  state.enroll(mVoidPoint);
 
   // We also register the delta centroid for visualiation purposes.
   if (mfilter > 0.0 and mVolumeType == CRKVolumeType::CRKVoronoiVolume) state.enroll(mDeltaCentroid);
@@ -665,7 +660,6 @@ finalize(const typename Dimension::Scalar time,
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, Vector> gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
-  const FieldList<Dimension, int> voidPoint = state.fields(HydroFieldNames::voidPoint, 0);
   const FieldList<Dimension, SymTensor> damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
@@ -683,7 +677,6 @@ finalize(const typename Dimension::Scalar time,
                          vector<Boundary<Dimension>*>(this->boundaryBegin(),         // boundaries
                                                       this->boundaryEnd()),
                          FieldList<Dimension, typename Dimension::Scalar>(),         // no weights
-                         voidPoint,                                                  // void point flags
                          surfacePoint, vol, mDeltaCentroid, mEtaVoidPoints,          // return values
                          cells);                                                     // no return cells
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
@@ -725,7 +718,7 @@ finalize(const typename Dimension::Scalar time,
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
   if (densityUpdate() == MassDensityType::RigorousSumDensity) {
-    computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, vol, H, mVoidPoint, massDensity);
+    computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, vol, H, massDensity);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) {
@@ -812,7 +805,6 @@ applyGhostBoundaries(State<Dimension>& state,
   auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
   auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
-  auto voidPoint = state.fields(HydroFieldNames::voidPoint, 0);
   auto etaVoidPoints = state.fields(HydroFieldNames::etaVoidPoints, vector<Vector>());
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
@@ -836,7 +828,6 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(gradB);
     (*boundaryItr)->applyFieldListGhostBoundary(gradC);
     (*boundaryItr)->applyFieldListGhostBoundary(surfacePoint);
-    (*boundaryItr)->applyFieldListGhostBoundary(voidPoint);
     (*boundaryItr)->applyFieldListGhostBoundary(etaVoidPoints);
   }
 }

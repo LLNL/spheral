@@ -222,7 +222,6 @@ public:
   const FieldList<Dimension, FifthRankTensor>&       gradm4() const;
 
   const FieldList<Dimension, int>&       surfacePoint() const;
-  const FieldList<Dimension, int>&       voidPoint() const;
   const FieldList<Dimension, std::vector<Vector>>& etaVoidPoints() const;
 
   //****************************************************************************
@@ -299,7 +298,6 @@ protected:
   FieldList<Dimension, FifthRankTensor>       mGradm4;
 
   FieldList<Dimension, int>       mSurfacePoint;
-  FieldList<Dimension, int>       mVoidPoint;
   FieldList<Dimension, std::vector<Vector>> mEtaVoidPoints;
 
   CRKSPHVoidBoundary<Dimension> mVoidBoundary;

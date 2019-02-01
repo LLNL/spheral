@@ -509,10 +509,8 @@ def dumpPhysicsState(stateThingy,
     holes = eval("vector_of_vector_of_FacetedVolume%id()" % dataBase.nDim)
     if state.fieldNameRegistered(HydroFieldNames.surfacePoint):
         surfacePoint = state.intFields(HydroFieldNames.surfacePoint)
-        voidPoint = state.intFields(HydroFieldNames.voidPoint)
     else:
         surfacePoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.surfacePoint)
-        voidPoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.voidPoint)
     if state.fieldNameRegistered(HydroFieldNames.volume):
         vol = state.scalarFields(HydroFieldNames.volume)
     else:
@@ -532,7 +530,6 @@ def dumpPhysicsState(stateThingy,
                          holes,
                          boundaries,
                          weight,
-                         voidPoint,
                          surfacePoint,
                          vol,
                          deltaMedian,
