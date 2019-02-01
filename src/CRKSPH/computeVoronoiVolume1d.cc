@@ -38,7 +38,6 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
                      const std::vector<std::vector<Dim<1>::FacetedVolume> >& holes,
                      const std::vector<Boundary<Dim<1>>*>& boundaries,
                      const FieldList<Dim<1>, Dim<1>::Scalar>& weight,
-                     const FieldList<Dim<1>, int>& voidPoint,
                      FieldList<Dim<1>, int>& surfacePoint,
                      FieldList<Dim<1>, Dim<1>::Scalar>& vol,
                      FieldList<Dim<1>, Dim<1>::Vector>& deltaMedian,
@@ -136,11 +135,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         // the direction is here reversed from 2d, so it should weight on the i side
         x1 = wij*(position(nodeListj1, j1).x() - position(nodeListi, i).x());
         // phi = min(phi, max(0.0, gradRhoi*2.0*x1*safeInvVar(rho1 - rhoi)));
-        if (voidPoint(nodeListj1, j1) == 1) {
-          surfacePoint(nodeListi, i) |= 1;
-          etaVoidPoints(nodeListi, i).push_back(-0.5*rin);
-          // cerr << "Surface condition 2: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
-        } else if (nodeListj1 != nodeListi) {
+        if (nodeListj1 != nodeListi) {
           surfacePoint(nodeListi, i) |= (1 << (nodeListj1 + 1));
           // cerr << "Surface condition 3: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
         }
@@ -160,11 +155,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         rho2 = rho(nodeListj2, j2);
         x2 = 0.5*(position(nodeListj2, j2).x() - position(nodeListi, i).x());
         // phi = min(phi, max(0.0, gradRhoi*2.0*x2*safeInvVar(rho2 - rhoi)));
-        if (voidPoint(nodeListj2, j2) == 1) {
-          surfacePoint(nodeListi, i) |= 1;
-          etaVoidPoints(nodeListi, i).push_back(0.5*rin);
-          // cerr << "Surface condition 5: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
-        } else if (nodeListj2 != nodeListi) {
+        if (nodeListj2 != nodeListi) {
           surfacePoint(nodeListi, i) |= (1 << (nodeListj2 + 1));
           // cerr << "Surface condition 6: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
         }
@@ -251,7 +242,6 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
            "(" << nodeListi << " " << i << ") " << xi << " " << surfacePoint(nodeListi, i) << " " << etaVoidPoints(nodeListi, i).size());
 
     // cerr << "  " << i << " " << vol(nodeListi, i) << " " << surfacePoint(nodeListi, i) << " "
-    //      << j1 << " " << j2 << " " << voidPoint(nodeListj1, j1) << " " << voidPoint(nodeListj2, j2)
     //      << " ---- " << position(nodeListj1, j1).x() << " " << position(nodeListi, i) << " " << position(nodeListj2, j2).x() 
     //      << endl;
 

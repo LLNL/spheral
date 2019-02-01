@@ -23,7 +23,6 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                             const FieldList<Dimension, typename Dimension::Scalar>& mass,
                             const FieldList<Dimension, typename Dimension::Scalar>& vol,
                             const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                            const FieldList<Dimension, int>& voidPoint,
                             FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
 
   // Pre-conditions.
@@ -80,24 +79,22 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
         const auto j = *jItr;
 
         // Check if this node pair has already been calculated.
-        if (voidPoint(nodeListi, j) == 0) {
-          const auto& rj = position(nodeListi, j);
-          const auto  mj = mass(nodeListi, j);
-          const auto  Vj = vol(nodeListi, j);
-          const auto  rhoj = massDensity(nodeListi, j);
-          const auto& Hj = H(nodeListi, j);
-          const auto  Hdetj = Hj.Determinant();
+        const auto& rj = position(nodeListi, j);
+        const auto  mj = mass(nodeListi, j);
+        const auto  Vj = vol(nodeListi, j);
+        const auto  rhoj = massDensity(nodeListi, j);
+        const auto& Hj = H(nodeListi, j);
+        const auto  Hdetj = Hj.Determinant();
 
-          // Kernel weighting and gradient.
-          rij = ri - rj;
-          etaj = Hj*rij;
-          Wj = W.kernelValue(etaj.magnitude(), Hdetj);
+        // Kernel weighting and gradient.
+        rij = ri - rj;
+        etaj = Hj*rij;
+        Wj = W.kernelValue(etaj.magnitude(), Hdetj);
 
-          // Sum the pair-wise contributions.
-          wsum(nodeListi, i) += Vj*Wj;
-          massDensity(nodeListi, i) += mj * Vj*Wj;
-          vol1(nodeListi, i) += Vj * Vj*Wj;
-        }
+        // Sum the pair-wise contributions.
+        wsum(nodeListi, i) += Vj*Wj;
+        massDensity(nodeListi, i) += mj * Vj*Wj;
+        vol1(nodeListi, i) += Vj * Vj*Wj;
       }
   
       // Finalize the density and volume for node i.

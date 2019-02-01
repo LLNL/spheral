@@ -191,7 +191,6 @@ damage = SymTensorFieldList()                      # No damage
 gradRho = db.newFluidVectorFieldList(Vector.zero, "grad rho")
 holes = vector_of_vector_of_FacetedVolume([vector_of_FacetedVolume()])
 surfacePoint = db.newFluidIntFieldList(0, HydroFieldNames.surfacePoint)
-voidPoint = db.newFluidIntFieldList(0, HydroFieldNames.voidPoint)
 vol = db.newFluidScalarFieldList(0.0, HydroFieldNames.volume)
 deltaMedian = db.newFluidVectorFieldList(Vector.zero, "centroidal delta")
 etaVoidPoints = db.newFluidvector_of_VectorFieldList(vector_of_Vector(), "eta void points")
@@ -208,7 +207,6 @@ computeVoronoiVolume(db.fluidPosition,
                      holes,
                      bounds,
                      weight,
-                     voidPoint,
                      surfacePoint,
                      vol,
                      deltaMedian,

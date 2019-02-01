@@ -20,7 +20,6 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                             const FieldList<Dimension, typename Dimension::Scalar>& mass,
                             const FieldList<Dimension, typename Dimension::Scalar>& vol,
                             const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                            const FieldList<Dimension, int>& voidPoint,
                             FieldList<Dimension, typename Dimension::Scalar>& massDensity);
 
 }

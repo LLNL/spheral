@@ -193,7 +193,6 @@ mass density, velocity, and specific thermal energy."""
     gradm4 = PYB11property("const FieldList<%(Dimension)s, FifthRankTensor>&", "gradm4", returnpolicy="reference_internal")
 
     surfacePoint = PYB11property("const FieldList<%(Dimension)s, int>&", "surfacePoint", returnpolicy="reference_internal")
-    voidPoint = PYB11property("const FieldList<%(Dimension)s, int>&", "voidPoint", returnpolicy="reference_internal")
     etaVoidPoints = PYB11property("const FieldList<%(Dimension)s, std::vector<Vector>>&", "etaVoidPoints", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------

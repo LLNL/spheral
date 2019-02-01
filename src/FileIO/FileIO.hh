@@ -6,10 +6,6 @@
 #ifndef __Spheral__FileIO_hh__
 #define __Spheral__FileIO_hh__
 
-#ifndef CXXONLY
-#include "Python.h"
-#endif
-
 #include "Geometry/Dimension.hh"
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/packElement.hh"
@@ -17,6 +13,14 @@
 #include <vector>
 #include <string>
 #include <sstream>
+
+#ifndef CXXONLY
+// Forward declare PyObject
+#ifndef PyObject_HEAD
+struct _object;
+typedef _object PyObject;
+#endif
+#endif
 
 namespace Spheral {
 
