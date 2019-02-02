@@ -317,7 +317,8 @@ def computeVoronoiVolume%(ndim)id(position = "const FieldList<%(Dimension)s, %(D
                                   vol = "FieldList<%(Dimension)s, %(Dimension)s::Scalar>&",
                                   deltaMedian = "FieldList<%(Dimension)s, %(Dimension)s::Vector>&",
                                   etaVoidPoints = "FieldList<%(Dimension)s, std::vector<%(Dimension)s::Vector>>&",
-                                  cells = "FieldList<%(Dimension)s, %(Dimension)s::FacetedVolume>&"):
+                                  cells = "FieldList<%(Dimension)s, %(Dimension)s::FacetedVolume>&",
+                                  cellFaceFlags = "FieldList<%(Dimension)s, std::vector<int>>&"):
     "Compute the volume per point based on the Voronoi tessellation-like algorithm."
     return "void"
 

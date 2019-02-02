@@ -55,6 +55,7 @@ FieldListSet%(ndim)sd = PYB11TemplateClass(FieldListSet, template_parameters="Di
     #...........................................................................
     # non-numeric types
     for (value, label) in (("Dim<%i>::FacetedVolume" % ndim,       "FacetedVolume"), 
+                           ("std::vector<int>",                    "VectorInt"),
                            ("std::vector<double>",                 "VectorDouble"),
                            ("std::vector<Dim<%i>::Vector>" % ndim, "VectorVector"),
                            ("std::vector<Dim<%i>::Tensor>" % ndim, "VectorSymTensor"),

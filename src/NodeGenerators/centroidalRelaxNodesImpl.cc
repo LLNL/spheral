@@ -85,6 +85,7 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
 
   // Make a dummy set of cells so we don't ask computeVoronoiVolume to compute the return FacetedVolumes every step.
   FieldList<Dimension, FacetedVolume> dummyCells;
+  FieldList<Dimension, vector<int>> cellFaceFlags;
 
   // Make sure the density starts out consistently, and kick-start the volume using m/rho.
   for (auto nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {
@@ -144,8 +145,8 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
     // but expedient/efficient).
     std::clock_t tvoro = std::clock();
     computeVoronoiVolume(pos, H, rhof, gradRhof, cm, D, volumeBoundaries, holes, boundaries,
-                                      FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
-                                      surfacePoint, vol, deltaCentroid, etaVoidPoints, dummyCells);
+                         FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
+                         surfacePoint, vol, deltaCentroid, etaVoidPoints, dummyCells, cellFaceFlags);
     tvoro = std::clock() - tvoro;
      
     // Apply boundary conditions.
@@ -217,8 +218,8 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
   if (cells.size() > 0) {
     const auto& cm = db.connectivityMap();
     computeVoronoiVolume(pos, H, rhof, gradRhof, cm, D, volumeBoundaries, holes, boundaries,
-                                      FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
-                                      surfacePoint, vol, deltaCentroid, etaVoidPoints, cells);
+                         FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
+                         surfacePoint, vol, deltaCentroid, etaVoidPoints, cells, cellFaceFlags);
   }
 
   // Return how many iterations we actually took.

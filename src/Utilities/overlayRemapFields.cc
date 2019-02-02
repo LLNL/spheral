@@ -124,8 +124,9 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     auto deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
     FieldList<Dimension, FacetedVolume> cells_fl(FieldStorageType::ReferenceFields);
     cells_fl.appendField(localDonorCells);
+    auto cellFaceFlags_fl = db.newFluidFieldList(vector<int>(), "face flags");
     computeVoronoiVolume(position, H, rho, gradrho, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, 
-                                      surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl);
+                         surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl, cellFaceFlags_fl);
     const_cast<NodeList<Dimension>*>(donorNodeListPtr)->numGhostNodes(0);
     neighborD.updateNodes();
     // cerr << "Donor volume range: " << vol.min() << " " << vol.max() << endl;
@@ -154,8 +155,9 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     auto deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
     FieldList<Dimension, FacetedVolume> cells_fl(FieldStorageType::ReferenceFields);
     cells_fl.appendField(localAcceptorCells);
+    auto cellFaceFlags_fl = db.newFluidFieldList(vector<int>(), "face flags");
     computeVoronoiVolume(position, H, rho, gradrho, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, 
-                                      surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl);
+                         surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl, cellFaceFlags_fl);
     const_cast<NodeList<Dimension>*>(acceptorNodeListPtr)->numGhostNodes(0);
     neighborA.updateNodes();
     // cerr << "Acceptor volume range: " << vol.min() << " " << vol.max() << endl;

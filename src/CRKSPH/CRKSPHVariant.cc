@@ -196,6 +196,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   } else if (this->mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     this->mVolume.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
+    FieldList<Dimension, vector<int>> cellFaceFlags;
     const FieldList<Dimension, typename Dimension::SymTensor> damage = dataBase.solidEffectiveDamage();
     computeVoronoiVolume(position, H, massDensity, this->mMassDensityGradient, connectivityMap, damage,
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries
@@ -203,7 +204,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                          vector<Boundary<Dimension>*>(),                            // no boundaries
                          FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
                          this->mSurfacePoint, this->mVolume, this->mDeltaCentroid, this->mEtaVoidPoints,    // return values
-                         cells);                                                    // no return cells
+                         cells, cellFaceFlags);                                     // no return cells
   } else if (this->mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, this->mVolume);
   } else if (this->mVolumeType == CRKVolumeType::HVolume) {
