@@ -114,22 +114,34 @@ class SEAGenerator3d(NodeGeneratorBase):
         ps = [p1,p2,p3,p4]
         
         for pn in ps:
-            if rejecter:
-                if rejecter.accept(drc*pn[0],drc*pn[1],drc*pn[2]):
-                    self.positions.append(pn)
-            else:
-                self.positions.append(pn)
+            self.positions.append(pn)
+        mi = self.densityProfileMethod(drc*0.5)*(4.0/3.0*3.14159*drc**3)/4.0
 
         for pn in ps:
-            x = pn[0]
-            y = pn[1]
-            z = pn[2]
+            x = pn[0]*0.5*drc
+            y = pn[1]*0.5*drc
+            z = pn[2]*0.5*drc
 
-            self.x.append(x)
-            self.y.append(y)
-            self.z.append(z)
-            self.m.append(mi)
-            self.H.append(SymTensor3d.one*(1.0/hi))
+            if rejecter:
+                if rejecter.accpet(x,y,z):
+                    self.x.append(x)
+                    self.y.append(y)
+                    self.z.append(z)
+                    self.m.append(mi)
+                    self.H.append(SymTensor3d.one*(1.0/hi))
+            else:
+                self.x.append(x)
+                self.y.append(y)
+                self.z.append(z)
+                self.m.append(mi)
+                self.H.append(SymTensor3d.one*(1.0/hi))
+
+        # now march up to the surface
+        r = 0
+        dr = drc
+        while r <= rmax:
+            r += dr
+                
     
         # If requested, shift the nodes.
         if offset:
