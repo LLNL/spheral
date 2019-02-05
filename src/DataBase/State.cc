@@ -316,12 +316,14 @@ policy(const typename State<Dimension>::KeyType& key) const {
   KeyType fieldKey, nodeKey;
   this->splitFieldKey(key, fieldKey, nodeKey);
   const typename PolicyMapType::const_iterator outerItr = mPolicyMap.find(fieldKey);
-  VERIFY2(outerItr != mPolicyMap.end(),
-          "State ERROR: attempted to retrieve non-existent policy for key " << key);
+  if (outerItr == mPolicyMap.end()) return PolicyPointer();
+  // VERIFY2(outerItr != mPolicyMap.end(),
+  //         "State ERROR: attempted to retrieve non-existent policy for key " << key);
   const std::map<KeyType, PolicyPointer>& policies = outerItr->second;
   const typename std::map<KeyType, PolicyPointer>::const_iterator innerItr = policies.find(key);
-  VERIFY2(innerItr != policies.end(),
-          "State ERROR: attempted to retrieve non-existent policy for key " << key);
+  if (innerItr == policies.end()) return PolicyPointer();
+  // VERIFY2(innerItr != policies.end(),
+  //         "State ERROR: attempted to retrieve non-existent policy for key " << key);
   return innerItr->second;
 }
 
