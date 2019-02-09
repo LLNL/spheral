@@ -6,7 +6,15 @@ from FieldList import *
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "Value")
 @PYB11pycppname("FieldList")
-class ArithmeticFieldList(FieldList):
+class ArithmeticFieldList(FieldListBase):
+
+    PYB11typedefs = """
+    typedef FieldList<%(Dimension)s, %(Value)s> FieldListType;
+    typedef Field<%(Dimension)s, %(Value)s> FieldType;
+    typedef NodeList<%(Dimension)s> NodeListType;
+    typedef %(Dimension)s::Vector Vector;
+    typedef %(Dimension)s::SymTensor SymTensor;
+"""
 
     # @PYB11const
     # @PYB11cppname("operator()")

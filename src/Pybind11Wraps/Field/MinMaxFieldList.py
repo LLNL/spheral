@@ -6,7 +6,15 @@ from ArithmeticFieldList import *
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "Value")
 @PYB11pycppname("FieldList")
-class MinMaxFieldList(ArithmeticFieldList):
+class MinMaxFieldList(FieldListBase):
+
+    PYB11typedefs = """
+    typedef FieldList<%(Dimension)s, %(Value)s> FieldListType;
+    typedef Field<%(Dimension)s, %(Value)s> FieldType;
+    typedef NodeList<%(Dimension)s> NodeListType;
+    typedef %(Dimension)s::Vector Vector;
+    typedef %(Dimension)s::SymTensor SymTensor;
+"""
 
     def applyScalarMin(self):
         "Enforce a double floor on the values of the Field."
