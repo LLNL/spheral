@@ -1,7 +1,9 @@
 #-------------------------------------------------------------------------------
 # A set of methods to help reading and writing Spheral Polyhedra to/from files.
 #-------------------------------------------------------------------------------
-from Spheral3d import Vector, Tensor, SymTensor, Polygon, Polyhedron
+from SpheralCompiledPackages import *
+import numpy as np
+import stl
 
 #-------------------------------------------------------------------------------
 # Read an OBJ (vertex-facet labeled) shape file to create a polyhedron.
@@ -212,3 +214,21 @@ def writePolyhedraSTL(polys,
         f.write("endsolid\n")
     f.close()
     return
+
+#-------------------------------------------------------------------------------
+# Read an STL polyhedron
+#-------------------------------------------------------------------------------
+def readPolyhedronSTL(filename):
+    mesh = stl.mesh.Mesh.from_file(filename)
+    nfacets = len(mesh.v0)
+    assert len(mesh.v1) == len(mesh.v2) == nfacets
+    points, facets = [], []
+    for i in xrange(nfacets):
+        points += [Vector3d(*tuple(mesh.v0[i])), Vector3d(*tuple(mesh.v1[i])), Vector3d(*tuple(mesh.v2[i]))]
+        facets.append(vector_of_unsigned([3*i, 3*i + 1, 3*i + 2]))
+    assert len(points)/3 == nfacets
+    assert len(facets) == nfacets
+    points = vector_of_Vector3d(points)
+    facets = vector_of_vector_of_unsigned(facets)
+    poly = Polyhedron(points, facets)
+    return poly

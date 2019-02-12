@@ -549,20 +549,20 @@ if graphics:
     plots.append((Aplot, "Noh-planar-A.png"))
     
     if crksph:
-        volPlot = plotFieldList(hydro.volume(), 
+        volPlot = plotFieldList(hydro.volume, 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
-        aplot = plotFieldList(hydro.A(),
+        aplot = plotFieldList(hydro.A,
                               winTitle = "A",
                               colorNodeLists = False)
-        bplot = plotFieldList(hydro.B(),
+        bplot = plotFieldList(hydro.B,
                               yFunction = "%s.x",
                               winTitle = "B",
                               colorNodeLists = False)
-        splot = plotFieldList(hydro.surfacePoint(),
+        splot = plotFieldList(hydro.surfacePoint,
                               winTitle = "surface point",
                               colorNodeLists = False)
-        voidplot = plotFieldList(hydro.voidPoint(),
+        voidplot = plotFieldList(hydro.voidPoint,
                                  winTitle = "void point",
                                  plotStyle = "points",
                                  plotGhosts = True,

@@ -5,6 +5,7 @@
 import os, mpi
 from Spheral import *
 from SpheralCompiledPackages import silo
+import time as TIME
 
 #-------------------------------------------------------------------------------
 # A few integer traits by name that Overlink wants.
@@ -61,9 +62,14 @@ def siloMeshDump(dirName, mesh,
             os.makedirs(dirName)
     mpi.barrier()
 
+    # start = TIME.clock()
+
     # Extract all the fields we're going to write.
     fieldwad = extractFieldComponents(nodeLists, time, cycle,
                                       intFields, scalarFields, vectorFields, tensorFields, symTensorFields)
+
+    # print "  --> %g sec to extractFieldComponents" % (TIME.clock() - start)
+    # start = TIME.clock()
 
     # index2zone is used to map a Node->(set of zones) if necessary, for instance when tetrahedralizing a polyhedral tessellation of the Nodes.
     if index2zone:
@@ -83,12 +89,21 @@ def siloMeshDump(dirName, mesh,
     else:
         index2zone = [[i,] for i in xrange(len(mesh.cells))]
 
+    # print "  --> %g sec for index2zone" % (TIME.clock() - start)
+    # start = TIME.clock()
+
     # If we're domain 0 we write the master file.
     masterfile = writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldwad)
+
+    # print "  --> %g sec for masterfile" % (TIME.clock() - start)
+    # start = TIME.clock()
 
     # Each domain writes it's domain file.
     writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, cycle, fieldwad,
                             pretendRZ, nodeArrays, zoneArrays, faceArrays)
+
+    # print "  --> %g sec for domain file" % (TIME.clock() - start)
+    # start = TIME.clock()
 
     # That's it.
     return masterfile
@@ -312,59 +327,43 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         zonelistName = { 2 : "zonelist",
                          3 : "PHzonelist" }
 
-        cells = mesh.cells
-        faces = mesh.faces
-        nodes = mesh.nodes
+        # start = TIME.clock()
+
+        faces = mesh.facesAsInts
         if nDim == 2:
         
             # Read out the zone nodes.  We rely on these already being arranged
             # counter-clockwise.
-            zoneNodes = vector_of_vector_of_int()
-            shapesize = vector_of_int()
-            for zoneID in xrange(numZones):
-                znodes = []
-                for iface in cells[zoneID]:
-                    if iface < 0:
-                        znodes.append(faces[~iface][1])
-                    else:
-                        znodes.append(faces[iface][0])
-                zoneNodes.append(vector_of_int(znodes))
-                shapesize.append(len(nodes))
+            zoneNodes = mesh.zoneNodes
             assert len(zoneNodes) == numZones
-            assert len(shapesize) == numZones
             assert silo.DBPutZonelist2(db, zonelistName[nDim], nDim, zoneNodes, 0, 0,
                                        vector_of_int([silo.DB_ZONETYPE_POLYGON]*numZones),
-                                       shapesize,
+                                       vector_of_int([len(zn) for zn in zoneNodes]), # shapesize,
                                        vector_of_int([1]*numZones),
                                        nullOpts) == 0
         
         # Write a Polyhedral zone list.
         if nDim == 3:
         
-            # Construct the face-node lists.
-            numFaces = len(faces)
-            faceNodes = vector_of_vector_of_int()
-            for iface in xrange(numFaces):
-                faceNodes.append(vector_of_int())
-                for j in xrange(len(faces[iface])):
-                    faceNodes[iface].append(faces[iface][j])
-                assert len(faceNodes[iface]) == len(faces[iface])
-            assert len(faceNodes) == numFaces
-        
             # Construct the zone-face list.  We use the ones complement of a face ID
             # to indicate that face needs to be reversed in reference to this zone.
             # This is the same convention as polytope, so just copy it.
-            assert silo.DBPutPHZonelist(db, zonelistName[nDim], faceNodes, cells, 0, (numZones - 1), nullOpts) == 0
+            assert silo.DBPutPHZonelist(db, zonelistName[nDim], faces, mesh.cells, 0, (numZones - 1), nullOpts) == 0
         
+        # print "    --> %g sec to write PHzonelist" % (TIME.clock() - start)
+        # start = TIME.clock()
+
         # Construct the mesh node coordinates.
-        assert len(nodes) % nDim == 0
-        numNodes = len(nodes)/nDim
-        coords = vector_of_vector_of_double([vector_of_double(range(numNodes))]*nDim)
-        for nodeID in xrange(numNodes):
-            for idim in xrange(nDim):
-                coords[idim][nodeID] = nodes[nDim*nodeID + idim]
+        assert len(mesh.nodes) % nDim == 0
+        if nDim == 2:
+            coords = vector_of_vector_of_double([mesh.xnodes, mesh.ynodes])
+        else:
+            coords = vector_of_vector_of_double([mesh.xnodes, mesh.ynodes, mesh.znodes])
         assert len(coords) == nDim
         
+        # print "    --> %g sec to compute coords" % (TIME.clock() - start)
+        # start = TIME.clock()
+
         # Write the mesh itself.
         meshOpts = silo.DBoptlist(1024)
         assert meshOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
@@ -382,23 +381,24 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             assert meshOpts.addOption(silo.DBOPT_PHZONELIST, zonelistName[nDim]) == 0
             assert silo.DBPutUcdmesh(db, "MESH", coords, numZones, "NULL", "NULL", meshOpts) == 0
         
+        # print "    --> %g sec to write mesh" % (TIME.clock() - start)
+        # start = TIME.clock()
+
         # Write materials.
         if nodeLists:
-            matnos = vector_of_int()
-            for i in xrange(len(nodeLists)):
-                matnos.append(i)
-            assert len(matnos) == len(nodeLists)
-            matlist = vector_of_int(range(numZones))
-            matnames = vector_of_string()
+            matnos = vector_of_int(range(len(nodeLists)))
+            matnames = vector_of_string([nodeList.name for nodeList in nodeLists])
+            matlist = []
             offset = 0
-            for (nodeList, imat) in zip(nodeLists, xrange(len(nodeLists))):
+            for imat, nodeList in enumerate(nodeLists):
                 for i in xrange(nodeList.numInternalNodes):
                     for j in index2zone[offset + i]:
-                        matlist[j] = imat
-                matnames.append(nodeList.name)
+                        matlist.append(imat)
                 offset += nodeList.numInternalNodes
+            matlist = vector_of_int(matlist)
             assert len(matlist) == numZones
             assert len(matnames) == len(nodeLists)
+            assert len(matnos) == len(nodeLists)
             matOpts = silo.DBoptlist(1024)
             assert matOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
             assert matOpts.addOption(silo.DBOPT_DTIME, time) == 0
@@ -409,29 +409,46 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             assert silo.DBPutMaterial(db, "PointMATERIAL", "PointMESH", matnos, matlist, vector_of_int(),
                                       vector_of_int(), vector_of_int(), vector_of_int(), vector_of_double(),
                                       matOpts) == 0
+            # print "      --> %g sec to DBPutMaterial" % (TIME.clock() - start)
+            # start = TIME.clock()
         
             # Write the variable descriptions for non-scalar variables (vector and tensors).
             #writeDefvars(db, fieldwad)
         
             # Write the field components.
-            centering = silo.DB_ZONECENT
             varOpts = silo.DBoptlist(1024)
             assert varOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
             assert varOpts.addOption(silo.DBOPT_DTIME, time) == 0
             for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
                 for subname, vals in subvars:
                     if len(vals) > 0:
-                        assert silo.DBPutUcdvar1(db, "CELLS_" + subname, "MESH", vals, [], centering, varOpts) == 0
-        
+                        if type(vals[0]) == float:
+                            ctor = vector_of_double
+                        else:
+                            ctor = vector_of_int
+                        assert silo.DBPutUcdvar1(db, "CELLS_" + subname, "MESH", ctor(vals), ctor([]), silo.DB_ZONECENT, varOpts) == 0
+
+            # print "      --> %g sec to DBPutUcdvar1" % (TIME.clock() - start)
+            # start = TIME.clock()
+
             # HACK: Write the field components on the point mesh as well.  Remove when the vardef version is working.
-            centering = silo.DB_ZONECENT
             varOpts = silo.DBoptlist(1024)
             assert varOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
             assert varOpts.addOption(silo.DBOPT_DTIME, time) == 0
             for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
                 for subname, vals in subvars:
                     if len(vals) > 0:
-                        assert silo.DBPutPointvar1(db, "POINTS_" + subname, "PointMESH", vals, varOpts) == 0
+                        if type(vals[0]) == float:
+                            ctor = vector_of_double
+                        else:
+                            ctor = vector_of_int
+                        assert silo.DBPutPointvar1(db, "POINTS_" + subname, "PointMESH", ctor(vals), varOpts) == 0
+
+            # print "      --> %g sec to DBPutPointvar1" % (TIME.clock() - start)
+            # start = TIME.clock()
+
+        # print "    --> %g sec to write materials" % (TIME.clock() - start)
+        # start = TIME.clock()
 
         # Write the set of neighbor domains.
         thpt = vector_of_vector_of_int()
@@ -537,6 +554,7 @@ def extractFields(nodeLists, time, cycle, fields,
 
         # Go through and build up the full set of values.
         for fieldName in fieldsByName:
+            # start = TIME.clock()
             subfields = fieldsByName[fieldName]
             assert len(subfields) <= len(nodeLists)
 
@@ -553,9 +571,12 @@ def extractFields(nodeLists, time, cycle, fields,
                     vals = dudMethod(name, nodes.numInternalNodes, vals, dim)
             for thpt in vals:
                 assert len(thpt) == 2
+                if len(thpt[1]) != nvals:
+                    print "BLAGO : ", name, len(thpt[1]), nvals, (nodes.name in subfields)
                 assert len(thpt[1]) == nvals
 
             result.append((name, varDef, varType, optlistDef, optlistMV, optlistVar, vals))
+            # print "        **> %g secs for field %s" % (TIME.clock() - start, name)
 
     return result
 
@@ -571,9 +592,9 @@ def extractIntField(name, field, vals, dim):
 
 def dummyIntField(name, n, vals, dim):
     if vals == []:
-        vals = [[name, vector_of_int([0]*n)]]
+        vals = [[name, [0]*n]]
     else:
-        vals[0][1].extend(vector_of_int([0]*n))
+        vals[0][1].extend([0]*n)
     return vals
 
 def metaDataIntField(name, time, cycle, dim):
@@ -598,9 +619,9 @@ def extractScalarField(name, field, vals, dim):
 
 def dummyScalarField(name, n, vals, dim):
     if vals == []:
-        vals = [[name, vector_of_double([0.0]*n)]]
+        vals = [[name, [0.0]*n]]
     else:
-        vals[0][1].extend(vector_of_double([0.0]*n))
+        vals[0][1].extend([0.0]*n)
     return vals
 
 def metaDataScalarField(name, time, cycle, dim):
@@ -622,21 +643,19 @@ def extractVectorField(name, field, vals, dim):
 
     if dim == 2:
         if vals == []:
-            vals = [["%s_x" % name, vector_of_double()],
-                    ["%s_y" % name, vector_of_double()]]
-        for v in field:
-            vals[0][1].append(v.x)
-            vals[1][1].append(v.y)
+            vals = [["%s_x" % name, []],
+                    ["%s_y" % name, []]]
+        vals[0][1] += [v.x for v in field]
+        vals[1][1] += [v.y for v in field]
 
     else:
         if vals == []:
-            vals = [["%s_x" % name, vector_of_double()],
-                    ["%s_y" % name, vector_of_double()],
-                    ["%s_z" % name, vector_of_double()]]
-        for v in field:
-            vals[0][1].append(v.x)
-            vals[1][1].append(v.y)
-            vals[2][1].append(v.z)
+            vals = [["%s_x" % name, []],
+                    ["%s_y" % name, []],
+                    ["%s_z" % name, []]]
+        vals[0][1] += [v.x for v in field]
+        vals[1][1] += [v.y for v in field]
+        vals[2][1] += [v.z for v in field]
 
     return vals
 
@@ -645,15 +664,15 @@ def dummyVectorField(name, n, vals, dim):
     assert dim in (2,3)
     if vals == []:
         if dim == 2:
-            vals = [["%s_x" % name, vector_of_double(n, 0.0)],
-                    ["%s_y" % name, vector_of_double(n, 0.0)]]
+            vals = [["%s_x" % name, [0.0]*n],
+                    ["%s_y" % name, [0.0]*n]]
         else:
-            vals = [["%s_x" % name, vector_of_double(n, 0.0)],
-                    ["%s_y" % name, vector_of_double(n, 0.0)],
-                    ["%s_z" % name, vector_of_double(n, 0.0)]]
+            vals = [["%s_x" % name, [0.0]*n],
+                    ["%s_y" % name, [0.0]*n],
+                    ["%s_z" % name, [0.0]*n]]
     else:
         for i in xrange(dim):
-            vals[i][1].extend(vector_of_double([0.0]*n))
+            vals[i][1].extend([0.0]*n)
     return vals
 
 def metaDataVectorField(name, time, cycle, dim):
@@ -683,29 +702,36 @@ def extractTensorField(name, field, vals, dim):
     assert dim in (2,3)
     if dim == 2:
         if vals == []:
-            vals = [["%s_xx" % name, vector_of_double()],
-                    ["%s_xy" % name, vector_of_double()],
-                    ["%s_yx" % name, vector_of_double()],
-                    ["%s_yy" % name, vector_of_double()]]
-        for t in field:
-            vals[0][1].append(t.xx); vals[1][1].append(t.xy)
-            vals[2][1].append(t.yx); vals[3][1].append(t.yy)
-
+            vals = [["%s_xx" % name, []],
+                    ["%s_xy" % name, []],
+                    ["%s_yx" % name, []],
+                    ["%s_yy" % name, []]]
+        vals[0][1] += [t.xx for t in field]
+        vals[1][1] += [t.xy for t in field]
+        vals[2][1] += [t.yx for t in field]
+        vals[3][1] += [t.yy for t in field]
+            
     else:
         if vals == []:
-            vals = [["%s_xx" % name, vector_of_double()],
-                    ["%s_xy" % name, vector_of_double()],
-                    ["%s_xz" % name, vector_of_double()],
-                    ["%s_yx" % name, vector_of_double()],
-                    ["%s_yy" % name, vector_of_double()],
-                    ["%s_yz" % name, vector_of_double()],
-                    ["%s_zx" % name, vector_of_double()],
-                    ["%s_zy" % name, vector_of_double()],
-                    ["%s_zz" % name, vector_of_double()]]
-        for t in field:
-            vals[0][1].append(t.xx); vals[1][1].append(t.xy); vals[2][1].append(t.xz)
-            vals[3][1].append(t.yx); vals[4][1].append(t.yy); vals[5][1].append(t.yz)
-            vals[6][1].append(t.zx); vals[7][1].append(t.zy); vals[8][1].append(t.zz)
+            vals = [["%s_xx" % name, []],
+                    ["%s_xy" % name, []],
+                    ["%s_xz" % name, []],
+                    ["%s_yx" % name, []],
+                    ["%s_yy" % name, []],
+                    ["%s_yz" % name, []],
+                    ["%s_zx" % name, []],
+                    ["%s_zy" % name, []],
+                    ["%s_zz" % name, []]]
+
+        vals[0][1] += [t.xx for t in field]
+        vals[1][1] += [t.xy for t in field]
+        vals[2][1] += [t.xz for t in field]
+        vals[3][1] += [t.yx for t in field]
+        vals[4][1] += [t.yy for t in field]
+        vals[5][1] += [t.yz for t in field]
+        vals[6][1] += [t.zx for t in field]
+        vals[7][1] += [t.zy for t in field]
+        vals[8][1] += [t.zz for t in field]
 
     return vals
 
@@ -714,23 +740,23 @@ def dummyTensorField(name, n, vals, dim):
     assert dim in (2,3)
     if vals == []:
         if dim == 2:
-            vals = [["%s_xx" % name, vector_of_double([0.0]*n)],
-                    ["%s_xy" % name, vector_of_double([0.0]*n)],
-                    ["%s_yx" % name, vector_of_double([0.0]*n)],
-                    ["%s_yy" % name, vector_of_double([0.0]*n)]]
+            vals = [["%s_xx" % name, [0.0]*n],
+                    ["%s_xy" % name, [0.0]*n],
+                    ["%s_yx" % name, [0.0]*n],
+                    ["%s_yy" % name, [0.0]*n]]
         else:
-            vals = [["%s_xx" % name, vector_of_double([0.0]*n)],
-                    ["%s_xy" % name, vector_of_double([0.0]*n)],
-                    ["%s_xz" % name, vector_of_double([0.0]*n)],
-                    ["%s_yx" % name, vector_of_double([0.0]*n)],
-                    ["%s_yy" % name, vector_of_double([0.0]*n)],
-                    ["%s_yz" % name, vector_of_double([0.0]*n)],
-                    ["%s_zx" % name, vector_of_double([0.0]*n)],
-                    ["%s_zy" % name, vector_of_double([0.0]*n)],
-                    ["%s_zz" % name, vector_of_double([0.0]*n)]]
+            vals = [["%s_xx" % name, [0.0]*n],
+                    ["%s_xy" % name, [0.0]*n],
+                    ["%s_xz" % name, [0.0]*n],
+                    ["%s_yx" % name, [0.0]*n],
+                    ["%s_yy" % name, [0.0]*n],
+                    ["%s_yz" % name, [0.0]*n],
+                    ["%s_zx" % name, [0.0]*n],
+                    ["%s_zy" % name, [0.0]*n],
+                    ["%s_zz" % name, [0.0]*n]]
     else:
         for i in xrange(dim*dim):
-            vals[i][1].extend(vector_of_double([0.0]*n))
+            vals[i][1].extend([0.0]*n)
     return vals
 
 def metaDataTensorField(name, time, cycle, dim):

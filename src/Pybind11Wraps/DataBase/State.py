@@ -36,11 +36,11 @@ class State(StateBase):
         "Enroll a field to track"
         return "void"
 
-    @PYB11virtual
-    @PYB11pycppname("enroll")
-    def enroll_sharedptr(self, field="std::shared_ptr<FieldBase<%(Dimension)s>>&"):
-        "Enroll a shared_ptr<Field> to track"
-        return "void"
+    # @PYB11virtual
+    # @PYB11pycppname("enroll")
+    # def enroll_sharedptr(self, field="std::shared_ptr<FieldBase<%(Dimension)s>>&"):
+    #     "Enroll a shared_ptr<Field> to track"
+    #     return "void"
 
     @PYB11virtual
     @PYB11pycppname("enroll")

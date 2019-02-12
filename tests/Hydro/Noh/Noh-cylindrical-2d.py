@@ -329,8 +329,8 @@ else:
                 nTensile = nTensile,
                 ASPH = asph)
 output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
+output("hydro.kernel")
+output("hydro.PiKernel")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
@@ -539,17 +539,17 @@ if graphics:
              (htPlot, "Noh-cylindrical-ht.png")]
 
     if crksph:
-        volPlot = plotFieldList(hydro.volume(), 
+        volPlot = plotFieldList(hydro.volume, 
                                 xFunction = "%s.magnitude()",
                                 winTitle = "volume",
                                 plotStyle = "ro",
                                 colorNodeLists = False, plotGhosts = False)
-        spPlot = plotFieldList(hydro.surfacePoint(), 
+        spPlot = plotFieldList(hydro.surfacePoint, 
                                xFunction = "%s.magnitude()",
                                winTitle = "Surface",
                                plotStyle = "ro",
                                colorNodeLists = False, plotGhosts = False)
-        vpPlot = plotFieldList(hydro.voidPoint(), 
+        vpPlot = plotFieldList(hydro.voidPoint, 
                                xFunction = "%s.magnitude()",
                                winTitle = "Void",
                                plotStyle = "ro",

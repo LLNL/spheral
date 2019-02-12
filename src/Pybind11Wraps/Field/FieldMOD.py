@@ -10,6 +10,7 @@ from spheralDimensions import *
 dims = spheralDimensions()
 
 from FieldBase import *
+from FieldListBase import *
 from Field import *
 from ArithmeticField import *
 from MinMaxField import *
@@ -46,15 +47,17 @@ FieldStorageType = PYB11enum(("ReferenceFields", "CopyFields"), export_values=Tr
 for ndim in dims:
 
     #...........................................................................
-    # FieldBase, FieldListSet
+    # FieldBase, FieldListBase, FieldListSet
     exec('''
 FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(ndim)i>")
+FieldListBase%(ndim)id = PYB11TemplateClass(FieldListBase, template_parameters="Dim<%(ndim)i>")
 FieldListSet%(ndim)sd = PYB11TemplateClass(FieldListSet, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
 
     #...........................................................................
     # non-numeric types
     for (value, label) in (("Dim<%i>::FacetedVolume" % ndim,       "FacetedVolume"), 
+                           ("std::vector<int>",                    "VectorInt"),
                            ("std::vector<double>",                 "VectorDouble"),
                            ("std::vector<Dim<%i>::Vector>" % ndim, "VectorVector"),
                            ("std::vector<Dim<%i>::Tensor>" % ndim, "VectorSymTensor"),

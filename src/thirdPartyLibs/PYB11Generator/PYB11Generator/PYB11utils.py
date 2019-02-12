@@ -383,6 +383,7 @@ def PYB11attrs(obj):
          "protected"             : False,
          "const"                 : False,
          "static"                : False,
+         "noconvert"             : False,
          "implementation"        : None,
          "returnpolicy"          : None,
          "keepalive"             : None,

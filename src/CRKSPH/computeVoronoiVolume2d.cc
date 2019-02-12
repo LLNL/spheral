@@ -85,7 +85,6 @@ namespace {  // anonymous namespace
 //                      const vector<vector<int>>& fullConnectivity,
 //                      const FieldList<Dim<2>, Dim<2>::Vector>& position,
 //                      const FieldList<Dim<2>, Dim<2>::Scalar>& weight,
-//                      const FieldList<Dim<2>, int>& voidPoint,
 //                      const unsigned nodeListi, 
 //                      const unsigned i,
 //                      const unsigned nodeListj) {
@@ -200,12 +199,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      const std::vector<std::vector<Dim<2>::FacetedVolume> >& holes,
                      const std::vector<Boundary<Dim<2>>*>& boundaries,
                      const FieldList<Dim<2>, Dim<2>::Scalar>& weight,
-                     const FieldList<Dim<2>, int>& voidPoint,
                      FieldList<Dim<2>, int>& surfacePoint,
                      FieldList<Dim<2>, Dim<2>::Scalar>& vol,
                      FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian,
                      FieldList<Dim<2>, vector<Dim<2>::Vector>>& etaVoidPoints,
-                     FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells) {
+                     FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells,
+                     FieldList<Dim<2>, std::vector<int>>& cellFaceFlags) {
 
   TIME_computeVoronoiVolume2d.start();
 

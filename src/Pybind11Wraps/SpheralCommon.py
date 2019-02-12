@@ -37,48 +37,58 @@ typedef Spheral::Dim<3>::FifthRankTensor FifthRankTensor3d;
 typedef Spheral::Dim<3>::FacetedVolume FacetedVolume3d;
 """
 
-# STL containers of primitives
+PYB11opaque = ["std::vector<char>",
+               "std::vector<unsigned>",
+               "std::vector<uint64_t>",
+               "std::vector<int>",
+               "std::vector<float>",
+               "std::vector<double>",
+               "std::vector<std::string>",
 
-# std::vector
-vector_of_char     = PYB11_bind_vector("char", opaque=True, local=True)
-vector_of_unsigned = PYB11_bind_vector("unsigned", opaque=True, local=True)
-vector_of_ULL      = PYB11_bind_vector("uint64_t", opaque=True, local=True)
-vector_of_int      = PYB11_bind_vector("int", opaque=True, local=True)
-vector_of_float    = PYB11_bind_vector("float", opaque=True, local=True)
-vector_of_double   = PYB11_bind_vector("double", opaque=True, local=True)
-vector_of_string   = PYB11_bind_vector("std::string", opaque=True, local=True)
+               "std::vector<std::vector<char>>",
+               "std::vector<std::vector<unsigned>>",
+               "std::vector<std::vector<uint64_t>>",
+               "std::vector<std::vector<int>>",
+               "std::vector<std::vector<float>>",
+               "std::vector<std::vector<double>>",
+               "std::vector<std::vector<std::string>>",
 
-# std::vector<std::vector>
-vector_of_vector_of_char     = PYB11_bind_vector("std::vector<char>", opaque=True, local=True)
-vector_of_vector_of_unsigned = PYB11_bind_vector("std::vector<unsigned>", opaque=True, local=True)
-vector_of_vector_of_ULL      = PYB11_bind_vector("std::vector<uint64_t>", opaque=True, local=True)
-vector_of_vector_of_int      = PYB11_bind_vector("std::vector<int>", opaque=True, local=True)
-vector_of_vector_of_float    = PYB11_bind_vector("std::vector<float>", opaque=True, local=True)
-vector_of_vector_of_double   = PYB11_bind_vector("std::vector<double>", opaque=True, local=True)
-vector_of_vector_of_string   = PYB11_bind_vector("std::vector<std::string>", opaque=True, local=True)
+               "std::pair<double, double>",
+               "std::pair<double, std::string>",
+               "std::pair<unsigned, unsigned>",
+               "std::pair<uint64_t, uint64_t>",
+               "std::pair<std::string, std::string>",
 
-# std::vector<pair<>>
-vector_of_pair_double_double     = PYB11_bind_vector("std::pair<double, double>", opaque=True, local=True)
-vector_of_pair_double_string     = PYB11_bind_vector("std::pair<double, std::string>", opaque=True, local=True)
-vector_of_pair_unsigned_unsigned = PYB11_bind_vector("std::pair<unsigned, unsigned>", opaque=True, local=True)
-vector_of_pair_ULL_ULL           = PYB11_bind_vector("std::pair<uint64_t, uint64_t>", opaque=True, local=True)
-vector_of_pair_string_string     = PYB11_bind_vector("std::pair<std::string, std::string>", opaque=True, local=True)
+               "std::map<std::string, double>",
+               "std::map<int, std::string>",
 
-# std::map
-map_string_double = PYB11_bind_map("std::string", "double", opaque=True, local=True)
-map_int_string    = PYB11_bind_map("int", "std::string", opaque=True, local=True)
+               "std::vector<Dim<1>::Vector>",
+               "std::vector<Dim<1>::Tensor>",
+               "std::vector<Dim<1>::SymTensor>",
+               "std::vector<Dim<1>::ThirdRankTensor>",
+               "std::vector<Dim<1>::FourthRankTensor>",
+               "std::vector<Dim<1>::FifthRankTensor>",
+               "std::vector<Dim<1>::FacetedVolume>",
 
-# STL containers of common geometric types
-from GeometryMOD import geomtypes
-for element in geomtypes:
-    for ndim in (1, 2, 3):
-        exec('''
-vector_of_%(mangle)s = PYB11_bind_vector("%(element)s", opaque=True, local=True)
-vector_of_vector_of_%(mangle)s = PYB11_bind_vector("std::vector<%(element)s>", opaque=True, local=True)
-''' % {"element": "Dim<" + str(ndim) + ">::" + element,
-       "mangle" : element + str(ndim) + "d"})
-vector_of_Facet2d = PYB11_bind_vector("GeomFacet2d", opaque=True, local=True)
-vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True, local=True)
-vector_of_Plane1d = PYB11_bind_vector("GeomPlane<Dim<1>>", opaque=True, local=True)
-vector_of_Plane2d = PYB11_bind_vector("GeomPlane<Dim<2>>", opaque=True, local=True)
-vector_of_Plane3d = PYB11_bind_vector("GeomPlane<Dim<3>>", opaque=True, local=True)
+               "std::vector<Dim<2>::Vector>",
+               "std::vector<Dim<2>::Tensor>",
+               "std::vector<Dim<2>::SymTensor>",
+               "std::vector<Dim<2>::ThirdRankTensor>",
+               "std::vector<Dim<2>::FourthRankTensor>",
+               "std::vector<Dim<2>::FifthRankTensor>",
+               "std::vector<Dim<2>::FacetedVolume>",
+
+               "std::vector<Dim<3>::Vector>",
+               "std::vector<Dim<3>::Tensor>",
+               "std::vector<Dim<3>::SymTensor>",
+               "std::vector<Dim<3>::ThirdRankTensor>",
+               "std::vector<Dim<3>::FourthRankTensor>",
+               "std::vector<Dim<3>::FifthRankTensor>",
+               "std::vector<Dim<3>::FacetedVolume>",
+
+               "std::vector<GeomFacet2d>",
+               "std::vector<GeomFacet3d>",
+
+               "std::vector<Plane1d>",
+               "std::vector<Plane2d>",
+               "std::vector<Plane3d>"]

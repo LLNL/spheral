@@ -8,6 +8,7 @@
 # 1.0 -- original release
 #-------------------------------------------------------------------------------
 import os, gc, mpi
+import time as TIME
 
 from SpheralCompiledPackages import *
 
@@ -107,6 +108,7 @@ class SpheralVoronoiSiloDump:
 ##             raise ValueError, "File %s already exists!  Aborting." % filename
 
         # Did the user provide a FieldList of cell geometries already?
+        # start = TIME.clock()
         if self.cells:
 
             # Yep, so we build a disjoint set of cells as a polytope tessellation.
@@ -282,6 +284,9 @@ class SpheralVoronoiSiloDump:
                 tessellator = serial_tessellator
             index2zone = tessellator.tessellateDegenerate(gens, plccoords, plc, 1.0e-8, mesh)
 
+        # print "Took %g sec to generate cells" % (TIME.clock() - start)
+        # start = TIME.clock()
+
         # Figure out how many of each type of field we're dumping.
         intFields = [x for x in self._fields if isinstance(x, eval("IntField%s" % self.dimension))]
         scalarFields = [x for x in self._fields if isinstance(x, eval("ScalarField%s" % self.dimension))]
@@ -296,13 +301,16 @@ class SpheralVoronoiSiloDump:
             det = eval("ScalarField%s('%s_determinant', n)" % (self.dimension, f.name))
             mineigen = eval("ScalarField%s('%s_eigen_min', n)" % (self.dimension, f.name))
             maxeigen = eval("ScalarField%s('%s_eigen_max', n)" % (self.dimension, f.name))
+            fvals = f.internalValues()
             for i in xrange(n.numInternalNodes):
-                tr[i] = f[i].Trace()
-                det[i] = f[i].Determinant()
-                eigen = f[i].eigenValues()
+                tr[i] = fvals[i].Trace()
+                det[i] = fvals[i].Determinant()
+                eigen = fvals[i].eigenValues()
                 mineigen[i] = eigen.minElement()
                 maxeigen[i] = eigen.maxElement()
             scalarFields += [tr, det, mineigen, maxeigen]
+        # print "Took %g sec to build output fields" % (TIME.clock() - start)
+        # start = TIME.clock()
 
         # Write the output.
         timeslice = siloMeshDump(filename, mesh,
@@ -315,6 +323,9 @@ class SpheralVoronoiSiloDump:
                                  vectorFields = vectorFields,
                                  tensorFields = tensorFields,
                                  symTensorFields = symTensorFields)
+
+        # print "Took %g sec to calls siloMeshDump" % (TIME.clock() - start)
+        # start = TIME.clock()
 
         # Write the master file listing all the time slices.
         if mpi.rank == 0:
@@ -498,10 +509,8 @@ def dumpPhysicsState(stateThingy,
     holes = eval("vector_of_vector_of_FacetedVolume%id()" % dataBase.nDim)
     if state.fieldNameRegistered(HydroFieldNames.surfacePoint):
         surfacePoint = state.intFields(HydroFieldNames.surfacePoint)
-        voidPoint = state.intFields(HydroFieldNames.voidPoint)
     else:
         surfacePoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.surfacePoint)
-        voidPoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.voidPoint)
     if state.fieldNameRegistered(HydroFieldNames.volume):
         vol = state.scalarFields(HydroFieldNames.volume)
     else:
@@ -511,6 +520,7 @@ def dumpPhysicsState(stateThingy,
     FacetedVolume = {2 : Polygon,
                      3 : Polyhedron}[dataBase.nDim]
     cells = dataBase.newFluidFacetedVolumeFieldList(FacetedVolume(), "cells")
+    cellFaceFlags = dataBase.newFluidvector_of_intFieldList(vector_of_int(), "face flags")
     computeVoronoiVolume(dataBase.fluidPosition, 
                          dataBase.fluidHfield,
                          dataBase.fluidMassDensity,
@@ -521,12 +531,12 @@ def dumpPhysicsState(stateThingy,
                          holes,
                          boundaries,
                          weight,
-                         voidPoint,
                          surfacePoint,
                          vol,
                          deltaMedian,
                          etaVoidPoints,
-                         cells)
+                         cells,
+                         cellFaceFlags)
 
     # Now build the visit dumper.
     dumper = SpheralVoronoiSiloDump(baseFileName,

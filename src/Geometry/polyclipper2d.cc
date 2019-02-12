@@ -30,6 +30,7 @@ using std::vector;
 using std::list;
 using std::map;
 using std::set;
+using std::ostream_iterator;
 
 // Declare the timers.
 extern Timer TIME_PC2d_convertto;
@@ -124,65 +125,6 @@ segmentsIntersect(const Spheral::Dim<2>::Vector& a,
   return (c - g).dot(d - g) <= 0;
 }
 
-// // Given three colinear points p, q, r, the function checks if
-// // point q lies on line segment 'pr'
-// bool onSegment(Point p, Point q, Point r)
-// {
-//     if (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) &&
-//         q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
-//        return true;
- 
-//     return false;
-// }
- 
-// // To find orientation of ordered triplet (p, q, r).
-// // The function returns following values
-// // 0 --> p, q and r are colinear
-// // 1 --> Clockwise
-// // 2 --> Counterclockwise
-// int orientation(Point p, Point q, Point r)
-// {
-//     // See https://www.geeksforgeeks.org/orientation-3-ordered-points/
-//     // for details of below formula.
-//     int val = (q.y - p.y) * (r.x - q.x) -
-//               (q.x - p.x) * (r.y - q.y);
- 
-//     if (val == 0) return 0;  // colinear
- 
-//     return (val > 0)? 1: 2; // clock or counterclock wise
-// }
- 
-// // The main function that returns true if line segment 'p1q1'
-// // and 'p2q2' intersect.
-// bool doIntersect(Point p1, Point q1, Point p2, Point q2)
-// {
-//     // Find the four orientations needed for general and
-//     // special cases
-//     int o1 = orientation(p1, q1, p2);
-//     int o2 = orientation(p1, q1, q2);
-//     int o3 = orientation(p2, q2, p1);
-//     int o4 = orientation(p2, q2, q1);
- 
-//     // General case
-//     if (o1 != o2 && o3 != o4)
-//         return true;
- 
-//     // Special Cases
-//     // p1, q1 and p2 are colinear and p2 lies on segment p1q1
-//     if (o1 == 0 && onSegment(p1, p2, q1)) return true;
- 
-//     // p1, q1 and p2 are colinear and q2 lies on segment p1q1
-//     if (o2 == 0 && onSegment(p1, q2, q1)) return true;
- 
-//     // p2, q2 and p1 are colinear and p1 lies on segment p2q2
-//     if (o3 == 0 && onSegment(p2, p1, q2)) return true;
- 
-//      // p2, q2 and q1 are colinear and q1 lies on segment p2q2
-//     if (o4 == 0 && onSegment(p2, q1, q2)) return true;
- 
-//     return false; // Doesn't fall in any of the above cases
-// }
-
 //------------------------------------------------------------------------------
 // Check if a line segment intersects the polygon.
 //------------------------------------------------------------------------------
@@ -237,11 +179,14 @@ polygon2string(const Polygon& poly) {
                                 [](const Vertex2d& x) { return x.comp >= 0; });
   set<int> usedVertices;
 
-  // First dump the raw vertex info.
+  // Dump the raw vertex info.
   s << "{\n";
   for (auto i = 0; i < nverts; ++i) {
     s << "  " << i << " " << poly[i].position
-      << " [" << poly[i].neighbors.first << " " << poly[i].neighbors.second << "]\n";
+      << " [" << poly[i].neighbors.first << " " << poly[i].neighbors.second << "]"
+      << " clips[";
+    copy(poly[i].clips.begin(), poly[i].clips.end(), ostream_iterator<int>(s, " "));
+    s << "]\n";
   }
   s << "}\n";
 
@@ -302,14 +247,17 @@ void convertToPolygon(Polygon& polygon,
 
 //------------------------------------------------------------------------------
 // Convert PolyClipper::Polygon -> Spheral::GeomPolygon.
+// The return value is the set of plane IDs responsible for each vertex.
 //------------------------------------------------------------------------------
-void convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_polygon,
-                        const Polygon& polygon) {
+vector<set<int>> convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_polygon,
+                                    const Polygon& polygon) {
   TIME_PC2d_convertfrom.start();
 
   // Useful types.
   typedef Spheral::Dim<2>::FacetedVolume FacetedVolume;
   typedef Spheral::Dim<2>::Vector Vector;
+
+  vector<set<int>> vertexPlanes;
 
   if (polygon.empty()) {
 
@@ -326,6 +274,7 @@ void convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_polygon,
     // Go until we hit all the active vertices.
     vector<Vector> coords(nactive);
     vector<vector<unsigned>> facets(nactive, vector<unsigned>(2));
+    vertexPlanes.resize(nactive);
     auto k = 0, loopStart = 0;
     while (usedVertices.size() < nactive) {
 
@@ -343,6 +292,7 @@ void convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_polygon,
         coords[k] = polygon[vnext].position;
         facets[k][0] = k;
         facets[k][1] = k + 1;
+        vertexPlanes[k].insert(polygon[vnext].clips.begin(), polygon[vnext].clips.end());
         ++k;
         force = false;
         usedVertices.insert(vnext);
@@ -356,6 +306,11 @@ void convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_polygon,
     Spheral_polygon = FacetedVolume(coords, facets);
 
   }
+
+  // Return the set of planes responsible for each vertex.
+  ENSURE(vertexPlanes.size() == Spheral_polygon.vertices().size());
+  return vertexPlanes;
+
   TIME_PC2d_convertfrom.stop();
 }
 
@@ -397,7 +352,7 @@ void moments(double& zerothMoment, Spheral::Dim<2>::Vector& firstMoment,
 // Clip a polygon by planes.
 //------------------------------------------------------------------------------
 void clipPolygon(Polygon& polygon,
-                 const std::vector<Plane2d>& planes) {
+                 const vector<Plane2d>& planes) {
   TIME_PC2d_clip.start();
 
   // Useful types.
@@ -469,6 +424,7 @@ void clipPolygon(Polygon& polygon,
                                                               plane),
                                      2));         // 2 indicates new vertex
           polygon[vnew].neighbors = {v, vnext};
+          polygon[vnew].clips.insert(plane.ID);
           polygon[v].neighbors.second = vnew;
           polygon[vnext].neighbors.first = vnew;
           hangingVertices.push_back(vnew);
@@ -479,6 +435,7 @@ void clipPolygon(Polygon& polygon,
           // This vertex is exactly in-plane, but has exactly one neighbor edge that will be entirely clipped.
           // No new vertex, but vptr will be hanging.
           hangingVertices.push_back(v);
+          polygon[v].clips.insert(plane.ID);
           // cerr << " --> Hanging vertex @ " << polygon[v].position << endl;
 
         }
@@ -610,7 +567,10 @@ void collapseDegenerates(Polygon& polygon,
             done = false;
             active = true;
             polygon[j].ID = -1;
-            while (polygon[j].ID < 0) j = polygon[j].neighbors.second;
+            while (polygon[j].ID < 0) {
+              polygon[i].clips.insert(polygon[j].clips.begin(), polygon[j].clips.end());
+              j = polygon[j].neighbors.second;
+            }
             polygon[i].neighbors.second = j;
             polygon[j].neighbors.first  = i;
           }

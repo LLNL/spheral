@@ -1,11 +1,12 @@
 from PYB11Generator import *
+from FieldListBase import *
 
 #-------------------------------------------------------------------------------
 # FieldList
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "Value")
 @PYB11module("SpheralField")
-class FieldList:
+class FieldList(FieldListBase):
 
     PYB11typedefs = """
     typedef FieldList<%(Dimension)s, %(Value)s> FieldListType;

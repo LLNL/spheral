@@ -47,7 +47,7 @@ TPLIBS=
 BOOSTTARGET=
 SILOTARGET=
 
-PIPTARGETS+=" pybind11 sphinx sphinx_rtd_theme"
+PIPTARGETS+=" pybind11 sphinx sphinx_rtd_theme pytest-runner numpy-stl"
 
 AC_MSG_CHECKING(for spheral build directory)
 #SPHERALBUILDDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`
@@ -278,23 +278,6 @@ AC_ARG_WITH(sobol,
 [
     AC_MSG_RESULT(no)
     PIPTARGETS+=" sobol"
-])
-
-# -----------------------------------------------------------------
-# Optionally do not build r3d.
-# -----------------------------------------------------------------
-AC_MSG_CHECKING(for --without-r3d)
-AC_ARG_WITH(r3d,
-[  --without-r3d ............................ do not build the R3D third party extension],
-[
-    AC_MSG_RESULT(yes)
-    CXXFLAGS+=" -DNOR3D"
-    USE_R3D="no"
-],
-[
-    AC_MSG_RESULT(no)
-    EXTRATHIRDPARTYTARGETS+=" .r3d.date"
-    USE_R3D="yes"
 ])
 
 # -----------------------------------------------------------------

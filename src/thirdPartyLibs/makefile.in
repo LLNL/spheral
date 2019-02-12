@@ -267,13 +267,6 @@ OPENSUBDIVURL = https://github.com/PixarAnimationStudios/OpenSubdiv/archive/v3_3
 OPENSUBDIVDIR = $(OPENSUBDIVDIST:.zip=)
 OPENSUBDIVBUILDDATE = $(patsubst %.zip, .%.date, $(OPENSUBDIVDIST))
 
-# R3D
-R3DDIST = r3d.zip
-R3DURL = https://github.com/devonmpowell/r3d/archive/master.zip
-R3DDIR = r3d-master
-R3DBUILDDATE = $(patsubst %.zip, .%.date, $(R3DDIST))
-R3DINCDIR = $(prefix)/include/r3d
-
 # easy_profile
 EASYPROFILEDIST = easyprofile-v1.3.0.tar.gz
 EASYPROFILEURL = https://github.com/yse/easy_profiler/archive/v1.3.0.tar.gz
@@ -358,7 +351,6 @@ clean:
 	       $(FLANNDIR) $(FLANNBUILDDATE) \
 	       $(PCLDIR) $(PCLBUILDDATE) \
 	       $(OPENSUBDIVDIR) $(OPENSUBDIVBUILDDATE) \
-	       $(R3DDIR) $(R3DBUILDDATE) \
 	       $(EXTRATHIRDPARTYTARGETS) \
 	       .*.date
 
@@ -1203,37 +1195,6 @@ $(OPENSUBDIVBUILDDATE):	cache/$(OPENSUBDIVDIST) $(CMAKEEXE)
 	fi
 	rm -fr $(OPENSUBDIVDIR)
 	touch $(OPENSUBDIVBUILDDATE)
-
-#-------------------------------------------------------------------------------
-# r3d
-# Note our patches to the r3d library are just to increase the maximum allowed
-# number of vertices.
-#-------------------------------------------------------------------------------
-cache/$(R3DDIST):
-	@$(MKDIR) cache
-	$(CURL) "$(R3DURL)" -o cache/$(R3DDIST)
-
-$(R3DBUILDDATE):	cache/$(R3DDIST)
-	@echo "################################################################################"
-	@echo "# Building $(R3DDIST)"
-	@echo "################################################################################"
-	rm -fr $(R3DDIR) $(R3DINCDIR)
-	@$(MKDIR) -p $(prefix)/bin $(prefix)/lib $(R3DINCDIR)
-	$(UNZIP) cache/$(R3DDIST)
-	#$(PATCH) $(R3DDIR)/r2d.h $(srcdir)/r3d_r2d_h.patch
-	#$(PATCH) $(R3DDIR)/r3d.h $(srcdir)/r3d_r3d_h.patch
-	#$(PATCH) $(R3DDIR)/r3d.c $(srcdir)/r3d_r3d_c.patch    # <--- Missing.  I think Matt may have an unchecked in version of this?
-	env PATH=$(SAFEPATH) $(SHELL) -ec "cd $(R3DDIR); \
-	$(MAKE) CC='$(CC)' CFLAGS='$(CFLAGS)'"
-	@if ! test -e $(R3DDIR)/libr3d.a; then \
-	echo "ERROR building R3d."; \
-	rm -f $(R3DBUILDDATE); \
-	exit 1; \
-	fi
-	$(CP) -f $(R3DDIR)/*.h $(R3DINCDIR)
-	$(CP) -f $(R3DDIR)/libr3d.a $(prefix)/lib
-	rm -fr $(R3DDIR)
-	touch $(R3DBUILDDATE)
 
 #-------------------------------------------------------------------------------
 # Easy profile

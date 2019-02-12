@@ -71,12 +71,12 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      const std::vector<std::vector<Dim<3>::FacetedVolume> >& holes,
                      const std::vector<Boundary<Dim<3>>*>& boundaries,
                      const FieldList<Dim<3>, Dim<3>::Scalar>& weight,
-                     const FieldList<Dim<3>, int>& voidPoint,
                      FieldList<Dim<3>, int>& surfacePoint,
                      FieldList<Dim<3>, Dim<3>::Scalar>& vol,
                      FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian,
                      FieldList<Dim<3>, vector<Dim<3>::Vector>>& etaVoidPoints,
-                     FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells) {
+                     FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells,
+                     FieldList<Dim<3>, std::vector<int>>& cellFaceFlags) {
 
   TIME_computeVoronoiVolume3d.start();
 

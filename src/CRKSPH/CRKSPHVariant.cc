@@ -180,7 +180,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // We need volumes in order to prepare the surface detection.
   this->mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
-  this->mVoidPoint = dataBase.newFluidFieldList(0, HydroFieldNames::voidPoint);
   this->mEtaVoidPoints = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::etaVoidPoints);
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -197,15 +196,15 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   } else if (this->mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     this->mVolume.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
+    FieldList<Dimension, vector<int>> cellFaceFlags;
     const FieldList<Dimension, typename Dimension::SymTensor> damage = dataBase.solidEffectiveDamage();
     computeVoronoiVolume(position, H, massDensity, this->mMassDensityGradient, connectivityMap, damage,
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),      // no holes
                          vector<Boundary<Dimension>*>(),                            // no boundaries
                          FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
-                         this->mVoidPoint,                                                // void point flags
                          this->mSurfacePoint, this->mVolume, this->mDeltaCentroid, this->mEtaVoidPoints,    // return values
-                         cells);                                                    // no return cells
+                         cells, cellFaceFlags);                                     // no return cells
   } else if (this->mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, this->mVolume);
   } else if (this->mVolumeType == CRKVolumeType::HVolume) {
@@ -372,7 +371,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
   const auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
-  const auto voidPoint = state.fields(HydroFieldNames::voidPoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -388,7 +386,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradB.size() == numNodeLists or order == CRKOrder::ZerothOrder);
   CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
   CHECK(surfacePoint.size() == numNodeLists);
-  CHECK(voidPoint.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto DxDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
@@ -609,15 +606,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
-              if (voidPoint(nodeListi, i) == 0 and voidPoint(nodeListj, j) == 0) {
-                const auto fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
-                const auto rij2 = rij.magnitude2();
-                const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
-                weightedNeighborSumi +=     fweightij*std::abs(gWi);
-                weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
-                massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;
-                massSecondMomentj += 1.0/fweightij*gradWSPHj.magnitude2()*thpt;
-              }
+              const auto fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
+              const auto rij2 = rij.magnitude2();
+              const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
+              weightedNeighborSumi +=     fweightij*std::abs(gWi);
+              weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
+              massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;
+              massSecondMomentj += 1.0/fweightij*gradWSPHj.magnitude2()*thpt;
 
               // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
               const auto QPiij = Q.Piij(nodeListi, i, nodeListj, j,
