@@ -435,6 +435,13 @@ will get the new value regardless of resetValues."""
     fluidHfield = PYB11property("FieldList<%(Dimension)s, SymTensor>")
     fluidWork = PYB11property("FieldList<%(Dimension)s, Scalar>")
 
+    solidMass = PYB11property("FieldList<%(Dimension)s, Scalar>")
+    solidPosition = PYB11property("FieldList<%(Dimension)s, Vector>")
+    solidVelocity = PYB11property("FieldList<%(Dimension)s, Vector>")
+    solidMassDensity = PYB11property("FieldList<%(Dimension)s, Scalar>")
+    solidSpecificThermalEnergy = PYB11property("FieldList<%(Dimension)s, Scalar>")
+    solidHfield = PYB11property("FieldList<%(Dimension)s, SymTensor>")
+    solidWork = PYB11property("FieldList<%(Dimension)s, Scalar>")
     solidDeviatoricStress = PYB11property("FieldList<%(Dimension)s, SymTensor>")
     solidPlasticStrain = PYB11property("FieldList<%(Dimension)s, Scalar>")
     solidPlasticStrainRate = PYB11property("FieldList<%(Dimension)s, Scalar>")
@@ -445,3 +452,4 @@ will get the new value regardless of resetValues."""
 
     globalNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")
     fluidNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")
+    solidNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")
