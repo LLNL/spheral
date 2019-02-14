@@ -143,3 +143,6 @@ class NodeHistory:
             print "WARNING: unable to restore NodeHistory restart state"
         return
 
+    def __call__(self, cycle, t, dt):
+        self.sample(cycle, t, dt)
+        return
