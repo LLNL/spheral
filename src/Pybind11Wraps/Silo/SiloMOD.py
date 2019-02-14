@@ -367,7 +367,7 @@ DBWrite_vector_of_vector_%(d)s = PYB11TemplateFunction(DBWrite_vector_of_vector,
 DBPutCompoundarray_%(d)s = PYB11TemplateFunction(DBPutCompoundarray, ("%(d)s", ), pyname="DBPutCompoundarray")
 DBReadVar_%(d)s = PYB11TemplateFunction(DBReadVar, ("%(d)s",), pyname="DBReadVar")
 DBPutUcdvar1_%(d)s = PYB11TemplateFunction(DBPutUcdvar1, ("%(d)s",), pyname="DBPutUcdvar1")
-DBPutQuadvar1_%(d)s = PYB11TemplateFunction(DBPutQuadvar1, ("%(d)s",), pyname="DBPutUcdvar1")
+DBPutQuadvar1_%(d)s = PYB11TemplateFunction(DBPutQuadvar1, ("%(d)s",), pyname="DBPutQuadvar1")
 DBPutPointvar1_%(d)s = PYB11TemplateFunction(DBPutPointvar1, ("%(d)s",), pyname="DBPutPointvar1")
 ''' % {"d" : d})
 
