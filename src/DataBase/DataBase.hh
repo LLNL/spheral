@@ -210,6 +210,13 @@ public:
   FieldList<Dimension, SymTensor> fluidHfield() const;
   FieldList<Dimension, Scalar> fluidWork() const;
 
+  FieldList<Dimension, Scalar> solidMass() const;
+  FieldList<Dimension, Vector> solidPosition() const;
+  FieldList<Dimension, Vector> solidVelocity() const;
+  FieldList<Dimension, Scalar> solidMassDensity() const;
+  FieldList<Dimension, Scalar> solidSpecificThermalEnergy() const;
+  FieldList<Dimension, SymTensor> solidHfield() const;
+  FieldList<Dimension, Scalar> solidWork() const;
   FieldList<Dimension, SymTensor> solidDeviatoricStress() const;
   FieldList<Dimension, Scalar> solidPlasticStrain() const;
   FieldList<Dimension, Scalar> solidPlasticStrainRate() const;
@@ -221,6 +228,7 @@ public:
   // We can also return the node extent Fields stored in the Neighbor objects.
   FieldList<Dimension, Vector> globalNodeExtent() const;
   FieldList<Dimension, Vector> fluidNodeExtent() const;
+  FieldList<Dimension, Vector> solidNodeExtent() const;
 
   // These functions return FieldLists with Fields that have to be calculated and
   // stored, so they are more expensive.

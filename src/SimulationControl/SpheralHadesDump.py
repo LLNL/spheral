@@ -83,19 +83,15 @@ def hadesDump(integrator,
         vector_samples = sph.vector_of_vector_of_Vector()
         tensor_samples = sph.vector_of_vector_of_Tensor()
         symTensor_samples = sph.vector_of_vector_of_SymTensor()
-        nsample_vec = sph.vector_of_int(db.nDim)
-        for i in xrange(db.nDim):
-            nsample_vec[i] = nsample[i]
 
-        sph.sampleMultipleFields2Lattice(fieldListSet,
-                                         r, w, H, localMask,
-                                         W,
-                                         xmin, xmax,
-                                         nsample_vec,
-                                         scalar_samples,
-                                         vector_samples,
-                                         tensor_samples,
-                                         symTensor_samples)
+        (scalar_samples,
+         vector_samples,
+         tensor_samples,
+         symTensor_samples) = sph.sampleMultipleFields2Lattice(fieldListSet,
+                                                               r, w, H, localMask,
+                                                               W,
+                                                               xmin, xmax,
+                                                               sph.vector_of_int(nsample))
         print "Generated %i scalar fields" % len(scalar_samples)
 
         # Rearrange the sampled data into rectangular blocks due to Silo's quad mesh limitations.
@@ -278,24 +274,17 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
         nullOpts = silo.DBoptlist()
 
         # Write the domain file names and types.
-        domainNames = Spheral.vector_of_string()
-        meshTypes = Spheral.vector_of_int(maxproc, silo.DB_QUADMESH)
-        for p in domainNamePatterns:
-            domainNames.append(p % "hblk0/hydro_mesh")
+        domainNames = Spheral.vector_of_string([p % "hblk0/hydro_mesh" for p in domainNamePatterns])
+        meshTypes = Spheral.vector_of_int([silo.DB_QUADMESH]*maxproc)
         optlist = silo.DBoptlist(1024)
         assert optlist.addOption(silo.DBOPT_CYCLE, cycle) == 0
         assert optlist.addOption(silo.DBOPT_DTIME, time) == 0
         assert silo.DBPutMultimesh(f, "hydro_mesh", domainNames, meshTypes, optlist) == 0
 
         # Write material names.
-        material_names = Spheral.vector_of_string()
-        matnames = Spheral.vector_of_string(1, "void")
-        matnos = Spheral.vector_of_int(1, 0)
-        for p in domainNamePatterns:
-            material_names.append(p % "/hblk0/Materials")
-        for i, name in enumerate([x.name for x in materials]):
-            matnames.append(name)
-            matnos.append(i + 1)
+        material_names = Spheral.vector_of_string([p % "/hblk0/Materials" for p in domainNamePatterns])
+        matnames = Spheral.vector_of_string(["void"] + [x.name for x in materials])
+        matnos = Spheral.vector_of_int(range(len(materials) + 1))
         assert len(material_names) == maxproc
         assert len(matnames) == len(materials) + 1
         assert len(matnos) == len(materials) + 1
@@ -309,7 +298,7 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
         
         # Write the variables descriptors.
         # We currently hardwire for the single density variable.
-        types = Spheral.vector_of_int(maxproc, silo.DB_QUADVAR)
+        types = Spheral.vector_of_int([silo.DB_QUADVAR]*maxproc)
         assert len(domainVarNames) == maxproc
         optlistMV = silo.DBoptlist()
         assert optlistMV.addOption(silo.DBOPT_CYCLE, cycle) == 0
@@ -321,8 +310,8 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
 
         # Write the dummy variable "akap_0" to tell Hades we're actually Hydra or something.
         assert silo.DBPutQuadvar1(f, "akap_0", "hydro_mesh",
-                                  Spheral.vector_of_double(ndim*ndim, 0.0), Spheral.vector_of_double(),
-                                  silo.DB_ZONECENT, Spheral.vector_of_int(ndim, ndim), nullOpts) == 0
+                                  Spheral.vector_of_double([0.0]*(ndim*ndim)), Spheral.vector_of_double(),
+                                  silo.DB_ZONECENT, Spheral.vector_of_int([ndim]*ndim), nullOpts) == 0
 
         # Write domain and mesh size info.
         assert silo.DBMkDir(f, "Decomposition") == 0
@@ -330,17 +319,14 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
         assert silo.DBWrite(f, "Decomposition/NumLocalDomains", maxproc) == 0
         assert silo.DBWrite(f, "Decomposition/NumBlocks", 1) == 0
         #assert silo.DBWrite(f, "Decomposition/LocalName", "hblk") == 0
-        localDomains = Spheral.vector_of_int()
-        domainFiles = Spheral.vector_of_vector_of_int(1)
-        for i in xrange(maxproc):
-            localDomains.append(i)
-            domainFiles[0].append(i)
+        localDomains = Spheral.vector_of_int(range(maxproc))
+        domainFiles = Spheral.vector_of_vector_of_int([Spheral.vector_of_int(range(maxproc))])
         assert silo.DBWrite(f, "Decomposition/LocalDomains", localDomains) == 0
         assert silo.DBWrite(f, "DomainFiles", domainFiles) == 0
 
         for iproc in xrange(maxproc):
             assert silo.DBMkDir(f, "Decomposition/gmap%i" % iproc) == 0
-            stuff = Spheral.vector_of_int(12, 0)
+            stuff = Spheral.vector_of_int([0]*12)
             for jdim in xrange(ndim):
                 stuff[6+jdim] = nblocks[iproc][jdim]
             if iproc in (0, maxproc-1):
@@ -389,9 +375,7 @@ def writeDomainSiloFile(ndim, maxproc,
         assert len(rhosamp) == numZones
 
         # Make a vector<int> version of nblock
-        nblock_vec = Spheral.vector_of_int(ndim)
-        for jdim in xrange(ndim):
-            nblock_vec[jdim] = nblock[jdim]
+        nblock_vec = Spheral.vector_of_int(nblock)
 
         # Create the file.
         fileName = os.path.join(baseDirectory, procDirBaseName, "domain%i.silo" % mpi.rank)
@@ -403,9 +387,9 @@ def writeDomainSiloFile(ndim, maxproc,
         assert silo.DBMkDir(f, "hblk0") == 0
 
         # Write the domain mesh.
-        coords = Spheral.vector_of_vector_of_double(ndim)
+        coords = Spheral.vector_of_vector_of_double([Spheral.vector_of_double()]*ndim)
         for jdim in xrange(ndim):
-            coords[jdim] = Spheral.vector_of_double(nblocknodes[jdim])
+            coords[jdim] = Spheral.vector_of_double([0.0]*nblocknodes[jdim])
             dx = (xmaxblock[jdim] - xminblock[jdim])/nblock[jdim]
             for i in xrange(nblocknodes[jdim]):
                 coords[jdim][i] = xminblock[jdim] + i*dx
@@ -456,12 +440,10 @@ def writeDomainSiloFile(ndim, maxproc,
 
         # Write materials.
         if materials:
-            matnos = Spheral.vector_of_int(1, 0)
-            for i in xrange(len(materials)):
-                matnos.append(i + 1)
+            matnos = Spheral.vector_of_int(range(len(materials)+1))
             assert len(matnos) == len(materials) + 1
-            matlist = Spheral.vector_of_int(numZones, 0)
-            matnames = Spheral.vector_of_string(1, "void")
+            matlist = Spheral.vector_of_int([0]*numZones)
+            matnames = Spheral.vector_of_string(["void"])
             for imat, nodeList in enumerate(materials):
                 for i in xrange(numZones):
                     if rhosamp[i] > 0.0:
@@ -736,23 +718,14 @@ def hadesDump1(integrator,
         else:
             localMask.appendField(mask.fieldForNodeList(nodes))
 
-        scalar_samples = Spheral.vector_of_vector_of_double()
-        vector_samples = Spheral.vector_of_vector_of_Vector3d()
-        tensor_samples = Spheral.vector_of_vector_of_Tensor3d()
-        symTensor_samples = Spheral.vector_of_vector_of_SymTensor3d()
-        nsample_vec = Spheral.vector_of_int(3)
-        for i in xrange(3):
-            nsample_vec[i] = nsample[i]
-
-        Spheral.sampleMultipleFields2Lattice3d(fieldListSet,
-                                               r, w, H, localMask,
-                                               W,
-                                               xmin, xmax,
-                                               nsample_vec,
-                                               scalar_samples,
-                                               vector_samples,
-                                               tensor_samples,
-                                               symTensor_samples)
+        (scalar_samples,
+         vector_samples,
+         tensor_samples,
+         symTensor_samples) = Spheral.sampleMultipleFields2Lattice3d(fieldListSet,
+                                                                     r, w, H, localMask,
+                                                                     W,
+                                                                     xmin, xmax,
+                                                                     Spheral.vector_of_int(nsample))
         print "Generated %i scalar fields" % len(scalar_samples)
         rhosamp = scalar_fields[0]
         nlocal = len(rhosamp)
