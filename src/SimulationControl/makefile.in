@@ -43,7 +43,8 @@ PYTHONTARGETS = \
 	$(srcdir)/siloPointmeshDump.py \
 	$(srcdir)/SpheralPointmeshSiloDump.py \
 	$(srcdir)/resampleNodeList.py \
-	$(srcdir)/overlayNodeList.py
+	$(srcdir)/overlayNodeList.py \
+	$(srcdir)/writeSiloQuadMesh.py
 
 #-------------------------------------------------------------------------------
 # This stuff is for generating git revision info in the python.
