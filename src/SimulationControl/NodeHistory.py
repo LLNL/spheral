@@ -44,6 +44,7 @@ class NodeHistory:
                 assert i >= 0 and i < nodeList.numInternalNodes
                 self.nodeFlags[i] = 1
         else:
+            self.nodeIndices = nodeIndices
             self.currentNodeIndices()
 
         # Open the history file.
