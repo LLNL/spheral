@@ -19,47 +19,13 @@ def writeSiloQuadMesh(scalar_data,
                       cycle = 0,
                       RZ = False):
 
+    import Spheral
+    from SpheralCompiledPackages import silo
+    import mpi
+    import sys, os, struct, bisect
+    from operator import mul
+
     assert ndim in (2,3)
-
-    # Output field names for file.
-    if scalar_names:
-        assert len(scalar_names) == len(scalar_data)
-    else:
-        scalar_names = ["scalar%i" % i for i in xrange(len(scalar_names))]
-
-    # Shuffle the scalar data into the block array structure required by silo.
-    scalar_blocks = []
-    for var in scalar_data:
-        varsamp, xminblock, xmaxblock, nblock, jsplit = shuffleIntoBlocks(ndim, var, xmin, xmax, nglobal)
-        scalar_blocks.append(varsamp)
-
-    # Write the files.
-    maxproc = writeMasterSiloFile(ndim = ndim,
-                                  nblock = nblock,
-                                  jsplit = jsplit,
-                                  baseDirectory = dirname,
-                                  baseName = filename,
-                                  procDirBaseName = "blocks",
-                                  materials = materials,
-                                  vars = zip(scalar_blocks, scalar_names),
-                                  label = "Spheral++ cartesian sampled output",
-                                  time = time,
-                                  cycle = cycle)
-    writeDomainSiloFile(ndim = ndim,
-                        jsplit = jsplit,
-                        maxproc = maxproc,
-                        baseDirectory = baseDirectory,
-                        baseName = filename,
-                        procDirBaseName = "blocks",
-                        materials = materials,
-                        vars = zip(scalar_blocks, scalar_names),
-                        xminblock = xminblock,
-                        xmaxblock = xmaxblock,
-                        nblock = nblock,
-                        label = "Spheral++ cartesian sampled output",
-                        time = time,
-                        cycle = cycle,
-                        pretendRZ = RZ)
 
     #-------------------------------------------------------------------------------
     # Rearrange the distributed data into rectangular blocks for each domain due
@@ -358,4 +324,48 @@ def writeSiloQuadMesh(scalar_data,
             del f
 
         return
+
+    #---------------------------------------------------------------------------
+    # And finally the main routine...
+    #---------------------------------------------------------------------------
+
+    # Output field names for file.
+    if scalar_names:
+        assert len(scalar_names) == len(scalar_data)
+    else:
+        scalar_names = ["scalar%i" % i for i in xrange(len(scalar_names))]
+
+    # Shuffle the scalar data into the block array structure required by silo.
+    scalar_blocks = []
+    for var in scalar_data:
+        varsamp, xminblock, xmaxblock, nblock, jsplit = shuffleIntoBlocks(ndim, var, xmin, xmax, nglobal)
+        scalar_blocks.append(varsamp)
+
+    # Write the files.
+    maxproc = writeMasterSiloFile(ndim = ndim,
+                                  nblock = nblock,
+                                  jsplit = jsplit,
+                                  baseDirectory = dirname,
+                                  baseName = filename,
+                                  procDirBaseName = "blocks",
+                                  materials = materials,
+                                  vars = zip(scalar_blocks, scalar_names),
+                                  label = "Spheral++ cartesian sampled output",
+                                  time = time,
+                                  cycle = cycle)
+    writeDomainSiloFile(ndim = ndim,
+                        jsplit = jsplit,
+                        maxproc = maxproc,
+                        baseDirectory = dirname,
+                        baseName = filename,
+                        procDirBaseName = "blocks",
+                        materials = materials,
+                        vars = zip(scalar_blocks, scalar_names),
+                        xminblock = xminblock,
+                        xmaxblock = xmaxblock,
+                        nblock = nblock,
+                        label = "Spheral++ cartesian sampled output",
+                        time = time,
+                        cycle = cycle,
+                        pretendRZ = RZ)
 
