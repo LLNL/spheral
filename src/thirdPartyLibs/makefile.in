@@ -53,10 +53,6 @@ PIPEXE = $(prefix)/bin/pip
 PYBINDGENBUILDDATE=.pybindgen==0.17.0_pip_install.date
 PYBINDGENPATCHDATE=.pybindgen_patch.date
 
-# PYB11Generator
-PYB11GENDIR = $(srcdir)/PYB11Generator
-PYB11GENBUILDDATE = .PYB11Generator.date
-
 # PyGnuplot
 GNUPLOTDIST = gnuplot-py-1.8.tar.gz
 GNUPLOTURL = http://downloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?modtime=1209767882&big_mirror=0
@@ -314,7 +310,6 @@ $(PYBINDGENPATCHDATE):	$(PYBINDGENBUILDDATE)
 #-------------------------------------------------------------------------------
 all:	$(PYTHONTARGET) \
 	$(PYBINDGENPATCHDATE) \
-	$(PYB11GENBUILDDATE) \
 	$(PETSCTARGETS) \
 	$(ATSBUILDDATE) \
 	$(OPENSUBDIVTARGETS) \
@@ -407,22 +402,6 @@ $(PIPEXE):	$(PYTHONTARGET) cache/$(PIPDIST)
 	echo "ERROR building PIP."; \
 	exit 1; \
 	fi
-
-#-------------------------------------------------------------------------------
-# PYB11Generator
-#-------------------------------------------------------------------------------
-$(PYB11GENBUILDDATE):	$(PYTHONTARGET) $(PYB11GENDIR)/PYB11Generator/__init__.py
-	@echo "################################################################################"
-	@echo "# Building PYB11Generator"
-	@echo "################################################################################"
-	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
-	$(SHELL) -ec 'cd $(PYB11GENDIR); $(PYTHONEXE) setup.py install --prefix $(prefix);'
-	@if test -n "`$(PYTHONEXE) -c 'import PYB11Generator'`"; then \
-	echo "ERROR building PYB11Generator python extension."; \
-	rm -f $(PYB11GENBUILDDATE); \
-	exit 1; \
-	fi
-	touch $(PYB11GENBUILDDATE)
 
 #-------------------------------------------------------------------------------
 # Gnuplot python extension

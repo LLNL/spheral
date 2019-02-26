@@ -36,6 +36,12 @@ class EquationOfState:
                                          maxIterations = ("const unsigned", "100")):
         return "Scalar"
 
+    @PYB11virtual
+    @PYB11const
+    def molecularWeight(self):
+        "Optionally provide a molecular weight for an equation of state"
+        return "Scalar"
+
     #...........................................................................
     # Methods
     @PYB11const

@@ -265,15 +265,15 @@ GammaLawGas<Dimension>::gamma(const Scalar massDensity,
 // Get and set gamma.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-double
-GammaLawGas<Dimension>::getGamma() const {
+typename Dimension::Scalar
+GammaLawGas<Dimension>::gamma() const {
   return mGamma;
 }
 
 template<typename Dimension>
 void
-GammaLawGas<Dimension>::setGamma(double gamma) {
-  mGamma = gamma;
+GammaLawGas<Dimension>::gamma(typename Dimension::Scalar gam) {
+  mGamma = gam;
   mGamma1 = mGamma - 1.0;
 }
 
@@ -281,15 +281,15 @@ GammaLawGas<Dimension>::setGamma(double gamma) {
 // Get and set the molecular weight.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-double
-GammaLawGas<Dimension>::getMolecularWeight() const {
+typename Dimension::Scalar
+GammaLawGas<Dimension>::molecularWeight() const {
   return mMolecularWeight;
 }
 
 template<typename Dimension>
 void
-GammaLawGas<Dimension>::setMolecularWeight(double molecularWeight) {
-  mMolecularWeight = molecularWeight;
+GammaLawGas<Dimension>::molecularWeight(typename Dimension::Scalar mu) {
+  mMolecularWeight = mu;
 }
 
 //------------------------------------------------------------------------------

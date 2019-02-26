@@ -47,7 +47,7 @@ TPLIBS=
 BOOSTTARGET=
 SILOTARGET=
 
-PIPTARGETS+=" pybind11 sphinx sphinx_rtd_theme pytest-runner numpy-stl"
+PIPTARGETS+=" PYB11Generator sphinx sphinx_rtd_theme pytest-runner numpy-stl"
 
 AC_MSG_CHECKING(for spheral build directory)
 #SPHERALBUILDDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`
