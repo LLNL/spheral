@@ -37,14 +37,13 @@ class NodeHistory:
         # redistributed, deleted, added, or what have you.
         self.nodeFlags = FieldConstructor("flag nodes", nodeList, 0)
         if nodeIndices is None:
-            self.nodeIndices = range(nodeList.numInternalNodes)
+            nodeIndices = range(nodeList.numInternalNodes)
+        self.nodeIndices = nodeIndices
         if isinstance(nodeIndices, list):
-            self.nodeIndices = nodeIndices
             for i in nodeIndices:
                 assert i >= 0 and i < nodeList.numInternalNodes
                 self.nodeFlags[i] = 1
         else:
-            self.nodeIndices = nodeIndices
             self.currentNodeIndices()
 
         # Open the history file.
