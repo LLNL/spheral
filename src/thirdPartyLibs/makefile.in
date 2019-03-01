@@ -253,7 +253,7 @@ TETGENDIR = $(TETGENDIST:.tar.gz=)
 # Polytope
 POLYTOPEVER = 0.5.24
 POLYTOPEDIST = polytope-$(POLYTOPEVER).tar.gz
-POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/downloads/$(POLYTOPEDIST)
+POLYTOPEURL = https://github.com/pbtoast/polytope/releases/download/$(POLYTOPEVER)/$(POLYTOPEDIST)
 POLYTOPEDIR = $(POLYTOPEDIST:.tar.gz=)
 POLYTOPEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(POLYTOPEDIST))
 
