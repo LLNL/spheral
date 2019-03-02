@@ -72,8 +72,8 @@ PSYCOBUILDDATE = .psyco.date
 # ELEMENTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(ELEMENTTREEDIST))
 
 # Boost
-BOOSTDIST = boost_1_63_0.tar.bz2
-BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.63.0/$(BOOSTDIST)/download
+BOOSTDIST = boost_1_69_0.tar.bz2
+BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.69.0/$(BOOSTDIST)/download
 BOOSTDIR = $(BOOSTDIST:.tar.bz2=)
 BOOSTDATE = $(patsubst %.tar.bz2, .%.date, $(BOOSTDIST))
 BOOSTPYTHONLIB0 = libboost_python$(BOOSTEXT).$(DYLIBEXT)
@@ -82,8 +82,8 @@ BOOSTTARGET = @BOOSTTARGET@
 
 # Cmake
 CMAKEEXE = @CMAKEEXE@
-CMAKEDIST = cmake-3.9.4.tar.gz
-CMAKEURL = http://www.cmake.org/files/v3.9/$(CMAKEDIST)
+CMAKEDIST = cmake-3.13.4.tar.gz
+CMAKEURL = https://github.com/Kitware/CMake/releases/download/v3.13.4/$(CMAKEDIST)
 CMAKEDIR = $(CMAKEDIST:.tar.gz=)
 
 # Parmetis
@@ -253,7 +253,7 @@ TETGENDIR = $(TETGENDIST:.tar.gz=)
 # Polytope
 POLYTOPEVER = 0.5.24
 POLYTOPEDIST = polytope-$(POLYTOPEVER).tar.gz
-POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/downloads/$(POLYTOPEDIST)
+POLYTOPEURL = https://github.com/pbtoast/polytope/releases/download/$(POLYTOPEVER)/$(POLYTOPEDIST)
 POLYTOPEDIR = $(POLYTOPEDIST:.tar.gz=)
 POLYTOPEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(POLYTOPEDIST))
 
@@ -287,11 +287,11 @@ cache/pip:
 	@echo "################################################################################"
 	$(eval PIPMOD := $(firstword $(subst ==, ,$*)))
 	$(PIPEXE) install --upgrade $* --no-index --find-links cache/pip
-	@if test -n "`$(PYTHONEXE) -c 'import $(PIPMOD)'`"; then \
-	echo "ERROR building $*."; \
-	rm -f $@; \
-	exit 1; \
-	fi
+	#@if test -n "`$(PYTHONEXE) -c 'import $(PIPMOD)'`"; then \
+	#echo "ERROR building $*."; \
+	#rm -f $@; \
+	#exit 1; \
+	#fi
 	touch $@
 
 # This rule is intended to make sure we build the pip targets serially to make
@@ -442,7 +442,7 @@ $(BOOSTDATE):	cache/$(BOOSTDIST)
 	$(BZIP2) -dc cache/$(BOOSTDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(BOOSTDIR); \
 	PATH=$(SAFEPATH); export PATH; \
-	./bootstrap.sh --with-toolset=$(JAMTOOLSET)  --without-libraries=atomic,container,coroutine,coroutine2,log,chrono,context,date_time,exception,fiber,filesystem,graph,graph_parallel,iostreams,locale,math,metaparse,mpi,program_options,python,random,regex,serialization,signals,system,test,thread,timer,type_erasure,wave --prefix=$(prefix); \
+	./bootstrap.sh --with-toolset=$(JAMTOOLSET)  --without-libraries=atomic,container,coroutine,log,chrono,context,date_time,exception,fiber,filesystem,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,system,test,thread,timer,type_erasure,wave --prefix=$(prefix); \
 	./b2 install'
 	@if ! test -e "$(prefix)/include/boost" ; then \
 	echo "ERROR building local boost distribution. (0, no include dir)"; \
