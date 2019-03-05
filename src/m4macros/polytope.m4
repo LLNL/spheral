@@ -9,6 +9,7 @@ AC_SUBST(POLYTOPEFLAGS)
 AC_SUBST(POLYTOPELIBS)
 AC_SUBST(USE_TRIANGLE)
 AC_SUBST(USE_TETGEN)
+AC_SUBST(PYTHONPKGS)
 
 POLYTOPEFLAGS=
 POLYTOPELIBS=
@@ -67,6 +68,7 @@ AC_ARG_WITH(polytope,
    EXTRATHIRDPARTYTARGETS+=" \$(POLYTOPEBUILDDATE)"
    POLYTOPEFLAGS+=" prefix=\$(prefix) boost_root=\$(prefix) use_python=1 build_tests=0 python_exe=$PYTHON python_version=$PYTHONVERSION"
    POLYTOPELIBS+=" -lpolytope -lvoro_2d -lvoro_3d"
+   PYTHONPKGS+=" polytope"
 ]
 )
 
