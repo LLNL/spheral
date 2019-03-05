@@ -8,12 +8,15 @@ PYB11 at some point.
 
 from PYB11Generator import *
 from SpheralCommon import *
+from spheralDimensions import *
+dims = spheralDimensions()
 
 PYB11includes = ['"polytope/Tessellation.hh"',
                  '"Mesh/copy2polytope.hh"',
                  '<sstream>']
 
-PYB11namespaces += ["polytope"]
+PYB11namespaces = ["Spheral",
+                   "polytope"]
 
 PYB11opaque = ["std::vector<char>",
                "std::vector<unsigned>",
