@@ -36,6 +36,7 @@ public:
   double kelvinsToEnergyPerMole() const;
   double unitMassDensity() const;
   double stefanBoltzmannConstant() const;
+  double blackBodyConstant() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -53,6 +54,7 @@ private:
   const double KelvinsToEnergyPerMole;
   const double UnitMassDensity;
   const double Sigma;
+  const double BlackBody;
 
   // The reference MKS data we base our values on.
   static const double mpMKS;

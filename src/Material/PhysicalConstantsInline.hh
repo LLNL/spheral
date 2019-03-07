@@ -126,4 +126,13 @@ PhysicalConstants::stefanBoltzmannConstant() const {
     return Sigma;
 }
 
+//------------------------------------------------------------------------------
+// Black body constant
+//------------------------------------------------------------------------------
+inline
+double
+PhysicalConstants::blackBodyConstant() const {
+    return BlackBody;
+}
+
 }
