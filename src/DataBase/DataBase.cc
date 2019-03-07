@@ -1451,6 +1451,28 @@ fluidTotalEnergy(FieldList<Dimension, typename Dimension::Scalar>& result) const
 }
 
 //------------------------------------------------------------------------------
+// Return the specific heat field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DataBase<Dimension>::
+fluidSpecificHeat(const FieldList<Dimension, typename Dimension::Scalar>& temperature,
+                  FieldList<Dimension, typename Dimension::Scalar>& result) const {
+  REQUIRE(valid());
+  this->resizeFluidFieldList(result, 0.0, HydroFieldNames::specificHeat);
+  size_t nodeListi = 0;
+  for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
+       nodeListItr != fluidNodeListEnd(); 
+       ++nodeListItr, ++nodeListi) {
+    const EquationOfState<Dimension>& eos = (*nodeListItr)->equationOfState();
+    const Field<Dimension, Scalar>& rho = (*nodeListItr)->massDensity();
+    const Field<Dimension, Scalar>& temp = **temperature.fieldForNodeList(**nodeListItr);
+    Field<Dimension, Scalar>& specificHeat = **result.fieldForNodeList(**nodeListItr);
+    eos.setSpecificHeat(specificHeat, rho, temp);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Return the number of neighbors for each node based on the last update of 
 // the connectivity map.
 //------------------------------------------------------------------------------
