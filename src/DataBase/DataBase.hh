@@ -243,6 +243,8 @@ public:
   void fluidEntropy(FieldList<Dimension, Scalar>& result) const;
   void fluidLinearMomentum(FieldList<Dimension, Vector>& result) const;
   void fluidTotalEnergy(FieldList<Dimension, Scalar>& result) const;
+  void fluidSpecificHeat(const FieldList<Dimension, Scalar>& temperature,
+                         FieldList<Dimension, Scalar>& result) const;
 
   // Collect the number of neighbors for each node from the ConnectivityMap.
   FieldList<Dimension, int> numNeighbors() const;
