@@ -67,7 +67,7 @@ AC_ARG_WITH(polytope,
    USE_POLYTOPE=1
    EXTRATHIRDPARTYTARGETS+=" \$(POLYTOPEBUILDDATE)"
    POLYTOPEFLAGS+=" prefix=\$(prefix) boost_root=\$(prefix) use_python=1 build_tests=0 python_exe=$PYTHON python_version=$PYTHONVERSION"
-   POLYTOPELIBS+=" -lpolytope -lvoro_2d -lvoro_3d"
+   POLYTOPELIBS+=" -lpolytope"
    PYTHONPKGS+=" polytope"
 ]
 )

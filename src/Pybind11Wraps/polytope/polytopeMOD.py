@@ -34,12 +34,6 @@ PYB11opaque = ["std::vector<char>",
                "std::vector<std::vector<double>>",
                "std::vector<std::vector<std::string>>"]
 
-from Tessellation import *
-
-# Instantiate the types
-Tessellation2d = PYB11TemplateClass(Tessellation, template_parameters=("2", "double"))
-Tessellation3d = PYB11TemplateClass(Tessellation, template_parameters=("3", "double"))
-
 @PYB11template("Dimension", "nDim")
 def copy2polytope(cells = "const FieldList<%(Dimension)s, %(Dimension)s::FacetedVolume>&",
                   mesh = "polytope::Tessellation<%(nDim)s, double>&"):
