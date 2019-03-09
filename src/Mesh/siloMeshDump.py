@@ -46,9 +46,9 @@ def siloMeshDump(dirName, mesh,
     # print "              tensorFields: ", [x.name for x in tensorFields]
     # print "           symTensorFields: ", [x.name for x in symTensorFields]
 
-    assert (isinstance(mesh, Tessellation2d) or
-            isinstance(mesh, Tessellation3d))
-    if isinstance(mesh, Tessellation2d):
+    assert (isinstance(mesh, polytope.Tessellation2d) or
+            isinstance(mesh, polytope.Tessellation3d))
+    if isinstance(mesh, polytope.Tessellation2d):
         nDim = 2
     else:
         nDim = 3
@@ -317,10 +317,10 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         assert silo.DBMkDir(db, "POINTS") == 0      # HACK
 
         # Determine our dimensionality
-        if isinstance(mesh, Tessellation2d):
+        if isinstance(mesh, polytope.Tessellation2d):
             nDim = 2
         else:
-            assert isinstance(mesh, Tessellation3d)
+            assert isinstance(mesh, polytope.Tessellation3d)
             nDim = 3
 
         # Write a Polygonal zone list.
@@ -329,7 +329,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
 
         # start = TIME.clock()
 
-        faces = mesh.facesAsInts
+        faces = mesh.faces
         if nDim == 2:
         
             # Read out the zone nodes.  We rely on these already being arranged
