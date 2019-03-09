@@ -248,9 +248,9 @@ TETGENURL = http://ftp.mcs.anl.gov/pub/petsc/externalpackages/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
-POLYTOPEVER = 0.6.0
+POLYTOPEVER = 0.6.1
 POLYTOPEDIST = polytope-$(POLYTOPEVER).tar.gz
-POLYTOPEURL = https://github.com/pbtoast/polytope/archive/0.6.0.tar.gz
+POLYTOPEURL = https://github.com/pbtoast/polytope/archive/0.6.1.tar.gz
 POLYTOPEDIR = $(POLYTOPEDIST:.tar.gz=)
 POLYTOPEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(POLYTOPEDIST))
 
@@ -1101,7 +1101,7 @@ cache/$(POLYTOPEDIST):
 	@$(MKDIR) cache
 	$(WGET) "$(POLYTOPEURL)" -O cache/$(POLYTOPEDIST)
 
-$(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTARGET) $(PYTHONTARGET) piptargets
+$(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTARGET) $(PYTHONTARGET) .PYB11Generator_pip_install.date
 	@echo "################################################################################"
 	@echo "# Building $(POLYTOPEDIST)"
 	@echo "################################################################################"

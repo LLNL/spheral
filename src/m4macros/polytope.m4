@@ -15,6 +15,30 @@ POLYTOPEFLAGS=
 POLYTOPELIBS=
 
 # -----------------------------------------------------------------
+# Optionally turn off polytope entirely.  This disables building 
+# the tessellation extensions of Spheral.
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --without-polytope)
+AC_ARG_WITH(polytope,
+[  --without-polytope ....................... optionally build without polytope (disables all tessellation extensions)],
+[
+   AC_MSG_RESULT(yes)
+   USE_POLYTOPE=0
+   POLYTOPEFLAGS=
+   POLYTOPELIBS=
+   CXXFLAGS+=" -DNOPOLYTOPE"
+],
+[
+   AC_MSG_RESULT(no)
+   USE_POLYTOPE=1
+   EXTRATHIRDPARTYTARGETS+=" \$(POLYTOPEBUILDDATE)"
+   POLYTOPEFLAGS+=" prefix=\$(prefix) boost_root=\$(prefix) use_python=1 build_tests=0 python_exe=$PYTHON python_version=$PYTHONVERSION"
+   POLYTOPELIBS+=" -lpolytope"
+   PYTHONPKGS+=" polytope"
+]
+)
+
+# -----------------------------------------------------------------
 # Optionally build polytope without Triangle
 # -----------------------------------------------------------------
 AC_MSG_CHECKING(for --without-triangle)
@@ -45,30 +69,6 @@ AC_ARG_WITH(tetgen,
    AC_MSG_RESULT(no)
    USE_TETGEN=1
    POLYTOPELIBS+=" -ltetgen"
-]
-)
-
-# -----------------------------------------------------------------
-# Optionally turn off polytope entirely.  This disables building 
-# the tessellation extensions of Spheral.
-# -----------------------------------------------------------------
-AC_MSG_CHECKING(for --without-polytope)
-AC_ARG_WITH(polytope,
-[  --without-polytope ....................... optionally build without polytope (disables all tessellation extensions)],
-[
-   AC_MSG_RESULT(yes)
-   USE_POLYTOPE=0
-   POLYTOPEFLAGS=
-   POLYTOPELIBS=
-   CXXFLAGS+=" -DNOPOLYTOPE"
-],
-[
-   AC_MSG_RESULT(no)
-   USE_POLYTOPE=1
-   EXTRATHIRDPARTYTARGETS+=" \$(POLYTOPEBUILDDATE)"
-   POLYTOPEFLAGS+=" prefix=\$(prefix) boost_root=\$(prefix) use_python=1 build_tests=0 python_exe=$PYTHON python_version=$PYTHONVERSION"
-   POLYTOPELIBS+=" -lpolytope"
-   PYTHONPKGS+=" polytope"
 ]
 )
 
