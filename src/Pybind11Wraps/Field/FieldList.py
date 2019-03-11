@@ -118,6 +118,24 @@ class FieldList(FieldListBase):
         "The NodeLists for Fields in this FieldList"
         return "const std::vector<NodeListType*>&"
 
+    @PYB11const
+    @PYB11implementation("[](const FieldList<%(Dimension)s, %(Value)s>& self) -> py::list { const auto vals = self.internalValues(); py::list result; for (const auto& x: vals) result.append(x); return result; }")
+    def internalValues(self):
+        "Return a python list (as a copy) of just the internal values"
+        return "py::list"
+
+    @PYB11const
+    @PYB11implementation("[](const FieldList<%(Dimension)s, %(Value)s>& self) -> py::list { const auto vals = self.ghostValues(); py::list result; for (const auto& x: vals) result.append(x); return result; }")
+    def ghostValues(self):
+        "Return a python list (as a copy) of just the ghost values"
+        return "py::list"
+
+    @PYB11const
+    @PYB11implementation("[](const FieldList<%(Dimension)s, %(Value)s>& self) -> py::list { const auto vals = self.allValues(); py::list result; for (const auto& x: vals) result.append(x); return result; }")
+    def allValues(self):
+        "Return a python list (as a copy) of all values in the FieldList"
+        return "py::list"
+
     #...........................................................................
     # Comparators
     def __eq__(self):

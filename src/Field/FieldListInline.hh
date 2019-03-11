@@ -1609,6 +1609,66 @@ nodeListPtrs() const {
 }
 
 //------------------------------------------------------------------------------
+// All internal values.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+std::vector<DataType>
+FieldList<Dimension, DataType>::
+internalValues() const {
+  const size_t ntot = this->numInternalNodes();
+  std::vector<DataType> result(ntot);
+  size_t offset = 0;
+  for (auto itr = this->begin(); itr != this->end(); ++itr) {
+    const auto n = (*itr)->numInternalElements();
+    std::copy((*itr)->begin(), (*itr)->begin() + n, result.begin() + offset);
+    offset += n;
+  }
+  CHECK(offset == ntot);
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// All ghost values.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+std::vector<DataType>
+FieldList<Dimension, DataType>::
+ghostValues() const {
+  const size_t ntot = this->numGhostNodes();
+  std::vector<DataType> result(ntot);
+  size_t offset = 0;
+  for (auto itr = this->begin(); itr != this->end(); ++itr) {
+    const auto n = (*itr)->numGhostElements();
+    std::copy((*itr)->begin(), (*itr)->begin() + n, result.begin() + offset);
+    offset += n;
+  }
+  CHECK(offset == ntot);
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// All values.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+std::vector<DataType>
+FieldList<Dimension, DataType>::
+allValues() const {
+  const size_t ntot = this->numNodes();
+  std::vector<DataType> result(ntot);
+  size_t offset = 0;
+  for (auto itr = this->begin(); itr != this->end(); ++itr) {
+    const auto n = (*itr)->numElements();
+    std::copy((*itr)->begin(), (*itr)->begin() + n, result.begin() + offset);
+    offset += n;
+  }
+  CHECK(offset == ntot);
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Internal method to build the NodeListIndexMap from scratch.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
