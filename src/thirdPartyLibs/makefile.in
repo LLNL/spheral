@@ -50,10 +50,6 @@ SETUPTOOLSURL = https://pypi.python.org/packages/75/d1/5abca4ccf61a7ab86c255dd31
 WHEELURL = https://pypi.python.org/packages/0c/80/16a85b47702a1f47a63c104c91abdd0a6704ee8ae3b4ce4afc49bc39f9d9/wheel-0.30.0-py2.py3-none-any.whl#md5=1d61793f816d6b60513364fe2de9c1b3
 PIPEXE = $(prefix)/bin/pip
 
-# Pybindgen
-PYBINDGENBUILDDATE=.pybindgen==0.17.0_pip_install.date
-PYBINDGENPATCHDATE=.pybindgen_patch.date
-
 # PyGnuplot
 GNUPLOTDIST = gnuplot-py-1.8.tar.gz
 GNUPLOTURL = http://downloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?modtime=1209767882&big_mirror=0
@@ -252,9 +248,9 @@ TETGENURL = http://ftp.mcs.anl.gov/pub/petsc/externalpackages/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
-POLYTOPEVER = 0.5.24
+POLYTOPEVER = 0.6.1
 POLYTOPEDIST = polytope-$(POLYTOPEVER).tar.gz
-POLYTOPEURL = https://github.com/pbtoast/polytope/releases/download/$(POLYTOPEVER)/$(POLYTOPEDIST)
+POLYTOPEURL = https://github.com/pbtoast/polytope/archive/0.6.1.tar.gz
 POLYTOPEDIR = $(POLYTOPEDIST:.tar.gz=)
 POLYTOPEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(POLYTOPEDIST))
 
@@ -301,16 +297,7 @@ piptargets:	cache/pip
 	$(MAKE) MAKEFLAGS='-j 1' $(patsubst %,.%_pip_install.date,$(PIPTARGETS))
 
 #-------------------------------------------------------------------------------
-# Pybindgen needs to be patched to handle C++ enums.
-$(PYBINDGENPATCHDATE):	$(PYBINDGENBUILDDATE)
-	$(PATCH) $(PYLIBDIR)/pybindgen/enum.py $(srcdir)/pybindgen_enum_py.patch
-	find $(PYTHONLIBDIR)/pybindgen -name '*.pyc' -exec rm -f {} \;
-	$(PYTHONEXE) -m compileall $(PYTHONLIBDIR)/pybindgen
-	touch $(PYBINDGENPATCHDATE)
-
-#-------------------------------------------------------------------------------
 all:	$(PYTHONTARGET) \
-	$(PYBINDGENPATCHDATE) \
 	$(PETSCTARGETS) \
 	$(ATSBUILDDATE) \
 	$(OPENSUBDIVTARGETS) \
@@ -1114,7 +1101,7 @@ cache/$(POLYTOPEDIST):
 	@$(MKDIR) cache
 	$(WGET) "$(POLYTOPEURL)" -O cache/$(POLYTOPEDIST)
 
-$(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTARGET) $(PYTHONTARGET) $(PYBINDGENPATCHDATE)
+$(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTARGET) $(PYTHONTARGET) .PYB11Generator_pip_install.date
 	@echo "################################################################################"
 	@echo "# Building $(POLYTOPEDIST)"
 	@echo "################################################################################"
@@ -1137,9 +1124,7 @@ $(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTAR
 	$(MAKE) MAKEFLAGS= $(POLYTOPEFLAGS) config; \
 	$(MAKE) MAKEFLAGS= $(POLYTOPEFLAGS) install"
 	@if ! test -e $(prefix)/lib/libpolytope.a -a \
-	           -e $(prefix)/lib/libvoro_2d.a -a \
-	           -e $(prefix)/lib/libvoro_3d.a -a \
-                   -e $(PYTHONLIBDIR)/polytope/PolytopeModules.so -a \
+                   -e $(PYTHONLIBDIR)/polytope/polytope.so -a \
 	           -e $(prefix)/include/polytope/polytope.hh; then \
 	echo "ERROR building Polytope."; \
 	rm -f $(POLYTOPEBUILDDATE); \
