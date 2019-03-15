@@ -248,9 +248,9 @@ TETGENURL = http://ftp.mcs.anl.gov/pub/petsc/externalpackages/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
-POLYTOPEVER = 0.6.1
+POLYTOPEVER = 0.6.2
 POLYTOPEDIST = polytope-$(POLYTOPEVER).tar.gz
-POLYTOPEURL = https://github.com/pbtoast/polytope/archive/0.6.1.tar.gz
+POLYTOPEURL = https://github.com/pbtoast/polytope/archive/0.6.2.tar.gz
 POLYTOPEDIR = $(POLYTOPEDIST:.tar.gz=)
 POLYTOPEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(POLYTOPEDIST))
 
@@ -1120,9 +1120,10 @@ $(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTAR
 		$(CP) -f $(TETGENDIR)/tetgen.h $(POLYTOPEDIR)/src; \
 		$(CP) -f $(TETGENDIR)/tetgen.cxx $(POLYTOPEDIR)/src; \
 	fi
-	env PATH=$(SAFEPATH) CC='$(CC)' CXX='$(CXX)' $(SHELL) -ec "cd $(POLYTOPEDIR); \
-	$(MAKE) MAKEFLAGS= $(POLYTOPEFLAGS) config; \
-	$(MAKE) MAKEFLAGS= $(POLYTOPEFLAGS) install"
+	@$(MKDIR) -p $(POLYTOPEDIR)/build
+	env PATH=$(SAFEPATH) CC='$(CC)' CXX='$(CXX)' $(SHELL) -ec "cd $(POLYTOPEDIR)/build; \
+	$(CMAKEEXE) $(POLYTOPEFLAGS) $(BUILDTOP)/thirdPartyLibs/$(POLYTOPEDIR); \
+	$(MAKE) MAKEFLAGS= install"
 	@if ! test -e $(prefix)/lib/libpolytope.a -a \
                    -e $(PYTHONLIBDIR)/polytope/polytope.so -a \
 	           -e $(prefix)/include/polytope/polytope.hh; then \

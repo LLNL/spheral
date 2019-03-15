@@ -32,7 +32,7 @@ AC_ARG_WITH(polytope,
    AC_MSG_RESULT(no)
    USE_POLYTOPE=1
    EXTRATHIRDPARTYTARGETS+=" \$(POLYTOPEBUILDDATE)"
-   POLYTOPEFLAGS+=" prefix=\$(prefix) boost_root=\$(prefix) use_python=1 build_tests=0 python_exe=$PYTHON python_version=$PYTHONVERSION"
+   POLYTOPEFLAGS+=" -Wno-dev  -DCMAKE_INSTALL_PREFIX:PATH=\$(prefix) -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$(CC)  -DCMAKE_CXX_COMPILER=$(CXX) -DBUILD_SHARED_LIBS=ON -DTESTING=OFF -DBOOST_ROOT=\$(prefix) -DHDF5_ROOT=\$(prefix) -DUSE_SILO=ON -DUSE_PYTHON=ON -DPYTHON_EXE=\$(PYTHONEXE) -G 'Unix Makefiles'"
    POLYTOPELIBS+=" -lpolytope"
    PYTHONPKGS+=" polytope"
 ]

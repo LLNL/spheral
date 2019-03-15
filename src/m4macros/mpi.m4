@@ -27,7 +27,7 @@ AC_ARG_WITH(mpi,
     MPIENABLED="no"
     MPICCFLAGS=
     MPICXXFLAGS=
-    POLYTOPEFLAGS="$POLYTOPEFLAGS CC='\$(CC)' CXX='\$(CXX)'"
+    #POLYTOPEFLAGS="$POLYTOPEFLAGS CC='\$(CC)' CXX='\$(CXX)'"
     if test $CXXONLY = "no"; then
       MPIPYTHONINTERFACETARGET="fakempi.py"
       CXXPKGS+=" PythonMPIInterfaces"
@@ -42,7 +42,7 @@ AC_ARG_WITH(mpi,
     CXXPKGS+=" Distributed"
     CXXPKGLIBS+=" Distributed"
     MPIENABLED="yes"
-    POLYTOPEFLAGS+=" CC='\$(MPICC)' CXX='\$(MPICXX)' CFLAGS='\$(MPICCFLAGS)' CXXFLAGS='\$(MPICXXFLAGS)' MPI=1"
+    #POLYTOPEFLAGS+=" CC='\$(MPICC)' CXX='\$(MPICXX)' CFLAGS='\$(MPICCFLAGS)' CXXFLAGS='\$(MPICXXFLAGS)' MPI=1"
     FFTWFLAGS+=" --enable-mpi"
     if test $CXXONLY = "no"; then
       PIPTARGETS+=" mpi4py"
