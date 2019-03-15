@@ -293,6 +293,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
     # Everyone gets the link file name.
     linkfile = mpi.bcast(linkfile, root=0)
 
+    mpi.barrier()
     return linkfile
 
 #-------------------------------------------------------------------------------
@@ -329,7 +330,6 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
 
         # start = TIME.clock()
 
-        faces = mesh.faces
         if nDim == 2:
         
             # Read out the zone nodes.  We rely on these already being arranged
@@ -348,7 +348,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             # Construct the zone-face list.  We use the ones complement of a face ID
             # to indicate that face needs to be reversed in reference to this zone.
             # This is the same convention as polytope, so just copy it.
-            assert silo.DBPutPHZonelist(db, zonelistName[nDim], faces, mesh.cells, 0, (numZones - 1), nullOpts) == 0
+            assert silo.DBPutPHZonelist(db, zonelistName[nDim], vector_of_vector_of_int(mesh.facesAsInts), vector_of_vector_of_int(mesh.cells), 0, (numZones - 1), nullOpts) == 0
         
         # print "    --> %g sec to write PHzonelist" % (TIME.clock() - start)
         # start = TIME.clock()
@@ -528,6 +528,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         # That's it.
         assert silo.DBClose(db) == 0
 
+    mpi.barrier()
     return
 
 #-------------------------------------------------------------------------------

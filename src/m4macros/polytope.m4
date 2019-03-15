@@ -56,19 +56,21 @@ AC_ARG_WITH(triangle,
 )
 
 # -----------------------------------------------------------------
-# Optionally build polytope without Tetgen
+# Optionally build polytope with Tetgen
+#
+# Defaulting off 'til the current polytope supports Tetgen again.
 # -----------------------------------------------------------------
-AC_MSG_CHECKING(for --without-tetgen)
+AC_MSG_CHECKING(for --with-tetgen)
 AC_ARG_WITH(tetgen,
-[  --without-tetgen ......................... optionally build polytope without Tetgen],
+[  --with-tetgen ............................ optionally build polytope with Tetgen],
 [
    AC_MSG_RESULT(yes)
-   USE_TETGEN=0
+   USE_TETGEN=1
+   POLYTOPELIBS+=" -ltetgen"
 ],
 [
    AC_MSG_RESULT(no)
-   USE_TETGEN=1
-   POLYTOPELIBS+=" -ltetgen"
+   USE_TETGEN=0
 ]
 )
 
