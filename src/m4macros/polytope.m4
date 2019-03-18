@@ -32,7 +32,7 @@ AC_ARG_WITH(polytope,
    AC_MSG_RESULT(no)
    USE_POLYTOPE=1
    EXTRATHIRDPARTYTARGETS+=" \$(POLYTOPEBUILDDATE)"
-   POLYTOPEFLAGS+=" prefix=\$(prefix) boost_root=\$(prefix) use_python=1 build_tests=0 python_exe=$PYTHON python_version=$PYTHONVERSION"
+   POLYTOPEFLAGS+=" -Wno-dev  -DCMAKE_INSTALL_PREFIX:PATH=\$(prefix) -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$(CC)  -DCMAKE_CXX_COMPILER=$(CXX) -DBUILD_SHARED_LIBS=ON -DTESTING=OFF -DBOOST_ROOT=\$(prefix) -DHDF5_ROOT=\$(prefix) -DUSE_SILO=ON -DUSE_PYTHON=ON -DPYTHON_EXE=\$(PYTHONEXE) -G 'Unix Makefiles'"
    POLYTOPELIBS+=" -lpolytope"
    PYTHONPKGS+=" polytope"
 ]
@@ -56,19 +56,21 @@ AC_ARG_WITH(triangle,
 )
 
 # -----------------------------------------------------------------
-# Optionally build polytope without Tetgen
+# Optionally build polytope with Tetgen
+#
+# Defaulting off 'til the current polytope supports Tetgen again.
 # -----------------------------------------------------------------
-AC_MSG_CHECKING(for --without-tetgen)
+AC_MSG_CHECKING(for --with-tetgen)
 AC_ARG_WITH(tetgen,
-[  --without-tetgen ......................... optionally build polytope without Tetgen],
+[  --with-tetgen ............................ optionally build polytope with Tetgen],
 [
    AC_MSG_RESULT(yes)
-   USE_TETGEN=0
+   USE_TETGEN=1
+   POLYTOPELIBS+=" -ltetgen"
 ],
 [
    AC_MSG_RESULT(no)
-   USE_TETGEN=1
-   POLYTOPELIBS+=" -ltetgen"
+   USE_TETGEN=0
 ]
 )
 
