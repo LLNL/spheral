@@ -25,6 +25,7 @@ MV = mv
 PATCH = patch -t
 MKDIR = mkdir -p
 CURL = curl -k -L
+WGET = wget --no-check-certificate 
 AR = ar
 OPENPAREN:=(
 CLOSEPAREN:=)
@@ -49,10 +50,6 @@ SETUPTOOLSURL = https://pypi.python.org/packages/75/d1/5abca4ccf61a7ab86c255dd31
 WHEELURL = https://pypi.python.org/packages/0c/80/16a85b47702a1f47a63c104c91abdd0a6704ee8ae3b4ce4afc49bc39f9d9/wheel-0.30.0-py2.py3-none-any.whl#md5=1d61793f816d6b60513364fe2de9c1b3
 PIPEXE = $(prefix)/bin/pip
 
-# Pybindgen
-PYBINDGENBUILDDATE=.pybindgen==0.17.0_pip_install.date
-PYBINDGENPATCHDATE=.pybindgen_patch.date
-
 # PyGnuplot
 GNUPLOTDIST = gnuplot-py-1.8.tar.gz
 GNUPLOTURL = http://downloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?modtime=1209767882&big_mirror=0
@@ -72,8 +69,8 @@ PSYCOBUILDDATE = .psyco.date
 # ELEMENTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(ELEMENTTREEDIST))
 
 # Boost
-BOOSTDIST = boost_1_63_0.tar.bz2
-BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.63.0/$(BOOSTDIST)/download
+BOOSTDIST = boost_1_69_0.tar.bz2
+BOOSTURL = https://dl.bintray.com/boostorg/release/1.69.0/source/$(BOOSTDIST)
 BOOSTDIR = $(BOOSTDIST:.tar.bz2=)
 BOOSTDATE = $(patsubst %.tar.bz2, .%.date, $(BOOSTDIST))
 BOOSTPYTHONLIB0 = libboost_python$(BOOSTEXT).$(DYLIBEXT)
@@ -82,8 +79,8 @@ BOOSTTARGET = @BOOSTTARGET@
 
 # Cmake
 CMAKEEXE = @CMAKEEXE@
-CMAKEDIST = cmake-3.9.4.tar.gz
-CMAKEURL = http://www.cmake.org/files/v3.9/$(CMAKEDIST)
+CMAKEDIST = cmake-3.9.6.tar.gz
+CMAKEURL = https://github.com/Kitware/CMake/releases/download/v3.9.6/$(CMAKEDIST)
 CMAKEDIR = $(CMAKEDIST:.tar.gz=)
 
 # Parmetis
@@ -251,9 +248,9 @@ TETGENURL = http://ftp.mcs.anl.gov/pub/petsc/externalpackages/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
-POLYTOPEVER = 0.5.24
+POLYTOPEVER = 0.6.2
 POLYTOPEDIST = polytope-$(POLYTOPEVER).tar.gz
-POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/downloads/$(POLYTOPEDIST)
+POLYTOPEURL = https://github.com/pbtoast/polytope/archive/0.6.2.tar.gz
 POLYTOPEDIR = $(POLYTOPEDIST:.tar.gz=)
 POLYTOPEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(POLYTOPEDIST))
 
@@ -287,11 +284,11 @@ cache/pip:
 	@echo "################################################################################"
 	$(eval PIPMOD := $(firstword $(subst ==, ,$*)))
 	$(PIPEXE) install --upgrade $* --no-index --find-links cache/pip
-	@if test -n "`$(PYTHONEXE) -c 'import $(PIPMOD)'`"; then \
-	echo "ERROR building $*."; \
-	rm -f $@; \
-	exit 1; \
-	fi
+	#@if test -n "`$(PYTHONEXE) -c 'import $(PIPMOD)'`"; then \
+	#echo "ERROR building $*."; \
+	#rm -f $@; \
+	#exit 1; \
+	#fi
 	touch $@
 
 # This rule is intended to make sure we build the pip targets serially to make
@@ -300,16 +297,7 @@ piptargets:	cache/pip
 	$(MAKE) MAKEFLAGS='-j 1' $(patsubst %,.%_pip_install.date,$(PIPTARGETS))
 
 #-------------------------------------------------------------------------------
-# Pybindgen needs to be patched to handle C++ enums.
-$(PYBINDGENPATCHDATE):	$(PYBINDGENBUILDDATE)
-	$(PATCH) $(PYLIBDIR)/pybindgen/enum.py $(srcdir)/pybindgen_enum_py.patch
-	find $(PYTHONLIBDIR)/pybindgen -name '*.pyc' -exec rm -f {} \;
-	$(PYTHONEXE) -m compileall $(PYTHONLIBDIR)/pybindgen
-	touch $(PYBINDGENPATCHDATE)
-
-#-------------------------------------------------------------------------------
 all:	$(PYTHONTARGET) \
-	$(PYBINDGENPATCHDATE) \
 	$(PETSCTARGETS) \
 	$(ATSBUILDDATE) \
 	$(OPENSUBDIVTARGETS) \
@@ -356,7 +344,7 @@ clean:
 #-------------------------------------------------------------------------------
 cache/$(PYTHONDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(PYTHONURL)" -o cache/$(PYTHONDIST)
+	$(WGET) "$(PYTHONURL)" -O cache/$(PYTHONDIST)
 
 $(PYTHONBUILDDATE):	$(PYTHON) cache/$(PYTHONDIST)
 	@echo "################################################################################"
@@ -387,9 +375,9 @@ $(PYTHONBUILDDATE):	$(PYTHON) cache/$(PYTHONDIST)
 #-------------------------------------------------------------------------------
 cache/$(PIPDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(PIPURL)" -o cache/$(PIPDIST)
-	$(CURL) "$(SETUPTOOLSURL)" -o cache/$(SETUPTOOLSDIST)
-	$(CURL) "$(WHEELURL)" -o cache/$(WHEELDIST)
+	$(WGET) "$(PIPURL)" -O cache/$(PIPDIST)
+	$(WGET) "$(SETUPTOOLSURL)" -O cache/$(SETUPTOOLSDIST)
+	$(WGET) "$(WHEELURL)" -O cache/$(WHEELDIST)
 
 $(PIPEXE):	$(PYTHONTARGET) cache/$(PIPDIST)
 	@echo "################################################################################"
@@ -408,7 +396,7 @@ $(PIPEXE):	$(PYTHONTARGET) cache/$(PIPDIST)
 #-------------------------------------------------------------------------------
 cache/$(GNUPLOTDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(GNUPLOTURL)" -o cache/$(GNUPLOTDIST)
+	$(WGET) "$(GNUPLOTURL)" -O cache/$(GNUPLOTDIST)
 
 $(GNUPLOTBUILDDATE):	$(PYTHONTARGET) cache/$(GNUPLOTDIST) .numpy_pip_install.date $(NUMPYBUILDDATE)
 	@echo "################################################################################"
@@ -431,7 +419,7 @@ $(GNUPLOTBUILDDATE):	$(PYTHONTARGET) cache/$(GNUPLOTDIST) .numpy_pip_install.dat
 #-------------------------------------------------------------------------------
 cache/$(BOOSTDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(BOOSTURL)" -o cache/$(BOOSTDIST)
+	$(WGET) "$(BOOSTURL)" -O cache/$(BOOSTDIST)
 
 $(BOOSTDATE):	cache/$(BOOSTDIST)
 	@echo "################################################################################"
@@ -442,7 +430,7 @@ $(BOOSTDATE):	cache/$(BOOSTDIST)
 	$(BZIP2) -dc cache/$(BOOSTDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(BOOSTDIR); \
 	PATH=$(SAFEPATH); export PATH; \
-	./bootstrap.sh --with-toolset=$(JAMTOOLSET)  --without-libraries=atomic,container,coroutine,coroutine2,log,chrono,context,date_time,exception,fiber,filesystem,graph,graph_parallel,iostreams,locale,math,metaparse,mpi,program_options,python,random,regex,serialization,signals,system,test,thread,timer,type_erasure,wave --prefix=$(prefix); \
+	./bootstrap.sh --with-toolset=$(JAMTOOLSET)  --without-libraries=atomic,container,coroutine,log,chrono,context,date_time,exception,fiber,filesystem,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,system,test,thread,timer,type_erasure,wave --prefix=$(prefix); \
 	./b2 install'
 	@if ! test -e "$(prefix)/include/boost" ; then \
 	echo "ERROR building local boost distribution. (0, no include dir)"; \
@@ -471,7 +459,7 @@ $(BOOSTDATE):	cache/$(BOOSTDIST)
 #-------------------------------------------------------------------------------
 cache/$(CMAKEDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(CMAKEURL)" -o cache/$(CMAKEDIST)
+	$(WGET) "$(CMAKEURL)" -O cache/$(CMAKEDIST)
 
 $(CMAKEEXE):	cache/$(CMAKEDIST)
 	@echo "################################################################################"
@@ -495,7 +483,7 @@ $(CMAKEEXE):	cache/$(CMAKEDIST)
 #-------------------------------------------------------------------------------
 cache/$(PARMETISDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(PARMETISURL)" -o cache/$(PARMETISDIST)
+	$(WGET) "$(PARMETISURL)" -O cache/$(PARMETISDIST)
 
 $(PARMETISBUILDDATE):  cache/$(PARMETISDIST) $(CMAKEEXE)
 	@echo "################################################################################"
@@ -523,7 +511,7 @@ $(PARMETISBUILDDATE):  cache/$(PARMETISDIST) $(CMAKEEXE)
 #-------------------------------------------------------------------------------
 cache/$(TAUDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(TAUURL)" -o cache/$(TAUDIST)
+	$(WGET) "$(TAUURL)" -O cache/$(TAUDIST)
 
 $(TAUBUILDDATE):  cache/$(TAUDIST)
 	@echo "################################################################################"
@@ -556,7 +544,7 @@ $(TAUDUMMYDATE):  cache/$(TAUDIST)
 #-------------------------------------------------------------------------------
 cache/$(GSLDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(GSLURL)" -o cache/$(GSLDIST)
+	$(WGET) "$(GSLURL)" -O cache/$(GSLDIST)
 
 $(GSLBUILDDATE): cache/$(GSLDIST)
 	@echo "################################################################################"
@@ -583,7 +571,7 @@ $(GSLBUILDDATE): cache/$(GSLDIST)
 #-------------------------------------------------------------------------------
 cache/$(PYGSLDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(PYGSLURL)" -o cache/$(PYGSLDIST)
+	$(WGET) "$(PYGSLURL)" -O cache/$(PYGSLDIST)
 
 $(PYGSLBUILDDATE): cache/$(PYGSLDIST) $(GSLBUILDDATE) $(PYTHONTARGET)
 	@echo "################################################################################"
@@ -606,7 +594,7 @@ $(PYGSLBUILDDATE): cache/$(PYGSLDIST) $(GSLBUILDDATE) $(PYTHONTARGET)
 #-------------------------------------------------------------------------------
 cache/$(PETSCIDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(PETSCURL)" -o cache/$(PETSCIDIST)
+	$(WGET) "$(PETSCURL)" -O cache/$(PETSCIDIST)
 
 $(PETSCBUILDDATE):	cache/$(PETSCIDIST)
 	@echo "################################################################################"
@@ -633,7 +621,7 @@ $(PETSCBUILDDATE):	cache/$(PETSCIDIST)
 #-------------------------------------------------------------------------------
 cache/$(PETSC4PYDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(PETSC4PYURL)" -o cache/$(PETSC4PYDIST)
+	$(WGET) "$(PETSC4PYURL)" -O cache/$(PETSC4PYDIST)
 
 $(PETSC4PYBUILDDATE): cache/$(PETSC4PYDIST)
 	@echo "################################################################################"
@@ -657,7 +645,7 @@ $(PETSC4PYBUILDDATE): cache/$(PETSC4PYDIST)
 #-------------------------------------------------------------------------------
 cache/$(HASHMAPDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(HASHMAPURL)" -o cache/$(HASHMAPDIST)
+	$(WGET) "$(HASHMAPURL)" -O cache/$(HASHMAPDIST)
 
 $(HASHMAPBUILDDATE):	cache/$(HASHMAPDIST)
 	@echo "################################################################################"
@@ -681,7 +669,7 @@ $(HASHMAPBUILDDATE):	cache/$(HASHMAPDIST)
 #-------------------------------------------------------------------------------
 cache/$(VISITWRITERDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(VISITWRITERURL)" -o cache/$(VISITWRITERDIST)
+	$(WGET) "$(VISITWRITERURL)" -O cache/$(VISITWRITERDIST)
 
 $(VISITWRITERBUILDDATE):  cache/$(VISITWRITERDIST)
 	@echo "################################################################################"
@@ -704,7 +692,7 @@ $(VISITWRITERBUILDDATE):  cache/$(VISITWRITERDIST)
 #-------------------------------------------------------------------------------
 cache/$(ATSDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(ATSURL)" -o cache/$(ATSDIST)
+	$(WGET) "$(ATSURL)" -O cache/$(ATSDIST)
 
 $(ATSBUILDDATE):	cache/$(ATSDIST) $(PYTHONTARGET)
 	@echo "################################################################################"
@@ -730,7 +718,7 @@ $(ATSBUILDDATE):	cache/$(ATSDIST) $(PYTHONTARGET)
 #-------------------------------------------------------------------------------
 cache/$(FFTWDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(FFTWURL)" -o cache/$(FFTWDIST)
+	$(WGET) "$(FFTWURL)" -O cache/$(FFTWDIST)
 
 $(FFTWBUILDDATE):	cache/$(FFTWDIST)
 	@echo "################################################################################"
@@ -756,7 +744,7 @@ $(FFTWBUILDDATE):	cache/$(FFTWDIST)
 #-------------------------------------------------------------------------------
 cache/$(ARRAYDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(ARRAYURL)" -o cache/$(ARRAYDIST)
+	$(WGET) "$(ARRAYURL)" -O cache/$(ARRAYDIST)
 
 $(ARRAYBUILDDATE):	cache/$(ARRAYDIST)
 	@echo "################################################################################"
@@ -775,7 +763,7 @@ $(ARRAYBUILDDATE):	cache/$(ARRAYDIST)
 #-------------------------------------------------------------------------------
 cache/$(FFTWPPDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(FFTWPPURL)" -o cache/$(FFTWPPDIST)
+	$(WGET) "$(FFTWPPURL)" -O cache/$(FFTWPPDIST)
 
 $(FFTWPPBUILDDATE):	cache/$(FFTWPPDIST) $(ARRAYBUILDDATE)
 	@echo "################################################################################"
@@ -802,7 +790,7 @@ $(FFTWPPBUILDDATE):	cache/$(FFTWPPDIST) $(ARRAYBUILDDATE)
 #-------------------------------------------------------------------------------
 cache/$(ZLIBDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(ZLIBURL)" -o cache/$(ZLIBDIST)
+	$(WGET) "$(ZLIBURL)" -O cache/$(ZLIBDIST)
 
 $(ZLIBBUILDDATE):	cache/$(ZLIBDIST)
 	@echo "################################################################################"
@@ -829,7 +817,7 @@ $(ZLIBBUILDDATE):	cache/$(ZLIBDIST)
 #-------------------------------------------------------------------------------
 cache/$(JPEGDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(JPEGURL)" -o cache/$(JPEGDIST)
+	$(WGET) "$(JPEGURL)" -O cache/$(JPEGDIST)
 
 $(JPEGBUILDDATE):	cache/$(JPEGDIST)
 	@echo "################################################################################"
@@ -860,7 +848,7 @@ $(JPEGBUILDDATE):	cache/$(JPEGDIST)
 #-------------------------------------------------------------------------------
 cache/$(QHULLDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(QHULLURL)" -o cache/$(QHULLDIST)
+	$(WGET) "$(QHULLURL)" -O cache/$(QHULLDIST)
 
 $(QHULLDATE):	$(PYTHONTARGET) $(CMAKEEXE) cache/$(QHULLDIST)
 	@echo "################################################################################"
@@ -889,7 +877,7 @@ $(QHULLDATE):	$(PYTHONTARGET) $(CMAKEEXE) cache/$(QHULLDIST)
 #-------------------------------------------------------------------------------
 cache/$(HDF5DIST):
 	@$(MKDIR) cache
-	$(CURL) "$(HDF5URL)" -o cache/$(HDF5DIST)
+	$(WGET) "$(HDF5URL)" -O cache/$(HDF5DIST)
 
 $(HDF5BUILDDATE):  cache/$(HDF5DIST)
 	@echo "################################################################################"
@@ -948,7 +936,7 @@ $(SILOBUILDDATE):  $(HDF5BUILDDATE) $(PYTHONTARGET) cache/$(SILODIST)
 #-------------------------------------------------------------------------------
 cache/$(EIGENDIST):
 	@$(MKDIR) cache
-	$(CURL) -k "$(EIGENURL)" -o cache/$(EIGENDIST)
+	$(WGET) -k "$(EIGENURL)" -O cache/$(EIGENDIST)
 
 $(EIGENBUILDDATE):  cache/$(EIGENDIST) $(HDF5BUILDDATE)
 	@echo "################################################################################"
@@ -971,7 +959,7 @@ $(EIGENBUILDDATE):  cache/$(EIGENDIST) $(HDF5BUILDDATE)
 #-------------------------------------------------------------------------------
 cache/$(GMPDIST):
 	@$(MKDIR) cache
-	$(CURL) -k "$(GMPURL)" -o cache/$(GMPDIST)
+	$(WGET) -k "$(GMPURL)" -O cache/$(GMPDIST)
 
 $(GMPBUILDDATE):  cache/$(GMPDIST)
 	@echo "################################################################################"
@@ -999,7 +987,7 @@ $(GMPBUILDDATE):  cache/$(GMPDIST)
 #-------------------------------------------------------------------------------
 cache/$(MPMATHDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(MPMATHURL)" -o cache/$(MPMATHDIST)
+	$(WGET) "$(MPMATHURL)" -O cache/$(MPMATHDIST)
 
 $(MPMATHBUILDDATE):  $(PYTHONTARGET) cache/$(MPMATHDIST)
 	@echo "################################################################################"
@@ -1022,7 +1010,7 @@ $(MPMATHBUILDDATE):  $(PYTHONTARGET) cache/$(MPMATHDIST)
 #-------------------------------------------------------------------------------
 cache/$(HYPREDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(HYPREURL)" -o cache/$(HYPREDIST)
+	$(WGET) "$(HYPREURL)" -O cache/$(HYPREDIST)
 
 $(HYPREBUILDDATE):	cache/$(HYPREDIST)
 	@echo "################################################################################"
@@ -1049,7 +1037,7 @@ $(HYPREBUILDDATE):	cache/$(HYPREDIST)
 #-------------------------------------------------------------------------------
 cache/$(FLANNDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(FLANNURL)" -o cache/$(FLANNDIST)
+	$(WGET) "$(FLANNURL)" -O cache/$(FLANNDIST)
 
 $(FLANNBUILDDATE):	cache/$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONTARGET)
 	@echo "################################################################################"
@@ -1076,7 +1064,7 @@ $(FLANNBUILDDATE):	cache/$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONTARGET)
 #-------------------------------------------------------------------------------
 cache/$(PCLDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(PCLURL)" -o cache/$(PCLDIST)
+	$(WGET) "$(PCLURL)" -O cache/$(PCLDIST)
 
 $(PCLBUILDDATE):	cache/$(PCLDIST) $(CMAKEEXE) $(BOOSTTARGET) $(EIGENDATE) $(QHULLDATE) $(FLANNDATE)
 	@echo "################################################################################"
@@ -1103,17 +1091,17 @@ $(PCLBUILDDATE):	cache/$(PCLDIST) $(CMAKEEXE) $(BOOSTTARGET) $(EIGENDATE) $(QHUL
 #-------------------------------------------------------------------------------
 cache/$(TRIANGLEDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(TRIANGLEURL)" -o cache/$(TRIANGLEDIST)
+	$(WGET) "$(TRIANGLEURL)" -O cache/$(TRIANGLEDIST)
 
 cache/$(TETGENDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(TETGENURL)" -o cache/$(TETGENDIST)
+	$(WGET) "$(TETGENURL)" -O cache/$(TETGENDIST)
 
 cache/$(POLYTOPEDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(POLYTOPEURL)" -o cache/$(POLYTOPEDIST)
+	$(WGET) "$(POLYTOPEURL)" -O cache/$(POLYTOPEDIST)
 
-$(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTARGET) $(PYTHONTARGET) $(PYBINDGENPATCHDATE)
+$(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTARGET) $(PYTHONTARGET) .PYB11Generator_pip_install.date
 	@echo "################################################################################"
 	@echo "# Building $(POLYTOPEDIST)"
 	@echo "################################################################################"
@@ -1132,13 +1120,12 @@ $(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTAR
 		$(CP) -f $(TETGENDIR)/tetgen.h $(POLYTOPEDIR)/src; \
 		$(CP) -f $(TETGENDIR)/tetgen.cxx $(POLYTOPEDIR)/src; \
 	fi
-	env PATH=$(SAFEPATH) CC='$(CC)' CXX='$(CXX)' $(SHELL) -ec "cd $(POLYTOPEDIR); \
-	$(MAKE) MAKEFLAGS= $(POLYTOPEFLAGS) config; \
-	$(MAKE) MAKEFLAGS= $(POLYTOPEFLAGS) install"
+	@$(MKDIR) -p $(POLYTOPEDIR)/build
+	env PATH=$(SAFEPATH) CC='$(CC)' CXX='$(CXX)' $(SHELL) -ec "cd $(POLYTOPEDIR)/build; \
+	$(CMAKEEXE) $(POLYTOPEFLAGS) $(BUILDTOP)/thirdPartyLibs/$(POLYTOPEDIR); \
+	$(MAKE) MAKEFLAGS= install"
 	@if ! test -e $(prefix)/lib/libpolytope.a -a \
-	           -e $(prefix)/lib/libvoro_2d.a -a \
-	           -e $(prefix)/lib/libvoro_3d.a -a \
-                   -e $(PYTHONLIBDIR)/polytope/PolytopeModules.so -a \
+                   -e $(PYTHONLIBDIR)/polytope/polytope.so -a \
 	           -e $(prefix)/include/polytope/polytope.hh; then \
 	echo "ERROR building Polytope."; \
 	rm -f $(POLYTOPEBUILDDATE); \
@@ -1152,7 +1139,7 @@ $(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTAR
 #-------------------------------------------------------------------------------
 cache/$(OPENSUBDIVDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(OPENSUBDIVURL)" -o cache/$(OPENSUBDIVDIST)
+	$(WGET) "$(OPENSUBDIVURL)" -O cache/$(OPENSUBDIVDIST)
 
 $(OPENSUBDIVBUILDDATE):	cache/$(OPENSUBDIVDIST) $(CMAKEEXE)
 	@echo "################################################################################"
@@ -1180,7 +1167,7 @@ $(OPENSUBDIVBUILDDATE):	cache/$(OPENSUBDIVDIST) $(CMAKEEXE)
 #-------------------------------------------------------------------------------
 cache/$(EASYPROFILEDIST):
 	@$(MKDIR) cache
-	$(CURL) "$(EASYPROFILEURL)" -o cache/$(EASYPROFILEDIST)
+	$(WGET) "$(EASYPROFILEURL)" -O cache/$(EASYPROFILEDIST)
 
 $(EASYPROFILEBUILDDATE):	cache/$(EASYPROFILEDIST) $(CMAKEEXE)
 	@echo "################################################################################"

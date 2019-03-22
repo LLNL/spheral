@@ -78,6 +78,7 @@ struct HydroFieldNames {
   static const std::string massDensityGradient;
   static const std::string ArtificialViscousClMultiplier;
   static const std::string ArtificialViscousCqMultiplier;
+  static const std::string specificHeat;
 };
 
 }

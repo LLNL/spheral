@@ -27,6 +27,18 @@ template<typename DataType> struct DataTypeTraits;
 
 //------------------------------------------------------------------------------
 template<>
+struct DataTypeTraits<bool> {
+  typedef bool ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const ElementType& x) { return 1; }
+  static bool zero() { return false; }
+#ifdef USE_MPI
+  static MPI_Datatype MpiDataType() { return MPI_C_BOOL; }
+#endif
+};
+
+//------------------------------------------------------------------------------
+template<>
 struct DataTypeTraits<char> {
   typedef char ElementType;
   static bool fixedSize() { return true; }

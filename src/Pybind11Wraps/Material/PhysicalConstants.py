@@ -41,3 +41,5 @@ SI units (m, kg, sec). All other constants are then derived from those choices.
                                             doc="What the unit mass density in these units corresponds to in SI")
     stefanBoltzmannConstant = PYB11property("double", "stefanBoltzmannConstant",
                                             doc="sigma: the Steffan-Boltzmann constant")
+    blackBodyConstant = PYB11property("double", "blackBodyConstant",
+                                      doc="a: the black body constant")
