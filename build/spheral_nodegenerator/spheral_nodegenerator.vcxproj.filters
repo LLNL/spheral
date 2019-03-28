@@ -33,6 +33,10 @@
     <ClCompile Include="..\..\src\NodeGenerators\compactFacetedVolumesInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\NodeGenerators\centroidalRelaxNodesImplInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\NodeGenerators\centroidalRelaxNodesImplInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenterInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenterInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\NodeGenerators\fillFacetedVolume.hh">
@@ -44,12 +48,6 @@
     <None Include="..\..\src\NodeGenerators\relaxNodeDistribution.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\NodeGenerators\centroidalRelaxNodesImplInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
-    <None Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenterInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\NodeGenerators\relaxNodeDistributionInst.cc.py">
@@ -58,6 +56,8 @@
     <CustomBuild Include="..\..\src\NodeGenerators\compactFacetedVolumesInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\src\NodeGenerators\centroidalRelaxNodesImplInst.cc.py" />
+    <CustomBuild Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenterInst.cc.py" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\NodeGenerators\centroidalRelaxNodesImpl.hh">
