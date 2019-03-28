@@ -42,7 +42,6 @@
 #include "Utilities/globalNodeIDsInline.hh"
 #if USE_MPI
 #include "Distributed/VoronoiRedistributeNodes.hh"
-#include "Distributed/BoundingVolumeDistributedBoundary.hh"
 #include "Distributed/NestedGridDistributedBoundary.hh"
 #include "Distributed/TreeDistributedBoundary.hh"
 #endif

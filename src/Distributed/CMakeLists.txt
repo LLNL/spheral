@@ -8,7 +8,6 @@ if (ENABLE_MPI)
        )
 
    set(Distributed_inst
-       BoundingVolumeDistributedBoundary
        DistributedBoundary
        NestedGridDistributedBoundary
        RedistributeNodes
@@ -19,7 +18,6 @@ endif()
 instantiate(Distributed_inst Distributed_sources)
 
 set(Distributed_headers
-    BoundingVolumeDistributedBoundary.hh
     Communicator.hh
     CompareDomainNodesByPosition.hh
     DistributedBoundary.hh
