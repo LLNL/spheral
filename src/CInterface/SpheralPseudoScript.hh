@@ -31,7 +31,6 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Integrator/CheapSynchronousRK2.hh"
-#include "Boundary/ConstantBoundary.hh"
 
 namespace Spheral {
 

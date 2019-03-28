@@ -1,12 +1,6 @@
 set(Boundary_inst
     Boundary
     CRKSPHVoidBoundary
-    ConstantBoundary
-    ConstantRVelocityBoundary
-    ConstantVelocityBoundary
-    ConstantXVelocityBoundary
-    ConstantYVelocityBoundary
-    PeriodicBoundary
     PlanarBoundary
     ReflectingBoundary
     RigidBoundary
@@ -24,8 +18,6 @@ endif()
 if(ENABLE_3D)
   list(APPEND Boundary_sources
        AxialSymmetryBoundary.cc
-       CylindricalBoundary.cc
-       SphericalBoundary.cc
       )
 endif()
 
@@ -37,18 +29,6 @@ set(Boundary_headers
     Boundary.hh
     BoundaryInline.hh
     CRKSPHVoidBoundary.hh
-    ConstantBoundary.hh
-    ConstantBoundaryInline.hh
-    ConstantRVelocityBoundary.hh
-    ConstantVelocityBoundary.hh
-    ConstantVelocityBoundaryInline.hh
-    ConstantXVelocityBoundary.hh
-    ConstantYVelocityBoundary.hh
-    ConstantZVelocityBoundary.hh
-    CylindricalBoundary.hh
-    CylindricalBoundaryInline.hh
-    PeriodicBoundary.hh
-    PeriodicPlanarBoundary.hh
     PlanarBoundary.hh
     PlanarBoundaryInline.hh
     PlanarSymmetryBoundary.hh
@@ -56,9 +36,6 @@ set(Boundary_headers
     ReflectingBoundaryInline.hh
     RigidBoundary.hh
     RigidBoundaryInline.hh
-    SphericalBoundary.hh
-    SphericalBoundaryInline.hh
-    ThreeOneDimensionBoundary.hh
     mapPositionThroughPlanes.hh
     )
 

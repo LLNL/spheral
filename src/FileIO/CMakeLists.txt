@@ -1,22 +1,14 @@
 set(FileIO_sources
     FileIO.cc
-    FlatFileIO.cc
-    PyFileIO.cc
-    SiloFileIO.cc
-    vectorstringUtilities.cc
     )
 
 set(FileIO_headers
     DbFileIO.hh
     FileIO.hh
     FileIOInline.hh
-    FlatFileIO.hh
     HDF5IO.hh
     HDF5Traits.hh
     HDF5Types.hh
-    PyFileIO.hh
-    SiloFileIO.hh
-    vectorstringUtilities.hh
     )
 
 blt_add_library(NAME        Spheral_FileIO
