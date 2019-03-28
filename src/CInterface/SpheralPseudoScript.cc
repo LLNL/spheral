@@ -41,7 +41,6 @@
 #include "Utilities/iterateIdealH.hh"
 #include "Utilities/globalNodeIDsInline.hh"
 #if USE_MPI
-#include "Distributed/VoronoiRedistributeNodes.hh"
 #include "Distributed/NestedGridDistributedBoundary.hh"
 #include "Distributed/TreeDistributedBoundary.hh"
 #endif
@@ -49,7 +48,6 @@
 #include "Boundary/AxisBoundaryRZ.hh"
 #include "Field/Field.hh"
 #include "Field/FieldListSet.hh"
-#include "FieldOperations/FieldListFunctions.hh"
 #include "FieldOperations/sampleMultipleFields2Lattice.hh"
 
 namespace Spheral {
