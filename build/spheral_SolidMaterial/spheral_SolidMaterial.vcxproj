@@ -234,60 +234,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\SolidMaterial\CollinsStrengthInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\CollinsStrengthInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\GruneisenEquationOfStateInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\GruneisenEquationOfStateInst.cc.3.cc" />
     <ClCompile Include="..\..\src\SolidMaterial\LinearPolynomialEquationOfStateInst.cc.2.cc" />
     <ClCompile Include="..\..\src\SolidMaterial\LinearPolynomialEquationOfStateInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\MurnahanEquationOfStateInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\MurnahanEquationOfStateInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\OsborneEquationOfStateInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\OsborneEquationOfStateInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\PhysicsEvolvingMaterialLibraryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\PhysicsEvolvingMaterialLibraryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\PorousEquationOfStateInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\PorousEquationOfStateInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\PorousStrengthModelInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\PorousStrengthModelInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\SteinbergGuinanStrengthInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\SteinbergGuinanStrengthInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\StrainPorosityInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\StrainPorosityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\SolidMaterial\StrengthModelInst.cc.2.cc" />
     <ClCompile Include="..\..\src\SolidMaterial\StrengthModelInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\TillotsonEquationOfStateInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\SolidMaterial\TillotsonEquationOfStateInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\SolidMaterial\ANEOS.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\SolidMaterial\CollinsStrengthInst.cc.py">
-      <Command>
-           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-        </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\SolidMaterial\ConstantStrength.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\SolidMaterial\GruneisenEquationOfState.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\SolidMaterial\GruneisenEquationOfStateInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\SolidMaterial\GruneisenEquationOfStateInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\SolidMaterial\LinearPolynomialEquationOfState.hh">
       <FileType>Document</FileType>
     </None>
@@ -302,104 +254,15 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\SolidMaterial\MurnahanEquationOfState.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\SolidMaterial\MurnahanEquationOfStateInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\SolidMaterial\MurnahanEquationOfStateInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\SolidMaterial\NullStrength.hh">
       <FileType>Document</FileType>
     </None>
-    <CustomBuild Include="..\..\src\SolidMaterial\OsborneEquationOfStateInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\SolidMaterial\PhysicsEvolvingMaterialLibrary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\SolidMaterial\PhysicsEvolvingMaterialLibraryInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\SolidMaterial\PolynomialFit.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\SolidMaterial\PolynomialFitInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\SolidMaterial\PorousEquationOfState.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\SolidMaterial\PorousEquationOfStateInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\SolidMaterial\PorousStrengthModel.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\SolidMaterial\PorousStrengthModelInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\SolidMaterial\SolidEquationOfState.hh">
       <FileType>Document</FileType>
     </None>
     <None Include="..\..\src\SolidMaterial\SolidEquationOfStateInline.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\SolidMaterial\SteinbergGuinanLundStrength.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\SolidMaterial\SteinbergGuinanStrength.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\SolidMaterial\SteinbergGuinanStrengthInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\SolidMaterial\StrainPorosity.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\SolidMaterial\StrainPorosityInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\SolidMaterial\StrainPorosityInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\SolidMaterial\StrengthModel.hh">
       <FileType>Document</FileType>
     </None>
@@ -408,20 +271,6 @@
         python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
         python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\SolidMaterial\TillotsonEquationOfState.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\SolidMaterial\TillotsonEquationOfStateInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\SolidMaterial\TillotsonEquationOfStateInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>

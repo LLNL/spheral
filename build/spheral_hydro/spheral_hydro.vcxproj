@@ -236,8 +236,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\Hydro\EntropyPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Hydro\EntropyPolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Hydro\GammaPolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\GammaPolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Hydro\HydroFieldNames.cc" />
     <ClCompile Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyInst.cc.3.cc" />
@@ -245,8 +243,6 @@
     <ClCompile Include="..\..\src\Hydro\PositionPolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Hydro\PressurePolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Hydro\PressurePolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Hydro\SecondMomentHourglassControlInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\SecondMomentHourglassControlInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Hydro\SoundSpeedPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Hydro\SoundSpeedPolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Hydro\SpecificFromTotalThermalEnergyPolicyInst.cc.2.cc" />
@@ -255,8 +251,6 @@
     <ClCompile Include="..\..\src\Hydro\SpecificThermalEnergyPolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Hydro\SumVoronoiMassDensityPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Hydro\SumVoronoiMassDensityPolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Hydro\ThirdMomentHourglassControlInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\ThirdMomentHourglassControlInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Hydro\VolumePolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Hydro\VolumePolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Hydro\VoronoiMassDensityPolicyInst.cc.2.cc" />
@@ -268,14 +262,6 @@
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Hydro\GammaPolicyInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
@@ -330,20 +316,6 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\Hydro\SecondMomentHourglassControl.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Hydro\SecondMomentHourglassControlInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Hydro\SecondMomentHourglassControlInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\Hydro\SoundSpeedPolicy.hh">
       <FileType>Document</FileType>
     </None>
@@ -385,20 +357,6 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\Hydro\ThirdMomentHourglassControl.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Hydro\ThirdMomentHourglassControlInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Hydro\ThirdMomentHourglassControlInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\Hydro\TotalHydro.hh">
       <FileType>Document</FileType>
     </None>
@@ -416,12 +374,6 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\Hydro\VoronoiHourglassControl.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Hydro\VoronoiHourglassControlInline.hh">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\src\Hydro\VoronoiMassDensityPolicy.hh">
       <FileType>Document</FileType>
     </None>

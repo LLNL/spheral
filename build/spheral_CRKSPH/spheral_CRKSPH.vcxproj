@@ -253,10 +253,6 @@
     <ClCompile Include="..\..\src\CRKSPH\computeHullVolumesInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeHVolumesInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeHVolumesInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeNeighborHullInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeNeighborHullInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeOccupancyVolumeInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeOccupancyVolumeInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeVoronoiVolume1d.cc" />
@@ -265,16 +261,12 @@
     <ClCompile Include="..\..\src\CRKSPH\CRKSPHHydroBaseInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\CRKSPHHydroBaseInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\CRKSPHHydroBaseRZ.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\CRKSPHVariantInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\CRKSPHVariantInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\detectSurfaceInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\detectSurfaceInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\flagSurfaceNeighborsInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\flagSurfaceNeighborsInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\HVolumePolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\HVolumePolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\interpolateCRKSPHInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\interpolateCRKSPHInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInst.cc.2.cc" />
@@ -387,25 +379,6 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\CRKSPH\computeNeighborHull.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\CRKSPH\computeNeighborHullInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\computeOccupancyVolumeInst.cc.py">
-      <Command>
-           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-        </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensity.hh">
       <FileType>Document</FileType>
     </None>
@@ -467,17 +440,6 @@
     <None Include="..\..\src\CRKSPH\CRKSPHUtilitiesInline.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\CRKSPH\CRKSPHVariant.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\CRKSPH\CRKSPHVariantInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\CRKSPH\detectSurface.hh">
       <FileType>Document</FileType>
     </None>
@@ -514,17 +476,6 @@
     <None Include="..\..\src\CRKSPH\HullVolumePolicy.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\CRKSPH\HVolumePolicy.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\CRKSPH\HVolumePolicyInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\CRKSPH\interpolateCRKSPH.hh">
       <FileType>Document</FileType>
     </None>

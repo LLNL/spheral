@@ -27,12 +27,6 @@
     <ClCompile Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityRZ.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\FiniteVolumeViscosityInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\FiniteVolumeViscosityInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -43,12 +37,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityGSRZ.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\MorrisMonaghanReducingViscosityInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\MorrisMonaghanReducingViscosityInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\ArtificialViscosity\TensorCRKSPHViscosityInst.cc.2.cc">
@@ -63,30 +51,6 @@
     <ClCompile Include="..\..\src\ArtificialViscosity\TensorMonaghanGingoldViscosityInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\TensorSVPHViscosityInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\TensorSVPHViscosityInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\VonNeumanViscosityInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\VonNeumanViscosityInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\CullenDehnenViscosityInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\CullenDehnenViscosityInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\IncrementCullenMultipliersInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\IncrementCullenMultipliersInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\ArtificialViscosity\ArtificialViscosity.hh">
@@ -98,28 +62,10 @@
     <None Include="..\..\src\ArtificialViscosity\ArtificialViscosityList.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\ArtificialViscosity\CheapVonNeumanViscosity.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosity.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityRZ.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\ArtificialViscosity\FiniteVolumeViscosity.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\ArtificialViscosity\GradPressureViscosity.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\ArtificialViscosity\MASHVonNeumanViscosity.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\ArtificialViscosity\MonaghanGingoldKurapatenkoViscosity.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\ArtificialViscosity\MonaghanGingoldSumViscosity.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosity.hh">
@@ -131,25 +77,10 @@
     <None Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityGSRZ.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\ArtificialViscosity\MorrisMonaghanReducingViscosity.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\ArtificialViscosity\NohViscosity.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\ArtificialViscosity\RadialViscosity.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\ArtificialViscosity\TensorCRKSPHViscosity.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\ArtificialViscosity\TensorMonaghanGingoldViscosity.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\ArtificialViscosity\TensorSVPHViscosity.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\ArtificialViscosity\VonNeumanViscosity.hh">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
@@ -160,31 +91,13 @@
     <CustomBuild Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\ArtificialViscosity\CullenDehnenViscosityInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\ArtificialViscosity\FiniteVolumeViscosityInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\ArtificialViscosity\MorrisMonaghanReducingViscosityInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\ArtificialViscosity\TensorCRKSPHViscosityInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\ArtificialViscosity\TensorMonaghanGingoldViscosityInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\ArtificialViscosity\TensorSVPHViscosityInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\ArtificialViscosity\VonNeumanViscosityInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\ArtificialViscosity\IncrementCullenMultipliersInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
   </ItemGroup>

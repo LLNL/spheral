@@ -238,21 +238,8 @@
     <ClCompile Include="..\..\src\Boundary\AxisBoundaryRZ.cc" />
     <ClCompile Include="..\..\src\Boundary\BoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Boundary\BoundaryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Boundary\ConstantBoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Boundary\ConstantBoundaryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Boundary\ConstantRVelocityBoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Boundary\ConstantRVelocityBoundaryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Boundary\ConstantVelocityBoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Boundary\ConstantVelocityBoundaryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Boundary\ConstantXVelocityBoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Boundary\ConstantXVelocityBoundaryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Boundary\ConstantYVelocityBoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Boundary\ConstantYVelocityBoundaryInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Boundary\CylindricalBoundary.cc" />
-    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Boundary\PlanarBoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Boundary\PlanarBoundaryInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Boundary\ReflectingBoundaryInst.cc.2.cc" />
@@ -281,67 +268,6 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\Boundary\ConstantBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\ConstantBoundaryInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Boundary\ConstantBoundaryInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Boundary\ConstantRVelocityBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Boundary\ConstantRVelocityBoundaryInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Boundary\ConstantVelocityBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\ConstantVelocityBoundaryInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Boundary\ConstantVelocityBoundaryInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Boundary\ConstantXVelocityBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Boundary\ConstantXVelocityBoundaryInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Boundary\ConstantYVelocityBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Boundary\ConstantYVelocityBoundaryInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\Boundary\CRKSPHVoidBoundary.hh">
       <FileType>Document</FileType>
     </None>
@@ -353,30 +279,7 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\Boundary\ConstantZVelocityBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\CylindricalBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\CylindricalBoundaryInline.hh">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\src\Boundary\mapPositionThroughPlanes.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\PeriodicBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Boundary\PeriodicPlanarBoundary.hh">
       <FileType>Document</FileType>
     </None>
     <None Include="..\..\src\Boundary\PlanarBoundary.hh">
@@ -424,15 +327,6 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\Boundary\SphericalBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\SphericalBoundaryInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\ThreeOneDimensionBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

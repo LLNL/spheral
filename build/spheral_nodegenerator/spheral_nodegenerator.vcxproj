@@ -370,66 +370,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\NodeGenerators\compactFacetedVolumesInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeGenerators\compactFacetedVolumesInst.cc.3.cc" />
     <ClCompile Include="..\..\src\NodeGenerators\fillFacetedVolume.cc" />
     <ClCompile Include="..\..\src\NodeGenerators\generateCylDistributionFromRZ.cc" />
-    <ClCompile Include="..\..\src\NodeGenerators\readSiloPolyMesh.cc" />
-    <ClCompile Include="..\..\src\NodeGenerators\relaxNodeDistributionInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeGenerators\relaxNodeDistributionInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\NodeGenerators\centroidalRelaxNodesImplInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeGenerators\centroidalRelaxNodesImplInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenterInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenterInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\src\NodeGenerators\centroidalRelaxNodesImplInst.cc.py" >
-      <Command>
-        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-      </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenterInst.cc.py" >
-      <Command>
-        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-      </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeGenerators\compactFacetedVolumesInst.cc.py">
-      <Command>
-      python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-      python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-    </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\NodeGenerators\fillFacetedVolume.hh">
       <FileType>Document</FileType>
     </None>
     <None Include="..\..\src\NodeGenerators\generateCylDistributionFromRZ.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\NodeGenerators\relaxNodeDistribution.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\NodeGenerators\relaxNodeDistributionInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\src\NodeGenerators\centroidalRelaxNodesImpl.hh" />
-    <ClInclude Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenter.hh" />
-    <ClInclude Include="..\..\src\NodeGenerators\compactFacetedVolumes.hh" />
-    <ClInclude Include="..\..\src\NodeGenerators\readSiloPolyMesh.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

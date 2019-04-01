@@ -243,9 +243,6 @@
     <None Include="..\..\src\DataOutput\Restart.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\DataOutput\RestartableObject.hh">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\src\DataOutput\RestartHandle.hh">
       <FileType>Document</FileType>
     </None>

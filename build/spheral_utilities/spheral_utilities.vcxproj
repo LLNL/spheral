@@ -242,23 +242,15 @@
     <ClCompile Include="..\..\src\Utilities\DBC.cc" />
     <ClCompile Include="..\..\src\Utilities\globalBoundingVolumesInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Utilities\globalBoundingVolumesInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Utilities\integrateThroughMeshAlongSegmentInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Utilities\integrateThroughMeshAlongSegmentInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Utilities\iterateIdealHInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Utilities\iterateIdealHInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Utilities\KeyTraits.cc" />
     <ClCompile Include="..\..\src\Utilities\lineSegmentIntersections.cc" />
-    <ClCompile Include="..\..\src\Utilities\medianPositionInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Utilities\medianPositionInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Utilities\mortonOrderIndicesInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Utilities\mortonOrderIndicesInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Utilities\nodeBoundingBoxes.cc" />
     <ClCompile Include="..\..\src\Utilities\nodeBoundingBoxesInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Utilities\nodeBoundingBoxesInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Utilities\nodeOrderingInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Utilities\nodeOrderingInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Utilities\numberDensityInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Utilities\numberDensityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Utilities\peanoHilbertOrderIndicesInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Utilities\peanoHilbertOrderIndicesInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Utilities\PeanoHilbertTransform.cc" />
@@ -268,7 +260,6 @@
     <ClCompile Include="..\..\src\Utilities\pointOnPolyhedron.cc" />
     <ClCompile Include="..\..\src\Utilities\Process.cc" />
     <ClCompile Include="..\..\src\Utilities\RedistributionRegistrar.cc" />
-    <ClCompile Include="..\..\src\Utilities\refinePolyhedron.cc" />
     <ClCompile Include="..\..\src\Utilities\RegisterMPIDataTypes.cc" />
     <ClCompile Include="..\..\src\Utilities\segmentIntersectEdges.cc" />
     <ClCompile Include="..\..\src\Utilities\SpheralTimers.cc" />
@@ -365,17 +356,6 @@
     <None Include="..\..\src\Utilities\initializeTau.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\Utilities\integrateThroughMeshAlongSegment.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Utilities\integrateThroughMeshAlongSegmentInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\Utilities\intpow2.hh">
       <FileType>Document</FileType>
     </None>
@@ -399,17 +379,6 @@
     <None Include="..\..\src\Utilities\log2.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\Utilities\medianPosition.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Utilities\medianPositionInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\Utilities\mortonOrderIndices.hh">
       <FileType>Document</FileType>
     </None>
@@ -444,28 +413,6 @@
     <None Include="..\..\src\Utilities\NodeListHashMap.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\Utilities\nodeOrdering.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Utilities\nodeOrderingInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Utilities\numberDensity.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Utilities\numberDensityInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\Utilities\packElement.hh">
       <FileType>Document</FileType>
     </None>
@@ -517,9 +464,6 @@
       <FileType>Document</FileType>
     </None>
     <None Include="..\..\src\Utilities\RedistributionRegistrarInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Utilities\refinePolyhedron.hh">
       <FileType>Document</FileType>
     </None>
     <None Include="..\..\src\Utilities\RegisterMPIDataTypes.hh">
