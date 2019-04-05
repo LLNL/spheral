@@ -126,7 +126,7 @@ def writeSiloQuadMesh(scalar_data,
     # Write the master file.
     #-------------------------------------------------------------------------------
     def writeMasterSiloFile(ndim, nblock, jsplit,
-                            baseDirectory, baseName, procDirBaseName, materials,
+                            baseDirectory, baseName, procDir, materials,
                             vars, label, time, cycle):
 
         nullOpts = silo.DBoptlist()
@@ -140,7 +140,7 @@ def writeSiloQuadMesh(scalar_data,
         assert maxproc <= mpi.procs
 
         # Pattern for constructing per domain variables.
-        domainNamePatterns = [os.path.join(procDirBaseName, "domain%i.silo:%%s" % i) for i in xrange(maxproc)]
+        domainNamePatterns = [os.path.join(procDir, "domain%i.silo:%%s" % i) for i in xrange(maxproc)]
 
         # We need each domains nblock info.
         nblocks = [nblock]
@@ -234,7 +234,7 @@ def writeSiloQuadMesh(scalar_data,
     # Write the domain file.
     #-------------------------------------------------------------------------------
     def writeDomainSiloFile(ndim, maxproc,
-                            baseDirectory, baseName, procDirBaseName,
+                            baseDirectory, baseName, procDir,
                             materials, vars,
                             xminblock, xmaxblock, nblock, jsplit,
                             label, time, cycle,
@@ -245,7 +245,7 @@ def writeSiloQuadMesh(scalar_data,
         # Make sure the directories are there.
         if mpi.rank == 0:
             for iproc in xrange(maxproc):
-                pth = os.path.join(baseDirectory, procDirBaseName)
+                pth = os.path.join(baseDirectory, procDir)
                 if not os.path.exists(pth):
                     os.makedirs(pth)
         mpi.barrier()
@@ -265,7 +265,7 @@ def writeSiloQuadMesh(scalar_data,
             nblock_vec = Spheral.vector_of_int(nblock)
 
             # Create the file.
-            fileName = os.path.join(baseDirectory, procDirBaseName, "domain%i.silo" % mpi.rank)
+            fileName = os.path.join(baseDirectory, procDir, "domain%i.silo" % mpi.rank)
             f = silo.DBCreate(fileName, 
                               silo.DB_CLOBBER, silo.DB_LOCAL, label, silo.DB_HDF5)
             nullOpts = silo.DBoptlist()
@@ -341,13 +341,15 @@ def writeSiloQuadMesh(scalar_data,
         varsamp, xminblock, xmaxblock, nblock, jsplit = shuffleIntoBlocks(ndim, var, xmin, xmax, nglobal)
         scalar_blocks.append(varsamp)
 
+    procDir = "blocks_cycle%i" % cycle
+
     # Write the files.
     maxproc = writeMasterSiloFile(ndim = ndim,
                                   nblock = nblock,
                                   jsplit = jsplit,
                                   baseDirectory = dirname,
                                   baseName = filename,
-                                  procDirBaseName = "blocks",
+                                  procDir = procDir,
                                   materials = materials,
                                   vars = zip(scalar_blocks, scalar_names),
                                   label = "Spheral++ cartesian sampled output",
@@ -358,7 +360,7 @@ def writeSiloQuadMesh(scalar_data,
                         maxproc = maxproc,
                         baseDirectory = dirname,
                         baseName = filename,
-                        procDirBaseName = "blocks",
+                        procDir = procDir,
                         materials = materials,
                         vars = zip(scalar_blocks, scalar_names),
                         xminblock = xminblock,
