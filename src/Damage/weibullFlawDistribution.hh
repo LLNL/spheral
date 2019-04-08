@@ -28,7 +28,8 @@ weibullFlawDistributionBenzAsphaug(double volume,
                                    const double mWeibull,
                                    const FluidNodeList<Dimension>& nodeList,
                                    const int minFlawsPerNode,
-                                   const int minTotalFlaws);
+                                   const int minTotalFlaws,
+                                   const Field<Dimension, int>& mask);
 
 //------------------------------------------------------------------------------
 // Implements the Owen algorithm, stochastically seeding flaws with a maximum
@@ -41,7 +42,8 @@ weibullFlawDistributionOwen(const unsigned seed,
                             const double mWeibull,
                             const FluidNodeList<Dimension>& nodeList,
                             const int minFlawsPerNode,
-                            const double volumeMultiplier = 1.0);
+                            const double volumeMultiplier,
+                            const Field<Dimension, int>& mask);
 
 }
 

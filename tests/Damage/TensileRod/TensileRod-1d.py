@@ -461,6 +461,9 @@ if DamageModelConstructor is GradyKippTensorDamage:
                                          damageInCompression = damageInCompression)
 
 elif DamageModelConstructor is GradyKippTensorDamageOwen:
+    mask = IntField("mask", nodes, 1)
+    for i in xrange(50, nx):
+        mask[i] = 0
     damageModel = DamageModelConstructor(nodes,
                                          kWeibull,
                                          mWeibull,
@@ -473,7 +476,8 @@ elif DamageModelConstructor is GradyKippTensorDamageOwen:
                                          0.4,
                                          effectiveFlawAlgorithm,
                                          numFlawsPerNode,
-                                         damageInCompression = damageInCompression)
+                                         damageInCompression = damageInCompression,
+                                         mask = mask)
 
 elif DamageModelConstructor is JohnsonCookDamageWeibull:
     damageModel = DamageModelConstructor(nodes,
