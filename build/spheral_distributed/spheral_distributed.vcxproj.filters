@@ -12,12 +12,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\Distributed\BoundingVolumeDistributedBoundaryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\BoundingVolumeDistributedBoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Distributed\Communicator.cc">
       <Filter>Source Files</Filter>
     </ClCompile>

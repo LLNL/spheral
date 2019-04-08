@@ -234,8 +234,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\Distributed\BoundingVolumeDistributedBoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Distributed\BoundingVolumeDistributedBoundaryInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Distributed\Communicator.cc" />
     <ClCompile Include="..\..\src\Distributed\DistributedBoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Distributed\DistributedBoundaryInst.cc.3.cc" />
