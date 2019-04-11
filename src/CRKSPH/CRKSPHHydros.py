@@ -70,7 +70,8 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                  volumeType = CRKVoronoiVolume,
                  epsTensile = 0.0,
                  nTensile = 4.0,
-                 damageRelieveRubble = False):
+                 damageRelieveRubble = False,
+                 negativePressureInDamage = False):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
         if WPi is None:
             WPi = W
@@ -91,7 +92,8 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                                              volumeType,
                                              epsTensile,
                                              nTensile,
-                                             damageRelieveRubble)
+                                             damageRelieveRubble,
+                                             negativePressureInDamage)
         return
 """
 
@@ -166,6 +168,7 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
                  epsTensile = 0.0,
                  nTensile = 4.0,
                  damageRelieveRubble = False,
+                 negativePressureInDamage = False,
                  etaMinAxis = 0.1):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
@@ -187,7 +190,8 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
                                         volumeType,
                                         epsTensile,
                                         nTensile,
-                                        damageRelieveRubble)
+                                        damageRelieveRubble,
+                                        negativePressureInDamage)
         self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
         self.appendBoundary(self.zaxisBC)
         return
@@ -293,6 +297,8 @@ def CRKSPH(dataBase,
            volumeType = CRKVoronoiVolume,
            epsTensile = 0.0,
            nTensile = 4.0,
+           damageRelieveRubble = False,
+           negativePressureInDamage = False,
            ASPH = False,
            RZ = False,
            crktype = "default"):
@@ -353,25 +359,30 @@ def CRKSPH(dataBase,
         Cq = 1.0*(W.kernelExtent/4.0)**2
         Q = eval("CRKSPHMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
-    # Build the thing.
-    result = Constructor(Q = Q,
-                         W = W,
-                         WPi = WPi,
-                         filter = filter,
-                         cfl = cfl,
-                         useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                         compatibleEnergyEvolution = compatibleEnergyEvolution,
-                         evolveTotalEnergy = evolveTotalEnergy,
-                         XSPH = XSPH,
-                         densityUpdate = densityUpdate,
-                         HUpdate = HUpdate,
-                         correctionOrder = correctionOrder,
-                         volumeType = volumeType,
-                         epsTensile = epsTensile,
-                         nTensile = nTensile)
-    result.Q = Q
+    # Build the constructor arguments
+    kwargs = {"W" : W,
+              "WPi" : WPi,
+              "Q" : Q,
+              "filter" : filter,
+              "cfl" : cfl,
+              "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
+              "compatibleEnergyEvolution" : compatibleEnergyEvolution,
+              "evolveTotalEnergy" : evolveTotalEnergy,
+              "XSPH" : XSPH,
+              "densityUpdate" : densityUpdate,
+              "HUpdate" : HUpdate,
+              "correctionOrder" : correctionOrder,
+              "volumeType" : volumeType,
+              "epsTensile" : epsTensile,
+              "nTensile" : nTensile}
 
-    # Store the Q and special BC as attributes, and return the thing.
+    if nsolid > 0:
+        kwargs.update({"damageRelieveRubble" : damageRelieveRubble,
+                       "negativePressureInDamage" : negativePressureInDamage})
+
+    # Build the thing.
+    result = Constructor(**kwargs)
+    result.Q = Q
     return result
 
 #-------------------------------------------------------------------------------
@@ -392,7 +403,9 @@ def ACRKSPH(dataBase,
             correctionOrder = LinearOrder,
             volumeType = CRKVoronoiVolume,
             epsTensile = 0.0,
-            nTensile = 4.0):
+            nTensile = 4.0,
+            damageRelieveRubble = False,
+            negativePressureInDamage = False):
     return CRKSPH(dataBase = dataBase,
                   W = W,
                   WPi = WPi,
@@ -409,6 +422,8 @@ def ACRKSPH(dataBase,
                   volumeType = volumeType,
                   epsTensile = epsTensile,
                   nTensile = nTensile,
+                  damageRelieveRubble = damageRelieveRubble,
+                  negativePressureInDamage = negativePressureInDamage,
                   ASPH = True,
                   RZ = False)
 
@@ -430,7 +445,9 @@ def CRKSPHRZ(dataBase,
              correctionOrder = LinearOrder,
              volumeType = CRKVoronoiVolume,
              epsTensile = 0.0,
-             nTensile = 4.0):
+             nTensile = 4.0,
+             damageRelieveRubble = False,
+             negativePressureInDamage = False):
     return CRKSPH(dataBase = dataBase,
                   W = W,
                   WPi = WPi,
@@ -446,6 +463,8 @@ def CRKSPHRZ(dataBase,
                   correctionOrder = correctionOrder,
                   volumeType = volumeType,
                   epsTensile = epsTensile,
+                  damageRelieveRubble = damageRelieveRubble,
+                  negativePressureInDamage = negativePressureInDamage,
                   nTensile = nTensile,
                   ASPH = False,
                   RZ = True)
@@ -468,7 +487,9 @@ def ACRKSPHRZ(dataBase,
               correctionOrder = LinearOrder,
               volumeType = CRKVoronoiVolume,
               epsTensile = 0.0,
-              nTensile = 4.0):
+              nTensile = 4.0,
+              damageRelieveRubble = False,
+              negativePressureInDamage = False):
     return CRKSPH(dataBase = dataBase,
                   W = W,
                   WPi = WPi,
@@ -485,5 +506,7 @@ def ACRKSPHRZ(dataBase,
                   volumeType = volumeType,
                   epsTensile = epsTensile,
                   nTensile = nTensile,
+                  damageRelieveRubble = damageRelieveRubble,
+                  negativePressureInDamage = negativePressureInDamage,
                   ASPH = True,
                   RZ = True)
