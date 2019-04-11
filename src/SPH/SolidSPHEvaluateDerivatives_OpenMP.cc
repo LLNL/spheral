@@ -310,8 +310,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             viscousWorki += mj*workQi;
 
             // Damage scaling of negative pressures.
-            const auto Peffi = (Pi > 0.0 ? Pi : fDeffij*Pi);
-            const auto Peffj = (Pj > 0.0 ? Pj : fDeffij*Pj);
+            const auto Peffi = (mNegativePressureInDamage or Pi > 0.0 ? Pi : fDeffij*Pi);
+            const auto Peffj = (mNegativePressureInDamage or Pj > 0.0 ? Pj : fDeffij*Pj);
 
             // Compute the stress tensors.
             if (sameMatij) {

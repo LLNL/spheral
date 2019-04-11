@@ -55,6 +55,7 @@ public:
                     const double epsTensile,
                     const double nTensile,
                     const bool damageRelieveRubble,
+                    const bool negativePressureInDamage,
                     const Vector& xmin,
                     const Vector& xmax);
 
@@ -109,6 +110,10 @@ public:
   bool damageRelieveRubble() const;
   void damageRelieveRubble(bool x);
 
+  // Do we allow damaged material to have negative pressure?
+  bool negativePressureInDamage() const;
+  void negativePressureInDamage(bool x);
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "SolidSPHHydroBase"; }
@@ -116,9 +121,12 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
+protected:
+  //--------------------------- Protected Interface ---------------------------//
+  bool mDamageRelieveRubble, mNegativePressureInDamage;
+
 private:
   //--------------------------- Private Interface ---------------------------//
-  bool mDamageRelieveRubble;
   const TableKernel<Dimension>& mGradKernel;   // Gradient kernel
 
   // Some internal scratch fields.
