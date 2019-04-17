@@ -20,7 +20,7 @@ def readPolyhedronOBJ(filename):
         if stuff:
             if stuff[0] == "v":
                 assert len(stuff) == 4
-                verts.append(Vector(double(stuff[1]), double(stuff[2]), double(stuff[3])))
+                verts.append(Vector3d(double(stuff[1]), double(stuff[2]), double(stuff[3])))
             elif stuff[0] == "f":
                 assert len(stuff) >= 4
                 facets.append([])
@@ -104,7 +104,7 @@ def readPolyhedronOFF(filename):
         line = f.readline()
         stuff = line.split()
         assert len(stuff) == 3
-        verts.append(Vector(double(stuff[0]), double(stuff[1]), double(stuff[2])))
+        verts.append(Vector3d(double(stuff[0]), double(stuff[1]), double(stuff[2])))
     
     # Read the face vertex indices.
     facets = []
