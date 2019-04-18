@@ -1,12 +1,10 @@
 //---------------------------------Spheral++----------------------------------//
-// allReduce
+// scan
 //
-// Hide (some) of the details about doing MPI all reduces.
-//
-// Created by JMO, Wed Feb 10 14:38:05 PST 2010
+// Hide (some) of the details about doing MPI scan
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_allReduce__
-#define __Spheral_allReduce__
+#ifndef __Spheral_scan__
+#define __Spheral_scan__
 
 #include "Utilities/DataTypeTraits.hh"
 
@@ -21,10 +19,10 @@ namespace Spheral {
 
 template<typename Value>
 Value
-allReduce(const Value& value, const MPI_Op op, const MPI_Comm comm) {
+scan(const Value& value, const MPI_Op op, const MPI_Comm comm) {
   Value tmp = value;
   Value result;
-  MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<Value>::MpiDataType(), op, comm);
+  MPI_Scan(&tmp, &result, 1, DataTypeTraits<Value>::MpiDataType(), op, comm);
   return result;
 }
 
@@ -47,7 +45,7 @@ namespace Spheral {
 
 template<typename Value>
 Value
-allReduce(const Value& value, const int op, const int comm) {
+scan(const Value& value, const int op, const int comm) {
   return value;
 }
 

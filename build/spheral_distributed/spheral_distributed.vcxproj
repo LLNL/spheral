@@ -306,63 +306,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\Distributed\BoundingVolumeDistributedBoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Distributed\BoundingVolumeDistributedBoundaryInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Distributed\Communicator.cc" />
-    <ClCompile Include="..\..\src\Distributed\DistributeByXPositionInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Distributed\DistributeByXPositionInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Distributed\DistributedBoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Distributed\DistributedBoundaryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Distributed\MortonOrderRedistributeNodesInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Distributed\MortonOrderRedistributeNodesInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Distributed\NestedGridDistributedBoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Distributed\NestedGridDistributedBoundaryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Distributed\PeanoHilbertOrderRedistributeNodesInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Distributed\PeanoHilbertOrderRedistributeNodesInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Distributed\RedistributeNodesInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Distributed\RedistributeNodesInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Distributed\SortAndDivideRedistributeNodes1d.cc" />
-    <ClCompile Include="..\..\src\Distributed\SortAndDivideRedistributeNodes2d.cc" />
-    <ClCompile Include="..\..\src\Distributed\SortAndDivideRedistributeNodes3d.cc" />
-    <ClCompile Include="..\..\src\Distributed\SortAndDivideRedistributeNodesInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Distributed\SortAndDivideRedistributeNodesInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Distributed\SpaceFillingCurveRedistributeNodesInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Distributed\SpaceFillingCurveRedistributeNodesInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Distributed\TreeDistributedBoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Distributed\TreeDistributedBoundaryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Distributed\VoronoiRedistributeNodesInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Distributed\VoronoiRedistributeNodesInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Distributed\waitAllWithDeadlockDetection.cc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\Distributed\BoundingVolumeDistributedBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Distributed\BoundingVolumeDistributedBoundaryInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\Distributed\Communicator.hh">
       <FileType>Document</FileType>
     </None>
     <None Include="..\..\src\Distributed\CompareDomainNodesByPosition.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\Distributed\DistributeByXPosition.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Distributed\DistributeByXPositionInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\Distributed\DistributedBoundary.hh">
       <FileType>Document</FileType>
     </None>
@@ -383,17 +344,6 @@
     <None Include="..\..\src\Distributed\DomainNodeInline.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\Distributed\MortonOrderRedistributeNodes.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Distributed\MortonOrderRedistributeNodesInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\Distributed\NestedGridDistributedBoundary.hh">
       <FileType>Document</FileType>
     </None>
@@ -412,23 +362,6 @@ python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(Re
     <None Include="..\..\src\Distributed\NestedGridUtilities.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\Distributed\ParmetisRedistributeNodes.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Distributed\ParmetisRedistributeNodesInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Distributed\PeanoHilbertOrderRedistributeNodes.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Distributed\PeanoHilbertOrderRedistributeNodesInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\Distributed\RedistributeNodes.hh">
       <FileType>Document</FileType>
     </None>
@@ -443,57 +376,12 @@ python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(Re
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\Distributed\SortAndDivideRedistributeNodes.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Distributed\SortAndDivideRedistributeNodes1d.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Distributed\SortAndDivideRedistributeNodes2d.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Distributed\SortAndDivideRedistributeNodes3d.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Distributed\SortAndDivideRedistributeNodesInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Distributed\SortAndDivideRedistributeNodesInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Distributed\SpaceFillingCurveRedistributeNodes.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Distributed\SpaceFillingCurveRedistributeNodesInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\Distributed\TreeDistributedBoundary.hh">
       <FileType>Document</FileType>
     </None>
     <CustomBuild Include="..\..\src\Distributed\TreeDistributedBoundaryInst.cc.py">
       <Command>python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
 python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2</Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Distributed\VoronoiRedistributeNodes.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Distributed\VoronoiRedistributeNodesInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>

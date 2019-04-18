@@ -308,40 +308,10 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\Material\EquationOfStateInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Material\EquationOfStateInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Material\GammaLawGasInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Material\GammaLawGasInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Material\IsothermalEquationOfStateInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Material\IsothermalEquationOfStateInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Material\PhysicalConstants.cc" />
-    <ClCompile Include="..\..\src\Material\PolytropicEquationOfStateInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Material\PolytropicEquationOfStateInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\Material\EquationOfStateInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Material\GammaLawGasInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Material\IsothermalEquationOfStateInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Material\PolytropicEquationOfStateInst.cc.py">
       <Command>
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2

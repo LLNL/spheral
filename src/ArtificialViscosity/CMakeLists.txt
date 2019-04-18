@@ -2,15 +2,9 @@
 set(ArtificialViscosity_inst
     ArtificialViscosity
     CRKSPHMonaghanGingoldViscosity
-    CullenDehnenViscosity
-    FiniteVolumeViscosity
-    IncrementCullenMultipliers
     MonaghanGingoldViscosity
-    MorrisMonaghanReducingViscosity
     TensorCRKSPHViscosity
     TensorMonaghanGingoldViscosity
-    TensorSVPHViscosity
-    VonNeumanViscosity
    )
 
 
@@ -30,24 +24,11 @@ set(ArtificialViscosity_headers
     ArtificialViscosityList.hh
     CRKSPHMonaghanGingoldViscosity.hh
     CRKSPHMonaghanGingoldViscosityRZ.hh
-    CheapVonNeumanViscosity.hh
-    CullenDehnenViscosity.hh
-    FiniteVolumeViscosity.hh
-    GradPressureViscosity.hh
-    IncrementCullenMultipliers.hh
-    MASHVonNeumanViscosity.hh
-    MonaghanGingoldKurapatenkoViscosity.hh
-    MonaghanGingoldSumViscosity.hh
     MonaghanGingoldViscosity.hh
     MonaghanGingoldViscosityGSRZ.hh
     MonaghanGingoldViscosityRZ.hh
-    MorrisMonaghanReducingViscosity.hh
-    NohViscosity.hh
-    RadialViscosity.hh
     TensorCRKSPHViscosity.hh
     TensorMonaghanGingoldViscosity.hh
-    TensorSVPHViscosity.hh
-    VonNeumanViscosity.hh
     )
 
 blt_add_library(NAME        Spheral_ArtificialViscosity

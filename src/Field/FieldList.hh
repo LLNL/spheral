@@ -252,6 +252,11 @@ public:
   // Get the NodeLists this FieldList is defined on.
   const std::vector<NodeList<Dimension>*>& nodeListPtrs() const;
 
+  // Helpers to flatten the values across all Fields to a single array.
+  std::vector<DataType> internalValues() const;
+  std::vector<DataType> ghostValues() const;
+  std::vector<DataType> allValues() const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   typedef std::list<std::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;

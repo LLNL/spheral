@@ -18,137 +18,14 @@
     <ClCompile Include="..\..\src\Damage\computeFragmentFieldInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Damage\DamageModelInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\DamageModelInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\LongitudinalSoundSpeedPolicyInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\LongitudinalSoundSpeedPolicyInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\StrainPolicyInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\StrainPolicyInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\TensorDamageModelInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\TensorDamageModelInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\TensorDamagePolicyInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\TensorDamagePolicyInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\TensorStrainPolicyInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\TensorStrainPolicyInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\weibullFlawDistributionInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\weibullFlawDistributionInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\YoungsModulusPolicyInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\YoungsModulusPolicyInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\Damage\computeFragmentField.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\Damage\DamagedSoundSpeedPolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\DamageGradientPolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\DamageModel.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\DamageModelInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\EffectiveTensorDamagePolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\GradyKippScalarDamage.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\LongitudinalSoundSpeedPolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\oneMinusDamage.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\ScalarDamageModel.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\ScalarDamagePolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\StrainPolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\TensorDamageModel.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\TensorDamageModelInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\TensorDamagePolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\TensorStrainPolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\weibullFlawDistribution.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Damage\YoungsModulusPolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\Damage\computeFragmentFieldInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Damage\DamageModelInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Damage\LongitudinalSoundSpeedPolicyInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Damage\StrainPolicyInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Damage\TensorDamageModelInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Damage\TensorDamagePolicyInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Damage\TensorStrainPolicyInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Damage\weibullFlawDistributionInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Damage\YoungsModulusPolicyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
   </ItemGroup>

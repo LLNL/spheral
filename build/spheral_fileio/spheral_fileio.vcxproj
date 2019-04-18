@@ -309,9 +309,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\FileIO\FileIO.cc" />
-    <ClCompile Include="..\..\src\FileIO\FlatFileIO.cc" />
-    <ClCompile Include="..\..\src\FileIO\PyFileIO.cc" />
-    <ClCompile Include="..\..\src\FileIO\vectorstringUtilities.cc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\FileIO\DbFileIO.hh">
@@ -323,9 +320,6 @@
     <None Include="..\..\src\FileIO\FileIOInline.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\FileIO\FlatFileIO.hh">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\src\FileIO\HDF5IO.hh">
       <FileType>Document</FileType>
     </None>
@@ -333,12 +327,6 @@
       <FileType>Document</FileType>
     </None>
     <None Include="..\..\src\FileIO\HDF5Types.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\FileIO\PyFileIO.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\FileIO\vectorstringUtilities.hh">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

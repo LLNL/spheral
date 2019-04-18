@@ -310,16 +310,6 @@
     <ClCompile Include="..\..\src\Integrator\CheapSynchronousRK2Inst.cc.3.cc" />
     <ClCompile Include="..\..\src\Integrator\IntegratorInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Integrator\IntegratorInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Integrator\PredictorCorrectorInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Integrator\PredictorCorrectorInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Integrator\SynchronousRK1Inst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Integrator\SynchronousRK1Inst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Integrator\SynchronousRK2Inst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Integrator\SynchronousRK2Inst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Integrator\SynchronousRK4Inst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Integrator\SynchronousRK4Inst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Integrator\VerletInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Integrator\VerletInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\Integrator\CheapSynchronousRK2.hh">
@@ -340,61 +330,6 @@
       <FileType>Document</FileType>
     </None>
     <CustomBuild Include="..\..\src\Integrator\IntegratorInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Integrator\PredictorCorrector.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Integrator\PredictorCorrectorInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Integrator\SynchronousRK1.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Integrator\SynchronousRK1Inst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Integrator\SynchronousRK2.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Integrator\SynchronousRK2Inst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Integrator\SynchronousRK4.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Integrator\SynchronousRK4Inst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Integrator\Verlet.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Integrator\VerletInst.cc.py">
       <Command>
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2

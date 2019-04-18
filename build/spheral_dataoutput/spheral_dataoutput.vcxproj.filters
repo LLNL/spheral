@@ -20,9 +20,6 @@
     <None Include="..\..\src\DataOutput\Restart.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\DataOutput\RestartableObject.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\DataOutput\RestartHandle.hh">
       <Filter>Header Files</Filter>
     </None>

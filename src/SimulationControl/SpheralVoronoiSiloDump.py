@@ -12,7 +12,7 @@ import time as TIME
 
 from SpheralCompiledPackages import *
 
-#from PolytopeModules import polytope
+import polytope
 from siloMeshDump import *
 
 class SpheralVoronoiSiloDump:
@@ -112,7 +112,7 @@ class SpheralVoronoiSiloDump:
         if self.cells:
 
             # Yep, so we build a disjoint set of cells as a polytope tessellation.
-            mesh = eval("Tessellation%s()" % self.dimension)
+            mesh = eval("polytope.Tessellation%s()" % self.dimension)
             nDim = eval("Vector%s.nDimensions" % self.dimension)
 
             # Are we splitting into triangles/tets, or writing the native polygons/polyhera?

@@ -1,17 +1,6 @@
 set(SolidMaterial_inst
-    CollinsStrength
-    GruneisenEquationOfState
-    JohnsonCookStrength
     LinearPolynomialEquationOfState
-    MurnahanEquationOfState
-    OsborneEquationOfState
-    PhysicsEvolvingMaterialLibrary
-    PorousEquationOfState
-    PorousStrengthModel
-    SteinbergGuinanStrength
-    StrainPorosity
     StrengthModel
-    TillotsonEquationOfState
    )
 
 set(SolidMaterial_sources )
@@ -19,34 +8,12 @@ set(SolidMaterial_sources )
 instantiate(SolidMaterial_inst SolidMaterial_sources)
 
 set(SolidMaterial_headers
-    ANEOS.hh
-    CollinsStrength.hh
-    ConstantStrength.hh
-    Geodyn.hh
-    GruneisenEquationOfState.hh
-    GruneisenEquationOfStateInline.hh
-    JohnsonCookStrength.hh
     LinearPolynomialEquationOfState.hh
     LinearPolynomialEquationOfStateInline.hh
-    MurnahanEquationOfState.hh
-    MurnahanEquationOfStateInline.hh
     NullStrength.hh
-    OsborneEquationOfState.hh
-    OsborneEquationOfStateInline.hh
-    PhysicsEvolvingMaterialLibrary.hh
-    PolynomialFit.hh
-    PolynomialFitInline.hh
-    PorousEquationOfState.hh
-    PorousStrengthModel.hh
     SolidEquationOfState.hh
     SolidEquationOfStateInline.hh
-    SteinbergGuinanLundStrength.hh
-    SteinbergGuinanStrength.hh
-    StrainPorosity.hh
-    StrainPorosityInline.hh
     StrengthModel.hh
-    TillotsonEquationOfState.hh
-    TillotsonEquationOfStateInline.hh
     )
 
 blt_add_library(NAME        Spheral_SolidMaterial

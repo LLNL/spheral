@@ -1,8 +1,6 @@
 set(CRKSPH_inst
     CRKSPHHydroBase
-    CRKSPHVariant
     ContinuityVolumePolicy
-    HVolumePolicy
     SolidCRKSPHHydroBase
     computeCRKSPHCorrections
     computeCRKSPHEvaluation
@@ -12,8 +10,6 @@ set(CRKSPH_inst
     computeCRKSPHSumVolume
     computeHVolumes
     computeHullVolumes
-    computeNeighborHull
-    computeOccupancyVolume
     computeSolidCRKSPHSumMassDensity
     detectSurface
     flagSurfaceNeighbors
@@ -46,9 +42,7 @@ set(CRKSPH_headers
     CRKSPHSpecificThermalEnergyPolicy.hh
     CRKSPHUtilities.hh
     CRKSPHUtilitiesInline.hh
-    CRKSPHVariant.hh
     ContinuityVolumePolicy.hh
-    HVolumePolicy.hh
     HullVolumePolicy.hh
     SolidCRKSPHHydroBase.hh
     SolidCRKSPHHydroBaseInline.hh
@@ -65,8 +59,6 @@ set(CRKSPH_headers
     computeHVolumes.hh
     computeHullSumMassDensity.hh
     computeHullVolumes.hh
-    computeNeighborHull.hh
-    computeOccupancyVolume.hh
     computeSolidCRKSPHSumMassDensity.hh
     computeVoronoiCentroids.hh
     computeVoronoiVolume.hh

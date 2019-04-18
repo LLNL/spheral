@@ -1,16 +1,5 @@
 set(Damage_inst
-    DamageModel
-    JohnsonCookDamage
-    JohnsonCookDamagePolicy
-    JohnsonCookFailureStrainPolicy
-    LongitudinalSoundSpeedPolicy
-    StrainPolicy
-    TensorDamageModel
-    TensorDamagePolicy
-    TensorStrainPolicy
-    YoungsModulusPolicy
     computeFragmentField
-    weibullFlawDistribution
    )
 
 
@@ -19,28 +8,7 @@ set(Damage_sources )
 instantiate(Damage_inst Damage_sources)
 
 set(Damage_headers
-    DamageGradientPolicy.hh
-    DamageModel.hh
-    DamageModelInline.hh
-    DamagedSoundSpeedPolicy.hh
-    EffectiveTensorDamagePolicy.hh
-    GradyKippScalarDamage.hh
-    JohnsonCookDamage.hh
-    JohnsonCookDamageInline.hh
-    JohnsonCookDamagePolicy.hh
-    JohnsonCookFailureStrainPolicy.hh
-    LongitudinalSoundSpeedPolicy.hh
-    ScalarDamageModel.hh
-    ScalarDamagePolicy.hh
-    StrainPolicy.hh
-    TensorDamageModel.hh
-    TensorDamageModelInline.hh
-    TensorDamagePolicy.hh
-    TensorStrainPolicy.hh
-    YoungsModulusPolicy.hh
     computeFragmentField.hh
-    oneMinusDamage.hh
-    weibullFlawDistribution.hh
     )
 
 blt_add_library(NAME        Spheral_Damage

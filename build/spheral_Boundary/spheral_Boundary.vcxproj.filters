@@ -24,49 +24,10 @@
     <ClCompile Include="..\..\src\Boundary\BoundaryInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\ConstantBoundaryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\ConstantBoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\ConstantRVelocityBoundaryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\ConstantRVelocityBoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\ConstantVelocityBoundaryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\ConstantVelocityBoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\ConstantXVelocityBoundaryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\ConstantXVelocityBoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\ConstantYVelocityBoundaryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\ConstantYVelocityBoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\CylindricalBoundary.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Boundary\PlanarBoundaryInst.cc.2.cc">
@@ -89,9 +50,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\Boundary\ThreeOneDimensionBoundary.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\Boundary\AxialSymmetryBoundary.hh">
       <Filter>Header Files</Filter>
     </None>
@@ -104,46 +62,10 @@
     <None Include="..\..\src\Boundary\BoundaryInline.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\Boundary\ConstantBoundary.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Boundary\ConstantBoundaryInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Boundary\ConstantRVelocityBoundary.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Boundary\ConstantVelocityBoundary.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Boundary\ConstantVelocityBoundaryInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Boundary\ConstantXVelocityBoundary.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Boundary\ConstantYVelocityBoundary.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Boundary\ConstantZVelocityBoundary.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\Boundary\CRKSPHVoidBoundary.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\Boundary\CylindricalBoundary.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Boundary\CylindricalBoundaryInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\Boundary\mapPositionThroughPlanes.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Boundary\PeriodicBoundary.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Boundary\PeriodicPlanarBoundary.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Boundary\PlanarBoundary.hh">
@@ -167,36 +89,12 @@
     <None Include="..\..\src\Boundary\RigidBoundaryInline.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\Boundary\SphericalBoundary.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Boundary\SphericalBoundaryInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\Boundary\BoundaryInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\Boundary\ConstantBoundaryInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Boundary\ConstantRVelocityBoundaryInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Boundary\ConstantVelocityBoundaryInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Boundary\ConstantXVelocityBoundaryInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Boundary\ConstantYVelocityBoundaryInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Boundary\PlanarBoundaryInst.cc.py">

@@ -46,9 +46,9 @@ def siloMeshDump(dirName, mesh,
     # print "              tensorFields: ", [x.name for x in tensorFields]
     # print "           symTensorFields: ", [x.name for x in symTensorFields]
 
-    assert (isinstance(mesh, Tessellation2d) or
-            isinstance(mesh, Tessellation3d))
-    if isinstance(mesh, Tessellation2d):
+    assert (isinstance(mesh, polytope.Tessellation2d) or
+            isinstance(mesh, polytope.Tessellation3d))
+    if isinstance(mesh, polytope.Tessellation2d):
         nDim = 2
     else:
         nDim = 3
@@ -293,6 +293,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
     # Everyone gets the link file name.
     linkfile = mpi.bcast(linkfile, root=0)
 
+    mpi.barrier()
     return linkfile
 
 #-------------------------------------------------------------------------------
@@ -317,10 +318,10 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         assert silo.DBMkDir(db, "POINTS") == 0      # HACK
 
         # Determine our dimensionality
-        if isinstance(mesh, Tessellation2d):
+        if isinstance(mesh, polytope.Tessellation2d):
             nDim = 2
         else:
-            assert isinstance(mesh, Tessellation3d)
+            assert isinstance(mesh, polytope.Tessellation3d)
             nDim = 3
 
         # Write a Polygonal zone list.
@@ -329,7 +330,6 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
 
         # start = TIME.clock()
 
-        faces = mesh.facesAsInts
         if nDim == 2:
         
             # Read out the zone nodes.  We rely on these already being arranged
@@ -348,7 +348,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             # Construct the zone-face list.  We use the ones complement of a face ID
             # to indicate that face needs to be reversed in reference to this zone.
             # This is the same convention as polytope, so just copy it.
-            assert silo.DBPutPHZonelist(db, zonelistName[nDim], faces, mesh.cells, 0, (numZones - 1), nullOpts) == 0
+            assert silo.DBPutPHZonelist(db, zonelistName[nDim], vector_of_vector_of_int(mesh.facesAsInts), vector_of_vector_of_int(mesh.cells), 0, (numZones - 1), nullOpts) == 0
         
         # print "    --> %g sec to write PHzonelist" % (TIME.clock() - start)
         # start = TIME.clock()
@@ -528,6 +528,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         # That's it.
         assert silo.DBClose(db) == 0
 
+    mpi.barrier()
     return
 
 #-------------------------------------------------------------------------------
