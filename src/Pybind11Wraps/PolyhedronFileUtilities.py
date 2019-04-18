@@ -20,18 +20,19 @@ def readPolyhedronOBJ(filename):
         if stuff:
             if stuff[0] == "v":
                 assert len(stuff) == 4
-                verts.append(Vector3d(double(stuff[1]), double(stuff[2]), double(stuff[3])))
+                verts.append(Vector3d(float(stuff[1]), float(stuff[2]), float(stuff[3])))
             elif stuff[0] == "f":
                 assert len(stuff) >= 4
-                facets.append([])
+                facet = []
                 for x in stuff[1:]:
-                    facets[-1].append(int(x.split("/")[0]) - 1)
+                    facet.append(int(x.split("/")[0]) - 1)
+                facets.append(vector_of_unsigned(facet))
     f.close()
     nverts = len(verts)
-    for i in xrange(len(facets)):
-        for j in xrange(len(facets[i])):
-            assert facets[i][j] < nverts
-    poly = Polyhedron(verts, facets)
+    # for i in xrange(len(facets)):
+    #     for j in xrange(len(facets[i])):
+    #         assert facets[i][j] < nverts
+    poly = Polyhedron(vector_of_Vector3d(verts), vector_of_vector_of_unsigned(facets))
     return poly
 
 #-------------------------------------------------------------------------------
@@ -104,7 +105,7 @@ def readPolyhedronOFF(filename):
         line = f.readline()
         stuff = line.split()
         assert len(stuff) == 3
-        verts.append(Vector3d(double(stuff[0]), double(stuff[1]), double(stuff[2])))
+        verts.append(Vector3d(float(stuff[0]), float(stuff[1]), float(stuff[2])))
     
     # Read the face vertex indices.
     facets = []
@@ -113,14 +114,15 @@ def readPolyhedronOFF(filename):
         stuff = line.split()
         assert len(stuff) >= 4
         n = int(stuff[0])
-        facets.push_back([])
+        facet = []
         for j in xrange(n):
             k = int(stuff[j+1])
             assert k < nv
-            facets[-1][j] = k
+            facet.append(k)
+        facets.append(vector_of_unsigned(facet))
     
     # Build the polyhedron and we're done.
-    poly = Polyhedron(verts, facets)
+    poly = Polyhedron(vector_of_vector3d(verts), vector_of_vector_of_unsigned(facets))
     return poly
 
 
