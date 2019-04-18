@@ -139,6 +139,7 @@ class NodeHistory:
             self.timeHistory = file.readObject(path + "/timeHistory")
             self.sampleHistory = file.readObject(path + "/sampleHistory")
             file.read(self.nodeFlags, path + "/nodeFlags")
+            self.flushHistory()
         except RuntimeError:
             print "WARNING: unable to restore NodeHistory restart state"
         return

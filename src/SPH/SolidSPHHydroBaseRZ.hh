@@ -63,6 +63,7 @@ public:
                       const double epsTensile,
                       const double nTensile,
                       const bool damageRelieveRubble,
+                      const bool negativePressureInDamage,
                       const Vector& xmin,
                       const Vector& xmax);
 

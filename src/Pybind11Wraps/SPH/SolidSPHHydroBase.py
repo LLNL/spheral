@@ -37,6 +37,7 @@ class SolidSPHHydroBase(SPHHydroBase):
                epsTensile = "const double",
                nTensile = "const double",
                damageRelieveRubble = "const bool",
+               negativePressureInDamage = "const bool",
                xmin = "const Vector&",
                xmax = "const Vector&"):
         "SolidSPHHydroBase constructor"
@@ -89,6 +90,8 @@ mass density, velocity, and specific thermal energy."""
                                doc="Kernel for estimating velocity gradient")
     damageRelieveRubble = PYB11property("bool", "damageRelieveRubble", "damageRelieveRubble", 
                                         doc="Control whether allow damaged material to have stress relieved.")
+    negativePressureInDamage = PYB11property("bool", "negativePressureInDamage", "negativePressureInDamage", 
+                                             doc="Should we allow damage material to support negative pressures?")
 
     DdeviatoricStressDt =  PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "DdeviatoricStressDt", returnpolicy="reference_internal")
     bulkModulus =          PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "bulkModulus",         returnpolicy="reference_internal")

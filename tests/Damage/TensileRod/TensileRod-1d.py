@@ -100,6 +100,7 @@ commandLine(length = 3.0,
             cullToWeakestFlaws = False,
             effectiveFlawAlgorithm = SampledFlaws,
             damageInCompression = False,
+            negativePressureInDamage = False,
 
             # Johnson-Cook choices
             D1 = 0.0,
@@ -433,7 +434,8 @@ else:
                 HUpdate = HUpdate,
                 XSPH = XSPH,
                 epsTensile = epsilonTensile,
-                nTensile = nTensile)
+                nTensile = nTensile,
+                negativePressureInDamage = negativePressureInDamage)
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
@@ -442,6 +444,7 @@ output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.kernel")
 output("hydro.PiKernel")
+output("hydro.negativePressureInDamage")
 
 #-------------------------------------------------------------------------------
 # Construct a damage model.
