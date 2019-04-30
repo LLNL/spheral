@@ -175,6 +175,7 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mGradm4(FieldStorageType::CopyFields),
   mSurfacePoint(FieldStorageType::CopyFields),
   mEtaVoidPoints(FieldStorageType::CopyFields),
+  mCellFaceFlags(FieldStorageType::CopyFields),
   mVoidBoundary(mSurfacePoint, mEtaVoidPoints),
   mRestart(registerWithRestart(*this)) {
   // this->appendBoundary(mVoidBoundary);  // Suspend actually building the void points.
@@ -243,6 +244,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // We need volumes in order to prepare the surface detection.
   mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
   mEtaVoidPoints = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::etaVoidPoints);
+  mCellFaceFlags = dataBase.newFluidFieldList(vector<tuple<int,int,int>>(), HydroFieldNames::cellFaceFlags);
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
@@ -258,7 +260,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     mVolume.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
-    FieldList<Dimension, vector<tuple<int, int, int>>> cellFaceFlags;
     const FieldList<Dimension, typename Dimension::SymTensor> damage = dataBase.solidEffectiveDamage();
     computeVoronoiVolume(position, H, massDensity, mMassDensityGradient, connectivityMap, damage,
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries
@@ -267,7 +268,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                                                       this->boundaryEnd()),
                          FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
                          mSurfacePoint, mVolume, mDeltaCentroid, mEtaVoidPoints,    // return values
-                         cells, cellFaceFlags);                                     // no return cells
+                         cells,                                                     // no return cells
+                         mCellFaceFlags);                                           // node cell multimaterial faces
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, mVolume);
   } else if (mVolumeType == CRKVolumeType::HVolume) {
@@ -360,6 +362,7 @@ registerState(DataBase<Dimension>& dataBase,
   }
   dataBase.resizeFluidFieldList(mSurfacePoint, 0, HydroFieldNames::surfacePoint, false);
   dataBase.resizeFluidFieldList(mEtaVoidPoints, vector<Vector>(), HydroFieldNames::etaVoidPoints, false);
+  dataBase.resizeFluidFieldList(mCellFaceFlags, vector<tuple<int,int,int>>(), HydroFieldNames::cellFaceFlags, false);
 
   // We have to choose either compatible or total energy evolution.
   VERIFY2(not (mCompatibleEnergyEvolution and mEvolveTotalEnergy),
@@ -485,6 +488,9 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mGradm3);
   state.enroll(mGradm4);
   state.enroll(mSurfacePoint);
+
+  // Multimaterial information
+  state.enroll(mCellFaceFlags);
 
   // We also register the delta centroid for visualiation purposes.
   if (mfilter > 0.0 and mVolumeType == CRKVolumeType::CRKVoronoiVolume) state.enroll(mDeltaCentroid);
@@ -674,7 +680,6 @@ finalize(const typename Dimension::Scalar time,
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     vol.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
-    FieldList<Dimension, vector<tuple<int, int, int>>> cellFaceFlags;
     computeVoronoiVolume(position, H, massDensity, gradRho, connectivityMap, damage,
                          vector<typename Dimension::FacetedVolume>(),                // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
@@ -682,7 +687,9 @@ finalize(const typename Dimension::Scalar time,
                                                       this->boundaryEnd()),
                          FieldList<Dimension, typename Dimension::Scalar>(),         // no weights
                          surfacePoint, vol, mDeltaCentroid, mEtaVoidPoints,          // return values
-                         cells, cellFaceFlags);                                      // no return cells
+                         cells,                                                      // no return cells
+                         mCellFaceFlags);                                            // node cell multimaterial faces
+
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
   } else if (mVolumeType == CRKVolumeType::HVolume) {

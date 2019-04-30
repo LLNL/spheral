@@ -223,6 +223,7 @@ public:
 
   const FieldList<Dimension, int>&       surfacePoint() const;
   const FieldList<Dimension, std::vector<Vector>>& etaVoidPoints() const;
+  const FieldList<Dimension, std::vector<std::tuple<int, int, int>>>& cellFaceFlags() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -299,6 +300,7 @@ protected:
 
   FieldList<Dimension, int>       mSurfacePoint;
   FieldList<Dimension, std::vector<Vector>> mEtaVoidPoints;
+  FieldList<Dimension, std::vector<std::tuple<int, int, int>>> mCellFaceFlags;
 
   CRKSPHVoidBoundary<Dimension> mVoidBoundary;
 

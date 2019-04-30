@@ -60,6 +60,7 @@ const std::string Spheral::HydroFieldNames::gradC_CRKSPH = "grad C CRKSPH correc
 const std::string Spheral::HydroFieldNames::surfacePoint = "surface point";
 const std::string Spheral::HydroFieldNames::voidPoint = "void point";
 const std::string Spheral::HydroFieldNames::etaVoidPoints = "eta void points";
+const std::string Spheral::HydroFieldNames::cellFaceFlags = "cell face flags";
 const std::string Spheral::HydroFieldNames::M_SPHCorrection = "M SPH gradient correction";
 const std::string Spheral::HydroFieldNames::volume = "node volume";
 const std::string Spheral::HydroFieldNames::linearMomentum = "linear momentum";

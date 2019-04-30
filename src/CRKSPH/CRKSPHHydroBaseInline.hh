@@ -559,6 +559,14 @@ etaVoidPoints() const {
 
 template<typename Dimension>
 inline
+const FieldList<Dimension, std::vector<std::tuple<int, int, int>>>&
+CRKSPHHydroBase<Dimension>::
+cellFaceFlags() const {
+  return mCellFaceFlags;
+}
+
+template<typename Dimension>
+inline
 const CRKSPHVoidBoundary<Dimension>&
 CRKSPHHydroBase<Dimension>::
 voidBoundary() const {

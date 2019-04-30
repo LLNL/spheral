@@ -138,6 +138,9 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         // phi = min(phi, max(0.0, gradRhoi*2.0*x1*safeInvVar(rho1 - rhoi)));
         if (nodeListj1 != nodeListi) {
           surfacePoint(nodeListi, i) |= (1 << (nodeListj1 + 1));
+          cellFaceFlags(nodeListi, i).push_back(std::make_tuple(0,           // cell face
+                                                                nodeListj1,  // other NodeList
+                                                                j1));        // other node index
           // cerr << "Surface condition 3: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
         }
       }
@@ -158,6 +161,9 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         // phi = min(phi, max(0.0, gradRhoi*2.0*x2*safeInvVar(rho2 - rhoi)));
         if (nodeListj2 != nodeListi) {
           surfacePoint(nodeListi, i) |= (1 << (nodeListj2 + 1));
+          cellFaceFlags(nodeListi, i).push_back(std::make_tuple(1,           // cell face
+                                                                nodeListj2,  // other NodeList
+                                                                j2));        // other node index
           // cerr << "Surface condition 6: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
         }
       }
