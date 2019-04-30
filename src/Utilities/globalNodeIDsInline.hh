@@ -20,9 +20,8 @@
 #include "Utilities/DBC.hh"
 
 #include <vector>
+#include <tuple>
 
-#include "boost/tuple/tuple.hpp"
-#include "boost/tuple/tuple_comparison.hpp"
 #ifdef USE_MPI
 #include "mpi.h"
 #include "Distributed/Communicator.hh"
@@ -95,11 +94,11 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
   FieldList<Dimension, Key> keys = peanoHilbertOrderIndices(db);
 
   // Build the local list of node info.
-  typedef std::vector<boost::tuples::tuple<Key, int, int> > InfoType;
+  typedef std::vector<std::tuple<Key, int, int> > InfoType;
   InfoType nodeInfo;
   int numLocalNodes = nodeList.numInternalNodes();
   for (int i = 0; i != numLocalNodes; ++i) {
-    nodeInfo.push_back(boost::tuples::tuple<Key, int, int>(keys(0, i), i, procID));
+    nodeInfo.push_back(std::tuple<Key, int, int>(keys(0, i), i, procID));
   }
 
   // Reduce the list of node info to processor 0.
@@ -121,7 +120,7 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
       MPI_Recv(&(*packedLocalIDs.begin()), numRecvNodes, MPI_INT,
                recvDomain, 12, Communicator::communicator(), &status);
       for (int i = 0; i != numRecvNodes; ++i) {
-        nodeInfo.push_back(boost::tuples::tuple<Key, int, int>(packedKeys[i], packedLocalIDs[i], recvDomain));
+        nodeInfo.push_back(std::tuple<Key, int, int>(packedKeys[i], packedLocalIDs[i], recvDomain));
       }
     }
 
@@ -133,8 +132,8 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
     for (typename InfoType::const_iterator itr = nodeInfo.begin();
          itr != nodeInfo.end();
          ++itr) {
-      packedKeys.push_back(boost::tuples::get<0>(*itr));
-      packedLocalIDs.push_back(boost::tuples::get<1>(*itr));
+      packedKeys.push_back(std::get<0>(*itr));
+      packedLocalIDs.push_back(std::get<1>(*itr));
     }
     CHECK(packedKeys.size() == nodeInfo.size());
     CHECK(packedLocalIDs.size() == nodeInfo.size());
@@ -154,7 +153,7 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
     sort(nodeInfo.begin(), nodeInfo.end());
     BEGIN_CONTRACT_SCOPE
     for (int i = 0; i < nodeInfo.size() - 1; ++i) {
-      CHECK(boost::tuples::get<0>(nodeInfo[i]) <= boost::tuples::get<0>(nodeInfo[i + 1]));
+      CHECK(std::get<0>(nodeInfo[i]) <= std::get<0>(nodeInfo[i + 1]));
     }
     END_CONTRACT_SCOPE
   }
@@ -162,8 +161,8 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
   // Now we can assign consecutive global IDs based on the sorted list.
   std::vector< std::vector<int> > globalIDs(numProcs);
   for (int i = 0; i != nodeInfo.size(); ++i) {
-    const int recvProc = boost::tuples::get<2>(nodeInfo[i]);
-    const int localID = boost::tuples::get<1>(nodeInfo[i]);
+    const int recvProc = std::get<2>(nodeInfo[i]);
+    const int localID = std::get<1>(nodeInfo[i]);
     CHECK(recvProc < globalIDs.size());
     if (localID + 1 > globalIDs[recvProc].size()) globalIDs[recvProc].resize(localID + 1);
     globalIDs[recvProc][localID] = i;

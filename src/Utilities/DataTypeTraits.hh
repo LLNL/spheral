@@ -11,7 +11,6 @@
 #include <vector>
 #include <string>
 #include <tuple>
-#include "boost/tuple/tuple.hpp"
 #include "Geometry/Dimension.hh"
 #include "Geometry/polyclipper.hh"
 #include "RegisterMPIDataTypes.hh"
@@ -150,11 +149,11 @@ struct DataTypeTraits<std::vector<Value> > {
 
 //------------------------------------------------------------------------------
 template<typename Value>
-struct DataTypeTraits<boost::tuple<Value, Value, Value> > {
+struct DataTypeTraits<std::tuple<Value, Value, Value> > {
   typedef Value ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const boost::tuple<Value, Value, Value>& x) { return 3; }
-  static boost::tuple<Value, Value, Value> zero() { return boost::make_tuple(Value(), Value(), Value()); }
+  static int numElements(const std::tuple<Value, Value, Value>& x) { return 3; }
+  static std::tuple<Value, Value, Value> zero() { return std::make_tuple(Value(), Value(), Value()); }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }
 #endif
@@ -162,11 +161,11 @@ struct DataTypeTraits<boost::tuple<Value, Value, Value> > {
 
 //------------------------------------------------------------------------------
 template<typename Value>
-struct DataTypeTraits<boost::tuple<Value, Value, Value, Value> > {
-  typedef boost::tuple<Value, Value, Value, Value> ElementType;
+struct DataTypeTraits<std::tuple<Value, Value, Value, Value> > {
+  typedef std::tuple<Value, Value, Value, Value> ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const boost::tuple<Value, Value, Value, Value>& x) { return 4; }
-  static boost::tuple<Value, Value, Value, Value> zero() { return boost::make_tuple(Value(), Value(), Value(), Value()); }
+  static int numElements(const std::tuple<Value, Value, Value, Value>& x) { return 4; }
+  static std::tuple<Value, Value, Value, Value> zero() { return std::make_tuple(Value(), Value(), Value(), Value()); }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }
 #endif
@@ -174,11 +173,11 @@ struct DataTypeTraits<boost::tuple<Value, Value, Value, Value> > {
 
 //------------------------------------------------------------------------------
 template<typename Value>
-struct DataTypeTraits<boost::tuple<Value, Value, Value, Value, Value> > {
-  typedef boost::tuple<Value, Value, Value, Value, Value> ElementType;
+struct DataTypeTraits<std::tuple<Value, Value, Value, Value, Value> > {
+  typedef std::tuple<Value, Value, Value, Value, Value> ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const boost::tuple<Value, Value, Value, Value, Value>& x) { return 5; }
-  static boost::tuple<Value, Value, Value, Value, Value> zero() { return boost::make_tuple(Value(), Value(), Value(), Value(), Value()); }
+  static int numElements(const std::tuple<Value, Value, Value, Value, Value>& x) { return 5; }
+  static std::tuple<Value, Value, Value, Value, Value> zero() { return std::make_tuple(Value(), Value(), Value(), Value(), Value()); }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }
 #endif
@@ -191,15 +190,6 @@ struct DataTypeTraits<std::pair<Value1, Value2> > {
   static bool fixedSize() { return true; }
   static int numElements(const std::pair<Value1, Value2>& x) { return 2; }
   static std::pair<Value1, Value2> zero() { return std::make_pair(Value1(), Value2()); }
-};
-
-//------------------------------------------------------------------------------
-template<typename Value1, typename Value2, typename Value3>
-struct DataTypeTraits<std::tuple<Value1, Value2, Value3> > {
-  typedef std::tuple<Value1, Value2, Value3> ElementType;
-  static bool fixedSize() { return true; }
-  static int numElements(const std::tuple<Value1, Value2, Value3>& x) { return 3; }
-  static std::tuple<Value1, Value2, Value3> zero() { return std::make_tuple(Value1(), Value2(), Value3()); }
 };
 
 //------------------------------------------------------------------------------

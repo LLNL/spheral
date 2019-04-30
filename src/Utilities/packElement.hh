@@ -184,17 +184,6 @@ packElement(const std::pair<T1, T2>& value,
   packElement(value.second, buffer);
 }
 
-// Specialization for a boost::tuple of three common elements.
-template<typename T>
-inline
-void
-packElement(const boost::tuple<T, T, T>& value,
-            std::vector<char>& buffer) {
-  packElement(boost::get<0>(value), buffer);
-  packElement(boost::get<1>(value), buffer);
-  packElement(boost::get<2>(value), buffer);
-}
-
 // Specialization for a std::tuple of three common elements.
 template<typename T>
 inline
@@ -403,22 +392,6 @@ unpackElement(std::pair<T1, T2>& value,
               const std::vector<char>::const_iterator& endPackedVector) {
   unpackElement(value.first, itr, endPackedVector);
   unpackElement(value.second, itr, endPackedVector);
-}
-
-// boost::tuple<T,T,T>
-template<typename DataType>
-inline
-void
-unpackElement(boost::tuple<DataType, DataType, DataType>& value,
-              std::vector<char>::const_iterator& itr,
-              const std::vector<char>::const_iterator& endPackedVector) {
-  DataType x, y, z;
-  unpackElement(x, itr, endPackedVector);
-  unpackElement(y, itr, endPackedVector);
-  unpackElement(z, itr, endPackedVector);
-  boost::get<0>(value) = x;
-  boost::get<1>(value) = y;
-  boost::get<2>(value) = z;
 }
 
 // std::tuple<T,T,T>
