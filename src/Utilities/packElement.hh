@@ -13,6 +13,7 @@
 #include <map>
 #include <iterator>
 #include <string>
+#include <tuple>
 #include "DataTypeTraits.hh"
 
 #ifdef USE_MPI
@@ -192,6 +193,17 @@ packElement(const boost::tuple<T, T, T>& value,
   packElement(boost::get<0>(value), buffer);
   packElement(boost::get<1>(value), buffer);
   packElement(boost::get<2>(value), buffer);
+}
+
+// Specialization for a std::tuple of three common elements.
+template<typename T>
+inline
+void
+packElement(const std::tuple<T, T, T>& value,
+            std::vector<char>& buffer) {
+  packElement(std::get<0>(value), buffer);
+  packElement(std::get<1>(value), buffer);
+  packElement(std::get<2>(value), buffer);
 }
 
 // Specialize for a std::vector<DataType>.
@@ -407,6 +419,22 @@ unpackElement(boost::tuple<DataType, DataType, DataType>& value,
   boost::get<0>(value) = x;
   boost::get<1>(value) = y;
   boost::get<2>(value) = z;
+}
+
+// std::tuple<T,T,T>
+template<typename DataType>
+inline
+void
+unpackElement(std::tuple<DataType, DataType, DataType>& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  DataType x, y, z;
+  unpackElement(x, itr, endPackedVector);
+  unpackElement(y, itr, endPackedVector);
+  unpackElement(z, itr, endPackedVector);
+  std::get<0>(value) = x;
+  std::get<1>(value) = y;
+  std::get<2>(value) = z;
 }
 
 // Handle the vector<DataType> case, so long as DataType is one of the types

@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <vector>
 #include <string>
+#include <tuple>
 #include "boost/tuple/tuple.hpp"
 #include "Geometry/Dimension.hh"
 #include "Geometry/polyclipper.hh"
@@ -190,6 +191,15 @@ struct DataTypeTraits<std::pair<Value1, Value2> > {
   static bool fixedSize() { return true; }
   static int numElements(const std::pair<Value1, Value2>& x) { return 2; }
   static std::pair<Value1, Value2> zero() { return std::make_pair(Value1(), Value2()); }
+};
+
+//------------------------------------------------------------------------------
+template<typename Value1, typename Value2, typename Value3>
+struct DataTypeTraits<std::tuple<Value1, Value2, Value3> > {
+  typedef std::tuple<Value1, Value2, Value3> ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const std::tuple<Value1, Value2, Value3>& x) { return 3; }
+  static std::tuple<Value1, Value2, Value3> zero() { return std::make_tuple(Value1(), Value2(), Value3()); }
 };
 
 //------------------------------------------------------------------------------

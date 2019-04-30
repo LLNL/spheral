@@ -65,10 +65,13 @@
 #include <fstream>
 #include <map>
 #include <vector>
+#include <tuple>
 using std::vector;
 using std::string;
 using std::pair;
 using std::make_pair;
+using std::tuple;
+using std::make_tuple;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -196,7 +199,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   } else if (this->mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     this->mVolume.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
-    FieldList<Dimension, vector<int>> cellFaceFlags;
+    FieldList<Dimension, vector<tuple<int, int, int>>> cellFaceFlags;
     const FieldList<Dimension, typename Dimension::SymTensor> damage = dataBase.solidEffectiveDamage();
     computeVoronoiVolume(position, H, massDensity, this->mMassDensityGradient, connectivityMap, damage,
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries

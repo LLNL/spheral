@@ -70,6 +70,8 @@ using std::vector;
 using std::string;
 using std::pair;
 using std::make_pair;
+using std::tuple;
+using std::make_tuple;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -256,7 +258,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     mVolume.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
-    FieldList<Dimension, vector<int>> cellFaceFlags;
+    FieldList<Dimension, vector<tuple<int, int, int>>> cellFaceFlags;
     const FieldList<Dimension, typename Dimension::SymTensor> damage = dataBase.solidEffectiveDamage();
     computeVoronoiVolume(position, H, massDensity, mMassDensityGradient, connectivityMap, damage,
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries
@@ -672,7 +674,7 @@ finalize(const typename Dimension::Scalar time,
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     vol.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
-    FieldList<Dimension, vector<int>> cellFaceFlags;
+    FieldList<Dimension, vector<tuple<int, int, int>>> cellFaceFlags;
     computeVoronoiVolume(position, H, massDensity, gradRho, connectivityMap, damage,
                          vector<typename Dimension::FacetedVolume>(),                // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),       // no holes

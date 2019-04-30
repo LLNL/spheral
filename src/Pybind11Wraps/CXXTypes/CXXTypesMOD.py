@@ -33,6 +33,9 @@ vector_of_pair_unsigned_unsigned = PYB11_bind_vector("std::pair<unsigned, unsign
 vector_of_pair_ULL_ULL           = PYB11_bind_vector("std::pair<uint64_t, uint64_t>", opaque=True, local=False)
 vector_of_pair_string_string     = PYB11_bind_vector("std::pair<std::string, std::string>", opaque=True, local=False)
 
+# std::vector<tuple<>>
+vector_of_tuple_int_int_int      = PYB11_bind_vector("std::tuple<int, int, int>", opaque=True, local=False)
+
 # std::map
 map_string_double = PYB11_bind_map("std::string", "double", opaque=True, local=False)
 map_int_string    = PYB11_bind_map("int", "std::string", opaque=True, local=False)

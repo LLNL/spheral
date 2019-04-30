@@ -11,6 +11,7 @@
 
 #include <ctime>
 using std::vector;
+using std::tuple;
 using std::string;
 using std::pair;
 using std::make_pair;
@@ -85,7 +86,7 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
 
   // Make a dummy set of cells so we don't ask computeVoronoiVolume to compute the return FacetedVolumes every step.
   FieldList<Dimension, FacetedVolume> dummyCells;
-  FieldList<Dimension, vector<int>> cellFaceFlags;
+  FieldList<Dimension, vector<tuple<int, int, int>>> cellFaceFlags;
 
   // Make sure the density starts out consistently, and kick-start the volume using m/rho.
   for (auto nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {

@@ -28,7 +28,8 @@ PYB11includes += ['"Geometry/Dimension.hh"',
                   '"Field/FieldList.hh"',
                   '"Field/FieldListSet.hh"',
                   '"Utilities/FieldDataTypeTraits.hh"',
-                  '<vector>']
+                  '<vector>',
+                  '<tuple>']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -59,6 +60,7 @@ FieldListSet%(ndim)sd = PYB11TemplateClass(FieldListSet, template_parameters="Di
     for (value, label) in (("Dim<%i>::FacetedVolume" % ndim,       "FacetedVolume"), 
                            ("std::vector<int>",                    "VectorInt"),
                            ("std::vector<double>",                 "VectorDouble"),
+                           ("std::vector<std::tuple<int,int,int>>","VectorTupleIntIntInt"),
                            ("std::vector<Dim<%i>::Vector>" % ndim, "VectorVector"),
                            ("std::vector<Dim<%i>::Tensor>" % ndim, "VectorSymTensor"),
                            ("std::vector<Dim<%i>::Tensor>" % ndim, "VectorSymTensor")):

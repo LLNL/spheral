@@ -307,6 +307,7 @@ will get the new value regardless of resetValues."""
     newGlobalvector_of_intFieldList    = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<int>")
     newGlobalvector_of_doubleFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<double>")
     newGlobalvector_of_VectorFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<Vector>")
+    newGlobalvector_of_tuple_int_int_intFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<std::tuple<int,int,int>>")
 
     newFluidIntFieldList              = PYB11TemplateMethod(newFluidFieldList, template_parameters="int")
     newFluidScalarFieldList           = PYB11TemplateMethod(newFluidFieldList, template_parameters="double")
@@ -320,6 +321,7 @@ will get the new value regardless of resetValues."""
     newFluidvector_of_intFieldList    = PYB11TemplateMethod(newFluidFieldList, template_parameters="std::vector<int>")
     newFluidvector_of_doubleFieldList = PYB11TemplateMethod(newFluidFieldList, template_parameters="std::vector<double>")
     newFluidvector_of_VectorFieldList = PYB11TemplateMethod(newFluidFieldList, template_parameters="std::vector<Vector>")
+    newFluidvector_of_tuple_int_int_intFieldList = PYB11TemplateMethod(newFluidFieldList, template_parameters="std::vector<std::tuple<int,int,int>>")
 
     newSolidIntFieldList              = PYB11TemplateMethod(newSolidFieldList, template_parameters="int")
     newSolidScalarFieldList           = PYB11TemplateMethod(newSolidFieldList, template_parameters="double")
@@ -333,6 +335,7 @@ will get the new value regardless of resetValues."""
     newSolidvector_of_intFieldList    = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<int>")
     newSolidvector_of_doubleFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<double>")
     newSolidvector_of_VectorFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<Vector>")
+    newSolidvector_of_tuple_int_int_intFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<std::tuple<int,int,int>>")
 
     resizeGlobalIntFieldList              = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="int")
     resizeGlobalScalarFieldList           = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="double")

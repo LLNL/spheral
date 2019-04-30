@@ -520,7 +520,7 @@ def dumpPhysicsState(stateThingy,
     FacetedVolume = {2 : Polygon,
                      3 : Polyhedron}[dataBase.nDim]
     cells = dataBase.newFluidFacetedVolumeFieldList(FacetedVolume(), "cells")
-    cellFaceFlags = dataBase.newFluidvector_of_intFieldList(vector_of_int(), "face flags")
+    cellFaceFlags = dataBase.newFluidvector_of_tuple_int_int_intFieldList(vector_of_int(), "face flags")
     computeVoronoiVolume(dataBase.fluidPosition, 
                          dataBase.fluidHfield,
                          dataBase.fluidMassDensity,

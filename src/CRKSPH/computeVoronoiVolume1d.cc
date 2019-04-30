@@ -43,7 +43,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
                      FieldList<Dim<1>, Dim<1>::Vector>& deltaMedian,
                      FieldList<Dim<1>, vector<Dim<1>::Vector>>& etaVoidPoints,
                      FieldList<Dim<1>, Dim<1>::FacetedVolume>& cells,
-                     FieldList<Dim<1>, std::vector<int>>& cellFaceFlags) {
+                     FieldList<Dim<1>, std::vector<std::tuple<int, int, int>>>& cellFaceFlags) {
 
   // Pre-conditions
   REQUIRE(facetedBoundaries.size() == 0 or facetedBoundaries.size() == position.size());
