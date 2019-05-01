@@ -112,6 +112,14 @@ indices that define the facets."""
         "Set the internal bounding box"
         return "void"
 
+    @PYB11const
+    def facetArea(self, facetID="const unsigned"):
+        return "double"
+
+    @PYB11const
+    def facetAreaNormal(self, facetID="const unsigned"):
+        return "Vector"
+
     #...........................................................................
     # Operators
     def __iadd__(self, rhs="Vector()"):
