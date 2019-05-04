@@ -46,6 +46,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
   const auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  const auto cells = state.fields(HydroFieldNames::cells, FacetedVolume());
+  const auto cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, vector<tuple<int,int,int>>());
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -61,6 +63,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradB.size() == numNodeLists or order == CRKOrder::ZerothOrder);
   CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
   CHECK(surfacePoint.size() == numNodeLists);
+  CHECK(cells.size() == numNodeLists);
+  CHECK(cellFaceFlags.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto DxDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
@@ -110,6 +114,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 
   // Some scratch variables.
+  int j, cfid;
   Scalar Ai, Aj;
   Vector gradAi, gradAj, forceij, forceji;
   Vector Bi = Vector::zero, Bj = Vector::zero;
@@ -122,6 +127,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
+  size_t nodeListj = 0;
   for (auto itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
        ++itr, ++nodeListi) {
@@ -147,7 +153,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                gradCi, gradCj,                          \
                gWi, gWj, Wi, Wj, gW0i, gW0j, W0i, W0j,  \
                gradWi, gradWj, gradW0i, gradW0j,        \
-               deltagrad)
+               deltagrad,                               \
+               j, cfid)
     for (auto iItr = 0; iItr < ni; ++iItr) {
       const auto i = connectivityMap.ithNode(nodeListi, iItr);
 
@@ -163,6 +170,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto ci = soundSpeed(nodeListi, i);
+      const auto& celli = cells(nodeListi, i);
+      const auto& cellFaceNeighbors = cellFaceFlags(nodeListi, i);
       Ai = A(nodeListi, i);
       gradAi = gradA(nodeListi, i);
       if (order != CRKOrder::ZerothOrder) {
@@ -201,118 +210,149 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Get the connectivity info for this node.
       const auto& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
+      const auto& connectivity = fullConnectivity[nodeListi];
+      nodeListj = nodeListi;
 
-      // Iterate over the NodeLists.
-      for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-
-        // Connectivity of this node with this NodeList.  We only need to proceed if
-        // there are some nodes in this list.
-        const auto& connectivity = fullConnectivity[nodeListj];
-        if (connectivity.size() > 0) {
-
-          // Loop over the neighbors.
+      // Loop over the neighbors in our own NodeList.
 #pragma vector always
-          for (auto jItr = connectivity.begin();
-               jItr != connectivity.end();
-               ++jItr) {
-            const int j = *jItr;
+      for (auto jItr = connectivity.begin();
+           jItr != connectivity.end();
+           ++jItr) {
+        j = *jItr;
 
-            // Get the state for node j
-            const auto& rj = position(nodeListj, j);
-            const auto  mj = mass(nodeListj, j);
-            const auto& vj = velocity(nodeListj, j);
-            const auto  rhoj = massDensity(nodeListj, j);
-            const auto  epsj = specificThermalEnergy(nodeListj, j);
-            const auto  Pj = pressure(nodeListj, j);
-            const auto& Hj = H(nodeListj, j);
-            const auto  cj = soundSpeed(nodeListj, j);
-            Aj = A(nodeListj, j);
-            gradAj = gradA(nodeListj, j);
-            if (order != CRKOrder::ZerothOrder) {
-              Bj = B(nodeListj, j);
-              gradBj = gradB(nodeListj, j);
-            }
-            if (order == CRKOrder::QuadraticOrder) {
-              Cj = C(nodeListj, j);
-              gradCj = gradC(nodeListj, j);
-            }
-            const auto Hdetj = Hj.Determinant();
-            const auto weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
-            CHECK(mj > 0.0);
-            CHECK(rhoj > 0.0);
-            CHECK(Hdetj > 0.0);
-            CHECK(weightj > 0.0);
-
-            // Find the effective weights of i->j and j->i.
-            // const auto wi = 2.0*weighti*weightj/(weighti + weightj);
-            const auto wij = 0.5*(weighti + weightj);
-
-            // Node displacement.
-            const auto rij = ri - rj;
-            const auto etai = Hi*rij;
-            const auto etaj = Hj*rij;
-            const auto etaMagi = etai.magnitude();
-            const auto etaMagj = etaj.magnitude();
-            CHECK(etaMagi >= 0.0);
-            CHECK(etaMagj >= 0.0);
-            const auto vij = vi - vj;
-
-            // Symmetrized kernel weight and gradient.
-            CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
-            CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, mCorrectionMin, mCorrectionMax);
-            deltagrad = gradWj - gradWi;
-            const auto gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
-
-            // Zero'th and second moment of the node distribution -- used for the
-            // ideal H calculation.
-            const auto fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
-            const auto rij2 = rij.magnitude2();
-            const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
-            weightedNeighborSumi +=     fweightij*std::abs(gWi);
-            massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;
-
-            // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
-            const auto QPiij = Q.Piij(nodeListi, i, nodeListj, j,
-                                      ri, etai, vi, rhoi, ci, Hi,
-                                      rj, etaj, vj, rhoj, cj, Hj);
-            const auto Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);
-            // const auto workQij = 0.5*(vij.dot(Qaccij));
-            const auto workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);                // CRK
-            // const auto workQVi =  vij.dot((rhoj*rhoj*QPiij.second).dot(gradWj));               //RK V and RK I Work
-            const auto Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
-            maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                                 // We need tighter timestep controls on the Q with CRK
-            effViscousPressurei += wij * Qi * Wj;
-            viscousWorki += 0.5*wij*wij/mi*workQi;
-
-            // Velocity gradient.
-            DvDxi -= wij*vij.dyad(gradWj);
-            if (nodeListi == nodeListj) localDvDxi -= wij*vij.dyad(gradWj);
-
-            // Mass density gradient.
-            gradRhoi += wij*(rhoj - rhoi)*gradWj;
-
-            // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
-            // Momentum
-            forceij = (true ? // surfacePoint(nodeListi, i) <= 1 ? 
-                       0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
-                       mi*wij*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj))); // RK
-            DvDti -= forceij/mi;
-            if (mCompatibleEnergyEvolution) pairAccelerationsi.push_back(-forceij/mi);
-
-            // Energy
-            DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ? 
-                        0.5*wij*wij*(Pj*vij.dot(deltagrad) + workQi)/mi :              // CRK
-                        wij*rhoi*QPiij.first.dot(vij).dot(gradWj));                    // RK
-
-            // Estimate of delta v (for XSPH).
-            if (mXSPH and (nodeListi == nodeListj)) XSPHDeltaVi -= wij*Wj*vij;
-          }
+        // Get the state for node j
+        const auto& rj = position(nodeListj, j);
+        const auto  mj = mass(nodeListj, j);
+        const auto& vj = velocity(nodeListj, j);
+        const auto  rhoj = massDensity(nodeListj, j);
+        const auto  epsj = specificThermalEnergy(nodeListj, j);
+        const auto  Pj = pressure(nodeListj, j);
+        const auto& Hj = H(nodeListj, j);
+        const auto  cj = soundSpeed(nodeListj, j);
+        Aj = A(nodeListj, j);
+        gradAj = gradA(nodeListj, j);
+        if (order != CRKOrder::ZerothOrder) {
+          Bj = B(nodeListj, j);
+          gradBj = gradB(nodeListj, j);
         }
+        if (order == CRKOrder::QuadraticOrder) {
+          Cj = C(nodeListj, j);
+          gradCj = gradC(nodeListj, j);
+        }
+        const auto Hdetj = Hj.Determinant();
+        const auto weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
+        CHECK(mj > 0.0);
+        CHECK(rhoj > 0.0);
+        CHECK(Hdetj > 0.0);
+        CHECK(weightj > 0.0);
+
+        // Find the effective weights of i->j and j->i.
+        // const auto wi = 2.0*weighti*weightj/(weighti + weightj);
+        const auto wij = 0.5*(weighti + weightj);
+
+        // Node displacement.
+        const auto rij = ri - rj;
+        const auto etai = Hi*rij;
+        const auto etaj = Hj*rij;
+        const auto etaMagi = etai.magnitude();
+        const auto etaMagj = etaj.magnitude();
+        CHECK(etaMagi >= 0.0);
+        CHECK(etaMagj >= 0.0);
+        const auto vij = vi - vj;
+
+        // Symmetrized kernel weight and gradient.
+        CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
+        CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, mCorrectionMin, mCorrectionMax);
+        deltagrad = gradWj - gradWi;
+        const auto gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
+
+        // Zero'th and second moment of the node distribution -- used for the
+        // ideal H calculation.
+        const auto fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
+        const auto rij2 = rij.magnitude2();
+        const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
+        weightedNeighborSumi +=     fweightij*std::abs(gWi);
+        massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;
+
+        // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
+        const auto QPiij = Q.Piij(nodeListi, i, nodeListj, j,
+                                  ri, etai, vi, rhoi, ci, Hi,
+                                  rj, etaj, vj, rhoj, cj, Hj);
+        const auto Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);
+        // const auto workQij = 0.5*(vij.dot(Qaccij));
+        const auto workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);                // CRK
+        // const auto workQVi =  vij.dot((rhoj*rhoj*QPiij.second).dot(gradWj));               //RK V and RK I Work
+        const auto Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
+        maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                                 // We need tighter timestep controls on the Q with CRK
+        effViscousPressurei += wij * Qi * Wj;
+        viscousWorki += 0.5*wij*wij/mi*workQi;
+
+        // Velocity gradient.
+        DvDxi -= wij*vij.dyad(gradWj);
+        if (nodeListi == nodeListj) localDvDxi -= wij*vij.dyad(gradWj);
+
+        // Mass density gradient.
+        gradRhoi += wij*(rhoj - rhoi)*gradWj;
+
+        // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
+        // Momentum
+        forceij = (true ? // surfacePoint(nodeListi, i) <= 1 ? 
+                   0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
+                   mi*wij*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj))); // RK
+        DvDti -= forceij/mi;
+        if (mCompatibleEnergyEvolution) pairAccelerationsi.push_back(-forceij/mi);
+
+        // Energy
+        DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ? 
+                    0.5*wij*wij*(Pj*vij.dot(deltagrad) + workQi)/mi :              // CRK
+                    wij*rhoi*QPiij.first.dot(vij).dot(gradWj));                    // RK
+
+        // Estimate of delta v (for XSPH).
+        if (mXSPH and (nodeListi == nodeListj)) XSPHDeltaVi -= wij*Wj*vij;
       }
+
+      // Now look for any multi-material interactions over the cell surfaces.
+#pragma vector always
+      for (const auto& cf: cellFaceNeighbors) {
+        std::tie(cfid, nodeListj, j) = cf;
+        const auto dA = celli.facetAreaNormal(cfid);
+        std::cerr << "---> (" << nodeListi << " " << i << ") <=> (" << nodeListj << " " << j << ") : " << cfid << " " << dA << std::endl;
+
+        // Get the state for node j
+        const auto& rj = position(nodeListj, j);
+        const auto  mj = mass(nodeListj, j);
+        const auto& vj = velocity(nodeListj, j);
+        const auto  rhoj = massDensity(nodeListj, j);
+        const auto  epsj = specificThermalEnergy(nodeListj, j);
+        const auto  Pj = pressure(nodeListj, j);
+        const auto& Hj = H(nodeListj, j);
+        const auto  cj = soundSpeed(nodeListj, j);
+        Aj = A(nodeListj, j);
+        gradAj = gradA(nodeListj, j);
+        if (order != CRKOrder::ZerothOrder) {
+          Bj = B(nodeListj, j);
+          gradBj = gradB(nodeListj, j);
+        }
+        if (order == CRKOrder::QuadraticOrder) {
+          Cj = C(nodeListj, j);
+          gradCj = gradC(nodeListj, j);
+        }
+        const auto Hdetj = Hj.Determinant();
+        const auto weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
+        CHECK(mj > 0.0);
+        CHECK(rhoj > 0.0);
+        CHECK(Hdetj > 0.0);
+        CHECK(weightj > 0.0);
+
+        // Momntum over the face.
+        const auto Pij = 0.5*(Pi + Pj);
+        DvDti -= Pij*dA;
+      }
+
       const auto numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
-      CHECK(not mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
-            (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
-            (pairAccelerationsi.size() == numNeighborsi));
+      // CHECK(not mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
+      //       (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
+      //       (pairAccelerationsi.size() == numNeighborsi));
 
       // // For a surface point, add the RK thermal energy evolution.
       // // DepsDti -= Pi/rhoi*DvDxi.Trace();

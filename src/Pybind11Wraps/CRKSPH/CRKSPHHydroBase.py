@@ -18,6 +18,7 @@ class CRKSPHHydroBase(GenericHydro):
     typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
     typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
     typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
+    typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
@@ -192,6 +193,8 @@ mass density, velocity, and specific thermal energy."""
     gradm3 = PYB11property("const FieldList<%(Dimension)s, FourthRankTensor>&", "gradm3", returnpolicy="reference_internal")
     gradm4 = PYB11property("const FieldList<%(Dimension)s, FifthRankTensor>&", "gradm4", returnpolicy="reference_internal")
 
+    cells = PYB11property("const FieldList<%(Dimension)s, FacetedVolume>&", "cells", returnpolicy="reference_internal")
+    cellFaceFlags = PYB11property("const FieldList<%(Dimension)s, std::vector<std::tuple<int,int,int>>>&", "cellFaceFlags", returnpolicy="reference_internal")
     surfacePoint = PYB11property("const FieldList<%(Dimension)s, int>&", "surfacePoint", returnpolicy="reference_internal")
     etaVoidPoints = PYB11property("const FieldList<%(Dimension)s, std::vector<Vector>>&", "etaVoidPoints", returnpolicy="reference_internal")
 

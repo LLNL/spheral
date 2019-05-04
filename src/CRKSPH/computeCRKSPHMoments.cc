@@ -111,7 +111,9 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
       CHECK(fullConnectivity.size() == numNodeLists);
 
       Scalar thpt;
-      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+      // for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+      {
+        const auto nodeListj = nodeListi;
         const vector<int>& connectivity = fullConnectivity[nodeListj];
         const int firstGhostNodej = weight[nodeListj]->nodeList().firstGhostNode();
 

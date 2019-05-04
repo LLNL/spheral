@@ -141,7 +141,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
           cellFaceFlags(nodeListi, i).push_back(std::make_tuple(0,           // cell face
                                                                 nodeListj1,  // other NodeList
                                                                 j1));        // other node index
-          // cerr << "Surface condition 3: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
+          cerr << "Surface condition 3: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
         }
       }
 
@@ -164,7 +164,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
           cellFaceFlags(nodeListi, i).push_back(std::make_tuple(1,           // cell face
                                                                 nodeListj2,  // other NodeList
                                                                 j2));        // other node index
-          // cerr << "Surface condition 6: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
+          cerr << "Surface condition 6: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
         }
       }
 
