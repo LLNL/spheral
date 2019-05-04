@@ -281,7 +281,7 @@ facetAreaNormal(const unsigned facetID) const {
   if (facetID == 0) {
     return Vector(-1.0);
   } else {
-    return Vector(-1.0);
+    return Vector( 1.0);
   }
 }
 
