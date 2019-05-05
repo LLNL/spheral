@@ -314,7 +314,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Now look for any multi-material interactions over the cell surfaces.
 #pragma vector always
       for (const auto& cf: cellFaceNeighbors) {
-        std::tie(cfid, nodeListj, j) = cf;
+        cerr << "cf: " << cf << endl;
+        // std::tie(cfid, nodeListj, j) = cf;
+        cfid = std::get<0>(cf);
+        nodeListj = std::get<1>(cf);
+        j = std::get<2>(cf);
         const auto dA = celli.facetAreaNormal(cfid);
         std::cerr << "---> (" << nodeListi << " " << i << ") <=> (" << nodeListj << " " << j << ") : " << cfid << " " << dA << std::endl;
 
@@ -346,7 +350,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
         // Momntum over the face.
         const auto Pij = 0.5*(Pi + Pj);
-        DvDti -= Pij*dA;
+        if ((nodeListi == 0 and i == 99) or
+            (nodeListi == 1 and i == 0)) cerr << " **> Pi, DvDti (" << Pi << " " << DvDti << ") compared with " << Pij*dA/mi << " : " << Pij << " " << dA << " " << mi << endl;
+        DvDti += Pij*dA/mi;
       }
 
       const auto numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
