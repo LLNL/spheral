@@ -32,6 +32,7 @@ using std::abs;
 
 // Declare the timers.
 extern Timer TIME_ConnectivityMap_patch;
+extern Timer TIME_ConnectivityMap_cutConnectivity;
 extern Timer TIME_ConnectivityMap_valid;
 extern Timer TIME_ConnectivityMap_computeConnectivity;
 extern Timer TIME_ConnectivityMap_computeOverlapConnectivity;
@@ -259,6 +260,41 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
 
   // That's it.
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Remove connectivity between neighbors.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ConnectivityMap<Dimension>::
+removeConnectivity(const FieldList<Dimension, vector<vector<int>>>& neighborsToCut) {
+  TIME_ConnectivityMap_cutConnectivity.start();
+
+  const auto numNodeLists = mNodeLists.size();
+  REQUIRE(neighborsToCut.numFields() == numNodeLists);
+
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto n = mNodeLists[nodeListi]->numNodes();
+    for (auto i = 0; i < n; ++i) {
+      const auto& allneighbors = neighborsToCut(nodeListi, i);
+      CHECK(allneighbors.size() == 0 or allneighbors.size() == numNodeLists);
+      for (auto nodeListj = 0; nodeListj < allneighbors.size(); ++nodeListj) {
+        for (const auto j: allneighbors[nodeListj]) {
+
+          // Remove neighbor (nodeListj, j) from the set of (nodeListi, i).
+          auto& neighborsi = mConnectivity[mOffsets[nodeListi] + i][nodeListj];
+          neighborsi.erase(std::remove(neighborsi.begin(), neighborsi.end(), j), neighborsi.end());
+          
+          // Remove neighbor (nodeListi, i) from the set of (nodeListj, j).
+          auto& neighborsj = mConnectivity[mOffsets[nodeListj] + j][nodeListi];
+          neighborsj.erase(std::remove(neighborsj.begin(), neighborsj.end(), i), neighborsj.end());
+        }
+      }
+    }
+  }
+
+  TIME_ConnectivityMap_cutConnectivity.stop();
 }
 
 //------------------------------------------------------------------------------

@@ -50,6 +50,11 @@ public:
   void patchConnectivity(const FieldList<Dimension, int>& flags,
                          const FieldList<Dimension, int>& old2new);
 
+  // Remove connectivity between neighbors.
+  // Note this method assumes neighbor info is symmetric, and removes the pair connectivity for each
+  // member of a pair (maintaining symmetry).
+  void removeConnectivity(const FieldList<Dimension, std::vector<std::vector<int>>>& neighborsToCut);
+
   // Are we computing neighbors for ghosts?
   bool buildGhostConnectivity() const;
 

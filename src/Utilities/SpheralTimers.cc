@@ -80,6 +80,7 @@ Timer TIME_PC3d_collapseDegenerates ("Remove degenerate edges/vertices", TimeSph
 // ConnectivityMap
 //------------------------------------------------------------------------------
 Timer TIME_ConnectivityMap_patch("ConnectivityMap::patchConnectivity", TimeSpheral);
+Timer TIME_ConnectivityMap_cutConnectivity("ConnectivityMap::cutConnectivity", TimeSpheral);
 Timer TIME_ConnectivityMap_valid("ConnectivityMap::valid", TimeSpheral);
 Timer TIME_ConnectivityMap_computeConnectivity("ConnectivityMap::computeConnectivity", TimeSpheral);
 Timer TIME_ConnectivityMap_computeOverlapConnectivity("ConnectivityMap::computeOverlapConnectivity", TIME_ConnectivityMap_computeConnectivity);
