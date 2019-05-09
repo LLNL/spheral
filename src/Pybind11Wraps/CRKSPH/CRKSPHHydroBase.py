@@ -38,7 +38,8 @@ class CRKSPHHydroBase(GenericHydro):
                correctionOrder = "const CRKOrder",
                volumeType = "const CRKVolumeType",
                epsTensile = "const double",
-               nTensile = "const double"):
+               nTensile = "const double",
+               limitMultimaterialTopology = "const bool"):
         "Constructor"
 
     #...........................................................................
@@ -135,6 +136,8 @@ mass density, velocity, and specific thermal energy."""
                                       doc="Flag controlling if we evolve total or specific energy.")
     XSPH = PYB11property("bool", "XSPH", "XSPH",
                          doc="Flag to determine if we're using the XSPH algorithm.")
+    limitMultimaterialTopology = PYB11property("bool", "limitMultimaterialTopology", "limitMultimaterialTopology",
+                                               doc="Flag to determine if we're using the cutting/reducing multimaterial topology.")
     smoothingScaleMethod = PYB11property("SmoothingScaleBase<%(Dimension)s>&", "smoothingScaleMethod", returnpolicy="reference_internal",
                                          doc="The object defining how we evolve smoothing scales.")
     filter = PYB11property("double", "filter", "filter",

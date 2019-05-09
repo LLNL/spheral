@@ -58,6 +58,7 @@ public:
                          const CRKVolumeType volumeType,
                          const double epsTensile,
                          const double nTensile,
+                         const bool limitMultimaterialTopology,
                          const bool damageRelieveRubble,
                          const bool negativePressureInDamage);
 

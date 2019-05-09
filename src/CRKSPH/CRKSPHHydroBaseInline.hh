@@ -126,6 +126,23 @@ CRKSPHHydroBase<Dimension>::XSPH(bool val) {
 }
 
 //------------------------------------------------------------------------------
+// Flag determining if we're using the limitMultimaterialTopology algorithm.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+CRKSPHHydroBase<Dimension>::limitMultimaterialTopology() const {
+  return mLimitMultimaterialTopology;
+}
+
+template<typename Dimension>
+inline
+void
+CRKSPHHydroBase<Dimension>::limitMultimaterialTopology(bool val) {
+  mLimitMultimaterialTopology = val;
+}
+
+//------------------------------------------------------------------------------
 // The object defining how smoothing scales are evolved.
 //------------------------------------------------------------------------------
 template<typename Dimension>

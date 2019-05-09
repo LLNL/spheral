@@ -58,7 +58,8 @@ public:
                   const CRKOrder correctionOrder,
                   const CRKVolumeType volumeType,
                   const double epsTensile,
-                  const double nTensile);
+                  const double nTensile,
+                  const bool limitMultimaterialTopology);
 
   // Destructor.
   virtual ~CRKSPHHydroBase();
@@ -158,6 +159,10 @@ public:
   bool XSPH() const;
   void XSPH(bool val);
 
+  // Flag to determine if we cut multimaterial topology.
+  bool limitMultimaterialTopology() const;
+  void limitMultimaterialTopology(bool val);
+
   // The object defining how we evolve smoothing scales.
   const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
 
@@ -248,7 +253,7 @@ protected:
   HEvolutionType mHEvolution;
   CRKOrder mCorrectionOrder;
   CRKVolumeType mVolumeType;
-  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mXSPH;
+  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mXSPH, mLimitMultimaterialTopology;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
   bool mDetectSurfaces;
