@@ -108,9 +108,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
       CHECK(fullConnectivity.size() == numNodeLists);
 
       Scalar thpt;
-      // for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
-      {
-        const auto nodeListj = nodeListi;
+      for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
         const auto& connectivity = fullConnectivity[nodeListj];
 
         // Iterate over the neighbors for in this NodeList.
