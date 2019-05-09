@@ -18,10 +18,6 @@
     <ClCompile Include="..\..\src\NodeGenerators\generateCylDistributionFromRZ.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\NodeGenerators\centroidalRelaxNodesImplInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeGenerators\centroidalRelaxNodesImplInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenterInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenterInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\NodeGenerators\fillFacetedVolume.hh">
@@ -30,9 +26,5 @@
     <None Include="..\..\src\NodeGenerators\generateCylDistributionFromRZ.hh">
       <Filter>Header Files</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\src\NodeGenerators\centroidalRelaxNodesImplInst.cc.py" />
-    <CustomBuild Include="..\..\src\NodeGenerators\chooseRandomNonoverlappingCenterInst.cc.py" />
   </ItemGroup>
 </Project>

@@ -53,13 +53,7 @@
     <CustomBuild Include="..\..\src\Kernel\PiGaussianKernelInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\src\Kernel\TableKernelAleInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
-    <None Include="..\..\src\Kernel\VolumeIntegrationFunctionsAleInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
+    <CustomBuild Include="..\..\src\Kernel\TableKernelAleInst.cc.py" />
+    <CustomBuild Include="..\..\src\Kernel\VolumeIntegrationFunctionsAleInst.cc.py" />
   </ItemGroup>
 </Project>

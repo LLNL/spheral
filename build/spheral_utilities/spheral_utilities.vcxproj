@@ -38,7 +38,7 @@
     <ProjectGuid>{241B879C-082A-4DA4-8464-6D2E3520E05B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>spheral</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
