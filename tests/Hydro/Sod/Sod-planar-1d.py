@@ -97,6 +97,7 @@ commandLine(nx1 = 400,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
             volumeType = CRKSumVolume,
+            limitMultimaterialTopology = True,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             correctVelocityGradient = True,
@@ -284,7 +285,8 @@ elif crksph:
                    evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
-                   HUpdate = HUpdate)
+                   HUpdate = HUpdate,
+                   limitMultimaterialTopology = limitMultimaterialTopology)
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
@@ -585,16 +587,10 @@ if graphics:
         splot = plotFieldList(hydro.surfacePoint,
                               winTitle = "surface point",
                               colorNodeLists = False)
-        voidplot = plotFieldList(hydro.voidPoint,
-                                 winTitle = "void point",
-                                 plotStyle = "points",
-                                 plotGhosts = True,
-                                 colorNodeLists = False)
         plots += [(volPlot, "Sod-planar-vol.png"),
                    (aplot, "Sod-planar-ACRK.png"),
                    (bplot, "Sod-planar-BCRK.png"),
-                   (splot, "Sod-planar-surfacePoint.png"),
-                   (voidplot, "Sod-planar-voidPoint.png")]
+                   (splot, "Sod-planar-surfacePoint.png")]
     
     viscPlot = plotFieldList(hydro.maxViscousPressure,
                              winTitle = "max(rho^2 Piij)",

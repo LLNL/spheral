@@ -120,6 +120,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   Vector gradWi, gradWj, gradW0i, gradW0j;
   Vector deltagrad;
 
+  // Prepare the node coupling.
+  std::shared_ptr<NodeCoupling> couplePtr = mLimitMultimaterialTopology ? std::shared_ptr<NodeCoupling>(new SurfaceNodeCoupling<Dimension>(surfacePoint)) :
+                                                                          std::shared_ptr<NodeCoupling>(new NodeCoupling());
+  const NodeCoupling& couple = *couplePtr;
+
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
   for (auto itr = dataBase.fluidNodeListBegin();
@@ -147,7 +152,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                gradCi, gradCj,                          \
                gWi, gWj, Wi, Wj, gW0i, gW0j, W0i, W0j,  \
                gradWi, gradWj, gradW0i, gradW0j,        \
-               deltagrad)
+               deltagrad,                               \
+               couple)
     for (auto iItr = 0; iItr < ni; ++iItr) {
       const auto i = connectivityMap.ithNode(nodeListi, iItr);
 
@@ -260,6 +266,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             // Symmetrized kernel weight and gradient.
             CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
             CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, mCorrectionMin, mCorrectionMax);
+            const auto fij = couple(nodeListi, i, nodeListj, j);
+            Wi *= fij;
+            Wj *= fij;
+            gWi *= fij;
+            gWj *= fij;
+            gradWi *= fij;
+            gradWj *= fij;
             deltagrad = gradWj - gradWi;
             const auto gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
 

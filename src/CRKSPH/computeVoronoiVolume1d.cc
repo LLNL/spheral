@@ -141,7 +141,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
           cellFaceFlags(nodeListi, i).push_back(std::make_tuple(0,           // cell face
                                                                 nodeListj1,  // other NodeList
                                                                 j1));        // other node index
-          cerr << "Surface condition 3: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
+          // cerr << "Surface condition 3: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
         }
       }
 
@@ -164,7 +164,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
           cellFaceFlags(nodeListi, i).push_back(std::make_tuple(1,           // cell face
                                                                 nodeListj2,  // other NodeList
                                                                 j2));        // other node index
-          cerr << "Surface condition 6: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
+          // cerr << "Surface condition 6: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
         }
       }
 
@@ -254,19 +254,19 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
 
   }
 
-  // Flag any points that overlap other NodeLists as multi-material.
-  if (returnSurface) {
-    for (auto nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {
-      const unsigned n = position[nodeListi]->numInternalElements();
-#pragma omp parallel for
-      for (auto i = 0U; i < n; ++i) {
-        const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-        for (auto nodeListj = 0U; nodeListj != numNodeLists; ++nodeListj) {
-          if (nodeListj != nodeListi and not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
-        }
-      }
-    }
-  }
+//   // Flag any points that overlap other NodeLists as multi-material.
+//   if (returnSurface) {
+//     for (auto nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {
+//       const unsigned n = position[nodeListi]->numInternalElements();
+// #pragma omp parallel for
+//       for (auto i = 0U; i < n; ++i) {
+//         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+//         for (auto nodeListj = 0U; nodeListj != numNodeLists; ++nodeListj) {
+//           if (nodeListj != nodeListi and not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
+//         }
+//       }
+//     }
+//   }
 }
 
 }

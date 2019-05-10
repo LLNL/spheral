@@ -312,8 +312,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // }
 
   // Compute the corrections.
-  const NodeCoupling couple;
-  computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), couple, mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
+  std::shared_ptr<NodeCoupling> couplePtr = mLimitMultimaterialTopology ? std::shared_ptr<NodeCoupling>(new SurfaceNodeCoupling<Dimension>(mSurfacePoint)) :
+                                                                          std::shared_ptr<NodeCoupling>(new NodeCoupling());
+  computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), *couplePtr, mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
   computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, H, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
 
   // This breaks domain independence, so we'll try being inconsistent on the first step.
@@ -654,6 +655,7 @@ initialize(const typename Dimension::Scalar time,
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
   FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
   FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
   FieldList<Dimension, Tensor> C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
@@ -672,9 +674,9 @@ initialize(const typename Dimension::Scalar time,
   FieldList<Dimension, FifthRankTensor> gradm4 = state.fields(HydroFieldNames::gradM4_CRKSPH, FifthRankTensor::zero);
 
   // Change CRKSPH weights here if need be!
-  const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
-  const NodeCoupling couple;
-  computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), couple, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
+  std::shared_ptr<NodeCoupling> couplePtr = mLimitMultimaterialTopology ? std::shared_ptr<NodeCoupling>(new SurfaceNodeCoupling<Dimension>(surfacePoint)) :
+                                                                          std::shared_ptr<NodeCoupling>(new NodeCoupling());
+  computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), *couplePtr, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
   computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder(), A, B, C, gradA, gradB, gradC);
 
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();

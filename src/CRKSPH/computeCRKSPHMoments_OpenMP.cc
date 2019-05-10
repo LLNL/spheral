@@ -121,16 +121,16 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
           const auto& Hj = H(nodeListj, j);
           const auto  Hdetj = Hj.Determinant();
 
-          // Find the effective weights of i->j and j->i.
-          // const Scalar wi = 2.0*weighti*weightj/(weighti + weightj);
-          const auto wi = 0.5*(weighti + weightj);
-          const auto wj = wi;
-          // const auto wi = weighti;
-          // const auto wj = weightj;
-
           // Find the pair weighting scaling.
           const auto fij = nodeCoupling(nodeListi, i, nodeListj, j);
           CHECK(fij >= 0.0 and fij <= 1.0);
+
+          // Find the effective weights of i->j and j->i.
+          // const Scalar wi = 2.0*weighti*weightj/(weighti + weightj);
+          const auto wi = 0.5*(weighti + weightj) * fij;
+          const auto wj = wi;
+          // const auto wi = weighti;
+          // const auto wj = weightj;
 
           // Kernel weighting and gradient.
           const auto rij = ri - rj;
@@ -162,33 +162,33 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
           // Zeroth moment. 
           const auto wwi = wi*Wi;
           const auto wwj = wj*Wj;
-          m0(nodeListi, i) += fij*wwj;
+          m0(nodeListi, i) += wwj;
           for (auto ii = 0; ii != Dimension::nDim; ++ii) {
-            gradm0(nodeListi, i)(ii) += fij*wj*gradWj(ii);
+            gradm0(nodeListi, i)(ii) += wj*gradWj(ii);
           }
 
           // First moment. 
           for (auto ii = 0; ii != Dimension::nDim; ++ii) {
-            m1(nodeListi, i)(ii) += fij*wwj * rij(ii);
+            m1(nodeListi, i)(ii) += wwj * rij(ii);
             for (auto jj = 0; jj != Dimension::nDim; ++jj) {
-              gradm1(nodeListi, i)(ii,jj) += fij*wj*rij(ii)*gradWj(jj);
+              gradm1(nodeListi, i)(ii,jj) += wj*rij(ii)*gradWj(jj);
             }
-            gradm1(nodeListi, i)(ii,ii) += fij*wj*Wj;
+            gradm1(nodeListi, i)(ii,ii) += wj*Wj;
           }
 
           // Second moment.
           for (auto ii = 0; ii != Dimension::nDim; ++ii) {
             for (auto jj = ii; jj != Dimension::nDim; ++jj) {   // 'cause m2 is a symmetric tensor.
               thpt = rij(ii)*rij(jj);
-              m2(nodeListi,i)(ii,jj) += fij*wwj*thpt;
+              m2(nodeListi,i)(ii,jj) += wwj*thpt;
             }
             for (auto jj = 0; jj != Dimension::nDim; ++jj) {
               thpt = rij(ii)*rij(jj);
               for (auto kk = 0; kk != Dimension::nDim; ++kk) {
-                gradm2(nodeListi, i)(ii,jj,kk) += fij*wj*thpt*gradWj(kk);
+                gradm2(nodeListi, i)(ii,jj,kk) += wj*thpt*gradWj(kk);
               }
-              gradm2(nodeListi, i)(ii, jj, jj) += fij*wwj*rij(ii);
-              gradm2(nodeListi, i)(jj, ii, jj) += fij*wwj*rij(ii);
+              gradm2(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
+              gradm2(nodeListi, i)(jj, ii, jj) += wwj*rij(ii);
             }
           }
 
@@ -201,13 +201,13 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
               for (auto jj = 0; jj != Dimension::nDim; ++jj) {
                 for (auto kk = 0; kk != Dimension::nDim; ++kk) {
                   thpt = rij(ii)*rij(jj)*rij(kk);
-                  m3(nodeListi,i)(ii,jj,kk) += fij*wwj*thpt;
+                  m3(nodeListi,i)(ii,jj,kk) += wwj*thpt;
                   for (auto mm = 0; mm != Dimension::nDim; ++mm) {
-                    gradm3(nodeListi,i)(ii,jj,kk,mm) += fij*wj*thpt*gradWj(mm);
+                    gradm3(nodeListi,i)(ii,jj,kk,mm) += wj*thpt*gradWj(mm);
                   }
-                  gradm3(nodeListi,i)(ii, jj, kk, kk) += fij*wwj*rij(ii)*rij(jj);
-                  gradm3(nodeListi,i)(ii, jj, kk, jj) += fij*wwj*rij(ii)*rij(kk);
-                  gradm3(nodeListi,i)(ii, jj, kk, ii) += fij*wwj*rij(jj)*rij(kk);
+                  gradm3(nodeListi,i)(ii, jj, kk, kk) += wwj*rij(ii)*rij(jj);
+                  gradm3(nodeListi,i)(ii, jj, kk, jj) += wwj*rij(ii)*rij(kk);
+                  gradm3(nodeListi,i)(ii, jj, kk, ii) += wwj*rij(jj)*rij(kk);
                 }
               }
             }
@@ -218,14 +218,14 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
                 for (auto kk = 0; kk != Dimension::nDim; ++kk) {
                   for (auto mm = 0; mm != Dimension::nDim; ++mm) {
                     thpt = rij(ii)*rij(jj)*rij(kk)*rij(mm);
-                    m4(nodeListi,i)(ii,jj,kk,mm) += fij*wwj*thpt;
+                    m4(nodeListi,i)(ii,jj,kk,mm) += wwj*thpt;
                     for (auto nn = 0; nn != Dimension::nDim; ++nn) {
-                      gradm4(nodeListi,i)(ii,jj,kk,mm,nn) += fij*wj*thpt*gradWj(nn);
+                      gradm4(nodeListi,i)(ii,jj,kk,mm,nn) += wj*thpt*gradWj(nn);
                     }
-                    gradm4(nodeListi,i)(ii, jj, kk, mm, mm) += fij*wwj*rij(ii)*rij(jj)*rij(kk);
-                    gradm4(nodeListi,i)(ii, jj, kk, mm, kk) += fij*wwj*rij(ii)*rij(jj)*rij(mm);
-                    gradm4(nodeListi,i)(ii, jj, kk, mm, jj) += fij*wwj*rij(ii)*rij(kk)*rij(mm);
-                    gradm4(nodeListi,i)(ii, jj, kk, mm, ii) += fij*wwj*rij(jj)*rij(kk)*rij(mm);
+                    gradm4(nodeListi,i)(ii, jj, kk, mm, mm) += wwj*rij(ii)*rij(jj)*rij(kk);
+                    gradm4(nodeListi,i)(ii, jj, kk, mm, kk) += wwj*rij(ii)*rij(jj)*rij(mm);
+                    gradm4(nodeListi,i)(ii, jj, kk, mm, jj) += wwj*rij(ii)*rij(kk)*rij(mm);
+                    gradm4(nodeListi,i)(ii, jj, kk, mm, ii) += wwj*rij(jj)*rij(kk)*rij(mm);
                   }
                 }
               }
