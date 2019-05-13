@@ -121,9 +121,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   Vector deltagrad;
 
   // Prepare the node coupling.
-  std::shared_ptr<NodeCoupling> couplePtr = mLimitMultimaterialTopology ? std::shared_ptr<NodeCoupling>(new SurfaceNodeCoupling<Dimension>(surfacePoint)) :
-                                                                          std::shared_ptr<NodeCoupling>(new NodeCoupling());
-  const NodeCoupling& couple = *couplePtr;
+  const NodeCoupling couple;
 
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
@@ -156,6 +154,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                couple)
     for (auto iItr = 0; iItr < ni; ++iItr) {
       const auto i = connectivityMap.ithNode(nodeListi, iItr);
+
+      const bool barf = ((nodeListi == 0 and i >= 98) or
+                         (nodeListi == 1 and i <= 1));
+      if (barf) printf("  --> (%d, %d) :", nodeListi, i);
 
       // Prepare to accumulate the time.
       const auto start = Timing::currentTime();
@@ -222,6 +224,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                jItr != connectivity.end();
                ++jItr) {
             const int j = *jItr;
+
+            if (barf) printf(" (%d, %d)", nodeListj, j);
 
             // Get the state for node j
             const auto& rj = position(nodeListj, j);
@@ -326,6 +330,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(not mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == numNeighborsi));
+
+      if (barf) printf("\n");
 
       // // For a surface point, add the RK thermal energy evolution.
       // // DepsDti -= Pi/rhoi*DvDxi.Trace();
