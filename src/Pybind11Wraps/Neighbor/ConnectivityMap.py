@@ -34,6 +34,11 @@ Note this method assumes neighbor info is symmetric, and removes the pair connec
 member of a pair (maintaining symmetry)."""
         return "void"
 
+    def removeMultimaterialConnectivity(self,
+                                        surfacePoint = "const FieldList<%(Dimension)s, int>&"):
+        "Remove non-surface multimaterial toplogical connections"
+        return "void"
+
     @PYB11returnpolicy("reference_internal")
     @PYB11const
     def connectivityForNode(self,
