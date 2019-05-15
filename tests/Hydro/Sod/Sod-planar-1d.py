@@ -32,7 +32,7 @@ commandLine(nx1 = 400,
             x1 = 0.0,
             x2 = 0.5,
 
-            hsmooth = 0.5,             # Optionally smooth initial discontinuity, expressed as particle spacings
+            hsmooth = 0.0,             # Optionally smooth initial discontinuity, expressed as particle spacings
             sumInitialDensity = False, # Optionally sum the initial density before setting the pressure and such
 
             nPerh = 1.35,
