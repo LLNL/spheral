@@ -319,21 +319,21 @@ packages = [hydro]
 # Tweak the artificial viscosity.
 #-------------------------------------------------------------------------------
 q = hydro.Q
-if Cl:
-    q.Clinear = Cl
-if Cq:
-    q.Cquadratic = Cq
-if linearInExpansion:
+if not Cl is None:
+    q.Cl = Cl
+if not Cq is None:
+    q.Cq = Cq
+if not linearInExpansion is None:
     q.linearInExpansion = linearInExpansion
-if quadraticInExpansion:
+if not quadraticInExpansion is None:
     q.quadraticInExpansion = quadraticInExpansion
-if Qlimiter:
+if not Qlimiter is None:
     q.limiter = Qlimiter
-if epsilon2:
+if not epsilon2 is None:
     q.epsilon2 = epsilon2
-if etaCritFrac:
+if not etaCritFrac is None:
     q.etaCritFrac = etaCritFrac
-if etaFoldFrac:
+if not etaFoldFrac is None:
     q.etaFoldFrac = etaFoldFrac
 output("q")
 output("q.Cl")
