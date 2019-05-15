@@ -539,31 +539,25 @@ Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
 csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 if graphics:
-    import Gnuplot
-    from SpheralGnuPlotUtilities import *
+    from SpheralMatplotlib import *
 
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="lines")
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
     plotAnswer(answer, control.time(),
-               rhoPlot, velPlot, epsPlot, PPlot, HPlot)
+               rhoPlot = rhoPlot,
+               velPlot = velPlot,
+               epsPlot = epsPlot,
+               PPlot = PPlot,
+               HPlot = HPlot)
     pE = plotEHistory(control.conserve)
 
     csPlot = plotFieldList(cs, winTitle="Sound speed")
-    csAnsData = Gnuplot.Data(xans, csAns, 
-                             with_ = "lines",
-                             title = "Analytic")
-    csPlot.replot(csAnsData)
+    csPlot.plot(xans, csAns, "k-",
+                label = "Analytic")
 
-    Aplot = generateNewGnuPlot()
-    Adata = Gnuplot.Data(xprof, A,
-                         with_ = "lines",
-                         title = "P/rho^\gamma",
-                         inline = True)
-    AansData = Gnuplot.Data(xprof, Aans,
-                         with_ = "lines",
-                         title = "Solution",
-                         inline = True)
-    Aplot.replot(Adata)
-    Aplot.replot(AansData)
+    APlot = newFigure()
+    APlot.plot(xprof, A, "ro", label="Simulation")
+    APlot.plot(xans, Aans, "k-", label="Analytic")
+    plt.title("A entropy")
 
     plots = [(rhoPlot, "Sod-planar-rho.png"),
              (velPlot, "Sod-planar-vel.png"),
@@ -571,7 +565,7 @@ if graphics:
              (PPlot, "Sod-planar-P.png"),
              (HPlot, "Sod-planar-h.png"),
              (csPlot, "Sod-planar-cs.png"),
-             (Aplot, "Sod-planar-entropy.png")]
+             (APlot, "Sod-planar-entropy.png")]
     
     if crksph:
         volPlot = plotFieldList(hydro.volume, 
@@ -593,7 +587,7 @@ if graphics:
                    (splot, "Sod-planar-surfacePoint.png")]
     
     viscPlot = plotFieldList(hydro.maxViscousPressure,
-                             winTitle = "max(rho^2 Piij)",
+                             winTitle = "max($\\rho^2 \pi_{ij}$)",
                              colorNodeLists = False)
     plots.append((viscPlot, "Sod-planar-viscosity.png"))
     
@@ -612,7 +606,7 @@ if graphics:
 
     # Make hardcopies of the plots.
     for p, filename in plots:
-        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
+        savefig(p, os.path.join(dataDir, filename))
 
 print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],
