@@ -256,14 +256,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             // const auto wi = 2.0*weighti*weightj/(weighti + weightj);
             const auto wij = 0.5*(weighti + weightj);
 
-            // Are both (i,j) surface points?
-            // Note we are supposed to have trimmed the topology before this point, so either j
-            // is an internal point of nodeListi or both (i,j) are surface points.
-            const bool surfTestij = ((surfi && (1 << (nodeListj + 1)) > 0) and 
-                                     (surfj && (1 << (nodeListi + 1)) > 0));
-            CHECK2((nodeListj == nodeListi) or surfTestij or
-                   (surfi && (1 << (nodeListj + 1)) > 0) or
-                   (surfj && (1 << (nodeListi + 1)) > 0), "(" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") : " << surfi << " " << surfj << " " << surfTestij);
+            // // Are both (i,j) surface points?
+            // // Note we are supposed to have trimmed the topology before this point, so either j
+            // // is an internal point of nodeListi or both (i,j) are surface points.
+            // const bool surfTestij = ((surfi && (1 << (nodeListj + 1)) > 0) and 
+            //                          (surfj && (1 << (nodeListi + 1)) > 0));
+            // CHECK2((nodeListj == nodeListi) or surfTestij or
+            //        (surfi && (1 << (nodeListj + 1)) > 0) or
+            //        (surfj && (1 << (nodeListi + 1)) > 0), "(" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") : " << surfi << " " << surfj << " " << surfTestij);
 
             // Node displacement.
             const auto rij = ri - rj;
@@ -286,7 +286,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             gradWi *= fij;
             gradWj *= fij;
             gradWij = 0.5*(gradWi + gradWj);
-            deltagrad = surfTestij ? -2.0*gradWi : gradWj - gradWi;
+            deltagrad = gradWj - gradWi;
             const auto gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
 
             // Zero'th and second moment of the node distribution -- used for the
@@ -320,23 +320,27 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             // The force between the points depends on the surface test -- for surface points it
             // switches to essentially straight RK contribution.
             // Momentum
-            forceij = 0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij);                    // Type III CRK interpoint force (internal)
+            forceij = (surfi == 0 ?
+                       0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force
+                       mi*wij*Pj*gradWj + 0.5*wij*wij*Qaccij);                         // Straight RK gradP, CRK Q acceleration
             DvDti -= forceij/mi;
 
-            if (barf) {
-              printf(" (%d, %d): ", nodeListj, j);
-              cout << "  " << DvDti << " " << -0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij)/mi;
-              if (surfTestij) {
-                cout << "  <--- surface\n";
-              } else {
-                cout << "\n";
-              }
-            }
+            // if (barf) {
+            //   printf(" (%d, %d): ", nodeListj, j);
+            //   cout << "  " << DvDti << " " << -0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij)/mi;
+            //   if (surfTestij) {
+            //     cout << "  <--- surface\n";
+            //   } else {
+            //     cout << "\n";
+            //   }
+            // }
 
             if (mCompatibleEnergyEvolution) pairAccelerationsi.push_back(-forceij/mi);
 
             // Energy
-            DepsDti += 0.5*wij*wij*(Pj*vij.dot(deltagrad) + workQi)/mi;              // Type III CRK interpoint force (internal)
+            DepsDti += (surfi == 0 ?
+                        0.5*wij*wij*(Pj*vij.dot(deltagrad) + workQi)/mi :              // Type III CRK interpoint force
+                        wij*Pj/rhoj*vij.dot(gradWj) + 0.5*wij*wij*workQi/mi);          // Straight RK PdV work, CRK Q work
 
             // Estimate of delta v (for XSPH).
             if (mXSPH and (nodeListi == nodeListj)) XSPHDeltaVi -= wij*Wj*vij;
@@ -395,17 +399,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         // The force between the points depends on the surface test -- for surface points it
         // switches to essentially straight RK contribution.
         // Momentum
-        forceij = 0.5*wij*wij*((Pi + Pj)*deltagrad);                    // Type III CRK interpoint force (internal)
+        forceij = mi*wij*Pj*gradWj;                         // Straight RK gradP, CRK Q acceleration
         DvDti -= forceij/mi;
+
+        // Energy
+        DepsDti += wij*Pj/rhoj*vij.dot(gradWj);             // Straight RK PdV work, CRK Q work
 
         if (barf) {
           printf(" (%d, %d): ", nodeListj, j);
           cout << "  " << DvDti << " " << -0.5*wij*wij*((Pi + Pj)*deltagrad)/mi;
           cout << "  <--- surface\n";
         }
-
-        // Energy
-        DepsDti += 0.5*wij*wij*(Pj*vij.dot(deltagrad))/mi;              // Type III CRK interpoint force (internal)
       }
 
       const auto numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
