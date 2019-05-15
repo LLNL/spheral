@@ -33,7 +33,6 @@ using std::abs;
 // Declare the timers.
 extern Timer TIME_ConnectivityMap_patch;
 extern Timer TIME_ConnectivityMap_cutConnectivity;
-extern Timer TIME_ConnectivityMap_removeMultimaterialConnectivity;
 extern Timer TIME_ConnectivityMap_valid;
 extern Timer TIME_ConnectivityMap_computeConnectivity;
 extern Timer TIME_ConnectivityMap_computeOverlapConnectivity;
@@ -306,66 +305,6 @@ removeConnectivity(const FieldList<Dimension, vector<vector<int>>>& neighborsToC
   }
 
   TIME_ConnectivityMap_cutConnectivity.stop();
-}
-
-//------------------------------------------------------------------------------
-// Remove connectivity between neighbors.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-ConnectivityMap<Dimension>::
-removeMultimaterialConnectivity(const FieldList<Dimension, int>& surfacePoint) {
-  TIME_ConnectivityMap_removeMultimaterialConnectivity.start();
-
-  // Declare some useful stuff and preconditions.
-  const auto  numNodeLists = surfacePoint.size();
-  REQUIRE(mNodeLists.size() == numNodeLists);
-
-  // Record the points we want to remove from the neighbor set.
-  FieldList<Dimension, vector<vector<int>>> neighborsToCut(FieldStorageType::CopyFields);
-  for (auto nodeList: mNodeLists) neighborsToCut.appendNewField("cut neighbors", *nodeList, vector<vector<int>>(numNodeLists));
-
-  // Here we go.
-  for (auto iNodeList = 0; iNodeList < numNodeLists - 1; ++iNodeList) {
-    const auto n = mNodeLists[iNodeList]->numInternalNodes();
-    for (auto i = 0; i < n; ++i) {
-      const auto& allneighbors = this->connectivityForNode(iNodeList, i);
-
-      // printf(" --> (%d, %d) :", iNodeList, i);
-
-      // Assuming symmetry, we only have to visit each pair once, so we can do the whole upper triangular
-      // walk here.
-      for (auto jNodeList = iNodeList + 1; jNodeList < numNodeLists; ++jNodeList) {
-
-        // If point i is a boundary for NodeList j, then it always couples to j' points.
-        const bool ijboundary = (surfacePoint(iNodeList, i) && (1 << (jNodeList + 1)) > 0);
-        // printf(" <%d %d> ", surfacePoint(iNodeList, i), ijboundary);
-        if (not ijboundary) {
-
-          // Since i is not a boundary for jNodeList, we need to check for any neighbors of i in
-          // jNodeList that are not boundaries to iNodeList.
-          const auto& neighbors = allneighbors[jNodeList];
-          for (const auto j: neighbors) {
-            const bool jiboundary = (surfacePoint(jNodeList, j) && (1 << (iNodeList + 1)) > 0);
-            // printf(" [%d, %d, %d, %d]", jNodeList, j, surfacePoint(jNodeList, j), jiboundary);
-            if (not jiboundary) {
-
-              // Disconnect this pair.
-              neighborsToCut(iNodeList, i)[jNodeList].push_back(j);
-              neighborsToCut(jNodeList, j)[iNodeList].push_back(i);
-              // printf(" *** Clipping (%d, %d) <--> (%d, %d)\n", iNodeList, i, jNodeList, j);
-            }
-          }
-        }
-      }
-      // printf("\n");
-    }
-  }
-
-  // Apply our toplogical cuts to the ConnectivityMap.
-  this->removeConnectivity(neighborsToCut);
-
-  TIME_ConnectivityMap_removeMultimaterialConnectivity.stop();
 }
 
 //------------------------------------------------------------------------------

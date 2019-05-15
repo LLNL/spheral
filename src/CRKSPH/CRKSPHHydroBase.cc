@@ -9,7 +9,7 @@
 #include "computeHullVolumes.hh"
 #include "computeCRKSPHSumVolume.hh"
 #include "computeHVolumes.hh"
-#include "flagSurfaceNeighbors.hh"
+#include "editMultimaterialSurfaceTopology.hh"
 #include "SurfaceNodeCoupling.hh"
 #include "SPH/computeSPHSumMassDensity.hh"
 #include "SPH/correctSPHSumMassDensity.hh"
@@ -274,7 +274,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                          mSurfacePoint, mVolume, mDeltaCentroid, mEtaVoidPoints,    // return values
                          mCells,                                                    // return cells
                          mCellFaceFlags);                                           // node cell multimaterial faces
-    if (mLimitMultimaterialTopology) const_cast<ConnectivityMap<Dimension>*>(&connectivityMap)->removeMultimaterialConnectivity(mSurfacePoint);
+    if (mLimitMultimaterialTopology) editMultimaterialSurfaceTopology(mSurfacePoint,
+                                                                      const_cast<ConnectivityMap<Dimension>&>(connectivityMap));
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, mVolume);
   } else if (mVolumeType == CRKVolumeType::HVolume) {
@@ -598,7 +599,8 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                          surfacePoint, vol, mDeltaCentroid, mEtaVoidPoints,          // return values
                          cells,                                                      // return cells
                          cellFaceFlags);                                             // node cell multimaterial faces
-    if (mLimitMultimaterialTopology) const_cast<ConnectivityMap<Dimension>*>(&connectivityMap)->removeMultimaterialConnectivity(surfacePoint);
+    if (mLimitMultimaterialTopology) editMultimaterialSurfaceTopology(surfacePoint,
+                                                                      const_cast<ConnectivityMap<Dimension>&>(connectivityMap));
 
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);

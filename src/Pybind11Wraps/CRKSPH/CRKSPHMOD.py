@@ -37,6 +37,7 @@ PYB11includes += ['"CRKSPH/CRKSPHUtilities.hh"',
                   '"CRKSPH/computeOccupancyVolume.hh"',
                   '"CRKSPH/gradientCRKSPH.hh"',
                   '"CRKSPH/interpolateCRKSPH.hh"',
+                  '"CRKSPH/editMultimaterialSurfaceTopology.hh"',
                   '"SPH/NodeCoupling.hh"',
                   '"FileIO/FileIO.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"',
@@ -293,6 +294,16 @@ def computeNeighborHull(fullConnectivity = "const std::vector<std::vector<int> >
     "Compute the hull for a given points neighbor set."
     return "typename %(Dimension)s::FacetedVolume"
 
+@PYB11template("Dimension")
+def editMultimaterialSurfaceTopology(surfacePoint = "FieldList<%(Dimension)s, int>&",
+                                     connectivityMap = "ConnectivityMap<%(Dimension)s>&"):
+    """Look for any points that touch a surface (multi-material or void).
+For such points:
+  - Remove any non-surface multi-material overlap.
+  - If not a surface point, flag this point as touching a surface point with
+    surfacePoint=-1."""
+    return "void"
+
 #-------------------------------------------------------------------------------
 # Instantiate our types
 #-------------------------------------------------------------------------------
@@ -340,6 +351,7 @@ computeCRKSPHCorrections%(ndim)id = PYB11TemplateFunction(computeCRKSPHCorrectio
 computeHullVolumes%(ndim)id = PYB11TemplateFunction(computeHullVolumes, template_parameters="%(Dimension)s")
 computeHVolumes%(ndim)id = PYB11TemplateFunction(computeHVolumes, template_parameters="%(Dimension)s")
 computeNeighborHull%(ndim)id = PYB11TemplateFunction(computeNeighborHull, template_parameters="%(Dimension)s")
+editMultimaterialSurfaceTopology%(ndim)id = PYB11TemplateFunction(editMultimaterialSurfaceTopology, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 

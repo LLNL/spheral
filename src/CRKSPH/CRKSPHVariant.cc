@@ -10,7 +10,7 @@
 #include "computeHullVolumes.hh"
 #include "computeCRKSPHSumVolume.hh"
 #include "computeHVolumes.hh"
-#include "flagSurfaceNeighbors.hh"
+#include "editMultimaterialSurfaceTopology.hh"
 #include "SurfaceNodeCoupling.hh"
 #include "SPH/computeSPHSumMassDensity.hh"
 #include "SPH/correctSPHSumMassDensity.hh"

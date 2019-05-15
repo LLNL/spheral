@@ -55,9 +55,6 @@ public:
   // member of a pair (maintaining symmetry).
   void removeConnectivity(const FieldList<Dimension, std::vector<std::vector<int>>>& neighborsToCut);
 
-  // Remove non-surface multimaterial toplogical connections
-  void removeMultimaterialConnectivity(const FieldList<Dimension, int>& surfacePoint);
-
   // Are we computing neighbors for ghosts?
   bool buildGhostConnectivity() const;
 
