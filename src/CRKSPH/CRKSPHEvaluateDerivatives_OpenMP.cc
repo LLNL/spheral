@@ -302,9 +302,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                       ri, etai, vi, rhoi, ci, Hi,
                                       rj, etaj, vj, rhoj, cj, Hj);
             const auto Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);
-            // const auto workQij = 0.5*(vij.dot(Qaccij));
-            const auto workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);                // CRK
-            // const auto workQVi =  vij.dot((rhoj*rhoj*QPiij.second).dot(gradWj));               //RK V and RK I Work
+            const auto workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);
             const auto Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
             maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                            // We need tighter timestep controls on the Q with CRK
             effViscousPressurei += wij * Qi * Wj;
@@ -322,7 +320,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             // Momentum
             forceij = (surfi == 0 ?
                        0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force
-                       mi*wij*Pj*gradWj + 0.5*wij*wij*Qaccij);                         // Straight RK gradP, CRK Q acceleration
+                       mi*wij*(Pj - Pi)/rhoj*gradWj + 0.5*wij*wij*Qaccij);             // Straight RK gradP, CRK Q acceleration
             DvDti -= forceij/mi;
 
             // if (barf) {
@@ -345,70 +343,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             // Estimate of delta v (for XSPH).
             if (mXSPH and (nodeListi == nodeListj)) XSPHDeltaVi -= wij*Wj*vij;
           }
-        }
-      }
-
-      // If this is a surface point there are self-contributions.
-      if (surfi != 0) {
-
-        const auto nodeListj = nodeListi;
-        const auto j = i;
-
-        // Get the state for node j
-        const auto& rj = position(nodeListj, j);
-        const auto  mj = mass(nodeListj, j);
-        const auto& vj = velocity(nodeListj, j);
-        const auto  rhoj = massDensity(nodeListj, j);
-        const auto  epsj = specificThermalEnergy(nodeListj, j);
-        const auto  Pj = pressure(nodeListj, j);
-        const auto& Hj = H(nodeListj, j);
-        const auto  cj = soundSpeed(nodeListj, j);
-        const auto  surfj = surfacePoint(nodeListj, j);
-        Aj = A(nodeListj, j);
-        gradAj = gradA(nodeListj, j);
-        if (order != CRKOrder::ZerothOrder) {
-          Bj = B(nodeListj, j);
-          gradBj = gradB(nodeListj, j);
-        }
-        if (order == CRKOrder::QuadraticOrder) {
-          Cj = C(nodeListj, j);
-          gradCj = gradC(nodeListj, j);
-        }
-        const auto Hdetj = Hj.Determinant();
-        const auto weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
-
-        // Node displacement.
-        const auto rij = Vector::zero;
-        const auto etai = Hi*rij;
-        const auto etaj = Hi*rij;
-        const auto etaMagi = etai.magnitude();
-        const auto etaMagj = etaj.magnitude();
-        CHECK(etaMagi >= 0.0);
-        CHECK(etaMagj >= 0.0);
-        const auto vij = Vector::zero;
-        const auto wij = weighti;
-
-        const bool barf = false;
-
-        // Symmetrized kernel weight and gradient.
-        CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
-        CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, mCorrectionMin, mCorrectionMax);
-        gradWij = 0.5*(gradWi + gradWj);
-        deltagrad = 2.0*gradWi;
-
-        // The force between the points depends on the surface test -- for surface points it
-        // switches to essentially straight RK contribution.
-        // Momentum
-        forceij = mi*wij*Pj*gradWj;                         // Straight RK gradP, CRK Q acceleration
-        DvDti -= forceij/mi;
-
-        // Energy
-        DepsDti += wij*Pj/rhoj*vij.dot(gradWj);             // Straight RK PdV work, CRK Q work
-
-        if (barf) {
-          printf(" (%d, %d): ", nodeListj, j);
-          cout << "  " << DvDti << " " << -0.5*wij*wij*((Pi + Pj)*deltagrad)/mi;
-          cout << "  <--- surface\n";
         }
       }
 
