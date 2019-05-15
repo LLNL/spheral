@@ -64,7 +64,8 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
 
             }
           }
-        }
+        }          const auto& neighbors = allneighbors[jNodeList];
+
       }
       // printf("\n");
     }
@@ -72,6 +73,30 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
 
   // Apply our toplogical cuts to the ConnectivityMap.
   connectivityMap.removeConnectivity(neighborsToCut);
+
+  // Now check for any non-surface nodes that overlap surface in the newly reduced topology.
+  // Flag those specially with -1 in surfacePoint.
+  for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
+    const auto n = nodeLists[iNodeList]->numInternalNodes();
+    for (auto i = 0; i < n; ++i) {
+      const auto& allneighbors = connectivityMap.connectivityForNode(iNodeList, i);
+      auto jNodeList = 0;
+      while (jNodeList < numNodeLists and surfacePoint(iNodeList, i) == 0) {
+        const auto& neighbors = allneighbors[jNodeList];
+        if (jNodeList != iNodeList and neighbors.size() > 0) {
+          surfacePoint(iNodeList, i) = -1;
+          continue;
+        }
+        for (auto j: neighbors) {
+          if (surfacePoint(jNodeList, j) > 0) {
+            surfacePoint(iNodeList, i) = -1;
+            continue;
+          }
+        }
+        ++jNodeList;
+      }
+    }
+  }
 
   TIME_CRKSPH_editMultimaterialSurfaceTopology.stop();
 }

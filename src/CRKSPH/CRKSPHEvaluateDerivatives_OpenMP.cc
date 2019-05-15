@@ -261,9 +261,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             // is an internal point of nodeListi or both (i,j) are surface points.
             const bool surfTestij = ((surfi && (1 << (nodeListj + 1)) > 0) and 
                                      (surfj && (1 << (nodeListi + 1)) > 0));
-            // CHECK2((nodeListj == nodeListi) or surfTestij or
-            //        (surfi && (1 << (nodeListj + 1)) > 0) or
-            //        (surfj && (1 << (nodeListi + 1)) > 0), "(" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") : " << surfi << " " << surfj << " " << surfTestij);
+            CHECK2((nodeListj == nodeListi) or surfTestij or
+                   (surfi && (1 << (nodeListj + 1)) > 0) or
+                   (surfj && (1 << (nodeListi + 1)) > 0), "(" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") : " << surfi << " " << surfj << " " << surfTestij);
 
             // Node displacement.
             const auto rij = ri - rj;
