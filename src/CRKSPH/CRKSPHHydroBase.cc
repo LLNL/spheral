@@ -601,7 +601,6 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                          cellFaceFlags);                                             // node cell multimaterial faces
     if (mLimitMultimaterialTopology) editMultimaterialSurfaceTopology(surfacePoint,
                                                                       const_cast<ConnectivityMap<Dimension>&>(connectivityMap));
-
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
   } else if (mVolumeType == CRKVolumeType::HVolume) {
