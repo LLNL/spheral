@@ -226,16 +226,28 @@ if numNodeLists == 1:
                                 nNodePerh = nPerh)
     distributeNodes1d((nodes1, gen))
 else:
-    gen1 = GenerateNodeProfile1d(nx = nx1,
-                                 rho = rho_initial,
-                                 xmin = x0,
-                                 xmax = x1,
-                                 nNodePerh = nPerh)
-    gen2 = GenerateNodeProfile1d(nx = nx2,
-                                 rho = rho_initial,
-                                 xmin = x1,
-                                 xmax = x2,
-                                 nNodePerh = nPerh)
+    if hsmooth > 0:
+        gen1 = GenerateNodeProfile1d(nx = nx1,
+                                     rho = rho_initial,
+                                     xmin = x0,
+                                     xmax = x1,
+                                     nNodePerh = nPerh)
+        gen2 = GenerateNodeProfile1d(nx = nx2,
+                                     rho = rho_initial,
+                                     xmin = x1,
+                                     xmax = x2,
+                                     nNodePerh = nPerh)
+    else:
+        gen1 = GenerateNodeProfile1d(nx = nx1,
+                                     rho = rho1,
+                                     xmin = x0,
+                                     xmax = x1,
+                                     nNodePerh = nPerh)
+        gen2 = GenerateNodeProfile1d(nx = nx2,
+                                     rho = rho2,
+                                     xmin = x1,
+                                     xmax = x2,
+                                     nNodePerh = nPerh)
     distributeNodes1d((nodes1, gen1),
                       (nodes2, gen2))
 output("nodes1.numNodes")
