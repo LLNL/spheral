@@ -333,7 +333,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             //   }
             // }
 
-            if (mCompatibleEnergyEvolution) pairAccelerationsi.push_back(-forceij/mi);
+            if (mCompatibleEnergyEvolution) {
+              pairAccelerationsi.push_back(-forceij/mi);
+              pairAccelerationsi.push_back(surfj == 0 ?
+                                           0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij)/mj :     // Type III CRK interpoint force
+                                           -(wij*(Pj - Pi)/rhoi*gradWi + 0.5*wij*wij*Qaccij/mj)); // Straight RK gradP, CRK Q acceleration
+            }
 
             // Energy
             DepsDti += (surfi == 0 ?
@@ -349,7 +354,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
       CHECK(not mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
-            (pairAccelerationsi.size() == numNeighborsi));
+            (pairAccelerationsi.size() == 2*numNeighborsi));
 
       if (barf) printf("\n");
 
