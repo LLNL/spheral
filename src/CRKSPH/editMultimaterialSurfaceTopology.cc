@@ -10,6 +10,7 @@
 #include "Utilities/Timer.hh"
 
 #include <vector>
+#include <algorithm>
 
 extern Timer TIME_CRKSPH_editMultimaterialSurfaceTopology;
 
@@ -81,7 +82,8 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
     for (auto i = 0; i < n; ++i) {
       const auto& allneighbors = connectivityMap.connectivityForNode(iNodeList, i);
       auto jNodeList = 0;
-      while (jNodeList < numNodeLists and surfacePoint(iNodeList, i) == 0) {
+      while (jNodeList < numNodeLists and
+             (surfacePoint(iNodeList, i) == 0 or surfacePoint(iNodeList, i) == -2)) {
         const auto& neighbors = allneighbors[jNodeList];
         if (jNodeList != iNodeList and neighbors.size() > 0) {
           surfacePoint(iNodeList, i) = -1;
@@ -93,9 +95,27 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
             continue;
           }
         }
+
+        // If this point was flagged as boundary adjacent, flag all of its neighbors with
+        // -2 to indicate they're one step removed.
+        if (surfacePoint(iNodeList, i) == -1) {
+          for (auto jjNodeList = 0; jjNodeList < numNodeLists; ++jjNodeList) {
+            const auto& neighbors = allneighbors[jjNodeList];
+            for (auto j: neighbors) {
+              if (surfacePoint(jjNodeList, j) == 0) surfacePoint(jjNodeList, j) = -2;
+            }
+          }
+        }
+
         ++jNodeList;
       }
     }
+  }
+
+  // Flip any -2 points to -1.
+  for (auto fieldPtr: surfacePoint) {
+    const auto n = fieldPtr->numInternalElements();
+    std::replace(fieldPtr->begin(), fieldPtr->begin() + n, -2, -1);
   }
 
   TIME_CRKSPH_editMultimaterialSurfaceTopology.stop();
