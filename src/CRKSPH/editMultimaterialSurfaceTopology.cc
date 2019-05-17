@@ -65,8 +65,7 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
 
             }
           }
-        }          const auto& neighbors = allneighbors[jNodeList];
-
+        }
       }
       // printf("\n");
     }
