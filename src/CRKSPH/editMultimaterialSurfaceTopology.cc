@@ -95,27 +95,51 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
           }
         }
 
-        // If this point was flagged as boundary adjacent, flag all of its neighbors with
-        // -2 to indicate they're one step removed.
-        if (surfacePoint(iNodeList, i) == -1) {
-          for (auto jjNodeList = 0; jjNodeList < numNodeLists; ++jjNodeList) {
-            const auto& neighbors = allneighbors[jjNodeList];
-            for (auto j: neighbors) {
-              if (surfacePoint(jjNodeList, j) == 0) surfacePoint(jjNodeList, j) = -2;
-            }
-          }
-        }
+        // // If this point was flagged as boundary adjacent, flag all of its neighbors with
+        // // -2 to indicate they're one step removed.
+        // if (surfacePoint(iNodeList, i) == -1) {
+        //   for (auto jjNodeList = 0; jjNodeList < numNodeLists; ++jjNodeList) {
+        //     const auto& neighbors = allneighbors[jjNodeList];
+        //     for (auto j: neighbors) {
+        //       if (surfacePoint(jjNodeList, j) == 0) surfacePoint(jjNodeList, j) = -2;
+        //     }
+        //   }
+        // }
 
         ++jNodeList;
       }
     }
   }
 
-  // Flip any -2 points to -1.
-  for (auto fieldPtr: surfacePoint) {
-    const auto n = fieldPtr->numInternalElements();
-    std::replace(fieldPtr->begin(), fieldPtr->begin() + n, -2, -1);
-  }
+  // // Go out one more rind of points two-steps removed from the boundary.
+  // for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
+  //   const auto n = nodeLists[iNodeList]->numInternalNodes();
+  //   for (auto i = 0; i < n; ++i) {
+  //     if (surfacePoint(iNodeList, i) == -2) {
+  //       const auto& allneighbors = connectivityMap.connectivityForNode(iNodeList, i);
+  //       const auto& neighbors = allneighbors[iNodeList];
+  // 	for (auto j: neighbors) {
+  // 	  if (surfacePoint(iNodeList, j) == 0) surfacePoint(iNodeList, j) = -3;
+  // 	}
+  //     }
+  //   }
+  // }
+
+  // // Flip any -2 points to -1.
+  // for (auto fieldPtr: surfacePoint) {
+  //   const auto n = fieldPtr->numInternalElements();
+  //   std::replace(fieldPtr->begin(), fieldPtr->begin() + n, -2, -1);
+  // }
+
+  // // BLAGO!
+  // for (auto fieldPtr: surfacePoint) {
+  //   const auto n = fieldPtr->numInternalElements();
+  //   const auto& pos = fieldPtr->nodeListPtr()->positions();
+  //   for (auto i = 0; i < n; ++i) {
+  //     if ((*fieldPtr)(i) == 0 and std::abs(pos(i).x()) < 0.25) (*fieldPtr)(i) = -3;
+  //   }
+  // }
+  // // BLAGO!
 
   TIME_CRKSPH_editMultimaterialSurfaceTopology.stop();
 }
