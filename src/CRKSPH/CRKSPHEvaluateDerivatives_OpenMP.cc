@@ -337,7 +337,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               pairAccelerationsi.push_back(-forceij/mi);
               pairAccelerationsi.push_back(surfj == 0 ?
                                            0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij)/mj :     // Type III CRK interpoint force
-                                           -(wij*(Pj - Pi)/rhoi*gradWi + 0.5*wij*wij*Qaccij/mj)); // Straight RK gradP, CRK Q acceleration
+                                           wij*(Pj - Pi)/rhoi*gradWi + 0.5*wij*wij*Qaccij/mj); // Straight RK gradP, CRK Q acceleration
             }
 
             // Energy
