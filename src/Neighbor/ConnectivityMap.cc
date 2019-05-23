@@ -798,6 +798,16 @@ computeConnectivity() {
         }
       }
     }
+
+    // Flag ghost nodes as done if at least one neighbor was found
+    for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
+      for (auto i = mNodeLists[iNodeList]->numInternalNodes(); i < mNodeLists[iNodeList]->numNodes(); ++i) {
+        const auto& neighborsi = mConnectivity[mOffsets[iNodeList] + i];
+        if (neighborsi.size() > 0) {
+          flagNodeDone(iNodeList, i) = 1;
+        }
+      }
+    }
   }
 
   // In the domain decompostion independent case, we need to sort the neighbors for ghost
@@ -826,6 +836,7 @@ computeConnectivity() {
 
   // Do we need overlap connectivity?
   if (mBuildOverlapConnectivity) {
+    VERIFY2(mBuildGhostConnectivity, "ghost connectivity is required for overlap connectivity");
     TIME_ConnectivityMap_computeOverlapConnectivity.start();
 
     // To start out, *all* neighbors of a node (gather and scatter) are overlap neighbors.  Therefore we
