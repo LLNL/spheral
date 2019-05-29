@@ -727,10 +727,10 @@ initialize(const bool     RZ,
                                                           XSPH,                                              // XSPH
                                                           vGradCorrection,                                   // correctVelocityGradient
                                                           sumMassDensity,                                    // sumMassDensityOverAllNodeLists
-                                                          MassDensityType::RigorousSumDensity, // densityUpdate
-                                                          HEvolutionType::IdealH,              // HUpdate
-                                                          CRKOrder::LinearOrder,                // CRK order
-                                                          CRKVolumeType::CRKSumVolume,          // CRK volume type
+                                                          MassDensityType::RigorousSumDensity,               // densityUpdate
+                                                          HEvolutionType::IdealH,                            // HUpdate
+                                                          CRKOrder::LinearOrder,                             // CRK order
+                                                          CRKVolumeType::CRKMassOverDensity,                 // CRK volume type
                                                           0.0,                                               // epsTensile
                                                           4.0,                                               // nTensile
                                                           false,                                             // damageRelieve
@@ -743,10 +743,6 @@ initialize(const bool     RZ,
   me.mIntegratorPtr = std::shared_ptr<CheapSynchronousRK2<Dimension>>(new CheapSynchronousRK2<Dimension>(*me.mDataBasePtr));
   me.mIntegratorPtr->appendPhysicsPackage(*me.mHydroPtr);
 
-  // Remember if we're using CRK
-  me.mCRK = CRK;
-  me.mCRKInitialized = false;
-
   // Remember if we're feeding damage in
   me.mDamage = damage;
 
@@ -754,9 +750,7 @@ initialize(const bool     RZ,
   me.mDistributedBoundary = distributedBoundary;
 
   // Do the one-time initialization work for our packages.
-  if (!me.mCRK) {
-    me.mHydroPtr->initializeProblemStartup(*me.mDataBasePtr);
-  }
+  me.mHydroPtr->initializeProblemStartup(*me.mDataBasePtr);
 
   // Add the axis reflecting boundary in RZ.
   HydroConstructor<Dimension>::addBoundaries(RZ, me.mHostCodeBoundaries);
@@ -830,13 +824,6 @@ initializeStep(const unsigned* nintpermat,
                                    plasticStrain,
                                    scalarDamage,
                                    particleType);
-
-  if (me.mCRK && me.mCRKInitialized == false) {
-    me.mHydroPtr->initializeProblemStartup(*me.mDataBasePtr);
-    me.mHydroPtr->registerState(*me.mDataBasePtr, *me.mStatePtr);
-    me.mHydroPtr->registerDerivatives(*me.mDataBasePtr, *me.mDerivsPtr);
-    me.mCRKInitialized = true;
-  }
 
   // Vote on a time step and return it.
   me.mIntegratorPtr->lastDt(1e10);

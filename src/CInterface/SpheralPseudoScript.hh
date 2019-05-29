@@ -191,9 +191,6 @@ private:
   // Numbers of nodes per material.
   std::vector<unsigned> mNumInternalNodes, mNumHostGhostNodes;
 
-  // CRK flags
-  bool mCRK, mCRKInitialized;
-
   // Damage flag
   bool mDamage;
 
