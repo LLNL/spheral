@@ -577,6 +577,7 @@ initialize(const bool     RZ,
            const int      piKernelType,
            const int      gradKernelType,
            const int      nbspline,
+           const int      crkorder,
            const int      damage,
            const unsigned nmats,
            const double   CFL,
@@ -591,7 +592,16 @@ initialize(const bool     RZ,
 
   // Pre-conditions.
   VERIFY2(not RZ or Dimension::nDim == 2,
-          "Axisymmetric coordinates (RZ) can only be requested in the 2D instantiation of Spheral.");
+          "SpheralPseudoScript::initialize: Axisymmetric coordinates (RZ) can only be requested in the 2D instantiation of Spheral.");
+
+  VERIFY2(distributedBoundary >= 0 && distributedBoundary < 3,
+          "SpheralPseudoScript::initialize: Distributed boundary option must be 0 (None), 1 (Nested Grid), or 2 (Tree).");
+
+  VERIFY2(crkorder >= 0 && crkorder < 3,
+          "SpheralPseudoScript::initialize: CRK correction order must be 0 (Constant), 1 (Linear), or 2 (Quadratic).");
+
+  VERIFY2(kernelType >= 0 && kernelType < 3 && piKernelType >= 0 && piKernelType < 3 && gradKernelType >= 0 && gradKernelType < 3,
+          "SpheralPseudoScript::initialize: SPH kernel type must be 0 (NBSpline), 1 (Gaussian), or 2 (PiGaussian).");
 
   // Get our instance.
   SpheralPseudoScript<Dimension>& me = SpheralPseudoScript<Dimension>::instance();
@@ -622,9 +632,6 @@ initialize(const bool     RZ,
   else if(kernelType == 2) {
     me.mKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
   }
-  else {
-    me.mKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
-  }
 
   // Build the interpolation kernel for artificial viscosity.
   if(piKernelType == 0) {
@@ -636,9 +643,6 @@ initialize(const bool     RZ,
   else if(piKernelType == 2) {
     me.mPiKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
   }
-  else {
-    me.mPiKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
-  }
 
   // Build the interpolation kernel for the velocity gradient.
   if(gradKernelType == 0) {
@@ -649,9 +653,6 @@ initialize(const bool     RZ,
   }
   else if(gradKernelType == 2) {
     me.mGradKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
-  }
-  else {
-    me.mGradKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
   }
 
   // Construct the NodeLists for our materials.
@@ -678,7 +679,7 @@ initialize(const bool     RZ,
                                                                                                     xmin,
                                                                                                     xmax)));
     }
-    else {
+    else if (distributedBoundary == 1) {
       me.mNeighbors.push_back(std::shared_ptr< NestedGridNeighbor<Dimension>>(new NestedGridNeighbor<Dimension>(*me.mNodeLists.back(),
                                                                                                                 NeighborSearchType::GatherScatter,
                                                                                                                 31,
@@ -694,6 +695,17 @@ initialize(const bool     RZ,
   me.mDataBasePtr = std::shared_ptr<DataBase<Dimension>>(new DataBase<Dimension>());
   for (unsigned imat = 0; imat != nmats; ++imat) {
     me.mDataBasePtr->appendNodeList(*me.mNodeLists[imat]);
+  }
+
+  CRKOrder correctionOrder;
+  if (crkorder == 0) {
+    correctionOrder = CRKOrder::ZerothOrder;
+  }
+  else if (crkorder == 1) {
+    correctionOrder = CRKOrder::LinearOrder;
+  }
+  else if (crkorder == 2) {
+    correctionOrder = CRKOrder::QuadraticOrder;
   }
 
   // Build the hydro physics objects.
@@ -729,7 +741,7 @@ initialize(const bool     RZ,
                                                           sumMassDensity,                                    // sumMassDensityOverAllNodeLists
                                                           MassDensityType::RigorousSumDensity,               // densityUpdate
                                                           HEvolutionType::IdealH,                            // HUpdate
-                                                          CRKOrder::LinearOrder,                             // CRK order
+                                                          correctionOrder,                                   // CRK order
                                                           CRKVolumeType::CRKMassOverDensity,                 // CRK volume type
                                                           0.0,                                               // epsTensile
                                                           4.0,                                               // nTensile
@@ -915,7 +927,7 @@ updateState(const double*  mass,
   if (me.mDistributedBoundary == 2) {
     me.mHydroPtr->appendBoundary(TreeDistributedBoundary<Dimension>::instance());
   }
-  else {
+  else if (me.mDistributedBoundary == 1) {
     me.mHydroPtr->appendBoundary(NestedGridDistributedBoundary<Dimension>::instance());
   }
 #endif

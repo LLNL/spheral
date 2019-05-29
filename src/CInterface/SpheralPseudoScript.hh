@@ -64,6 +64,7 @@ public:
                          const int      piKernelType,
                          const int      gradKernelType,
                          const int      nbspline,
+                         const int      crkorder,
                          const int      damage,
                          const unsigned nmats,
                          const double   CFL,
