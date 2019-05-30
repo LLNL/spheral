@@ -742,7 +742,7 @@ initialize(const bool     RZ,
                                                           MassDensityType::RigorousSumDensity,               // densityUpdate
                                                           HEvolutionType::IdealH,                            // HUpdate
                                                           correctionOrder,                                   // CRK order
-                                                          CRKVolumeType::CRKMassOverDensity,                 // CRK volume type
+                                                          CRKVolumeType::CRKSumVolume,                       // CRK volume type
                                                           0.0,                                               // epsTensile
                                                           4.0,                                               // nTensile
                                                           false,                                             // damageRelieve
