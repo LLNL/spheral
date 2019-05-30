@@ -38,6 +38,7 @@ PYB11includes += ['"CRKSPH/CRKSPHUtilities.hh"',
                   '"CRKSPH/gradientCRKSPH.hh"',
                   '"CRKSPH/interpolateCRKSPH.hh"',
                   '"CRKSPH/editMultimaterialSurfaceTopology.hh"',
+                  '"CRKSPH/zerothOrderSurfaceCorrections.hh"',
                   '"SPH/NodeCoupling.hh"',
                   '"FileIO/FileIO.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"',
@@ -304,6 +305,21 @@ For such points:
     surfacePoint=-1."""
     return "void"
 
+@PYB11template("Dimension")
+def zerothOrderSurfaceCorrections(A = "FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
+                                  B = "FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+                                  C = "FieldList<%(Dimension)s, typename %(Dimension)s::Tensor>&",
+                                  gradA = "FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+                                  gradB = "FieldList<%(Dimension)s, typename %(Dimension)s::Tensor>&",
+                                  gradC = "FieldList<%(Dimension)s, typename %(Dimension)s::ThirdRankTensor>&",
+                                  m0 = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
+                                  gradm0 = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+                                  surfacePoint = "const FieldList<%(Dimension)s, int>&"):
+    """Look for any points that touch a surface (multi-material or void).
+For such points:
+  - enforce only zeroth order corrections."""
+    return "void"
+
 #-------------------------------------------------------------------------------
 # Instantiate our types
 #-------------------------------------------------------------------------------
@@ -352,6 +368,7 @@ computeHullVolumes%(ndim)id = PYB11TemplateFunction(computeHullVolumes, template
 computeHVolumes%(ndim)id = PYB11TemplateFunction(computeHVolumes, template_parameters="%(Dimension)s")
 computeNeighborHull%(ndim)id = PYB11TemplateFunction(computeNeighborHull, template_parameters="%(Dimension)s")
 editMultimaterialSurfaceTopology%(ndim)id = PYB11TemplateFunction(editMultimaterialSurfaceTopology, template_parameters="%(Dimension)s")
+zerothOrderSurfaceCorrections%(ndim)id = PYB11TemplateFunction(zerothOrderSurfaceCorrections, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
