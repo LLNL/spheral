@@ -36,38 +36,43 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
   // Here we go.
   for (auto iNodeList = 0; iNodeList < numNodeLists - 1; ++iNodeList) {
     const auto n = nodeLists[iNodeList]->numInternalNodes();
+
+#pragma omp parallel for
     for (auto i = 0; i < n; ++i) {
       const auto& allneighbors = connectivityMap.connectivityForNode(iNodeList, i);
 
       // printf(" --> (%d, %d) :", iNodeList, i);
 
-      // Assuming symmetry, we only have to visit each pair once, so we can do the whole upper triangular
-      // walk here.
-      for (auto jNodeList = iNodeList + 1; jNodeList < numNodeLists; ++jNodeList) {
+      if (surfacePoint(iNodeList, i) == 0) {
 
-        // If point i is a boundary for NodeList j, then it always couples to j' points.
-        const bool ijboundary = (surfacePoint(iNodeList, i) && (1 << (jNodeList + 1)) > 0);
-        // printf(" <%d %d> ", surfacePoint(iNodeList, i), ijboundary);
-        if (not ijboundary) {
+        // This is not a surface point: cut all connections to other NodeLists.
+        for (auto jNodeList = 0; jNodeList < numNodeLists; ++jNodeList) {
+          if (jNodeList != iNodeList) {
+            std::copy(allneighbors[jNodeList].begin(), allneighbors[jNodeList].end(), std::back_inserter(neighborsToCut(iNodeList, i)[jNodeList]));
+          }
+        }
 
-          // Since i is not a boundary for jNodeList, we need to check for any neighbors of i in
-          // jNodeList that are not boundaries to iNodeList.
-          const auto& neighbors = allneighbors[jNodeList];
-          for (const auto j: neighbors) {
-            const bool jiboundary = (surfacePoint(jNodeList, j) && (1 << (iNodeList + 1)) > 0);
-            // printf(" [%d, %d, %d, %d]", jNodeList, j, surfacePoint(jNodeList, j), jiboundary);
-            if (not jiboundary) {
+      } else {
 
-              // Disconnect this pair.
-              neighborsToCut(iNodeList, i)[jNodeList].push_back(j);
-              neighborsToCut(jNodeList, j)[iNodeList].push_back(i);
-              // printf(" *** Clipping (%d, %d) <--> (%d, %d)\n", iNodeList, i, jNodeList, j);
-
+        // This is a surface point, so we allow connectivity to surface points in other NodeLists.
+        for (auto jNodeList = 0; jNodeList < numNodeLists; ++jNodeList) {
+          if (jNodeList != iNodeList) {
+            const bool ijboundary = (surfacePoint(iNodeList, i) && (1 << (jNodeList + 1)) > 0);
+            if (ijboundary) {
+              // i is a neighbor to jNodeList, so we need to pick through the points and find like neighbors.
+              const auto& neighbors = allneighbors[jNodeList];
+              for (const auto j: neighbors) {
+                const bool jiboundary = (surfacePoint(jNodeList, j) && (1 << (iNodeList + 1)) > 0);
+                if (not jiboundary) neighborsToCut(iNodeList, i)[jNodeList].push_back(j);
+              }
+            } else {
+              // Since i is not a boundary point to this neighbor NodeList, cut all ties.
+              std::copy(allneighbors[jNodeList].begin(), allneighbors[jNodeList].end(), std::back_inserter(neighborsToCut(iNodeList, i)[jNodeList]));
             }
           }
         }
       }
-      // printf("\n");
+
     }
   }
 
