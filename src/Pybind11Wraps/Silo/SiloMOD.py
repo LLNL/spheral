@@ -11,6 +11,22 @@ PYB11includes = ['"Geometry/Dimension.hh"',
 PYB11namespaces = ["silo",
                    "Spheral"]
 
+PYB11opaque = ["std::vector<char>",
+               "std::vector<unsigned>",
+               "std::vector<uint64_t>",
+               "std::vector<int>",
+               "std::vector<float>",
+               "std::vector<double>",
+               "std::vector<std::string>",
+
+               "std::vector<std::vector<char>>",
+               "std::vector<std::vector<unsigned>>",
+               "std::vector<std::vector<uint64_t>>",
+               "std::vector<std::vector<int>>",
+               "std::vector<std::vector<float>>",
+               "std::vector<std::vector<double>>",
+               "std::vector<std::vector<std::string>>"]
+
 #-------------------------------------------------------------------------------
 class DBfile:
     "Opaque object for silo file struct"
@@ -351,7 +367,7 @@ DBWrite_vector_of_vector_%(d)s = PYB11TemplateFunction(DBWrite_vector_of_vector,
 DBPutCompoundarray_%(d)s = PYB11TemplateFunction(DBPutCompoundarray, ("%(d)s", ), pyname="DBPutCompoundarray")
 DBReadVar_%(d)s = PYB11TemplateFunction(DBReadVar, ("%(d)s",), pyname="DBReadVar")
 DBPutUcdvar1_%(d)s = PYB11TemplateFunction(DBPutUcdvar1, ("%(d)s",), pyname="DBPutUcdvar1")
-DBPutQuadvar1_%(d)s = PYB11TemplateFunction(DBPutQuadvar1, ("%(d)s",), pyname="DBPutUcdvar1")
+DBPutQuadvar1_%(d)s = PYB11TemplateFunction(DBPutQuadvar1, ("%(d)s",), pyname="DBPutQuadvar1")
 DBPutPointvar1_%(d)s = PYB11TemplateFunction(DBPutPointvar1, ("%(d)s",), pyname="DBPutPointvar1")
 ''' % {"d" : d})
 

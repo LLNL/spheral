@@ -210,6 +210,13 @@ public:
   FieldList<Dimension, SymTensor> fluidHfield() const;
   FieldList<Dimension, Scalar> fluidWork() const;
 
+  FieldList<Dimension, Scalar> solidMass() const;
+  FieldList<Dimension, Vector> solidPosition() const;
+  FieldList<Dimension, Vector> solidVelocity() const;
+  FieldList<Dimension, Scalar> solidMassDensity() const;
+  FieldList<Dimension, Scalar> solidSpecificThermalEnergy() const;
+  FieldList<Dimension, SymTensor> solidHfield() const;
+  FieldList<Dimension, Scalar> solidWork() const;
   FieldList<Dimension, SymTensor> solidDeviatoricStress() const;
   FieldList<Dimension, Scalar> solidPlasticStrain() const;
   FieldList<Dimension, Scalar> solidPlasticStrainRate() const;
@@ -221,6 +228,7 @@ public:
   // We can also return the node extent Fields stored in the Neighbor objects.
   FieldList<Dimension, Vector> globalNodeExtent() const;
   FieldList<Dimension, Vector> fluidNodeExtent() const;
+  FieldList<Dimension, Vector> solidNodeExtent() const;
 
   // These functions return FieldLists with Fields that have to be calculated and
   // stored, so they are more expensive.
@@ -235,6 +243,8 @@ public:
   void fluidEntropy(FieldList<Dimension, Scalar>& result) const;
   void fluidLinearMomentum(FieldList<Dimension, Vector>& result) const;
   void fluidTotalEnergy(FieldList<Dimension, Scalar>& result) const;
+  void fluidSpecificHeat(const FieldList<Dimension, Scalar>& temperature,
+                         FieldList<Dimension, Scalar>& result) const;
 
   // Collect the number of neighbors for each node from the ConnectivityMap.
   FieldList<Dimension, int> numNeighbors() const;
@@ -242,13 +252,13 @@ public:
   // Create new FieldLists of size the number of NodeLists or FluidNodeLists.
   template<typename DataType>
   FieldList<Dimension, DataType> newGlobalFieldList(const DataType value,
-                                                                const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
+                                                    const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
   template<typename DataType>
   FieldList<Dimension, DataType> newFluidFieldList(const DataType value,
-                                                               const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
+                                                   const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
   template<typename DataType>
   FieldList<Dimension, DataType> newSolidFieldList(const DataType value,
-                                                               const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
+                                                   const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
 
   // Resize a FieldList to the number of NodeLists or FluidNodeLists.
   // Optionally we can also set all elements in the FieldList to the specified value.

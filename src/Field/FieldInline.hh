@@ -397,6 +397,13 @@ Field<Dimension, DataType>::numInternalElements() const {
 template<typename Dimension, typename DataType>
 inline
 unsigned 
+Field<Dimension, DataType>::numGhostElements() const {
+  return this->nodeList().numGhostNodes();
+}
+
+template<typename Dimension, typename DataType>
+inline
+unsigned 
 Field<Dimension, DataType>::size() const {
   return numElements();
 }

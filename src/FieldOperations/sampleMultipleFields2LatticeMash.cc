@@ -24,7 +24,6 @@
 
 #ifdef USE_MPI
 #include "mpi.h"
-#include "Distributed/BoundingVolumeDistributedBoundary.hh"
 #include "Distributed/NestedGridDistributedBoundary.hh"
 #include "Distributed/Communicator.hh"
 #endif

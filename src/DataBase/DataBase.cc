@@ -1018,6 +1018,111 @@ DataBase<Dimension>::fluidWork() const {
 }
 
 //------------------------------------------------------------------------------
+// Return the solid mass field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Scalar>
+DataBase<Dimension>::solidMass() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Scalar> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->mass());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid position field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Vector>
+DataBase<Dimension>::solidPosition() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Vector> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->positions());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid velocity field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Vector>
+DataBase<Dimension>::solidVelocity() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Vector> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->velocity());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid mass density field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Scalar>
+DataBase<Dimension>::solidMassDensity() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Scalar> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->massDensity());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid specific thermal energy field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Scalar>
+DataBase<Dimension>::solidSpecificThermalEnergy() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Scalar> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->specificThermalEnergy());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid H smoothing field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::SymTensor>
+DataBase<Dimension>::solidHfield() const {
+  REQUIRE(valid());
+  FieldList<Dimension, SymTensor> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->Hfield());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid work field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Scalar>
+DataBase<Dimension>::solidWork() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Scalar> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->work());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Return the solid deviatoric stress field.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -1147,6 +1252,21 @@ DataBase<Dimension>::fluidNodeExtent() const {
   FieldList<Dimension, Vector> result;
   for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
        nodeListItr < fluidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->neighbor().nodeExtentField());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the node extent for each SolidNodeList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Vector>
+DataBase<Dimension>::solidNodeExtent() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Vector> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
     result.appendField((*nodeListItr)->neighbor().nodeExtentField());
   }
   return result;
@@ -1327,6 +1447,28 @@ fluidTotalEnergy(FieldList<Dimension, typename Dimension::Scalar>& result) const
        nodeListItr != fluidNodeListEnd();
        ++nodeListItr, ++nodeListi) {
     (*nodeListItr)->totalEnergy(*result[nodeListi]);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Return the specific heat field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DataBase<Dimension>::
+fluidSpecificHeat(const FieldList<Dimension, typename Dimension::Scalar>& temperature,
+                  FieldList<Dimension, typename Dimension::Scalar>& result) const {
+  REQUIRE(valid());
+  this->resizeFluidFieldList(result, 0.0, HydroFieldNames::specificHeat);
+  size_t nodeListi = 0;
+  for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
+       nodeListItr != fluidNodeListEnd(); 
+       ++nodeListItr, ++nodeListi) {
+    const EquationOfState<Dimension>& eos = (*nodeListItr)->equationOfState();
+    const Field<Dimension, Scalar>& rho = (*nodeListItr)->massDensity();
+    const Field<Dimension, Scalar>& temp = **temperature.fieldForNodeList(**nodeListItr);
+    Field<Dimension, Scalar>& specificHeat = **result.fieldForNodeList(**nodeListItr);
+    eos.setSpecificHeat(specificHeat, rho, temp);
   }
 }
 

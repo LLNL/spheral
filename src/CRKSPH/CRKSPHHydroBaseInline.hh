@@ -551,14 +551,6 @@ surfacePoint() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, int>&
-CRKSPHHydroBase<Dimension>::
-voidPoint() const {
-  return mVoidPoint;
-}
-
-template<typename Dimension>
-inline
 const FieldList<Dimension, std::vector<typename Dimension::Vector>>&
 CRKSPHHydroBase<Dimension>::
 etaVoidPoints() const {

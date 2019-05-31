@@ -9,14 +9,13 @@ class NodeHistory:
 
     def __init__(self,
                  nodeList,
-                 nodeIndicies,
+                 nodeIndices,
                  sampleMethod,
                  filename,
                  header = None,
                  labels = None):
         self.restart = Spheral.RestartableObject(self)
         self.nodeList = nodeList
-        self.nodeIndicies = nodeIndicies
         self.sampleMethod = sampleMethod
         self.filename = filename
         self.cycleHistory = []
@@ -37,12 +36,15 @@ class NodeHistory:
         # This should automatically be safe as NodeLists/Fields get renumbered,
         # redistributed, deleted, added, or what have you.
         self.nodeFlags = FieldConstructor("flag nodes", nodeList, 0)
-        if type(self.nodeIndicies) == list:
-            for i in nodeIndicies:
+        if nodeIndices is None:
+            nodeIndices = range(nodeList.numInternalNodes)
+        self.nodeIndices = nodeIndices
+        if isinstance(nodeIndices, list):
+            for i in nodeIndices:
                 assert i >= 0 and i < nodeList.numInternalNodes
                 self.nodeFlags[i] = 1
         else:
-            self.currentNodeIndicies()
+            self.currentNodeIndices()
 
         # Open the history file.
         self.file = None
@@ -60,12 +62,12 @@ class NodeHistory:
 
         return
 
-    def currentNodeIndicies(self):
-        if type(self.nodeIndicies) == list:
+    def currentNodeIndices(self):
+        if isinstance(self.nodeIndices, list):
             return [i for i in range(self.nodeList.numInternalNodes)
                     if self.nodeFlags[i] == 1]
         else:
-            result = self.nodeIndicies(self.nodeList)
+            result = self.nodeIndices(self.nodeList)
             self.nodeFlags.Zero()
             for i in result:
                 assert i >= 0 and i < self.nodeList.numInternalNodes
@@ -75,10 +77,10 @@ class NodeHistory:
     def sample(self, cycle, t, dt):
 
         # Get the set of nodes.
-        nodeIndicies = self.currentNodeIndicies()
+        nodeIndices = self.currentNodeIndices()
 
         # Get the result of the sampling method.
-        result = self.sampleMethod(self.nodeList, nodeIndicies)
+        result = self.sampleMethod(self.nodeList, nodeIndices)
 
         # Update our history variables.
         self.cycleHistory.append(cycle)
@@ -131,10 +133,17 @@ class NodeHistory:
         return
 
     def restoreState(self, file, path):
-        self.filename = file.readObject(path + "/filename")
-        self.cycleHistory = file.readObject(path + "/cycleHistory")
-        self.timeHistory = file.readObject(path + "/timeHistory")
-        self.sampleHistory = file.readObject(path + "/sampleHistory")
-        file.read(self.nodeFlags, path + "/nodeFlags")
+        try:
+            self.filename = file.readObject(path + "/filename")
+            self.cycleHistory = file.readObject(path + "/cycleHistory")
+            self.timeHistory = file.readObject(path + "/timeHistory")
+            self.sampleHistory = file.readObject(path + "/sampleHistory")
+            file.read(self.nodeFlags, path + "/nodeFlags")
+            self.flushHistory()
+        except RuntimeError:
+            print "WARNING: unable to restore NodeHistory restart state"
         return
 
+    def __call__(self, cycle, t, dt):
+        self.sample(cycle, t, dt)
+        return

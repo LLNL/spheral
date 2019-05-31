@@ -106,10 +106,10 @@ import SpheralPolyClipper as PolyClipper
 # ------------------------------------------------------------------------------
 # See if we can import the polytope bindings.
 # ------------------------------------------------------------------------------
-# try:
-#     from PolytopeModules import polytope
-# except:
-#     print "WARNING: unable to import polytope python bindings."
+try:
+    import polytope
+except:
+    print "WARNING: unable to import polytope python bindings."
 
 # ------------------------------------------------------------------------------
 # Import our shadow layers for augmenting C++ types.

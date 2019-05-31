@@ -58,7 +58,8 @@ public:
                          const CRKVolumeType volumeType,
                          const double epsTensile,
                          const double nTensile,
-                         const bool damageRelieveRubble);
+                         const bool damageRelieveRubble,
+                         const bool negativePressureInDamage);
 
   // Destructor.
   virtual ~SolidCRKSPHHydroBaseRZ();

@@ -347,7 +347,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
     VERIFY(position[i]->nodeListPtr() == mask[i]->nodeListPtr());
   }
   VERIFY(xmin < xmax);
-  VERIFY(nsample.size() == Dimension::nDim);
+  VERIFY2(nsample.size() == Dimension::nDim, nsample.size() << " != " << Dimension::nDim);
   for (int i = 0; i != Dimension::nDim; ++i) VERIFY(nsample[i] > 0);
 
   // Get the parallel geometry.

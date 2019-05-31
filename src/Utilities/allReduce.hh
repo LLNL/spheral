@@ -40,6 +40,9 @@ namespace Spheral {
 #define MPI_MIN 1
 #define MPI_MAX 2
 #define MPI_SUM 3
+#define MPI_PROD 4
+#define MPI_LAND 5
+#define MPI_LOR 6
 #define MPI_COMM_WORLD 0
 
 template<typename Value>

@@ -144,7 +144,6 @@ def computeCRKSPHSumMassDensity(connectivityMap = "const ConnectivityMap<%(Dimen
                                 mass = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                                 vol = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                                 H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
-                                voidPoint = "const FieldList<%(Dimension)s, int>&",
                                 massDensity = "FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&"):
     "Compute the CRKSPH mass density summation."
     return "void"
@@ -314,12 +313,12 @@ def computeVoronoiVolume%(ndim)id(position = "const FieldList<%(Dimension)s, %(D
                                   holes = "const std::vector<std::vector<%(Dimension)s::FacetedVolume> >&",
                                   boundaries = "const std::vector<Boundary<%(Dimension)s>*>&",
                                   weight = "const FieldList<%(Dimension)s, %(Dimension)s::Scalar>&",
-                                  voidPoint = "const FieldList<%(Dimension)s, int>&",
                                   surfacePoint = "FieldList<%(Dimension)s, int>&",
                                   vol = "FieldList<%(Dimension)s, %(Dimension)s::Scalar>&",
                                   deltaMedian = "FieldList<%(Dimension)s, %(Dimension)s::Vector>&",
                                   etaVoidPoints = "FieldList<%(Dimension)s, std::vector<%(Dimension)s::Vector>>&",
-                                  cells = "FieldList<%(Dimension)s, %(Dimension)s::FacetedVolume>&"):
+                                  cells = "FieldList<%(Dimension)s, %(Dimension)s::FacetedVolume>&",
+                                  cellFaceFlags = "FieldList<%(Dimension)s, std::vector<int>>&"):
     "Compute the volume per point based on the Voronoi tessellation-like algorithm."
     return "void"
 

@@ -77,8 +77,8 @@ class GammaLawGas(EquationOfState):
 
     #...........................................................................
     # Properties
-    gamma = PYB11property("double", "getGamma", "setGamma", doc="gamma: ratio of specific heats")
-    mu = PYB11property("double", "getMolecularWeight", "setMolecularWeight", doc="mean molecular weight")
+    gamma = PYB11property("double", "gamma", "gamma", doc="gamma: ratio of specific heats")
+    mu = PYB11property("double", "molecularWeight", "molecularWeight", doc="mean molecular weight")
     
 #-------------------------------------------------------------------------------
 # Add the virtual interface

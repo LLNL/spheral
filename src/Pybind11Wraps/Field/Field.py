@@ -162,10 +162,7 @@ class Field(FieldBase):
         return "py::list"
 
     #...........................................................................
-    # operators
-
-    #...........................................................................
     # Properties
     numElements = PYB11property("unsigned", doc="Number of elements in field")
-    numInternalElements = PYB11property("unsigned", doc="Number of elements in field")
-
+    numInternalElements = PYB11property("unsigned", doc="Number of internal elements in field")
+    numGhostElements = PYB11property("unsigned", doc="Number of ghost elements in field")

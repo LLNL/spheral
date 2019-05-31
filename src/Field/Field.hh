@@ -94,6 +94,7 @@ public:
   // The number of elements in the field.
   unsigned numElements() const;
   unsigned numInternalElements() const;
+  unsigned numGhostElements() const;
   virtual unsigned size() const;
 
   // Zero out the field elements.

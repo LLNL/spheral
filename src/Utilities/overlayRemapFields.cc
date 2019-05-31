@@ -3,7 +3,7 @@
 // Currently only works single NodeList -> single NodeList, no boundaries.
 //------------------------------------------------------------------------------
 #include "overlayRemapFields.hh"
-#include "r3d_utils.hh"
+#include "Utilities/clipFacetedVolume.hh"
 #include "DataBase/DataBase.hh"
 #include "CRKSPH/computeVoronoiVolume.hh"
 #include "Geometry/GeomPlane.hh"
@@ -118,15 +118,15 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     const auto damage = db.solidEffectiveDamage();
     const auto gradrho = db.newFluidFieldList(Vector::zero, "rho gradient");
     const auto weight = db.newFluidFieldList(1.0, "weight");
-    const auto voidPoint = db.newFluidFieldList(int(1), "void point");
     auto etaVoidPoints = db.newFluidFieldList(vector<Vector>(), "eta void points");
     auto surfacePoint = db.newFluidFieldList(0, "surface point");
     auto vol = db.newFluidFieldList(0.0, "volume");
     auto deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
     FieldList<Dimension, FacetedVolume> cells_fl(FieldStorageType::ReferenceFields);
     cells_fl.appendField(localDonorCells);
-    computeVoronoiVolume(position, H, rho, gradrho, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, voidPoint,
-                                      surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl);
+    auto cellFaceFlags_fl = db.newFluidFieldList(vector<int>(), "face flags");
+    computeVoronoiVolume(position, H, rho, gradrho, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, 
+                         surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl, cellFaceFlags_fl);
     const_cast<NodeList<Dimension>*>(donorNodeListPtr)->numGhostNodes(0);
     neighborD.updateNodes();
     // cerr << "Donor volume range: " << vol.min() << " " << vol.max() << endl;
@@ -149,15 +149,15 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     const auto damage = db.solidEffectiveDamage();
     const auto gradrho = db.newFluidFieldList(Vector::zero, "rho gradient");
     const auto weight = db.newFluidFieldList(1.0, "weight");
-    const auto voidPoint = db.newFluidFieldList(int(1), "void point");
     auto etaVoidPoints = db.newFluidFieldList(vector<Vector>(), "eta void points");
     auto surfacePoint = db.newFluidFieldList(0, "surface point");
     auto vol = db.newFluidFieldList(0.0, "volume");
     auto deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
     FieldList<Dimension, FacetedVolume> cells_fl(FieldStorageType::ReferenceFields);
     cells_fl.appendField(localAcceptorCells);
-    computeVoronoiVolume(position, H, rho, gradrho, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, voidPoint,
-                                      surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl);
+    auto cellFaceFlags_fl = db.newFluidFieldList(vector<int>(), "face flags");
+    computeVoronoiVolume(position, H, rho, gradrho, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, 
+                         surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl, cellFaceFlags_fl);
     const_cast<NodeList<Dimension>*>(acceptorNodeListPtr)->numGhostNodes(0);
     neighborA.updateNodes();
     // cerr << "Acceptor volume range: " << vol.min() << " " << vol.max() << endl;

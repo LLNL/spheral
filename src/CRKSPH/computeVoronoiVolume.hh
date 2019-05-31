@@ -25,12 +25,12 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
                      const std::vector<std::vector<Dim<1>::FacetedVolume> >& holes,
                      const std::vector<Boundary<Dim<1>>*>& boundaries,
                      const FieldList<Dim<1>, Dim<1>::Scalar>& weight,
-                     const FieldList<Dim<1>, int>& voidPoint,
                      FieldList<Dim<1>, int>& surfacePoint,
                      FieldList<Dim<1>, Dim<1>::Scalar>& vol,
                      FieldList<Dim<1>, Dim<1>::Vector>& deltaMedian,
                      FieldList<Dim<1>, std::vector<Dim<1>::Vector>>& etaVoidPoints,
-                     FieldList<Dim<1>, Dim<1>::FacetedVolume>& cells);
+                     FieldList<Dim<1>, Dim<1>::FacetedVolume>& cells,
+                     FieldList<Dim<1>, std::vector<int>>& cellFaceFlags);
 #endif
 
 #ifdef SPHERAL2D
@@ -46,12 +46,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      const std::vector<std::vector<Dim<2>::FacetedVolume> >& holes,
                      const std::vector<Boundary<Dim<2>>*>& boundaries,
                      const FieldList<Dim<2>, Dim<2>::Scalar>& weight,
-                     const FieldList<Dim<2>, int>& voidPoint,
                      FieldList<Dim<2>, int>& surfacePoint,
                      FieldList<Dim<2>, Dim<2>::Scalar>& vol,
                      FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian,
                      FieldList<Dim<2>, std::vector<Dim<2>::Vector>>& etaVoidPoints,
-                     FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells);
+                     FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells,
+                     FieldList<Dim<2>, std::vector<int>>& cellFaceFlags);
 #endif
 
 #ifdef SPHERAL3D
@@ -67,12 +67,12 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      const std::vector<std::vector<Dim<3>::FacetedVolume> >& holes,
                      const std::vector<Boundary<Dim<3>>*>& boundaries,
                      const FieldList<Dim<3>, Dim<3>::Scalar>& weight,
-                     const FieldList<Dim<3>, int>& voidPoint,
                      FieldList<Dim<3>, int>& surfacePoint,
                      FieldList<Dim<3>, Dim<3>::Scalar>& vol,
                      FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian,
                      FieldList<Dim<3>, std::vector<Dim<3>::Vector>>& etaVoidPoints,
-                     FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells);
+                     FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells,
+                     FieldList<Dim<3>, std::vector<int>>& cellFaceFlags);
 #endif
 
 }

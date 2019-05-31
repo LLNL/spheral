@@ -25,7 +25,6 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                             const FieldList<Dimension, typename Dimension::Scalar>& mass,
                             const FieldList<Dimension, typename Dimension::Scalar>& vol,
                             const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                            const FieldList<Dimension, int>& voidPoint,
                             FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
 
   // Pre-conditions.
@@ -87,8 +86,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
         // Check if this node pair has already been calculated.
         if (connectivityMap.calculatePairInteraction(nodeListi, i, 
                                                      nodeListi, j,
-                                                     firstGhostNodej) and
-            voidPoint(nodeListi, j) == 0) {
+                                                     firstGhostNodej)) {
           const Vector& rj = position(nodeListi, j);
           const Scalar mj = mass(nodeListi, j);
           const Scalar Vj = vol(nodeListi, j);

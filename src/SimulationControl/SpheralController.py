@@ -41,6 +41,7 @@ class SpheralController:
                  vizDerivs = False,
                  initialTime = 0.0,
                  SPH = False,
+                 periodicWork = [],
                  skipInitialPeriodicWork = False,
                  iterateInitialH = True,
                  numHIterationsBetweenCycles = 0,
@@ -92,6 +93,7 @@ class SpheralController:
                                  vizTime = vizTime,
                                  vizFields = vizFields,
                                  vizFieldLists = vizFieldLists,
+                                 periodicWork = periodicWork,
                                  skipInitialPeriodicWork = skipInitialPeriodicWork,
                                  iterateInitialH = True,
                                  reinitializeNeighborsStep = 10)
@@ -122,6 +124,7 @@ class SpheralController:
                             vizTime = None,
                             vizFields = [],
                             vizFieldLists = [],
+                            periodicWork = [],
                             skipInitialPeriodicWork = False,
                             iterateInitialH = True,
                             reinitializeNeighborsStep = 10):
@@ -178,6 +181,8 @@ class SpheralController:
         self.appendPeriodicWork(self.updateConservation, statsStep)
         self.appendPeriodicWork(self.updateRestart, restartStep)
         self.appendPeriodicWork(self.reinitializeNeighbors, reinitializeNeighborsStep)
+        for x, freq in periodicWork:
+            self.appendPeriodicWork(x, freq)
 
         # Add the dynamic redistribution object to the controller.
         self.addRedistributeNodes(self.kernel)
