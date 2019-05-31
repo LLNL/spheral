@@ -365,6 +365,7 @@ template<> struct HydroConstructor<Dim<3>> {
                                                       const double epsTensile,
                                                       const double nTensile,
                                                       const bool damageRelieveRubble,
+                                                      const bool negativePressureInDamage,
                                                       const Dim<3>::Vector& xmin,
                                                       const Dim<3>::Vector& xmax,
                                                       const bool RZ) {
@@ -385,7 +386,8 @@ template<> struct HydroConstructor<Dim<3>> {
                                                                                volumeType,
                                                                                epsTensile,
                                                                                nTensile,
-                                                                               damageRelieveRubble));
+                                                                               damageRelieveRubble,
+                                                                               negativePressureInDamage));
     }
     else {
       return std::shared_ptr<Physics<Dim<3>>>(new SolidSPHHydroBase<Dim<3>>(smoothingScaleMethod,
@@ -407,6 +409,7 @@ template<> struct HydroConstructor<Dim<3>> {
                                                                             epsTensile,
                                                                             nTensile,
                                                                             damageRelieveRubble,
+                                                                            negativePressureInDamage,
                                                                             xmin,
                                                                             xmax));
     }
@@ -440,6 +443,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                       const double epsTensile,
                                                       const double nTensile,
                                                       const bool damageRelieveRubble,
+                                                      const bool negativePressureInDamage,
                                                       const Dim<2>::Vector& xmin,
                                                       const Dim<2>::Vector& xmax,
                                                       const bool RZ) {
@@ -461,7 +465,8 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                            volumeType,
                                                                            epsTensile,
                                                                            nTensile,
-                                                                           damageRelieveRubble));
+                                                                           damageRelieveRubble,
+                                                                           negativePressureInDamage));
       }
       else {
         return std::shared_ptr<Physics<Dim<2>>>(new SolidSPHHydroBaseRZ(smoothingScaleMethod,
@@ -483,6 +488,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                         epsTensile,
                                                                         nTensile,
                                                                         damageRelieveRubble,
+                                                                        negativePressureInDamage,
                                                                         xmin,
                                                                         xmax));
       }
@@ -504,7 +510,8 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                                  volumeType,
                                                                                  epsTensile,
                                                                                  nTensile,
-                                                                                 damageRelieveRubble));
+                                                                                 damageRelieveRubble,
+                                                                                 negativePressureInDamage));
       }
       else {
         return std::shared_ptr<Physics<Dim<2>>>(new SolidSPHHydroBase<Dim<2>>(smoothingScaleMethod,
@@ -526,6 +533,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                               epsTensile,
                                                                               nTensile,
                                                                               damageRelieveRubble,
+                                                                              negativePressureInDamage,
                                                                               xmin,
                                                                               xmax));
       }
@@ -730,24 +738,25 @@ initialize(const bool     RZ,
                                                           *me.mKernelPtr,
                                                           *me.mPiKernelPtr,
                                                           *me.mGradKernelPtr,
-                                                          0.0,                                               // filter
-                                                          CFL,                                               // cfl
-                                                          useVelocityDt,                                     // useVelocityMagnitudeForDt
-                                                          compatibleEnergy,                                  // compatibleEnergyEvolution
-                                                          totalEnergy,                                       // evolve total energy
-                                                          hGradCorrection,                                   // gradhCorrection
-                                                          XSPH,                                              // XSPH
-                                                          vGradCorrection,                                   // correctVelocityGradient
-                                                          sumMassDensity,                                    // sumMassDensityOverAllNodeLists
-                                                          MassDensityType::RigorousSumDensity,               // densityUpdate
-                                                          HEvolutionType::IdealH,                            // HUpdate
-                                                          correctionOrder,                                   // CRK order
-                                                          CRKVolumeType::CRKSumVolume,                       // CRK volume type
-                                                          0.0,                                               // epsTensile
-                                                          4.0,                                               // nTensile
-                                                          false,                                             // damageRelieve
-                                                          xmin,                                              // xmin
-                                                          xmax,                                              // xmax
+                                                          0.0,                                  // filter
+                                                          CFL,                                  // cfl
+                                                          useVelocityDt,                        // useVelocityMagnitudeForDt
+                                                          compatibleEnergy,                     // compatibleEnergyEvolution
+                                                          totalEnergy,                          // evolve total energy
+                                                          hGradCorrection,                      // gradhCorrection
+                                                          XSPH,                                 // XSPH
+                                                          vGradCorrection,                      // correctVelocityGradient
+                                                          sumMassDensity,                       // sumMassDensityOverAllNodeLists
+                                                          MassDensityType::RigorousSumDensity,  // densityUpdate
+                                                          HEvolutionType::IdealH,               // HUpdate
+                                                          correctionOrder,                      // CRK order
+                                                          CRKVolumeType::CRKSumVolume,          // CRK volume type
+                                                          0.0,                                  // epsTensile
+                                                          4.0,                                  // nTensile
+                                                          false,                                // damageRelieve
+                                                          false,                                // negativePressureInDamage
+                                                          xmin,                                 // xmin
+                                                          xmax,                                 // xmax
                                                           RZ);
 
   // Build a time integrator.  We're not going to use this to advance state,
