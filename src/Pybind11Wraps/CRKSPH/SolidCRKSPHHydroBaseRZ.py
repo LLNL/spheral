@@ -39,7 +39,8 @@ class SolidCRKSPHHydroBaseRZ(CRKSPHHydroBase):
                volumeType = "const CRKVolumeType",
                epsTensile = "const double",
                nTensile = "const double",
-               damageRelieveRubble = "const bool"):
+               damageRelieveRubble = "const bool",
+               negativePressureInDamage = "const bool"):
         "Constructor"
 
     #...........................................................................

@@ -127,7 +127,8 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                        const CRKVolumeType volumeType,
                        const double epsTensile,
                        const double nTensile,
-                       const bool damageRelieveRubble):
+                       const bool damageRelieveRubble,
+                       const bool negativePressureInDamage):
   SolidCRKSPHHydroBase<Dimension>(smoothingScaleMethod, 
                                   Q,
                                   W,
@@ -144,7 +145,8 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                                   volumeType,
                                   epsTensile,
                                   nTensile,
-                                  damageRelieveRubble),
+                                  damageRelieveRubble,
+                                  negativePressureInDamage),
   mDeviatoricStressTT(FieldStorageType::CopyFields),
   mDdeviatoricStressTTDt(FieldStorageType::CopyFields) {
 }

@@ -50,6 +50,12 @@ SETUPTOOLSURL = https://pypi.python.org/packages/75/d1/5abca4ccf61a7ab86c255dd31
 WHEELURL = https://pypi.python.org/packages/0c/80/16a85b47702a1f47a63c104c91abdd0a6704ee8ae3b4ce4afc49bc39f9d9/wheel-0.30.0-py2.py3-none-any.whl#md5=1d61793f816d6b60513364fe2de9c1b3
 PIPEXE = $(prefix)/bin/pip
 
+# mpi4py
+MPI4PYDIST = mpi4py-3.0.1.zip
+MPI4PYURL = https://github.com/mpi4py/mpi4py/archive/3.0.1.zip
+MPI4PYDIR = $(MPI4PYDIST:.zip=)
+MPI4PYBUILDDATE = $(patsubst %.zip, .%.date, $(MPI4PYDIST))
+
 # PyGnuplot
 GNUPLOTDIST = gnuplot-py-1.8.tar.gz
 GNUPLOTURL = http://downloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?modtime=1209767882&big_mirror=0
@@ -369,6 +375,29 @@ $(PYTHONBUILDDATE):	$(PYTHON) cache/$(PYTHONDIST)
 	fi
 	rm -fr $(PYTHONDIR)
 	touch $(PYTHONBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# mpi4py python extension
+#-------------------------------------------------------------------------------
+cache/$(MPI4PYDIST):
+	@$(MKDIR) cache
+	$(WGET) "$(MPI4PYURL)" -O cache/$(MPI4PYDIST)
+
+$(MPI4PYBUILDDATE):	$(PYTHONTARGET) cache/$(MPI4PYDIST) .numpy_pip_install.date $(NUMPYBUILDDATE)
+	@echo "################################################################################"
+	@echo "# Building $(MPI4PYDIST)"
+	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
+	rm -fr $(MPI4PYDIR)
+	$(UNZIP) cache/$(MPI4PYDIST)
+	env CC='$(MPICC)' CXX='$(MPICXX)' $(SHELL) -ec 'cd $(MPI4PYDIR); $(PYTHONEXE) setup.py install --prefix $(prefix);'
+	@if test -n "`$(PYTHONEXE) -c 'import mpi4py'`"; then \
+	echo "ERROR building mpi4py python extension."; \
+	rm -f $(MPI4PYBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(MPI4PYDIR)
+	touch $(MPI4PYBUILDDATE)
 
 #-------------------------------------------------------------------------------
 # PIP

@@ -262,22 +262,22 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
                         assert len(domainVarNames) == numDomains
                         assert silo.DBPutMultivar(db, "CELLS/" + subname, domainVarNames, ucdTypes, optlistVar) == 0
         
-            # HACK: repeating for point values -- remove when vardefs work
-            # Write the variables descriptors.
-            ptTypes = vector_of_int([silo.DB_POINTVAR]*numDomains)
-            for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
-                domainVarNames = vector_of_string()
-                for p in domainNamePatterns:
-                    domainVarNames.append(p % ("POINTS_" + name))
-                assert len(domainVarNames) == numDomains
-                assert silo.DBPutMultivar(db, "POINTS/" + name, domainVarNames, ptTypes, optlistMV) == 0
-                if desc != None:
-                    for subname, vals in subvars:
-                        domainVarNames = vector_of_string()
-                        for p in domainNamePatterns:
-                            domainVarNames.append(p % ("POINTS_" + subname))
-                        assert len(domainVarNames) == numDomains
-                        assert silo.DBPutMultivar(db, "POINTS/" + subname, domainVarNames, ptTypes, optlistVar) == 0
+            # # HACK: repeating for point values -- remove when vardefs work
+            # # Write the variables descriptors.
+            # ptTypes = vector_of_int([silo.DB_POINTVAR]*numDomains)
+            # for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+            #     domainVarNames = vector_of_string()
+            #     for p in domainNamePatterns:
+            #         domainVarNames.append(p % ("POINTS_" + name))
+            #     assert len(domainVarNames) == numDomains
+            #     assert silo.DBPutMultivar(db, "POINTS/" + name, domainVarNames, ptTypes, optlistMV) == 0
+            #     if desc != None:
+            #         for subname, vals in subvars:
+            #             domainVarNames = vector_of_string()
+            #             for p in domainNamePatterns:
+            #                 domainVarNames.append(p % ("POINTS_" + subname))
+            #             assert len(domainVarNames) == numDomains
+            #             assert silo.DBPutMultivar(db, "POINTS/" + subname, domainVarNames, ptTypes, optlistVar) == 0
         
         # Make a convenient symlink for the master file.
         linkfile = p1 + ".silo"
@@ -431,18 +431,18 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             # print "      --> %g sec to DBPutUcdvar1" % (TIME.clock() - start)
             # start = TIME.clock()
 
-            # HACK: Write the field components on the point mesh as well.  Remove when the vardef version is working.
-            varOpts = silo.DBoptlist(1024)
-            assert varOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
-            assert varOpts.addOption(silo.DBOPT_DTIME, time) == 0
-            for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
-                for subname, vals in subvars:
-                    if len(vals) > 0:
-                        if type(vals[0]) == float:
-                            ctor = vector_of_double
-                        else:
-                            ctor = vector_of_int
-                        assert silo.DBPutPointvar1(db, "POINTS_" + subname, "PointMESH", ctor(vals), varOpts) == 0
+            # # HACK: Write the field components on the point mesh as well.  Remove when the vardef version is working.
+            # varOpts = silo.DBoptlist(1024)
+            # assert varOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
+            # assert varOpts.addOption(silo.DBOPT_DTIME, time) == 0
+            # for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+            #     for subname, vals in subvars:
+            #         if len(vals) > 0:
+            #             if type(vals[0]) == float:
+            #                 ctor = vector_of_double
+            #             else:
+            #                 ctor = vector_of_int
+            #             assert silo.DBPutPointvar1(db, "POINTS_" + subname, "PointMESH", ctor(vals), varOpts) == 0
 
             # print "      --> %g sec to DBPutPointvar1" % (TIME.clock() - start)
             # start = TIME.clock()
@@ -804,14 +804,14 @@ def writeDefvars(db, fieldwad):
             opts.append(optlistDef)
 
     # HACK: put back when vardef mapping is working
-    # # Similaly map all variables from the MMESH -> MPointMesh.
-    # hideOptlist = silo.DBoptlist()
-    # assert hideOptlist.addOption(silo.DBOPT_HIDE_FROM_GUI, 0) == 0
-    # for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
-    #     names.append("POINTS/" + name)
-    #     defs.append('recenter(pos_cmfe(<[0]id:CELLS/%s>,<MPointMESH>,0.0), "nodal")' % name)
-    #     types.append(vtype)
-    #     opts.append(hideOptlist)
+    # Similaly map all variables from the MMESH -> MPointMesh.
+    hideOptlist = silo.DBoptlist()
+    assert hideOptlist.addOption(silo.DBOPT_HIDE_FROM_GUI, 0) == 0
+    for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+        names.append("POINTS/" + name)
+        defs.append('recenter(conn_cmfe(<[0]id:CELLS/%s>,<MPointMESH>))' % name)
+        types.append(vtype)
+        opts.append(hideOptlist)
 
     if len(names) > 0:
         assert silo.DBPutDefvars(db, "VARDEFS", names, types, defs, opts) == 0
