@@ -100,16 +100,16 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
           }
         }
 
-        // // If this point was flagged as boundary adjacent, flag all of its neighbors with
-        // // -2 to indicate they're one step removed.
-        // if (surfacePoint(iNodeList, i) == -1) {
-        //   for (auto jjNodeList = 0; jjNodeList < numNodeLists; ++jjNodeList) {
-        //     const auto& neighbors = allneighbors[jjNodeList];
-        //     for (auto j: neighbors) {
-        //       if (surfacePoint(jjNodeList, j) == 0) surfacePoint(jjNodeList, j) = -2;
-        //     }
-        //   }
-        // }
+        // If this point was flagged as boundary adjacent, flag all of its neighbors with
+        // -2 to indicate they're one step removed.
+        if (surfacePoint(iNodeList, i) == -1) {
+          for (auto jjNodeList = 0; jjNodeList < numNodeLists; ++jjNodeList) {
+            const auto& neighbors = allneighbors[jjNodeList];
+            for (auto j: neighbors) {
+              if (surfacePoint(jjNodeList, j) == 0) surfacePoint(jjNodeList, j) = -2;
+            }
+          }
+        }
 
         ++jNodeList;
       }
