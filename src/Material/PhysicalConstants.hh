@@ -37,13 +37,15 @@ public:
   double unitMassDensity() const;
   double stefanBoltzmannConstant() const;
   double blackBodyConstant() const;
+  double unitEnergyJ() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Independent variables.
   double mUnitLm, mUnitMkg, mUnitTsec;
-
+  
   // Dependent variables.
+  const double UnitEnergyJ;
   const double ProtonMass;
   const double ElectronMass;
   const double ElectronCharge;
