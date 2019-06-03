@@ -356,7 +356,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
             // Energy
             DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ?
-                        0.5*wij*wij*(Pposj*vij.dot(deltagrad) + fij*sigmaj.dot(vij).dot(deltagrad) + workQi)/mi :               // CRK
+                        0.5*wij*wij*(Pposj*vij.dot(deltagrad) - fij*sigmaj.dot(vij).dot(deltagrad) + workQi)/mi :               // CRK
                         wij*rhoi*QPiij.first.dot(vij).dot(gradWj));                                                             // RK, Q term only -- adiabatic portion added later
 
             // Estimate of delta v (for XSPH).
