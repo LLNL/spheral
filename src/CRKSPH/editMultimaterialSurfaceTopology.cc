@@ -84,34 +84,12 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
   for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
     const auto n = nodeLists[iNodeList]->numInternalNodes();
     for (auto i = 0; i < n; ++i) {
-      const auto& allneighbors = connectivityMap.connectivityForNode(iNodeList, i);
-      auto jNodeList = 0;
-      while (jNodeList < numNodeLists and
-             (surfacePoint(iNodeList, i) == 0 or surfacePoint(iNodeList, i) == -2)) {
-        const auto& neighbors = allneighbors[jNodeList];
-        if (jNodeList != iNodeList and neighbors.size() > 0) {
-          surfacePoint(iNodeList, i) = -1;
-          continue;
-        }
+      if (surfacePoint(iNodeList, i) != 0) {
+        const auto& allneighbors = connectivityMap.connectivityForNode(iNodeList, i);
+        const auto& neighbors = allneighbors[iNodeList];
         for (auto j: neighbors) {
-          if (surfacePoint(jNodeList, j) > 0) {
-            surfacePoint(iNodeList, i) = -1;
-            continue;
-          }
+          if (surfacePoint(iNodeList, j) == 0) surfacePoint(iNodeList, j) = -1;
         }
-
-        // If this point was flagged as boundary adjacent, flag all of its neighbors with
-        // -2 to indicate they're one step removed.
-        if (surfacePoint(iNodeList, i) == -1) {
-          for (auto jjNodeList = 0; jjNodeList < numNodeLists; ++jjNodeList) {
-            const auto& neighbors = allneighbors[jjNodeList];
-            for (auto j: neighbors) {
-              if (surfacePoint(jjNodeList, j) == 0) surfacePoint(jjNodeList, j) = -2;
-            }
-          }
-        }
-
-        ++jNodeList;
       }
     }
   }
