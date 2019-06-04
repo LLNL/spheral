@@ -84,7 +84,7 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
   for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
     const auto n = nodeLists[iNodeList]->numInternalNodes();
     for (auto i = 0; i < n; ++i) {
-      if (surfacePoint(iNodeList, i) != 0) {
+      if (surfacePoint(iNodeList, i) > 0) {
         const auto& allneighbors = connectivityMap.connectivityForNode(iNodeList, i);
         const auto& neighbors = allneighbors[iNodeList];
         for (auto j: neighbors) {
