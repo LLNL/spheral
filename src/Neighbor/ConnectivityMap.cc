@@ -264,6 +264,8 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
 
 //------------------------------------------------------------------------------
 // Remove connectivity between neighbors.
+// NOTE: this method assumes you are passing the indices of the neighbors to
+//       remove!
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -280,26 +282,8 @@ removeConnectivity(const FieldList<Dimension, vector<vector<int>>>& neighborsToC
       const auto& allneighbors = neighborsToCut(nodeListi, i);
       CHECK(allneighbors.size() == 0 or allneighbors.size() == numNodeLists);
       for (auto nodeListj = 0; nodeListj < allneighbors.size(); ++nodeListj) {
-        for (const auto j: allneighbors[nodeListj]) {
-
-          // Remove neighbor (nodeListj, j) from the set of (nodeListi, i).
-          auto& neighborsi = mConnectivity[mOffsets[nodeListi] + i][nodeListj];
-          // {
-          //   printf("Before (%i, %i) : ", nodeListi, i);
-          //   for (auto jj: neighborsi) printf(" %d", jj);
-          //   printf("\n");
-          // }
-          neighborsi.erase(std::remove(neighborsi.begin(), neighborsi.end(), j), neighborsi.end());
-          // {
-          //   printf("After (%i, %i) : ", nodeListi, i);
-          //   for (auto jj: mConnectivity[mOffsets[nodeListi] + i][nodeListj]) printf(" %d", jj);
-          //   printf("\n");
-          // }
-          
-          // Remove neighbor (nodeListi, i) from the set of (nodeListj, j).
-          auto& neighborsj = mConnectivity[mOffsets[nodeListj] + j][nodeListi];
-          neighborsj.erase(std::remove(neighborsj.begin(), neighborsj.end(), i), neighborsj.end());
-        }
+        auto& neighborsi = mConnectivity[mOffsets[nodeListi] + i][nodeListj];
+        removeElements(neighborsi, allneighbors[nodeListj]);
       }
     }
   }

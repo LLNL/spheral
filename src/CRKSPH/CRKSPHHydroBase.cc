@@ -275,8 +275,16 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                          mSurfacePoint, mVolume, mDeltaCentroid, mEtaVoidPoints,    // return values
                          mCells,                                                    // return cells
                          mCellFaceFlags);                                           // node cell multimaterial faces
-    if (mLimitMultimaterialTopology) editMultimaterialSurfaceTopology(mSurfacePoint,
-                                                                      const_cast<ConnectivityMap<Dimension>&>(connectivityMap));
+    if (mLimitMultimaterialTopology) {
+      for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+           boundItr != this->boundaryEnd();
+           ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mSurfacePoint);
+      for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+           boundItr != this->boundaryEnd();
+           ++boundItr) (*boundItr)->finalizeGhostBoundary();
+      editMultimaterialSurfaceTopology(mSurfacePoint,
+                                       const_cast<ConnectivityMap<Dimension>&>(connectivityMap));
+    }
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, mVolume);
   } else if (mVolumeType == CRKVolumeType::HVolume) {
@@ -601,8 +609,16 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                          surfacePoint, vol, mDeltaCentroid, mEtaVoidPoints,          // return values
                          cells,                                                      // return cells
                          cellFaceFlags);                                             // node cell multimaterial faces
-    if (mLimitMultimaterialTopology) editMultimaterialSurfaceTopology(surfacePoint,
-                                                                      const_cast<ConnectivityMap<Dimension>&>(connectivityMap));
+    if (mLimitMultimaterialTopology) {
+      for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+           boundItr != this->boundaryEnd();
+           ++boundItr) (*boundItr)->applyFieldListGhostBoundary(surfacePoint);
+      for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+           boundItr != this->boundaryEnd();
+           ++boundItr) (*boundItr)->finalizeGhostBoundary();
+      editMultimaterialSurfaceTopology(surfacePoint,
+                                       const_cast<ConnectivityMap<Dimension>&>(connectivityMap));
+    }
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
   } else if (mVolumeType == CRKVolumeType::HVolume) {

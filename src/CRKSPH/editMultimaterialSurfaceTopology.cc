@@ -15,6 +15,8 @@
 extern Timer TIME_CRKSPH_editMultimaterialSurfaceTopology;
 
 using std::vector;
+using std::cerr;
+using std::endl;
 
 namespace Spheral {
 
@@ -48,7 +50,8 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
         // This is not a surface point: cut all connections to other NodeLists.
         for (auto jNodeList = 0; jNodeList < numNodeLists; ++jNodeList) {
           if (jNodeList != iNodeList) {
-            std::copy(allneighbors[jNodeList].begin(), allneighbors[jNodeList].end(), std::back_inserter(neighborsToCut(iNodeList, i)[jNodeList]));
+            neighborsToCut(iNodeList, i)[jNodeList].resize(allneighbors[jNodeList].size());
+            for (auto k = 0; k < allneighbors[jNodeList].size(); ++k) neighborsToCut(iNodeList, i)[jNodeList][k] = k;
           }
         }
 
@@ -61,18 +64,19 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
             if (ijboundary) {
               // i is a neighbor to jNodeList, so we need to pick through the points and find like neighbors.
               const auto& neighbors = allneighbors[jNodeList];
-              for (const auto j: neighbors) {
+              for (auto k = 0; k < neighbors.size(); ++k) {
+                const auto j = neighbors[k];
                 const bool jiboundary = (surfacePoint(jNodeList, j) && (1 << (iNodeList + 1)) > 0);
-                if (not jiboundary) neighborsToCut(iNodeList, i)[jNodeList].push_back(j);
+                if (not jiboundary) neighborsToCut(iNodeList, i)[jNodeList].push_back(k);
               }
             } else {
               // Since i is not a boundary point to this neighbor NodeList, cut all ties.
-              std::copy(allneighbors[jNodeList].begin(), allneighbors[jNodeList].end(), std::back_inserter(neighborsToCut(iNodeList, i)[jNodeList]));
+              neighborsToCut(iNodeList, i)[jNodeList].resize(allneighbors[jNodeList].size());
+              for (auto k = 0; k < allneighbors[jNodeList].size(); ++k) neighborsToCut(iNodeList, i)[jNodeList][k] = k;
             }
           }
         }
       }
-
     }
   }
 
@@ -84,11 +88,14 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
   for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
     const auto n = nodeLists[iNodeList]->numInternalNodes();
     for (auto i = 0; i < n; ++i) {
-      if (surfacePoint(iNodeList, i) > 0) {
+      if (surfacePoint(iNodeList, i) == 0) {
         const auto& allneighbors = connectivityMap.connectivityForNode(iNodeList, i);
         const auto& neighbors = allneighbors[iNodeList];
         for (auto j: neighbors) {
-          if (surfacePoint(iNodeList, j) == 0) surfacePoint(iNodeList, j) = -1;
+          if (surfacePoint(iNodeList, j) > 0) {
+            surfacePoint(iNodeList, i) = -1;
+            break;
+          }
         }
       }
     }
