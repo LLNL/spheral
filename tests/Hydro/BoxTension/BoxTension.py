@@ -82,8 +82,8 @@ commandLine(
     nx2 = 50,
     ny2 = 50,
 
-    nPerh = 1.51,
-    KernelConstructor = BSplineKernel,
+    nPerh = 1.35,
+    KernelConstructor = NBSplineKernel,
     order = 5,
 
     svph = False,
