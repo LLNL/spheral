@@ -195,8 +195,8 @@ QHULLINCDIR = $(prefix)/include/qhull
 QHULLDATE = $(patsubst %.tgz, .%.date, $(QHULLDIST))
 
 # HDF5
-HDF5DIST = hdf5-1.8.19.tar.bz2
-HDF5URL = https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.19/src/$(HDF5DIST)
+HDF5DIST = hdf5-1.10.4.tar.bz2
+HDF5URL = https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.4/src/$(HDF5DIST)
 HDF5DIR = $(HDF5DIST:.tar.bz2=)
 HDF5BUILDDATE = $(patsubst %.tar.bz2, .%.date, $(HDF5DIST))
 
@@ -915,8 +915,8 @@ $(HDF5BUILDDATE):  cache/$(HDF5DIST)
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(HDF5DIR)
 	$(BZIP2) -dc cache/$(HDF5DIST) | $(TAR) -xf -
-	$(PATCH) $(HDF5DIR)/bin/config.guess $(srcdir)/config.guess-hdf5-1.8.16.patch
-	$(PATCH) $(HDF5DIR)/bin/config.sub $(srcdir)/config.sub-hdf5-1.8.16.patch
+	#$(PATCH) $(HDF5DIR)/bin/config.guess $(srcdir)/config.guess-hdf5-1.8.16.patch
+	#$(PATCH) $(HDF5DIR)/bin/config.sub $(srcdir)/config.sub-hdf5-1.8.16.patch
 	$(SHELL) -ec "cd $(HDF5DIR); \
 	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' ./configure --prefix=$(prefix) $(HDF5FLAGS) ; \
 	rm -f test.conf ; \
