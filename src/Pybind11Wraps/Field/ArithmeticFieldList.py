@@ -48,6 +48,12 @@ class ArithmeticFieldList(FieldListBase):
     def __isub__(self, rhs="%(Value)s()"):
         return
 
+    def __imul__(self, rhs="FieldList<%(Dimension)s, double>()"):
+        return
+
+    def __idiv__(self, rhs="FieldList<%(Dimension)s, double>()"):
+        return
+
     def __imul__(self, rhs="double()"):
         return
 
