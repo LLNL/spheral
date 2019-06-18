@@ -206,12 +206,14 @@ class SpheralVoronoiSiloDump:
                 #                 mesh.faces[noldfaces + j].append(noldnodes + k)
 
         else:
+            print "CELLS?  : ", self.cells, len(self.cells)
+
             # We need to do the full up polytope tessellation.
             # Build the set of generators from our points.
             gens = vector_of_double()
             nDim = eval("Vector%s.nDimensions" % self.dimension)
-            xmin = vector_of_double(nDim,  1e100)
-            xmax = vector_of_double(nDim, -1e100)
+            xmin = vector_of_double([1e100]*nDim)
+            xmax = vector_of_double([-1e100]*nDim)
             for nodes in self._nodeLists:
                 pos = nodes.positions()
                 for i in xrange(nodes.numInternalNodes):
@@ -424,7 +426,7 @@ def dumpPhysicsState(stateThingy,
             assert isinstance(stateThingy, State3d)
             ndim = 3
         dataBase = eval("DataBase%id()" % ndim)
-        assert state.fieldNameRegistered(HydroFieldName.mass)
+        assert state.fieldNameRegistered(HydroFieldNames.mass)
         mass = state.scalarFields(HydroFieldNames.mass)
         for nodes in mass.nodeListPtrs():
             dataBase.appendNodeList(nodes)
@@ -521,10 +523,8 @@ def dumpPhysicsState(stateThingy,
                      3 : Polyhedron}[dataBase.nDim]
     cells = dataBase.newFluidFacetedVolumeFieldList(FacetedVolume(), "cells")
     cellFaceFlags = dataBase.newFluidvector_of_intFieldList(vector_of_int(), "face flags")
-    computeVoronoiVolume(dataBase.fluidPosition, 
-                         dataBase.fluidHfield,
-                         dataBase.fluidMassDensity,
-                         gradRho,
+    computeVoronoiVolume(dataBase.globalPosition, 
+                         dataBase.globalHfield,
                          dataBase.connectivityMap(),
                          dataBase.solidEffectiveDamage,
                          bounds,
@@ -537,6 +537,7 @@ def dumpPhysicsState(stateThingy,
                          etaVoidPoints,
                          cells,
                          cellFaceFlags)
+    print "CELLS:  ", cells, len(cells)
 
     # Now build the visit dumper.
     dumper = SpheralVoronoiSiloDump(baseFileName,

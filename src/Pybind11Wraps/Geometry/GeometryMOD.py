@@ -75,6 +75,29 @@ from Facet2d import *
 from Facet3d import *
 
 #-------------------------------------------------------------------------------
+# Vector standalone functions
+#-------------------------------------------------------------------------------
+@PYB11template("nDim")
+def elementWiseMin(lhs = "Dim<%(nDim)s>::Vector",
+                   rhs = "Dim<%(nDim)s>::Vector"):
+    "Find the coordinate by coordinate minimum of two Vectors."
+    return "Dim<%(nDim)s>::Vector"
+
+@PYB11template("nDim")
+def elementWiseMax(lhs = "Dim<%(nDim)s>::Vector",
+                   rhs = "Dim<%(nDim)s>::Vector"):
+    "Find the coordinate by coordinate maximum of two Vectors."
+    return "Dim<%(nDim)s>::Vector"
+
+elementWiseMin1 = PYB11TemplateFunction(elementWiseMin, template_parameters="1", pyname="elementWiseMin")
+elementWiseMin2 = PYB11TemplateFunction(elementWiseMin, template_parameters="2", pyname="elementWiseMin")
+elementWiseMin3 = PYB11TemplateFunction(elementWiseMin, template_parameters="3", pyname="elementWiseMin")
+                                        
+elementWiseMax1 = PYB11TemplateFunction(elementWiseMax, template_parameters="1", pyname="elementWiseMax")
+elementWiseMax2 = PYB11TemplateFunction(elementWiseMax, template_parameters="2", pyname="elementWiseMax")
+elementWiseMax3 = PYB11TemplateFunction(elementWiseMax, template_parameters="3", pyname="elementWiseMax")
+
+#-------------------------------------------------------------------------------
 # invertRankNTensor template
 #-------------------------------------------------------------------------------
 @PYB11template("TensorType")

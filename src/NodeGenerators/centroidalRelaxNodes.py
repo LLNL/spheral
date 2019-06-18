@@ -137,11 +137,10 @@ def centroidalRelaxNodes(nodeListsAndBounds,
 
     # Make a final call to computeVoronoiVolume to get the more expensive surfacePoint and cells fields.
     surfacePoint = db.newFluidIntFieldList(0, "surface point")
-    gradRho = db.newFluidVectorFieldList(sph.Vector.zero, "grad rho")
     deltaMedian = db.newFluidVectorFieldList(sph.Vector.zero, "delta medial position")
     if tessellationFileName:
         cells = db.newFluidFacetedVolumeFieldList(sph.FacetedVolume(), "cells")
-    sph.computeVoronoiVolume(db.fluidPosition, db.fluidHfield, db.fluidMassDensity, gradRho, db.connectivityMap(), W.kernelExtent, bounds, holes, 
+    sph.computeVoronoiVolume(db.fluidPosition, db.fluidHfield, db.connectivityMap(), W.kernelExtent, bounds, holes, 
                              sph.ScalarFieldList(),   # no weights
                              surfacePoint, vol, deltaMedian, cells)
 

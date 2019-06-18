@@ -307,7 +307,7 @@ AC_ARG_WITH(hdf5,
     AC_MSG_RESULT($withval)
 ],
 [
-    EXTRATHIRDPARTYTARGETS+=" .hdf5-1.8.19.date"
+    EXTRATHIRDPARTYTARGETS+=" .hdf5-1.10.4.date"
     AC_MSG_RESULT(no)
 ])
 
