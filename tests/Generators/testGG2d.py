@@ -306,7 +306,7 @@ print "computed moments"
 for i in xrange(len(weight[0])):
     weight[0][i] = points[i][2]
 
-computeVoronoiVolume(pos, H, rhof, gradRhof, cm, WT.kernelExtent, bounds, holes,
+computeVoronoiVolume(pos, H, cm, WT.kernelExtent, bounds, holes,
                      ScalarFieldList(),
                      surfacePoint, vol,deltaCentroid, cells)
 

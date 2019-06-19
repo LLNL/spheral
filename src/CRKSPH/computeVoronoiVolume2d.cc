@@ -191,8 +191,6 @@ void findPolygonExtent(double& xmin, double& xmax,
 void
 computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      const FieldList<Dim<2>, Dim<2>::SymTensor>& H,
-                     const FieldList<Dim<2>, Dim<2>::Scalar>& rho,
-                     const FieldList<Dim<2>, Dim<2>::Vector>& gradRho,
                      const ConnectivityMap<Dim<2> >& connectivityMap,
                      const FieldList<Dim<2>, Dim<2>::SymTensor>& damage,
                      const std::vector<Dim<2>::FacetedVolume>& facetedBoundaries,
@@ -429,9 +427,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       for (auto i = 0; i < n; ++i) {
         const auto& ri = position(nodeListi, i);
         const auto& Hi = H(nodeListi, i);
-        const auto  rhoi = rho(nodeListi, i);
-        auto        gradRhoi = gradRho(nodeListi, i);
-        const auto  grhat = gradRhoi.unitVector();
         const auto  Hinvi = Hi.Inverse();
         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         auto&       celli = polycells(nodeListi, i);
@@ -471,36 +466,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
           // We only use the volume result if interior.
           vol(nodeListi, i) = voli;
-
-          // // Apply the gradient limiter;
-          // gradRhoi *= phi;
-
-          // Is there a significant density gradient?
-          if (sqrt(gradRhoi.magnitude2()*vol(nodeListi, i)) >= 1e-8*rhoi) {
-
-            const auto nhat1 = gradRhoi.unitVector();
-            double x1, x2;
-            findPolygonExtent(x1, x2, nhat1, celli);
-            CHECK2(x1 <= 0.0 and x2 >= 0.0, nodeListi << " " << i << " " << ri << " " << x1 << " " << x2);
-            const Scalar b = gradRhoi.magnitude();
-
-            // This version uses the medial position.
-            const auto thpt = sqrt(abs(rhoi*rhoi + rhoi*b*(x1 + x2) + 0.5*b*b*(x1*x1 + x2*x2)));
-            const auto xm1 = -(rhoi + thpt)/b;
-            const auto xm2 = (-rhoi + thpt)/b;
-            const auto deltaCentroidi = deltaMedian(nodeListi, i);
-            if (xm1 >= x1 and xm1 <= x2) {
-              deltaMedian(nodeListi, i) = xm1*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
-            } else {
-              deltaMedian(nodeListi, i) = xm2*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
-            }
-
-            // // This version simply tries rho^2 weighting.
-            // deltaMedian(nodeListi, i) = ((0.5*rhoi*(x2*x2 - x1*x1) +
-            //                               2.0/3.0*rhoi*b*(x2*x2*x2 - x1*x1*x1) +
-            //                               0.25*b*b*(x2*x2*x2*x2 - x1*x1*x1*x1))/
-            //                              (pow3(rhoi + b*x2) - pow3(rhoi + b*x1)/(3.0*b)))*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
-          }
 
           // OK, this is an interior point from the perspective that it was clipped within our critical
           // radius on all sides.  However, if we have a bounding polygon we may still want to call it a

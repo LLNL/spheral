@@ -16,6 +16,13 @@ class PhysicsAbstractMethods:
         "Increment the derivatives."
         return "void"
 
+    # @PYB11implementation("""[](const Physics<%(Dimension)s>& self,
+    #                            const DataBase<%(Dimension)s>& dataBase,
+    #                            const State<%(Dimension)s>& state,
+    #                            const StateDerivatives<%(Dimension)s>& derivs,
+    #                            const Scalar currentTime) { auto result = self.dt(dataBase, state, derivs, currentTime);
+    #                                                        return py::make_tuple(result.first, result.second);
+    #                            }""")
     @PYB11const
     def dt(dataBase = "const DataBase<%(Dimension)s>&", 
            state = "const State<%(Dimension)s>&",
