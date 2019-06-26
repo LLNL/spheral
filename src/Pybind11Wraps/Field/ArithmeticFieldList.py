@@ -12,6 +12,7 @@ class ArithmeticFieldList(FieldListBase):
     typedef FieldList<%(Dimension)s, %(Value)s> FieldListType;
     typedef Field<%(Dimension)s, %(Value)s> FieldType;
     typedef NodeList<%(Dimension)s> NodeListType;
+    typedef %(Dimension)s::Scalar Scalar;
     typedef %(Dimension)s::Vector Vector;
     typedef %(Dimension)s::SymTensor SymTensor;
 """
@@ -52,6 +53,14 @@ class ArithmeticFieldList(FieldListBase):
         return
 
     def __idiv__(self, rhs="double()"):
+        return
+
+    @PYB11pyname("__imul__")
+    def __imul__SFL(self, rhs="FieldList<%(Dimension)s, Scalar>()"):
+        return
+
+    @PYB11pyname("__idiv__")
+    def __idiv__SFL(self, rhs="FieldList<%(Dimension)s, Scalar>()"):
         return
 
     @PYB11const

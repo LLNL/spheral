@@ -170,6 +170,12 @@ class DataBase:
         return "void"
 
     @PYB11const
+    def fluidSpecificHeat(self,
+                          temperature = "const FieldList<%(Dimension)s, Scalar>&",
+                          result="FieldList<%(Dimension)s, Scalar>&"):
+        return "void"
+    
+    @PYB11const
     def boundingBox(self,
                     xmin = "Vector&",
                     xmax = "Vector&",

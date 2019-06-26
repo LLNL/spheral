@@ -91,3 +91,4 @@ class HydroFieldNames:
     massDensityGradient = PYB11readonly(static=True)
     ArtificialViscousClMultiplier = PYB11readonly(static=True)
     ArtificialViscousCqMultiplier = PYB11readonly(static=True)
+    specificHeat = PYB11readonly(static=True)

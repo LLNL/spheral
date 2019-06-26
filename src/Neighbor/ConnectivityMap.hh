@@ -84,7 +84,6 @@ public:
   overlapConnectivityForNode(const int nodeListID,
                              const int nodeID) const;
 
-
   //............................................................................
   // Compute the common neighbors for a pair of nodes.  Note this method 
   // returns by value since this information is not stored by ConnectivityMap.
@@ -105,6 +104,13 @@ public:
   int numNeighborsForNode(const int nodeListID,
                           const int nodeID) const;
 
+  // Compute the number of overlap neighbors for the given node.
+  int numOverlapNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
+                                 const int nodeID) const;
+
+  int numOverlapNeighborsForNode(const int nodeListID,
+                                 const int nodeID) const;
+  
   // Return the connectivity in terms of global node IDs.
   std::map<int, std::vector<int> > globalConnectivity(std::vector<Boundary<Dimension>*>& boundaries) const;
 
