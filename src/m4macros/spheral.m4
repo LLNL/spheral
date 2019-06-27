@@ -47,7 +47,7 @@ TPLIBS=
 BOOSTTARGET=
 SILOTARGET=
 
-PIPTARGETS+=" PYB11Generator sphinx sphinx_rtd_theme pytest-runner numpy-stl twine"
+PIPTARGETS+=" PYB11Generator sphinx sphinx_rtd_theme pytest-runner numpy-stl twine h5py"
 
 AC_MSG_CHECKING(for spheral build directory)
 #SPHERALBUILDDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`
@@ -307,7 +307,7 @@ AC_ARG_WITH(hdf5,
     AC_MSG_RESULT($withval)
 ],
 [
-    EXTRATHIRDPARTYTARGETS+=" .hdf5-1.8.19.date"
+    EXTRATHIRDPARTYTARGETS+=" .hdf5-1.10.4.date"
     AC_MSG_RESULT(no)
 ])
 

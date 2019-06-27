@@ -521,7 +521,7 @@ initialize(const typename Dimension::Scalar time,
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
     FieldList<Dimension, vector<int>> cellFaceFlags;
     const FieldList<Dimension, typename Dimension::SymTensor> damage = dataBase.solidEffectiveDamage();
-    computeVoronoiVolume(position, H, massDensity, mMassDensityGradient, connectivityMap, damage,
+    computeVoronoiVolume(position, H, connectivityMap, damage,
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),      // no holes
                          vector<Boundary<Dimension>*>(this->boundaryBegin(),        // boundaries
@@ -644,7 +644,7 @@ finalize(const typename Dimension::Scalar time,
     vol.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
     FieldList<Dimension, vector<int>> cellFaceFlags;
-    computeVoronoiVolume(position, H, massDensity, gradRho, connectivityMap, damage,
+    computeVoronoiVolume(position, H, connectivityMap, damage,
                          vector<typename Dimension::FacetedVolume>(),                // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
                          vector<Boundary<Dimension>*>(this->boundaryBegin(),         // boundaries

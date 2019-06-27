@@ -6,7 +6,8 @@ from PYB11Generator import *
 PYB11includes = ["<vector>",
                  "<map>",
                  "<set>",
-                 "<string>"]
+                 "<string>",
+                 "<sstream>"]
 
 # std::vector
 vector_of_char     = PYB11_bind_vector("char", opaque=True, local=False)
@@ -37,3 +38,27 @@ vector_of_pair_string_string     = PYB11_bind_vector("std::pair<std::string, std
 map_string_double = PYB11_bind_map("std::string", "double", opaque=True, local=False)
 map_int_string    = PYB11_bind_map("int", "std::string", opaque=True, local=False)
 
+@PYB11template("T1", "T2")
+@PYB11namespace("std")
+class pair:
+    "A std::pair<%(T1)s, %(T2)s>"
+
+    def pyinit(self):
+        "Default constructor"
+        return
+
+    def pyinit(self,
+               first = "%(T1)s",
+               second = "%(T2)s"):
+        "Construct with values (%(T1)s, %(T2)s)"
+        return
+
+    # @PYB11implementation('[](const std::pair<%(T1)s, %(T2)s>& self) { std::ostringstream os; os << "(" << self.first << ", " << self.second << ")"; return os.str(); }')
+    # def __repr__(self):
+    #     return
+
+    first = PYB11readonly(doc="first value")
+    second = PYB11readonly(doc="second value")
+
+# std::pair
+pair_double_string = PYB11TemplateClass(pair, template_parameters=("double", "std::string"))

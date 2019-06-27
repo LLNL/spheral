@@ -305,8 +305,6 @@ CRKSPHVariant%(ndim)id = PYB11TemplateClass(CRKSPHVariant, template_parameters="
 @PYB11pycppname("computeVoronoiVolume")
 def computeVoronoiVolume%(ndim)id(position = "const FieldList<%(Dimension)s, %(Dimension)s::Vector>&",
                                   H = "const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>&",
-                                  rho = "const FieldList<%(Dimension)s, %(Dimension)s::Scalar>&",
-                                  gradRho = "const FieldList<%(Dimension)s, %(Dimension)s::Vector>&",
                                   connectivityMap = "const ConnectivityMap<%(Dimension)s >&",
                                   damage = "const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>&",
                                   facetedBoundaries = "const std::vector<%(Dimension)s::FacetedVolume>&",

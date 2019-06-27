@@ -18,6 +18,7 @@ PhysicalConstants(const double unitLm,
   mUnitLm(unitLm),
   mUnitMkg(unitMkg),
   mUnitTsec(unitTsec),
+  UnitEnergyJ(FastMath::square(unitTsec/unitLm) / unitMkg),
   ProtonMass(mpMKS/unitMkg),
   ElectronMass(meMKS/unitMkg),
   GGravity(GMKS/(unitLm/unitMkg*FastMath::square(unitLm/unitTsec))),
@@ -27,7 +28,7 @@ PhysicalConstants(const double unitLm,
   KelvinsToEnergyPerMole(unitMkg*FastMath::square(unitLm/unitTsec)/kBMKS*NAvogadro),
   UnitMassDensity(unitMkg/unitLm/unitLm/unitLm),
   Sigma(StefanBoltzmannMKS/unitMkg*unitTsec*unitTsec*unitTsec),
-  BlackBody(StefanBoltzmannMKS/cMKS*unitTsec*unitTsec*unitLm/unitMkg),
+  BlackBody(4*StefanBoltzmannMKS/cMKS*unitTsec*unitTsec*unitLm/unitMkg),
 
   // The electron charge is kind of funny due to the definition of the Coulomb
   ElectronCharge(qeCGS / (std::sqrt(1000.0*unitMkg*FastMath::cube(100.0*unitLm))/unitTsec)) {
