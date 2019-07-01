@@ -297,7 +297,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Flag if at least one particle is free (0).
               const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
-	      // Node displacement.
+              // Node displacement.
               const auto rij = ri - rj;
               const auto etai = Hi*rij;
               const auto etaj = Hj*rij;

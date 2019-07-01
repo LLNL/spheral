@@ -305,7 +305,7 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  
+
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
