@@ -224,6 +224,7 @@ public:
   FieldList<Dimension, SymTensor> solidEffectiveDamage() const;
   FieldList<Dimension, Vector> solidDamageGradient() const;
   FieldList<Dimension, int> solidFragmentIDs() const;
+  FieldList<Dimension, int> solidParticleTypes() const;
 
   // We can also return the node extent Fields stored in the Neighbor objects.
   FieldList<Dimension, Vector> globalNodeExtent() const;
