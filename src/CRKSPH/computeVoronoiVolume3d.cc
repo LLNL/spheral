@@ -80,6 +80,8 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
 
   // Pre-conditions
   REQUIRE(facetedBoundaries.size() == 0 or facetedBoundaries.size() == position.size());
+  REQUIRE(vol.size() == position.size());
+  REQUIRE(deltaMedian.size() == position.size());
   REQUIRE(holes.size() == facetedBoundaries.size());
 
   typedef Dim<3> Dimension;
@@ -168,8 +170,8 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
       const auto n = vol[nodeListi]->numInternalElements();
       const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
 
-#pragma omp parallel for                \
-  private(pairPlanes, vol0, voli)
+// #pragma omp parallel for                \
+//   private(pairPlanes, vol0, voli)
       for (auto i = 0; i < n; ++i) {
         const auto& ri = position(nodeListi, i);
         const auto& Hi = H(nodeListi, i);

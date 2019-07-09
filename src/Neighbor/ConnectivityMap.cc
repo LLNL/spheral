@@ -836,7 +836,7 @@ computeConnectivity() {
 
   // Do we need overlap connectivity?
   if (mBuildOverlapConnectivity) {
-    VERIFY2(mBuildGhostConnectivity, "ghost connectivity is required for overlap connectivity");
+    // VERIFY2(mBuildGhostConnectivity, "ghost connectivity is required for overlap connectivity");
     TIME_ConnectivityMap_computeOverlapConnectivity.start();
 
     // To start out, *all* neighbors of a node (gather and scatter) are overlap neighbors.  Therefore we

@@ -136,7 +136,7 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
 
         # Write the domain file names and types.
         domainNames = vector_of_string()
-        meshTypes = vector_of_int(mpi.procs, silo.DB_POINTMESH)
+        meshTypes = vector_of_int([silo.DB_POINTMESH]*mpi.procs)
         for p in domainNamePatterns:
             domainNames.append(p % "mesh")
         optlist = silo.DBoptlist(1024)
@@ -172,7 +172,7 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
             writeDefvars(db, fieldwad)
 
         # Write the variables descriptors.
-        types = vector_of_int(mpi.procs, silo.DB_POINTVAR)
+        types = vector_of_int([silo.DB_POINTVAR]*mpi.procs)
         for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
             domainVarNames = vector_of_string()
             nlocalvals = sum([len(x[1]) for x in subvars])
@@ -223,7 +223,7 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
         ntot = sum([n.numNodes for n in nodeLists])
     else:
         ntot = sum([n.numInternalNodes for n in nodeLists])
-    coords = vector_of_vector_of_double(ndim)
+    coords = [[] for i in xrange(ndim)]
     for nodes in nodeLists:
         if dumpGhosts:
             pos = nodes.positions().allValues()
@@ -235,6 +235,7 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
                 coords[j].append(pos[i][j])
     for j in xrange(ndim):
         assert len(coords[j]) == ntot
+    coords = vector_of_vector_of_double([vector_of_double(icoords) for icoords in coords])
 
     # Write the Pointmesh.
     meshOpts = silo.DBoptlist(1024)
@@ -247,22 +248,24 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
     for i in xrange(len(nodeLists)):
         matnos.append(i)
     assert len(matnos) == len(nodeLists)
-    matlist = vector_of_int()
-    matnames = vector_of_string()
+    matlist = []
+    matnames = []
     for (nodeList, imat) in zip(nodeLists, xrange(len(nodeLists))):
         if dumpGhosts:
-            matlist += vector_of_int(nodeList.numNodes, imat)
+            matlist += [imat]*nodeList.numNodes
         else:
-            matlist += vector_of_int(nodeList.numInternalNodes, imat)
+            matlist += [imat]*nodeList.numInternalNodes
         matnames.append(nodeList.name)
+    matlist = vector_of_int(matlist)
+    matnames = vector_of_string(matnames)
     assert len(matlist) == ntot
     assert len(matnames) == len(nodeLists)
     matOpts = silo.DBoptlist(1024)
     assert matOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
     assert matOpts.addOption(silo.DBOPT_DTIME, time) == 0
     assert matOpts.addOption(silo.DBOPT_MATNAMES, silo.DBOPT_NMATNOS, matnames) == 0
-    vecInt = vector_of_int(0)
-    vecDouble = vector_of_double(0)
+    vecInt = vector_of_int()
+    vecDouble = vector_of_double()
     assert silo.DBPutMaterial(db, "material", "mesh", matnos, matlist, vecInt, 
                               vecInt, vecInt, vecInt, vecDouble,
                               matOpts) == 0
@@ -274,10 +277,14 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
     varOpts = silo.DBoptlist(1024)
     assert varOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
     assert varOpts.addOption(silo.DBOPT_DTIME, time) == 0
-    for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+    for name, desc, dtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
         for subname, vals in subvars:
             if len(vals) > 0:
-                assert silo.DBPutPointvar1(db, subname, "mesh", vals, varOpts) == 0
+                if type(vals[0]) == float:
+                    ctor = vector_of_double
+                else:
+                    ctor = vector_of_int
+                assert silo.DBPutPointvar1(db, subname, "mesh", ctor(vals), varOpts) == 0
 
     # That's it.
     assert silo.DBClose(db) == 0
@@ -351,9 +358,9 @@ def extractIntField(name, field, vals, dim):
 
 def dummyIntField(name, n, vals, dim):
     if vals == []:
-        vals = [[name, vector_of_int(n, 0)]]
+        vals = [[name, vector_of_int([0]*n)]]
     else:
-        vals[0][1] += vector_of_int(n, 0)
+        vals[0][1] += vector_of_int([0]*n)
     return vals
 
 def metaDataIntField(name, time, cycle, dim):
@@ -378,9 +385,9 @@ def extractScalarField(name, field, vals, dim):
 
 def dummyScalarField(name, n, vals, dim):
     if vals == []:
-        vals = [[name, vector_of_double(n, 0.0)]]
+        vals = [[name, vector_of_double([0.0]*n)]]
     else:
-        vals[0][1] += vector_of_double(n, 0.0)
+        vals[0][1] += vector_of_double([0.0]*n)
     return vals
 
 def metaDataScalarField(name, time, cycle, dim):
@@ -425,15 +432,15 @@ def dummyVectorField(name, n, vals, dim):
     assert dim in (2,3)
     if vals == []:
         if dim == 2:
-            vals = [["%s_x" % name, vector_of_double(n, 0.0)],
-                    ["%s_y" % name, vector_of_double(n, 0.0)]]
+            vals = [["%s_x" % name, vector_of_double([0.0]*n)],
+                    ["%s_y" % name, vector_of_double([0.0]*n)]]
         else:
-            vals = [["%s_x" % name, vector_of_double(n, 0.0)],
-                    ["%s_y" % name, vector_of_double(n, 0.0)],
-                    ["%s_z" % name, vector_of_double(n, 0.0)]]
+            vals = [["%s_x" % name, vector_of_double([0.0]*n)],
+                    ["%s_y" % name, vector_of_double([0.0]*n)],
+                    ["%s_z" % name, vector_of_double([0.0]*n)]]
     else:
         for i in xrange(dim):
-            vals[i][1] += vector_of_double(n, 0.0)
+            vals[i][1] += vector_of_double([0.0]*n)
     return vals
 
 def metaDataVectorField(name, time, cycle, dim):
@@ -494,23 +501,23 @@ def dummyTensorField(name, n, vals, dim):
     assert dim in (2,3)
     if vals == []:
         if dim == 2:
-            vals = [["%s_xx" % name, vector_of_double(n, 0.0)],
-                    ["%s_xy" % name, vector_of_double(n, 0.0)],
-                    ["%s_yx" % name, vector_of_double(n, 0.0)],
-                    ["%s_yy" % name, vector_of_double(n, 0.0)]]
+            vals = [["%s_xx" % name, vector_of_double([0.0]*n)],
+                    ["%s_xy" % name, vector_of_double([0.0]*n)],
+                    ["%s_yx" % name, vector_of_double([0.0]*n)],
+                    ["%s_yy" % name, vector_of_double([0.0]*n)]]
         else:
-            vals = [["%s_xx" % name, vector_of_double(n, 0.0)],
-                    ["%s_xy" % name, vector_of_double(n, 0.0)],
-                    ["%s_xz" % name, vector_of_double(n, 0.0)],
-                    ["%s_yx" % name, vector_of_double(n, 0.0)],
-                    ["%s_yy" % name, vector_of_double(n, 0.0)],
-                    ["%s_yz" % name, vector_of_double(n, 0.0)],
-                    ["%s_zx" % name, vector_of_double(n, 0.0)],
-                    ["%s_zy" % name, vector_of_double(n, 0.0)],
-                    ["%s_zz" % name, vector_of_double(n, 0.0)]]
+            vals = [["%s_xx" % name, vector_of_double([0.0]*n)],
+                    ["%s_xy" % name, vector_of_double([0.0]*n)],
+                    ["%s_xz" % name, vector_of_double([0.0]*n)],
+                    ["%s_yx" % name, vector_of_double([0.0]*n)],
+                    ["%s_yy" % name, vector_of_double([0.0]*n)],
+                    ["%s_yz" % name, vector_of_double([0.0]*n)],
+                    ["%s_zx" % name, vector_of_double([0.0]*n)],
+                    ["%s_zy" % name, vector_of_double([0.0]*n)],
+                    ["%s_zz" % name, vector_of_double([0.0]*n)]]
     else:
         for i in xrange(dim*dim):
-            vals[i][1] += vector_of_double(n, 0.0)
+            vals[i][1] += vector_of_double([0.0]*n)
     return vals
 
 def metaDataTensorField(name, time, cycle, dim):
@@ -538,7 +545,7 @@ def metaDataTensorField(name, time, cycle, dim):
 # Write the variable descriptors for non-scalar types (vector and tensor).
 #-------------------------------------------------------------------------------
 def writeDefvars(db, fieldwad):
-    names, defs, types, opts = vector_of_string(), vector_of_string(), vector_of_int(), vector_of_DBoptlist()
+    names, defs, types, opts = vector_of_string(), vector_of_string(), vector_of_int(), []
     for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
         if desc != None:
             assert optlistDef != None

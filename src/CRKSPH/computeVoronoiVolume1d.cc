@@ -45,6 +45,8 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
 
   // Pre-conditions
   REQUIRE(facetedBoundaries.size() == 0 or facetedBoundaries.size() == position.size());
+  REQUIRE(vol.size() == position.size());
+  REQUIRE(deltaMedian.size() == position.size());
   REQUIRE(holes.size() == facetedBoundaries.size());
 
   typedef Dim<1>::Scalar Scalar;
