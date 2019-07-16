@@ -307,15 +307,17 @@ DBoptlist_wrapper::AddOptionFunctor<std::string> {
   writeVector(DBoptlist_wrapper& optlist_wrapper,
               const int option,
               const int option_size,
-              const std::vector<std::string>& value) {
-    VERIFY(optlist_wrapper.addOption<int>(option_size, value.size()) == 0);
-    std::shared_ptr<void> voidValue(new char*[value.size()]);
-    char** charArray = (char**) voidValue.get();
-    for (auto k = 0; k < value.size(); ++k) {
-      charArray[k] = new char[value[k].size() + 1];
-      strcpy(charArray[k], value[k].c_str());
+              const std::vector<std::string>& value0) {
+    VERIFY(optlist_wrapper.addOption<int>(option_size, value0.size()) == 0);
+    std::shared_ptr<void> voidValue(new std::vector<std::string>(value0));
+    auto value = static_cast<std::vector<std::string>*>(voidValue.get());
+    std::shared_ptr<void> voidChar(new char*[value->size()]);
+    char** charArray = (char**) voidChar.get();
+    for (auto k = 0; k < value->size(); ++k) {
+      charArray[k] = new char[(*value)[k].size() + 1];
+      strcpy(charArray[k], (*value)[k].c_str());
     }
-    // optlist_wrapper.mCache.push_back(voidValue);
+    optlist_wrapper.mCache.push_back(voidChar);
     return DBAddOption(optlist_wrapper.mOptlistPtr, option, charArray);
   }
 };
