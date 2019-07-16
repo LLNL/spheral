@@ -193,7 +193,7 @@ struct DBoptlist_wrapper {
                     const std::vector<Value>& value) {
       DBoptlist_wrapper::AddOptionFunctor<int>().writeValue(optlist_wrapper, option_size, value.size());
       std::shared_ptr<void> voidValue(new std::vector<Value>(value));
-      optlist_wrapper.mCache.push_back(voidValue);
+      // optlist_wrapper.mCache.push_back(voidValue);
       Value* frontPtr = &(((std::vector<Value>*) voidValue.get())->front());
       return DBAddOption(optlist_wrapper.mOptlistPtr, option, frontPtr);
     }
@@ -315,7 +315,7 @@ DBoptlist_wrapper::AddOptionFunctor<std::string> {
       charArray[k] = new char[value[k].size() + 1];
       strcpy(charArray[k], value[k].c_str());
     }
-    optlist_wrapper.mCache.push_back(voidValue);
+    // optlist_wrapper.mCache.push_back(voidValue);
     return DBAddOption(optlist_wrapper.mOptlistPtr, option, charArray);
   }
 };
