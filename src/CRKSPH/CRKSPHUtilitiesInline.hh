@@ -35,19 +35,19 @@ CRKSPHKernel(const TableKernel<Dimension>& W,
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
 
-  const Scalar Wij = 0.5*(W(etai.magnitude(), Hdeti) + W(etaj.magnitude(), Hdetj));
+  const Scalar Wj = W(etaj.magnitude(), Hdetj);
   if (correctionOrder == CRKOrder::ZerothOrder) {
     return std::max(correctionMin, 
                     std::min(correctionMax,
-                             Ai))*Wij;
+                             Ai))*Wj;
   } else if (correctionOrder == CRKOrder::LinearOrder) {
     return std::max(correctionMin,
                     std::min(correctionMax, 
-                             Ai*(1.0 + Bi.dot(rij))))*Wij;
+                             Ai*(1.0 + Bi.dot(rij))))*Wj;
   } else {   //correctionOrder == QuadraticOrder
     return std::max(correctionMin, 
                     std::min(correctionMax, 
-                             Ai*(1.0 + Bi.dot(rij) + innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))))*Wij;
+                             Ai*(1.0 + Bi.dot(rij) + innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))))*Wj;
   }
 }
 
@@ -82,47 +82,53 @@ CRKSPHKernelAndGradient(typename Dimension::Scalar& WCRKSPH,
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
 
-  // ij
-  const std::pair<Scalar, Scalar> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-  const std::pair<Scalar, Scalar> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
-  const Scalar Wij = 0.5*(WWi.first + WWj.first); 
-  const Vector gradWij = 0.5*(Hi*etai.unitVector() * WWi.second + Hj*etaj.unitVector() * WWj.second);
-  gradWSPH = 0.5*(WWi.second + WWj.second);
+  // j
+  const auto WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
+  const auto Wj = WWj.first;
+  const auto gradWj = Hj*etaj.unitVector() * WWj.second;
+  gradWSPH = WWj.second;
+
+  // // ij
+  // const std::pair<Scalar, Scalar> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
+  // const std::pair<Scalar, Scalar> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
+  // const Scalar Wij = 0.5*(WWi.first + WWj.first); 
+  // const Vector gradWij = 0.5*(Hi*etai.unitVector() * WWi.second + Hj*etaj.unitVector() * WWj.second);
+  // gradWSPH = 0.5*(WWi.second + WWj.second);
 
   if (correctionOrder == CRKOrder::ZerothOrder) {
-    const double correction0 = Ai;
-    const double correction = std::max(correctionMin, std::min(correctionMax, correction0));
-    WCRKSPH = correction*Wij;
-    gradWCRKSPH = correction*gradWij;
+    const auto correction0 = Ai;
+    const auto correction = std::max(correctionMin, std::min(correctionMax, correction0));
+    WCRKSPH = correction*Wj;
+    gradWCRKSPH = correction*gradWj;
     if (correction0 > correctionMin and correction0 < correctionMax) {
-      gradWCRKSPH += gradAi*Wij;
+      gradWCRKSPH += gradAi*Wj;
     }
 
   } else if (correctionOrder == CRKOrder::LinearOrder) {
-    const double correction0 = Ai*(1.0 + Bi.dot(rij));
-    const double correction = std::max(correctionMin, std::min(correctionMax, correction0));
-    WCRKSPH = correction*Wij;
-    gradWCRKSPH = correction*gradWij;
+    const auto correction0 = Ai*(1.0 + Bi.dot(rij));
+    const auto correction = std::max(correctionMin, std::min(correctionMax, correction0));
+    WCRKSPH = correction*Wj;
+    gradWCRKSPH = correction*gradWj;
     if (correction0 > correctionMin and correction0 < correctionMax) {
-      gradWCRKSPH += Ai*Bi*Wij + gradAi*(1.0 + Bi.dot(rij))*Wij;
+      gradWCRKSPH += Ai*Bi*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
       for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
         for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-          gradWCRKSPH(ii) += Ai*Wij*gradBi(jj,ii)*rij(jj);
+          gradWCRKSPH(ii) += Ai*Wj*gradBi(jj,ii)*rij(jj);
         }
       }
     }
 
   } else {  //correctionOrder == CRKOrder::QuadraticOrder
-    const double correction0 = Ai*(1.0 + Bi.dot(rij) + innerDoubleProduct<Dimension>(Ci, rij.selfdyad()));
-    const double correction = std::max(correctionMin, std::min(correctionMax, correction0));
-    WCRKSPH = correction*Wij;
-    gradWCRKSPH = correction*gradWij;
+    const auto correction0 = Ai*(1.0 + Bi.dot(rij) + innerDoubleProduct<Dimension>(Ci, rij.selfdyad()));
+    const auto correction = std::max(correctionMin, std::min(correctionMax, correction0));
+    WCRKSPH = correction*Wj;
+    gradWCRKSPH = correction*gradWj;
     if (correction0 > correctionMin and correction0 < correctionMax) {
-      gradWCRKSPH += Ai*Bi*Wij;
-      gradWCRKSPH += gradAi*(1.0 + Bi.dot(rij) + innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wij;
-      gradWCRKSPH += Ai*(innerProduct<Dimension>(rij,gradBi))*Wij;
-      gradWCRKSPH += Ai*(innerDoubleProduct<Dimension>(rij.selfdyad(),gradCi))*Wij;
-      gradWCRKSPH += 2.0*Ai*(innerProduct<Dimension>(rij,Ci))*Wij;
+      gradWCRKSPH += (Ai*Bi*Wj +
+                      gradAi*(1.0 + Bi.dot(rij) + innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wj + 
+                      Ai*(innerProduct<Dimension>(rij,gradBi))*Wj +
+                      Ai*(innerDoubleProduct<Dimension>(rij.selfdyad(),gradCi))*Wj +
+                      2.0*Ai*(innerProduct<Dimension>(rij,Ci))*Wj);
     }
   }
 }

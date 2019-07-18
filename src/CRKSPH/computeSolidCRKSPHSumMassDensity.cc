@@ -45,64 +45,64 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
-  const Scalar W0 = W.kernelValue(0.0, 1.0);
+  const auto W0 = W.kernelValue(0.0, 1.0);
 
   // Prepare to sum the correction.
   FieldList<Dimension, Scalar> m0(FieldStorageType::CopyFields);
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     m0.appendNewField("zeroth correction", position[nodeListi]->nodeList(), 0.0);
   }
 
   // Walk the FluidNodeLists and sum the new mass density.
   massDensity = 0.0;
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const FluidNodeList<Dimension>& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[nodeListi]->nodeList());
-    const Scalar rhoMin = nodeList.rhoMin();
-    const Scalar rhoMax = nodeList.rhoMax();
+  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const auto& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[nodeListi]->nodeList());
+    const auto  rhoMin = nodeList.rhoMin();
+    const auto  rhoMax = nodeList.rhoMax();
 
     // Iterate over the nodes in this node list.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+    for (auto iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
          ++iItr) {
-      const int i = *iItr;
+      const auto i = *iItr;
 
       // Get the state for node i.
-      const Vector& ri = position(nodeListi, i);
-      const Scalar mi = mass(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
-      const Scalar rho0i = massDensity0(nodeListi, i);
-      const Scalar wi = mi/rho0i;
-      const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+      const auto& ri = position(nodeListi, i);
+      const auto  mi = mass(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      const auto  rho0i = massDensity0(nodeListi, i);
+      const auto  wi = mi/rho0i;
+      const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
 
-      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        const vector<int>& connectivity = fullConnectivity[nodeListj];
-        const int firstGhostNodej = massDensity[nodeListj]->nodeList().firstGhostNode();
-        for (vector<int>::const_iterator jItr = connectivity.begin();
+      for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+        const auto& connectivity = fullConnectivity[nodeListj];
+        const auto  firstGhostNodej = massDensity[nodeListj]->nodeList().firstGhostNode();
+        for (auto jItr = connectivity.begin();
              jItr != connectivity.end();
              ++jItr) {
-          const int j = *jItr;
+          const auto j = *jItr;
 
           // Check the coupling of these points.
-          const Scalar fij = nodeCoupling(nodeListi, i, nodeListj, j);
+          const auto fij = nodeCoupling(nodeListi, i, nodeListj, j);
 
           // Check if this node pair has already been calculated.
           if (fij > 0.0 and connectivityMap.calculatePairInteraction(nodeListi, i, 
                                                                      nodeListj, j,
                                                                      firstGhostNodej)) {
-            const Vector& rj = position(nodeListj, j);
-            const Scalar mj = mass(nodeListj, j);
-            const SymTensor& Hj = H(nodeListj, j);
-            const Scalar Hdetj = Hj.Determinant();
-            const Scalar rho0j = massDensity0(nodeListj, j);
-            const Scalar wj = mj/rho0j;
+            const auto& rj = position(nodeListj, j);
+            const auto  mj = mass(nodeListj, j);
+            const auto& Hj = H(nodeListj, j);
+            const auto  Hdetj = Hj.Determinant();
+            const auto  rho0j = massDensity0(nodeListj, j);
+            const auto  wj = mj/rho0j;
 
             // Kernel weighting and gradient.
-            const Vector rij = ri - rj;
-            const Scalar etai = (Hi*rij).magnitude();
-            const Scalar etaj = (Hj*rij).magnitude();
-            const Scalar Wi = W.kernelValue(etai, Hdeti);
-            const Scalar Wj = W.kernelValue(etaj, Hdetj);
+            const auto rij = ri - rj;
+            const auto etai = (Hi*rij).magnitude();
+            const auto etaj = (Hj*rij).magnitude();
+            const auto Wi = W.kernelValue(etai, Hdeti);
+            const auto Wj = W.kernelValue(etaj, Hdetj);
 
             // Sum the pair-wise contributions.
             massDensity(nodeListi, i) += fij*wj*Wj*mi;
