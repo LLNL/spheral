@@ -549,14 +549,8 @@ if graphics:
                                winTitle = "Surface",
                                plotStyle = "ro",
                                colorNodeLists = False, plotGhosts = False)
-        vpPlot = plotFieldList(hydro.voidPoint, 
-                               xFunction = "%s.magnitude()",
-                               winTitle = "Void",
-                               plotStyle = "ro",
-                               colorNodeLists = False, plotGhosts = True)
         plots += [(volPlot, "Noh-cylindrical-vol.png"),
-                  (spPlot, "Noh-cylindrical-surfacePoint.png"),
-                  (vpPlot, "Noh-cylindrical-voidPoint.png")]
+                  (spPlot, "Noh-cylindrical-surfacePoint.png")]
 
     # Make hardcopies of the plots.
     for p, filename in plots:
