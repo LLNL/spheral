@@ -26,8 +26,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto XSPH = this->XSPH();
   const auto epsTensile = this->epsilonTensile();
   const auto order = this->correctionOrder();
-  const auto correctionMin = this->correctionMin();
-  const auto correctionMax = this->correctionMax();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();

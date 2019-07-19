@@ -70,9 +70,7 @@ def CRKSPHKernel(W = "const TableKernel<%(Dimension)s>&",
                  Hdetj = "const typename %(Dimension)s::Scalar",
                  Ai = "const typename %(Dimension)s::Scalar",
                  Bi = "const typename %(Dimension)s::Vector&",
-                 Ci = "const typename %(Dimension)s::Tensor&",
-                 correctionMin = ("const typename %(Dimension)s::Scalar", "std::numeric_limits<typename %(Dimension)s::Scalar>::lowest()"),
-                 correctionMax = ("const typename %(Dimension)s::Scalar", "std::numeric_limits<typename %(Dimension)s::Scalar>::max()")):
+                 Ci = "const typename %(Dimension)s::Tensor&"):
     "Compute the corrected kernel value."
     return "typename %(Dimension)s::Scalar"
 
@@ -91,9 +89,7 @@ def CRKSPHKernel(W = "const TableKernel<%(Dimension)s>&",
                            const typename %(Dimension)s::Tensor& Ci,
                            const typename %(Dimension)s::Vector& gradAi,
                            const typename %(Dimension)s::Tensor& gradBi,
-                           const typename %(Dimension)s::ThirdRankTensor& gradCi,
-                           const typename %(Dimension)s::Scalar correctionMin,
-                           const typename %(Dimension)s::Scalar correctionMax) {
+                           const typename %(Dimension)s::ThirdRankTensor& gradCi) {
                                typename %(Dimension)s::Scalar WCRKSPH, gradWSPH;
                                typename %(Dimension)s::Vector gradWCRKSPH;
                                CRKSPHKernelAndGradient(WCRKSPH, gradWSPH, gradWCRKSPH,                            
@@ -111,9 +107,7 @@ def CRKSPHKernel(W = "const TableKernel<%(Dimension)s>&",
                                                        Ci,
                                                        gradAi,
                                                        gradBi,
-                                                       gradCi,
-                                                       correctionMin,
-                                                       correctionMax);
+                                                       gradCi);
                                return py::make_tuple(WCRKSPH, gradWSPH, gradWCRKSPH);
                            }""")
 def CRKSPHKernelAndGradient(
@@ -131,9 +125,7 @@ def CRKSPHKernelAndGradient(
         Ci = "const typename %(Dimension)s::Tensor&",
         gradAi = "const typename %(Dimension)s::Vector&",
         gradBi = "const typename %(Dimension)s::Tensor&",
-        gradCi = "const typename %(Dimension)s::ThirdRankTensor&",
-        correctionMin = ("const typename %(Dimension)s::Scalar", "std::numeric_limits<typename %(Dimension)s::Scalar>::lowest()"),
-        correctionMax = ("const typename %(Dimension)s::Scalar", "std::numeric_limits<typename %(Dimension)s::Scalar>::max()")):
+        gradCi = "const typename %(Dimension)s::ThirdRankTensor&"):
     "Compute the corrected kernel value, uncorrected and corrected gradients."
     return "py::tuple"
 

@@ -1,9 +1,9 @@
 #ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 1d --testCase linear", label="CRKSPH linear interpolation test -- 1D (serial)")
 #ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 2d --testCase linear", label="CRKSPH linear interpolation test -- 2D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 3d --testCase linear", label="CRKSPH linear interpolation test -- 3D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 5  --nx2 5  --testDim 3d --testCase linear", label="CRKSPH linear interpolation test -- 3D (serial)")
 #ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 1d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 1D (serial)")
 #ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 2d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 2D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 3d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 3D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 5  --nx2 5  --testDim 3d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 3D (serial)")
 #-------------------------------------------------------------------------------
 # A set of tests to compare how different meshless methods interpolate fields.
 #-------------------------------------------------------------------------------

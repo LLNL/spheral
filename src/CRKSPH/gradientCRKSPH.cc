@@ -162,8 +162,8 @@ gradientCRKSPH(const FieldList<Dimension, DataType>& fieldList,
               // Kernel weight and gradient.
               Scalar Wi, gWi, Wj, gWj;
               Vector gradWi, gradWj;
-              CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, -1e100, 1e100);
-              CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, -1e100, 1e100);
+              CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi);
+              CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj);
 
               // Increment the pair-wise gradients.
               gradFi += wj*Fj*gradWj;
