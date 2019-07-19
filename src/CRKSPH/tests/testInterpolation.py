@@ -28,7 +28,7 @@ commandLine(
     x2 = 1.0,
     nPerh = 4.01,
     hmin = 0.0001, 
-    hmax = 100.0,
+    hmax = 1000.0,
 
     # What order of reproducing kernel should we use (0,1,2)?
     correctionOrder = LinearOrder,
