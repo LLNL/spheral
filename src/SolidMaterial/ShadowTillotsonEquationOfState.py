@@ -59,7 +59,7 @@ TillotsonEquationOfState can be constructed one of two ways:
 #-------------------------------------------------------------------------------
 # The base units for parameters in this file.
 #-------------------------------------------------------------------------------
-CGS = PhysicalConstants(0.01,    # Length in m
+cgs = PhysicalConstants(0.01,    # Length in m
                         0.001,   # Mass in kg
                         1.0)     # Time in sec
 
@@ -114,9 +114,9 @@ def _TillotsonFactory(*args,
         params = dict(SpheralMaterialPropertiesLib[mat]["Tillotson"])
     
         # Figure out the conversions to the requested units.
-        lconv = CGS.unitLengthMeters / units.unitLengthMeters
-        mconv = CGS.unitMassKg / units.unitMassKg
-        tconv = CGS.unitTimeSec / units.unitTimeSec
+        lconv = cgs.unitLengthMeters / units.unitLengthMeters
+        mconv = cgs.unitMassKg / units.unitMassKg
+        tconv = cgs.unitTimeSec / units.unitTimeSec
         rhoConv = mconv/(lconv*lconv*lconv)
         Pconv = mconv/(lconv*tconv*tconv)
         specificEconv = (lconv/tconv)**2

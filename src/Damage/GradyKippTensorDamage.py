@@ -67,7 +67,7 @@ GradyKippTensorDamageOwen is constructed with the following arguments:
 # The material library values are in CGS, so build a units object for 
 # conversions.
 #-------------------------------------------------------------------------------
-CGS = PhysicalConstants(0.01,   # unit length in m
+cgs = PhysicalConstants(0.01,   # unit length in m
                         0.001,  # unit mass in kg
                         1.0)    # unit time in sec
 
@@ -155,7 +155,7 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
             # Any attempt to specify units?
             if "units" in kwargs:
                 units = kwargs["units"]
-                weibull_kwargs["kWeibull"] *= (CGS.unitLengthMeters/units.unitLengthMeters)**3
+                weibull_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
                 del kwargs["units"]
 
         # Process the other user arguments.
@@ -293,7 +293,7 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
             # Any attempt to specify units?
             if "units" in kwargs:
                 units = kwargs["units"]
-                weibull_kwargs["kWeibull"] *= (CGS.unitLengthMeters/units.unitLengthMeters)**3
+                weibull_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
                 del kwargs["units"]
 
         # Process the other user arguments.

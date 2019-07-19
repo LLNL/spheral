@@ -56,43 +56,43 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 
   massDensity = 0.0;
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const FluidNodeList<Dimension>& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[nodeListi]->nodeList());
-    const Scalar rhoMin = nodeList.rhoMin();
-    const Scalar rhoMax = nodeList.rhoMax();
+    const auto& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[nodeListi]->nodeList());
+    const auto  rhoMin = nodeList.rhoMin();
+    const auto  rhoMax = nodeList.rhoMax();
 
     // Iterate over the nodes in this node list.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+    for (auto iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
          ++iItr) {
-      const int i = *iItr;
+      const auto i = *iItr;
 
       // Get the state for node i.
-      const Vector& ri = position(nodeListi, i);
-      const Scalar mi = mass(nodeListi, i);
-      const Scalar Vi = vol(nodeListi, i);
-      const Scalar rhoi = massDensity(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
+      const auto& ri = position(nodeListi, i);
+      const auto  mi = mass(nodeListi, i);
+      const auto  Vi = vol(nodeListi, i);
+      const auto  rhoi = massDensity(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
 
       // Loop over the neighbors in just point i's NodeList.
-      const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-      const vector<int>& connectivity = fullConnectivity[nodeListi];
-      const int firstGhostNodej = massDensity[nodeListi]->nodeList().firstGhostNode();
-      for (vector<int>::const_iterator jItr = connectivity.begin();
+      const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+      const auto& connectivity = fullConnectivity[nodeListi];
+      const auto  firstGhostNodej = massDensity[nodeListi]->nodeList().firstGhostNode();
+      for (auto jItr = connectivity.begin();
            jItr != connectivity.end();
            ++jItr) {
-        const int j = *jItr;
+        const auto j = *jItr;
 
         // Check if this node pair has already been calculated.
         if (connectivityMap.calculatePairInteraction(nodeListi, i, 
                                                      nodeListi, j,
                                                      firstGhostNodej)) {
-          const Vector& rj = position(nodeListi, j);
-          const Scalar mj = mass(nodeListi, j);
-          const Scalar Vj = vol(nodeListi, j);
-          const Scalar rhoj = massDensity(nodeListi, j);
-          const SymTensor& Hj = H(nodeListi, j);
-          const Scalar Hdetj = Hj.Determinant();
+          const auto& rj = position(nodeListi, j);
+          const auto  mj = mass(nodeListi, j);
+          const auto  Vj = vol(nodeListi, j);
+          const auto  rhoj = massDensity(nodeListi, j);
+          const auto& Hj = H(nodeListi, j);
+          const auto  Hdetj = Hj.Determinant();
 
           // Kernel weighting and gradient.
           rij = ri - rj;
