@@ -51,6 +51,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const auto damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   const auto gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   const auto A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
   const auto B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
   const auto C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
@@ -72,6 +73,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   CHECK(damage.size() == numNodeLists);
   CHECK(gradDamage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
+  CHECK(pTypes.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
   CHECK(B.size() == numNodeLists);
   CHECK(C.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
@@ -205,6 +207,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto& Si = S(nodeListi, i);
       const auto  STTi = STT(nodeListi, i);
       const auto  mui = mu(nodeListi, i);
+      const auto  pTypei = pTypes(nodeListi, i);
       Ai = A(nodeListi, i);
       gradAi = gradA(nodeListi, i);
       if (order != CRKOrder::ZerothOrder) {
@@ -276,6 +279,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
             const auto  Pj = pressure(nodeListj, j);
             const auto& Hj = H(nodeListj, j);
             const auto  cj = soundSpeed(nodeListj, j);
+            const auto  pTypej = pTypes(nodeListj, j);
             Aj = A(nodeListj, j);
             gradAj = gradA(nodeListj, j);
             if (order != CRKOrder::ZerothOrder) {
@@ -295,6 +299,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
             CHECK(rhoj > 0.0);
             CHECK(Hdetj > 0.0);
             CHECK(weightj > 0.0);
+
+            // Flag if at least one particle is free (0).
+            const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
             // Node displacement.
             const auto xij = posi - posj;
@@ -367,7 +374,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
             forceij = (true ? // surfacePoint(nodeListi, i) <= 1 ? 
                        0.5*weighti*weightj*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij) :                // Type III CRK interpoint force.
                        mi*weightj*(((Pposj - Pposi)*gradWj - fij*(sigmaj - sigmai)*gradWj)/rhoi + rhoi*QPiij.dot(gradWj)));        // RK
-            DvDti -= forceij/mRZi;
+            if (freeParticle) DvDti -= forceij/mRZi;
             if (compatibleEnergy) {
               pairAccelerationsi.push_back(-forceij/mRZi);
               pairAccelerationsi.push_back( forceij/mRZj);
