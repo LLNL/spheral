@@ -330,9 +330,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const auto fij = coupling(nodeListi, i, nodeListj, j);
               CHECK(fij >= 0.0 and fij <= 1.0);
 
-              // Find the effective weights of i->j and j->i.
-              // const auto wi = 2.0*weighti*weightj/(weighti + weightj);
-              const auto wij = 0.5*(weighti + weightj);
+              // // Find the effective weights of i->j and j->i.
+              // // const auto wi = 2.0*weighti*weightj/(weighti + weightj);
+              // const auto wij = 0.5*(weighti + weightj);
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
@@ -355,20 +355,20 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);               // We need tighter timestep controls on the Q with CRK
               maxViscousPressurej = max(maxViscousPressurej, 4.0*Qj);
-              effViscousPressurei += wij * Qi * Wj;
-              effViscousPressurej += wij * Qj * Wi;
-              viscousWorki += 0.5*wij*wij/mRZi*workQi;
-              viscousWorkj += 0.5*wij*wij/mRZj*workQj;
+              effViscousPressurei += weightj * Qi * Wj;
+              effViscousPressurej += weighti * Qj * Wi;
+              viscousWorki += 0.5*weighti*weightj/mRZi*workQi;
+              viscousWorkj += 0.5*weighti*weightj/mRZj*workQj;
 
               // Velocity gradient.
-              DvDxi -= wij*vij.dyad(gradWj);
-              DvDxj += wij*vij.dyad(gradWi);
-              localDvDxi -= fij*wij*vij.dyad(gradWj);
-              localDvDxj += fij*wij*vij.dyad(gradWi);
+              DvDxi -= weightj*vij.dyad(gradWj);
+              DvDxj += weighti*vij.dyad(gradWi);
+              localDvDxi -= fij*weightj*vij.dyad(gradWj);
+              localDvDxj += fij*weighti*vij.dyad(gradWi);
 
               // Mass density gradient.
-              gradRhoi += wij*(rhoj - rhoi)*gradWj;
-              gradRhoj += wij*(rhoi - rhoj)*gradWi;
+              gradRhoi += weightj*(rhoj - rhoi)*gradWj;
+              gradRhoj += weighti*(rhoi - rhoj)*gradWi;
 
               // We treat positive and negative pressures distinctly, so split 'em up.
               const Scalar Pposi = max(0.0, Pi),
@@ -388,11 +388,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
               // Momentum
               forceij = (true ? // surfacePoint(nodeListi, i) <= 1 ? 
-                         0.5*wij*wij*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
-                         mi*wij*(((Pposj - Pposi)*gradWj - fij*(sigmaj - sigmai)*gradWj)/rhoi + rhoi*QPiij.dot(gradWj)));        // RK
+                         0.5*weighti*weightj*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij) :                // Type III CRK interpoint force.
+                         mi*weightj*(((Pposj - Pposi)*gradWj - fij*(sigmaj - sigmai)*gradWj)/rhoi + rhoi*QPiij.dot(gradWj)));        // RK
               forceji = (true ? // surfacePoint(nodeListj, j) <= 1 ?
-                         0.5*wij*wij*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
-                         mj*wij*(((Pposj - Pposi)*gradWi - fij*(sigmaj - sigmai)*gradWi)/rhoj - rhoj*QPiji.dot(gradWi)));        // RK
+                         0.5*weighti*weightj*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij) :                // Type III CRK interpoint force.
+                         mj*weighti*(((Pposj - Pposi)*gradWi - fij*(sigmaj - sigmai)*gradWi)/rhoj - rhoj*QPiji.dot(gradWi)));        // RK
               DvDti -= forceij/mRZi;
               DvDtj += forceji/mRZj;
               if (compatibleEnergy) {
@@ -402,15 +402,15 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
               // Energy
               DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ?
-                          0.5*wij*wij*(Pposj*vij.dot(deltagrad) - fij*sigmaj.dot(vij).dot(deltagrad) + workQi)/mRZi :               // CRK
-                          wij*rhoi*QPiij.dot(vij).dot(gradWj));                                                                     // RK, Q term only -- adiabatic portion added later
+                          0.5*weighti*weightj*(Pposj*vij.dot(deltagrad) - fij*sigmaj.dot(vij).dot(deltagrad) + workQi)/mRZi :           // CRK
+                          weightj*rhoi*QPiij.dot(vij).dot(gradWj));                                                                     // RK, Q term only -- adiabatic portion added later
               DepsDtj += (true ? // surfacePoint(nodeListj, j) <= 1 ?
-                          0.5*wij*wij*(Pposi*vij.dot(deltagrad) - fij*sigmai.dot(vij).dot(deltagrad) + workQj)/mRZj :               // CRK
-                         -wij*rhoj*QPiji.dot(vij).dot(gradWi));                                                                     // RK, Q term only -- adiabatic portion added later
+                          0.5*weighti*weightj*(Pposi*vij.dot(deltagrad) - fij*sigmai.dot(vij).dot(deltagrad) + workQj)/mRZj :           // CRK
+                         -weighti*rhoj*QPiji.dot(vij).dot(gradWi));                                                                     // RK, Q term only -- adiabatic portion added later
 
               // Estimate of delta v (for XSPH).
-              XSPHDeltaVi -= fij*wij*Wj*vij;
-              XSPHDeltaVj += fij*wij*Wi*vij;
+              XSPHDeltaVi -= fij*weightj*Wj*vij;
+              XSPHDeltaVj += fij*weighti*Wi*vij;
             }
           }
         }
