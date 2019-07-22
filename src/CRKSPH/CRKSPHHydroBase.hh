@@ -167,13 +167,6 @@ public:
   Scalar nTensile() const;
   void nTensile(Scalar val);
     
-  // Limits to impose on node by node corrections.
-  double correctionMin() const;
-  void correctionMin(double val);
-
-  double correctionMax() const;
-  void correctionMax(double val);
-
   // We maintain a special boundary condition to handle void points.
   const CRKSPHVoidBoundary<Dimension>& voidBoundary() const;
 
@@ -246,7 +239,6 @@ protected:
   Scalar mEpsTensile, mnTensile;
   bool mDetectSurfaces;
   double mDetectThreshold, mSweepAngle, mDetectRange;
-  double mCorrectionMin, mCorrectionMax;
 
   // Some internal scratch fields.
   FieldList<Dimension, int>       mTimeStepMask;

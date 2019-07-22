@@ -360,7 +360,7 @@ def dummyIntField(name, n, vals, dim):
     if vals == []:
         vals = [[name, vector_of_int([0]*n)]]
     else:
-        vals[0][1] += vector_of_int([0]*n)
+        vals[0][1].extend(vector_of_int([0]*n))
     return vals
 
 def metaDataIntField(name, time, cycle, dim):
@@ -387,7 +387,7 @@ def dummyScalarField(name, n, vals, dim):
     if vals == []:
         vals = [[name, vector_of_double([0.0]*n)]]
     else:
-        vals[0][1] += vector_of_double([0.0]*n)
+        vals[0][1].extend(vector_of_double([0.0]*n))
     return vals
 
 def metaDataScalarField(name, time, cycle, dim):
@@ -440,7 +440,7 @@ def dummyVectorField(name, n, vals, dim):
                     ["%s_z" % name, vector_of_double([0.0]*n)]]
     else:
         for i in xrange(dim):
-            vals[i][1] += vector_of_double([0.0]*n)
+            vals[i][1].extend(vector_of_double([0.0]*n))
     return vals
 
 def metaDataVectorField(name, time, cycle, dim):
@@ -517,7 +517,7 @@ def dummyTensorField(name, n, vals, dim):
                     ["%s_zz" % name, vector_of_double([0.0]*n)]]
     else:
         for i in xrange(dim*dim):
-            vals[i][1] += vector_of_double([0.0]*n)
+            vals[i][1].extend(vector_of_double([0.0]*n))
     return vals
 
 def metaDataTensorField(name, time, cycle, dim):
