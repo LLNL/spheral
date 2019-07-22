@@ -142,10 +142,6 @@ mass density, velocity, and specific thermal energy."""
                                    doc="Parameters for the tensile correction force at small scales.")
     nTensile = PYB11property("Scalar", "nTensile", "nTensile",
                                    doc="Parameters for the tensile correction force at small scales.")
-    correctionMin = PYB11property("double", "correctionMin", "correctionMin",
-                                  doc="Limits to impose on node by node corrections.")
-    correctionMax = PYB11property("double", "correctionMax", "correctionMax",
-                                  doc="Limits to impose on node by node corrections.")
     voidBoundary = PYB11property("const CRKSPHVoidBoundary<%(Dimension)s>&", "voidBoundary", returnpolicy="reference_internal",
                                  doc="We maintain a special boundary condition to handle void points.")
 

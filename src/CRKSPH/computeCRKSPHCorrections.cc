@@ -234,7 +234,7 @@ computeLinearCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Sc
       const auto& m2i = m2(nodeListi, i);
       const auto  hdet2 = 1.0/FastMath::square(H(nodeListi, i).Determinant());
       const auto  m2det = m2i.Determinant();
-      const auto  m2inv = abs(m2det) > 1.0e-5*hdet2 ? m2i.Inverse() : SymTensor::zero;
+      const auto  m2inv = abs(m2det) > std::max(1e-80, 1.0e-30*hdet2) ? m2i.Inverse() : SymTensor::zero;
       const auto  m2invm1 = m2inv*m1(nodeListi, i);
       const auto  Ainv = m0(nodeListi, i) - m2invm1.dot(m1(nodeListi, i));
       CHECK(Ainv != 0.0);
@@ -348,7 +348,7 @@ computeQuadraticCRKSPHCorrections(const FieldList<Dimension, typename Dimension:
       const auto& gm4i = gradm4(nodeListi, i);
       const auto  hdet2 = 1.0/FastMath::square(H(nodeListi, i).Determinant());
       const auto  m2det = m2i.Determinant();
-      const auto  m2inv = abs(m2det) > 1.0e-5*hdet2 ? m2i.Inverse() : SymTensor::zero;
+      const auto  m2inv = abs(m2det) > std::max(1e-80, 1.0e-30*hdet2) ? m2i.Inverse() : SymTensor::zero;
       const auto  L = innerProduct<Dimension>(m3i, innerProduct<Dimension>(m2inv, m3i)) - m4i;
 
       // const FourthRankTensor Linv = invertRankNTensor(L);

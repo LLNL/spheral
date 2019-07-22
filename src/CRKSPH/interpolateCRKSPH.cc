@@ -138,8 +138,8 @@ interpolateCRKSPH(const FieldList<Dimension, DataType>& fieldList,
               const auto etaj = Hj*rij;
 
               // Kernel weight.
-              const auto Wj = CRKSPHKernel(W, correctionOrder,  rij,  etai, Hdeti,  etaj, Hdetj, Ai, Bi, Ci, -1e100, 1e100);
-              const auto Wi = CRKSPHKernel(W, correctionOrder, -rij, -etaj, Hdetj, -etai, Hdeti, Aj, Bj, Cj, -1e100, 1e100);
+              const auto Wj = CRKSPHKernel(W, correctionOrder,  rij,  etaj, Hdetj, Ai, Bi, Ci);
+              const auto Wi = CRKSPHKernel(W, correctionOrder, -rij, -etai, Hdeti, Aj, Bj, Cj);
 
               // Increment the pair-wise values.
               resulti += wj*Fj*Wj;
