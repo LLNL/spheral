@@ -353,7 +353,7 @@ def extractIntField(name, field, vals, dim):
     if vals == []:
         vals = [[name, field]]
     else:
-        vals[0][1] += field
+        vals[0][1].extend(field)
     return vals
 
 def dummyIntField(name, n, vals, dim):
@@ -380,7 +380,7 @@ def extractScalarField(name, field, vals, dim):
     if vals == []:
         vals = [[name, field]]
     else:
-        vals[0][1] += field
+        vals[0][1].extend(field)
     return vals
 
 def dummyScalarField(name, n, vals, dim):
