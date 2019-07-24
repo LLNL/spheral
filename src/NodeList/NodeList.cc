@@ -445,33 +445,37 @@ template<typename Dimension>
 void
 NodeList<Dimension>::
 deleteNodes(const vector<int>& nodeIDs) {
+  std::cerr << " --> " << nodeIDs.size() << std::endl;
 
-  // First sort and make sure all node IDs are valid.
-  vector<int> uniqueIDs(nodeIDs);
-  sort(uniqueIDs.begin(), uniqueIDs.end());
-  vector<int>::iterator uniqueEnd = unique(uniqueIDs.begin(), uniqueIDs.end());
-  uniqueIDs.erase(uniqueEnd, uniqueIDs.end());
-  CHECK(uniqueIDs.size() <= numNodes());
-  if (uniqueIDs.size() > 0) 
-    CHECK(uniqueIDs[0] >= 0 && uniqueIDs.back() < this->numNodes());
+  if (nodeIDs.size() > 0) {
 
-  // Determine how many internal, ghost, and total nodes we should end with.
-  vector<int>::iterator ghostDeleteItr = uniqueIDs.begin();
-  while (ghostDeleteItr < uniqueIDs.end() &&
-         *ghostDeleteItr < mFirstGhostNode) ++ghostDeleteItr;
-  CHECK(ghostDeleteItr >= uniqueIDs.begin() && ghostDeleteItr <= uniqueIDs.end());
-  const int numInternalNodesRemoved = distance(uniqueIDs.begin(), ghostDeleteItr);
-  CHECK(numInternalNodesRemoved <= numInternalNodes());
-  mNumNodes -= uniqueIDs.size();
-  mFirstGhostNode -= numInternalNodesRemoved;
-  CHECK(mNumNodes >= 0);
-  CHECK(mFirstGhostNode >= 0 && mFirstGhostNode <= mNumNodes);
+    // First sort and make sure all node IDs are valid.
+    vector<int> uniqueIDs(nodeIDs);
+    sort(uniqueIDs.begin(), uniqueIDs.end());
+    vector<int>::iterator uniqueEnd = unique(uniqueIDs.begin(), uniqueIDs.end());
+    uniqueIDs.erase(uniqueEnd, uniqueIDs.end());
+    CHECK(uniqueIDs.size() <= numNodes());
+    if (uniqueIDs.size() > 0) 
+      CHECK(uniqueIDs[0] >= 0 && uniqueIDs.back() < this->numNodes());
 
-  // Now iterate over the Fields defined on this NodeList, and remove the appropriate
-  // elements from each.
-  for (typename vector<FieldBase<Dimension>*>::iterator fieldItr = mFieldBaseList.begin();
-       fieldItr != mFieldBaseList.end();
-       ++fieldItr) (*fieldItr)->deleteElements(uniqueIDs);
+    // Determine how many internal, ghost, and total nodes we should end with.
+    vector<int>::iterator ghostDeleteItr = uniqueIDs.begin();
+    while (ghostDeleteItr < uniqueIDs.end() &&
+           *ghostDeleteItr < mFirstGhostNode) ++ghostDeleteItr;
+    CHECK(ghostDeleteItr >= uniqueIDs.begin() && ghostDeleteItr <= uniqueIDs.end());
+    const int numInternalNodesRemoved = distance(uniqueIDs.begin(), ghostDeleteItr);
+    CHECK(numInternalNodesRemoved <= numInternalNodes());
+    mNumNodes -= uniqueIDs.size();
+    mFirstGhostNode -= numInternalNodesRemoved;
+    CHECK(mNumNodes >= 0);
+    CHECK(mFirstGhostNode >= 0 && mFirstGhostNode <= mNumNodes);
+
+    // Now iterate over the Fields defined on this NodeList, and remove the appropriate
+    // elements from each.
+    for (typename vector<FieldBase<Dimension>*>::iterator fieldItr = mFieldBaseList.begin();
+         fieldItr != mFieldBaseList.end();
+         ++fieldItr) (*fieldItr)->deleteElements(uniqueIDs);
+  }
 
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE
