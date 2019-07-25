@@ -445,8 +445,6 @@ template<typename Dimension>
 void
 NodeList<Dimension>::
 deleteNodes(const vector<int>& nodeIDs) {
-  std::cerr << " --> " << nodeIDs.size() << std::endl;
-
   if (nodeIDs.size() > 0) {
 
     // First sort and make sure all node IDs are valid.
