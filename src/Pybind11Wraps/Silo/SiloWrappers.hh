@@ -553,6 +553,16 @@ DBPutMultimesh(DBfile& file,
 }
 
 //------------------------------------------------------------------------------
+// DBGetMultimesh
+//------------------------------------------------------------------------------
+inline
+DBmultimesh*
+DBGetMultimesh(DBfile& file,
+               std::string name) {
+  return DBGetMultimesh(&file, name.c_str());
+}
+
+//------------------------------------------------------------------------------
 // DBPutMultimat
 //------------------------------------------------------------------------------
 inline
@@ -761,6 +771,16 @@ DBPutUcdmesh(DBfile& file,
   for (unsigned k = 0; k != ndims; ++k) delete[] coordPtrs[k];
   delete[] coordPtrs;
   return result;
+}
+
+//------------------------------------------------------------------------------
+// DBGetUcdmesh
+//------------------------------------------------------------------------------
+inline
+DBucdmesh*
+DBGetUcdmesh(DBfile& file,
+             std::string name) {
+  return DBGetUcdmesh(&file, name.c_str());
 }
 
 //------------------------------------------------------------------------------

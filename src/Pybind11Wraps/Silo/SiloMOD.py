@@ -27,6 +27,29 @@ PYB11opaque = ["std::vector<char>",
                "std::vector<std::vector<double>>",
                "std::vector<std::vector<std::string>>"]
 
+PYB11preamble = """
+
+template<typename T>
+inline
+std::vector<T>
+copy2vector(T* carray, const size_t nvals) {
+  if (carray == NULL) return std::vector<T>();
+  std::vector<T> result(nvals);
+  std::copy(carray, carray + nvals, result.begin());
+  return result;
+}
+
+inline
+std::vector<std::string>
+copy2vector(char** carray, const size_t nvals) {
+  if (carray == NULL) return std::vector<std::string>();
+  std::vector<std::string> result(nvals);
+  for (auto i = 0; i < nvals; ++i) result.push_back(std::string(carray[i]));
+  return result;
+}
+
+"""
+
 #-------------------------------------------------------------------------------
 class DBfile:
     "Opaque object for silo file struct"
@@ -204,6 +227,189 @@ class DBmrgtree:
     num_nodes = property(getnum_nodes, setnum_nodes)
 
 #-------------------------------------------------------------------------------
+class DBmultimesh:
+    "A silo multimesh"
+
+    # Attributes
+    id = PYB11readwrite(doc="Identifier for this object")
+    nblocks = PYB11readwrite(doc="Number of blocks in mesh")
+    ngroups = PYB11readwrite(doc="Number of block groups in mesh")
+    meshids = PYB11property(getterraw="""[](DBmultimesh& self) { return copy2vector(self.meshids, self.nblocks); }""",
+                            doc="Array of mesh-ids which comprise mesh")
+    meshnames = PYB11property(getterraw = """[](DBmultimesh& self) { return copy2vector(self.meshnames, self.nblocks); }""",
+                              doc="Array of mesh-names for meshids")
+    meshtypes = PYB11property(getterraw="""[](DBmultimesh& self) { return copy2vector(self.meshtypes, self.nblocks); }""",
+                              doc="Array of mesh-type indicators [nblocks]")
+    dirids = PYB11readwrite(doc="Array of directory IDs which contain blk")
+    blockorigin = PYB11readwrite(doc="Origin (0 or 1) of block numbers")
+    grouporigin = PYB11readwrite(doc="Origin (0 or 1) of group numbers")
+    extentssize = PYB11readwrite(doc="size of each extent tuple")
+    extents = PYB11property(getterraw="""[](DBmultimesh& self) { return copy2vector(self.extents, 2*self.nblocks); }""",
+                            doc="min/max extents of coords of each block")
+    zonecounts = PYB11property(getterraw="""[](DBmultimesh& self) { return copy2vector(self.zonecounts, self.nblocks); }""",
+                               doc="array of zone counts for each block")
+    has_external_zones = PYB11property(getterraw="""[](DBmultimesh& self) { return copy2vector(self.has_external_zones, self.nblocks); }""",
+                                       doc="external flags for each block")
+    guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
+    lgroupings = PYB11readwrite(doc="size of groupings array")
+    groupings = PYB11readwrite(doc="Array of mesh-ids, group-ids, and counts")
+    groupnames = PYB11property(getterraw = """[](DBmultimesh& self) { return copy2vector(self.groupnames, self.ngroups); }""",
+                               doc="Array of group-names for groupings")
+    mrgtree_name = PYB11readwrite(doc="optional name of assoc. mrgtree object")
+    tv_connectivity = PYB11readwrite()
+    disjoint_mode = PYB11readwrite()
+    topo_dim = PYB11readwrite(doc="Topological dimension; max of all blocks.")
+    file_ns = PYB11readwrite(doc="namescheme for files (in lieu of meshnames)")
+    block_ns = PYB11readwrite(doc="namescheme for block objects (in lieu of meshnames)")
+    block_type = PYB11readwrite(doc="constant block type for all blocks (in lieu of meshtypes)")
+    empty_list = PYB11property(getterraw="""[](DBmultimesh& self) { return copy2vector(self.empty_list, self.empty_cnt); }""",
+                               doc="list of empty block #'s (option for namescheme)")
+    empty_cnt = PYB11readwrite(doc="size of empty list")
+    repr_block_idx = PYB11readwrite(doc="index of a 'representative' block")
+    # alt_nodenum_vars = PYB11property(getterraw = """[](DBmultimesh& self) { std::vector<std::string> result;
+    #                                                                  for (auto i = 0; i < self.nblocks; ++i) result.push_back(std::string(self.alt_nodenum_vars[i]));
+    #                                                                  return result; }""")
+    # alt_zonenum_vars = PYB11property(getterraw = """[](DBmultimesh& self) { std::vector<std::string> result;
+    #                                                                  for (auto i = 0; i < self.nblocks; ++i) result.push_back(std::string(self.alt_zonenum_vars[i]));
+    #                                                                  return result; }""")
+    meshnames_alloc = PYB11readwrite(doc="original alloc of meshnames as string list")
+
+#-------------------------------------------------------------------------------
+class DBucdmesh:
+    "A silo Unstructured Cell Data (UCD) Mesh"
+
+    id = PYB11readwrite(doc="Identifier for this object")
+    block_no = PYB11readwrite(doc="Block number for this mesh")
+    group_no = PYB11readwrite(doc="Block group number for this mesh")
+    name = PYB11readwrite(doc="Name associated with mesh")
+    cycle = PYB11readwrite(doc="Problem cycle number")
+    coord_sys = PYB11readwrite(doc="Coordinate system")
+    topo_dim = PYB11readwrite(doc="Topological dimension. ")
+    units = PYB11property(getterraw = "[](DBucdmesh& self) { return copy2vector(self.units, 3); }",
+                          doc = "Units for variable, e.g, 'mm/ms'")
+    labels = PYB11property(getterraw = "[](DBucdmesh& self) { return copy2vector(self.labels, 3); }",
+                           doc = "Label associated with each dimension")
+    coords = PYB11property(getterraw = """[](DBucdmesh& self) { std::vector<std::vector<double>> result(3, std::vector<double>(self.nnodes));
+                                                                for (auto k = 0; k < self.ndims; ++k) {
+                                                                  if (self.datatype == DB_FLOAT) {
+                                                                    auto* coords = static_cast<float*>(self.coords[k]);
+                                                                    for (auto i = 0; i < self.nnodes; ++i) result[k][i] = coords[i];
+                                                                  } else {
+                                                                    VERIFY(self.datatype == DB_DOUBLE);
+                                                                    auto* coords = static_cast<double*>(self.coords[k]);
+                                                                    for (auto i = 0; i < self.nnodes; ++i) result[k][i] = coords[i];
+                                                                  }
+                                                                }
+                                                                return result;
+                                                              }""",
+                           doc = "Mesh node coordinates")
+    datatype = PYB11readwrite(doc="Type of coordinate arrays (double,float)")
+    time = PYB11readwrite(doc="Problem time")
+    dtime = PYB11readwrite(doc="Problem time, double data type")
+    ndims = PYB11readwrite(doc="Number of computational dimensions")
+    nnodes = PYB11readwrite(doc="Total number of nodes")
+    origin = PYB11readwrite(doc="0' or '1'")
+
+    faces = PYB11readwrite(doc="Data structure describing mesh faces", returnpolicy="reference")
+    zones = PYB11readwrite(doc="Data structure describing mesh zones", returnpolicy="reference")
+    edges = PYB11readwrite(doc="Data struct describing mesh edges", returnpolicy="reference")
+
+    nodeno = PYB11readwrite(doc="nnodes] node number of each node")
+
+    phzones = PYB11readwrite(doc="Data structure describing mesh zones")
+
+    guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
+    mrgtree_name = PYB11readwrite(doc="optional name of assoc. mrgtree object")
+    tv_connectivity = PYB11readwrite()
+    disjoint_mode = PYB11readwrite()
+    gnznodtype = PYB11readwrite(doc="datatype for global node/zone ids")
+    ghost_node_labels = PYB11readwrite()
+
+#-------------------------------------------------------------------------------
+class DBzonelist:
+    "A silo zone list"
+    ndims = PYB11readwrite(doc="Number of dimensions (2,3)")
+    nzones = PYB11readwrite(doc="Number of zones in list")
+    nshapes = PYB11readwrite(doc="Number of zone shapes")
+    shapecnt = PYB11property(getterraw="""[](DBzonelist& self) { return copy2vector(self.shapecnt, self.nshapes); }""",
+                             doc="[nshapes] occurences of each shape")
+    shapesize = PYB11property(getterraw="""[](DBzonelist& self) { return copy2vector(self.shapesize, self.nshapes); }""",
+                              doc="[nshapes] Number of nodes per shape")
+    shapetype = PYB11property(getterraw="""[](DBzonelist& self) { return copy2vector(self.shapetype, self.nshapes); }""",
+                              doc="[nshapes] Type of shape")
+    nodelist = PYB11property(getterraw="""[](DBzonelist& self) { size_t n = 0; 
+                                                                 for (auto i = 0; i < self.nshapes; ++i) n += self.shapecnt[i]*self.shapesize[i];
+                                                                 return copy2vector(self.nodelist, n);
+                                                               }""",
+                             doc="Sequent lst of nodes which comprise zones", returnpolicy="reference")
+    lnodelist = PYB11readwrite(doc="Number of nodes in nodelist")
+    origin = PYB11readwrite(doc="0' or '1'")
+    min_index = PYB11readwrite(doc="Index of first real zone")
+    max_index = PYB11readwrite(doc="Index of last real zone")
+    zoneno = PYB11readwrite(doc="[nzones] zone number of each zone")
+    gzoneno = PYB11readwrite(doc="[nzones] global zone number of each zone")
+    gnznodtype = PYB11readwrite(doc="datatype for global node/zone ids")
+    ghost_zone_labels = PYB11readwrite()
+
+#-------------------------------------------------------------------------------
+class DBphzonelist:
+    "A silo polyhedral zone list"
+    nfaces = PYB11readwrite(doc='Number of faces in facelist (aka "facetable")')
+    nodecnt = PYB11property(getterraw="[](DBphzonelist& self) { return copy2vector(self.nodecnt, self.nfaces); }",
+                            doc="Count of nodes in each face")
+    lnodelist = PYB11readwrite(doc="Length of nodelist used to construct faces")
+    nodelist = PYB11property(getterraw="[](DBphzonelist& self) { return copy2vector(self.nodelist, self.lnodelist); }",
+                             doc="List of nodes used in all faces")
+    extface = PYB11readwrite(doc="boolean flag indicating if a face is external")
+    nzones = PYB11readwrite(doc="Number of zones in this zonelist")
+    facecnt = PYB11property(getterraw="[](DBphzonelist& self) { return copy2vector(self.facecnt, self.nzones); }",
+                            doc="Count of faces in each zone")
+    lfacelist = PYB11readwrite(doc="Length of facelist used to construct zones")
+    facelist = PYB11property(getterraw="[](DBphzonelist& self) { return copy2vector(self.facelist, self.lfacelist); }",
+                             doc="List of faces used in all zones")
+    origin = PYB11readwrite(doc="0' or '1'")
+    lo_offset = PYB11readwrite(doc="Index of first non-ghost zone")
+    hi_offset = PYB11readwrite(doc="Index of last non-ghost zone")
+    zoneno = PYB11property(getterraw="[](DBphzonelist& self) { return copy2vector(self.zoneno, self.nzones); }",
+                           doc="[nzones] zone number of each zone")
+    # gzoneno = PYB11property(getterraw="[](DBphzonelist& self) { return copy2vector(self.gzoneno, self.nzones); }",
+    #                         doc="[nzones] global zone number of each zone")
+    gnznodtype = PYB11readwrite(doc="datatype for global node/zone ids")
+    ghost_zone_labels = PYB11readwrite()
+
+#-------------------------------------------------------------------------------
+class DBfacelist:
+    "A silo face list"
+    ndims = PYB11readwrite(doc="Number of dimensions (2,3)")
+    nfaces = PYB11readwrite(doc="Number of faces in list")
+    origin = PYB11readwrite(doc="0' or '1'")
+    nodelist = PYB11property(getterraw="[](DBfacelist& self) { return copy2vector(self.nodelist, self.lnodelist); }",
+                             doc="Sequent list of nodes comprise faces")
+    lnodelist = PYB11readwrite(doc="Number of nodes in nodelist")
+    nshapes = PYB11readwrite(doc="Number of face shapes")
+    shapecnt = PYB11property(getterraw="[](DBfacelist& self) { return copy2vector(self.shapecnt, self.nshapes); }",
+                             doc="[nshapes] Num of occurences of each shape")
+    shapesize = PYB11property(getterraw="[](DBfacelist& self) { return copy2vector(self.shapesize, self.nshapes); }",
+                              doc="[nshapes] Number of nodes per shape")
+    ntypes = PYB11readwrite(doc="Number of face types")
+    typelist = PYB11property(getterraw="[](DBfacelist& self) { return copy2vector(self.typelist, self.ntypes); }",
+                             doc="[ntypes] Type ID for each type")
+    types = PYB11property(getterraw="[](DBfacelist& self) { return copy2vector(self.types, self.nfaces); }",
+                          doc="[nfaces] Type info for each face")
+    nodeno = PYB11property(getterraw="[](DBfacelist& self) { return copy2vector(self.nodeno, self.lnodelist); }",
+                           doc="[lnodelist] node number of each node")
+    zoneno = PYB11property(getterraw="[](DBfacelist& self) { return copy2vector(self.zoneno, self.nfaces); }",
+                           doc="[nfaces] Zone number for each face")
+
+#-------------------------------------------------------------------------------
+class DBedgelist:
+    ndims = PYB11readwrite(doc="Number of dimensions (2,3)")
+    nedges = PYB11readwrite(doc="Number of edges")
+    edge_beg = PYB11property(getterraw="[](DBedgelist& self) { return copy2vector(self.edge_beg, self.nedges); }")
+    edge_end = PYB11property(getterraw="[](DBedgelist& self) { return copy2vector(self.edge_end, self.nedges); }")
+    origin = PYB11readwrite(doc="0' or '1'")
+
+#-------------------------------------------------------------------------------
 # STL types
 # vector_of_DBoptlist = PYB11_bind_vector("silo::DBoptlist_wrapper", opaque=True)
 
@@ -252,6 +458,11 @@ def DBPutMultimesh():
     "Write a multimesh"
 
 @PYB11namespace("silo")
+@PYB11returnpolicy("take_ownership")
+def DBGetMultimesh():
+    "Read a multimesh"
+
+@PYB11namespace("silo")
 def DBPutMultimat():
     "Write a multimat"
 
@@ -266,6 +477,11 @@ def DBPutMaterial():
 @PYB11namespace("silo")
 def DBPutUcdmesh():
     "Write a UCD mesh"
+
+@PYB11namespace("silo")
+@PYB11returnpolicy("take_ownership")
+def DBGetUcdmesh():
+    "Read a UCD mesh"
 
 @PYB11namespace("silo")
 def DBPutQuadmesh():
