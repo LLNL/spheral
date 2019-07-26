@@ -227,6 +227,55 @@ class DBmrgtree:
     num_nodes = property(getnum_nodes, setnum_nodes)
 
 #-------------------------------------------------------------------------------
+class DBdefvars:
+    ndefs = PYB11readwrite(doc="number of definitions")
+    names = PYB11property(getterraw="[](DBdefvars& self) { return copy2vector(self.names, self.ndefs); }",
+                          doc="[ndefs] derived variable names")
+    types = PYB11property(getterraw="[](DBdefvars& self) { return copy2vector(self.types, self.ndefs); }",
+                          doc="[ndefs] derived variable types")
+    defns = PYB11property(getterraw="[](DBdefvars& self) { return copy2vector(self.defns, self.ndefs); }",
+                          doc="[ndefs] derived variable definitions")
+    guihides = PYB11property(getterraw="[](DBdefvars& self) { return copy2vector(self.names, self.ndefs); }",
+                          doc="[ndefs] flags to hide from post-processor's GUI")
+
+#-------------------------------------------------------------------------------
+class DBpointmesh:
+    id = PYB11readwrite(doc="Identifier for this object")
+    block_no = PYB11readwrite(doc="Block number for this mesh")
+    group_no = PYB11readwrite(doc="Block group number for this mesh")
+    name = PYB11readwrite(doc="Name associated with this mesh")
+    cycle = PYB11readwrite(doc="Problem cycle number")
+    units = PYB11property(getterraw="[](DBpointmesh& self) { return copy2vector(self.units, 3); }",
+                          doc="Units for each axis")
+    labels = PYB11property(getterraw="[](DBpointmesh& self) { return copy2vector(self.labels, 3); }",
+                           doc="Labels for each axis")
+    title = PYB11readwrite(doc="Title for curve")
+    coords = PYB11property(getterraw = """[](DBpointmesh& self) { std::vector<std::vector<double>> result(3, std::vector<double>(self.nels));
+                                                                  for (auto k = 0; k < self.ndims; ++k) {
+                                                                    if (self.datatype == DB_FLOAT) {
+                                                                      auto* coords = static_cast<float*>(self.coords[k]);
+                                                                      for (auto i = 0; i < self.nels; ++i) result[k][i] = coords[i];
+                                                                    } else {
+                                                                      VERIFY(self.datatype == DB_DOUBLE);
+                                                                      auto* coords = static_cast<double*>(self.coords[k]);
+                                                                      for (auto i = 0; i < self.nels; ++i) result[k][i] = coords[i];
+                                                                    }
+                                                                  }
+                                                                  return result;
+                                                                }""",
+                           doc = "Coordinate values")
+    time = PYB11readwrite(doc="Problem time")
+    dtime = PYB11readwrite(doc="Problem time, double data type")
+    datatype = PYB11readwrite(doc="Datatype for coords (float, double)")
+    ndims = PYB11readwrite(doc="Number of computational dimensions")
+    nels = PYB11readwrite(doc="Number of elements in mesh")
+    origin = PYB11readwrite(doc="0' or '1'")
+    guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
+    mrgtree_name = PYB11readwrite(doc="optional name of assoc. mrgtree object")
+    gnznodtype = PYB11readwrite(doc="datatype for global node/zone ids")
+    ghost_node_labels = PYB11readwrite()
+
+#-------------------------------------------------------------------------------
 class DBmultimesh:
     "A silo multimesh"
 
@@ -410,6 +459,34 @@ class DBedgelist:
     origin = PYB11readwrite(doc="0' or '1'")
 
 #-------------------------------------------------------------------------------
+class DBmultivar:
+    id = PYB11readwrite(doc="Identifier for this object ")
+    nvars = PYB11readwrite(doc="Number of variables  ")
+    ngroups = PYB11readwrite(doc="Number of block groups in mesh")
+    varnames = PYB11property(getterraw="[](DBmultivar& self) { return copy2vector(self.varnames, self.nvars); }",
+                          doc="Variable names")
+    vartypes = PYB11property(getterraw="[](DBmultivar& self) { return copy2vector(self.vartypes, self.nvars); }",
+                          doc="variable types")
+    blockorigin = PYB11readwrite(doc="Origin (0 or 1) of block numbers")
+    grouporigin = PYB11readwrite(doc="Origin (0 or 1) of group numbers")
+    extentssize = PYB11readwrite(doc="size of each extent tuple")
+    guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
+    region_pnames = PYB11property(getterraw="[](DBmultivar& self) { return copy2vector(self.region_pnames, self.ngroups); }")
+    mmesh_name = PYB11readwrite()
+    tensor_rank = PYB11readwrite(doc="DB_VARTYPE_XXX")
+    conserved = PYB11readwrite(doc="indicates if the variable should be conserved under various operations such as interp.")
+    extensive = PYB11readwrite(doc="indicates if the variable reprsents an extensiv physical property (as opposed to intensive)")
+    file_ns = PYB11readwrite(doc="namescheme for files (in lieu of meshnames)")
+    block_ns = PYB11readwrite(doc="namescheme for block objects (in lieu of meshnames)")
+    block_type = PYB11readwrite(doc="constant block type for all blocks (in lieu of meshtypes)")
+    empty_list = PYB11property(getterraw="[](DBmultivar& self) { return copy2vector(self.empty_list, self.empty_cnt); }",
+                          doc="list of empty block #'s (option for namescheme)")
+    empty_cnt = PYB11readwrite(doc="size of empty list")
+    repr_block_idx = PYB11readwrite(doc="index of a 'representative' block")
+    missing_value = PYB11readwrite(doc="Value to indicate var data is invalid/missing")
+    varnames_alloc = PYB11readwrite(doc="original alloc of varnames as string list")
+
+#-------------------------------------------------------------------------------
 class DBmultimat:
     id = PYB11readwrite(doc="Identifier for this object ")
     nmats = PYB11readwrite(doc="Number of materials  ")
@@ -442,6 +519,85 @@ class DBmultimat:
     empty_list = PYB11readwrite(doc="list of empty block #'s (option for namescheme)")
     empty_cnt = PYB11readwrite(doc="size of empty list")
     repr_block_idx = PYB11readwrite(doc="index of a 'representative' block")
+
+#-------------------------------------------------------------------------------
+class DBmultimatspecies:
+    id = PYB11readwrite(doc="Identifier for this object ")
+    nspec = PYB11readwrite(doc="Number of species  ")
+    ngroups = PYB11readwrite(doc="Number of block groups in mesh")
+    specnames = PYB11property(getterraw="[](DBmultimatspecies& self) { return copy2vector(self.specnames, self.nspec); }",
+                              doc="Species object names")
+    blockorigin = PYB11readwrite(doc="Origin (0 or 1) of block numbers")
+    grouporigin = PYB11readwrite(doc="Origin (0 or 1) of group numbers")
+    guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
+    nmat = PYB11readwrite(doc="equiv. to nmatnos of a DBmultimat")
+    nmatspec = PYB11readwrite(doc="equiv. to matnos of a DBmultimat")
+    species_names = PYB11property(getterraw="[](DBmultimatspecies& self) { return copy2vector(self.species_names, self.nspec); }",
+                          doc="optional names of the species")
+    speccolors = PYB11property(getterraw="[](DBmultimatspecies& self) { return copy2vector(self.speccolors, self.nspec); }",
+                               doc="optional colors for species")
+    file_ns = PYB11readwrite(doc="namescheme for files (in lieu of meshnames)")
+    block_ns = PYB11readwrite(doc="namescheme for block objects (in lieu of meshnames)")
+    empty_list = PYB11readwrite(doc="list of empty block #'s (option for namescheme)")
+    empty_cnt = PYB11readwrite(doc="size of empty list")
+    repr_block_idx = PYB11readwrite(doc="index of a 'representative' block")
+    specnames_alloc = PYB11readwrite(doc="original alloc of matnames as string list")
+
+#-------------------------------------------------------------------------------
+class DBquadmesh:
+    id = PYB11readwrite(doc="Identifier for this object")
+    block_no = PYB11readwrite(doc="Block number for this mesh")
+    group_no = PYB11readwrite(doc="Block group number for this mesh")
+    name = PYB11readwrite(doc="Name associated with mesh")
+    cycle = PYB11readwrite(doc="Problem cycle number")
+    coord_sys = PYB11readwrite(doc="Cartesian, cylindrical, spherical")
+    major_order = PYB11readwrite(doc="1 indicates row-major for multi-d arrays")
+    stride = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.stride, 3); }",
+                          doc="Offsets to adjacent elements")
+    coordtype = PYB11readwrite(doc="Coord array type: collinear, non-collinear")
+    facetype = PYB11readwrite(doc="Zone face type: rect, curv")
+    planar = PYB11readwrite(doc="Sentinel: zones represent area or volume?")
+    coords = PYB11property(getterraw = """[](DBquadmesh& self) { std::vector<std::vector<double>> result(3, std::vector<double>(self.nnodes));
+                                                                 for (auto k = 0; k < self.ndims; ++k) {
+                                                                   if (self.datatype == DB_FLOAT) {
+                                                                     auto* coords = static_cast<float*>(self.coords[k]);
+                                                                     for (auto i = 0; i < self.nnodes; ++i) result[k][i] = coords[i];
+                                                                   } else {
+                                                                     VERIFY(self.datatype == DB_DOUBLE);
+                                                                     auto* coords = static_cast<double*>(self.coords[k]);
+                                                                     for (auto i = 0; i < self.nnodes; ++i) result[k][i] = coords[i];
+                                                                   }
+                                                                 }
+                                                                 return result;
+                                                               }""",
+                           doc = "Mesh node coordinates")
+    datatype = PYB11readwrite(doc="Type of coordinate arrays (double,float)")
+    time = PYB11readwrite(doc="Problem time")
+    dtime = PYB11readwrite(doc="Problem time, double data type")
+    labels = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.labels, 3); }",
+                          doc="Label associated with each dimension")
+    units = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.units, 3); }",
+                          doc="Units for variable, e.g, 'mm/ms'")
+    ndims = PYB11readwrite(doc="Number of computational dimensions")
+    nspace = PYB11readwrite(doc="Number of physical dimensions")
+    nnodes = PYB11readwrite(doc="Total number of nodes")
+    dims = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.dims, 3); }",
+                         doc="Number of nodes per dimension")
+    origin = PYB11readwrite(doc="0' or '1'")
+    min_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.min_index, 3); }",
+                              doc="Index in each dimension of 1st non-phoney")
+    max_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.max_index, 3); }",
+                              doc="Index in each dimension of last non-phoney")
+    base_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.base_index, 3); }",
+                               doc="Lowest real i,j,k value for this block")
+    start_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.start_index, 3); }",
+                                doc="i,j,k values corresponding to original mesh")
+    size_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.size_index, 3); }",
+                                doc="Number of nodes per dimension for original mesh")
+    guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
+    mrgtree_name = PYB11readwrite(doc="optional name of assoc. mrgtree object")
+    ghost_node_labels = PYB11readwrite()
+    ghost_zone_labels = PYB11readwrite()
 
 #-------------------------------------------------------------------------------
 # STL types
