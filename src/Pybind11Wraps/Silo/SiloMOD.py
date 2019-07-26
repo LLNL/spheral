@@ -410,6 +410,40 @@ class DBedgelist:
     origin = PYB11readwrite(doc="0' or '1'")
 
 #-------------------------------------------------------------------------------
+class DBmultimat:
+    id = PYB11readwrite(doc="Identifier for this object ")
+    nmats = PYB11readwrite(doc="Number of materials  ")
+    ngroups = PYB11readwrite(doc="Number of block groups in mesh")
+    matnames = PYB11property(getterraw="[](DBmultimat& self) { return copy2vector(self.matnames, self.nmats); }",
+                             doc="names of constiuent DBmaterial objects")
+    blockorigin = PYB11readwrite(doc="Origin (0 or 1) of block numbers")
+    grouporigin = PYB11readwrite(doc="Origin (0 or 1) of group numbers")
+    mixlens = PYB11property(getterraw="[](DBmultimat& self) { return copy2vector(self.mixlens, self.nmats); }",
+                            doc="array of mixlen values in each mat")
+    matcounts = PYB11property(getterraw="[](DBmultimat& self) { return copy2vector(self.matcounts, self.ngroups); }",
+                              doc="counts of unique materials in each block")
+    matlists = PYB11property(getterraw="""[](DBmultimat& self) { size_t nvals = 0;
+                                                                 if (self.matcounts != NULL) {
+                                                                   for (auto i = 0; i < self.ngroups; ++i) nvals += self.matcounts[i];
+                                                                 }
+                                                                 return copy2vector(self.matlists, nvals);
+                                                               }""",
+                             doc="list of materials in each block")
+    guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
+    nmatnos = PYB11readwrite(doc="global number of materials over all pieces")
+    matnos = PYB11property(getterraw="[](DBmultimat& self) { return copy2vector(self.matnos, self.nmatnos); }",
+                           doc="global list of material numbers")
+    # matcolors = PYB11readwrite(doc="optional colors for materials")
+    # material_names = PYB11readwrite(doc="optional names of the materials")
+    allowmat0 = PYB11readwrite(doc='Flag to allow material "0"')
+    mmesh_name = PYB11readwrite()
+    file_ns = PYB11readwrite(doc="namescheme for files (in lieu of meshnames)")
+    block_ns = PYB11readwrite(doc="namescheme for block objects (in lieu of meshnames)")
+    empty_list = PYB11readwrite(doc="list of empty block #'s (option for namescheme)")
+    empty_cnt = PYB11readwrite(doc="size of empty list")
+    repr_block_idx = PYB11readwrite(doc="index of a 'representative' block")
+
+#-------------------------------------------------------------------------------
 # STL types
 # vector_of_DBoptlist = PYB11_bind_vector("silo::DBoptlist_wrapper", opaque=True)
 
