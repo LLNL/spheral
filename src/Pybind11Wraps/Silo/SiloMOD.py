@@ -29,23 +29,88 @@ PYB11opaque = ["std::vector<char>",
 
 PYB11preamble = """
 
+//------------------------------------------------------------------------------
 template<typename T>
 inline
-std::vector<T>
-copy2vector(T* carray, const size_t nvals) {
-  if (carray == NULL) return std::vector<T>();
-  std::vector<T> result(nvals);
-  std::copy(carray, carray + nvals, result.begin());
+py::list
+copy2py(T* carray, const size_t nvals) {
+  py::list result;
+  for (auto i = 0; i < nvals; ++i) result.append(carray[i]);
   return result;
 }
 
 inline
-std::vector<std::string>
-copy2vector(char** carray, const size_t nvals) {
-  if (carray == NULL) return std::vector<std::string>();
-  std::vector<std::string> result(nvals);
-  for (auto i = 0; i < nvals; ++i) result.push_back(std::string(carray[i]));
+py::list
+copy2py(char** carray, const size_t nvals) {
+  py::list result;
+  for (auto i = 0; i < nvals; ++i) result.append(std::string(carray[i]));
   return result;
+}
+
+inline
+py::list
+copy2py(void** carray, const size_t nout, const size_t nin, const int dtype) {
+  if (not (dtype == DB_FLOAT or dtype == DB_DOUBLE)) throw py::value_error("Require float or double type");
+  py::list result;
+  for (auto k = 0; k < nout; ++k) {
+    py::list row;
+    if (dtype == DB_FLOAT) {
+      auto* cvals = static_cast<float*>(carray[k]);
+      for (auto i = 0; i < nin; ++i) row.append(cvals[i]);
+    } else {
+      auto* cvals = static_cast<double*>(carray[k]);
+      for (auto i = 0; i < nin; ++i) row.append(cvals[i]);
+    }
+    result.append(row);
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+template<typename T>
+inline
+void
+copy2c(T* carray, py::list& vals) {
+  if (carray != NULL) free(carray);
+  const auto nvals = vals.size();
+  carray = (T*) malloc(sizeof(T)*vals.size());
+  for (auto i = 0; i < nvals; ++i) carray[i] = vals[i].cast<T>();
+}
+
+inline
+void
+copy2c(char** carray, py::list& vals) {
+  if (carray != NULL) delete [] carray;
+  const auto nvals = vals.size();
+  if (nvals > 0) {
+    carray = new char*[nvals];
+    for (auto i = 0; i < nvals; ++i) {
+      auto val = vals[i].cast<std::string>();
+      carray[i] = new char[val.size() + 1];
+      strcpy(carray[i], val.c_str());
+    }
+  }
+}
+
+inline
+void
+copy2c(void** carray, py::list& vals, const size_t nout, const size_t nin, const int dtype) {
+  if (not (dtype == DB_FLOAT or dtype == DB_DOUBLE)) throw py::value_error("Require float or double type");
+  if (vals.size() != nout) throw py::value_error("incorrectly sized list");
+  for (auto k = 0; k < nout; ++k) {
+    auto rowvals = vals[k].cast<py::list>();
+    if (rowvals.size() != nin) throw py::value_error("incorrectly sized inner list");
+    if (carray[k] != NULL) free(carray[k]);
+    if (dtype == DB_FLOAT) {
+      carray[k] = malloc(sizeof(float)*nin);
+      auto* cvals = static_cast<float*>(carray[k]);
+      for (auto i = 0; i < nin; ++i) cvals[i] = rowvals[i].cast<float>();
+    } else {
+      carray[k] = malloc(sizeof(double)*nin);
+      auto* cvals = static_cast<double*>(carray[k]);
+      for (auto i = 0; i < nin; ++i) cvals[i] = rowvals[i].cast<double>();
+    }
+  }
 }
 
 """
@@ -229,13 +294,17 @@ class DBmrgtree:
 #-------------------------------------------------------------------------------
 class DBdefvars:
     ndefs = PYB11readwrite(doc="number of definitions")
-    names = PYB11property(getterraw="[](DBdefvars& self) { return copy2vector(self.names, self.ndefs); }",
+    names = PYB11property(getterraw="[](DBdefvars& self) { return copy2py(self.names, self.ndefs); }",
+                          setterraw="[](DBdefvars& self, py::list vals) { copy2c(self.names, vals); }",
                           doc="[ndefs] derived variable names")
-    types = PYB11property(getterraw="[](DBdefvars& self) { return copy2vector(self.types, self.ndefs); }",
+    types = PYB11property(getterraw="[](DBdefvars& self) { return copy2py(self.types, self.ndefs); }",
+                          setterraw="[](DBdefvars& self, py::list vals) { copy2c(self.types, vals); }",
                           doc="[ndefs] derived variable types")
-    defns = PYB11property(getterraw="[](DBdefvars& self) { return copy2vector(self.defns, self.ndefs); }",
+    defns = PYB11property(getterraw="[](DBdefvars& self) { return copy2py(self.defns, self.ndefs); }",
+                          setterraw="[](DBdefvars& self, py::list vals) { copy2c(self.defns, vals); }",
                           doc="[ndefs] derived variable definitions")
-    guihides = PYB11property(getterraw="[](DBdefvars& self) { return copy2vector(self.names, self.ndefs); }",
+    guihides = PYB11property(getterraw="[](DBdefvars& self) { return copy2py(self.names, self.ndefs); }",
+                          setterraw="[](DBdefvars& self, py::list vals) { copy2c(self.guihides, vals); }",
                           doc="[ndefs] flags to hide from post-processor's GUI")
 
 #-------------------------------------------------------------------------------
@@ -245,24 +314,15 @@ class DBpointmesh:
     group_no = PYB11readwrite(doc="Block group number for this mesh")
     name = PYB11readwrite(doc="Name associated with this mesh")
     cycle = PYB11readwrite(doc="Problem cycle number")
-    units = PYB11property(getterraw="[](DBpointmesh& self) { return copy2vector(self.units, 3); }",
+    units = PYB11property(getterraw="[](DBpointmesh& self) { return copy2py(self.units, 3); }",
+                          setterraw="[](DBpointmesh& self, py::list vals) { copy2c(self.units, vals); }",
                           doc="Units for each axis")
-    labels = PYB11property(getterraw="[](DBpointmesh& self) { return copy2vector(self.labels, 3); }",
+    labels = PYB11property(getterraw="[](DBpointmesh& self) { return copy2py(self.labels, 3); }",
+                           setterraw="[](DBpointmesh& self, py::list vals) { copy2c(self.labels, vals); }",
                            doc="Labels for each axis")
     title = PYB11readwrite(doc="Title for curve")
-    coords = PYB11property(getterraw = """[](DBpointmesh& self) { std::vector<std::vector<double>> result(3, std::vector<double>(self.nels));
-                                                                  for (auto k = 0; k < self.ndims; ++k) {
-                                                                    if (self.datatype == DB_FLOAT) {
-                                                                      auto* coords = static_cast<float*>(self.coords[k]);
-                                                                      for (auto i = 0; i < self.nels; ++i) result[k][i] = coords[i];
-                                                                    } else {
-                                                                      VERIFY(self.datatype == DB_DOUBLE);
-                                                                      auto* coords = static_cast<double*>(self.coords[k]);
-                                                                      for (auto i = 0; i < self.nels; ++i) result[k][i] = coords[i];
-                                                                    }
-                                                                  }
-                                                                  return result;
-                                                                }""",
+    coords = PYB11property(getterraw = "[](DBpointmesh& self) { return copy2py(self.coords, 3, self.nels, self.datatype); }",
+                           setterraw="[](DBpointmesh& self, py::list vals) { copy2c(self.coords, vals, 3, self.nels, self.datatype); }",
                            doc = "Coordinate values")
     time = PYB11readwrite(doc="Problem time")
     dtime = PYB11readwrite(doc="Problem time, double data type")
@@ -283,26 +343,33 @@ class DBmultimesh:
     id = PYB11readwrite(doc="Identifier for this object")
     nblocks = PYB11readwrite(doc="Number of blocks in mesh")
     ngroups = PYB11readwrite(doc="Number of block groups in mesh")
-    meshids = PYB11property(getterraw="""[](DBmultimesh& self) { return copy2vector(self.meshids, self.nblocks); }""",
+    meshids = PYB11property(getterraw="[](DBmultimesh& self) { return copy2py(self.meshids, self.nblocks); }",
+                            setterraw="[](DBmultimesh& self, py::list vals) { copy2c(self.meshids, vals); }",
                             doc="Array of mesh-ids which comprise mesh")
-    meshnames = PYB11property(getterraw = """[](DBmultimesh& self) { return copy2vector(self.meshnames, self.nblocks); }""",
+    meshnames = PYB11property(getterraw = "[](DBmultimesh& self) { return copy2py(self.meshnames, self.nblocks); }",
+                              setterraw="[](DBmultimesh& self, py::list vals) { copy2c(self.meshnames, vals); }",
                               doc="Array of mesh-names for meshids")
-    meshtypes = PYB11property(getterraw="""[](DBmultimesh& self) { return copy2vector(self.meshtypes, self.nblocks); }""",
+    meshtypes = PYB11property(getterraw="[](DBmultimesh& self) { return copy2py(self.meshtypes, self.nblocks); }",
+                              setterraw="[](DBmultimesh& self, py::list vals) { copy2c(self.meshtypes, vals); }",
                               doc="Array of mesh-type indicators [nblocks]")
     dirids = PYB11readwrite(doc="Array of directory IDs which contain blk")
     blockorigin = PYB11readwrite(doc="Origin (0 or 1) of block numbers")
     grouporigin = PYB11readwrite(doc="Origin (0 or 1) of group numbers")
     extentssize = PYB11readwrite(doc="size of each extent tuple")
-    extents = PYB11property(getterraw="""[](DBmultimesh& self) { return copy2vector(self.extents, 2*self.nblocks); }""",
+    extents = PYB11property(getterraw="[](DBmultimesh& self) { return copy2py(self.extents, 2*self.nblocks); }",
+                            setterraw="[](DBmultimesh& self, py::list vals) { copy2c(self.extents, vals); }",
                             doc="min/max extents of coords of each block")
-    zonecounts = PYB11property(getterraw="""[](DBmultimesh& self) { return copy2vector(self.zonecounts, self.nblocks); }""",
+    zonecounts = PYB11property(getterraw="[](DBmultimesh& self) { return copy2py(self.zonecounts, self.nblocks); }",
+                               setterraw="[](DBmultimesh& self, py::list vals) { copy2c(self.zonecounts, vals); }",
                                doc="array of zone counts for each block")
-    has_external_zones = PYB11property(getterraw="""[](DBmultimesh& self) { return copy2vector(self.has_external_zones, self.nblocks); }""",
+    has_external_zones = PYB11property(getterraw="[](DBmultimesh& self) { return copy2py(self.has_external_zones, self.nblocks); }",
+                                       setterraw="[](DBmultimesh& self, py::list vals) { copy2c(self.has_external_zones, vals); }",
                                        doc="external flags for each block")
     guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
     lgroupings = PYB11readwrite(doc="size of groupings array")
     groupings = PYB11readwrite(doc="Array of mesh-ids, group-ids, and counts")
-    groupnames = PYB11property(getterraw = """[](DBmultimesh& self) { return copy2vector(self.groupnames, self.ngroups); }""",
+    groupnames = PYB11property(getterraw = "[](DBmultimesh& self) { return copy2py(self.groupnames, self.ngroups); }",
+                               setterraw="[](DBmultimesh& self, py::list vals) { copy2c(self.groupnames, vals); }",
                                doc="Array of group-names for groupings")
     mrgtree_name = PYB11readwrite(doc="optional name of assoc. mrgtree object")
     tv_connectivity = PYB11readwrite()
@@ -311,7 +378,8 @@ class DBmultimesh:
     file_ns = PYB11readwrite(doc="namescheme for files (in lieu of meshnames)")
     block_ns = PYB11readwrite(doc="namescheme for block objects (in lieu of meshnames)")
     block_type = PYB11readwrite(doc="constant block type for all blocks (in lieu of meshtypes)")
-    empty_list = PYB11property(getterraw="""[](DBmultimesh& self) { return copy2vector(self.empty_list, self.empty_cnt); }""",
+    empty_list = PYB11property(getterraw="[](DBmultimesh& self) { return copy2py(self.empty_list, self.empty_cnt); }",
+                               setterraw="[](DBmultimesh& self, py::list vals) { copy2c(self.empty_list, vals); }",
                                doc="list of empty block #'s (option for namescheme)")
     empty_cnt = PYB11readwrite(doc="size of empty list")
     repr_block_idx = PYB11readwrite(doc="index of a 'representative' block")
@@ -324,72 +392,25 @@ class DBmultimesh:
     meshnames_alloc = PYB11readwrite(doc="original alloc of meshnames as string list")
 
 #-------------------------------------------------------------------------------
-class DBucdmesh:
-    "A silo Unstructured Cell Data (UCD) Mesh"
-
-    id = PYB11readwrite(doc="Identifier for this object")
-    block_no = PYB11readwrite(doc="Block number for this mesh")
-    group_no = PYB11readwrite(doc="Block group number for this mesh")
-    name = PYB11readwrite(doc="Name associated with mesh")
-    cycle = PYB11readwrite(doc="Problem cycle number")
-    coord_sys = PYB11readwrite(doc="Coordinate system")
-    topo_dim = PYB11readwrite(doc="Topological dimension. ")
-    units = PYB11property(getterraw = "[](DBucdmesh& self) { return copy2vector(self.units, 3); }",
-                          doc = "Units for variable, e.g, 'mm/ms'")
-    labels = PYB11property(getterraw = "[](DBucdmesh& self) { return copy2vector(self.labels, 3); }",
-                           doc = "Label associated with each dimension")
-    coords = PYB11property(getterraw = """[](DBucdmesh& self) { std::vector<std::vector<double>> result(3, std::vector<double>(self.nnodes));
-                                                                for (auto k = 0; k < self.ndims; ++k) {
-                                                                  if (self.datatype == DB_FLOAT) {
-                                                                    auto* coords = static_cast<float*>(self.coords[k]);
-                                                                    for (auto i = 0; i < self.nnodes; ++i) result[k][i] = coords[i];
-                                                                  } else {
-                                                                    VERIFY(self.datatype == DB_DOUBLE);
-                                                                    auto* coords = static_cast<double*>(self.coords[k]);
-                                                                    for (auto i = 0; i < self.nnodes; ++i) result[k][i] = coords[i];
-                                                                  }
-                                                                }
-                                                                return result;
-                                                              }""",
-                           doc = "Mesh node coordinates")
-    datatype = PYB11readwrite(doc="Type of coordinate arrays (double,float)")
-    time = PYB11readwrite(doc="Problem time")
-    dtime = PYB11readwrite(doc="Problem time, double data type")
-    ndims = PYB11readwrite(doc="Number of computational dimensions")
-    nnodes = PYB11readwrite(doc="Total number of nodes")
-    origin = PYB11readwrite(doc="0' or '1'")
-
-    faces = PYB11readwrite(doc="Data structure describing mesh faces", returnpolicy="reference")
-    zones = PYB11readwrite(doc="Data structure describing mesh zones", returnpolicy="reference")
-    edges = PYB11readwrite(doc="Data struct describing mesh edges", returnpolicy="reference")
-
-    nodeno = PYB11readwrite(doc="nnodes] node number of each node")
-
-    phzones = PYB11readwrite(doc="Data structure describing mesh zones")
-
-    guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
-    mrgtree_name = PYB11readwrite(doc="optional name of assoc. mrgtree object")
-    tv_connectivity = PYB11readwrite()
-    disjoint_mode = PYB11readwrite()
-    gnznodtype = PYB11readwrite(doc="datatype for global node/zone ids")
-    ghost_node_labels = PYB11readwrite()
-
-#-------------------------------------------------------------------------------
 class DBzonelist:
     "A silo zone list"
     ndims = PYB11readwrite(doc="Number of dimensions (2,3)")
     nzones = PYB11readwrite(doc="Number of zones in list")
     nshapes = PYB11readwrite(doc="Number of zone shapes")
-    shapecnt = PYB11property(getterraw="""[](DBzonelist& self) { return copy2vector(self.shapecnt, self.nshapes); }""",
+    shapecnt = PYB11property(getterraw="[](DBzonelist& self) { return copy2py(self.shapecnt, self.nshapes); }",
+                             setterraw="[](DBzonelist& self, py::list vals) { copy2c(self.shapecnt, vals); }",
                              doc="[nshapes] occurences of each shape")
-    shapesize = PYB11property(getterraw="""[](DBzonelist& self) { return copy2vector(self.shapesize, self.nshapes); }""",
+    shapesize = PYB11property(getterraw="[](DBzonelist& self) { return copy2py(self.shapesize, self.nshapes); }",
+                              setterraw="[](DBzonelist& self, py::list vals) { copy2c(self.shapesize, vals); }",
                               doc="[nshapes] Number of nodes per shape")
-    shapetype = PYB11property(getterraw="""[](DBzonelist& self) { return copy2vector(self.shapetype, self.nshapes); }""",
+    shapetype = PYB11property(getterraw="[](DBzonelist& self) { return copy2py(self.shapetype, self.nshapes); }",
+                              setterraw="[](DBzonelist& self, py::list vals) { copy2c(self.shapetype, vals); }",
                               doc="[nshapes] Type of shape")
     nodelist = PYB11property(getterraw="""[](DBzonelist& self) { size_t n = 0; 
                                                                  for (auto i = 0; i < self.nshapes; ++i) n += self.shapecnt[i]*self.shapesize[i];
-                                                                 return copy2vector(self.nodelist, n);
+                                                                 return copy2py(self.nodelist, n);
                                                                }""",
+                             setterraw="[](DBzonelist& self, py::list vals) { copy2c(self.nodelist, vals); }",
                              doc="Sequent lst of nodes which comprise zones", returnpolicy="reference")
     lnodelist = PYB11readwrite(doc="Number of nodes in nodelist")
     origin = PYB11readwrite(doc="0' or '1'")
@@ -404,24 +425,29 @@ class DBzonelist:
 class DBphzonelist:
     "A silo polyhedral zone list"
     nfaces = PYB11readwrite(doc='Number of faces in facelist (aka "facetable")')
-    nodecnt = PYB11property(getterraw="[](DBphzonelist& self) { return copy2vector(self.nodecnt, self.nfaces); }",
+    nodecnt = PYB11property(getterraw="[](DBphzonelist& self) { return copy2py(self.nodecnt, self.nfaces); }",
+                            setterraw="[](DBphzonelist& self, py::list vals) { copy2c(self.nodecnt, vals); }",
                             doc="Count of nodes in each face")
     lnodelist = PYB11readwrite(doc="Length of nodelist used to construct faces")
-    nodelist = PYB11property(getterraw="[](DBphzonelist& self) { return copy2vector(self.nodelist, self.lnodelist); }",
+    nodelist = PYB11property(getterraw="[](DBphzonelist& self) { return copy2py(self.nodelist, self.lnodelist); }",
+                             setterraw="[](DBphzonelist& self, py::list vals) { copy2c(self.nodelist, vals); }",
                              doc="List of nodes used in all faces")
     extface = PYB11readwrite(doc="boolean flag indicating if a face is external")
     nzones = PYB11readwrite(doc="Number of zones in this zonelist")
-    facecnt = PYB11property(getterraw="[](DBphzonelist& self) { return copy2vector(self.facecnt, self.nzones); }",
+    facecnt = PYB11property(getterraw="[](DBphzonelist& self) { return copy2py(self.facecnt, self.nzones); }",
+                            setterraw="[](DBphzonelist& self, py::list vals) { copy2c(self.facecnt, vals); }",
                             doc="Count of faces in each zone")
     lfacelist = PYB11readwrite(doc="Length of facelist used to construct zones")
-    facelist = PYB11property(getterraw="[](DBphzonelist& self) { return copy2vector(self.facelist, self.lfacelist); }",
+    facelist = PYB11property(getterraw="[](DBphzonelist& self) { return copy2py(self.facelist, self.lfacelist); }",
+                             setterraw="[](DBphzonelist& self, py::list vals) { copy2c(self.facelist, vals); }",
                              doc="List of faces used in all zones")
     origin = PYB11readwrite(doc="0' or '1'")
     lo_offset = PYB11readwrite(doc="Index of first non-ghost zone")
     hi_offset = PYB11readwrite(doc="Index of last non-ghost zone")
-    zoneno = PYB11property(getterraw="[](DBphzonelist& self) { return copy2vector(self.zoneno, self.nzones); }",
+    zoneno = PYB11property(getterraw="[](DBphzonelist& self) { return copy2py(self.zoneno, self.nzones); }",
+                           setterraw="[](DBphzonelist& self, py::list vals) { copy2c(self.zoneno, vals); }",
                            doc="[nzones] zone number of each zone")
-    # gzoneno = PYB11property(getterraw="[](DBphzonelist& self) { return copy2vector(self.gzoneno, self.nzones); }",
+    # gzoneno = PYB11property(getterraw="[](DBphzonelist& self) { return copy2py(self.gzoneno, self.nzones); }",
     #                         doc="[nzones] global zone number of each zone")
     gnznodtype = PYB11readwrite(doc="datatype for global node/zone ids")
     ghost_zone_labels = PYB11readwrite()
@@ -432,30 +458,39 @@ class DBfacelist:
     ndims = PYB11readwrite(doc="Number of dimensions (2,3)")
     nfaces = PYB11readwrite(doc="Number of faces in list")
     origin = PYB11readwrite(doc="0' or '1'")
-    nodelist = PYB11property(getterraw="[](DBfacelist& self) { return copy2vector(self.nodelist, self.lnodelist); }",
+    nodelist = PYB11property(getterraw="[](DBfacelist& self) { return copy2py(self.nodelist, self.lnodelist); }",
+                             setterraw="[](DBfacelist& self, py::list vals) { copy2c(self.nodelist, vals); }",
                              doc="Sequent list of nodes comprise faces")
     lnodelist = PYB11readwrite(doc="Number of nodes in nodelist")
     nshapes = PYB11readwrite(doc="Number of face shapes")
-    shapecnt = PYB11property(getterraw="[](DBfacelist& self) { return copy2vector(self.shapecnt, self.nshapes); }",
+    shapecnt = PYB11property(getterraw="[](DBfacelist& self) { return copy2py(self.shapecnt, self.nshapes); }",
+                             setterraw="[](DBfacelist& self, py::list vals) { copy2c(self.shapecnt, vals); }",
                              doc="[nshapes] Num of occurences of each shape")
-    shapesize = PYB11property(getterraw="[](DBfacelist& self) { return copy2vector(self.shapesize, self.nshapes); }",
+    shapesize = PYB11property(getterraw="[](DBfacelist& self) { return copy2py(self.shapesize, self.nshapes); }",
+                             setterraw="[](DBfacelist& self, py::list vals) { copy2c(self.shapesize, vals); }",
                               doc="[nshapes] Number of nodes per shape")
     ntypes = PYB11readwrite(doc="Number of face types")
-    typelist = PYB11property(getterraw="[](DBfacelist& self) { return copy2vector(self.typelist, self.ntypes); }",
+    typelist = PYB11property(getterraw="[](DBfacelist& self) { return copy2py(self.typelist, self.ntypes); }",
+                             setterraw="[](DBfacelist& self, py::list vals) { copy2c(self.typelist, vals); }",
                              doc="[ntypes] Type ID for each type")
-    types = PYB11property(getterraw="[](DBfacelist& self) { return copy2vector(self.types, self.nfaces); }",
+    types = PYB11property(getterraw="[](DBfacelist& self) { return copy2py(self.types, self.nfaces); }",
+                          setterraw="[](DBfacelist& self, py::list vals) { copy2c(self.types, vals); }",
                           doc="[nfaces] Type info for each face")
-    nodeno = PYB11property(getterraw="[](DBfacelist& self) { return copy2vector(self.nodeno, self.lnodelist); }",
+    nodeno = PYB11property(getterraw="[](DBfacelist& self) { return copy2py(self.nodeno, self.lnodelist); }",
+                           setterraw="[](DBfacelist& self, py::list vals) { copy2c(self.nodeno, vals); }",
                            doc="[lnodelist] node number of each node")
-    zoneno = PYB11property(getterraw="[](DBfacelist& self) { return copy2vector(self.zoneno, self.nfaces); }",
+    zoneno = PYB11property(getterraw="[](DBfacelist& self) { return copy2py(self.zoneno, self.nfaces); }",
+                           setterraw="[](DBfacelist& self, py::list vals) { copy2c(self.zoneno, vals); }",
                            doc="[nfaces] Zone number for each face")
 
 #-------------------------------------------------------------------------------
 class DBedgelist:
     ndims = PYB11readwrite(doc="Number of dimensions (2,3)")
     nedges = PYB11readwrite(doc="Number of edges")
-    edge_beg = PYB11property(getterraw="[](DBedgelist& self) { return copy2vector(self.edge_beg, self.nedges); }")
-    edge_end = PYB11property(getterraw="[](DBedgelist& self) { return copy2vector(self.edge_end, self.nedges); }")
+    edge_beg = PYB11property(getterraw="[](DBedgelist& self) { return copy2py(self.edge_beg, self.nedges); }",
+                             setterraw="[](DBedgelist& self, py::list vals) { copy2c(self.edge_beg, vals); }")
+    edge_end = PYB11property(getterraw="[](DBedgelist& self) { return copy2py(self.edge_end, self.nedges); }",
+                             setterraw="[](DBedgelist& self, py::list vals) { copy2c(self.edge_end, vals); }")
     origin = PYB11readwrite(doc="0' or '1'")
 
 #-------------------------------------------------------------------------------
@@ -463,15 +498,18 @@ class DBmultivar:
     id = PYB11readwrite(doc="Identifier for this object ")
     nvars = PYB11readwrite(doc="Number of variables  ")
     ngroups = PYB11readwrite(doc="Number of block groups in mesh")
-    varnames = PYB11property(getterraw="[](DBmultivar& self) { return copy2vector(self.varnames, self.nvars); }",
-                          doc="Variable names")
-    vartypes = PYB11property(getterraw="[](DBmultivar& self) { return copy2vector(self.vartypes, self.nvars); }",
-                          doc="variable types")
+    varnames = PYB11property(getterraw="[](DBmultivar& self) { return copy2py(self.varnames, self.nvars); }",
+                             setterraw="[](DBmultivar& self, py::list vals) { copy2c(self.varnames, vals); }",
+                             doc="Variable names")
+    vartypes = PYB11property(getterraw="[](DBmultivar& self) { return copy2py(self.vartypes, self.nvars); }",
+                             setterraw="[](DBmultivar& self, py::list vals) { copy2c(self.vartypes, vals); }",
+                             doc="variable types")
     blockorigin = PYB11readwrite(doc="Origin (0 or 1) of block numbers")
     grouporigin = PYB11readwrite(doc="Origin (0 or 1) of group numbers")
     extentssize = PYB11readwrite(doc="size of each extent tuple")
     guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
-    region_pnames = PYB11property(getterraw="[](DBmultivar& self) { return copy2vector(self.region_pnames, self.ngroups); }")
+    region_pnames = PYB11property(getterraw="[](DBmultivar& self) { return copy2py(self.region_pnames, self.ngroups); }",
+                                  setterraw="[](DBmultivar& self, py::list vals) { copy2c(self.region_pnames, vals); }")
     mmesh_name = PYB11readwrite()
     tensor_rank = PYB11readwrite(doc="DB_VARTYPE_XXX")
     conserved = PYB11readwrite(doc="indicates if the variable should be conserved under various operations such as interp.")
@@ -479,8 +517,9 @@ class DBmultivar:
     file_ns = PYB11readwrite(doc="namescheme for files (in lieu of meshnames)")
     block_ns = PYB11readwrite(doc="namescheme for block objects (in lieu of meshnames)")
     block_type = PYB11readwrite(doc="constant block type for all blocks (in lieu of meshtypes)")
-    empty_list = PYB11property(getterraw="[](DBmultivar& self) { return copy2vector(self.empty_list, self.empty_cnt); }",
-                          doc="list of empty block #'s (option for namescheme)")
+    empty_list = PYB11property(getterraw="[](DBmultivar& self) { return copy2py(self.empty_list, self.empty_cnt); }",
+                               setterraw="[](DBmultivar& self, py::list vals) { copy2c(self.empty_list, vals); }",
+                               doc="list of empty block #'s (option for namescheme)")
     empty_cnt = PYB11readwrite(doc="size of empty list")
     repr_block_idx = PYB11readwrite(doc="index of a 'representative' block")
     missing_value = PYB11readwrite(doc="Value to indicate var data is invalid/missing")
@@ -491,27 +530,36 @@ class DBmultimat:
     id = PYB11readwrite(doc="Identifier for this object ")
     nmats = PYB11readwrite(doc="Number of materials  ")
     ngroups = PYB11readwrite(doc="Number of block groups in mesh")
-    matnames = PYB11property(getterraw="[](DBmultimat& self) { return copy2vector(self.matnames, self.nmats); }",
+    matnames = PYB11property(getterraw="[](DBmultimat& self) { return copy2py(self.matnames, self.nmats); }",
+                             setterraw="[](DBmultimat& self, py::list vals) { copy2c(self.matnames, vals); }",
                              doc="names of constiuent DBmaterial objects")
     blockorigin = PYB11readwrite(doc="Origin (0 or 1) of block numbers")
     grouporigin = PYB11readwrite(doc="Origin (0 or 1) of group numbers")
-    mixlens = PYB11property(getterraw="[](DBmultimat& self) { return copy2vector(self.mixlens, self.nmats); }",
+    mixlens = PYB11property(getterraw="[](DBmultimat& self) { return copy2py(self.mixlens, self.nmats); }",
+                            setterraw="[](DBmultimat& self, py::list vals) { copy2c(self.mixlens, vals); }",
                             doc="array of mixlen values in each mat")
-    matcounts = PYB11property(getterraw="[](DBmultimat& self) { return copy2vector(self.matcounts, self.ngroups); }",
+    matcounts = PYB11property(getterraw="[](DBmultimat& self) { return copy2py(self.matcounts, self.ngroups); }",
+                              setterraw="[](DBmultimat& self, py::list vals) { copy2c(self.matcounts, vals); }",
                               doc="counts of unique materials in each block")
     matlists = PYB11property(getterraw="""[](DBmultimat& self) { size_t nvals = 0;
                                                                  if (self.matcounts != NULL) {
                                                                    for (auto i = 0; i < self.ngroups; ++i) nvals += self.matcounts[i];
                                                                  }
-                                                                 return copy2vector(self.matlists, nvals);
+                                                                 return copy2py(self.matlists, nvals);
                                                                }""",
+                             setterraw="[](DBmultimat& self, py::list vals) { copy2c(self.matlists, vals); }",
                              doc="list of materials in each block")
     guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
     nmatnos = PYB11readwrite(doc="global number of materials over all pieces")
-    matnos = PYB11property(getterraw="[](DBmultimat& self) { return copy2vector(self.matnos, self.nmatnos); }",
+    matnos = PYB11property(getterraw="[](DBmultimat& self) { return copy2py(self.matnos, self.nmatnos); }",
+                           setterraw="[](DBmultimat& self, py::list vals) { copy2c(self.matnos, vals); }",
                            doc="global list of material numbers")
-    # matcolors = PYB11readwrite(doc="optional colors for materials")
-    # material_names = PYB11readwrite(doc="optional names of the materials")
+    matcolors = PYB11property(getterraw = "[](DBmultimat& self) { return copy2py(self.matcolors, self.nmatnos); }",
+                              setterraw = "[](DBmultimat& self, py::list vals) { copy2c(self.matcolors, vals); }",
+                              doc = "optional colors for materials")
+    material_names = PYB11property(getterraw = "[](DBmultimat& self) { return copy2py(self.material_names, self.nmatnos); }",
+                                   setterraw = "[](DBmultimat& self, py::list vals) { copy2c(self.material_names, vals); }",
+                                   doc = "optional names of the materials")
     allowmat0 = PYB11readwrite(doc='Flag to allow material "0"')
     mmesh_name = PYB11readwrite()
     file_ns = PYB11readwrite(doc="namescheme for files (in lieu of meshnames)")
@@ -525,16 +573,19 @@ class DBmultimatspecies:
     id = PYB11readwrite(doc="Identifier for this object ")
     nspec = PYB11readwrite(doc="Number of species  ")
     ngroups = PYB11readwrite(doc="Number of block groups in mesh")
-    specnames = PYB11property(getterraw="[](DBmultimatspecies& self) { return copy2vector(self.specnames, self.nspec); }",
+    specnames = PYB11property(getterraw="[](DBmultimatspecies& self) { return copy2py(self.specnames, self.nspec); }",
+                              setterraw="[](DBmultimatspecies& self, py::list vals) { copy2c(self.specnames, vals); }",
                               doc="Species object names")
     blockorigin = PYB11readwrite(doc="Origin (0 or 1) of block numbers")
     grouporigin = PYB11readwrite(doc="Origin (0 or 1) of group numbers")
     guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
     nmat = PYB11readwrite(doc="equiv. to nmatnos of a DBmultimat")
     nmatspec = PYB11readwrite(doc="equiv. to matnos of a DBmultimat")
-    species_names = PYB11property(getterraw="[](DBmultimatspecies& self) { return copy2vector(self.species_names, self.nspec); }",
-                          doc="optional names of the species")
-    speccolors = PYB11property(getterraw="[](DBmultimatspecies& self) { return copy2vector(self.speccolors, self.nspec); }",
+    species_names = PYB11property(getterraw="[](DBmultimatspecies& self) { return copy2py(self.species_names, self.nspec); }",
+                                  setterraw="[](DBmultimatspecies& self, py::list vals) { copy2c(self.species_names, vals); }",
+                                  doc="optional names of the species")
+    speccolors = PYB11property(getterraw="[](DBmultimatspecies& self) { return copy2py(self.speccolors, self.nspec); }",
+                               setterraw="[](DBmultimatspecies& self, py::list vals) { copy2c(self.speccolors, vals); }",
                                doc="optional colors for species")
     file_ns = PYB11readwrite(doc="namescheme for files (in lieu of meshnames)")
     block_ns = PYB11readwrite(doc="namescheme for block objects (in lieu of meshnames)")
@@ -552,56 +603,302 @@ class DBquadmesh:
     cycle = PYB11readwrite(doc="Problem cycle number")
     coord_sys = PYB11readwrite(doc="Cartesian, cylindrical, spherical")
     major_order = PYB11readwrite(doc="1 indicates row-major for multi-d arrays")
-    stride = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.stride, 3); }",
-                          doc="Offsets to adjacent elements")
+    stride = PYB11property(getterraw="[](DBquadmesh& self) { return copy2py(self.stride, 3); }",
+                           setterraw="[](DBquadmesh& self, py::list vals) { copy2c(self.stride, vals); }",
+                           doc="Offsets to adjacent elements")
     coordtype = PYB11readwrite(doc="Coord array type: collinear, non-collinear")
     facetype = PYB11readwrite(doc="Zone face type: rect, curv")
     planar = PYB11readwrite(doc="Sentinel: zones represent area or volume?")
-    coords = PYB11property(getterraw = """[](DBquadmesh& self) { std::vector<std::vector<double>> result(3, std::vector<double>(self.nnodes));
-                                                                 for (auto k = 0; k < self.ndims; ++k) {
-                                                                   if (self.datatype == DB_FLOAT) {
-                                                                     auto* coords = static_cast<float*>(self.coords[k]);
-                                                                     for (auto i = 0; i < self.nnodes; ++i) result[k][i] = coords[i];
-                                                                   } else {
-                                                                     VERIFY(self.datatype == DB_DOUBLE);
-                                                                     auto* coords = static_cast<double*>(self.coords[k]);
-                                                                     for (auto i = 0; i < self.nnodes; ++i) result[k][i] = coords[i];
-                                                                   }
-                                                                 }
-                                                                 return result;
-                                                               }""",
+    coords = PYB11property(getterraw = "[](DBquadmesh& self) { return copy2py(self.coords, 3, self.nnodes, self.datatype); }",
+                           setterraw="[](DBquadmesh& self, py::list vals) { copy2c(self.coords, vals); }",
                            doc = "Mesh node coordinates")
     datatype = PYB11readwrite(doc="Type of coordinate arrays (double,float)")
     time = PYB11readwrite(doc="Problem time")
     dtime = PYB11readwrite(doc="Problem time, double data type")
-    labels = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.labels, 3); }",
-                          doc="Label associated with each dimension")
-    units = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.units, 3); }",
+    labels = PYB11property(getterraw="[](DBquadmesh& self) { return copy2py(self.labels, 3); }",
+                           setterraw="[](DBquadmesh& self, py::list vals) { copy2c(self.labels, vals); }",
+                           doc="Label associated with each dimension")
+    units = PYB11property(getterraw="[](DBquadmesh& self) { return copy2py(self.units, 3); }",
+                          setterraw="[](DBquadmesh& self, py::list vals) { copy2c(self.units, vals); }",
                           doc="Units for variable, e.g, 'mm/ms'")
     ndims = PYB11readwrite(doc="Number of computational dimensions")
     nspace = PYB11readwrite(doc="Number of physical dimensions")
     nnodes = PYB11readwrite(doc="Total number of nodes")
-    dims = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.dims, 3); }",
+    dims = PYB11property(getterraw="[](DBquadmesh& self) { return copy2py(self.dims, 3); }",
+                         setterraw="[](DBquadmesh& self, py::list vals) { copy2c(self.dims, vals); }",
                          doc="Number of nodes per dimension")
     origin = PYB11readwrite(doc="0' or '1'")
-    min_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.min_index, 3); }",
+    min_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2py(self.min_index, 3); }",
+                              setterraw="[](DBquadmesh& self, py::list vals) { copy2c(self.min_index, vals); }",
                               doc="Index in each dimension of 1st non-phoney")
-    max_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.max_index, 3); }",
+    max_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2py(self.max_index, 3); }",
+                              setterraw="[](DBquadmesh& self, py::list vals) { copy2c(self.max_index, vals); }",
                               doc="Index in each dimension of last non-phoney")
-    base_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.base_index, 3); }",
+    base_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2py(self.base_index, 3); }",
+                               setterraw="[](DBquadmesh& self, py::list vals) { copy2c(self.base_index, vals); }",
                                doc="Lowest real i,j,k value for this block")
-    start_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.start_index, 3); }",
+    start_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2py(self.start_index, 3); }",
+                                setterraw="[](DBquadmesh& self, py::list vals) { copy2c(self.start_index, vals); }",
                                 doc="i,j,k values corresponding to original mesh")
-    size_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2vector(self.size_index, 3); }",
-                                doc="Number of nodes per dimension for original mesh")
+    size_index = PYB11property(getterraw="[](DBquadmesh& self) { return copy2py(self.size_index, 3); }",
+                               setterraw="[](DBquadmesh& self, py::list vals) { copy2c(self.size_index, vals); }",
+                               doc="Number of nodes per dimension for original mesh")
     guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
     mrgtree_name = PYB11readwrite(doc="optional name of assoc. mrgtree object")
     ghost_node_labels = PYB11readwrite()
     ghost_zone_labels = PYB11readwrite()
 
 #-------------------------------------------------------------------------------
+class DBucdmesh:
+    "A silo Unstructured Cell Data (UCD) Mesh"
+
+    id = PYB11readwrite(doc="Identifier for this object")
+    block_no = PYB11readwrite(doc="Block number for this mesh")
+    group_no = PYB11readwrite(doc="Block group number for this mesh")
+    name = PYB11readwrite(doc="Name associated with mesh")
+    cycle = PYB11readwrite(doc="Problem cycle number")
+    coord_sys = PYB11readwrite(doc="Coordinate system")
+    topo_dim = PYB11readwrite(doc="Topological dimension. ")
+    units = PYB11property(getterraw = "[](DBucdmesh& self) { return copy2py(self.units, 3); }",
+                          setterraw="[](DBucdmesh& self, py::list vals) { copy2c(self.units, vals); }",
+                          doc = "Units for variable, e.g, 'mm/ms'")
+    labels = PYB11property(getterraw = "[](DBucdmesh& self) { return copy2py(self.labels, 3); }",
+                           setterraw="[](DBucdmesh& self, py::list vals) { copy2c(self.labels, vals); }",
+                           doc = "Label associated with each dimension")
+    coords = PYB11property(getterraw = "[](DBucdmesh& self) { return copy2py(self.coords, 3, self.nnodes, self.datatype); }",
+                           setterraw="[](DBucdmesh& self, py::list vals) { copy2c(self.coords, vals); }",
+                           doc = "Mesh node coordinates")
+    datatype = PYB11readwrite(doc="Type of coordinate arrays (double,float)")
+    time = PYB11readwrite(doc="Problem time")
+    dtime = PYB11readwrite(doc="Problem time, double data type")
+    ndims = PYB11readwrite(doc="Number of computational dimensions")
+    nnodes = PYB11readwrite(doc="Total number of nodes")
+    origin = PYB11readwrite(doc="0' or '1'")
+    faces = PYB11readwrite(doc="Data structure describing mesh faces", returnpolicy="reference")
+    zones = PYB11readwrite(doc="Data structure describing mesh zones", returnpolicy="reference")
+    edges = PYB11readwrite(doc="Data struct describing mesh edges", returnpolicy="reference")
+    nodeno = PYB11readwrite(doc="nnodes] node number of each node")
+    phzones = PYB11readwrite(doc="Data structure describing mesh zones")
+    guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
+    mrgtree_name = PYB11readwrite(doc="optional name of assoc. mrgtree object")
+    tv_connectivity = PYB11readwrite()
+    disjoint_mode = PYB11readwrite()
+    gnznodtype = PYB11readwrite(doc="datatype for global node/zone ids")
+    ghost_node_labels = PYB11readwrite()
+
+#-------------------------------------------------------------------------------
 # STL types
 # vector_of_DBoptlist = PYB11_bind_vector("silo::DBoptlist_wrapper", opaque=True)
+
+#-------------------------------------------------------------------------------
+class DBquadvar:
+    id = PYB11readwrite(doc="Identifier for this object")
+    name = PYB11readwrite(doc="Name of variable")
+    units = PYB11readwrite(doc="Units for variable, e.g, 'mm/ms'")
+    label = PYB11readwrite(doc="Label (perhaps for editing purposes)")
+    cycle = PYB11readwrite(doc="Problem cycle number")
+    meshid = PYB11readwrite(doc="Identifier for associated mesh (Deprecated Sep2005)")
+    vals = PYB11property(getterraw = "[](DBquadvar& self) { return copy2py(self.vals, 3, self.nvals, self.datatype); }",
+                         setterraw = "[](DBquadvar& self, py::list vals) { copy2c(self.vals, vals, 3, self.nvals, self.datatype); }",
+                         doc="Array of pointers to data arrays")
+    datatype = PYB11readwrite(doc="Type of data pointed to by 'val'")
+    nels = PYB11readwrite(doc="Number of elements in each array")
+    nvals = PYB11readwrite(doc="Number of arrays pointed to by 'vals'")
+    ndims = PYB11readwrite(doc="Rank of variable")
+    dims = PYB11property(getterraw = "[](DBquadvar& self) { return copy2py(self.dims, 3); }",
+                         setterraw = "[](DBquadvar& self, py::list vals) { copy2c(self.dims, vals); }",
+                         doc = "Number of elements in each dimension")
+    major_order = PYB11readwrite(doc="1 indicates row-major for multi-d arrays")
+    stride = PYB11property(getterraw = "[](DBquadvar& self) { return copy2py(self.stride, 3); }",
+                           setterraw = "[](DBquadvar& self, py::list vals) { copy2c(self.stride, vals); }",
+                           doc = "Offsets to adjacent elements")
+    min_index = PYB11property(getterraw = "[](DBquadvar& self) { return copy2py(self.min_index, 3); }",
+                              setterraw = "[](DBquadvar& self, py::list vals) { copy2c(self.min_index, vals); }",
+                              doc = "Index in each dimension of 1st non-phoney")
+    max_index = PYB11property(getterraw = "[](DBquadvar& self) { return copy2py(self.max_index, 3); }",
+                              setterraw = "[](DBquadvar& self, py::list vals) { copy2c(self.max_index, vals); }",
+                              doc = "Index in each dimension of last non-phoney")
+    origin = PYB11readwrite(doc="0' or '1'")
+    time = PYB11readwrite(doc="Problem time")
+    dtime = PYB11readwrite(doc="Problem time, double data type")
+    mixvals = PYB11property(getterraw = "[](DBquadvar& self) { return copy2py(self.mixvals, self.nvals, self.mixlen, self.datatype); }",
+                            setterraw = "[](DBquadvar& self, py::list vals) { copy2c(self.mixvals, vals); }",
+                            doc = "nvals ptrs to data arrays for mixed zones")
+    mixlen = PYB11readwrite(doc="Num of elmts in each mixed zone data array")
+    use_specmf = PYB11readwrite(doc="Flag indicating whether to apply species mass fractions to the variable.")
+    ascii_labels = PYB11readwrite(doc="Treat variable values as ASCII values by rounding to the nearest integer in the range [0, 255]")
+    meshname = PYB11readwrite(doc="Name of associated mesh")
+    guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
+    conserved = PYB11readwrite(doc="indicates if the variable should be conserved under various operations such as interp.")
+    extensive = PYB11readwrite(doc="indicates if the variable reprsents an extensive physical property (as opposed to intensive)")
+    centering = PYB11readwrite(doc="explicit centering knowledge; should agree with alignment.")
+    missing_value = PYB11readwrite(doc="Value to indicate var data is invalid/missing")
+
+#-------------------------------------------------------------------------------
+class DBucdvar:
+    id = PYB11readwrite(doc="Identifier for this object")
+    name = PYB11readwrite(doc="Name of variable")
+    cycle = PYB11readwrite(doc="Problem cycle number")
+    units = PYB11readwrite(doc="Units for variable, e.g, 'mm/ms'")
+    label = PYB11readwrite(doc="Label (perhaps for editing purposes)")
+    time = PYB11readwrite(doc="Problem time")
+    dtime = PYB11readwrite(doc="Problem time, double data type")
+    meshid = PYB11readwrite(doc="Identifier for associated mesh (Deprecated Sep2005)")
+    vals = PYB11property(getterraw = "[](DBucdvar& self) { return copy2py(self.vals, self.nvals, self.nels, self.datatype); }",
+                         setterraw = "[](DBucdvar& self, py::list vals) { copy2c(self.vals, vals); }",
+                         doc = "Array of pointers to data arrays")
+    datatype = PYB11readwrite(doc="Type of data pointed to by 'vals'")
+    nels = PYB11readwrite(doc="Number of elements in each array")
+    nvals = PYB11readwrite(doc="Number of arrays pointed to by 'vals'")
+    ndims = PYB11readwrite(doc="Rank of variable")
+    origin = PYB11readwrite(doc="0' or '1'")
+    centering = PYB11readwrite(doc="Centering within mesh (nodal or zonal)")
+    mixvals = PYB11property(getterraw = "[](DBucdvar& self) { return copy2py(self.mixvals, self.nvals, self.mixlen, self.datatype); }",
+                            setterraw = "[](DBucdvar& self, py::list vals) { copy2c(self.mixvals, vals); }",
+                           doc = "nvals ptrs to data arrays for mixed zones")
+    mixlen = PYB11readwrite(doc="Num of elmts in each mixed zone data array")
+    use_specmf = PYB11readwrite(doc="Flag indicating whether to apply species mass fractions to the variable.")
+    ascii_labels = PYB11readwrite(doc="Treat variable values as ASCII values by rounding to the nearest integer in the range [0, 255]")
+    meshname = PYB11readwrite(doc="Name of associated mesh")
+    guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
+    conserved = PYB11readwrite(doc="indicates if the variable should be conserved under various operations such as interp.")
+    extensive = PYB11readwrite(doc="indicates if the variable reprsents an extensiv physical property (as opposed to intensive)")
+    missing_value = PYB11readwrite(doc="Value to indicate var data is invalid/missing")
+
+#-------------------------------------------------------------------------------
+class DBmeshvar:
+    "/*----------- Generic Mesh-Data Variable -----------*/"
+    id = PYB11readwrite(doc="Identifier for this object")
+    name = PYB11readwrite(doc="Name of variable")
+    units = PYB11readwrite(doc="Units for variable, e.g, 'mm/ms'")
+    label = PYB11readwrite(doc="Label (perhaps for editing purposes)")
+    cycle = PYB11readwrite(doc="Problem cycle number")
+    meshid = PYB11readwrite(doc="Identifier for associated mesh (Deprecated Sep2005)")
+    vals = PYB11property(getterraw = "[](DBmeshvar& self) { return copy2py(self.vals, self.nvals, self.nels, self.datatype); }",
+                         setterraw = "[](DBmeshvar& self, py::list vals) { copy2c(self.vals, vals); }",
+                         doc = "Array of pointers to data arrays")
+    datatype = PYB11readwrite(doc="Type of data pointed to by 'val'")
+    nels = PYB11readwrite(doc="Number of elements in each array")
+    nvals = PYB11readwrite(doc="Number of arrays pointed to by 'vals'")
+    nspace = PYB11readwrite(doc="Spatial rank of variable")
+    ndims = PYB11readwrite(doc="Rank of 'vals' array(s) (computatnl rank)")
+    origin = PYB11readwrite(doc="0' or '1'")
+    centering = PYB11readwrite(doc="Centering within mesh (nodal,zonal,other)")
+    time = PYB11readwrite(doc="Problem time")
+    dtime = PYB11readwrite(doc="Problem time, double data type")
+    dims = PYB11property(getterraw = "[](DBmeshvar& self) { return copy2py(self.dims, 3); }",
+                         setterraw = "[](DBmeshvar& self, py::list vals) { copy2c(self.dims, vals); }",
+                         doc = "Number of elements in each dimension")
+    major_order = PYB11readwrite(doc="1 indicates row-major for multi-d arrays")
+    stride = PYB11property(getterraw = "[](DBmeshvar& self) { return copy2py(self.stride, 3); }",
+                           setterraw = "[](DBmeshvar& self, py::list vals) { copy2c(self.stride, vals); }",
+                           doc = "Offsets to adjacent elements")
+    min_index = PYB11property(getterraw = "[](DBmeshvar& self) { return copy2py(self.min_index, 3); }",
+                              setterraw = "[](DBmeshvar& self, py::list vals) { copy2c(self.min_index, vals); }",
+                              doc = "Index in each dimension of 1st non-phoney")
+    max_index = PYB11property(getterraw = "[](DBmeshvar& self) { return copy2py(self.max_index, 3); }",
+                              setterraw = "[](DBmeshvar& self, py::list vals) { copy2c(self.max_index, vals); }",
+                              doc = "Index in each dimension of last non-phoney")
+    ascii_labels = PYB11readwrite(doc="Treat variable values as ASCII values by rounding to the nearest integer in the range [0, 255]")
+    meshname = PYB11readwrite(doc="Name of associated mesh")
+    guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
+    conserved = PYB11readwrite(doc="indicates if the variable should be conserved under various operations such as interp.")
+    extensive = PYB11readwrite(doc="indicates if the variable reprsents an extensiv physical property (as opposed to intensive)")
+    missing_value = PYB11readwrite(doc="Value to indicate var data is invalid/missing")
+
+#-------------------------------------------------------------------------------
+class DBmaterial:
+    "/*----------- Material Information -----------*/"
+    id = PYB11readwrite(doc="Identifier")
+    name = PYB11readwrite(doc="Name of this material information block")
+    ndims = PYB11readwrite(doc="Rank of 'matlist' variable")
+    origin = PYB11readwrite(doc="0' or '1'")
+    dims = PYB11property(getterraw = "[](DBmaterial& self) { return copy2py(self.dims, 3); }",
+                         setterraw = "[](DBmaterial& self, py::list vals) { copy2c(self.dims, vals); }",
+                         doc = "Number of elements in each dimension")
+    major_order = PYB11readwrite(doc="1 indicates row-major for multi-d arrays")
+    stride = PYB11property(getterraw = "[](DBmaterial& self) { return copy2py(self.stride, 3); }",
+                           setterraw = "[](DBmaterial& self, py::list vals) { copy2c(self.stride, vals); }",
+                           doc = "Offsets to adjacent elements")
+    nmat = PYB11readwrite(doc="Number of materials")
+    matnos = PYB11property(getterraw="[](DBmaterial& self) { return copy2py(self.matnos, self.nmat); }",
+                           setterraw="[](DBmaterial& self, py::list vals) { copy2c(self.matnos, vals); }",
+                           doc="Array [nmat] of valid material numbers")
+    matnames = PYB11property(getterraw="[](DBmaterial& self) { return copy2py(self.matnames, self.nmat); }",
+                             setterraw="[](DBmaterial& self, py::list vals) { copy2c(self.matnames, vals); }",
+                             doc="Array of material names")
+    matlist = PYB11property(getterraw="""[](DBmaterial& self) { size_t nvals = 1;
+                                                                for (auto i = 0; i < self.ndims; ++i) nvals *= self.dims[i];
+                                                                return copy2py(self.matlist, nvals);
+                                                              }""",
+                            setterraw="[](DBmaterial& self, py::list vals) { copy2c(self.matlist, vals); }",
+                            doc="Array[nzone] w/ mat. number or mix index")
+    mixlen = PYB11readwrite(doc="Length of mixed data arrays (mix_xxx)")
+    datatype = PYB11readwrite(doc="Type of volume-fractions (double,float)")
+    mix_vf = PYB11property(getterraw = "[](DBmaterial& self) { return copy2py(static_cast<double*>(self.mix_vf), self.mixlen); }",
+                           setterraw = "[](DBmaterial& self, py::list vals) { copy2c(static_cast<double*>(self.mix_vf), vals); }",
+                           doc = "Array [mixlen] of volume fractions")
+    mix_next = PYB11property(getterraw = "[](DBmaterial& self) { return copy2py(self.mix_next, self.mixlen); }",
+                             setterraw = "[](DBmaterial& self, py::list vals) { copy2c(self.mix_next, vals); }",
+                             doc = "Array [mixlen] of mixed data indices")
+    mix_mat = PYB11property(getterraw = "[](DBmaterial& self) { return copy2py(self.mix_mat, self.mixlen); }",
+                            setterraw = "[](DBmaterial& self, py::list vals) { copy2c(self.mix_mat, vals); }",
+                            doc = "Array [mixlen] of mixed data indices")
+    mix_zone = PYB11property(getterraw = "[](DBmaterial& self) { return copy2py(self.mix_zone, self.mixlen); }",
+                             setterraw = "[](DBmaterial& self, py::list vals) { copy2c(self.mix_zone, vals); }",
+                             doc = "Array [mixlen] of back pointers to mesh")
+    meshname = PYB11readwrite(doc="Name of associated mesh")
+    allowmat0 = PYB11readwrite(doc='Flag to allow material "0"')
+    guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
+
+#-------------------------------------------------------------------------------
+class DBmatspecies:
+    "/*----------- Species Information -----------*/"
+    id = PYB11readwrite(doc="Identifier")
+    name = PYB11readwrite(doc="Name of this matspecies information block")
+    matname = PYB11readwrite(doc="Name of material object with which material species object is associated.")
+    nmat = PYB11readwrite(doc="Number of materials")
+    nmatspec = PYB11property(getterraw = "[](DBmatspecies& self) { return copy2py(self.nmatspec, self.nmat); }",
+                             setterraw = "[](DBmatspecies& self, py::list vals) { copy2c(self.nmatspec, vals); }",
+                             doc = "Array of lngth nmat of the num of material species associated with each material.")
+    ndims = PYB11readwrite(doc="Rank of 'speclist' variable")
+    dims = PYB11property(getterraw="[](DBmatspecies& self) { return copy2py(self.dims, 3); }",
+                         setterraw="[](DBmatspecies& self, py::list vals) { copy2c(self.dims, vals); }",
+                         doc=" Number of elements in each dimension of the 'speclist' variable.")
+    major_order = PYB11readwrite(doc="1 indicates row-major for multi-d arrays")
+    stride = PYB11property(getterraw = "[](DBmatspecies& self) { return copy2py(self.stride, 3); }",
+                           setterraw = "[](DBmatspecies& self, py::list vals) { copy2c(self.stride, vals); }",
+                           doc = "Offsts to adjacent elmts in 'speclist'")
+    nspecies_mf = PYB11readwrite(doc="Total number of species mass fractions.")
+    species_mf = PYB11property(getterraw = "[](DBmatspecies& self) { return copy2py(static_cast<double*>(self.species_mf), self.nspecies_mf); }",
+                               setterraw = "[](DBmatspecies& self, py::list vals) { copy2c(static_cast<double*>(self.species_mf), vals); }",
+                             doc = "Array of length nspecies_mf of mass frations of the material species.")
+    # int           *speclist;    /* Zone array of dimensions described by ndims
+    #                              * and dims.  Each element of the array is an
+    #                              * index into one of the species mass fraction
+    #                              * arrays.  A positive value is the index in
+    #                              * the species_mf array of the mass fractions
+    #                              * of the clean zone's material species:
+    #                              * species_mf[speclist[i]] is the mass fraction
+    #                              * of the first species of material matlist[i]
+    #                              * in zone i. A negative value means that the
+    #                              * zone is a mixed zone and that the array
+    #                              * mix_speclist contains the index to the
+    #                              * species mas fractions: -speclist[i] is the
+    #                              * index in the 'mix_speclist' array for zone
+    #                              * i. */
+    mixlen = PYB11readwrite(doc="Length of 'mix_speclist' array.")
+    # int           *mix_speclist;  /* Array of lgth mixlen of 1-orig indices
+    #                                * into the 'species_mf' array.
+    #                                * species_mf[mix_speclist[j]] is the index
+    #                                * in array species_mf' of the first of the
+    #                                * mass fractions for material
+    #                                * mix_mat[j]. */
+
+    datatype = PYB11readwrite(doc="Datatype of mass fraction data.")
+    guihide = PYB11readwrite(doc="Flag to hide from post-processor's GUI")
+    # char         **specnames;   /* Array of species names; length is sum of nmatspec   */
+    # char         **speccolors;  /* Array of species colors; length is sum of nmatspec */
 
 #-------------------------------------------------------------------------------
 # Module methods
@@ -656,13 +953,22 @@ def DBGetMultimesh():
 def DBPutMultimat():
     "Write a multimat"
 
+def DBGetMultimat():
+    "Get a multimat"
+
 @PYB11namespace("silo")
 def DBPutMultivar():
     "Write a multivar"
 
+def DBGetMultivar():
+    "Get a multivar"
+
 @PYB11namespace("silo")
 def DBPutMaterial():
     "Write a material"
+
+def DBGetMaterial():
+    "Get a material"
 
 @PYB11namespace("silo")
 def DBPutUcdmesh():
@@ -677,9 +983,21 @@ def DBGetUcdmesh():
 def DBPutQuadmesh():
     "Write a quad mesh"
 
+def DBGetQuadmesh():
+    "Get a quad mesh"
+
 @PYB11namespace("silo")
 def DBPutDefvars():
     "Write var definitions"
+
+def DBGetDefvars():
+    "Get var definitions"
+
+def DBPutZonelist():
+    "Write a zonelist"
+
+def DBGetZonelist():
+    "Get a zonelist"
 
 @PYB11namespace("silo")
 def DBPutZonelist2():
@@ -689,9 +1007,15 @@ def DBPutZonelist2():
 def DBPutPHZonelist():
     "Write a polyhedral zonelist"
 
+def DBGetPHZonelist():
+    "Get a polyhedral zonelist"
+
 @PYB11namespace("silo")
 def DBPutPointmesh():
     "Write a point mesh"
+
+def DBGetPointmesh():
+    "Get a point mesh"
 
 @PYB11namespace("silo")
 def DBAddRegion():
