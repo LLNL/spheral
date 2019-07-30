@@ -1079,10 +1079,19 @@ def DBPutPointvar1():
 def DBPutUcdvar():
     "Write a UCD mesh variable of %(T)s to a silo database."
 
+def DBGetUcdvar():
+    "Read a UCD mesh variable from a silo database."
+
+def DBGetUcdvar():
+    "Read a UCD mesh variable from a silo database."
+
 @PYB11template("T")
 @PYB11namespace("silo")
 def DBPutQuadvar():
     "Write a quad mesh variable of %(T)s to a silo database."
+
+def DBGetQuadvar():
+    "Read a quad mesh variable from a silo database."
 
 @PYB11template("T")
 @PYB11namespace("silo")
