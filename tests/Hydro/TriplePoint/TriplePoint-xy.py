@@ -58,7 +58,7 @@ commandLine(
     relaxInitialDensity = False,
 
     nPerh = 1.51,
-    KernelConstructor = BSplineKernel,
+    KernelConstructor = NBSplineKernel,
     order = 5,
 
     svph = False,
@@ -113,6 +113,7 @@ commandLine(
     HUpdate = IdealH,
     correctionOrder = LinearOrder,
     QcorrectionOrder = LinearOrder,
+    volumeType = CRKSumVolume,
     domainIndependent = False,
     rigorousBoundaries = False,
     dtverbose = False,
