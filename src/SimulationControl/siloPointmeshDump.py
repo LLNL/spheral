@@ -125,8 +125,18 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
 
     nullOpts = silo.DBoptlist()
 
+    # Make sure which domains have information
+    ntot = []
+    if dumpGhosts:
+        nloc = sum([n.numNodes for n in nodeLists])
+    else:
+        nloc = sum([n.numInternalNodes for n in nodeLists])
+    for iproc in xrange(mpi.procs):
+        ntot.append(mpi.bcast(nloc, iproc))
+
     # Pattern for constructing per domain variables.
-    domainNamePatterns = [os.path.join(procDirBaseName % i, baseName + ".silo:%s") for i in xrange(mpi.procs)]
+    domainNamePatterns = [os.path.join(procDirBaseName % i, baseName + ".silo:%s") for i in xrange(mpi.procs) if ntot[i] > 0]
+    ndoms = len(domainNamePatterns)
 
     # Create the master file.
     if mpi.rank == 0:
@@ -136,7 +146,7 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
 
         # Write the domain file names and types.
         domainNames = vector_of_string()
-        meshTypes = vector_of_int([silo.DB_POINTMESH]*mpi.procs)
+        meshTypes = vector_of_int([silo.DB_POINTMESH]*ndoms)
         for p in domainNamePatterns:
             domainNames.append(p % "mesh")
         optlist = silo.DBoptlist(1024)
@@ -158,7 +168,7 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
             for (name, i) in zip(materialNames, range(len(materialNames))):
                 matnames.append(name)
                 matnos.append(i)
-            assert len(material_names) == mpi.procs
+            assert len(material_names) == ndoms
             assert len(matnames) == len(nodeLists)
             assert len(matnos) == len(nodeLists)
             optlist = silo.DBoptlist(1024)
@@ -172,7 +182,7 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
             writeDefvars(db, fieldwad)
 
         # Write the variables descriptors.
-        types = vector_of_int([silo.DB_POINTVAR]*mpi.procs)
+        types = vector_of_int([silo.DB_POINTVAR]*ndoms)
         for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
             domainVarNames = vector_of_string()
             nlocalvals = sum([len(x[1]) for x in subvars])
@@ -183,7 +193,7 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
                         domainVarNames.append(p % name)
                     else:
                         domainVarNames.append("EMPTY")
-                assert len(domainVarNames) == mpi.procs
+                assert len(domainVarNames) == ndoms
                 if mpi.rank == 0:
                     assert silo.DBPutMultivar(db, name, domainVarNames, types, optlistMV) == 0
             else:
@@ -195,7 +205,7 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
                             domainVarNames.append(p % subname)
                         else:
                             domainVarNames.append("EMPTY")
-                    assert len(domainVarNames) == mpi.procs
+                    assert len(domainVarNames) == ndoms
                     if mpi.rank == 0:
                         assert silo.DBPutMultivar(db, subname, domainVarNames, types, optlistVar) == 0
 
@@ -212,83 +222,88 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
 def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeLists,
                         label, time, cycle, dumpGhosts, fieldwad):
 
-    # Create the file.
-    fileName = os.path.join(baseDirectory, procDirBaseName % mpi.rank, baseName + ".silo")
-    db = silo.DBCreate(fileName, 
-                       silo.DB_CLOBBER, silo.DB_LOCAL, label, silo.DB_HDF5)
-    nullOpts = silo.DBoptlist()
-
-    # Read the per material info.
+    # How many points are we dumping?
     if dumpGhosts:
         ntot = sum([n.numNodes for n in nodeLists])
     else:
         ntot = sum([n.numInternalNodes for n in nodeLists])
-    coords = [[] for i in xrange(ndim)]
-    for nodes in nodeLists:
-        if dumpGhosts:
-            pos = nodes.positions().allValues()
-        else:
-            pos = nodes.positions().internalValues()
-        n = len(pos)
+
+    if ntot:
+
+        # Create the file.
+        fileName = os.path.join(baseDirectory, procDirBaseName % mpi.rank, baseName + ".silo")
+        db = silo.DBCreate(fileName, 
+                           silo.DB_CLOBBER, silo.DB_LOCAL, label, silo.DB_HDF5)
+        nullOpts = silo.DBoptlist()
+
+        # Read the per material info.
+        coords = [[] for i in xrange(ndim)]
+        for nodes in nodeLists:
+            if dumpGhosts:
+                pos = nodes.positions().allValues()
+            else:
+                pos = nodes.positions().internalValues()
+            n = len(pos)
+            for j in xrange(ndim):
+                for i in xrange(n):
+                    coords[j].append(pos[i][j])
         for j in xrange(ndim):
-            for i in xrange(n):
-                coords[j].append(pos[i][j])
-    for j in xrange(ndim):
-        assert len(coords[j]) == ntot
-    coords = vector_of_vector_of_double([vector_of_double(icoords) for icoords in coords])
+            assert len(coords[j]) == ntot
+        coords = vector_of_vector_of_double([vector_of_double(icoords) for icoords in coords])
 
-    # Write the Pointmesh.
-    meshOpts = silo.DBoptlist(1024)
-    assert meshOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
-    assert meshOpts.addOption(silo.DBOPT_DTIME, time) == 0
-    assert silo.DBPutPointmesh(db, "mesh", coords, meshOpts) == 0
+        # Write the Pointmesh.
+        meshOpts = silo.DBoptlist(1024)
+        assert meshOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
+        assert meshOpts.addOption(silo.DBOPT_DTIME, time) == 0
+        assert silo.DBPutPointmesh(db, "mesh", coords, meshOpts) == 0
 
-    # Write materials.
-    matnos = vector_of_int()
-    for i in xrange(len(nodeLists)):
-        matnos.append(i)
-    assert len(matnos) == len(nodeLists)
-    matlist = []
-    matnames = []
-    for (nodeList, imat) in zip(nodeLists, xrange(len(nodeLists))):
-        if dumpGhosts:
-            matlist += [imat]*nodeList.numNodes
-        else:
-            matlist += [imat]*nodeList.numInternalNodes
-        matnames.append(nodeList.name)
-    matlist = vector_of_int(matlist)
-    matnames = vector_of_string(matnames)
-    assert len(matlist) == ntot
-    assert len(matnames) == len(nodeLists)
-    matOpts = silo.DBoptlist(1024)
-    assert matOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
-    assert matOpts.addOption(silo.DBOPT_DTIME, time) == 0
-    assert matOpts.addOption(silo.DBOPT_MATNAMES, silo.DBOPT_NMATNOS, matnames) == 0
-    vecInt = vector_of_int()
-    vecDouble = vector_of_double()
-    assert silo.DBPutMaterial(db, "material", "mesh", matnos, matlist, vecInt, 
-                              vecInt, vecInt, vecInt, vecDouble,
-                              matOpts) == 0
+        # Write materials.
+        matnos = vector_of_int()
+        for i in xrange(len(nodeLists)):
+            matnos.append(i)
+        assert len(matnos) == len(nodeLists)
+        matlist = []
+        matnames = []
+        for (nodeList, imat) in zip(nodeLists, xrange(len(nodeLists))):
+            if dumpGhosts:
+                matlist += [imat]*nodeList.numNodes
+            else:
+                matlist += [imat]*nodeList.numInternalNodes
+            matnames.append(nodeList.name)
+        matlist = vector_of_int(matlist)
+        matnames = vector_of_string(matnames)
+        assert len(matlist) == ntot
+        assert len(matnames) == len(nodeLists)
+        matOpts = silo.DBoptlist(1024)
+        assert matOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
+        assert matOpts.addOption(silo.DBOPT_DTIME, time) == 0
+        assert matOpts.addOption(silo.DBOPT_MATNAMES, silo.DBOPT_NMATNOS, matnames) == 0
+        vecInt = vector_of_int()
+        vecDouble = vector_of_double()
+        assert silo.DBPutMaterial(db, "material", "mesh", matnos, matlist, vecInt, 
+                                  vecInt, vecInt, vecInt, vecDouble,
+                                  matOpts) == 0
 
-    # Write the variable descriptions for non-scalar variables (vector and tensors).
-    writeDefvars(db, fieldwad)
+        # Write the variable descriptions for non-scalar variables (vector and tensors).
+        writeDefvars(db, fieldwad)
 
-    # Write the field components.
-    varOpts = silo.DBoptlist(1024)
-    assert varOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
-    assert varOpts.addOption(silo.DBOPT_DTIME, time) == 0
-    for name, desc, dtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
-        for subname, vals in subvars:
-            if len(vals) > 0:
-                if type(vals[0]) == float:
-                    ctor = vector_of_double
-                else:
-                    ctor = vector_of_int
-                assert silo.DBPutPointvar1(db, subname, "mesh", ctor(vals), varOpts) == 0
+        # Write the field components.
+        varOpts = silo.DBoptlist(1024)
+        assert varOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
+        assert varOpts.addOption(silo.DBOPT_DTIME, time) == 0
+        for name, desc, dtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+            for subname, vals in subvars:
+                if len(vals) > 0:
+                    if type(vals[0]) == float:
+                        ctor = vector_of_double
+                    else:
+                        ctor = vector_of_int
+                    assert silo.DBPutPointvar1(db, subname, "mesh", ctor(vals), varOpts) == 0
 
-    # That's it.
-    assert silo.DBClose(db) == 0
-    del db
+        # That's it.
+        assert silo.DBClose(db) == 0
+        del db
+
     return
 
 #-------------------------------------------------------------------------------
