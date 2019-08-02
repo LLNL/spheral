@@ -160,9 +160,9 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
         # Write material names.
         if mpi.rank == 0:
             materialNames = [x.name for x in nodeLists]
-            material_names = vector_of_string()
-            matnames = vector_of_string()
-            matnos = vector_of_int()
+            material_names = []
+            matnames = []
+            matnos = []
             for p in domainNamePatterns:
                 material_names.append(p % "material")
             for (name, i) in zip(materialNames, range(len(materialNames))):
@@ -174,9 +174,9 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
             optlist = silo.DBoptlist(1024)
             assert optlist.addOption(silo.DBOPT_CYCLE, cycle) == 0
             assert optlist.addOption(silo.DBOPT_DTIME, time) == 0
-            assert optlist.addOption(silo.DBOPT_MATNAMES, silo.DBOPT_NMATNOS, matnames) == 0
-            assert optlist.addOption(silo.DBOPT_MATNOS, silo.DBOPT_NMATNOS, matnos) == 0
-            assert silo.DBPutMultimat(db, "MATERIAL", material_names, optlist) == 0
+            assert optlist.addOption(silo.DBOPT_MATNAMES, silo.DBOPT_NMATNOS, vector_of_string(matnames)) == 0
+            assert optlist.addOption(silo.DBOPT_MATNOS, silo.DBOPT_NMATNOS, vector_of_int(matnos)) == 0
+            assert silo.DBPutMultimat(db, "MATERIAL", vector_of_string(material_names), optlist) == 0
         
             # Write the variable descriptions for non-scalar variables (vector and tensors).
             writeDefvars(db, fieldwad)
@@ -258,9 +258,7 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
         assert silo.DBPutPointmesh(db, "mesh", coords, meshOpts) == 0
 
         # Write materials.
-        matnos = vector_of_int()
-        for i in xrange(len(nodeLists)):
-            matnos.append(i)
+        matnos = [i for i in xrange(len(nodeLists))]
         assert len(matnos) == len(nodeLists)
         matlist = []
         matnames = []
@@ -277,10 +275,10 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
         matOpts = silo.DBoptlist(1024)
         assert matOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
         assert matOpts.addOption(silo.DBOPT_DTIME, time) == 0
-        assert matOpts.addOption(silo.DBOPT_MATNAMES, silo.DBOPT_NMATNOS, matnames) == 0
+        assert matOpts.addOption(silo.DBOPT_MATNAMES, silo.DBOPT_NMATNOS, vector_of_string(matnames)) == 0
         vecInt = vector_of_int()
         vecDouble = vector_of_double()
-        assert silo.DBPutMaterial(db, "material", "mesh", matnos, matlist, vecInt, 
+        assert silo.DBPutMaterial(db, "material", "mesh", vector_of_int(matnos), matlist, vecInt, 
                                   vecInt, vecInt, vecInt, vecDouble,
                                   matOpts) == 0
 
