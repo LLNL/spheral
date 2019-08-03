@@ -578,6 +578,27 @@ DBWrite(DBfile& file,
 }
 
 //------------------------------------------------------------------------------
+// DBWrite py::sequence
+//------------------------------------------------------------------------------
+// template<typename T>
+// inline
+// int
+// DBWrite_sequence(DBfile& file,
+//                  std::string varname,
+//                  py::sequence& var) {
+//   const auto n = var.size();
+//   auto dims = std::vector<int>(1, n);
+//   std::vector<T> vals(n);
+//   for (auto i = 0; i < n; ++i) vals[i] = var[i].cast<T>();
+//   return DBWrite(&file,
+//                  varname.c_str(),
+//                  (void*) &vals.front(), 
+//                  &dims.front(),
+//                  1,
+//                  SiloTraits<T>::datatype());
+// }
+
+//------------------------------------------------------------------------------
 // DBWrite vector<T>
 //------------------------------------------------------------------------------
 template<typename T>
