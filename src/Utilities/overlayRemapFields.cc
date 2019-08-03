@@ -115,9 +115,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     const auto& cm = db.connectivityMap();
     const auto position = db.fluidPosition();
     const auto H = db.fluidHfield();
-    const auto rho = db.fluidMassDensity();
     const auto damage = db.solidEffectiveDamage();
-    const auto gradrho = db.newFluidFieldList(Vector::zero, "rho gradient");
     const auto weight = db.newFluidFieldList(1.0, "weight");
     auto etaVoidPoints = db.newFluidFieldList(vector<Vector>(), "eta void points");
     auto surfacePoint = db.newFluidFieldList(0, "surface point");
@@ -126,7 +124,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     FieldList<Dimension, FacetedVolume> cells_fl(FieldStorageType::ReferenceFields);
     cells_fl.appendField(localDonorCells);
     auto cellFaceFlags_fl = db.newFluidFieldList(vector<tuple<int,int,int>>(), "face flags");
-    computeVoronoiVolume(position, H, rho, gradrho, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, 
+    computeVoronoiVolume(position, H, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, 
                          surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl, cellFaceFlags_fl);
     const_cast<NodeList<Dimension>*>(donorNodeListPtr)->numGhostNodes(0);
     neighborD.updateNodes();
@@ -146,9 +144,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     const auto& cm = db.connectivityMap();
     const auto position = db.fluidPosition();
     const auto H = db.fluidHfield();
-    const auto rho = db.fluidMassDensity();
     const auto damage = db.solidEffectiveDamage();
-    const auto gradrho = db.newFluidFieldList(Vector::zero, "rho gradient");
     const auto weight = db.newFluidFieldList(1.0, "weight");
     auto etaVoidPoints = db.newFluidFieldList(vector<Vector>(), "eta void points");
     auto surfacePoint = db.newFluidFieldList(0, "surface point");
@@ -157,7 +153,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     FieldList<Dimension, FacetedVolume> cells_fl(FieldStorageType::ReferenceFields);
     cells_fl.appendField(localAcceptorCells);
     auto cellFaceFlags_fl = db.newFluidFieldList(vector<tuple<int,int,int>>(), "face flags");
-    computeVoronoiVolume(position, H, rho, gradrho, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, 
+    computeVoronoiVolume(position, H, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, 
                          surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl, cellFaceFlags_fl);
     const_cast<NodeList<Dimension>*>(acceptorNodeListPtr)->numGhostNodes(0);
     neighborA.updateNodes();

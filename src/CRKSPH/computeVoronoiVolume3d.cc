@@ -63,8 +63,6 @@ void findPolyhedronExtent(double& xmin, double& xmax,
 void
 computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      const FieldList<Dim<3>, Dim<3>::SymTensor>& H,
-                     const FieldList<Dim<3>, Dim<3>::Scalar>& rho,
-                     const FieldList<Dim<3>, Dim<3>::Vector>& gradRho,
                      const ConnectivityMap<Dim<3> >& connectivityMap,
                      const FieldList<Dim<3>, Dim<3>::SymTensor>& damage,
                      const std::vector<Dim<3>::FacetedVolume>& facetedBoundaries,
@@ -82,6 +80,8 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
 
   // Pre-conditions
   REQUIRE(facetedBoundaries.size() == 0 or facetedBoundaries.size() == position.size());
+  REQUIRE(vol.size() == position.size());
+  REQUIRE(deltaMedian.size() == position.size());
   REQUIRE(holes.size() == facetedBoundaries.size());
 
   typedef Dim<3> Dimension;
@@ -170,8 +170,8 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
       const auto n = vol[nodeListi]->numInternalElements();
       const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
 
-#pragma omp parallel for                \
-  private(pairPlanes, vol0, voli)
+// #pragma omp parallel for                \
+//   private(pairPlanes, vol0, voli)
       for (auto i = 0; i < n; ++i) {
         const auto& ri = position(nodeListi, i);
         const auto& Hi = H(nodeListi, i);
@@ -313,9 +313,6 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
       for (auto i = 0; i < n; ++i) {
         const auto& ri = position(nodeListi, i);
         const auto& Hi = H(nodeListi, i);
-        const auto  rhoi = rho(nodeListi, i);
-        auto        gradRhoi = gradRho(nodeListi, i);
-        const auto  grhat = gradRhoi.unitVector();
         const auto  Hinvi = Hi.Inverse();
         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         auto&       celli = polycells(nodeListi, i);
@@ -355,30 +352,6 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
 
           // We only use the volume result if interior.
           vol(nodeListi, i) = voli;
-
-          // // Apply the gradient limiter;
-          // gradRhoi *= phi;
-
-          // Is there a significant density gradient?
-          if (gradRhoi.magnitude()*Dim<3>::rootnu(vol(nodeListi, i)) >= 1e-8*rhoi) {
-
-            const auto nhat1 = gradRhoi.unitVector();
-            double x1, x2;
-            findPolyhedronExtent(x1, x2, nhat1, celli);
-            CHECK2(x1 <= 0.0 and x2 >= 0.0, nodeListi << " " << i << " " << ri << " " << x1 << " " << x2);
-            const Scalar b = gradRhoi.magnitude();
-
-            // This version uses the medial position.
-            const Scalar thpt = sqrt(abs(rhoi*rhoi + rhoi*b*(x1 + x2) + 0.5*b*b*(x1*x1 + x2*x2)));
-            const Scalar xm1 = -(rhoi + thpt)/b;
-            const Scalar xm2 = (-rhoi + thpt)/b;
-            const auto deltaCentroidi = deltaMedian(nodeListi, i);
-            if (xm1 >= x1 and xm1 <= x2) {
-              deltaMedian(nodeListi, i) = xm1*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
-            } else {
-              deltaMedian(nodeListi, i) = xm2*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
-            }
-          }
 
           // OK, this is an interior point from the perspective that it was clipped within our critical
           // radius on all sides.  However, if we have a bounding polygon we may still want to call it a

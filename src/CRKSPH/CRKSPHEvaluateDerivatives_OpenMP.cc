@@ -252,9 +252,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             CHECK(Hdetj > 0.0);
             CHECK(weightj > 0.0);
 
-            // Find the effective weights of i->j and j->i.
-            // const auto wi = 2.0*weighti*weightj/(weighti + weightj);
-            const auto wij = 0.5*(weighti + weightj);
+            // // Find the effective weights of i->j and j->i.
+            // // const auto wi = 2.0*weighti*weightj/(weighti + weightj);
+            // const auto wij = 0.5*(weighti + weightj);
 
             // // Are both (i,j) surface points?
             // // Note we are supposed to have trimmed the topology before this point, so either j
@@ -276,16 +276,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             const auto vij = vi - vj;
 
             // Symmetrized kernel weight and gradient.
-            CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
-            CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, mCorrectionMin, mCorrectionMax);
-            const auto fij = couple(nodeListi, i, nodeListj, j);
-            Wi *= fij;
-            Wj *= fij;
-            gWi *= fij;
-            gWj *= fij;
-            gradWi *= fij;
-            gradWj *= fij;
-            gradWij = 0.5*(gradWi + gradWj);
+            CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi);
+            CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj);
             deltagrad = gradWj - gradWi;
             const auto gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
 
@@ -304,23 +296,23 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             const auto Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);
             const auto workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);
             const auto Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
-            maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                            // We need tighter timestep controls on the Q with CRK
-            effViscousPressurei += wij * Qi * Wj;
-            viscousWorki += 0.5*wij*wij/mi*workQi;
+            maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                                 // We need tighter timestep controls on the Q with CRK
+            effViscousPressurei += weightj * Qi * Wj;
+            viscousWorki += 0.5*weighti*weightj/mi*workQi;
 
             // Velocity gradient.
-            DvDxi -= wij*vij.dyad(gradWj);
-            if (nodeListi == nodeListj) localDvDxi -= wij*vij.dyad(gradWj);
+            DvDxi -= weightj*vij.dyad(gradWj);
+            if (nodeListi == nodeListj) localDvDxi -= weightj*vij.dyad(gradWj);
 
             // Mass density gradient.
-            gradRhoi += wij*(rhoj - rhoi)*gradWj;
+            gradRhoi += weightj*(rhoj - rhoi)*gradWj;
 
             // The force between the points depends on the surface test -- for surface points it
             // switches to essentially straight RK contribution.
             // Momentum
-            forceij = (surfi == 0 ?
-                       0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force
-                       mi*wij*(Pj - Pi)/rhoj*gradWj + 0.5*wij*wij*Qaccij);             // Straight RK gradP, CRK Q acceleration
+            forceij = (true ? // surfacePoint(nodeListi, i) <= 1 ? 
+                       0.5*weighti*weightj*((Pi + Pj)*deltagrad + Qaccij) :                // Type III CRK interpoint force.
+                       mi*weightj*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj))); // RK
             DvDti -= forceij/mi;
 
             // if (barf) {
@@ -333,20 +325,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             //   }
             // }
 
-            if (mCompatibleEnergyEvolution) {
-              pairAccelerationsi.push_back(-forceij/mi);
-              pairAccelerationsi.push_back(surfj == 0 ?
-                                           0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij)/mj :     // Type III CRK interpoint force
-                                           wij*(Pj - Pi)/rhoi*gradWi + 0.5*wij*wij*Qaccij/mj); // Straight RK gradP, CRK Q acceleration
-            }
+            if (mCompatibleEnergyEvolution) pairAccelerationsi.push_back(-forceij/mi);
 
             // Energy
-            DepsDti += (surfi == 0 ?
-                        0.5*wij*wij*(Pj*vij.dot(deltagrad) + workQi)/mi :              // Type III CRK interpoint force
-                        wij*Pj/rhoj*vij.dot(gradWj) + 0.5*wij*wij*workQi/mi);          // Straight RK PdV work, CRK Q work
+            DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ? 
+                        0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi :          // CRK
+                        weightj*rhoi*QPiij.first.dot(vij).dot(gradWj));                    // RK
 
             // Estimate of delta v (for XSPH).
-            if (mXSPH and (nodeListi == nodeListj)) XSPHDeltaVi -= wij*Wj*vij;
+            if (mXSPH and (nodeListi == nodeListj)) XSPHDeltaVi -= weightj*Wj*vij;
           }
         }
       }

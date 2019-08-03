@@ -16,6 +16,90 @@
 namespace silo {
 
 //------------------------------------------------------------------------------
+template<typename T>
+inline
+py::list
+copy2py(T* carray, const size_t nvals) {
+  py::list result;
+  for (auto i = 0; i < nvals; ++i) result.append(carray[i]);
+  return result;
+}
+
+inline
+py::list
+copy2py(char** carray, const size_t nvals) {
+  py::list result;
+  for (auto i = 0; i < nvals; ++i) result.append(std::string(carray[i]));
+  return result;
+}
+
+inline
+py::list
+copy2py(void** carray, const size_t nout, const size_t nin, const int dtype) {
+  if (not (dtype == DB_FLOAT or dtype == DB_DOUBLE)) throw py::value_error("Require float or double type");
+  py::list result;
+  for (auto k = 0; k < nout; ++k) {
+    py::list row;
+    if (dtype == DB_FLOAT) {
+      auto* cvals = static_cast<float*>(carray[k]);
+      for (auto i = 0; i < nin; ++i) row.append(cvals[i]);
+    } else {
+      auto* cvals = static_cast<double*>(carray[k]);
+      for (auto i = 0; i < nin; ++i) row.append(cvals[i]);
+    }
+    result.append(row);
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+template<typename T>
+inline
+void
+copy2c(T* carray, py::list& vals) {
+  if (carray != NULL) free(carray);
+  const auto nvals = vals.size();
+  carray = (T*) malloc(sizeof(T)*vals.size());
+  for (auto i = 0; i < nvals; ++i) carray[i] = vals[i].cast<T>();
+}
+
+inline
+void
+copy2c(char** carray, py::list& vals) {
+  if (carray != NULL) delete [] carray;
+  const auto nvals = vals.size();
+  if (nvals > 0) {
+    carray = new char*[nvals];
+    for (auto i = 0; i < nvals; ++i) {
+      auto val = vals[i].cast<std::string>();
+      carray[i] = new char[val.size() + 1];
+      strcpy(carray[i], val.c_str());
+    }
+  }
+}
+
+inline
+void
+copy2c(void** carray, py::list& vals, const size_t nout, const size_t nin, const int dtype) {
+  if (not (dtype == DB_FLOAT or dtype == DB_DOUBLE)) throw py::value_error("Require float or double type");
+  if (vals.size() != nout) throw py::value_error("incorrectly sized list");
+  for (auto k = 0; k < nout; ++k) {
+    auto rowvals = vals[k].cast<py::list>();
+    if (rowvals.size() != nin) throw py::value_error("incorrectly sized inner list");
+    if (carray[k] != NULL) free(carray[k]);
+    if (dtype == DB_FLOAT) {
+      carray[k] = malloc(sizeof(float)*nin);
+      auto* cvals = static_cast<float*>(carray[k]);
+      for (auto i = 0; i < nin; ++i) cvals[i] = rowvals[i].cast<float>();
+    } else {
+      carray[k] = malloc(sizeof(double)*nin);
+      auto* cvals = static_cast<double*>(carray[k]);
+      for (auto i = 0; i < nin; ++i) cvals[i] = rowvals[i].cast<double>();
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
 // Trait class to help mapping Spheral types to silo.
 //------------------------------------------------------------------------------
 template<typename T>
@@ -28,6 +112,9 @@ struct Spheral2Silo<double> {
   static void copyElement(const Value& x, double** silovars, const unsigned i) {
     silovars[0][i] = x;
   }
+  static void readElement(Value& x, double** silovars, const unsigned i) {
+    x = silovars[0][i];
+  }
 };
 
 template<>
@@ -37,6 +124,10 @@ struct Spheral2Silo<Spheral::Dim<2>::Vector> {
   static void copyElement(const Value& x, double** silovars, const unsigned i) {
     silovars[0][i] = x.x();
     silovars[1][i] = x.y();
+  }
+  static void readElement(Value& x, double** silovars, const unsigned i) {
+    x.x(silovars[0][i]);
+    x.y(silovars[1][i]);
   }
 };
 
@@ -48,6 +139,10 @@ struct Spheral2Silo<Spheral::Dim<2>::Tensor> {
     silovars[0][i] = x.xx(); silovars[1][i] = x.xy();
     silovars[2][i] = x.yx(); silovars[3][i] = x.yy();
   }
+  static void readElement(Value& x, double** silovars, const unsigned i) {
+    x.xx(silovars[0][i]); x.xy(silovars[1][i]);
+    x.yx(silovars[2][i]); x.yy(silovars[3][i]);
+  }
 };
 
 template<>
@@ -57,6 +152,10 @@ struct Spheral2Silo<Spheral::Dim<2>::SymTensor> {
   static void copyElement(const Value& x, double** silovars, const unsigned i) {
     silovars[0][i] = x.xx(); silovars[1][i] = x.xy();
     silovars[2][i] = x.yx(); silovars[3][i] = x.yy();
+  }
+  static void readElement(Value& x, double** silovars, const unsigned i) {
+    x.xx(silovars[0][i]); x.xy(silovars[1][i]);
+    x.yx(silovars[2][i]); x.yy(silovars[3][i]);
   }
 };
 
@@ -69,6 +168,11 @@ struct Spheral2Silo<Spheral::Dim<3>::Vector> {
     silovars[1][i] = x.y();
     silovars[2][i] = x.z();
   }
+  static void readElement(Value& x, double** silovars, const unsigned i) {
+    x.x(silovars[0][i]);
+    x.y(silovars[1][i]);
+    x.z(silovars[2][i]);
+  }
 };
 
 template<>
@@ -80,6 +184,11 @@ struct Spheral2Silo<Spheral::Dim<3>::Tensor> {
     silovars[3][i] = x.yx(); silovars[4][i] = x.yy(); silovars[5][i] = x.yz();
     silovars[6][i] = x.zx(); silovars[7][i] = x.zy(); silovars[8][i] = x.zz();
   }
+  static void readElement(Value& x, double** silovars, const unsigned i) {
+    x.xx(silovars[0][i]); x.xy(silovars[1][i]); x.xz(silovars[2][i]);
+    x.yx(silovars[3][i]); x.yy(silovars[4][i]); x.yz(silovars[5][i]);
+    x.zx(silovars[6][i]); x.zy(silovars[7][i]); x.zz(silovars[8][i]);
+  }
 };
 
 template<>
@@ -90,6 +199,11 @@ struct Spheral2Silo<Spheral::Dim<3>::SymTensor> {
     silovars[0][i] = x.xx(); silovars[1][i] = x.xy(); silovars[2][i] = x.xz();
     silovars[3][i] = x.yx(); silovars[4][i] = x.yy(); silovars[5][i] = x.yz();
     silovars[6][i] = x.zx(); silovars[7][i] = x.zy(); silovars[8][i] = x.zz();
+  }
+  static void readElement(Value& x, double** silovars, const unsigned i) {
+    x.xx(silovars[0][i]); x.xy(silovars[1][i]); x.xz(silovars[2][i]);
+    x.yx(silovars[3][i]); x.yy(silovars[4][i]); x.yz(silovars[5][i]);
+    x.zx(silovars[6][i]); x.zy(silovars[7][i]); x.zz(silovars[8][i]);
   }
 };
 
@@ -307,15 +421,17 @@ DBoptlist_wrapper::AddOptionFunctor<std::string> {
   writeVector(DBoptlist_wrapper& optlist_wrapper,
               const int option,
               const int option_size,
-              const std::vector<std::string>& value) {
-    VERIFY(optlist_wrapper.addOption<int>(option_size, value.size()) == 0);
-    std::shared_ptr<void> voidValue(new char*[value.size()]);
-    char** charArray = (char**) voidValue.get();
-    for (auto k = 0; k < value.size(); ++k) {
-      charArray[k] = new char[value[k].size() + 1];
-      strcpy(charArray[k], value[k].c_str());
+              const std::vector<std::string>& value0) {
+    VERIFY(optlist_wrapper.addOption<int>(option_size, value0.size()) == 0);
+    std::shared_ptr<void> voidValue(new std::vector<std::string>(value0));
+    auto value = static_cast<std::vector<std::string>*>(voidValue.get());
+    std::shared_ptr<void> voidChar(new char*[value->size()]);
+    char** charArray = (char**) voidChar.get();
+    for (auto k = 0; k < value->size(); ++k) {
+      charArray[k] = new char[(*value)[k].size() + 1];
+      strcpy(charArray[k], (*value)[k].c_str());
     }
-    optlist_wrapper.mCache.push_back(voidValue);
+    optlist_wrapper.mCache.push_back(voidChar);
     return DBAddOption(optlist_wrapper.mOptlistPtr, option, charArray);
   }
 };
@@ -462,6 +578,27 @@ DBWrite(DBfile& file,
 }
 
 //------------------------------------------------------------------------------
+// DBWrite py::sequence
+//------------------------------------------------------------------------------
+// template<typename T>
+// inline
+// int
+// DBWrite_sequence(DBfile& file,
+//                  std::string varname,
+//                  py::sequence& var) {
+//   const auto n = var.size();
+//   auto dims = std::vector<int>(1, n);
+//   std::vector<T> vals(n);
+//   for (auto i = 0; i < n; ++i) vals[i] = var[i].cast<T>();
+//   return DBWrite(&file,
+//                  varname.c_str(),
+//                  (void*) &vals.front(), 
+//                  &dims.front(),
+//                  1,
+//                  SiloTraits<T>::datatype());
+// }
+
+//------------------------------------------------------------------------------
 // DBWrite vector<T>
 //------------------------------------------------------------------------------
 template<typename T>
@@ -548,6 +685,16 @@ DBPutMultimesh(DBfile& file,
 
   // That's it.
   return result;
+}
+
+//------------------------------------------------------------------------------
+// DBGetMultimesh
+//------------------------------------------------------------------------------
+inline
+DBmultimesh*
+DBGetMultimesh(DBfile& file,
+               std::string name) {
+  return DBGetMultimesh(&file, name.c_str());
 }
 
 //------------------------------------------------------------------------------
@@ -762,6 +909,16 @@ DBPutUcdmesh(DBfile& file,
 }
 
 //------------------------------------------------------------------------------
+// DBGetUcdmesh
+//------------------------------------------------------------------------------
+inline
+DBucdmesh*
+DBGetUcdmesh(DBfile& file,
+             std::string name) {
+  return DBGetUcdmesh(&file, name.c_str());
+}
+
+//------------------------------------------------------------------------------
 // DBPutQuadmesh
 // Note we assume just the unique (x,y,z) coordinates are provided, but we
 // replicate them here for the silo file writing.
@@ -922,6 +1079,40 @@ DBPutUcdvar(DBfile& file,
   delete[] mixvars;
   return result;
 }
+
+// //------------------------------------------------------------------------------
+// // DBReadUcdvar
+// // We assume here that the underlying element type is double.
+// //------------------------------------------------------------------------------
+// template<typename T>
+// inline
+// void
+// DBReadUcdvar(DBfile& file,
+//              std::string name,
+//              std::vector<T>& values,
+//              std::vector<T>& mixValues) {
+
+//   auto ucdvar = DBGetUcdvar(&file,
+//                             name.c_str());
+  
+//   // Read into the resulting arrays.
+//   const auto element_size = Spheral2Silo<T>::numElements();
+//   const auto nvals = ucdvar->nels/element_size;
+//   const auto nmixvals = ucdvar->mixlen/element_size;
+//   values.resize(nvals);
+//   mixValues.resize(nmixvals);
+//   for (auto i = 0; i < nvals; ++i)    Spheral2Silo<T>::readElement(values[i], ucdvar->vals, i);
+//   for (auto i = 0; i < nmixvals; ++i) Spheral2Silo<T>::readElement(values[i], ucdvar->mixvals, i);
+
+//   // That's it.
+//   for (auto i = 0; i != ucdvar->nvals; ++i) {
+//     delete[] ucdvar->vals[i];
+//     delete[] ucdvar->mixvals[i];
+//   }
+//   delete[] ucdvar->vals;
+//   delete[] ucdvar->mixvals;
+//   delete[] ucdvar;
+// }
 
 //------------------------------------------------------------------------------
 // DBPutUcdvar1

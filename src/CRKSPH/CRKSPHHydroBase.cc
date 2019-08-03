@@ -137,8 +137,6 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mfilter(filter),
   mEpsTensile(epsTensile),
   mnTensile(nTensile),
-  mCorrectionMin(std::numeric_limits<Scalar>::lowest()),
-  mCorrectionMax(std::numeric_limits<Scalar>::max()),
   mTimeStepMask(FieldStorageType::CopyFields),
   mPressure(FieldStorageType::CopyFields),
   mSoundSpeed(FieldStorageType::CopyFields),
@@ -266,7 +264,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     mVolume.assignFields(mass/massDensity);
     const FieldList<Dimension, typename Dimension::SymTensor> damage = dataBase.solidEffectiveDamage();
-    computeVoronoiVolume(position, H, massDensity, mMassDensityGradient, connectivityMap, damage,
+    computeVoronoiVolume(position, H, connectivityMap, damage,
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),      // no holes
                          vector<Boundary<Dimension>*>(this->boundaryBegin(),        // boundaries
@@ -600,7 +598,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     vol.assignFields(mass/massDensity);
-    computeVoronoiVolume(position, H, massDensity, gradRho, connectivityMap, damage,
+    computeVoronoiVolume(position, H, connectivityMap, damage,
                          vector<typename Dimension::FacetedVolume>(),                // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
                          vector<Boundary<Dimension>*>(this->boundaryBegin(),         // boundaries
@@ -767,14 +765,68 @@ finalize(const typename Dimension::Scalar time,
   GenericHydro<Dimension>::finalize(time, dt, dataBase, state, derivs);
 
   // Volume.
-  const auto& W = this->kernel();
-  const auto& connectivityMap = dataBase.connectivityMap();
-  const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-  const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-  const auto  gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
-  const auto  vol = state.fields(HydroFieldNames::volume, 0.0);
-  auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const TableKernel<Dimension>& W = this->kernel();
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  const FieldList<Dimension, Vector> gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
+  const FieldList<Dimension, SymTensor> damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+  FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+  FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  if (mVolumeType == CRKVolumeType::CRKMassOverDensity) {
+    vol.assignFields(mass/massDensity);
+  } else if (mVolumeType == CRKVolumeType::CRKSumVolume) {
+    computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
+  } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    vol.assignFields(mass/massDensity);
+    FieldList<Dimension, typename Dimension::FacetedVolume> cells;
+    FieldList<Dimension, vector<tuple<int, int, int>>> cellFaceFlags;
+    computeVoronoiVolume(position, H, connectivityMap, damage,
+                         vector<typename Dimension::FacetedVolume>(),                // no boundaries
+                         vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
+                         vector<Boundary<Dimension>*>(this->boundaryBegin(),         // boundaries
+                                                      this->boundaryEnd()),
+                         FieldList<Dimension, typename Dimension::Scalar>(),         // no weights
+                         surfacePoint, vol, mDeltaCentroid, mEtaVoidPoints,          // return values
+                         cells, cellFaceFlags);                                      // no return cells
+  } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
+    computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
+  } else if (mVolumeType == CRKVolumeType::HVolume) {
+    const Scalar nPerh = vol.nodeListPtrs()[0]->nodesPerSmoothingScale();
+    computeHVolumes(nPerh, H, vol);
+  } else {
+    VERIFY2(false, "Unknown CRK volume weighting.");
+  }
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(vol);
+    if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+      (*boundItr)->applyFieldListGhostBoundary(surfacePoint);
+      (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
+    }
+  }
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  // if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+  //   // flagSurfaceNeighbors(surfacePoint, connectivityMap);
+  //   vol = computeShepardsInterpolation(vol,
+  //                                      connectivityMap,
+  //                                      W,
+  //                                      position,
+  //                                      H,
+  //                                      vol);
+  //   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //        boundItr != this->boundaryEnd();
+  //        ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
+  //   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //        boundItr != this->boundaryEnd();
+  //        ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  // }
+
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
   if (densityUpdate() == MassDensityType::RigorousSumDensity) {

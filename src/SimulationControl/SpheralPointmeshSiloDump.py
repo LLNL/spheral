@@ -48,12 +48,18 @@ def dumpPhysicsState(stateThingy,
         currentCycle = integrator.currentCycle
     elif isinstance(stateThingy, eval("State%s" % dim)):
         integrator = None
-        dataBase = None
         state = stateThingy
         derivs = None
         assert currentTime is not None
         assert currentCycle is not None
+        dataBase = eval("DataBase%s()" % dim)
+        assert state.fieldNameRegistered(HydroFieldNames.mass)
+        mass = state.scalarFields(HydroFieldNames.mass)
+        for nodes in mass.nodeListPtrs():
+            dataBase.appendNodeList(nodes)
+
     assert state is not None
+    assert dataBase is not None
 
     # Did the user specify any data to be dumped?
     if not fields:

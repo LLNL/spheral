@@ -115,52 +115,29 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
         for (auto jItr = connectivity.begin(); jItr != connectivity.end(); ++jItr) {
           const auto j = *jItr;
 
+          // Find the pair weighting scaling.
+          const auto fij = nodeCoupling(nodeListi, i, nodeListj, j);
+          CHECK(fij >= 0.0 and fij <= 1.0);
+
           // State of node j.
           const auto  weightj = weight(nodeListj, j);
           const auto& rj = position(nodeListj, j);
           const auto& Hj = H(nodeListj, j);
           const auto  Hdetj = Hj.Determinant();
 
-          // Find the pair weighting scaling.
-          const auto fij = nodeCoupling(nodeListi, i, nodeListj, j);
-          CHECK(fij >= 0.0 and fij <= 1.0);
-
           // Find the effective weights of i->j and j->i.
-          // const Scalar wi = 2.0*weighti*weightj/(weighti + weightj);
-          const auto wi = 0.5*(weighti + weightj) * fij;
-          const auto wj = wi;
-          // const auto wi = weighti;
-          // const auto wj = weightj;
+          const auto wj = fij*weightj;
 
           // Kernel weighting and gradient.
           const auto rij = ri - rj;
-          auto etai = Hi*rij;
           auto etaj = Hj*rij;
-
-          const auto WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
           const auto WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
 
-          // // j
-          // const Scalar Wi = WWi.first;
-          // const Scalar Wj = WWj.first;
-          // const Vector gradWj =  (Hj*etaj.unitVector())*WWj.second;
-          // const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
-
-          // // i
-          // // const Scalar Wi = WWj.first;
-          // // const Scalar Wj = WWi.first;
-          // // const Vector gradWj = -(Hi*etai.unitVector())*WWi.second;
-          // // const Vector gradWi =  (Hj*etaj.unitVector())*WWj.second;
-
-          // ij
-          const auto Wi = 0.5*(WWi.first + WWj.first);
-          const auto Wj = Wi;
-          const auto gradWj = 0.5*((Hj*etaj.unitVector())*WWj.second +
-                                   (Hi*etai.unitVector())*WWi.second);
-          const auto gradWi = -gradWj;
+          // j
+          const Scalar Wj = WWj.first;
+          const Vector gradWj =  (Hj*etaj.unitVector())*WWj.second;
 
           // Zeroth moment. 
-          const auto wwi = wi*Wi;
           const auto wwj = wj*Wj;
           m0(nodeListi, i) += wwj;
           for (auto ii = 0; ii != Dimension::nDim; ++ii) {

@@ -17,12 +17,16 @@ public:
   // You must provide the base mass, length, and time in MKS.
   PhysicalConstants(const double unitLm,
                     const double unitMkg,
-                    const double unitTsec);
+                    const double unitTsec,
+                    const double unitTeK = 1.0,
+                    const double unitCcou = 1.0);
 
   // The fundamental independent quantities.
   double unitLengthMeters() const;
   double unitMassKg() const;
   double unitTimeSec() const;
+  double unitTemperatureKelvin() const;
+  double unitChargeCoulomb() const;
 
   // All the stuff we provide.
   double protonMass() const;
@@ -37,13 +41,15 @@ public:
   double unitMassDensity() const;
   double stefanBoltzmannConstant() const;
   double blackBodyConstant() const;
+  double unitEnergyJ() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Independent variables.
-  double mUnitLm, mUnitMkg, mUnitTsec;
-
+  double mUnitLm, mUnitMkg, mUnitTsec, mUnitTeK, mUnitCcou;
+  
   // Dependent variables.
+  const double UnitEnergyJ;
   const double ProtonMass;
   const double ElectronMass;
   const double ElectronCharge;
@@ -60,7 +66,6 @@ private:
   static const double mpMKS;
   static const double meMKS;
   static const double qeMKS;
-  static const double qeCGS;
   static const double GMKS;
   static const double cMKS;
   static const double kBMKS;

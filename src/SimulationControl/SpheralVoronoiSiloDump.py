@@ -206,12 +206,13 @@ class SpheralVoronoiSiloDump:
                 #                 mesh.faces[noldfaces + j].append(noldnodes + k)
 
         else:
+
             # We need to do the full up polytope tessellation.
             # Build the set of generators from our points.
             gens = vector_of_double()
             nDim = eval("Vector%s.nDimensions" % self.dimension)
-            xmin = vector_of_double(nDim,  1e100)
-            xmax = vector_of_double(nDim, -1e100)
+            xmin = vector_of_double([1e100]*nDim)
+            xmax = vector_of_double([-1e100]*nDim)
             for nodes in self._nodeLists:
                 pos = nodes.positions()
                 for i in xrange(nodes.numInternalNodes):
@@ -424,10 +425,11 @@ def dumpPhysicsState(stateThingy,
             assert isinstance(stateThingy, State3d)
             ndim = 3
         dataBase = eval("DataBase%id()" % ndim)
-        assert state.fieldNameRegistered(HydroFieldName.mass)
+        assert state.fieldNameRegistered(HydroFieldNames.mass)
         mass = state.scalarFields(HydroFieldNames.mass)
         for nodes in mass.nodeListPtrs():
             dataBase.appendNodeList(nodes)
+        dataBase.updateConnectivityMap(False, False)
 
     assert state is not None and dataBase is not None
 
@@ -504,21 +506,24 @@ def dumpPhysicsState(stateThingy,
 
     # Build the Voronoi-like cells.
     weight = eval("ScalarFieldList%id()" % dataBase.nDim)                         # No weights
-    gradRho = dataBase.newFluidVectorFieldList(eval("Vector%id.zero" % dataBase.nDim), "grad rho")
     bounds = eval("vector_of_FacetedVolume%id()" % dataBase.nDim)
     holes = eval("vector_of_vector_of_FacetedVolume%id()" % dataBase.nDim)
-    surfacePoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.surfacePoint)
-    vol = dataBase.newFluidScalarFieldList(0.0, HydroFieldNames.volume)
-    deltaMedian = dataBase.newFluidVectorFieldList(eval("Vector%id.zero" % dataBase.nDim), "centroidal delta")
-    etaVoidPoints = dataBase.newFluidvector_of_VectorFieldList(eval("vector_of_Vector%id()" % dataBase.nDim), "eta void points")
+    if state.fieldNameRegistered(HydroFieldNames.surfacePoint):
+        surfacePoint = state.intFields(HydroFieldNames.surfacePoint)
+    else:
+        surfacePoint = dataBase.newGlobalIntFieldList(0, HydroFieldNames.surfacePoint)
+    if state.fieldNameRegistered(HydroFieldNames.volume):
+        vol = state.scalarFields(HydroFieldNames.volume)
+    else:
+        vol = dataBase.newGlobalScalarFieldList(0.0, HydroFieldNames.volume)
+    deltaMedian = dataBase.newGlobalVectorFieldList(eval("Vector%id.zero" % dataBase.nDim), "centroidal delta")
+    etaVoidPoints = dataBase.newGlobalvector_of_VectorFieldList(eval("vector_of_Vector%id()" % dataBase.nDim), "eta void points")
     FacetedVolume = {2 : Polygon,
                      3 : Polyhedron}[dataBase.nDim]
-    cells = dataBase.newFluidFacetedVolumeFieldList(FacetedVolume(), "cells")
-    cellFaceFlags = dataBase.newFluidvector_of_tuple_int_int_intFieldList(vector_of_int(), "face flags")
-    computeVoronoiVolume(dataBase.fluidPosition, 
-                         dataBase.fluidHfield,
-                         dataBase.fluidMassDensity,
-                         gradRho,
+    cells = dataBase.newGlobalFacetedVolumeFieldList(FacetedVolume(), "cells")
+    cellFaceFlags = dataBase.newGlobalvector_of_tuple_int_int_intFieldList(vector_of_tuple_int_int_int(), "face flags")
+    computeVoronoiVolume(dataBase.globalPosition, 
+                         dataBase.globalHfield,
                          dataBase.connectivityMap(),
                          dataBase.solidEffectiveDamage,
                          bounds,

@@ -209,41 +209,6 @@ nTensile(typename Dimension::Scalar val) {
 }
     
 //------------------------------------------------------------------------------
-// Per node correction limits.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-double
-CRKSPHHydroBase<Dimension>::
-correctionMin() const {
-  return mCorrectionMin;
-}
-
-template<typename Dimension>
-inline
-void
-CRKSPHHydroBase<Dimension>::
-correctionMin(double val) {
-  mCorrectionMin = val;
-}
-    
-template<typename Dimension>
-inline
-double
-CRKSPHHydroBase<Dimension>::
-correctionMax() const {
-  return mCorrectionMax;
-}
-
-template<typename Dimension>
-inline
-void
-CRKSPHHydroBase<Dimension>::
-correctionMax(double val) {
-  mCorrectionMax = val;
-}
-    
-//------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
 template<typename Dimension>

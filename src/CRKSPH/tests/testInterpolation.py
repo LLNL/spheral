@@ -1,9 +1,9 @@
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 1d --testCase linear", label="CRKSPH linear interpolation test -- 1D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 2d --testCase linear", label="CRKSPH linear interpolation test -- 2D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 3d --testCase linear", label="CRKSPH linear interpolation test -- 3D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 1d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 1D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 2d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 2D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 3d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 3D (serial)")
+#ATS:test(SELF, "--graphics False --testSPH False --nx1 10 --nx2 10 --testDim 1d --testCase linear", label="CRKSPH linear interpolation test -- 1D (serial)")
+#ATS:test(SELF, "--graphics False --testSPH False --nx1 10 --nx2 10 --testDim 2d --testCase linear", label="CRKSPH linear interpolation test -- 2D (serial)")
+#ATS:test(SELF, "--graphics False --testSPH False --nx1 5  --nx2 5  --testDim 3d --testCase linear", label="CRKSPH linear interpolation test -- 3D (serial)")
+#ATS:test(SELF, "--graphics False --testSPH False --nx1 10 --nx2 10 --testDim 1d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 1D (serial)")
+#ATS:test(SELF, "--graphics False --testSPH False --nx1 10 --nx2 10 --testDim 2d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 2D (serial)")
+#ATS:test(SELF, "--graphics False --testSPH False --nx1 5  --nx2 5  --testDim 3d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 3D (serial)")
 #-------------------------------------------------------------------------------
 # A set of tests to compare how different meshless methods interpolate fields.
 #-------------------------------------------------------------------------------
@@ -26,9 +26,9 @@ commandLine(
     x0 = 0.0,
     x1 = 0.5,
     x2 = 1.0,
-    nPerh = 2.01,
+    nPerh = 4.01,
     hmin = 0.0001, 
-    hmax = 10.0,
+    hmax = 1000.0,
 
     # What order of reproducing kernel should we use (0,1,2)?
     correctionOrder = LinearOrder,
@@ -40,6 +40,9 @@ commandLine(
     # What test problem are we doing?
     testDim = "1d",
     testCase = "linear",
+
+    # Should we compare with SPH?
+    testSPH = True,
 
     # The fields we're going to interpolate.
     # Linear coefficients: y = y0 + m0*x
@@ -65,7 +68,6 @@ commandLine(
     graphics = True,
     plotKernels = False,
     outputFile = "None",
-    plotSPH = True,
 )
 
 assert testCase in ("linear", "quadratic", "step")
@@ -99,7 +101,7 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(WendlandC4Kernel(), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -264,9 +266,10 @@ weight_fl = db.fluidMass
 H_fl = db.fluidHfield
 
 # Compute the volumes to use as weighting.
-polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
+#polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
 #weight_fl = db.newFluidScalarFieldList(1.0, "volume")
 #computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
+
 computeCRKSPHMoments(cm, WT, weight_fl, position_fl, H_fl, correctionOrder, NodeCoupling(),
                      m0_fl, m1_fl, m2_fl, m3_fl, m4_fl, gradm0_fl, gradm1_fl, gradm2_fl, gradm3_fl, gradm4_fl)
 computeCRKSPHCorrections(m0_fl, m1_fl, m2_fl, m3_fl, m4_fl, gradm0_fl, gradm1_fl, gradm2_fl, gradm3_fl, gradm4_fl, H_fl,
@@ -287,39 +290,40 @@ gradC = gradC_fl[0]
 #-------------------------------------------------------------------------------
 # Measure the interpolated values and gradients.
 #-------------------------------------------------------------------------------
-for i in xrange(nodes1.numInternalNodes):
-    ri = positions[i]
-    Hi = H[i]
-    Hdeti = H[i].Determinant()
-    wi = weight[i]
-    fi = f[i]
+if testSPH:
+    for i in xrange(nodes1.numInternalNodes):
+        ri = positions[i]
+        Hi = H[i]
+        Hdeti = H[i].Determinant()
+        wi = weight[i]
+        fi = f[i]
 
-    # Self contribution.
-    W0 = WT.kernelValue(0.0, Hdeti)
-    fSPH[i] = wi*W0 * fi
+        # Self contribution.
+        W0 = WT.kernelValue(0.0, Hdeti)
+        fSPH[i] = wi*W0 * fi
 
-    # Go over them neighbors.
-    neighbors = cm.connectivityForNode(nodes1, i)
-    assert len(neighbors) == 1
-    for j in neighbors[0]:
-        rj = positions[j]
-        Hj = H[j]
-        Hdetj = H[j].Determinant()
-        wj = weight[j]
-        fj = f[j]
+        # Go over them neighbors.
+        neighbors = cm.connectivityForNode(nodes1, i)
+        assert len(neighbors) == 1
+        for j in neighbors[0]:
+            rj = positions[j]
+            Hj = H[j]
+            Hdetj = H[j].Determinant()
+            wj = weight[j]
+            fj = f[j]
 
-        # The standard SPH kernel and it's gradient.
-        rij = ri - rj
-        etai = Hi*rij
-        etaj = Hj*rij
-        Wj = WT.kernelValue(etaj.magnitude(), Hdetj)
-        gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
+            # The standard SPH kernel and it's gradient.
+            rij = ri - rj
+            etai = Hi*rij
+            etaj = Hj*rij
+            Wj = WT.kernelValue(etaj.magnitude(), Hdetj)
+            gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
 
-        # Increment our interpolated values.
-        fSPH[i] += fj * wj*Wj
+            # Increment our interpolated values.
+            fSPH[i] += fj * wj*Wj
 
-        # Increment the derivatives.
-        dfSPH[i] += fj * wj*gradWj
+            # Increment the derivatives.
+            dfSPH[i] += fj * wj*gradWj
 
 #-------------------------------------------------------------------------------
 # Check the C++ interpolation and gradient methods.
@@ -407,16 +411,16 @@ if graphics:
 
     p1 = generateNewGnuPlot()
     p1.plot(ansdata)
-    if plotSPH:
-     p1.replot(SPHdata)
+    if testSPH:
+        p1.replot(SPHdata)
     p1.replot(CRKSPHdata)
     p1("set key top left")
     p1.title("Interpolated values")
     p1.refresh()
 
     p2 = generateNewGnuPlot()
-    if plotSPH:
-     p2.plot(errSPHdata)
+    if testSPH:
+        p2.plot(errSPHdata)
     p2.replot(errCRKSPHdata)
     p2.title("Error in interpolation")
     p2.refresh()
@@ -445,16 +449,16 @@ if graphics:
 
     p3 = generateNewGnuPlot()
     p3.plot(dansdata)
-    if plotSPH:
-     p3.replot(dSPHdata)
+    if testSPH:
+        p3.replot(dSPHdata)
     p3.replot(dCRKSPHdata)
     p3("set key top left")
     p3.title("Derivative values")
     p3.refresh()
 
     p4 = generateNewGnuPlot()
-    if plotSPH:
-     p4.plot(errdSPHdata)
+    if testSPH:
+        p4.plot(errdSPHdata)
     p4.replot(errdCRKSPHdata)
     p4.title("Error in derivatives")
     p4.refresh()
@@ -494,10 +498,10 @@ if graphics:
                     (xans[i], yans[i], dyans[i], fSPH[i], fCRKSPH[i], dfSPH[i].x, dfCRKSPH[i].x))
         of.close()
 
-    # If we're in 2D dump a silo file too.
-    if testDim == "2d":
+    # If we're in 2D/3D dump a silo file too.
+    if testDim != "1d":
         # from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
-        # dumper = SpheralVoronoiSiloDump("testInterpolation_%s_2d" % testCase,
+        # dumper = SpheralVoronoiSiloDump("testInterpolation_%s_%s" % (testCase, testDim),
         #                                 listOfFields = [fSPH, fCRKSPH, dfSPH, dfCRKSPH,
         #                                                 yans, dyans,
         #                                                 errySPH, erryCRKSPH, errdySPH, errdyCRKSPH],
@@ -506,11 +510,12 @@ if graphics:
         #                                                     dfCRKSPH_fl])
         # dumper.dump(0.0, 0)
         from siloPointmeshDump import siloPointmeshDump
-        siloPointmeshDump("testInterpolation_%s_2d" % testCase,
+        siloPointmeshDump("testInterpolation_%s_%s" % (testCase, testDim),
                           fields = [fSPH, fCRKSPH, dfSPH, dfCRKSPH,
                                     yans, dyans,
                                     errySPH, erryCRKSPH, errdySPH, errdyCRKSPH],
-                          fieldLists = [weight_fl, A_fl, B_fl, gradA_fl, gradB_fl])
+                          fieldLists = [weight_fl, H_fl, A_fl, B_fl, gradA_fl, gradB_fl,
+                                        m0_fl, m1_fl, m2_fl])
 
 if plotKernels:
     import Gnuplot

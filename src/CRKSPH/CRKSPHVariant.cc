@@ -203,7 +203,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
     FieldList<Dimension, vector<tuple<int, int, int>>> cellFaceFlags;
     const FieldList<Dimension, typename Dimension::SymTensor> damage = dataBase.solidEffectiveDamage();
-    computeVoronoiVolume(position, H, massDensity, this->mMassDensityGradient, connectivityMap, damage,
+    computeVoronoiVolume(position, H, connectivityMap, damage,
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),      // no holes
                          vector<Boundary<Dimension>*>(),                            // no boundaries
@@ -603,8 +603,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const auto vij = vi - vj;
 
               // Symmetrized kernel weight and gradient.
-              CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, this->mCorrectionMin, this->mCorrectionMax);
-              CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, this->mCorrectionMin, this->mCorrectionMax);
+              CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi);
+              CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj);
               deltagrad = gradWj - gradWi;
               const auto gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const auto gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);

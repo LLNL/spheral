@@ -12,6 +12,7 @@ class MinMaxFieldList(FieldListBase):
     typedef FieldList<%(Dimension)s, %(Value)s> FieldListType;
     typedef Field<%(Dimension)s, %(Value)s> FieldType;
     typedef NodeList<%(Dimension)s> NodeListType;
+    typedef %(Dimension)s::Scalar Scalar;
     typedef %(Dimension)s::Vector Vector;
     typedef %(Dimension)s::SymTensor SymTensor;
 """

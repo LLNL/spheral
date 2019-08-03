@@ -55,60 +55,60 @@ interpolateCRKSPH(const FieldList<Dimension, DataType>& fieldList,
   // Prepare the result.
   FieldList<Dimension, DataType> result;
   result.copyFields();
-  for (typename FieldList<Dimension, DataType>::const_iterator fieldItr = fieldList.begin();
+  for (auto fieldItr = fieldList.begin();
        fieldItr != fieldList.end(); 
        ++fieldItr) {
     result.appendField(Field<Dimension, DataType>("interpolate" + (*fieldItr)->name(), (*fieldItr)->nodeList()));
   }
 
   // Walk the FluidNodeLists.
-  Vector Bi = Vector::zero, Bj = Vector::zero;
-  Tensor Ci = Tensor::zero, Cj = Tensor::zero;
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const int firstGhostNodei = A[nodeListi]->nodeList().firstGhostNode();
+  auto Bi = Vector::zero, Bj = Vector::zero;
+  auto Ci = Tensor::zero, Cj = Tensor::zero;
+  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const auto firstGhostNodei = A[nodeListi]->nodeList().firstGhostNode();
 
     // Iterate over the nodes in this node list.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+    for (auto iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
          ++iItr) {
-      const int i = *iItr;
+      const auto i = *iItr;
 
       // Get the state for node i.
-      const Vector& ri = position(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
-      const Scalar& Ai = A(nodeListi, i);
+      const auto& ri = position(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      const auto& Ai = A(nodeListi, i);
       if (correctionOrder != CRKOrder::ZerothOrder) Bi = B(nodeListi, i);
       if (correctionOrder == CRKOrder::QuadraticOrder) Ci = C(nodeListi, i);
-      const DataType& Fi = fieldList(nodeListi, i);
-      DataType& resulti = result(nodeListi, i);
+      const auto& Fi = fieldList(nodeListi, i);
+      auto& resulti = result(nodeListi, i);
 
       // Add our self-contribution.
-      const Scalar W0 = W.kernelValue(0.0, Hdeti);
+      const auto W0 = W.kernelValue(0.0, Hdeti);
       resulti += weight(nodeListi, i)*Fi*W0*Ai;
 
       // Neighbors!
-      const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+      const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
       CHECK(fullConnectivity.size() == numNodeLists);
 
       // Walk the neighbor nodeLists.
-      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+      for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
       
         // Connectivity of this node with this NodeList.  We only need to proceed if
         // there are some nodes in this list.
-        const vector<int>& connectivity = fullConnectivity[nodeListj];
+        const auto& connectivity = fullConnectivity[nodeListj];
         if (connectivity.size() > 0) {
-          const int firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
+          const auto firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
 
           // Loop over the neighbors.
 #pragma vector always
-          for (vector<int>::const_iterator jItr = connectivity.begin();
+          for (auto jItr = connectivity.begin();
                jItr != connectivity.end();
                ++jItr) {
-            const int j = *jItr;
+            const auto j = *jItr;
 
             // The coupling between these nodes.
-            const double fij = nodeCoupling(nodeListi, i, nodeListj, j);
+            const auto fij = nodeCoupling(nodeListi, i, nodeListj, j);
 
             // Only proceed if this node pair has not been calculated yet.
             if (fij > 0.0 and connectivityMap.calculatePairInteraction(nodeListi, i, 
@@ -117,29 +117,29 @@ interpolateCRKSPH(const FieldList<Dimension, DataType>& fieldList,
 
               // Find the effective weights of i->j and j->i.
               // const Scalar wi = fij*2.0*weight(nodeListi, i)*weight(nodeListj, j)/(weight(nodeListi, i) + weight(nodeListj, j));
-              const Scalar wi = fij*0.5*(weight(nodeListi, i) + weight(nodeListj, j));
-              const Scalar wj = wi;
-              // const Scalar wi = fij*weight(nodeListi, i);
-              // const Scalar wj = fij*weight(nodeListj, j);
+              // const Scalar wi = fij*0.5*(weight(nodeListi, i) + weight(nodeListj, j));
+              // const Scalar wj = wi;
+              const auto wi = fij*weight(nodeListi, i);
+              const auto wj = fij*weight(nodeListj, j);
 
               // Get the state for node j.
-              const Vector& rj = position(nodeListj, j);
-              const SymTensor& Hj = H(nodeListj, j);
-              const Scalar Hdetj = Hj.Determinant();
-              const Scalar& Aj = A(nodeListj, j);
+              const auto& rj = position(nodeListj, j);
+              const auto& Hj = H(nodeListj, j);
+              const auto  Hdetj = Hj.Determinant();
+              const auto  Aj = A(nodeListj, j);
               if (correctionOrder != CRKOrder::ZerothOrder) Bj = B(nodeListj, j);
               if (correctionOrder == CRKOrder::QuadraticOrder) Cj = C(nodeListj, j);
-              const DataType& Fj = fieldList(nodeListj, j);
-              DataType& resultj = result(nodeListj, j);
+              const auto& Fj = fieldList(nodeListj, j);
+              auto& resultj = result(nodeListj, j);
 
               // Node displacement.
-              const Vector rij = ri - rj;
-              const Vector etai = Hi*rij;
-              const Vector etaj = Hj*rij;
+              const auto rij = ri - rj;
+              const auto etai = Hi*rij;
+              const auto etaj = Hj*rij;
 
               // Kernel weight.
-              const Scalar Wj = CRKSPHKernel(W, correctionOrder,  rij,  etai, Hdeti,  etaj, Hdetj, Ai, Bi, Ci, -1e100, 1e100);
-              const Scalar Wi = CRKSPHKernel(W, correctionOrder, -rij, -etaj, Hdetj, -etai, Hdeti, Aj, Bj, Cj, -1e100, 1e100);
+              const auto Wj = CRKSPHKernel(W, correctionOrder,  rij,  etaj, Hdetj, Ai, Bi, Ci);
+              const auto Wi = CRKSPHKernel(W, correctionOrder, -rij, -etai, Hdeti, Aj, Bj, Cj);
 
               // Increment the pair-wise values.
               resulti += wj*Fj*Wj;

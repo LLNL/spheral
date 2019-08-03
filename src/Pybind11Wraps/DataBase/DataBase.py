@@ -5,6 +5,7 @@ from PYB11Generator import *
 from DataBase import *
 
 @PYB11template("Dimension")
+@PYB11dynamic_attr
 class DataBase:
 
     PYB11typedefs = """
@@ -169,6 +170,12 @@ class DataBase:
     def fluidTotalEnergy(self, result="FieldList<%(Dimension)s, Scalar>&"):
         return "void"
 
+    @PYB11const
+    def fluidSpecificHeat(self,
+                          temperature = "const FieldList<%(Dimension)s, Scalar>&",
+                          result="FieldList<%(Dimension)s, Scalar>&"):
+        return "void"
+    
     @PYB11const
     def boundingBox(self,
                     xmin = "Vector&",
