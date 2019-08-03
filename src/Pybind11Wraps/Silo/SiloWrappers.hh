@@ -16,6 +16,90 @@
 namespace silo {
 
 //------------------------------------------------------------------------------
+template<typename T>
+inline
+py::list
+copy2py(T* carray, const size_t nvals) {
+  py::list result;
+  for (auto i = 0; i < nvals; ++i) result.append(carray[i]);
+  return result;
+}
+
+inline
+py::list
+copy2py(char** carray, const size_t nvals) {
+  py::list result;
+  for (auto i = 0; i < nvals; ++i) result.append(std::string(carray[i]));
+  return result;
+}
+
+inline
+py::list
+copy2py(void** carray, const size_t nout, const size_t nin, const int dtype) {
+  if (not (dtype == DB_FLOAT or dtype == DB_DOUBLE)) throw py::value_error("Require float or double type");
+  py::list result;
+  for (auto k = 0; k < nout; ++k) {
+    py::list row;
+    if (dtype == DB_FLOAT) {
+      auto* cvals = static_cast<float*>(carray[k]);
+      for (auto i = 0; i < nin; ++i) row.append(cvals[i]);
+    } else {
+      auto* cvals = static_cast<double*>(carray[k]);
+      for (auto i = 0; i < nin; ++i) row.append(cvals[i]);
+    }
+    result.append(row);
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+template<typename T>
+inline
+void
+copy2c(T* carray, py::list& vals) {
+  if (carray != NULL) free(carray);
+  const auto nvals = vals.size();
+  carray = (T*) malloc(sizeof(T)*vals.size());
+  for (auto i = 0; i < nvals; ++i) carray[i] = vals[i].cast<T>();
+}
+
+inline
+void
+copy2c(char** carray, py::list& vals) {
+  if (carray != NULL) delete [] carray;
+  const auto nvals = vals.size();
+  if (nvals > 0) {
+    carray = new char*[nvals];
+    for (auto i = 0; i < nvals; ++i) {
+      auto val = vals[i].cast<std::string>();
+      carray[i] = new char[val.size() + 1];
+      strcpy(carray[i], val.c_str());
+    }
+  }
+}
+
+inline
+void
+copy2c(void** carray, py::list& vals, const size_t nout, const size_t nin, const int dtype) {
+  if (not (dtype == DB_FLOAT or dtype == DB_DOUBLE)) throw py::value_error("Require float or double type");
+  if (vals.size() != nout) throw py::value_error("incorrectly sized list");
+  for (auto k = 0; k < nout; ++k) {
+    auto rowvals = vals[k].cast<py::list>();
+    if (rowvals.size() != nin) throw py::value_error("incorrectly sized inner list");
+    if (carray[k] != NULL) free(carray[k]);
+    if (dtype == DB_FLOAT) {
+      carray[k] = malloc(sizeof(float)*nin);
+      auto* cvals = static_cast<float*>(carray[k]);
+      for (auto i = 0; i < nin; ++i) cvals[i] = rowvals[i].cast<float>();
+    } else {
+      carray[k] = malloc(sizeof(double)*nin);
+      auto* cvals = static_cast<double*>(carray[k]);
+      for (auto i = 0; i < nin; ++i) cvals[i] = rowvals[i].cast<double>();
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
 // Trait class to help mapping Spheral types to silo.
 //------------------------------------------------------------------------------
 template<typename T>
