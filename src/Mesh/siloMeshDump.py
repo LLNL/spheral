@@ -211,14 +211,13 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
             # Write the attributes for each variable.
             # This is largely an Overlink thing, which only needs the components of types like vectors.
             if len(fieldwad) > 0:
-                attrNames = []
-                attrs = []
-                thpt = []
-                thpt.append(OverlinkAttrs["ATTR_ZONAL"])
-                thpt.append(OverlinkAttrs["ATTR_INTENSIVE"])
-                thpt.append(OverlinkAttrs["ATTR_SECOND_ORDER"])
-                thpt.append(0)
-                thpt.append(OverlinkAttrs["ATTR_FLOAT"])
+                attrNames = vector_of_string()
+                attrs = vector_of_vector_of_int()
+                thpt = vector_of_int([OverlinkAttrs["ATTR_ZONAL"],
+                                      OverlinkAttrs["ATTR_INTENSIVE"],
+                                      OverlinkAttrs["ATTR_SECOND_ORDER"],
+                                      0,
+                                      OverlinkAttrs["ATTR_FLOAT"]])
                 for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
                     for subname, vals in subvars:
                         attrNames.append(subname)
@@ -227,18 +226,14 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
                 silo.DBPutCompoundarray(db, "VAR_ATTRIBUTES", attrNames, attrs, nullOpts)
         
             # Write the variables descriptors.
-            ucdTypes = [silo.DB_UCDVAR]*numDomains
+            ucdTypes = vector_of_int([silo.DB_UCDVAR]*numDomains)
             for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
-                domainVarNames = []
-                for p in domainNamePatterns:
-                    domainVarNames.append(p % ("CELLS_" + name))
+                domainVarNames = vector_of_string([p % ("CELLS_" + name) for p in domainNamePatterns])
                 assert len(domainVarNames) == numDomains
                 assert silo.DBPutMultivar(db, "CELLS/" + name, domainVarNames, ucdTypes, optlistMV) == 0
                 if desc != None:
                     for subname, vals in subvars:
-                        domainVarNames = []
-                        for p in domainNamePatterns:
-                            domainVarNames.append(p % ("CELLS_" + subname))
+                        domainVarNames = vector_of_string([p % ("CELLS_" + subname) for p in domainNamePatterns])
                         assert len(domainVarNames) == numDomains
                         assert silo.DBPutMultivar(db, "CELLS/" + subname, domainVarNames, ucdTypes, optlistVar) == 0
         
@@ -317,9 +312,9 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             zoneNodes = mesh.zoneNodes
             assert len(zoneNodes) == numZones
             assert silo.DBPutZonelist2(db, zonelistName[nDim], nDim, zoneNodes, 0, 0,
-                                       [silo.DB_ZONETYPE_POLYGON]*numZones,
-                                       [len(zn) for zn in zoneNodes], # shapesize,
-                                       [1]*numZones,
+                                       vector_of_int([silo.DB_ZONETYPE_POLYGON]*numZones),
+                                       vector_of_int([len(zn) for zn in zoneNodes]), # shapesize,
+                                       vector_of_int([1]*numZones),
                                        nullOpts) == 0
         
         # Write a Polyhedral zone list.
@@ -336,9 +331,9 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         # Construct the mesh node coordinates.
         assert len(mesh.nodes) % nDim == 0
         if nDim == 2:
-            coords = [mesh.xnodes, mesh.ynodes]
+            coords = vector_of_vector_of_double([mesh.xnodes, mesh.ynodes])
         else:
-            coords = [mesh.xnodes, mesh.ynodes, mesh.znodes]
+            coords = vector_of_vector_of_double([mesh.xnodes, mesh.ynodes, mesh.znodes])
         assert len(coords) == nDim
         
         # print "    --> %g sec to compute coords" % (TIME.clock() - start)
@@ -367,7 +362,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         # Write materials.
         if nodeLists:
             matnos = vector_of_int(range(len(nodeLists)))
-            matnames = [nodeList.name for nodeList in nodeLists]
+            matnames = vector_of_string([nodeList.name for nodeList in nodeLists])
             matlist = []
             offset = 0
             for imat, nodeList in enumerate(nodeLists):
@@ -375,6 +370,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
                     for j in index2zone[offset + i]:
                         matlist.append(imat)
                 offset += nodeList.numInternalNodes
+            matlist = vector_of_int(matlist)
             assert len(matlist) == numZones
             assert len(matnames) == len(nodeLists)
             assert len(matnos) == len(nodeLists)
