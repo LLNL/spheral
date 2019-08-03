@@ -397,7 +397,11 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
                 for subname, vals in subvars:
                     if len(vals) > 0:
-                        assert silo.DBPutUcdvar1(db, "CELLS_" + subname, "MESH", vals, [], silo.DB_ZONECENT, varOpts) == 0
+                        if type(vals[0]) == float:
+                            ctor = vector_of_double
+                        else:
+                            ctor = vector_of_int
+                        assert silo.DBPutUcdvar1(db, "CELLS_" + subname, "MESH", ctor(vals), ctor([]), silo.DB_ZONECENT, varOpts) == 0
 
             # print "      --> %g sec to DBPutUcdvar1" % (TIME.clock() - start)
             # start = TIME.clock()
@@ -422,12 +426,10 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         # start = TIME.clock()
 
         # Write the set of neighbor domains.
-        thpt = []
-        thpt.append([len(mesh.neighborDomains)])
-        thpt.append(mesh.neighborDomains)
-        elemNames = []
-        elemNames.append("num neighbor domains")
-        elemNames.append("neighbor domains")
+        thpt = vector_of_vector_of_int()
+        thpt.append(vector_of_int([len(mesh.neighborDomains)]))
+        thpt.append(vector_of_int([x for x in mesh.neighborDomains]))
+        elemNames = vector_of_string(["num neighbor domains", "neighbor domains"])
         assert silo.DBPutCompoundarray(db, "DOMAIN_NEIGHBOR_NUMS", elemNames, thpt, nullOpts) == 0
         
         # Write the shared nodes for each neighbor domain.
@@ -480,7 +482,9 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         # Write the point mesh.
         if nodeLists:
             ntot = sum([n.numInternalNodes for n in nodeLists])
-            coords = [[]]*nDim
+            coords = []
+            for j in xrange(nDim):
+                coords.append([])
             for nodes in nodeLists:
                 pos = nodes.positions().internalValues()
                 n = len(pos)
@@ -489,7 +493,8 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
                         coords[j].append(pos[i][j])
             for j in xrange(nDim):
                 assert len(coords[j]) == ntot
-         
+            coords = vector_of_vector_of_double([vector_of_double(vals) for vals in coords])
+
             # Write the Pointmesh.
             meshOpts = silo.DBoptlist(1024)
             assert meshOpts.addOption(silo.DBOPT_CYCLE, cycle) == 0
