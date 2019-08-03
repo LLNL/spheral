@@ -83,23 +83,23 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
   // Apply our toplogical cuts to the ConnectivityMap.
   connectivityMap.removeConnectivity(neighborsToCut);
 
-  // Now check for any non-surface nodes that overlap surface in the newly reduced topology.
-  // Flag those specially with -1 in surfacePoint.
-  for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
-    const auto n = nodeLists[iNodeList]->numInternalNodes();
-    for (auto i = 0; i < n; ++i) {
-      if (surfacePoint(iNodeList, i) == 0) {
-        const auto& allneighbors = connectivityMap.connectivityForNode(iNodeList, i);
-        const auto& neighbors = allneighbors[iNodeList];
-        for (auto j: neighbors) {
-          if (surfacePoint(iNodeList, j) > 0) {
-            surfacePoint(iNodeList, i) = -1;
-            break;
-          }
-        }
-      }
-    }
-  }
+  // // Now check for any non-surface nodes that overlap surface in the newly reduced topology.
+  // // Flag those specially with -1 in surfacePoint.
+  // for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
+  //   const auto n = nodeLists[iNodeList]->numInternalNodes();
+  //   for (auto i = 0; i < n; ++i) {
+  //     if (surfacePoint(iNodeList, i) == 0) {
+  //       const auto& allneighbors = connectivityMap.connectivityForNode(iNodeList, i);
+  //       const auto& neighbors = allneighbors[iNodeList];
+  //       for (auto j: neighbors) {
+  //         if (surfacePoint(iNodeList, j) > 0) {
+  //           surfacePoint(iNodeList, i) = -1;
+  //           break;
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 
   // // Go out one more rind of points two-steps removed from the boundary.
   // for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
