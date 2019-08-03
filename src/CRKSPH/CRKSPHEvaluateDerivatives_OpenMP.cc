@@ -327,7 +327,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             if (mCompatibleEnergyEvolution) pairAccelerationsi.push_back(-forceij/mi);
 
             // Energy
-            DepsDti += (surfi != 0 and surfj != 0 ?
+            DepsDti += ((surfi != 0 and surfj != 0) ?
                         weighti*weightj*(Pj*vij.dot(gradWj) - rhoj*rhoj*QPiij.second.dot(vij).dot(gradWj))/mi :         // surface
                         0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi);         // CRK
 
