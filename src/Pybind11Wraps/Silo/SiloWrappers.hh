@@ -28,6 +28,9 @@ struct Spheral2Silo<double> {
   static void copyElement(const Value& x, double** silovars, const unsigned i) {
     silovars[0][i] = x;
   }
+  static void readElement(Value& x, double** silovars, const unsigned i) {
+    x = silovars[0][i];
+  }
 };
 
 template<>
@@ -37,6 +40,10 @@ struct Spheral2Silo<Spheral::Dim<2>::Vector> {
   static void copyElement(const Value& x, double** silovars, const unsigned i) {
     silovars[0][i] = x.x();
     silovars[1][i] = x.y();
+  }
+  static void readElement(Value& x, double** silovars, const unsigned i) {
+    x.x(silovars[0][i]);
+    x.y(silovars[1][i]);
   }
 };
 
@@ -48,6 +55,10 @@ struct Spheral2Silo<Spheral::Dim<2>::Tensor> {
     silovars[0][i] = x.xx(); silovars[1][i] = x.xy();
     silovars[2][i] = x.yx(); silovars[3][i] = x.yy();
   }
+  static void readElement(Value& x, double** silovars, const unsigned i) {
+    x.xx(silovars[0][i]); x.xy(silovars[1][i]);
+    x.yx(silovars[2][i]); x.yy(silovars[3][i]);
+  }
 };
 
 template<>
@@ -57,6 +68,10 @@ struct Spheral2Silo<Spheral::Dim<2>::SymTensor> {
   static void copyElement(const Value& x, double** silovars, const unsigned i) {
     silovars[0][i] = x.xx(); silovars[1][i] = x.xy();
     silovars[2][i] = x.yx(); silovars[3][i] = x.yy();
+  }
+  static void readElement(Value& x, double** silovars, const unsigned i) {
+    x.xx(silovars[0][i]); x.xy(silovars[1][i]);
+    x.yx(silovars[2][i]); x.yy(silovars[3][i]);
   }
 };
 
@@ -69,6 +84,11 @@ struct Spheral2Silo<Spheral::Dim<3>::Vector> {
     silovars[1][i] = x.y();
     silovars[2][i] = x.z();
   }
+  static void readElement(Value& x, double** silovars, const unsigned i) {
+    x.x(silovars[0][i]);
+    x.y(silovars[1][i]);
+    x.z(silovars[2][i]);
+  }
 };
 
 template<>
@@ -80,6 +100,11 @@ struct Spheral2Silo<Spheral::Dim<3>::Tensor> {
     silovars[3][i] = x.yx(); silovars[4][i] = x.yy(); silovars[5][i] = x.yz();
     silovars[6][i] = x.zx(); silovars[7][i] = x.zy(); silovars[8][i] = x.zz();
   }
+  static void readElement(Value& x, double** silovars, const unsigned i) {
+    x.xx(silovars[0][i]); x.xy(silovars[1][i]); x.xz(silovars[2][i]);
+    x.yx(silovars[3][i]); x.yy(silovars[4][i]); x.yz(silovars[5][i]);
+    x.zx(silovars[6][i]); x.zy(silovars[7][i]); x.zz(silovars[8][i]);
+  }
 };
 
 template<>
@@ -90,6 +115,11 @@ struct Spheral2Silo<Spheral::Dim<3>::SymTensor> {
     silovars[0][i] = x.xx(); silovars[1][i] = x.xy(); silovars[2][i] = x.xz();
     silovars[3][i] = x.yx(); silovars[4][i] = x.yy(); silovars[5][i] = x.yz();
     silovars[6][i] = x.zx(); silovars[7][i] = x.zy(); silovars[8][i] = x.zz();
+  }
+  static void readElement(Value& x, double** silovars, const unsigned i) {
+    x.xx(silovars[0][i]); x.xy(silovars[1][i]); x.xz(silovars[2][i]);
+    x.yx(silovars[3][i]); x.yy(silovars[4][i]); x.yz(silovars[5][i]);
+    x.zx(silovars[6][i]); x.zy(silovars[7][i]); x.zz(silovars[8][i]);
   }
 };
 
@@ -193,7 +223,7 @@ struct DBoptlist_wrapper {
                     const std::vector<Value>& value) {
       DBoptlist_wrapper::AddOptionFunctor<int>().writeValue(optlist_wrapper, option_size, value.size());
       std::shared_ptr<void> voidValue(new std::vector<Value>(value));
-      // optlist_wrapper.mCache.push_back(voidValue);
+      optlist_wrapper.mCache.push_back(voidValue);
       Value* frontPtr = &(((std::vector<Value>*) voidValue.get())->front());
       return DBAddOption(optlist_wrapper.mOptlistPtr, option, frontPtr);
     }
@@ -553,6 +583,16 @@ DBPutMultimesh(DBfile& file,
 }
 
 //------------------------------------------------------------------------------
+// DBGetMultimesh
+//------------------------------------------------------------------------------
+inline
+DBmultimesh*
+DBGetMultimesh(DBfile& file,
+               std::string name) {
+  return DBGetMultimesh(&file, name.c_str());
+}
+
+//------------------------------------------------------------------------------
 // DBPutMultimat
 //------------------------------------------------------------------------------
 inline
@@ -764,6 +804,16 @@ DBPutUcdmesh(DBfile& file,
 }
 
 //------------------------------------------------------------------------------
+// DBGetUcdmesh
+//------------------------------------------------------------------------------
+inline
+DBucdmesh*
+DBGetUcdmesh(DBfile& file,
+             std::string name) {
+  return DBGetUcdmesh(&file, name.c_str());
+}
+
+//------------------------------------------------------------------------------
 // DBPutQuadmesh
 // Note we assume just the unique (x,y,z) coordinates are provided, but we
 // replicate them here for the silo file writing.
@@ -924,6 +974,40 @@ DBPutUcdvar(DBfile& file,
   delete[] mixvars;
   return result;
 }
+
+// //------------------------------------------------------------------------------
+// // DBReadUcdvar
+// // We assume here that the underlying element type is double.
+// //------------------------------------------------------------------------------
+// template<typename T>
+// inline
+// void
+// DBReadUcdvar(DBfile& file,
+//              std::string name,
+//              std::vector<T>& values,
+//              std::vector<T>& mixValues) {
+
+//   auto ucdvar = DBGetUcdvar(&file,
+//                             name.c_str());
+  
+//   // Read into the resulting arrays.
+//   const auto element_size = Spheral2Silo<T>::numElements();
+//   const auto nvals = ucdvar->nels/element_size;
+//   const auto nmixvals = ucdvar->mixlen/element_size;
+//   values.resize(nvals);
+//   mixValues.resize(nmixvals);
+//   for (auto i = 0; i < nvals; ++i)    Spheral2Silo<T>::readElement(values[i], ucdvar->vals, i);
+//   for (auto i = 0; i < nmixvals; ++i) Spheral2Silo<T>::readElement(values[i], ucdvar->mixvals, i);
+
+//   // That's it.
+//   for (auto i = 0; i != ucdvar->nvals; ++i) {
+//     delete[] ucdvar->vals[i];
+//     delete[] ucdvar->mixvals[i];
+//   }
+//   delete[] ucdvar->vals;
+//   delete[] ucdvar->mixvals;
+//   delete[] ucdvar;
+// }
 
 //------------------------------------------------------------------------------
 // DBPutUcdvar1
