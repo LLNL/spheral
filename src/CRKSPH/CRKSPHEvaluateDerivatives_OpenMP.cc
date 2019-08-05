@@ -309,7 +309,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
             // The force between the points depends on the surface test
             // Momentum
-            forceij = ((surfi != 0 and surfj != 0) ?
+            forceij = (false ? //(surfi != 0 and surfj != 0) ?
                        weighti*weightj*((Pi + Pj)*gradWj + rhoj*rhoj*QPiij.second.dot(gradWj)) :                   // surface
                        0.5*weighti*weightj*((Pi + Pj)*deltagrad + Qaccij));                // Type III CRK interpoint force.
             DvDti -= forceij/mi;
@@ -327,7 +327,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             if (mCompatibleEnergyEvolution) pairAccelerationsi.push_back(-forceij/mi);
 
             // Energy
-            DepsDti += ((surfi != 0 and surfj != 0) ?
+            DepsDti += (false ? //(surfi != 0 and surfj != 0) ?
                         weighti*weightj*(Pj*vij.dot(gradWj) - rhoj*rhoj*QPiij.second.dot(vij).dot(gradWj))/mi :         // surface
                         0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi);         // CRK
 
