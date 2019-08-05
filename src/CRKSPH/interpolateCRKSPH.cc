@@ -58,7 +58,7 @@ interpolateCRKSPH(const FieldList<Dimension, DataType>& fieldList,
   for (auto fieldItr = fieldList.begin();
        fieldItr != fieldList.end(); 
        ++fieldItr) {
-    result.appendField(Field<Dimension, DataType>("interpolate" + (*fieldItr)->name(), (*fieldItr)->nodeList()));
+    result.appendField(Field<Dimension, DataType>("interpolate " + (*fieldItr)->name(), (*fieldItr)->nodeList()));
   }
 
   // Walk the FluidNodeLists.
