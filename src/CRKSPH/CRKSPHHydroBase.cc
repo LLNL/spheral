@@ -280,8 +280,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
       for (ConstBoundaryIterator boundItr = this->boundaryBegin();
            boundItr != this->boundaryEnd();
            ++boundItr) (*boundItr)->finalizeGhostBoundary();
-      editMultimaterialSurfaceTopology(mSurfacePoint,
-                                       const_cast<ConnectivityMap<Dimension>&>(connectivityMap));
+      // editMultimaterialSurfaceTopology(mSurfacePoint,
+      //                                  const_cast<ConnectivityMap<Dimension>&>(connectivityMap));
     }
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, mVolume);
@@ -614,8 +614,8 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       for (ConstBoundaryIterator boundItr = this->boundaryBegin();
            boundItr != this->boundaryEnd();
            ++boundItr) (*boundItr)->finalizeGhostBoundary();
-      editMultimaterialSurfaceTopology(surfacePoint,
-                                       const_cast<ConnectivityMap<Dimension>&>(connectivityMap));
+      // editMultimaterialSurfaceTopology(surfacePoint,
+      //                                  const_cast<ConnectivityMap<Dimension>&>(connectivityMap));
     }
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
