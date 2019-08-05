@@ -324,7 +324,7 @@ else:
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
 output("hydro")
-
+output("hydro.compatibleEnergyEvolution")
 packages = [hydro]
 
 #-------------------------------------------------------------------------------
