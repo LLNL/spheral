@@ -133,6 +133,12 @@ public:
   static void addBoundary(const Vector& point,
                           const Vector& normal);
 
+  // Add boundary conditions
+  static void addPeriodicBoundary(const Vector& point1,
+                                  const Vector& normal1,
+                                  const Vector& point2,
+                                  const Vector& normal2);
+
   // Take an initial guess for the H tensor field and optimize it.
   static void iterateHfield(double**     Hfield,
                             const int    maxIterations = 50,

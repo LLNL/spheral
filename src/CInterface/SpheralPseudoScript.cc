@@ -44,6 +44,7 @@
 #include "Distributed/NestedGridDistributedBoundary.hh"
 #include "Distributed/TreeDistributedBoundary.hh"
 #endif
+#include "Boundary/PeriodicBoundary.hh"
 #include "Boundary/ReflectingBoundary.hh"
 #include "Boundary/AxisBoundaryRZ.hh"
 #include "Field/Field.hh"
@@ -1018,6 +1019,25 @@ addBoundary(const Vector& point,
 
   // Add reflecting boundary
   me.mHostCodeBoundaries.push_back(std::shared_ptr<ReflectingBoundary<Dimension>>(new ReflectingBoundary<Dimension>( (GeomPlane<Dimension>(point,normal)))));
+}
+
+//------------------------------------------------------------------------------
+// addPeriodicBoundary
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SpheralPseudoScript<Dimension>::
+addPeriodicBoundary(const Vector& point1,
+                    const Vector& normal1,
+                    const Vector& point2,
+                    const Vector& normal2) {
+
+  // Get our instance.
+  auto& me = SpheralPseudoScript<Dimension>::instance();
+
+  // Add reflecting boundary
+  me.mHostCodeBoundaries.push_back(std::shared_ptr<PeriodicBoundary<Dimension>>(new PeriodicBoundary<Dimension>(GeomPlane<Dimension>(point1,normal1),
+                                                                                                                GeomPlane<Dimension>(point2,normal2))));
 }
 
 //------------------------------------------------------------------------------

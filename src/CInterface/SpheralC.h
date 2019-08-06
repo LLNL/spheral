@@ -270,6 +270,24 @@ void spheral_add_boundary(const int     ndims,
                           const double* ncoords);
 
 /*------------------------------------------------------------------------------
+  spheral_periodic_boundary
+
+  Takes as input the dimension of the problem, the normal direction, and a
+  point in the plane on which the boundary condition will be applied
+
+  Returns:  void
+  Arguments:  ndims       : number of dimensions in the problem
+              (p0,p1,p2)  : point in the plane
+              (n0,n1,n2)  : normal direction at point
+  ----------------------------------------------------------------------------*/
+SPHERALDLL_API 
+void spheral_periodic_boundary(const int     ndims,
+                               const double* pcoords1,
+                               const double* ncoords1,
+                               const double* pcoords2,
+                               const double* ncoords2);
+
+/*------------------------------------------------------------------------------
   spheral_iterate_Hfield
 
   Takes as input a guess for the H tensor field, and optimizes it based on the
