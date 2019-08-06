@@ -5,6 +5,7 @@ from PYB11Generator import *
 from DataBase import *
 
 @PYB11template("Dimension")
+@PYB11dynamic_attr
 class DataBase:
 
     PYB11typedefs = """
