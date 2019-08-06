@@ -6,9 +6,9 @@ text = """
 #include "Geometry/Dimension.hh"
 
 #ifdef _OPENMP
-#include "SPHEvaluateDerivatives_OpenMP.cc"
+#include "SPH/SPHEvaluateDerivatives_OpenMP.cc"
 #else
-#include "SPHEvaluateDerivatives.cc"
+#include "SPH/SPHEvaluateDerivatives.cc"
 #endif
 
 namespace Spheral {
