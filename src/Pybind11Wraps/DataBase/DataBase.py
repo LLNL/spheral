@@ -315,7 +315,8 @@ will get the new value regardless of resetValues."""
     newGlobalvector_of_doubleFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<double>")
     newGlobalvector_of_VectorFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<Vector>")
     newGlobalvector_of_tuple_int_int_intFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<std::tuple<int,int,int>>")
-
+    newGlobalDomainNodeFieldList       = PYB11TemplateMethod(newGlobalFieldList, template_parameters="DomainNode<%(Dimension)s>")
+    
     newFluidIntFieldList              = PYB11TemplateMethod(newFluidFieldList, template_parameters="int")
     newFluidScalarFieldList           = PYB11TemplateMethod(newFluidFieldList, template_parameters="double")
     newFluidVectorFieldList           = PYB11TemplateMethod(newFluidFieldList, template_parameters="Vector")
@@ -329,6 +330,7 @@ will get the new value regardless of resetValues."""
     newFluidvector_of_doubleFieldList = PYB11TemplateMethod(newFluidFieldList, template_parameters="std::vector<double>")
     newFluidvector_of_VectorFieldList = PYB11TemplateMethod(newFluidFieldList, template_parameters="std::vector<Vector>")
     newFluidvector_of_tuple_int_int_intFieldList = PYB11TemplateMethod(newFluidFieldList, template_parameters="std::vector<std::tuple<int,int,int>>")
+    newFluidDomainNodeFieldList       = PYB11TemplateMethod(newFluidFieldList, template_parameters="DomainNode<%(Dimension)s>")
 
     newSolidIntFieldList              = PYB11TemplateMethod(newSolidFieldList, template_parameters="int")
     newSolidScalarFieldList           = PYB11TemplateMethod(newSolidFieldList, template_parameters="double")
@@ -356,6 +358,7 @@ will get the new value regardless of resetValues."""
     resizeGlobalvector_of_intFieldList    = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="std::vector<int>")
     resizeGlobalvector_of_doubleFieldList = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="std::vector<double>")
     resizeGlobalvector_of_VectorFieldList = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="std::vector<Vector>")
+    resizeGlobalDomainNodeFieldList       = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="DomainNode<%(Dimension)s>")
 
     resizeFluidIntFieldList              = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="int")
     resizeFluidScalarFieldList           = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="double")
@@ -369,6 +372,7 @@ will get the new value regardless of resetValues."""
     resizeFluidvector_of_intFieldList    = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="std::vector<int>")
     resizeFluidvector_of_doubleFieldList = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="std::vector<double>")
     resizeFluidvector_of_VectorFieldList = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="std::vector<Vector>")
+    resizeFluidDomainNodeFieldList       = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="DomainNode<%(Dimension)s>")
 
     resizeSolidIntFieldList              = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="int")
     resizeSolidScalarFieldList           = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="double")

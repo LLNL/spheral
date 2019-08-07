@@ -28,6 +28,7 @@ PYB11includes += ['"Geometry/Dimension.hh"',
                   '"Field/FieldList.hh"',
                   '"Field/FieldListSet.hh"',
                   '"Utilities/FieldDataTypeTraits.hh"',
+                  '"Distributed/DomainNode.hh"',
                   '<vector>',
                   '<tuple>']
 
@@ -63,7 +64,8 @@ FieldListSet%(ndim)sd = PYB11TemplateClass(FieldListSet, template_parameters="Di
                            ("std::vector<std::tuple<int,int,int>>","VectorTupleIntIntInt"),
                            ("std::vector<Dim<%i>::Vector>" % ndim, "VectorVector"),
                            ("std::vector<Dim<%i>::Tensor>" % ndim, "VectorSymTensor"),
-                           ("std::vector<Dim<%i>::Tensor>" % ndim, "VectorSymTensor")):
+                           ("std::vector<Dim<%i>::Tensor>" % ndim, "VectorSymTensor"),
+                           ("DomainNode<Dim<%i>>" % ndim,          "DomainNode")):
         exec('''
 %(label)sField%(ndim)sd = PYB11TemplateClass(Field, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 %(label)sFieldList%(ndim)sd = PYB11TemplateClass(FieldList, template_parameters=("Dim<%(ndim)i>", "%(value)s"))

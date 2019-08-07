@@ -14,6 +14,7 @@
 #include "Geometry/Dimension.hh"
 #include "Geometry/polyclipper.hh"
 #include "RegisterMPIDataTypes.hh"
+#include "Distributed/DomainNode.hh"
 
 #ifdef USE_MPI
 extern "C" {
@@ -436,6 +437,15 @@ struct DataTypeTraits<PolyClipper::Vertex3d> {
                                                          x.neighbors.size() +
                                                          2); }
   static ElementType zero() { return PolyClipper::Vertex3d(); }
+};
+
+//------------------------------------------------------------------------------
+template<int ndim>
+struct DataTypeTraits<DomainNode<Dim<ndim>>> {
+  typedef double ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const DomainNode<Dim<ndim>>& x) { return DomainNode<Dim<2>>::packSize(); }
+  static DomainNode<Dim<ndim>> zero() { return DomainNode<Dim<ndim>>({0, 0, 0, 0, 0, 0.0, Dim<ndim>::Vector::zero}); }
 };
 
 }
