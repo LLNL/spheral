@@ -1,6 +1,7 @@
 set(Boundary_inst
     Boundary
     CRKSPHVoidBoundary
+    PeriodicBoundary
     PlanarBoundary
     ReflectingBoundary
     RigidBoundary
@@ -29,6 +30,8 @@ set(Boundary_headers
     Boundary.hh
     BoundaryInline.hh
     CRKSPHVoidBoundary.hh
+    PeriodicBoundary.hh
+    PeriodicPlanarBoundary.hh
     PlanarBoundary.hh
     PlanarBoundaryInline.hh
     PlanarSymmetryBoundary.hh
