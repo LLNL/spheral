@@ -177,6 +177,7 @@ AC_OUTPUT(helpers/makefile_master \
           SimulationControl/makefile \
           SPH/makefile \
           CRKSPH/makefile \
+          FVCRKH/makefile \
           SVPH/makefile \
           TaylorSPH/makefile \
           Mesh/makefile \
