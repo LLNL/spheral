@@ -667,6 +667,9 @@ initialize(const bool     RZ,
   // Construct the NodeLists for our materials.
   // me.mNodeLists.reserve(nmats);
   // me.mNeighbors.reserve(nmats);
+  me.mNodeLists.clear();
+  me.mNeighbors.clear();
+  me.mHostCodeBoundaries.clear();
   for (unsigned imat = 0; imat != nmats; ++imat) {
     const string name = "NodeList " + std::to_string(imat);
     me.mNodeLists.push_back(std::shared_ptr< SolidNodeList<Dimension>>(new SolidNodeList<Dimension>(name,
