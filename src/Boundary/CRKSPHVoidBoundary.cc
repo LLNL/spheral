@@ -222,6 +222,16 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = ThirdRankTensor::zero;
 }
 
+// Specialization for FacetedVolume fields.
+template<typename Dimension>
+void
+CRKSPHVoidBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+  const vector<int>& gNodes = this->ghostNodes(field.nodeList());
+  const unsigned nvoid = gNodes.size();
+  for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = FacetedVolume();
+}
+
 // Specialization for vector<scalar> fields.
 template<typename Dimension>
 void
@@ -295,6 +305,13 @@ template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+}
+
+// Specialization for FacetedVolume fields.
+template<typename Dimension>
+void
+CRKSPHVoidBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
 }
 
 }

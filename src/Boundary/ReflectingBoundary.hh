@@ -31,36 +31,36 @@ public:
   virtual ~ReflectingBoundary();
 
   // Apply the boundary condition to the ghost values of given Field.
-  virtual void applyGhostBoundary(Field<Dimension, int>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const = 0;
+  virtual void applyGhostBoundary(Field<Dimension, int>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Apply the boundary condition to the violation node values in the given Field.
-  virtual void enforceBoundary(Field<Dimension, int>& field) const;
-  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const;
-  virtual void enforceBoundary(Field<Dimension, Vector>& field) const;
-  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const;
-  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const;
-  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const;
-  virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const = 0;
+  virtual void enforceBoundary(Field<Dimension, int>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, Vector>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Apply the boundary condition to face centered fields on a tessellation.
-  virtual void enforceBoundary(std::vector<int>& faceField, const Mesh<Dimension>& mesh) const;
-  virtual void enforceBoundary(std::vector<Scalar>& faceField, const Mesh<Dimension>& mesh) const;
-  virtual void enforceBoundary(std::vector<Vector>& faceField, const Mesh<Dimension>& mesh) const;
-  virtual void enforceBoundary(std::vector<Tensor>& faceField, const Mesh<Dimension>& mesh) const;
-  virtual void enforceBoundary(std::vector<SymTensor>& faceField, const Mesh<Dimension>& mesh) const;
-  virtual void enforceBoundary(std::vector<ThirdRankTensor>& faceField, const Mesh<Dimension>& mesh) const;
+  virtual void enforceBoundary(std::vector<int>& faceField, const Mesh<Dimension>& mesh) const override;
+  virtual void enforceBoundary(std::vector<Scalar>& faceField, const Mesh<Dimension>& mesh) const override;
+  virtual void enforceBoundary(std::vector<Vector>& faceField, const Mesh<Dimension>& mesh) const override;
+  virtual void enforceBoundary(std::vector<Tensor>& faceField, const Mesh<Dimension>& mesh) const override;
+  virtual void enforceBoundary(std::vector<SymTensor>& faceField, const Mesh<Dimension>& mesh) const override;
+  virtual void enforceBoundary(std::vector<ThirdRankTensor>& faceField, const Mesh<Dimension>& mesh) const override;
 
   // Fill in faces on this boundary with effective opposite face values.
   virtual void swapFaceValues(Field<Dimension, std::vector<Scalar> >& field,
-                              const Mesh<Dimension>& mesh) const;
+                              const Mesh<Dimension>& mesh) const override;
   virtual void swapFaceValues(Field<Dimension, std::vector<Vector> >& field,
-                              const Mesh<Dimension>& mesh) const;
+                              const Mesh<Dimension>& mesh) const override;
 
   // Allow read only access to the reflection operator.
   const Tensor& reflectOperator() const;
