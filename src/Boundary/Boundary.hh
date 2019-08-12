@@ -34,6 +34,7 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FacetedVolume FacetedVolume;
 
   // An internal type to hold the paired control/ghost node indices.
   // Also maintains a list of any internal nodes that are in violation
@@ -113,6 +114,7 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const = 0;
   virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const = 0;
   virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const = 0;
+  virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const = 0;
 
   // Find any internal nodes that are in violation of this Boundary.
   virtual void setViolationNodes(NodeList<Dimension>& nodeList) = 0;
@@ -128,6 +130,7 @@ public:
   virtual void enforceBoundary(Field<Dimension, Tensor>& field) const = 0;
   virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const = 0;
   virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const = 0;
+  virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const = 0;
 
   // Apply the boundary condition to face centered fields on a tessellation.
   virtual void enforceBoundary(std::vector<int>& faceField, const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
