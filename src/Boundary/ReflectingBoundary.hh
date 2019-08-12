@@ -23,6 +23,7 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FacetedVolume FacetedVolume;
 
   // Constructors and destructors.
   ReflectingBoundary();
@@ -36,6 +37,7 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const;
   virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const;
   virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const = 0;
 
   // Apply the boundary condition to the violation node values in the given Field.
   virtual void enforceBoundary(Field<Dimension, int>& field) const;
@@ -44,6 +46,7 @@ public:
   virtual void enforceBoundary(Field<Dimension, Tensor>& field) const;
   virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const;
   virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const = 0;
 
   // Apply the boundary condition to face centered fields on a tessellation.
   virtual void enforceBoundary(std::vector<int>& faceField, const Mesh<Dimension>& mesh) const;
