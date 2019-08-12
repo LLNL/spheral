@@ -616,52 +616,52 @@ initialize(const bool     RZ,
   SpheralPseudoScript<Dimension>& me = SpheralPseudoScript<Dimension>::instance();
 
   // Create internal units (cm, gm, usec).
-  me.mUnitsPtr = std::shared_ptr<PhysicalConstants>(new PhysicalConstants(0.01,     // unit length (m)
-                                                                          0.001,    // unit mass (kg)
-                                                                          1.0e-6)); // unit time (sec)
+  me.mUnitsPtr.reset(new PhysicalConstants(0.01,     // unit length (m)
+                                           0.001,    // unit mass (kg)
+                                           1.0e-6)); // unit time (sec)
 
   // Construct the stand-in fake EOS and strength model.  The host code will
   // actually fill in the state fields Spheral normally uses these for.
-  me.mEOSptr = std::shared_ptr<SolidEquationOfState<Dimension>>(new LinearPolynomialEquationOfState<Dimension>(1.0, 0.1, 10.0, 
-                                                                                                               1.0, 0.0, 0.0, 0.0,
-                                                                                                               1.0, 0.0, 0.0,
-                                                                                                               100.0, 
-                                                                                                               *me.mUnitsPtr,
-                                                                                                               0.0, 0.0, 1e100,
-                                                                                                               MaterialPressureMinType::ZeroPressure));
-  me.mStrengthModelPtr = std::shared_ptr<StrengthModel<Dimension>>(new NullStrength<Dimension>());
+  me.mEOSptr.reset(new LinearPolynomialEquationOfState<Dimension>(1.0, 0.1, 10.0, 
+                                                                  1.0, 0.0, 0.0, 0.0,
+                                                                  1.0, 0.0, 0.0,
+                                                                  100.0, 
+                                                                  *me.mUnitsPtr,
+                                                                  0.0, 0.0, 1e100,
+                                                                  MaterialPressureMinType::ZeroPressure));
+  me.mStrengthModelPtr.reset(new NullStrength<Dimension>());
 
   // Build the general interpolation kernel.
   if(kernelType == 0) {
-    me.mKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
   }
   else if(kernelType == 1) {
-    me.mKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
   }
   else if(kernelType == 2) {
-    me.mKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
   }
 
   // Build the interpolation kernel for artificial viscosity.
   if(piKernelType == 0) {
-    me.mPiKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
+    me.mPiKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
   }
   else if(piKernelType == 1) {
-    me.mPiKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
+    me.mPiKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
   }
   else if(piKernelType == 2) {
-    me.mPiKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
+    me.mPiKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
   }
 
   // Build the interpolation kernel for the velocity gradient.
   if(gradKernelType == 0) {
-    me.mGradKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
+    me.mGradKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
   }
   else if(gradKernelType == 1) {
-    me.mGradKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
+    me.mGradKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
   }
   else if(gradKernelType == 2) {
-    me.mGradKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
+    me.mGradKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
   }
 
   // Construct the NodeLists for our materials.
@@ -704,7 +704,7 @@ initialize(const bool     RZ,
   }
 
   // Build the database and add our NodeLists.
-  me.mDataBasePtr = std::shared_ptr<DataBase<Dimension>>(new DataBase<Dimension>());
+  me.mDataBasePtr.reset(new DataBase<Dimension>());
   for (unsigned imat = 0; imat != nmats; ++imat) {
     me.mDataBasePtr->appendNodeList(*me.mNodeLists[imat]);
   }
@@ -722,20 +722,21 @@ initialize(const bool     RZ,
 
   // Build the hydro physics objects.
   if (ASPH) {
-    me.mSmoothingScaleMethodPtr = std::shared_ptr<SmoothingScaleBase<Dimension>>(new ASPHSmoothingScale<Dimension>());
+    me.mSmoothingScaleMethodPtr.reset(new ASPHSmoothingScale<Dimension>());
   } else {
-    me.mSmoothingScaleMethodPtr = std::shared_ptr<SmoothingScaleBase<Dimension>>(new SPHSmoothingScale<Dimension>());
+    me.mSmoothingScaleMethodPtr.reset(new SPHSmoothingScale<Dimension>());
   }
   if (CRK) {
-    me.mQptr = std::shared_ptr<ArtificialViscosity<Dimension>>(new CRKSPHMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, false, false, 1.0, 0.2));
+    me.mQptr.reset(new CRKSPHMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, false, false, 1.0, 0.2));
   } else {
     if (ScalarQ) {
-      me.mQptr = std::shared_ptr<ArtificialViscosity<Dimension>>(new MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, false, false));
+      me.mQptr.reset(new MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, false, false));
     } else {
-      me.mQptr = std::shared_ptr<ArtificialViscosity<Dimension>>(new TensorMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic));
+      me.mQptr.reset(new TensorMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic));
     }
   }
   me.mQptr->epsilon2(0.01);
+  me.mHydroPtr.reset();
   me.mHydroPtr = HydroConstructor<Dimension>::newinstance(CRK,
                                                           *me.mSmoothingScaleMethodPtr,
                                                           *me.mQptr,
@@ -765,7 +766,7 @@ initialize(const bool     RZ,
 
   // Build a time integrator.  We're not going to use this to advance state,
   // but the other methods are useful.
-  me.mIntegratorPtr = std::shared_ptr<CheapSynchronousRK2<Dimension>>(new CheapSynchronousRK2<Dimension>(*me.mDataBasePtr));
+  me.mIntegratorPtr.reset(new CheapSynchronousRK2<Dimension>(*me.mDataBasePtr));
   me.mIntegratorPtr->appendPhysicsPackage(*me.mHydroPtr);
 
   // Remember if we're feeding damage in
@@ -825,12 +826,12 @@ initializeStep(const unsigned* nintpermat,
   }
 
   // Prepare the state and such.
-  me.mStatePtr = std::shared_ptr<State<Dimension>>(new State<Dimension>(*me.mDataBasePtr,
-                                                                        me.mIntegratorPtr->physicsPackagesBegin(), 
-                                                                        me.mIntegratorPtr->physicsPackagesEnd()));
-  me.mDerivsPtr = std::shared_ptr<StateDerivatives<Dimension>>(new StateDerivatives<Dimension>(*me.mDataBasePtr,
-                                                                                               me.mIntegratorPtr->physicsPackagesBegin(), 
-                                                                                               me.mIntegratorPtr->physicsPackagesEnd()));
+  me.mStatePtr.reset(new State<Dimension>(*me.mDataBasePtr,
+                                          me.mIntegratorPtr->physicsPackagesBegin(), 
+                                          me.mIntegratorPtr->physicsPackagesEnd()));
+  me.mDerivsPtr.reset(new StateDerivatives<Dimension>(*me.mDataBasePtr,
+                                                      me.mIntegratorPtr->physicsPackagesBegin(), 
+                                                      me.mIntegratorPtr->physicsPackagesEnd()));
 
   // Copy the given state into Spheral's structures.
   SpheralPseudoScript::updateState(mass, 
