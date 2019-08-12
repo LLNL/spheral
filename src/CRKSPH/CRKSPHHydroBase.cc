@@ -773,8 +773,8 @@ postStateUpdate(const typename Dimension::Scalar time,
   auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
   auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
-  auto cells = state.field(HydroFieldNames::cells, FacetedVolume());
-  auto cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, 0);
+  auto cells = state.fields(HydroFieldNames::cells, FacetedVolume());
+  auto cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, vector<tuple<int, int, int>>());
   if (mVolumeType == CRKVolumeType::CRKMassOverDensity) {
     vol.assignFields(mass/massDensity);
   } else if (mVolumeType == CRKVolumeType::CRKSumVolume) {
@@ -834,39 +834,6 @@ postStateUpdate(const typename Dimension::Scalar time,
     for (auto boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  }
-
-  // Add any filtering component to the node movement.
-  // This form uses the deltaCentroid computed by computeVoronoiVolume, so only works if we're using that volume definition.
-  if (mfilter > 0.0 and mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
-    auto position = state.fields(HydroFieldNames::position, Vector::zero);  // Gotta get a non-const version now.
-    const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-    const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-    const auto DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-    const auto numNodeLists = position.numFields();
-    Scalar minmag2, dcmag2, fi, mi, rhoi, Vi, V0i;
-    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const auto n = position[nodeListi]->numInternalElements();
-      for (auto i = 0; i != n; ++i) {
-        dcmag2 = mDeltaCentroid(nodeListi, i).magnitude2();
-        // minmag2 = max(FastMath::square(soundSpeed(nodeListi, i)),
-        //               velocity(nodeListi, i).magnitude2())*dt*dt;
-        // minmag2 = min(FastMath::square(min(soundSpeed(nodeListi, i), abs(DvDx(nodeListi, i).Trace())/H(nodeListi, i).eigenValues().maxElement())),
-        //               velocity(nodeListi, i).magnitude2())*dt*dt;
-        minmag2 = FastMath::square(DvDx(nodeListi, i).eigenValues().maxAbsElement()/H(nodeListi, i).eigenValues().maxElement()*dt);
-        // mi = mass(nodeListi, i);
-        // rhoi = massDensity(nodeListi, i);
-        // Vi = vol(nodeListi, i);
-        fi = mfilter; // *max(0.0, min(1.0, max(V0i/Vi, Vi/V0i) - 1.0));
-        position(nodeListi, i) += fi*sqrt(min(minmag2, dcmag2)*safeInvVar(dcmag2))*mDeltaCentroid(nodeListi, i);
-      }
-    }
-
-    // Check for any boundary violations.
-    for (auto boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
-    this->enforceBoundaries(state, derivs);
   }
 }
 

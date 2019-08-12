@@ -151,6 +151,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;
+  const auto  compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto  evolveTotalEnergy = this->evolveTotalEnergy();
+  const auto  XSPH = this->XSPH();
+  const auto& smoothingScaleMethod = this->smoothingScaleMethod();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -229,7 +233,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradRho.size() == numNodeLists);
 
   // Size up the pair-wise accelerations before we start.
-  if (mCompatibleEnergyEvolution) {
+  if (compatibleEnergy) {
     auto nodeListi = 0;
     for (auto itr = dataBase.fluidNodeListBegin();
          itr != dataBase.fluidNodeListEnd();
@@ -456,7 +460,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             //   }
             // }
 
-            if (mCompatibleEnergyEvolution) pairAccelerationsi.push_back(-forceij/mi);
+            if (compatibleEnergy) pairAccelerationsi.push_back(-forceij/mi);
 
             // Energy
             DepsDti += (false ? //(surfi != 0 and surfj != 0) ?
@@ -464,13 +468,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                         0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi);         // CRK
 
             // Estimate of delta v (for XSPH).
-            if (mXSPH and (nodeListi == nodeListj)) XSPHDeltaVi -= weightj*Wj*vij;
+            if (XSPH and (nodeListi == nodeListj)) XSPHDeltaVi -= weightj*Wj*vij;
           }
         }
       }
 
       const auto numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
-      CHECK(not mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
+      CHECK(not compatibleEnergy or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == 2*numNeighborsi));
 
@@ -487,39 +491,39 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DrhoDti = -rhoi*DvDxi.Trace();
 
       // If needed finish the total energy derivative.
-      if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
+      if (evolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
-      if (mXSPH) {
+      if (XSPH) {
         DxDti = vi + XSPHDeltaVi;
       } else {
         DxDti = vi;
       }
 
       // The H tensor evolution.
-      DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
-                                                             ri,
-                                                             DvDxi,
-                                                             hmin,
-                                                             hmax,
-                                                             hminratio,
-                                                             nPerh);
-      Hideali = mSmoothingScaleMethod.newSmoothingScale(Hi,
-                                                        ri,
-                                                        weightedNeighborSumi,
-                                                        massSecondMomenti,
-                                                        W,
-                                                        hmin,
-                                                        hmax,
-                                                        hminratio,
-                                                        nPerh,
-                                                        connectivityMap,
-                                                        nodeListi,
-                                                        i);
+      DHDti = smoothingScaleMethod.smoothingScaleDerivative(Hi,
+                                                            ri,
+                                                            DvDxi,
+                                                            hmin,
+                                                            hmax,
+                                                            hminratio,
+                                                            nPerh);
+      Hideali = smoothingScaleMethod.newSmoothingScale(Hi,
+                                                       ri,
+                                                       weightedNeighborSumi,
+                                                       massSecondMomenti,
+                                                       W,
+                                                       hmin,
+                                                       hmax,
+                                                       hminratio,
+                                                       nPerh,
+                                                       connectivityMap,
+                                                       nodeListi,
+                                                       i);
 
       // Increment the work for i.
       worki += Timing::difference(start, Timing::currentTime());
