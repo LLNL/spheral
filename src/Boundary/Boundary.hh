@@ -12,7 +12,6 @@
 
 #include <vector>
 #include <map>
-#include "boost/shared_ptr.hpp"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
