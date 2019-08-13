@@ -4,7 +4,7 @@
 #ifndef __Spheral__computecomputeVoronoiVolume__
 #define __Spheral__computecomputeVoronoiVolume__
 
-#include "CellFaceFlag.hh"
+#include "Geometry/CellFaceFlag.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Boundary/Boundary.hh"

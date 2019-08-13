@@ -8,7 +8,7 @@
 
 #include "Physics/GenericHydro.hh"
 #include "Boundary/CRKSPHVoidBoundary.hh"
-#include "CellFaceFlag.hh"
+#include "Geometry/CellFaceFlag.hh"
 #include "CRKSPHCorrectionParams.hh"
 
 #include <string>
