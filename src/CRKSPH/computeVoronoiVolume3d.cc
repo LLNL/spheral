@@ -74,7 +74,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian,
                      FieldList<Dim<3>, vector<Dim<3>::Vector>>& etaVoidPoints,
                      FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells,
-                     FieldList<Dim<3>, std::vector<std::tuple<int, int, int>>>& cellFaceFlags) {
+                     FieldList<Dim<3>, std::vector<CellFaceFlag>>& cellFaceFlags) {
 
   TIME_computeVoronoiVolume3d.start();
 

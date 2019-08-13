@@ -7,8 +7,9 @@
 #define __Spheral_CRKSPHHydroBase_hh__
 
 #include "Physics/GenericHydro.hh"
-#include "CRKSPHCorrectionParams.hh"
 #include "Boundary/CRKSPHVoidBoundary.hh"
+#include "CellFaceFlag.hh"
+#include "CRKSPHCorrectionParams.hh"
 
 #include <string>
 
@@ -228,7 +229,7 @@ public:
   const FieldList<Dimension, int>&       surfacePoint() const;
   const FieldList<Dimension, std::vector<Vector>>& etaVoidPoints() const;
   const FieldList<Dimension, FacetedVolume>& cells() const;
-  const FieldList<Dimension, std::vector<std::tuple<int, int, int>>>& cellFaceFlags() const;
+  const FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -305,7 +306,7 @@ protected:
   FieldList<Dimension, int>       mSurfacePoint;
   FieldList<Dimension, std::vector<Vector>> mEtaVoidPoints;
   FieldList<Dimension, FacetedVolume> mCells;
-  FieldList<Dimension, std::vector<std::tuple<int, int, int>>> mCellFaceFlags;
+  FieldList<Dimension, std::vector<CellFaceFlag>> mCellFaceFlags;
 
   CRKSPHVoidBoundary<Dimension> mVoidBoundary;
 

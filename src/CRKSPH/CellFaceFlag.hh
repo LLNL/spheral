@@ -4,9 +4,9 @@
 #ifndef __Spheral_CellFaceFlag__
 #define __Spheral_CellFaceFlag__
 
-#include <vector>
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/packElement.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 
@@ -14,6 +14,19 @@ struct CellFaceFlag {
   int cellFace;  // The index of the face in the cell.facets array
   int nodeListj; // The NodeList of the opposite node across the face
   int j;         // The index of the opposite node across the face
+  CellFaceFlag():
+    cellFace(-1),
+    nodeListj(-1),
+    j(-1) {}
+  CellFaceFlag(int x, int y, int z):
+    cellFace(x),
+    nodeListj(y),
+    j(z) {}
+  bool operator==(const CellFaceFlag& rhs) const {
+    return (cellFace == rhs.cellFace and
+            nodeListj == rhs.nodeListj and
+            j == rhs.j);
+  }
 };
 
 //------------------------------------------------------------------------------
@@ -28,6 +41,7 @@ struct DataTypeTraits<CellFaceFlag> {
 };
 
 template<>
+inline
 void packElement<CellFaceFlag>(const CellFaceFlag& value,
                                 std::vector<char>& buffer) {
   packElement(value.cellFace, buffer);
@@ -36,6 +50,7 @@ void packElement<CellFaceFlag>(const CellFaceFlag& value,
 }
 
 template<>
+inline
 void unpackElement<CellFaceFlag>(CellFaceFlag& value,
                                  std::vector<char>::const_iterator& itr,
                                  const std::vector<char>::const_iterator& endPackedVector) {

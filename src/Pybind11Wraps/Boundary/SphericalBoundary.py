@@ -16,6 +16,7 @@ class SphericalBoundary(Boundary):
     typedef Dim<3>::Tensor Tensor;
     typedef Dim<3>::SymTensor SymTensor;
     typedef Dim<3>::ThirdRankTensor ThirdRankTensor;
+    typedef Dim<3>::FacetedVolume FacetedVolume;
 """
 
     #...........................................................................

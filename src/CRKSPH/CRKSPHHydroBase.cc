@@ -66,14 +66,11 @@
 #include <fstream>
 #include <map>
 #include <vector>
-#include <tuple>
 
 using std::vector;
 using std::string;
 using std::pair;
 using std::make_pair;
-using std::tuple;
-using std::make_tuple;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -248,7 +245,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
   mEtaVoidPoints = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::etaVoidPoints);
   mCells = dataBase.newFluidFieldList(FacetedVolume(), HydroFieldNames::cells);
-  mCellFaceFlags = dataBase.newFluidFieldList(vector<tuple<int,int,int>>(), HydroFieldNames::cellFaceFlags);
+  mCellFaceFlags = dataBase.newFluidFieldList(vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
@@ -377,7 +374,7 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mSurfacePoint, 0, HydroFieldNames::surfacePoint, false);
   dataBase.resizeFluidFieldList(mEtaVoidPoints, vector<Vector>(), HydroFieldNames::etaVoidPoints, false);
   dataBase.resizeFluidFieldList(mCells, FacetedVolume(), HydroFieldNames::cells, false);
-  dataBase.resizeFluidFieldList(mCellFaceFlags, vector<tuple<int,int,int>>(), HydroFieldNames::cellFaceFlags, false);
+  dataBase.resizeFluidFieldList(mCellFaceFlags, vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags, false);
 
   // We have to choose either compatible or total energy evolution.
   VERIFY2(not (mCompatibleEnergyEvolution and mEvolveTotalEnergy),
@@ -589,7 +586,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   // const auto  damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   // auto        vol = state.fields(HydroFieldNames::volume, 0.0);
   // auto        cells = state.fields(HydroFieldNames::cells, FacetedVolume());
-  // auto        cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, vector<tuple<int, int, int>>());
+  // auto        cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, vector<CellFaceFlag>());
   // auto        surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   // auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   // if (mVolumeType == CRKVolumeType::CRKMassOverDensity) {
@@ -774,7 +771,7 @@ postStateUpdate(const typename Dimension::Scalar time,
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
   auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   auto cells = state.fields(HydroFieldNames::cells, FacetedVolume());
-  auto cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, vector<tuple<int, int, int>>());
+  auto cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, vector<CellFaceFlag>());
   if (mVolumeType == CRKVolumeType::CRKMassOverDensity) {
     vol.assignFields(mass/massDensity);
   } else if (mVolumeType == CRKVolumeType::CRKSumVolume) {
@@ -805,7 +802,7 @@ postStateUpdate(const typename Dimension::Scalar time,
       (*boundItr)->applyFieldListGhostBoundary(surfacePoint);
       (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
       (*boundItr)->applyFieldListGhostBoundary(cells);
-      (*boundItr)->applyFieldListGhostBoundary(cellFaceFlags);
+      // (*boundItr)->applyFieldListGhostBoundary(cellFaceFlags);
     }
   }
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();

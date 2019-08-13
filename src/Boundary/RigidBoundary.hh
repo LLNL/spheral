@@ -37,6 +37,7 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Apply the boundary condition to the violation node values in the given Field.
   virtual void enforceBoundary(Field<Dimension, int>& field) const override;

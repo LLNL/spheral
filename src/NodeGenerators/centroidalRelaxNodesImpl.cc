@@ -86,7 +86,7 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
 
   // Make a dummy set of cells so we don't ask computeVoronoiVolume to compute the return FacetedVolumes every step.
   FieldList<Dimension, FacetedVolume> dummyCells;
-  FieldList<Dimension, vector<tuple<int, int, int>>> cellFaceFlags;
+  FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
 
   // Make sure the density starts out consistently, and kick-start the volume using m/rho.
   for (auto nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {

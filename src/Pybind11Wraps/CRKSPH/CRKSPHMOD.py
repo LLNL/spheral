@@ -9,6 +9,7 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
+from CellFaceFlag import *
 from CRKSPHHydroBase import *
 from SolidCRKSPHHydroBase import *
 from CRKSPHVariant import *
@@ -17,6 +18,7 @@ from CRKSPHVariant import *
 # Includes
 #-------------------------------------------------------------------------------
 PYB11includes += ['"CRKSPH/CRKSPHUtilities.hh"',
+                  '"CRKSPH/CellFaceFlag.hh"',
                   '"CRKSPH/CRKSPHHydroBase.hh"',
                   '"CRKSPH/CRKSPHHydroBaseRZ.hh"',
                   '"CRKSPH/SolidCRKSPHHydroBase.hh"',
@@ -58,6 +60,11 @@ CRKOrder = PYB11enum(("ZerothOrder", "LinearOrder", "QuadraticOrder"),
 CRKVolumeType = PYB11enum(("CRKMassOverDensity", "CRKSumVolume", "CRKVoronoiVolume", "CRKHullVolume", "HVolume"),
                           export_values = True,
                           doc = "Options for CRK mass density algorithms")
+
+#-------------------------------------------------------------------------------
+# STL containers
+#-------------------------------------------------------------------------------
+vector_of_CellFaceFlag = PYB11_bind_vector("CellFaceFlag", opaque=True, local=False)
 
 #-------------------------------------------------------------------------------
 # Methods
@@ -324,7 +331,7 @@ def computeVoronoiVolume%(ndim)id(position = "const FieldList<%(Dimension)s, %(D
                                   deltaMedian = "FieldList<%(Dimension)s, %(Dimension)s::Vector>&",
                                   etaVoidPoints = "FieldList<%(Dimension)s, std::vector<%(Dimension)s::Vector>>&",
                                   cells = "FieldList<%(Dimension)s, %(Dimension)s::FacetedVolume>&",
-                                  cellFaceFlags = "FieldList<%(Dimension)s, std::vector<std::tuple<int,int,int>>>&"):
+                                  cellFaceFlags = "FieldList<%(Dimension)s, std::vector<CellFaceFlag>>&"):
     "Compute the volume per point based on the Voronoi tessellation-like algorithm."
     return "void"
 

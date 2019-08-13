@@ -136,6 +136,16 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   copyFieldValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
 }
 
+// Specialization for FacetedVolume.
+template<typename Dimension>
+void
+RigidBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+  REQUIRE(this->valid());
+  const auto& nodeList = field.nodeList();
+  copyFieldValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
+}
+
 //------------------------------------------------------------------------------
 // Enforce the boundary condition on the set of nodes in violation of the 
 // boundary.
