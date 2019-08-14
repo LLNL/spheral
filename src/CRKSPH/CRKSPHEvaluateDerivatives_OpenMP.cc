@@ -340,7 +340,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
       CHECK(not mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
-            (pairAccelerationsi.size() == 2*numNeighborsi));
+            (pairAccelerationsi.size() == numNeighborsi));
 
       // if (barf) printf("\n");
 
