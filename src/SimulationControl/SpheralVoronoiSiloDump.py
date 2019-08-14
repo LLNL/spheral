@@ -521,7 +521,7 @@ def dumpPhysicsState(stateThingy,
     FacetedVolume = {2 : Polygon,
                      3 : Polyhedron}[dataBase.nDim]
     cells = dataBase.newGlobalFacetedVolumeFieldList(FacetedVolume(), "cells")
-    cellFaceFlags = dataBase.newGlobalvector_of_tuple_int_int_intFieldList(vector_of_tuple_int_int_int(), "face flags")
+    cellFaceFlags = dataBase.newGlobalvector_of_CellFaceFlagFieldList(vector_of_CellFaceFlag(), "face flags")
     computeVoronoiVolume(dataBase.globalPosition, 
                          dataBase.globalHfield,
                          dataBase.connectivityMap(),
