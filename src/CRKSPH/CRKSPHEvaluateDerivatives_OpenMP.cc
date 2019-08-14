@@ -155,8 +155,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     for (auto iItr = 0; iItr < ni; ++iItr) {
       const auto i = connectivityMap.ithNode(nodeListi, iItr);
 
-      const bool barf = false; // ((nodeListi == 0 and i >= 98) or (nodeListi == 1 and i <= 1));
-      if (barf) printf("  --> (%d, %d) :\n", nodeListi, i);
+      // const bool barf = false; // ((nodeListi == 0 and i >= 98) or (nodeListi == 1 and i <= 1));
+      // if (barf) printf("  --> (%d, %d) :\n", nodeListi, i);
 
       // Prepare to accumulate the time.
       const auto start = Timing::currentTime();
@@ -342,7 +342,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == 2*numNeighborsi));
 
-      if (barf) printf("\n");
+      // if (barf) printf("\n");
 
       // // For a surface point, add the RK thermal energy evolution.
       // // DepsDti -= Pi/rhoi*DvDxi.Trace();
