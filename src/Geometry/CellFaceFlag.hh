@@ -8,6 +8,8 @@
 #include "Utilities/packElement.hh"
 #include "Utilities/DBC.hh"
 
+#include <iostream>
+
 namespace Spheral {
 
 struct CellFaceFlag {
@@ -58,6 +60,16 @@ void unpackElement<CellFaceFlag>(CellFaceFlag& value,
   unpackElement(value.nodeListj, itr, endPackedVector);
   unpackElement(value.j, itr, endPackedVector);
   ENSURE(itr <= endPackedVector);
+}
+
+//------------------------------------------------------------------------------
+// Output (ostream) operator.
+//------------------------------------------------------------------------------
+inline
+std::ostream&
+operator<<(std::ostream& os, const CellFaceFlag& x) {
+  os << "(" << x.cellFace << " " << x.nodeListj << " " << x.j << ")";
+  return os;
 }
 
 }

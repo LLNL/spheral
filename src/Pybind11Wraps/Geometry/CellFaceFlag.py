@@ -20,3 +20,7 @@ class CellFaceFlag:
 
     def __eq__(self):
         return
+
+    @PYB11implementation("[](const CellFaceFlag& self) { std::stringstream os; os << self; return os.str(); }")
+    def __repr__(self):
+        return
