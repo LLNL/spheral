@@ -1517,14 +1517,14 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     int nFacetedVolume = mFacetedVolumeExchangeFields.size();
     int nVectorScalar = mVectorScalarExchangeFields.size();
     int nVectorVector = mVectorVectorExchangeFields.size();
-    const int nFields = nInt + nScalar + nVector + nTensor + nFacetedVolume + nSymTensor + nThirdRankTensor + nVectorScalar + nVectorVector;
+    const int nFields = nInt + nScalar + nVector + nTensor + nSymTensor + nThirdRankTensor + nFacetedVolume + nVectorScalar + nVectorVector;
     MPI_Bcast(&nInt, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nScalar, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nVector, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nTensor, 1, MPI_INT, 0, Communicator::communicator());
-    MPI_Bcast(&nFacetedVolume, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nSymTensor, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nThirdRankTensor, 1, MPI_INT, 0, Communicator::communicator());
+    MPI_Bcast(&nFacetedVolume, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nVectorScalar, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nVectorVector, 1, MPI_INT, 0, Communicator::communicator());
     REQUIRE(nInt == mIntExchangeFields.size());
