@@ -105,6 +105,16 @@ mass density, velocity, and specific thermal energy."""
         return "void"
 
     @PYB11virtual
+    def postStateUpdate(self,
+                        time = "const Scalar",
+                        dt = "const Scalar",
+                        dataBase = "const DataBase<%(Dimension)s>&",
+                        state = "State<%(Dimension)s>&",
+                        derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Provide a hook to be called after the state has been updated and boundary conditions have been enforced."
+        return "void"
+                  
+    @PYB11virtual
     def finalize(self,
                  time = "const Scalar",
                  dt = "const Scalar",
