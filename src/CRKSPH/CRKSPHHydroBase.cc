@@ -799,6 +799,7 @@ postStateUpdate(const typename Dimension::Scalar time,
        ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(vol);
     if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+      (*boundItr)->applyFieldListGhostBoundary(vol);
       (*boundItr)->applyFieldListGhostBoundary(surfacePoint);
       (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
       (*boundItr)->applyFieldListGhostBoundary(cells);
