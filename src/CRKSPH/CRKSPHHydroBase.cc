@@ -244,8 +244,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // We need volumes in order to prepare the surface detection.
   mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
   mEtaVoidPoints = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::etaVoidPoints);
-  mCells = dataBase.newFluidFieldList(FacetedVolume(), HydroFieldNames::cells);
-  mCellFaceFlags = dataBase.newFluidFieldList(vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
+  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    mCells = dataBase.newFluidFieldList(FacetedVolume(), HydroFieldNames::cells);
+    mCellFaceFlags = dataBase.newFluidFieldList(vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
+  }
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
@@ -372,8 +374,10 @@ registerState(DataBase<Dimension>& dataBase,
   }
   dataBase.resizeFluidFieldList(mSurfacePoint, 0, HydroFieldNames::surfacePoint, false);
   dataBase.resizeFluidFieldList(mEtaVoidPoints, vector<Vector>(), HydroFieldNames::etaVoidPoints, false);
-  dataBase.resizeFluidFieldList(mCells, FacetedVolume(), HydroFieldNames::cells, false);
-  dataBase.resizeFluidFieldList(mCellFaceFlags, vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags, false);
+  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    dataBase.resizeFluidFieldList(mCells, FacetedVolume(), HydroFieldNames::cells, false);
+    dataBase.resizeFluidFieldList(mCellFaceFlags, vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags, false);
+  }
 
   // We have to choose either compatible or total energy evolution.
   VERIFY2(not (mCompatibleEnergyEvolution and mEvolveTotalEnergy),
@@ -498,11 +502,13 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mGradm2);
   state.enroll(mGradm3);
   state.enroll(mGradm4);
-  state.enroll(mSurfacePoint);
 
   // Multimaterial information
-  state.enroll(mCells);
-  state.enroll(mCellFaceFlags);
+  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    state.enroll(mCells);
+    state.enroll(mCellFaceFlags);
+  }
+  state.enroll(mSurfacePoint);
 
   // We also register the delta centroid for visualiation purposes.
   if (mfilter > 0.0 and mVolumeType == CRKVolumeType::CRKVoronoiVolume) state.enroll(mDeltaCentroid);
@@ -584,10 +590,14 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   const auto  gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   const auto  damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   auto        vol = state.fields(HydroFieldNames::volume, 0.0);
-  auto        cells = state.fields(HydroFieldNames::cells, FacetedVolume());
-  auto        cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, vector<CellFaceFlag>());
   auto        surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  FieldList<Dimension, FacetedVolume> cells;
+  FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
+  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    cells = state.fields(HydroFieldNames::cells, FacetedVolume());
+    cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, vector<CellFaceFlag>());
+  }
   if (mVolumeType == CRKVolumeType::CRKMassOverDensity) {
     vol.assignFields(mass/massDensity);
   } else if (mVolumeType == CRKVolumeType::CRKSumVolume) {
@@ -788,81 +798,81 @@ finalize(const typename Dimension::Scalar time,
   // Base class finalization.
   GenericHydro<Dimension>::finalize(time, dt, dataBase, state, derivs);
 
-  // Volume.
-  const auto& W = this->kernel();
-  const auto& connectivityMap = dataBase.connectivityMap();
-  const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-  const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-  const auto  gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
-  const auto  damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
-  auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  auto vol = state.fields(HydroFieldNames::volume, 0.0);
-  auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  // // Volume.
+  // const auto& W = this->kernel();
+  // const auto& connectivityMap = dataBase.connectivityMap();
+  // const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+  // const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  // const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+  // const auto  gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
+  // const auto  damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+  // auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  // auto vol = state.fields(HydroFieldNames::volume, 0.0);
+  // auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   // auto cells = state.fields(HydroFieldNames::cells, FacetedVolume());
   // auto cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, vector<CellFaceFlag>());
-  if (mVolumeType == CRKVolumeType::CRKMassOverDensity) {
-    vol.assignFields(mass/massDensity);
-  } else if (mVolumeType == CRKVolumeType::CRKSumVolume) {
-    computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
-  } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
-    vol.assignFields(mass/massDensity);
-    FieldList<Dimension, typename Dimension::FacetedVolume> cells;
-    FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
-    computeVoronoiVolume(position, H, connectivityMap, damage,
-                         vector<typename Dimension::FacetedVolume>(),                // no boundaries
-                         vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
-                         vector<Boundary<Dimension>*>(this->boundaryBegin(),         // boundaries
-                                                      this->boundaryEnd()),
-                         FieldList<Dimension, typename Dimension::Scalar>(),         // no weights
-                         surfacePoint, vol, mDeltaCentroid, mEtaVoidPoints,          // return values
-                         cells, cellFaceFlags);
-  } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
-    computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
-  } else if (mVolumeType == CRKVolumeType::HVolume) {
-    const Scalar nPerh = vol.nodeListPtrs()[0]->nodesPerSmoothingScale();
-    computeHVolumes(nPerh, H, vol);
-  } else {
-    VERIFY2(false, "Unknown CRK volume weighting.");
-  }
-  for (auto boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) {
-    (*boundItr)->applyFieldListGhostBoundary(vol);
-    if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
-      (*boundItr)->applyFieldListGhostBoundary(surfacePoint);
-      (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
-      // (*boundItr)->applyFieldListGhostBoundary(cells);
-      // // (*boundItr)->applyFieldListGhostBoundary(cellFaceFlags);
-    }
-  }
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  // if (mVolumeType == CRKVolumeType::CRKMassOverDensity) {
+  //   vol.assignFields(mass/massDensity);
+  // } else if (mVolumeType == CRKVolumeType::CRKSumVolume) {
+  //   computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
+  // } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+  //   vol.assignFields(mass/massDensity);
+  //   FieldList<Dimension, typename Dimension::FacetedVolume> cells;
+  //   FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
+  //   computeVoronoiVolume(position, H, connectivityMap, damage,
+  //                        vector<typename Dimension::FacetedVolume>(),                // no boundaries
+  //                        vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
+  //                        vector<Boundary<Dimension>*>(this->boundaryBegin(),         // boundaries
+  //                                                     this->boundaryEnd()),
+  //                        FieldList<Dimension, typename Dimension::Scalar>(),         // no weights
+  //                        surfacePoint, vol, mDeltaCentroid, mEtaVoidPoints,          // return values
+  //                        cells, cellFaceFlags);
+  // } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
+  //   computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
+  // } else if (mVolumeType == CRKVolumeType::HVolume) {
+  //   const Scalar nPerh = vol.nodeListPtrs()[0]->nodesPerSmoothingScale();
+  //   computeHVolumes(nPerh, H, vol);
+  // } else {
+  //   VERIFY2(false, "Unknown CRK volume weighting.");
+  // }
+  // for (auto boundItr = this->boundaryBegin();
+  //      boundItr != this->boundaryEnd();
+  //      ++boundItr) {
+  //   (*boundItr)->applyFieldListGhostBoundary(vol);
+  //   if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+  //     (*boundItr)->applyFieldListGhostBoundary(surfacePoint);
+  //     (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
+  //     // (*boundItr)->applyFieldListGhostBoundary(cells);
+  //     // // (*boundItr)->applyFieldListGhostBoundary(cellFaceFlags);
+  //   }
+  // }
+  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //      boundItr != this->boundaryEnd();
+  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
-  // Depending on the mass density advancement selected, we may want to replace the 
-  // mass density.
-  if (densityUpdate() == MassDensityType::RigorousSumDensity) {
-    computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, vol, H, massDensity);
-    for (auto boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) {
-      (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-    }
-    for (auto boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  } else if (densityUpdate() == MassDensityType::VoronoiCellDensity) {
-    massDensity.assignFields(mass/vol);
-    for (auto boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) {
-      (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-    }
-    for (auto boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  }
+  // // Depending on the mass density advancement selected, we may want to replace the 
+  // // mass density.
+  // if (densityUpdate() == MassDensityType::RigorousSumDensity) {
+  //   computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, vol, H, massDensity);
+  //   for (auto boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) {
+  //     (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+  //   }
+  //   for (auto boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  // } else if (densityUpdate() == MassDensityType::VoronoiCellDensity) {
+  //   massDensity.assignFields(mass/vol);
+  //   for (auto boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) {
+  //     (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+  //   }
+  //   for (auto boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  // }
 }
 
 //------------------------------------------------------------------------------
