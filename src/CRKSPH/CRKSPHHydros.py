@@ -25,7 +25,7 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                  volumeType = CRKVoronoiVolume,
                  epsTensile = 0.0,
                  nTensile = 4.0,
-                 limitMultimaterialTopology = True):
+                 limitMultimaterialTopology = False):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
         if WPi is None:
             WPi = W
@@ -72,7 +72,7 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                  volumeType = CRKVoronoiVolume,
                  epsTensile = 0.0,
                  nTensile = 4.0,
-                 limitMultimaterialTopology = True,
+                 limitMultimaterialTopology = False,
                  damageRelieveRubble = False,
                  negativePressureInDamage = False):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
@@ -123,7 +123,7 @@ class %(classname)s(CRKSPHHydroBaseRZ):
                  volumeType = CRKVoronoiVolume,
                  epsTensile = 0.0,
                  nTensile = 4.0,
-                 limitMultimaterialTopology = True,
+                 limitMultimaterialTopology = False,
                  etaMinAxis = 0.1):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
@@ -173,7 +173,7 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
                  volumeType = CRKVoronoiVolume,
                  epsTensile = 0.0,
                  nTensile = 4.0,
-                 limitMultimaterialTopology = True,
+                 limitMultimaterialTopology = False,
                  damageRelieveRubble = False,
                  negativePressureInDamage = False,
                  etaMinAxis = 0.1):
@@ -227,7 +227,7 @@ class %(classname)s%(dim)s(CRKSPHVariant%(dim)s):
                  volumeType = CRKVoronoiVolume,
                  epsTensile = 0.0,
                  nTensile = 4.0,
-                 limitMultimaterialTopology = True):
+                 limitMultimaterialTopology = False):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
         if WPi is None:
             WPi = W
@@ -307,7 +307,7 @@ def CRKSPH(dataBase,
            volumeType = CRKVoronoiVolume,
            epsTensile = 0.0,
            nTensile = 4.0,
-           limitMultimaterialTopology = True,
+           limitMultimaterialTopology = False,
            damageRelieveRubble = False,
            negativePressureInDamage = False,
            ASPH = False,
@@ -416,7 +416,7 @@ def ACRKSPH(dataBase,
             volumeType = CRKVoronoiVolume,
             epsTensile = 0.0,
             nTensile = 4.0,
-            limitMultimaterialTopology = True,
+            limitMultimaterialTopology = False,
             damageRelieveRubble = False,
             negativePressureInDamage = False):
     return CRKSPH(dataBase = dataBase,
@@ -460,7 +460,7 @@ def CRKSPHRZ(dataBase,
              volumeType = CRKVoronoiVolume,
              epsTensile = 0.0,
              nTensile = 4.0,
-             limitMultimaterialTopology = True,
+             limitMultimaterialTopology = False,
              damageRelieveRubble = False,
              negativePressureInDamage = False):
     return CRKSPH(dataBase = dataBase,
@@ -504,7 +504,7 @@ def ACRKSPHRZ(dataBase,
               volumeType = CRKVoronoiVolume,
               epsTensile = 0.0,
               nTensile = 4.0,
-              limitMultimaterialTopology = True,
+              limitMultimaterialTopology = False,
               damageRelieveRubble = False,
               negativePressureInDamage = False):
     return CRKSPH(dataBase = dataBase,
