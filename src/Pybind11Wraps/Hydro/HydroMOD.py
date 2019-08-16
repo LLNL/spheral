@@ -78,6 +78,7 @@ class HydroFieldNames:
     surfacePoint = PYB11readonly(static=True)
     voidPoint = PYB11readonly(static=True)
     etaVoidPoints = PYB11readonly(static=True)
+    cells = PYB11readonly(static=True)
     cellFaceFlags = PYB11readonly(static=True)
     M_SPHCorrection = PYB11readonly(static=True)
     volume = PYB11readonly(static=True)
