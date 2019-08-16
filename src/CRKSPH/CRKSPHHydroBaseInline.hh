@@ -549,7 +549,7 @@ cells() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, std::vector<std::tuple<int, int, int>>>&
+const FieldList<Dimension, std::vector<CellFaceFlag>>&
 CRKSPHHydroBase<Dimension>::
 cellFaceFlags() const {
   return mCellFaceFlags;

@@ -120,6 +120,13 @@ ConstantVelocityBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
 }
 
+// Specialization for FactedVolume.
+template<typename Dimension>
+void
+ConstantVelocityBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+}
+
 //------------------------------------------------------------------------------
 // Provide the setViolationNodes for a NodeList.  The violation nodes are always
 // forced to be the set of nodes we're controlling.
@@ -211,6 +218,13 @@ template<typename Dimension>
 void
 ConstantVelocityBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+}
+
+// Specialization for FacetedVolume, no-op.
+template<typename Dimension>
+void
+ConstantVelocityBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
 }
 
 //------------------------------------------------------------------------------

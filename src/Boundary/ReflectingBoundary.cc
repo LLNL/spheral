@@ -24,6 +24,49 @@ using std::abs;
 
 namespace Spheral {
 
+namespace {
+
+//------------------------------------------------------------------------------
+// Reflect a faceted volume
+//------------------------------------------------------------------------------
+Dim<1>::FacetedVolume 
+reflectFacetedVolume(const ReflectingBoundary<Dim<1>>& bc,
+                     const Dim<1>::FacetedVolume& poly) {
+  const auto& plane = bc.enterPlane();
+  return Dim<1>::FacetedVolume(bc.mapPosition(poly.center(),
+                                              plane,
+                                              plane),
+                               poly.extent());
+}
+
+Dim<2>::FacetedVolume 
+reflectFacetedVolume(const ReflectingBoundary<Dim<2>>& bc,
+                     const Dim<2>::FacetedVolume& poly) {
+  typedef Dim<2>::Vector Vector;
+  const auto& plane = bc.enterPlane();
+  const auto& verts0 = poly.vertices();
+  const auto& facets = poly.facetVertices();
+  const auto n = verts0.size();
+  vector<Vector> verts1;
+  for (auto vitr = verts0.rbegin(); vitr < verts0.rend(); ++vitr) verts1.push_back(bc.mapPosition(*vitr, plane, plane));
+  return Dim<2>::FacetedVolume(verts1, facets);
+}
+
+Dim<3>::FacetedVolume 
+reflectFacetedVolume(const ReflectingBoundary<Dim<3>>& bc,
+                     const Dim<3>::FacetedVolume& poly) {
+  typedef Dim<3>::Vector Vector;
+  const auto& plane = bc.enterPlane();
+  auto verts = poly.vertices();
+  const auto n = verts.size();
+  for (auto i = 0; i < n; ++i) verts[i] = bc.mapPosition(verts[i], plane, plane);
+  auto facets = poly.facetVertices();
+  for (auto& facet: facets) reverse(facet.begin(), facet.end());
+  return Dim<3>::FacetedVolume(verts, facets);
+}
+
+}
+
 //------------------------------------------------------------------------------
 // Empty constructor.
 //------------------------------------------------------------------------------
@@ -211,6 +254,28 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   }
 }
 
+// Specialization for FacetedVolumes
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+
+  REQUIRE(valid());
+
+  // Apply the boundary condition to all the ghost node values.
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  auto controlItr = this->controlBegin(nodeList);
+  auto ghostItr = this->ghostBegin(nodeList);
+  const auto& op = this->reflectOperator();
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
+    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
+    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    field(*ghostItr) = reflectFacetedVolume(*this, field(*controlItr));
+  }
+}
+
 //------------------------------------------------------------------------------
 // Enforce the boundary condition on the set of nodes in violation of the 
 // boundary.
@@ -309,6 +374,23 @@ enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) co
       }
     }
     field(*itr) = val; // innerProduct<Dimension>(T, innerProduct<Dimension>(field(*itr), T2));
+  }
+}
+
+// Specialization for FacetedVolumes
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+
+  REQUIRE(valid());
+
+  const auto& nodeList = field.nodeList();
+  for (auto itr = this->violationBegin(nodeList);
+       itr < this->violationEnd(nodeList); 
+       ++itr) {
+    CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
+    field(*itr) = reflectFacetedVolume(*this, field(*itr));
   }
 }
 

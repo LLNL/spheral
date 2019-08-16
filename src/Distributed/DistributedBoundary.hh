@@ -38,6 +38,7 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FacetedVolume FacetedVolume;
 
   struct DomainBoundaryNodes {
     std::vector<int> sendNodes;
@@ -114,6 +115,7 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Vector>>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Distributed boundaries don't have "violate" nodes, so override these
   // methods to no-ops.
@@ -125,6 +127,7 @@ public:
   virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
   //**********************************************************************
 
   // Override the base method to finalize ghost boundaries.
@@ -171,7 +174,6 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-#ifndef __GCCXML__
   int mDomainID;
   NodeListDomainBoundaryNodeMap mNodeListDomainBoundaryNodeMap;
   
@@ -184,6 +186,7 @@ private:
   mutable std::vector<Field<Dimension, ThirdRankTensor>*> mThirdRankTensorExchangeFields;
   mutable std::vector<Field<Dimension, std::vector<Scalar>>*> mVectorScalarExchangeFields;
   mutable std::vector<Field<Dimension, std::vector<Vector>>*> mVectorVectorExchangeFields;
+  mutable std::vector<Field<Dimension, FacetedVolume>*> mFacetedVolumeExchangeFields;
 
   // Internal tag for MPI communiators.
   mutable int mMPIFieldTag;
@@ -208,7 +211,6 @@ private:
   typedef std::map<const FieldBase<Dimension>*, std::list< std::vector<char> >* > Field2BufferType;
   mutable Field2BufferType mField2SendBuffer;
   mutable Field2BufferType mField2RecvBuffer;
-#endif
 
 };
 

@@ -118,6 +118,7 @@ step(typename Dimension::Scalar maxTime,
   // Enforce Boundary conditions.
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
+  this->finalizeGhostBoundaries();
                                
   // Do any physics specific stuff relating to the fact the state was just updated.
   this->postStateUpdate(t + dt, dt, db, state, derivs);
@@ -145,6 +146,7 @@ step(typename Dimension::Scalar maxTime,
   // Enforce boundaries.
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
+  this->finalizeGhostBoundaries();
 
   // Do any physics specific stuff relating to the fact the state was just updated.
   this->postStateUpdate(t + dt, dt, db, state, derivs);

@@ -1,11 +1,141 @@
+//---------------------------------Spheral++----------------------------------//
+// Hydro -- The CRKSPH/ACRKSPH hydrodynamic package for Spheral++.
+//
+// Created by JMO, Mon Jul 19 22:11:09 PDT 2010
+//----------------------------------------------------------------------------//
+#include "FileIO/FileIO.hh"
+#include "CRKSPH/CRKSPHUtilities.hh"
+#include "CRKSPH/computeVoronoiVolume.hh"
+#include "CRKSPH/computeHullVolumes.hh"
+#include "CRKSPH/computeCRKSPHSumVolume.hh"
+#include "CRKSPH/computeHVolumes.hh"
+#include "CRKSPH/editMultimaterialSurfaceTopology.hh"
+#include "CRKSPH/zerothOrderSurfaceCorrections.hh"
+#include "CRKSPH/SurfaceNodeCoupling.hh"
+#include "CRKSPH/computeCRKSPHSumMassDensity.hh"
+#include "CRKSPH/computeCRKSPHMoments.hh"
+#include "CRKSPH/detectSurface.hh"
+#include "CRKSPH/computeCRKSPHCorrections.hh"
+#include "CRKSPH/computeCRKSPHIntegral.hh"
+#include "CRKSPH/gradientCRKSPH.hh"
+#include "CRKSPH/centerOfMass.hh"
+#include "CRKSPH/volumeSpacing.hh"
+#include "SPH/computeSPHSumMassDensity.hh"
+#include "SPH/correctSPHSumMassDensity.hh"
+#include "NodeList/SmoothingScaleBase.hh"
+#include "Hydro/HydroFieldNames.hh"
+#include "Hydro/entropyWeightingFunction.hh"
+#include "Strength/SolidFieldNames.hh"
+#include "Physics/GenericHydro.hh"
+#include "DataBase/State.hh"
+#include "DataBase/StateDerivatives.hh"
+#include "DataBase/IncrementFieldList.hh"
+#include "DataBase/IncrementBoundedFieldList.hh"
+#include "DataBase/ReplaceFieldList.hh"
+#include "DataBase/ReplaceBoundedFieldList.hh"
+#include "DataBase/IncrementBoundedState.hh"
+#include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/CompositeFieldListPolicy.hh"
+#include "Hydro/SpecificThermalEnergyPolicy.hh"
+#include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
+#include "Hydro/PositionPolicy.hh"
+#include "Hydro/PressurePolicy.hh"
+#include "Hydro/SoundSpeedPolicy.hh"
+#include "Hydro/EntropyPolicy.hh"
+#include "ArtificialViscosity/ArtificialViscosity.hh"
+#include "DataBase/DataBase.hh"
+#include "Field/FieldList.hh"
+#include "Field/NodeIterators.hh"
+#include "Boundary/Boundary.hh"
+#include "Neighbor/ConnectivityMap.hh"
+#include "Utilities/timingUtilities.hh"
+#include "Utilities/safeInv.hh"
+#include "Utilities/newtonRaphson.hh"
+#include "Utilities/SpheralFunctions.hh"
+#include "Utilities/computeShepardsInterpolation.hh"
+#include "SPH/computeSPHSumMassDensity.hh"
+#include "Geometry/innerProduct.hh"
+#include "Geometry/outerProduct.hh"
+
+#include "FVCRKHydroBase.hh"
+
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
+#include <tuple>
+
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::tuple;
+using std::make_tuple;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
+
+//------------------------------------------------------------------------------
+// Construct with the given artificial viscosity and kernels.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FVCRKHydroBase<Dimension>::
+FVCRKHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                ArtificialViscosity<Dimension>& Q,
+                const TableKernel<Dimension>& W,
+                const TableKernel<Dimension>& WPi,
+                const double filter,
+                const double cfl,
+                const bool useVelocityMagnitudeForDt,
+                const bool compatibleEnergyEvolution,
+                const bool evolveTotalEnergy,
+                const bool XSPH,
+                const MassDensityType densityUpdate,
+                const HEvolutionType HUpdate,
+                const CRKOrder correctionOrder,
+                const double epsTensile,
+                const double nTensile,
+                const bool limitMultimaterialTopology):
+  CRKSPHHydroBase<Dimension>(smoothingScaleMethod,
+                             Q,
+                             W,
+                             WPi,
+                             filter,
+                             cfl,
+                             useVelocityMagnitudeForDt,
+                             compatibleEnergyEvolution,
+                             evolveTotalEnergy,
+                             XSPH,
+                             densityUpdate,
+                             HUpdate,
+                             correctionOrder,
+                             CRKVolumeType::CRKVoronoiVolume,
+                             epsTensile,
+                             nTensile,
+                             limitMultimaterialTopology) {
+}
+
+//------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FVCRKHydroBase<Dimension>::
+~FVCRKHydroBase() {
+}
 
 //------------------------------------------------------------------------------
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-CRKSPHHydroBase<Dimension>::
+FVCRKHydroBase<Dimension>::
 evaluateDerivatives(const typename Dimension::Scalar time,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
@@ -21,6 +151,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;
+  const auto  compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto  evolveTotalEnergy = this->evolveTotalEnergy();
+  const auto  XSPH = this->XSPH();
+  const auto& smoothingScaleMethod = this->smoothingScaleMethod();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -46,6 +180,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
   const auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  const auto cells = state.fields(HydroFieldNames::cells, FacetedVolume());
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -61,6 +196,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradB.size() == numNodeLists or order == CRKOrder::ZerothOrder);
   CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
   CHECK(surfacePoint.size() == numNodeLists);
+  CHECK(cells.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto DxDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
@@ -97,7 +233,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradRho.size() == numNodeLists);
 
   // Size up the pair-wise accelerations before we start.
-  if (mCompatibleEnergyEvolution) {
+  if (compatibleEnergy) {
     auto nodeListi = 0;
     for (auto itr = dataBase.fluidNodeListBegin();
          itr != dataBase.fluidNodeListEnd();
@@ -155,8 +291,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     for (auto iItr = 0; iItr < ni; ++iItr) {
       const auto i = connectivityMap.ithNode(nodeListi, iItr);
 
-      // const bool barf = false; // ((nodeListi == 0 and i >= 98) or (nodeListi == 1 and i <= 1));
-      // if (barf) printf("  --> (%d, %d) :\n", nodeListi, i);
+      const bool barf = false; // ((nodeListi == 0 and i >= 98) or (nodeListi == 1 and i <= 1));
+      if (barf) printf("  --> (%d, %d) :\n", nodeListi, i);
 
       // Prepare to accumulate the time.
       const auto start = Timing::currentTime();
@@ -324,7 +460,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             //   }
             // }
 
-            if (mCompatibleEnergyEvolution) pairAccelerationsi.push_back(-forceij/mi);
+            if (compatibleEnergy) pairAccelerationsi.push_back(-forceij/mi);
 
             // Energy
             DepsDti += (false ? //(surfi != 0 and surfj != 0) ?
@@ -332,17 +468,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                         0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi);         // CRK
 
             // Estimate of delta v (for XSPH).
-            if (mXSPH and (nodeListi == nodeListj)) XSPHDeltaVi -= weightj*Wj*vij;
+            if (XSPH and (nodeListi == nodeListj)) XSPHDeltaVi -= weightj*Wj*vij;
           }
         }
       }
 
       const auto numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
-      CHECK(not mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
+      CHECK(not compatibleEnergy or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
-            (pairAccelerationsi.size() == numNeighborsi));
+            (pairAccelerationsi.size() == 2*numNeighborsi));
 
-      // if (barf) printf("\n");
+      if (barf) printf("\n");
 
       // // For a surface point, add the RK thermal energy evolution.
       // // DepsDti -= Pi/rhoi*DvDxi.Trace();
@@ -355,39 +491,39 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DrhoDti = -rhoi*DvDxi.Trace();
 
       // If needed finish the total energy derivative.
-      if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
+      if (evolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
-      if (mXSPH) {
+      if (XSPH) {
         DxDti = vi + XSPHDeltaVi;
       } else {
         DxDti = vi;
       }
 
       // The H tensor evolution.
-      DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
-                                                             ri,
-                                                             DvDxi,
-                                                             hmin,
-                                                             hmax,
-                                                             hminratio,
-                                                             nPerh);
-      Hideali = mSmoothingScaleMethod.newSmoothingScale(Hi,
-                                                        ri,
-                                                        weightedNeighborSumi,
-                                                        massSecondMomenti,
-                                                        W,
-                                                        hmin,
-                                                        hmax,
-                                                        hminratio,
-                                                        nPerh,
-                                                        connectivityMap,
-                                                        nodeListi,
-                                                        i);
+      DHDti = smoothingScaleMethod.smoothingScaleDerivative(Hi,
+                                                            ri,
+                                                            DvDxi,
+                                                            hmin,
+                                                            hmax,
+                                                            hminratio,
+                                                            nPerh);
+      Hideali = smoothingScaleMethod.newSmoothingScale(Hi,
+                                                       ri,
+                                                       weightedNeighborSumi,
+                                                       massSecondMomenti,
+                                                       W,
+                                                       hmin,
+                                                       hmax,
+                                                       hminratio,
+                                                       nPerh,
+                                                       connectivityMap,
+                                                       nodeListi,
+                                                       i);
 
       // Increment the work for i.
       worki += Timing::difference(start, Timing::currentTime());
@@ -396,4 +532,3 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 }
 
 }
-

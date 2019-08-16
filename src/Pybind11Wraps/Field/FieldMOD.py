@@ -29,8 +29,8 @@ PYB11includes += ['"Geometry/Dimension.hh"',
                   '"Field/FieldListSet.hh"',
                   '"Utilities/FieldDataTypeTraits.hh"',
                   '"Distributed/DomainNode.hh"',
-                  '<vector>',
-                  '<tuple>']
+                  '"Geometry/CellFaceFlag.hh"',
+                  '<vector>']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -61,10 +61,10 @@ FieldListSet%(ndim)sd = PYB11TemplateClass(FieldListSet, template_parameters="Di
     for (value, label) in (("Dim<%i>::FacetedVolume" % ndim,       "FacetedVolume"), 
                            ("std::vector<int>",                    "VectorInt"),
                            ("std::vector<double>",                 "VectorDouble"),
-                           ("std::vector<std::tuple<int,int,int>>","VectorTupleIntIntInt"),
                            ("std::vector<Dim<%i>::Vector>" % ndim, "VectorVector"),
                            ("std::vector<Dim<%i>::Tensor>" % ndim, "VectorSymTensor"),
                            ("std::vector<Dim<%i>::Tensor>" % ndim, "VectorSymTensor"),
+                           ("std::vector<CellFaceFlag>",           "vector_of_CellFaceFlag"),
                            ("DomainNode<Dim<%i>>" % ndim,          "DomainNode")):
         exec('''
 %(label)sField%(ndim)sd = PYB11TemplateClass(Field, template_parameters=("Dim<%(ndim)i>", "%(value)s"))

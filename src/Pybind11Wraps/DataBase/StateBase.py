@@ -11,6 +11,7 @@ class StateBase:
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef typename StateBase<%(Dimension)s>::KeyType KeyType;
     typedef typename StateBase<%(Dimension)s>::FieldName FieldName;
     typedef typename StateBase<%(Dimension)s>::MeshPtr MeshPtr;
@@ -183,15 +184,21 @@ class StateBase:
     vectorField = PYB11TemplateMethod(field, "Vector")
     tensorField = PYB11TemplateMethod(field, "Tensor")
     symTensorField = PYB11TemplateMethod(field, "SymTensor")
+    facetedVolumeField = PYB11TemplateMethod(field, "FacetedVolume")
+    vector_of_CellFaceFlagField = PYB11TemplateMethod(field, "std::vector<CellFaceFlag>")
 
     intFields = PYB11TemplateMethod(fields, "int")
     scalarFields = PYB11TemplateMethod(fields, "double")
     vectorFields = PYB11TemplateMethod(fields, "Vector")
     tensorFields = PYB11TemplateMethod(fields, "Tensor")
     symTensorFields = PYB11TemplateMethod(fields, "SymTensor")
+    facetedVolumeFields = PYB11TemplateMethod(fields, "FacetedVolume")
+    vector_of_CellFaceFlagFields = PYB11TemplateMethod(fields, "std::vector<CellFaceFlag>")
 
     allIntFields = PYB11TemplateMethod(allFields, "int")
     allScalarFields = PYB11TemplateMethod(allFields, "double")
     allVectorFields = PYB11TemplateMethod(allFields, "Vector")
     allTensorFields = PYB11TemplateMethod(allFields, "Tensor")
     allSymTensorFields = PYB11TemplateMethod(allFields, "SymTensor")
+    allFacetedVolumeFields = PYB11TemplateMethod(allFields, "FacetedVolume")
+    allVector_of_CellFaceFlagFields = PYB11TemplateMethod(allFields, "std::vector<CellFaceFlag>")

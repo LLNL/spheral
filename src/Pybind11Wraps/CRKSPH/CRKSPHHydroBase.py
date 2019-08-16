@@ -105,6 +105,16 @@ mass density, velocity, and specific thermal energy."""
         return "void"
 
     @PYB11virtual
+    def postStateUpdate(self,
+                        time = "const Scalar",
+                        dt = "const Scalar",
+                        dataBase = "const DataBase<%(Dimension)s>&",
+                        state = "State<%(Dimension)s>&",
+                        derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Provide a hook to be called after the state has been updated and boundary conditions have been enforced."
+        return "void"
+                  
+    @PYB11virtual
     def finalize(self,
                  time = "const Scalar",
                  dt = "const Scalar",
@@ -201,7 +211,7 @@ mass density, velocity, and specific thermal energy."""
     gradm4 = PYB11property("const FieldList<%(Dimension)s, FifthRankTensor>&", "gradm4", returnpolicy="reference_internal")
 
     cells = PYB11property("const FieldList<%(Dimension)s, FacetedVolume>&", "cells", returnpolicy="reference_internal")
-    cellFaceFlags = PYB11property("const FieldList<%(Dimension)s, std::vector<std::tuple<int,int,int>>>&", "cellFaceFlags", returnpolicy="reference_internal")
+    cellFaceFlags = PYB11property("const FieldList<%(Dimension)s, std::vector<CellFaceFlag>>&", "cellFaceFlags", returnpolicy="reference_internal")
     surfacePoint = PYB11property("const FieldList<%(Dimension)s, int>&", "surfacePoint", returnpolicy="reference_internal")
     etaVoidPoints = PYB11property("const FieldList<%(Dimension)s, std::vector<Vector>>&", "etaVoidPoints", returnpolicy="reference_internal")
 

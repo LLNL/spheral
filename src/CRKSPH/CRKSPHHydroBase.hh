@@ -7,8 +7,9 @@
 #define __Spheral_CRKSPHHydroBase_hh__
 
 #include "Physics/GenericHydro.hh"
-#include "CRKSPHCorrectionParams.hh"
 #include "Boundary/CRKSPHVoidBoundary.hh"
+#include "Geometry/CellFaceFlag.hh"
+#include "CRKSPHCorrectionParams.hh"
 
 #include <string>
 
@@ -108,14 +109,24 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const override;
 
-  // Finalize the hydro at the completion of an integration step.
-  virtual
-  void finalize(const Scalar time,
+  // Provide a hook to be called after the state has been updated and 
+  // boundary conditions have been enforced.
+  virtual 
+  void postStateUpdate(const Scalar time, 
+                       const Scalar dt,
+                       const DataBase<Dimension>& dataBase, 
+                       State<Dimension>& state,
+                       StateDerivatives<Dimension>& derivatives) override;
+
+  // Provide a hook to be called after the state has been updated and 
+  // boundary conditions have been enforced.
+  virtual 
+  void finalize(const Scalar time, 
                 const Scalar dt,
-                DataBase<Dimension>& dataBase,
+                DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
-                StateDerivatives<Dimension>& derivs) override;
-                  
+                StateDerivatives<Dimension>& derivatives) override;
+
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
@@ -227,7 +238,7 @@ public:
   const FieldList<Dimension, int>&       surfacePoint() const;
   const FieldList<Dimension, std::vector<Vector>>& etaVoidPoints() const;
   const FieldList<Dimension, FacetedVolume>& cells() const;
-  const FieldList<Dimension, std::vector<std::tuple<int, int, int>>>& cellFaceFlags() const;
+  const FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -304,7 +315,7 @@ protected:
   FieldList<Dimension, int>       mSurfacePoint;
   FieldList<Dimension, std::vector<Vector>> mEtaVoidPoints;
   FieldList<Dimension, FacetedVolume> mCells;
-  FieldList<Dimension, std::vector<std::tuple<int, int, int>>> mCellFaceFlags;
+  FieldList<Dimension, std::vector<CellFaceFlag>> mCellFaceFlags;
 
   CRKSPHVoidBoundary<Dimension> mVoidBoundary;
 
