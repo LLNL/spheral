@@ -45,6 +45,33 @@ PYB11includes += ['"CRKSPH/CRKSPHUtilities.hh"',
                   '<iterator>']
 
 #-------------------------------------------------------------------------------
+# Preamble
+#-------------------------------------------------------------------------------
+PYB11preamble += """
+template<typename Dimension>
+struct AppendFieldLists: public boost::static_visitor<> {
+    
+    typedef std::vector<boost::variant<FieldList<Dimension, typename Dimension::Scalar>,
+                                       FieldList<Dimension, typename Dimension::Vector>,
+                                       FieldList<Dimension, typename Dimension::Tensor>,
+                                       FieldList<Dimension, typename Dimension::SymTensor>,
+                                       FieldList<Dimension, typename Dimension::ThirdRankTensor>>> FieldListArray;
+
+    py::list& pylist;
+
+    AppendFieldLists(py::list& pylist_):
+        boost::static_visitor<>(),
+        pylist(pylist_) {}
+
+    template<typename FieldListType>
+    inline
+    void operator()(FieldListType& x) const {
+        pylist.append(x);
+    }
+};
+"""
+
+#-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
 PYB11namespaces = ["Spheral"]
@@ -74,6 +101,7 @@ def CRKSPHKernel(W = "const TableKernel<%(Dimension)s>&",
     "Compute the corrected kernel value."
     return "typename %(Dimension)s::Scalar"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11implementation("""[](const TableKernel<%(Dimension)s>& W,
                            const CRKOrder correctionOrder,
@@ -120,6 +148,7 @@ def CRKSPHKernelAndGradient(
     "Compute the corrected kernel value, uncorrected and corrected gradients."
     return "py::tuple"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 def computeCRKSPHSumMassDensity(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
                                 W = "const TableKernel<%(Dimension)s>&",
@@ -131,6 +160,7 @@ def computeCRKSPHSumMassDensity(connectivityMap = "const ConnectivityMap<%(Dimen
     "Compute the CRKSPH mass density summation."
     return "void"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 def computeCRKSPHSumVolume(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
                            W = "const TableKernel<%(Dimension)s>&",
@@ -141,6 +171,7 @@ def computeCRKSPHSumVolume(connectivityMap = "const ConnectivityMap<%(Dimension)
     "Compute the CRKSPH mass density summation."
     return "void"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 def computeOccupancyVolume(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
                            W = "const TableKernel<%(Dimension)s>&",
@@ -150,6 +181,7 @@ def computeOccupancyVolume(connectivityMap = "const ConnectivityMap<%(Dimension)
     "Compute the occupancy volume per point"
     return "void"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 def computeSolidCRKSPHSumMassDensity(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
                                      W = "const TableKernel<%(Dimension)s>&",
@@ -162,6 +194,7 @@ def computeSolidCRKSPHSumMassDensity(connectivityMap = "const ConnectivityMap<%(
     "Compute the CRKSPH mass density summation."
     return "void"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 def computeCRKSPHMoments(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
                          W = "const TableKernel<%(Dimension)s>&",
@@ -183,6 +216,7 @@ def computeCRKSPHMoments(connectivityMap = "const ConnectivityMap<%(Dimension)s>
     "Compute the moments necessary for CRKSPH corrections."
     return "void"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 def detectSurface(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
                   m0 = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
@@ -196,6 +230,7 @@ def detectSurface(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
     "Detect surface particles leveraging the zeroth and first moments"
     return "void"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 def computeCRKSPHCorrections(m0 = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                              m1 = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
@@ -218,6 +253,7 @@ def computeCRKSPHCorrections(m0 = "const FieldList<%(Dimension)s, typename %(Dim
     "Function to compute CRK corrections based on the moments."
     return "void"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension", "DataType")
 @PYB11implementation("""[](const FieldList<%(Dimension)s, %(DataType)s>& fieldList,
                            const FieldList<%(Dimension)s, %(Dimension)s::Vector>& position,
@@ -248,7 +284,83 @@ def computeCRKSPHCorrections(m0 = "const FieldList<%(Dimension)s, typename %(Dim
                                                                                                            W,
                                                                                                            nodeCoupling)[0]);
                            }""")
-def interpolateCRKSPH(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
+@PYB11cppname("interpolateCRKSPH")
+def interpolateCRKSPH1(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
+                       position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+                       weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
+                       H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
+                       A = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
+                       B = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+                       C = "const FieldList<%(Dimension)s, typename %(Dimension)s::Tensor>&",
+                       connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
+                       correctionOrder = "const CRKOrder",
+                       W = "const TableKernel<%(Dimension)s>&",
+                       nodeCoupling = ("const NodeCoupling&", "NodeCoupling()")):
+    "Compute the CRKSPH interpolation at each point."
+    return "FieldList<%(Dimension)s, %(DataType)s>"
+
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+@PYB11implementation("""[](const py::list& pyFieldLists,
+                           const FieldList<%(Dimension)s, %(Dimension)s::Vector>& position,
+                           const FieldList<%(Dimension)s, %(Dimension)s::Scalar>& weight,
+                           const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>& H,
+                           const FieldList<%(Dimension)s, %(Dimension)s::Scalar>& A,
+                           const FieldList<%(Dimension)s, %(Dimension)s::Vector>& B,
+                           const FieldList<%(Dimension)s, %(Dimension)s::Tensor>& C,
+                           const ConnectivityMap<%(Dimension)s>& connectivityMap,
+                           const CRKOrder correctionOrder,
+                           const TableKernel<%(Dimension)s>& W,
+                           const NodeCoupling& nodeCoupling) {
+                               std::vector<boost::variant<FieldList<%(Dimension)s, %(Dimension)s::Scalar>,
+                                                          FieldList<%(Dimension)s, %(Dimension)s::Vector>,
+                                                          FieldList<%(Dimension)s, %(Dimension)s::Tensor>,
+                                                          FieldList<%(Dimension)s, %(Dimension)s::SymTensor>,
+                                                          FieldList<%(Dimension)s, %(Dimension)s::ThirdRankTensor>>> fieldLists;
+                               for (auto& pyfl: pyFieldLists) {
+                                   try {
+                                           auto fl = pyfl.cast<FieldList<%(Dimension)s, %(Dimension)s::Scalar>&>();
+                                           fieldLists.emplace_back(fl);
+                                   } catch (py::cast_error& e) {
+                                       try {
+                                               auto fl = pyfl.cast<FieldList<%(Dimension)s, %(Dimension)s::Vector>&>();
+                                               fieldLists.emplace_back(fl);
+                                       } catch (py::cast_error& e) {
+                                           try {
+                                                   auto fl = pyfl.cast<FieldList<%(Dimension)s, %(Dimension)s::Tensor>&>();
+                                                   fieldLists.emplace_back(fl);
+                                           } catch (py::cast_error& e) {
+                                               try {
+                                                       auto fl = pyfl.cast<FieldList<%(Dimension)s, %(Dimension)s::SymTensor>&>();
+                                                       fieldLists.emplace_back(fl);
+                                               } catch (py::cast_error& e) {
+                                                   try {
+                                                           auto fl = pyfl.cast<FieldList<%(Dimension)s, %(Dimension)s::ThirdRankTensor>&>();
+                                                           fieldLists.emplace_back(fl);
+                                                   } catch (py::cast_error& e) {
+                                                       throw py::type_error("interpolateCRKSPH expects a list of only (Scalar,Vector,Tensor,SymTensor,ThirdRankTensor)FieldList.")
+                                                   }
+                                               }
+                                           }
+                                       }
+                                   }
+                               }
+                               auto cppresult =  interpolateCRKSPH(fieldLists,
+                                                                   position,
+                                                                   weight,
+                                                                   H,
+                                                                   A,
+                                                                   B,
+                                                                   C,
+                                                                   connectivityMap,
+                                                                   correctionOrder,
+                                                                   W,
+                                                                   nodeCoupling);
+                               py::list result;
+                               for (auto& fl: cppresult) boost::apply_visitor(AppendFieldLists(result), fl);
+                               return result;
+                           }""")
+def interpolateCRKSPH(fieldLists = "py::list&",
                       position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
                       weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                       H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
@@ -260,8 +372,9 @@ def interpolateCRKSPH(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&
                       W = "const TableKernel<%(Dimension)s>&",
                       nodeCoupling = ("const NodeCoupling&", "NodeCoupling()")):
     "Compute the CRKSPH interpolation at each point."
-    return "FieldList<%(Dimension)s, %(DataType)s>"
+    return "py::list"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension", "DataType")
 def gradientCRKSPH(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
                    position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
@@ -280,6 +393,7 @@ def gradientCRKSPH(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
     "Compute the CRKSPH gradient."
     return "FieldList<%(Dimension)s, typename MathTraits<%(Dimension)s, %(DataType)s>::GradientType>"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 def computeHullVolumes(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
                        kernelExtent = "const typename %(Dimension)s::Scalar",
@@ -289,6 +403,7 @@ def computeHullVolumes(connectivityMap = "const ConnectivityMap<%(Dimension)s>&"
     "Compute the volume per point based on convex hulls."
     return "void"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 def computeHVolumes(nPerh = "const typename %(Dimension)s::Scalar",
                     H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
@@ -296,6 +411,7 @@ def computeHVolumes(nPerh = "const typename %(Dimension)s::Scalar",
     "Compute a volume per point based on the local H tensor."
     return "void"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 def computeNeighborHull(fullConnectivity = "const std::vector<std::vector<int> >&",
                         etaCutoff = "const typename %(Dimension)s::Scalar",
@@ -305,6 +421,7 @@ def computeNeighborHull(fullConnectivity = "const std::vector<std::vector<int> >
     "Compute the hull for a given points neighbor set."
     return "typename %(Dimension)s::FacetedVolume"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 def editMultimaterialSurfaceTopology(surfacePoint = "FieldList<%(Dimension)s, int>&",
                                      connectivityMap = "ConnectivityMap<%(Dimension)s>&"):
@@ -315,6 +432,7 @@ For such points:
     surfacePoint=-1."""
     return "void"
 
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 def zerothOrderSurfaceCorrections(A = "FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                                   B = "FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
@@ -381,13 +499,14 @@ zerothOrderSurfaceCorrections%(ndim)id = PYB11TemplateFunction(zerothOrderSurfac
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
     # CRKSPH interpolation
+    interpolateCRKSPH = PYB11TemplateFunction(interpolateCRKSPH, template_parameters="%(Dimension)s")
     for element in ("Dim<%i>::Scalar" % ndim,
                     "Dim<%i>::Vector" % ndim,
                     "Dim<%i>::Tensor" % ndim,
                     "Dim<%i>::SymTensor" % ndim,
                     "Dim<%i>::ThirdRankTensor" % ndim):
         exec('''
-interpolateCRKSPH%(label)s = PYB11TemplateFunction(interpolateCRKSPH, template_parameters=("%(Dimension)s", "%(element)s"), pyname="interpolateCRKSPH")
+interpolateCRKSPH%(label)s = PYB11TemplateFunction(interpolateCRKSPH1, template_parameters=("%(Dimension)s", "%(element)s"), pyname="interpolateCRKSPH")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">",
        "element"   : element,
