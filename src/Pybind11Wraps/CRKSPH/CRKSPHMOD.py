@@ -219,6 +219,35 @@ def computeCRKSPHCorrections(m0 = "const FieldList<%(Dimension)s, typename %(Dim
     return "void"
 
 @PYB11template("Dimension", "DataType")
+@PYB11implementation("""[](const FieldList<%(Dimension)s, %(DataType)s>& fieldList,
+                           const FieldList<%(Dimension)s, %(Dimension)s::Vector>& position,
+                           const FieldList<%(Dimension)s, %(Dimension)s::Scalar>& weight,
+                           const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>& H,
+                           const FieldList<%(Dimension)s, %(Dimension)s::Scalar>& A,
+                           const FieldList<%(Dimension)s, %(Dimension)s::Vector>& B,
+                           const FieldList<%(Dimension)s, %(Dimension)s::Tensor>& C,
+                           const ConnectivityMap<%(Dimension)s>& connectivityMap,
+                           const CRKOrder correctionOrder,
+                           const TableKernel<%(Dimension)s>& W,
+                           const NodeCoupling& nodeCoupling) {
+                               std::vector<boost::variant<FieldList<%(Dimension)s, %(Dimension)s::Scalar>,
+                                                          FieldList<%(Dimension)s, %(Dimension)s::Vector>,
+                                                          FieldList<%(Dimension)s, %(Dimension)s::Tensor>,
+                                                          FieldList<%(Dimension)s, %(Dimension)s::SymTensor>,
+                                                          FieldList<%(Dimension)s, %(Dimension)s::ThirdRankTensor>>> fieldLists;
+                               fieldLists.emplace_back(fieldList);
+                               return boost::get<FieldList<%(Dimension)s, %(DataType)s>>(interpolateCRKSPH(fieldLists,
+                                                                                                           position,
+                                                                                                           weight,
+                                                                                                           H,
+                                                                                                           A,
+                                                                                                           B,
+                                                                                                           C,
+                                                                                                           connectivityMap,
+                                                                                                           correctionOrder,
+                                                                                                           W,
+                                                                                                           nodeCoupling)[0]);
+                           }""")
 def interpolateCRKSPH(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
                       position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
                       weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",

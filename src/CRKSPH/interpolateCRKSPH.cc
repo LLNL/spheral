@@ -10,6 +10,9 @@
 #include "SPH/NodeCoupling.hh"
 #include "CRKSPHUtilities.hh"
 
+namespace Spheral {
+
+using boost::variant;
 using std::vector;
 using std::string;
 using std::pair;
@@ -21,11 +24,101 @@ using std::min;
 using std::max;
 using std::abs;
 
-namespace Spheral {
+namespace {
+//------------------------------------------------------------------------------
+// Verify FieldList sizes.
+//------------------------------------------------------------------------------
+template<typename Dimension> 
+inline
+bool checkSizes(const vector<variant<FieldList<Dimension, typename Dimension::Scalar>,
+                                     FieldList<Dimension, typename Dimension::Vector>,
+                                     FieldList<Dimension, typename Dimension::Tensor>,
+                                     FieldList<Dimension, typename Dimension::SymTensor>,
+                                     FieldList<Dimension, typename Dimension::ThirdRankTensor>>>& fieldLists,
+                const size_t numNodeLists) {
+  for (const auto& f: fieldLists) {
+    if (f.size() != numNodeLists) return false;
+  }
+  return true;
+}
 
-template<typename Dimension, typename DataType>
-FieldList<Dimension, DataType>
-interpolateCRKSPH(const FieldList<Dimension, DataType>& fieldList,
+//------------------------------------------------------------------------------
+// copyFields
+//------------------------------------------------------------------------------
+struct CopyFields: public boost::static_visitor<> {
+  template<typename FieldListType>
+  inline
+  void operator()(FieldListType& x) const { x.copyFields(); }
+};
+
+//------------------------------------------------------------------------------
+// Zero
+//------------------------------------------------------------------------------
+struct ZeroFields: public boost::static_visitor<> {
+  template<typename FieldListType>
+  inline
+  void operator()(FieldListType& x) const { x.Zero(); }
+};
+
+//------------------------------------------------------------------------------
+// PrependNameFields
+//------------------------------------------------------------------------------
+struct PrependNameFields: public boost::static_visitor<> {
+  std::string prefix;
+  
+  PrependNameFields(const std::string prefix_):
+    boost::static_visitor<>(),
+    prefix(prefix_) {}
+
+  template<typename FieldListType>
+  inline
+  void operator()(FieldListType& x) const {
+    for (auto fieldPtr: x) fieldPtr->name(prefix + fieldPtr->name());
+  }
+};
+
+//------------------------------------------------------------------------------
+// IncrementElement
+//------------------------------------------------------------------------------
+struct IncrementElement: public boost::static_visitor<> {
+  int nodeListi, i, nodeListj, j;
+  double mult;
+
+  IncrementElement(int nodeListi_, int i_, int nodeListj_, int j_, double mult_):
+    boost::static_visitor<>(),
+    nodeListi(nodeListi_),
+    i(i_),
+    nodeListj(nodeListj_),
+    j(j_),
+    mult(mult_) {}
+
+  template<typename A, typename B>
+  inline
+  void operator()(A& x, const B& y) const { VERIFY(false); }
+
+  template<typename FieldListType>
+  inline
+  void operator()(FieldListType& x, const FieldListType& y) const {
+    x(nodeListi, i) += mult*y(nodeListj, j);
+  }
+};
+
+}
+
+//------------------------------------------------------------------------------
+// interplateCRKSPH
+//------------------------------------------------------------------------------
+template<typename Dimension>
+vector<variant<FieldList<Dimension, typename Dimension::Scalar>,
+               FieldList<Dimension, typename Dimension::Vector>,
+               FieldList<Dimension, typename Dimension::Tensor>,
+               FieldList<Dimension, typename Dimension::SymTensor>,
+               FieldList<Dimension, typename Dimension::ThirdRankTensor>>>
+interpolateCRKSPH(const vector<variant<FieldList<Dimension, typename Dimension::Scalar>,
+                                       FieldList<Dimension, typename Dimension::Vector>,
+                                       FieldList<Dimension, typename Dimension::Tensor>,
+                                       FieldList<Dimension, typename Dimension::SymTensor>,
+                                       FieldList<Dimension, typename Dimension::ThirdRankTensor>>>& fieldLists,
                   const FieldList<Dimension, typename Dimension::Vector>& position,
                   const FieldList<Dimension, typename Dimension::Scalar>& weight,
                   const FieldList<Dimension, typename Dimension::SymTensor>& H,
@@ -37,28 +130,34 @@ interpolateCRKSPH(const FieldList<Dimension, DataType>& fieldList,
                   const TableKernel<Dimension>& W,
                   const NodeCoupling& nodeCoupling) {
 
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef vector<variant<FieldList<Dimension, typename Dimension::Scalar>,
+                         FieldList<Dimension, typename Dimension::Vector>,
+                         FieldList<Dimension, typename Dimension::Tensor>,
+                         FieldList<Dimension, typename Dimension::SymTensor>,
+                         FieldList<Dimension, typename Dimension::ThirdRankTensor>>> FieldListArray;
+
   // Pre-conditions.
-  const size_t numNodeLists = fieldList.size();
-  REQUIRE(position.size() == numNodeLists);
+  const auto numNodeLists = position.size();
+  const auto numFieldLists = fieldLists.size();
+  REQUIRE(checkSizes<Dimension>(fieldLists, numNodeLists));
   REQUIRE(weight.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(A.size() == numNodeLists);
   REQUIRE(B.size() == numNodeLists or correctionOrder == CRKOrder::ZerothOrder);
   REQUIRE(C.size() == numNodeLists or correctionOrder != CRKOrder::QuadraticOrder);
 
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-
   // Prepare the result.
-  FieldList<Dimension, DataType> result;
-  result.copyFields();
-  for (auto fieldItr = fieldList.begin();
-       fieldItr != fieldList.end(); 
-       ++fieldItr) {
-    result.appendField(Field<Dimension, DataType>("interpolate " + (*fieldItr)->name(), (*fieldItr)->nodeList()));
+  FieldListArray result;
+  for (const auto& fieldList: fieldLists) {
+    result.emplace_back(fieldList);
+    boost::apply_visitor(CopyFields(), result.back());
+    boost::apply_visitor(ZeroFields(), result.back());
+    boost::apply_visitor(PrependNameFields("interpolate "), result.back());
   }
 
   // Walk the FluidNodeLists.
@@ -80,12 +179,12 @@ interpolateCRKSPH(const FieldList<Dimension, DataType>& fieldList,
       const auto& Ai = A(nodeListi, i);
       if (correctionOrder != CRKOrder::ZerothOrder) Bi = B(nodeListi, i);
       if (correctionOrder == CRKOrder::QuadraticOrder) Ci = C(nodeListi, i);
-      const auto& Fi = fieldList(nodeListi, i);
-      auto& resulti = result(nodeListi, i);
 
-      // Add our self-contribution.
+      // Add the self-contribution to each FieldList.
       const auto W0 = W.kernelValue(0.0, Hdeti);
-      resulti += weight(nodeListi, i)*Fi*W0*Ai;
+      for (auto k = 0; k < numFieldLists; ++k) {
+        boost::apply_visitor(IncrementElement(nodeListi, i, nodeListi, i, weight(nodeListi, i)*W0*Ai), result[k], fieldLists[k]);
+      }
 
       // Neighbors!
       const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -129,8 +228,6 @@ interpolateCRKSPH(const FieldList<Dimension, DataType>& fieldList,
               const auto  Aj = A(nodeListj, j);
               if (correctionOrder != CRKOrder::ZerothOrder) Bj = B(nodeListj, j);
               if (correctionOrder == CRKOrder::QuadraticOrder) Cj = C(nodeListj, j);
-              const auto& Fj = fieldList(nodeListj, j);
-              auto& resultj = result(nodeListj, j);
 
               // Node displacement.
               const auto rij = ri - rj;
@@ -142,8 +239,10 @@ interpolateCRKSPH(const FieldList<Dimension, DataType>& fieldList,
               const auto Wi = CRKSPHKernel(W, correctionOrder, -rij, -etai, Hdeti, Aj, Bj, Cj);
 
               // Increment the pair-wise values.
-              resulti += wj*Fj*Wj;
-              resultj += wi*Fi*Wi;
+              for (auto k = 0; k < numFieldLists; ++k) {
+                boost::apply_visitor(IncrementElement(nodeListi, i, nodeListj, j, wj*Wj), result[k], fieldLists[k]);
+                boost::apply_visitor(IncrementElement(nodeListj, j, nodeListi, i, wi*Wi), result[k], fieldLists[k]);
+              }
 
             }
           }
