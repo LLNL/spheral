@@ -48,6 +48,7 @@ PYB11includes += ['"CRKSPH/CRKSPHUtilities.hh"',
 # Preamble
 #-------------------------------------------------------------------------------
 PYB11preamble += """
+namespace {
 template<typename Dimension>
 struct AppendFieldLists: public boost::static_visitor<> {
     
@@ -69,6 +70,7 @@ struct AppendFieldLists: public boost::static_visitor<> {
         pylist.append(x);
     }
 };
+}
 """
 
 #-------------------------------------------------------------------------------
@@ -338,7 +340,7 @@ def interpolateCRKSPH1(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>
                                                            auto fl = pyfl.cast<FieldList<%(Dimension)s, %(Dimension)s::ThirdRankTensor>&>();
                                                            fieldLists.emplace_back(fl);
                                                    } catch (py::cast_error& e) {
-                                                       throw py::type_error("interpolateCRKSPH expects a list of only (Scalar,Vector,Tensor,SymTensor,ThirdRankTensor)FieldList.")
+                                                       throw py::type_error("interpolateCRKSPH expects a list of only (Scalar,Vector,Tensor,SymTensor,ThirdRankTensor)FieldList.");
                                                    }
                                                }
                                            }
@@ -357,7 +359,7 @@ def interpolateCRKSPH1(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>
                                                                    W,
                                                                    nodeCoupling);
                                py::list result;
-                               for (auto& fl: cppresult) boost::apply_visitor(AppendFieldLists(result), fl);
+                               for (auto& fl: cppresult) boost::apply_visitor(AppendFieldLists<%(Dimension)s>(result), fl);
                                return result;
                            }""")
 def interpolateCRKSPH(fieldLists = "py::list&",
@@ -499,7 +501,7 @@ zerothOrderSurfaceCorrections%(ndim)id = PYB11TemplateFunction(zerothOrderSurfac
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
     # CRKSPH interpolation
-    interpolateCRKSPH = PYB11TemplateFunction(interpolateCRKSPH, template_parameters="%(Dimension)s")
+    exec('''interpolateCRKSPH%(ndim)id = PYB11TemplateFunction(interpolateCRKSPH, template_parameters="Dim<%(ndim)i>", pyname="interpolateCRKSPH")''' % {"ndim" : ndim})
     for element in ("Dim<%i>::Scalar" % ndim,
                     "Dim<%i>::Vector" % ndim,
                     "Dim<%i>::Tensor" % ndim,
