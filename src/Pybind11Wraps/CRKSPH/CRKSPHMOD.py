@@ -274,17 +274,21 @@ def computeCRKSPHCorrections(m0 = "const FieldList<%(Dimension)s, typename %(Dim
                                                           FieldList<%(Dimension)s, %(Dimension)s::SymTensor>,
                                                           FieldList<%(Dimension)s, %(Dimension)s::ThirdRankTensor>>> fieldLists;
                                fieldLists.emplace_back(fieldList);
-                               return boost::get<FieldList<%(Dimension)s, %(DataType)s>>(interpolateCRKSPH(fieldLists,
-                                                                                                           position,
-                                                                                                           weight,
-                                                                                                           H,
-                                                                                                           A,
-                                                                                                           B,
-                                                                                                           C,
-                                                                                                           connectivityMap,
-                                                                                                           correctionOrder,
-                                                                                                           W,
-                                                                                                           nodeCoupling)[0]);
+                               auto flvec = interpolateCRKSPH(fieldLists,
+                                                              position,
+                                                              weight,
+                                                              H,
+                                                              A,
+                                                              B,
+                                                              C,
+                                                              connectivityMap,
+                                                              correctionOrder,
+                                                              W,
+                                                              nodeCoupling);
+                               CHECK(flvec.size() == 1);
+                               FieldList<%(Dimension)s, %(DataType)s> result(boost::get<FieldList<%(Dimension)s, %(DataType)s>>(flvec[0]));
+                               result.copyFields();
+                               return result;
                            }""")
 @PYB11cppname("interpolateCRKSPH")
 def interpolateCRKSPH1(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
@@ -359,7 +363,7 @@ def interpolateCRKSPH1(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>
                                                                    W,
                                                                    nodeCoupling);
                                py::list result;
-                               for (auto& fl: cppresult) boost::apply_visitor(AppendFieldLists<%(Dimension)s>(result), fl);
+                               for (auto fl: cppresult) boost::apply_visitor(AppendFieldLists<%(Dimension)s>(result), fl);
                                return result;
                            }""")
 def interpolateCRKSPH(fieldLists = "py::list&",
