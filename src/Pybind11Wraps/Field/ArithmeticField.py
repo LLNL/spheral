@@ -26,16 +26,20 @@ class ArithmeticField(FieldBase):
     def __isub__(self):
         return
 
-    def __add__(self, rhs="%(Value)s()"):
-        return "FieldType"
-
-    def __sub__(self, rhs="%(Value)s()"):
-        return "FieldType"
-
-    def __iadd__(self, rhs="%(Value)s()"):
+    @PYB11pyname("__add__")
+    def __add__V(self, rhs="%(Value)s()"):
         return
 
-    def __isub__(self, rhs="%(Value)s()"):
+    @PYB11pyname("__sub__")
+    def __sub__V(self, rhs="%(Value)s()"):
+        return
+
+    @PYB11pyname("__iadd__")
+    def __iadd__V(self, rhs="%(Value)s()"):
+        return
+
+    @PYB11pyname("__isub__")
+    def __isub__V(self, rhs="%(Value)s()"):
         return
 
     def __imul__(self, rhs="double()"):
