@@ -226,7 +226,6 @@ if iterateH:
 #-------------------------------------------------------------------------------
 # Initialize our field.
 #-------------------------------------------------------------------------------
-sys.stderr.write("---> 1\n")
 f = db.newFluidScalarFieldList(name="test field")
 pos = db.fluidPosition
 for iNodeList, nodes in enumerate(db.nodeLists()):
@@ -245,7 +244,6 @@ for iNodeList, nodes in enumerate(db.nodeLists()):
 #-------------------------------------------------------------------------------
 # Prepare variables to accumulate the test values.
 #-------------------------------------------------------------------------------
-sys.stderr.write("---> 2\n")
 fSPH = db.newFluidScalarFieldList(name="SPH interpolated values")
 dfSPH = db.newFluidVectorFieldList(name="SPH derivative values")
 
@@ -288,7 +286,6 @@ computeCRKSPHCorrections(M0, M1, M2, M3, M4, gradM0, gradM1, gradM2, gradM3, gra
 #-------------------------------------------------------------------------------
 # Measure the interpolated values and gradients.
 #-------------------------------------------------------------------------------
-sys.stderr.write("---> 3\n")
 if testSPH:
     for iNodeList, nodes in enumerate(db.nodeLists()):
         for i in xrange(nodes.numInternalNodes):
@@ -328,7 +325,6 @@ if testSPH:
 #-------------------------------------------------------------------------------
 # Check the C++ interpolation and gradient methods.
 #-------------------------------------------------------------------------------
-sys.stderr.write("---> 4\n")
 fRK = interpolateCRKSPH(f, position, weight, H, A, B, C,
                             cm, correctionOrder, WT)
 dfRK = gradientCRKSPH(f, position, weight, H,
@@ -338,7 +334,6 @@ dfRK = gradientCRKSPH(f, position, weight, H,
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
-sys.stderr.write("---> 5\n")
 yans = db.newFluidScalarFieldList(name="interpolation answer")
 dyans = db.newFluidScalarFieldList(name="derivative answer")
 for iNodeList in xrange(db.numNodeLists):
@@ -361,7 +356,6 @@ for iNodeList in xrange(db.numNodeLists):
 #-------------------------------------------------------------------------------
 # Check our answers accuracy.
 #-------------------------------------------------------------------------------
-sys.stderr.write("---> 6\n")
 def flattenFieldList(fl):
     result = []
     for f in fl:
@@ -391,107 +385,86 @@ print "Maximum errors   (derivatives): SPH = %g, RK = %g" % (maxdySPHerror, maxd
 # Plot the things.
 #-------------------------------------------------------------------------------
 if graphics:
-    sys.stderr.write("---> 7\n")
-    from SpheralGnuPlotUtilities import *
-    import Gnuplot
+    from SpheralMatplotlib import *
 
     xans = [x.x for x in flattenFieldList(position)]
 
     # Interpolated values.
     p1 = plotFieldList(fRK,
-                       plotStyle = "points",
+                       plotStyle = "g*",
                        lineTitle = "RK",
-                       lineStyle = "pointtype 7 pointsize 1.0",
-                       winTitle = "Interplated values")
+                       winTitle = "Interpolated values")
     if testSPH:
         plotFieldList(fSPH,
-                      plotStyle = "points",
-                      lineStyle = "pointtype 10 pointsize 1.0",
+                      plotStyle = "r+",
                       lineTitle = "SPH",
                       plot = p1)
     plotFieldList(yans,
-                  plotStyle = "lines",
+                  plotStyle = "k-",
                   lineTitle = "Answer",
                   plot = p1)
-    p1("set key top left")
-    p1.refresh()
 
     # Interpolation error
-    p2 = generateNewGnuPlot()
-    errRKdata = Gnuplot.Data(xans, erryRK,
-                             with_ = "points pt 7",
-                             title = "RK",
-                             inline = True)
-    p2.replot(errRKdata)
+    p2 = newFigure()
+    p2.plot(xans, erryRK, "g*",
+            label = "RK")
     if testSPH:
-        errSPHdata = Gnuplot.Data(xans, errySPH,
-                                  with_ = "points pt 2",
-                                  title = "SPH",
-                                  inline = True)
-        p2.plot(errSPHdata)
-    p2.title("Error in interpolation")
-    p2.refresh()
+        p2.plot(xans, errySPH, "r+",
+                label = "SPH")
+    p2.axes.legend()
+    plt.title("Error in interpolation")
 
     # Derivative values.
     p3 = plotFieldList(dfRK,
                        yFunction = "%s.x",
-                       plotStyle = "points",
-                       lineStyle = "pointtype 7 pointsize 1.0",
+                       plotStyle = "g*",
                        lineTitle = "RK",
                        winTitle = "Derivative values")
     if testSPH:
         plotFieldList(dfSPH,
                       yFunction = "%s.x",
-                      plotStyle = "points",
-                      lineStyle = "pointtype 2 pointsize 1.0",
+                      plotStyle = "r+",
                       lineTitle = "SPH",
                       plot = p3)
     plotFieldList(dyans,
-                  plotStyle = "lines",
+                  plotStyle = "k-",
                   lineTitle = "Answer",
                   plot = p3)
-    p3.refresh()
 
     # Derivative error
-    p4 = generateNewGnuPlot()
-    errdRKdata = Gnuplot.Data(xans, errdyRK.internalValues(),
-                                with_ = "points pt 7",
-                                title = "RK",
-                                inline = True)
-    p4.replot(errdRKdata)
+    p4 = newFigure()
+    p4.plot(xans, errdyRK, "g*",
+            label = "RK")
     if testSPH:
-        errdSPHdata = Gnuplot.Data(xans, errdySPH.internalValues(),
-                                   with_ = "points pt 2",
-                                   title = "SPH",
-                                   inline = True)
-        p4.replot(errdSPHdata)
-    p4.title("Error in derivatives")
-    p4.refresh()
+        p4.plot(xans, errdySPH, "r+",
+                label = "SPH")
+    p4.axes.legend()
+    plt.title("Error in derivatives")
 
     # Plot the kernel shapes as appropriate.
     if testDim == "1d":
-        p7 = generateNewGnuPlot()
+        p7 = newFigure()
         j = -2 # int(nodes1.numInternalNodes/2)
         Hj = H[1][j]
         hj = 1.0/Hj.xx
-        Hdetj = H[j].Determinant()
+        Hdetj = Hj.Determinant()
         Aj = A[1][j]
         Bj = B[1][j].x
         Cj = C[1][j].xx
         nsamp = 100
         dx = 4.0/nsamp
-        W = [WT.kernelValue(abs(i*dx - 2.0), Hdetj) for i in xrange(nsamp)]
-        #WR = [x*Aj*(1.0 + Bj*(2.0 - i*dx)*hj) for i, x in enumerate(W)]
-        WR = [x*Aj*(1.0 + Bj*(2.0 - i*dx)*hj+Cj*(2.0 - i*dx)*(2.0 - i*dx)*hj*hj) for i, x in enumerate(W)]
-        p7.plot(W)
-        p7.replot(WR)
-        p7.title("Kernel")
-        p7.refresh()
+        xvals = [i*dx - 2.0 for i in xrange(nsamp)]
+        W = [WT.kernelValue(abs(xi), Hdetj) for xi in xvals]
+        WR = [Wi*Aj*(1.0 + Bj*(xi)*hj+Cj*(xi)*(xi)*hj*hj) for xi, Wi in zip(xvals, W)]
+        p7.plot(xvals, W, "r+", label="SPH")
+        p7.plot(xvals, WR, "g*", label="RK")
+        p7.axes.legend()
+        plt.title("Kernel")
         if outputFile != "None":
             f = open("Kernel_" + outputFile, "w")
             f.write(("#" + 3*' "%20s"' + "\n") % ("eta", "Wj", "WRj"))
-            for i in xrange(nsamp):
-                f.write((3*" %20g" + "\n") % ((i*dx - 2.0), W[i], WR[i]))
+            for xi, Wi, WRi in zip(xvals, W, WR):
+                f.write((3*" %20g" + "\n") % (xi, Wi, WRi))
             f.close()
 
     # We may want a gnu/pdv style text file.
