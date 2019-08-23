@@ -15,6 +15,7 @@ class AxisBoundaryRZ(Boundary):
     typedef %(Dimension)s::Tensor Tensor;
     typedef %(Dimension)s::SymTensor SymTensor;
     typedef %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef %(Dimension)s::FacetedVolume FacetedVolume;
 """
 
     #...........................................................................

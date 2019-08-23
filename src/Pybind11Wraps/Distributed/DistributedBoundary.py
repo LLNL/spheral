@@ -18,6 +18,7 @@ conditions, connecting NodeLists across parallel domains."""
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
 
     typedef typename DistributedBoundary<%(Dimension)s>::DomainBoundaryNodes DomainBoundaryNodes;
     typedef std::map<int, DomainBoundaryNodes> DomainBoundaryNodeMap;

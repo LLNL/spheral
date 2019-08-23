@@ -126,6 +126,23 @@ CRKSPHHydroBase<Dimension>::XSPH(bool val) {
 }
 
 //------------------------------------------------------------------------------
+// Flag determining if we're using the limitMultimaterialTopology algorithm.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+CRKSPHHydroBase<Dimension>::limitMultimaterialTopology() const {
+  return mLimitMultimaterialTopology;
+}
+
+template<typename Dimension>
+inline
+void
+CRKSPHHydroBase<Dimension>::limitMultimaterialTopology(bool val) {
+  mLimitMultimaterialTopology = val;
+}
+
+//------------------------------------------------------------------------------
 // The object defining how smoothing scales are evolved.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -520,6 +537,22 @@ const FieldList<Dimension, std::vector<typename Dimension::Vector>>&
 CRKSPHHydroBase<Dimension>::
 etaVoidPoints() const {
   return mEtaVoidPoints;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::FacetedVolume>&
+CRKSPHHydroBase<Dimension>::
+cells() const {
+  return mCells;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, std::vector<CellFaceFlag>>&
+CRKSPHHydroBase<Dimension>::
+cellFaceFlags() const {
+  return mCellFaceFlags;
 }
 
 template<typename Dimension>

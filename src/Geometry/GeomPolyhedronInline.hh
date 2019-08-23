@@ -78,4 +78,23 @@ xmax() const {
   return mXmax;
 }
 
+//------------------------------------------------------------------------------
+// Useful facet properties.
+//------------------------------------------------------------------------------
+inline
+double
+GeomPolyhedron::
+facetArea(const unsigned facetID) const {
+  REQUIRE(facetID < mFacets.size());
+  return mFacets[facetID].area();
+}
+
+inline
+GeomPolyhedron::Vector
+GeomPolyhedron::
+facetAreaNormal(const unsigned facetID) const {
+  REQUIRE(facetID < mFacets.size());
+  return mFacets[facetID].area() * mFacets[facetID].normal();
+}
+
 }

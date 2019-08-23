@@ -80,9 +80,15 @@ Timer TIME_PC3d_collapseDegenerates ("Remove degenerate edges/vertices", TIME_Sp
 // ConnectivityMap
 //------------------------------------------------------------------------------
 Timer TIME_ConnectivityMap_patch("ConnectivityMap::patchConnectivity", TIME_Spheral);
+Timer TIME_ConnectivityMap_cutConnectivity("ConnectivityMap::cutConnectivity", TIME_Spheral);
 Timer TIME_ConnectivityMap_valid("ConnectivityMap::valid", TIME_Spheral);
 Timer TIME_ConnectivityMap_computeConnectivity("ConnectivityMap::computeConnectivity", TIME_Spheral);
 Timer TIME_ConnectivityMap_computeOverlapConnectivity("ConnectivityMap::computeOverlapConnectivity", TIME_ConnectivityMap_computeConnectivity);
+
+//------------------------------------------------------------------------------
+// CRKSPH
+//------------------------------------------------------------------------------
+Timer TIME_CRKSPH_editMultimaterialSurfaceTopology("CRKSPH editMultimaterialSurfaceTopology", TIME_Spheral);
 
 // //------------------------------------------------------------------------------
 // // Second order predictor corrector integrator

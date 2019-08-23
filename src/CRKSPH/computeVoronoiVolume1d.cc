@@ -41,7 +41,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
                      FieldList<Dim<1>, Dim<1>::Vector>& deltaMedian,
                      FieldList<Dim<1>, vector<Dim<1>::Vector>>& etaVoidPoints,
                      FieldList<Dim<1>, Dim<1>::FacetedVolume>& cells,
-                     FieldList<Dim<1>, std::vector<int>>& cellFaceFlags) {
+                     FieldList<Dim<1>, std::vector<CellFaceFlag>>& cellFaceFlags) {
 
   // Pre-conditions
   REQUIRE(facetedBoundaries.size() == 0 or facetedBoundaries.size() == position.size());
@@ -62,6 +62,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
   const auto haveDamage = damage.size() == numNodeLists;
   const auto returnSurface = surfacePoint.size() == numNodeLists;
   const auto returnCells = cells.size() == numNodeLists;
+  const auto returnCellFaceFlags = cellFaceFlags.size() == numNodeLists;
 
   // Zero out return fields.
   deltaMedian = Vector::zero;
@@ -133,6 +134,9 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         x1 = wij*(position(nodeListj1, j1).x() - position(nodeListi, i).x());
         if (nodeListj1 != nodeListi) {
           surfacePoint(nodeListi, i) |= (1 << (nodeListj1 + 1));
+          if (returnCellFaceFlags) cellFaceFlags(nodeListi, i).push_back(CellFaceFlag(0,           // cell face
+                                                                                      nodeListj1,  // other NodeList
+                                                                                      j1));        // other node index
           // cerr << "Surface condition 3: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
         }
       }
@@ -150,6 +154,9 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         x2 = 0.5*(position(nodeListj2, j2).x() - position(nodeListi, i).x());
         if (nodeListj2 != nodeListi) {
           surfacePoint(nodeListi, i) |= (1 << (nodeListj2 + 1));
+          if (returnCellFaceFlags) cellFaceFlags(nodeListi, i).push_back(CellFaceFlag(1,           // cell face
+                                                                                      nodeListj2,  // other NodeList
+                                                                                      j2));        // other node index
           // cerr << "Surface condition 6: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
         }
       }
@@ -210,19 +217,19 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
 
   }
 
-  // Flag any points that overlap other NodeLists as multi-material.
-  if (returnSurface) {
-    for (auto nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {
-      const unsigned n = position[nodeListi]->numInternalElements();
-#pragma omp parallel for
-      for (auto i = 0U; i < n; ++i) {
-        const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-        for (auto nodeListj = 0U; nodeListj != numNodeLists; ++nodeListj) {
-          if (nodeListj != nodeListi and not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
-        }
-      }
-    }
-  }
+//   // Flag any points that overlap other NodeLists as multi-material.
+//   if (returnSurface) {
+//     for (auto nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {
+//       const unsigned n = position[nodeListi]->numInternalElements();
+// #pragma omp parallel for
+//       for (auto i = 0U; i < n; ++i) {
+//         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+//         for (auto nodeListj = 0U; nodeListj != numNodeLists; ++nodeListj) {
+//           if (nodeListj != nodeListi and not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
+//         }
+//       }
+//     }
+//   }
 }
 
 }

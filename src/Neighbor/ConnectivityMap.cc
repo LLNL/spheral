@@ -32,6 +32,7 @@ using std::abs;
 
 // Declare the timers.
 extern Timer TIME_ConnectivityMap_patch;
+extern Timer TIME_ConnectivityMap_cutConnectivity;
 extern Timer TIME_ConnectivityMap_valid;
 extern Timer TIME_ConnectivityMap_computeConnectivity;
 extern Timer TIME_ConnectivityMap_computeOverlapConnectivity;
@@ -259,6 +260,35 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
 
   // That's it.
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Remove connectivity between neighbors.
+// NOTE: this method assumes you are passing the indices of the neighbors to
+//       remove!
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ConnectivityMap<Dimension>::
+removeConnectivity(const FieldList<Dimension, vector<vector<int>>>& neighborsToCut) {
+  TIME_ConnectivityMap_cutConnectivity.start();
+
+  const auto numNodeLists = mNodeLists.size();
+  REQUIRE(neighborsToCut.numFields() == numNodeLists);
+
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto n = mNodeLists[nodeListi]->numNodes();
+    for (auto i = 0; i < n; ++i) {
+      const auto& allneighbors = neighborsToCut(nodeListi, i);
+      CHECK(allneighbors.size() == 0 or allneighbors.size() == numNodeLists);
+      for (auto nodeListj = 0; nodeListj < allneighbors.size(); ++nodeListj) {
+        auto& neighborsi = mConnectivity[mOffsets[nodeListi] + i][nodeListj];
+        removeElements(neighborsi, allneighbors[nodeListj]);
+      }
+    }
+  }
+
+  TIME_ConnectivityMap_cutConnectivity.stop();
 }
 
 //------------------------------------------------------------------------------

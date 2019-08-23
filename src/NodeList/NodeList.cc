@@ -541,14 +541,14 @@ appendInternalNodes(const int numNewNodes,
 
     // Loop over each Field, and have them fill in the new values from the
     // packed char buffers.
-    typename list< vector<char> >::const_iterator bufItr = packedFieldValues.begin();
+    vector<int> nodeIDs(numNewNodes);
+    for (auto i = 0; i < numNewNodes; ++i) nodeIDs[i] = beginInsertionIndex + i;
+    auto bufItr = packedFieldValues.begin();
     for (typename vector<FieldBase<Dimension>*>::iterator fieldItr = mFieldBaseList.begin();
          fieldItr != mFieldBaseList.end();
          ++fieldItr, ++bufItr) {
       CHECK(bufItr != packedFieldValues.end());
-      (*fieldItr)->unpackValues(numNewNodes, 
-                                beginInsertionIndex,
-                                *bufItr);
+      (*fieldItr)->unpackValues(nodeIDs, *bufItr);
     }
 
     // That's it.
@@ -580,18 +580,23 @@ reorderNodes(const vector<int>& newOrdering) {
   // Make sure we're not carting around ghost nodes.
   this->numGhostNodes(0);
 
+  // The original ordering.
+  vector<int> oldOrdering(n);
+  for (auto i = 0; i < n; ++i) oldOrdering[i] = i;
+
   // Pack up all the current nodal field values.
   list<vector<char> > packedFieldValues;
   for (typename vector<FieldBase<Dimension>*>::const_iterator fieldItr = mFieldBaseList.begin();
        fieldItr != mFieldBaseList.end();
-       ++fieldItr) packedFieldValues.push_back((*fieldItr)->packValues(newOrdering));
+       ++fieldItr) packedFieldValues.push_back((*fieldItr)->packValues(oldOrdering));
   CHECK(packedFieldValues.size() == mFieldBaseList.size());
 
-  // Zap out all the current nodes.
-  this->numInternalNodes(0);
-
   // Now unpack in the desired order.
-  this->appendInternalNodes(n, packedFieldValues);
+  auto bufItr = packedFieldValues.begin();
+  for (auto fieldItr = mFieldBaseList.begin();
+       fieldItr != mFieldBaseList.end();
+       ++fieldItr, ++bufItr) (*fieldItr)->unpackValues(newOrdering, *bufItr);
+  CHECK(bufItr == packedFieldValues.end());
 
   // Post-conditions.
   ENSURE(this->numInternalNodes() == n);

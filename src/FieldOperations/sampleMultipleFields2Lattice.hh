@@ -2,16 +2,10 @@
 // sampleMultipleFields2Lattice.
 //
 // SPH sample all the Fields in a FieldListSet to a lattice of positions.
-// The results are returned as a 
-// tuple< vector< vector<Scalar> >,
-//        vector< vector<Vector> >,
-//        vector< vector<Tensor> >,
-//        vector< vector<SymTensor> >
 //
 // Created by JMO, Wed Nov 16 10:40:07 PST 2005
 //----------------------------------------------------------------------------//
 #include <vector>
-#include "boost/tuple/tuple.hpp"
 
 namespace Spheral {
 

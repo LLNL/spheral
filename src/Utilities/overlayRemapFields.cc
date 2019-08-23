@@ -12,6 +12,7 @@
 #include <map>
 #include <algorithm>
 using std::vector;
+using std::tuple;
 using std::list;
 using std::string;
 using std::pair;
@@ -122,7 +123,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     auto deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
     FieldList<Dimension, FacetedVolume> cells_fl(FieldStorageType::ReferenceFields);
     cells_fl.appendField(localDonorCells);
-    auto cellFaceFlags_fl = db.newFluidFieldList(vector<int>(), "face flags");
+    auto cellFaceFlags_fl = db.newFluidFieldList(vector<CellFaceFlag>(), "face flags");
     computeVoronoiVolume(position, H, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, 
                          surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl, cellFaceFlags_fl);
     const_cast<NodeList<Dimension>*>(donorNodeListPtr)->numGhostNodes(0);
@@ -151,7 +152,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     auto deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
     FieldList<Dimension, FacetedVolume> cells_fl(FieldStorageType::ReferenceFields);
     cells_fl.appendField(localAcceptorCells);
-    auto cellFaceFlags_fl = db.newFluidFieldList(vector<int>(), "face flags");
+    auto cellFaceFlags_fl = db.newFluidFieldList(vector<CellFaceFlag>(), "face flags");
     computeVoronoiVolume(position, H, cm, damage, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, 
                          surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl, cellFaceFlags_fl);
     const_cast<NodeList<Dimension>*>(acceptorNodeListPtr)->numGhostNodes(0);

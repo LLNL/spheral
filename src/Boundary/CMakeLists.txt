@@ -16,16 +16,9 @@ if(ENABLE_2D)
       )
 endif()
 
-if(ENABLE_3D)
-  list(APPEND Boundary_sources
-       AxialSymmetryBoundary.cc
-      )
-endif()
-
 instantiate(Boundary_inst Boundary_sources)
 
 set(Boundary_headers
-    AxialSymmetryBoundary.hh
     AxisBoundaryRZ.hh
     Boundary.hh
     BoundaryInline.hh
@@ -38,7 +31,6 @@ set(Boundary_headers
     ReflectingBoundary.hh
     ReflectingBoundaryInline.hh
     RigidBoundary.hh
-    RigidBoundaryInline.hh
     mapPositionThroughPlanes.hh
     )
 

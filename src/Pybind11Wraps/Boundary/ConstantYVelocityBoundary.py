@@ -20,6 +20,7 @@ NodeList.
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
 """
 
     #...........................................................................

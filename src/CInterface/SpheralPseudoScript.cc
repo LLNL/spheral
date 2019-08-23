@@ -365,6 +365,7 @@ template<> struct HydroConstructor<Dim<3>> {
                                                       const CRKVolumeType volumeType,
                                                       const double epsTensile,
                                                       const double nTensile,
+                                                      const bool limitMultimaterialTopology,
                                                       const bool damageRelieveRubble,
                                                       const bool negativePressureInDamage,
                                                       const Dim<3>::Vector& xmin,
@@ -387,6 +388,7 @@ template<> struct HydroConstructor<Dim<3>> {
                                                                                volumeType,
                                                                                epsTensile,
                                                                                nTensile,
+                                                                               limitMultimaterialTopology,
                                                                                damageRelieveRubble,
                                                                                negativePressureInDamage));
     }
@@ -443,6 +445,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                       const CRKVolumeType volumeType,
                                                       const double epsTensile,
                                                       const double nTensile,
+                                                      const bool limitMultimaterialTopology,
                                                       const bool damageRelieveRubble,
                                                       const bool negativePressureInDamage,
                                                       const Dim<2>::Vector& xmin,
@@ -466,6 +469,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                            volumeType,
                                                                            epsTensile,
                                                                            nTensile,
+                                                                           limitMultimaterialTopology,
                                                                            damageRelieveRubble,
                                                                            negativePressureInDamage));
       }
@@ -511,6 +515,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                                  volumeType,
                                                                                  epsTensile,
                                                                                  nTensile,
+                                                                                 limitMultimaterialTopology,
                                                                                  damageRelieveRubble,
                                                                                  negativePressureInDamage));
       }
@@ -758,6 +763,7 @@ initialize(const bool     RZ,
                                                           CRKVolumeType::CRKMassOverDensity,    // CRK volume type
                                                           0.0,                                  // epsTensile
                                                           4.0,                                  // nTensile
+                                                          false,                                // limitMultimaterialTopology
                                                           false,                                // damageRelieve
                                                           false,                                // negativePressureInDamage
                                                           xmin,                                 // xmin

@@ -38,6 +38,7 @@ class SolidCRKSPHHydroBase(CRKSPHHydroBase):
                volumeType = "const CRKVolumeType",
                epsTensile = "const double",
                nTensile = "const double",
+               limitMultimaterialTopology = "const bool",
                damageRelieveRubble = "const bool",
                negativePressureInDamage = "const bool"):
         "Constructor"

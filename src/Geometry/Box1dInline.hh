@@ -263,6 +263,29 @@ facetVertices() const {
 }
 
 //------------------------------------------------------------------------------
+// Useful facet properties.
+//------------------------------------------------------------------------------
+inline
+double
+Box1d::
+facetArea(const unsigned facetID) const {
+  REQUIRE(facetID < 2);
+  return 1.0;
+}
+
+inline
+Box1d::Vector
+Box1d::
+facetAreaNormal(const unsigned facetID) const {
+  REQUIRE(facetID < 2);
+  if (facetID == 0) {
+    return Vector(-1.0);
+  } else {
+    return Vector( 1.0);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Compute the volume.
 //------------------------------------------------------------------------------
 inline

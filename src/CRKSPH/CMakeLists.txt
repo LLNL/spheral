@@ -12,9 +12,10 @@ set(CRKSPH_inst
     computeHullVolumes
     computeSolidCRKSPHSumMassDensity
     detectSurface
-    flagSurfaceNeighbors
+    editMultimaterialSurfaceTopology
     gradientCRKSPH
     interpolateCRKSPH
+    zerothOrderSurfaceCorrections
    )
 
 
@@ -63,10 +64,11 @@ set(CRKSPH_headers
     computeVoronoiCentroids.hh
     computeVoronoiVolume.hh
     detectSurface.hh
-    flagSurfaceNeighbors.hh
+    editMultimaterialSurfaceTopology.hh
     gradientCRKSPH.hh
     interpolateCRKSPH.hh
     volumeSpacing.hh
+    zerothOrderSurfaceCorrections.hh
     )
 
 blt_add_library(NAME        Spheral_CRKSPH

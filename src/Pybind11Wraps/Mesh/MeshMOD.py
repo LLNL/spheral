@@ -109,7 +109,7 @@ generateMesh%(ndim)id = PYB11TemplateFunction(generateMesh, template_parameters=
                            const %(Vector)s& xmax,
                            const %(Vector)s& boxInv) -> py::tuple { 
     const auto result = hashPosition(position, xmin, xmax, boxInv);
-    return py::make_tuple(boost::get<0>(result), boost::get<1>(result), boost::get<2>(result));
+    return py::make_tuple(std::get<0>(result), std::get<1>(result), std::get<2>(result));
   }""")
 def hashPosition%(ndim)id(position = "const %(Vector)s&",
                           xmin = "const %(Vector)s&",
@@ -121,7 +121,7 @@ def hashPosition%(ndim)id(position = "const %(Vector)s&",
 @PYB11pycppname("quantizedPosition")
 @PYB11implementation("""[](const py::tuple hash, const %(Vector)s& xmin, const %(Vector)s& xmax) -> %(Vector)s { 
       if (hash.size() != 3) throw std::runtime_error("quantizedPosition ERROR: hash must be a 3-tuple");
-      return quantizedPosition(boost::make_tuple(hash[0].cast<uint64_t>(), hash[1].cast<uint64_t>(), hash[2].cast<uint64_t>()), xmin, xmax);
+      return quantizedPosition(std::make_tuple(hash[0].cast<uint64_t>(), hash[1].cast<uint64_t>(), hash[2].cast<uint64_t>()), xmin, xmax);
     }""")
 def quantizedPosition%(ndim)id(hash = "py::tuple",
                                xmin = "const %(Vector)s&",
