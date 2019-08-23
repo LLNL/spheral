@@ -107,10 +107,22 @@ struct IncrementElement: public boost::static_visitor<> {
   template<typename FieldListType>
   inline
   void operator()(FieldListType& x, const FieldListType& y) const {
-    CHECK(nodeListi < x.size());
-    CHECK(i < x[nodeListi]->size());
-    CHECK(nodeListj < y.size());
-    CHECK(j < y[nodeListj]->size());
+    CHECK2(nodeListi < x.size(),
+           "Bad: (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") [("
+           << x[nodeListi]->numInternalElements() << " " << x[nodeListi]->size() << ") ("
+           << y[nodeListj]->numInternalElements() << " " << y[nodeListj]->size() << ")]");
+    CHECK2(i < x[nodeListi]->size(),
+           "Bad: (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") [("
+           << x[nodeListi]->numInternalElements() << " " << x[nodeListi]->size() << ") ("
+           << y[nodeListj]->numInternalElements() << " " << y[nodeListj]->size() << ")]");
+    CHECK2(nodeListj < y.size(),
+           "Bad: (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") [("
+           << x[nodeListi]->numInternalElements() << " " << x[nodeListi]->size() << ") ("
+           << y[nodeListj]->numInternalElements() << " " << y[nodeListj]->size() << ")]");
+    CHECK2(j < y[nodeListj]->size(),
+           "Bad: (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") [("
+           << x[nodeListi]->numInternalElements() << " " << x[nodeListi]->size() << ") ("
+           << y[nodeListj]->numInternalElements() << " " << y[nodeListj]->size() << ")]");
     x(nodeListi, i) += mult*y(nodeListj, j);
   }
 };
