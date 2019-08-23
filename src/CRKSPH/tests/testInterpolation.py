@@ -456,8 +456,8 @@ if graphics:
         xvals = [i*dx - 2.0 for i in xrange(nsamp)]
         W = [WT.kernelValue(abs(xi), Hdetj) for xi in xvals]
         WR = [Wi*Aj*(1.0 + Bj*(xi)*hj+Cj*(xi)*(xi)*hj*hj) for xi, Wi in zip(xvals, W)]
-        p7.plot(xvals, W, "r+", label="SPH")
-        p7.plot(xvals, WR, "g*", label="RK")
+        p7.plot(xvals, W, "r-", label="SPH")
+        p7.plot(xvals, WR, "g-", label="RK")
         p7.axes.legend()
         plt.title("Kernel")
         if outputFile != "None":
