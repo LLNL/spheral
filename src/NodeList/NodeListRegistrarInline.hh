@@ -143,9 +143,9 @@ findInsertionPoint(const ThingyType& thingy,
   CHECK(displacement >= 0 && displacement <= containerSize);
   auto result = begin + displacement;
   ENSURE(result >= begin && result <= end);
-  ENSURE(containerSize == 1 or
-         (result > begin and getNodeListPtr(*result)->name() > getNodeListPtr(*(result - 1))->name()) or
-         (result < end   and getNodeListPtr(*result)->name() > getNodeListPtr(*(result + 1))->name()));
+  ENSURE(containerSize <= 1 or
+         (result >  begin and getNodeListPtr(*result)->name() > getNodeListPtr(*(result - 1))->name()) or
+         (result == begin and getNodeListPtr(*result)->name() < getNodeListPtr(*(result + 1))->name()));
   return result;
 }
 
