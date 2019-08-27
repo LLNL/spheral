@@ -61,6 +61,7 @@ Return tuple contains (positions, Hs, offsets)."""
     return "py::tuple"
 
 @PYB11template("Dimension")
+@PYB11returnpolicy("take_ownership")
 @PYB11implementation('''[](std::vector<NodeList<%(Dimension)s>*>& nodeLists,
                            std::vector<Boundary<%(Dimension)s>*>& boundaries,
                            const typename %(Dimension)s::Vector& xmin,
@@ -79,6 +80,7 @@ Return tuple contains (positions, Hs, offsets)."""
                                                                     generateParallelConnectivity,
                                                                     removeBoundaryZones, voidThreshold,
                                                                     *mesh, *voidNodes);
+                               nodeLists.pop_back();
                                return py::make_tuple(mesh, voidNodes);
                            }''')
 def generateMesh(nodeLists = "const std::vector<NodeList<%(Dimension)s>*>&",
