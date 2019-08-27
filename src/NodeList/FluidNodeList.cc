@@ -50,7 +50,6 @@ FluidNodeList(string name,
   mMassDensity(HydroFieldNames::massDensity, *this),
   mSpecificThermalEnergy(HydroFieldNames::specificThermalEnergy, *this),
   mEosPtr(&eos) {
-  NodeListRegistrar<Dimension>::instance().registerNodeList(*this);
 }
 
 //------------------------------------------------------------------------------
@@ -59,7 +58,6 @@ FluidNodeList(string name,
 template<typename Dimension>
 FluidNodeList<Dimension>::
 ~FluidNodeList() {
-  NodeListRegistrar<Dimension>::instance().unregisterNodeList(*this);
 }
 
 //------------------------------------------------------------------------------
