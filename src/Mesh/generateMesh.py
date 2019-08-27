@@ -17,7 +17,7 @@ def genericGenerateMesh(nodeLists,
                         vector_of_NodeList,
                         vector_of_Boundary,
                         Mesh,
-                        makeVoidNodeList,
+                        NodeList,
                         generateMesh):
 
     # If needed look up boundary ranges.
@@ -50,16 +50,23 @@ def genericGenerateMesh(nodeLists,
         boundVec.append(x)
 
     t0 = time.time()
-    mesh, voidNodes = generateMesh(nodeListsVec,
-                                   boundVec,
-                                   xmin, xmax, 
-                                   meshGhostNodes,
-                                   generateVoid,
-                                   generateParallelConnectivity,
-                                   removeBoundaryZones,
-                                   voidThreshold)
+    mesh = Mesh()
+    voidNodes = NodeList("void", 0, 0)
+    generateMesh(nodeListsVec,
+                 boundVec,
+                 xmin, xmax, 
+                 meshGhostNodes,
+                 generateVoid,
+                 generateParallelConnectivity,
+                 removeBoundaryZones,
+                 voidThreshold,
+                 mesh,
+                 voidNodes)
     print "Required %g seconds to generate mesh." % (time.time() - t0)
     del nodeListsVec
+    if not generateVoid:
+        del voidNodes
+        voidNodes = None
     return mesh, voidNodes
 
 #-------------------------------------------------------------------------------
@@ -87,7 +94,7 @@ def generateLineMesh(nodeLists,
                                vector_of_NodeList1d,
                                vector_of_Boundary1d,
                                LineMesh,
-                               makeVoidNodeList1d,
+                               NodeList1d,
                                generateMesh1d)
 
 #-------------------------------------------------------------------------------
@@ -115,7 +122,7 @@ def generatePolygonalMesh(nodeLists,
                                vector_of_NodeList2d,
                                vector_of_Boundary2d,
                                PolygonalMesh,
-                               makeVoidNodeList2d,
+                               NodeList2d,
                                generateMesh2d)
 
 #-------------------------------------------------------------------------------
@@ -143,5 +150,5 @@ def generatePolyhedralMesh(nodeLists,
                                vector_of_NodeList3d,
                                vector_of_Boundary3d,
                                PolyhedralMesh,
-                               makeVoidNodeList3d,
+                               NodeList3d,
                                generateMesh3d)
