@@ -61,6 +61,7 @@ Return tuple contains (positions, Hs, offsets)."""
     return "py::tuple"
 
 @PYB11template("Dimension")
+@PYB11returnpolicy("take_ownership")
 @PYB11implementation('''[](std::vector<NodeList<%(Dimension)s>*>& nodeLists,
                            std::vector<Boundary<%(Dimension)s>*>& boundaries,
                            const typename %(Dimension)s::Vector& xmin,
@@ -69,17 +70,17 @@ Return tuple contains (positions, Hs, offsets)."""
                            const bool generateVoid,
                            const bool generateParallelConnectivity,
                            const bool removeBoundaryZones,
-                           const double voidThreshold) {
-                               auto mesh = new Mesh<%(Dimension)s>();
-                               auto voidNodes = new NodeList<%(Dimension)s>("void", 0, 0);
-                               nodeLists.push_back(voidNodes);
+                           const double voidThreshold,
+                           Mesh<%(Dimension)s>& mesh,
+                           NodeList<%(Dimension)s>& voidNodes) {
+                               nodeLists.push_back(&voidNodes);
                                Spheral::generateMesh<%(Dimension)s>(nodeLists.begin(), nodeLists.end(),
                                                                     boundaries.begin(), boundaries.end(),
                                                                     xmin, xmax, meshGhostNodes, generateVoid,
                                                                     generateParallelConnectivity,
                                                                     removeBoundaryZones, voidThreshold,
-                                                                    *mesh, *voidNodes);
-                               return py::make_tuple(mesh, voidNodes);
+                                                                    mesh, voidNodes);
+                               nodeLists.pop_back();
                            }''')
 def generateMesh(nodeLists = "const std::vector<NodeList<%(Dimension)s>*>&",
                  boundaries = "const std::vector<Boundary<%(Dimension)s>*>&",
@@ -89,9 +90,11 @@ def generateMesh(nodeLists = "const std::vector<NodeList<%(Dimension)s>*>&",
                  generateVoid = "const bool",
                  generateParallelConnectivity = "const bool",
                  removeBoundaryZones = "const bool",
-                 voidThreshold = "const double"):
+                 voidThreshold = "const double",
+                 mesh = "Mesh<%(Dimension)s>&",
+                 voidNodes = "NodeList<%(Dimension)s>&"):
     "Generate a mesh for the given set of NodeLists: returns tuple(mesh, voidNodes)"
-    return "py::tuple"
+    return None
 
 #-------------------------------------------------------------------------------
 # Instantiate our types

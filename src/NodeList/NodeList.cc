@@ -60,6 +60,7 @@ NodeList<Dimension>::NodeList(std::string name,
   mNeighborPtr(0),
   mDummyList(),
   mRestart(registerWithRestart(*this, 10)) {
+  NodeListRegistrar<Dimension>::instance().registerNodeList(*this);
   REQUIRE(numInternal >= 0 && numGhost >= 0);
   mMass.setNodeList(*this);
   mPositions.setNodeList(*this);
@@ -76,6 +77,7 @@ NodeList<Dimension>::NodeList(std::string name,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 NodeList<Dimension>::~NodeList() {
+  
   // Loop over all the fields defined on this mesh, and destroy them.
   vector<FieldBase<Dimension>*> fieldBaseListCopy(mFieldBaseList);
   for (FieldBaseIterator fieldItr = fieldBaseListCopy.begin();
@@ -83,10 +85,12 @@ NodeList<Dimension>::~NodeList() {
     (*fieldItr)->unregisterNodeList();
   }
 
+  // Unregister ourselves from the NodeListRegistrar, freeing up our name.
+  NodeListRegistrar<Dimension>::instance().unregisterNodeList(*this);
+
   // After we're done, all the field should have unregistered themselves
   // from the Node List.
   ENSURE(numFields() == 0);
-
 }
 
 //------------------------------------------------------------------------------

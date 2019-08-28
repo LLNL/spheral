@@ -36,8 +36,7 @@ public:
   typedef typename FluidContainerType::const_iterator const_fluid_iterator;
 
   // Define a nested comparator class for comparing NodeLists by their names.
-  class NodeListComparator {
-  public:
+  struct NodeListComparator {
     int operator()(const NodeList<Dimension>* nodeListPtr1,
                    const NodeList<Dimension>* nodeListPtr2) const {
       return nodeListPtr1->name() < nodeListPtr2->name();
@@ -75,20 +74,61 @@ public:
   // Internal consistency checking.
   bool valid() const;
 
-  // Determine the proper place in a sequence of Fields that a given Field
-  // should be inserted.
-  // This is primarily a helper for building FieldLists properly.
-  template<typename IteratorType, typename ThingyType>
-  IteratorType
-  findInsertionPoint(const ThingyType& thingy,
-                     const IteratorType begin,
-                     const IteratorType end) const;
-
   // Flag (for use by others) indicating whether we want to run in 
   // strictly domain decomposition independent/reproducing mode (may have
   // a performance impact).
   bool domainDecompositionIndependent() const;
   void domainDecompositionIndependent(const bool x);
+
+  //---------------------------------------------------------------------------
+  // Static methods
+  // Determine the proper place in a sequence of Fields that a given Field
+  // should be inserted.
+  // This is primarily a helper for building FieldLists properly.
+  template<typename IteratorType, typename ThingyType>
+  static
+  IteratorType
+  findInsertionPoint(const ThingyType& thingy,
+                     const IteratorType begin,
+                     const IteratorType end);
+
+  // Sort the given iterator range into NodeList order
+  template<typename IteratorType>
+  static
+  void
+  sortInNodeListOrder(IteratorType begin, IteratorType end);
+
+  // Helpers for findInsertionPoint that know how to extract a NodeList*
+  // from the argument.
+  static
+  NodeList<Dimension>* 
+  getNodeListPtr(NodeList<Dimension>* thingy) {
+    return thingy;
+  }
+
+  static
+  NodeList<Dimension>* 
+  getNodeListPtr(const NodeList<Dimension>* thingy) {
+    return const_cast<NodeList<Dimension>*>(thingy);
+  }
+
+  static
+  NodeList<Dimension>* 
+  getNodeListPtr(FluidNodeList<Dimension>* thingy) {
+    return (NodeList<Dimension>*) thingy;
+  }
+
+  static
+  NodeList<Dimension>* 
+  getNodeListPtr(FieldBase<Dimension>* thingy) {
+    return const_cast<NodeList<Dimension>*>(thingy->nodeListPtr());
+  }
+
+  static
+  NodeList<Dimension>* 
+  getNodeListPtr(const FieldBase<Dimension>* thingy) {
+    return const_cast<NodeList<Dimension>*>(thingy->nodeListPtr());
+  }
 
 private:
   //--------------------------- Private Interface---------------------------//
@@ -115,33 +155,6 @@ private:
   void registerNodeList(FluidNodeList<Dimension>& nodeList);
   void unregisterNodeList(NodeList<Dimension>& nodeList);
   void unregisterNodeList(FluidNodeList<Dimension>& nodeList);
-
-  // Helpers for findInsertionPoint that know how to extract a NodeList*
-  // from the argument.
-  NodeList<Dimension>* 
-  getNodeListPtr(NodeList<Dimension>* thingy) const {
-    return thingy;
-  }
-
-  NodeList<Dimension>* 
-  getNodeListPtr(const NodeList<Dimension>* thingy) const {
-    return const_cast<NodeList<Dimension>*>(thingy);
-  }
-
-  NodeList<Dimension>* 
-  getNodeListPtr(FluidNodeList<Dimension>* thingy) const {
-    return (NodeList<Dimension>*) thingy;
-  }
-
-  NodeList<Dimension>* 
-  getNodeListPtr(FieldBase<Dimension>* thingy) const {
-    return const_cast<NodeList<Dimension>*>(thingy->nodeListPtr());
-  }
-
-  NodeList<Dimension>* 
-  getNodeListPtr(const FieldBase<Dimension>* thingy) const {
-    return const_cast<NodeList<Dimension>*>(thingy->nodeListPtr());
-  }
 
 };
 

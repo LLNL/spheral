@@ -28,6 +28,14 @@ namespace {
 //------------------------------------------------------------------------------
 // Verify FieldList sizes.
 //------------------------------------------------------------------------------
+struct FieldListSize: public boost::static_visitor<int> {
+  template<typename FieldListType>
+  inline
+  int operator()(const FieldListType& x) const {
+    return x.size();
+  }
+};
+
 template<typename Dimension> 
 inline
 bool checkSizes(const vector<variant<FieldList<Dimension, typename Dimension::Scalar>,
@@ -37,7 +45,7 @@ bool checkSizes(const vector<variant<FieldList<Dimension, typename Dimension::Sc
                                      FieldList<Dimension, typename Dimension::ThirdRankTensor>>>& fieldLists,
                 const size_t numNodeLists) {
   for (const auto& f: fieldLists) {
-    if (f.size() != numNodeLists) return false;
+    if (boost::apply_visitor(FieldListSize(), f) != numNodeLists) return false;
   }
   return true;
 }
@@ -99,6 +107,22 @@ struct IncrementElement: public boost::static_visitor<> {
   template<typename FieldListType>
   inline
   void operator()(FieldListType& x, const FieldListType& y) const {
+    CHECK2(nodeListi < x.size(),
+           "Bad: (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") [("
+           << x[nodeListi]->numInternalElements() << " " << x[nodeListi]->size() << ") ("
+           << y[nodeListj]->numInternalElements() << " " << y[nodeListj]->size() << ")]");
+    CHECK2(i < x[nodeListi]->size(),
+           "Bad: (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") [("
+           << x[nodeListi]->numInternalElements() << " " << x[nodeListi]->size() << ") ("
+           << y[nodeListj]->numInternalElements() << " " << y[nodeListj]->size() << ")]");
+    CHECK2(nodeListj < y.size(),
+           "Bad: (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") [("
+           << x[nodeListi]->numInternalElements() << " " << x[nodeListi]->size() << ") ("
+           << y[nodeListj]->numInternalElements() << " " << y[nodeListj]->size() << ")]");
+    CHECK2(j < y[nodeListj]->size(),
+           "Bad: (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") [("
+           << x[nodeListi]->numInternalElements() << " " << x[nodeListi]->size() << ") ("
+           << y[nodeListj]->numInternalElements() << " " << y[nodeListj]->size() << ")]");
     x(nodeListi, i) += mult*y(nodeListj, j);
   }
 };
@@ -154,7 +178,7 @@ interpolateCRKSPH(const vector<variant<FieldList<Dimension, typename Dimension::
   // Prepare the result.
   FieldListArray result;
   for (const auto& fieldList: fieldLists) {
-    result.emplace_back(fieldList);
+    result.push_back(fieldList);
     boost::apply_visitor(CopyFields(), result.back());
     boost::apply_visitor(ZeroFields(), result.back());
     boost::apply_visitor(PrependNameFields("interpolate "), result.back());
@@ -200,11 +224,7 @@ interpolateCRKSPH(const vector<variant<FieldList<Dimension, typename Dimension::
           const auto firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
 
           // Loop over the neighbors.
-#pragma vector always
-          for (auto jItr = connectivity.begin();
-               jItr != connectivity.end();
-               ++jItr) {
-            const auto j = *jItr;
+          for (auto j: connectivity) {
 
             // The coupling between these nodes.
             const auto fij = nodeCoupling(nodeListi, i, nodeListj, j);

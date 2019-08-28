@@ -149,4 +149,6 @@ member of a pair (maintaining symmetry)."""
     # Properties
     buildGhostConnectivity = PYB11property(doc="Are we building connectivity for ghost nodes?")
     buildOverlapConnectivity = PYB11property(doc="Are we building connectivity for nodes that overlap?")
-    nodeLists = PYB11property("const std::vector<NodeListType*>", "nodeLists", doc="The set of NodeLists we have connectivity for")
+    nodeLists = PYB11property("const std::vector<NodeListType*>&", "nodeLists",
+                              returnpolicy="reference",
+                              doc="The set of NodeLists we have connectivity for")

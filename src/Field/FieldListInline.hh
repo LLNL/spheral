@@ -92,6 +92,14 @@ FieldList(const FieldList<Dimension, DataType>& rhs):
           fieldCacheItr == mFieldCache.end());
   }
 
+  NodeListRegistrar<Dimension>::sortInNodeListOrder(mFieldPtrs.begin(), mFieldPtrs.end());
+  mFieldBasePtrs.clear();
+  mNodeListPtrs.clear();
+  for (auto fptr: mFieldPtrs) {
+    mFieldBasePtrs.push_back(fptr);
+    mNodeListPtrs.push_back(const_cast<NodeList<Dimension>*>(fptr->nodeListPtr()));
+  }
+
 //   // Register this FieldList with each Field we point to.
 //   for (iterator fieldPtrItr = begin(); fieldPtrItr != end(); ++fieldPtrItr) 
 //     registerWithField(**fieldPtrItr);
@@ -215,13 +223,22 @@ FieldList<Dimension, DataType>::copyFields() {
 
     // Store local copies of the fields we're pointing at.
     mFieldCache = FieldCacheType();
-    iterator itr = begin();
-    typename FieldListBase<Dimension>::iterator baseItr = begin_base();
+    auto itr = begin();
+    auto baseItr = begin_base();
     for (; itr != end(); ++itr, ++baseItr) {
       std::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(**itr));
       mFieldCache.push_back(newField);
       *itr = mFieldCache.back().get();
       *baseItr = mFieldCache.back().get();
+    }
+
+    // Make sure the FieldPtrs are in the correct order.
+    NodeListRegistrar<Dimension>::sortInNodeListOrder(mFieldPtrs.begin(), mFieldPtrs.end());
+    mFieldBasePtrs.clear();
+    mNodeListPtrs.clear();
+    for (auto fptr: mFieldPtrs) {
+      mFieldBasePtrs.push_back(fptr);
+      mNodeListPtrs.push_back(const_cast<NodeList<Dimension>*>(fptr->nodeListPtr()));
     }
 
 //     for (int i = 0; i < this->size(); ++i) {
@@ -309,8 +326,13 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
 //   registerWithField(*mFieldPtrs.back());
 
   // We also update the set of NodeListPtrs in proper order.
-  mNodeListPtrs.insert(mNodeListPtrs.begin() + delta,
-                       const_cast<NodeList<Dimension>*>(field.nodeListPtr()));
+  NodeListRegistrar<Dimension>::sortInNodeListOrder(mFieldPtrs.begin(), mFieldPtrs.end());
+  mFieldBasePtrs.clear();
+  mNodeListPtrs.clear();
+  for (auto fptr: mFieldPtrs) {
+    mFieldBasePtrs.push_back(fptr);
+    mNodeListPtrs.push_back(const_cast<NodeList<Dimension>*>(fptr->nodeListPtr()));
+  }
   CHECK(mNodeListIndexMap.find(field.nodeListPtr()) == mNodeListIndexMap.end());
   buildNodeListIndexMap();
 
@@ -377,19 +399,28 @@ appendNewField(const typename Field<Dimension, DataType>::FieldName name,
   mFieldCache.push_back(std::shared_ptr<Field<Dimension, DataType> >(new Field<Dimension, DataType>(name, nodeList, value)));
   Field<Dimension, DataType>* fieldPtr = mFieldCache.back().get();
 
-  // Determine the order this Field should be in.
-  const NodeListRegistrar<Dimension>& nlr = NodeListRegistrar<Dimension>::instance();
-  iterator orderItr = nlr.findInsertionPoint(fieldPtr,
-                                             begin(),
-                                             end());
-  const int delta = std::distance(begin(), orderItr);
+  mFieldPtrs.push_back(fieldPtr);
+  NodeListRegistrar<Dimension>::sortInNodeListOrder(mFieldPtrs.begin(), mFieldPtrs.end());
+  mFieldBasePtrs.clear();
+  mNodeListPtrs.clear();
+  for (auto fptr: mFieldPtrs) {
+    mFieldBasePtrs.push_back(fptr);
+    mNodeListPtrs.push_back(const_cast<NodeList<Dimension>*>(fptr->nodeListPtr()));
+  }
 
-  // Insert the field.
-  mFieldPtrs.insert(orderItr, fieldPtr);
-  mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, fieldPtr);
+  // // Determine the order this Field should be in.
+  // const NodeListRegistrar<Dimension>& nlr = NodeListRegistrar<Dimension>::instance();
+  // iterator orderItr = nlr.findInsertionPoint(fieldPtr,
+  //                                            begin(),
+  //                                            end());
+  // const int delta = std::distance(begin(), orderItr);
 
-  // We also update the set of NodeListPtrs in proper order.
-  mNodeListPtrs.insert(mNodeListPtrs.begin() + delta, const_cast<NodeList<Dimension>*>(&nodeList));
+  // // Insert the field.
+  // mFieldPtrs.insert(orderItr, fieldPtr);
+  // mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, fieldPtr);
+
+  // // We also update the set of NodeListPtrs in proper order.
+  // mNodeListPtrs.insert(mNodeListPtrs.begin() + delta, const_cast<NodeList<Dimension>*>(&nodeList));
   CHECK(mNodeListIndexMap.find(fieldPtr->nodeListPtr()) == mNodeListIndexMap.end());
   buildNodeListIndexMap();
 
