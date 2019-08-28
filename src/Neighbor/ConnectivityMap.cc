@@ -669,6 +669,7 @@ computeConnectivity() {
     mConnectivity = ConnectivityStorageType(connectivitySize, vector<vector<int> >(numNodeLists));
     mNodeTraversalIndices = vector<vector<int> >(numNodeLists);
   }
+  mNodePairList.clear();
 
   // If we're trying to be domain decomposition independent, we need a key to sort
   // by that will give us a unique ordering regardless of position.  The Morton ordered
@@ -777,6 +778,7 @@ computeConnectivity() {
                   // We don't include self-interactions.
                   if ((iNodeList != jNodeList) or (i != j)) {
                     neighbors[jNodeList].push_back(j);
+		    mNodePairList.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
                     if (domainDecompIndependent) keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
                   }
                 }
