@@ -148,7 +148,6 @@ public:
 
   // Check that the internal data structure is valid.
   bool valid() const;
-  NodePairList mNodePairList;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -164,6 +163,8 @@ private:
   std::vector<int> mOffsets;
   ConnectivityStorageType mConnectivity;
 
+  // List of Node conncetion pairs.
+  NodePairList mNodePairList;
 
   // Same for overlap connectivity.
   ConnectivityStorageType mOverlapConnectivity;
