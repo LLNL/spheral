@@ -21,7 +21,6 @@ class NodePairList:
     "Clears all data from Node pair List."
     return "void"
 
-  @PyB11const
   def size(self):
     "Returns the number of Node Pairs in the lsit"
     return "unsigned int"
