@@ -15,7 +15,8 @@ INSTSRCTARGETS = \
 	$(srcdir)/NeighborInst.cc.py \
 	$(srcdir)/NestedGridNeighborInst.cc.py \
 	$(srcdir)/TreeNeighborInst.cc.py \
-	$(srcdir)/ConnectivityMapInst.cc.py
+	$(srcdir)/ConnectivityMapInst.cc.py \
+	$(srcdir)/NodePairListInst.cc.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

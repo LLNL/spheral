@@ -8,8 +8,7 @@ namespace Spheral {
 
 class NodePairIdxType {
   public:
-    NodePairIdxType(int in, int il, int jn, int jl) : 
-      i_node(in), i_list(il), j_node(jn), j_list(jl) {}
+    NodePairIdxType(int i_n, int i_l, int j_n, int j_l);
   private:
     int i_node, i_list, j_node, j_list;
 };
@@ -17,10 +16,10 @@ class NodePairIdxType {
 
 class NodePairList {
   public:
-    NodePairList(){ }
-    void push_back(NodePairIdxType nodePair) { mNodePairList.push_back(nodePair); }
-    void clear() { mNodePairList.clear(); }
-    unsigned int size() const { return (unsigned int)mNodePairList.size(); }
+    NodePairList();
+    void push_back(NodePairIdxType nodePair);
+    void clear(); 
+    unsigned int size() const; 
   private:
     std::vector<NodePairIdxType> mNodePairList;
 };
