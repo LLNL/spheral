@@ -2,10 +2,10 @@ from PYB11Generator import *
 
 class NodePairIdxType:
   def pyinit(self,
-	     in = "int",
-	     il = "int",
-	     jn = "int",
-	     jl = "int"):
+	     i_n = "int",
+	     i_l = "int",
+	     j_n = "int",
+	     j_l = "int"):
     "Constructor"
 
 class NodePairList:

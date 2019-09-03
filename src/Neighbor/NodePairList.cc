@@ -2,7 +2,7 @@
 
 namespace Spheral {
   
-  NodePairIdxType::NodePairIdxType(int in, int il, int jn, int jl) :
+  NodePairIdxType::NodePairIdxType(int i_n, int i_l, int j_n, int j_l) :
     i_node(in), i_list(il), j_node(jn), j_list(jl) {}
 
   NodePairList::NodePairList(){};
