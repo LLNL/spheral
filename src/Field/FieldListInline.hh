@@ -7,6 +7,7 @@
 #include "Neighbor/Neighbor.hh"
 #include "Field/Field.hh"
 #include "Kernel/TableKernel.hh"
+#include "Utilities/allReduce.hh"
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -1296,11 +1297,7 @@ inline
 DataType
 FieldList<Dimension, DataType>::
 sumElements() const {
-  DataType result = DataTypeTraits<DataType>::zero();
-  for (const_iterator itr = begin(); itr != end(); ++itr) {
-    result += (*itr)->sumElements();
-  }
-  return result;
+  return allReduce(this->localSumElements(), MPI_SUM, Communicator::communicator());
 }
 
 //------------------------------------------------------------------------------
@@ -1311,11 +1308,7 @@ inline
 DataType
 FieldList<Dimension, DataType>::
 min() const {
-  DataType result = std::numeric_limits<DataType>::max();
-  for (const_iterator itr = begin(); itr != end(); ++itr) {
-    result = std::min(result, (*itr)->min());
-  }
-  return result;
+  return allReduce(this->localMin(), MPI_MIN, Communicator::communicator());
 }
 
 //------------------------------------------------------------------------------
@@ -1326,12 +1319,7 @@ inline
 DataType
 FieldList<Dimension, DataType>::
 max() const {
-  DataType result;
-  result = -std::numeric_limits<DataType>::max() < std::numeric_limits<DataType>::min() ? -std::numeric_limits<DataType>::max() : std::numeric_limits<DataType>::min();
-  for (const_iterator itr = begin(); itr != end(); ++itr) {
-    result = std::max(result, (*itr)->max());
-  }
-  return result;
+  return allReduce(this->localMax(), MPI_MAX, Communicator::communicator());
 }
 
 //------------------------------------------------------------------------------
@@ -1343,10 +1331,8 @@ inline
 DataType
 FieldList<Dimension, DataType>::
 localSumElements() const {
-  DataType result = DataTypeTraits<DataType>::zero();
-  for (const_iterator itr = begin(); itr != end(); ++itr) {
-    result += (*itr)->localSumElements();
-  }
+  auto result = DataTypeTraits<DataType>::zero();
+  for (auto itr = begin(); itr < end(); ++itr) result += (*itr)->localSumElements();
   return result;
 }
 
@@ -1359,10 +1345,8 @@ inline
 DataType
 FieldList<Dimension, DataType>::
 localMin() const {
-  DataType result = std::numeric_limits<DataType>::max();
-  for (const_iterator itr = begin(); itr != end(); ++itr) {
-    result = std::min(result, (*itr)->localMin());
-  }
+  auto result = std::numeric_limits<DataType>::max();
+  for (auto itr = begin(); itr != end(); ++itr) result = std::min(result, (*itr)->localMin());
   return result;
 }
 
@@ -1375,11 +1359,8 @@ inline
 DataType
 FieldList<Dimension, DataType>::
 localMax() const {
-  DataType result;
-  result = -std::numeric_limits<DataType>::max() < std::numeric_limits<DataType>::min() ? -std::numeric_limits<DataType>::max() : std::numeric_limits<DataType>::min();
-  for (const_iterator itr = begin(); itr != end(); ++itr) {
-    result = std::max(result, (*itr)->localMax());
-  }
+  auto result = -std::numeric_limits<DataType>::max() < std::numeric_limits<DataType>::min() ? -std::numeric_limits<DataType>::max() : std::numeric_limits<DataType>::min();
+  for (auto itr = begin(); itr < end(); ++itr) result = std::max(result, (*itr)->localMax());
   return result;
 }
 
