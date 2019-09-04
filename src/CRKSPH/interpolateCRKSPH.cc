@@ -2,13 +2,16 @@
 // Compute the CRKSPH interpolate.
 //------------------------------------------------------------------------------
 #include "interpolateCRKSPH.hh"
+#include "CRKSPH/CRKSPHUtilities.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
 #include "SPH/NodeCoupling.hh"
-#include "CRKSPHUtilities.hh"
+#include "Utilities/Timer.hh"
+
+extern Timer TIME_interpolateCRKSPH;
 
 namespace Spheral {
 
@@ -154,6 +157,8 @@ interpolateCRKSPH(const vector<variant<FieldList<Dimension, typename Dimension::
                   const TableKernel<Dimension>& W,
                   const NodeCoupling& nodeCoupling) {
 
+  TIME_interpolateCRKSPH.start();
+
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
@@ -270,6 +275,8 @@ interpolateCRKSPH(const vector<variant<FieldList<Dimension, typename Dimension::
       }
     }
   }
+
+  TIME_interpolateCRKSPH.stop();
 
   // That's it!
   return result;
