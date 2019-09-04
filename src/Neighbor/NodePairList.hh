@@ -2,7 +2,7 @@
 #define _Spheral_NeighbourSpace_NodePairList_hh_
 
 #include <iostream>
-
+#include <vector>
 
 namespace Spheral {
 
