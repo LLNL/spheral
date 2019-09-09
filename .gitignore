@@ -78,3 +78,4 @@ src/*/*cc.2.cc
 src/*/*cc.3.cc
 /build/*/x64
 /build/*/*.user
+*.aps
