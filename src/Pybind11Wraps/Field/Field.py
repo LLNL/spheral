@@ -126,8 +126,7 @@ class Field(FieldBase):
 
     @PYB11virtual
     def unpackValues(self,
-                     numElements = "int",
-                     beginInsertionIndex = "int",
+                     nodeIDs="const std::vector<int>&",
                      buffer = "const std::vector<char>&"):
         "Deserialize values from the given buffer"
         return "void"

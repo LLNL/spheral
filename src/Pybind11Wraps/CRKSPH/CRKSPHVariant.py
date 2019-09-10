@@ -36,7 +36,8 @@ class CRKSPHVariant(CRKSPHHydroBase):
                correctionOrder = "const CRKOrder",
                volumeType = "const CRKVolumeType",
                epsTensile = "const double",
-               nTensile = "const double"):
+               nTensile = "const double",
+               limitMultimaterialTopology = "const bool"):
         "Constructor"
 
     #...........................................................................

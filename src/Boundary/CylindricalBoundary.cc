@@ -360,6 +360,30 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field) const {
   }
 }
 
+// Specialization for FacetedVolume fields.
+void
+CylindricalBoundary::
+applyGhostBoundary(Field<Dim<3>, Dim<3>::FacetedVolume>& field) const {
+
+  // Apply the boundary condition to all the ghost node values.
+  const auto& nodeList = field.nodeList();
+  const auto& position = nodeList.positions();
+  CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
+  auto controlItr = controlBegin(nodeList);
+  auto ghostItr = ghostBegin(nodeList);
+  for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < ghostEnd(nodeList));
+    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
+    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    const auto T = reflectOperator(position(*controlItr), position(*ghostItr));
+    const auto& poly = field(*controlItr);
+    vector<Vector> verts(poly.vertices());
+    const auto& facets = poly.facetVertices();
+    for (auto& v: verts) v = T*v;
+    field(*ghostItr) = FacetedVolume(verts, facets);
+  }
+}
+
 // Specialization for vector<scalar> fields, just perform a copy.
 void
 CylindricalBoundary::
@@ -515,6 +539,12 @@ enforceBoundary(Field<Dim<3>, Dim<3>::SymTensor>& field) const {
 void
 CylindricalBoundary::
 enforceBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field) const {
+}
+
+// Specialization for FacetedVolume, no-op.
+void
+CylindricalBoundary::
+enforceBoundary(Field<Dim<3>, Dim<3>::FacetedVolume>& field) const {
 }
 
 //------------------------------------------------------------------------------

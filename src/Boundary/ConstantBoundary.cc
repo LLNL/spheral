@@ -126,6 +126,7 @@ ConstantBoundary(NodeList<Dimension>& nodeList,
   mTensorValues(),
   mSymTensorValues(),
   mThirdRankTensorValues(),
+  mFacetedVolumeValues(),
   mVectorScalarValues(),
   mVectorVectorValues(),
   mRestart(registerWithRestart(*this)) {
@@ -250,6 +251,14 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   if (mActive) resetValues(field, this->nodeIndices(), mThirdRankTensorValues, false);
 }
 
+// Specialization for FacetedVolume.
+template<typename Dimension>
+void
+ConstantBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+  if (mActive) resetValues(field, this->nodeIndices(), mFacetedVolumeValues, false);
+}
+
 // Specialization for vector<Scalar> fields.
 template<typename Dimension>
 void
@@ -368,6 +377,14 @@ enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) co
   // resetValues(field, this->nodeIndices(), mThirdRankTensorValues);
 }
 
+// Specialization for FacetedVolume.
+template<typename Dimension>
+void
+ConstantBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+  // resetValues(field, this->nodeIndices(), mFacetedVolumeValues);
+}
+
 //------------------------------------------------------------------------------
 // On problem startup we take our snapshot of the state.  We also then
 // destroy the original internal nodes, as we will be replacing them
@@ -386,6 +403,7 @@ ConstantBoundary<Dimension>::initializeProblemStartup() {
     mTensorValues.clear();
     mSymTensorValues.clear();
     mThirdRankTensorValues.clear();
+    mFacetedVolumeValues.clear();
     mVectorScalarValues.clear();
     mVectorVectorValues.clear();
 
@@ -400,6 +418,7 @@ ConstantBoundary<Dimension>::initializeProblemStartup() {
     storeFieldValues(*mNodeListPtr, nodeIDs, mTensorValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mSymTensorValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mThirdRankTensorValues);
+    storeFieldValues(*mNodeListPtr, nodeIDs, mFacetedVolumeValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mVectorScalarValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mVectorVectorValues);
 
@@ -494,6 +513,13 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(keys, pathName + "/ThirdRankTensorValues/keys");
 
   keys.clear();
+  for (const auto& p: mFacetedVolumeValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/FacetedVolumeValues/" + p.first);
+  }
+  file.write(keys, pathName + "/FacetedVolumeValues/keys");
+
+  keys.clear();
   for (const auto& p: mVectorScalarValues) {
     keys.push_back(p.first);
     file.write(p.second, pathName + "/VectorScalarValues/" + p.first);
@@ -565,6 +591,14 @@ restoreState(const FileIO& file, const string& pathName)  {
   for (const auto key: keys) {
     mThirdRankTensorValues[key] = std::vector<ThirdRankTensor>();
     file.read(mThirdRankTensorValues[key], pathName + "/ThirdRankTensorValues/" + key);
+  }
+
+  keys.clear();
+  file.read(keys, pathName + "/FacetedVolumeValues/keys");
+  mFacetedVolumeValues.clear();
+  for (const auto key: keys) {
+    mFacetedVolumeValues[key] = std::vector<FacetedVolume>();
+    file.read(mFacetedVolumeValues[key], pathName + "/FacetedVolumeValues/" + key);
   }
 
   keys.clear();

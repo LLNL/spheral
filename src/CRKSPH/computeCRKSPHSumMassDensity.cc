@@ -2,7 +2,6 @@
 // Compute the CRKSPH mass density summation.
 //------------------------------------------------------------------------------
 #include "computeCRKSPHSumMassDensity.hh"
-#include "interpolateCRKSPH.hh"
 #include "computeCRKSPHMoments.hh"
 #include "computeCRKSPHCorrections.hh"
 #include "CRKSPHCorrectionParams.hh"

@@ -22,7 +22,7 @@ def zbrent(func,x1,x2,tol):
         return 0.0
     fc=fb
     for iter in xrange(itmax):
-        if(fb*fc > 0.):
+        if(fb*fc >= 0.):
             c=a
             fc=fa
             d=b-a
@@ -106,7 +106,8 @@ class SodSolution:
         self.rhom2 = rho2 * (self.Pm + self.mu2*P2)/(P2 + self.mu2*self.Pm)
         self.vm = 2.*self.cs1/(gamma - 1.) * (1. - (self.Pm/P1)**(0.5*(gamma-1.0)/gamma))
         self.vt = self.cs1 - self.vm/(1. - self.mu2)
-        self.vs = self.vm/(1. - rho2/self.rhom2)
+        thpt = 1. - rho2/self.rhom2
+        self.vs = self.vm*thpt/(1.0e-50 + thpt*thpt)
         self.x = []
         for i in xrange(self.nPoints):
             self.x.append(x0 + i*self.dx)

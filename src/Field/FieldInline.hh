@@ -1230,23 +1230,9 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::
-unpackValues(const int numElements,
-             const int beginInsertionIndex,
+unpackValues(const std::vector<int>& nodeIDs,
              const std::vector<char>& buffer) {
-
-  REQUIRE(numElements >= 0);
-  REQUIRE(beginInsertionIndex >= 0 &&
-          beginInsertionIndex < this->size());
-  const int endIndex = beginInsertionIndex + numElements;
-  REQUIRE(endIndex <= this->size());
-
-  // The unpackFieldValues method requires the insertion indices explicitly.
-  std::vector<int> indices;
-  indices.reserve(numElements);
-  for (int i = 0; i != numElements; ++i) indices.push_back(beginInsertionIndex + i);
-
-  // Now we're ready to do the deed...
-  unpackFieldValues(*this, indices, buffer);
+  unpackFieldValues(*this, nodeIDs, buffer);
 }
 
 //------------------------------------------------------------------------------

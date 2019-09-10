@@ -103,24 +103,24 @@ step(typename Dimension::Scalar maxTime,
   auto pos0 = state.fields(HydroFieldNames::position, Vector::zero);
   pos0.copyFields();
 
-  // Evaluate the beginning of step derivatives.
-  // The zeros here are the timestep estimate, which we're putting off 'til we do the first derivative evaluation.
-  this->initializeDerivatives(t, 0.0, state, derivs);
-  derivs.Zero();
-  this->evaluateDerivatives(t, 0.0, db, state, derivs);
-  this->finalizeDerivatives(t, 0.0, db, state, derivs);
-
   // Determine the minimum timestep across all packages.
   const Scalar dtMin = min(this->dtMin(), maxTime - t);
   const Scalar dtMax = min(this->dtMax(), maxTime - t);
   const Scalar dt0 = this->selectDt(dtMin, dtMax, state, derivs);
   const Scalar hdt0 = 0.5*dt0;
 
+  // Evaluate the beginning of step derivatives.
+  this->initializeDerivatives(t, dt0, state, derivs);
+  derivs.Zero();
+  this->evaluateDerivatives(t, dt0, db, state, derivs);
+  this->finalizeDerivatives(t, dt0, db, state, derivs);
+
   // Predict state at the mid-point.
   // state.timeAdvanceOnly(true);
   state.update(derivs, hdt0, t, dt0);
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
+  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + hdt0, hdt0, db, state, derivs);
   this->finalizeGhostBoundaries();
 
@@ -140,6 +140,7 @@ step(typename Dimension::Scalar maxTime,
   }
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
+  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + dt0, dt0, db, state, derivs);
   this->finalizeGhostBoundaries();
 
@@ -160,6 +161,7 @@ step(typename Dimension::Scalar maxTime,
   }
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
+  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + dt0, dt0, db, state, derivs);
   this->finalizeGhostBoundaries();
 

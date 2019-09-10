@@ -59,7 +59,8 @@ public:
                     const CRKOrder correctionOrder,
                     const CRKVolumeType volumeType,
                     const double epsTensile,
-                    const double nTensile);
+                    const double nTensile,
+                    const bool limitMultimaterialTopology);
 
   // Destructor.
   virtual ~CRKSPHHydroBaseRZ();

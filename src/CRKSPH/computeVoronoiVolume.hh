@@ -4,6 +4,7 @@
 #ifndef __Spheral__computecomputeVoronoiVolume__
 #define __Spheral__computecomputeVoronoiVolume__
 
+#include "Geometry/CellFaceFlag.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Boundary/Boundary.hh"
@@ -12,6 +13,7 @@
 
 namespace Spheral {
 
+//------------------------------------------------------------------------------
 #ifdef SPHERAL1D
 // 1D
 void
@@ -28,7 +30,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
                      FieldList<Dim<1>, Dim<1>::Vector>& deltaMedian,
                      FieldList<Dim<1>, std::vector<Dim<1>::Vector>>& etaVoidPoints,
                      FieldList<Dim<1>, Dim<1>::FacetedVolume>& cells,
-                     FieldList<Dim<1>, std::vector<int>>& cellFaceFlags);
+                     FieldList<Dim<1>, std::vector<CellFaceFlag>>& cellFaceFlags);
 #endif
 
 #ifdef SPHERAL2D
@@ -47,7 +49,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian,
                      FieldList<Dim<2>, std::vector<Dim<2>::Vector>>& etaVoidPoints,
                      FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells,
-                     FieldList<Dim<2>, std::vector<int>>& cellFaceFlags);
+                     FieldList<Dim<2>, std::vector<CellFaceFlag>>& cellFaceFlags);
 #endif
 
 #ifdef SPHERAL3D
@@ -66,7 +68,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian,
                      FieldList<Dim<3>, std::vector<Dim<3>::Vector>>& etaVoidPoints,
                      FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells,
-                     FieldList<Dim<3>, std::vector<int>>& cellFaceFlags);
+                     FieldList<Dim<3>, std::vector<CellFaceFlag>>& cellFaceFlags);
 #endif
 
 }

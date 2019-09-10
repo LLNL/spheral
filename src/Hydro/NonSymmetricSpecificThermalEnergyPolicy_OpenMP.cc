@@ -126,7 +126,7 @@ update(const KeyType& key,
 
   // Prepare a counter to keep track of how we go through the pair-accelerations.
   auto DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
-  // auto poisoned = mDataBasePtr->newFluidFieldList(0, "poisoned flag");
+  auto poisoned = mDataBasePtr->newFluidFieldList(0, "poisoned flag");
 
   // Walk all the NodeLists and compute the energy change.
   const auto hdt = 0.5*multiplier;
@@ -185,10 +185,10 @@ update(const KeyType& key,
             CHECK(wi >= 0.0 and wi <= 1.0);
             DepsDti += wi*dEij/mi;
 
-            // // Check if either of these points was advanced non-conservatively.
-            // if (surface) {
-            //   poisoned(nodeListi, i) |= (surfacePoint(nodeListi, i) > 1 or surfacePoint(nodeListj, j) > 1 ? 1 : 0);
-            // }
+            // Check if either of these points was advanced non-conservatively.
+            if (surface) {
+              poisoned(nodeListi, i) |= (surfacePoint(nodeListi, i) != 0 or surfacePoint(nodeListj, j) != 0 ? 1 : 0);
+            }
           }
         }
       }
@@ -200,11 +200,11 @@ update(const KeyType& key,
         DepsDti += duii;
       }
 
-      // if (poisoned(nodeListi, i) == 0) {
+      if (poisoned(nodeListi, i) == 0) {
         eps(nodeListi, i) += DepsDti*multiplier;
-      // } else {
-      //   eps(nodeListi, i) += DepsDt0(nodeListi, i)*multiplier;
-      // }
+      } else {
+        eps(nodeListi, i) += DepsDt0(nodeListi, i)*multiplier;
+      }
     }
   }
 }
