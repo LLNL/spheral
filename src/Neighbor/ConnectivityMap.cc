@@ -739,7 +739,7 @@ computeConnectivity() {
         // Iterate over the full of NodeLists again to work on the master nodes.
         for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
           const auto nmaster = masterLists[iNodeList].size();
-#pragma omp parallel for schedule(dynamic)
+// #pragma omp parallel for schedule(dynamic)
           for (auto k = 0; k < nmaster; ++k) {
             const auto i = masterLists[iNodeList][k];
             CHECK2(flagNodeDone(iNodeList, i) == 0, "(" << iNodeList << " " << i << ") (" << iNodeList << " " << i << ")");
