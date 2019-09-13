@@ -17,9 +17,13 @@ idim = int(ndim)
 
 dictionary = {"ndim" : ndim}
 
-execfile(infile)
+## Python 2
+#
+#execfile(infile)
+#
+## Python 3
+exec(open(infile).read())
 
 f = open(outfile, "w")
 f.write(text % dictionary)
 f.close()
-

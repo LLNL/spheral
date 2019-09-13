@@ -347,7 +347,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\Boundary\AxialSymmetryBoundary.cc" />
     <ClCompile Include="..\..\src\Boundary\AxisBoundaryRZ.cc" />
     <ClCompile Include="..\..\src\Boundary\BoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Boundary\BoundaryInst.cc.3.cc" />
@@ -361,9 +360,6 @@
     <ClCompile Include="..\..\src\Boundary\RigidBoundaryInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\Boundary\AxialSymmetryBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\src\Boundary\AxisBoundaryRZ.hh">
       <FileType>Document</FileType>
     </None>
@@ -427,9 +423,6 @@
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
     <None Include="..\..\src\Boundary\RigidBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\RigidBoundaryInline.hh">
       <FileType>Document</FileType>
     </None>
     <CustomBuild Include="..\..\src\Boundary\RigidBoundaryInst.cc.py">

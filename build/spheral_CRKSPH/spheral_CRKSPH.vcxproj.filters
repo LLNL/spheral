@@ -72,12 +72,6 @@
     <ClCompile Include="..\..\src\CRKSPH\detectSurfaceInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\flagSurfaceNeighborsInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\flagSurfaceNeighborsInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -179,9 +173,6 @@
     <None Include="..\..\src\CRKSPH\detectSurface.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\CRKSPH\flagSurfaceNeighbors.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\CRKSPH\SolidCRKSPHHydroBase.hh">
       <Filter>Header Files</Filter>
     </None>
@@ -224,6 +215,12 @@
     <None Include="..\..\src\CRKSPH\computeVoronoiVolumes.hh">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </None>
+    <None Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrectionsInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHCorrectionsInst.cc.py">
@@ -253,9 +250,6 @@
     <CustomBuild Include="..\..\src\CRKSPH\detectSurfaceInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\flagSurfaceNeighborsInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
@@ -274,5 +268,13 @@
     <CustomBuild Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopology.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrections.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
