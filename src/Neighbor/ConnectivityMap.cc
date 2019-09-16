@@ -760,6 +760,7 @@ computeConnectivity() {
 
             // Iterate over the neighbor NodeLists.
             for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
+              const auto firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
 
               // Iterate over the coarse neighbors in this NodeList.
               // t0 = std::clock();
@@ -778,7 +779,8 @@ computeConnectivity() {
                   // We don't include self-interactions.
                   if ((iNodeList != jNodeList) or (i != j)) {
                     neighbors[jNodeList].push_back(j);
-		    mNodePairList.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
+                    if (calculatePairInteraction(iNodeList, i, jNodeList, j, firstGhostNodej))
+                      mNodePairList.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
                     if (domainDecompIndependent) keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
                   }
                 }
