@@ -72,10 +72,10 @@
     <ClCompile Include="..\..\src\CRKSPH\detectSurfaceInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\flagSurfaceNeighborsInst.cc.2.cc">
+    <ClCompile Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\flagSurfaceNeighborsInst.cc.3.cc">
+    <ClCompile Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.2.cc">
@@ -185,7 +185,7 @@
     <None Include="..\..\src\CRKSPH\detectSurface.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\CRKSPH\flagSurfaceNeighbors.hh">
+    <None Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopology.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\CRKSPH\SolidCRKSPHHydroBase.hh">
@@ -262,7 +262,7 @@
     <CustomBuild Include="..\..\src\CRKSPH\detectSurfaceInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\flagSurfaceNeighborsInst.cc.py">
+    <CustomBuild Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.py">

@@ -1,34 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{3985b720-1b51-4f78-a4ae-c6cc1630dded}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{41f0b839-f32f-40b0-9899-58105a1ca398}</UniqueIdentifier>
     </Filter>
     <Filter Include="Inst Files">
       <UniqueIdentifier>{c644b29a-b59a-46ec-9d95-acabafe580aa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Inst Files\Source Files">
+      <UniqueIdentifier>{3985b720-1b51-4f78-a4ae-c6cc1630dded}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\Boundary\AxialSymmetryBoundary.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Boundary\AxisBoundaryRZ.cc">
-      <Filter>Source Files</Filter>
+      <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Boundary\BoundaryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
+      <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Boundary\BoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
+      <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
+      <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
+      <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.2.cc">
       <Filter>Source Files</Filter>
@@ -40,28 +37,25 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Boundary\PlanarBoundaryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
+      <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Boundary\PlanarBoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
+      <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Boundary\ReflectingBoundaryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
+      <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Boundary\ReflectingBoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
+      <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Boundary\RigidBoundaryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
+      <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Boundary\RigidBoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
+      <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\Boundary\AxialSymmetryBoundary.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\Boundary\AxisBoundaryRZ.hh">
       <Filter>Header Files</Filter>
     </None>
@@ -99,9 +93,6 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Boundary\RigidBoundary.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Boundary\RigidBoundaryInline.hh">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

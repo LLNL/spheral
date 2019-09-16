@@ -376,8 +376,8 @@
     <ClCompile Include="..\..\src\CRKSPH\CRKSPHHydroBaseRZ.cc" />
     <ClCompile Include="..\..\src\CRKSPH\detectSurfaceInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\detectSurfaceInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\flagSurfaceNeighborsInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\flagSurfaceNeighborsInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\interpolateCRKSPHInst.cc.2.cc" />
@@ -558,7 +558,10 @@
     <None Include="..\..\src\CRKSPH\detectSurface.hh">
       <FileType>Document</FileType>
     </None>
-    <CustomBuild Include="..\..\src\CRKSPH\detectSurfaceInst.cc.py">
+    <None Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopology.hh">
+      <FileType>Document</FileType>
+    </None>
+    <CustomBuild Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -566,10 +569,7 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\CRKSPH\flagSurfaceNeighbors.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\CRKSPH\flagSurfaceNeighborsInst.cc.py">
+    <CustomBuild Include="..\..\src\CRKSPH\detectSurfaceInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
