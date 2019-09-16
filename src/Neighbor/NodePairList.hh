@@ -41,6 +41,9 @@ public:
   reference operator[](const size_t i) { return mNodePairList[i]; }
   const_reference operator[](const size_t i) const { return mNodePairList[i]; }
 
+  template<typename InputIterator>
+  iterator insert(const_iterator pos, InputIterator first, InputIterator last) { return mNodePairList.insert(pos, first, last); }
+
 private:
   ContainerType mNodePairList;
 };

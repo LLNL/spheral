@@ -739,75 +739,84 @@ computeConnectivity() {
         // Iterate over the full of NodeLists again to work on the master nodes.
         for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
           const auto nmaster = masterLists[iNodeList].size();
-// #pragma omp parallel for schedule(dynamic)
-          for (auto k = 0; k < nmaster; ++k) {
-            const auto i = masterLists[iNodeList][k];
-            CHECK2(flagNodeDone(iNodeList, i) == 0, "(" << iNodeList << " " << i << ") (" << iNodeList << " " << i << ")");
+#pragma omp parallel 
+          {
+            NodePairList nodePairs_private;
+#pragma omp for schedule(dynamic)
+            for (auto k = 0; k < nmaster; ++k) {
+              const auto i = masterLists[iNodeList][k];
+              CHECK2(flagNodeDone(iNodeList, i) == 0, "(" << iNodeList << " " << i << ") (" << iNodeList << " " << i << ")");
 
-            // Get the state for this node.
-            const auto& ri = position(iNodeList, i);
-            const auto& Hi = H(iNodeList, i);
-            auto&       worki = mNodeLists[iNodeList]->work();
-            CHECK(mOffsets[iNodeList] + i < mConnectivity.size());
-            const auto start = Timing::currentTime();
+              // Get the state for this node.
+              const auto& ri = position(iNodeList, i);
+              const auto& Hi = H(iNodeList, i);
+              auto&       worki = mNodeLists[iNodeList]->work();
+              CHECK(mOffsets[iNodeList] + i < mConnectivity.size());
+              const auto start = Timing::currentTime();
 
-            // Get the neighbor set we're building for this node.
-            auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
-            CHECK2(neighbors.size() == numNodeLists, neighbors.size() << " " << numNodeLists << " " << i);
+              // Get the neighbor set we're building for this node.
+              auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
+              CHECK2(neighbors.size() == numNodeLists, neighbors.size() << " " << numNodeLists << " " << i);
 
-            // We keep track of the Morton indices.
-            vector<vector<pair<int, Key>>> keys(numNodeLists);
+              // We keep track of the Morton indices.
+              vector<vector<pair<int, Key>>> keys(numNodeLists);
 
-            // Iterate over the neighbor NodeLists.
-            for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
-              const auto firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
+              // Iterate over the neighbor NodeLists.
+              for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
+                const auto firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
 
-              // Iterate over the coarse neighbors in this NodeList.
-              // t0 = std::clock();
-              for (const auto j:  coarseNeighbors[jNodeList]) {
-                const auto& rj = position(jNodeList, j);
-                const auto& Hj = H(jNodeList, j);
+                // Iterate over the coarse neighbors in this NodeList.
+                // t0 = std::clock();
+                for (const auto j:  coarseNeighbors[jNodeList]) {
+                  const auto& rj = position(jNodeList, j);
+                  const auto& Hj = H(jNodeList, j);
 
-                // Compute the normalized distance between this pair.
-                const auto rij = ri - rj;
-                const auto eta2i = (Hi*rij).magnitude2();
-                const auto eta2j = (Hj*rij).magnitude2();
+                  // Compute the normalized distance between this pair.
+                  const auto rij = ri - rj;
+                  const auto eta2i = (Hi*rij).magnitude2();
+                  const auto eta2j = (Hj*rij).magnitude2();
 
-                // If this pair is significant, add it to the list.
-                if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
+                  // If this pair is significant, add it to the list.
+                  if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
 
-                  // We don't include self-interactions.
-                  if ((iNodeList != jNodeList) or (i != j)) {
-                    neighbors[jNodeList].push_back(j);
-                    if (calculatePairInteraction(iNodeList, i, jNodeList, j, firstGhostNodej))
-                      mNodePairList.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
-                    if (domainDecompIndependent) keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+                    // We don't include self-interactions.
+                    if ((iNodeList != jNodeList) or (i != j)) {
+                      neighbors[jNodeList].push_back(j);
+                      if (calculatePairInteraction(iNodeList, i, jNodeList, j, firstGhostNodej)) 
+                        nodePairs_private.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
+                      if (domainDecompIndependent) 
+                        keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+                    }
                   }
                 }
+                // twalk += std::clock() - t0;
               }
-              // twalk += std::clock() - t0;
-            }
-            CHECK(neighbors.size() == numNodeLists);
-            CHECK(keys.size() == numNodeLists);
+              CHECK(neighbors.size() == numNodeLists);
+              CHECK(keys.size() == numNodeLists);
         
-            // We have a few options for how to order the neighbors for this node.
-            for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
+              // We have a few options for how to order the neighbors for this node.
+              for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
 
-              if (domainDecompIndependent) {
-                // Sort in a domain independent manner.
-                CHECK(keys[jNodeList].size() == neighbors[jNodeList].size());
-                sort(keys[jNodeList].begin(), keys[jNodeList].end(), ComparePairsBySecondElement<pair<int, Key>>());
-                for (auto j = 0; j != neighbors[jNodeList].size(); ++j) neighbors[jNodeList][j] = keys[jNodeList][j].first;
-              } else {
-                // Sort in an attempt to be cache friendly.
-                sort(neighbors[jNodeList].begin(), neighbors[jNodeList].end());
+                if (domainDecompIndependent) {
+                  // Sort in a domain independent manner.
+                  CHECK(keys[jNodeList].size() == neighbors[jNodeList].size());
+                  sort(keys[jNodeList].begin(), keys[jNodeList].end(), ComparePairsBySecondElement<pair<int, Key>>());
+                  for (auto j = 0; j != neighbors[jNodeList].size(); ++j) neighbors[jNodeList][j] = keys[jNodeList][j].first;
+                } else {
+                  // Sort in an attempt to be cache friendly.
+                  sort(neighbors[jNodeList].begin(), neighbors[jNodeList].end());
+                }
               }
-            }
 
-            // Flag this master node as done.
-            flagNodeDone(iNodeList, i) = 1;
-            worki(i) += Timing::difference(start, Timing::currentTime());
-          }
+              // Flag this master node as done.
+              flagNodeDone(iNodeList, i) = 1;
+              worki(i) += Timing::difference(start, Timing::currentTime());
+            }
+            
+            // Merge the NodePairList
+#pragma omp critical
+            mNodePairList.insert(mNodePairList.end(), nodePairs_private.begin(), nodePairs_private.end());
+          } // end OMP parallel
         }
       }
     }
@@ -867,6 +876,15 @@ computeConnectivity() {
       }
     }
   }
+
+  // // Build the NodePairList
+  // for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
+
+  // // Sort the NodePairList to be more efficient.
+  // sort(mNodePairList.begin(), mNodePairList.end(), [](const NodePairIdxType& a, const NodePairIdxType& b) { return (a.i_list < b.i_list ? true :
+  //                                                                                                                   a.i_list > b.i_list ? false :
+  //                                                                                                                   a.i_node < b.i_node ? true :
+  //                                                                                                                   false); });
 
   // Do we need overlap connectivity?
   if (mBuildOverlapConnectivity) {
