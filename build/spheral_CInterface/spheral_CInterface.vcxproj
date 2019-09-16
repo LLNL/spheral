@@ -383,6 +383,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\CInterface\SpheralC.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\CInterface\SpheralPseudoScript.hh">
@@ -462,6 +463,9 @@
     <ProjectReference Include="..\spheral_utilities\spheral_utilities.vcxproj">
       <Project>{241b879c-082a-4da4-8464-6d2e3520e05b}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="spheral_CInterface.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

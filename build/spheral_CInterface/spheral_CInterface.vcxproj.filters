@@ -7,6 +7,9 @@
     <Filter Include="Header Files">
       <UniqueIdentifier>{7bf7ac7a-79a3-410e-9066-9b29ba8da552}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{21623b53-5b2c-476d-be73-0bbe41415d5f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\CInterface\SpheralC.cc">
@@ -20,10 +23,18 @@
     <ClInclude Include="..\..\src\CInterface\SpheralC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\CInterface\SpheralPseudoScript.hh">
       <Filter>Header Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="spheral_CInterface.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
