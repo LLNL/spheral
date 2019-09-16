@@ -130,6 +130,23 @@ struct IncrementElement: public boost::static_visitor<> {
   }
 };
 
+//------------------------------------------------------------------------------
+// IncrementFieldList
+//------------------------------------------------------------------------------
+struct IncrementFieldList: public boost::static_visitor<> {
+
+  template<typename A, typename B>
+  inline
+  void operator()(A& x, const B& y) const { VERIFY(false); }
+
+  template<typename FieldListType>
+  inline
+  void operator()(FieldListType& x, const FieldListType& y) const {
+    CHECK(x.size() == y.size());
+    x += y;
+  }
+};
+
 }
 
 //------------------------------------------------------------------------------
@@ -192,62 +209,89 @@ interpolateCRKSPH(const vector<variant<FieldList<Dimension, typename Dimension::
   // Walk all the interacting pairs.
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
-  auto Bi = Vector::zero, Bj = Vector::zero;
-  auto Ci = Tensor::zero, Cj = Tensor::zero;
-  int i, j, nodeListi, nodeListj;
-  for (auto kk = 0; kk < npairs; ++kk) {
-    i = pairs[kk].i_node;
-    j = pairs[kk].j_node;
-    nodeListi = pairs[kk].i_list;
-    nodeListj = pairs[kk].j_list;
 
-    // Get the state for node i.
-    const auto& ri = position(nodeListi, i);
-    const auto& Hi = H(nodeListi, i);
-    const auto  Hdeti = Hi.Determinant();
-    const auto& Ai = A(nodeListi, i);
-    if (correctionOrder != CRKOrder::ZerothOrder) Bi = B(nodeListi, i);
-    if (correctionOrder == CRKOrder::QuadraticOrder) Ci = C(nodeListi, i);
+#pragma omp parallel
+  {
 
-    // The coupling between these nodes.
-    const auto fij = nodeCoupling(nodeListi, i, nodeListj, j);
-    if (fij > 0.0) {
+    // Thread private result
+    FieldListArray localResult;
+    for (const auto& fieldList: fieldLists) {
+      localResult.push_back(fieldList);
+      boost::apply_visitor(CopyFields(), localResult.back());
+      boost::apply_visitor(ZeroFields(), localResult.back());
+      boost::apply_visitor(PrependNameFields("local interpolate "), localResult.back());
+    }
 
-      // Find the effective weights of i->j and j->i.
-      // const Scalar wi = fij*2.0*weight(nodeListi, i)*weight(nodeListj, j)/(weight(nodeListi, i) + weight(nodeListj, j));
-      // const Scalar wi = fij*0.5*(weight(nodeListi, i) + weight(nodeListj, j));
-      // const Scalar wj = wi;
-      const auto wi = fij*weight(nodeListi, i);
-      const auto wj = fij*weight(nodeListj, j);
+    auto Bi = Vector::zero, Bj = Vector::zero;
+    auto Ci = Tensor::zero, Cj = Tensor::zero;
+    int i, j, nodeListi, nodeListj;
 
-      // Get the state for node j.
-      const auto& rj = position(nodeListj, j);
-      const auto& Hj = H(nodeListj, j);
-      const auto  Hdetj = Hj.Determinant();
-      const auto  Aj = A(nodeListj, j);
-      if (correctionOrder != CRKOrder::ZerothOrder) Bj = B(nodeListj, j);
-      if (correctionOrder == CRKOrder::QuadraticOrder) Cj = C(nodeListj, j);
+#pragma omp for
+    for (auto kk = 0; kk < npairs; ++kk) {
+      i = pairs[kk].i_node;
+      j = pairs[kk].j_node;
+      nodeListi = pairs[kk].i_list;
+      nodeListj = pairs[kk].j_list;
 
-      // Node displacement.
-      const auto rij = ri - rj;
-      const auto etai = Hi*rij;
-      const auto etaj = Hj*rij;
+      // Get the state for node i.
+      const auto& ri = position(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      const auto& Ai = A(nodeListi, i);
+      if (correctionOrder != CRKOrder::ZerothOrder) Bi = B(nodeListi, i);
+      if (correctionOrder == CRKOrder::QuadraticOrder) Ci = C(nodeListi, i);
 
-      // Kernel weight.
-      const auto Wj = CRKSPHKernel(W, correctionOrder,  rij,  etaj, Hdetj, Ai, Bi, Ci);
-      const auto Wi = CRKSPHKernel(W, correctionOrder, -rij, -etai, Hdeti, Aj, Bj, Cj);
+      // The coupling between these nodes.
+      const auto fij = nodeCoupling(nodeListi, i, nodeListj, j);
+      if (fij > 0.0) {
 
-      // Increment the pair-wise values.
+        // Find the effective weights of i->j and j->i.
+        // const Scalar wi = fij*2.0*weight(nodeListi, i)*weight(nodeListj, j)/(weight(nodeListi, i) + weight(nodeListj, j));
+        // const Scalar wi = fij*0.5*(weight(nodeListi, i) + weight(nodeListj, j));
+        // const Scalar wj = wi;
+        const auto wi = fij*weight(nodeListi, i);
+        const auto wj = fij*weight(nodeListj, j);
+
+        // Get the state for node j.
+        const auto& rj = position(nodeListj, j);
+        const auto& Hj = H(nodeListj, j);
+        const auto  Hdetj = Hj.Determinant();
+        const auto  Aj = A(nodeListj, j);
+        if (correctionOrder != CRKOrder::ZerothOrder) Bj = B(nodeListj, j);
+        if (correctionOrder == CRKOrder::QuadraticOrder) Cj = C(nodeListj, j);
+
+        // Node displacement.
+        const auto rij = ri - rj;
+        const auto etai = Hi*rij;
+        const auto etaj = Hj*rij;
+
+        // Kernel weight.
+        const auto Wj = CRKSPHKernel(W, correctionOrder,  rij,  etaj, Hdetj, Ai, Bi, Ci);
+        const auto Wi = CRKSPHKernel(W, correctionOrder, -rij, -etai, Hdeti, Aj, Bj, Cj);
+
+        // Increment the pair-wise values.
+        for (auto k = 0; k < numFieldLists; ++k) {
+          boost::apply_visitor(IncrementElement(nodeListi, i, nodeListj, j, wj*Wj), localResult[k], fieldLists[k]);
+          boost::apply_visitor(IncrementElement(nodeListj, j, nodeListi, i, wi*Wi), localResult[k], fieldLists[k]);
+        }
+      }
+    }
+
+    // Merge the local to global result
+#pragma omp critical
+    {
       for (auto k = 0; k < numFieldLists; ++k) {
-        boost::apply_visitor(IncrementElement(nodeListi, i, nodeListj, j, wj*Wj), result[k], fieldLists[k]);
-        boost::apply_visitor(IncrementElement(nodeListj, j, nodeListi, i, wi*Wi), result[k], fieldLists[k]);
+        boost::apply_visitor(IncrementFieldList(), result[k], localResult[k]);
       }
     }
   }
 
   // Add the self contribution.
+  auto Bi = Vector::zero;
+  auto Ci = Tensor::zero;
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
     const auto n = A[nodeListi]->nodeList().numInternalNodes();
+#pragma omp parallel for
     for (auto i = 0; i < n; ++i) {
 
       // Get the state for node i.
