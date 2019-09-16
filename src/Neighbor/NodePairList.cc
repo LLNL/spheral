@@ -15,8 +15,4 @@ namespace Spheral {
     mNodePairList.clear();
   }
 
-  unsigned int NodePairList::size() const {
-    return (unsigned int)mNodePairList.size();
-  }
-
 }
