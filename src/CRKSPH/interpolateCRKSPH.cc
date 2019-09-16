@@ -215,6 +215,7 @@ interpolateCRKSPH(const vector<variant<FieldList<Dimension, typename Dimension::
 
     // Thread private result
     FieldListArray localResult;
+    #pragma omp critical
     for (const auto& fieldList: fieldLists) {
       localResult.push_back(fieldList);
       boost::apply_visitor(CopyFields(), localResult.back());
