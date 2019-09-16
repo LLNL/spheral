@@ -381,6 +381,9 @@ maxdyRKerror = max([abs(x) for x in errdyRK])
 print "Maximum errors (interpolation): SPH = %g, RK = %g" % (maxySPHerror, maxyRKerror)
 print "Maximum errors   (derivatives): SPH = %g, RK = %g" % (maxdySPHerror, maxdyRKerror)
 
+# Output timing tables.
+Timer.TimerSummary()
+
 #-------------------------------------------------------------------------------
 # Plot the things.
 #-------------------------------------------------------------------------------
