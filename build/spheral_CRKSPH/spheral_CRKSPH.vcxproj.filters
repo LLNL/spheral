@@ -126,6 +126,12 @@
     <ClCompile Include="..\..\src\CRKSPH\computeVoronoiVolume3d.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrectionsInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrectionsInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\CRKSPH\centerOfMass.hh">
@@ -224,6 +230,9 @@
     <None Include="..\..\src\CRKSPH\computeVoronoiVolumes.hh">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrections.hh">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHCorrectionsInst.cc.py">
@@ -272,6 +281,9 @@
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrectionsInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
   </ItemGroup>

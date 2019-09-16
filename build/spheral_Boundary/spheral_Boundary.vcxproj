@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="CUDADebug|x64">
@@ -353,6 +353,8 @@
     <ClCompile Include="..\..\src\Boundary\BoundaryInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Boundary\PlanarBoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Boundary\PlanarBoundaryInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Boundary\ReflectingBoundaryInst.cc.2.cc" />
@@ -395,6 +397,20 @@
     <None Include="..\..\src\Boundary\mapPositionThroughPlanes.hh">
       <FileType>Document</FileType>
     </None>
+    <None Include="..\..\src\Boundary\PeriodicBoundary.hh">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\src\Boundary\PeriodicPlanarBoundary.hh">
+      <FileType>Document</FileType>
+    </None>
+    <CustomBuild Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
     <None Include="..\..\src\Boundary\PlanarBoundary.hh">
       <FileType>Document</FileType>
     </None>

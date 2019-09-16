@@ -30,6 +30,15 @@
     <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Boundary\PeriodicPlanarBoundary.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\Boundary\PlanarBoundaryInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -68,6 +77,12 @@
     <None Include="..\..\src\Boundary\mapPositionThroughPlanes.hh">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="..\..\src\Boundary\PeriodicBoundary.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\Boundary\PeriodicPlanarBoundary.hh">
+      <Filter>Header Files</Filter>
+    </None>
     <None Include="..\..\src\Boundary\PlanarBoundary.hh">
       <Filter>Header Files</Filter>
     </None>
@@ -95,6 +110,9 @@
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Boundary\PlanarBoundaryInst.cc.py">
