@@ -189,17 +189,66 @@ interpolateCRKSPH(const vector<variant<FieldList<Dimension, typename Dimension::
     boost::apply_visitor(PrependNameFields("interpolate "), result.back());
   }
 
-  // Walk the FluidNodeLists.
+  // Walk all the interacting pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
   auto Bi = Vector::zero, Bj = Vector::zero;
   auto Ci = Tensor::zero, Cj = Tensor::zero;
-  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const auto firstGhostNodei = A[nodeListi]->nodeList().firstGhostNode();
+  int i, j, nodeListi, nodeListj;
+  for (auto kk = 0; kk < npairs; ++kk) {
+    i = pairs[kk].i_node;
+    j = pairs[kk].j_node;
+    nodeListi = pairs[kk].i_list;
+    nodeListj = pairs[kk].j_list;
 
-    // Iterate over the nodes in this node list.
-    for (auto iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const auto i = *iItr;
+    // Get the state for node i.
+    const auto& ri = position(nodeListi, i);
+    const auto& Hi = H(nodeListi, i);
+    const auto  Hdeti = Hi.Determinant();
+    const auto& Ai = A(nodeListi, i);
+    if (correctionOrder != CRKOrder::ZerothOrder) Bi = B(nodeListi, i);
+    if (correctionOrder == CRKOrder::QuadraticOrder) Ci = C(nodeListi, i);
+
+    // The coupling between these nodes.
+    const auto fij = nodeCoupling(nodeListi, i, nodeListj, j);
+    if (fij > 0.0) {
+
+      // Find the effective weights of i->j and j->i.
+      // const Scalar wi = fij*2.0*weight(nodeListi, i)*weight(nodeListj, j)/(weight(nodeListi, i) + weight(nodeListj, j));
+      // const Scalar wi = fij*0.5*(weight(nodeListi, i) + weight(nodeListj, j));
+      // const Scalar wj = wi;
+      const auto wi = fij*weight(nodeListi, i);
+      const auto wj = fij*weight(nodeListj, j);
+
+      // Get the state for node j.
+      const auto& rj = position(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto  Hdetj = Hj.Determinant();
+      const auto  Aj = A(nodeListj, j);
+      if (correctionOrder != CRKOrder::ZerothOrder) Bj = B(nodeListj, j);
+      if (correctionOrder == CRKOrder::QuadraticOrder) Cj = C(nodeListj, j);
+
+      // Node displacement.
+      const auto rij = ri - rj;
+      const auto etai = Hi*rij;
+      const auto etaj = Hj*rij;
+
+      // Kernel weight.
+      const auto Wj = CRKSPHKernel(W, correctionOrder,  rij,  etaj, Hdetj, Ai, Bi, Ci);
+      const auto Wi = CRKSPHKernel(W, correctionOrder, -rij, -etai, Hdeti, Aj, Bj, Cj);
+
+      // Increment the pair-wise values.
+      for (auto k = 0; k < numFieldLists; ++k) {
+        boost::apply_visitor(IncrementElement(nodeListi, i, nodeListj, j, wj*Wj), result[k], fieldLists[k]);
+        boost::apply_visitor(IncrementElement(nodeListj, j, nodeListi, i, wi*Wi), result[k], fieldLists[k]);
+      }
+    }
+  }
+
+  // Add the self contribution.
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto n = A[nodeListi]->nodeList().numInternalNodes();
+    for (auto i = 0; i < n; ++i) {
 
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
@@ -213,65 +262,6 @@ interpolateCRKSPH(const vector<variant<FieldList<Dimension, typename Dimension::
       const auto W0 = W.kernelValue(0.0, Hdeti);
       for (auto k = 0; k < numFieldLists; ++k) {
         boost::apply_visitor(IncrementElement(nodeListi, i, nodeListi, i, weight(nodeListi, i)*W0*Ai), result[k], fieldLists[k]);
-      }
-
-      // Neighbors!
-      const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-      CHECK(fullConnectivity.size() == numNodeLists);
-
-      // Walk the neighbor nodeLists.
-      for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-      
-        // Connectivity of this node with this NodeList.  We only need to proceed if
-        // there are some nodes in this list.
-        const auto& connectivity = fullConnectivity[nodeListj];
-        if (connectivity.size() > 0) {
-          const auto firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
-
-          // Loop over the neighbors.
-          for (auto j: connectivity) {
-
-            // The coupling between these nodes.
-            const auto fij = nodeCoupling(nodeListi, i, nodeListj, j);
-
-            // Only proceed if this node pair has not been calculated yet.
-            if (fij > 0.0 and connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                                       nodeListj, j,
-                                                                       firstGhostNodej)) {
-
-              // Find the effective weights of i->j and j->i.
-              // const Scalar wi = fij*2.0*weight(nodeListi, i)*weight(nodeListj, j)/(weight(nodeListi, i) + weight(nodeListj, j));
-              // const Scalar wi = fij*0.5*(weight(nodeListi, i) + weight(nodeListj, j));
-              // const Scalar wj = wi;
-              const auto wi = fij*weight(nodeListi, i);
-              const auto wj = fij*weight(nodeListj, j);
-
-              // Get the state for node j.
-              const auto& rj = position(nodeListj, j);
-              const auto& Hj = H(nodeListj, j);
-              const auto  Hdetj = Hj.Determinant();
-              const auto  Aj = A(nodeListj, j);
-              if (correctionOrder != CRKOrder::ZerothOrder) Bj = B(nodeListj, j);
-              if (correctionOrder == CRKOrder::QuadraticOrder) Cj = C(nodeListj, j);
-
-              // Node displacement.
-              const auto rij = ri - rj;
-              const auto etai = Hi*rij;
-              const auto etaj = Hj*rij;
-
-              // Kernel weight.
-              const auto Wj = CRKSPHKernel(W, correctionOrder,  rij,  etaj, Hdetj, Ai, Bi, Ci);
-              const auto Wi = CRKSPHKernel(W, correctionOrder, -rij, -etai, Hdeti, Aj, Bj, Cj);
-
-              // Increment the pair-wise values.
-              for (auto k = 0; k < numFieldLists; ++k) {
-                boost::apply_visitor(IncrementElement(nodeListi, i, nodeListj, j, wj*Wj), result[k], fieldLists[k]);
-                boost::apply_visitor(IncrementElement(nodeListj, j, nodeListi, i, wi*Wi), result[k], fieldLists[k]);
-              }
-
-            }
-          }
-        }
       }
     }
   }
