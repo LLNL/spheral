@@ -1,18 +1,44 @@
-blt_add_library( 
-  NAME Neighbor_spheral
-  HEADERS ConnectivityMap.hh 
-	  GridCellIndex.hh
-	  GridCellPlane.hh
-	  Neighbor.hh
-	  NestedGridNeighbor.hh
-	  NodePairList.hh
-	  TreeNeighbor.hh
-  SOURCES ConnectivityMap.cc
-	  GridCellIndex.cc
-	  GridCellPlane.cc
-	  Neighbor.cc
-	  NestedGridNeighbor.cc
-	  NodePairList.cc
-	  TreeNeighbor.cc
-  OBJECT FALSE
-  DEPENDS_ON Field_spheral)
+set(Neighbor_inst
+    ConnectivityMap
+    GridCellIndex
+    GridCellPlane
+    Neighbor
+    NestedGridNeighbor
+    NodePairList
+    TreeNeighbor
+    )
+
+set(Neighbor_sources )
+instantiate(Neighbor_inst Neighbor_sources)
+
+set(Neighbor_headers
+    ConnectivityMap.hh
+    ConnectivityMapInline.hh
+    GridCellIndex.hh
+    GridCellIndexBase.hh
+    GridCellIndexInline.hh
+    GridCellPlane.hh
+    GridCellPlaneInline.hh
+    Neighbor.hh
+    NeighborInline.hh
+    NestedGridNeighbor.hh
+    NestedGridNeighborInline.hh
+    NodePairList.hh
+    TreeNeighbor.hh
+    )
+ 
+blt_add_library(NAME	    Spheral_Neighbor
+		HEADERS     ${Neighbor_headers}
+		SOURCES     ${Neighbor_sources}
+		DEPENDS_ON  ${spheral_depends}
+		)
+
+install(TARGETS		    Spheral_Neighbor
+	EXPORT		    ${PROJECT_NAME}-targets
+	DESTINATION	    lib
+	INCLUDES DESTINATION include
+	)
+
+install(FILES	    ${Neighbor_headers}
+	DESTINATION include/Neighbor
+	)

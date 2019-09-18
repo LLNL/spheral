@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 project(Spheral)
 
+#--------------------------------------------------------------------------------
+#   Start of BLT configuration.
+#--------------------------------------------------------------------------------
+
 if (DEFINED BLT_SOURCE_DIR)
   if (NOT EXISTS ${BLT_SOURCE_DIR}/SetupBLT.cmake)
     message(FATAL_ERROR "Given BLT_SOURCE_DIR does not contain SetupBLT.cmake")
@@ -20,8 +24,22 @@ endif()
 
 include(${BLT_SOURCE_DIR}/SetupBLT.cmake)
 
-find_package(GSL REQUIRED)
+#--------------------------------------------------------------------------------
+#   End of BLT configuration.
+#--------------------------------------------------------------------------------
 
-add_subdirectory(Utilities)
-add_subdirectory(Field)
-add_subdirectory(Neighbor)
+# Finding included packages.
+find_package(GSL REQUIRED)
+include(CMakeBasics.cmake)
+
+# Add package subdirectories.
+set(_packages
+    ArtificialConduction
+    Geometry
+    Neighbor
+    Utilities
+    )
+
+foreach(_package ${_packages})
+  add_subdirectory(${_package})
+endforeach()
