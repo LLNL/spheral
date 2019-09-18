@@ -119,8 +119,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
   {
+    // Thread private scratch variables
     int i, j, nodeListi, nodeListj;
+    Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
     Tensor QPiij, QPiji;
+
     for (auto kk = 0; kk < npairs; ++kk) {
       const auto start = Timing::currentTime();
       i = pairs[kk].i_node;
@@ -207,19 +210,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(etaMagj >= 0.0);
 
       // Symmetrized kernel weight and gradient.
+      std::tie(Wi, gWi) = W.kernelAndGradValue(etaMagi, Hdeti);
+      std::tie(WQi, gWQi) = WQ.kernelAndGradValue(etaMagi, Hdeti);
       const auto Hetai = Hi*etai.unitVector();
-      const auto WWi = W.kernelAndGradValue(etaMagi, Hdeti);
-      const auto Wi = WWi.first;
-      const auto gWi = WWi.second;
       const auto gradWi = gWi*Hetai;
-      const auto gradWQi = WQ.gradValue(etaMagi, Hdeti) * Hetai;
+      const auto gradWQi = gWQi*Hetai;
 
+      std::tie(Wj, gWj) = W.kernelAndGradValue(etaMagj, Hdetj);
+      std::tie(WQj, gWQj) = WQ.kernelAndGradValue(etaMagj, Hdetj);
       const auto Hetaj = Hj*etaj.unitVector();
-      const auto WWj = W.kernelAndGradValue(etaMagj, Hdetj);
-      const auto Wj = WWj.first;
-      const auto gWj = WWj.second;
       const auto gradWj = gWj*Hetaj;
-      const auto gradWQj = WQ.gradValue(etaMagj, Hdetj) * Hetaj;
+      const auto gradWQj = gWQj*Hetaj;
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -254,8 +255,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
       maxViscousPressurei = max(maxViscousPressurei, Qi);
       maxViscousPressurej = max(maxViscousPressurej, Qj);
-      effViscousPressurei += mj/rhoj * Qi * Wi;
-      effViscousPressurej += mi/rhoi * Qj * Wj;
+      effViscousPressurei += mj*Qi*WQi/rhoj;
+      effViscousPressurej += mi*Qj*WQj/rhoi;
       viscousWorki += mj*workQi;
       viscousWorkj += mi*workQj;
 
@@ -288,10 +289,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Velocity gradient.
       const auto deltaDvDxi = mj*vij.dyad(gradWi);
       const auto deltaDvDxj = mi*vij.dyad(gradWj);
-      DvDxi += -deltaDvDxi; 
+      DvDxi -= deltaDvDxi; 
       DvDxj -= deltaDvDxj;
       if (sameMatij) {
-        localDvDxi += -deltaDvDxi; 
+        localDvDxi -= deltaDvDxi; 
         localDvDxj -= deltaDvDxj;
       }
 
