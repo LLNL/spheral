@@ -836,6 +836,7 @@ computeConnectivity() {
               auto& neighborsj = mConnectivity[mOffsets[jNodeList] + j];
               CHECK(neighborsj.size() == numNodeLists);
               neighborsj[iNodeList].push_back(i);
+              mNodePairList.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
             }
           }
         }
@@ -876,9 +877,6 @@ computeConnectivity() {
       }
     }
   }
-
-  // // Build the NodePairList
-  // for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
 
   // // Sort the NodePairList to be more efficient.
   // sort(mNodePairList.begin(), mNodePairList.end(), [](const NodePairIdxType& a, const NodePairIdxType& b) { return (a.i_list < b.i_list ? true :
