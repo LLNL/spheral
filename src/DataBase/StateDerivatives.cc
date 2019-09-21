@@ -160,7 +160,22 @@ Zero() {
   // Walk the state fields and zero them.
   for (typename StateBase<Dimension>::StorageType::iterator itr = this->mStorage.begin();
        itr != this->mStorage.end();
-       ++itr) itr->second->Zero();
+       ++itr) {
+
+    try {
+      auto ptr = boost::any_cast<FieldBase<Dimension>*>(itr->second);
+      ptr->Zero();
+
+    } catch (boost::bad_any_cast) {
+      try {
+        auto ptr = boost::any_cast<vector<Vector>*>(itr->second);
+        ptr->clear();
+
+      } catch (boost::bad_any_cast) {
+        VERIFY2(false, "StateDerivatives::Zero ERROR: unknown type for key " << itr->first << "\n");
+      }
+    }
+  }
 
   // Reinitialize the node pair interaction information.
   initializeNodePairInformation();

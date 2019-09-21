@@ -125,14 +125,23 @@ operator==(const StateBase<Dimension>& rhs) const {
        rhsItr != rhs.mStorage.end();
        ++rhsItr, ++lhsItr) {
     try {
-      FieldBase<Dimension>* lhsPtr = boost::any_cast<FieldBase<Dimension>>(lhsItr->second);
-      FieldBase<Dimension>* rhsPtr = boost::any_cast<FieldBase<Dimension>>(rhsItr->second);
+      auto lhsPtr = boost::any_cast<FieldBase<Dimension>*>(lhsItr->second);
+      auto rhsPtr = boost::any_cast<FieldBase<Dimension>*>(rhsItr->second);
       if (*lhsPtr != *rhsPtr) {
         cerr << "Fields for " << lhsItr->first <<  " don't match." << endl;
         result = false;
       }
     } catch (boost::bad_any_cast) {
-      // We're only checking Fields...
+      try {
+        auto lhsPtr = boost::any_cast<vector<Vector>*>(lhsItr->second);
+        auto rhsPtr = boost::any_cast<vector<Vector>*>(rhsItr->second);
+        if (*lhsPtr != *rhsPtr) {
+          cerr << "vector<Vector> for " << lhsItr->first <<  " don't match." << endl;
+          result = false;
+        }
+      } catch (boost::bad_any_cast) {
+        VERIFY2(false, "StateBase::operator== ERROR: unknown type for " << lhsItr->first << "\n");
+      }
     }
   }
   return result;
@@ -200,7 +209,7 @@ enroll(FieldBase<Dimension>& field) {
   fieldptr = &field;
   mStorage[key] = fieldptr;
   mNodeListPtrs.insert(field.nodeListPtr());
-//   std::cerr << "StateBase::enroll storing field:  " << key << " at " << &field << std::endl;
+  std::cerr << "StateBase::enroll field:  " << key << " at " << &field << std::endl;
   ENSURE(find(mNodeListPtrs.begin(), mNodeListPtrs.end(), field.nodeListPtr()) != mNodeListPtrs.end());
 }
 
@@ -358,7 +367,21 @@ assign(const StateBase<Dimension>& rhs) {
   for (typename StorageType::const_iterator itr = rhs.mStorage.begin();
        itr != rhs.mStorage.end();
        ++itr) {
-    (mStorage[itr->first]) = *(itr->second);
+    auto& anylhs = mStorage[itr->first];
+    const auto& anyrhs = itr->second;
+    try {
+      auto lhsptr = boost::any_cast<FieldBase<Dimension>*>(anylhs);
+      const auto rhsptr = boost::any_cast<FieldBase<Dimension>*>(anyrhs);
+      *lhsptr = *rhsptr;
+    } catch(boost::bad_any_cast) {
+      try {
+        auto lhsptr = boost::any_cast<vector<Vector>*>(anylhs);
+        const auto rhsptr = boost::any_cast<vector<Vector>*>(anyrhs);
+        *lhsptr = *rhsptr;
+      } catch(boost::bad_any_cast) {
+        VERIFY2(false, "StateBase::assign ERROR: unknown type for key " << itr->first << "\n");
+      }
+    }
   }
 
   // Copy the connectivity (by reference).  This thing is too
@@ -398,15 +421,20 @@ copyState() {
 
     // Is this a Field?
     try {
-      auto fieldBasePtr = boost::any_cast<FieldBase<Dimension>*>(anythingPtr);
-      mFieldCache.push_back(fieldBasePtr->clone());
+      auto ptr = boost::any_cast<FieldBase<Dimension>*>(anythingPtr);
+      mFieldCache.push_back(ptr->clone());
       itr->second = mFieldCache.back().get();
 
     } catch (boost::bad_any_cast) {
-      // Nope, not a Field!  In this case we're going to rely on the ordinary copy
-      // construction of boost::any
-      // mCache.push_back(std::shared_ptr<boost::any>(new boost::any(*anythingPtr)));
-      itr->second = &mCache.back();
+      try {
+        auto ptr = boost::any_cast<vector<Vector>*>(anythingPtr);
+        auto clone = std::shared_ptr<vector<Vector>>(new vector<Vector>(*ptr));
+        mCache.push_back(clone);
+        itr->second = clone.get();
+
+      } catch (boost::bad_any_cast) {
+        VERIFY2(false, "StateBase::copyState ERROR: unrecognized type for " << itr->first << "\n");
+      }
     }
   }
 }

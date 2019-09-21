@@ -150,7 +150,7 @@ protected:
   //--------------------------- Protected Interface ---------------------------//
   typedef std::map<KeyType, boost::any> StorageType;
   typedef std::list<std::shared_ptr<FieldBase<Dimension>>> FieldCacheType;
-  typedef std::list<std::shared_ptr<boost::any>> CacheType;
+  typedef std::list<boost::any> CacheType;
 
   // Protected data.
   StorageType mStorage;
