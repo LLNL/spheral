@@ -24,6 +24,23 @@ using std::abs;
 
 namespace Spheral {
 
+// namespace {
+// //------------------------------------------------------------------------------
+// // Helper for copying a type, used in copyState
+// //------------------------------------------------------------------------------
+// template<typename T>
+// T*
+// extractType(boost::any& anyT) {
+//   try {
+//     T* result = boost::any_cast<T*>(anyT);
+//     return result;
+//   } catch (boost::any_cast_error) {
+//     return NULL;
+//   }
+// }
+
+// }
+
 //------------------------------------------------------------------------------
 // Default constructor.
 //------------------------------------------------------------------------------
@@ -75,23 +92,6 @@ operator=(const StateBase<Dimension>& rhs) {
 }
 
 //------------------------------------------------------------------------------
-// Test if the given field name is registered.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-bool
-StateBase<Dimension>::
-fieldNameRegistered(const FieldName& name) const {
-  KeyType fieldName, nodeListName;
-  auto itr = mStorage.begin();
-  while (itr != mStorage.end()) {
-    splitFieldKey(itr->first, fieldName, nodeListName);
-    if (fieldName == name) return true;
-    ++itr;
-  }
-  return false;
-}
-
-//------------------------------------------------------------------------------
 // Test if the internal state is equal.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -124,22 +124,112 @@ operator==(const StateBase<Dimension>& rhs) const {
   for (rhsItr = rhs.mStorage.begin(), lhsItr = mStorage.begin();
        rhsItr != rhs.mStorage.end();
        ++rhsItr, ++lhsItr) {
-    if (not (*(lhsItr->second) == *(rhsItr->second))) {
-      cerr << "Fields for " << lhsItr->first <<  " don't match." << endl;
-      result = false;
+    try {
+      FieldBase<Dimension>* lhsPtr = boost::any_cast<FieldBase<Dimension>>(lhsItr->second);
+      FieldBase<Dimension>* rhsPtr = boost::any_cast<FieldBase<Dimension>>(rhsItr->second);
+      if (*lhsPtr != *rhsPtr) {
+        cerr << "Fields for " << lhsItr->first <<  " don't match." << endl;
+        result = false;
+      }
+    } catch (boost::bad_any_cast) {
+      // We're only checking Fields...
     }
   }
   return result;
 }
 
 //------------------------------------------------------------------------------
-// Enroll an external mesh.
+// Test if the given key is registered.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+StateBase<Dimension>::
+registered(const StateBase<Dimension>::KeyType& key) const {
+  return (mStorage.find(key) != mStorage.end());
+}
+
+//------------------------------------------------------------------------------
+// Test if the given field is registered.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+StateBase<Dimension>::
+registered(const FieldBase<Dimension>& field) const {
+  const KeyType key = this->key(field);
+  typename StorageType::const_iterator itr = mStorage.find(key);
+  return (itr != mStorage.end());
+}
+
+//------------------------------------------------------------------------------
+// Test if the given FieldList is registered.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+StateBase<Dimension>::
+registered(const FieldListBase<Dimension>& fieldList) const {
+  REQUIRE(fieldList.begin_base() != fieldList.end_base());
+  return this->registered(**fieldList.begin_base());
+}
+
+//------------------------------------------------------------------------------
+// Test if the given field name is registered.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+StateBase<Dimension>::
+fieldNameRegistered(const FieldName& name) const {
+  KeyType fieldName, nodeListName;
+  auto itr = mStorage.begin();
+  while (itr != mStorage.end()) {
+    splitFieldKey(itr->first, fieldName, nodeListName);
+    if (fieldName == name) return true;
+    ++itr;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+// Enroll a field.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 StateBase<Dimension>::
-enrollMesh(typename StateBase<Dimension>::MeshPtr meshPtr) {
-  mMeshPtr = meshPtr;
+enroll(FieldBase<Dimension>& field) {
+  const KeyType key = this->key(field);
+  boost::any fieldptr;
+  fieldptr = &field;
+  mStorage[key] = fieldptr;
+  mNodeListPtrs.insert(field.nodeListPtr());
+//   std::cerr << "StateBase::enroll storing field:  " << key << " at " << &field << std::endl;
+  ENSURE(find(mNodeListPtrs.begin(), mNodeListPtrs.end(), field.nodeListPtr()) != mNodeListPtrs.end());
+}
+
+//------------------------------------------------------------------------------
+// Enroll a field (shared_ptr).
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+StateBase<Dimension>::
+enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) {
+  const KeyType key = this->key(*fieldPtr);
+  mStorage[key] = fieldPtr.get();
+  mNodeListPtrs.insert(fieldPtr->nodeListPtr());
+  mFieldCache.push_back(fieldPtr);
+  ENSURE(find(mNodeListPtrs.begin(), mNodeListPtrs.end(), fieldPtr->nodeListPtr()) != mNodeListPtrs.end());
+}
+
+//------------------------------------------------------------------------------
+// Add the fields from a FieldList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+StateBase<Dimension>::
+enroll(FieldListBase<Dimension>& fieldList) {
+  for (auto itr = fieldList.begin_base();
+       itr != fieldList.end_base();
+       ++itr) {
+    this->enroll(**itr);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -151,7 +241,7 @@ StateBase<Dimension>::
 keys() const {
   vector<KeyType> result;
   result.reserve(mStorage.size());
-  for (typename StorageType::const_iterator itr = mStorage.begin();
+  for (auto itr = mStorage.begin();
        itr != mStorage.end();
        ++itr) result.push_back(itr->first);
   ENSURE(result.size() == mStorage.size());
@@ -205,6 +295,26 @@ connectivityMap() const {
 }
 
 //------------------------------------------------------------------------------
+// Enroll an external mesh.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+StateBase<Dimension>::
+enrollMesh(typename StateBase<Dimension>::MeshPtr meshPtr) {
+  mMeshPtr = meshPtr;
+}
+
+//------------------------------------------------------------------------------
+// Test if a mesh is currently available.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+StateBase<Dimension>::
+meshRegistered() const {
+  return (mMeshPtr.use_count() != 0);
+}
+
+//------------------------------------------------------------------------------
 // Return the mesh. (non-const version)
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -244,12 +354,11 @@ assign(const StateBase<Dimension>& rhs) {
   sort(rhsKeys.begin(), rhsKeys.end());
   REQUIRE(lhsKeys == rhsKeys);
 
-  // Walk the keys, and rely on the virtual overloaded 
-  // Field::operator=(FieldBase) to do the right thing!
+  // Walk the keys, and rely on the underlying type to know how to copy itself.
   for (typename StorageType::const_iterator itr = rhs.mStorage.begin();
        itr != rhs.mStorage.end();
        ++itr) {
-    *(mStorage[itr->first]) = *(itr->second);
+    (mStorage[itr->first]) = *(itr->second);
   }
 
   // Copy the connectivity (by reference).  This thing is too
@@ -279,13 +388,26 @@ copyState() {
 
   // Remove any pre-existing stuff.
   mCache = CacheType();
+  mFieldCache = FieldCacheType();
 
   // Walk the registered state and copy it to our local cache.
-  for (typename StorageType::iterator itr = mStorage.begin();
+  for (auto itr = mStorage.begin();
        itr != mStorage.end();
        ++itr) {
-    mCache.push_back(itr->second->clone());
-    itr->second = mCache.back().get();
+    boost::any anythingPtr = itr->second;
+
+    // Is this a Field?
+    try {
+      auto fieldBasePtr = boost::any_cast<FieldBase<Dimension>*>(anythingPtr);
+      mFieldCache.push_back(fieldBasePtr->clone());
+      itr->second = mFieldCache.back().get();
+
+    } catch (boost::bad_any_cast) {
+      // Nope, not a Field!  In this case we're going to rely on the ordinary copy
+      // construction of boost::any
+      // mCache.push_back(std::shared_ptr<boost::any>(new boost::any(*anythingPtr)));
+      itr->second = &mCache.back();
+    }
   }
 }
 
