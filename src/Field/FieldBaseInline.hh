@@ -65,6 +65,16 @@ FieldBase<Dimension>::operator=(const FieldBase<Dimension>& rhs) {
 }
 
 //------------------------------------------------------------------------------
+// !=
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+FieldBase<Dimension>::operator!=(const FieldBase<Dimension>& rhs) const {
+  return not (*this == rhs);
+}
+
+//------------------------------------------------------------------------------
 // Get the name string.
 //------------------------------------------------------------------------------
 template<typename Dimension>
