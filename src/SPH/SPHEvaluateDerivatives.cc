@@ -65,8 +65,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  typedef vector<typename Dimension::Vector> blago;
-  vector<Vector>& pairAccelerations = derivatives.getAny<blago>(HydroFieldNames::pairAccelerations);
+  auto& pairAccelerations = derivatives.template getAny<vector<Vector>>(HydroFieldNames::pairAccelerations);
   auto XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
