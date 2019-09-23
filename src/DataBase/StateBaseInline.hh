@@ -15,7 +15,7 @@ StateBase<Dimension>::
 field(const typename StateBase<Dimension>::KeyType& key, 
       const Value& dummy) const {
   try {
-    return *dynamic_cast<Field<Dimension, Value>*>(this->getAny<FieldBase<Dimension>*>(key));
+    return dynamic_cast<Field<Dimension, Value>&>(this->getAny<FieldBase<Dimension>>(key));
   } catch (...) {
     VERIFY2(false,"StateBase ERROR: unable to extract field for key " << key << "\n");
   }

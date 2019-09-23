@@ -209,7 +209,8 @@ enroll(FieldBase<Dimension>& field) {
   fieldptr = &field;
   mStorage[key] = fieldptr;
   mNodeListPtrs.insert(field.nodeListPtr());
-  std::cerr << "StateBase::enroll field:  " << key << " at " << &field << std::endl;
+  // std::cerr << "StateBase::enroll field:  " << key << " at " << &field << std::endl;
+  ENSURE(&(this->getAny<FieldBase<Dimension>>(key)) == &field);
   ENSURE(find(mNodeListPtrs.begin(), mNodeListPtrs.end(), field.nodeListPtr()) != mNodeListPtrs.end());
 }
 
