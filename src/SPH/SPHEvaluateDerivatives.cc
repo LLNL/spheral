@@ -65,7 +65,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  auto pairAccelerations = derivatives.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
+  typedef vector<typename Dimension::Vector> blago;
+  vector<Vector>& pairAccelerations = derivatives.getAny<blago>(HydroFieldNames::pairAccelerations);
   auto XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
@@ -85,23 +86,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(viscousWork.size() == numNodeLists);
-  CHECK(pairAccelerations.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
 
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+
   // Size up the pair-wise accelerations before we start.
-  if (mCompatibleEnergyEvolution) {
-    size_t nodeListi = 0;
-    for (auto itr = dataBase.fluidNodeListBegin();
-         itr != dataBase.fluidNodeListEnd();
-         ++itr, ++nodeListi) {
-      for (auto i = 0; i != (*itr)->numInternalNodes(); ++i) {
-        pairAccelerations(nodeListi, i).reserve(connectivityMap.numNeighborsForNode(*itr, i));
-      }
-    }
-  }
+  if (mCompatibleEnergyEvolution) pairAccelerations = vector<Vector>(npairs);
 
   // We assume h parameters are uniform across NodeLists -- should either make this
   // not NodeList dependent or fix this assumption.
@@ -116,8 +111,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
   // Walk all the interacting pairs.
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
   {
     // Thread private scratch variables
     int i, j, nodeListi, nodeListj;
@@ -159,7 +152,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& maxViscousPressurei = maxViscousPressure(nodeListi, i);
       auto& effViscousPressurei = effViscousPressure(nodeListi, i);
       auto& viscousWorki = viscousWork(nodeListi, i);
-      auto& pairAccelerationsi = pairAccelerations(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
@@ -191,7 +183,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& maxViscousPressurej = maxViscousPressure(nodeListj, j);
       auto& effViscousPressurej = effViscousPressure(nodeListj, j);
       auto& viscousWorkj = viscousWork(nodeListj, j);
-      auto& pairAccelerationsj = pairAccelerations(nodeListj, j);
       auto& XSPHWeightSumj = XSPHWeightSum(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
       auto& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
@@ -281,10 +272,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // const Scalar workQij = 0.5*(mj*workQi + mi*workQj);
       DepsDti += mj*(Prhoi*vij.dot(gradWi) + workQi);
       DepsDtj += mi*(Prhoj*vij.dot(gradWj) + workQj);
-      if (mCompatibleEnergyEvolution) {
-        pairAccelerationsi.push_back(-mj*deltaDvDt);
-        pairAccelerationsj.push_back( mi*deltaDvDt);
-      }
+      if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
       // Velocity gradient.
       const auto deltaDvDxi = mj*vij.dyad(gradWi);
@@ -321,10 +309,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     } // loop over pairs
   }   // OpenMP parallel region
 
-      // CHECK(not mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
-      //       (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
-      //       (pairAccelerationsi.size() == numNeighborsi));
-
   // Finish up the derivatives for each point.
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
     const auto ni = connectivityMap.numNodes(nodeListi);
@@ -353,7 +337,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& localMi = localM(nodeListi, i);
       auto& DHDti = DHDt(nodeListi, i);
       auto& Hideali = Hideal(nodeListi, i);
-      auto& pairAccelerationsi = pairAccelerations(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);

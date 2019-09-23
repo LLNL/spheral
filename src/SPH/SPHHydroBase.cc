@@ -134,7 +134,7 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mInternalDvDx(FieldStorageType::CopyFields),
   mM(FieldStorageType::CopyFields),
   mLocalM(FieldStorageType::CopyFields),
-  mPairAccelerations(FieldStorageType::CopyFields),
+  mPairAccelerations(),
   mRestart(registerWithRestart(*this)) {
 }
 
@@ -178,7 +178,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::H);
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
-  mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
+  mPairAccelerations.clear();
   mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
   mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection);
 
@@ -383,7 +383,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
   dataBase.resizeFluidFieldList(mM, Tensor::zero, HydroFieldNames::M_SPHCorrection, false);
   dataBase.resizeFluidFieldList(mLocalM, Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection, false);
-  dataBase.resizeFluidFieldList(mPairAccelerations, vector<Vector>(), HydroFieldNames::pairAccelerations, false);
   derivs.enroll(mHideal);
   derivs.enroll(mMaxViscousPressure);
   derivs.enroll(mEffViscousPressure);
@@ -413,7 +412,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mInternalDvDx);
   derivs.enroll(mM);
   derivs.enroll(mLocalM);
-  derivs.enroll(mPairAccelerations);
+  derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
 }
 
 //------------------------------------------------------------------------------

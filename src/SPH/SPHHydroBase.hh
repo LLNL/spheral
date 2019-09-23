@@ -204,7 +204,7 @@ public:
   const FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldList<Dimension, Tensor>&    internalDvDx() const;
-  const FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
+  const std::vector<Vector>&             pairAccelerations() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -266,7 +266,7 @@ protected:
 
   FieldList<Dimension, Scalar>    mVolume;
 
-  FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
+  std::vector<Vector>             mPairAccelerations;
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
