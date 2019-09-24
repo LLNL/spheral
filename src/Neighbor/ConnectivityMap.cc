@@ -209,6 +209,30 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
     }
   }
   
+  // We also need to patch the node pair structure
+  NodePairList culledPairs;
+#pragma omp parallel
+  {
+    NodePairList culledPairs_thread;
+    const auto npairs = mNodePairList.size();
+#pragma omp for
+    for (auto k = 0; k < npairs; ++k) {
+      const auto iNodeList = mNodePairList[k].i_list;
+      const auto jNodeList = mNodePairList[k].j_list;
+      const auto i = mNodePairList[k].i_node;
+      const auto j = mNodePairList[k].j_node;
+      if (flags(iNodeList, i) != 0 and flags(jNodeList, j) != 0) {
+        culledPairs_thread.push_back(NodePairIdxType(old2new(iNodeList, i), iNodeList,
+                                                     old2new(jNodeList, j), jNodeList));
+      }
+    }
+#pragma omp critical
+    {
+      culledPairs.insert(culledPairs.end(), culledPairs_thread.begin(), culledPairs_thread.end());
+    }
+  }
+  mNodePairList = culledPairs;
+
   // You can't check valid yet 'cause the NodeLists have not been resized
   // when we call patch!  The valid method should be checked by whoever called
   // this method after that point.
