@@ -107,6 +107,9 @@ public:
   template<typename Value>
   Value& getAny(const KeyType& key) const;
 
+  template<typename Value>
+  Value& getAny(const KeyType& key, const Value& dummy) const;
+
   //............................................................................
   // Return the complete set of keys registered.
   std::vector<KeyType> keys() const;

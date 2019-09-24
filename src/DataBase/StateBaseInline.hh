@@ -95,6 +95,16 @@ getAny(const typename StateBase<Dimension>::KeyType& key) const {
   }
 }
 
+// Same thing passing a dummy argument to help with template type
+template<typename Dimension>
+template<typename Value>
+Value&
+StateBase<Dimension>::
+getAny(const typename StateBase<Dimension>::KeyType& key,
+       const Value& dummy) const {
+  return this->getAny<Value>(key);
+}
+
 //------------------------------------------------------------------------------
 // Construct the lookup key for the given field.
 //------------------------------------------------------------------------------
