@@ -110,12 +110,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
   // Walk all the interacting pairs.
+//#pragma omp parallel
   {
     // Thread private scratch variables
     int i, j, nodeListi, nodeListj;
     Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
     Tensor QPiij, QPiji;
 
+//#pragma omp for
     for (auto kk = 0; kk < npairs; ++kk) {
       const auto start = Timing::currentTime();
       i = pairs[kk].i_node;
@@ -217,16 +219,25 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
       const auto rij2 = rij.magnitude2();
       const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
+//#pragma omp atomic
       weightedNeighborSumi +=     fweightij*std::abs(gWi);
+//#pragma omp atomic
       weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
-      massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
-      massSecondMomentj += 1.0/fweightij*gradWj.magnitude2()*thpt;
+//#pragma omp critical
+      {
+        massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
+        massSecondMomentj += 1.0/fweightij*gradWj.magnitude2()*thpt;
+      }
 
       // Contribution to the sum density.
       if (nodeListi == nodeListj) {
+//#pragma omp atomic
         rhoSumi += mj*Wi;
+//#pragma omp atomic
         rhoSumj += mi*Wj;
+//#pragma omp atomic
         normi += mi/rhoi*Wi;
+//#pragma omp atomic
         normj += mj/rhoj*Wj;
       }
 
@@ -243,11 +254,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto workQj = vij.dot(Qaccj);
       const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
       const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
-      maxViscousPressurei = max(maxViscousPressurei, Qi);
-      maxViscousPressurej = max(maxViscousPressurej, Qj);
+//#pragma omp critical
+      {
+        maxViscousPressurei = max(maxViscousPressurei, Qi);
+        maxViscousPressurej = max(maxViscousPressurej, Qj);
+      }
+//#pragma omp atomic
       effViscousPressurei += mj*Qi*WQi/rhoj;
+//#pragma omp atomic
       effViscousPressurej += mi*Qj*WQj/rhoi;
+//#pragma omp atomic
       viscousWorki += mj*workQi;
+//#pragma omp atomic
       viscousWorkj += mi*workQj;
 
       // Determine an effective pressure including a term to fight the tensile instability.
@@ -264,45 +282,62 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto Prhoi = safeOmegai*Peffi/(rhoi*rhoi);
       const auto Prhoj = safeOmegaj*Peffj/(rhoj*rhoj);
       const auto deltaDvDt = Prhoi*gradWi + Prhoj*gradWj + Qacci + Qaccj;
-      DvDti -= mj*deltaDvDt;
-      DvDtj += mi*deltaDvDt;
+//#pragma omp critical
+      {
+        DvDti -= mj*deltaDvDt;
+        DvDtj += mi*deltaDvDt;
+      }
 
       // Specific thermal energy evolution.
       // const Scalar workQij = 0.5*(mj*workQi + mi*workQj);
-      DepsDti += mj*(Prhoi*vij.dot(gradWi) + workQi);
-      DepsDtj += mi*(Prhoj*vij.dot(gradWj) + workQj);
+//#pragma omp critical
+      {
+        DepsDti += mj*(Prhoi*vij.dot(gradWi) + workQi);
+        DepsDtj += mi*(Prhoj*vij.dot(gradWj) + workQj);
+      }
       if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
       // Velocity gradient.
       const auto deltaDvDxi = mj*vij.dyad(gradWi);
       const auto deltaDvDxj = mi*vij.dyad(gradWj);
-      DvDxi -= deltaDvDxi; 
-      DvDxj -= deltaDvDxj;
-      if (sameMatij) {
-        localDvDxi -= deltaDvDxi; 
-        localDvDxj -= deltaDvDxj;
+//#pragma omp critical
+      {
+        DvDxi -= deltaDvDxi; 
+        DvDxj -= deltaDvDxj;
+        if (sameMatij) {
+          localDvDxi -= deltaDvDxi; 
+          localDvDxj -= deltaDvDxj;
+        }
       }
 
       // Estimate of delta v (for XSPH).
       if (mXSPH and (sameMatij)) {
         const auto wXSPHij = 0.5*(mi/rhoi*Wi + mj/rhoj*Wj);
-        XSPHWeightSumi += wXSPHij;
-        XSPHWeightSumj += wXSPHij;
-        XSPHDeltaVi -= wXSPHij*vij;
-        XSPHDeltaVj += wXSPHij*vij;
+//#pragma omp critical
+        {
+          XSPHWeightSumi += wXSPHij;
+          XSPHWeightSumj += wXSPHij;
+          XSPHDeltaVi -= wXSPHij*vij;
+          XSPHDeltaVj += wXSPHij*vij;
+        }
       }
 
       // Linear gradient correction term.
-      Mi -= mj*rij.dyad(gradWi);
-      Mj -= mi*rij.dyad(gradWj);
-      if (sameMatij) {
-        localMi -= mj*rij.dyad(gradWi);
-        localMj -= mi*rij.dyad(gradWj);
+//#pragma omp critical
+      {
+        Mi -= mj*rij.dyad(gradWi);
+        Mj -= mi*rij.dyad(gradWj);
+        if (sameMatij) {
+          localMi -= mj*rij.dyad(gradWi);
+          localMj -= mi*rij.dyad(gradWj);
+        }
       }
 
       // Add timing info for work
       const auto deltaTimePair = 0.5*Timing::difference(start, Timing::currentTime());
+//#pragma omp atomic
       nodeLists[nodeListi]->work()(i) += deltaTimePair;
+//#pragma omp atomic
       nodeLists[nodeListj]->work()(j) += deltaTimePair;
 
     } // loop over pairs
@@ -311,6 +346,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Finish up the derivatives for each point.
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
     const auto ni = connectivityMap.numNodes(nodeListi);
+//#pragma omp parallel for
     for (auto i = 0; i < ni; ++i) {
 
       // Get the state for node i.
