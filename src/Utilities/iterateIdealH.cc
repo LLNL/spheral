@@ -278,19 +278,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       }
     }
 
-    BEGIN_CONTRACT_SCOPE
-    {
-      // Ensure that all nodes have been calculated.
-      for (auto fieldItr = flagNodeDone.begin();
-           fieldItr != flagNodeDone.end();
-           ++fieldItr) {
-        for (auto i = 0; i != (*fieldItr)->nodeListPtr()->numInternalNodes(); ++i) {
-          CHECK((**fieldItr)[i] == 1);
-        }
-      }
-    }
-    END_CONTRACT_SCOPE
-
     // Assign the new H's.
     H.assignFields(H1);
 
