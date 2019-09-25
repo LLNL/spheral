@@ -11,6 +11,7 @@
 #define __Spheral__FieldSpace__FieldList_hh__
 
 #include "FieldListBase.hh"
+#include "Utilities/OpenMP_wrapper.hh"
 
 #include <vector>
 #include <list>
@@ -256,6 +257,15 @@ public:
   std::vector<DataType> internalValues() const;
   std::vector<DataType> ghostValues() const;
   std::vector<DataType> allValues() const;
+
+  //----------------------------------------------------------------------------
+  // Methods to facilitate threaded computing
+  // Make a local thread copy of all the Fields
+  FieldList<Dimension, DataType> threadCopy(const bool forceCopy=false) const;
+
+  // Reduce the values in the FieldList with the passed thread-local values.
+  void threadReduce(const FieldList<Dimension, DataType>& threadValue,
+                    const ThreadReduction op);
 
 private:
   //--------------------------- Private Interface ---------------------------//

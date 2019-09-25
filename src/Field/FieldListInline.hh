@@ -1696,6 +1696,70 @@ buildNodeListIndexMap() {
   ENSURE(mNodeListIndexMap.size() == numFields());
 }
 
+//------------------------------------------------------------------------------
+// Make a thread local copy of the FieldList -- assumes we're already in a
+// threaded region.
+// Note: threads > 0 get zero filled Fields!
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+FieldList<Dimension, DataType>
+FieldList<Dimension, DataType>::
+threadCopy(const bool forceCopy) const {
+  FieldList<Dimension, DataType> result;
+#pragma omp critical
+  {
+    if (omp_get_thread_num() == 0) {
+      result = *this;  // thread 0 is the original
+    } else if (forceCopy) {
+      result = FieldList<Dimension, DataType>(*this);
+      result.copyFields();
+    } else {    
+      result = FieldList<Dimension, DataType>(FieldStorageType::CopyFields);
+      for (auto fitr = this->begin(); fitr < this->end(); ++fitr) result.appendNewField((*fitr)->name(),
+                                                                                        (*fitr)->nodeList(),
+                                                                                        DataTypeTraits<DataType>::zero());
+    }
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Reduce the values in the FieldList with the passed thread-local values.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+void
+FieldList<Dimension, DataType>::
+threadReduce(const FieldList<Dimension, DataType>& threadValue,
+             const ThreadReduction op) {
+  REQUIRE(this->size() == threadValue.size());
+  if (omp_get_thread_num() > 0) {
+    const auto numNL = this->size();
+    for (auto k = 0; k < numNL; ++k) {
+      const auto n = mFieldPtrs[k]->numInternalElements();
+      for (auto i = 0; i < n; ++i) {
+
+        switch (op) {
+
+        case ThreadReduction::SUM:
+          (*this)(k,i) += threadValue(k,i);
+          break;
+
+        case ThreadReduction::MIN:
+          (*this)(k,i) = std::min(threadValue(k,i), (*this)(k,i));
+          break;
+
+        case ThreadReduction::MAX:
+          (*this)(k,i) = std::max(threadValue(k,i), (*this)(k,i));
+          break;
+
+        }
+      }
+    }
+  }
+}
+
 //****************************** Global Functions ******************************
 
 //------------------------------------------------------------------------------

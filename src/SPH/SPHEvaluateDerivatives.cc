@@ -117,21 +117,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
     Tensor QPiij, QPiji;
 
-    auto rhoSum_thread = dataBase.newFluidArray(0.0);
-    auto normalization_thread = dataBase.newFluidArray(0.0);
-    auto DvDt_thread = dataBase.newFluidArray(Vector::zero);
-    auto DepsDt_thread = dataBase.newFluidArray(0.0);
-    auto DvDx_thread = dataBase.newFluidArray(Tensor::zero);
-    auto localDvDx_thread = dataBase.newFluidArray(Tensor::zero);
-    auto M_thread = dataBase.newFluidArray(Tensor::zero);
-    auto localM_thread = dataBase.newFluidArray(Tensor::zero);
-    auto maxViscousPressure_thread = dataBase.newFluidArray(0.0);
-    auto effViscousPressure_thread = dataBase.newFluidArray(0.0);
-    auto viscousWork_thread = dataBase.newFluidArray(0.0);
-    auto XSPHWeightSum_thread = dataBase.newFluidArray(0.0);
-    auto XSPHDeltaV_thread = dataBase.newFluidArray(Vector::zero);
-    auto weightedNeighborSum_thread = dataBase.newFluidArray(0.0);
-    auto massSecondMoment_thread = dataBase.newFluidArray(SymTensor::zero);
+    auto rhoSum_thread = rhoSum.threadCopy();
+    auto normalization_thread = normalization.threadCopy();
+    auto DvDt_thread = DvDt.threadCopy();
+    auto DepsDt_thread = DepsDt.threadCopy();
+    auto DvDx_thread = DvDx.threadCopy();
+    auto localDvDx_thread = localDvDx.threadCopy();
+    auto M_thread = M.threadCopy();
+    auto localM_thread = localM.threadCopy();
+    auto maxViscousPressure_thread = maxViscousPressure.threadCopy(true);
+    auto effViscousPressure_thread = effViscousPressure.threadCopy();
+    auto viscousWork_thread = viscousWork.threadCopy();
+    auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy();
+    auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy();
+    auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy();
+    auto massSecondMoment_thread = massSecondMoment.threadCopy();
 
 #pragma omp for
     for (auto kk = 0; kk < npairs; ++kk) {
@@ -156,21 +156,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
-      auto& rhoSumi = rhoSum_thread[nodeListi][i];
-      auto& normi = normalization_thread[nodeListi][i];
-      auto& DvDti = DvDt_thread[nodeListi][i];
-      auto& DepsDti = DepsDt_thread[nodeListi][i];
-      auto& DvDxi = DvDx_thread[nodeListi][i];
-      auto& localDvDxi = localDvDx_thread[nodeListi][i];
-      auto& Mi = M_thread[nodeListi][i];
-      auto& localMi = localM_thread[nodeListi][i];
-      auto& maxViscousPressurei = maxViscousPressure_thread[nodeListi][i];
-      auto& effViscousPressurei = effViscousPressure_thread[nodeListi][i];
-      auto& viscousWorki = viscousWork_thread[nodeListi][i];
-      auto& XSPHWeightSumi = XSPHWeightSum_thread[nodeListi][i];
-      auto& XSPHDeltaVi = XSPHDeltaV_thread[nodeListi][i];
-      auto& weightedNeighborSumi = weightedNeighborSum_thread[nodeListi][i];
-      auto& massSecondMomenti = massSecondMoment_thread[nodeListi][i];
+      auto& rhoSumi = rhoSum_thread(nodeListi, i);
+      auto& normi = normalization_thread(nodeListi, i);
+      auto& DvDti = DvDt_thread(nodeListi, i);
+      auto& DepsDti = DepsDt_thread(nodeListi, i);
+      auto& DvDxi = DvDx_thread(nodeListi, i);
+      auto& localDvDxi = localDvDx_thread(nodeListi, i);
+      auto& Mi = M_thread(nodeListi, i);
+      auto& localMi = localM_thread(nodeListi, i);
+      auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
+      auto& effViscousPressurei = effViscousPressure_thread(nodeListi, i);
+      auto& viscousWorki = viscousWork_thread(nodeListi, i);
+      auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
+      auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
+      auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
+      auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
@@ -187,21 +187,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
 
-      auto& rhoSumj = rhoSum_thread[nodeListj][j];
-      auto& normj = normalization_thread[nodeListj][j];
-      auto& DvDtj = DvDt_thread[nodeListj][j];
-      auto& DepsDtj = DepsDt_thread[nodeListj][j];
-      auto& DvDxj = DvDx_thread[nodeListj][j];
-      auto& localDvDxj = localDvDx_thread[nodeListj][j];
-      auto& Mj = M_thread[nodeListj][j];
-      auto& localMj = localM_thread[nodeListj][j];
-      auto& maxViscousPressurej = maxViscousPressure_thread[nodeListj][j];
-      auto& effViscousPressurej = effViscousPressure_thread[nodeListj][j];
-      auto& viscousWorkj = viscousWork_thread[nodeListj][j];
-      auto& XSPHWeightSumj = XSPHWeightSum_thread[nodeListj][j];
-      auto& XSPHDeltaVj = XSPHDeltaV_thread[nodeListj][j];
-      auto& weightedNeighborSumj = weightedNeighborSum_thread[nodeListj][j];
-      auto& massSecondMomentj = massSecondMoment_thread[nodeListj][j];
+      auto& rhoSumj = rhoSum_thread(nodeListj, j);
+      auto& normj = normalization_thread(nodeListj, j);
+      auto& DvDtj = DvDt_thread(nodeListj, j);
+      auto& DepsDtj = DepsDt_thread(nodeListj, j);
+      auto& DvDxj = DvDx_thread(nodeListj, j);
+      auto& localDvDxj = localDvDx_thread(nodeListj, j);
+      auto& Mj = M_thread(nodeListj, j);
+      auto& localMj = localM_thread(nodeListj, j);
+      auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
+      auto& effViscousPressurej = effViscousPressure_thread(nodeListj, j);
+      auto& viscousWorkj = viscousWork_thread(nodeListj, j);
+      auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
+      auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
+      auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
+      auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
 
       // Flag if this is a contiguous material pair or not.
       const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
@@ -327,26 +327,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
 #pragma omp critical
     {
-      for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-        const auto ni = connectivityMap.numNodes(nodeListi);
-        for (auto i = 0; i < ni; ++i) {
-          rhoSum(nodeListi, i) += rhoSum_thread[nodeListi][i];
-          normalization(nodeListi, i) += normalization_thread[nodeListi][i];
-          DvDt(nodeListi, i) += DvDt_thread[nodeListi][i];
-          DepsDt(nodeListi, i) += DepsDt_thread[nodeListi][i];
-          DvDx(nodeListi, i) += DvDx_thread[nodeListi][i];
-          localDvDx(nodeListi, i) += localDvDx_thread[nodeListi][i];
-          M(nodeListi, i) += M_thread[nodeListi][i];
-          localM(nodeListi, i) += localM_thread[nodeListi][i];
-          maxViscousPressure(nodeListi, i) = max(maxViscousPressure(nodeListi, i), maxViscousPressure_thread[nodeListi][i]);
-          effViscousPressure(nodeListi, i) += effViscousPressure_thread[nodeListi][i];
-          viscousWork(nodeListi, i) += viscousWork_thread[nodeListi][i];
-          XSPHWeightSum(nodeListi, i) += XSPHWeightSum_thread[nodeListi][i];
-          XSPHDeltaV(nodeListi, i) += XSPHDeltaV_thread[nodeListi][i];
-          weightedNeighborSum(nodeListi, i) += weightedNeighborSum_thread[nodeListi][i];
-          massSecondMoment(nodeListi, i) += massSecondMoment_thread[nodeListi][i];
-        }
-      }
+      rhoSum.threadReduce(rhoSum_thread, ThreadReduction::SUM);
+      normalization.threadReduce(normalization_thread, ThreadReduction::SUM);
+      DvDt.threadReduce(DvDt_thread, ThreadReduction::SUM);
+      DepsDt.threadReduce(DepsDt_thread, ThreadReduction::SUM);
+      DvDx.threadReduce(DvDx_thread, ThreadReduction::SUM);
+      localDvDx.threadReduce(localDvDx_thread, ThreadReduction::SUM);
+      M.threadReduce(M_thread, ThreadReduction::SUM);
+      localM.threadReduce(localM_thread, ThreadReduction::SUM);
+      maxViscousPressure.threadReduce(maxViscousPressure_thread, ThreadReduction::MAX);
+      effViscousPressure.threadReduce(effViscousPressure_thread, ThreadReduction::SUM);
+      viscousWork.threadReduce(viscousWork_thread, ThreadReduction::SUM);
+      XSPHWeightSum.threadReduce(XSPHWeightSum_thread, ThreadReduction::SUM);
+      XSPHDeltaV.threadReduce(XSPHDeltaV_thread, ThreadReduction::SUM);
+      weightedNeighborSum.threadReduce(weightedNeighborSum_thread, ThreadReduction::SUM);
+      massSecondMoment.threadReduce(massSecondMoment_thread, ThreadReduction::SUM);
     } // OpenMP critical region
   }   // OpenMP parallel region
 
