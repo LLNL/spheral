@@ -358,13 +358,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
-      const auto numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
+      const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
       auto& rhoSumi = rhoSum(nodeListi, i);
       auto& normi = normalization(nodeListi, i);
+      auto& DxDti = DxDt(nodeListi, i);
       auto& DrhoDti = DrhoDt(nodeListi, i);
       auto& DvDti = DvDt(nodeListi, i);
       auto& DepsDti = DepsDt(nodeListi, i);
@@ -416,9 +417,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       if (mXSPH) {
         XSPHWeightSumi += Hdeti*mi/rhoi*W0;
         CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
-        DxDt(nodeListi, i) = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
+        DxDti = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
       } else {
-        DxDt(nodeListi, i) = vi;
+        DxDti = vi;
       }
 
       // The H tensor evolution.

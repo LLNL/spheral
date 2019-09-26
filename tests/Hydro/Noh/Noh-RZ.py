@@ -4,7 +4,7 @@
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
 import os, shutil, mpi
-from SolidSpheralRZ import *
+from SpheralRZ import *
 from SpheralTestUtilities import *
 
 from GenerateNodeDistribution2d import *

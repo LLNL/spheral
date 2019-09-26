@@ -88,50 +88,65 @@ update(const KeyType& key,
   const auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   const auto  DepsDt0 = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+  CHECK(pairAccelerations.size() == 2*npairs);
 
   const auto hdt = 0.5*multiplier;
   auto DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
 
   // Walk all pairs and figure out the discrete work for each point
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
-  for (auto kk = 0; kk < npairs; ++kk) {
-    const auto i = pairs[kk].i_node;
-    const auto j = pairs[kk].j_node;
-    const auto nodeListi = pairs[kk].i_list;
-    const auto nodeListj = pairs[kk].j_list;
+#pragma omp parallel
+  {
+    // Thread private variables
+    auto DepsDt_thread = DepsDt.threadCopy();
 
-    // State for node i.
-    const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
-    // const auto  si = entropy(nodeListi, i);
-    const auto  mi = mass(nodeListi, i);
-    const auto& vi = velocity(nodeListi, i);
-    const auto  ui = eps0(nodeListi, i);
-    const auto& ai = acceleration(nodeListi, i);
-    const auto  vi12 = vi + ai*hdt;
-    const auto& paccij = pairAccelerations[kk];
+#pragma omp for
+    for (auto kk = 0; kk < npairs; ++kk) {
+      const auto i = pairs[kk].i_node;
+      const auto j = pairs[kk].j_node;
+      const auto nodeListi = pairs[kk].i_list;
+      const auto nodeListj = pairs[kk].j_list;
 
-    const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
-    // const auto  sj = entropy(nodeListj, j);
-    const auto  mj = mass(nodeListj, j);
-    const auto& vj = velocity(nodeListj, j);
-    const auto  uj = eps0(nodeListj, j);
-    const auto& aj = acceleration(nodeListj, j);
-    const auto  vj12 = vj + aj*hdt;
+      // State for node i.
+      const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
+      // const auto  si = entropy(nodeListi, i);
+      const auto  mi = mass(nodeListi, i);
+      const auto& vi = velocity(nodeListi, i);
+      const auto  ui = eps0(nodeListi, i);
+      const auto& ai = acceleration(nodeListi, i);
+      const auto  vi12 = vi + ai*hdt;
+      const auto& paccij = pairAccelerations[kk];
 
-    const auto  vji12 = vj12 - vi12;
-    const Scalar duij = vji12.dot(paccij);
-    const Scalar wi = weighti/(weighti + weightj);         // Du/Dt weighting
-    // const Scalar wi = entropyWeighting(si, sj, duij);   // entropy weighting
-    CHECK(wi >= 0.0 and wi <= 1.0);
+      // State for node j.
+      const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
+      // const auto  sj = entropy(nodeListj, j);
+      const auto  mj = mass(nodeListj, j);
+      const auto& vj = velocity(nodeListj, j);
+      const auto  uj = eps0(nodeListj, j);
+      const auto& aj = acceleration(nodeListj, j);
+      const auto  vj12 = vj + aj*hdt;
 
-    DepsDt(nodeListi, i) += wi*duij;
-    DepsDt(nodeListj, j) += (1.0 - wi)*duij*mi/mj;
+      const auto  vji12 = vj12 - vi12;
+      const Scalar duij = vji12.dot(paccij);
+      const Scalar wi = weighti/(weighti + weightj);         // Du/Dt weighting
+      // const Scalar wi = entropyWeighting(si, sj, duij);   // entropy weighting
+      CHECK(wi >= 0.0 and wi <= 1.0);
+
+      DepsDt_thread(nodeListi, i) += wi*duij;
+      DepsDt_thread(nodeListj, j) += (1.0 - wi)*duij*mi/mj;
+    }
+
+#pragma omp critical
+    {
+      DepsDt.threadReduce(DepsDt_thread, ThreadReduction::SUM);
+    }
   }
 
   // Now we can update the energy.
   for (auto nodeListi = 0; nodeListi < numFields; ++nodeListi) {
     const auto n = eps[nodeListi]->numInternalElements();
+#pragma omp parallel for
     for (auto i = 0; i < n; ++i) {
       eps(nodeListi, i) += DepsDt(nodeListi, i)*multiplier;
     }
