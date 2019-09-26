@@ -23,7 +23,6 @@
 #include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
-#include "Strength/RZDeviatoricStressPolicy.hh"
 #include "Strength/RZPlasticStrainPolicy.hh"
 #include "Strength/BulkModulusPolicy.hh"
 #include "Strength/ShearModulusPolicy.hh"
@@ -216,11 +215,8 @@ registerState(DataBase<Dim<2> >& dataBase,
 
   // Reregister the deviatoric stress and plastic strain policies to the RZ specialized versions
   // that account for the theta-theta component of the stress.
-  FieldList<Dimension, SymTensor> S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   FieldList<Dimension, Scalar> ps = state.fields(SolidFieldNames::plasticStrain, 0.0);
-  PolicyPointer deviatoricStressPolicy(new RZDeviatoricStressPolicy());
   PolicyPointer plasticStrainPolicy(new RZPlasticStrainPolicy());
-  state.enroll(S, deviatoricStressPolicy);
   state.enroll(ps, plasticStrainPolicy);
   state.enroll(mDeviatoricStressTT);
 

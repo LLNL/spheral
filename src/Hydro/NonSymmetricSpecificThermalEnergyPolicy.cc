@@ -107,15 +107,18 @@ update(const KeyType& key,
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
-  CHECK(pairAccelerations.size() == 2*npairs);
+  const auto  nint = mDataBasePtr->numInternalNodes();
+  CHECK(pairAccelerations.size() == 2*npairs or
+        pairAccelerations.size() == 2*npairs + nint);
+  const bool selfInteraction = (pairAccelerations.size() == 2*npairs + nint);
 
-  // Check if there is a surface point flag field registered.  If so, we use non-compatible energy evolution 
-  // on such points.
-  const bool surface = state.fieldNameRegistered(HydroFieldNames::surfacePoint);
-  FieldList<Dimension, int> surfacePoint;
-  if (surface) {
-    surfacePoint = state.fields(HydroFieldNames::surfacePoint, int(0));
-  }
+  // // Check if there is a surface point flag field registered.  If so, we use non-compatible energy evolution 
+  // // on such points.
+  // const bool surface = state.fieldNameRegistered(HydroFieldNames::surfacePoint);
+  // FieldList<Dimension, int> surfacePoint;
+  // if (surface) {
+  //   surfacePoint = state.fields(HydroFieldNames::surfacePoint, int(0));
+  // }
 
   const auto hdt = 0.5*multiplier;
   auto DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
@@ -175,19 +178,25 @@ update(const KeyType& key,
   }
 
   // Now we can update the energy.
+  auto offset = 2*npairs;
   for (auto nodeListi = 0; nodeListi < numFields; ++nodeListi) {
     const auto n = eps[nodeListi]->numInternalElements();
 #pragma omp parallel for
     for (auto i = 0; i < n; ++i) {
+
+      // Add the self-contribution if any (RZ with strength does this for instance).
+      if (selfInteraction) {
+        const auto& vi = velocity(nodeListi, i);
+        const auto& ai = acceleration(nodeListi, i);
+        const auto  vi12 = vi + ai*hdt;
+        const auto duii = -2.0*vi12.dot(pairAccelerations[offset + i]);
+        DepsDt(nodeListi, i) += duii;
+      }
+
       eps(nodeListi, i) += DepsDt(nodeListi, i)*multiplier;
     }
+    offset += n;
   }
-      // // Add the self-contribution if any (RZ does this for instance).
-      // if (offset(nodeListi, i) == pacci.size() - 1) {
-      //   const auto duii = -2.0*vi12.dot(pacci.back());
-      //   DepsDti += duii;
-      // }
-
       // Now we can update the energy.
       // if (poisoned(nodeListi, i) == 0) {
       //   eps(nodeListi, i) += DepsDti*multiplier;
