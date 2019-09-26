@@ -65,7 +65,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivatives.template getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
@@ -97,16 +97,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Size up the pair-wise accelerations before we start.
   if (mCompatibleEnergyEvolution) pairAccelerations = vector<Vector>(npairs);
 
-  // We assume h parameters are uniform across NodeLists -- should either make this
-  // not NodeList dependent or fix this assumption.
-  const auto& nodeList = mass[0]->nodeList();
-  const auto  hmin = nodeList.hmin();
-  const auto  hmax = nodeList.hmax();
-  const auto  hminratio = nodeList.hminratio();
-  const auto  maxNumNeighbors = nodeList.maxNumNeighbors();
-  const auto  nPerh = nodeList.nodesPerSmoothingScale();
-
   // The scale for the tensile correction.
+  const auto& nodeList = mass[0]->nodeList();
+  const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
   // Walk all the interacting pairs.
@@ -282,12 +275,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto deltaDvDt = Prhoi*gradWi + Prhoj*gradWj + Qacci + Qaccj;
       DvDti -= mj*deltaDvDt;
       DvDtj += mi*deltaDvDt;
+      if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
       // Specific thermal energy evolution.
       // const Scalar workQij = 0.5*(mj*workQi + mi*workQj);
       DepsDti += mj*(Prhoi*vij.dot(gradWi) + workQi);
       DepsDtj += mi*(Prhoj*vij.dot(gradWj) + workQj);
-      if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
       // Velocity gradient.
       const auto deltaDvDxi = mj*vij.dyad(gradWi);
@@ -347,6 +340,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Finish up the derivatives for each point.
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto& nodeList = mass[0]->nodeList();
+    const auto  hmin = nodeList.hmin();
+    const auto  hmax = nodeList.hmax();
+    const auto  hminratio = nodeList.hminratio();
+    const auto  maxNumNeighbors = nodeList.maxNumNeighbors();
+    const auto  nPerh = nodeList.nodesPerSmoothingScale();
+
     const auto ni = connectivityMap.numNodes(nodeListi);
 #pragma omp parallel for
     for (auto i = 0; i < ni; ++i) {
