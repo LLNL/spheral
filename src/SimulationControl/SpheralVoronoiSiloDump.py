@@ -505,37 +505,35 @@ def dumpPhysicsState(stateThingy,
         pass
 
     # Build the Voronoi-like cells.
-    weight = eval("ScalarFieldList%id()" % dataBase.nDim)                         # No weights
-    bounds = eval("vector_of_FacetedVolume%id()" % dataBase.nDim)
-    holes = eval("vector_of_vector_of_FacetedVolume%id()" % dataBase.nDim)
-    if state.fieldNameRegistered(HydroFieldNames.surfacePoint):
-        surfacePoint = state.intFields(HydroFieldNames.surfacePoint)
-    else:
-        surfacePoint = dataBase.newGlobalIntFieldList(0, HydroFieldNames.surfacePoint)
-    if state.fieldNameRegistered(HydroFieldNames.volume):
-        vol = state.scalarFields(HydroFieldNames.volume)
-    else:
-        vol = dataBase.newGlobalScalarFieldList(0.0, HydroFieldNames.volume)
-    deltaMedian = dataBase.newGlobalVectorFieldList(eval("Vector%id.zero" % dataBase.nDim), "centroidal delta")
-    etaVoidPoints = dataBase.newGlobalvector_of_VectorFieldList(eval("vector_of_Vector%id()" % dataBase.nDim), "eta void points")
     FacetedVolume = {2 : Polygon,
                      3 : Polyhedron}[dataBase.nDim]
-    cells = dataBase.newGlobalFacetedVolumeFieldList(FacetedVolume(), "cells")
-    cellFaceFlags = dataBase.newGlobalvector_of_intFieldList(vector_of_int(), "face flags")
-    computeVoronoiVolume(dataBase.globalPosition, 
-                         dataBase.globalHfield,
-                         dataBase.connectivityMap(),
-                         dataBase.solidEffectiveDamage,
-                         bounds,
-                         holes,
-                         boundaries,
-                         weight,
-                         surfacePoint,
-                         vol,
-                         deltaMedian,
-                         etaVoidPoints,
-                         cells,
-                         cellFaceFlags)
+    if state.fieldNameRegistered(HydroFieldNames.cells):
+        assert state.fieldNameRegistered(HydroFieldNames.cellFaceFlags)
+        cells = state.facetedVolumeFields(HydroFieldNames.cells)
+    else:
+        bounds = eval("vector_of_FacetedVolume%id()" % dataBase.nDim)
+        holes = eval("vector_of_vector_of_FacetedVolume%id()" % dataBase.nDim)
+        weight = eval("ScalarFieldList%id()" % dataBase.nDim)                         # No weights
+        surfacePoint = dataBase.newGlobalIntFieldList(0, HydroFieldNames.surfacePoint)
+        vol = dataBase.newGlobalScalarFieldList(0.0, HydroFieldNames.volume)
+        deltaMedian = dataBase.newGlobalVectorFieldList(eval("Vector%id.zero" % dataBase.nDim), "centroidal delta")
+        etaVoidPoints = dataBase.newGlobalvector_of_VectorFieldList(eval("vector_of_Vector%id()" % dataBase.nDim), "eta void points")
+        cells = dataBase.newGlobalFacetedVolumeFieldList(FacetedVolume(), "cells")
+        cellFaceFlags = dataBase.newGlobalvector_of_CellFaceFlagFieldList(vector_of_CellFaceFlag(), "face flags")
+        computeVoronoiVolume(dataBase.globalPosition, 
+                             dataBase.globalHfield,
+                             dataBase.connectivityMap(),
+                             dataBase.solidEffectiveDamage,
+                             bounds,
+                             holes,
+                             boundaries,
+                             weight,
+                             surfacePoint,
+                             vol,
+                             deltaMedian,
+                             etaVoidPoints,
+                             cells,
+                             cellFaceFlags)
 
     # Now build the visit dumper.
     dumper = SpheralVoronoiSiloDump(baseFileName,

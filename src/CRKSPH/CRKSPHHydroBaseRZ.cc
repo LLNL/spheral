@@ -91,7 +91,8 @@ CRKSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                   const CRKOrder correctionOrder,
                   const CRKVolumeType volumeType,
                   const double epsTensile,
-                  const double nTensile):
+                  const double nTensile,
+                  const bool limitMultimaterialTopology):
   CRKSPHHydroBase<Dim<2> >(smoothingScaleMethod,
                            Q,
                            W,
@@ -107,7 +108,8 @@ CRKSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                            correctionOrder,
                            volumeType,
                            epsTensile,
-                           nTensile) {
+                           nTensile,
+                           limitMultimaterialTopology) {
 }
 
 //------------------------------------------------------------------------------

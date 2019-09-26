@@ -7,8 +7,9 @@
 #define __Spheral_CRKSPHHydroBase_hh__
 
 #include "Physics/GenericHydro.hh"
-#include "CRKSPHCorrectionParams.hh"
 #include "Boundary/CRKSPHVoidBoundary.hh"
+#include "Geometry/CellFaceFlag.hh"
+#include "CRKSPHCorrectionParams.hh"
 
 #include <string>
 
@@ -58,7 +59,8 @@ public:
                   const CRKOrder correctionOrder,
                   const CRKVolumeType volumeType,
                   const double epsTensile,
-                  const double nTensile);
+                  const double nTensile,
+                  const bool limitMultimaterialTopology);
 
   // Destructor.
   virtual ~CRKSPHHydroBase();
@@ -76,6 +78,11 @@ public:
   virtual
   void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs) override;
+
+  // This method is called once at the beginning of a timestep, after all state registration.
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs);
 
   // Initialize the Hydro before we start a derivative evaluation.
   virtual
@@ -102,14 +109,24 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const override;
 
-  // Finalize the hydro at the completion of an integration step.
-  virtual
-  void finalize(const Scalar time,
+  // Provide a hook to be called after the state has been updated and 
+  // boundary conditions have been enforced.
+  virtual 
+  void postStateUpdate(const Scalar time, 
+                       const Scalar dt,
+                       const DataBase<Dimension>& dataBase, 
+                       State<Dimension>& state,
+                       StateDerivatives<Dimension>& derivatives) override;
+
+  // Provide a hook to be called after the state has been updated and 
+  // boundary conditions have been enforced.
+  virtual 
+  void finalize(const Scalar time, 
                 const Scalar dt,
-                DataBase<Dimension>& dataBase,
+                DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
-                StateDerivatives<Dimension>& derivs) override;
-                  
+                StateDerivatives<Dimension>& derivatives) override;
+
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
@@ -152,6 +169,10 @@ public:
   // Flag to determine if we're using the XSPH algorithm.
   bool XSPH() const;
   void XSPH(bool val);
+
+  // Flag to determine if we cut multimaterial topology.
+  bool limitMultimaterialTopology() const;
+  void limitMultimaterialTopology(bool val);
 
   // The object defining how we evolve smoothing scales.
   const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
@@ -216,6 +237,8 @@ public:
 
   const FieldList<Dimension, int>&       surfacePoint() const;
   const FieldList<Dimension, std::vector<Vector>>& etaVoidPoints() const;
+  const FieldList<Dimension, FacetedVolume>& cells() const;
+  const FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -234,7 +257,7 @@ protected:
   HEvolutionType mHEvolution;
   CRKOrder mCorrectionOrder;
   CRKVolumeType mVolumeType;
-  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mXSPH;
+  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mXSPH, mLimitMultimaterialTopology;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
   bool mDetectSurfaces;
@@ -291,6 +314,8 @@ protected:
 
   FieldList<Dimension, int>       mSurfacePoint;
   FieldList<Dimension, std::vector<Vector>> mEtaVoidPoints;
+  FieldList<Dimension, FacetedVolume> mCells;
+  FieldList<Dimension, std::vector<CellFaceFlag>> mCellFaceFlags;
 
   CRKSPHVoidBoundary<Dimension> mVoidBoundary;
 

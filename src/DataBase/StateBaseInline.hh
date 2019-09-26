@@ -1,5 +1,4 @@
 #include "boost/algorithm/string.hpp"
-#include "NodeList/NodeListRegistrar.hh"
 #include "DataBase/UpdatePolicyBase.hh"
 #include "Mesh/Mesh.hh"
 #include "Utilities/DBC.hh"

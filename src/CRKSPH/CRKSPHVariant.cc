@@ -10,7 +10,7 @@
 #include "computeHullVolumes.hh"
 #include "computeCRKSPHSumVolume.hh"
 #include "computeHVolumes.hh"
-#include "flagSurfaceNeighbors.hh"
+#include "editMultimaterialSurfaceTopology.hh"
 #include "SurfaceNodeCoupling.hh"
 #include "SPH/computeSPHSumMassDensity.hh"
 #include "SPH/correctSPHSumMassDensity.hh"
@@ -98,7 +98,8 @@ CRKSPHVariant(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
               const CRKOrder correctionOrder,
               const CRKVolumeType volumeType,
               const double epsTensile,
-              const double nTensile):
+              const double nTensile,
+              const bool limitMultimaterialTopology):
   CRKSPHHydroBase<Dimension>(smoothingScaleMethod,
                              Q,
                              W,
@@ -114,7 +115,8 @@ CRKSPHVariant(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                              correctionOrder,
                              volumeType,
                              epsTensile,
-                             nTensile) {
+                             nTensile,
+                             limitMultimaterialTopology) {
 }
 
 //------------------------------------------------------------------------------
@@ -196,7 +198,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   } else if (this->mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     this->mVolume.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
-    FieldList<Dimension, vector<int>> cellFaceFlags;
+    FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
     const FieldList<Dimension, typename Dimension::SymTensor> damage = dataBase.solidEffectiveDamage();
     computeVoronoiVolume(position, H, connectivityMap, damage,
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries

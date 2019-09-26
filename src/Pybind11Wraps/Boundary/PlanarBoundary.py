@@ -15,6 +15,7 @@ class PlanarBoundary(Boundary):
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef typename Boundary<%(Dimension)s>::BoundaryNodes BoundaryNodes;
     typedef GeomPlane<%(Dimension)s> Plane;
 """

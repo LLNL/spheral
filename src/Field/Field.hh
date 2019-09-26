@@ -213,8 +213,7 @@ public:
   virtual void deleteElement(int nodeID);
   virtual void deleteElements(const std::vector<int>& nodeIDs);
   virtual std::vector<char> packValues(const std::vector<int>& nodeIDs) const;
-  virtual void unpackValues(const int numElements,
-                            const int beginInsertionIndex,
+  virtual void unpackValues(const std::vector<int>& nodeIDs,
                             const std::vector<char>& buffer);
 
   // Methods to use the iostream methods converting a Field to/from a string.

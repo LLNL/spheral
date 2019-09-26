@@ -123,7 +123,8 @@ PYB11includes += ['"DataBase/DataBase.hh"',
                   '"Field/Field.hh"',
                   '"Neighbor/ConnectivityMap.hh"',
                   '"Physics/Physics.hh"',
-                  '"Utilities/DataTypeTraits.hh"']
+                  '"Utilities/DataTypeTraits.hh"',
+                  '"Geometry/CellFaceFlag.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

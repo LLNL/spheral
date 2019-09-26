@@ -33,55 +33,64 @@ class GenerateNodeProfile1d(NodeGeneratorBase):
         # class to provide this value.
         if type(rho) == type(1.0):
             self.rhofunc = ConstantRho(rho)
+
+            # In the constant rho case, no need to kill ourselves figuring out complicated fits...
+            dx = (xmax - xmin)/nx
+            mi = dx*rho
+            self.x = [xmin + (i+0.5)*dx for i in xrange(nx)]
+            self.H = [SymTensor1d(1.0/(nNodePerh*dx)) for i in xrange(nx)]
+            self.m = [mi]*nx
+            self.rho = [rho]*nx
+
         else:
             self.rhofunc = rho
 
-        # Build the evenly sampled cumulative mass as a function of position.
-        ok = False
-        while not ok:
-            dx = (xmax - xmin)/numbins
-            mcum = np.cumsum(np.array([0.0] + [0.5*dx*(self.rhofunc(xmin + i*dx) + self.rhofunc(xmin + (i + 1)*dx)) for i in xrange(numbins)]))
+            # Build the evenly sampled cumulative mass as a function of position.
+            ok = False
+            while not ok:
+                dx = (xmax - xmin)/numbins
+                mcum = np.cumsum(np.array([0.0] + [0.5*dx*(self.rhofunc(xmin + i*dx) + self.rhofunc(xmin + (i + 1)*dx)) for i in xrange(numbins)]))
 
-            # Find the target mass per node.
-            mi = mcum[-1]/nx
+                # Find the target mass per node.
+                mi = mcum[-1]/nx
 
-            # Do we need to have a finer binning?
-            if mcum[-1]/mi > 0.5*numbins:
-                numbins = int(2*mcum[-1]/mi)
-                print "Warning, boosting numbins to %i to increase mass resolution for interpolation" % numbins
-            else:
-                ok = True
+                # Do we need to have a finer binning?
+                if mcum[-1]/mi > 0.5*numbins:
+                    numbins = int(2*mcum[-1]/mi)
+                    print "Warning, boosting numbins to %i to increase mass resolution for interpolation" % numbins
+                else:
+                    ok = True
 
-        # Now go through and bisect for positions to get the mass per point we want.
-        xi = xmin
-        self.x = []
-        self.rho = []
-        mtarget = -0.5*mi
-        while xi < xmax:
-            mtarget += mi
-            if mtarget <= mcum[-1]:
-                i = np.searchsorted(mcum, mtarget) - 1
-                assert mtarget >= mcum[i] and mtarget <= mcum[i+1]
-                xi = xmin + (i + (mtarget - mcum[i])/(mcum[i+1] - mcum[i]))*dx
-                assert (xi >= xmin + i*dx) and (xi <= xmin + (i+1)*dx)
-                self.x.append(xi)
-                self.rho.append(self.rhofunc(xi))
-            else:
-                xi = xmax
-        n = len(self.x)
-        print "Generated %i 1D points." % n
-        self.m = [mi]*n
+            # Now go through and bisect for positions to get the mass per point we want.
+            xi = xmin
+            self.x = []
+            self.rho = []
+            mtarget = -0.5*mi
+            while xi < xmax:
+                mtarget += mi
+                if mtarget <= mcum[-1]:
+                    i = np.searchsorted(mcum, mtarget) - 1
+                    assert mtarget >= mcum[i] and mtarget <= mcum[i+1]
+                    xi = xmin + (i + (mtarget - mcum[i])/(mcum[i+1] - mcum[i]))*dx
+                    assert (xi >= xmin + i*dx) and (xi <= xmin + (i+1)*dx)
+                    self.x.append(xi)
+                    self.rho.append(self.rhofunc(xi))
+                else:
+                    xi = xmax
+            n = len(self.x)
+            print "Generated %i 1D points." % n
+            self.m = [mi]*n
 
-        # Figure out the H.
-        self.H = []
-        for i in xrange(n):
-            if i == 0:
-                dxavg = self.x[i+1] - self.x[i]
-            elif i == n-1:
-                dxavg = self.x[i] - self.x[i-1]
-            else:
-                dxavg = 0.5*(self.x[i+1] - self.x[i-1])
-            self.H.append(SymTensor1d(1.0/(nNodePerh*dxavg)))
+            # Figure out the H.
+            self.H = []
+            for i in xrange(n):
+                if i == 0:
+                    dxavg = self.x[i+1] - self.x[i]
+                elif i == n-1:
+                    dxavg = self.x[i] - self.x[i-1]
+                else:
+                    dxavg = 0.5*(self.x[i+1] - self.x[i-1])
+                self.H.append(SymTensor1d(1.0/(nNodePerh*dxavg)))
 
         # Have the base class break up the serial node distribution
         # for parallel cases.

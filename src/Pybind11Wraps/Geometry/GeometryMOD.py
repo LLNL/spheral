@@ -39,6 +39,7 @@ PYB11includes = ['"Geometry/Dimension.hh"',
                  '"Geometry/outerProduct.hh"',
                  '"Geometry/innerDoubleProduct.hh"',
                  '"Geometry/aggregateFacetedVolumes.hh"',
+                 '"Geometry/CellFaceFlag.hh"',
                  '"Field/Field.hh"',
                  '"Utilities/DataTypeTraits.hh"',
 
@@ -58,6 +59,7 @@ vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True, local=False)
 vector_of_Plane1d = PYB11_bind_vector("GeomPlane<Dim<1>>", opaque=True, local=False)
 vector_of_Plane2d = PYB11_bind_vector("GeomPlane<Dim<2>>", opaque=True, local=False)
 vector_of_Plane3d = PYB11_bind_vector("GeomPlane<Dim<3>>", opaque=True, local=False)
+vector_of_CellFaceFlag = PYB11_bind_vector("CellFaceFlag", opaque=True, local=False)
 
 # Get the objects wrapped in other files.
 from Vector import Vector1d, Vector2d, Vector3d
@@ -73,6 +75,7 @@ from Polygon import *
 from Polyhedron import *
 from Facet2d import *
 from Facet3d import *
+from CellFaceFlag import *
 
 #-------------------------------------------------------------------------------
 # Vector standalone functions

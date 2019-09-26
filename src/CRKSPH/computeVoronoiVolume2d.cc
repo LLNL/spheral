@@ -202,7 +202,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian,
                      FieldList<Dim<2>, vector<Dim<2>::Vector>>& etaVoidPoints,
                      FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells,
-                     FieldList<Dim<2>, std::vector<int>>& cellFaceFlags) {
+                     FieldList<Dim<2>, std::vector<CellFaceFlag>>& cellFaceFlags) {
 
   TIME_computeVoronoiVolume2d.start();
 

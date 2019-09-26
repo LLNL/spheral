@@ -18,6 +18,7 @@ class CRKSPHHydroBase(GenericHydro):
     typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
     typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
     typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
+    typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
@@ -37,7 +38,8 @@ class CRKSPHHydroBase(GenericHydro):
                correctionOrder = "const CRKOrder",
                volumeType = "const CRKVolumeType",
                epsTensile = "const double",
-               nTensile = "const double"):
+               nTensile = "const double",
+               limitMultimaterialTopology = "const bool"):
         "Constructor"
 
     #...........................................................................
@@ -59,6 +61,14 @@ class CRKSPHHydroBase(GenericHydro):
                             dataBase = "DataBase<%(Dimension)s>&",
                             derivs = "StateDerivatives<%(Dimension)s>&"):
         "Register the derivatives/change fields for updating state."
+        return "void"
+
+    @PYB11virtual
+    def preStepInitialize(self,
+                          dataBase = "const DataBase<%(Dimension)s>&", 
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Optional hook to be called at the beginning of a time step."
         return "void"
 
     @PYB11virtual
@@ -94,6 +104,16 @@ mass density, velocity, and specific thermal energy."""
         "Finalize the derivatives."
         return "void"
 
+    @PYB11virtual
+    def postStateUpdate(self,
+                        time = "const Scalar",
+                        dt = "const Scalar",
+                        dataBase = "const DataBase<%(Dimension)s>&",
+                        state = "State<%(Dimension)s>&",
+                        derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Provide a hook to be called after the state has been updated and boundary conditions have been enforced."
+        return "void"
+                  
     @PYB11virtual
     def finalize(self,
                  time = "const Scalar",
@@ -134,6 +154,8 @@ mass density, velocity, and specific thermal energy."""
                                       doc="Flag controlling if we evolve total or specific energy.")
     XSPH = PYB11property("bool", "XSPH", "XSPH",
                          doc="Flag to determine if we're using the XSPH algorithm.")
+    limitMultimaterialTopology = PYB11property("bool", "limitMultimaterialTopology", "limitMultimaterialTopology",
+                                               doc="Flag to determine if we're using the cutting/reducing multimaterial topology.")
     smoothingScaleMethod = PYB11property("SmoothingScaleBase<%(Dimension)s>&", "smoothingScaleMethod", returnpolicy="reference_internal",
                                          doc="The object defining how we evolve smoothing scales.")
     filter = PYB11property("double", "filter", "filter",
@@ -188,6 +210,8 @@ mass density, velocity, and specific thermal energy."""
     gradm3 = PYB11property("const FieldList<%(Dimension)s, FourthRankTensor>&", "gradm3", returnpolicy="reference_internal")
     gradm4 = PYB11property("const FieldList<%(Dimension)s, FifthRankTensor>&", "gradm4", returnpolicy="reference_internal")
 
+    cells = PYB11property("const FieldList<%(Dimension)s, FacetedVolume>&", "cells", returnpolicy="reference_internal")
+    cellFaceFlags = PYB11property("const FieldList<%(Dimension)s, std::vector<CellFaceFlag>>&", "cellFaceFlags", returnpolicy="reference_internal")
     surfacePoint = PYB11property("const FieldList<%(Dimension)s, int>&", "surfacePoint", returnpolicy="reference_internal")
     etaVoidPoints = PYB11property("const FieldList<%(Dimension)s, std::vector<Vector>>&", "etaVoidPoints", returnpolicy="reference_internal")
 

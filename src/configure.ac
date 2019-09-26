@@ -52,7 +52,7 @@ SETUP_GEOMMEM
 # -------------------------------------------------
 SETUP_POLYTOPE
 
-v# -------------------------------------------------
+# -------------------------------------------------
 # setup mpi (m4macros/mpi.m4)
 # -------------------------------------------------
 SETUP_MPI
@@ -177,6 +177,7 @@ AC_OUTPUT(helpers/makefile_master \
           SimulationControl/makefile \
           SPH/makefile \
           CRKSPH/makefile \
+          FVCRKH/makefile \
           SVPH/makefile \
           TaylorSPH/makefile \
           Mesh/makefile \

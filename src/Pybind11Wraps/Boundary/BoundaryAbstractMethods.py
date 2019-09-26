@@ -59,6 +59,13 @@ class BoundaryAbstractMethods:
         "Apply the boundary condition to the ghost node values in the given Field."
         return "void"
 
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11const
+    def applyGhostBoundary7(self,
+                            field = "Field<%(Dimension)s, FacetedVolume>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
     def setViolationNodes(self,
                           nodeList = "NodeList<%(Dimension)s>&"):
         "Find any internal nodes that are in violation of this Boundary."
@@ -108,5 +115,12 @@ class BoundaryAbstractMethods:
     @PYB11const
     def enforceBoundary6(self,
                          field = "Field<%(Dimension)s, ThirdRankTensor>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11const
+    def enforceBoundary7(self,
+                         field = "Field<%(Dimension)s, FacetedVolume>&"):
         "Apply the boundary condition to the violation node values in the given Field."
         return "void"

@@ -64,7 +64,7 @@ gradientCRKSPH(const FieldList<Dimension, DataType>& fieldList,
   for (auto fieldItr = fieldList.begin();
        fieldItr != fieldList.end(); 
        ++fieldItr) {
-    result.appendField(Field<Dimension, GradientType>("grad", (*fieldItr)->nodeList()));
+    result.appendField(Field<Dimension, GradientType>("grad ", (*fieldItr)->nodeList()));
   }
 
   // Walk the FluidNodeLists.
