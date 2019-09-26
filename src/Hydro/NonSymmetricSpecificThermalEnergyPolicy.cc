@@ -138,7 +138,7 @@ update(const KeyType& key,
       const auto nodeListj = pairs[kk].j_list;
 
       // State for node i.
-      auto&       DepsDti = DepsDt(nodeListi, i);
+      auto&       DepsDti = DepsDt_thread(nodeListi, i);
       const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
@@ -147,7 +147,7 @@ update(const KeyType& key,
       const auto& pacci = pairAccelerations[2*kk];
 
       // State for node j.
-      auto&       DepsDtj = DepsDt(nodeListj, j);
+      auto&       DepsDtj = DepsDt_thread(nodeListj, j);
       const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
       const auto  mj = mass(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
