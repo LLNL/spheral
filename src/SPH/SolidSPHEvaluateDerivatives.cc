@@ -13,7 +13,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     StateDerivatives<Dimension>& derivatives) const {
 
   // Get the ArtificialViscosity.
-  ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
+  auto& Q = this->artificialViscosity();
 
   // The kernels and such.
   const auto& W = this->kernel();
@@ -68,27 +68,27 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(pTypes.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  auto DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-  auto DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  auto DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-  auto DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  auto localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  auto M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  auto localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  auto DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
-  auto effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
-  auto rhoSumCorrection = derivatives.fields(HydroFieldNames::massDensityCorrection, 0.0);
-  auto viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
+  auto  rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto  DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  auto  DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
+  auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+  auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+  auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
+  auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
+  auto  rhoSumCorrection = derivatives.fields(HydroFieldNames::massDensityCorrection, 0.0);
+  auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
   auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  auto XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
-  auto XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
-  auto weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
-  auto massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
-  auto DSDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
+  auto  XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
+  auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
+  auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
+  auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
+  auto  DSDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -447,7 +447,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& Hideali = Hideal(nodeListi, i);
       auto& effViscousPressurei = effViscousPressure(nodeListi, i);
       auto& rhoSumCorrectioni = rhoSumCorrection(nodeListi, i);
-      auto& viscousWorki = viscousWork(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
