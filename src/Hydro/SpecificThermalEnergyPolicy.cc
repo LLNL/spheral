@@ -90,7 +90,7 @@ update(const KeyType& key,
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
-  CHECK(pairAccelerations.size() == 2*npairs);
+  CHECK(pairAccelerations.size() == npairs);
 
   const auto hdt = 0.5*multiplier;
   auto DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
