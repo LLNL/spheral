@@ -124,7 +124,6 @@ FieldList<Dimension, DataType>::~FieldList() {
 
 //------------------------------------------------------------------------------
 // Assignment with another FieldList.
-// Note that we copy the Field data by Reference.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
@@ -287,6 +286,22 @@ assignFields(const FieldList<Dimension, DataType>& fieldList) {
     CHECK((*fieldListItr)->nodeListPtr() == (*otherFieldListItr)->nodeListPtr());
     **fieldListItr = **otherFieldListItr;
   }
+}
+
+//------------------------------------------------------------------------------
+// Make this FieldList reference the fields of another.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+void
+FieldList<Dimension, DataType>::
+referenceFields(const FieldList<Dimension, DataType>& fieldList) {
+  mFieldPtrs = fieldList.mFieldPtrs;
+  mFieldBasePtrs = fieldList.mFieldBasePtrs;
+  mFieldCache.clear();
+  mStorageType = FieldStorageType::ReferenceFields;
+  mNodeListPtrs = fieldList.mNodeListPtrs;
+  mNodeListIndexMap = fieldList.mNodeListIndexMap;
 }
 
 //------------------------------------------------------------------------------
@@ -1699,7 +1714,6 @@ buildNodeListIndexMap() {
 //------------------------------------------------------------------------------
 // Make a thread local copy of the FieldList -- assumes we're already in a
 // threaded region.
-// Note: threads > 0 get zero filled Fields!
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
@@ -1710,11 +1724,16 @@ threadCopy(const bool forceCopy) const {
 #pragma omp critical
   {
     if (omp_get_thread_num() == 0) {
-      result = *this;  // thread 0 is the original
+      // Thread 0 always references the original fields
+      result.referenceFields(*this);
+
     } else if (forceCopy) {
+      // If forceCopy and not thread 0, make standalone copies of the original
       result = FieldList<Dimension, DataType>(*this);
       result.copyFields();
+
     } else {    
+      // If not thread 0 and not forceCopy, make standalone Fields of zeros
       result = FieldList<Dimension, DataType>(FieldStorageType::CopyFields);
       for (auto fitr = this->begin(); fitr < this->end(); ++fitr) result.appendNewField((*fitr)->name(),
                                                                                         (*fitr)->nodeList(),

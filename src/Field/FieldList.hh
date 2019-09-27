@@ -89,6 +89,9 @@ public:
   // another FieldList.
   void assignFields(const FieldList& fieldList);
 
+  // Make this FieldList reference the Fields of another.
+  void referenceFields(const FieldList& fieldList);
+
   // Convenience methods to add and delete Fields.
   void appendField(const Field<Dimension, DataType>& field);
   void deleteField(const Field<Dimension, DataType>& field);

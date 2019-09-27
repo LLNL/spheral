@@ -48,6 +48,10 @@ class FieldList(FieldListBase):
         "Set all Fields pointed to by this FieldList equal to those of the given FieldList."
         return "void"
 
+    def referenceFields(self, fieldList="const FieldListType&"):
+        "Make this FieldList reference the Fields of another (no copying of Field data)."
+        return "void"
+
     def appendField(self, field="const FieldType&"):
         "Add the given Field to this FieldList.\\nstorageType==ReferenceFields -> just make a new member Field pointing to the given Field.\\nstorageType==CopyFields -> copy the Field into a locally cached\\nversion, and add a\\n                           reference pointing to that local copy"
         return "void"
