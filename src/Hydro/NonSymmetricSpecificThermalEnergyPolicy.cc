@@ -138,7 +138,6 @@ update(const KeyType& key,
       const auto nodeListj = pairs[kk].j_list;
 
       // State for node i.
-      auto&       DepsDti = DepsDt_thread(nodeListi, i);
       const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
@@ -147,7 +146,6 @@ update(const KeyType& key,
       const auto& pacci = pairAccelerations[2*kk];
 
       // State for node j.
-      auto&       DepsDtj = DepsDt_thread(nodeListj, j);
       const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
       const auto  mj = mass(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
@@ -161,8 +159,8 @@ update(const KeyType& key,
       // const auto wi = entropyWeighting(si, sj, duij);
       // CHECK2(fuzzyEqual(wi + entropyWeighting(sj, si, dEij/mj), 1.0, 1.0e-10),
       //        wi << " " << entropyWeighting(sj, si, dEij/mj) << " " << (wi + entropyWeighting(sj, si, dEij/mj)));
-      DepsDti += wi*dEij/mi;
-      DepsDtj += (1.0 - wi)*dEij/mj;
+      DepsDt_thread(nodeListi, i) += wi*dEij/mi;
+      DepsDt_thread(nodeListj, j) += (1.0 - wi)*dEij/mj;
 
       // // Check if either of these points was advanced non-conservatively.
       // if (surface) {
