@@ -290,7 +290,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const auto  npairs = pairs.size();
 
   // Size up the pair-wise accelerations before we start.
-  if (compatibleEnergy) pairAccelerations = vector<Vector>(2*npairs + dataBase.numInternalNodes());
+  if (compatibleEnergy) pairAccelerations.resize(2*npairs + dataBase.numInternalNodes());
 
   // The scale for the tensile correction.
   const auto& nodeList = mass[0]->nodeList();
