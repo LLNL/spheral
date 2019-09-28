@@ -416,7 +416,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // cerr << "BLAGO!" << endl;
     }
 
-    const auto ni = connectivityMap.numNodes(nodeListi);
+    const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0; i < ni; ++i) {
 

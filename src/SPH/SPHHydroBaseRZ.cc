@@ -504,7 +504,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
     const auto  maxNumNeighbors = nodeList.maxNumNeighbors();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
-    const auto ni = connectivityMap.numNodes(nodeListi);
+    const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0; i < ni; ++i) {
 

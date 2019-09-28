@@ -46,7 +46,6 @@ computeSumVoronoiCellMassDensity(const ConnectivityMap<Dimension>& connectivityM
   typedef typename Dimension::SymTensor SymTensor;
 
   // Some useful variables.
-
   const auto W0 = W.kernelValue(0.0, 1.0);
   // Zero out the result, and prepare a FieldList to hold the effective volume.
   massDensity = 0.0;
