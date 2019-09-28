@@ -92,7 +92,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(viscousWork.size() == numNodeLists);
-  CHECK(pairAccelerations.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
@@ -114,8 +113,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     Tensor Ci = Tensor::zero, Cj = Tensor::zero;
     Tensor gradBi = Tensor::zero, gradBj = Tensor::zero;
     ThirdRankTensor gradCi = ThirdRankTensor::zero, gradCj = ThirdRankTensor::zero;
-    Scalar gWi, gWj, Wi, Wj, gW0i, gW0j, W0i, W0j;
-    Vector gradWi, gradWj, gradW0i, gradW0j;
+    Vector gradWi, gradWj;
     Vector deltagrad;
 
     auto DvDt_thread = DvDt.threadCopy();
@@ -125,7 +123,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto maxViscousPressure_thread = maxViscousPressure.threadCopy(true);
     auto effViscousPressure_thread = effViscousPressure.threadCopy();
     auto viscousWork_thread = viscousWork.threadCopy();
-    auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy();
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy();
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy();
     auto massSecondMoment_thread = massSecondMoment.threadCopy();
@@ -201,7 +198,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto  weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
-      CHECK(Aj > 0.0 or j >= firstGhostNodej);
+      // CHECK(Aj > 0.0 or j >= firstGhostNodej);
       CHECK(Hdetj > 0.0);
       CHECK(weightj > 0.0);
 
@@ -283,10 +280,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Momentum
       forceij = (true ? // surfacePoint(nodeListi, i) <= 1 ? 
                  0.5*weighti*weightj*((Pi + Pj)*deltagrad + Qaccij) :                // Type III CRK interpoint force.
-                 mi*weightj*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj))); // RK
+                 mi*weightj*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.dot(gradWj)));       // RK
       forceji = (true ? // surfacePoint(nodeListj, j) <= 1 ? 
                  0.5*weighti*weightj*((Pi + Pj)*deltagrad + Qaccij) :                // Type III CRK interpoint force.
-                 mj*weighti*((Pj - Pi)/rhoj*gradWi - rhoj*QPiij.second.dot(gradWi)));// RK
+                 mj*weighti*((Pj - Pi)/rhoj*gradWi - rhoj*QPiji.dot(gradWi)));       // RK
       DvDti -= forceij/mi;
       DvDtj += forceji/mj; 
       if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -forceij/mi;           // Acceleration for i (j anti-symmetric)
@@ -294,10 +291,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Energy
       DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ? 
                   0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi :          // CRK
-                  weightj*rhoi*QPiij.first.dot(vij).dot(gradWj));                    // RK
+                  weightj*rhoi*QPiij.dot(vij).dot(gradWj));                          // RK
       DepsDtj += (true ? // surfacePoint(nodeListj, j) <= 1 ? 
                   0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mj :          // CRK
-                  -weighti*rhoj*QPiij.second.dot(vij).dot(gradWi));                   // RK
+                  -weighti*rhoj*QPiji.dot(vij).dot(gradWi));                         // RK
 
       // Estimate of delta v (for XSPH).
       if (mXSPH and (nodeListi == nodeListj)) {
@@ -322,7 +319,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       maxViscousPressure.threadReduce(maxViscousPressure_thread, ThreadReduction::MAX);
       effViscousPressure.threadReduce(effViscousPressure_thread, ThreadReduction::SUM);
       viscousWork.threadReduce(viscousWork_thread, ThreadReduction::SUM);
-      XSPHWeightSum.threadReduce(XSPHWeightSum_thread, ThreadReduction::SUM);
       XSPHDeltaV.threadReduce(XSPHDeltaV_thread, ThreadReduction::SUM);
       weightedNeighborSum.threadReduce(weightedNeighborSum_thread, ThreadReduction::SUM);
       massSecondMoment.threadReduce(massSecondMoment_thread, ThreadReduction::SUM);
@@ -330,9 +326,39 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     } // OMP critical
   }   // OMP parallel
 
+  // Finish up the derivatives for each point.
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto& nodeList = mass[0]->nodeList();
+    const auto  hmin = nodeList.hmin();
+    const auto  hmax = nodeList.hmax();
+    const auto  hminratio = nodeList.hminratio();
+    const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
-      // Get the time for pairwise interactions.
-      const auto deltaTimePair = Timing::difference(start, Timing::currentTime())/max(size_t(1), ncalc);
+    const auto ni = nodeList.numInternalNodes();
+#pragma omp parallel for
+    for (auto i = 0; i < ni; ++i) {
+
+      // Get the state for node i.
+      const auto& ri = position(nodeListi, i);
+      const auto& mi = mass(nodeListi, i);
+      const auto& vi = velocity(nodeListi, i);
+      const auto& rhoi = massDensity(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      CHECK(mi > 0.0);
+      CHECK(rhoi > 0.0);
+      CHECK(Hdeti > 0.0);
+
+      auto& DxDti = DxDt(nodeListi, i);
+      auto& DrhoDti = DrhoDt(nodeListi, i);
+      auto& DvDti = DvDt(nodeListi, i);
+      auto& DepsDti = DepsDt(nodeListi, i);
+      auto& DvDxi = DvDx(nodeListi, i);
+      auto& DHDti = DHDt(nodeListi, i);
+      auto& Hideali = Hideal(nodeListi, i);
+      auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
+      auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
+      auto& massSecondMomenti = massSecondMoment(nodeListi, i);
 
       // Time evolution of the mass density.
       DrhoDti = -rhoi*DvDxi.Trace();
@@ -371,31 +397,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                         connectivityMap,
                                                         nodeListi,
                                                         i);
-
-      // Increment the work for i.
-      worki += Timing::difference(start, Timing::currentTime());
-
-      // Now add the pairwise time for each neighbor we computed here.
-      for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        const auto& connectivity = fullConnectivity[nodeListj];
-        if (connectivity.size() > 0) {
-          const auto firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
-          auto& workFieldj = nodeLists[nodeListj]->work();
-#pragma vector always
-          for (auto jItr = connectivity.begin();
-               jItr != connectivity.end();
-               ++jItr) {
-            const auto j = *jItr;
-            if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                         nodeListj, j,
-                                                         firstGhostNodej)) {
-              workFieldj(j) += deltaTimePair;
-            }
-          }
-        }
       }
     }
   }
-}
 
 }

@@ -214,7 +214,7 @@ public:
   const FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldList<Dimension, Tensor>&    internalDvDx() const;
-  const FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
+  const std::vector<Vector>&             pairAccelerations() const;
   const FieldList<Dimension, Vector>&    deltaCentroid() const;
 
   const FieldList<Dimension, Scalar>&    A() const;
@@ -292,7 +292,7 @@ protected:
   FieldList<Dimension, Tensor>    mInternalDvDx;
   FieldList<Dimension, Vector>    mDeltaCentroid;
 
-  FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
+  std::vector<Vector>             mPairAccelerations;
 
   FieldList<Dimension, Scalar>    mA;
   FieldList<Dimension, Vector>    mB;

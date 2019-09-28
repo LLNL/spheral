@@ -158,7 +158,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   this->mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H);
   this->mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   this->mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
-  this->mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
+  this->mPairAccelerations.clear();
   this->mDeltaCentroid = dataBase.newFluidFieldList(Vector::zero, "delta centroid");
 
   this->mA = dataBase.newFluidFieldList(0.0,                        HydroFieldNames::A_CRKSPH);

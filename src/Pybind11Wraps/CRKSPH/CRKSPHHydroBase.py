@@ -189,7 +189,7 @@ mass density, velocity, and specific thermal energy."""
     DHDt = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "DHDt", returnpolicy="reference_internal")
     DvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "DvDx", returnpolicy="reference_internal")
     internalDvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "internalDvDx", returnpolicy="reference_internal")
-    pairAccelerations = PYB11property("const FieldList<%(Dimension)s, std::vector<Vector> >&", "pairAccelerations", returnpolicy="reference_internal")
+    pairAccelerations = PYB11property("const std::vector<Vector>&", "pairAccelerations", returnpolicy="reference_internal")
     deltaCentroid = PYB11property("const FieldList<%(Dimension)s, Vector>&", "deltaCentroid", returnpolicy="reference_internal")
 
     A = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "A", returnpolicy="reference_internal")

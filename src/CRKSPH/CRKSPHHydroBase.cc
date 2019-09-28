@@ -155,7 +155,7 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDHDt(FieldStorageType::CopyFields),
   mDvDx(FieldStorageType::CopyFields),
   mInternalDvDx(FieldStorageType::CopyFields),
-  mPairAccelerations(FieldStorageType::CopyFields),
+  mPairAccelerations(),
   mA(FieldStorageType::CopyFields),
   mB(FieldStorageType::CopyFields),
   mC(FieldStorageType::CopyFields),
@@ -219,7 +219,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H);
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
-  mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
+  mPairAccelerations.clear();
   mDeltaCentroid = dataBase.newFluidFieldList(Vector::zero, "delta centroid");
 
   mA = dataBase.newFluidFieldList(0.0,                        HydroFieldNames::A_CRKSPH);
@@ -546,7 +546,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
-  dataBase.resizeFluidFieldList(mPairAccelerations, vector<Vector>(), HydroFieldNames::pairAccelerations, false);
 
   derivs.enroll(mHideal);
   derivs.enroll(mMaxViscousPressure);
@@ -568,7 +567,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDHDt);
   derivs.enroll(mDvDx);
   derivs.enroll(mInternalDvDx);
-  derivs.enroll(mPairAccelerations);
+  derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
 }
 
 //------------------------------------------------------------------------------
