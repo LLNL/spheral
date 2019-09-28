@@ -93,51 +93,53 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
 
     // Collect the etaInv across threads
 #pragma omp critical
-    if (omp_get_thread_num() > 0) {
-      for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-        const auto ni = position[nodeListi]->numInternalElements();
-        for (auto i = 0; i < ni; ++i) {
-          etaInv(nodeListi, i).insert(etaInv(nodeListi, i).end(), etaInv_thread(nodeListi, i).begin(), etaInv_thread(nodeListi, i).end());
-        }
-      }
-    }
-
-    // Now we can do each node independently.
-    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-      const auto ni = position[nodeListi]->numInternalElements();
-#pragma omp for
-      for (auto i = 0; i < ni; ++i) {
-
-        // Get the state for node i.
-        const auto& Hi = H(nodeListi, i);
-        const auto  Hdeti = Hi.Determinant();
-
-        // Build the hull of the inverse.
-        const FacetedVolume hullInv(etaInv(nodeListi, i));
-
-        // Use the vertices selected by the inverse hull to construct the
-        // volume of the node.
-        vector<Vector> eta;
-        const vector<Vector>& vertsInv = hullInv.vertices();
-        CHECK((Dimension::nDim == 1 and vertsInv.size() == 2) or
-              (Dimension::nDim == 2 and vertsInv.size() >= 3) or
-              (Dimension::nDim == 3 and vertsInv.size() >= 4));
-        for (typename std::vector<Vector>::const_iterator itr = vertsInv.begin();
-             itr != vertsInv.end();
-             ++itr) {
-          if (itr->magnitude2() < 1.0e-30) {
-            eta.push_back(Vector::zero);
-          } else {
-            eta.push_back(1.0/sqrt(itr->magnitude2()) * itr->unitVector());
+    {
+      if (omp_get_thread_num() > 0) {
+        for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+          const auto ni = position[nodeListi]->numInternalElements();
+          for (auto i = 0; i < ni; ++i) {
+            etaInv(nodeListi, i).insert(etaInv(nodeListi, i).end(), etaInv_thread(nodeListi, i).begin(), etaInv_thread(nodeListi, i).end());
           }
         }
-
-        // And we have it.
-        const FacetedVolume polyeta = FacetedVolume(eta);
-        volume(nodeListi, i) = polyeta.volume()/Hdeti;
       }
+    } // OMP critical
+  }   // OMP parallel
+
+    // Now we can do each node independently.
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto ni = position[nodeListi]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0; i < ni; ++i) {
+
+      // Get the state for node i.
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+
+      // Build the hull of the inverse.
+      const FacetedVolume hullInv(etaInv(nodeListi, i));
+
+      // Use the vertices selected by the inverse hull to construct the
+      // volume of the node.
+      vector<Vector> eta;
+      const vector<Vector>& vertsInv = hullInv.vertices();
+      CHECK((Dimension::nDim == 1 and vertsInv.size() == 2) or
+            (Dimension::nDim == 2 and vertsInv.size() >= 3) or
+            (Dimension::nDim == 3 and vertsInv.size() >= 4));
+      for (typename std::vector<Vector>::const_iterator itr = vertsInv.begin();
+           itr != vertsInv.end();
+           ++itr) {
+        if (itr->magnitude2() < 1.0e-30) {
+          eta.push_back(Vector::zero);
+        } else {
+          eta.push_back(1.0/sqrt(itr->magnitude2()) * itr->unitVector());
+        }
+      }
+
+      // And we have it.
+      const FacetedVolume polyeta = FacetedVolume(eta);
+      volume(nodeListi, i) = polyeta.volume()/Hdeti;
     }
-  } // OMP parallel
+  }
 }
 
 }
