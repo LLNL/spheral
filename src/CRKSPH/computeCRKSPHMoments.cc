@@ -73,7 +73,6 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
   // Connectivity
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
-  const auto  numNodeLists = m0.numFields();
 
   // Zero things out.
   m0 = 0.0;
@@ -95,13 +94,13 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
     const auto ni = m0[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++ni) {
+    for (auto i = 0; i < ni; ++i) {
       const auto  weighti = weight(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  wwi = weighti*Hdeti*W0;
-      m0_thread(nodeListi, i) += wwi;
-      gradm1_thread(nodeListi, i) += Tensor::one*wwi;
+      m0(nodeListi, i) += wwi;
+      gradm1(nodeListi, i) += Tensor::one*wwi;
     }
   }
 
@@ -126,7 +125,6 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
 
 #pragma omp for
     for (auto kk = 0; kk < npairs; ++kk) {
-      const auto start = Timing::currentTime();
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
       nodeListi = pairs[kk].i_list;
