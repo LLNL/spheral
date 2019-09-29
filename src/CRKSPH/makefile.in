@@ -21,7 +21,6 @@ INSTSRCTARGETS = \
 	$(srcdir)/computeCRKSPHIntegralInst.cc.py \
 	$(srcdir)/computeHullVolumesInst.cc.py \
 	$(srcdir)/computeHVolumesInst.cc.py \
-	$(srcdir)/computeNeighborHullInst.cc.py \
 	$(srcdir)/CRKSPHHydroBaseInst.cc.py \
 	$(srcdir)/CRKSPHVariantInst.cc.py \
 	$(srcdir)/interpolateCRKSPHInst.cc.py \
