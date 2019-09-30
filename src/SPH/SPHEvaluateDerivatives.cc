@@ -11,6 +11,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
+  TIME_SPHevalDerivs.start();
+  TIME_SPHevalDerivs_initial.start();
 
   //static double totalLoopTime = 0.0;
   // Get the ArtificialViscosity.
@@ -101,8 +103,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
+  TIME_SPHevalDerivs_initial.stop();
 
   // Walk all the interacting pairs.
+  TIME_SPHevalDerivs_pairs.start();
 #pragma omp parallel
   {
     // Thread private scratch variables
@@ -337,8 +341,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       massSecondMoment.threadReduce(massSecondMoment_thread, ThreadReduction::SUM);
     } // OpenMP critical region
   }   // OpenMP parallel region
+  TIME_SPHevalDerivs_pairs.stop();
 
   // Finish up the derivatives for each point.
+  TIME_SPHevalDerivs_final.start();
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[0]->nodeList();
     const auto  hmin = nodeList.hmin();
@@ -444,6 +450,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                         i);
     }
   }
+  TIME_SPHevalDerivs_final.stop();
+  TIME_SPHevalDerivs.stop();
 }
 
 }
