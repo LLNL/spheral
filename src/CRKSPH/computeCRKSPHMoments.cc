@@ -272,16 +272,21 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
 
 #pragma omp critical
     {
-      m0.threadReduce(m0_thread, ThreadReduction::SUM);
-      m1.threadReduce(m1_thread, ThreadReduction::SUM);
-      m2.threadReduce(m2_thread, ThreadReduction::SUM);
-      m3.threadReduce(m3_thread, ThreadReduction::SUM);
-      m4.threadReduce(m4_thread, ThreadReduction::SUM);
-      gradm0.threadReduce(gradm0_thread, ThreadReduction::SUM);
-      gradm1.threadReduce(gradm1_thread, ThreadReduction::SUM);
-      gradm2.threadReduce(gradm2_thread, ThreadReduction::SUM);
-      gradm3.threadReduce(gradm3_thread, ThreadReduction::SUM);
-      gradm4.threadReduce(gradm4_thread, ThreadReduction::SUM);
+      for (nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+        const auto ni = m0[nodeListi]->numInternalElements();
+        for (auto i = 0; i < ni; ++i) {
+          m0(nodeListi, i) += m0_thread(nodeListi, i);
+          m1(nodeListi, i) += m1_thread(nodeListi, i);
+          m2(nodeListi, i) += m2_thread(nodeListi, i);
+          m3(nodeListi, i) += m3_thread(nodeListi, i);
+          m4(nodeListi, i) += m4_thread(nodeListi, i);
+          gradm0(nodeListi, i) += gradm0_thread(nodeListi, i);
+          gradm1(nodeListi, i) += gradm1_thread(nodeListi, i);
+          gradm2(nodeListi, i) += gradm2_thread(nodeListi, i);
+          gradm3(nodeListi, i) += gradm3_thread(nodeListi, i);
+          gradm4(nodeListi, i) += gradm4_thread(nodeListi, i);
+        }
+      }
     } // OMP critical
   }   // OMP parallel
 }

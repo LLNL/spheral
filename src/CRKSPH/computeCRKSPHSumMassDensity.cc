@@ -108,11 +108,16 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 
 #pragma omp critical
     {
-      massDensity.threadReduce(massDensity_thread, ThreadReduction::SUM);
-      wsum.threadReduce(wsum_thread, ThreadReduction::SUM);
-      vol1.threadReduce(vol1_thread, ThreadReduction::SUM);
-    }
-  }
+      for (nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+        const auto ni = massDensity[nodeListi]->numInternalElements();
+        for (auto i = 0; i < ni; ++i) {
+          massDensity(nodeListi, i) += massDensity_thread(nodeListi, i);
+          wsum(nodeListi, i) += wsum_thread(nodeListi, i);
+          vol1(nodeListi, i) += vol1_thread(nodeListi, i);
+        }
+      }
+    } // OMP critical
+  }   // OMP parallel
   
   // The self contribution.
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
