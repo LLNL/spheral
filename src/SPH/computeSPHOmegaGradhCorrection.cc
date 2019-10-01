@@ -93,8 +93,13 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
 
 #pragma omp critical
     {
-      omegaGradh.threadReduce(omegaGradh_thread, ThreadReduction::SUM);
-      gradsum.threadReduce(gradsum_thread, ThreadReduction::SUM);
+      for (nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+        const auto ni = omegaGradh[nodeListi]->numInternalElements();
+        for (auto i = 0; i < ni; ++i) {
+          omegaGradh(nodeListi, i) += omegaGradh_thread(nodeListi, i);
+          gradsum(nodeListi, i) += gradsum_thread(nodeListi, i);
+        }
+      }
     }  // OMP critical
   }    // OMP parallel
   

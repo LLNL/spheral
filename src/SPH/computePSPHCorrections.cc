@@ -145,11 +145,16 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
 #pragma omp critical
     {
-      PSPHmassDensity.threadReduce(PSPHmassDensity_thread, ThreadReduction::SUM);
-      PSPHpbar.threadReduce(PSPHpbar_thread, ThreadReduction::SUM);
-      Nbar.threadReduce(Nbar_thread, ThreadReduction::SUM);
-      gradPbar.threadReduce(gradPbar_thread, ThreadReduction::SUM);
-      gradNbar.threadReduce(gradNbar_thread, ThreadReduction::SUM);
+      for (nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+        const auto ni = PSPHpbar[nodeListi]->numInternalElements();
+        for (auto i = 0; i < ni; ++i) {
+          PSPHmassDensity(nodeListi, i) += PSPHmassDensity_thread(nodeListi, i);
+          PSPHpbar(nodeListi, i) += PSPHpbar_thread(nodeListi, i);
+          Nbar(nodeListi, i) += Nbar_thread(nodeListi, i);
+          gradPbar(nodeListi, i) += gradPbar_thread(nodeListi, i);
+          gradNbar(nodeListi, i) += gradNbar_thread(nodeListi, i);
+        }
+      }
     } // OMP critical
   }   // OMP parallel
 

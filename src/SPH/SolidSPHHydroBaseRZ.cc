@@ -568,21 +568,26 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
 #pragma omp critical
     {
-      rhoSum.threadReduce(rhoSum_thread, ThreadReduction::SUM);
-      DvDt.threadReduce(DvDt_thread, ThreadReduction::SUM);
-      DepsDt.threadReduce(DepsDt_thread, ThreadReduction::SUM);
-      DvDx.threadReduce(DvDx_thread, ThreadReduction::SUM);
-      localDvDx.threadReduce(localDvDx_thread, ThreadReduction::SUM);
-      M.threadReduce(M_thread, ThreadReduction::SUM);
-      localM.threadReduce(localM_thread, ThreadReduction::SUM);
-      maxViscousPressure.threadReduce(maxViscousPressure_thread, ThreadReduction::MAX);
-      effViscousPressure.threadReduce(effViscousPressure_thread, ThreadReduction::SUM);
-      rhoSumCorrection.threadReduce(rhoSumCorrection_thread, ThreadReduction::SUM);
-      viscousWork.threadReduce(viscousWork_thread, ThreadReduction::SUM);
-      XSPHWeightSum.threadReduce(XSPHWeightSum_thread, ThreadReduction::SUM);
-      XSPHDeltaV.threadReduce(XSPHDeltaV_thread, ThreadReduction::SUM);
-      weightedNeighborSum.threadReduce(weightedNeighborSum_thread, ThreadReduction::SUM);
-      massSecondMoment.threadReduce(massSecondMoment_thread, ThreadReduction::SUM);
+      for (nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+        const auto ni = rhoSum[nodeListi]->numInternalElements();
+        for (auto i = 0; i < ni; ++i) {
+          rhoSum(nodeListi, i) += rhoSum_thread(nodeListi, i);
+          DvDt(nodeListi, i) += DvDt_thread(nodeListi, i);
+          DepsDt(nodeListi, i) += DepsDt_thread(nodeListi, i);
+          DvDx(nodeListi, i) += DvDx_thread(nodeListi, i);
+          localDvDx(nodeListi, i) += localDvDx_thread(nodeListi, i);
+          M(nodeListi, i) += M_thread(nodeListi, i);
+          localM(nodeListi, i) += localM_thread(nodeListi, i);
+          maxViscousPressure(nodeListi, i) = std::max(maxViscousPressure(nodeListi, i), maxViscousPressure_thread(nodeListi, i));
+          effViscousPressure(nodeListi, i) += effViscousPressure_thread(nodeListi, i);
+          rhoSumCorrection(nodeListi, i) += rhoSumCorrection_thread(nodeListi, i);
+          viscousWork(nodeListi, i) += viscousWork_thread(nodeListi, i);
+          XSPHWeightSum(nodeListi, i) += XSPHWeightSum_thread(nodeListi, i);
+          XSPHDeltaV(nodeListi, i) += XSPHDeltaV_thread(nodeListi, i);
+          weightedNeighborSum(nodeListi, i) += weightedNeighborSum_thread(nodeListi, i);
+          massSecondMoment(nodeListi, i) += massSecondMoment_thread(nodeListi, i);
+        }
+      }
     } // OpenMP critical region
   }   // OpenMP parallel region
 

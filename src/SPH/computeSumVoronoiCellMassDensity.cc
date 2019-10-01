@@ -107,8 +107,13 @@ computeSumVoronoiCellMassDensity(const ConnectivityMap<Dimension>& connectivityM
 
 #pragma omp critical
     {
-      Veff.threadReduce(Veff_thread, ThreadReduction::SUM);
-      massDensity.threadReduce(massDensity_thread, ThreadReduction::SUM);
+      for (nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+        const auto ni = Veff[nodeListi]->numInternalElements();
+        for (auto i = 0; i < ni; ++i) {
+          Veff(nodeListi, i) += Veff_thread(nodeListi, i);
+          massDensity(nodeListi, i) += massDensity_thread(nodeListi, i);
+        }
+      }
     } // OMP critical
   }   // OMP parallel
 
