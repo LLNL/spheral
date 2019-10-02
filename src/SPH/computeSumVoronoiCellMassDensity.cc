@@ -66,8 +66,9 @@ computeSumVoronoiCellMassDensity(const ConnectivityMap<Dimension>& connectivityM
     int i, j, nodeListi, nodeListj;
     Scalar Wi, gWi, Wj, gWj;
 
-    auto Veff_thread = Veff.threadCopy();
-    auto massDensity_thread = massDensity.threadCopy();
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto Veff_thread = Veff.threadCopy(threadStack);
+    auto massDensity_thread = massDensity.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0; kk < npairs; ++kk) {
@@ -105,16 +106,9 @@ computeSumVoronoiCellMassDensity(const ConnectivityMap<Dimension>& connectivityM
       massDensity_thread(nodeListi, j) += mi*Wj;
     }
 
-#pragma omp critical
-    {
-      for (nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-        const auto ni = Veff[nodeListi]->numInternalElements();
-        for (auto i = 0; i < ni; ++i) {
-          Veff(nodeListi, i) += Veff_thread(nodeListi, i);
-          massDensity(nodeListi, i) += massDensity_thread(nodeListi, i);
-        }
-      }
-    } // OMP critical
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+
   }   // OMP parallel
 
 
