@@ -139,7 +139,7 @@ update(const KeyType& key,
 
 #pragma omp critical
     {
-      DepsDt.threadReduce(DepsDt_thread, ThreadReduction::SUM);
+      DepsDt_thread.threadReduce();
     }
   }
 

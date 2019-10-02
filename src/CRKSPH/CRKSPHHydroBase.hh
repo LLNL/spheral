@@ -82,7 +82,7 @@ public:
   // This method is called once at the beginning of a timestep, after all state registration.
   virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
                                  State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs);
+                                 StateDerivatives<Dimension>& derivs) override;
 
   // Initialize the Hydro before we start a derivative evaluation.
   virtual
@@ -204,7 +204,6 @@ public:
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldList<Dimension, SymTensor>& massSecondMoment() const;
   const FieldList<Dimension, Scalar>&    volume() const;
-  const FieldList<Dimension, Vector>&    massDensityGradient() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
 
@@ -279,7 +278,6 @@ protected:
   FieldList<Dimension, SymTensor> mMassSecondMoment;
 
   FieldList<Dimension, Scalar>    mVolume;
-  FieldList<Dimension, Vector>    mMassDensityGradient;
 
   FieldList<Dimension, Vector>    mXSPHDeltaV;
   FieldList<Dimension, Vector>    mDxDt;

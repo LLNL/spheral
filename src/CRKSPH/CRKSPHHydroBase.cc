@@ -144,7 +144,6 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mEffViscousPressure(FieldStorageType::CopyFields),
   mViscousWork(FieldStorageType::CopyFields),
   mVolume(FieldStorageType::CopyFields),
-  mMassDensityGradient(FieldStorageType::CopyFields),
   mWeightedNeighborSum(FieldStorageType::CopyFields),
   mMassSecondMoment(FieldStorageType::CopyFields),
   mXSPHDeltaV(FieldStorageType::CopyFields),
@@ -207,7 +206,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
   mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
   mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
-  mMassDensityGradient = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massDensityGradient);
   mViscousWork = dataBase.newFluidFieldList(0.0, HydroFieldNames::viscousWork);
   mWeightedNeighborSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::weightedNeighborSum);
   mMassSecondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
@@ -537,7 +535,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mViscousWork, 0.0, HydroFieldNames::viscousWork, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
   dataBase.resizeFluidFieldList(mMassSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
-  dataBase.resizeFluidFieldList(mMassDensityGradient, Vector::zero, HydroFieldNames::massDensityGradient, false);
   dataBase.resizeFluidFieldList(mXSPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
   dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, false);
   dataBase.resizeFluidFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
@@ -553,7 +550,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mViscousWork);
   derivs.enroll(mWeightedNeighborSum);
   derivs.enroll(mMassSecondMoment);
-  derivs.enroll(mMassDensityGradient);
   derivs.enroll(mXSPHDeltaV);
 
   // These two (the position and velocity updates) may be registered
@@ -586,7 +582,6 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-  const auto  gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   const auto  damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   auto        vol = state.fields(HydroFieldNames::volume, 0.0);
   auto        surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
@@ -803,7 +798,6 @@ finalize(const typename Dimension::Scalar time,
   // const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
   // const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
   // const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-  // const auto  gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   // const auto  damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   // auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   // auto vol = state.fields(HydroFieldNames::volume, 0.0);
@@ -1015,7 +1009,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
   file.write(mVolume, pathName + "/Volume");
-  file.write(mMassDensityGradient, pathName + "/massDensityGradient");
   file.write(mA, pathName + "/A");
   file.write(mB, pathName + "/B");
   file.write(mC, pathName + "/C");
@@ -1053,7 +1046,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mDvDx, pathName + "/DvDx");
   file.read(mInternalDvDx, pathName + "/internalDvDx");
   file.read(mVolume, pathName + "/Volume");
-  file.read(mMassDensityGradient, pathName + "/massDensityGradient");
   file.read(mA, pathName + "/A");
   file.read(mB, pathName + "/B");
   file.read(mC, pathName + "/C");

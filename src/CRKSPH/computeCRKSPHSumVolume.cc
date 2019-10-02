@@ -108,7 +108,7 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
 
 #pragma omp critical
     {
-      vol.threadReduce(vol_thread, ThreadReduction::SUM);
+      vol_thread.threadReduce();
     }
   }
 

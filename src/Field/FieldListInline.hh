@@ -34,7 +34,9 @@ FieldList<Dimension, DataType>::FieldList():
   mFieldCache(0),
   mStorageType(FieldStorageType::ReferenceFields),
   mNodeListPtrs(0),
-  mNodeListIndexMap() {
+  mNodeListIndexMap(),
+  reductionType(ThreadReduction::SUM),
+  threadMasterPtr(NULL) {
 }
 
 //------------------------------------------------------------------------------
@@ -49,7 +51,9 @@ FieldList<Dimension, DataType>::FieldList(FieldStorageType aStorageType):
   mFieldCache(0),
   mStorageType(aStorageType),
   mNodeListPtrs(0),
-  mNodeListIndexMap() {
+  mNodeListIndexMap(),
+  reductionType(ThreadReduction::SUM),
+  threadMasterPtr(NULL) {
 }
 
 //------------------------------------------------------------------------------
@@ -66,7 +70,9 @@ FieldList(const FieldList<Dimension, DataType>& rhs):
   mFieldCache(),
   mStorageType(rhs.storageType()),
   mNodeListPtrs(rhs.mNodeListPtrs),
-  mNodeListIndexMap(rhs.mNodeListIndexMap) {
+  mNodeListIndexMap(rhs.mNodeListIndexMap),
+  reductionType(rhs.reductionType),
+  threadMasterPtr(rhs.threadMasterPtr) {
 
   // If we're maintaining Fields by copy, then copy the Field cache.
   if (storageType() == FieldStorageType::CopyFields) {
@@ -139,6 +145,8 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
     mFieldBasePtrs = std::vector<BaseElementType>();
     mFieldPtrs.reserve(rhs.size());
     mFieldBasePtrs.reserve(rhs.size());
+    reductionType = rhs.reductionType;
+    threadMasterPtr = rhs.threadMasterPtr;
 
 //     // Unregister from our current set of Fields.
 //     for (iterator fieldPtrItr = begin(); fieldPtrItr != end(); ++fieldPtrItr) 
@@ -1719,7 +1727,7 @@ template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>
 FieldList<Dimension, DataType>::
-threadCopy(const bool forceCopy) const {
+threadCopy(const ThreadReduction reductionType) {
   FieldList<Dimension, DataType> result;
 #pragma omp critical
   {
@@ -1727,19 +1735,33 @@ threadCopy(const bool forceCopy) const {
       // Thread 0 always references the original fields
       result.referenceFields(*this);
 
-    } else if (forceCopy) {
-      // If forceCopy and not thread 0, make standalone copies of the original
+    } else if (reductionType == ThreadReduction::MIN or
+               reductionType == ThreadReduction::MAX) {
+      // For min/max operations, we need to copy the original data
       result = FieldList<Dimension, DataType>(*this);
       result.copyFields();
 
     } else {    
-      // If not thread 0 and not forceCopy, make standalone Fields of zeros
+      // Otherwise make standalone Fields of zeros
       result = FieldList<Dimension, DataType>(FieldStorageType::CopyFields);
       for (auto fitr = this->begin(); fitr < this->end(); ++fitr) result.appendNewField((*fitr)->name(),
                                                                                         (*fitr)->nodeList(),
                                                                                         DataTypeTraits<DataType>::zero());
     }
   }
+  result.reductionType = reductionType;
+  result.threadMasterPtr = this;
+  return result;
+}
+
+template<typename Dimension, typename DataType>
+inline
+FieldList<Dimension, DataType>
+FieldList<Dimension, DataType>::
+threadCopy(typename SpheralThreads<Dimension>::FieldListStack& stack,
+           const ThreadReduction reductionType) {
+  FieldList<Dimension, DataType> result = this->threadCopy(reductionType);
+  stack.push_back(&result);
   return result;
 }
 
@@ -1750,27 +1772,27 @@ template<typename Dimension, typename DataType>
 inline
 void
 FieldList<Dimension, DataType>::
-threadReduce(const FieldList<Dimension, DataType>& threadValue,
-             const ThreadReduction op) {
-  REQUIRE(this->size() == threadValue.size());
+threadReduce() const {
+  REQUIRE(threadMasterPtr != NULL);
+  REQUIRE(threadMasterPtr->size() == this->size());
   if (omp_get_thread_num() > 0) {
     const auto numNL = this->size();
     for (auto k = 0; k < numNL; ++k) {
       const auto n = mFieldPtrs[k]->numInternalElements();
       for (auto i = 0; i < n; ++i) {
 
-        switch (op) {
+        switch (reductionType) {
 
         case ThreadReduction::SUM:
-          (*this)(k,i) += threadValue(k,i);
+          (*threadMasterPtr)(k,i) += (*this)(k,i);
           break;
 
         case ThreadReduction::MIN:
-          (*this)(k,i) = std::min(threadValue(k,i), (*this)(k,i));
+          (*threadMasterPtr)(k,i) = std::min((*threadMasterPtr)(k,i), (*this)(k,i));
           break;
 
         case ThreadReduction::MAX:
-          (*this)(k,i) = std::max(threadValue(k,i), (*this)(k,i));
+          (*threadMasterPtr)(k,i) = std::max((*threadMasterPtr)(k,i), (*this)(k,i));
           break;
 
         }

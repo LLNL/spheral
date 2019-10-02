@@ -80,7 +80,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
-  auto  gradRho = derivatives.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -95,7 +94,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
-  CHECK(gradRho.size() == numNodeLists);
 
   // Size up the pair-wise accelerations before we start.
   if (mCompatibleEnergyEvolution) pairAccelerations.resize(npairs);
@@ -116,17 +114,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     Vector gradWi, gradWj;
     Vector deltagrad;
 
-    auto DvDt_thread = DvDt.threadCopy();
-    auto DepsDt_thread = DepsDt.threadCopy();
-    auto DvDx_thread = DvDx.threadCopy();
-    auto localDvDx_thread = localDvDx.threadCopy();
-    auto maxViscousPressure_thread = maxViscousPressure.threadCopy(true);
-    auto effViscousPressure_thread = effViscousPressure.threadCopy();
-    auto viscousWork_thread = viscousWork.threadCopy();
-    auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy();
-    auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy();
-    auto massSecondMoment_thread = massSecondMoment.threadCopy();
-    auto gradRho_thread = gradRho.threadCopy();
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto DvDt_thread = DvDt.threadCopy(threadStack);
+    auto DepsDt_thread = DepsDt.threadCopy(threadStack);
+    auto DvDx_thread = DvDx.threadCopy(threadStack);
+    auto localDvDx_thread = localDvDx.threadCopy(threadStack);
+    auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
+    auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
+    auto viscousWork_thread = viscousWork.threadCopy(threadStack);
+    auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
+    auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
+    auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0; kk < npairs; ++kk) {
@@ -173,7 +171,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
-      auto& gradRhoi = gradRho_thread(nodeListi, i);
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
@@ -212,7 +209,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
       auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
-      auto& gradRhoj = gradRho_thread(nodeListj, j);
 
       // Find the effective weights of i->j and j->i.
       // const auto wi = 2.0*weighti*weightj/(weighti + weightj);
@@ -257,7 +253,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // const auto workQVj =  vij.dot((rhoi*rhoi*QPiij).dot(gradWi));               //RK V and RK I Work
       const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
       const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
-      maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                                 // We need tighter timestep controls on the Q with CRK
+      maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                     // We need tighter timestep controls on the Q with CRK
       maxViscousPressurej = max(maxViscousPressurej, 4.0*Qj);
       effViscousPressurei += weightj * Qi * Wj;
       effViscousPressurej += weighti * Qj * Wi;
@@ -272,9 +268,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         localDvDxj += weighti*vij.dyad(gradWi);
       }
 
-      // Mass density gradient.
-      gradRhoi += weightj*(rhoj - rhoi)*gradWj;
-      gradRhoj += weighti*(rhoi - rhoj)*gradWi;
+      // // Mass density gradient.
+      // gradRhoi += weightj*(rhoj - rhoi)*gradWj;
+      // gradRhoj += weighti*(rhoi - rhoj)*gradWi;
 
       // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
       // Momentum
@@ -310,20 +306,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       nodeLists[nodeListj]->work()(j) += deltaTimePair;
     }
 
-#pragma omp critical
-    {
-      DvDt.threadReduce(DvDt_thread, ThreadReduction::SUM);
-      DepsDt.threadReduce(DepsDt_thread, ThreadReduction::SUM);
-      DvDx.threadReduce(DvDx_thread, ThreadReduction::SUM);
-      localDvDx.threadReduce(localDvDx_thread, ThreadReduction::SUM);
-      maxViscousPressure.threadReduce(maxViscousPressure_thread, ThreadReduction::MAX);
-      effViscousPressure.threadReduce(effViscousPressure_thread, ThreadReduction::SUM);
-      viscousWork.threadReduce(viscousWork_thread, ThreadReduction::SUM);
-      XSPHDeltaV.threadReduce(XSPHDeltaV_thread, ThreadReduction::SUM);
-      weightedNeighborSum.threadReduce(weightedNeighborSum_thread, ThreadReduction::SUM);
-      massSecondMoment.threadReduce(massSecondMoment_thread, ThreadReduction::SUM);
-      gradRho.threadReduce(gradRho_thread, ThreadReduction::SUM);
-    } // OMP critical
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+
   }   // OMP parallel
 
   // Finish up the derivatives for each point.

@@ -94,7 +94,7 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 
 #pragma omp critical
     {
-      massDensity.threadReduce(massDensity_thread, ThreadReduction::SUM);
+      massDensity_thread.threadReduce();
     }
   }
 }

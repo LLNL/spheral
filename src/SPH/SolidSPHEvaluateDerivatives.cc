@@ -134,22 +134,23 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     Tensor QPiij, QPiji;
     SymTensor sigmai, sigmaj;
 
-    auto rhoSum_thread = rhoSum.threadCopy();
-    auto DvDt_thread = DvDt.threadCopy();
-    auto DepsDt_thread = DepsDt.threadCopy();
-    auto DvDx_thread = DvDx.threadCopy();
-    auto localDvDx_thread = localDvDx.threadCopy();
-    auto M_thread = M.threadCopy();
-    auto localM_thread = localM.threadCopy();
-    auto maxViscousPressure_thread = maxViscousPressure.threadCopy(true);
-    auto effViscousPressure_thread = effViscousPressure.threadCopy();
-    auto rhoSumCorrection_thread = rhoSumCorrection.threadCopy();
-    auto viscousWork_thread = viscousWork.threadCopy();
-    auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy();
-    auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy();
-    auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy();
-    auto massSecondMoment_thread = massSecondMoment.threadCopy();
-    auto DSDt_thread = DSDt.threadCopy();
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto rhoSum_thread = rhoSum.threadCopy(threadStack);
+    auto DvDt_thread = DvDt.threadCopy(threadStack);
+    auto DepsDt_thread = DepsDt.threadCopy(threadStack);
+    auto DvDx_thread = DvDx.threadCopy(threadStack);
+    auto localDvDx_thread = localDvDx.threadCopy(threadStack);
+    auto M_thread = M.threadCopy(threadStack);
+    auto localM_thread = localM.threadCopy(threadStack);
+    auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
+    auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
+    auto rhoSumCorrection_thread = rhoSumCorrection.threadCopy(threadStack);
+    auto viscousWork_thread = viscousWork.threadCopy(threadStack);
+    auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
+    auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
+    auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
+    auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
+    auto DSDt_thread = DSDt.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0; kk < npairs; ++kk) {
@@ -377,29 +378,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
     } // loop over pairs
 
-#pragma omp critical
-    {
-      for (nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-        const auto ni = rhoSum[nodeListi]->numInternalElements();
-        for (auto i = 0; i < ni; ++i) {
-          rhoSum(nodeListi, i) += rhoSum_thread(nodeListi, i);
-          DvDt(nodeListi, i) += DvDt_thread(nodeListi, i);
-          DepsDt(nodeListi, i) += DepsDt_thread(nodeListi, i);
-          DvDx(nodeListi, i) += DvDx_thread(nodeListi, i);
-          localDvDx(nodeListi, i) += localDvDx_thread(nodeListi, i);
-          M(nodeListi, i) += M_thread(nodeListi, i);
-          localM(nodeListi, i) += localM_thread(nodeListi, i);
-          maxViscousPressure(nodeListi, i) = std::max(maxViscousPressure(nodeListi, i), maxViscousPressure_thread(nodeListi, i));
-          effViscousPressure(nodeListi, i) += effViscousPressure_thread(nodeListi, i);
-          rhoSumCorrection(nodeListi, i) += rhoSumCorrection_thread(nodeListi, i);
-          viscousWork(nodeListi, i) += viscousWork_thread(nodeListi, i);
-          XSPHWeightSum(nodeListi, i) += XSPHWeightSum_thread(nodeListi, i);
-          XSPHDeltaV(nodeListi, i) += XSPHDeltaV_thread(nodeListi, i);
-          weightedNeighborSum(nodeListi, i) += weightedNeighborSum_thread(nodeListi, i);
-          massSecondMoment(nodeListi, i) += massSecondMoment_thread(nodeListi, i);
-        }
-      }
-    } // OpenMP critical region
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+
   }   // OpenMP parallel region
 
 

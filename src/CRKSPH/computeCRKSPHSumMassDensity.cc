@@ -64,9 +64,10 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
     Vector Bi = Vector::zero, Bj = Vector::zero;
     Tensor Ci = Tensor::zero, Cj = Tensor::zero;
 
-    auto massDensity_thread = massDensity.threadCopy();
-    auto wsum_thread = wsum.threadCopy();
-    auto vol1_thread = vol1.threadCopy();
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto massDensity_thread = massDensity.threadCopy(threadStack);
+    auto wsum_thread = wsum.threadCopy(threadStack);
+    auto vol1_thread = vol1.threadCopy(threadStack);
 
 #pragma omp for
     for (auto k = 0; k < npairs; ++k) {
@@ -106,17 +107,9 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       vol1_thread(nodeListi, j) += Vi * Vi*Wi;
     }
 
-#pragma omp critical
-    {
-      for (nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-        const auto ni = massDensity[nodeListi]->numInternalElements();
-        for (auto i = 0; i < ni; ++i) {
-          massDensity(nodeListi, i) += massDensity_thread(nodeListi, i);
-          wsum(nodeListi, i) += wsum_thread(nodeListi, i);
-          vol1(nodeListi, i) += vol1_thread(nodeListi, i);
-        }
-      }
-    } // OMP critical
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+
   }   // OMP parallel
   
   // The self contribution.

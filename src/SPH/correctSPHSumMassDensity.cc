@@ -109,7 +109,7 @@ correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 
 #pragma omp critical
     {
-      sumUnity.threadReduce(sumUnity_thread, ThreadReduction::SUM);
+      sumUnity_thread.threadReduce();
     } // OMP critical
   }   // OMP parallel
 

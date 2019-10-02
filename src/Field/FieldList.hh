@@ -264,11 +264,18 @@ public:
   //----------------------------------------------------------------------------
   // Methods to facilitate threaded computing
   // Make a local thread copy of all the Fields
-  FieldList<Dimension, DataType> threadCopy(const bool forceCopy=false) const;
+  FieldList<Dimension, DataType> threadCopy(typename SpheralThreads<Dimension>::FieldListStack& stack,
+                                            const ThreadReduction reductionType = ThreadReduction::SUM);
+  FieldList<Dimension, DataType> threadCopy(const ThreadReduction reductionType = ThreadReduction::SUM);
 
   // Reduce the values in the FieldList with the passed thread-local values.
-  void threadReduce(const FieldList<Dimension, DataType>& threadValue,
-                    const ThreadReduction op);
+  void threadReduce() const;
+
+  // A data attribute to indicate how to reduce this field across threads.
+  ThreadReduction reductionType;
+
+  // The master FieldList if this is a thread copy.
+  FieldList<Dimension, DataType>* threadMasterPtr;
 
 private:
   //--------------------------- Private Interface ---------------------------//

@@ -311,14 +311,6 @@ template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
-massDensityGradient() const {
-  return mMassDensityGradient;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
 XSPHDeltaV() const {
   return mXSPHDeltaV;
 }

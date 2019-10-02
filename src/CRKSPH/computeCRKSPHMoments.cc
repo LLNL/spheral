@@ -112,16 +112,17 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
     Scalar Wi, gWi, Wj, gWj, thpt;
     Vector gradWi, gradWj;
 
-    auto m0_thread = m0.threadCopy();
-    auto m1_thread = m1.threadCopy();
-    auto m2_thread = m2.threadCopy();
-    auto m3_thread = m3.threadCopy();
-    auto m4_thread = m4.threadCopy();
-    auto gradm0_thread = gradm0.threadCopy();
-    auto gradm1_thread = gradm1.threadCopy();
-    auto gradm2_thread = gradm2.threadCopy();
-    auto gradm3_thread = gradm3.threadCopy();
-    auto gradm4_thread = gradm4.threadCopy();
+    typename SpheralThreads<Dimension>::FieldListStack threadStack, quadThreadStack;
+    auto m0_thread = m0.threadCopy(threadStack);
+    auto m1_thread = m1.threadCopy(threadStack);
+    auto m2_thread = m2.threadCopy(threadStack);
+    auto m3_thread = m3.threadCopy(quadThreadStack);
+    auto m4_thread = m4.threadCopy(quadThreadStack);
+    auto gradm0_thread = gradm0.threadCopy(threadStack);
+    auto gradm1_thread = gradm1.threadCopy(threadStack);
+    auto gradm2_thread = gradm2.threadCopy(threadStack);
+    auto gradm3_thread = gradm3.threadCopy(quadThreadStack);
+    auto gradm4_thread = gradm4.threadCopy(quadThreadStack);
 
 #pragma omp for
     for (auto kk = 0; kk < npairs; ++kk) {
@@ -270,24 +271,10 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
       }
     }
 
-#pragma omp critical
-    {
-      for (nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-        const auto ni = m0[nodeListi]->numInternalElements();
-        for (auto i = 0; i < ni; ++i) {
-          m0(nodeListi, i) += m0_thread(nodeListi, i);
-          m1(nodeListi, i) += m1_thread(nodeListi, i);
-          m2(nodeListi, i) += m2_thread(nodeListi, i);
-          m3(nodeListi, i) += m3_thread(nodeListi, i);
-          m4(nodeListi, i) += m4_thread(nodeListi, i);
-          gradm0(nodeListi, i) += gradm0_thread(nodeListi, i);
-          gradm1(nodeListi, i) += gradm1_thread(nodeListi, i);
-          gradm2(nodeListi, i) += gradm2_thread(nodeListi, i);
-          gradm3(nodeListi, i) += gradm3_thread(nodeListi, i);
-          gradm4(nodeListi, i) += gradm4_thread(nodeListi, i);
-        }
-      }
-    } // OMP critical
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+    threadReduceFieldLists<Dimension>(quadThreadStack);
+
   }   // OMP parallel
 }
 
