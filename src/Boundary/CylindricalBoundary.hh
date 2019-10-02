@@ -51,8 +51,8 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Find the set of nodes in violation of this boundary in the given NodeList.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList);
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the violation node values in the given Field.
   virtual void enforceBoundary(Field<Dimension, int>& field) const override;
