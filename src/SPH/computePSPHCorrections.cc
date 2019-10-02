@@ -81,12 +81,13 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     int i, j, nodeListi, nodeListj;
     Scalar Wi, Wj, gWi, gWj;
 
-    auto PSPHmassDensity_thread = PSPHmassDensity.threadCopy();
-    auto PSPHpbar_thread = PSPHpbar.threadCopy();
-    auto PSPHcorrection_thread = PSPHcorrection.threadCopy();
-    auto Nbar_thread = Nbar.threadCopy();
-    auto gradPbar_thread = gradPbar.threadCopy();
-    auto gradNbar_thread = gradNbar.threadCopy();
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto PSPHmassDensity_thread = PSPHmassDensity.threadCopy(threadStack);
+    auto PSPHpbar_thread = PSPHpbar.threadCopy(threadStack);
+    auto PSPHcorrection_thread = PSPHcorrection.threadCopy(threadStack);
+    auto Nbar_thread = Nbar.threadCopy(threadStack);
+    auto gradPbar_thread = gradPbar.threadCopy(threadStack);
+    auto gradNbar_thread = gradNbar.threadCopy(threadStack);
 
 #pragma omp for
     for (auto k = 0; k < npairs; ++k) {
@@ -143,19 +144,9 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       gradNbar_thread(nodeListj, j) -= gradhj;
     }
 
-#pragma omp critical
-    {
-      for (nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-        const auto ni = PSPHpbar[nodeListi]->numInternalElements();
-        for (auto i = 0; i < ni; ++i) {
-          PSPHmassDensity(nodeListi, i) += PSPHmassDensity_thread(nodeListi, i);
-          PSPHpbar(nodeListi, i) += PSPHpbar_thread(nodeListi, i);
-          Nbar(nodeListi, i) += Nbar_thread(nodeListi, i);
-          gradPbar(nodeListi, i) += gradPbar_thread(nodeListi, i);
-          gradNbar(nodeListi, i) += gradNbar_thread(nodeListi, i);
-        }
-      }
-    } // OMP critical
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+
   }   // OMP parallel
 
   // Finish with the self contributions.
