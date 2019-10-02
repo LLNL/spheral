@@ -57,8 +57,9 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
     int i, j, nodeListi, nodeListj;
     Scalar Wi, gWi, Wj, gWj;
 
-    auto omegaGradh_thread = omegaGradh.threadCopy();
-    auto gradsum_thread = gradsum.threadCopy();
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto omegaGradh_thread = omegaGradh.threadCopy(threadStack);
+    auto gradsum_thread = gradsum.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0; kk < npairs; ++kk) {
@@ -91,16 +92,9 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
       gradsum_thread(nodeListj, j) += etaj*gWj;
     }
 
-#pragma omp critical
-    {
-      for (nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-        const auto ni = omegaGradh[nodeListi]->numInternalElements();
-        for (auto i = 0; i < ni; ++i) {
-          omegaGradh(nodeListi, i) += omegaGradh_thread(nodeListi, i);
-          gradsum(nodeListi, i) += gradsum_thread(nodeListi, i);
-        }
-      }
-    }  // OMP critical
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+
   }    // OMP parallel
   
   // Finish up for each point.
