@@ -72,6 +72,7 @@ insertUnique(const std::vector<int>& offsets,
   }
   return false;
 }
+
 }
 
 //------------------------------------------------------------------------------
@@ -902,11 +903,10 @@ computeConnectivity() {
     }
   }
 
-  // // Sort the NodePairList to be more efficient.
-  // sort(mNodePairList.begin(), mNodePairList.end(), [](const NodePairIdxType& a, const NodePairIdxType& b) { return (a.i_list < b.i_list ? true :
-  //                                                                                                                   a.i_list > b.i_list ? false :
-  //                                                                                                                   a.i_node < b.i_node ? true :
-  //                                                                                                                   false); });
+  // Sort the NodePairList in order to enforce domain decomposition independence.
+  if (domainDecompIndependent) {
+    sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
+  }
 
   // Do we need overlap connectivity?
   if (mBuildOverlapConnectivity) {
