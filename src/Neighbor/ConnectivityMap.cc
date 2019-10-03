@@ -860,7 +860,7 @@ computeConnectivity() {
               auto& neighborsj = mConnectivity[mOffsets[jNodeList] + j];
               CHECK(neighborsj.size() == numNodeLists);
               neighborsj[iNodeList].push_back(i);
-              mNodePairList.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
+              // mNodePairList.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
             }
           }
         }
