@@ -49,12 +49,15 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
 
-// #pragma omp parallel
+#pragma omp parallel
   {
     // Some scratch variables.
     int i, j, nodeListi, nodeListj;
 
+    auto etaInv_thread = etaInv.threadCopy();
+
     // Collect the half-way positions of all neighbors
+#pragma omp for
     for (auto k = 0; k < npairs; ++k) {
       i = pairs[k].i_node;
       j = pairs[k].j_node;
@@ -79,15 +82,20 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
 
       if (etaiMag < kernelExtent) {
         const auto etaiHat = etai.unitVector();
-        etaInv(nodeListi, i).push_back(1.0/max(etaiMag, 1.0e-30) * etaiHat);
+        etaInv_thread(nodeListi, i).push_back(1.0/max(etaiMag, 1.0e-30) * etaiHat);
       }
 
       if (etajMag < kernelExtent) {
         const auto etajHat = etaj.unitVector();
-        etaInv(nodeListj, j).push_back(1.0/max(etajMag, 1.0e-30) * etajHat);
+        etaInv_thread(nodeListj, j).push_back(1.0/max(etajMag, 1.0e-30) * etajHat);
       }
     }
-  }
+
+#pragma omp critical
+    {
+      etaInv_thread.threadReduce();
+    } // OMP critical
+  }   // OMP parallel
 
     // Now we can do each node independently.
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {

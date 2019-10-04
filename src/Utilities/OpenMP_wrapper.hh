@@ -15,6 +15,18 @@ inline void omp_set_num_threads() {}
 #include "boost/variant.hpp"
 #include <vector>
 
+//------------------------------------------------------------------------------
+// += as vector extension
+// Necessary to support reduction operations with FieldList<vector<Vector>>
+//------------------------------------------------------------------------------
+template<typename T>
+inline
+std::vector<T>&
+operator+=(std::vector<T>& a, const std::vector<T>& b) {
+  a.insert(a.end(), b.begin(), b.end());
+  return a;
+}
+
 namespace Spheral {
 
 // Forward declarations
@@ -40,7 +52,8 @@ struct SpheralThreads {
                          FieldList<Dimension, typename Dimension::SymTensor>*,
                          FieldList<Dimension, typename Dimension::ThirdRankTensor>*,
                          FieldList<Dimension, typename Dimension::FourthRankTensor>*,
-                         FieldList<Dimension, typename Dimension::FifthRankTensor>*> FieldListReductionVariant;
+                         FieldList<Dimension, typename Dimension::FifthRankTensor>*,
+                         FieldList<Dimension, std::vector<typename Dimension::Vector>>*> FieldListReductionVariant;
   typedef std::vector<FieldListReductionVariant> FieldListStack;
   
   //------------------------------------------------------------------------------
