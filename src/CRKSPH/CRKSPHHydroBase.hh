@@ -118,14 +118,14 @@ public:
                        State<Dimension>& state,
                        StateDerivatives<Dimension>& derivatives) override;
 
-  // Provide a hook to be called after the state has been updated and 
-  // boundary conditions have been enforced.
-  virtual 
-  void finalize(const Scalar time, 
-                const Scalar dt,
-                DataBase<Dimension>& dataBase, 
-                State<Dimension>& state,
-                StateDerivatives<Dimension>& derivatives) override;
+  // // Provide a hook to be called after the state has been updated and 
+  // // boundary conditions have been enforced.
+  // virtual 
+  // void finalize(const Scalar time, 
+  //               const Scalar dt,
+  //               DataBase<Dimension>& dataBase, 
+  //               State<Dimension>& state,
+  //               StateDerivatives<Dimension>& derivatives) override;
 
   // Apply boundary conditions to the physics specific fields.
   virtual
