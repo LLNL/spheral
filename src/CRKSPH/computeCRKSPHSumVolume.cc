@@ -70,10 +70,6 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
   {
     // Some scratch variables.
     int i, j, nodeListi, nodeListj;
-    Scalar Wi, Wj;
-    Vector rij, etai, etaj;
-    Vector Bi = Vector::zero, Bj = Vector::zero;
-    Tensor Ci = Tensor::zero, Cj = Tensor::zero;
 
     auto vol_thread = vol.threadCopy();
 
