@@ -533,9 +533,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       // Get the state for node i.
       const auto& posi = position(nodeListi, i);
       const auto  ri = abs(posi.y());
-      const auto  circi = 2.0*M_PI*ri;
       const auto  mi = mass(nodeListi, i);
-      const auto  mRZi = mi/circi;
       const auto& vi = velocity(nodeListi, i);
       const auto  rhoi = massDensity(nodeListi, i);
       const auto  epsi = specificThermalEnergy(nodeListi, i);
@@ -583,14 +581,14 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
       // The H tensor evolution.
       DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
-                                                             ri,
+                                                             posi,
                                                              DvDxi,
                                                              hmin,
                                                              hmax,
                                                              hminratio,
                                                              nPerh);
       Hideali = mSmoothingScaleMethod.newSmoothingScale(Hi,
-                                                        ri,
+                                                        posi,
                                                         weightedNeighborSumi,
                                                         massSecondMomenti,
                                                         W,
