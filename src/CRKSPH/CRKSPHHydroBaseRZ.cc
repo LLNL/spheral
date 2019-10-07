@@ -463,8 +463,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
       // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                      ri, etai, vi, rhoi, ci, Hi,
-                                      rj, etaj, vj, rhoj, cj, Hj);
+                                      posi, etai, vi, rhoi, ci, Hi,
+                                      posj, etaj, vj, rhoj, cj, Hj);
       const auto Qaccij = (rhoi*rhoi*QPiij + rhoj*rhoj*QPiji).dot(deltagrad);
       const auto workQi = rhoj*rhoj*QPiji.dot(vij).dot(deltagrad);                // CRK
       const auto workQj = rhoi*rhoi*QPiij.dot(vij).dot(deltagrad);                // CRK
