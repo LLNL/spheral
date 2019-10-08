@@ -349,7 +349,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto  ci = soundSpeed(nodeListi, i);
       const auto  omegai = omega(nodeListi, i);
       const auto& Si = S(nodeListi, i);
-      const auto  STTi = -Si.Trace();
       const auto  mui = mu(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  safeOmegai = safeInv(omegai, tiny);
@@ -390,7 +389,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto  cj = soundSpeed(nodeListj, j);
       const auto  omegaj = omega(nodeListj, j);
       const auto& Sj = S(nodeListj, j);
-      const auto  STTj = -Sj.Trace();
       const auto  muj = mu(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
       const auto  safeOmegaj = safeInv(omegaj, tiny);

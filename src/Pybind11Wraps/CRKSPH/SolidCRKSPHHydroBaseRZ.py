@@ -101,10 +101,6 @@ mass density, velocity, and specific thermal energy."""
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
-    #...........................................................................
-    deviatoricStressTT = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "deviatoricStressTT", returnpolicy="reference_internal")
-    DdeviatoricStressTTDt = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DdeviatoricStressTTDt", returnpolicy="reference_internal")
-
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------

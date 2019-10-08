@@ -310,6 +310,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto evolveTotalEnergy = this->evolveTotalEnergy();
   const auto XSPH = this->XSPH();
   const auto order = this->correctionOrder();
+  const auto damageRelieveRubble = this->damageRelieveRubble();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -449,7 +450,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& Hi = H(nodeListi, i);
       const auto  ci = soundSpeed(nodeListi, i);
       const auto& Si = S(nodeListi, i);
-      const auto  mui = mu(nodeListi, i);
       Ai = A(nodeListi, i);
       gradAi = gradA(nodeListi, i);
       if (order != CRKOrder::ZerothOrder) {
@@ -719,7 +719,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                        i);
 
       // Optionally use damage to ramp down stress on damaged material.
-      const auto Di = (mDamageRelieveRubble ? 
+      const auto Di = (damageRelieveRubble ? 
                        max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0)) :
                        0.0);
       // Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
