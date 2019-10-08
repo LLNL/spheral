@@ -24,6 +24,8 @@
 #include <list>
 #include <set>
 
+#include "Field/FieldBase.hh"
+
 namespace Spheral {
 
 // Forward declaration.
