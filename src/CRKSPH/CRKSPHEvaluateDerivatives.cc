@@ -21,12 +21,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto evolveTotalEnergy = this->evolveTotalEnergy();
+  const auto XSPH = this->XSPH();
+  const auto order = this->correctionOrder();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto  numNodeLists = nodeLists.size();
-  const auto  order = this->correctionOrder();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
 
@@ -96,7 +99,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(massSecondMoment.size() == numNodeLists);
 
   // Size up the pair-wise accelerations before we start.
-  if (mCompatibleEnergyEvolution) pairAccelerations.resize(npairs);
+  if (compatibleEnergy) pairAccelerations.resize(npairs);
 
   // Walk all the interacting pairs.
 #pragma omp parallel
@@ -111,7 +114,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     Tensor Ci = Tensor::zero, Cj = Tensor::zero;
     Tensor gradBi = Tensor::zero, gradBj = Tensor::zero;
     ThirdRankTensor gradCi = ThirdRankTensor::zero, gradCj = ThirdRankTensor::zero;
-    Vector gradWi, gradWj;
+    Vector gradWi, gradWj, gradWSPHi, gradWSPHj;
     Vector deltagrad;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
@@ -228,8 +231,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi);
       CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj);
       deltagrad = gradWj - gradWi;
-      const auto gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
-      const auto gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
+      gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
+      gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -282,7 +285,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                  mj*weighti*((Pj - Pi)/rhoj*gradWi - rhoj*QPiji.dot(gradWi)));       // RK
       DvDti -= forceij/mi;
       DvDtj += forceji/mj; 
-      if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -forceij/mi;           // Acceleration for i (j anti-symmetric)
+      if (compatibleEnergy) pairAccelerations[kk] = -forceij/mi;                     // Acceleration for i (j anti-symmetric)
 
       // Energy
       DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ? 
@@ -293,7 +296,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                   -weighti*rhoj*QPiji.dot(vij).dot(gradWi));                         // RK
 
       // Estimate of delta v (for XSPH).
-      if (mXSPH and (nodeListi == nodeListj)) {
+      if (XSPH and (nodeListi == nodeListj)) {
         XSPHDeltaVi -= weightj*Wj*vij;
         XSPHDeltaVj += weighti*Wi*vij;
       }
@@ -345,22 +348,22 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
 
-      // Time evolution of the mass density.
-      DrhoDti = -rhoi*DvDxi.Trace();
-
-      // If needed finish the total energy derivative.
-      if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
-
-      // Complete the moments of the node distribution for use in the ideal H calculation.
-      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
-      massSecondMomenti /= Hdeti*Hdeti;
-
       // Determine the position evolution, based on whether we're doing XSPH or not.
-      if (mXSPH) {
+      if (XSPH) {
         DxDti = vi + XSPHDeltaVi;
       } else {
         DxDti = vi;
       }
+
+      // Time evolution of the mass density.
+      DrhoDti = -rhoi*DvDxi.Trace();
+
+      // If needed finish the total energy derivative.
+      if (evolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
+
+      // Complete the moments of the node distribution for use in the ideal H calculation.
+      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
+      massSecondMomenti /= Hdeti*Hdeti;
 
       // The H tensor evolution.
       DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
