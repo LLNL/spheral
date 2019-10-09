@@ -15,7 +15,6 @@
 #include "computeCRKSPHMoments.hh"
 #include "computeCRKSPHCorrections.hh"
 #include "computeCRKSPHSumMassDensity.hh"
-#include "computeSolidCRKSPHSumMassDensity.hh"
 #include "gradientCRKSPH.hh"
 #include "Physics/GenericHydro.hh"
 #include "NodeList/SmoothingScaleBase.hh"

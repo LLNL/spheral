@@ -114,7 +114,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   
   // The self contribution.
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-    const auto& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[0]->nodeList());
+    const auto& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[nodeListi]->nodeList());
     const auto ni = nodeList.numInternalNodes();
     const auto rhoMin = nodeList.rhoMin();
     const auto rhoMax = nodeList.rhoMax();

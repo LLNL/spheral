@@ -17,8 +17,6 @@ INSTSRCTARGETS = \
 	$(srcdir)/computeSolidCRKSPHSumMassDensityInst.cc.py \
 	$(srcdir)/computeCRKSPHMomentsInst.cc.py \
 	$(srcdir)/computeCRKSPHCorrectionsInst.cc.py \
-	$(srcdir)/computeCRKSPHEvaluationInst.cc.py \
-	$(srcdir)/computeCRKSPHIntegralInst.cc.py \
 	$(srcdir)/computeHullVolumesInst.cc.py \
 	$(srcdir)/computeHVolumesInst.cc.py \
 	$(srcdir)/CRKSPHHydroBaseInst.cc.py \
