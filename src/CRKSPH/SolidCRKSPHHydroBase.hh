@@ -142,6 +142,8 @@ private:
 
 }
 
+#include "SolidCRKSPHHydroBaseInline.hh"
+
 #else
 
 // Forward declaration.

@@ -88,14 +88,6 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
 
-  // Finalize the hydro at the completion of an integration step.
-  virtual
-  void finalize(const Scalar time,
-                const Scalar dt,
-                DataBase<Dimension>& dataBase,
-                State<Dimension>& state,
-                StateDerivatives<Dimension>& derivs) override;
-               
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
