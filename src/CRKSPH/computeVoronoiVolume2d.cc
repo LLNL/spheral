@@ -534,7 +534,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         const auto& ri = position(nodeListi, i);
         const auto& Hi = H(nodeListi, i);
         const auto  Hinvi = Hi.Inverse();
-        const auto& voidPlanesi = pairPlanes(nodeListi, i)[0];
+        auto&       voidPlanesi = pairPlanes(nodeListi, i)[0];
         auto&       celli = polycells(nodeListi, i);
 
         // Clip by the void planes, compute the volume, and check if the void surface had any effect.
