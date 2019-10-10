@@ -347,11 +347,18 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     // surfaces.
     const auto& pairs = connectivityMap.nodePairList();
     const auto  npairs = pairs.size();
+    cerr << " --> " << " SECOND PASS" << endl;
 #pragma omp parallel
     {
       // Thread private scratch variables
       int i, j, nodeListi, nodeListj;
-      auto pairPlanes_thread = pairPlanes.threadCopy();
+      cerr << " --> " << omp_get_thread_num() << " starting..." << endl;
+      FieldList<Dim<2>, vector<vector<Plane>>> pairPlanes_thread;
+#pragma omp critical (BLAGO1)
+      {
+        pairPlanes_thread = pairPlanes.threadCopy(ThreadReduction::SUM, true);  // force copying the original FieldList
+      }
+      cerr << " --> " << omp_get_thread_num() << " : " << pairPlanes_thread.size() << endl;
 
 #pragma omp for
       for (auto kk = 0; kk < npairs; ++kk) {
@@ -384,8 +391,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       }
 
       // Collect the pair planes across threads.
-      pairPlanes_thread.threadReduce();
-    } // OMP parallel
+#pragma omp critical (computeVoronoiVolume_pass2)
+      {
+        pairPlanes_thread.threadReduce();
+      } // OMP critical
+    }   // OMP parallel
 
     // Clip by the neighbors.
     for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
@@ -475,55 +485,65 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     }    // end over NodeLists
 
     // Apply boundary conditions to the void points.
-    if (not boundaries.empty()) {
-      for (const auto bc: boundaries) bc->applyFieldListGhostBoundary(etaVoidPoints);
-      for (const auto bc: boundaries) bc->finalizeGhostBoundary();
+#pragma omp master
+    {
+      if (not boundaries.empty()) {
+        for (const auto bc: boundaries) bc->applyFieldListGhostBoundary(etaVoidPoints);
+        for (const auto bc: boundaries) bc->finalizeGhostBoundary();
+      }
     }
 
-    //==========================================================================
-    // Third pass: clip by any void points.
-    // Add the void points from neighbors.
-#pragma omp parallel
-    {
-      // Thread private scratch variables
-      int i, j, nodeListi, nodeListj;
-      auto pairPlanes_thread = pairPlanes.threadCopy();
+//     //==========================================================================
+//     // Third pass: clip by any void points.
+//     // Add the void points from neighbors.
+//     cerr << " --> " << " THIRD PASS" << endl;
+// #pragma omp parallel
+//     {
+//       // Thread private scratch variables
+//       int i, j, nodeListi, nodeListj;
+//       FieldList<Dim<2>, vector<vector<Plane>>> pairPlanes_thread(FieldStorageType::CopyFields);
+// #pragma omp critical (BLAGO2)
+//       {
+//         pairPlanes_thread = pairPlanes.threadCopy(ThreadReduction::SUM, true);  // force copying the original FieldList
+//       }
 
-#pragma omp for
-      for (auto kk = 0; kk < npairs; ++kk) {
-        i = pairs[kk].i_node;
-        j = pairs[kk].j_node;
-        nodeListi = pairs[kk].i_list;
-        nodeListj = pairs[kk].j_list;
+// #pragma omp for
+//       for (auto kk = 0; kk < npairs; ++kk) {
+//         i = pairs[kk].i_node;
+//         j = pairs[kk].j_node;
+//         nodeListi = pairs[kk].i_list;
+//         nodeListj = pairs[kk].j_list;
 
-        // State of node i
-        const auto& ri = position(nodeListi, i);
-        const auto& Hi = H(nodeListi, i);
-        const auto  Hinvi = Hi.Inverse();
-        auto&       pairPlanesi = pairPlanes_thread(nodeListi, i)[0];
+//         // State of node i
+//         const auto& ri = position(nodeListi, i);
+//         const auto& Hi = H(nodeListi, i);
+//         const auto  Hinvi = Hi.Inverse();
+//         auto&       pairPlanesi = pairPlanes_thread(nodeListi, i)[0];
 
-        // State of node j
-        const auto& rj = position(nodeListj, j);
-        const auto& Hj = H(nodeListj, j);
-        const auto  Hinvj = Hj.Inverse();
-        auto&       pairPlanesj = pairPlanes_thread(nodeListj, j)[0];
+//         // State of node j
+//         const auto& rj = position(nodeListj, j);
+//         const auto& Hj = H(nodeListj, j);
+//         const auto  Hinvj = Hj.Inverse();
+//         auto&       pairPlanesj = pairPlanes_thread(nodeListj, j)[0];
 
-        for (const auto& etaVoid: etaVoidPoints(nodeListj, j)) {
-          const auto rji = Hinvj*etaVoid + 0.5*(rj - ri);
-          const auto nhat = -rji.unitVector();
-          pairPlanesi.push_back(Plane(rji, nhat));
-        }
+//         for (const auto& etaVoid: etaVoidPoints(nodeListj, j)) {
+//           const auto rji = Hinvj*etaVoid + 0.5*(rj - ri);
+//           const auto nhat = -rji.unitVector();
+//           pairPlanesi.push_back(Plane(rji, nhat));
+//         }
 
-        for (const auto& etaVoid: etaVoidPoints(nodeListi, i)) {
-          const auto rij = Hinvi*etaVoid + 0.5*(ri - rj);
-          const auto nhat = -rij.unitVector();
-          pairPlanesj.push_back(Plane(rij, nhat));
-        }
-      }
+//         for (const auto& etaVoid: etaVoidPoints(nodeListi, i)) {
+//           const auto rij = Hinvi*etaVoid + 0.5*(ri - rj);
+//           const auto nhat = -rij.unitVector();
+//           pairPlanesj.push_back(Plane(rij, nhat));
+//         }
+//       }
 
-      pairPlanes_thread.threadReduce();
-
-    } // OMP parallel
+// #pragma omp critical (computeVoronoiVolume_pass3)
+//       {
+//         pairPlanes_thread.threadReduce();
+//       } // OMP critical
+//     }   // OMP parallel
 
     // Now we can do the void clipping, compute the final volumes, and finalize
     // surface detection.
