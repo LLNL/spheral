@@ -75,37 +75,40 @@ FieldList(const FieldList<Dimension, DataType>& rhs):
   threadMasterPtr(rhs.threadMasterPtr) {
 
   // If we're maintaining Fields by copy, then copy the Field cache.
-  if (storageType() == FieldStorageType::CopyFields) {
-    CHECK(mFieldCache.size() == 0);
-    for (typename FieldCacheType::const_iterator itr = rhs.mFieldCache.begin();
-         itr != rhs.mFieldCache.end();
-         ++itr) {
-      std::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(**itr));
-      mFieldCache.push_back(newField);
+#pragma omp critical (FieldList_copy)
+  {
+    if (storageType() == FieldStorageType::CopyFields) {
+      CHECK(mFieldCache.size() == 0);
+      for (typename FieldCacheType::const_iterator itr = rhs.mFieldCache.begin();
+           itr != rhs.mFieldCache.end();
+           ++itr) {
+        auto newField = std::make_shared<Field<Dimension, DataType>>(**itr);
+        mFieldCache.push_back(newField);
+      }
+
+      CHECK(this->size() == mFieldCache.size());
+      auto fieldPtrItr = this->begin();
+      auto fieldBasePtrItr = this->begin_base();
+      auto fieldCacheItr = mFieldCache.begin();
+      for(; fieldPtrItr != this->end(); ++fieldPtrItr, ++fieldBasePtrItr, ++fieldCacheItr) {
+        CHECK(fieldCacheItr != mFieldCache.end());
+        (*fieldPtrItr) = fieldCacheItr->get();
+        (*fieldBasePtrItr) = fieldCacheItr->get();
+      }
+
+      CHECK(fieldPtrItr == this->end() &&
+            fieldBasePtrItr == this->end_base() &&
+            fieldCacheItr == mFieldCache.end());
     }
 
-    CHECK(this->size() == mFieldCache.size());
-    iterator fieldPtrItr = this->begin();
-    typename FieldListBase<Dimension>::iterator fieldBasePtrItr = this->begin_base();
-    typename FieldCacheType::iterator fieldCacheItr = mFieldCache.begin();
-    for(; fieldPtrItr != this->end(); ++fieldPtrItr, ++fieldBasePtrItr, ++fieldCacheItr) {
-      CHECK(fieldCacheItr != mFieldCache.end());
-      (*fieldPtrItr) = fieldCacheItr->get();
-      (*fieldBasePtrItr) = fieldCacheItr->get();
+    NodeListRegistrar<Dimension>::sortInNodeListOrder(mFieldPtrs.begin(), mFieldPtrs.end());
+    mFieldBasePtrs.clear();
+    mNodeListPtrs.clear();
+    for (auto fptr: mFieldPtrs) {
+      mFieldBasePtrs.push_back(fptr);
+      mNodeListPtrs.push_back(const_cast<NodeList<Dimension>*>(fptr->nodeListPtr()));
     }
-
-    CHECK(fieldPtrItr == this->end() &&
-          fieldBasePtrItr == this->end_base() &&
-          fieldCacheItr == mFieldCache.end());
-  }
-
-  NodeListRegistrar<Dimension>::sortInNodeListOrder(mFieldPtrs.begin(), mFieldPtrs.end());
-  mFieldBasePtrs.clear();
-  mNodeListPtrs.clear();
-  for (auto fptr: mFieldPtrs) {
-    mFieldBasePtrs.push_back(fptr);
-    mNodeListPtrs.push_back(const_cast<NodeList<Dimension>*>(fptr->nodeListPtr()));
-  }
+  } // OMP critical
 
 //   // Register this FieldList with each Field we point to.
 //   for (iterator fieldPtrItr = begin(); fieldPtrItr != end(); ++fieldPtrItr) 
@@ -136,57 +139,57 @@ inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::
 operator=(const FieldList<Dimension, DataType>& rhs) {
-  if (this != &rhs) {
-    mStorageType = rhs.storageType();
-    mNodeListPtrs = rhs.mNodeListPtrs;
-    mFieldCache = FieldCacheType();
-    mNodeListIndexMap = rhs.mNodeListIndexMap;
-    mFieldPtrs = std::vector<ElementType>();
-    mFieldBasePtrs = std::vector<BaseElementType>();
-    mFieldPtrs.reserve(rhs.size());
-    mFieldBasePtrs.reserve(rhs.size());
-    reductionType = rhs.reductionType;
-    threadMasterPtr = rhs.threadMasterPtr;
+#pragma omp critical (FieldList_assign)
+  {
+    if (this != &rhs) {
+      mStorageType = rhs.storageType();
+      mNodeListPtrs = rhs.mNodeListPtrs;
+      mFieldCache = FieldCacheType();
+      mNodeListIndexMap = rhs.mNodeListIndexMap;
+      mFieldPtrs = std::vector<ElementType>();
+      mFieldBasePtrs = std::vector<BaseElementType>();
+      mFieldPtrs.reserve(rhs.size());
+      mFieldBasePtrs.reserve(rhs.size());
+      reductionType = rhs.reductionType;
+      threadMasterPtr = rhs.threadMasterPtr;
 
-//     // Unregister from our current set of Fields.
-//     for (iterator fieldPtrItr = begin(); fieldPtrItr != end(); ++fieldPtrItr) 
-//       unregisterFromField(**fieldPtrItr);
+      //     // Unregister from our current set of Fields.
+      //     for (iterator fieldPtrItr = begin(); fieldPtrItr != end(); ++fieldPtrItr) 
+      //       unregisterFromField(**fieldPtrItr);
 
-    switch(storageType()) {
+      switch(storageType()) {
 
-    case FieldStorageType::ReferenceFields:
-      for (const_iterator fieldPtrItr = rhs.begin(); 
-           fieldPtrItr != rhs.end();
-           ++fieldPtrItr) {
-        mFieldPtrs.push_back(*fieldPtrItr);
-        mFieldBasePtrs.push_back(*fieldPtrItr);
+      case FieldStorageType::ReferenceFields:
+        for (auto fieldPtrItr = rhs.begin(); 
+             fieldPtrItr != rhs.end();
+             ++fieldPtrItr) {
+          mFieldPtrs.push_back(*fieldPtrItr);
+          mFieldBasePtrs.push_back(*fieldPtrItr);
+        }
+        break;
+
+      case FieldStorageType::CopyFields:
+        for (auto itr = rhs.mFieldCache.begin();
+             itr != rhs.mFieldCache.end();
+             ++itr) {
+          std::cerr << omp_get_thread_num() << " FL copy> " << (**itr).name() << std::endl;
+          auto newField = std::make_shared<Field<Dimension, DataType>>(**itr);
+          mFieldCache.push_back(newField);
+          mFieldPtrs.push_back(newField.get());
+        }
+        NodeListRegistrar<Dimension>::sortInNodeListOrder(mFieldPtrs.begin(), mFieldPtrs.end());
+        for (auto fptr: mFieldPtrs) mFieldBasePtrs.push_back(fptr);
+        CHECK(this->size() == mFieldCache.size());
+        CHECK(mFieldBasePtrs.size() == mFieldCache.size());
+        break;
       }
-      break;
 
-    case FieldStorageType::CopyFields:
-      for (typename FieldCacheType::const_iterator itr = rhs.mFieldCache.begin();
-         itr != rhs.mFieldCache.end();
-         ++itr) {
-        std::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(**itr));
-        mFieldCache.push_back(newField);
-      }
+      //     // Register this FieldList with each Field we point to.
+      //     for (iterator fieldPtrItr = begin(); fieldPtrItr != end(); ++fieldPtrItr) 
+      //       registerWithField(**fieldPtrItr);
 
-      for (typename FieldCacheType::iterator fieldCacheItr = mFieldCache.begin();
-           fieldCacheItr != mFieldCache.end();
-           ++fieldCacheItr) {
-        mFieldPtrs.push_back(fieldCacheItr->get());
-        mFieldBasePtrs.push_back(fieldCacheItr->get());
-      }
-      CHECK(this->size() == mFieldCache.size());
-      CHECK(mFieldBasePtrs.size() == mFieldCache.size());
-      break;
     }
-
-//     // Register this FieldList with each Field we point to.
-//     for (iterator fieldPtrItr = begin(); fieldPtrItr != end(); ++fieldPtrItr) 
-//       registerWithField(**fieldPtrItr);
-
-  }
+  } // OMP critical
   ENSURE(this->size() == rhs.size());
   return *this;
 }
@@ -199,7 +202,7 @@ inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::
 operator=(const DataType& rhs) {
-  for (iterator fieldPtrItr = begin(); fieldPtrItr < end(); ++fieldPtrItr) {
+  for (auto fieldPtrItr = begin(); fieldPtrItr < end(); ++fieldPtrItr) {
     (*fieldPtrItr)->operator=(rhs);
   }
   return *this;
@@ -234,7 +237,7 @@ FieldList<Dimension, DataType>::copyFields() {
     auto itr = begin();
     auto baseItr = begin_base();
     for (; itr != end(); ++itr, ++baseItr) {
-      std::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(**itr));
+      auto newField = std::make_shared<Field<Dimension, DataType>>(**itr);
       mFieldCache.push_back(newField);
       *itr = mFieldCache.back().get();
       *baseItr = mFieldCache.back().get();
@@ -257,6 +260,31 @@ FieldList<Dimension, DataType>::copyFields() {
 }
 
 //------------------------------------------------------------------------------
+// Make this FieldList store copies of Fields from another.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+void
+FieldList<Dimension, DataType>::copyFields(const FieldList<Dimension, DataType>& fieldList) {
+  mFieldPtrs.clear();
+  mFieldBasePtrs.clear();
+  mFieldCache.clear();
+  mStorageType = FieldStorageType::CopyFields;
+  mNodeListPtrs = fieldList.mNodeListPtrs;
+  mNodeListIndexMap = fieldList.mNodeListIndexMap;
+  reductionType = fieldList.reductionType;
+  threadMasterPtr = fieldList.threadMasterPtr;
+
+  // Store new copies of the Fields from the other FieldList
+  for (const auto& fieldPtr: fieldList.mFieldPtrs) {
+    auto newFieldPtr = std::make_shared<Field<Dimension, DataType>>(*fieldPtr);
+    mFieldCache.push_back(newFieldPtr);
+    mFieldPtrs.push_back(newFieldPtr.get());
+    mFieldBasePtrs.push_back(newFieldPtr.get());
+  }
+}
+
+//------------------------------------------------------------------------------
 // Test if a given field is part of this field list.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
@@ -264,7 +292,7 @@ inline
 bool
 FieldList<Dimension, DataType>::
 haveField(const Field<Dimension, DataType>& field) const {
-  const_iterator fieldListItr = std::find(this->begin(), this->end(), &field);
+  auto fieldListItr = std::find(this->begin(), this->end(), &field);
   return fieldListItr != this->end();
 }
 
@@ -287,13 +315,16 @@ inline
 void
 FieldList<Dimension, DataType>::
 assignFields(const FieldList<Dimension, DataType>& fieldList) {
-  const_iterator otherFieldListItr = fieldList.begin();
-  for (iterator fieldListItr = this->begin(); fieldListItr < this->end();
-       ++fieldListItr, ++otherFieldListItr) {
-    CHECK(otherFieldListItr < fieldList.end());
-    CHECK((*fieldListItr)->nodeListPtr() == (*otherFieldListItr)->nodeListPtr());
-    **fieldListItr = **otherFieldListItr;
-  }
+#pragma omp critical (FieldList_assignFields)
+  {
+    auto otherFieldListItr = fieldList.begin();
+    for (auto fieldListItr = this->begin(); fieldListItr < this->end();
+         ++fieldListItr, ++otherFieldListItr) {
+      CHECK(otherFieldListItr < fieldList.end());
+      CHECK((*fieldListItr)->nodeListPtr() == (*otherFieldListItr)->nodeListPtr());
+      **fieldListItr = **otherFieldListItr;
+    }
+  } // OMP critical
 }
 
 //------------------------------------------------------------------------------
@@ -328,10 +359,10 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
 
   // Determine the order this Field should be in.
   const NodeListRegistrar<Dimension>& nlr = NodeListRegistrar<Dimension>::instance();
-  iterator orderItr = nlr.findInsertionPoint(&field,
-                                             begin(),
-                                             end());
-  const int delta = std::distance(begin(), orderItr);
+  auto orderItr = nlr.findInsertionPoint(&field,
+                                         begin(),
+                                         end());
+  const auto delta = std::distance(begin(), orderItr);
 
   // Insert the field.
   switch(storageType()) {
@@ -341,7 +372,7 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
     break;
 
   case FieldStorageType::CopyFields:
-    std::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(field));
+    auto newField = std::make_shared<Field<Dimension, DataType>>(field);
     mFieldCache.push_back(newField);
     mFieldPtrs.insert(orderItr, newField.get());
     mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, newField.get());
@@ -382,10 +413,10 @@ FieldList<Dimension, DataType>::deleteField(const Field<Dimension, DataType>& fi
     return;
   }
 
-  const iterator fieldPtrItr = std::find(this->begin(), this->end(), &field);
+  const auto fieldPtrItr = std::find(this->begin(), this->end(), &field);
   CHECK(fieldPtrItr != this->end());
   const size_t delta = std::distance(this->begin(), fieldPtrItr);
-  typename FieldCacheType::iterator fieldItr = mFieldCache.begin();
+  auto fieldItr = mFieldCache.begin();
   switch(storageType()) {
   case FieldStorageType::CopyFields:
     while (fieldItr != mFieldCache.end() && fieldItr->get() != &field) {
@@ -401,7 +432,7 @@ FieldList<Dimension, DataType>::deleteField(const Field<Dimension, DataType>& fi
   }
 
   // Remove the NodeList pointer.
-  typename std::vector<NodeList<Dimension>*>::iterator nodeListItr = std::find(mNodeListPtrs.begin(), mNodeListPtrs.end(), field.nodeListPtr());
+  auto nodeListItr = std::find(mNodeListPtrs.begin(), mNodeListPtrs.end(), field.nodeListPtr());
   CHECK(nodeListItr != mNodeListPtrs.end());
   mNodeListPtrs.erase(nodeListItr);
   buildNodeListIndexMap();
@@ -420,7 +451,7 @@ appendNewField(const typename Field<Dimension, DataType>::FieldName name,
   VERIFY(mStorageType == FieldStorageType::CopyFields);
 
   // Create the field in our cache.
-  mFieldCache.push_back(std::shared_ptr<Field<Dimension, DataType> >(new Field<Dimension, DataType>(name, nodeList, value)));
+  mFieldCache.push_back(std::make_shared<Field<Dimension, DataType>>(name, nodeList, value));
   Field<Dimension, DataType>* fieldPtr = mFieldCache.back().get();
 
   mFieldPtrs.push_back(fieldPtr);
@@ -434,7 +465,7 @@ appendNewField(const typename Field<Dimension, DataType>::FieldName name,
 
   // // Determine the order this Field should be in.
   // const NodeListRegistrar<Dimension>& nlr = NodeListRegistrar<Dimension>::instance();
-  // iterator orderItr = nlr.findInsertionPoint(fieldPtr,
+  // auto orderItr = nlr.findInsertionPoint(fieldPtr,
   //                                            begin(),
   //                                            end());
   // const int delta = std::distance(begin(), orderItr);
@@ -722,7 +753,7 @@ operator()(const typename Dimension::Vector& position,
   setRefineNodeLists(position, coarseNeighbors, refineNeighbors);
 
   // Loop over the neighbors.
-  for (RefineNodeIterator<Dimension> neighborItr = refineNodeBegin(refineNeighbors);
+  for (auto neighborItr = refineNodeBegin(refineNeighbors);
        neighborItr < refineNodeEnd();
        ++neighborItr) {
 
@@ -758,7 +789,7 @@ operator()(const typename Dimension::Vector& position,
       MPI_Bcast(&(*recvBuffer.begin()), sizeOfElement, MPI_CHAR, sendProc, Communicator::communicator());
       if (procID != sendProc) {
         DataType otherValue;
-        std::vector<char>::const_iterator itr = recvBuffer.begin();
+        auto itr = recvBuffer.begin();
         unpackElement(otherValue, itr, recvBuffer.end());
         CHECK(itr == recvBuffer.end());
         result += otherValue;
@@ -831,8 +862,7 @@ template<typename Dimension, typename DataType>
 inline
 GhostNodeIterator<Dimension>
 FieldList<Dimension, DataType>::ghostNodeBegin() const {
-  typename std::vector<NodeList<Dimension>*>::const_iterator
-    nodeListItr = mNodeListPtrs.begin();
+  auto nodeListItr = mNodeListPtrs.begin();
   while (nodeListItr < mNodeListPtrs.end() &&
          (*nodeListItr)->numGhostNodes() == 0) {
     ++nodeListItr;
@@ -1033,7 +1063,7 @@ template<typename Dimension, typename DataType>
 inline
 void
 FieldList<Dimension, DataType>::Zero() {
-  for (iterator fieldItr = begin(); fieldItr < end(); ++fieldItr) {
+  for (auto fieldItr = begin(); fieldItr < end(); ++fieldItr) {
     (*fieldItr)->Zero();
   }
 }
@@ -1045,7 +1075,7 @@ template<typename Dimension, typename DataType>
 inline
 void
 FieldList<Dimension, DataType>::applyMin(const DataType& dataMin) {
-  for (iterator fieldItr = begin(); fieldItr < end(); ++fieldItr) {
+  for (auto fieldItr = begin(); fieldItr < end(); ++fieldItr) {
     (*fieldItr)->applyMin(dataMin);
   }
 }
@@ -1057,7 +1087,7 @@ template<typename Dimension, typename DataType>
 inline
 void
 FieldList<Dimension, DataType>::applyMax(const DataType& dataMax) {
-  for (iterator fieldItr = begin(); fieldItr < end(); ++fieldItr) {
+  for (auto fieldItr = begin(); fieldItr < end(); ++fieldItr) {
     (*fieldItr)->applyMax(dataMax);
   }
 }
@@ -1069,7 +1099,7 @@ template<typename Dimension, typename DataType>
 inline
 void
 FieldList<Dimension, DataType>::applyScalarMin(const double dataMin) {
-  for (iterator fieldItr = begin(); fieldItr < end(); ++fieldItr) {
+  for (auto fieldItr = begin(); fieldItr < end(); ++fieldItr) {
     (*fieldItr)->applyScalarMin(dataMin);
   }
 }
@@ -1081,7 +1111,7 @@ template<typename Dimension, typename DataType>
 inline
 void
 FieldList<Dimension, DataType>::applyScalarMax(const double dataMax) {
-  for (iterator fieldItr = begin(); fieldItr < end(); ++fieldItr) {
+  for (auto fieldItr = begin(); fieldItr < end(); ++fieldItr) {
     (*fieldItr)->applyScalarMax(dataMax);
   }
 }
@@ -1604,7 +1634,7 @@ inline
 unsigned 
 FieldList<Dimension, DataType>::numNodes() const {
   unsigned numberOfNodes = 0;
-  for (const_iterator iter = begin(); iter != end(); ++iter) {
+  for (auto iter = begin(); iter != end(); ++iter) {
     numberOfNodes += (*iter)->nodeList().numNodes();
   }
   return numberOfNodes;
@@ -1615,7 +1645,7 @@ inline
 unsigned 
 FieldList<Dimension, DataType>::numInternalNodes() const {
   unsigned numberOfNodes = 0;
-  for (const_iterator iter = begin(); iter != end(); ++iter) {
+  for (auto iter = begin(); iter != end(); ++iter) {
     numberOfNodes += (*iter)->nodeList().numInternalNodes();
   }
   return numberOfNodes;
@@ -1626,7 +1656,7 @@ inline
 unsigned 
 FieldList<Dimension, DataType>::numGhostNodes() const {
   unsigned numberOfNodes = 0;
-  for (const_iterator iter = begin(); iter != end(); ++iter) {
+  for (auto iter = begin(); iter != end(); ++iter) {
     numberOfNodes += (*iter)->nodeList().numGhostNodes();
   }
   return numberOfNodes;
@@ -1713,7 +1743,7 @@ FieldList<Dimension, DataType>::
 buildNodeListIndexMap() {
   mNodeListIndexMap = HashMapType();
   int i = 0;
-  for (iterator itr = begin();
+  for (auto itr = begin();
        itr != end();
        ++itr, ++i) mNodeListIndexMap[(*itr)->nodeListPtr()] = i;
   ENSURE(mNodeListIndexMap.size() == numFields());
@@ -1727,19 +1757,24 @@ template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>
 FieldList<Dimension, DataType>::
-threadCopy(const ThreadReduction reductionType) {
+threadCopy(const ThreadReduction reductionType,
+           const bool copy) {
   FieldList<Dimension, DataType> result;
-#pragma omp critical
+#pragma omp critical (FieldList_threadCopy)
   {
     if (omp_get_thread_num() == 0) {
       // Thread 0 always references the original fields
+      std::cerr << omp_get_thread_num() << " FL> thread referencing original" << std::endl;
       result.referenceFields(*this);
+      std::cerr << omp_get_thread_num() << " FL> thread referencing original done" << std::endl;
 
-    } else if (reductionType == ThreadReduction::MIN or
+    } else if (copy or
+               reductionType == ThreadReduction::MIN or
                reductionType == ThreadReduction::MAX) {
       // For min/max operations, we need to copy the original data
-      result = FieldList<Dimension, DataType>(*this);
-      result.copyFields();
+      std::cerr << omp_get_thread_num() << " FL> starting thread copy" << std::endl;
+      result.copyFields(*this);
+      std::cerr << omp_get_thread_num() << " FL> finishing thread copy" << std::endl;
 
     } else {    
       // Otherwise make standalone Fields of zeros
@@ -1748,9 +1783,9 @@ threadCopy(const ThreadReduction reductionType) {
                                                                                         (*fitr)->nodeList(),
                                                                                         DataTypeTraits<DataType>::zero());
     }
+    result.reductionType = reductionType;
+    result.threadMasterPtr = this;
   }
-  result.reductionType = reductionType;
-  result.threadMasterPtr = this;
   return result;
 }
 
@@ -1759,8 +1794,9 @@ inline
 FieldList<Dimension, DataType>
 FieldList<Dimension, DataType>::
 threadCopy(typename SpheralThreads<Dimension>::FieldListStack& stack,
-           const ThreadReduction reductionType) {
-  FieldList<Dimension, DataType> result = this->threadCopy(reductionType);
+           const ThreadReduction reductionType,
+           const bool copy) {
+  FieldList<Dimension, DataType> result = this->threadCopy(reductionType, copy);
   stack.push_back(&result);
   return result;
 }

@@ -81,6 +81,9 @@ public:
   // Force the Field storage to be Copy.
   void copyFields();
 
+  // Store copies of Fields from another FieldList
+  void copyFields(const FieldList<Dimension, DataType>& fieldList);
+
   // Test if the given field (or NodeList) is part of a FieldList.
   bool haveField(const Field<Dimension, DataType>& field) const;
   bool haveNodeList(const NodeList<Dimension>& nodeList) const;
@@ -264,9 +267,13 @@ public:
   //----------------------------------------------------------------------------
   // Methods to facilitate threaded computing
   // Make a local thread copy of all the Fields
+  FieldList<Dimension, DataType> threadCopy(const ThreadReduction reductionType = ThreadReduction::SUM,
+                                            const bool copy = false);
+
+  // Same thing, with a "stack" object to simplify final reduction
   FieldList<Dimension, DataType> threadCopy(typename SpheralThreads<Dimension>::FieldListStack& stack,
-                                            const ThreadReduction reductionType = ThreadReduction::SUM);
-  FieldList<Dimension, DataType> threadCopy(const ThreadReduction reductionType = ThreadReduction::SUM);
+                                            const ThreadReduction reductionType = ThreadReduction::SUM,
+                                            const bool copy = false);
 
   // Reduce the values in the FieldList with the passed thread-local values.
   void threadReduce() const;

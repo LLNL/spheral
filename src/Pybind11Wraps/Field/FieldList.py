@@ -33,6 +33,11 @@ class FieldList(FieldListBase):
 
     def copyFields(self):
         """Force the the FieldList to make copies of all the Fields it currently\\npoints to and point to the internally cached copies instead.\\nAlso sets storageType to CopyFields."""
+        return "void"
+
+    def copyFields(self, fieldList="const FieldListType&"):
+        "Store copies of Fields from another FieldList"
+        return "void"
 
     @PYB11const
     def haveField(self, field="const FieldType&"):
