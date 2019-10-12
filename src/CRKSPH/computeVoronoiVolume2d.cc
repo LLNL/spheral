@@ -351,16 +351,18 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       // Second pass: clip by neighbor points.  Note we have to keep track of
       // which NodeLists actually clip each polygon in order to detect material
       // surfaces.
-      cerr << " --> " << " SECOND PASS" << endl;
+      cerr << " --> " << omp_get_thread_num() << " SECOND PASS" << endl;
       // Thread private scratch variables
       int i, j, nodeListi, nodeListj;
       cerr << " --> " << omp_get_thread_num() << " starting..." << endl;
       FieldList<Dim<2>, vector<vector<Plane>>> pairPlanes_thread;
-#pragma omp critical (BLAGO1)
+      #pragma omp critical (BLAGO1)
       {
         pairPlanes_thread = pairPlanes.threadCopy(ThreadReduction::SUM, true);  // force copying the original FieldList
       }
       cerr << " --> " << omp_get_thread_num() << " : " << pairPlanes_thread.size() << endl;
+#pragma omp barrier
+      // throw("master finished");
 
 #pragma omp for
       for (auto kk = 0; kk < npairs; ++kk) {
@@ -399,9 +401,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       } // OMP critical
 
       // Clip by the neighbors.
+#pragma omp master
+      {
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
         const auto ni = polycells[nodeListi]->numInternalElements();
-#pragma omp parallel for
+// #pragma omp parallel for
         for (auto i = 0; i < ni; ++i) {
           const auto& Hi = H(nodeListi, i);
           const auto  Hinvi = Hi.Inverse();
@@ -412,11 +416,17 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             // If we're returning the surface we have to pay attention to which materials actually clip this point.
             double vol0, vol1;
             Vector cent;
+// #pragma omp critical
+            {
             PolyClipper::moments(vol0, cent, celli);
+            }
             for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
               std::sort(pairPlanesi[nodeListj].begin(), pairPlanesi[nodeListj].end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
+// #pragma omp critical
+              {
               PolyClipper::clipPolygon(celli, pairPlanesi[nodeListj]);
               PolyClipper::moments(vol1, cent, celli);
+              }
               if (vol1 < vol0) {
                 vol0 = vol1;
                 if (nodeListj != nodeListi) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
@@ -429,7 +439,10 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             vector<Plane> planes = pairPlanesi[0];
             for (auto nodeListj = 1; nodeListj < numNodeLists; ++nodeListj) planes += pairPlanesi[nodeListj];
             std::sort(planes.begin(), planes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
+// #pragma omp critical
+            {
             PolyClipper::clipPolygon(celli, planes);
+            }
 
           }
 
@@ -485,6 +498,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           }
         }  // end over i (OMP as well)
       }    // end over NodeLists
+      }
 
       // Apply boundary conditions to the void points.
 #pragma omp master
@@ -499,6 +513,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       // Third pass: clip by any void points.
       // Add the void points from neighbors.
       cerr << " --> " << " THIRD PASS" << endl;
+#pragma omp for
       for (auto kk = 0; kk < npairs; ++kk) {
         i = pairs[kk].i_node;
         j = pairs[kk].j_node;
@@ -537,9 +552,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
       // Now we can do the void clipping, compute the final volumes, and finalize
       // surface detection.
+#pragma omp master
+      {
       for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
         const auto n = vol[nodeListi]->numInternalElements();
-#pragma omp parallel for
+// #pragma omp parallel for
         for (auto i = 0; i < n; ++i) {
           const auto& ri = position(nodeListi, i);
           const auto& Hi = H(nodeListi, i);
@@ -549,11 +566,14 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
           // Clip by the void planes, compute the volume, and check if the void surface had any effect.
           double vol0, vol1;
+// #pragma omp critical
+          {
           PolyClipper::moments(vol0, deltaMedian(nodeListi, i), celli);
           std::sort(voidPlanesi.begin(), voidPlanesi.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
           PolyClipper::clipPolygon(celli, voidPlanesi);
           CHECK(not celli.empty());
           PolyClipper::moments(vol1, deltaMedian(nodeListi, i), celli);
+          }
 
           // We only use the volume result if interior.
           const bool interior = (vol1 >= vol0);
@@ -577,11 +597,15 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
           // If requested, we can return the cell geometries.
           if (returnCells) {
+// #pragma omp critical
+            {
             PolyClipper::collapseDegenerates(celli, 1.0e-10);
             PolyClipper::convertFromPolygon(cells(nodeListi, i), celli);
             cells(nodeListi, i) += ri;
+            }
           }
         }
+      }
       }
 
     }  // OMP parallel
