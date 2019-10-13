@@ -355,11 +355,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       // Thread private scratch variables
       int i, j, nodeListi, nodeListj;
       cerr << " --> " << omp_get_thread_num() << " starting..." << endl;
-      FieldList<Dim<2>, vector<vector<Plane>>> pairPlanes_thread;
-      #pragma omp critical (computeVoronoiVolume2d_pass2_copyplanes)
-      {
-        pairPlanes_thread = pairPlanes.threadCopy(ThreadReduction::SUM, true);  // force copying the original FieldList
-      }
+      // FieldList<Dim<2>, vector<vector<Plane>>> pairPlanes_thread;
+      // #pragma omp critical (computeVoronoiVolume2d_pass2_copyplanes)
+      // {
+      auto pairPlanes_thread = pairPlanes.threadCopy(ThreadReduction::SUM, true);  // force copying the original FieldList
+      // }
       cerr << " --> " << omp_get_thread_num() << " : " << pairPlanes_thread.size() << endl;
 #pragma omp barrier
 
@@ -547,7 +547,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 #pragma omp critical (computeVoronoiVolume_pass3_reduceplanes)
       {
         pairPlanes_thread.threadReduce();
-      } // OMP critical
+      }
 #pragma omp barrier
 
       // Now we can do the void clipping, compute the final volumes, and finalize
