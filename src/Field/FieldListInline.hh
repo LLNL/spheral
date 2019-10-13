@@ -172,7 +172,6 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
         for (auto itr = rhs.mFieldCache.begin();
              itr != rhs.mFieldCache.end();
              ++itr) {
-          std::cerr << omp_get_thread_num() << " FL copy> " << (**itr).name() << std::endl;
           auto newField = std::make_shared<Field<Dimension, DataType>>(**itr);
           mFieldCache.push_back(newField);
           mFieldPtrs.push_back(newField.get());
@@ -1764,17 +1763,13 @@ threadCopy(const ThreadReduction reductionType,
   {
     if (omp_get_thread_num() == 0) {
       // Thread 0 always references the original fields
-      std::cerr << omp_get_thread_num() << " FL> thread referencing original" << std::endl;
       result.referenceFields(*this);
-      std::cerr << omp_get_thread_num() << " FL> thread referencing original done" << std::endl;
 
     } else if (copy or
                reductionType == ThreadReduction::MIN or
                reductionType == ThreadReduction::MAX) {
       // For min/max operations, we need to copy the original data
-      std::cerr << omp_get_thread_num() << " FL> starting thread copy" << std::endl;
       result.copyFields(*this);
-      std::cerr << omp_get_thread_num() << " FL> finishing thread copy" << std::endl;
 
     } else {    
       // Otherwise make standalone Fields of zeros
