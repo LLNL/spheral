@@ -129,7 +129,10 @@ ConstantBoundary(NodeList<Dimension>& nodeList,
   mFacetedVolumeValues(),
   mVectorScalarValues(),
   mVectorVectorValues(),
-  mRestart(registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)),
+  mRedistribution(registerWithRedistribution(*this,
+                                             &ConstantBoundary<Dimension>::notifyBeforeRedistribution,
+                                             &ConstantBoundary<Dimension>::notifyAfterRedistribution)) {
 
   // Store the ids of the nodes we're watching.
   for (vector<int>::const_iterator itr = nodeIDs.begin();
@@ -616,6 +619,23 @@ restoreState(const FileIO& file, const string& pathName)  {
     mVectorVectorValues[key] = std::vector<std::vector<Vector> >();
     file.read(mVectorVectorValues[key], pathName + "/VectorSVectorValues/" + key);
   }
+}
+
+//------------------------------------------------------------------------------
+// Redistribution methods
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ConstantBoundary<Dimension>::
+notifyBeforeRedistribution() {
+  VERIFY2(false, "ConstantBoundary ERROR: node redistribution not allowed with constant boundaries.");
+}
+
+template<typename Dimension>
+void
+ConstantBoundary<Dimension>::
+notifyAfterRedistribution() {
+  VERIFY2(false, "ConstantBoundary ERROR: node redistribution not allowed with constant boundaries.");
 }
 
 }

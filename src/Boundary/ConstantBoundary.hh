@@ -12,6 +12,7 @@
 #include "Boundary.hh"
 #include "Geometry/GeomPlane.hh"
 #include "NodeList/NodeList.hh"
+#include "Utilities/registerWithRedistribution.hh"
 #include "DataBase/StateBase.hh" // For constructing Field keys.
 
 namespace Spheral {
@@ -96,6 +97,10 @@ public:
   virtual std::string label() const;
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
+
+  // Redistribution methods.
+  virtual void notifyBeforeRedistribution();
+  virtual void notifyAfterRedistribution();
   //****************************************************************************
 
 private:
@@ -128,8 +133,9 @@ private:
   VectorScalarStorageType mVectorScalarValues;
   VectorVectorStorageType mVectorVectorValues;
 
-  // The restart registration.
+  // The restart and redistribution registration.
   RestartRegistrationType mRestart;
+  RedistributionRegistrationType mRedistribution;
 
   // No default or copy constructors.
   ConstantBoundary();
