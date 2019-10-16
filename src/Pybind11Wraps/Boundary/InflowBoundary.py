@@ -50,6 +50,44 @@ Really we should rename this post-step finalize."""
         return "void"
 
     #...........................................................................
+    @PYB11template("DataType")
+    @PYB11returnpolicy("reference")
+    def storedValues(self,
+                     fieldName = "const std::string",
+                     dummy = ("const %(DataType)s&", "%(DataType)s()")):
+        "Get the stored data for generating ghost nodes."
+        return "std::vector<%(DataType)s>&"
+
+    storedValues_int =             PYB11TemplateMethod(storedValues, "int")
+    storedValues_Scalar =          PYB11TemplateMethod(storedValues, "Scalar")
+    storedValues_Vector =          PYB11TemplateMethod(storedValues, "Vector")
+    storedValues_Tensor =          PYB11TemplateMethod(storedValues, "Tensor")
+    storedValues_SymTensor =       PYB11TemplateMethod(storedValues, "SymTensor")
+    storedValues_ThirdRankTensor = PYB11TemplateMethod(storedValues, "ThirdRankTensor")
+    #storedValues_FacetedVolume =   PYB11TemplateMethod(storedValues, "FacetedVolume")
+    storedValues_vectorScalar =    PYB11TemplateMethod(storedValues, "std::vector<Scalar>")
+    storedValues_vectorVector =    PYB11TemplateMethod(storedValues, "std::vector<Vector>")
+
+    #...........................................................................
+    @PYB11template("DataType")
+    @PYB11returnpolicy("reference")
+    @PYB11cppname("storedValues")
+    def storedValuesF(self,
+                      field = "const Field<%(Dimension)s, %(DataType)s>&"):
+        "Get the stored data for generating ghost nodes."
+        return "std::vector<%(DataType)s>&"
+
+    storedValuesF_int =             PYB11TemplateMethod(storedValuesF, "int", pyname="storedValues")
+    storedValuesF_Scalar =          PYB11TemplateMethod(storedValuesF, "Scalar", pyname="storedValues")
+    storedValuesF_Vector =          PYB11TemplateMethod(storedValuesF, "Vector", pyname="storedValues")
+    storedValuesF_Tensor =          PYB11TemplateMethod(storedValuesF, "Tensor", pyname="storedValues")
+    storedValuesF_SymTensor =       PYB11TemplateMethod(storedValuesF, "SymTensor", pyname="storedValues")
+    storedValuesF_ThirdRankTensor = PYB11TemplateMethod(storedValuesF, "ThirdRankTensor", pyname="storedValues")
+    #storedValuesF_FacetedVolume =   PYB11TemplateMethod(storedValuesF, "FacetedVolume", pyname="storedValues")
+    storedValuesF_vectorScalar =    PYB11TemplateMethod(storedValuesF, "std::vector<Scalar>", pyname="storedValues")
+    storedValuesF_vectorVector =    PYB11TemplateMethod(storedValuesF, "std::vector<Vector>", pyname="storedValues")
+
+    #...........................................................................
     # Properties
     numInflowNodes = PYB11property(doc="Number of nodes in inflow stencil")
     nodeList = PYB11property(doc="The NodeList we're allowing to flow into the problem")

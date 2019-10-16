@@ -28,7 +28,7 @@ PYB11includes += ['"Geometry/Dimension.hh"',
                   '"Field/FieldList.hh"',
                   '"Field/FieldListSet.hh"',
                   '"Utilities/FieldDataTypeTraits.hh"',
-                  '"Distributed/DomainNode.hh"',
+                  '"Utilities/DomainNode.hh"',
                   '"Geometry/CellFaceFlag.hh"',
                   '<vector>']
 

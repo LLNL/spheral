@@ -5,7 +5,7 @@
 // Created by JMO, Wed Nov 24 10:51:32 2004
 //----------------------------------------------------------------------------//
 #include "NestedGridRedistributeNodes.hh"
-#include "DomainNode.hh"
+#include "Utilities/DomainNode.hh"
 #include "NestedGridDistributedBoundary.hh"
 #include "DistributedBoundary.hh"
 #include "NestedGridUtilities.hh"

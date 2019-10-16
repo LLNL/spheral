@@ -120,6 +120,10 @@ public:
   const NodeList<Dimension>& nodeList() const;
   const GeomPlane<Dimension>& plane() const;
 
+  // Get the stored data for generating ghost nodes.
+  template<typename DataType> std::vector<DataType>& storedValues(const std::string fieldName, const DataType& dummy);
+  template<typename DataType> std::vector<DataType>& storedValues(const Field<Dimension, DataType>& field);
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override;
@@ -157,6 +161,17 @@ private:
 
   // The restart registration.
   RestartRegistrationType mRestart;
+
+  // Internal trait methods to help with looking up the correct storage.
+  IntStorageType&             storageForType(const int& dummy)                 { return mIntValues; }
+  ScalarStorageType&          storageForType(const Scalar& dummy)              { return mScalarValues; }
+  VectorStorageType&          storageForType(const Vector& dummy)              { return mVectorValues; }
+  TensorStorageType&          storageForType(const Tensor& dummy)              { return mTensorValues; }
+  SymTensorStorageType&       storageForType(const SymTensor& dummy)           { return mSymTensorValues; }
+  ThirdRankTensorStorageType& storageForType(const ThirdRankTensor& dummy)     { return mThirdRankTensorValues; }
+  FacetedVolumeStorageType&   storageForType(const FacetedVolume& dummy)       { return mFacetedVolumeValues; }
+  VectorScalarStorageType&    storageForType(const std::vector<Scalar>& dummy) { return mVectorScalarValues; }
+  VectorVectorStorageType&    storageForType(const std::vector<Vector>& dummy) { return mVectorVectorValues; }
 
   // No default or copy constructors.
   InflowBoundary();
