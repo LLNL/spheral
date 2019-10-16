@@ -30,15 +30,19 @@ include(${BLT_SOURCE_DIR}/SetupBLT.cmake)
 
 # Finding included packages.
 find_package(GSL REQUIRED)
+#add_library(Eigen ${CMAKE_BUILD_DIR}/Eigen/Eigen/)
+#set_target_properties(Eigen PROPERTIES LINKER_LANGUAGE CXX)
+set(EIGEN_LIB_LOCATION "${PROJECT_SOURCE_DIR}/thirdPartyLibs/eigen/")
+set(QHULL_LIB_LOCATION "${PROJECT_SOURCE_DIR}/thirdPartyLibs/qhull/src/")
 include(CMakeBasics.cmake)
 
 # Add package subdirectories.
 set(_packages
-    ArtificialConduction
-    Geometry
-    Neighbor
-    Utilities
-    )
+  #ArtificialConduction
+  Geometry
+  Neighbor
+  Utilities
+  )
 
 foreach(_package ${_packages})
   add_subdirectory(${_package})

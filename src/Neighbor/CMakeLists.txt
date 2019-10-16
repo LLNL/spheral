@@ -26,11 +26,17 @@ set(Neighbor_headers
     NodePairList.hh
     TreeNeighbor.hh
     )
+
+set(Neighbor_includes
+  ${PROJECT_SOURCE_DIR}
+  ${EIGEN_LIB_LOCATION}
+  )
  
 blt_add_library(NAME	    Spheral_Neighbor
 		HEADERS     ${Neighbor_headers}
 		SOURCES     ${Neighbor_sources}
 		DEPENDS_ON  ${spheral_depends}
+		INCLUDES    ${Neighbor_includes}
 		)
 
 install(TARGETS		    Spheral_Neighbor

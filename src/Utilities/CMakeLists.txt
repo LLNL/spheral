@@ -5,7 +5,7 @@ set(Utility_inst
     clipFacetedVolume
     coarsenBinnedValues
     coarsenBinnedValuesInst
-    computeConvexHull
+    #computeConvexHull
     computeShepardsInterpolation
     DBC
     globalBoundingVolumes
@@ -49,7 +49,7 @@ set(Utility_headers
     clipFacetedVolume.hh
     coarsenBinnedValues.hh
     comparisons.hh
-    computeConvexHull.hh
+    #computeConvexHull.hh
     computeShepardsInterpolation.hh
     CounterClockwiseComparator.hh
     DataTypeTraits.hh
@@ -115,10 +115,16 @@ set(Utility_headers
     TreeInline.hh
     )
 
+set(Utility_includes
+  ${PROJECT_SOURCE_DIR}
+  ${EIGEN_LIB_LOCATION}
+  )
+
 blt_add_library(NAME	    Spheral_Utility
 		HEADERS     ${Utility_headers}
 		SOURCES     ${Utility_sources}
 		DEPENDS_ON  ${spheral_depends}
+		INCLUDES    ${Utility_includes}
 		)
 
 install(TARGETS		    Spheral_Utility

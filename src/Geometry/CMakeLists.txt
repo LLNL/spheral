@@ -1,9 +1,9 @@
 set(Geometry_inst
     buildEigenVector
-    clipConvexFacetedVolumeByPlanes2d
-    clipConvexFacetedVolumeByPlanes3d
-    clipFacetedVolumeByPlanes1d
-    clipFacetedVolumeByPlanes3d
+    #clipConvexFacetedVolumeByPlanes2d
+    #clipConvexFacetedVolumeByPlanes3d
+    #clipFacetedVolumeByPlanes1d
+    #clipFacetedVolumeByPlanes3d
     computeEigenValues
     Dimension
     EigenStruct
@@ -29,8 +29,8 @@ set(Geometry_inst
     Jacobi2
     polyclipper2d
     polyclipper3d
-    TestGeometry
-    TestMTL
+    #TestGeometry
+    #TestMTL
     )
 
 set(Geometry_sources )
@@ -110,10 +110,17 @@ set(Geometry_headers
     TensorType.hh
     )
 
+set(Geometry_includes
+  ${PROJECT_SOURCE_DIR}
+  ${EIGEN_LIB_LOCATION}
+  ${QHULL_LIB_LOCATION}
+  )
+
 blt_add_library(NAME	    Spheral_Geometry
 		HEADERS     ${Geometry_headers}
 		SOURCES     ${Geometry_sources}
 		DEPENDS_ON  ${spheral_depends}
+		INCLUDES    ${Geometry_includes}
 		)
 
 install(TARGETS		    Spheral_Geometry
