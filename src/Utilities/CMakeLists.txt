@@ -116,7 +116,7 @@ set(Utility_headers
     )
 
 set(Utility_includes
-  ${PROJECT_SOURCE_DIR}
+  ${SPHERAL_SOURCE_DIR}
   ${EIGEN_LIB_LOCATION}
   )
 

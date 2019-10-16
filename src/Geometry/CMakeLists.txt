@@ -111,7 +111,7 @@ set(Geometry_headers
     )
 
 set(Geometry_includes
-  ${PROJECT_SOURCE_DIR}
+  ${SPHERAL_SOURCE_DIR}
   ${EIGEN_LIB_LOCATION}
   ${QHULL_LIB_LOCATION}
   )
