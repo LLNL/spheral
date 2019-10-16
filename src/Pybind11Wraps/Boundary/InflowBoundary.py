@@ -10,6 +10,8 @@ from RestartMethods import *
 
 @PYB11template("Dimension")
 class InflowBoundary(Boundary, Physics):
+    """InflowBoundary -- creates inflow ghost images, which become internal nodes
+as they cross the specified boundary plane."""
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
