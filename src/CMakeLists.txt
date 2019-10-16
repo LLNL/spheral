@@ -38,7 +38,7 @@ include(CMakeBasics.cmake)
 
 # Add package subdirectories.
 set(_packages
-  #ArtificialConduction
+  ArtificialConduction
   Geometry
   Neighbor
   Utilities
