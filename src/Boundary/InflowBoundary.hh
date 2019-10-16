@@ -79,6 +79,11 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Vector>>& field) const override;
 
+  // This boundary does not cull ghosts.
+  virtual void cullGhostNodes(const FieldList<Dimension, int>& flagSet,
+                              FieldList<Dimension, int>& old2newIndexMap,
+                              std::vector<int>& numNodesRemoved) override {}
+
   // After physics have been initialized we take a snapshot of the node state.
   virtual void initializeProblemStartup() override;
   //**********************************************************************

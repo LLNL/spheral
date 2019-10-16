@@ -34,6 +34,13 @@ as they cross the specified boundary plane."""
     #...........................................................................
     # Methods
     @PYB11virtual
+    def cullGhostNodes(self,
+                       flagSet = "const FieldList<%(Dimension)s, int>&",
+                       old2newIndexMap = "FieldList<%(Dimension)s, int>&",
+                       numNodesRemoved = "std::vector<int>&"):
+        return "void"
+
+    @PYB11virtual
     def initializeProblemStartup(self):
         "After physics have been initialized we take a snapshot of the node state."
         return "void"

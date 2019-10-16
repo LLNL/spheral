@@ -98,8 +98,8 @@ resetValues(Field<Dimension, DataType>& field,
     const auto& newValues = itr->second;
     CHECK2(newValues.size() == nodeIDs.size(), key << " " << newValues.size() << " " << nodeIDs.size());
     for (int i = 0; i < nodeIDs.size(); ++i) {
-      CHECK(nodeIDs[i] >= 0 &&
-            nodeIDs[i] < nodeList.numNodes());
+      CHECK2(nodeIDs[i] >= 0 &&
+             nodeIDs[i] < nodeList.numNodes(), nodeIDs[i] << " " << nodeList.numNodes());
       field(nodeIDs[i]) = newValues[i];
     }
   }
@@ -184,6 +184,7 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
     auto& gNodes = boundaryNodes.ghostNodes;
     const auto currentNumGhostNodes = nodeList.numGhostNodes();
     const auto firstNewGhostNode = nodeList.numNodes();
+    cerr << "Allocating new ghost nodes " << firstNewGhostNode << " -- " << (firstNewGhostNode + mNumInflowNodes) << endl;
     
     // Use the planar boundary to find the set of points that interact with
     // the entrance plane.  We make these the control nodes.
@@ -425,11 +426,10 @@ InflowBoundary<Dimension>::initializeProblemStartup() {
     // Use a planar boundary to figure out what sort of nodes are in range of the entrance plane.
     // We use those to create a stencil of the inflow conditions.
     const auto& nhat = mPlane.normal();
-    const GeomPlane<Dimension> exitPlane(mPlane.point(), -nhat);
-    const auto nodeIDs = findNodesTouchingThroughPlanes(*mNodeListPtr, mPlane, exitPlane);
-    // cerr << "Node IDs: ";
-    // std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
-    // cerr << endl;
+    const auto nodeIDs = findNodesTouchingThroughPlanes(*mNodeListPtr, mPlane, mPlane);
+    cerr << "Node IDs: ";
+    std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
+    cerr << endl;
 
     // Now take a snapshot of the Fields.
     storeFieldValues(*mNodeListPtr, nodeIDs, mIntValues);
@@ -448,9 +448,11 @@ InflowBoundary<Dimension>::initializeProblemStartup() {
     CHECK(mVectorValues.find(poskey) != mVectorValues.end());
     auto& posvals = mVectorValues[poskey];
     const auto ni = nodeIDs.size();
+    const GeomPlane<Dimension> exitPlane(mPlane.point(), -nhat);
     for (auto k = 0; k < ni; ++k) {
       const auto i = nodeIDs[k];
-      posvals[k] = mapPositionThroughPlanes(pos[i], mPlane, exitPlane);
+      posvals[k] = mapPositionThroughPlanes(pos[i], mPlane, mPlane);
+      cerr << "  Ghost position: " << i << " @ " << posvals[k] << endl;
     }
 
     // Determine the inflow velocity.
@@ -460,6 +462,7 @@ InflowBoundary<Dimension>::initializeProblemStartup() {
       mInflowVelocity = vel[i].dot(nhat);
     }
     mInflowVelocity = allReduce(mInflowVelocity, MPI_MAX, Communicator::communicator());
+    cerr << "Computed inflow velocity: " << mInflowVelocity << endl;
     CHECK(std::abs(mInflowVelocity) > 0.0);
 
     // Figure out a timestep limit such that we don't move more than the ghost
@@ -474,6 +477,7 @@ InflowBoundary<Dimension>::initializeProblemStartup() {
     xmax = allReduce(xmax, MPI_MIN, Communicator::communicator());
     mXmin = xmin;
     mDT = (xmax - xmin)/mInflowVelocity;
+    cerr << "Timestep constraint: " << mDT << endl;
 
     // Turn the BC on.
     mNumInflowNodes = nodeIDs.size();
