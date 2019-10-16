@@ -64,7 +64,7 @@ Really we should rename this post-step finalize."""
     storedValues_Tensor =          PYB11TemplateMethod(storedValues, "Tensor")
     storedValues_SymTensor =       PYB11TemplateMethod(storedValues, "SymTensor")
     storedValues_ThirdRankTensor = PYB11TemplateMethod(storedValues, "ThirdRankTensor")
-    #storedValues_FacetedVolume =   PYB11TemplateMethod(storedValues, "FacetedVolume")
+    storedValues_FacetedVolume =   PYB11TemplateMethod(storedValues, "FacetedVolume")
     storedValues_vectorScalar =    PYB11TemplateMethod(storedValues, "std::vector<Scalar>")
     storedValues_vectorVector =    PYB11TemplateMethod(storedValues, "std::vector<Vector>")
 
@@ -83,7 +83,7 @@ Really we should rename this post-step finalize."""
     storedValuesF_Tensor =          PYB11TemplateMethod(storedValuesF, "Tensor", pyname="storedValues")
     storedValuesF_SymTensor =       PYB11TemplateMethod(storedValuesF, "SymTensor", pyname="storedValues")
     storedValuesF_ThirdRankTensor = PYB11TemplateMethod(storedValuesF, "ThirdRankTensor", pyname="storedValues")
-    #storedValuesF_FacetedVolume =   PYB11TemplateMethod(storedValuesF, "FacetedVolume", pyname="storedValues")
+    storedValuesF_FacetedVolume =   PYB11TemplateMethod(storedValuesF, "FacetedVolume", pyname="storedValues")
     storedValuesF_vectorScalar =    PYB11TemplateMethod(storedValuesF, "std::vector<Scalar>", pyname="storedValues")
     storedValuesF_vectorVector =    PYB11TemplateMethod(storedValuesF, "std::vector<Vector>", pyname="storedValues")
 
