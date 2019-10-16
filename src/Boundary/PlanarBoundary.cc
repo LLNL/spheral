@@ -6,6 +6,7 @@
 // Created by JMO, Thu Mar  2 21:34:25 PST 2000
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
+#include "findNodesTouchingThroughPlanes.hh"
 #include "mapPositionThroughPlanes.hh"
 #include "Geometry/GeomPlane.hh"
 #include "NodeList/FluidNodeList.hh"
@@ -112,59 +113,7 @@ PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
   // Remember which node list we are setting the ghost nodes for.
   this->addNodeList(nodeList);
   typename Boundary<Dimension>::BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
-  vector<int>& controlNodes = boundaryNodes.controlNodes;
-  controlNodes = vector<int>();
-
-  // Get the Neighbor object associated with the node list.
-  Neighbor<Dimension>& neighbor = nodeList.neighbor();
-
-  // Here we switch between using the Neighbor magic or just doing an O(N)
-  // search for anyone who overlaps the exit plane.
-  if (false) {
-
-    // Begin by identifying the set of master and neighbor nodes, where master
-    // nodes see through the enter plane, and neighbors see through the exit plane.
-    vector<int> masterList, coarseNeighbors, refineNeighbors;
-    neighbor.setMasterList(enterPlane(), exitPlane(), masterList, coarseNeighbors);
-
-    // Set the list of control nodes.
-    // std::copy(neighbor.masterBegin(), neighbor.masterEnd(), std::back_inserter(controlNodes));
-    // std::copy(neighbor.coarseNeighborBegin(), neighbor.coarseNeighborEnd(), std::back_inserter(controlNodes));
-    const Field<Dimension, Vector>& pos = nodeList.positions();
-    for (auto itr = coarseNeighbors.begin(); itr < coarseNeighbors.end(); ++itr) {
-      if (mExitPlane.signedDistance(pos(*itr)) >= 0.0) controlNodes.push_back(*itr);
-    }
-
-  } else {
-
-    // Find the maximum smoothing scale of any point touching either plane.
-    const double kernelExtent = neighbor.kernelExtent();
-    const unsigned n = nodeList.numNodes();
-    const Field<Dimension, Vector>& pos = nodeList.positions();
-    const Field<Dimension, SymTensor>& H = nodeList.Hfield();
-    Scalar hmax = 0.0;
-    for (unsigned i = 0; i != n; ++i) {
-      const Vector& ri = pos(i);
-      const SymTensor& Hi = H(i);
-      const Scalar hmaxi = 1.0/Hi.eigenValues().minElement();
-      if (hmaxi > hmax and min(mExitPlane.minimumDistance(ri), mEnterPlane.minimumDistance(ri)) < kernelExtent*hmaxi) hmax = hmaxi;
-    }
-    hmax = allReduce(hmax, MPI_MAX, Communicator::communicator());
-
-    // Now find all points within this range of the exit plane.
-    if (hmax > 0.0) {
-      for (unsigned i = 0; i != n; ++i) {
-        const Vector& ri = pos(i);
-        const Scalar disti = mExitPlane.signedDistance(ri)/hmax;
-        // const GeomPlane<Dimension> exitPlanePrime(Hi*(mExitPlane.point() - ri),
-        //                                           (Hi*mExitPlane.normal()).unitVector());
-        // const Scalar disti = exitPlanePrime.signedDistance(Vector::zero);
-        if (disti >= 0.0 and disti <= kernelExtent) controlNodes.push_back(i);
-        // cerr << " --> " << i << " " << ri << " " << enterPlanePrime.minimumDistance(Vector::zero) << " " << exitPlanePrime.minimumDistance(Vector::zero) << endl;
-      }
-    }
-
-  }
+  boundaryNodes.controlNodes = findNodesTouchingThroughPlanes(nodeList, mEnterPlane, mExitPlane);
 
   // std::sort(controlNodes.begin(), controlNodes.end());
   // controlNodes.erase(std::unique(controlNodes.begin(), controlNodes.end()), controlNodes.end());
