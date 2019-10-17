@@ -12,7 +12,8 @@ template<typename Dimension>
 std::vector<int>
 findNodesTouchingThroughPlanes(const NodeList<Dimension>& nodeList,
                                const GeomPlane<Dimension>& enterPlane,
-                               const GeomPlane<Dimension>& exitPlane) {
+                               const GeomPlane<Dimension>& exitPlane,
+                               const double hmultiplier) {
   vector<int> result;
 
   // Get the Neighbor object associated with the node list.
@@ -38,7 +39,7 @@ findNodesTouchingThroughPlanes(const NodeList<Dimension>& nodeList,
   } else {
 
     // Find the maximum smoothing scale of any point touching either plane.
-    const auto  kernelExtent = neighbor.kernelExtent();
+    const auto  kernelExtent = hmultiplier * neighbor.kernelExtent();
     const auto  n = nodeList.numNodes();
     const auto& pos = nodeList.positions();
     const auto& H = nodeList.Hfield();

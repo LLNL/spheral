@@ -60,7 +60,8 @@ pair and return the mapped position."""
 @PYB11template("Dimension")
 def findNodesTouchingThroughPlanes(nodeList = "const NodeList<%(Dimension)s>&",
                                    enterPlane = "const GeomPlane<%(Dimension)s>&",
-                                   exitPlane = "const GeomPlane<%(Dimension)s>&"):
+                                   exitPlane = "const GeomPlane<%(Dimension)s>&",
+                                   hmultiplier = ("double", "1.0")):
     "Find the set of nodes that see through a pair of planes."
     return "std::vector<int>"
 

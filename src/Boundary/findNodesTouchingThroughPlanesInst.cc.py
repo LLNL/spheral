@@ -10,7 +10,8 @@ namespace Spheral {
   std::vector<int> 
   findNodesTouchingThroughPlanes(const NodeList<Dim<%(ndim)s>>& nodeList,
                                  const GeomPlane<Dim<%(ndim)s>>& enterPlane,
-                                 const GeomPlane<Dim<%(ndim)s>>& exitPlane);
+                                 const GeomPlane<Dim<%(ndim)s>>& exitPlane,
+                                 const double hmultiplier);
                          
 }
 """
