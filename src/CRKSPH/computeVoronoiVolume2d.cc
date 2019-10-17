@@ -404,6 +404,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
       // Clip by the neighbors, and look for any locally generated void points.
       auto voidPlanes_thread = voidPlanes.threadCopy();
+      auto etaVoidPoints_thread = etaVoidPoints.threadCopy();
 #pragma omp barrier
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
         const auto ni = polycells[nodeListi]->numInternalElements();
@@ -464,22 +465,23 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           // If so, we have to generate void points.
 #pragma omp critical
           {
+            auto& etaVoidPointsi = etaVoidPoints_thread(nodeListi, i);
+            CHECK2(etaVoidPointsi.empty(), "(" << nodeListi << " " << i << ") : " << etaVoidPointsi.size());
             if (nvoid > 0) {
 
               // Reduce the number of void points for this point to a reasonable stencil -- up to 4 for 2D.
-              CHECK(etaVoidPoints(nodeListi, i).empty());
               const auto thetaVoidAvg = atan2(etaVoidAvg.y(), etaVoidAvg.x());
               const auto nv = max(1U, min(4U, unsigned(4.0*float(nvoid)/float(nverts))));
               for (unsigned k = 0; k != nv; ++k) {
                 const auto theta = thetaVoidAvg + (0.5*k - 0.25*(nv - 1))*M_PI;
                 const auto etaVoid = Vector(0.5*rin*cos(theta), 0.5*rin*sin(theta));
-                etaVoidPoints(nodeListi, i).push_back(etaVoid);
+                etaVoidPointsi.push_back(etaVoid);
                 const auto rji = Hinvi*etaVoid;
                 const auto nhat = -rji.unitVector();
                 voidPlanes_thread(nodeListi, i).push_back(Plane(rji, nhat));
               }
-              CHECK(etaVoidPoints(nodeListi, i).size() == nv);
-              CHECK(voidPlanes_thread(nodeListi, i).size() == nv);
+              CHECK2(etaVoidPointsi.size() == nv, "(" << nodeListi << " " << i << ") : " << etaVoidPointsi.size() << " " << nv);
+              CHECK2(voidPlanes_thread(nodeListi, i).size() == nv, "(" << nodeListi << " " << i << ") : " << voidPlanes_thread(nodeListi, i).size() << " " << nv);
             }
 
             // If this point is sufficiently damaged, we also create void points along the damaged directions.
@@ -488,8 +490,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
               for (auto jdim = 0; jdim < Dimension::nDim; ++jdim) {
                 if (ev.eigenValues(jdim) > 1.0 - 1.0e-5) {
                   const auto evecj = ev.eigenVectors.getColumn(jdim);
-                  etaVoidPoints(nodeListi, i).push_back(-0.5*rin*evecj);
-                  etaVoidPoints(nodeListi, i).push_back( 0.5*rin*evecj);
+                  etaVoidPointsi.push_back(-0.5*rin*evecj);
+                  etaVoidPointsi.push_back( 0.5*rin*evecj);
                   const auto rji = Hinvi*0.5*rin*evecj;
                   const auto nhat = -rji.unitVector();
                   voidPlanes_thread(nodeListi, i).push_back(Plane( rji,  nhat));
@@ -501,6 +503,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           } // OMP critical
         }   // end over i
       }     // end over NodeLists
+
+#pragma omp critical
+      {
+        etaVoidPoints_thread.threadReduce();
+      }
 
       // Apply boundary conditions to the void points.
 #pragma omp barrier
