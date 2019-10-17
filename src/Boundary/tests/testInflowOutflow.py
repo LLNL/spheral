@@ -125,6 +125,8 @@ for p in packages:
     for bc in bcs:
         p.appendBoundary(bc)
 
+packages += bcs
+
 #-------------------------------------------------------------------------------
 # Construct an integrator.
 #-------------------------------------------------------------------------------
@@ -135,6 +137,7 @@ del p
 integrator.lastDt = dtMin
 integrator.dtMin = dtMin
 integrator.cullGhostNodes = False
+integrator.verbose = True
 output("integrator")
 output("integrator.lastDt")
 output("integrator.dtMin")
