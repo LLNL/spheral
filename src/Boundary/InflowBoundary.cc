@@ -136,12 +136,6 @@ copyFieldValues(NodeList<Dimension>& nodeList,
 
           // Copy the requested entries.
           for (auto k = 0; k < n; ++k) field[targetIDs[k]] = vals[controlIDs[k]];
-
-          // cerr << "Copying " << field.name() << " :";
-          // for (auto i: targetIDs) cerr << " " << field[i];
-        //   cerr << endl;
-        // } else {
-        //   cerr << " NOT FOUND: " << key << endl;
         }
       }
     }
@@ -245,12 +239,12 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
 
     // Offset the current ghost points appropriately.
     const auto delta = (xmin - mXmin)*nhat;
-    cerr << " ************> " << xmin << " " << mXmin << " " << nhat << " " << delta << endl;
+    // cerr << " ************> " << xmin << " " << mXmin << " " << nhat << " " << delta << endl;
     for (const auto i: gNodes) pos[i] += delta;
 
-    for (const auto i: gNodes) {
-      cerr << " --> " << i << " " << pos(i) << " " << nodeList.Hfield()(i) << " : " << (pos(i) - pos(0)) << endl;
-    }
+    // for (const auto i: gNodes) {
+    //   cerr << " --> " << i << " " << pos(i) << " " << nodeList.Hfield()(i) << " : " << (pos(i) - pos(0)) << endl;
+    // }
   }
 }
 
@@ -304,9 +298,6 @@ InflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
   if (mActive and field.nodeListPtr() == mNodeListPtr) {
     resetValues(field, this->ghostNodes(*mNodeListPtr), mSymTensorValues, false);
-    const auto gnodes = this->ghostNodes(*mNodeListPtr);
-    for (auto i: gnodes) cerr << field(i) << " ";
-    cerr << endl;
   }
 }
 
@@ -574,9 +565,9 @@ InflowBoundary<Dimension>::finalize(const Scalar time,
   const auto numNew = insideNodes.size();
   if (numNew > 0) {
 
-    cerr << "Promoting to internal: ";
-    for (auto i: insideNodes) cerr << " : " << i << " " << pos[gNodes[0] + i];
-    cerr << endl;
+    // cerr << "Promoting to internal: ";
+    // for (auto i: insideNodes) cerr << " : " << i << " " << pos[gNodes[0] + i];
+    // cerr << endl;
 
     // Allocate new internal nodes for those we're promoting.
     const auto firstID = mNodeListPtr->numInternalNodes();
@@ -595,14 +586,14 @@ InflowBoundary<Dimension>::finalize(const Scalar time,
     copyFieldValues<Dimension, Vector>         (*mNodeListPtr, mVectorValues, insideNodes, newNodes);
     copyFieldValues<Dimension, Tensor>         (*mNodeListPtr, mTensorValues, insideNodes, newNodes);
     copyFieldValues<Dimension, SymTensor>      (*mNodeListPtr, mSymTensorValues, insideNodes, newNodes);
-    // copyFieldValues<Dimension, ThirdRankTensor>(*mNodeListPtr, mThirdRankTensorValues, insideNodes, newNodes);
-    // copyFieldValues<Dimension, FacetedVolume>  (*mNodeListPtr, mFacetedVolumeValues, insideNodes, newNodes);
-    // copyFieldValues<Dimension, vector<Scalar>> (*mNodeListPtr, mVectorScalarValues, insideNodes, newNodes);
-    // copyFieldValues<Dimension, vector<Vector>> (*mNodeListPtr, mVectorVectorValues, insideNodes, newNodes);
+    copyFieldValues<Dimension, ThirdRankTensor>(*mNodeListPtr, mThirdRankTensorValues, insideNodes, newNodes);
+    copyFieldValues<Dimension, FacetedVolume>  (*mNodeListPtr, mFacetedVolumeValues, insideNodes, newNodes);
+    copyFieldValues<Dimension, vector<Scalar>> (*mNodeListPtr, mVectorScalarValues, insideNodes, newNodes);
+    copyFieldValues<Dimension, vector<Vector>> (*mNodeListPtr, mVectorVectorValues, insideNodes, newNodes);
 
-    for (auto k = 0; k < numNew; ++k) {
-      cerr << " assigning position " << newNodes[k] << " @ " << pos[newNodes[k]] << " vel=" << mNodeListPtr->velocity()[newNodes[k]] << endl;
-    }
+    // for (auto k = 0; k < numNew; ++k) {
+    //   cerr << " assigning position " << newNodes[k] << " @ " << pos[newNodes[k]] << " vel=" << mNodeListPtr->velocity()[newNodes[k]] << endl;
+    // }
   }
 }
 
