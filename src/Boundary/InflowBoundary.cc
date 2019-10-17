@@ -245,12 +245,12 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
 
     // Offset the current ghost points appropriately.
     const auto delta = (xmin - mXmin)*nhat;
-    // cerr << " ************> " << xmin << " " << mXmin << " " << nhat << " " << delta << endl;
+    cerr << " ************> " << xmin << " " << mXmin << " " << nhat << " " << delta << endl;
     for (const auto i: gNodes) pos[i] += delta;
 
-    // for (const auto i: gNodes) {
-    //   cerr << " --> " << i << " " << pos(i) << " " << nodeList.Hfield()(i) << endl;
-    // }
+    for (const auto i: gNodes) {
+      cerr << " --> " << i << " " << pos(i) << " " << nodeList.Hfield()(i) << " : " << (pos(i) - pos(0)) << endl;
+    }
   }
 }
 
@@ -450,7 +450,7 @@ InflowBoundary<Dimension>::initializeProblemStartup() {
     // Use a planar boundary to figure out what sort of nodes are in range of the entrance plane.
     // We use those to create a stencil of the inflow conditions.
     const auto& nhat = mPlane.normal();
-    const auto nodeIDs = findNodesTouchingThroughPlanes(*mNodeListPtr, mPlane, mPlane);
+    const auto nodeIDs = findNodesTouchingThroughPlanes(*mNodeListPtr, mPlane, mPlane, 2.0);
     // cerr << "Node IDs: ";
     // std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
     // cerr << endl;
@@ -587,7 +587,6 @@ InflowBoundary<Dimension>::finalize(const Scalar time,
     for (auto k = 0; k < numNew; ++k) {
       newNodes[k] = firstID + k;
       pos[firstID + k] = pos[gNodes[0] + insideNodes[k] + numNew];
-      cerr << " assigning position " << newNodes[k] << " @ " << pos[newNodes[k]] << endl;
     }
 
     // Copy all field values from ghosts to the new internal nodes.
@@ -600,6 +599,10 @@ InflowBoundary<Dimension>::finalize(const Scalar time,
     // copyFieldValues<Dimension, FacetedVolume>  (*mNodeListPtr, mFacetedVolumeValues, insideNodes, newNodes);
     // copyFieldValues<Dimension, vector<Scalar>> (*mNodeListPtr, mVectorScalarValues, insideNodes, newNodes);
     // copyFieldValues<Dimension, vector<Vector>> (*mNodeListPtr, mVectorVectorValues, insideNodes, newNodes);
+
+    for (auto k = 0; k < numNew; ++k) {
+      cerr << " assigning position " << newNodes[k] << " @ " << pos[newNodes[k]] << " vel=" << mNodeListPtr->velocity()[newNodes[k]] << endl;
+    }
   }
 }
 

@@ -130,7 +130,7 @@ packages += bcs
 #-------------------------------------------------------------------------------
 # Construct an integrator.
 #-------------------------------------------------------------------------------
-integrator = CheapSynchronousRK2Integrator(db)
+integrator = VerletIntegrator(db) # CheapSynchronousRK2Integrator(db)
 for p in packages:
     integrator.appendPhysicsPackage(p)
 del p
