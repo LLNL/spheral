@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(Spheral)
 
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules")
 # Find Python
 option(USE_PYTHON "Generate Python interface" ON)

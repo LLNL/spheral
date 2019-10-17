@@ -66,10 +66,11 @@ macro(PYB11_GENERATE_BINDINGS)
     'from PYB11Generator import * \; 
     import sys \; 
     sys.path.append(\"${PYB11_DIR}\") \; 
+    sys.path.append(\"${PYB11_DIR}/Physics\") \; 
     sys.path.append(\"${SPHERAL_SOURCE_DIR}/SimulationControl\") \;
     sys.path.append(\"${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/${PYB11_MODULE_NAME}\") \;
     import ${PYB11_MODULE_NAME}MOD \; 
-    PYB11generateModule(${PYB11_MODULE_NAME}MOD, \"${PYB11_MODULE_NAME}\")'
+    PYB11generateModule(${PYB11_MODULE_NAME}MOD, \"${PYB11_MODULE_NAME}\") '
     DEPENDS ${PYB11_SOURCE}
     )
 endmacro()
