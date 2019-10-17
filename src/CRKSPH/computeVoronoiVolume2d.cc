@@ -361,6 +361,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       // #pragma omp critical (computeVoronoiVolume2d_pass2_copyplanes)
       // {
       auto pairPlanes_thread = pairPlanes.threadCopy(ThreadReduction::SUM, true);  // force copying the original FieldList
+#pragma omp barrier
       // }
       cerr << " --> " << omp_get_thread_num() << " : " << pairPlanes_thread.size() << endl;
 #pragma omp barrier
@@ -403,6 +404,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
       // Clip by the neighbors, and look for any locally generated void points.
       auto voidPlanes_thread = voidPlanes.threadCopy();
+#pragma omp barrier
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
         const auto ni = polycells[nodeListi]->numInternalElements();
 #pragma omp parallel for
