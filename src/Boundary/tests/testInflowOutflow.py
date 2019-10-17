@@ -117,9 +117,11 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 if geometry == "1d":
     inplane = Plane(Vector(x0), Vector(1.0))
+    outplane = Plane(Vector(x2), Vector(-1.0))
     inflow = InflowBoundary(nodes1, inplane)
+    outflow = InflowBoundary(nodes1, outplane)
 
-    bcs = [inflow]
+    bcs = [inflow, outflow]
 
 for p in packages:
     for bc in bcs:

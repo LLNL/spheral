@@ -235,7 +235,7 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
       xmin = std::min(xmin, xd);
     }
     xmin = allReduce(xmin, MPI_MIN, Communicator::communicator());
-    CHECK(xmin >= 0.0);
+    // CHECK(xmin >= 0.0);
 
     // Offset the current ghost points appropriately.
     const auto delta = (xmin - mXmin)*nhat;
@@ -438,8 +438,8 @@ InflowBoundary<Dimension>::initializeProblemStartup() {
     mVectorScalarValues.clear();
     mVectorVectorValues.clear();
 
-    // Use a planar boundary to figure out what sort of nodes are in range of the entrance plane.
-    // We use those to create a stencil of the inflow conditions.
+    // Use a planar boundary to figure out what sort of nodes are in range of the plane.
+    // We use those to create a stencil of the in/outflow conditions.
     const auto& nhat = mPlane.normal();
     const auto nodeIDs = findNodesTouchingThroughPlanes(*mNodeListPtr, mPlane, mPlane, 2.0);
     // cerr << "Node IDs: ";
@@ -470,15 +470,15 @@ InflowBoundary<Dimension>::initializeProblemStartup() {
       // cerr << "  Ghost position: " << i << " @ " << posvals[k] << endl;
     }
 
-    // Determine the inflow velocity.
+    // Determine the in/outflow velocity.
     const auto& vel = mNodeListPtr->velocity();
     for (const auto i: nodeIDs) {
       CHECK(std::abs(vel[i].dot(nhat)/vel[i].magnitude() - 1.0) < 1.0e-5);
       mInflowVelocity = vel[i].dot(nhat);
     }
-    mInflowVelocity = allReduce(mInflowVelocity, MPI_MAX, Communicator::communicator());
+    mInflowVelocity = allReduce(mInflowVelocity, MPI_MAX, Communicator::communicator());  // Negative implies outflow
     // cerr << "Computed inflow velocity: " << mInflowVelocity << endl;
-    CHECK(std::abs(mInflowVelocity) > 0.0);
+    // CHECK(std::abs(mInflowVelocity) > 0.0);
 
     // Figure out a timestep limit such that we don't move more than the ghost
     // node thickness.
@@ -491,7 +491,7 @@ InflowBoundary<Dimension>::initializeProblemStartup() {
     xmin = allReduce(xmin, MPI_MIN, Communicator::communicator());
     xmax = allReduce(xmax, MPI_MIN, Communicator::communicator());
     mXmin = xmin;
-    mDT = (xmax - xmin)/mInflowVelocity;
+    mDT = (xmax - xmin)/std::abs(mInflowVelocity);   // Protect from negative outflow velocity
     // cerr << "Timestep constraint: " << mDT << endl;
 
     // Turn the BC on.
@@ -555,45 +555,68 @@ InflowBoundary<Dimension>::finalize(const Scalar time,
                                     State<Dimension>& state,
                                     StateDerivatives<Dimension>& derivatives) {
 
-  // Find any ghost points that are inside the entrance plane now.
-  const auto& gNodes = this->ghostNodes(*mNodeListPtr);
-  auto& pos = mNodeListPtr->positions();
-  vector<int> insideNodes;
-  for (auto i: gNodes) {
-    if (mPlane.compare(pos[i]) == -1) insideNodes.push_back(i - gNodes[0]);
-  }
-  const auto numNew = insideNodes.size();
-  if (numNew > 0) {
+  // Are we doing in or outflow?
+  if (mInflowVelocity > 0.0) {
 
-    // cerr << "Promoting to internal: ";
-    // for (auto i: insideNodes) cerr << " : " << i << " " << pos[gNodes[0] + i];
-    // cerr << endl;
+    // Inflow.
+    // Find any ghost points that are inside the entrance plane now.
+    const auto& gNodes = this->ghostNodes(*mNodeListPtr);
+    auto& pos = mNodeListPtr->positions();
+    vector<int> insideNodes;
+    for (auto i: gNodes) {
+      if (mPlane.compare(pos[i]) == -1) insideNodes.push_back(i - gNodes[0]);
+    }
+    const auto numNew = insideNodes.size();
+    if (numNew > 0) {
 
-    // Allocate new internal nodes for those we're promoting.
-    const auto firstID = mNodeListPtr->numInternalNodes();
-    mNodeListPtr->numInternalNodes(firstID + numNew);
+      // cerr << "Promoting to internal: ";
+      // for (auto i: insideNodes) cerr << " : " << i << " " << pos[gNodes[0] + i];
+      // cerr << endl;
 
-    // Update the positions.
-    vector<int> newNodes(numNew);
-    for (auto k = 0; k < numNew; ++k) {
-      newNodes[k] = firstID + k;
-      pos[firstID + k] = pos[gNodes[0] + insideNodes[k] + numNew];
+      // Allocate new internal nodes for those we're promoting.
+      const auto firstID = mNodeListPtr->numInternalNodes();
+      mNodeListPtr->numInternalNodes(firstID + numNew);
+
+      // Update the positions.
+      vector<int> newNodes(numNew);
+      for (auto k = 0; k < numNew; ++k) {
+        newNodes[k] = firstID + k;
+        pos[firstID + k] = pos[gNodes[0] + insideNodes[k] + numNew];
+      }
+
+      // Copy all field values from ghosts to the new internal nodes.
+      copyFieldValues<Dimension, int>            (*mNodeListPtr, mIntValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, Scalar>         (*mNodeListPtr, mScalarValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, Vector>         (*mNodeListPtr, mVectorValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, Tensor>         (*mNodeListPtr, mTensorValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, SymTensor>      (*mNodeListPtr, mSymTensorValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, ThirdRankTensor>(*mNodeListPtr, mThirdRankTensorValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, FacetedVolume>  (*mNodeListPtr, mFacetedVolumeValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, vector<Scalar>> (*mNodeListPtr, mVectorScalarValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, vector<Vector>> (*mNodeListPtr, mVectorVectorValues, insideNodes, newNodes);
+
+      // for (auto k = 0; k < numNew; ++k) {
+      //   cerr << " assigning position " << newNodes[k] << " @ " << pos[newNodes[k]] << " vel=" << mNodeListPtr->velocity()[newNodes[k]] << endl;
+      // }
     }
 
-    // Copy all field values from ghosts to the new internal nodes.
-    copyFieldValues<Dimension, int>            (*mNodeListPtr, mIntValues, insideNodes, newNodes);
-    copyFieldValues<Dimension, Scalar>         (*mNodeListPtr, mScalarValues, insideNodes, newNodes);
-    copyFieldValues<Dimension, Vector>         (*mNodeListPtr, mVectorValues, insideNodes, newNodes);
-    copyFieldValues<Dimension, Tensor>         (*mNodeListPtr, mTensorValues, insideNodes, newNodes);
-    copyFieldValues<Dimension, SymTensor>      (*mNodeListPtr, mSymTensorValues, insideNodes, newNodes);
-    copyFieldValues<Dimension, ThirdRankTensor>(*mNodeListPtr, mThirdRankTensorValues, insideNodes, newNodes);
-    copyFieldValues<Dimension, FacetedVolume>  (*mNodeListPtr, mFacetedVolumeValues, insideNodes, newNodes);
-    copyFieldValues<Dimension, vector<Scalar>> (*mNodeListPtr, mVectorScalarValues, insideNodes, newNodes);
-    copyFieldValues<Dimension, vector<Vector>> (*mNodeListPtr, mVectorVectorValues, insideNodes, newNodes);
+  } else {
 
-    // for (auto k = 0; k < numNew; ++k) {
-    //   cerr << " assigning position " << newNodes[k] << " @ " << pos[newNodes[k]] << " vel=" << mNodeListPtr->velocity()[newNodes[k]] << endl;
-    // }
+    // Outflow.
+    for (auto itr = dataBase.nodeListBegin(); itr < dataBase.nodeListEnd(); ++itr) {
+      auto& nodeList = **itr;
+      auto& pos = nodeList.positions();
+
+      // Look for any internal points that have exited through the plane.  Note this is across all NodeLists!
+      vector<int> outsideNodes;
+      const auto ni = nodeList.numInternalNodes();
+      for (auto i = 0; i < ni; ++i) {
+        if (mPlane.compare(pos[i]) == 1) outsideNodes.push_back(i);
+      }
+
+      // Those nodes get deleted.
+      nodeList.deleteNodes(outsideNodes);
+    }
   }
 }
 
