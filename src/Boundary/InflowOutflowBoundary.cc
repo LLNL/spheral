@@ -447,7 +447,7 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
       // Use a planar boundary to figure out what sort of nodes are in range of the plane.
       // We use those to create a stencil of the in/outflow conditions.
       const auto& nhat = mPlane.normal();
-      auto nodeIDs = findNodesTouchingThroughPlanes(nodeList, mPlane, mPlane, 2.0);
+      auto nodeIDs = findNodesTouchingThroughPlanes(nodeList, mPlane, mPlane, 1.0);
 
       // Remove any ghost nodes from other BCs.
       const auto firstGhostNode = nodeList.firstGhostNode();
