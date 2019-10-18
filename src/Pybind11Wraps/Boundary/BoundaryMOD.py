@@ -27,7 +27,7 @@ PYB11includes += ['"Boundary/Boundary.hh"',
                   '"Boundary/CylindricalBoundary.hh"',
                   '"Boundary/AxisBoundaryRZ.hh"',
                   '"Boundary/CRKSPHVoidBoundary.hh"',
-                  '"Boundary/InflowBoundary.hh"',
+                  '"Boundary/InflowOutflowBoundary.hh"',
                   '"Boundary/mapPositionThroughPlanes.hh"',
                   '"Boundary/findNodesTouchingThroughPlanes.hh"',
                   '"Field/Field.hh"',
@@ -81,7 +81,7 @@ from ConstantZVelocityBoundary import *
 from ConstantRVelocityBoundary import *
 from ConstantBoundary import *
 from CRKSPHVoidBoundary import *
-from InflowBoundary import *
+from InflowOutflowBoundary import *
 
 for ndim in dims:
     exec('''
@@ -94,7 +94,7 @@ ConstantVelocityBoundary%(ndim)id = PYB11TemplateClass(ConstantVelocityBoundary,
 ConstantXVelocityBoundary%(ndim)id = PYB11TemplateClass(ConstantXVelocityBoundary, template_parameters="%(Dimension)s")
 ConstantBoundary%(ndim)id = PYB11TemplateClass(ConstantBoundary, template_parameters="%(Dimension)s")
 CRKSPHVoidBoundary%(ndim)id = PYB11TemplateClass(CRKSPHVoidBoundary, template_parameters="%(Dimension)s")
-InflowBoundary%(ndim)id = PYB11TemplateClass(InflowBoundary, template_parameters="%(Dimension)s")
+InflowOutflowBoundary%(ndim)id = PYB11TemplateClass(InflowOutflowBoundary, template_parameters="%(Dimension)s")
 
 vector_of_Boundary%(ndim)id = PYB11_bind_vector("Boundary<%(Dimension)s>*", opaque=True, local=False)
 

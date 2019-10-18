@@ -8,7 +8,7 @@ namespace Spheral {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 dtmin() const {
   return mDT;
 }
@@ -19,7 +19,7 @@ dtmin() const {
 template<typename Dimension>
 inline
 const DataBase<Dimension>&
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 dataBase() const {
   return mDataBase;
 }
@@ -30,7 +30,7 @@ dataBase() const {
 template<typename Dimension>
 inline
 const GeomPlane<Dimension>& 
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 plane() const {
   return mPlane;
 }
@@ -41,10 +41,10 @@ plane() const {
 template<typename Dimension>
 inline
 int
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 numInflowNodes(const NodeList<Dimension>& nodeList) const {
   const auto itr = mNumInflowNodes.find(nodeList.name());
-  VERIFY2(itr != mNumInflowNodes.end(), "InflowBoundary::numInflowNodes no entry for " << nodeList.name());
+  VERIFY2(itr != mNumInflowNodes.end(), "InflowOutflowBoundary::numInflowNodes no entry for " << nodeList.name());
   return itr->second;
 }
 
@@ -54,10 +54,10 @@ numInflowNodes(const NodeList<Dimension>& nodeList) const {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 inflowVelocity(const NodeList<Dimension>& nodeList) const {
   const auto itr = mInflowVelocity.find(nodeList.name());
-  VERIFY2(itr != mInflowVelocity.end(), "InflowBoundary::inflowVelocity no entry for " << nodeList.name());
+  VERIFY2(itr != mInflowVelocity.end(), "InflowOutflowBoundary::inflowVelocity no entry for " << nodeList.name());
   return itr->second;
 }
 
@@ -68,11 +68,11 @@ template<typename Dimension>
 template<typename DataType>
 inline
 std::vector<DataType>&
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 storedValues(const KeyType key, const DataType& dummy) {
   auto& storage = storageForType(dummy);
   if (storage.find(key) == storage.end()) {
-    VERIFY2(false, "InflowBoundary ERROR: attempt to extract stored value for " << key << ", which is not stored.");
+    VERIFY2(false, "InflowOutflowBoundary ERROR: attempt to extract stored value for " << key << ", which is not stored.");
   }
   return storage[key];
 }
@@ -81,7 +81,7 @@ template<typename Dimension>
 template<typename DataType>
 inline
 std::vector<DataType>&
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 storedValues(const Field<Dimension, DataType>& field) {
   const auto key = StateBase<Dimension>::key(field);
   return storedValues(key, DataTypeTraits<DataType>::zero());

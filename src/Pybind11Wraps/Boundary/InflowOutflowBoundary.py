@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# InflowBoundary
+# InflowOutflowBoundary
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from Boundary import *
@@ -9,8 +9,8 @@ from PhysicsAbstractMethods import *
 from RestartMethods import *
 
 @PYB11template("Dimension")
-class InflowBoundary(Boundary, Physics):
-    """InflowBoundary -- creates inflow ghost images, which become internal nodes
+class InflowOutflowBoundary(Boundary, Physics):
+    """InflowOutflowBoundary -- creates inflow ghost images, which become internal nodes
 as they cross the specified boundary plane."""
 
     PYB11typedefs = """
@@ -108,6 +108,6 @@ Really we should rename this post-step finalize."""
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, InflowBoundary)
-PYB11inject(BoundaryAbstractMethods, InflowBoundary, virtual=True, pure_virtual=False)
-PYB11inject(PhysicsAbstractMethods, InflowBoundary, virtual=True, pure_virtual=False)
+PYB11inject(RestartMethods, InflowOutflowBoundary)
+PYB11inject(BoundaryAbstractMethods, InflowOutflowBoundary, virtual=True, pure_virtual=False)
+PYB11inject(PhysicsAbstractMethods, InflowOutflowBoundary, virtual=True, pure_virtual=False)

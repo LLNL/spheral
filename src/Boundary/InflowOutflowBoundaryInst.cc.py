@@ -2,10 +2,10 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "InflowBoundary.cc"
+#include "InflowOutflowBoundary.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class InflowBoundary< Dim< %(ndim)s > >;
+  template class InflowOutflowBoundary< Dim< %(ndim)s > >;
 }
 """

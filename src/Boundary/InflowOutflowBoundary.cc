@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// InflowBoundary -- creates inflow ghost images, which become internal nodes
+// InflowOutflowBoundary -- creates inflow ghost images, which become internal nodes
 // as they cross the specified boundary plane.
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
@@ -14,7 +14,7 @@
 #include "Utilities/planarReflectingOperator.hh"
 #include "Utilities/DBC.hh"
 
-#include "InflowBoundary.hh"
+#include "InflowOutflowBoundary.hh"
 
 #include "boost/lexical_cast.hpp"
 #include "boost/algorithm/string.hpp"
@@ -92,7 +92,7 @@ resetValues(Field<Dimension, DataType>& field,
   const auto key = StateBase<Dimension>::key(field);
   auto itr = values.find(key);
   VERIFY2(itr != values.end() or not dieOnMissingField,
-          "InflowBoundary error: " << key << " not found in stored field values.");
+          "InflowOutflowBoundary error: " << key << " not found in stored field values.");
 
   // Now set the values.
   if (itr != values.end()) {
@@ -148,9 +148,9 @@ copyFieldValues(NodeList<Dimension>& nodeList,
 // Construct with the given NodeList and plane.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-InflowBoundary<Dimension>::
-InflowBoundary(DataBase<Dimension>& dataBase,
-               const GeomPlane<Dimension>& plane):
+InflowOutflowBoundary<Dimension>::
+InflowOutflowBoundary(DataBase<Dimension>& dataBase,
+                      const GeomPlane<Dimension>& plane):
   Boundary<Dimension>(),
   Physics<Dimension>(),
   mDataBase(dataBase),
@@ -177,7 +177,7 @@ InflowBoundary(DataBase<Dimension>& dataBase,
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-InflowBoundary<Dimension>::~InflowBoundary() {
+InflowOutflowBoundary<Dimension>::~InflowOutflowBoundary() {
 }
 
 //------------------------------------------------------------------------------
@@ -185,7 +185,7 @@ InflowBoundary<Dimension>::~InflowBoundary() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 setGhostNodes(NodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
 
@@ -216,7 +216,7 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 updateGhostNodes(NodeList<Dimension>& nodeList) {
   if (mActive) {
     auto& pos = nodeList.positions();
@@ -254,7 +254,7 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
 // Specialization for int fields.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, int>& field) const {
   if (mActive) {
     resetValues(field, this->ghostNodes(field.nodeList()), mIntValues, false);
@@ -264,7 +264,7 @@ applyGhostBoundary(Field<Dimension, int>& field) const {
 // Specialization for scalar fields.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
   if (mActive) {
     resetValues(field, this->ghostNodes(field.nodeList()), mScalarValues, false);
@@ -274,7 +274,7 @@ applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
 // Specialization for Vector fields.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
   if (mActive) {
     resetValues(field, this->ghostNodes(field.nodeList()), mVectorValues, false);
@@ -284,7 +284,7 @@ applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
 // Specialization for Tensor fields.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
   if (mActive) {
     resetValues(field, this->ghostNodes(field.nodeList()), mTensorValues, false);
@@ -294,7 +294,7 @@ applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
 // Specialization for symmetric tensors.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
   if (mActive) {
     resetValues(field, this->ghostNodes(field.nodeList()), mSymTensorValues, false);
@@ -304,7 +304,7 @@ applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const
 // Specialization for third rank tensors.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
   if (mActive) {
     resetValues(field, this->ghostNodes(field.nodeList()), mThirdRankTensorValues, false);
@@ -314,7 +314,7 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
 // Specialization for FacetedVolume.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
   if (mActive) {
     resetValues(field, this->ghostNodes(field.nodeList()), mFacetedVolumeValues, false);
@@ -324,7 +324,7 @@ applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) c
 // Specialization for vector<Scalar> fields.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar>>& field) const {
   if (mActive) {
     resetValues(field, this->ghostNodes(field.nodeList()), mVectorScalarValues, false);
@@ -334,7 +334,7 @@ applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar>>& fi
 // Specialization for vector<Vector> fields.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Vector>>& field) const {
   if (mActive) {
     resetValues(field, this->ghostNodes(field.nodeList()), mVectorVectorValues, false);
@@ -349,7 +349,7 @@ applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Vector>>& fi
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 setViolationNodes(NodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
 }
@@ -360,7 +360,7 @@ setViolationNodes(NodeList<Dimension>& nodeList) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 updateViolationNodes(NodeList<Dimension>& nodeList) {
 }
 
@@ -370,14 +370,14 @@ updateViolationNodes(NodeList<Dimension>& nodeList) {
 // Specialization for int fields.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 enforceBoundary(Field<Dimension, int>& field) const {
 }
 
 // Specialization for scalar fields.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
 }
 
@@ -385,35 +385,35 @@ enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
 // Specialization for Vector fields.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
 }
 
 // Specialization for Tensor fields.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
 }
 
 // Specialization for symmetric tensors.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
 }
 
 // Specialization for third rank tensors.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
 }
 
 // Specialization for FacetedVolume.
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
 }
 
@@ -423,7 +423,7 @@ enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) cons
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::initializeProblemStartup() {
+InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
 
   if (not mActive) {
 
@@ -516,23 +516,23 @@ InflowBoundary<Dimension>::initializeProblemStartup() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::evaluateDerivatives(const Scalar time,
-                                               const Scalar dt,
-                                               const DataBase<Dimension>& dataBase,
-                                               const State<Dimension>& state,
-                                               StateDerivatives<Dimension>& derivatives) const {
+InflowOutflowBoundary<Dimension>::evaluateDerivatives(const Scalar time,
+                                                      const Scalar dt,
+                                                      const DataBase<Dimension>& dataBase,
+                                                      const State<Dimension>& state,
+                                                      StateDerivatives<Dimension>& derivatives) const {
 }
 
 //------------------------------------------------------------------------------
 // Physics::dt
 //------------------------------------------------------------------------------
 template<typename Dimension>
-typename InflowBoundary<Dimension>::TimeStepType
-InflowBoundary<Dimension>::dt(const DataBase<Dimension>& dataBase, 
-                              const State<Dimension>& state,
-                              const StateDerivatives<Dimension>& derivs,
-                              const Scalar currentTime) const {
-  return TimeStepType(mDT, "InflowBoundary velocity constraint");
+typename InflowOutflowBoundary<Dimension>::TimeStepType
+InflowOutflowBoundary<Dimension>::dt(const DataBase<Dimension>& dataBase, 
+                                     const State<Dimension>& state,
+                                     const StateDerivatives<Dimension>& derivs,
+                                     const Scalar currentTime) const {
+  return TimeStepType(mDT, "InflowOutflowBoundary velocity constraint");
 }
 
 //------------------------------------------------------------------------------
@@ -540,8 +540,8 @@ InflowBoundary<Dimension>::dt(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::registerState(DataBase<Dimension>& dataBase,
-                                         State<Dimension>& state) {
+InflowOutflowBoundary<Dimension>::registerState(DataBase<Dimension>& dataBase,
+                                                State<Dimension>& state) {
 }
 
 //------------------------------------------------------------------------------
@@ -549,8 +549,8 @@ InflowBoundary<Dimension>::registerState(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::registerDerivatives(DataBase<Dimension>& dataBase,
-                                               StateDerivatives<Dimension>& derivs) {
+InflowOutflowBoundary<Dimension>::registerDerivatives(DataBase<Dimension>& dataBase,
+                                                      StateDerivatives<Dimension>& derivs) {
 }
 
 //------------------------------------------------------------------------------
@@ -560,11 +560,11 @@ InflowBoundary<Dimension>::registerDerivatives(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::finalize(const Scalar time, 
-                                    const Scalar dt,
-                                    DataBase<Dimension>& dataBase, 
-                                    State<Dimension>& state,
-                                    StateDerivatives<Dimension>& derivatives) {
+InflowOutflowBoundary<Dimension>::finalize(const Scalar time, 
+                                           const Scalar dt,
+                                           DataBase<Dimension>& dataBase, 
+                                           State<Dimension>& state,
+                                           StateDerivatives<Dimension>& derivatives) {
 
   for (auto itr = dataBase.nodeListBegin(); itr < dataBase.nodeListEnd(); ++itr) {
     auto& nodeList = **itr;
@@ -637,8 +637,8 @@ InflowBoundary<Dimension>::finalize(const Scalar time,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 std::string
-InflowBoundary<Dimension>::label() const {
-  return "InflowBoundary" + boost::lexical_cast<std::string>(mBoundaryCount);
+InflowOutflowBoundary<Dimension>::label() const {
+  return "InflowOutflowBoundary" + boost::lexical_cast<std::string>(mBoundaryCount);
 }
 
 //------------------------------------------------------------------------------
@@ -646,7 +646,7 @@ InflowBoundary<Dimension>::label() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   file.write(mActive, pathName + "/active");
   file.write(mBoundaryCount, pathName + "/boundaryCount");
@@ -720,7 +720,7 @@ dumpState(FileIO& file, const string& pathName) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowBoundary<Dimension>::
+InflowOutflowBoundary<Dimension>::
 restoreState(const FileIO& file, const string& pathName)  {
   file.read(mActive, pathName + "/active");
   file.read(mBoundaryCount, pathName + "/boundaryCount");

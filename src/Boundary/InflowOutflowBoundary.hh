@@ -1,13 +1,13 @@
 //---------------------------------Spheral++----------------------------------//
-// InflowBoundary -- creates inflow ghost images, which become internal nodes
+// InflowOutflowBoundary -- creates inflow ghost images, which become internal nodes
 // as they cross the specified boundary plane.
 //
 // Created by JMO, Tue Oct 15 11:23:09 PDT 2019
 //
 // Modified by:
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_InflowBoundary__
-#define __Spheral_InflowBoundary__
+#ifndef __Spheral_InflowOutflowBoundary__
+#define __Spheral_InflowOutflowBoundary__
 
 #include "Boundary.hh"
 #include "Physics/Physics.hh"
@@ -25,7 +25,7 @@ template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class DataBase;
 
 template<typename Dimension>
-class InflowBoundary: public Boundary<Dimension>, public Physics<Dimension> {
+class InflowOutflowBoundary: public Boundary<Dimension>, public Physics<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -39,9 +39,9 @@ public:
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   // Constructors and destructors.
-  InflowBoundary(DataBase<Dimension>& dataBase,
+  InflowOutflowBoundary(DataBase<Dimension>& dataBase,
                  const GeomPlane<Dimension>& plane);
-  virtual ~InflowBoundary();
+  virtual ~InflowOutflowBoundary();
 
   //**********************************************************************
   // Boundary condition methods:
@@ -184,19 +184,19 @@ private:
   VectorVectorStorageType&    storageForType(const std::vector<Vector>& dummy) { return mVectorVectorValues; }
 
   // No default or copy constructors.
-  InflowBoundary();
-  InflowBoundary(InflowBoundary&);
+  InflowOutflowBoundary();
+  InflowOutflowBoundary(InflowOutflowBoundary&);
 };
 
 }
 
-#include "InflowBoundaryInline.hh"
+#include "InflowOutflowBoundaryInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class InflowBoundary;
+  template<typename Dimension> class InflowOutflowBoundary;
 }
 
 #endif

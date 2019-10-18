@@ -19,7 +19,7 @@ INSTSRCTARGETS = \
 	$(srcdir)/ConstantXVelocityBoundaryInst.cc.py \
 	$(srcdir)/ConstantRVelocityBoundaryInst.cc.py \
 	$(srcdir)/ConstantBoundaryInst.cc.py \
-	$(srcdir)/InflowBoundaryInst.cc.py \
+	$(srcdir)/InflowOutflowBoundaryInst.cc.py \
 	$(srcdir)/CRKSPHVoidBoundaryInst.cc.py \
 	$(srcdir)/findNodesTouchingThroughPlanesInst.cc.py
 
