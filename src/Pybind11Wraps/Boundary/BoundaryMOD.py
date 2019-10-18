@@ -32,6 +32,7 @@ PYB11includes += ['"Boundary/Boundary.hh"',
                   '"Boundary/findNodesTouchingThroughPlanes.hh"',
                   '"Field/Field.hh"',
                   '"Field/FieldList.hh"',
+                  '"NodeList/NodeList.hh"',
                   '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------

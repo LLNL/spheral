@@ -27,7 +27,7 @@ as they cross the specified boundary plane."""
     #...........................................................................
     # Constructors
     def pyinit(self,
-               nodeList = "NodeList<%(Dimension)s>&",
+               dataBase = "DataBase<%(Dimension)s>&",
                plane = "const GeomPlane<%(Dimension)s>&"):
         "Constructor"
 
@@ -55,6 +55,12 @@ as they cross the specified boundary plane."""
         """Packages might want a hook to do some post-step finalizations.
 Really we should rename this post-step finalize."""
         return "void"
+
+    @PYB11const
+    def numInflowNodes(self,
+                       nodeList = "const NodeList<%(Dimension)s>&"):
+        "Number of nodes in inflow stencil for the given NodeList"
+        return "int"
 
     #...........................................................................
     @PYB11template("DataType")
@@ -96,8 +102,7 @@ Really we should rename this post-step finalize."""
 
     #...........................................................................
     # Properties
-    numInflowNodes = PYB11property(doc="Number of nodes in inflow stencil")
-    nodeList = PYB11property(doc="The NodeList we're allowing to flow into the problem")
+    dataBase = PYB11property(doc="The DataBase for the NodeLists we know about")
     plane = PYB11property(doc="The inflow plane")
 
 #-------------------------------------------------------------------------------

@@ -12,7 +12,7 @@
 #include "Boundary.hh"
 #include "Physics/Physics.hh"
 #include "Geometry/GeomPlane.hh"
-#include "NodeList/NodeList.hh"
+#include "DataBase/DataBase.hh"
 #include "DataBase/StateBase.hh" // For constructing Field keys.
 
 namespace Spheral {
@@ -39,7 +39,7 @@ public:
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   // Constructors and destructors.
-  InflowBoundary(NodeList<Dimension>& nodeList,
+  InflowBoundary(DataBase<Dimension>& dataBase,
                  const GeomPlane<Dimension>& plane);
   virtual ~InflowBoundary();
 
@@ -121,12 +121,14 @@ public:
   //**********************************************************************
 
   // Accessor methods.
-  int numInflowNodes() const;
-  const NodeList<Dimension>& nodeList() const;
+  Scalar dtmin() const;
+  const DataBase<Dimension>& dataBase() const;
   const GeomPlane<Dimension>& plane() const;
+  int numInflowNodes(const NodeList<Dimension>& nodeList) const;
+  Scalar inflowVelocity(const NodeList<Dimension>& nodeList) const;
 
   // Get the stored data for generating ghost nodes.
-  template<typename DataType> std::vector<DataType>& storedValues(const std::string fieldName, const DataType& dummy);
+  template<typename DataType> std::vector<DataType>& storedValues(const KeyType key, const DataType& dummy);
   template<typename DataType> std::vector<DataType>& storedValues(const Field<Dimension, DataType>& field);
 
   //****************************************************************************
@@ -138,11 +140,14 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  DataBase<Dimension>& mDataBase;
   GeomPlane<Dimension> mPlane;
-  NodeList<Dimension>* mNodeListPtr;
-  int mBoundaryCount, mNumInflowNodes;
-  Scalar mInflowVelocity, mXmin, mDT;
+  int mBoundaryCount;
+  Scalar mDT;
   bool mActive;
+  std::map<std::string, int> mNumInflowNodes;
+  std::map<std::string, Scalar> mInflowVelocity;
+  std::map<std::string, Scalar> mXmin;
 
   typedef std::map<KeyType, std::vector<int>> IntStorageType;
   typedef std::map<KeyType, std::vector<Scalar>> ScalarStorageType;

@@ -3,26 +3,25 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Return the number of nodes this Boundary is going to create.
+// The effective timestep vote
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+typename Dimension::Scalar
 InflowBoundary<Dimension>::
-numInflowNodes() const {
-  return mNumInflowNodes;
+dtmin() const {
+  return mDT;
 }
 
 //------------------------------------------------------------------------------
-// Return the NodeList this Boundary is defined on.
+// Return the DataBase this Boundary is defined on.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NodeList<Dimension>&
+const DataBase<Dimension>&
 InflowBoundary<Dimension>::
-nodeList() const {
-  CHECK(mNodeListPtr != 0);
-  return *mNodeListPtr;
+dataBase() const {
+  return mDataBase;
 }
 
 //------------------------------------------------------------------------------
@@ -37,6 +36,32 @@ plane() const {
 }
 
 //------------------------------------------------------------------------------
+// Return the number of nodes this Boundary is going to create.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+InflowBoundary<Dimension>::
+numInflowNodes(const NodeList<Dimension>& nodeList) const {
+  const auto itr = mNumInflowNodes.find(nodeList.name());
+  VERIFY2(itr != mNumInflowNodes.end(), "InflowBoundary::numInflowNodes no entry for " << nodeList.name());
+  return itr->second;
+}
+
+//------------------------------------------------------------------------------
+// The inflow velocity (per NodeList)
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+InflowBoundary<Dimension>::
+inflowVelocity(const NodeList<Dimension>& nodeList) const {
+  const auto itr = mInflowVelocity.find(nodeList.name());
+  VERIFY2(itr != mInflowVelocity.end(), "InflowBoundary::inflowVelocity no entry for " << nodeList.name());
+  return itr->second;
+}
+
+//------------------------------------------------------------------------------
 // Access the stored template field values for ghost points.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -44,11 +69,10 @@ template<typename DataType>
 inline
 std::vector<DataType>&
 InflowBoundary<Dimension>::
-storedValues(const std::string fieldName, const DataType& dummy) {
+storedValues(const KeyType key, const DataType& dummy) {
   auto& storage = storageForType(dummy);
-  const auto key = StateBase<Dimension>::buildFieldKey(fieldName, mNodeListPtr->name());
   if (storage.find(key) == storage.end()) {
-    VERIFY2(false, "InflowBoundary ERROR: attempt to extract stored value for " << fieldName << ", which is not stored.");
+    VERIFY2(false, "InflowBoundary ERROR: attempt to extract stored value for " << key << ", which is not stored.");
   }
   return storage[key];
 }
@@ -59,7 +83,8 @@ inline
 std::vector<DataType>&
 InflowBoundary<Dimension>::
 storedValues(const Field<Dimension, DataType>& field) {
-  return storedValues(field.name(), DataTypeTraits<DataType>::zero());
+  const auto key = StateBase<Dimension>::key(field);
+  return storedValues(key, DataTypeTraits<DataType>::zero());
 }
 
 }

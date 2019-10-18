@@ -149,18 +149,18 @@ copyFieldValues(NodeList<Dimension>& nodeList,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 InflowBoundary<Dimension>::
-InflowBoundary(NodeList<Dimension>& nodeList,
+InflowBoundary(DataBase<Dimension>& dataBase,
                const GeomPlane<Dimension>& plane):
   Boundary<Dimension>(),
   Physics<Dimension>(),
+  mDataBase(dataBase),
   mPlane(plane),
-  mNodeListPtr(&nodeList),
-  mBoundaryCount(nodeList.numFields()),
-  mNumInflowNodes(0),
-  mInflowVelocity(0.0),
-  mXmin(0.0),
-  mDT(0.0),
+  mBoundaryCount(dataBase.numNodeLists()),
+  mDT(1e100),
   mActive(false),
+  mNumInflowNodes(),
+  mInflowVelocity(),
+  mXmin(),
   mIntValues(),
   mScalarValues(),
   mVectorValues(),
@@ -189,22 +189,22 @@ InflowBoundary<Dimension>::
 setGhostNodes(NodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
 
-  if (mActive and &nodeList == mNodeListPtr) {
+  if (mActive) {
     auto& boundaryNodes = this->accessBoundaryNodes(nodeList);
     auto& cNodes = boundaryNodes.controlNodes;
     auto& gNodes = boundaryNodes.ghostNodes;
     const auto currentNumGhostNodes = nodeList.numGhostNodes();
     const auto firstNewGhostNode = nodeList.numNodes();
-    // cerr << "Allocating new ghost nodes " << firstNewGhostNode << " -- " << (firstNewGhostNode + mNumInflowNodes) << endl;
+    // cerr << "Allocating new ghost nodes " << firstNewGhostNode << " -- " << (firstNewGhostNode + mNumInflowNodes[nodeList]) << endl;
     
     // Use the planar boundary to find the set of points that interact with
     // the entrance plane.  We make these the control nodes.
     cNodes = findNodesTouchingThroughPlanes(nodeList, mPlane, mPlane);
 
     // Create the ghost nodes.
-    nodeList.numGhostNodes(currentNumGhostNodes + mNumInflowNodes);
-    gNodes = vector<int>(mNumInflowNodes);
-    for (auto i = 0; i < mNumInflowNodes; ++i) gNodes[i] = firstNewGhostNode + i;
+    nodeList.numGhostNodes(currentNumGhostNodes + mNumInflowNodes[nodeList.name()]);
+    gNodes = vector<int>(mNumInflowNodes[nodeList.name()]);
+    for (auto i = 0; i < mNumInflowNodes[nodeList.name()]; ++i) gNodes[i] = firstNewGhostNode + i;
     
     this->updateGhostNodes(nodeList);
   }
@@ -218,7 +218,7 @@ template<typename Dimension>
 void
 InflowBoundary<Dimension>::
 updateGhostNodes(NodeList<Dimension>& nodeList) {
-  if (mActive and &nodeList == mNodeListPtr) {
+  if (mActive) {
     auto& pos = nodeList.positions();
     this->applyGhostBoundary(pos);
     this->applyGhostBoundary(nodeList.Hfield());
@@ -238,8 +238,8 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
     // CHECK(xmin >= 0.0);
 
     // Offset the current ghost points appropriately.
-    const auto delta = (xmin - mXmin)*nhat;
-    // cerr << " ************> " << xmin << " " << mXmin << " " << nhat << " " << delta << endl;
+    const auto delta = (xmin - mXmin[nodeList.name()])*nhat;
+    // cerr << " ************> " << xmin << " " << mXmin[nodeList.name()] << " " << nhat << " " << delta << endl;
     for (const auto i: gNodes) pos[i] += delta;
 
     // for (const auto i: gNodes) {
@@ -256,8 +256,8 @@ template<typename Dimension>
 void
 InflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, int>& field) const {
-  if (mActive and field.nodeListPtr() == mNodeListPtr) {
-    resetValues(field, this->ghostNodes(*mNodeListPtr), mIntValues, false);
+  if (mActive) {
+    resetValues(field, this->ghostNodes(field.nodeList()), mIntValues, false);
   }
 }
 
@@ -266,8 +266,8 @@ template<typename Dimension>
 void
 InflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  if (mActive and field.nodeListPtr() == mNodeListPtr) {
-    resetValues(field, this->ghostNodes(*mNodeListPtr), mScalarValues, false);
+  if (mActive) {
+    resetValues(field, this->ghostNodes(field.nodeList()), mScalarValues, false);
   }
 }
 
@@ -276,8 +276,8 @@ template<typename Dimension>
 void
 InflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  if (mActive and field.nodeListPtr() == mNodeListPtr) {
-    resetValues(field, this->ghostNodes(*mNodeListPtr), mVectorValues, false);
+  if (mActive) {
+    resetValues(field, this->ghostNodes(field.nodeList()), mVectorValues, false);
   }
 }
 
@@ -286,8 +286,8 @@ template<typename Dimension>
 void
 InflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-  if (mActive and field.nodeListPtr() == mNodeListPtr) {
-    resetValues(field, this->ghostNodes(*mNodeListPtr), mTensorValues, false);
+  if (mActive) {
+    resetValues(field, this->ghostNodes(field.nodeList()), mTensorValues, false);
   }
 }
 
@@ -296,8 +296,8 @@ template<typename Dimension>
 void
 InflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-  if (mActive and field.nodeListPtr() == mNodeListPtr) {
-    resetValues(field, this->ghostNodes(*mNodeListPtr), mSymTensorValues, false);
+  if (mActive) {
+    resetValues(field, this->ghostNodes(field.nodeList()), mSymTensorValues, false);
   }
 }
 
@@ -306,8 +306,8 @@ template<typename Dimension>
 void
 InflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-  if (mActive and field.nodeListPtr() == mNodeListPtr) {
-    resetValues(field, this->ghostNodes(*mNodeListPtr), mThirdRankTensorValues, false);
+  if (mActive) {
+    resetValues(field, this->ghostNodes(field.nodeList()), mThirdRankTensorValues, false);
   }
 }
 
@@ -316,8 +316,8 @@ template<typename Dimension>
 void
 InflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
-  if (mActive and field.nodeListPtr() == mNodeListPtr) {
-    resetValues(field, this->ghostNodes(*mNodeListPtr), mFacetedVolumeValues, false);
+  if (mActive) {
+    resetValues(field, this->ghostNodes(field.nodeList()), mFacetedVolumeValues, false);
   }
 }
 
@@ -326,8 +326,8 @@ template<typename Dimension>
 void
 InflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar>>& field) const {
-  if (mActive and field.nodeListPtr() == mNodeListPtr) {
-    resetValues(field, this->ghostNodes(*mNodeListPtr), mVectorScalarValues, false);
+  if (mActive) {
+    resetValues(field, this->ghostNodes(field.nodeList()), mVectorScalarValues, false);
   }
 }
 
@@ -336,8 +336,8 @@ template<typename Dimension>
 void
 InflowBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Vector>>& field) const {
-  if (mActive and field.nodeListPtr() == mNodeListPtr) {
-    resetValues(field, this->ghostNodes(*mNodeListPtr), mVectorVectorValues, false);
+  if (mActive) {
+    resetValues(field, this->ghostNodes(field.nodeList()), mVectorVectorValues, false);
   }
 }
 
@@ -438,64 +438,75 @@ InflowBoundary<Dimension>::initializeProblemStartup() {
     mVectorScalarValues.clear();
     mVectorVectorValues.clear();
 
-    // Use a planar boundary to figure out what sort of nodes are in range of the plane.
-    // We use those to create a stencil of the in/outflow conditions.
-    const auto& nhat = mPlane.normal();
-    const auto nodeIDs = findNodesTouchingThroughPlanes(*mNodeListPtr, mPlane, mPlane, 2.0);
-    // cerr << "Node IDs: ";
-    // std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
-    // cerr << endl;
+    // Check all NodeLists.
+    for (auto itr = mDataBase.nodeListBegin(); itr < mDataBase.nodeListEnd(); ++itr) {
+      auto& nodeList = **itr;
+      // cerr << "--------------------------------------------------------------------------------" << endl
+      //      << nodeList.name() << endl;
 
-    // Now take a snapshot of the Fields.
-    storeFieldValues(*mNodeListPtr, nodeIDs, mIntValues);
-    storeFieldValues(*mNodeListPtr, nodeIDs, mScalarValues);
-    storeFieldValues(*mNodeListPtr, nodeIDs, mVectorValues);
-    storeFieldValues(*mNodeListPtr, nodeIDs, mTensorValues);
-    storeFieldValues(*mNodeListPtr, nodeIDs, mSymTensorValues);
-    storeFieldValues(*mNodeListPtr, nodeIDs, mThirdRankTensorValues);
-    storeFieldValues(*mNodeListPtr, nodeIDs, mFacetedVolumeValues);
-    storeFieldValues(*mNodeListPtr, nodeIDs, mVectorScalarValues);
-    storeFieldValues(*mNodeListPtr, nodeIDs, mVectorVectorValues);
+      // Use a planar boundary to figure out what sort of nodes are in range of the plane.
+      // We use those to create a stencil of the in/outflow conditions.
+      const auto& nhat = mPlane.normal();
+      const auto nodeIDs = findNodesTouchingThroughPlanes(nodeList, mPlane, mPlane, 2.0);
+      // cerr << "Node IDs: ";
+      // std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
+      // cerr << endl;
 
-    // Map the snapshot positions to put them outside the boundary.
-    auto& pos = mNodeListPtr->positions();
-    const auto poskey = StateBase<Dimension>::key(pos);
-    CHECK(mVectorValues.find(poskey) != mVectorValues.end());
-    auto& posvals = mVectorValues[poskey];
-    const auto ni = nodeIDs.size();
-    const GeomPlane<Dimension> exitPlane(mPlane.point(), -nhat);
-    for (auto k = 0; k < ni; ++k) {
-      const auto i = nodeIDs[k];
-      posvals[k] = mapPositionThroughPlanes(pos[i], mPlane, mPlane);
-      // cerr << "  Ghost position: " << i << " @ " << posvals[k] << endl;
+      // Now take a snapshot of the Fields.
+      storeFieldValues(nodeList, nodeIDs, mIntValues);
+      storeFieldValues(nodeList, nodeIDs, mScalarValues);
+      storeFieldValues(nodeList, nodeIDs, mVectorValues);
+      storeFieldValues(nodeList, nodeIDs, mTensorValues);
+      storeFieldValues(nodeList, nodeIDs, mSymTensorValues);
+      storeFieldValues(nodeList, nodeIDs, mThirdRankTensorValues);
+      storeFieldValues(nodeList, nodeIDs, mFacetedVolumeValues);
+      storeFieldValues(nodeList, nodeIDs, mVectorScalarValues);
+      storeFieldValues(nodeList, nodeIDs, mVectorVectorValues);
+
+      // Map the snapshot positions to put them outside the boundary.
+      auto& pos = nodeList.positions();
+      const auto poskey = StateBase<Dimension>::key(pos);
+      CHECK(mVectorValues.find(poskey) != mVectorValues.end());
+      auto& posvals = mVectorValues[poskey];
+      const auto ni = nodeIDs.size();
+      const GeomPlane<Dimension> exitPlane(mPlane.point(), -nhat);
+      for (auto k = 0; k < ni; ++k) {
+        const auto i = nodeIDs[k];
+        posvals[k] = mapPositionThroughPlanes(pos[i], mPlane, mPlane);
+        // cerr << "  Ghost position: " << i << " @ " << posvals[k] << endl;
+      }
+
+      // Determine the in/outflow velocity.
+      const auto& vel = nodeList.velocity();
+      auto& vinflow = mInflowVelocity[nodeList.name()];
+      for (const auto i: nodeIDs) {
+        // CHECK(std::abs(vel[i].dot(nhat)/vel[i].magnitude() - 1.0) < 1.0e-5);
+        vinflow += vel[i].dot(nhat);
+      }
+      vinflow = (allReduce(vinflow, MPI_SUM, Communicator::communicator())/
+                 std::max(1.0e-30, allReduce(double(nodeIDs.size()), MPI_SUM, Communicator::communicator())));  // Negative implies outflow
+      // cerr << "Computed inflow velocity: " << vinflow << endl;
+
+      // Figure out a timestep limit such that we don't move more than the ghost
+      // node thickness.
+      Scalar xmin = 1e100, xmax = -1e100;
+      for (const auto i: nodeIDs) {
+        const auto xd = mPlane.signedDistance(pos[i]);
+        xmin = std::min(xmin, xd);
+        xmax = std::max(xmax, xd);
+      }
+      xmin = allReduce(xmin, MPI_MIN, Communicator::communicator());
+      xmax = allReduce(xmax, MPI_MIN, Communicator::communicator());
+      mXmin[nodeList.name()] = xmin;
+      mDT = std::min(mDT, std::abs(xmax - xmin)/std::max(1e-30, std::abs(vinflow)));   // Protect from negative outflow velocity
+      // cerr << "Timestep constraint: " << mDT << endl;
+
+      mNumInflowNodes[nodeList.name()] = nodeIDs.size();
     }
-
-    // Determine the in/outflow velocity.
-    const auto& vel = mNodeListPtr->velocity();
-    for (const auto i: nodeIDs) {
-      CHECK(std::abs(vel[i].dot(nhat)/vel[i].magnitude() - 1.0) < 1.0e-5);
-      mInflowVelocity = vel[i].dot(nhat);
-    }
-    mInflowVelocity = allReduce(mInflowVelocity, MPI_MAX, Communicator::communicator());  // Negative implies outflow
-    // cerr << "Computed inflow velocity: " << mInflowVelocity << endl;
-    // CHECK(std::abs(mInflowVelocity) > 0.0);
-
-    // Figure out a timestep limit such that we don't move more than the ghost
-    // node thickness.
-    Scalar xmin = 1e100, xmax = -1e100;
-    for (const auto i: nodeIDs) {
-      const auto xd = mPlane.signedDistance(pos[i]);
-      xmin = std::min(xmin, xd);
-      xmax = std::max(xmax, xd);
-    }
-    xmin = allReduce(xmin, MPI_MIN, Communicator::communicator());
-    xmax = allReduce(xmax, MPI_MIN, Communicator::communicator());
-    mXmin = xmin;
-    mDT = (xmax - xmin)/std::abs(mInflowVelocity);   // Protect from negative outflow velocity
-    // cerr << "Timestep constraint: " << mDT << endl;
+    CHECK(mNumInflowNodes.size() == mDataBase.numNodeLists());
+    CHECK(mInflowVelocity.size() == mDataBase.numNodeLists());
 
     // Turn the BC on.
-    mNumInflowNodes = nodeIDs.size();
     mActive = true;
   }
 }
@@ -555,56 +566,57 @@ InflowBoundary<Dimension>::finalize(const Scalar time,
                                     State<Dimension>& state,
                                     StateDerivatives<Dimension>& derivatives) {
 
-  // Are we doing in or outflow?
-  if (mInflowVelocity > 0.0) {
+  for (auto itr = dataBase.nodeListBegin(); itr < dataBase.nodeListEnd(); ++itr) {
+    auto& nodeList = **itr;
 
-    // Inflow.
-    // Find any ghost points that are inside the entrance plane now.
-    const auto& gNodes = this->ghostNodes(*mNodeListPtr);
-    auto& pos = mNodeListPtr->positions();
-    vector<int> insideNodes;
-    for (auto i: gNodes) {
-      if (mPlane.compare(pos[i]) == -1) insideNodes.push_back(i - gNodes[0]);
-    }
-    const auto numNew = insideNodes.size();
-    if (numNew > 0) {
+    // Are we doing in or outflow?
+    if (mInflowVelocity[nodeList.name()] > 0.0) {
 
-      // cerr << "Promoting to internal: ";
-      // for (auto i: insideNodes) cerr << " : " << i << " " << pos[gNodes[0] + i];
-      // cerr << endl;
+      // Inflow.
+      // Find any ghost points that are inside the entrance plane now.
+      const auto& gNodes = this->ghostNodes(nodeList);
+      auto& pos = nodeList.positions();
+      vector<int> insideNodes;
+      for (auto i: gNodes) {
+        if (mPlane.compare(pos[i]) == -1) insideNodes.push_back(i - gNodes[0]);
+      }
+      const auto numNew = insideNodes.size();
+      if (numNew > 0) {
 
-      // Allocate new internal nodes for those we're promoting.
-      const auto firstID = mNodeListPtr->numInternalNodes();
-      mNodeListPtr->numInternalNodes(firstID + numNew);
+        // cerr << "Promoting to internal: ";
+        // for (auto i: insideNodes) cerr << " : " << i << " " << pos[gNodes[0] + i];
+        // cerr << endl;
 
-      // Update the positions.
-      vector<int> newNodes(numNew);
-      for (auto k = 0; k < numNew; ++k) {
-        newNodes[k] = firstID + k;
-        pos[firstID + k] = pos[gNodes[0] + insideNodes[k] + numNew];
+        // Allocate new internal nodes for those we're promoting.
+        const auto firstID = nodeList.numInternalNodes();
+        nodeList.numInternalNodes(firstID + numNew);
+
+        // Update the positions.
+        vector<int> newNodes(numNew);
+        for (auto k = 0; k < numNew; ++k) {
+          newNodes[k] = firstID + k;
+          pos[firstID + k] = pos[gNodes[0] + insideNodes[k] + numNew];
+        }
+
+        // Copy all field values from ghosts to the new internal nodes.
+        copyFieldValues<Dimension, int>            (nodeList, mIntValues, insideNodes, newNodes);
+        copyFieldValues<Dimension, Scalar>         (nodeList, mScalarValues, insideNodes, newNodes);
+        copyFieldValues<Dimension, Vector>         (nodeList, mVectorValues, insideNodes, newNodes);
+        copyFieldValues<Dimension, Tensor>         (nodeList, mTensorValues, insideNodes, newNodes);
+        copyFieldValues<Dimension, SymTensor>      (nodeList, mSymTensorValues, insideNodes, newNodes);
+        copyFieldValues<Dimension, ThirdRankTensor>(nodeList, mThirdRankTensorValues, insideNodes, newNodes);
+        copyFieldValues<Dimension, FacetedVolume>  (nodeList, mFacetedVolumeValues, insideNodes, newNodes);
+        copyFieldValues<Dimension, vector<Scalar>> (nodeList, mVectorScalarValues, insideNodes, newNodes);
+        copyFieldValues<Dimension, vector<Vector>> (nodeList, mVectorVectorValues, insideNodes, newNodes);
+
+        // for (auto k = 0; k < numNew; ++k) {
+        //   cerr << " assigning position " << newNodes[k] << " @ " << pos[newNodes[k]] << " vel=" << mNodeListPtr->velocity()[newNodes[k]] << endl;
+        // }
       }
 
-      // Copy all field values from ghosts to the new internal nodes.
-      copyFieldValues<Dimension, int>            (*mNodeListPtr, mIntValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, Scalar>         (*mNodeListPtr, mScalarValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, Vector>         (*mNodeListPtr, mVectorValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, Tensor>         (*mNodeListPtr, mTensorValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, SymTensor>      (*mNodeListPtr, mSymTensorValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, ThirdRankTensor>(*mNodeListPtr, mThirdRankTensorValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, FacetedVolume>  (*mNodeListPtr, mFacetedVolumeValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, vector<Scalar>> (*mNodeListPtr, mVectorScalarValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, vector<Vector>> (*mNodeListPtr, mVectorVectorValues, insideNodes, newNodes);
+    } else {
 
-      // for (auto k = 0; k < numNew; ++k) {
-      //   cerr << " assigning position " << newNodes[k] << " @ " << pos[newNodes[k]] << " vel=" << mNodeListPtr->velocity()[newNodes[k]] << endl;
-      // }
-    }
-
-  } else {
-
-    // Outflow.
-    for (auto itr = dataBase.nodeListBegin(); itr < dataBase.nodeListEnd(); ++itr) {
-      auto& nodeList = **itr;
+      // Outflow.
       auto& pos = nodeList.positions();
 
       // Look for any internal points that have exited through the plane.  Note this is across all NodeLists!
@@ -636,7 +648,6 @@ template<typename Dimension>
 void
 InflowBoundary<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
-  file.write(mNumInflowNodes, pathName + "/numInflowNodes");
   file.write(mActive, pathName + "/active");
   file.write(mBoundaryCount, pathName + "/boundaryCount");
 
@@ -711,7 +722,6 @@ template<typename Dimension>
 void
 InflowBoundary<Dimension>::
 restoreState(const FileIO& file, const string& pathName)  {
-  file.read(mNumInflowNodes, pathName + "/numInflowNodes");
   file.read(mActive, pathName + "/active");
   file.read(mBoundaryCount, pathName + "/boundaryCount");
 

@@ -118,8 +118,8 @@ packages = [hydro]
 if geometry == "1d":
     inplane = Plane(Vector(x0), Vector(1.0))
     outplane = Plane(Vector(x2), Vector(-1.0))
-    inflow = InflowBoundary(nodes1, inplane)
-    outflow = InflowBoundary(nodes1, outplane)
+    inflow = InflowBoundary(db, inplane)
+    outflow = InflowBoundary(db, outplane)
 
     bcs = [inflow, outflow]
 
