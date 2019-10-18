@@ -298,7 +298,10 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           const auto& ri = position(nodeListi, i);
           const auto& Hi = H(nodeListi, i);
           const auto  Hinv = Hi.Inverse();
-          for (auto& v: polycells(nodeListi, i)) v.position = 1.1*rin*Hinv*v.position;
+#pragma omp critical (computeVoronoiVolume_pass1)
+          {
+            for (auto& v: polycells(nodeListi, i)) v.position = 1.1*rin*Hinv*v.position;
+          }
 
           // Clip by any faceted boundaries first.
           if (haveFacetedBoundaries) {
@@ -344,7 +347,10 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             std::sort(boundPlanes.begin(), boundPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
 
             // Clip by the planes thus far.
-            PolyClipper::clipPolygon(polycells(nodeListi, i), boundPlanes);
+#pragma omp critical (computeVoronoiVolume_pass1)
+            {
+              PolyClipper::clipPolygon(polycells(nodeListi, i), boundPlanes);
+            }
           }
         }
       }
@@ -357,12 +363,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       // Thread private scratch variables
       int i, j, nodeListi, nodeListj;
       cerr << " --> " << omp_get_thread_num() << " starting..." << endl;
-      // FieldList<Dim<2>, vector<vector<Plane>>> pairPlanes_thread;
-      // #pragma omp critical (computeVoronoiVolume2d_pass2_copyplanes)
-      // {
       auto pairPlanes_thread = pairPlanes.threadCopy(ThreadReduction::SUM, true);  // force copying the original FieldList
-#pragma omp barrier
-      // }
       cerr << " --> " << omp_get_thread_num() << " : " << pairPlanes_thread.size() << endl;
 #pragma omp barrier
 
@@ -397,14 +398,15 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       }
 
       // Collect the pair planes across threads.
-#pragma omp critical (computeVoronoiVolume_pass2_reduceplanes)
+#pragma omp critical (computeVoronoiVolume_pass2)
       {
         pairPlanes_thread.threadReduce();
-      } // OMP critical
+      }
 
       // Clip by the neighbors, and look for any locally generated void points.
-      auto voidPlanes_thread = voidPlanes.threadCopy();
       auto etaVoidPoints_thread = etaVoidPoints.threadCopy();
+      PolyClipper::Polygon celli;
+      vector<vector<Plane>> pairPlanesi;
 #pragma omp barrier
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
         const auto ni = polycells[nodeListi]->numInternalElements();
@@ -412,41 +414,38 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         for (auto i = 0; i < ni; ++i) {
           const auto& Hi = H(nodeListi, i);
           const auto  Hinvi = Hi.Inverse();
-          auto& celli = polycells(nodeListi, i);
-          auto  pairPlanesi = pairPlanes(nodeListi, i);
+#pragma omp critical (computeVoronoiVolume_pass2)
+          {
+            celli = polycells(nodeListi, i);
+            pairPlanesi = pairPlanes(nodeListi, i);
+          }
           if (returnSurface) {
 
             // If we're returning the surface we have to pay attention to which materials actually clip this point.
             double vol0, vol1;
             Vector cent;
-#pragma omp critical
-            {
             PolyClipper::moments(vol0, cent, celli);
-            }
             for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
               std::sort(pairPlanesi[nodeListj].begin(), pairPlanesi[nodeListj].end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
-#pragma omp critical
-              {
               PolyClipper::clipPolygon(celli, pairPlanesi[nodeListj]);
               PolyClipper::moments(vol1, cent, celli);
-              }
               if (vol1 < vol0) {
                 vol0 = vol1;
                 if (nodeListj != nodeListi) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
               }
             }
-
           } else {
 
             // Otherwise just clip by all the pair planes at once.
-            vector<Plane> planes = pairPlanesi[0];
-            for (auto nodeListj = 1; nodeListj < numNodeLists; ++nodeListj) planes += pairPlanesi[nodeListj];
-            std::sort(planes.begin(), planes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
-#pragma omp critical
-            {
-            PolyClipper::clipPolygon(celli, planes);
-            }
+            for (auto nodeListj = 1; nodeListj < numNodeLists; ++nodeListj) pairPlanesi[0] += pairPlanesi[nodeListj];
+            std::sort(pairPlanesi[0].begin(), pairPlanesi[0].end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
+            PolyClipper::clipPolygon(celli, pairPlanesi[0]);
+          }
 
+          // Store the clipped cell
+#pragma omp critical (computeVoronoiVolume_pass2)
+          {
+            polycells(nodeListi, i) = celli;
           }
 
           // Check if the final polygon is entirely within our "interior" check radius.  Otherwise,
@@ -463,44 +462,35 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
           // Is this point on a free surface?
           // If so, we have to generate void points.
-#pragma omp critical
-          {
-            auto& etaVoidPointsi = etaVoidPoints_thread(nodeListi, i);
-            CHECK2(etaVoidPointsi.empty(), "(" << nodeListi << " " << i << ") : " << etaVoidPointsi.size());
-            if (nvoid > 0) {
+          auto& etaVoidPointsi = etaVoidPoints_thread(nodeListi, i);
+          CHECK2(etaVoidPointsi.empty(), "(" << nodeListi << " " << i << ") : " << etaVoidPointsi.size());
+          if (nvoid > 0) {
 
-              // Reduce the number of void points for this point to a reasonable stencil -- up to 4 for 2D.
-              const auto thetaVoidAvg = atan2(etaVoidAvg.y(), etaVoidAvg.x());
-              const auto nv = max(1U, min(4U, unsigned(4.0*float(nvoid)/float(nverts))));
-              for (unsigned k = 0; k != nv; ++k) {
-                const auto theta = thetaVoidAvg + (0.5*k - 0.25*(nv - 1))*M_PI;
-                const auto etaVoid = Vector(0.5*rin*cos(theta), 0.5*rin*sin(theta));
-                etaVoidPointsi.push_back(etaVoid);
-                const auto rji = Hinvi*etaVoid;
-                const auto nhat = -rji.unitVector();
-                voidPlanes_thread(nodeListi, i).push_back(Plane(rji, nhat));
-              }
-              CHECK2(etaVoidPointsi.size() == nv, "(" << nodeListi << " " << i << ") : " << etaVoidPointsi.size() << " " << nv);
-              CHECK2(voidPlanes_thread(nodeListi, i).size() == nv, "(" << nodeListi << " " << i << ") : " << voidPlanes_thread(nodeListi, i).size() << " " << nv);
+            // Reduce the number of void points for this point to a reasonable stencil -- up to 4 for 2D.
+            const auto thetaVoidAvg = atan2(etaVoidAvg.y(), etaVoidAvg.x());
+            const auto nv = max(1U, min(4U, unsigned(4.0*float(nvoid)/float(nverts))));
+            for (unsigned k = 0; k != nv; ++k) {
+              const auto theta = thetaVoidAvg + (0.5*k - 0.25*(nv - 1))*M_PI;
+              const auto etaVoid = Vector(0.5*rin*cos(theta), 0.5*rin*sin(theta));
+              etaVoidPointsi.push_back(etaVoid);
+              const auto rji = Hinvi*etaVoid;
+              const auto nhat = -rji.unitVector();
             }
+            CHECK2(etaVoidPointsi.size() == nv, "(" << nodeListi << " " << i << ") : " << etaVoidPointsi.size() << " " << nv);
+          }
 
-            // If this point is sufficiently damaged, we also create void points along the damaged directions.
-            if (haveDamage and damage(nodeListi, i).Trace() > 1.0 - 1.0e-5) {
-              const auto ev = damage(nodeListi, i).eigenVectors();
-              for (auto jdim = 0; jdim < Dimension::nDim; ++jdim) {
-                if (ev.eigenValues(jdim) > 1.0 - 1.0e-5) {
-                  const auto evecj = ev.eigenVectors.getColumn(jdim);
-                  etaVoidPointsi.push_back(-0.5*rin*evecj);
-                  etaVoidPointsi.push_back( 0.5*rin*evecj);
-                  const auto rji = Hinvi*0.5*rin*evecj;
-                  const auto nhat = -rji.unitVector();
-                  voidPlanes_thread(nodeListi, i).push_back(Plane( rji,  nhat));
-                  voidPlanes_thread(nodeListi, i).push_back(Plane(-rji, -nhat));
-                }
+          // If this point is sufficiently damaged, we also create void points along the damaged directions.
+          if (haveDamage and damage(nodeListi, i).Trace() > 1.0 - 1.0e-5) {
+            const auto ev = damage(nodeListi, i).eigenVectors();
+            for (auto jdim = 0; jdim < Dimension::nDim; ++jdim) {
+              if (ev.eigenValues(jdim) > 1.0 - 1.0e-5) {
+                const auto evecj = ev.eigenVectors.getColumn(jdim);
+                etaVoidPointsi.push_back(-0.5*rin*evecj);
+                etaVoidPointsi.push_back( 0.5*rin*evecj);
               }
             }
-            surfacePoint(nodeListi, i) |= 1;
-          } // OMP critical
+          }
+          surfacePoint(nodeListi, i) |= 1;
         }   // end over i
       }     // end over NodeLists
 
@@ -524,6 +514,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       // Third pass: clip by any void points.
       // Start by adding any void clip planes from neighbors.
       cerr << " --> " << omp_get_thread_num() << " THIRD PASS -- void clipping" << endl;
+      auto voidPlanes_thread = voidPlanes.threadCopy();
+#pragma omp barrier
 #pragma omp for
       for (auto kk = 0; kk < npairs; ++kk) {
         i = pairs[kk].i_node;
@@ -536,27 +528,29 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         const auto& Hi = H(nodeListi, i);
         const auto  Hinvi = Hi.Inverse();
         const auto& etaVoidPointsi = etaVoidPoints(nodeListi, i);
+        auto&       voidPlanesi = voidPlanes_thread(nodeListi, i);
 
         // State of node j
         const auto& rj = position(nodeListj, j);
         const auto& Hj = H(nodeListj, j);
         const auto  Hinvj = Hj.Inverse();
         const auto& etaVoidPointsj = etaVoidPoints(nodeListj, j);
+        auto&       voidPlanesj = voidPlanes_thread(nodeListj, j);
 
         for (const auto etaVoid: etaVoidPoints(nodeListj, j)) {
           const auto rji = Hinvj*etaVoid + 0.5*(rj - ri);
           const auto nhat = -rji.unitVector();
-          voidPlanes_thread(nodeListi, i).push_back(Plane(rji, nhat));
+          voidPlanesi.push_back(Plane(rji, nhat));
         }
 
         for (const auto etaVoid: etaVoidPoints(nodeListi, i)) {
           const auto rij = Hinvi*etaVoid + 0.5*(ri - rj);
           const auto nhat = -rij.unitVector();
-          voidPlanes_thread(nodeListj, j).push_back(Plane(rij, nhat));
+          voidPlanesj.push_back(Plane(rij, nhat));
         }
       }
 
-#pragma omp critical (BOOYA)
+#pragma omp critical (computeVoronoiVolume_pass3)
       {
         voidPlanes_thread.threadReduce();
       }
