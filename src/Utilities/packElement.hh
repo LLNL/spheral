@@ -15,7 +15,7 @@
 #include <string>
 #include <tuple>
 #include "DataTypeTraits.hh"
-#include "Distributed/DomainNode.hh"
+#include "Utilities/DomainNode.hh"
 
 #ifdef USE_MPI
 #include "mpi.h"
