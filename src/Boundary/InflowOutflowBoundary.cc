@@ -571,11 +571,13 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
                                            State<Dimension>& state,
                                            StateDerivatives<Dimension>& derivatives) {
 
+  bool altered = false;
   for (auto itr = dataBase.nodeListBegin(); itr < dataBase.nodeListEnd(); ++itr) {
     auto& nodeList = **itr;
 
     // Are we doing in or outflow?
     if (mInflowVelocity[nodeList.name()] > 0.0) {
+      altered = true;
 
       // Inflow.
       // Find any ghost points that are inside the entrance plane now.
@@ -589,7 +591,7 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
       if (numNew > 0) {
 
         // cerr << "Promoting to internal: ";
-        // for (auto i: insideNodes) cerr << " : " << i << " " << pos[gNodes[0] + i];
+        // for (auto i: insideNodes) cerr << " : " << gNodes[0] + i << " " << pos[gNodes[0] + i];
         // cerr << endl;
 
         // Allocate new internal nodes for those we're promoting.
@@ -614,8 +616,10 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
         copyFieldValues<Dimension, vector<Scalar>> (nodeList, mVectorScalarValues, insideNodes, newNodes);
         copyFieldValues<Dimension, vector<Vector>> (nodeList, mVectorVectorValues, insideNodes, newNodes);
 
+        nodeList.neighbor().updateNodes();
+
         // for (auto k = 0; k < numNew; ++k) {
-        //   cerr << " assigning position " << newNodes[k] << " @ " << pos[newNodes[k]] << " vel=" << mNodeListPtr->velocity()[newNodes[k]] << endl;
+        //   cerr << " assigning position " << newNodes[k] << " @ " << pos[newNodes[k]] << " vel=" << nodeList.velocity()[newNodes[k]] << endl;
         // }
       }
 
@@ -631,10 +635,43 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
         if (mPlane.compare(pos[i]) == 1) outsideNodes.push_back(i);
       }
 
-      // Those nodes get deleted.
-      nodeList.deleteNodes(outsideNodes);
+      if (not outsideNodes.empty()) {
+        // cerr << "Deleting outflow nodes: ";
+        // for (auto i: outsideNodes) cerr << " : " << i << " " << pos[i];
+        // cerr << endl;
+
+        // Those nodes get deleted.
+        altered = true;
+        nodeList.deleteNodes(outsideNodes);
+        nodeList.neighbor().updateNodes();
+      }
     }
   }
+
+  // If any NodeLists were altered, recompute the boundary conditions.
+  if (altered) {
+    // Remove any old ghost node information from the NodeLists.
+    for (auto nodeListItr = dataBase.fluidNodeListBegin();
+         nodeListItr != dataBase.fluidNodeListEnd(); 
+         ++nodeListItr) {
+      (*nodeListItr)->numGhostNodes(0);
+      (*nodeListItr)->neighbor().updateNodes();
+    }
+
+    // Iterate over the boundaries and set their ghost node info.
+    for (auto boundaryItr = this->boundaryBegin(); 
+         boundaryItr < this->boundaryEnd();
+         ++boundaryItr) {
+      (*boundaryItr)->setAllGhostNodes(dataBase);
+      (*boundaryItr)->finalizeGhostBoundary();
+      for (auto nodeListItr = dataBase.fluidNodeListBegin();
+           nodeListItr < dataBase.fluidNodeListEnd(); 
+           ++nodeListItr) {
+        (*nodeListItr)->neighbor().updateNodes();
+      }
+    }
+  }
+
 }
 
 //------------------------------------------------------------------------------
