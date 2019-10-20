@@ -21,6 +21,7 @@
 
 #include <limits>
 #include <algorithm>
+#include <sstream>
 
 using std::vector;
 using std::string;
@@ -58,6 +59,15 @@ computeShearMagnitude(const Dim<3>::Tensor& dvdx) {
   return sqrt(FastMath::square(dvdx(2,1) - dvdx(1,2)) +
               FastMath::square(dvdx(2,0) - dvdx(0,2)) +
               FastMath::square(dvdx(1,0) - dvdx(0,1)));
+}
+
+// Provide to_string for Spheral Vector
+template<typename Vector>
+std::string
+vec_to_string(const Vector& vec) {
+  std::ostringstream oss;
+  oss << vec << std::ends;
+  return oss.str();
 }
 
 }
@@ -189,7 +199,8 @@ dt(const DataBase<Dimension>& dataBase,
                                            "                   cs = " + to_string(cs(nodeListi, i)) + "\n" +
                                            "            nodeScale = " + to_string(nodeScale) + "\n" +
                                            "             material = " + fluidNodeList.name() + "\n" +
-                                           "      (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")"));
+                                           "      (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                           "           @ position = " + vec_to_string(position(nodeListi, i))));
           }
 
           // Longitudinal sound speed limit.
@@ -201,7 +212,8 @@ dt(const DataBase<Dimension>& dataBase,
                                              "                               csl = " + to_string((*cslptr)(i)) + "\n" +
                                              "                         nodeScale = " + to_string(nodeScale) + "\n" +
                                              "                          material = " + fluidNodeList.name() + "\n" +
-                                             "                   (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")"));
+                                             "                   (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                             "                        @ position = " + vec_to_string(position(nodeListi, i))));
             }
           }
 
@@ -216,7 +228,8 @@ dt(const DataBase<Dimension>& dataBase,
                                             "                                              rho = " + to_string(rho(nodeListi, i)) + "\n" +
                                             "                                        nodeScale = " + to_string(nodeScale) + "\n" +
                                             "                                         material = " + fluidNodeList.name() + "\n" +
-                                            "                                  (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")"));
+                                            "                                  (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                            "                                       @ position = " + vec_to_string(position(nodeListi, i))));
             }
           }
 
@@ -231,7 +244,8 @@ dt(const DataBase<Dimension>& dataBase,
                                             "                                       rho = " + to_string(rho(nodeListi, i)) + "\n" +
                                             "                                 nodeScale = " + to_string(nodeScale) + "\n" +
                                             "                                  material = " + fluidNodeList.name() + "\n" +
-                                            "                           (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")"));
+                                            "                           (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                            "                                @ position = " + vec_to_string(position(nodeListi, i))));
           }
 
           // Velocity divergence limit.
@@ -241,7 +255,8 @@ dt(const DataBase<Dimension>& dataBase,
             minDt_local = make_pair(divvDt, ("Velocity divergence limit: dt = " + to_string(divvDt) + "\n" +
                                              "                 div velocity = " + to_string(divVelocity) + "\n" +
                                              "                     material = " + fluidNodeList.name() + "\n" +
-                                             "              (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")"));
+                                             "              (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                             "                   @ position = " + vec_to_string(position(nodeListi, i))));
           }
 
           // Maximum velocity difference limit.
@@ -264,6 +279,8 @@ dt(const DataBase<Dimension>& dataBase,
                                                     "                              material = " + fluidNodeList.name() + "\n" +
                                                     "                        (nodeListi, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
                                                     "                        (nodeListj, j) = (" + to_string(nodeListj) + " " + to_string(j) + ")\n" +
+                                                    "                   @ pos(nodeListi, i) = " + vec_to_string(position(nodeListi, i)) + "\n" +
+                                                    "                   @ pos(nodeListj, j) = " + vec_to_string(position(nodeListj, j)) + "\n" +
                                                     "                                   vij = " + to_string(vij) + "\n" +
                                                     "                             nodeScale = " + to_string(nodeScale)));
               }
@@ -297,7 +314,8 @@ dt(const DataBase<Dimension>& dataBase,
                                             "              |acceleration| = " + to_string(DvDt(nodeListi, i).magnitude()) + "\n" +
                                             "                   nodeScale = " + to_string(nodeScale) + "\n" +
                                             "                    material = " + fluidNodeList.name() + "\n" +
-                                            "             (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")"));
+                                            "             (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                            "                  @ position = " + vec_to_string(position(nodeListi, i))));
           }
 
           // If requested, limit against the absolute velocity.
@@ -308,7 +326,8 @@ dt(const DataBase<Dimension>& dataBase,
                                               "                        |vi| = " + to_string(velocity(nodeListi, i).magnitude()) + "\n" +
                                               "                   nodeScale = " + to_string(nodeScale) + "\n" +
                                               "                    material = " + fluidNodeList.name() + "\n" +
-                                              "             (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")"));
+                                              "             (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                              "                  @ position = " + vec_to_string(position(nodeListi, i))));
             }
           }
         }
