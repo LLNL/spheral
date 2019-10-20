@@ -836,7 +836,7 @@ restoreState(const FileIO& file, const string& pathName)  {
   mVectorVectorValues.clear();
   for (const auto key: keys) {
     mVectorVectorValues[key] = std::vector<std::vector<Vector> >();
-    file.read(mVectorVectorValues[key], pathName + "/VectorSVectorValues/" + key);
+    file.read(mVectorVectorValues[key], pathName + "/VectorVectorValues/" + key);
   }
 }
 
