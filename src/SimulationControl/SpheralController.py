@@ -717,6 +717,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         db = self.integrator.dataBase
         db.updateConnectivityMap(False)
         bcs = self.integrator.uniqueBoundaryConditions()
+        self.integrator.setGhostNodes()
         self.vizMethod(self.integrator,
                        baseFileName = self.vizBaseName,
                        baseDirectory = self.vizDir,
