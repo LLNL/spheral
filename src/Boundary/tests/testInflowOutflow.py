@@ -194,6 +194,7 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
                             vizBaseName = "inflowOutflow-%s" % geometry,
+                            redistributeStep = 10,
                             vizDir = vizDir,
                             vizTime = 1e8,
                             vizStep = vizStep)
