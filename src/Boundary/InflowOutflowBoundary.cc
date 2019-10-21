@@ -501,7 +501,7 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
         xmax = std::max(xmax, xd);
       }
       xmin = allReduce(xmin, MPI_MIN, Communicator::communicator());
-      xmax = allReduce(xmax, MPI_MIN, Communicator::communicator());
+      xmax = allReduce(xmax, MPI_MAX, Communicator::communicator());
       mXmin[nodeList.name()] = xmin;
       mDT = std::min(mDT, std::abs(xmax - xmin)/std::max(1e-30, std::abs(vinflow)));   // Protect from negative outflow velocity
       // cerr << "Timestep constraint: " << mDT << endl;
