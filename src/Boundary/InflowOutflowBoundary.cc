@@ -642,7 +642,7 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
       nodeList.neighbor().updateNodes();
     }
   }
-  altered = allReduce(altered, MPI_MAX, Communicator::communicator());
+  altered = (allReduce((altered ? 1 : 0), MPI_MAX, Communicator::communicator()) == 1);
 
   // If any NodeLists were altered, recompute the boundary conditions.
   if (altered) {
