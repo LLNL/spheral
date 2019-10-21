@@ -159,7 +159,6 @@ InflowOutflowBoundary(DataBase<Dimension>& dataBase,
   mDT(1e100),
   mActive(false),
   mNumInflowNodes(),
-  mInflowVelocity(),
   mXmin(),
   mIntValues(),
   mScalarValues(),
@@ -205,7 +204,6 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
     nodeList.numGhostNodes(currentNumGhostNodes + mNumInflowNodes[nodeList.name()]);
     gNodes = vector<int>(mNumInflowNodes[nodeList.name()]);
     for (auto i = 0; i < mNumInflowNodes[nodeList.name()]; ++i) gNodes[i] = firstNewGhostNode + i;
-    
     this->updateGhostNodes(nodeList);
   }
 }
@@ -238,7 +236,9 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
     // CHECK(xmin >= 0.0);
 
     // Offset the current ghost points appropriately.
-    const auto delta = (xmin - mXmin[nodeList.name()])*nhat;
+    const auto delta = (xmin < 1e100 ?
+                        xmin - mXmin[nodeList.name()] :
+                        0.0)*nhat;
     // cerr << " ************> " << xmin << " " << mXmin[nodeList.name()] << " " << nhat << " " << delta << endl;
     for (const auto i: gNodes) pos[i] += delta;
 
@@ -483,7 +483,7 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
 
       // Determine the in/outflow velocity.
       const auto& vel = nodeList.velocity();
-      auto& vinflow = mInflowVelocity[nodeList.name()];
+      Scalar vinflow = 0.0;
       for (const auto i: nodeIDs) {
         // CHECK(std::abs(vel[i].dot(nhat)/vel[i].magnitude() - 1.0) < 1.0e-5);
         vinflow += vel[i].dot(nhat);
@@ -509,7 +509,6 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
       mNumInflowNodes[nodeList.name()] = nodeIDs.size();
     }
     CHECK(mNumInflowNodes.size() == mDataBase.numNodeLists());
-    CHECK(mInflowVelocity.size() == mDataBase.numNodeLists());
 
     // Turn the BC on.
     mActive = true;
@@ -571,82 +570,79 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
                                            State<Dimension>& state,
                                            StateDerivatives<Dimension>& derivatives) {
 
+  // First check every NodeList for any inflow or outflow nodes.
   bool altered = false;
   for (auto itr = dataBase.nodeListBegin(); itr < dataBase.nodeListEnd(); ++itr) {
     auto& nodeList = **itr;
+    bool nodeListAltered = false;
+    // cerr << "--------------------------------------------------------------------------------" << endl
+    //      << nodeList.name() << endl;
 
-    // Are we doing in or outflow?
-    if (mInflowVelocity[nodeList.name()] > 0.0) {
+    // Find any ghost points that are inside the entrance plane now.  These are inflow.
+    const auto& gNodes = this->ghostNodes(nodeList);
+    auto& pos = nodeList.positions();
+    vector<int> insideNodes;
+    for (auto i: gNodes) {
+      if (mPlane.compare(pos[i]) == -1) insideNodes.push_back(i - gNodes[0]);
+    }
+    const auto numNew = insideNodes.size();
+    if (numNew > 0) {
+      nodeListAltered = true;
+
+      // cerr << "Promoting to internal: ";
+      // for (auto i: insideNodes) cerr << " : " << gNodes[0] + i << " " << pos[gNodes[0] + i];
+      // cerr << endl;
+
+      // Allocate new internal nodes for those we're promoting.
+      const auto firstID = nodeList.numInternalNodes();
+      nodeList.numInternalNodes(firstID + numNew);
+
+      // Update the positions.
+      vector<int> newNodes(numNew);
+      for (auto k = 0; k < numNew; ++k) {
+        newNodes[k] = firstID + k;
+        pos[firstID + k] = pos[gNodes[0] + insideNodes[k] + numNew];
+      }
+
+      // Copy all field values from ghosts to the new internal nodes.
+      copyFieldValues<Dimension, int>            (nodeList, mIntValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, Scalar>         (nodeList, mScalarValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, Vector>         (nodeList, mVectorValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, Tensor>         (nodeList, mTensorValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, SymTensor>      (nodeList, mSymTensorValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, ThirdRankTensor>(nodeList, mThirdRankTensorValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, FacetedVolume>  (nodeList, mFacetedVolumeValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, vector<Scalar>> (nodeList, mVectorScalarValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, vector<Vector>> (nodeList, mVectorVectorValues, insideNodes, newNodes);
+
+      // for (auto k = 0; k < numNew; ++k) {
+      //   cerr << " assigning position " << newNodes[k] << " @ " << pos[newNodes[k]] << " vel=" << nodeList.velocity()[newNodes[k]] << endl;
+      // }
+    }
+
+    // Look for any internal points that have exited through the plane.
+    vector<int> outsideNodes;
+    const auto ni = nodeList.numInternalNodes();
+    for (auto i = 0; i < ni; ++i) {
+      if (mPlane.compare(pos[i]) == 1) outsideNodes.push_back(i);
+    }
+
+    if (not outsideNodes.empty()) {
+      // cerr << "Deleting outflow nodes: ";
+      // for (auto i: outsideNodes) cerr << " : " << i << " " << pos[i];
+      // cerr << endl;
+
+      // Those nodes get deleted.
+      nodeListAltered = true;
+      nodeList.deleteNodes(outsideNodes);
+    }
+
+    if (nodeListAltered) {
       altered = true;
-
-      // Inflow.
-      // Find any ghost points that are inside the entrance plane now.
-      const auto& gNodes = this->ghostNodes(nodeList);
-      auto& pos = nodeList.positions();
-      vector<int> insideNodes;
-      for (auto i: gNodes) {
-        if (mPlane.compare(pos[i]) == -1) insideNodes.push_back(i - gNodes[0]);
-      }
-      const auto numNew = insideNodes.size();
-      if (numNew > 0) {
-
-        // cerr << "Promoting to internal: ";
-        // for (auto i: insideNodes) cerr << " : " << gNodes[0] + i << " " << pos[gNodes[0] + i];
-        // cerr << endl;
-
-        // Allocate new internal nodes for those we're promoting.
-        const auto firstID = nodeList.numInternalNodes();
-        nodeList.numInternalNodes(firstID + numNew);
-
-        // Update the positions.
-        vector<int> newNodes(numNew);
-        for (auto k = 0; k < numNew; ++k) {
-          newNodes[k] = firstID + k;
-          pos[firstID + k] = pos[gNodes[0] + insideNodes[k] + numNew];
-        }
-
-        // Copy all field values from ghosts to the new internal nodes.
-        copyFieldValues<Dimension, int>            (nodeList, mIntValues, insideNodes, newNodes);
-        copyFieldValues<Dimension, Scalar>         (nodeList, mScalarValues, insideNodes, newNodes);
-        copyFieldValues<Dimension, Vector>         (nodeList, mVectorValues, insideNodes, newNodes);
-        copyFieldValues<Dimension, Tensor>         (nodeList, mTensorValues, insideNodes, newNodes);
-        copyFieldValues<Dimension, SymTensor>      (nodeList, mSymTensorValues, insideNodes, newNodes);
-        copyFieldValues<Dimension, ThirdRankTensor>(nodeList, mThirdRankTensorValues, insideNodes, newNodes);
-        copyFieldValues<Dimension, FacetedVolume>  (nodeList, mFacetedVolumeValues, insideNodes, newNodes);
-        copyFieldValues<Dimension, vector<Scalar>> (nodeList, mVectorScalarValues, insideNodes, newNodes);
-        copyFieldValues<Dimension, vector<Vector>> (nodeList, mVectorVectorValues, insideNodes, newNodes);
-
-        nodeList.neighbor().updateNodes();
-
-        // for (auto k = 0; k < numNew; ++k) {
-        //   cerr << " assigning position " << newNodes[k] << " @ " << pos[newNodes[k]] << " vel=" << nodeList.velocity()[newNodes[k]] << endl;
-        // }
-      }
-
-    } else {
-
-      // Outflow.
-      auto& pos = nodeList.positions();
-
-      // Look for any internal points that have exited through the plane.  Note this is across all NodeLists!
-      vector<int> outsideNodes;
-      const auto ni = nodeList.numInternalNodes();
-      for (auto i = 0; i < ni; ++i) {
-        if (mPlane.compare(pos[i]) == 1) outsideNodes.push_back(i);
-      }
-
-      if (not outsideNodes.empty()) {
-        // cerr << "Deleting outflow nodes: ";
-        // for (auto i: outsideNodes) cerr << " : " << i << " " << pos[i];
-        // cerr << endl;
-
-        // Those nodes get deleted.
-        altered = true;
-        nodeList.deleteNodes(outsideNodes);
-        nodeList.neighbor().updateNodes();
-      }
+      nodeList.neighbor().updateNodes();
     }
   }
+  altered = allReduce(altered, MPI_MAX, Communicator::communicator());
 
   // If any NodeLists were altered, recompute the boundary conditions.
   if (altered) {

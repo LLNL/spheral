@@ -125,7 +125,6 @@ public:
   const DataBase<Dimension>& dataBase() const;
   const GeomPlane<Dimension>& plane() const;
   int numInflowNodes(const NodeList<Dimension>& nodeList) const;
-  Scalar inflowVelocity(const NodeList<Dimension>& nodeList) const;
 
   // Get the stored data for generating ghost nodes.
   template<typename DataType> std::vector<DataType>& storedValues(const KeyType key, const DataType& dummy);
@@ -146,7 +145,6 @@ private:
   Scalar mDT;
   bool mActive;
   std::map<std::string, int> mNumInflowNodes;
-  std::map<std::string, Scalar> mInflowVelocity;
   std::map<std::string, Scalar> mXmin;
 
   typedef std::map<KeyType, std::vector<int>> IntStorageType;
