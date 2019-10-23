@@ -653,6 +653,9 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
       (*nodeListItr)->numGhostNodes(0);
       (*nodeListItr)->neighbor().updateNodes();
     }
+    for (auto boundaryItr = this->boundaryBegin(); 
+         boundaryItr < this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->reset(dataBase);
 
     // Iterate over the boundaries and set their ghost node info.
     for (auto boundaryItr = this->boundaryBegin(); 
