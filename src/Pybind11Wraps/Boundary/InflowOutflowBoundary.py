@@ -104,6 +104,7 @@ Really we should rename this post-step finalize."""
     # Properties
     dataBase = PYB11property(doc="The DataBase for the NodeLists we know about")
     plane = PYB11property(doc="The inflow plane")
+    storedKeys = PYB11property(doc="Keys for all the Fields we have stored ghost information about")
 
 #-------------------------------------------------------------------------------
 # Inject methods

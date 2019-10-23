@@ -671,6 +671,25 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
 }
 
 //------------------------------------------------------------------------------
+// Return the keys for the Fields we have stored.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+std::vector<std::string>
+InflowOutflowBoundary<Dimension>::storedKeys() const {
+  vector<string> result;
+  for (const auto& pairs: mIntValues)             result.push_back(pairs.first);
+  for (const auto& pairs: mScalarValues)          result.push_back(pairs.first);
+  for (const auto& pairs: mVectorValues)          result.push_back(pairs.first);
+  for (const auto& pairs: mTensorValues)          result.push_back(pairs.first);
+  for (const auto& pairs: mSymTensorValues)       result.push_back(pairs.first);
+  for (const auto& pairs: mThirdRankTensorValues) result.push_back(pairs.first);
+  for (const auto& pairs: mFacetedVolumeValues)   result.push_back(pairs.first);
+  for (const auto& pairs: mVectorScalarValues)    result.push_back(pairs.first);
+  for (const auto& pairs: mVectorVectorValues)    result.push_back(pairs.first);
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Return a unique label for restart.
 //------------------------------------------------------------------------------
 template<typename Dimension>

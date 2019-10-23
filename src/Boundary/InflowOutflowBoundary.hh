@@ -129,6 +129,7 @@ public:
   // Get the stored data for generating ghost nodes.
   template<typename DataType> std::vector<DataType>& storedValues(const KeyType key, const DataType& dummy);
   template<typename DataType> std::vector<DataType>& storedValues(const Field<Dimension, DataType>& field);
+  std::vector<std::string> storedKeys() const;
 
   //****************************************************************************
   // Methods required for restarting.
