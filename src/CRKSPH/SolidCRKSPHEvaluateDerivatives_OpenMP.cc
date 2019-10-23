@@ -297,7 +297,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             const auto gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
 
             // Find the damaged pair weighting scaling.
-            const auto fmij = min(mi, mj)/max(mi, mj);
+            // const auto fmij = min(mi, mj)/max(mi, mj);
             const auto fij = coupling(nodeListi, i, nodeListj, j);
             CHECK(fij >= 0.0 and fij <= 1.0);
 
@@ -318,8 +318,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             auto QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                       ri, etai, vi, rhoi, ci, Hi,
                                       rj, etaj, vj, rhoj, cj, Hj);
-            QPiij.first  *= fmij;
-            QPiij.second *= fmij;
+            // QPiij.first  *= fmij;
+            // QPiij.second *= fmij;
             const auto Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);
             // const auto workQij = 0.5*(vij.dot(Qaccij));
             const auto workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);                // CRK
