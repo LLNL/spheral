@@ -35,6 +35,8 @@ set(Utilities_headers
     CounterClockwiseComparator.hh
     DBC.hh
     DataTypeTraits.hh
+    DomainNode.hh
+    DomainNodeInline.hh
     FastMath.hh
     FieldDataTypeTraits.hh
     Functors.hh

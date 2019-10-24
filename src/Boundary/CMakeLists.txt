@@ -1,6 +1,7 @@
 set(Boundary_inst
     Boundary
     CRKSPHVoidBoundary
+    findNodesTouchingThroughPlanes
     PeriodicBoundary
     PlanarBoundary
     ReflectingBoundary
@@ -23,6 +24,7 @@ set(Boundary_headers
     Boundary.hh
     BoundaryInline.hh
     CRKSPHVoidBoundary.hh
+    findNodesTouchingThroughPlanes.hh
     PeriodicBoundary.hh
     PeriodicPlanarBoundary.hh
     PlanarBoundary.hh
