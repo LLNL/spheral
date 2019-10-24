@@ -109,6 +109,14 @@ nodeLists() const {
   return mNodeLists;
 }
 
+template<typename Dimension>
+inline
+const NodePairList&
+ConnectivityMap<Dimension>::
+nodePairList() const {
+  return mNodePairList;
+}
+
 //------------------------------------------------------------------------------
 // Get the set of neighbors for the given node in the given NodeList.
 //------------------------------------------------------------------------------

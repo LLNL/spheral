@@ -5,11 +5,13 @@
 #include "Utilities/packElement.hh"
 #include "Utilities/removeElements.hh"
 #include "Utilities/safeInv.hh"
+#include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
 
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include <numeric>
 #include <sstream>
 #include <limits>
 
@@ -687,16 +689,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 sumElements() const {
-  DataType result = localSumElements();
-#ifdef USE_MPI
-  {
-    // In parallel, do the reduction.
-    // Note this will fail to compile for types that do not have corresponding MPI type!
-    DataType tmp = result;
-    MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<DataType>::MpiDataType(), MPI_SUM, Communicator::communicator());
-  }
-#endif
-  return result;
+  return allReduce(this->localSumElements(), MPI_SUM, Communicator::communicator());
 }
 
 //------------------------------------------------------------------------------
@@ -707,16 +700,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 min() const {
-  DataType result = localMin();
-#ifdef USE_MPI
-  {
-    // In parallel, do the reduction.
-    // Note this will fail to compile for types that do not have corresponding MPI type!
-    DataType tmp = result;
-    MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<DataType>::MpiDataType(), MPI_MIN, Communicator::communicator());
-  }
-#endif
-  return result;
+  return allReduce(this->localMin(), MPI_MIN, Communicator::communicator());
 }
 
 //------------------------------------------------------------------------------
@@ -727,16 +711,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 max() const {
-  DataType result = localMax();
-#ifdef USE_MPI
-  {
-    // In parallel, do the reduction.
-    // Note this will fail to compile for types that do not have corresponding MPI type!
-    DataType tmp = result;
-    MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<DataType>::MpiDataType(), MPI_MAX, Communicator::communicator());
-  }
-#endif
-  return result;
+  return allReduce(this->localMax(), MPI_MAX, Communicator::communicator());
 }
 
 //------------------------------------------------------------------------------
@@ -749,11 +724,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 localSumElements() const {
-  DataType result = DataTypeTraits<DataType>::zero();
-  for (const_iterator elementItr = begin(); elementItr < begin() + numInternalElements(); ++elementItr) {
-    result += *elementItr;
-  }
-  return result;
+  return std::accumulate(begin(), begin() + numInternalElements(), DataTypeTraits<DataType>::zero());
 }
 
 //------------------------------------------------------------------------------

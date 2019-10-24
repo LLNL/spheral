@@ -48,6 +48,11 @@ SETUP_DISTRIBUTEDMAKE
 SETUP_GEOMMEM
 
 # -------------------------------------------------
+# setup python binding (m4macros/pythonbinding.m4)
+# -------------------------------------------------
+SETUP_PYTHONBINDING
+
+# -------------------------------------------------
 # setup polytope (m4macros/polytope.m4)
 # -------------------------------------------------
 SETUP_POLYTOPE
@@ -70,11 +75,6 @@ SETUP_COMPILERS_THE_WAY_I_WANT
 AC_CHECK_OPTIMIZATION
 SETUP_DEBUG_PRINT
 SETUP_DBC
-
-# -------------------------------------------------
-# setup python binding (m4macros/pythonbinding.m4)
-# -------------------------------------------------
-SETUP_PYTHONBINDING
 
 # -------------------------------------------------
 # setup ParMETIS (m4macros/mpi.m4)

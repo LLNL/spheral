@@ -8,7 +8,7 @@
 
 #include "RedistributeNodes.hh"
 #include "DistributeByXPosition.hh"
-#include "DomainNode.hh"
+#include "Utilities/DomainNode.hh"
 #include "DataBase/DataBase.hh"
 #include "NodeList/NodeList.hh"
 #include "Field/FieldList.hh"

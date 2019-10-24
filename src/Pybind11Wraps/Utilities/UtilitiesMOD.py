@@ -45,7 +45,8 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/overlayRemapFields.hh"',
                   '"Utilities/computeShepardsInterpolation.hh"',
                   '"Utilities/clipFacetedVolume.hh"',
-                  '"Utilities/Timer.hh"']
+                  '"Utilities/Timer.hh"',
+                  '"Utilities/DomainNode.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -58,6 +59,7 @@ PYB11namespaces = ["Spheral"]
 from SpheralFunctor import *
 from KeyTraits import *
 from Timer import *
+from DomainNode import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
@@ -244,6 +246,9 @@ globalBoundingVolumes%(ndim)id = PYB11TemplateFunction(globalBoundingVolumes, te
 collinear%(ndim)id = PYB11TemplateFunction(collinear, template_parameters="%(Vector)s", pyname="collinear")
 between%(ndim)id = PYB11TemplateFunction(between, template_parameters="%(Vector)s", pyname="between")
 segmentSegmentIntersectionTest%(ndim)id = PYB11TemplateFunction(segmentSegmentIntersectionTest, template_parameters="%(Vector)s", pyname="segmentSegmentIntersectionTest")
+
+DomainNode%(ndim)id = PYB11TemplateClass(DomainNode, template_parameters="%(Dimension)s")
+vector_of_DomainNode%(ndim)id = PYB11_bind_vector("DomainNode<%(Dimension)s>", opaque=True, local=False)
 
 #...............................................................................
 # segment-segment intersections (return intersect)
