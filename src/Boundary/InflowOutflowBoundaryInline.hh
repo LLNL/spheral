@@ -74,4 +74,27 @@ storedValues(const Field<Dimension, DataType>& field) {
   return storedValues(key, DataTypeTraits<DataType>::zero());
 }
 
+//------------------------------------------------------------------------------
+// Set the stored template field values for ghost points.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+void
+InflowOutflowBoundary<Dimension>::
+setStoredValues(const KeyType key, const DataType& value) {
+  auto& vals = storedValues(key, value);
+  for (auto& x: vals) x = value;
+}
+
+template<typename Dimension>
+template<typename DataType>
+inline
+void
+InflowOutflowBoundary<Dimension>::
+setStoredValues(const Field<Dimension, DataType>& field, const DataType& value) {
+  auto& vals = storedValues(field);
+  for (auto& x: vals) x = value;
+}
+
 }
