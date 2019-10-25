@@ -49,19 +49,6 @@ numInflowNodes(const NodeList<Dimension>& nodeList) const {
 }
 
 //------------------------------------------------------------------------------
-// The inflow velocity (per NodeList)
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-typename Dimension::Scalar
-InflowOutflowBoundary<Dimension>::
-inflowVelocity(const NodeList<Dimension>& nodeList) const {
-  const auto itr = mInflowVelocity.find(nodeList.name());
-  VERIFY2(itr != mInflowVelocity.end(), "InflowOutflowBoundary::inflowVelocity no entry for " << nodeList.name());
-  return itr->second;
-}
-
-//------------------------------------------------------------------------------
 // Access the stored template field values for ghost points.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -85,6 +72,29 @@ InflowOutflowBoundary<Dimension>::
 storedValues(const Field<Dimension, DataType>& field) {
   const auto key = StateBase<Dimension>::key(field);
   return storedValues(key, DataTypeTraits<DataType>::zero());
+}
+
+//------------------------------------------------------------------------------
+// Set the stored template field values for ghost points.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+void
+InflowOutflowBoundary<Dimension>::
+setStoredValues(const KeyType key, const DataType& value) {
+  auto& vals = storedValues(key, value);
+  for (auto& x: vals) x = value;
+}
+
+template<typename Dimension>
+template<typename DataType>
+inline
+void
+InflowOutflowBoundary<Dimension>::
+setStoredValues(const Field<Dimension, DataType>& field, const DataType& value) {
+  auto& vals = storedValues(field);
+  for (auto& x: vals) x = value;
 }
 
 }

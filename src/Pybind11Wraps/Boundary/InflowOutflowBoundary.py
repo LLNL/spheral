@@ -66,7 +66,7 @@ Really we should rename this post-step finalize."""
     @PYB11template("DataType")
     @PYB11returnpolicy("reference")
     def storedValues(self,
-                     fieldName = "const std::string",
+                     key = "const std::string",
                      dummy = ("const %(DataType)s&", "%(DataType)s()")):
         "Get the stored data for generating ghost nodes."
         return "std::vector<%(DataType)s>&"
@@ -101,9 +101,47 @@ Really we should rename this post-step finalize."""
     storedValuesF_vectorVector =    PYB11TemplateMethod(storedValuesF, "std::vector<Vector>", pyname="storedValues")
 
     #...........................................................................
+    @PYB11template("DataType")
+    def setStoredValues(self,
+                        key = "const std::string",
+                        value = "const %(DataType)s&"):
+        "Set the stored data for generating ghost nodes for a given Field key."
+        return "void"
+
+    setStoredValues_int =             PYB11TemplateMethod(setStoredValues, "int")
+    setStoredValues_Scalar =          PYB11TemplateMethod(setStoredValues, "Scalar")
+    setStoredValues_Vector =          PYB11TemplateMethod(setStoredValues, "Vector")
+    setStoredValues_Tensor =          PYB11TemplateMethod(setStoredValues, "Tensor")
+    setStoredValues_SymTensor =       PYB11TemplateMethod(setStoredValues, "SymTensor")
+    setStoredValues_ThirdRankTensor = PYB11TemplateMethod(setStoredValues, "ThirdRankTensor")
+    setStoredValues_FacetedVolume =   PYB11TemplateMethod(setStoredValues, "FacetedVolume")
+    setStoredValues_vectorScalar =    PYB11TemplateMethod(setStoredValues, "std::vector<Scalar>")
+    setStoredValues_vectorVector =    PYB11TemplateMethod(setStoredValues, "std::vector<Vector>")
+
+    #...........................................................................
+    @PYB11template("DataType")
+    @PYB11cppname("setStoredValues")
+    def setStoredValuesF(self,
+                         field = "const Field<%(Dimension)s, %(DataType)s>&",
+                         value = "const %(DataType)s&"):
+        "Set the stored data for generating ghost nodes for a given field."
+        return "void"
+
+    setStoredValuesF_int =             PYB11TemplateMethod(setStoredValuesF, "int", pyname="setStoredValues")
+    setStoredValuesF_Scalar =          PYB11TemplateMethod(setStoredValuesF, "Scalar", pyname="setStoredValues")
+    setStoredValuesF_Vector =          PYB11TemplateMethod(setStoredValuesF, "Vector", pyname="setStoredValues")
+    setStoredValuesF_Tensor =          PYB11TemplateMethod(setStoredValuesF, "Tensor", pyname="setStoredValues")
+    setStoredValuesF_SymTensor =       PYB11TemplateMethod(setStoredValuesF, "SymTensor", pyname="setStoredValues")
+    setStoredValuesF_ThirdRankTensor = PYB11TemplateMethod(setStoredValuesF, "ThirdRankTensor", pyname="setStoredValues")
+    setStoredValuesF_FacetedVolume =   PYB11TemplateMethod(setStoredValuesF, "FacetedVolume", pyname="setStoredValues")
+    setStoredValuesF_vectorScalar =    PYB11TemplateMethod(setStoredValuesF, "std::vector<Scalar>", pyname="setStoredValues")
+    setStoredValuesF_vectorVector =    PYB11TemplateMethod(setStoredValuesF, "std::vector<Vector>", pyname="setStoredValues")
+
+    #...........................................................................
     # Properties
     dataBase = PYB11property(doc="The DataBase for the NodeLists we know about")
-    plane = PYB11property(doc="The inflow plane")
+    plane = PYB11property(doc="The inflowplane")
+    storedKeys = PYB11property(doc="Keys for all the Fields we have stored ghost information about")
 
 #-------------------------------------------------------------------------------
 # Inject methods

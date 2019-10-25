@@ -1,5 +1,6 @@
 from Spheral import *
 from SpheralTestUtilities import *
+import os, shutil
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -31,10 +32,25 @@ commandLine(geometry = "1d",    # (1d, 2d, 3d, RZ)
             goalTime = 1.0,
 
             graphics = True,
+            vizStep = 1,
+            clearDirectories = True,
             )
 
 assert geometry in ("1d", "2d", "3d", "RZ")
 exec("from Spheral%s import *" % geometry)
+
+vizDir = "dumps-InflowOutflow-%s" % geometry
+
+#-------------------------------------------------------------------------------
+# Check if the necessary output directories exist.  If not, create them.
+#-------------------------------------------------------------------------------
+import os, sys
+if mpi.rank == 0:
+    if clearDirectories and os.path.exists(vizDir):
+        shutil.rmtree(vizDir)
+    if not os.path.exists(vizDir):
+        os.makedirs(vizDir)
+mpi.barrier()
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -176,7 +192,12 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-control = SpheralController(integrator, WT)
+control = SpheralController(integrator, WT,
+                            vizBaseName = "inflowOutflow-%s" % geometry,
+                            redistributeStep = 10,
+                            vizDir = vizDir,
+                            vizTime = 1e8,
+                            vizStep = vizStep)
 output("control")
 
 #-------------------------------------------------------------------------------

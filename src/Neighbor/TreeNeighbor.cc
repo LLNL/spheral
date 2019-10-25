@@ -1002,7 +1002,7 @@ findTreeNeighbors(const LevelKey& masterLevel,
   vector<int> result;
 
   // Walk the tree until we run out of daughters to check.
-  CHECK2(mTree[0].begin()->second.members.size() == 0, mTree[0].begin()->second.members.size());
+  CHECK2(mTree[0].begin()->second.members.size() == 0, "TreeNeighbor root cell occupied!  Will miss neighbors... " << mTree[0].begin()->second.members.size());
   while (remainingDaughters.size() > 0) {
     newDaughters = vector<Cell*>();
     ++ilevel;
