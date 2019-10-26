@@ -16,6 +16,8 @@
 #ifndef __Spheral_StateBase_hh__
 #define __Spheral_StateBase_hh__
 
+#include "Field/FieldBase.hh"
+
 #include "boost/any.hpp"
 
 #include <string>
@@ -30,7 +32,6 @@ namespace Spheral {
 
 // Forward declaration.
 template<typename Dimension> class NodeList;
-template<typename Dimension> class FieldBase;
 template<typename Dimension> class FieldListBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;

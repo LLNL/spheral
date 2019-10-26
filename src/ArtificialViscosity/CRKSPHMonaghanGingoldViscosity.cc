@@ -79,6 +79,22 @@ double limiterSB(const double x) {
   }
 }
 
+template<typename Vector, typename Tensor>
+double limiterConservative(const Vector& vi, const Vector& vj,
+                           const Vector& xi, const Vector& xj,
+                           const Tensor& DvDxi, const Tensor& DvDxj) {
+  const auto xji = xj - xi;
+  const auto vji = vj - vi;
+  const auto xjihat = xji.unitVector();
+  const auto dv = vji.dot(xjihat);
+  const auto di = (DvDxi.dot(xji)).dot(xjihat);
+  const auto dj = (DvDxj.dot(xji)).dot(xjihat);
+  if (di*dj <= 0.0 or
+      di*dv <= 0.0 or
+      dj*dv <= 0.0) return 0.0;
+  return min(1.0, min(abs(dv*safeInv(di)), abs(dv*safeInv(dj))));
+}
+
 }
 
 //------------------------------------------------------------------------------
@@ -233,8 +249,9 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
   CHECK(min(ri, rj) <= 1.0);
   //const Scalar phi = limiterMM(min(ri, rj));
-  Scalar phi = limiterVL(min(ri, rj));
-
+  // Scalar phi = limiterVL(min(ri, rj));
+  auto phi = limiterConservative(vi, vj, xi, xj, DvDxi, DvDxj);
+  
   // If the points are getting too close, we let the Q come back full force.
   const Scalar etaij = min(etai.magnitude(), etaj.magnitude());
   // phi *= (etaij2 < etaCrit2 ? 0.0 : 1.0);
