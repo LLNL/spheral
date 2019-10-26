@@ -90,7 +90,9 @@ commandLine(KernelConstructor = NBSplineKernel,
             Qhmult = 1.0,
             Cl = None, 
             Cq = None,
+            etaCritFrac = None,
             linearInExpansion = None,
+            quadraticInExpansion = None,
             Qlimiter = None,
             balsaraCorrection = None,
             epsilon2 = None,
@@ -367,12 +369,15 @@ output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
-try:
+if hasattr(q, "linearInExpansion") and not linearInExpansion is None:
     q.linearInExpansion = linearInExpansion
     output("q.linearInExpansion")
+if hasattr(q, "quadraticInExpansion") and not quadraticInExpansion is None:
+    q.quadraticInExpansion = quadraticInExpansion
     output("q.quadraticInExpansion")
-except:
-   pass
+if hasattr(q, "etaCritFrac") and not etaCritFrac is None:
+    q.etaCritFrac = etaCritFrac
+    output("q.etaCritFrac")
 
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
