@@ -85,14 +85,15 @@ double limiterConservative(const Vector& vi, const Vector& vj,
                            const Tensor& DvDxi, const Tensor& DvDxj) {
   const auto xji = xj - xi;
   const auto vji = vj - vi;
-  const auto xjihat = xji.unitVector();
-  const auto dv = vji.dot(xjihat);
-  const auto di = (DvDxi.dot(xji)).dot(xjihat);
-  const auto dj = (DvDxj.dot(xji)).dot(xjihat);
-  if (di*dj <= 0.0 or
-      di*dv <= 0.0 or
-      dj*dv <= 0.0) return 0.0;
-  return min(1.0, min(abs(dv*safeInv(di)), abs(dv*safeInv(dj))));
+  const auto di = DvDxi.dot(xji);
+  const auto dj = DvDxj.dot(xji);
+  if (di.dot(dj) <= 0.0 or
+      di.dot(vji) <= 0.0 or
+      dj.dot(vji) <= 0.0) return 0.0;
+  const auto vjimag = vji.magnitude();
+  const auto dimag = di.magnitude();
+  const auto djmag = dj.magnitude();
+  return min(1.0, min(abs(vjimag*safeInv(dimag)), abs(vjimag*safeInv(djmag))));
 }
 
 }
