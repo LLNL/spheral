@@ -199,7 +199,7 @@ dt(const DataBase<Dimension>& dataBase,
                                            "                   cs = " + to_string(cs(nodeListi, i)) + "\n" +
                                            "            nodeScale = " + to_string(nodeScale) + "\n" +
                                            "             material = " + fluidNodeList.name() + "\n" +
-                                           "      (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                           "(nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
                                            "           @ position = " + vec_to_string(position(nodeListi, i))));
           }
 
@@ -212,7 +212,7 @@ dt(const DataBase<Dimension>& dataBase,
                                              "                               csl = " + to_string((*cslptr)(i)) + "\n" +
                                              "                         nodeScale = " + to_string(nodeScale) + "\n" +
                                              "                          material = " + fluidNodeList.name() + "\n" +
-                                             "                   (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                             "             (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
                                              "                        @ position = " + vec_to_string(position(nodeListi, i))));
             }
           }
@@ -228,7 +228,7 @@ dt(const DataBase<Dimension>& dataBase,
                                             "                                              rho = " + to_string(rho(nodeListi, i)) + "\n" +
                                             "                                        nodeScale = " + to_string(nodeScale) + "\n" +
                                             "                                         material = " + fluidNodeList.name() + "\n" +
-                                            "                                  (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                            "                            (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
                                             "                                       @ position = " + vec_to_string(position(nodeListi, i))));
             }
           }
@@ -244,7 +244,7 @@ dt(const DataBase<Dimension>& dataBase,
                                             "                                       rho = " + to_string(rho(nodeListi, i)) + "\n" +
                                             "                                 nodeScale = " + to_string(nodeScale) + "\n" +
                                             "                                  material = " + fluidNodeList.name() + "\n" +
-                                            "                           (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                            "                     (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
                                             "                                @ position = " + vec_to_string(position(nodeListi, i))));
           }
 
@@ -255,7 +255,7 @@ dt(const DataBase<Dimension>& dataBase,
             minDt_local = make_pair(divvDt, ("Velocity divergence limit: dt = " + to_string(divvDt) + "\n" +
                                              "                 div velocity = " + to_string(divVelocity) + "\n" +
                                              "                     material = " + fluidNodeList.name() + "\n" +
-                                             "              (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                             "        (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
                                              "                   @ position = " + vec_to_string(position(nodeListi, i))));
           }
 
@@ -277,8 +277,8 @@ dt(const DataBase<Dimension>& dataBase,
               if (dtVelDiff < minDt_local.first) {
                 minDt_local = make_pair(dtVelDiff, ("Pairwise velocity difference limit: dt = " + to_string(dtVelDiff) + "\n" + 
                                                     "                              material = " + fluidNodeList.name() + "\n" +
-                                                    "                        (nodeListi, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
-                                                    "                        (nodeListj, j) = (" + to_string(nodeListj) + " " + to_string(j) + ")\n" +
+                                                    "                  (nodeListi, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
+                                                    "                  (nodeListj, i, rank) = (" + to_string(nodeListj) + " " + to_string(j) + " " + to_string(Process::getRank()) + ")\n" +
                                                     "                   @ pos(nodeListi, i) = " + vec_to_string(position(nodeListi, i)) + "\n" +
                                                     "                   @ pos(nodeListj, j) = " + vec_to_string(position(nodeListj, j)) + "\n" +
                                                     "                                   vij = " + to_string(vij) + "\n" +
@@ -314,7 +314,7 @@ dt(const DataBase<Dimension>& dataBase,
                                             "              |acceleration| = " + to_string(DvDt(nodeListi, i).magnitude()) + "\n" +
                                             "                   nodeScale = " + to_string(nodeScale) + "\n" +
                                             "                    material = " + fluidNodeList.name() + "\n" +
-                                            "             (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                            "       (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
                                             "                  @ position = " + vec_to_string(position(nodeListi, i))));
           }
 
@@ -326,7 +326,7 @@ dt(const DataBase<Dimension>& dataBase,
                                               "                        |vi| = " + to_string(velocity(nodeListi, i).magnitude()) + "\n" +
                                               "                   nodeScale = " + to_string(nodeScale) + "\n" +
                                               "                    material = " + fluidNodeList.name() + "\n" +
-                                              "             (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                              "       (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
                                               "                  @ position = " + vec_to_string(position(nodeListi, i))));
             }
           }
