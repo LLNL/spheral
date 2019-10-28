@@ -1,9 +1,9 @@
 # Add package subdirectories.
 set(_packages
   ArtificialConduction
-  Geometry
-  Neighbor
-  Utilities
+  #Geometry
+  #Neighbor
+  #Utilities
   )
 
 foreach(_package ${_packages})

@@ -4,7 +4,7 @@
 #-------------------------------------------------------------------------------
 def spheralDimensions():
     spheralDimensions.PYB11ignore = True     # Screen from PYB11
-    dims_string = "1 2 3"
+    dims_string = "1 2 3 "
     dims = [int(x) for x in dims_string.split()]
     return dims
 

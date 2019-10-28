@@ -27,7 +27,7 @@ if (USE_PYTHON)
     message(STATUS "Looking for Python...")
     include(FindPythonModule)
     find_python_module(PYB11Generator REQUIRED)
-    find_python_module(pybind11 REQUIRED)
+    #find_python_module(pybind11 REQUIRED)
     set(PYB11_DIR "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps")
     set(PYB11_MODULE_NAME "polytope")
     set(PY_PYB11 1)
@@ -76,6 +76,10 @@ include(${BLT_SOURCE_DIR}/SetupBLT.cmake)
 #--------------------------------------------------------------------------------
 #   End of BLT configuration.
 #--------------------------------------------------------------------------------
+
+option(ENABLE_2D "enable 2d" ON)
+option(ENABLE_3D "enable 3d" ON)
+option(ENABLE_INSTANTIATIONS "enable instantiations" ON)
 
 #TODO:remove this
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -w")
