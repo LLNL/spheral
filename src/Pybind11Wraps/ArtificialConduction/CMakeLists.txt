@@ -11,7 +11,10 @@ include_directories("${PROJECT_SOURCE_DIR}/src/thirdPartyLibs/pybind11/include")
 # Create a static library to compile .cc files
 #set(STATIC_MODULE_NAME ${PYB11_MODULE_NAME}static)
 #add_library(${STATIC_MODULE_NAME} my_src.cc)
-set(MODULE_STATIC_LIB "${PROJECT_BINARY_DIR}/lib/libSpheral_${PYB11_MODULE_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+set(MODULE_STATIC_LIB 
+  "${PROJECT_BINARY_DIR}/lib/libSpheral_${PYB11_MODULE_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX}"
+  "${PROJECT_BINARY_DIR}/lib/libSpheral_Physics${CMAKE_STATIC_LIBRARY_SUFFIX}"
+  )
 
 # Generate binding, this creates the <module name>.cc file that is compiled to our final .so
 # It looks for <PYB11_MODULE_NAME>MOD.py in this directory.

@@ -1,5 +1,6 @@
 # Add package subdirectories.
 set(_packages
+  Physics
   ArtificialConduction
   #Geometry
   #Neighbor
