@@ -259,15 +259,13 @@ registerDerivatives(DataBase<Dim<2> >& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Finalize the hydro.
+// This method is called once at the beginning of a timestep, after all state registration.
 //------------------------------------------------------------------------------
 void
 SolidCRKSPHHydroBaseRZ::
-finalize(const Dim<2>::Scalar time,
-         const Dim<2>::Scalar dt,
-         DataBase<Dim<2> >& dataBase,
-         State<Dim<2> >& state,
-         StateDerivatives<Dim<2> >& derivs) {
+preStepInitialize(const DataBase<Dim<2>>& dataBase, 
+                  State<Dim<2>>& state,
+                  StateDerivatives<Dim<2>>& derivs) {
 
   // Convert the mass to mass per unit length first.
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -282,7 +280,7 @@ finalize(const Dim<2>::Scalar time,
   }
 
   // Base class finalization does most of the work.
-  SolidCRKSPHHydroBase<Dimension>::finalize(time, dt, dataBase, state, derivs);
+  CRKSPHHydroBase<Dimension>::preStepInitialize(dataBase, state, derivs);
 
   // Now convert back to true masses.
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
