@@ -156,14 +156,16 @@ initialize(const DataBase<Dimension>& dataBase,
   mGradVel = DvDx;
   mGradVel.copyFields();
 
-  // If any points are becoming too isolated (indicated by m0), ramp back to unlimited viscosity.
-  const auto m0 = state.fields(HydroFieldNames::m0_CRKSPH, 0.0);
-  const auto numNodeLists = m0.size();
-  for (auto k = 0; k < numNodeLists; ++k) {
-    const auto nk = m0[k]->numInternalElements();
-    for (auto i = 0; i < nk; ++i) {
-      const auto m0i = min(m0(k,i), 1.0/m0(k,i));
-      mGradVel(k,i) *= std::max(0.0, 2.0*m0i - 1.0);
+  // If any points are flagged as surface, force zero velocity gradient.
+  if (state.fieldNameRegistered(HydroFieldNames::surfacePoint)) {
+    const auto surface = state.fields(HydroFieldNames::surfacePoint, 0);
+    const auto numNodeLists = mGradVel.size();
+    CHECK(surfacePoint.size() == numNodeLists);
+    for (auto k = 0; k < numNodeLists; ++k) {
+      const auto nk = mGradVel[k]->numInternalElements();
+      for (auto i = 0; i < nk; ++i) {
+        if (surface(k,i) != 0) mGradVel(k,i).Zero();
+      }
     }
   }
 
