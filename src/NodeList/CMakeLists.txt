@@ -3,7 +3,7 @@ set(NodeList_inst
   FixedSmoothingScale
   #FluidNodeList
   generateVoidNodes
-  #NodeList
+  NodeList
   NodeListRegistrar
   nthNodalMoment
   SmoothingScaleBase

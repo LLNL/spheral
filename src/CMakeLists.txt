@@ -4,11 +4,12 @@ set(_packages
   ArtificialConduction
   Hydro
   Geometry
+  FileIO
   NodeList
   Field
   FieldOperations
   CRKSPH
-  #Neighbor
+  Neighbor
   #Utilities
   )
 
