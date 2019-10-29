@@ -35,6 +35,7 @@
 #include "DataBase/IncrementBoundedFieldList.hh"
 #include "DataBase/ReplaceFieldList.hh"
 #include "DataBase/ReplaceBoundedFieldList.hh"
+#include "ContinuityVolumePolicyRZ.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -216,13 +217,18 @@ registerState(DataBase<Dim<2> >& dataBase,
 
   // Reregister the deviatoric stress and plastic strain policies to the RZ specialized versions
   // that account for the theta-theta component of the stress.
-  FieldList<Dimension, SymTensor> S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  FieldList<Dimension, Scalar> ps = state.fields(SolidFieldNames::plasticStrain, 0.0);
+  auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
+  auto ps = state.fields(SolidFieldNames::plasticStrain, 0.0);
   PolicyPointer deviatoricStressPolicy(new RZDeviatoricStressPolicy());
   PolicyPointer plasticStrainPolicy(new RZPlasticStrainPolicy());
   state.enroll(S, deviatoricStressPolicy);
   state.enroll(ps, plasticStrainPolicy);
   state.enroll(mDeviatoricStressTT);
+
+  // Reregister the volume update
+  PolicyPointer volumePolicy(new ContinuityVolumePolicyRZ());
+  auto vol = state.fields(HydroFieldNames::volume, 0.0);
+  state.enroll(vol, volumePolicy);
 
   // Are we using the compatible energy evolution scheme?
   // If so we need to override the ordinary energy registration with a specialized version.
