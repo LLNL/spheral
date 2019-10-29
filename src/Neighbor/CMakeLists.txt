@@ -4,7 +4,6 @@ set(Neighbor_inst
     GridCellPlane
     Neighbor
     NestedGridNeighbor
-    NodePairList
     TreeNeighbor
     )
 
@@ -29,22 +28,23 @@ set(Neighbor_headers
 
 set(Neighbor_includes
   ${SPHERAL_SOURCE_DIR}
+  ${SPHERAL_SOURCE_DIR}/Neighbor
   ${EIGEN_LIB_LOCATION}
   )
  
-blt_add_library(NAME	    Spheral_Neighbor
-		HEADERS     ${Neighbor_headers}
-		SOURCES     ${Neighbor_sources}
-		DEPENDS_ON  ${spheral_depends}
-		INCLUDES    ${Neighbor_includes}
-		)
+blt_add_library(NAME        Spheral_Neighbor
+                HEADERS     ${Neighbor_headers}
+                SOURCES     ${Neighbor_sources}
+                DEPENDS_ON  ${spheral_depends}
+                INCLUDES    ${Neighbor_includes}
+                )
 
-install(TARGETS		    Spheral_Neighbor
-	EXPORT		    ${PROJECT_NAME}-targets
-	DESTINATION	    lib
-	INCLUDES DESTINATION include
-	)
+install(TARGETS             Spheral_Neighbor
+        EXPORT              ${PROJECT_NAME}-targets
+        DESTINATION         lib
+        INCLUDES DESTINATION include
+        )
 
-install(FILES	    ${Neighbor_headers}
-	DESTINATION include/Neighbor
-	)
+install(FILES       ${Neighbor_headers}
+        DESTINATION include/Neighbor
+        )
