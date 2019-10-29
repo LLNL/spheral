@@ -93,7 +93,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   auto massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   auto DSDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
-  auto gradRho = derivatives.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -110,7 +109,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
-  CHECK(gradRho.size() == numNodeLists);
 
   // Size up the pair-wise accelerations before we start.
   if (compatibleEnergy) {
@@ -218,7 +216,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
       auto& DSDti = DSDt(nodeListi, i);
-      auto& gradRhoi = gradRho(nodeListi, i);
       auto& worki = workFieldi(i);
 
       // Get the connectivity info for this node.
@@ -286,7 +283,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               auto& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
               auto& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
               auto& massSecondMomentj = massSecondMoment(nodeListj, j);
-              auto& gradRhoj = gradRho(nodeListj, j);
 
               // Node displacement.
               const auto rij = ri - rj;
@@ -346,9 +342,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               localDvDxi -= fij*weightj*vij.dyad(gradWj);
               localDvDxj += fij*weighti*vij.dyad(gradWi);
 
-              // Mass density gradient.
-              gradRhoi += weightj*(rhoj - rhoi)*gradWj;
-              gradRhoj += weighti*(rhoi - rhoj)*gradWi;
+              // // Mass density gradient.
+              // gradRhoi += weightj*(rhoj - rhoi)*gradWj;
+              // gradRhoj += weighti*(rhoi - rhoj)*gradWi;
 
               // We treat positive and negative pressures distinctly, so split 'em up.
               const Scalar Pposi = max(0.0, Pi),

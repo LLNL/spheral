@@ -98,7 +98,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   auto massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   auto DSDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   auto DSTTDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStressTT, 0.0);
-  auto gradRho = derivatives.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -116,7 +115,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   CHECK(massSecondMoment.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
   CHECK(DSTTDt.size() == numNodeLists);
-  CHECK(gradRho.size() == numNodeLists);
 
   // Size up the pair-wise accelerations before we start.
   if (compatibleEnergy) {
@@ -241,7 +239,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
       auto& DSDti = DSDt(nodeListi, i);
       auto& DSTTDti = DSTTDt(nodeListi, i);
-      auto& gradRhoi = gradRho(nodeListi, i);
       auto& worki = workFieldi(i);
 
       // Get the connectivity info for this node.
@@ -342,8 +339,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
             DvDxi -= weightj*vij.dyad(gradWj);
             localDvDxi -= fij*weightj*vij.dyad(gradWj);
 
-            // Mass density gradient.
-            gradRhoi += weightj*(rhoj - rhoi)*gradWj;
+            // // Mass density gradient.
+            // gradRhoi += weightj*(rhoj - rhoi)*gradWj;
 
             // We treat positive and negative pressures distinctly, so split 'em up.
             const Scalar Pposi = max(0.0, Pi),

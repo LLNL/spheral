@@ -78,7 +78,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   auto massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
-  auto gradRho = derivatives.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -94,7 +93,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
-  CHECK(gradRho.size() == numNodeLists);
 
   // Size up the pair-wise accelerations before we start.
   if (mCompatibleEnergyEvolution) {
@@ -188,7 +186,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
-      auto& gradRhoi = gradRho(nodeListi, i);
       auto& worki = workFieldi(i);
 
       // Get the connectivity info for this node.
@@ -256,7 +253,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               auto& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
               auto& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
               auto& massSecondMomentj = massSecondMoment(nodeListj, j);
-              auto& gradRhoj = gradRho(nodeListj, j);
 
               // Find the effective weights of i->j and j->i.
               // const auto wi = 2.0*weighti*weightj/(weighti + weightj);
@@ -316,9 +312,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 localDvDxj += weighti*vij.dyad(gradWi);
               }
 
-              // Mass density gradient.
-              gradRhoi += weightj*(rhoj - rhoi)*gradWj;
-              gradRhoj += weighti*(rhoi - rhoj)*gradWi;
+              // // Mass density gradient.
+              // gradRhoi += weightj*(rhoj - rhoi)*gradWj;
+              // gradRhoj += weighti*(rhoi - rhoj)*gradWi;
 
               // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
               // Momentum
