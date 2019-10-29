@@ -2,7 +2,12 @@
 set(_packages
   Physics
   ArtificialConduction
-  #Geometry
+  Hydro
+  Geometry
+  NodeList
+  Field
+  FieldOperations
+  CRKSPH
   #Neighbor
   #Utilities
   )

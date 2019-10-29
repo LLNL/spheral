@@ -1,39 +1,42 @@
 set(Geometry_inst
-    buildEigenVector
-    #clipConvexFacetedVolumeByPlanes2d
-    #clipConvexFacetedVolumeByPlanes3d
-    #clipFacetedVolumeByPlanes1d
-    #clipFacetedVolumeByPlanes3d
-    computeEigenValues
-    Dimension
-    EigenStruct
-    fakemain
-    Geom3Vector
-    GeomFacet2d
-    GeomFacet3d
-    GeomFifthRankTensor
-    GeomFourthRankTensor
-    GeomPlane
-    GeomPolygon
-    GeomPolyhedron
-    GeomSymmetricTensor
-    GeomSymmetricTensor_default
-    GeomSymmetricTensor_eigen
-    GeomTensor
-    GeomTensor_default
-    GeomTensor_eigen
-    GeomThirdRankTensor
-    GeomVector
-    invertRankNTensor
-    Jacobi
-    Jacobi2
-    polyclipper2d
-    polyclipper3d
-    #TestGeometry
-    #TestMTL
+  invertRankNTensor
+  )
+
+set(Geometry_sources
+    buildEigenVector.cc
+    #clipConvexFacetedVolumeByPlanes2d.cc
+    #clipConvexFacetedVolumeByPlanes3d.cc
+    #clipFacetedVolumeByPlanes1d.cc
+    #clipFacetedVolumeByPlanes3d.cc
+    computeEigenValues.cc
+    Dimension.cc
+    EigenStruct.cc
+    fakemain.cc
+    Geom3Vector.cc
+    GeomFacet2d.cc
+    GeomFacet3d.cc
+    GeomFifthRankTensor.cc
+    GeomFourthRankTensor.cc
+    GeomPlane.cc
+    GeomPolygon.cc
+    GeomPolyhedron.cc
+    GeomSymmetricTensor.cc
+    GeomSymmetricTensor_default.cc
+    GeomSymmetricTensor_eigen.cc
+    GeomTensor.cc
+    GeomTensor_default.cc
+    GeomTensor_eigen.cc
+    GeomThirdRankTensor.cc
+    GeomVector.cc
+    invertRankNTensor.cc
+    Jacobi.cc
+    Jacobi2.cc
+    polyclipper2d.cc
+    polyclipper3d.cc
+    #TestGeometry.cc
+    #TestMTL.cc
     )
 
-set(Geometry_sources )
 instantiate(Geometry_inst Geometry_sources)
 
 set(Geometry_headers
@@ -112,25 +115,26 @@ set(Geometry_headers
 
 set(Geometry_includes
   ${SPHERAL_SOURCE_DIR}
+  ${SPHERAL_SOURCE_DIR}/Geometry
   ${EIGEN_LIB_LOCATION}
   ${QHULL_LIB_LOCATION}
   )
 
-blt_add_library(NAME	    Spheral_Geometry
-		HEADERS     ${Geometry_headers}
-		SOURCES     ${Geometry_sources}
-		DEPENDS_ON  ${spheral_depends}
-		INCLUDES    ${Geometry_includes}
-		)
+blt_add_library(NAME        Spheral_Geometry
+                HEADERS     ${Geometry_headers}
+                SOURCES     ${Geometry_sources}
+                DEPENDS_ON  ${spheral_depends}
+                INCLUDES    ${Geometry_includes}
+                )
 
-install(TARGETS		    Spheral_Geometry
-	EXPORT		    ${PROJECT_NAME}-targets
-	DESTINATION	    lib
-	INCLUDES DESTINATION include
-	)
+install(TARGETS             Spheral_Geometry
+        EXPORT              ${PROJECT_NAME}-targets
+        DESTINATION         lib
+        INCLUDES DESTINATION include
+        )
 
-install(FILES	    ${Geometry_headers}
-	DESTINATION include/Geometry
-	)
+install(FILES       ${Geometry_headers}
+        DESTINATION include/Geometry
+        )
 
 

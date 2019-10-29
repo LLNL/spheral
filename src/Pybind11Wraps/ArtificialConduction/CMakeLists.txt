@@ -14,6 +14,13 @@ include_directories("${PROJECT_SOURCE_DIR}/src/thirdPartyLibs/pybind11/include")
 set(MODULE_STATIC_LIB 
   "${PROJECT_BINARY_DIR}/lib/libSpheral_${PYB11_MODULE_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX}"
   "${PROJECT_BINARY_DIR}/lib/libSpheral_Physics${CMAKE_STATIC_LIBRARY_SUFFIX}"
+  "${PROJECT_BINARY_DIR}/lib/libSpheral_Hydro${CMAKE_STATIC_LIBRARY_SUFFIX}"
+  "${PROJECT_BINARY_DIR}/lib/libSpheral_Geometry${CMAKE_STATIC_LIBRARY_SUFFIX}"
+  "${PROJECT_BINARY_DIR}/lib/libSpheral_NodeList${CMAKE_STATIC_LIBRARY_SUFFIX}"
+  "${PROJECT_BINARY_DIR}/lib/libSpheral_FieldOperations${CMAKE_STATIC_LIBRARY_SUFFIX}"
+  "${PROJECT_BINARY_DIR}/lib/libSpheral_Field${CMAKE_STATIC_LIBRARY_SUFFIX}"
+  "${PROJECT_BINARY_DIR}/lib/libSpheral_CRKSPH${CMAKE_STATIC_LIBRARY_SUFFIX}"
+  "${PROJECT_BINARY_DIR}/lib/libSpheral_Neighbor${CMAKE_STATIC_LIBRARY_SUFFIX}"
   )
 
 # Generate binding, this creates the <module name>.cc file that is compiled to our final .so
