@@ -12,7 +12,9 @@ set(_packages
   Neighbor
   DataOutput
   DataBase
+  Mesh
   #Utilities
+  Boundary
   )
 
 foreach(_package ${_packages})

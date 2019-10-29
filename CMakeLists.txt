@@ -27,7 +27,7 @@ if (USE_PYTHON)
     message(STATUS "Looking for Python...")
     include(FindPythonModule)
     find_python_module(PYB11Generator REQUIRED)
-    #find_python_module(pybind11 REQUIRED)
+    find_python_module(pybind11 REQUIRED)
     set(PYB11_DIR "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps")
     set(PYB11_MODULE_NAME "polytope")
     set(PY_PYB11 1)
@@ -76,6 +76,14 @@ include(${BLT_SOURCE_DIR}/SetupBLT.cmake)
 #--------------------------------------------------------------------------------
 #   End of BLT configuration.
 #--------------------------------------------------------------------------------
+set(BOOST_MIN_VERSION "1.62.0")
+find_package(Boost ${BOOST_MIN_VERSION} REQUIRED)
+if(Boost_FOUND)
+  include_directories(${Boost_INCLUDE_DIRS})
+endif()
+
+include_directories(src/thirdPartyLibs/pybind11/include)
+add_subdirectory(src/thirdPartyLibs/polytope)
 
 option(ENABLE_2D "enable 2d" ON)
 option(ENABLE_3D "enable 3d" ON)
@@ -88,6 +96,7 @@ set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -w")
 find_package(GSL REQUIRED)
 set(EIGEN_LIB_LOCATION "${PROJECT_SOURCE_DIR}/src/thirdPartyLibs/eigen/")
 set(QHULL_LIB_LOCATION "${PROJECT_SOURCE_DIR}/src/thirdPartyLibs/qhull/src/")
+set(PYBIND11_LIB_LOCATION "${PROJECT_SOURCE_DIR}/src/thirdPartyLibs/pybind11/include/")
 include(CMakeBasics.cmake)
 
 set(SPHERAL_SOURCE_DIR "${PROJECT_SOURCE_DIR}/src")
