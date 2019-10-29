@@ -101,8 +101,6 @@ def _TillotsonFactory(*args,
                 exec("%s = optionalKwArgs['%s']" % (arg, arg))
 
         import sys
-        sys.stderr.write("%s\n" % CGS)
-        sys.stderr.write("%s\n" % units)
 
         # Check that the caller specified a valid material label.
         mat = materialName.lower()
