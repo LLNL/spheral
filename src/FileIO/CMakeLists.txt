@@ -51,3 +51,5 @@ install(TARGETS             Spheral_FileIO
 install(FILES       ${FileIO_headers}
         DESTINATION include/FileIO
         )
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_FileIO)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

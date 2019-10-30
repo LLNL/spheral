@@ -48,3 +48,6 @@ install(TARGETS             Spheral_Neighbor
 install(FILES       ${Neighbor_headers}
         DESTINATION include/Neighbor
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Neighbor)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

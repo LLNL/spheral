@@ -8,7 +8,7 @@
 //----------------------------------------------------------------------------//
 #include <algorithm>
 #include <set>
-#include "boost/share_ptr.hpp"
+#include "boost/shared_ptr.hpp"
 
 #ifdef USE_MPI
 #include "mpi.h"

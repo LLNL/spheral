@@ -36,6 +36,7 @@ PYB11_GENERATE_BINDINGS()
 # Create SHARED library with python bindings, need to set the name and prefix to "" 
 # otherwise python will throw <>init module errors on import.
 add_library(pymy_lib SHARED ${PYB11_GENERATED_SOURCE})
+add_dependencies(pymy_lib ${SPHERAL_PYTHON_DEPENDS})
 set_target_properties(pymy_lib PROPERTIES OUTPUT_NAME ${PYB11_MODULE_NAME})
 set_target_properties(pymy_lib PROPERTIES PREFIX "")
 target_link_libraries(pymy_lib ${MODULE_STATIC_LIB}) #Include our static libs for implemented code.

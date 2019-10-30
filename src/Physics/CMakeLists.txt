@@ -33,3 +33,6 @@ install(TARGETS Spheral_Physics
 install(FILES ${Physics_headers}
   DESTINATION include/Physics
   )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Physics)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

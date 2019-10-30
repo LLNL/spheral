@@ -69,3 +69,6 @@ install(TARGETS             Spheral_Hydro
 install(FILES       ${Hydro_headers}
         DESTINATION include/Hydro
         ) 
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Hydro)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

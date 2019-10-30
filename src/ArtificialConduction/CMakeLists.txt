@@ -33,3 +33,6 @@ install(TARGETS             Spheral_ArtificialConduction
 install(FILES       ${ArtificialConduction_headers}
         DESTINATION include/ArtificialConduction
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_ArtificialConduction)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

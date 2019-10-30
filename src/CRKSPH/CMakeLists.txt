@@ -95,3 +95,6 @@ install(TARGETS             Spheral_CRKSPH
 install(FILES       ${CRKSPH_headers}
         DESTINATION include/CRKSPH
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_CRKSPH)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

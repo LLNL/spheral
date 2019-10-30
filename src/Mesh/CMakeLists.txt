@@ -23,7 +23,7 @@ set(Mesh_sources
   PolyhedralFace.cc
   PolyhedralMesh.cc
   PolyhedralZone.cc
-  siloMeshDump.cc
+  #siloMeshDump.cc
 )
 instantiate(Mesh_inst Mesh_sources)
 
@@ -52,6 +52,8 @@ set(Mesh_includes
   ${SPHERAL_SOURCE_DIR}
   ${SPHERAL_SOURCE_DIR}/Mesh
   ${EIGEN_LIB_LOCATION}
+  ${PYBIND11_LIB_LOCATION}
+  ${POLYTOPE_LIB_LOCATION}
   ${Boost_INCLUDE_DIRS}
   )
 
@@ -72,3 +74,6 @@ install(TARGETS             Spheral_Mesh
 install(FILES       ${Mesh_headers}
         DESTINATION include/Mesh
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Mesh)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

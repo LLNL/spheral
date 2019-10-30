@@ -64,3 +64,6 @@ install(TARGETS             Spheral_Field
 install(FILES       ${Field_headers}
         DESTINATION include/Field
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Field)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

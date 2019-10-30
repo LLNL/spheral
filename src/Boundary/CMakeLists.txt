@@ -14,7 +14,7 @@ set(Boundary_inst
 
 set(Boundary_sources
   SphericalBoundary.cc
-  ThreeOneDimensionBoundary.cc
+  #ThreeOneDimensionBoundary.cc
   ConstantZVelocityBoundaryInst.cc
   )
 instantiate(Boundary_inst Boundary_sources)
@@ -46,7 +46,7 @@ set(Boundary_headers
   RigidBoundary.hh
   SphericalBoundary.hh
   SphericalBoundaryInline.hh
-  ThreeOneDimensionBoundary.hh
+  #ThreeOneDimensionBoundary.hh
   )
 
 set(Boundary_includes
@@ -73,3 +73,6 @@ install(TARGETS             Spheral_Boundary
 install(FILES       ${Boundary_headers}
         DESTINATION include/Boundary
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Boundary)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)
