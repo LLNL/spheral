@@ -34,14 +34,18 @@ endfunction()
 #  )
 
 message("\n---------- BUILDING POLYTOPE ----------")
-build_external_project(polytope 
-  ${PROJECT_BINARY_DIR}/tpl-install/ 
-  "https://github.com/pbtoast/polytope" 
-  "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tpl-install"
-  )
+if(NOT EXISTS ${PROJECT_BINARY_DIR}/tpl-install/include/polytope/polytope.hh)
+  build_external_project(polytope 
+    ${PROJECT_BINARY_DIR}/tpl-install/ 
+    "https://github.com/pbtoast/polytope" 
+    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tpl-install"
+    )
+else()
+  message(STATUS "Polytope Built")
+endif()
+list(APPEND spheral_depends polytope)
 message("---------------------------------------\n")
 
 
 
-list(APPEND spheral_depends polytope)
 set(spheral_depends "${spheral_depends}" PARENT_SCOPE)

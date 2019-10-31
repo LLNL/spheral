@@ -8,12 +8,13 @@ set(Mesh_inst
 
 set(Mesh_sources
   computeElementOwner.cc
-  findMatchingVertexTempl.cc
+  findMatchingVertex.cc
+  #findMatchingVertexTempl.cc
   LineEdge.cc
   LineFace.cc
   LineMesh.cc
   LineZone.cc
-  Mesh.cc
+  #Mesh.cc
   MeshConstructionUtilities.cc
   PolygonalEdge.cc
   PolygonalFace.cc

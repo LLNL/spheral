@@ -82,7 +82,7 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
-set(spheral_depends )
+set(spheral_depends BOOST)
 set(SPHERAL_PYTHON_DEPENDS )
 add_subdirectory(src/thirdPartyLibs)
 

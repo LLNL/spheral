@@ -1,20 +1,31 @@
 # Add package subdirectories.
 set(_packages
-  Physics
   ArtificialConduction
-  Hydro
-  Geometry
-  FileIO
-  NodeList
+  ArtificialViscosity
+  Boundary
+  CRKSPH
+  #CXXTests
+  Damage
+  DataBase
+  DataOutput
+  ExternalForce
   Field
   FieldOperations
-  CRKSPH
-  Neighbor
-  DataOutput
-  DataBase
+  FileIO
+  FVCRKH
+  Geometry
+  Gravity
+  Hydro
+  Integrator
+  Kernel
+  Material
   Mesh
+  MHD
+  Neighbor
+  NodeGenerators
+  NodeList
+  Physics
   #Utilities
-  Boundary
   )
 
 foreach(_package ${_packages})
