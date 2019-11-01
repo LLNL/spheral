@@ -242,6 +242,24 @@ verbose(bool value) {
 }
 
 //------------------------------------------------------------------------------
+// Should the integrator check interim timestep votes and abort steps?
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+Integrator<Dimension>::allowDtCheck() const {
+  return mAllowDtCheck;
+}
+
+template<typename Dimension>
+inline
+void
+Integrator<Dimension>::
+allowDtCheck(bool value) {
+  mAllowDtCheck = value;
+}
+
+//------------------------------------------------------------------------------
 // Select whether we're enforcing culling of ghost nodes.
 //------------------------------------------------------------------------------
 template<typename Dimension>

@@ -145,7 +145,7 @@ step(typename Dimension::Scalar maxTime,
   TIME_CheapRK2EvalDerivs.stop();
 
   // Check if the timestep is still a good idea...
-  {
+  if (this->allowDtCheck()) {
     const auto dtnew = this->selectDt(min(this->dtMin(), maxTime - t),
                                       min(this->dtMax(), maxTime - t),
                                       state,

@@ -125,13 +125,16 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeGhostBoundaries();
 
   // Check if the timestep is still a good idea...
-  const auto dtnew = this->selectDt(min(this->dtMin(), maxTime - t),
-                                    min(this->dtMax(), maxTime - t),
-                                    state,
-                                    derivs);
-  if (dtnew < this->dtCheckFrac()*dt) {
-    state.assign(state0);
-    return false;
+  if (this->allowDtCheck()) {
+    const auto dtnew = this->selectDt(min(this->dtMin(), maxTime - t),
+                                      min(this->dtMax(), maxTime - t),
+                                      state,
+                                      derivs);
+
+    if (dtnew < this->dtCheckFrac()*dt) {
+      state.assign(state0);
+      return false;
+    }
   }
 
   // Loop over the physics packages and perform any necessary initializations.

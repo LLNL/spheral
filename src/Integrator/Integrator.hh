@@ -194,6 +194,10 @@ public:
   bool verbose() const;
   void verbose(bool x);
 
+  // Should the integrator check interim timestep votes and abort steps?
+  bool allowDtCheck() const;
+  void allowDtCheck(bool x);
+
   // Select whether we should run in a mode the ensures domain decomposition independence.
   // Possibly some performance impact.
   bool domainDecompositionIndependent() const;
@@ -219,7 +223,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   Scalar mDtMin, mDtMax, mDtGrowth, mLastDt, mDtMultiplier, mDtCheckFrac, mCurrentTime;
   int mCurrentCycle, mUpdateBoundaryFrequency;
-  bool mVerbose, mRequireConnectivity, mRequireGhostConnectivity, mRequireOverlapConnectivity;
+  bool mVerbose, mAllowDtCheck, mRequireConnectivity, mRequireGhostConnectivity, mRequireOverlapConnectivity;
   DataBase<Dimension>* mDataBasePtr;
   std::vector<Physics<Dimension>*> mPhysicsPackages;
   bool mRigorousBoundaries, mCullGhostNodes;

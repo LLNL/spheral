@@ -126,13 +126,15 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeDerivatives(t + hdt, hdt, db, state, derivs);
 
   // Check if the timestep is still a good idea...
-  const auto dtnew = this->selectDt(min(this->dtMin(), maxTime - t),
-                                    min(this->dtMax(), maxTime - t),
-                                    state,
-                                    derivs);
-  if (dtnew < this->dtCheckFrac()*dt) {
-    state.assign(state0);
-    return false;
+  if (this->allowDtCheck()) {
+    const auto dtnew = this->selectDt(min(this->dtMin(), maxTime - t),
+                                      min(this->dtMax(), maxTime - t),
+                                      state,
+                                      derivs);
+    if (dtnew < this->dtCheckFrac()*dt) {
+      state.assign(state0);
+      return false;
+    }
   }
 
   // Advance the state from the beginning of the cycle using the midpoint 

@@ -51,6 +51,7 @@ Integrator<Dimension>::Integrator():
   mCurrentTime(0.0),
   mCurrentCycle(0),
   mVerbose(false),
+  mAllowDtCheck(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
   mRequireOverlapConnectivity(false),
@@ -73,9 +74,11 @@ Integrator(DataBase<Dimension>& dataBase):
   mDtGrowth(2.0),
   mLastDt(1e-5),
   mDtMultiplier(1.0),
+  mDtCheckFrac(0.8),
   mCurrentTime(0.0),
   mCurrentCycle(0),
   mVerbose(false),
+  mAllowDtCheck(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
   mRequireOverlapConnectivity(false),
@@ -99,9 +102,11 @@ Integrator(DataBase<Dimension>& dataBase,
   mDtGrowth(2.0),
   mLastDt(1e-5),
   mDtMultiplier(1.0),
+  mDtCheckFrac(0.8),
   mCurrentTime(0.0),
   mCurrentCycle(0),
   mVerbose(false),
+  mAllowDtCheck(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
   mDataBasePtr(&dataBase),
@@ -132,6 +137,7 @@ operator=(const Integrator<Dimension>& rhs) {
     mDtGrowth = rhs.mDtGrowth;
     mLastDt = rhs.mLastDt;
     mDtMultiplier = rhs.mDtMultiplier;
+    mDtCheckFrac = rhs.mDtCheckFrac;
     mCurrentTime = rhs.mCurrentTime;
     mCurrentCycle = rhs.mCurrentCycle;
     mDataBasePtr = rhs.mDataBasePtr;
@@ -140,6 +146,7 @@ operator=(const Integrator<Dimension>& rhs) {
     mUpdateBoundaryFrequency = rhs.mUpdateBoundaryFrequency;
     mCullGhostNodes = rhs.mCullGhostNodes;
     mVerbose = rhs.mVerbose;
+    mAllowDtCheck = rhs.mAllowDtCheck;
     mRequireConnectivity = rhs.mRequireConnectivity;
     mRequireGhostConnectivity = rhs.mRequireGhostConnectivity;
     mRequireOverlapConnectivity = rhs.mRequireOverlapConnectivity;
@@ -160,6 +167,7 @@ step(const typename Dimension::Scalar maxTime) {
   auto success = false;
   auto count = 0;
   while (not success and count < 10) {
+    ++count;
     success = this->step(maxTime, state, derivs);
     if (not success) {
       if (Process::getRank() == 0) {

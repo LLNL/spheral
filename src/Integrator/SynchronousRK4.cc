@@ -128,7 +128,7 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeDerivatives(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs2);
 
   // Check if the timestep is still a good idea...
-  {
+  if (this->allowDtCheck()) {
     const auto dtnew = this->selectDt(min(this->dtMin(), maxTime - t),
                                       min(this->dtMax(), maxTime - t),
                                       tmpstate,
@@ -153,7 +153,7 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeDerivatives(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs3);
 
   // Check if the timestep is still a good idea...
-  {
+  if (this->allowDtCheck()) {
     const auto dtnew = this->selectDt(min(this->dtMin(), maxTime - t),
                                       min(this->dtMax(), maxTime - t),
                                       tmpstate,
@@ -178,7 +178,7 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeDerivatives(t + dt, dt, db, tmpstate, derivs4);
 
   // Check if the timestep is still a good idea...
-  {
+  if (this->allowDtCheck()) {
     const auto dtnew = this->selectDt(min(this->dtMin(), maxTime - t),
                                       min(this->dtMax(), maxTime - t),
                                       tmpstate,
