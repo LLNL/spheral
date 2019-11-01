@@ -37,7 +37,7 @@ class SynchronousRK4Integrator(Integrator):
     @PYB11pycppname("step")
     def step1(self, maxTime="Scalar"):
         "Take a step"
-        return "void"
+        return "bool"
 
     @PYB11virtual
     @PYB11const

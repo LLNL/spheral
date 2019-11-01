@@ -111,6 +111,24 @@ dtGrowth(typename Dimension::Scalar fraction) {
 }
 
 //------------------------------------------------------------------------------
+// The fraction of the timestep we consider when checking for stable behavior.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+Integrator<Dimension>::dtCheckFrac() const {
+  return mDtCheckFrac;
+}
+
+template<typename Dimension>
+inline
+void
+Integrator<Dimension>::
+dtCheckFrac(typename Dimension::Scalar fraction) {
+  mDtCheckFrac = fraction;
+}
+
+//------------------------------------------------------------------------------
 // Access the DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>

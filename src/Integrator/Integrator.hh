@@ -55,10 +55,10 @@ public:
   Integrator& operator=(const Integrator& rhs);
 
   // All Integrator classes must define the dt and step methods.
-  virtual void step(Scalar maxTime,
+  virtual bool step(Scalar maxTime,
                     State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) = 0;
-  virtual void step(Scalar maxTime);
+  virtual bool step(Scalar maxTime);
 
   // Provide a method of looping over the physics packages and picking a
   // time step.
@@ -140,9 +140,6 @@ public:
   void copyGhostState(const State<Dimension>& state0,
                       State<Dimension>& state1) const;
 
-  // Advance the set of Physics packages to the given time.
-  virtual void advance(Scalar goalTime);
-
   // Access the current time.
   Scalar currentTime() const;
   void currentTime(Scalar time);
@@ -166,6 +163,10 @@ public:
   // Access the timestep growth factor.
   Scalar dtGrowth() const;
   void dtGrowth(Scalar fraction);
+
+  // The fraction of the timestep we consider when checking for stable behavior.
+  Scalar dtCheckFrac() const;
+  void dtCheckFrac(Scalar fraction);
 
   // Public const access to the DataBase.
   const DataBase<Dimension>& dataBase() const;
@@ -216,7 +217,7 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  Scalar mDtMin, mDtMax, mDtGrowth, mLastDt, mCurrentTime;
+  Scalar mDtMin, mDtMax, mDtGrowth, mLastDt, mDtMultiplier, mDtCheckFrac, mCurrentTime;
   int mCurrentCycle, mUpdateBoundaryFrequency;
   bool mVerbose, mRequireConnectivity, mRequireGhostConnectivity, mRequireOverlapConnectivity;
   DataBase<Dimension>* mDataBasePtr;

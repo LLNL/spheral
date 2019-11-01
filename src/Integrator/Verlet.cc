@@ -84,7 +84,7 @@ operator=(const Verlet<Dimension>& rhs) {
 // Take a step.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 Verlet<Dimension>::
 step(typename Dimension::Scalar maxTime,
      State<Dimension>& state,
@@ -172,6 +172,7 @@ step(typename Dimension::Scalar maxTime,
   this->currentCycle(this->currentCycle() + 1);
   this->currentTime(t + dt0);
   this->lastDt(dt0);
+  return true;
 }
 
 }
