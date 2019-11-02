@@ -47,7 +47,7 @@ Integrator<Dimension>::Integrator():
   mDtGrowth(2.0),
   mLastDt(1e-5),
   mDtMultiplier(1.0),
-  mDtCheckFrac(0.8),
+  mDtCheckFrac(0.5),
   mCurrentTime(0.0),
   mCurrentCycle(0),
   mVerbose(false),
@@ -74,7 +74,7 @@ Integrator(DataBase<Dimension>& dataBase):
   mDtGrowth(2.0),
   mLastDt(1e-5),
   mDtMultiplier(1.0),
-  mDtCheckFrac(0.8),
+  mDtCheckFrac(0.5),
   mCurrentTime(0.0),
   mCurrentCycle(0),
   mVerbose(false),
@@ -102,7 +102,7 @@ Integrator(DataBase<Dimension>& dataBase,
   mDtGrowth(2.0),
   mLastDt(1e-5),
   mDtMultiplier(1.0),
-  mDtCheckFrac(0.8),
+  mDtCheckFrac(0.5),
   mCurrentTime(0.0),
   mCurrentCycle(0),
   mVerbose(false),
@@ -171,7 +171,7 @@ step(const typename Dimension::Scalar maxTime) {
     success = this->step(maxTime, state, derivs);
     if (not success) {
       if (Process::getRank() == 0) {
-        cerr << "Integrator::step reported unstable timestep -- cutting dt and trying again." << endl;
+        cerr << "Integrator::step reported unstable timestep -- cutting dt and trying again: " << count << "/10" << endl;
         mDtMultiplier *= 0.5;
       }
     }
