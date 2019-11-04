@@ -319,7 +319,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Compute the corrections.
   const NodeCoupling couple;
   computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), couple, mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
-  computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, H, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
+  computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, H, mSurfacePoint, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
   if (mLimitMultimaterialTopology) zerothOrderSurfaceCorrections(mA, mB, mC, mGradA, mGradB, mGradC, mM0, mGradm0, mSurfacePoint);
 
   // This breaks domain independence, so we'll try being inconsistent on the first step.
@@ -708,7 +708,7 @@ initialize(const typename Dimension::Scalar time,
   // Change CRKSPH weights here if need be!
   const NodeCoupling couple;
   computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), couple, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
-  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder(), A, B, C, gradA, gradB, gradC);
+  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, surfacePoint, correctionOrder(), A, B, C, gradA, gradB, gradC);
   if (mLimitMultimaterialTopology) zerothOrderSurfaceCorrections(A, B, C, gradA, gradB, gradC, m0, gradm0, surfacePoint);
 
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();

@@ -245,6 +245,7 @@ def computeCRKSPHCorrections(m0 = "const FieldList<%(Dimension)s, typename %(Dim
                              gradm3 = "const FieldList<%(Dimension)s, typename %(Dimension)s::FourthRankTensor>&",
                              gradm4 = "const FieldList<%(Dimension)s, typename %(Dimension)s::FifthRankTensor>&",
                              H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
+                             surfacePoint = "const FieldList<%(Dimension)s, int>&",
                              correctionOrder = "const CRKOrder",
                              A = "FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                              B = "FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",

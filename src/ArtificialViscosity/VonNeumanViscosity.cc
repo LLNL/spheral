@@ -110,6 +110,7 @@ initialize(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Vector> gradA = dataBase.newFluidFieldList(Vector::zero, "Q grad A");
   FieldList<Dimension, Tensor> gradB;
   FieldList<Dimension, ThirdRankTensor> gradC;
+  FieldList<Dimension, int> surfacePoint;
   if (correctionOrder == CRKOrder::LinearOrder or correctionOrder == CRKOrder::QuadraticOrder) {
     B = dataBase.newFluidFieldList(Vector::zero, "Q B");
     gradB = dataBase.newFluidFieldList(Tensor::zero, "Q grad B");
@@ -122,9 +123,9 @@ initialize(const DataBase<Dimension>& dataBase,
     C = dataBase.newFluidFieldList(Tensor::zero, "Q C");
     gradC = dataBase.newFluidFieldList(ThirdRankTensor::zero, "Q grad C");
   }
-  computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder, NodeCoupling(), 
+  computeCRKSPHMoments(connectivityMap, W, vol, position, H,correctionOrder, NodeCoupling(), 
                        m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
-  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H,
+  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, surfacePoint,
                            correctionOrder, A, B, C, gradA, gradB, gradC);
   const FieldList<Dimension, Tensor> velocityGradient = gradientCRKSPH(velocity,
                                                                        position,

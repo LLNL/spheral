@@ -3,7 +3,6 @@
 //------------------------------------------------------------------------------
 #include "computeCRKSPHSumMassDensity.hh"
 #include "computeCRKSPHMoments.hh"
-#include "computeCRKSPHCorrections.hh"
 #include "CRKSPHCorrectionParams.hh"
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
