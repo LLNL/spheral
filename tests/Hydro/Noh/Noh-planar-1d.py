@@ -349,17 +349,17 @@ packages = [hydro]
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
 q = hydro.Q
-if Cl:
+if not Cl is None:
     q.Cl = Cl
-if Cq:
+if not Cq is None:
     q.Cq = Cq
-if epsilon2:
+if not epsilon2 is None:
     q.epsilon2 = epsilon2
-if Qlimiter:
+if not Qlimiter is None:
     q.limiter = Qlimiter
-if balsaraCorrection:
+if not balsaraCorrection is None:
     q.balsaraShearCorrection = balsaraCorrection
-if QcorrectionOrder:
+if not QcorrectionOrder is None:
     q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")
