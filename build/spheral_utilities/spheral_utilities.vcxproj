@@ -622,6 +622,10 @@
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\Utilities\DomainNode.hh" />
+    <ClInclude Include="..\..\src\Utilities\DomainNodeInline.hh" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

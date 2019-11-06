@@ -357,6 +357,7 @@
     <ClCompile Include="..\..\src\Neighbor\NeighborInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Neighbor\NestedGridNeighborInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Neighbor\NestedGridNeighborInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\Neighbor\NodePairList.cc" />
     <ClCompile Include="..\..\src\Neighbor\TreeNeighborInst.cc.2.cc">
       <Cpp0xSupport>true</Cpp0xSupport>
     </ClCompile>
@@ -413,6 +414,9 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\Neighbor\NodePairList.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

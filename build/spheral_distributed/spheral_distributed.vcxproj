@@ -379,12 +379,6 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\Distributed\DomainNode.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Distributed\DomainNodeInline.hh">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\src\Distributed\NestedGridDistributedBoundary.hh">
       <FileType>Document</FileType>
     </None>

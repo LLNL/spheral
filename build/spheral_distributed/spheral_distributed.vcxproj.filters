@@ -56,12 +56,6 @@
     <None Include="..\..\src\Distributed\DistributedBoundaryInline.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\Distributed\DomainNode.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Distributed\DomainNodeInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\Distributed\NestedGridDistributedBoundary.hh">
       <Filter>Header Files</Filter>
     </None>

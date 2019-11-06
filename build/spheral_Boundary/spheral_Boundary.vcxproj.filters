@@ -27,14 +27,11 @@
     <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.3.cc">
       <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\..\src\Boundary\findNodesTouchingThroughPlanesInst.cc.2.cc">
+      <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\PeriodicPlanarBoundary.cc">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\..\src\Boundary\findNodesTouchingThroughPlanesInst.cc.3.cc">
+      <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Boundary\PlanarBoundaryInst.cc.2.cc">
       <Filter>Inst Files\Source Files</Filter>
@@ -54,6 +51,8 @@
     <ClCompile Include="..\..\src\Boundary\RigidBoundaryInst.cc.3.cc">
       <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\Boundary\AxisBoundaryRZ.hh">
@@ -103,6 +102,9 @@
     <CustomBuild Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\src\Boundary\findNodesTouchingThroughPlanesInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
     <CustomBuild Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
@@ -115,5 +117,16 @@
     <CustomBuild Include="..\..\src\Boundary\RigidBoundaryInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\Boundary\InflowOutflowBoundary.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Boundary\InflowOutflowBoundaryInline.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Boundary\findNodesTouchingThroughPlanes.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

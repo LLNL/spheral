@@ -352,6 +352,8 @@
     <ClCompile Include="..\..\src\Boundary\BoundaryInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\Boundary\findNodesTouchingThroughPlanesInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\Boundary\findNodesTouchingThroughPlanesInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Boundary\PlanarBoundaryInst.cc.2.cc" />
@@ -383,6 +385,14 @@
       <FileType>Document</FileType>
     </None>
     <CustomBuild Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Boundary\findNodesTouchingThroughPlanesInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -449,6 +459,11 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\Boundary\findNodesTouchingThroughPlanes.hh" />
+    <ClInclude Include="..\..\src\Boundary\InflowOutflowBoundary.hh" />
+    <ClInclude Include="..\..\src\Boundary\InflowOutflowBoundaryInline.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
