@@ -234,7 +234,7 @@ computeLinearCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Sc
     for (auto i = 0; i < n; ++i) {
 
       if (useSurface and surfacePoint(nodeListi, i) != 0) {
-        CHECK(m0i != 0.0);
+        CHECK(m0(nodeListi, i) != 0.0);
         A(nodeListi, i) = 1.0/m0(nodeListi, i);
         B(nodeListi, i) = 0.0;
         gradA(nodeListi, i) = -FastMath::square(A(nodeListi, i))*gradm0(nodeListi, i);
