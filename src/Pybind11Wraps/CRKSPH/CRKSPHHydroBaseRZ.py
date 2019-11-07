@@ -76,16 +76,6 @@ mass density, velocity, and specific thermal energy."""
         return "void"
 
     @PYB11virtual
-    def finalize(self,
-                 time = "const Scalar",
-                 dt = "const Scalar",
-                 dataBase = "DataBase<%(Dimension)s>&",
-                 state = "State<%(Dimension)s>&",
-                 derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Finalize the hydro at the completion of an integration step."
-        return "void"
-                  
-    @PYB11virtual
     def applyGhostBoundaries(self,
                              state = "State<%(Dimension)s>&",
                              derivs = "StateDerivatives<%(Dimension)s>&"):

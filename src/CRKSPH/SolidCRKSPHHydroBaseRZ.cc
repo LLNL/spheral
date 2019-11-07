@@ -33,6 +33,7 @@
 #include "DataBase/IncrementBoundedFieldList.hh"
 #include "DataBase/ReplaceFieldList.hh"
 #include "DataBase/ReplaceBoundedFieldList.hh"
+#include "ContinuityVolumePolicyRZ.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -209,6 +210,11 @@ registerState(DataBase<Dim<2> >& dataBase,
   PolicyPointer plasticStrainPolicy(new RZPlasticStrainPolicy());
   state.enroll(ps, plasticStrainPolicy);
 
+  // Reregister the volume update
+  PolicyPointer volumePolicy(new ContinuityVolumePolicyRZ());
+  auto vol = state.fields(HydroFieldNames::volume, 0.0);
+  state.enroll(vol, volumePolicy);
+
   // Are we using the compatible energy evolution scheme?
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
@@ -244,7 +250,7 @@ preStepInitialize(const DataBase<Dim<2>>& dataBase,
   }
 
   // Base class finalization does most of the work.
-  SolidCRKSPHHydroBase<Dimension>::preStepInitialize(dataBase, state, derivs);
+  CRKSPHHydroBase<Dimension>::preStepInitialize(dataBase, state, derivs);
 
   // Now convert back to true masses.
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {

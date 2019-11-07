@@ -46,7 +46,8 @@ SRCTARGETS += \
 	$(srcdir)/computeVoronoiVolume2d.cc
 SRCTARGETS += \
 	$(srcdir)/CRKSPHHydroBaseRZ.cc \
-	$(srcdir)/SolidCRKSPHHydroBaseRZ.cc
+	$(srcdir)/SolidCRKSPHHydroBaseRZ.cc \
+	$(srcdir)/ContinuityVolumePolicyRZ.cc
 endif
 
 ifeq ("yes", "@INST3D@")

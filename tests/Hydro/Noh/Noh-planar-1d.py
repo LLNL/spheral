@@ -149,25 +149,25 @@ commandLine(KernelConstructor = NBSplineKernel,
             writeOutputLabel = True,
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0716703               ,
-            L2rho =   0.0195511               ,
-            Linfrho = 2.31204                 ,
+            L1rho =   0.0721187               ,
+            L2rho =   0.0194475               ,
+            Linfrho = 2.31413                 ,
                                                
-            L1P =     0.0252414               ,
-            L2P =     0.00726533              ,
-            LinfP =   0.962151                ,
+            L1P =     0.0247312               ,
+            L2P =     0.00723664              ,
+            LinfP =   0.96627                 ,
                                                
-            L1v =     0.0394611               ,
-            L2v =     0.0105341               ,
-            Linfv =   0.943421                ,
+            L1v =     0.038586                ,
+            L2v =     0.010437                ,
+            Linfv =   0.945524                ,
                                                
-            L1eps =   0.014242                ,
-            L2eps =   0.00400664              ,
-            Linfeps = 0.435752                ,
+            L1eps =   0.0140768               ,
+            L2eps =   0.00397926              ,
+            Linfeps = 0.437341                ,
                                                
-            L1h =     0.000546767             ,
-            L2h =     0.000131226             ,
-            Linfh =   0.0091463               ,
+            L1h =     0.000552724             ,
+            L2h =     0.000132946             ,
+            Linfh =   0.00917638              ,
 
             tol = 1.0e-5,
 
@@ -351,17 +351,17 @@ packages = [hydro]
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
 q = hydro.Q
-if Cl:
+if not Cl is None:
     q.Cl = Cl
-if Cq:
+if not Cq is None:
     q.Cq = Cq
-if epsilon2:
+if not epsilon2 is None:
     q.epsilon2 = epsilon2
-if Qlimiter:
+if not Qlimiter is None:
     q.limiter = Qlimiter
-if balsaraCorrection:
+if not balsaraCorrection is None:
     q.balsaraShearCorrection = balsaraCorrection
-if QcorrectionOrder:
+if not QcorrectionOrder is None:
     q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")

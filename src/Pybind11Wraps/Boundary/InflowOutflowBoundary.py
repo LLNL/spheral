@@ -28,7 +28,8 @@ as they cross the specified boundary plane."""
     # Constructors
     def pyinit(self,
                dataBase = "DataBase<%(Dimension)s>&",
-               plane = "const GeomPlane<%(Dimension)s>&"):
+               plane = "const GeomPlane<%(Dimension)s>&",
+               empty = ("const bool", "false")):
         "Constructor"
 
     #...........................................................................
@@ -61,6 +62,10 @@ Really we should rename this post-step finalize."""
                        nodeList = "const NodeList<%(Dimension)s>&"):
         "Number of nodes in inflow stencil for the given NodeList"
         return "int"
+
+    def clearStoredValues(self):
+        "Clear out the stored values and ghost nodes"
+        return "void"
 
     #...........................................................................
     @PYB11template("DataType")

@@ -46,9 +46,12 @@ Integrator<Dimension>::Integrator():
   mDtMax(FLT_MAX),
   mDtGrowth(2.0),
   mLastDt(1e-5),
+  mDtMultiplier(1.0),
+  mDtCheckFrac(0.5),
   mCurrentTime(0.0),
   mCurrentCycle(0),
   mVerbose(false),
+  mAllowDtCheck(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
   mRequireOverlapConnectivity(false),
@@ -70,9 +73,12 @@ Integrator(DataBase<Dimension>& dataBase):
   mDtMax(FLT_MAX),
   mDtGrowth(2.0),
   mLastDt(1e-5),
+  mDtMultiplier(1.0),
+  mDtCheckFrac(0.5),
   mCurrentTime(0.0),
   mCurrentCycle(0),
   mVerbose(false),
+  mAllowDtCheck(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
   mRequireOverlapConnectivity(false),
@@ -95,9 +101,12 @@ Integrator(DataBase<Dimension>& dataBase,
   mDtMax(FLT_MAX),
   mDtGrowth(2.0),
   mLastDt(1e-5),
+  mDtMultiplier(1.0),
+  mDtCheckFrac(0.5),
   mCurrentTime(0.0),
   mCurrentCycle(0),
   mVerbose(false),
+  mAllowDtCheck(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
   mDataBasePtr(&dataBase),
@@ -127,6 +136,8 @@ operator=(const Integrator<Dimension>& rhs) {
     mDtMax = rhs.mDtMax;
     mDtGrowth = rhs.mDtGrowth;
     mLastDt = rhs.mLastDt;
+    mDtMultiplier = rhs.mDtMultiplier;
+    mDtCheckFrac = rhs.mDtCheckFrac;
     mCurrentTime = rhs.mCurrentTime;
     mCurrentCycle = rhs.mCurrentCycle;
     mDataBasePtr = rhs.mDataBasePtr;
@@ -135,6 +146,7 @@ operator=(const Integrator<Dimension>& rhs) {
     mUpdateBoundaryFrequency = rhs.mUpdateBoundaryFrequency;
     mCullGhostNodes = rhs.mCullGhostNodes;
     mVerbose = rhs.mVerbose;
+    mAllowDtCheck = rhs.mAllowDtCheck;
     mRequireConnectivity = rhs.mRequireConnectivity;
     mRequireGhostConnectivity = rhs.mRequireGhostConnectivity;
     mRequireOverlapConnectivity = rhs.mRequireOverlapConnectivity;
@@ -146,13 +158,26 @@ operator=(const Integrator<Dimension>& rhs) {
 // step
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 Integrator<Dimension>::
 step(const typename Dimension::Scalar maxTime) {
   DataBase<Dimension>& db = this->accessDataBase();
   State<Dimension> state(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
   StateDerivatives<Dimension> derivs(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
-  this->step(maxTime, state, derivs);
+  auto success = false;
+  auto count = 0;
+  while (not success and count < 10) {
+    ++count;
+    success = this->step(maxTime, state, derivs);
+    if (not success) {
+      if (Process::getRank() == 0) {
+        cerr << "Integrator::step reported unstable timestep -- cutting dt and trying again: " << count << "/10" << endl;
+        mDtMultiplier *= 0.5;
+      }
+    }
+  }
+  mDtMultiplier = 1.0;
+  return success;
 }
 
 //------------------------------------------------------------------------------
@@ -184,8 +209,10 @@ selectDt(const typename Dimension::Scalar dtMin,
     if (dtVote.first > 0.0 and dtVote.first < dt.first) dt = dtVote;
   }
 
-  // In the parallel case we need to find the minimum timestep across all
-  // processors.
+  // Apply any dt scaling due to iteration
+  dt.first *= mDtMultiplier;
+
+  // In the parallel case we need to find the minimum timestep across all processors.
   const Scalar globalDt = allReduce(dt.first, MPI_MIN, Communicator::communicator());
   if (dt.first == globalDt and 
       (verbose() or globalDt < mDtMin)) {
@@ -758,20 +785,6 @@ Integrator<Dimension>::copyGhostState(const State<Dimension>& state0,
        ++itr) {
     x1(itr) = x0(itr);
     H1(itr) = H0(itr);
-  }
-}
-
-//------------------------------------------------------------------------------
-// Advance the set of physics packages to the given time.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Integrator<Dimension>::
-advance(typename Dimension::Scalar goalTime) {
-
-  // Loop and advance the system until the goal time is achieved.
-  while (currentTime() < goalTime) {
-    step(goalTime);
   }
 }
 

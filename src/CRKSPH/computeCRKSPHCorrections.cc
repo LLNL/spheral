@@ -200,6 +200,7 @@ computeLinearCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Sc
                                const FieldList<Dimension, typename Dimension::Tensor>& gradm1,
                                const FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradm2,
                                const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                               const FieldList<Dimension, int>& surfacePoint,
                                FieldList<Dimension, typename Dimension::Scalar>& A,
                                FieldList<Dimension, typename Dimension::Vector>& B,
                                FieldList<Dimension, typename Dimension::Vector>& gradA,
@@ -216,10 +217,13 @@ computeLinearCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Sc
   REQUIRE(gradm1.size() == numNodeLists);
   REQUIRE(gradm2.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
+  REQUIRE(surfacePoint.size() == numNodeLists or surfacePoint.size() == 0);
   REQUIRE(A.size() == numNodeLists);
   REQUIRE(B.size() == numNodeLists);
   REQUIRE(gradA.size() == numNodeLists);
   REQUIRE(gradB.size() == numNodeLists);
+
+  const auto useSurface = (surfacePoint.size() == numNodeLists);
 
   // Walk the FluidNodeLists.
   for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -229,29 +233,39 @@ computeLinearCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Sc
 #pragma omp parallel for
     for (auto i = 0; i < n; ++i) {
 
-      // Based on the moments we can calculate the CRKSPH corrections terms and their gradients.
-      const auto& m1i = m1(nodeListi, i);
-      const auto& m2i = m2(nodeListi, i);
-      const auto  hdet2 = 1.0/FastMath::square(H(nodeListi, i).Determinant());
-      const auto  m2det = m2i.Determinant();
-      const auto  m2inv = abs(m2det) > std::max(1e-80, 1.0e-30*hdet2) ? m2i.Inverse() : SymTensor::zero;
-      const auto  m2invm1 = m2inv*m1(nodeListi, i);
-      const auto  Ainv = m0(nodeListi, i) - m2invm1.dot(m1(nodeListi, i));
-      CHECK(Ainv != 0.0);
-      A(nodeListi, i) = 1.0/Ainv;
-      B(nodeListi, i) = -m2invm1;
-      gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*gradm0(nodeListi, i);
-      gradB(nodeListi, i) = Tensor::zero;
-      for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-        for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-          for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
-            gradA(nodeListi, i)(ii) += A(nodeListi, i)*A(nodeListi, i)*m2inv(jj,kk)*m1(nodeListi, i)(kk)*gradm1(nodeListi, i)(jj,ii);
-            gradA(nodeListi, i)(ii) += A(nodeListi, i)*A(nodeListi, i)*m2inv(jj,kk)*gradm1(nodeListi, i)(kk,ii)*m1(nodeListi, i)(jj);
-            gradB(nodeListi, i)(ii,jj) -= m2inv(ii,kk)*gradm1(nodeListi, i)(kk,jj);
-            for (size_t ll = 0; ll != Dimension::nDim; ++ll) {
-              for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
-                gradA(nodeListi, i)(ii) -= A(nodeListi, i)*A(nodeListi, i)*m2inv(jj,kk)*gradm2(nodeListi, i)(kk,ll,ii)*m2inv(ll,mm)*m1(nodeListi, i)(mm)*m1(nodeListi, i)(jj);
-                gradB(nodeListi, i)(ii,jj) += m2inv(ii,kk)*gradm2(nodeListi, i)(kk,ll,jj)*m2inv(ll,mm)*m1(nodeListi, i)(mm);
+      if (useSurface and surfacePoint(nodeListi, i) != 0) {
+        CHECK(m0(nodeListi, i) != 0.0);
+        A(nodeListi, i) = 1.0/m0(nodeListi, i);
+        B(nodeListi, i) = 0.0;
+        gradA(nodeListi, i) = -FastMath::square(A(nodeListi, i))*gradm0(nodeListi, i);
+        gradB(nodeListi, i).Zero();
+
+      } else {
+
+        // Based on the moments we can calculate the CRKSPH corrections terms and their gradients.
+        const auto& m1i = m1(nodeListi, i);
+        const auto& m2i = m2(nodeListi, i);
+        const auto  hdet2 = 1.0/FastMath::square(H(nodeListi, i).Determinant());
+        const auto  m2det = m2i.Determinant();
+        const auto  m2inv = abs(m2det) > std::max(1e-80, 1.0e-30*hdet2) ? m2i.Inverse() : SymTensor::zero;
+        const auto  m2invm1 = m2inv*m1(nodeListi, i);
+        const auto  Ainv = m0(nodeListi, i) - m2invm1.dot(m1(nodeListi, i));
+        CHECK(Ainv != 0.0);
+        A(nodeListi, i) = 1.0/Ainv;
+        B(nodeListi, i) = -m2invm1;
+        gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*gradm0(nodeListi, i);
+        gradB(nodeListi, i) = Tensor::zero;
+        for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+          for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+            for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
+              gradA(nodeListi, i)(ii) += A(nodeListi, i)*A(nodeListi, i)*m2inv(jj,kk)*m1(nodeListi, i)(kk)*gradm1(nodeListi, i)(jj,ii);
+              gradA(nodeListi, i)(ii) += A(nodeListi, i)*A(nodeListi, i)*m2inv(jj,kk)*gradm1(nodeListi, i)(kk,ii)*m1(nodeListi, i)(jj);
+              gradB(nodeListi, i)(ii,jj) -= m2inv(ii,kk)*gradm1(nodeListi, i)(kk,jj);
+              for (size_t ll = 0; ll != Dimension::nDim; ++ll) {
+                for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
+                  gradA(nodeListi, i)(ii) -= A(nodeListi, i)*A(nodeListi, i)*m2inv(jj,kk)*gradm2(nodeListi, i)(kk,ll,ii)*m2inv(ll,mm)*m1(nodeListi, i)(mm)*m1(nodeListi, i)(jj);
+                  gradB(nodeListi, i)(ii,jj) += m2inv(ii,kk)*gradm2(nodeListi, i)(kk,ll,jj)*m2inv(ll,mm)*m1(nodeListi, i)(mm);
+                }
               }
             }
           }
@@ -277,6 +291,7 @@ computeQuadraticCRKSPHCorrections(const FieldList<Dimension, typename Dimension:
                                   const FieldList<Dimension, typename Dimension::FourthRankTensor>& gradm3,
                                   const FieldList<Dimension, typename Dimension::FifthRankTensor>& gradm4,
                                   const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                                  const FieldList<Dimension, int>& surfacePoint,
                                   FieldList<Dimension, typename Dimension::Scalar>& A,
                                   FieldList<Dimension, typename Dimension::Vector>& B,
                                   FieldList<Dimension, typename Dimension::Tensor>& C,
@@ -299,12 +314,15 @@ computeQuadraticCRKSPHCorrections(const FieldList<Dimension, typename Dimension:
   REQUIRE(gradm3.size() == numNodeLists);
   REQUIRE(gradm4.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
+  REQUIRE(surfacePoint.size() == numNodeLists or surfacePoint.size() == 0);
   REQUIRE(A.size() == numNodeLists);
   REQUIRE(B.size() == numNodeLists);
   REQUIRE(C.size() == numNodeLists);
   REQUIRE(gradA.size() == numNodeLists);
   REQUIRE(gradB.size() == numNodeLists);
   REQUIRE(gradC.size() == numNodeLists);
+
+  const auto useSurface = (surfacePoint.size() == numNodeLists);
 
   // Walk the FluidNodeLists.
   for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -360,31 +378,43 @@ computeQuadraticCRKSPHCorrections(const FieldList<Dimension, typename Dimension:
       // const Tensor Cinv = innerProduct<Dimension>(L2, Qinv);
       // C(nodeListi, i) = abs(Cinv.Determinant()) > 1.0e-15 ? Cinv.Inverse() : Tensor::zero;
 
-      const auto Q = m2i - innerProduct<Dimension>(m1i, innerProduct<Dimension>(m2inv, m3i));
-      solveC(L, Q, C(nodeListi, i));
-      const auto coef = (m1i + innerDoubleProduct<Dimension>(C(nodeListi, i), m3i));
+      if (useSurface and surfacePoint(nodeListi, i) != 0) {
+        CHECK(m0i != 0.0);
+        A(nodeListi, i) = 1.0/m0(nodeListi, i);
+        B(nodeListi, i) = 0.0;
+        C(nodeListi, i).Zero();
+        gradA(nodeListi, i) = -FastMath::square(A(nodeListi, i))*gradm0(nodeListi, i);
+        gradB(nodeListi, i).Zero();
+        gradC(nodeListi, i).Zero();
 
-      B(nodeListi, i) = -innerProduct<Dimension>(coef, m2inv);
-      const auto Ainv = m0i + innerProduct<Dimension>(B(nodeListi, i), m1i) + innerDoubleProduct<Dimension>(C(nodeListi, i), m2i);
-      CHECK(Ainv != 0.0);
-      A(nodeListi, i) = 1.0/Ainv;
-      // Gradients (unfortunately for some gradient terms need to explicitly do for loops (or would need inner product that specified which indices).
+      } else {
 
-      auto gradQ = gradm2(nodeListi, i) - innerProduct<Dimension>(m1i, innerProduct<Dimension>(m2inv, gm3i));
-      auto gradL = innerProduct<Dimension>(m3i, innerProduct<Dimension>(m2inv, gm3i)) - gm4i;
-      for (auto ii = 0; ii < Dimension::nDim; ++ii) {
-        for (auto jj = 0; jj < Dimension::nDim; ++jj) {
-          for (auto kk = 0; kk < Dimension::nDim; ++kk) {
-            for (auto ll = 0; ll < Dimension::nDim; ++ll) {
-              for (auto mm = 0; mm < Dimension::nDim; ++mm) {
-                gradQ(ii,jj,kk) -= gm1i(ll,kk)*m2inv(ll,mm)*m3i(mm,ii,jj);
-                for (auto nn = 0; nn < Dimension::nDim; ++nn) {
-                  for (auto oo = 0; oo < Dimension::nDim; ++oo) {
-                    gradQ(ii,jj,kk) += m1i(ll)*m2inv(ll,mm)*gm2i(mm,nn,kk)*m2inv(nn,oo)*m3i(oo,ii,jj);
-                    gradL(ii,jj,kk,ll,mm) += gm3i(ii,jj,nn,mm)*m2inv(nn,oo)*m3i(oo,kk,ll);
-                    for (auto pp = 0; pp < Dimension::nDim; ++pp) {
-                      for (auto qq = 0; qq < Dimension::nDim; ++qq) {
-                        gradL(ii,jj,kk,ll,mm) -= m3i(ii,jj,nn)*m2inv(nn,oo)*gm2i(oo,pp,mm)*m2inv(pp,qq)*m3i(qq,kk,ll);
+        const auto Q = m2i - innerProduct<Dimension>(m1i, innerProduct<Dimension>(m2inv, m3i));
+        solveC(L, Q, C(nodeListi, i));
+        const auto coef = (m1i + innerDoubleProduct<Dimension>(C(nodeListi, i), m3i));
+
+        B(nodeListi, i) = -innerProduct<Dimension>(coef, m2inv);
+        const auto Ainv = m0i + innerProduct<Dimension>(B(nodeListi, i), m1i) + innerDoubleProduct<Dimension>(C(nodeListi, i), m2i);
+        CHECK(Ainv != 0.0);
+        A(nodeListi, i) = 1.0/Ainv;
+        // Gradients (unfortunately for some gradient terms need to explicitly do for loops (or would need inner product that specified which indices).
+
+        auto gradQ = gradm2(nodeListi, i) - innerProduct<Dimension>(m1i, innerProduct<Dimension>(m2inv, gm3i));
+        auto gradL = innerProduct<Dimension>(m3i, innerProduct<Dimension>(m2inv, gm3i)) - gm4i;
+        for (auto ii = 0; ii < Dimension::nDim; ++ii) {
+          for (auto jj = 0; jj < Dimension::nDim; ++jj) {
+            for (auto kk = 0; kk < Dimension::nDim; ++kk) {
+              for (auto ll = 0; ll < Dimension::nDim; ++ll) {
+                for (auto mm = 0; mm < Dimension::nDim; ++mm) {
+                  gradQ(ii,jj,kk) -= gm1i(ll,kk)*m2inv(ll,mm)*m3i(mm,ii,jj);
+                  for (auto nn = 0; nn < Dimension::nDim; ++nn) {
+                    for (auto oo = 0; oo < Dimension::nDim; ++oo) {
+                      gradQ(ii,jj,kk) += m1i(ll)*m2inv(ll,mm)*gm2i(mm,nn,kk)*m2inv(nn,oo)*m3i(oo,ii,jj);
+                      gradL(ii,jj,kk,ll,mm) += gm3i(ii,jj,nn,mm)*m2inv(nn,oo)*m3i(oo,kk,ll);
+                      for (auto pp = 0; pp < Dimension::nDim; ++pp) {
+                        for (auto qq = 0; qq < Dimension::nDim; ++qq) {
+                          gradL(ii,jj,kk,ll,mm) -= m3i(ii,jj,nn)*m2inv(nn,oo)*gm2i(oo,pp,mm)*m2inv(pp,qq)*m3i(qq,kk,ll);
+                        }
                       }
                     }
                   }
@@ -393,30 +423,29 @@ computeQuadraticCRKSPHCorrections(const FieldList<Dimension, typename Dimension:
             }
           }
         }
-      }
-      gradQ -= innerDoubleProduct<Dimension>(C(nodeListi, i),gradL);//Not really gradQ but gradQ - CgradL 
-      solveGradC(L,gradQ,gradC(nodeListi, i));
-      gradB(nodeListi, i) = -innerProduct<Dimension>(m2inv,(gm1i+innerDoubleProduct<Dimension>(m3i,gradC(nodeListi, i))+innerDoubleProduct<Dimension>(C(nodeListi, i),gm3i)));
-      for (auto ii = 0; ii < Dimension::nDim; ++ii) {
-        for (auto jj = 0; jj < Dimension::nDim; ++jj) {
-          for (auto kk = 0; kk < Dimension::nDim; ++kk) {
-            for (auto ll = 0; ll < Dimension::nDim; ++ll) {
-              for (auto mm = 0; mm < Dimension::nDim; ++mm) {
-                gradB(nodeListi, i)(ii,jj) += coef(kk)*m2inv(kk,ll)*gm2i(ll,mm,jj)*m2inv(mm,ii);
+        gradQ -= innerDoubleProduct<Dimension>(C(nodeListi, i),gradL);//Not really gradQ but gradQ - CgradL 
+        solveGradC(L,gradQ,gradC(nodeListi, i));
+        gradB(nodeListi, i) = -innerProduct<Dimension>(m2inv,(gm1i+innerDoubleProduct<Dimension>(m3i,gradC(nodeListi, i))+innerDoubleProduct<Dimension>(C(nodeListi, i),gm3i)));
+        for (auto ii = 0; ii < Dimension::nDim; ++ii) {
+          for (auto jj = 0; jj < Dimension::nDim; ++jj) {
+            for (auto kk = 0; kk < Dimension::nDim; ++kk) {
+              for (auto ll = 0; ll < Dimension::nDim; ++ll) {
+                for (auto mm = 0; mm < Dimension::nDim; ++mm) {
+                  gradB(nodeListi, i)(ii,jj) += coef(kk)*m2inv(kk,ll)*gm2i(ll,mm,jj)*m2inv(mm,ii);
+                }
               }
             }
           }
         }
+        gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*(gm0i + innerProduct<Dimension>(m1i,gradB(nodeListi, i)) + innerProduct<Dimension>(B(nodeListi, i),gm1i)+innerDoubleProduct<Dimension>(C(nodeListi, i),gm2i)+innerDoubleProduct<Dimension>(m2i,gradC(nodeListi, i)));
+
+        // cerr << " --> " << i << " " 
+        //      << A(nodeListi,i)*(m0i + B(nodeListi, i).dot(m1i) + innerDoubleProduct<Dimension>(C(nodeListi, i), m2i)) << " "
+        //      << A(nodeListi,i)*(m1i + innerProduct<Dimension>(B(nodeListi, i), m2i) + innerDoubleProduct<Dimension>(C(nodeListi, i), m3i)) << " "
+        //      << A(nodeListi,i)*(m2i + innerProduct<Dimension>(B(nodeListi, i), m3i) + innerDoubleProduct<Dimension>(C(nodeListi, i), m4i)) << endl
+        //      << "     " << m0i << " " << m1i << " " << m2i << " " << m3i << " " << m4i << endl
+        //      << "     " << A(nodeListi,i) << " " << B(nodeListi,i) << " " << C(nodeListi, i) << endl;
       }
-      gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*(gm0i + innerProduct<Dimension>(m1i,gradB(nodeListi, i)) + innerProduct<Dimension>(B(nodeListi, i),gm1i)+innerDoubleProduct<Dimension>(C(nodeListi, i),gm2i)+innerDoubleProduct<Dimension>(m2i,gradC(nodeListi, i)));
-
-      // cerr << " --> " << i << " " 
-      //      << A(nodeListi,i)*(m0i + B(nodeListi, i).dot(m1i) + innerDoubleProduct<Dimension>(C(nodeListi, i), m2i)) << " "
-      //      << A(nodeListi,i)*(m1i + innerProduct<Dimension>(B(nodeListi, i), m2i) + innerDoubleProduct<Dimension>(C(nodeListi, i), m3i)) << " "
-      //      << A(nodeListi,i)*(m2i + innerProduct<Dimension>(B(nodeListi, i), m3i) + innerDoubleProduct<Dimension>(C(nodeListi, i), m4i)) << endl
-      //      << "     " << m0i << " " << m1i << " " << m2i << " " << m3i << " " << m4i << endl
-      //      << "     " << A(nodeListi,i) << " " << B(nodeListi,i) << " " << C(nodeListi, i) << endl;
-
     }
   }
 }
@@ -653,6 +682,7 @@ computeCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Scalar>&
                          const FieldList<Dimension, typename Dimension::FourthRankTensor>& gradm3,
                          const FieldList<Dimension, typename Dimension::FifthRankTensor>& gradm4,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                         const FieldList<Dimension, int>& surfacePoint,
                          const CRKOrder correctionOrder,
                          FieldList<Dimension, typename Dimension::Scalar>& A,
                          FieldList<Dimension, typename Dimension::Vector>& B,
@@ -663,9 +693,9 @@ computeCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Scalar>&
   if(correctionOrder == CRKOrder::ZerothOrder){
     computeZerothCRKSPHCorrections(m0,gradm0,A,gradA);
   }else if(correctionOrder == CRKOrder::LinearOrder){
-    computeLinearCRKSPHCorrections(m0,m1,m2,gradm0,gradm1,gradm2,H,A,B,gradA,gradB);
+    computeLinearCRKSPHCorrections(m0,m1,m2,gradm0,gradm1,gradm2,H,surfacePoint,A,B,gradA,gradB);
   }else if(correctionOrder == CRKOrder::QuadraticOrder){
-    computeQuadraticCRKSPHCorrections(m0,m1,m2,m3,m4,gradm0,gradm1,gradm2,gradm3,gradm4,H,A,B,C,gradA,gradB,gradC);
+    computeQuadraticCRKSPHCorrections(m0,m1,m2,m3,m4,gradm0,gradm1,gradm2,gradm3,gradm4,H,surfacePoint,A,B,C,gradA,gradB,gradC);
   }
 }
 

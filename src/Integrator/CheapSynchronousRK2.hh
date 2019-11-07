@@ -37,15 +37,15 @@ public:
   CheapSynchronousRK2& operator=(const CheapSynchronousRK2& rhs);
 
   // All Integrators are required to provide the single cycle method.
-  virtual void step(Scalar maxTime,
+  virtual bool step(Scalar maxTime,
                     State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivs);
+                    StateDerivatives<Dimension>& derivs) override;
 
   // We need to make the simpler form of step visible!
   using Integrator<Dimension>::step;
 
   // Restart methods.
-  virtual std::string label() const { return "CheapSynchronousRK2"; }
+  virtual std::string label() const override { return "CheapSynchronousRK2"; }
 
 private:
   //--------------------------- Private Interface ---------------------------//

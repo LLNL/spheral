@@ -108,6 +108,15 @@ resetValues(Field<Dimension, DataType>& field,
 }
 
 //------------------------------------------------------------------------------
+// Clear the values in the storage
+//------------------------------------------------------------------------------
+template<typename DataType>
+void
+clearValues(std::map<std::string, std::vector<DataType> >& values) {
+  for (auto& pairvals: values) pairvals.second.clear();
+}
+
+//------------------------------------------------------------------------------
 // Copy Field values of the given DataType from control to target IDs.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
@@ -150,7 +159,8 @@ copyFieldValues(NodeList<Dimension>& nodeList,
 template<typename Dimension>
 InflowOutflowBoundary<Dimension>::
 InflowOutflowBoundary(DataBase<Dimension>& dataBase,
-                      const GeomPlane<Dimension>& plane):
+                      const GeomPlane<Dimension>& plane,
+                      const bool empty):
   Boundary<Dimension>(),
   Physics<Dimension>(),
   mDataBase(dataBase),
@@ -158,6 +168,7 @@ InflowOutflowBoundary(DataBase<Dimension>& dataBase,
   mBoundaryCount(dataBase.numNodeLists()),
   mDT(1e100),
   mActive(false),
+  mEmpty(empty),
   mNumInflowNodes(),
   mXmin(),
   mIntValues(),
@@ -448,6 +459,7 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
       // We use those to create a stencil of the in/outflow conditions.
       const auto& nhat = mPlane.normal();
       auto nodeIDs = findNodesTouchingThroughPlanes(nodeList, mPlane, mPlane, 1.0);
+      if (mEmpty) nodeIDs.clear();
 
       // Remove any ghost nodes from other BCs.
       const auto firstGhostNode = nodeList.firstGhostNode();
@@ -690,6 +702,24 @@ InflowOutflowBoundary<Dimension>::storedKeys() const {
   for (const auto& pairs: mVectorScalarValues)    result.push_back(pairs.first);
   for (const auto& pairs: mVectorVectorValues)    result.push_back(pairs.first);
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Clear the stored values.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+InflowOutflowBoundary<Dimension>::clearStoredValues() {
+  for (auto& stuff: mNumInflowNodes) stuff.second = 0;
+  clearValues(mIntValues);
+  clearValues(mScalarValues);
+  clearValues(mVectorValues);
+  clearValues(mTensorValues);
+  clearValues(mSymTensorValues);
+  clearValues(mThirdRankTensorValues);
+  clearValues(mFacetedVolumeValues);
+  clearValues(mVectorScalarValues);
+  clearValues(mVectorVectorValues);
 }
 
 //------------------------------------------------------------------------------
