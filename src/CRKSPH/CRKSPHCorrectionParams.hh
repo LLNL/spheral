@@ -7,7 +7,8 @@ namespace Spheral {
 enum class CRKOrder : int {//Used to assign the order of the corrections
   ZerothOrder = 0,
   LinearOrder = 1,
-  QuadraticOrder = 2
+  QuadraticOrder = 2,
+  CubicOrder = 3,
 };
 
 enum class CRKVolumeType : int { // Choices for the CRK volume weighting
