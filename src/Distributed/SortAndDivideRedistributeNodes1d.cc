@@ -5,7 +5,7 @@
 // Created by JMO, Wed Nov 24 10:51:32 2004
 //----------------------------------------------------------------------------//
 #include "SortAndDivideRedistributeNodes1d.hh"
-#include "DomainNode.hh"
+#include "Utilities/DomainNode.hh"
 #include "BoundingVolumeDistributedBoundary.hh"
 #include "Boundary/Boundary.hh"
 #include "DataBase/DataBase.hh"

@@ -597,7 +597,8 @@ class SpheralController:
         for dim in dims:
             exec("""
 precedeDistributed += [PeriodicBoundary%(dim)sd,
-                       ConstantBoundary%(dim)sd]
+                       ConstantBoundary%(dim)sd,
+                       InflowOutflowBoundary%(dim)sd]
 """ % {"dim" : dim})
 
         # Check if this is a parallel process or not.
@@ -671,8 +672,8 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
             try:
                 #self.redistribute = eval("ParmetisRedistributeNodes%s(W.kernelExtent)" % self.dim)
                 #self.redistribute = eval("SortAndDivideRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                #self.redistribute = eval("PeanoHilbertOrderRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                self.redistribute = eval("VoronoiRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                self.redistribute = eval("PeanoHilbertOrderRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                #self.redistribute = eval("VoronoiRedistributeNodes%s(W.kernelExtent)" % self.dim)
             except:
                 print "Warning: this appears to be a parallel run, but Controller cannot construct"
                 print "         dynamic redistributer."
@@ -716,6 +717,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         db = self.integrator.dataBase
         db.updateConnectivityMap(False)
         bcs = self.integrator.uniqueBoundaryConditions()
+        self.integrator.setGhostNodes()
         self.vizMethod(self.integrator,
                        baseFileName = self.vizBaseName,
                        baseDirectory = self.vizDir,

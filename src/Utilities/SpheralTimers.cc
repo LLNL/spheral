@@ -89,6 +89,7 @@ Timer TIME_ConnectivityMap_computeOverlapConnectivity("ConnectivityMap::computeO
 // CRKSPH
 //------------------------------------------------------------------------------
 Timer TIME_CRKSPH_editMultimaterialSurfaceTopology("CRKSPH editMultimaterialSurfaceTopology", TIME_Spheral);
+Timer TIME_interpolateCRKSPH("RK interpolation standalone function", TIME_Spheral);
 
 // //------------------------------------------------------------------------------
 // // Second order predictor corrector integrator

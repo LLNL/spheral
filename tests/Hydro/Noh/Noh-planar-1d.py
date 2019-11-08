@@ -62,6 +62,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             mu = 1.0,
 
             solid = False,    # If true, use the fluid limit of the solid hydro option
+            inflow = False,   # Should we impose inflow boundaries?
 
             svph = False,
             crksph = False,
@@ -419,8 +420,20 @@ if hourglass:
 if x0 == xwall:
     xPlane0 = Plane(Vector(0.0), Vector(1.0))
     xbc0 = ReflectingBoundary(xPlane0)
-    for p in packages:
-        p.appendBoundary(xbc0)
+    bcs = [xbc0]
+
+if inflow:
+    right_inflow = InflowOutflowBoundary(db, Plane(Vector(x1), Vector(-1)))
+    bcs.append(right_inflow)
+    packages.append(right_inflow)
+    if x0 != xwall:
+        left_inflow = InflowOutflowBoundary(db, Plane(Vector(x0), Vector(1)))
+        bcs.append(left_inflow)
+        packages.append(left_inflow)
+
+for p in packages:
+    for bc in bcs:
+        p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
 # Construct an integrator.

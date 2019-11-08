@@ -10,7 +10,7 @@
 #ifndef __Spheral_PartitionSpace_CompareDomainNodesByPosition_hh__
 #define __Spheral_PartitionSpace_CompareDomainNodesByPosition_hh__
 
-#include "DomainNode.hh"
+#include "Utilities/DomainNode.hh"
 
 namespace Spheral {
 

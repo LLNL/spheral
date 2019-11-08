@@ -10,6 +10,7 @@
 
 #include "Utilities/KeyTraits.hh"
 #include "Field/FieldList.hh"
+#include "NodePairList.hh"
 
 #include <vector>
 #include <map>
@@ -63,6 +64,7 @@ public:
 
   // Get the set of NodeLists.
   const std::vector<const NodeList<Dimension>*>& nodeLists() const;
+  const NodePairList& nodePairList() const;
 
   //............................................................................
   // Get the set of neighbors for the given (internal!) node in the given NodeList.
@@ -160,6 +162,9 @@ private:
   typedef std::vector<std::vector<std::vector<int>>> ConnectivityStorageType;
   std::vector<int> mOffsets;
   ConnectivityStorageType mConnectivity;
+
+  // List of Node conncetion pairs.
+  NodePairList mNodePairList;
 
   // Same for overlap connectivity.
   ConnectivityStorageType mOverlapConnectivity;
