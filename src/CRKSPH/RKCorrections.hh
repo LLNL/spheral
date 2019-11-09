@@ -125,6 +125,7 @@ private:
   FieldList<Dimension, std::vector<Vector>> mEtaVoidPoints;
   FieldList<Dimension, FacetedVolume> mCells;
   FieldList<Dimension, std::vector<CellFaceFlag>> mCellFaceFlags;
+  FieldList<Dimension, Vector> mDeltaCentroid;
   
 }; // end RKCorrections
 

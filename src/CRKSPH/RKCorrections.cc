@@ -7,6 +7,7 @@
 
 #include <limits>
 #include "computeRKCorrections.hh"
+#include "computeRKVolumes.hh"
 #include "Boundary/Boundary.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
@@ -88,10 +89,15 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     mGradA = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradA_CRKSPH);
     mHessA = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::hessA_CRKSPH);
   }
-
+  
   // Initialize the Voronoi stuff
   mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
   mEtaVoidPoints = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::etaVoidPoints);
+  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    mCells = dataBase.newFluidFieldList(FacetedVolume(), HydroFieldNames::cells);
+    mCellFaceFlags = dataBase.newFluidFieldList(vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
+  }
+  mDeltaCentroid = dataBase.newFluidFieldList(Vector::zero, "delta centroid");
   
   // Get some more data
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -99,40 +105,16 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
   const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
   const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
-
+  FieldList<Dimension, SymTensor> damage;
+  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    damage = dataBase.solidEffectiveDamage();
+  }
+  
   // Compute the volumes
-  if (mVolumeType == CRKVolumeType::CRKMassOverDensity) {
-    mVolume.assignFields(mass/massDensity);
-  }
-  else if (mVolumeType == CRKVolumeType::CRKSumVolume) {
-    computeCRKSPHSumVolume(connectivityMap, mW, position, mass, H, mVolume);
-  }
-  else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
-    mCells = dataBase.newFluidFieldList(FacetedVolume(), HydroFieldNames::cells);
-    mCellFaceFlags = dataBase.newFluidFieldList(vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
-    mVolume.assignFields(mass/massDensity);
-    const FieldList<Dimension, typename Dimension::SymTensor> damage = dataBase.solidEffectiveDamage();
-    computeVoronoiVolume(position, H, connectivityMap, damage,
-                         vector<typename Dimension::FacetedVolume>(),               // no boundaries
-                         vector<vector<typename Dimension::FacetedVolume> >(),      // no holes
-                         vector<Boundary<Dimension>*>(this->boundaryBegin(),        // boundaries
-                                                      this->boundaryEnd()),
-                         FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
-                         mSurfacePoint, mVolume, mDeltaCentroid, mEtaVoidPoints,    // return values
-                         mCells,                                                    // return cells
-                         mCellFaceFlags);                                           // node cell multimaterial faces
-  }
-  else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
-    computeHullVolumes(connectivityMap, mW.kernelExtent(), position, H, mVolume);
-  }
-  else if (mVolumeType == CRKVolumeType::HVolume) {
-    const Scalar nPerh = mVolume.nodeListPtrs()[0]->nodesPerSmoothingScale();
-    computeHVolumes(nPerh, H, mVolume);
-  }
-  else {
-    VERIFY2(false, "Unknown CRK volume weighting.");
-  }
-
+  computeRKVolumes(connectivityMap, mW, position, mass, massDensity, H, damage, mVolumeType,
+                   mSurfacePoint, mDeltaCentroid, mEtaVoidPoints, mCells, mCellFaceFlags,
+                   mVolume);
+  
   // Apply boundaries to newly computed terms
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -144,10 +126,11 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     }
   }
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+       boundItr != this->boundaryEnd(); ++boundItr) {
+    (*boundItr)->finalizeGhostBoundary();
+  }
   
-  // Compute the corrections
+  // Compute corrections
   computeRKCorrections(connectivityMap, mW, mVolume, position, H, mCorrectionOrder,
                        mA, mGradA, mHessA, mB, mGradB, mHessB,
                        mC, mGradC, mHessC, mD, mGradD, mHessD);
@@ -176,11 +159,12 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mHessC);
   state.enroll(mHessD);
   
+  state.enroll(mSurfacePoint);
+  state.enroll(mEtaVoidPoints);
   if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     state.enroll(mCells);
     state.enroll(mCellFaceFlags);
   }
-  state.enroll(mSurfacePoint);
 }
 
 //------------------------------------------------------------------------------
@@ -201,7 +185,43 @@ void
 RKCorrections<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
-  // 
+  // Get state variables
+  auto vol = state.fields(HydroFieldNames::volume, 0.0);
+  auto A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
+  auto B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
+  auto C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
+  auto D = state.fields(HydroFieldNames::D_CRKSPH, ThirdRankTensor::zero);
+  auto gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
+  auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
+  auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  auto gradD = state.fields(HydroFieldNames::gradD_CRKSPH, FourthRankTensor::zero);
+  auto hessA = state.fields(HydroFieldNames::hessA_CRKSPH, Tensor::zero);
+  auto hessB = state.fields(HydroFieldNames::hessB_CRKSPH, ThirdRankTensor::zero);
+  auto hessC = state.fields(HydroFieldNames::hessC_CRKSPH, FourthRankTensor::zero);
+  auto hessD = state.fields(HydroFieldNames::hessD_CRKSPH, FifthRankTensor::zero);
+  auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  auto etaVoidPoints = state.fields(HydroFieldNames::etaVoidPoints, vector<Vector>());
+
+  // Apply ghost boundary conditions
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->applyFieldListGhostBoundary(vol);
+    (*boundaryItr)->applyFieldListGhostBoundary(A);
+    (*boundaryItr)->applyFieldListGhostBoundary(B);
+    (*boundaryItr)->applyFieldListGhostBoundary(C);
+    (*boundaryItr)->applyFieldListGhostBoundary(D);
+    (*boundaryItr)->applyFieldListGhostBoundary(gradA);
+    (*boundaryItr)->applyFieldListGhostBoundary(gradB);
+    (*boundaryItr)->applyFieldListGhostBoundary(gradC);
+    (*boundaryItr)->applyFieldListGhostBoundary(gradD);
+    (*boundaryItr)->applyFieldListGhostBoundary(hessA);
+    (*boundaryItr)->applyFieldListGhostBoundary(hessB);
+    (*boundaryItr)->applyFieldListGhostBoundary(hessC);
+    (*boundaryItr)->applyFieldListGhostBoundary(hessD);
+    (*boundaryItr)->applyFieldListGhostBoundary(surfacePoint);
+    (*boundaryItr)->applyFieldListGhostBoundary(etaVoidPoints);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -212,7 +232,39 @@ void
 RKCorrections<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
-  //
+  // Get state variables
+  auto vol = state.fields(HydroFieldNames::volume, 0.0);
+  auto A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
+  auto B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
+  auto C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
+  auto D = state.fields(HydroFieldNames::D_CRKSPH, ThirdRankTensor::zero);
+  auto gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
+  auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
+  auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  auto gradD = state.fields(HydroFieldNames::gradD_CRKSPH, FourthRankTensor::zero);
+  auto hessA = state.fields(HydroFieldNames::hessA_CRKSPH, Tensor::zero);
+  auto hessB = state.fields(HydroFieldNames::hessB_CRKSPH, ThirdRankTensor::zero);
+  auto hessC = state.fields(HydroFieldNames::hessC_CRKSPH, FourthRankTensor::zero);
+  auto hessD = state.fields(HydroFieldNames::hessD_CRKSPH, FifthRankTensor::zero);
+
+  // Enforce boundary conditions
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->enforceFieldListBoundary(vol);
+    (*boundaryItr)->enforceFieldListBoundary(A);
+    (*boundaryItr)->enforceFieldListBoundary(B);
+    (*boundaryItr)->enforceFieldListBoundary(C);
+    (*boundaryItr)->enforceFieldListBoundary(D);
+    (*boundaryItr)->enforceFieldListBoundary(gradA);
+    (*boundaryItr)->enforceFieldListBoundary(gradB);
+    (*boundaryItr)->enforceFieldListBoundary(gradC);
+    (*boundaryItr)->enforceFieldListBoundary(gradD);
+    (*boundaryItr)->enforceFieldListBoundary(hessA);
+    (*boundaryItr)->enforceFieldListBoundary(hessB);
+    (*boundaryItr)->enforceFieldListBoundary(hessC);
+    (*boundaryItr)->enforceFieldListBoundary(hessD);
+  }    
 }
 
 //------------------------------------------------------------------------------
@@ -229,7 +281,7 @@ dt(const DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Compute new RK corrections
+// Compute new volumes
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -237,7 +289,97 @@ RKCorrections<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
-  // 
+  // Get data
+  const auto& W = this->kernel();
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto  damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+  const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  auto volume = state.fields(HydroFieldNames::volume, 0.0);
+  auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  FieldList<Dimension, FacetedVolume> cells;
+  FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
+  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    cells = state.fields(HydroFieldNames::cells, FacetedVolume());
+    cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, vector<CellFaceFlag>());
+  }
+  
+  // Compute volumes
+  computeRKVolumes(connectivityMap, W, position, mass, massDensity, H, damage, mVolumeType,
+                   surfacePoint, mDeltaCentroid, mEtaVoidPoints, cells, cellFaceFlags,
+                   volume);
+  
+  // Apply ghost boundaries to Voronoi stuff
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(vol);
+    if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+      (*boundItr)->applyFieldListGhostBoundary(cells);
+      (*boundItr)->applyFieldListGhostBoundary(surfacePoint);
+      (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
+    }
+  }
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  
+}
+
+//------------------------------------------------------------------------------
+// Compute new RK corrections
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+RKCorrections<Dimension>::
+initialize(const typename Dimension::Scalar time,
+           const typename Dimension::Scalar dt,
+           const DataBase<Dimension>& dataBase,
+           State<Dimension>& state,
+           StateDerivatives<Dimension>& derivs) {
+  // Get data
+  const auto& W = this->kernel();
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto volume = state.fields(HydroFieldNames::volume, 0.0);
+  auto A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
+  auto B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
+  auto C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
+  auto D = state.fields(HydroFieldNames::D_CRKSPH, ThirdRankTensor::zero);
+  auto gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
+  auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
+  auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  auto gradD = state.fields(HydroFieldNames::gradD_CRKSPH, FourthRankTensor::zero);
+  auto hessA = state.fields(HydroFieldNames::hessA_CRKSPH, Tensor::zero);
+  auto hessB = state.fields(HydroFieldNames::hessB_CRKSPH, ThirdRankTensor::zero);
+  auto hessC = state.fields(HydroFieldNames::hessC_CRKSPH, FourthRankTensor::zero);
+  auto hessD = state.fields(HydroFieldNames::hessD_CRKSPH, FifthRankTensor::zero);
+  
+  // Compute corrections
+  computeRKCorrections(connectivityMap, W, volume, position, H, mCorrectionOrder,
+                       A, gradA, hessA, B, gradB, hessB,
+                       C, gradC, hessC, D, gradD, hessD);
+  
+  // Apply ghost boundaries to corrections
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->applyFieldListGhostBoundary(A);
+    (*boundaryItr)->applyFieldListGhostBoundary(B);
+    (*boundaryItr)->applyFieldListGhostBoundary(C);
+    (*boundaryItr)->applyFieldListGhostBoundary(D);
+    (*boundaryItr)->applyFieldListGhostBoundary(gradA);
+    (*boundaryItr)->applyFieldListGhostBoundary(gradB);
+    (*boundaryItr)->applyFieldListGhostBoundary(gradC);
+    (*boundaryItr)->applyFieldListGhostBoundary(gradD);
+    (*boundaryItr)->applyFieldListGhostBoundary(hessA);
+    (*boundaryItr)->applyFieldListGhostBoundary(hessB);
+    (*boundaryItr)->applyFieldListGhostBoundary(hessC);
+    (*boundaryItr)->applyFieldListGhostBoundary(hessD);
+  }
 }
 
 //------------------------------------------------------------------------------
