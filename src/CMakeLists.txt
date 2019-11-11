@@ -20,9 +20,9 @@ set(_packages
   Kernel
   Material
   Mesh
-  MHD
+  #MHD
   Neighbor
-  NodeGenerators
+  #NodeGenerators
   NodeList
   Physics
   #Utilities
@@ -35,3 +35,4 @@ message("${SPHERAL_PYTHON_DEPENDS}")
 
 
 add_subdirectory(Pybind11Wraps/ArtificialConduction)
+add_subdirectory(Pybind11Wraps/CXXTypes)

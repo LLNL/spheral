@@ -58,6 +58,7 @@ endmacro()
 # internal macros to generate the source file lists
 #
 macro(PYB11_GENERATE_BINDINGS)
+  set(PYB11_GENERATED_SOURCE)
   list(APPEND PYB11_SOURCE "${PYB11_MODULE_NAME}MOD.py")
   list(APPEND PYB11_GENERATED_SOURCE "${PYB11_MODULE_NAME}.cc")
   add_custom_command(
