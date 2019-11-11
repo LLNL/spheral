@@ -1,45 +1,47 @@
-set(Utility_inst
-    Bessel
+set(Utilities_inst
+    #Bessel
     boundingBox
-    buildMessage
-    clipFacetedVolume
-    coarsenBinnedValues
-    coarsenBinnedValuesInst
+    #buildMessage
+    #coarsenBinnedValues
     #computeConvexHull
     computeShepardsInterpolation
-    DBC
     globalBoundingVolumes
     integrateThroughMeshAlongSegment
     iterateIdealH
-    KeyTraits
-    lineSegmentIntersections
     medianPosition
     mortonOrderIndices
     nodeBoundingBoxes
     nodeOrdering
     numberDensity
-    overlayRemapFields
+    #overlayRemapFields
     peanoHilbertOrderIndices
+    #SpheralTimers
+    #SpheralTimersAlternate
+    #Timer
+    )
+
+set(Utilitiy_sources
+    DBC
+    Process
+    KeyTraits
     PeanoHilbertTransform
+    RegisterMPIDataTypes
+    RedistributionRegistrar
+    vectorBoundingBoxInst
+    lineSegmentIntersections
+    segmentIntersectEdges
     pointInPolygon
     pointInPolyhedron
     pointOnPolygon
     pointOnPolyhedron
-    Process
-    RedistributionRegistrar
     refinePolyhedron
-    RegisterMPIDataTypes
-    segmentIntersectEdges
-    SpheralTimers
-    SpheralTimersAlternate
-    Timer
-    vectorBoundingBoxInst
-    )
+    coarsenBinnedValuesInst
+    clipFacetedVolume
+  )
 
-set(Utilitiy_sources )
-instantiate(Utility_inst Utility_sources)
+instantiate(Utilities_inst Utilities_sources)
 
-set(Utility_headers
+set(Utilities_headers
     allReduce.hh
     Bessel.hh
     bisectRoot.hh
@@ -115,24 +117,25 @@ set(Utility_headers
     TreeInline.hh
     )
 
-set(Utility_includes
+set(Utilities_includes
   ${SPHERAL_SOURCE_DIR}
+  ${SPHERAL_SOURCE_DIR}/Utilities
   ${EIGEN_LIB_LOCATION}
   )
 
-blt_add_library(NAME	    Spheral_Utility
-		HEADERS     ${Utility_headers}
-		SOURCES     ${Utility_sources}
-		DEPENDS_ON  ${spheral_depends}
-		INCLUDES    ${Utility_includes}
-		)
+blt_add_library(NAME        Spheral_Utilities
+                HEADERS     ${Utilities_headers}
+                SOURCES     ${Utilities_sources}
+                DEPENDS_ON  ${spheral_depends}
+                INCLUDES    ${Utilities_includes}
+                )
 
-install(TARGETS		    Spheral_Utility
-	EXPORT		    ${PROJECT_NAME}-targets
-	DESTINATION	    lib
-	INCLUDES DESTINATION include
-	)
+install(TARGETS             Spheral_Utilities
+        EXPORT              ${PROJECT_NAME}-targets
+        DESTINATION         lib
+        INCLUDES DESTINATION include
+        )
 
-install(FILES	    ${Utility_headers}
-	DESTINATION include/Utility
-	)	
+install(FILES       ${Utilities_headers}
+        DESTINATION include/Utilities
+        )       

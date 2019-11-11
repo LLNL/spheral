@@ -25,7 +25,7 @@ set(_packages
   #NodeGenerators
   NodeList
   Physics
-  #Utilities
+  Utilities
   )
 
 foreach(_package ${_packages})
@@ -36,3 +36,4 @@ message("${SPHERAL_PYTHON_DEPENDS}")
 
 add_subdirectory(Pybind11Wraps/ArtificialConduction)
 add_subdirectory(Pybind11Wraps/CXXTypes)
+add_subdirectory(Pybind11Wraps/Geometry)
