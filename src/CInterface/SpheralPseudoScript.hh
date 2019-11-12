@@ -158,7 +158,9 @@ public:
                                 double*        latticeDensity);
 
   static void fillVolume(const int*     nnodes,
+                         const int*     nfaces,
                          const double** coords,
+                         const int*     conn,
                          const double   spacing,
                          double*        volume,
                          int*           nparticles,

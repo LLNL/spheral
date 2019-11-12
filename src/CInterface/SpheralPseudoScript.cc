@@ -1172,7 +1172,9 @@ template<typename Dimension>
 void
 SpheralPseudoScript<Dimension>::
 fillVolume(const int*     nnodes,
+           const int*     nfaces,
            const double** coords,
+           const int*     conn,
            const double   spacing,
            double*        volume,
            int*           nparticles,
@@ -1180,10 +1182,19 @@ fillVolume(const int*     nnodes,
 
   if (Dimension::nDim == 3) {
     std::vector< Dim<3>::Vector > nodeVec;
+    std::vector< std::vector<unsigned> > faceVec;
     for (int i = 0 ; i < nnodes[0] ; ++i) {
       nodeVec.push_back(Dim<3>::Vector(coords[0][i], coords[1][i], coords[2][i]));
     }
-    Dim<3>::FacetedVolume mesh(nodeVec);
+    for (int i = 0 ; i < nfaces[0] ; ++i) {
+      std::vector<unsigned> faceSet;
+      int offset = 3*i;
+      faceSet.push_back(conn[offset+0]);
+      faceSet.push_back(conn[offset+1]);
+      faceSet.push_back(conn[offset+2]);
+      faceVec.push_back(faceSet);
+    }
+    Dim<3>::FacetedVolume mesh(nodeVec, faceVec);
     std::vector< Dim<3>::Vector > sphNodes = fillFacetedVolume2(mesh, spacing, 0, 1);
     volume[0] = mesh.volume();
     nparticles[0] = sphNodes.size();
