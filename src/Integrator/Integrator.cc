@@ -475,46 +475,26 @@ template<typename Dimension>
 void
 Integrator<Dimension>::setGhostNodes() {
 
-//   // Start our work timer.
-//   typedef Timing::Time Time;
-//   const Time start = Timing::currentTime();
-
   // Get that DataBase.
-  DataBase<Dimension>& db = accessDataBase();
+  auto& db = accessDataBase();
 
   // Remove any old ghost node information from the NodeLists.
-  for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
-       nodeListItr != db.fluidNodeListEnd(); 
-       ++nodeListItr) {
+  for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd(); ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
     (*nodeListItr)->neighbor().updateNodes();
   }
 
   // Get the complete set of unique boundary conditions.
-  const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
+  const auto boundaries = uniqueBoundaryConditions();
 
   // Iterate over the boundaries and set their ghost node info.
-  for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
-       boundaryItr != boundaries.end();
-       ++boundaryItr) {
+  for (auto boundaryItr = boundaries.begin(); boundaryItr != boundaries.end(); ++boundaryItr) {
     (*boundaryItr)->setAllGhostNodes(db);
     (*boundaryItr)->finalizeGhostBoundary();
-    for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
-         nodeListItr != db.fluidNodeListEnd(); 
-         ++nodeListItr) {
+    for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd();  ++nodeListItr) {
       (*nodeListItr)->neighbor().updateNodes();
     }
   }
-
-  //   // Update the work per node fields.
-  //   double deltaLocal = Timing::difference(start, Timing::currentTime());
-  //   int numLocalNodes = 0;
-  //   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = db.nodeListBegin();
-  //        nodeListItr != db.nodeListEnd(); 
-  //        ++nodeListItr) numLocalNodes += (*nodeListItr)->numInternalNodes();
-  //   const double workPerNode = deltaLocal/(numLocalNodes + 1.0e-30);
-  //   FieldList<Dimension, Scalar> work = db.globalWork();
-  //   work += workPerNode;
 
   if (mRequireConnectivity) {
 
@@ -526,15 +506,14 @@ Integrator<Dimension>::setGhostNodes() {
         (not this->domainDecompositionIndependent()) and
         (not mRequireGhostConnectivity) and
         (not mRequireOverlapConnectivity)) {
+      const auto numNodeLists = db.numNodeLists();
+      const auto& cm = db.connectivityMap();
 
       // First build the set of flags indicating which nodes are used.
-      FieldList<Dimension, int> flags = db.newGlobalFieldList(int(0), "active nodes");
-      const ConnectivityMap<Dimension>& cm = db.connectivityMap();
-      int nodeListi = 0;
-      for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = db.nodeListBegin();
-           nodeListItr != db.nodeListEnd(); 
-           ++nodeListItr, ++nodeListi) {
-        const NodeList<Dimension>& nodeList = **nodeListItr;
+      FieldList<Dimension, int> flags = db.newGlobalFieldList(0, "active nodes");
+      auto nodeListi = 0;
+      for (auto nodeListItr = db.nodeListBegin(); nodeListItr < db.nodeListEnd(); ++nodeListItr, ++nodeListi) {
+        const auto& nodeList = **nodeListItr;
         for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
           flags(nodeListi, i) = 1;
           const vector<vector<int> >& fullConnectivity = cm.connectivityForNode(&nodeList, i);
@@ -548,18 +527,19 @@ Integrator<Dimension>::setGhostNodes() {
 
         // Ghost nodes that are control nodes for other ghost nodes we're keeping must
         // be kept as well.
-        const size_t firstGhostNode = nodeList.firstGhostNode();
-        for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
-             boundaryItr != boundaries.end();
-             ++boundaryItr) {
-          const Boundary<Dimension>& boundary = **boundaryItr;
-          const vector<int>& controlNodes = boundary.controlNodes(nodeList);
-          const vector<int>& ghostNodes = boundary.ghostNodes(nodeList);
+        const auto firstGhostNode = nodeList.firstGhostNode();
+        for (auto boundaryItr = boundaries.begin(); boundaryItr < boundaries.end(); ++boundaryItr) {
+          const auto& boundary = **boundaryItr;
+          const auto& controlNodes = boundary.controlNodes(nodeList);
+          const auto& ghostNodes = boundary.ghostNodes(nodeList);
           // CHECK(controlNodes.size() == ghostNodes.size());  // Not true if this is a DistributedBoundary!
-          for (size_t k = 0; k != controlNodes.size(); ++k) {
-            if (controlNodes[k] >= firstGhostNode) { //  and flags(nodeListi, ghostNodes[k]) == 1)
-              flags(nodeListi, controlNodes[k]) = 1;
-            }
+          for (auto i: controlNodes) {
+            if (i >= firstGhostNode) flags(nodeListi, i) = 1;
+          }
+
+          // Boundary conditions are allowed to opt out of culling entirely.
+          if (not boundary.allowGhostCulling()) {
+            for (auto i: ghostNodes) flags(nodeListi, i) = 1;
           }
         }
       }
@@ -567,19 +547,14 @@ Integrator<Dimension>::setGhostNodes() {
       // Create the index mapping from old to new node orderings.
       FieldList<Dimension, int> old2newIndexMap = db.newGlobalFieldList(int(0), "index map");
       nodeListi = 0;
-      for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = db.nodeListBegin();
-           nodeListItr != db.nodeListEnd(); 
-           ++nodeListItr, ++nodeListi) {
-        const int numNodes = (**nodeListItr).numNodes();
+      for (auto nodeListItr = db.nodeListBegin(); nodeListItr < db.nodeListEnd(); ++nodeListItr, ++nodeListi) {
+        const auto numNodes = (**nodeListItr).numNodes();
         for (int i = 0; i != numNodes; ++i) old2newIndexMap(nodeListi, i) = i;
       }
 
       // Now use these flags to cull the boundary conditions.
-      const size_t numNodeLists = db.numNodeLists();
       vector<int> numNodesRemoved(numNodeLists, 0);
-      for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
-           boundaryItr != boundaries.end();
-           ++boundaryItr) {
+      for (auto boundaryItr = boundaries.begin(); boundaryItr < boundaries.end(); ++boundaryItr) {
         (*boundaryItr)->cullGhostNodes(flags, old2newIndexMap, numNodesRemoved);
       }
 
@@ -589,12 +564,10 @@ Integrator<Dimension>::setGhostNodes() {
       // Now the boundary conditions have been updated, so we can go ahead and remove
       // the ghost nodes themselves from the NodeLists.
       nodeListi = 0;
-      for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = db.nodeListBegin();
-           nodeListItr != db.nodeListEnd(); 
-           ++nodeListItr, ++nodeListi) {
-        NodeList<Dimension>& nodeList = **nodeListItr;
+      for (auto nodeListItr = db.nodeListBegin(); nodeListItr < db.nodeListEnd(); ++nodeListItr, ++nodeListi) {
+        auto& nodeList = **nodeListItr;
         vector<int> nodesToRemove;
-        for (size_t i = nodeList.firstGhostNode(); i != nodeList.numNodes(); ++i) {
+        for (auto i = nodeList.firstGhostNode(); i < nodeList.numNodes(); ++i) {
           if (flags(nodeListi, i) == 0) nodesToRemove.push_back(i);
         }
         nodeList.deleteNodes(nodesToRemove);
@@ -604,7 +577,7 @@ Integrator<Dimension>::setGhostNodes() {
       // All nodes should now be labeled as keepers.
       BEGIN_CONTRACT_SCOPE
       {
-        for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+        for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
           ENSURE(flags[nodeListi]->numElements() == 0 or
                  *min_element(flags[nodeListi]->begin(), flags[nodeListi]->end()) == 1);
         }

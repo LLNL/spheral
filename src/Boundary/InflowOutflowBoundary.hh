@@ -87,6 +87,10 @@ public:
 
   // After physics have been initialized we take a snapshot of the node state.
   virtual void initializeProblemStartup() override;
+
+  // We need to not cull ghost nodes, since they might need to cross the boundary
+  // and become new inflow nodes.
+  virtual bool allowGhostCulling() const override { return false; }
   //**********************************************************************
 
   //**********************************************************************
