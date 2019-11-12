@@ -14,6 +14,8 @@ template<typename Dimension, typename DataType> class FieldList;
 
 namespace Spheral {
 
+template<typename Dimension> class Boundary;
+
 template<typename Dimension>
 void
 computeRKVolumes(const ConnectivityMap<Dimension>& connectivityMap,
@@ -23,6 +25,7 @@ computeRKVolumes(const ConnectivityMap<Dimension>& connectivityMap,
                  const FieldList<Dimension, typename Dimension::Scalar>& massDensity,
                  const FieldList<Dimension, typename Dimension::SymTensor>& H,
                  const FieldList<Dimension, typename Dimension::SymTensor>& damage,
+                 const std::vector<Boundary<Dimension>*>& boundaryConditions,
                  const CRKVolumeType volumeType,
                  FieldList<Dimension, int>& surfacePoint,
                  FieldList<Dimension, typename Dimension::Vector>& deltaCentroid,

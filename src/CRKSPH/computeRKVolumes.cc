@@ -2,6 +2,12 @@
 // Compute the RK volumes
 //------------------------------------------------------------------------------
 #include "computeRKVolumes.hh"
+
+#include <vector>
+#include "computeVoronoiVolume.hh"
+#include "computeHullVolumes.hh"
+#include "computeCRKSPHSumVolume.hh"
+#include "computeHVolumes.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
@@ -23,6 +29,7 @@ computeRKVolumes(const ConnectivityMap<Dimension>& connectivityMap,
                  const FieldList<Dimension, typename Dimension::Scalar>& massDensity,
                  const FieldList<Dimension, typename Dimension::SymTensor>& H,
                  const FieldList<Dimension, typename Dimension::SymTensor>& damage,
+                 const std::vector<Boundary<Dimension>*>& boundaryConditions,
                  const CRKVolumeType volumeType,
                  FieldList<Dimension, int>& surfacePoint,
                  FieldList<Dimension, typename Dimension::Vector>& deltaCentroid,
@@ -30,26 +37,27 @@ computeRKVolumes(const ConnectivityMap<Dimension>& connectivityMap,
                  FieldList<Dimension, typename Dimension::FacetedVolume>& cells,
                  FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags,
                  FieldList<Dimension, typename Dimension::Scalar>& volume) {
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::FacetedVolume FacetedVolume;
+  
   if (volumeType == CRKVolumeType::CRKMassOverDensity) {
     volume.assignFields(mass/massDensity);
   }
   else if (volumeType == CRKVolumeType::CRKSumVolume) {
-    computeCRKSPHSumVolume(connectivityMap, mW, position, mass, H, volume);
+    computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, volume);
   }
   else if (volumeType == CRKVolumeType::CRKVoronoiVolume) {
+    std::vector<std::vector<FacetedVolume>> holes;
+    std::vector<FacetedVolume> facetedBoundaries;
+    FieldList<Dimension, typename Dimension::Scalar> weights;
     volume.assignFields(mass/massDensity);
     computeVoronoiVolume(position, H, connectivityMap, damage,
-                         vector<typename Dimension::FacetedVolume>(),               // no boundaries
-                         vector<vector<typename Dimension::FacetedVolume> >(),      // no holes
-                         vector<Boundary<Dimension>*>(this->boundaryBegin(),        // boundaries
-                                                      this->boundaryEnd()),
-                         FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
-                         mSurfacePoint, volume, mDeltaCentroid, mEtaVoidPoints,    // return values
-                         mCells,                                                    // return cells
-                         mCellFaceFlags);                                           // node cell multimaterial faces
+                         facetedBoundaries, holes, boundaryConditions, weights,
+                         surfacePoint, volume, deltaCentroid, etaVoidPoints,
+                         cells, cellFaceFlags); 
   }
   else if (volumeType == CRKVolumeType::CRKHullVolume) {
-    computeHullVolumes(connectivityMap, mW.kernelExtent(), position, H, volume);
+    computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, volume);
   }
   else if (volumeType == CRKVolumeType::HVolume) {
     const Scalar nPerh = volume.nodeListPtrs()[0]->nodesPerSmoothingScale();

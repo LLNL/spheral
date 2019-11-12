@@ -14,7 +14,8 @@
 #include "DataBase/StateDerivatives.hh"
 #include "FileIO/FileIO.hh"
 #include "Kernel/TableKernel.hh"
-#include "LLNLPhysics/LLNLFieldNames.hh"
+#include "Hydro/HydroFieldNames.hh"
+#include "Strength/SolidFieldNames.hh"
 
 namespace Spheral {
 
@@ -48,7 +49,6 @@ RKCorrections(const DataBase<Dimension>& dataBase,
   mEtaVoidPoints(FieldStorageType::CopyFields),
   mCells(FieldStorageType::CopyFields),
   mCellFaceFlags(FieldStorageType::CopyFields),
-  mVoidBoundary(mSurfacePoint, mEtaVoidPoints),
   mRestart(registerWithRestart(*this)) {
 }
 
@@ -73,29 +73,29 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Initialize correction terms based on order
   switch (mCorrectionOrder) {
   case CRKOrder::CubicOrder:
-    mD = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::D_CRKSPH);
-    mGradD = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::gradD_CRKSPH);
-    mHessD = dataBase.newFluidFieldList(FifthRankTensor::zero, HydroFieldNames::hessD_CRKSPH);
+    mD = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::D_RK);
+    mGradD = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::gradD_RK);
+    mHessD = dataBase.newFluidFieldList(FifthRankTensor::zero, HydroFieldNames::hessD_RK);
   case CRKOrder::QuadraticOrder:
-    mC = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::C_CRKSPH);
-    mGradC = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradC_CRKSPH);
-    mHessC = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::hessC_CRKSPH);
+    mC = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::C_RK);
+    mGradC = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradC_RK);
+    mHessC = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::hessC_RK);
   case CRKOrder::LinearOrder:
-    mB = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::B_CRKSPH);
-    mGradB = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::gradB_CRKSPH);
-    mHessB = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::hessB_CRKSPH);
+    mB = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::B_RK);
+    mGradB = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::gradB_RK);
+    mHessB = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::hessB_RK);
   default:
-    mA = dataBase.newFluidFieldList(0.0, HydroFieldNames::A_CRKSPH);
-    mGradA = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradA_CRKSPH);
-    mHessA = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::hessA_CRKSPH);
+    mA = dataBase.newFluidFieldList(0.0, HydroFieldNames::A_RK);
+    mGradA = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradA_RK);
+    mHessA = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::hessA_RK);
   }
   
   // Initialize the Voronoi stuff
   mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
-  mEtaVoidPoints = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::etaVoidPoints);
+  mEtaVoidPoints = dataBase.newFluidFieldList(std::vector<Vector>(), HydroFieldNames::etaVoidPoints);
   if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     mCells = dataBase.newFluidFieldList(FacetedVolume(), HydroFieldNames::cells);
-    mCellFaceFlags = dataBase.newFluidFieldList(vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
+    mCellFaceFlags = dataBase.newFluidFieldList(std::vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
   }
   mDeltaCentroid = dataBase.newFluidFieldList(Vector::zero, "delta centroid");
   
@@ -111,7 +111,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   }
   
   // Compute the volumes
-  computeRKVolumes(connectivityMap, mW, position, mass, massDensity, H, damage, mVolumeType,
+  computeRKVolumes(connectivityMap, mW,
+                   position, mass, massDensity, H, damage,
+                   this->boundaryConditions(), mVolumeType,
                    mSurfacePoint, mDeltaCentroid, mEtaVoidPoints, mCells, mCellFaceFlags,
                    mVolume);
   
@@ -187,20 +189,20 @@ applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
   // Get state variables
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
-  auto A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
-  auto B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-  auto C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
-  auto D = state.fields(HydroFieldNames::D_CRKSPH, ThirdRankTensor::zero);
-  auto gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
-  auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-  auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
-  auto gradD = state.fields(HydroFieldNames::gradD_CRKSPH, FourthRankTensor::zero);
-  auto hessA = state.fields(HydroFieldNames::hessA_CRKSPH, Tensor::zero);
-  auto hessB = state.fields(HydroFieldNames::hessB_CRKSPH, ThirdRankTensor::zero);
-  auto hessC = state.fields(HydroFieldNames::hessC_CRKSPH, FourthRankTensor::zero);
-  auto hessD = state.fields(HydroFieldNames::hessD_CRKSPH, FifthRankTensor::zero);
+  auto A = state.fields(HydroFieldNames::A_RK, 0.0);
+  auto B = state.fields(HydroFieldNames::B_RK, Vector::zero);
+  auto C = state.fields(HydroFieldNames::C_RK, Tensor::zero);
+  auto D = state.fields(HydroFieldNames::D_RK, ThirdRankTensor::zero);
+  auto gradA = state.fields(HydroFieldNames::gradA_RK, Vector::zero);
+  auto gradB = state.fields(HydroFieldNames::gradB_RK, Tensor::zero);
+  auto gradC = state.fields(HydroFieldNames::gradC_RK, ThirdRankTensor::zero);
+  auto gradD = state.fields(HydroFieldNames::gradD_RK, FourthRankTensor::zero);
+  auto hessA = state.fields(HydroFieldNames::hessA_RK, Tensor::zero);
+  auto hessB = state.fields(HydroFieldNames::hessB_RK, ThirdRankTensor::zero);
+  auto hessC = state.fields(HydroFieldNames::hessC_RK, FourthRankTensor::zero);
+  auto hessD = state.fields(HydroFieldNames::hessD_RK, FifthRankTensor::zero);
   auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
-  auto etaVoidPoints = state.fields(HydroFieldNames::etaVoidPoints, vector<Vector>());
+  auto etaVoidPoints = state.fields(HydroFieldNames::etaVoidPoints, std::vector<Vector>());
 
   // Apply ghost boundary conditions
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
@@ -234,18 +236,18 @@ enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   // Get state variables
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
-  auto A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
-  auto B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-  auto C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
-  auto D = state.fields(HydroFieldNames::D_CRKSPH, ThirdRankTensor::zero);
-  auto gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
-  auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-  auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
-  auto gradD = state.fields(HydroFieldNames::gradD_CRKSPH, FourthRankTensor::zero);
-  auto hessA = state.fields(HydroFieldNames::hessA_CRKSPH, Tensor::zero);
-  auto hessB = state.fields(HydroFieldNames::hessB_CRKSPH, ThirdRankTensor::zero);
-  auto hessC = state.fields(HydroFieldNames::hessC_CRKSPH, FourthRankTensor::zero);
-  auto hessD = state.fields(HydroFieldNames::hessD_CRKSPH, FifthRankTensor::zero);
+  auto A = state.fields(HydroFieldNames::A_RK, 0.0);
+  auto B = state.fields(HydroFieldNames::B_RK, Vector::zero);
+  auto C = state.fields(HydroFieldNames::C_RK, Tensor::zero);
+  auto D = state.fields(HydroFieldNames::D_RK, ThirdRankTensor::zero);
+  auto gradA = state.fields(HydroFieldNames::gradA_RK, Vector::zero);
+  auto gradB = state.fields(HydroFieldNames::gradB_RK, Tensor::zero);
+  auto gradC = state.fields(HydroFieldNames::gradC_RK, ThirdRankTensor::zero);
+  auto gradD = state.fields(HydroFieldNames::gradD_RK, FourthRankTensor::zero);
+  auto hessA = state.fields(HydroFieldNames::hessA_RK, Tensor::zero);
+  auto hessB = state.fields(HydroFieldNames::hessB_RK, ThirdRankTensor::zero);
+  auto hessC = state.fields(HydroFieldNames::hessC_RK, FourthRankTensor::zero);
+  auto hessD = state.fields(HydroFieldNames::hessD_RK, FifthRankTensor::zero);
 
   // Enforce boundary conditions
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
@@ -300,14 +302,16 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   auto volume = state.fields(HydroFieldNames::volume, 0.0);
   auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   FieldList<Dimension, FacetedVolume> cells;
-  FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
+  FieldList<Dimension, std::vector<CellFaceFlag>> cellFaceFlags;
   if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     cells = state.fields(HydroFieldNames::cells, FacetedVolume());
-    cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, vector<CellFaceFlag>());
+    cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, std::vector<CellFaceFlag>());
   }
   
   // Compute volumes
-  computeRKVolumes(connectivityMap, W, position, mass, massDensity, H, damage, mVolumeType,
+  computeRKVolumes(connectivityMap, W,
+                   position, mass, massDensity, H, damage,
+                   this->boundaryConditions(), mVolumeType,
                    surfacePoint, mDeltaCentroid, mEtaVoidPoints, cells, cellFaceFlags,
                    volume);
   
@@ -315,7 +319,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
-    (*boundItr)->applyFieldListGhostBoundary(vol);
+    (*boundItr)->applyFieldListGhostBoundary(volume);
     if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
       (*boundItr)->applyFieldListGhostBoundary(cells);
       (*boundItr)->applyFieldListGhostBoundary(surfacePoint);
@@ -345,18 +349,18 @@ initialize(const typename Dimension::Scalar time,
   const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto volume = state.fields(HydroFieldNames::volume, 0.0);
-  auto A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
-  auto B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-  auto C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
-  auto D = state.fields(HydroFieldNames::D_CRKSPH, ThirdRankTensor::zero);
-  auto gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
-  auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-  auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
-  auto gradD = state.fields(HydroFieldNames::gradD_CRKSPH, FourthRankTensor::zero);
-  auto hessA = state.fields(HydroFieldNames::hessA_CRKSPH, Tensor::zero);
-  auto hessB = state.fields(HydroFieldNames::hessB_CRKSPH, ThirdRankTensor::zero);
-  auto hessC = state.fields(HydroFieldNames::hessC_CRKSPH, FourthRankTensor::zero);
-  auto hessD = state.fields(HydroFieldNames::hessD_CRKSPH, FifthRankTensor::zero);
+  auto A = state.fields(HydroFieldNames::A_RK, 0.0);
+  auto B = state.fields(HydroFieldNames::B_RK, Vector::zero);
+  auto C = state.fields(HydroFieldNames::C_RK, Tensor::zero);
+  auto D = state.fields(HydroFieldNames::D_RK, ThirdRankTensor::zero);
+  auto gradA = state.fields(HydroFieldNames::gradA_RK, Vector::zero);
+  auto gradB = state.fields(HydroFieldNames::gradB_RK, Tensor::zero);
+  auto gradC = state.fields(HydroFieldNames::gradC_RK, ThirdRankTensor::zero);
+  auto gradD = state.fields(HydroFieldNames::gradD_RK, FourthRankTensor::zero);
+  auto hessA = state.fields(HydroFieldNames::hessA_RK, Tensor::zero);
+  auto hessB = state.fields(HydroFieldNames::hessB_RK, ThirdRankTensor::zero);
+  auto hessC = state.fields(HydroFieldNames::hessC_RK, FourthRankTensor::zero);
+  auto hessD = state.fields(HydroFieldNames::hessD_RK, FifthRankTensor::zero);
   
   // Compute corrections
   computeRKCorrections(connectivityMap, W, volume, position, H, mCorrectionOrder,
@@ -417,18 +421,18 @@ RKCorrections<Dimension>::
 dumpState(FileIO& file, const std::string& pathName) const {
   file.write(mVolume, pathName + "/Volume");
   
-  file.write(mA, pathName + "/A");
-  file.write(mA, pathName + "/B");
-  file.write(mA, pathName + "/C");
-  file.write(mA, pathName + "/D");
-  file.write(mGradA, pathName + "/gradA");
-  file.write(mGradB, pathName + "/gradB");
-  file.write(mGradC, pathName + "/gradC");
-  file.write(mGradD, pathName + "/gradD");
-  file.write(mHessA, pathName + "/hessA");
-  file.write(mHessB, pathName + "/hessB");
-  file.write(mHessC, pathName + "/hessC");
-  file.write(mHessD, pathName + "/hessD");
+  // file.write(mA, pathName + "/A");
+  // file.write(mA, pathName + "/B");
+  // file.write(mA, pathName + "/C");
+  // file.write(mA, pathName + "/D");
+  // file.write(mGradA, pathName + "/gradA");
+  // file.write(mGradB, pathName + "/gradB");
+  // file.write(mGradC, pathName + "/gradC");
+  // file.write(mGradD, pathName + "/gradD");
+  // file.write(mHessA, pathName + "/hessA");
+  // file.write(mHessB, pathName + "/hessB");
+  // file.write(mHessC, pathName + "/hessC");
+  // file.write(mHessD, pathName + "/hessD");
 }
 
 //------------------------------------------------------------------------------
@@ -440,18 +444,18 @@ RKCorrections<Dimension>::
 restoreState(const FileIO& file, const std::string& pathName) {
   file.read(mVolume, pathName + "/Volume");
   
-  file.read(mA, pathName + "/A");
-  file.read(mA, pathName + "/B");
-  file.read(mA, pathName + "/C");
-  file.read(mA, pathName + "/D");
-  file.read(mGradA, pathName + "/gradA");
-  file.read(mGradB, pathName + "/gradB");
-  file.read(mGradC, pathName + "/gradC");
-  file.read(mGradD, pathName + "/gradD");
-  file.read(mHessA, pathName + "/hessA");
-  file.read(mHessB, pathName + "/hessB");
-  file.read(mHessC, pathName + "/hessC");
-  file.read(mHessD, pathName + "/hessD");
+  // file.read(mA, pathName + "/A");
+  // file.read(mA, pathName + "/B");
+  // file.read(mA, pathName + "/C");
+  // file.read(mA, pathName + "/D");
+  // file.read(mGradA, pathName + "/gradA");
+  // file.read(mGradB, pathName + "/gradB");
+  // file.read(mGradC, pathName + "/gradC");
+  // file.read(mGradD, pathName + "/gradD");
+  // file.read(mHessA, pathName + "/hessA");
+  // file.read(mHessB, pathName + "/hessB");
+  // file.read(mHessC, pathName + "/hessC");
+  // file.read(mHessD, pathName + "/hessD");
 }
 
 } // end namespace Spheral

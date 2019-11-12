@@ -81,6 +81,18 @@ struct HydroFieldNames {
   static const std::string ArtificialViscousClMultiplier;
   static const std::string ArtificialViscousCqMultiplier;
   static const std::string specificHeat;
+  static const std::string A_RK;
+  static const std::string B_RK;
+  static const std::string C_RK;
+  static const std::string D_RK;
+  static const std::string gradA_RK;
+  static const std::string gradB_RK;
+  static const std::string gradC_RK;
+  static const std::string gradD_RK;
+  static const std::string hessA_RK;
+  static const std::string hessB_RK;
+  static const std::string hessC_RK;
+  static const std::string hessD_RK;
 };
 
 }

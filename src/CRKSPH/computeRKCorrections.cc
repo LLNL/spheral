@@ -13,12 +13,48 @@
 
 namespace Spheral {
 
-template<typename Dimension>
-using SixthRankTensor = std::array<typename Dimension::FifthRankTensor, typename Dimension::nDim>;
-template<typename Dimension>
-using SeventhRankTensor = std::array<typename Dimension::SixthRankTensor, typename Dimension::nDim>;
-template<typename Dimension>
-using EighthRankTensor = std::array<typename Dimension::SeventhRankTensor, typename Dimension::nDim>;
+// template<int nDim>
+// class GeomSixthRankTensor : public RankNTensor<nDim, 6, SixthRankTensor<nDim> {
+// public:
+//   typedef typename RankNTensor<nDim, 6, GeomSixthRankTensor>::size_type size_type;
+//   static const size_type numElements;
+  
+//   // Useful static member data.
+//   static const GeomFourthRankTensor zero;
+  
+//   // Constructor
+//   SixthRankTensor():
+//     RankNTensor<nDim, 5, GeomFifthRankTensor>() {
+//   }
+//   SixthRankTensor(const double val):
+//     RankNTensor<nDim, 5, GeomFifthRankTensor>(val) {
+//   }
+  
+//   double operator()(const size_type i, const size_type j, const size_type l, const size_type m, const size_type n, const size_type o) {
+//     REQUIRE(i < nDim and j < nDim and k < nDim and m < nDim and n < nDim and o < nDim);
+//     return mElements[((((i*nDim + j)*nDim + k)*nDim + m)*nDim + n)*nDim + o];
+//   }
+  
+//   double& operator()(const size_type i, const size_type j, const size_type l, const size_type m, const size_type n, const size_type o) {
+//     REQUIRE(i < nDim and j < nDim and k < nDim and m < nDim and n < nDim and o < nDim);
+//     return mElements[((((i*nDim + j)*nDim + k)*nDim + m)*nDim + n)*nDim + o];
+//   }
+// }
+  
+// template<> const unsigned GeomSixthRankTensor<1>::numElements = 1;
+// template<> const GeomSixthRankTensor<1> GeomSixthRankTensor<1>::zero = GeomSixthRankTensor<1>(0.0);
+// template<> const unsigned GeomSixthRankTensor<2>::numElements = 64;
+// template<> const GeomSixthRankTensor<2> GeomSixthRankTensor<2>::zero = GeomSixthRankTensor<2>(0.0);
+// template<> const unsigned GeomSixthRankTensor<3>::numElements = 729;
+// template<> const GeomSixthRankTensor<3> GeomSixthRankTensor<3>::zero = GeomSixthRankTensor<3>(0.0);
+    
+
+// template<typename Dimension>
+// using SixthRankTensor = 
+// template<typename Dimension>
+// using SeventhRankTensor = std::array<double, Dimension::nDim * Dimension::nDim * Dimension::nDim * Dimension::nDim * Dimension::nDim * Dimension::nDim * Dimension::nDim>;
+// template<typename Dimension>
+// using EighthRankTensor = std::array<double, Dimension::nDim * Dimension::nDim * Dimension::nDim * Dimension::nDim * Dimension::nDim * Dimension::nDim * Dimension::nDim>;
 
 //------------------------------------------------------------------------------
 // Struct to carry around the moment values
@@ -28,39 +64,39 @@ struct RKMomentValues {
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef typename Dimension::FourthRankTensor FourthRankTensor;
-  typedef typename Dimension::FifthRankTensor FifthRankTensor;
-  typedef typename SixthRankTensor<Dimension> SixthRankTensor;
-  typedef typename SeventhRankTensor<Dimension> SeventhRankTensor;
-  typedef typename EightRankTensor<Dimension> EighthRankTensor;
+  typedef typename Dimension::ThirdRankTensor Tensor3;
+  typedef typename Dimension::FourthRankTensor Tensor4;
+  typedef typename Dimension::FifthRankTensor Tensor5;
+  typedef SixthRankTensor<Dimension> Tensor6;
+  typedef SeventhRankTensor<Dimension> Tensor7;
+  typedef EighthRankTensor<Dimension> Tensor8;
 
   // Moments
   Scalar m0;
   Vector m1;
   Tensor m2;
-  ThirdRankTensor m3;
-  FourthRankTensor m4;
-  FifthRankTensor m5;
-  SixthRankTensor m6;
+  Tensor3 m3;
+  Tensor4 m4;
+  Tensor5 m5;
+  Tensor6 m6;
 
   // Gradients
   Vector dm0;
   Tensor dm1;
-  ThirdRankTensor dm2;
-  FourthRankTensor dm3;
-  FifthRankTensor dm4;
-  SixthRankTensor dm5;
-  SeventhRankTensor dm6;
+  Tensor3 dm2;
+  Tensor4 dm3;
+  Tensor5 dm4;
+  Tensor6 dm5;
+  Tensor7 dm6;
 
   // Hessians
   Tensor ddm0;
-  ThirdRankTensor ddm1;
-  FourthRankTensor ddm2;
-  FifthRankTensor ddm3;
-  SixthRankTensor ddm4;
-  SeventhRankTensor ddm5;
-  EighthRankTensor ddm6;
+  Tensor3 ddm1;
+  Tensor4 ddm2;
+  Tensor5 ddm3;
+  Tensor6 ddm4;
+  Tensor7 ddm5;
+  Tensor8 ddm6;
 };
 
 //------------------------------------------------------------------------------
@@ -296,7 +332,7 @@ addToMomentsCubic(const typename Dimension::Vector& eta,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-computeZerothCorrections(const RKMomentValues& moments,
+computeZerothCorrections(const RKMomentValues<Dimension>& moments,
                          typename Dimension::Scalar& a,
                          typename Dimension::Vector& da,
                          typename Dimension::Tensor& dda) {
@@ -308,12 +344,12 @@ computeZerothCorrections(const RKMomentValues& moments,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-computeLinearCorrections(const RKMomentValues& moments,
-                        typename Dimension::Scalar& a,
-                        typename Dimension::Vector& b,
-                        typename Dimension::Vector& da,
-                        typename Dimension::Tensor& db,
-                        typename Dimension::Tensor& dda,
+computeLinearCorrections(const RKMomentValues<Dimension>& moments,
+                         typename Dimension::Scalar& a,
+                         typename Dimension::Vector& b,
+                         typename Dimension::Vector& da,
+                         typename Dimension::Tensor& db,
+                         typename Dimension::Tensor& dda,
                          typename Dimension::ThirdRankTensor& ddb) {
   constexpr auto dim = Dimension::nDim;
   
@@ -369,7 +405,7 @@ computeLinearCorrections(const RKMomentValues& moments,
   }
   
   // Solve for derivatives
-  rhs.setZero()
+  rhs.setZero();
   for (auto k1 = 0; k1 < dim; ++k1) {
     // Row 0 
     rhs(0) -= a*dm0[k1];
@@ -387,7 +423,7 @@ computeLinearCorrections(const RKMomentValues& moments,
     }
 
     // Solve
-    VectorType solution = solver.solve(vector);
+    VectorType solution = solver.solve(rhs);
 
     // Get result
     da[k1] = solution(0);
@@ -417,7 +453,7 @@ computeLinearCorrections(const RKMomentValues& moments,
       }
 
       // Solve
-      solution = solver.solve(vector);
+      VectorType solution = solver.solve(rhs);
 
       // Get result
       dda[k1][k2] = solution(0);
@@ -434,7 +470,7 @@ computeLinearCorrections(const RKMomentValues& moments,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-computeQuadraticCorrections(const RKMomentValues& moments,
+computeQuadraticCorrections(const RKMomentValues<Dimension>& moments,
                             typename Dimension::Scalar& a,
                             typename Dimension::Vector& b,
                             typename Dimension::Tensor& c,
@@ -452,7 +488,7 @@ computeQuadraticCorrections(const RKMomentValues& moments,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-computeCubicCorrections(const RKMomentValues& moments,
+computeCubicCorrections(const RKMomentValues<Dimension>& moments,
                         typename Dimension::Scalar& a,
                         typename Dimension::Vector& b,
                         typename Dimension::Tensor& c,
@@ -497,19 +533,19 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
   switch (correctionOrder) {
-  case CRKOrder::Cubic:
+  case CRKOrder::CubicOrder:
     REQUIRE(D.size() == numNodeLists);
     REQUIRE(gradD.size() == numNodeLists);
     REQUIRE(hessD.size() == numNodeLists);
-  case CRKOrder::Quadratic:
+  case CRKOrder::QuadraticOrder:
     REQUIRE(C.size() == numNodeLists);
     REQUIRE(gradC.size() == numNodeLists);
     REQUIRE(hessC.size() == numNodeLists);
-  case CRKOrder::Linear:
+  case CRKOrder::LinearOrder:
     REQUIRE(B.size() == numNodeLists);
     REQUIRE(gradB.size() == numNodeLists);
     REQUIRE(hessB.size() == numNodeLists);
-  case CRKOrder::Zeroth:
+  case CRKOrder::ZerothOrder:
     REQUIRE(A.size() == numNodeLists);
     REQUIRE(gradA.size() == numNodeLists);
     REQUIRE(hessA.size() == numNodeLists);
@@ -526,7 +562,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       // Calculate M values
       const auto& connectivity = connectivityMap.connectivityForNode(nodeListi, nodei);
       for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
-        (auto nodej : connectivity[nodeListj]) {
+        for (auto nodej : connectivity[nodeListj]) {
           // Get kernel values
           const auto eta = ;
           const auto gradEta = ;
@@ -534,20 +570,20 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const auto Wij = ;
           const auto gradWij = ;
           const auto hessWij = ;
-          const auto vij = ;
+          const auto vj = volume(nodeListj, nodej);
 
           switch (correctionOrder) {
-          case CRKOrder::Zeroth:
-            addToMomentsZeroth(eta, gradEta, hessEta, Wij, gradWij, hessWij, vij, moments);
+          case CRKOrder::ZerothOrder:
+            addToMomentsZeroth(eta, gradEta, hessEta, Wij, gradWij, hessWij, vj, moments);
             break;
-          case CRKOrder::Linear:
-            addToMomentsLinear(eta, gradEta, hessEta, Wij, gradWij, hessWij, vij, moments);
+          case CRKOrder::LinearOrder:
+            addToMomentsLinear(eta, gradEta, hessEta, Wij, gradWij, hessWij, vj, moments);
             break;
-          case CRKOrder::Quadratic:
-            addToMomentsQuadratic(eta, gradEta, hessEta, Wij, gradWij, hessWij, vij, moments);
+          case CRKOrder::QuadraticOrder:
+            addToMomentsQuadratic(eta, gradEta, hessEta, Wij, gradWij, hessWij, vj, moments);
             break;
-          case CRKOrder::Cubic:
-            addToMomentsCubic(eta, gradEta, hessEta, Wij, gradWij, hessWij, vij, moments);
+          case CRKOrder::CubicOrder:
+            addToMomentsCubic(eta, gradEta, hessEta, Wij, gradWij, hessWij, vj, moments);
             break;
           }
         }
@@ -555,27 +591,28 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Calculate conditions
       switch (correctionOrder) {
-      case CRKOrder::Zeroth:
+      case CRKOrder::ZerothOrder:
         computeZerothCorrections(moments,
                                  A(nodeListi, nodei), gradA(nodeListi, nodei), hessA(nodeListi, nodei));
         break;
-      case CRKOrder::Linear:
+      case CRKOrder::LinearOrder:
         computeLinearCorrections(moments,
-                                 A(nodeListi, nodei), gradA(nodeListi, nodei), hessA(nodeListi, nodei)
-                                 B(nodeListi, nodei), gradB(nodeListi, nodei), hessB(nodeListi,nodei));
+                                 A(nodeListi, nodei), B(nodeListi, nodei),
+                                 gradA(nodeListi, nodei), gradB(nodeListi, nodei),
+                                 hessA(nodeListi, nodei), hessB(nodeListi, nodei));
           break;
-      case CRKOrder::Quadratic:
+      case CRKOrder::QuadraticOrder:
         computeQuadraticCorrections(moments,
-                                    A(nodeListi, nodei), gradA(nodeListi, nodei), hessA(nodeListi, nodei),
-                                    B(nodeListi, nodei), gradB(nodeListi, nodei), hessB(nodeListi,nodei),
-                                    C(nodeListi, nodei), gradC(nodeListi, nodei), hessC(nodeListi,nodei));
+                                    A(nodeListi, nodei), B(nodeListi, nodei), C(nodeListi, nodei),
+                                    gradA(nodeListi, nodei), gradB(nodeListi, nodei), gradC(nodeListi, nodei),
+                                    hessA(nodeListi, nodei), hessB(nodeListi, nodei), hessC(nodeListi, nodei));
+                                    
         break;
-      case CRKOrder::Cubic:
+      case CRKOrder::CubicOrder:
         computeCubicCorrections(moments,
-                                A(nodeListi, nodei), gradA(nodeListi, nodei), hessA(nodeListi, nodei),
-                                B(nodeListi, nodei), gradB(nodeListi, nodei), hessB(nodeListi,nodei),
-                                C(nodeListi, nodei), gradC(nodeListi, nodei), hessC(nodeListi,nodei),
-                                D(nodeListi, nodei), gradD(nodeListi, nodei), hessD(nodeListi,nodei));
+                                A(nodeListi, nodei), B(nodeListi, nodei), C(nodeListi, nodei), D(nodeListi, nodei),
+                                gradA(nodeListi, nodei), gradB(nodeListi, nodei), gradC(nodeListi, nodei), gradD(nodeListi, nodei),
+                                hessA(nodeListi, nodei), hessB(nodeListi, nodei), hessC(nodeListi, nodei), hessD(nodeListi, nodei));
         break;
       }
     } // nodei

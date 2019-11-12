@@ -15,6 +15,7 @@ template void computeRKVolumes(const ConnectivityMap<Dim<%(ndim)s>>& connectivit
                                const FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Scalar>& massDensity,
                                const FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::SymTensor>& H,
                                const FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::SymTensor>& damage,
+                               const std::vector<Boundary<Dim<%(ndim)s>>*>& boundaryConditions,
                                const CRKVolumeType volumeType,
                                FieldList<Dim<%(ndim)s>, int>& surfacePoint,
                                FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Vector>& deltaCentroid,

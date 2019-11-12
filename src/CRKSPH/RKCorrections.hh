@@ -36,7 +36,10 @@ public:
   typedef typename std::pair<double, std::string> TimeStepType;
 
   // Constructor
-  RKCorrections();
+  RKCorrections(const DataBase<Dimension>& dataBase,
+                const TableKernel<Dimension>& W,
+                const CRKOrder correctionOrder,
+                const CRKVolumeType volumeType);
 
   // Destructor.
   virtual ~RKCorrections();
@@ -127,6 +130,13 @@ private:
   FieldList<Dimension, std::vector<CellFaceFlag>> mCellFaceFlags;
   FieldList<Dimension, Vector> mDeltaCentroid;
   
+  // The restart registration.
+  RestartRegistrationType mRestart;
+
+  // No default constructor, copying, or assignment.
+  RKCorrections();
+  RKCorrections(const RKCorrections&);
+  RKCorrections& operator=(const RKCorrections&);
 }; // end RKCorrections
 
 } // end namespace Spheral

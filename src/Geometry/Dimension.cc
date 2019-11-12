@@ -7,8 +7,8 @@
 #include "Dimension.hh"
 
 namespace Spheral {
-  const int Dim<1>::nDim = 1;
-  const int Dim<2>::nDim = 2;
-  const int Dim<3>::nDim = 3;
+  // const int Dim<1>::nDim = 1;
+  // const int Dim<2>::nDim = 2;
+  // const int Dim<3>::nDim = 3;
 }
 
