@@ -82,9 +82,9 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
-set(spheral_depends BOOST)
 set(SPHERAL_PYTHON_DEPENDS )
 add_subdirectory(src/thirdPartyLibs)
+set(spheral_depends BOOST)
 
 option(ENABLE_2D "enable 2d" ON)
 option(ENABLE_3D "enable 3d" ON)

@@ -46,6 +46,19 @@ endif()
 list(APPEND spheral_depends polytope)
 message("---------------------------------------\n")
 
+message("\n---------- BUILDING QHULL ----------")
+if(NOT EXISTS ${PROJECT_BINARY_DIR}/tpl-install/lib/libqhullstatic.a)
+  build_external_project(qhull
+    ${PROJECT_BINARY_DIR}/tpl-install/
+    "https://github.com/qhull/qhull"
+    "-DCMAKE_C_FLAGS=-fPIC -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tpl-install"
+    )
+else()
+  message(STATUS "Qhull Built")
+endif()
+list(APPEND spheral_depends polytope)
+message("--------------------------------------\n")
+
 
 
 set(spheral_depends "${spheral_depends}" PARENT_SCOPE)

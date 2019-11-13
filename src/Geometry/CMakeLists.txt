@@ -35,6 +35,7 @@ set(Geometry_sources
     polyclipper3d.cc
     #TestGeometry.cc
     #TestMTL.cc
+    ../Utilities/SpheralTimers.cc
     )
 
 instantiate(Geometry_inst Geometry_sources)
@@ -116,6 +117,7 @@ set(Geometry_headers
 set(Geometry_includes
   ${SPHERAL_SOURCE_DIR}
   ${SPHERAL_SOURCE_DIR}/Geometry
+  ${SPHERAL_SOURCE_DIR}/Utilities
   ${EIGEN_LIB_LOCATION}
   ${QHULL_LIB_LOCATION}
   )
