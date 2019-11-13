@@ -1176,6 +1176,8 @@ fillVolume(const int*     nnodes,
            const double** coords,
            const int*     conn,
            const double   spacing,
+           const int      domain,
+           const int      ndomains,
            double*        volume,
            int*           nparticles,
            double**       sphcoords) {
@@ -1195,7 +1197,7 @@ fillVolume(const int*     nnodes,
       faceVec.push_back(faceSet);
     }
     Dim<3>::FacetedVolume mesh(nodeVec, faceVec);
-    std::vector< Dim<3>::Vector > sphNodes = fillFacetedVolume2(mesh, spacing, 0, 1);
+    std::vector< Dim<3>::Vector > sphNodes = fillFacetedVolume2(mesh, spacing, domain, ndomains);
     volume[0] = mesh.volume();
     nparticles[0] = sphNodes.size();
     double * sphcoordx = new double[sphNodes.size()];

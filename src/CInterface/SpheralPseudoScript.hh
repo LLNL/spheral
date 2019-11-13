@@ -162,6 +162,8 @@ public:
                          const double** coords,
                          const int*     conn,
                          const double   spacing,
+                         const int      domain,
+                         const int      ndomains,
                          double*        volume,
                          int*           nparticles,
                          double**       sphcoords);
