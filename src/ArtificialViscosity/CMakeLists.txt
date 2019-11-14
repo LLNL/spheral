@@ -4,7 +4,7 @@ set(ArtificialViscosity_inst
   CullenDehnenViscosity
   FiniteVolumeViscosity
   IncrementCullenMultipliers
-  #MonaghanGingoldViscosity
+  MonaghanGingoldViscosity
   MorrisMonaghanReducingViscosity
   TensorCRKSPHViscosity
   TensorMonaghanGingoldViscosity

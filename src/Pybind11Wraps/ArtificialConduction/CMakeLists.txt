@@ -23,6 +23,8 @@ set(MODULE_STATIC_LIB
   "${PROJECT_BINARY_DIR}/lib/libSpheral_Neighbor${CMAKE_STATIC_LIBRARY_SUFFIX}"
   "${PROJECT_BINARY_DIR}/lib/libSpheral_DataOutput${CMAKE_STATIC_LIBRARY_SUFFIX}"
   "${PROJECT_BINARY_DIR}/lib/libSpheral_DataBase${CMAKE_STATIC_LIBRARY_SUFFIX}"
+  "${PROJECT_BINARY_DIR}/lib/libSpheral_Mesh${CMAKE_STATIC_LIBRARY_SUFFIX}"
+  "${PROJECT_BINARY_DIR}/tpl-install/lib/libpolytope.a"
   )
 
 # Generate binding, this creates the <module name>.cc file that is compiled to our final .so

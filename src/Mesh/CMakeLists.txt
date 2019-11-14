@@ -14,7 +14,7 @@ set(Mesh_sources
   LineFace.cc
   LineMesh.cc
   LineZone.cc
-  #Mesh.cc
+  Mesh.cc
   MeshConstructionUtilities.cc
   PolygonalEdge.cc
   PolygonalFace.cc
