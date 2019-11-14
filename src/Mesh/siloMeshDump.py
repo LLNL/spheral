@@ -159,7 +159,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
         
         # Write the domain file names and types.
         domainNames = vector_of_string([p % "MESH" for p in domainNamePatterns])
-        meshTypes = vector_of_int([meshType]*mpi.procs)
+        meshTypes = vector_of_int([meshType]*numDomains)
         optlist = silo.DBoptlist(1024)
         assert optlist.addOption(silo.DBOPT_CYCLE, cycle) == 0
         assert optlist.addOption(silo.DBOPT_DTIME, time) == 0
@@ -168,7 +168,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
         # Also write out the points as a point mesh.
         if nodeLists and mpi.rank == 0:
             domainNames = vector_of_string([p % "MESH" for p in domainNamePatterns])
-            meshTypes = vector_of_int([silo.DB_POINTMESH]*mpi.procs)
+            meshTypes = vector_of_int([silo.DB_POINTMESH]*numDomains)
             optlist = silo.DBoptlist(1024)
             assert optlist.addOption(silo.DBOPT_CYCLE, cycle) == 0
             assert optlist.addOption(silo.DBOPT_DTIME, time) == 0

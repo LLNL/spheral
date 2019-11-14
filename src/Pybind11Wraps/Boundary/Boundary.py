@@ -88,6 +88,12 @@ class Boundary:
 
     @PYB11virtual
     @PYB11const
+    def allowGhostCulling(self):
+        "Optionally opt-out of ghost node culling."
+        return "bool"
+
+    @PYB11virtual
+    @PYB11const
     def meshGhostNodes(self):
         "Some boundaries have ghosts we should exclude from tessellations. Provide a hook to note such cases."
         return "bool"

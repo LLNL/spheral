@@ -67,6 +67,12 @@ Really we should rename this post-step finalize."""
         "Clear out the stored values and ghost nodes"
         return "void"
 
+    @PYB11virtual
+    @PYB11const
+    def allowGhostCulling(self):
+        "Optionally opt-out of ghost node culling."
+        return "bool"
+
     #...........................................................................
     @PYB11template("DataType")
     @PYB11returnpolicy("reference")
