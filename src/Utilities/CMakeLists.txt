@@ -15,28 +15,28 @@ set(Utilities_inst
     numberDensity
     #overlayRemapFields
     peanoHilbertOrderIndices
-    #SpheralTimers
     #SpheralTimersAlternate
-    #Timer
     )
 
-set(Utilitiy_sources
-    DBC
-    Process
-    KeyTraits
-    PeanoHilbertTransform
-    RegisterMPIDataTypes
-    RedistributionRegistrar
-    vectorBoundingBoxInst
-    lineSegmentIntersections
-    segmentIntersectEdges
-    pointInPolygon
-    pointInPolyhedron
-    pointOnPolygon
-    pointOnPolyhedron
-    refinePolyhedron
-    coarsenBinnedValuesInst
-    clipFacetedVolume
+set(Utilities_sources
+    DBC.cc
+    Process.cc
+    KeyTraits.cc
+    PeanoHilbertTransform.cc
+    RegisterMPIDataTypes.cc
+    RedistributionRegistrar.cc
+    vectorBoundingBoxInst.cc
+    lineSegmentIntersections.cc
+    segmentIntersectEdges.cc
+    pointInPolygon.cc
+    pointInPolyhedron.cc
+    pointOnPolygon.cc
+    pointOnPolyhedron.cc
+    refinePolyhedron.cc
+    coarsenBinnedValuesInst.cc
+    clipFacetedVolume.cc
+    SpheralTimers.cc
+    Timer.cc
   )
 
 instantiate(Utilities_inst Utilities_sources)

@@ -35,7 +35,6 @@ set(Geometry_sources
     polyclipper3d.cc
     #TestGeometry.cc
     #TestMTL.cc
-    ../Utilities/SpheralTimers.cc
     )
 
 instantiate(Geometry_inst Geometry_sources)
