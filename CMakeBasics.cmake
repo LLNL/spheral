@@ -13,7 +13,7 @@ function(instantiate _inst_var _source_var)
     if(ENABLE_INSTANTIATIONS)
       foreach(_dim ${_dims})
         set(_inst_py ${CMAKE_CURRENT_SOURCE_DIR}/${_inst}Inst.cc.py)
-        set(_inst_file ${_inst}Inst.cc.${_dim}.cc)
+        set(_inst_file ${_inst}${_dim}d.cc)
         #Run python script to generate instantiation file
         execute_process(COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/src/helpers/InstantiationGenerator.py 
                                                                           ${_inst_py} ${_inst_file} ${_dim}
