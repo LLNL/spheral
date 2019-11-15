@@ -12,11 +12,10 @@ template<typename Dimension> class ConnectivityMap;
 template<typename Dimension> class TableKernel;
 template<typename Dimension, typename DataType> class FieldList;
 
-// General function
 template<typename Dimension>
 void
 computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
-                      const TableKernel<Dimension>& W,
+                     const TableKernel<Dimension>& W,
                      const FieldList<Dimension, typename Dimension::Scalar>& volume,
                      const FieldList<Dimension, typename Dimension::Vector>& position,
                      const FieldList<Dimension, typename Dimension::SymTensor>& H,
@@ -33,7 +32,6 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                      FieldList<Dimension, typename Dimension::ThirdRankTensor>& hessB,
                      FieldList<Dimension, typename Dimension::FourthRankTensor>& hessC,
                      FieldList<Dimension, typename Dimension::FifthRankTensor>& hessD);
-
 }
 
 #endif
