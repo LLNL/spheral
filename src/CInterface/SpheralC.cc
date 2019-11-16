@@ -411,6 +411,38 @@ void spheral_sample_mesh(const int      ndims,
 }
 
 //------------------------------------------------------------------------------
+// spheral_polyhedral_mesh
+//------------------------------------------------------------------------------
+void spheral_polyhedral_mesh(const int      ndims,
+                             int*           nnodes,
+                             int*           nfaces,
+                             int*           ncells,
+                             double**       coords,
+                             int**          facetonodes,
+                             int**          celltofaces) {
+  if (ndims == 3) {
+    typedef Spheral::Dim<3> Dimension;
+    Spheral::SpheralPseudoScript<Dimension>::polyhedralMesh(nnodes,
+                                                            nfaces,
+                                                            ncells,
+                                                            coords,
+                                                            facetonodes,
+                                                            celltofaces);
+  } else if (ndims == 2) {
+    typedef Spheral::Dim<2> Dimension;
+    Spheral::SpheralPseudoScript<Dimension>::polyhedralMesh(nnodes,
+                                                            nfaces,
+                                                            ncells,
+                                                            coords,
+                                                            facetonodes,
+                                                            celltofaces);
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+
+//------------------------------------------------------------------------------
 // spheral_fill_volume
 //------------------------------------------------------------------------------
 void spheral_fill_volume(const int      ndims,

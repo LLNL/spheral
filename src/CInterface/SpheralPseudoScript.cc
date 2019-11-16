@@ -26,6 +26,7 @@
 #include "NodeList/ASPHSmoothingScale.hh"
 #include "SPH/SolidSPHHydroBase.hh"
 #include "SPH/SolidSPHHydroBaseRZ.hh"
+#include "CRKSPH/computeVoronoiVolume.hh"
 #include "CRKSPH/SolidCRKSPHHydroBase.hh"
 #include "CRKSPH/SolidCRKSPHHydroBaseRZ.hh"
 #include "ArtificialViscosity/MonaghanGingoldViscosity.hh"
@@ -760,7 +761,7 @@ initialize(const bool     RZ,
                                                           MassDensityType::RigorousSumDensity,  // densityUpdate
                                                           HEvolutionType::IdealH,               // HUpdate
                                                           correctionOrder,                      // CRK order
-                                                          CRKVolumeType::CRKMassOverDensity,    // CRK volume type
+                                                          CRKVolumeType::CRKVoronoiVolume,      // CRK volume type
                                                           0.0,                                  // epsTensile
                                                           4.0,                                  // nTensile
                                                           false,                                // limitMultimaterialTopology
@@ -1162,6 +1163,63 @@ sampleLatticeMesh(const Vector&  xmin,
 
   for (int i = 0 ; i < scalarValues[0].size() ; ++i) {
     latticeDensity[i] = scalarValues[0][i] ;
+  }
+}
+
+//------------------------------------------------------------------------------
+// Create the polyhedral cells given the SPH particles.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SpheralPseudoScript<Dimension>::
+polyhedralMesh(int*           nnodes,
+               int*           nfaces,
+               int*           ncells,
+               double**       coords,
+               int**          facetonodes,
+               int**          celltofaces) {
+
+  // Get our instance.
+  SpheralPseudoScript<Dimension>& me = SpheralPseudoScript<Dimension>::instance();
+
+  auto mass = me.mStatePtr->fields(HydroFieldNames::mass, 0.0);
+  auto massDensity = me.mStatePtr->fields(HydroFieldNames::massDensity, 0.0);
+  auto vol = me.mStatePtr->fields(HydroFieldNames::volume, 0.0);
+  auto position = me.mStatePtr->fields(HydroFieldNames::position, Vector::zero);
+  auto H = me.mStatePtr->fields(HydroFieldNames::H, SymTensor::zero);
+  auto damage = me.mStatePtr->fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+  const auto& connectivityMap = me.mDataBasePtr->connectivityMap();
+  auto surfacePoint = me.mDataBasePtr->newFluidFieldList(0, HydroFieldNames::surfacePoint);
+  auto deltaCentroid = me.mDataBasePtr->newFluidFieldList(Vector::zero, "delta centroid");
+  auto etaVoidPoints = me.mDataBasePtr->newFluidFieldList(vector<Vector>(), HydroFieldNames::etaVoidPoints);
+  auto cells = me.mDataBasePtr->newFluidFieldList(typename Dimension::FacetedVolume(), HydroFieldNames::cells);
+  auto cellFaceFlags = me.mDataBasePtr->newFluidFieldList(vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
+  vol.assignFields(mass/massDensity);
+  computeVoronoiVolume(position, H, connectivityMap, damage,
+                       vector<typename Dimension::FacetedVolume>(),                // no boundaries
+                       vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
+                       vector<Boundary<Dimension>*>(me.mHydroPtr->boundaryBegin(), // boundaries
+                                                    me.mHydroPtr->boundaryEnd()),
+                       FieldList<Dimension, typename Dimension::Scalar>(),         // no weights
+                       surfacePoint, vol, deltaCentroid, etaVoidPoints,            // return values
+                       cells,                                                      // return cells
+                       cellFaceFlags);                                             // node cell multimaterial faces
+
+  int numNodes = 0;
+  const unsigned nmats = me.mNodeLists.size();
+  for (unsigned imat = 0; imat != nmats; ++imat) {
+    numNodes += me.mNodeLists[imat]->numInternalNodes();
+  }
+
+  for (unsigned imat = 0; imat != nmats; ++imat) {
+    const unsigned n = me.mNodeLists[imat]->numInternalNodes();
+    for (unsigned i = 0; i != n; ++i) {
+      auto celli = cells(imat, i);
+      auto vertices = celli.vertices();
+      auto facets = celli.facets();
+      auto vertConn = celli.vertexFacetConnectivity();
+      auto faceConn = celli.facetFacetConnectivity();
+    }
   }
 }
 

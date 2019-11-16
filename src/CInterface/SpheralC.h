@@ -345,6 +345,23 @@ void spheral_sample_mesh(const int      ndims,
                          double*        latticeDensity);
 
 /*------------------------------------------------------------------------------
+  spheral_polyhedral_mesh
+
+  Takes as input a set of SPH particles and returns the polyhedral cells
+
+  Returns:  void
+  Arguments:
+  ----------------------------------------------------------------------------*/
+SPHERALDLL_API
+void spheral_polyhedral_mesh(const int      ndims,
+                             int*           nnodes,
+                             int*           nfaces,
+                             int*           ncells,
+                             double**       coords,
+                             int**          facetonodes,
+                             int**          celltofaces);
+
+/*------------------------------------------------------------------------------
   spheral_fill_volume
 
   Takes as input a set of coordinates for a hex or tet mesh and

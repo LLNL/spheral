@@ -157,6 +157,13 @@ public:
                                 const int*     nsamples,
                                 double*        latticeDensity);
 
+  static void polyhedralMesh(int*           nnodes,
+                             int*           nfaces,
+                             int*           ncells,
+                             double**       coords,
+                             int**          facetonodes,
+                             int**          celltofaces);
+
   static void fillVolume(const int*     nnodes,
                          const int*     nfaces,
                          const double** coords,
