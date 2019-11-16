@@ -1,22 +1,13 @@
+include_directories(.)
 set(Utilities_inst
-    #Bessel
     boundingBox
-    #buildMessage
-    #coarsenBinnedValues
-    #computeConvexHull
     computeShepardsInterpolation
     globalBoundingVolumes
-    integrateThroughMeshAlongSegment
     iterateIdealH
-    medianPosition
     mortonOrderIndices
     nodeBoundingBoxes
-    nodeOrdering
-    numberDensity
-    #overlayRemapFields
     peanoHilbertOrderIndices
-    #SpheralTimersAlternate
-    )
+   )
 
 set(Utilities_sources
     DBC.cc
@@ -28,114 +19,102 @@ set(Utilities_sources
     vectorBoundingBoxInst.cc
     lineSegmentIntersections.cc
     segmentIntersectEdges.cc
-    pointInPolygon.cc
-    pointInPolyhedron.cc
     pointOnPolygon.cc
+    pointInPolygon.cc
     pointOnPolyhedron.cc
-    refinePolyhedron.cc
+    pointInPolyhedron.cc
     coarsenBinnedValuesInst.cc
-    clipFacetedVolume.cc
     SpheralTimers.cc
+    #SpheralTimersAlternate.cc
     Timer.cc
-  )
+    )
 
 instantiate(Utilities_inst Utilities_sources)
 
 set(Utilities_headers
-    allReduce.hh
     Bessel.hh
-    bisectRoot.hh
-    bisectSearch.hh
-    boundingBox.hh
-    boundPointWithinBox.hh
-    clipFacetedVolume.hh
-    coarsenBinnedValues.hh
-    comparisons.hh
-    #computeConvexHull.hh
-    computeShepardsInterpolation.hh
     CounterClockwiseComparator.hh
-    DataTypeTraits.hh
     DBC.hh
-    erff.hh
-    fakestl.hh
+    DataTypeTraits.hh
     FastMath.hh
     FieldDataTypeTraits.hh
     Functors.hh
     GeometricUtilities.hh
+    KeyTraits.hh
+    NodeListHashMap.hh
+    PairComparisons.hh
+    PeanoHilbertTransform.hh
+    Process.hh
+    RedistributionNotification.hh
+    RedistributionNotificationHandle.hh
+    RedistributionRegistrar.hh
+    RedistributionRegistrarInline.hh
+    RegisterMPIDataTypes.hh
+    SafeIndexMap.hh
+    SpheralFunctions.hh
+    Timer.hh
+    Tree.hh
+    TreeInline.hh
+    allReduce.hh
+    bisectRoot.hh
+    bisectSearch.hh
+    boundPointWithinBox.hh
+    boundingBox.hh
+    coarsenBinnedValues.hh
+    comparisons.hh
+    computeConvexHull.hh
+    computeShepardsInterpolation.hh
+    erff.hh
+    fakestl.hh
     globalBoundingVolumes.hh
     globalNodeIDs.hh
     globalNodeIDsInline.hh
     hashes.hh
     initializeTau.hh
-    integrateThroughMeshAlongSegment.hh
     intpow2.hh
     iterateIdealH.hh
-    KeyTraits.hh
     lineSegmentIntersections.hh
     log2.hh
-    medianPosition.hh
     mortonOrderIndices.hh
     mpiUtilities.hh
     newtonRaphson.hh
     nodeBoundingBoxes.hh
     nodeBoundingBoxesInline.hh
-    NodeListHashMap.hh
-    nodeOrdering.hh
-    numberDensity.hh
     overlayRemapFields.hh
     packElement.hh
-    PairComparisons.hh
     peanoHilbertOrderIndices.hh
-    PeanoHilbertTransform.hh
     planarReflectingOperator.hh
     pointDistances.hh
     pointInPolygon.hh
     pointInPolyhedron.hh
     pointOnPolygon.hh
     pointOnPolyhedron.hh
-    Process.hh
-    RedistributionNotification.hh
-    RedistributionNotificationHandle.hh
-    RedistributionRegistrar.hh
-    RedistributionRegistrarInline.hh
-    refinePolyhedron.hh
-    RegisterMPIDataTypes.hh
     registerWithRedistribution.hh
     removeElements.hh
     rotationMatrix.hh
-    SafeIndexMap.hh
     safeInv.hh
-    scan.hh
     segmentIntersectEdges.hh
     simpsonsIntegration.hh
     sort_permutation.hh
-    SpheralFunctions.hh
     testBoxIntersection.hh
-    Timer.hh
     timingUtilities.hh
-    Tree.hh
-    TreeInline.hh
     )
 
-set(Utilities_includes
-  ${SPHERAL_SOURCE_DIR}
-  ${SPHERAL_SOURCE_DIR}/Utilities
-  ${EIGEN_LIB_LOCATION}
-  )
-
 blt_add_library(NAME        Spheral_Utilities
-                HEADERS     ${Utilities_headers}
                 SOURCES     ${Utilities_sources}
+                HEADERS     ${Utilities_headers}
                 DEPENDS_ON  ${spheral_depends}
-                INCLUDES    ${Utilities_includes}
                 )
 
-install(TARGETS             Spheral_Utilities
-        EXPORT              ${PROJECT_NAME}-targets
-        DESTINATION         lib
+install(TARGETS              Spheral_Utilities
+        EXPORT               ${PROJECT_NAME}-targets
+        DESTINATION          lib
         INCLUDES DESTINATION include
         )
 
 install(FILES       ${Utilities_headers}
         DESTINATION include/Utilities
-        )       
+        )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Utilities)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

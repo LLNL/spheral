@@ -18,9 +18,9 @@ function(find_python_module module)
     endif()
     execute_process(COMMAND ${PYTHON_EXECUTABLE} "-c" "${CMDSTRING}"
                     RESULT_VARIABLE _${module}_status 
-		    OUTPUT_VARIABLE _${module}_location
-		    ERROR_QUIET 
-		    OUTPUT_STRIP_TRAILING_WHITESPACE)
+                    OUTPUT_VARIABLE _${module}_location
+                    ERROR_QUIET 
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
     if (NOT _${module}_status)
       set(PY_${module_upper} ${_${module}_location} CACHE STRING 
           "Location of Python module ${module}")

@@ -1,35 +1,31 @@
+include_directories(.)
 set(Material_inst
-  EquationOfState
-  GammaLawGas
-  PolytropicEquationOfState
-  IsothermalEquationOfState
-)
+    EquationOfState
+   )
+
 
 set(Material_sources
-  PhysicalConstants.cc
-  )
+    PhysicalConstants.cc
+    )
+
 instantiate(Material_inst Material_sources)
 
 set(Material_headers
-  )
-
-set(Material_includes
-  ${SPHERAL_SOURCE_DIR}
-  ${SPHERAL_SOURCE_DIR}/Material
-  ${EIGEN_LIB_LOCATION}
-  )
-
+    EquationOfState.hh
+    EquationOfStateInline.hh
+    PhysicalConstants.hh
+    PhysicalConstantsInline.hh
+    )
 
 blt_add_library(NAME        Spheral_Material
-                HEADERS     ${Material_headers}
                 SOURCES     ${Material_sources}
+                HEADERS     ${Material_headers}
                 DEPENDS_ON  ${spheral_depends}
-                INCLUDES    ${Material_includes}
                 )
 
-install(TARGETS             Spheral_Material
-        EXPORT              ${PROJECT_NAME}-targets
-        DESTINATION         lib
+install(TARGETS              Spheral_Material
+        EXPORT               ${PROJECT_NAME}-targets
+        DESTINATION          lib
         INCLUDES DESTINATION include
         )
 

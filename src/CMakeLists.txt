@@ -1,40 +1,40 @@
-# Add package subdirectories.
-set(_packages
-  ArtificialConduction
+# Libraries
+include_directories(.)
+set(SPHERAL_PYTHON_DEPENDS )
+set(spheral_depends BOOST Eigen qhull silo polytope mpi openmp)
+
+#add_subdirectory(CInterface)
+set(_packages 
   ArtificialViscosity
   Boundary
   CRKSPH
-  #CXXTests
   Damage
   DataBase
   DataOutput
-  ExternalForce
+  Distributed
   Field
   FieldOperations
   FileIO
-  FVCRKH
   Geometry
-  Gravity
   Hydro
   Integrator
   Kernel
   Material
   Mesh
-  #MHD
   Neighbor
-  #NodeGenerators
+  NodeGenerators
   NodeList
   Physics
+  SolidMaterial
+  SPH
+  Strength
   Utilities
   )
 
 foreach(_package ${_packages})
-  add_subdirectory(${_package})
+   add_subdirectory(${_package})
 endforeach()
-message("${SPHERAL_PYTHON_DEPENDS}")
 
-
-add_subdirectory(Pybind11Wraps/OpenMP)
 add_subdirectory(Pybind11Wraps/CXXTypes)
+add_subdirectory(Pybind11Wraps/OpenMP)
 add_subdirectory(Pybind11Wraps/Geometry)
-add_subdirectory(Pybind11Wraps/ArtificialConduction)

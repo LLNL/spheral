@@ -1,105 +1,37 @@
-cmake_minimum_required(VERSION 3.10)
-project(Spheral)
+# CMakeLists to build the Spheral library.
+cmake_minimum_required(VERSION 3.4)
+project(spheral LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -w")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules")
-# Find Python
-option(USE_PYTHON "Generate Python interface" ON)
-if (USE_PYTHON)
-  set(Python_ADDITIONAL_VERSIONS 2.7)
-  if (PYTHON_EXE)
-    set(PYTHON_EXECUTABLE ${PYTHON_EXE})
-    include(FindPythonVersion)
-    find_python_version()
-    find_package(PythonLibs)
-    string(REPLACE "/bin/python${PYTHON_VERSION}" "" PYTHON_ROOT ${PYTHON_EXE})
-    set(PYTHON_INCLUDE_DIR "${PYTHON_ROOT}/include/site/python${PYTHON_VERSION}")
-    set(PYTHON_INCLUDE_DIRS "${PYTHON_ROOT}/include/python${PYTHON_VERSION}")
-    set(PYTHON_LIB_DIR "${PYTHON_ROOT}/lib")
-    set(PYTHON_LIBRARY "${PYTHON_LIB_DIR}/libpython.a")
-  else()
-    find_package(PythonLibs REQUIRED)
-    find_package(PythonInterp REQUIRED)
-    set(PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
-  endif()
 
-  if (PYTHON_EXECUTABLE)
-    message(STATUS "Looking for Python...")
-    include(FindPythonModule)
-    find_python_module(PYB11Generator REQUIRED)
-    find_python_module(pybind11 REQUIRED)
-    set(PYB11_DIR "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps")
-    set(PYB11_MODULE_NAME "polytope")
-    set(PY_PYB11 1)
-    include_directories("${PYTHON_INCLUDE_DIR}")
-    include_directories("${PYTHON_INCLUDE_DIRS}")
-    if (PY_PYB11)
-      set(HAVE_PYTHON ON)
-      message(STATUS "Found Python version ${PYTHON_VERSION}")
-      message(STATUS "Using Python executable ${PYTHON_EXECUTABLE}")
-    else()
-      set(HAVE_PYTHON OFF)
-    endif()
-  endif()
+include(cmake/InstallLibraries.cmake)
 
-  if (HAVE_PYTHON)
-    include(FindPythonSitePackages)
-    find_python_site_packages()
-  endif()
-else()
-  set(HAVE_PYTHON OFF)
+################################
+# Include blt
+################################
+set (SPHERAL_BLT_REL_DIR "${PROJECT_SOURCE_DIR}/blt" CACHE PATH "")
+get_filename_component(SPHERAL_BLT_DIR "${SPHERAL_BLT_REL_DIR}" ABSOLUTE)
+
+if (NOT EXISTS "${PROJECT_SOURCE_DIR}/blt/SetupBLT.cmake")
+    message(FATAL_ERROR 
+            "${SPHERAL_BLT_DIR} is not present.\n"
+            "call cmake with -DSPHERAL_BLT_DIR=/your/installation/of/blt\n")
 endif()
 
-#--------------------------------------------------------------------------------
-#   Start of BLT configuration.
-#--------------------------------------------------------------------------------
-
-if (DEFINED BLT_SOURCE_DIR)
-  if (NOT EXISTS ${BLT_SOURCE_DIR}/SetupBLT.cmake)
-    message(FATAL_ERROR "Given BLT_SOURCE_DIR does not contain SetupBLT.cmake")
-  endif()
-else()
-  # Use internal BLT if no BLT_SOURCE_DIR is given
-  set(BLT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/src/thirdPartyLibs/blt" CACHE PATH "")
-  if (NOT EXISTS ${BLT_SOURCE_DIR}/SetupBLT.cmake)
-    message(FATAL_ERROR
-      "The BLT git submodule is not present in ${PROJECT_SOURCE_DIR}\n"
-      "Either run the following two commands in your git repository: \n"
-      "    git submodule init\n"
-      "    git submodule update\n"
-      "Or add -DBLT_SOURCE_DIR=/path/to/blt to your CMake command." )
-  endif()
-endif()
-
-include(${BLT_SOURCE_DIR}/SetupBLT.cmake)
-
-#--------------------------------------------------------------------------------
-#   End of BLT configuration.
-#--------------------------------------------------------------------------------
-set(BOOST_MIN_VERSION "1.62.0")
-find_package(Boost ${BOOST_MIN_VERSION} REQUIRED)
-if(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS})
-endif()
-
-set(SPHERAL_PYTHON_DEPENDS )
-add_subdirectory(src/thirdPartyLibs)
-set(spheral_depends BOOST)
+include(${PROJECT_SOURCE_DIR}/blt/SetupBLT.cmake)
 
 option(ENABLE_2D "enable 2d" ON)
 option(ENABLE_3D "enable 3d" ON)
 option(ENABLE_INSTANTIATIONS "enable instantiations" ON)
+option(BUILD_PYTHON_TARGETS "enable build of spheral python tagets" ON)
 
-#TODO:remove this
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -w")
+################################
+# Include standard build system logic and options
+################################
+include(cmake/CMakeBasics.cmake)
 
-# Finding included packages.
-find_package(GSL REQUIRED)
-set(EIGEN_LIB_LOCATION "${PROJECT_SOURCE_DIR}/src/thirdPartyLibs/eigen/")
-set(QHULL_LIB_LOCATION "${PROJECT_SOURCE_DIR}/src/thirdPartyLibs/qhull/src/")
-set(PYBIND11_LIB_LOCATION "${PROJECT_SOURCE_DIR}/src/thirdPartyLibs/pybind11/include/")
-set(POLYTOPE_LIB_LOCATION "${PROJECT_BINARY_DIR}/tpl-install/include/")
-include(CMakeBasics.cmake)
-
-set(SPHERAL_SOURCE_DIR "${PROJECT_SOURCE_DIR}/src")
 add_subdirectory(src)
+
+install(EXPORT ${PROJECT_NAME}-targets DESTINATION lib/cmake)

@@ -1,17 +1,11 @@
+include_directories(.)
 set(Geometry_inst
-  invertRankNTensor
-  )
+    invertRankNTensor
+   )
 
 set(Geometry_sources
-    buildEigenVector.cc
-    #clipConvexFacetedVolumeByPlanes2d.cc
-    #clipConvexFacetedVolumeByPlanes3d.cc
-    #clipFacetedVolumeByPlanes1d.cc
-    #clipFacetedVolumeByPlanes3d.cc
-    computeEigenValues.cc
     Dimension.cc
     EigenStruct.cc
-    fakemain.cc
     Geom3Vector.cc
     GeomFacet2d.cc
     GeomFacet3d.cc
@@ -21,39 +15,28 @@ set(Geometry_sources
     GeomPolygon.cc
     GeomPolyhedron.cc
     GeomSymmetricTensor.cc
-    GeomSymmetricTensor_default.cc
-    GeomSymmetricTensor_eigen.cc
     GeomTensor.cc
-    GeomTensor_default.cc
-    GeomTensor_eigen.cc
     GeomThirdRankTensor.cc
     GeomVector.cc
-    invertRankNTensor.cc
     Jacobi.cc
     Jacobi2.cc
+    buildEigenVector.cc
+    computeEigenValues.cc
+    fakemain.cc
     polyclipper2d.cc
     polyclipper3d.cc
-    #TestGeometry.cc
-    #TestMTL.cc
-    )
+   )
 
 instantiate(Geometry_inst Geometry_sources)
 
 set(Geometry_headers
-    aggregateFacetedVolumes.hh
     Box1d.hh
     Box1dInline.hh
-    buildEigenVector.hh
-    CellFaceFlag.hh
-    clipConvexFacetedVolumeByPlanes.hh
-    clipFacetedVolumeByPlanes.hh
-    computeEigenValues.hh
     Dimension.hh
     EigenStruct.hh
-    EigenStruct_fwd.hh
     EigenStructInline.hh
+    EigenStruct_fwd.hh
     FacetedVolumeUtilities.hh
-    findEigenValues3.hh
     Geom3Vector.hh
     Geom3VectorInline.hh
     GeomFacet2d.hh
@@ -61,11 +44,11 @@ set(Geometry_headers
     GeomFacet3d.hh
     GeomFacet3dInline.hh
     GeomFifthRankTensor.hh
-    GeomFifthRankTensor_fwd.hh
     GeomFifthRankTensorInline.hh
+    GeomFifthRankTensor_fwd.hh
     GeomFourthRankTensor.hh
-    GeomFourthRankTensor_fwd.hh
     GeomFourthRankTensorInline.hh
+    GeomFourthRankTensor_fwd.hh
     GeomPlane.hh
     GeomPlaneInline.hh
     GeomPolygon.hh
@@ -73,71 +56,64 @@ set(Geometry_headers
     GeomPolyhedron.hh
     GeomPolyhedronInline.hh
     GeomSymmetricTensor.hh
-    GeomSymmetricTensor_default.hh
-    GeomSymmetricTensor_eigen.hh
-    GeomSymmetricTensor_fwd.hh
     GeomSymmetricTensorBase.hh
     GeomSymmetricTensorInline_default.hh
     GeomSymmetricTensorInline_eigen.hh
+    GeomSymmetricTensor_default.hh
+    GeomSymmetricTensor_eigen.hh
+    GeomSymmetricTensor_fwd.hh
     GeomTensor.hh
-    GeomTensor_default.hh
-    GeomTensor_eigen.hh
-    GeomTensor_fwd.hh
     GeomTensorBase.hh
     GeomTensorInline_default.hh
     GeomTensorInline_eigen.hh
+    GeomTensor_default.hh
+    GeomTensor_eigen.hh
+    GeomTensor_fwd.hh
     GeomThirdRankTensor.hh
-    GeomThirdRankTensor_fwd.hh
     GeomThirdRankTensorInline.hh
+    GeomThirdRankTensor_fwd.hh
     GeomVector.hh
-    GeomVector_array.hh
-    GeomVector_default.hh
-    GeomVector_eigen.hh
-    GeomVector_fwd.hh
     GeomVectorBase_default.hh
     GeomVectorInline_array.hh
     GeomVectorInline_default.hh
     GeomVectorInline_eigen.hh
-    innerDoubleProduct.hh
-    innerProduct.hh
-    invertRankNTensor.hh
+    GeomVector_array.hh
+    GeomVector_default.hh
+    GeomVector_eigen.hh
+    GeomVector_fwd.hh
     Jacobi.hh
     Jacobi2.hh
-    makefile.in
     MathTraits.hh
-    outerProduct.hh
-    polyclipper.hh
-    polyclipper_utilities.hh
     RankNTensor.hh
     RankNTensorInline.hh
     TensorType.hh
+    aggregateFacetedVolumes.hh
+    buildEigenVector.hh
+    computeEigenValues.hh
+    findEigenValues3.hh
+    innerDoubleProduct.hh
+    innerProduct.hh
+    invertRankNTensor.hh
+    outerProduct.hh
+    polyclipper.hh
+    polyclipper_utilities.hh
     )
 
-set(Geometry_includes
-  ${SPHERAL_SOURCE_DIR}
-  ${SPHERAL_SOURCE_DIR}/Geometry
-  ${SPHERAL_SOURCE_DIR}/Utilities
-  ${EIGEN_LIB_LOCATION}
-  ${QHULL_LIB_LOCATION}
-  )
-
 blt_add_library(NAME        Spheral_Geometry
+                SOURCES     ${Geometry_sources} ${Geometry_sources2d} ${Geometry_sources3d}
                 HEADERS     ${Geometry_headers}
-                SOURCES     ${Geometry_sources}
                 DEPENDS_ON  ${spheral_depends}
-                INCLUDES    ${Geometry_includes}
                 )
 
-install(TARGETS             Spheral_Geometry
-        EXPORT              ${PROJECT_NAME}-targets
-        DESTINATION         lib
+install(TARGETS              Spheral_Geometry
+        EXPORT               ${PROJECT_NAME}-targets
+        DESTINATION          lib
         INCLUDES DESTINATION include
         )
 
 install(FILES       ${Geometry_headers}
         DESTINATION include/Geometry
         )
-
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Geometry)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

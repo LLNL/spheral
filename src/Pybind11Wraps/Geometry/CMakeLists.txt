@@ -3,7 +3,7 @@ set(PYB11_MODULE_NAME Geometry)
 # Include directrory to source file destination
 include_directories("${PROJECT_SOURCE_DIR}/src/${PYB11_MODULE_NAME}")
 include_directories("${PROJECT_SOURCE_DIR}/src")
-include_directories("${EIGEN_LIB_LOCATION}")
+include_directories("${EIGEN_INCLUDE_DIRS}")
 
 # Include directory to location of pybind include header files
 include_directories("${PROJECT_SOURCE_DIR}/src/thirdPartyLibs/pybind11/include")
@@ -24,7 +24,7 @@ set(MODULE_STATIC_LIB
   "${PROJECT_BINARY_DIR}/lib/libSpheral_DataOutput${CMAKE_STATIC_LIBRARY_SUFFIX}"
   "${PROJECT_BINARY_DIR}/lib/libSpheral_DataBase${CMAKE_STATIC_LIBRARY_SUFFIX}"
   "${PROJECT_BINARY_DIR}/lib/libSpheral_Utilities${CMAKE_STATIC_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/tpl-install/lib/libqhullstatic.a"
+  #  "${PROJECT_BINARY_DIR}/tpl-install/lib/libqhullstatic.a"
   )
 
 # Generate binding, this creates the <module name>.cc file that is compiled to our final .so

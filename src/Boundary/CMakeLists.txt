@@ -1,72 +1,54 @@
+include_directories(.)
 set(Boundary_inst
-  Boundary
-  ConstantBoundary
-  ConstantRVelocityBoundary
-  ConstantVelocityBoundary
-  ConstantXVelocityBoundary
-  ConstantYVelocityBoundary
-  CRKSPHVoidBoundary
-  PeriodicBoundary
-  PlanarBoundary
-  ReflectingBoundary
-  RigidBoundary
-  )
+    Boundary
+    CRKSPHVoidBoundary
+    PlanarBoundary
+    ReflectingBoundary
+    RigidBoundary
+   )
 
-set(Boundary_sources
-  SphericalBoundary.cc
-  #ThreeOneDimensionBoundary.cc
-  ConstantZVelocityBoundaryInst.cc
-  )
+
+set(Boundary_sources )
+
+if(ENABLE_2D)
+  list(APPEND Boundary_sources
+       AxisBoundaryRZ.cc
+      )
+endif()
+
+if(ENABLE_3D)
+  list(APPEND Boundary_sources
+    #       AxialSymmetryBoundary.cc
+      )
+endif()
+
 instantiate(Boundary_inst Boundary_sources)
 
 set(Boundary_headers
-  AxisBoundaryRZ.hh
-  Boundary.hh
-  BoundaryInline.hh
-  ConstantBoundary.hh
-  ConstantBoundaryInline.hh
-  ConstantRVelocityBoundary.hh
-  ConstantVelocityBoundary.hh
-  ConstantVelocityBoundaryInline.hh
-  ConstantXVelocityBoundary.hh
-  ConstantYVelocityBoundary.hh
-  ConstantZVelocityBoundary.hh
-  CRKSPHVoidBoundary.hh
-  CylindricalBoundary.hh
-  CylindricalBoundaryInline.hh
-  makefile.in
-  mapPositionThroughPlanes.hh
-  PeriodicBoundary.hh
-  PeriodicPlanarBoundary.hh
-  PlanarBoundary.hh
-  PlanarBoundaryInline.hh
-  PlanarSymmetryBoundary.hh
-  ReflectingBoundary.hh
-  ReflectingBoundaryInline.hh
-  RigidBoundary.hh
-  SphericalBoundary.hh
-  SphericalBoundaryInline.hh
-  #ThreeOneDimensionBoundary.hh
-  )
-
-set(Boundary_includes
-  ${SPHERAL_SOURCE_DIR}
-  ${SPHERAL_SOURCE_DIR}/Boundary
-  ${EIGEN_LIB_LOCATION}
-  ${PYBIND11_LIB_LOCATION}
-  )
-
+  #AxialSymmetryBoundary.hh
+    AxisBoundaryRZ.hh
+    Boundary.hh
+    BoundaryInline.hh
+    CRKSPHVoidBoundary.hh
+    PlanarBoundary.hh
+    PlanarBoundaryInline.hh
+    PlanarSymmetryBoundary.hh
+    ReflectingBoundary.hh
+    ReflectingBoundaryInline.hh
+    RigidBoundary.hh
+    #RigidBoundaryInline.hh
+    mapPositionThroughPlanes.hh
+    )
 
 blt_add_library(NAME        Spheral_Boundary
-                HEADERS     ${Boundary_headers}
                 SOURCES     ${Boundary_sources}
+                HEADERS     ${Boundary_headers}
                 DEPENDS_ON  ${spheral_depends}
-                INCLUDES    ${Boundary_includes}
                 )
 
-install(TARGETS             Spheral_Boundary
-        EXPORT              ${PROJECT_NAME}-targets
-        DESTINATION         lib
+install(TARGETS              Spheral_Boundary
+        EXPORT               ${PROJECT_NAME}-targets
+        DESTINATION          lib
         INCLUDES DESTINATION include
         )
 

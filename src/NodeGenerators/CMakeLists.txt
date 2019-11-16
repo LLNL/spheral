@@ -1,44 +1,28 @@
+include_directories(.)
 set(NodeGenerators_inst
-  relaxNodeDistribution
-  centroidalRelaxNodesImpl
-  compactFacetedVolumes
-  chooseRandomNonoverlappingCenter
-  )
+   )
 
 set(NodeGenerators_sources
-  generateCylDistributionFromRZ.cc
-  fillFacetedVolume.cc
-  #readSiloPolyMesh.cc
-  )
+    fillFacetedVolume.cc
+    generateCylDistributionFromRZ.cc
+    )
+
 instantiate(NodeGenerators_inst NodeGenerators_sources)
 
 set(NodeGenerators_headers
-  centroidalRelaxNodesImpl.hh
-  chooseRandomNonoverlappingCenter.hh
-  compactFacetedVolumes.hh
-  fillFacetedVolume.hh
-  generateCylDistributionFromRZ.hh
-  #readSiloPolyMesh.hh
-  relaxNodeDistribution.hh
-  )
-
-set(NodeGenerators_includes
-  ${SPHERAL_SOURCE_DIR}
-  ${SPHERAL_SOURCE_DIR}/NodeGenerators
-  ${EIGEN_LIB_LOCATION}
-  )
-
+    fillFacetedVolume.hh
+    generateCylDistributionFromRZ.hh
+    )
 
 blt_add_library(NAME        Spheral_NodeGenerators
-                HEADERS     ${NodeGenerators_headers}
                 SOURCES     ${NodeGenerators_sources}
+                HEADERS     ${NodeGenerators_headers}
                 DEPENDS_ON  ${spheral_depends}
-                INCLUDES    ${NodeGenerators_includes}
                 )
 
-install(TARGETS             Spheral_NodeGenerators
-        EXPORT              ${PROJECT_NAME}-targets
-        DESTINATION         lib
+install(TARGETS              Spheral_NodeGenerators
+        EXPORT               ${PROJECT_NAME}-targets
+        DESTINATION          lib
         INCLUDES DESTINATION include
         )
 
