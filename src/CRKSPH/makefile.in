@@ -34,11 +34,11 @@ INSTSRCTARGETS = \
 	$(srcdir)/zerothOrderSurfaceCorrectionsInst.cc.py \
 	$(srcdir)/CRKSPHVariantInst.cc.py \
 	$(srcdir)/RKCorrectionsInst.cc.py \
-	$(srcdir)/computeRKCorrectionsInst.cc.py \
 	$(srcdir)/computeRKVolumesInst.cc.py
 
 SRCTARGETS = \
-	$(srcdir)/centerOfMass.cc
+	$(srcdir)/centerOfMass.cc \
+	$(srcdir)/computeRKCorrections.cc \
 
 PYTHONTARGETS = \
 	$(srcdir)/CRKSPHHydros.py

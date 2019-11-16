@@ -13,6 +13,7 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "FileIO/FileIO.hh"
+#include "Geometry/Dimension.hh"
 #include "Kernel/TableKernel.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
@@ -134,8 +135,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   
   // Compute corrections
   computeRKCorrections(connectivityMap, mW, mVolume, position, H, mCorrectionOrder,
-                       mA, mGradA, mHessA, mB, mGradB, mHessB,
-                       mC, mGradC, mHessC, mD, mGradD, mHessD);
+                       mA, mB, mC, mD,
+                       mGradA, mGradB, mGradC, mGradD,
+                       mHessA, mHessB, mHessC, mHessD);
 }
 
 //------------------------------------------------------------------------------
@@ -292,7 +294,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   // Get data
-  const auto& W = this->kernel();
+  const auto& W = mW;
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
@@ -344,7 +346,7 @@ initialize(const typename Dimension::Scalar time,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
   // Get data
-  const auto& W = this->kernel();
+  const auto& W = mW;
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -364,8 +366,9 @@ initialize(const typename Dimension::Scalar time,
   
   // Compute corrections
   computeRKCorrections(connectivityMap, W, volume, position, H, mCorrectionOrder,
-                       A, gradA, hessA, B, gradB, hessB,
-                       C, gradC, hessC, D, gradD, hessD);
+                       A, B, C, D,
+                       gradA, gradB, gradC, gradD,
+                       hessA, hessB, hessC, hessD);
   
   // Apply ghost boundaries to corrections
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 

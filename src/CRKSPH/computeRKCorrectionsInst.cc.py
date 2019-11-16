@@ -17,7 +17,7 @@ template void computeRKCorrections(const ConnectivityMap<Dim<%(ndim)s>>& connect
                                    FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Scalar>& A,
                                    FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Vector>& B,
                                    FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Tensor>& C,
-                                   FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Tensor>& D,
+                                   FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::ThirdRankTensor>& D,
                                    FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Vector>& gradA,
                                    FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Tensor>& gradB,
                                    FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::ThirdRankTensor>& gradC,

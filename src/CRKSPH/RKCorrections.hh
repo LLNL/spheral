@@ -82,15 +82,23 @@ public:
   // Compute the Voronoi volumes
   virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
                                  State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs);
+                                 StateDerivatives<Dimension>& derivs) override;
   
   // Compute RK corrections
   virtual void initialize(const Scalar time, 
                           const Scalar dt,
                           const DataBase<Dimension>& dataBase, 
                           State<Dimension>& state,
-                          StateDerivatives<Dimension>& derivs);
+                          StateDerivatives<Dimension>& derivs) override;
 
+  // Finalize
+  virtual void finalize(const Scalar time, 
+                        const Scalar dt,
+                        DataBase<Dimension>& dataBase, 
+                        State<Dimension>& state,
+                        StateDerivatives<Dimension>& derivs) override;
+
+  
   // We do require the connecitivity
   virtual bool requireConnectivity() const override { return true; }
   
@@ -113,7 +121,7 @@ private:
   FieldList<Dimension, Scalar> mA;
   FieldList<Dimension, Vector> mB;
   FieldList<Dimension, Tensor> mC;
-  FieldList<Dimension, Tensor> mD;
+  FieldList<Dimension, ThirdRankTensor> mD;
   FieldList<Dimension, Vector> mGradA;
   FieldList<Dimension, Tensor> mGradB;
   FieldList<Dimension, ThirdRankTensor> mGradC;
