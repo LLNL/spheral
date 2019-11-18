@@ -1,10 +1,10 @@
 //---------------------------------Spheral++----------------------------------//
-// CRKSPHUtilities
+// RKUtilities
 //
-// Useful methods for using the CRKSPH formalism.
+// Evaluate the RK kernel
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_NodeSpace_CRKSPHFluidGradient__
-#define __Spheral_NodeSpace_CRKSPHFluidGradient__
+#ifndef __Spheral_RKUtilities__
+#define __Spheral_RKUtilities__
 
 #include "CRKSPHCorrectionParams.hh"
 
@@ -18,56 +18,51 @@ namespace Spheral {
 // Compute the corrected kernel value.
 template<typename Dimension>
 typename Dimension::Scalar
-evaluateRKKernel(const TableKernel<Dimension>& W,
+evaluateRKKernel(const TableKernel<Dimension>& kernel,
                  const CRKOrder correctionOrder,
-                 const typename Dimension::Vector& rij,
-                 const typename Dimension::Vector& etaj,
-                 const typename Dimension::Scalar Hdetj,
-                 const typename Dimension::Scalar Ai,
-                 const typename Dimension::Vector& Bi,
-                 const typename Dimension::Tensor& Ci,
-                 const typename Dimension::ThirdRankTensor& Di);
+                 const typename Dimension::Vector& eta,
+                 const typename Dimension::SymTensor& H,
+                 const typename Dimension::Scalar& a,
+                 const typename Dimension::Vector& b,
+                 const typename Dimension::Tensor& c,
+                 const typename Dimension::ThirdRankTensor& d);
 
 // Compute the corrected kernel gradient.
 template<typename Dimension>
 typename Dimension::Vector
-evaluateRKGradient(const TableKernel<Dimension>& W,
+evaluateRKGradient(const TableKernel<Dimension>& kernel,
                    const CRKOrder correctionOrder,
-                   const typename Dimension::Vector& rij,
-                   const typename Dimension::Vector& etaj,
-                   const typename Dimension::SymTensor& Hj,
-                   const typename Dimension::Scalar Hdetj,
-                   const typename Dimension::Scalar Ai,
-                   const typename Dimension::Vector& Bi,
-                   const typename Dimension::Tensor& Ci,
-                   const typename Dimension::ThirdRankTensor& Di,
-                   const typename Dimension::Vector& gradAi,
-                   const typename Dimension::Tensor& gradBi,
-                   const typename Dimension::ThirdRankTensor& gradCi,
-                   const typename Dimension::FourthRankTensor& gradDi);
+                   const typename Dimension::Vector& eta,
+                   const typename Dimension::SymTensor& H,
+                   const typename Dimension::Scalar& a,
+                   const typename Dimension::Vector& b,
+                   const typename Dimension::Tensor& c,
+                   const typename Dimension::ThirdRankTensor& d,
+                   const typename Dimension::Vector& da,
+                   const typename Dimension::Tensor& db,
+                   const typename Dimension::ThirdRankTensor& dc,
+                   const typename Dimension::FourthRankTensor& dd);
 
 // Compute the corrected kernel hessian.
 template<typename Dimension>
-typename Dimension::Tensor
-evaluateRKHessian(const TableKernel<Dimension>& W,
+typename Dimension::SymTensor
+evaluateRKHessian(const TableKernel<Dimension>& kernel,
                   const CRKOrder correctionOrder,
-                  const typename Dimension::Vector& etaj,
-                  const typename Dimension::SymTensor& Hj,
-                  const typename Dimension::Scalar Hdetj,
-                  const typename Dimension::Scalar Ai,
-                  const typename Dimension::Vector& Bi,
-                  const typename Dimension::Tensor& Ci,
-                  const typename Dimension::ThirdRankTensor& Di,
-                  const typename Dimension::Vector& gradAi,
-                  const typename Dimension::Tensor& gradBi,
-                  const typename Dimension::ThirdRankTensor& gradCi,
-                  const typename Dimension::FourthRankTensor& gradDi,
-                  const typename Dimension::Tensor& hessAi,
-                  const typename Dimension::ThirdRankTensor& hessBi,
-                  const typename Dimension::FourthRankTensor& hessCi,
-                  const typename Dimension::FifthRankTensor& hessDi);
-}
+                  const typename Dimension::Vector& eta,
+                  const typename Dimension::SymTensor& H,
+                  const typename Dimension::Scalar& a,
+                  const typename Dimension::Vector& b,
+                  const typename Dimension::Tensor& c,
+                  const typename Dimension::ThirdRankTensor& d,
+                  const typename Dimension::Vector& da,
+                  const typename Dimension::Tensor& db,
+                  const typename Dimension::ThirdRankTensor& dc,
+                  const typename Dimension::FourthRankTensor& dd,
+                  const typename Dimension::Tensor& dda,
+                  const typename Dimension::ThirdRankTensor& ddb,
+                  const typename Dimension::FourthRankTensor& ddc,
+                  const typename Dimension::FifthRankTensor& ddd);
 
-#include "CRKSPHUtilitiesInline.hh"
+} // end namespace Spheral
 
 #endif

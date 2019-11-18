@@ -11,6 +11,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
+#include "Utilities/safeInv.hh"
 
 namespace Spheral {
 

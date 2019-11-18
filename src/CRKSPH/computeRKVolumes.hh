@@ -8,12 +8,11 @@
 #include "CRKSPHCorrectionParams.hh"
 #include "Geometry/CellFaceFlag.hh"
 
+namespace Spheral {
+
 template<typename Dimension> class ConnectivityMap;
 template<typename Dimension> class TableKernel;
 template<typename Dimension, typename DataType> class FieldList;
-
-namespace Spheral {
-
 template<typename Dimension> class Boundary;
 
 template<typename Dimension>
@@ -34,6 +33,6 @@ computeRKVolumes(const ConnectivityMap<Dimension>& connectivityMap,
                  FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags,
                  FieldList<Dimension, typename Dimension::Scalar>& volume);
 
-}
+} // end namespace Spheral
 
 #endif

@@ -39,6 +39,7 @@ INSTSRCTARGETS = \
 SRCTARGETS = \
 	$(srcdir)/centerOfMass.cc \
 	$(srcdir)/computeRKCorrections.cc \
+	$(srcdir)/RKUtilities.cc
 
 PYTHONTARGETS = \
 	$(srcdir)/CRKSPHHydros.py
