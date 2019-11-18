@@ -20,7 +20,7 @@ endif()
 #               to the source files, if it exists.
 # _source_var : *name* of list variable to append source files to.
 function(instantiate _inst_var _source_var)
-  set(_dims)
+  set(_dims 1)
   if(ENABLE_2D)
      list(APPEND _dims 2)
   endif()
