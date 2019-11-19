@@ -789,7 +789,6 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 // Choose correct templated version
 //------------------------------------------------------------------------------
 template<typename Dimension>
-inline
 void
 computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                      const TableKernel<Dimension>& W,
