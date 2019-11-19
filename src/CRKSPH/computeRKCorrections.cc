@@ -736,7 +736,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const auto Hij = H(nodeListj, nodej);
           const auto etaij = Hij * xij;
           const auto etaMagInvij = safeInv(etaij.magnitude());
-          const Tensor gradEtaij = Hij;
+          const Tensor gradEtaij(Hij);
           const auto hessEtaij = ThirdRankTensor::zero;
           const auto H2ij = Hij.square();
           const auto Hetaij = Hij * etaij * etaMagInvij;
@@ -748,7 +748,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const auto hessKij = W.grad2(etaij, Hij);
           const auto Wij = Kij;
           const auto gradWij = Hij * etaij * etaMagInvij * gradKij;
-          const Tensor hessWij = (H2ij - Heta2ij) * etaMagInvij * gradKij + Heta2ij * hessKij;
+          const Tensor hessWij((H2ij - Heta2ij) * etaMagInvij * gradKij + Heta2ij * hessKij);
           const auto vj = volume(nodeListj, nodej);
           
           // Add the values to the moments
@@ -839,70 +839,70 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   }
 }
 
-//------------------------------------------------------------------------------
-// Do instantiations explicitly for now
-//------------------------------------------------------------------------------
-template<>
-void
-computeRKCorrections(const ConnectivityMap<Dim<1>>& connectivityMap,
-                     const TableKernel<Dim<1>>& W,
-                     const FieldList<Dim<1>, Dim<1>::Scalar>& volume,
-                     const FieldList<Dim<1>, Dim<1>::Vector>& position,
-                     const FieldList<Dim<1>, Dim<1>::SymTensor>& H,
-                     const CRKOrder correctionOrder,
-                     FieldList<Dim<1>, Dim<1>::Scalar>& A,
-                     FieldList<Dim<1>, Dim<1>::Vector>& B,
-                     FieldList<Dim<1>, Dim<1>::Tensor>& C,
-                     FieldList<Dim<1>, Dim<1>::ThirdRankTensor>& D,
-                     FieldList<Dim<1>, Dim<1>::Vector>& gradA,
-                     FieldList<Dim<1>, Dim<1>::Tensor>& gradB,
-                     FieldList<Dim<1>, Dim<1>::ThirdRankTensor>& gradC,
-                     FieldList<Dim<1>, Dim<1>::FourthRankTensor>& gradD,
-                     FieldList<Dim<1>, Dim<1>::Tensor>& hessA,
-                     FieldList<Dim<1>, Dim<1>::ThirdRankTensor>& hessB,
-                     FieldList<Dim<1>, Dim<1>::FourthRankTensor>& hessC,
-                     FieldList<Dim<1>, Dim<1>::FifthRankTensor>& hessD);
+// //------------------------------------------------------------------------------
+// // Do instantiations explicitly for now
+// //------------------------------------------------------------------------------
+// template<>
+// void
+// computeRKCorrections(const ConnectivityMap<Dim<1>>& connectivityMap,
+//                      const TableKernel<Dim<1>>& W,
+//                      const FieldList<Dim<1>, Dim<1>::Scalar>& volume,
+//                      const FieldList<Dim<1>, Dim<1>::Vector>& position,
+//                      const FieldList<Dim<1>, Dim<1>::SymTensor>& H,
+//                      const CRKOrder correctionOrder,
+//                      FieldList<Dim<1>, Dim<1>::Scalar>& A,
+//                      FieldList<Dim<1>, Dim<1>::Vector>& B,
+//                      FieldList<Dim<1>, Dim<1>::Tensor>& C,
+//                      FieldList<Dim<1>, Dim<1>::ThirdRankTensor>& D,
+//                      FieldList<Dim<1>, Dim<1>::Vector>& gradA,
+//                      FieldList<Dim<1>, Dim<1>::Tensor>& gradB,
+//                      FieldList<Dim<1>, Dim<1>::ThirdRankTensor>& gradC,
+//                      FieldList<Dim<1>, Dim<1>::FourthRankTensor>& gradD,
+//                      FieldList<Dim<1>, Dim<1>::Tensor>& hessA,
+//                      FieldList<Dim<1>, Dim<1>::ThirdRankTensor>& hessB,
+//                      FieldList<Dim<1>, Dim<1>::FourthRankTensor>& hessC,
+//                      FieldList<Dim<1>, Dim<1>::FifthRankTensor>& hessD);
 
-template<>
-void
-computeRKCorrections(const ConnectivityMap<Dim<2>>& connectivityMap,
-                     const TableKernel<Dim<2>>& W,
-                     const FieldList<Dim<2>, Dim<2>::Scalar>& volume,
-                     const FieldList<Dim<2>, Dim<2>::Vector>& position,
-                     const FieldList<Dim<2>, Dim<2>::SymTensor>& H,
-                     const CRKOrder correctionOrder,
-                     FieldList<Dim<2>, Dim<2>::Scalar>& A,
-                     FieldList<Dim<2>, Dim<2>::Vector>& B,
-                     FieldList<Dim<2>, Dim<2>::Tensor>& C,
-                     FieldList<Dim<2>, Dim<2>::ThirdRankTensor>& D,
-                     FieldList<Dim<2>, Dim<2>::Vector>& gradA,
-                     FieldList<Dim<2>, Dim<2>::Tensor>& gradB,
-                     FieldList<Dim<2>, Dim<2>::ThirdRankTensor>& gradC,
-                     FieldList<Dim<2>, Dim<2>::FourthRankTensor>& gradD,
-                     FieldList<Dim<2>, Dim<2>::Tensor>& hessA,
-                     FieldList<Dim<2>, Dim<2>::ThirdRankTensor>& hessB,
-                     FieldList<Dim<2>, Dim<2>::FourthRankTensor>& hessC,
-                     FieldList<Dim<2>, Dim<2>::FifthRankTensor>& hessD);
+// template<>
+// void
+// computeRKCorrections(const ConnectivityMap<Dim<2>>& connectivityMap,
+//                      const TableKernel<Dim<2>>& W,
+//                      const FieldList<Dim<2>, Dim<2>::Scalar>& volume,
+//                      const FieldList<Dim<2>, Dim<2>::Vector>& position,
+//                      const FieldList<Dim<2>, Dim<2>::SymTensor>& H,
+//                      const CRKOrder correctionOrder,
+//                      FieldList<Dim<2>, Dim<2>::Scalar>& A,
+//                      FieldList<Dim<2>, Dim<2>::Vector>& B,
+//                      FieldList<Dim<2>, Dim<2>::Tensor>& C,
+//                      FieldList<Dim<2>, Dim<2>::ThirdRankTensor>& D,
+//                      FieldList<Dim<2>, Dim<2>::Vector>& gradA,
+//                      FieldList<Dim<2>, Dim<2>::Tensor>& gradB,
+//                      FieldList<Dim<2>, Dim<2>::ThirdRankTensor>& gradC,
+//                      FieldList<Dim<2>, Dim<2>::FourthRankTensor>& gradD,
+//                      FieldList<Dim<2>, Dim<2>::Tensor>& hessA,
+//                      FieldList<Dim<2>, Dim<2>::ThirdRankTensor>& hessB,
+//                      FieldList<Dim<2>, Dim<2>::FourthRankTensor>& hessC,
+//                      FieldList<Dim<2>, Dim<2>::FifthRankTensor>& hessD);
 
-template<>
-void
-computeRKCorrections(const ConnectivityMap<Dim<3>>& connectivityMap,
-                     const TableKernel<Dim<3>>& W,
-                     const FieldList<Dim<3>, Dim<3>::Scalar>& volume,
-                     const FieldList<Dim<3>, Dim<3>::Vector>& position,
-                     const FieldList<Dim<3>, Dim<3>::SymTensor>& H,
-                     const CRKOrder correctionOrder,
-                     FieldList<Dim<3>, Dim<3>::Scalar>& A,
-                     FieldList<Dim<3>, Dim<3>::Vector>& B,
-                     FieldList<Dim<3>, Dim<3>::Tensor>& C,
-                     FieldList<Dim<3>, Dim<3>::ThirdRankTensor>& D,
-                     FieldList<Dim<3>, Dim<3>::Vector>& gradA,
-                     FieldList<Dim<3>, Dim<3>::Tensor>& gradB,
-                     FieldList<Dim<3>, Dim<3>::ThirdRankTensor>& gradC,
-                     FieldList<Dim<3>, Dim<3>::FourthRankTensor>& gradD,
-                     FieldList<Dim<3>, Dim<3>::Tensor>& hessA,
-                     FieldList<Dim<3>, Dim<3>::ThirdRankTensor>& hessB,
-                     FieldList<Dim<3>, Dim<3>::FourthRankTensor>& hessC,
-                     FieldList<Dim<3>, Dim<3>::FifthRankTensor>& hessD);
+// template<>
+// void
+// computeRKCorrections(const ConnectivityMap<Dim<3>>& connectivityMap,
+//                      const TableKernel<Dim<3>>& W,
+//                      const FieldList<Dim<3>, Dim<3>::Scalar>& volume,
+//                      const FieldList<Dim<3>, Dim<3>::Vector>& position,
+//                      const FieldList<Dim<3>, Dim<3>::SymTensor>& H,
+//                      const CRKOrder correctionOrder,
+//                      FieldList<Dim<3>, Dim<3>::Scalar>& A,
+//                      FieldList<Dim<3>, Dim<3>::Vector>& B,
+//                      FieldList<Dim<3>, Dim<3>::Tensor>& C,
+//                      FieldList<Dim<3>, Dim<3>::ThirdRankTensor>& D,
+//                      FieldList<Dim<3>, Dim<3>::Vector>& gradA,
+//                      FieldList<Dim<3>, Dim<3>::Tensor>& gradB,
+//                      FieldList<Dim<3>, Dim<3>::ThirdRankTensor>& gradC,
+//                      FieldList<Dim<3>, Dim<3>::FourthRankTensor>& gradD,
+//                      FieldList<Dim<3>, Dim<3>::Tensor>& hessA,
+//                      FieldList<Dim<3>, Dim<3>::ThirdRankTensor>& hessB,
+//                      FieldList<Dim<3>, Dim<3>::FourthRankTensor>& hessC,
+//                      FieldList<Dim<3>, Dim<3>::FifthRankTensor>& hessD);
 
 } // end namespace Spheral
