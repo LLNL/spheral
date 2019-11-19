@@ -1,10 +1,10 @@
 //------------------------------------------------------------------------------
 // Compute the RK correction terms
 //------------------------------------------------------------------------------
+#include "computeRKCorrections.hh"
 
 #include <algorithm>
 #include <array>
-#include "computeRKCorrections.hh"
 #include "Eigen/Dense"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -89,11 +89,11 @@ struct RKMomentValues {
 template<typename Dimension, CRKOrder correctionOrder>
 void
 addToMoments(const typename Dimension::Vector& eta,
-             const typename Dimension::SymTensor& deta,
+             const typename Dimension::Tensor& deta,
              const typename Dimension::ThirdRankTensor& ddeta,
              const typename Dimension::Scalar& w,
              const typename Dimension::Vector& dw,
-             const typename Dimension::SymTensor& ddw,
+             const typename Dimension::Tensor& ddw,
              const typename Dimension::Scalar& v,
              RKMomentValues<Dimension>& moments);
 
@@ -101,11 +101,11 @@ addToMoments(const typename Dimension::Vector& eta,
 template<>
 void
 addToMoments<Dim<1>, CRKOrder::ZerothOrder>(const Dim<1>::Vector& eta,
-                                            const Dim<1>::SymTensor& deta,
+                                            const Dim<1>::Tensor& deta,
                                             const Dim<1>::ThirdRankTensor& ddeta,
                                             const Dim<1>::Scalar& w,
                                             const Dim<1>::Vector& dw,
-                                            const Dim<1>::SymTensor& ddw,
+                                            const Dim<1>::Tensor& ddw,
                                             const Dim<1>::Scalar& v,
                                             RKMomentValues<Dim<1>>& moments) {
   const auto dim = Dim<1>::nDim;
@@ -126,11 +126,11 @@ addToMoments<Dim<1>, CRKOrder::ZerothOrder>(const Dim<1>::Vector& eta,
 template<>
 void
 addToMoments<Dim<2>, CRKOrder::ZerothOrder>(const Dim<2>::Vector& eta,
-                                            const Dim<2>::SymTensor& deta,
+                                            const Dim<2>::Tensor& deta,
                                             const Dim<2>::ThirdRankTensor& ddeta,
                                             const Dim<2>::Scalar& w,
                                             const Dim<2>::Vector& dw,
-                                            const Dim<2>::SymTensor& ddw,
+                                            const Dim<2>::Tensor& ddw,
                                             const Dim<2>::Scalar& v,
                                             RKMomentValues<Dim<2>>& moments) {
   const auto dim = Dim<2>::nDim;
@@ -155,11 +155,11 @@ addToMoments<Dim<2>, CRKOrder::ZerothOrder>(const Dim<2>::Vector& eta,
 template<>
 void
 addToMoments<Dim<3>, CRKOrder::ZerothOrder>(const Dim<3>::Vector& eta,
-                                            const Dim<3>::SymTensor& deta,
+                                            const Dim<3>::Tensor& deta,
                                             const Dim<3>::ThirdRankTensor& ddeta,
                                             const Dim<3>::Scalar& w,
                                             const Dim<3>::Vector& dw,
-                                            const Dim<3>::SymTensor& ddw,
+                                            const Dim<3>::Tensor& ddw,
                                             const Dim<3>::Scalar& v,
                                             RKMomentValues<Dim<3>>& moments) {
   const auto dim = Dim<3>::nDim;
@@ -184,11 +184,11 @@ addToMoments<Dim<3>, CRKOrder::ZerothOrder>(const Dim<3>::Vector& eta,
 template<>
 void
 addToMoments<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& eta,
-                                            const Dim<1>::SymTensor& deta,
+                                            const Dim<1>::Tensor& deta,
                                             const Dim<1>::ThirdRankTensor& ddeta,
                                             const Dim<1>::Scalar& w,
                                             const Dim<1>::Vector& dw,
-                                            const Dim<1>::SymTensor& ddw,
+                                            const Dim<1>::Tensor& ddw,
                                             const Dim<1>::Scalar& v,
                                             RKMomentValues<Dim<1>>& moments) {
   const auto dim = Dim<1>::nDim;
@@ -224,11 +224,11 @@ addToMoments<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& eta,
 template<>
 void
 addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& eta,
-                                            const Dim<2>::SymTensor& deta,
+                                            const Dim<2>::Tensor& deta,
                                             const Dim<2>::ThirdRankTensor& ddeta,
                                             const Dim<2>::Scalar& w,
                                             const Dim<2>::Vector& dw,
-                                            const Dim<2>::SymTensor& ddw,
+                                            const Dim<2>::Tensor& ddw,
                                             const Dim<2>::Scalar& v,
                                             RKMomentValues<Dim<2>>& moments) {
   const auto dim = Dim<2>::nDim;
@@ -276,11 +276,11 @@ addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& eta,
 template<>
 void
 addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& eta,
-                                            const Dim<3>::SymTensor& deta,
+                                            const Dim<3>::Tensor& deta,
                                             const Dim<3>::ThirdRankTensor& ddeta,
                                             const Dim<3>::Scalar& w,
                                             const Dim<3>::Vector& dw,
-                                            const Dim<3>::SymTensor& ddw,
+                                            const Dim<3>::Tensor& ddw,
                                             const Dim<3>::Scalar& v,
                                             RKMomentValues<Dim<3>>& moments) {
   const auto dim = Dim<3>::nDim;
@@ -685,6 +685,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                      FieldList<Dimension, typename Dimension::ThirdRankTensor>& hessB,
                      FieldList<Dimension, typename Dimension::FourthRankTensor>& hessC,
                      FieldList<Dimension, typename Dimension::FifthRankTensor>& hessD) {
+  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
   
   // Make sure nodelists are of the correct size
@@ -735,7 +736,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const auto Hij = H(nodeListj, nodej);
           const auto etaij = Hij * xij;
           const auto etaMagInvij = safeInv(etaij.magnitude());
-          const auto gradEtaij = Hij;
+          const Tensor gradEtaij = Hij;
           const auto hessEtaij = ThirdRankTensor::zero;
           const auto H2ij = Hij.square();
           const auto Hetaij = Hij * etaij * etaMagInvij;
@@ -747,7 +748,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const auto hessKij = W.grad2(etaij, Hij);
           const auto Wij = Kij;
           const auto gradWij = Hij * etaij * etaMagInvij * gradKij;
-          const auto hessWij = (H2ij - Heta2ij) * etaMagInvij * gradKij + Heta2ij * hessKij;
+          const Tensor hessWij = (H2ij - Heta2ij) * etaMagInvij * gradKij + Heta2ij * hessKij;
           const auto vj = volume(nodeListj, nodej);
           
           // Add the values to the moments
@@ -766,7 +767,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                            A(nodeListi, nodei), B(nodeListi, nodei),
                            gradA(nodeListi, nodei), gradB(nodeListi, nodei),
                            hessA(nodeListi, nodei), hessB(nodeListi, nodei));
-          break;
+        break;
       case CRKOrder::QuadraticOrder:
         computeCorrections(moments,
                            A(nodeListi, nodei), B(nodeListi, nodei), C(nodeListi, nodei),
@@ -785,9 +786,10 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 } // computeRKCorrections
 
 //------------------------------------------------------------------------------
-// Call the templated version
+// Choose correct templated version
 //------------------------------------------------------------------------------
 template<typename Dimension>
+inline
 void
 computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                      const TableKernel<Dimension>& W,
@@ -820,20 +822,21 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                                                                   A, B, C, D,
                                                                   gradA, gradB, gradC, gradD,
                                                                   hessA, hessB, hessC, hessD);
-  // case CRKOrder::QuadraticOrder:
-  //   return computeRKCorrections<Dimension, CRKOrder::QuadraticOrder>(connectivityMap,
-  //                                                                 W, volume, position, H,
-  //                                                                 A, B, C, D,
-  //                                                                 gradA, gradB, gradC, gradD,
-  //                                                                 hessA, hessB, hessC, hessD);
-  // case CRKOrder::CubicOrder:
-  //   return computeRKCorrections<Dimension, CRKOrder::CubicOrder>(connectivityMap,
-  //                                                                 W, volume, position, H,
-  //                                                                 A, B, C, D,
-  //                                                                 gradA, gradB, gradC, gradD,
-  //                                                                 hessA, hessB, hessC, hessD);
+    // case CRKOrder::QuadraticOrder:
+    //   return computeRKCorrections<Dimension, CRKOrder::QuadraticOrder>(connectivityMap,
+    //                                                                 W, volume, position, H,
+    //                                                                 A, B, C, D,
+    //                                                                 gradA, gradB, gradC, gradD,
+    //                                                                 hessA, hessB, hessC, hessD);
+    // case CRKOrder::CubicOrder:
+    //   return computeRKCorrections<Dimension, CRKOrder::CubicOrder>(connectivityMap,
+    //                                                                 W, volume, position, H,
+    //                                                                 A, B, C, D,
+    //                                                                 gradA, gradB, gradC, gradD,
+    //                                                                 hessA, hessB, hessC, hessD);
   default:
     ASSERT2(false, "order not implemented");
+    return;
   }
 }
 
@@ -902,4 +905,5 @@ computeRKCorrections(const ConnectivityMap<Dim<3>>& connectivityMap,
                      FieldList<Dim<3>, Dim<3>::ThirdRankTensor>& hessB,
                      FieldList<Dim<3>, Dim<3>::FourthRankTensor>& hessC,
                      FieldList<Dim<3>, Dim<3>::FifthRankTensor>& hessD);
-} // end namespace spheral
+
+} // end namespace Spheral

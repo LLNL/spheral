@@ -12,6 +12,7 @@ dims = spheralDimensions()
 from CRKSPHHydroBase import *
 from SolidCRKSPHHydroBase import *
 from CRKSPHVariant import *
+from RKCorrections import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -461,7 +462,7 @@ For such points:
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 def computeRKCorrections(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
-                         W = "const TableKernel<%(Dimension)s>",
+                         W = "const TableKernel<%(Dimension)s>&",
                          volume = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                          position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
                          H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
@@ -484,7 +485,7 @@ def computeRKCorrections(connectivityMap = "const ConnectivityMap<%(Dimension)s>
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 def computeRKVolumes(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
-                     W = "const TableKernel<%(Dimension)s>",
+                     W = "const TableKernel<%(Dimension)s>&",
                      position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
                      mass = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                      massDensity = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
@@ -503,7 +504,7 @@ def computeRKVolumes(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
 
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
-def evaluateRKKernel(kernel = "const TableKernel<%(Dimension)s>",
+def evaluateRKKernel(kernel = "const TableKernel<%(Dimension)s>&",
                      correctionOrder = "const CRKOrder",
                      eta = "const typename %(Dimension)s::Vector&",
                      H = "const typename %(Dimension)s::SymTensor&",
@@ -516,7 +517,7 @@ def evaluateRKKernel(kernel = "const TableKernel<%(Dimension)s>",
 
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
-def evaluateRKGradient(kernel = "const TableKernel<%(Dimension)s>",
+def evaluateRKGradient(kernel = "const TableKernel<%(Dimension)s>&",
                        correctionOrder = "const CRKOrder",
                        eta = "const typename %(Dimension)s::Vector&",
                        H = "const typename %(Dimension)s::SymTensor&",
@@ -533,7 +534,7 @@ def evaluateRKGradient(kernel = "const TableKernel<%(Dimension)s>",
 
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
-def evaluateRKHessian(kernel = "const TableKernel<%(Dimension)s>",
+def evaluateRKHessian(kernel = "const TableKernel<%(Dimension)s>&",
                       correctionOrder = "const CRKOrder",
                       eta = "const typename %(Dimension)s::Vector&",
                       H = "const typename %(Dimension)s::SymTensor&",
@@ -599,11 +600,11 @@ computeHVolumes%(ndim)id = PYB11TemplateFunction(computeHVolumes, template_param
 computeNeighborHull%(ndim)id = PYB11TemplateFunction(computeNeighborHull, template_parameters="%(Dimension)s")
 editMultimaterialSurfaceTopology%(ndim)id = PYB11TemplateFunction(editMultimaterialSurfaceTopology, template_parameters="%(Dimension)s")
 zerothOrderSurfaceCorrections%(ndim)id = PYB11TemplateFunction(zerothOrderSurfaceCorrections, template_parameters="%(Dimension)s")
-computeRKCorrections%(ndim)id = PYB11TemplateFunction(computeRKCorrections, template_parameters="%(Dimension)s")
 computeRKVolumes%(ndim)id = PYB11TemplateFunction(computeRKVolumes, template_parameters="%(Dimension)s")
 evaluateRKKernel%(ndim)id = PYB11TemplateFunction(evaluateRKKernel, template_parameters="%(Dimension)s")
 evaluateRKGradient%(ndim)id = PYB11TemplateFunction(evaluateRKGradient, template_parameters="%(Dimension)s")
 evaluateRKHessian%(ndim)id = PYB11TemplateFunction(evaluateRKHessian, template_parameters="%(Dimension)s")
+computeRKCorrections%(ndim)id = PYB11TemplateFunction(computeRKCorrections, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
     

@@ -327,6 +327,20 @@ CRKSPHVoidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
 }
 
+// Specialization for third rank tensors.
+template<typename Dimension>
+void
+CRKSPHVoidBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+}
+
+// Specialization for third rank tensors.
+template<typename Dimension>
+void
+CRKSPHVoidBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+}
+
 // Specialization for FacetedVolume fields.
 template<typename Dimension>
 void
