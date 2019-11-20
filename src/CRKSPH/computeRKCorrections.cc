@@ -87,6 +87,7 @@ struct RKMomentValues {
 // Add value to moments
 //------------------------------------------------------------------------------
 template<typename Dimension, CRKOrder correctionOrder>
+inline
 void
 addToMoments(const typename Dimension::Vector& eta,
              const typename Dimension::Tensor& deta,
@@ -99,6 +100,7 @@ addToMoments(const typename Dimension::Vector& eta,
 
 // d=1, o=0
 template<>
+inline
 void
 addToMoments<Dim<1>, CRKOrder::ZerothOrder>(const Dim<1>::Vector& eta,
                                             const Dim<1>::Tensor& deta,
@@ -124,6 +126,7 @@ addToMoments<Dim<1>, CRKOrder::ZerothOrder>(const Dim<1>::Vector& eta,
 }
 // d=2, o=0
 template<>
+inline
 void
 addToMoments<Dim<2>, CRKOrder::ZerothOrder>(const Dim<2>::Vector& eta,
                                             const Dim<2>::Tensor& deta,
@@ -153,6 +156,7 @@ addToMoments<Dim<2>, CRKOrder::ZerothOrder>(const Dim<2>::Vector& eta,
 }
 // d=3, o=0
 template<>
+inline
 void
 addToMoments<Dim<3>, CRKOrder::ZerothOrder>(const Dim<3>::Vector& eta,
                                             const Dim<3>::Tensor& deta,
@@ -182,6 +186,7 @@ addToMoments<Dim<3>, CRKOrder::ZerothOrder>(const Dim<3>::Vector& eta,
 }
 // d=1, o=1
 template<>
+inline
 void
 addToMoments<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& eta,
                                             const Dim<1>::Tensor& deta,
@@ -222,6 +227,7 @@ addToMoments<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& eta,
 }
 // d=2, o=1
 template<>
+inline
 void
 addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& eta,
                                             const Dim<2>::Tensor& deta,
@@ -274,6 +280,7 @@ addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& eta,
 }
 // d=3, o=1
 template<>
+inline
 void
 addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& eta,
                                             const Dim<3>::Tensor& deta,
@@ -329,12 +336,14 @@ addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& eta,
 // Compute the corrections for a single point
 //------------------------------------------------------------------------------
 template<typename Dimension>
+inline
 void
 computeCorrections(const RKMomentValues<Dimension>& moments,
                    typename Dimension::Scalar& a,
                    typename Dimension::Vector& da,
                    typename Dimension::Tensor& dda);
 template<typename Dimension>
+inline
 void
 computeCorrections(const RKMomentValues<Dimension>& moments,
                    typename Dimension::Scalar& a,
@@ -344,6 +353,7 @@ computeCorrections(const RKMomentValues<Dimension>& moments,
                    typename Dimension::Tensor& dda,
                    typename Dimension::ThirdRankTensor& ddb);
 template<typename Dimension>
+inline
 void
 computeCorrections(const RKMomentValues<Dimension>& moments,
                    typename Dimension::Scalar& a,
@@ -356,6 +366,7 @@ computeCorrections(const RKMomentValues<Dimension>& moments,
                    typename Dimension::ThirdRankTensor& ddb,
                    typename Dimension::FourthRankTensor& ddc);
 template<typename Dimension>
+inline
 void
 computeCorrections(const RKMomentValues<Dimension>& moments,
                    typename Dimension::Scalar& a,
@@ -372,6 +383,7 @@ computeCorrections(const RKMomentValues<Dimension>& moments,
                    typename Dimension::FifthRankTensor& ddd);
 // d=1, o=0
 template<>
+inline
 void
 computeCorrections(const RKMomentValues<Dim<1>>& moments,
                    Dim<1>::Scalar& a,
@@ -394,6 +406,7 @@ computeCorrections(const RKMomentValues<Dim<1>>& moments,
 
 // d=2, o=0
 template<>
+inline
 void
 computeCorrections(const RKMomentValues<Dim<2>>& moments,
                    Dim<2>::Scalar& a,
@@ -420,6 +433,7 @@ computeCorrections(const RKMomentValues<Dim<2>>& moments,
 }
 // d=3, o=0
 template<>
+inline
 void
 computeCorrections(const RKMomentValues<Dim<3>>& moments,
                    Dim<3>::Scalar& a,
@@ -446,6 +460,7 @@ computeCorrections(const RKMomentValues<Dim<3>>& moments,
 }
 // d=1, o=1
 template<>
+inline
 void
 computeCorrections(const RKMomentValues<Dim<1>>& moments,
                    Dim<1>::Scalar& a,
@@ -502,6 +517,7 @@ computeCorrections(const RKMomentValues<Dim<1>>& moments,
 }
 // d=2, o=1
 template<>
+inline
 void
 computeCorrections(const RKMomentValues<Dim<2>>& moments,
                    Dim<2>::Scalar& a,
@@ -583,6 +599,7 @@ computeCorrections(const RKMomentValues<Dim<2>>& moments,
 }
 // d=3, o=1
 template<>
+inline
 void
 computeCorrections(const RKMomentValues<Dim<3>>& moments,
                    Dim<3>::Scalar& a,
@@ -736,7 +753,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const auto Hij = H(nodeListj, nodej);
           const auto etaij = Hij * xij;
           const auto etaMagInvij = safeInv(etaij.magnitude());
-          const Tensor gradEtaij(Hij);
+          const auto gradEtaij = Tensor(Hij);
           const auto hessEtaij = ThirdRankTensor::zero;
           const auto H2ij = Hij.square();
           const auto Hetaij = Hij * etaij * etaMagInvij;
@@ -748,7 +765,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const auto hessKij = W.grad2(etaij, Hij);
           const auto Wij = Kij;
           const auto gradWij = Hij * etaij * etaMagInvij * gradKij;
-          const Tensor hessWij((H2ij - Heta2ij) * etaMagInvij * gradKij + Heta2ij * hessKij);
+          const auto hessWij = Tensor((H2ij - Heta2ij) * etaMagInvij * gradKij + Heta2ij * hessKij);
           const auto vj = volume(nodeListj, nodej);
           
           // Add the values to the moments

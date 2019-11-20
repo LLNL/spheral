@@ -126,7 +126,7 @@ evaluateRKGradient<Dim<1>>(const TableKernel<Dim<1>>& kernel,
   
   // Initialize values
   Vector grad = Vector::zero;
-  constexpr auto dim = Dim<1>::nDim;
+  const auto dim = Dim<1>::nDim;
   const auto k1 = 0;
   
   // Return kernel value
@@ -177,7 +177,7 @@ evaluateRKGradient<Dim<2>>(const TableKernel<Dim<2>>& kernel,
   
   // Initialize values
   Vector grad = Vector::zero;
-  constexpr auto dim = Dim<2>::nDim;
+  const auto dim = Dim<2>::nDim;
   
   // Return kernel value
   switch (correctionOrder) {
@@ -235,7 +235,7 @@ evaluateRKGradient<Dim<3>>(const TableKernel<Dim<3>>& kernel,
   
   // Initialize values
   Vector grad = Vector::zero;
-  constexpr auto dim = Dim<3>::nDim;
+  const auto dim = Dim<3>::nDim;
   
   // Return kernel value
   switch (correctionOrder) {
@@ -304,7 +304,7 @@ evaluateRKHessian<Dim<1>>(const TableKernel<Dim<1>>& kernel,
   
   // Initialize values
   Tensor hess = Tensor::zero;
-  constexpr auto dim = Dim<1>::nDim;
+  const auto dim = Dim<1>::nDim;
   const auto k1 = 0;
   const auto k2 = 0;
 
@@ -364,7 +364,7 @@ evaluateRKHessian<Dim<2>>(const TableKernel<Dim<2>>& kernel,
   
   // Initialize values
   Tensor hess = Tensor::zero;
-  constexpr auto dim = Dim<2>::nDim;
+  const auto dim = Dim<2>::nDim;
 
   // Return kernel value
   switch (correctionOrder) {
@@ -423,7 +423,7 @@ evaluateRKHessian<Dim<3>>(const TableKernel<Dim<3>>& kernel,
   typedef Dim<3>::ThirdRankTensor ThirdRankTensor;
 
   // Evaluate the kernel
-  const Tensor deta = Tensor(H);
+  const auto deta = Tensor(H);
   const auto ddeta = ThirdRankTensor::zero;
   const auto etaMagInv = safeInv(eta.magnitude());
   const auto Heta = H * eta * etaMagInv;
@@ -434,11 +434,11 @@ evaluateRKHessian<Dim<3>>(const TableKernel<Dim<3>>& kernel,
   const auto ddk = kernel.grad2(eta, H);
   const auto w = k;
   const auto dw = Heta * dk;
-  const Tensor ddw = Tensor((H2 - Heta2) * etaMagInv * dk + Heta2 * ddk);
+  const auto ddw = Tensor((H2 - Heta2) * etaMagInv * dk + Heta2 * ddk);
   
   // Initialize values
   Tensor hess = Tensor::zero;
-  constexpr auto dim = Dim<3>::nDim;
+  const auto dim = Dim<3>::nDim;
 
   // Return kernel value
   switch (correctionOrder) {
