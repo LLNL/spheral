@@ -15,6 +15,8 @@
 
 namespace Spheral {
 
+namespace {
+
 //------------------------------------------------------------------------------
 // Helper class for holding the moments
 //------------------------------------------------------------------------------
@@ -679,6 +681,8 @@ computeCorrections(const RKMomentValues<Dim<3>>& moments,
     }
   }
 }
+
+} // end namespace anonymous
 
 //------------------------------------------------------------------------------
 // Templated version for faster summation of moments

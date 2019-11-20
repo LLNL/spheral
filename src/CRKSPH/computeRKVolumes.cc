@@ -14,7 +14,6 @@
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
 
-
 namespace Spheral {
 
 //------------------------------------------------------------------------------
