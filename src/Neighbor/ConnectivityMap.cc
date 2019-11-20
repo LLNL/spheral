@@ -603,30 +603,30 @@ valid() const {
     }
   }
 
-  // Check that the node traversal is ordered correctly.
-  for (int nodeList = 0; nodeList != numNodeLists; ++nodeList) {
-    if ((domainDecompIndependent and mNodeLists[nodeList]->numNodes() > 0) or
-        (not domainDecompIndependent and mNodeLists[nodeList]->numInternalNodes() > 0)) {
-      const int firstGhostNode = mNodeLists[nodeList]->firstGhostNode();
-      for (const_iterator itr = begin(nodeList); itr < end(nodeList) - 1; ++itr) {
-        if (not calculatePairInteraction(nodeList, *itr,
-                                         nodeList, *(itr + 1), 
-                                         firstGhostNode)) {
-          cerr << "ConnectivityMap::valid: mNodeTraversalIndices ordered incorrectly." << endl;
-          cerr << *itr << " "
-               << *(itr + 1) << " "
-               << mKeys(nodeList, *itr) << " "
-               << mKeys(nodeList, *(itr + 1)) << " "
-               << mNodeLists[nodeList]->positions()(*itr) << " "
-               << mNodeLists[nodeList]->positions()(*(itr + 1)) << " "
-               << endl;
-          for (int i = 0; i != 100; ++i) cerr << mKeys(nodeList, i) << " " << mNodeLists[nodeList]->positions()(i) << " ";
-          cerr << endl;
-          return false;
-        }
-      }
-    }
-  }
+  // // Check that the node traversal is ordered correctly.
+  // for (int nodeList = 0; nodeList != numNodeLists; ++nodeList) {
+  //   if ((domainDecompIndependent and mNodeLists[nodeList]->numNodes() > 0) or
+  //       (not domainDecompIndependent and mNodeLists[nodeList]->numInternalNodes() > 0)) {
+  //     const int firstGhostNode = mNodeLists[nodeList]->firstGhostNode();
+  //     for (const_iterator itr = begin(nodeList); itr < end(nodeList) - 1; ++itr) {
+  //       if (not calculatePairInteraction(nodeList, *itr,
+  //                                        nodeList, *(itr + 1), 
+  //                                        firstGhostNode)) {
+  //         cerr << "ConnectivityMap::valid: mNodeTraversalIndices ordered incorrectly." << endl;
+  //         cerr << *itr << " "
+  //              << *(itr + 1) << " "
+  //              << mKeys(nodeList, *itr) << " "
+  //              << mKeys(nodeList, *(itr + 1)) << " "
+  //              << mNodeLists[nodeList]->positions()(*itr) << " "
+  //              << mNodeLists[nodeList]->positions()(*(itr + 1)) << " "
+  //              << endl;
+  //         for (int i = 0; i != 100; ++i) cerr << mKeys(nodeList, i) << " " << mNodeLists[nodeList]->positions()(i) << " ";
+  //         cerr << endl;
+  //         return false;
+  //       }
+  //     }
+  //   }
+  // }
 
   // Everything must be OK.
   TIME_ConnectivityMap_valid.stop();
