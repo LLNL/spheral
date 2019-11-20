@@ -166,9 +166,12 @@ step(const typename Dimension::Scalar maxTime) {
   StateDerivatives<Dimension> derivs(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
   auto success = false;
   auto count = 0;
-  while (not success and count < 10) {
+  auto maxIterations = 10;
+  while (not success and count < maxIterations) {
     ++count;
+    if (count == maxIterations) mAllowDtCheck = false;
     success = this->step(maxTime, state, derivs);
+    if (count == maxIterations) mAllowDtCheck = true;
     if (not success) {
       if (Process::getRank() == 0) {
         cerr << "Integrator::step reported unstable timestep -- cutting dt and trying again: " << count << "/10" << endl;
