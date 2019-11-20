@@ -166,6 +166,8 @@ InflowOutflowBoundary(DataBase<Dimension>& dataBase,
   mTensorValues(),
   mSymTensorValues(),
   mThirdRankTensorValues(),
+  mFourthRankTensorValues(),
+  mFifthRankTensorValues(),
   mFacetedVolumeValues(),
   mVectorScalarValues(),
   mVectorVectorValues(),
@@ -311,6 +313,27 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   }
 }
 
+
+// Specialization for fourth rank tensors.
+template<typename Dimension>
+void
+InflowOutflowBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  if (mActive) {
+    resetValues(field, this->ghostNodes(field.nodeList()), mFourthRankTensorValues, false);
+  }
+}
+
+// Specialization for fifth rank tensors.
+template<typename Dimension>
+void
+InflowOutflowBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  if (mActive) {
+    resetValues(field, this->ghostNodes(field.nodeList()), mFifthRankTensorValues, false);
+  }
+}
+
 // Specialization for FacetedVolume.
 template<typename Dimension>
 void
@@ -410,6 +433,20 @@ InflowOutflowBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
 }
 
+// Specialization for fourth rank tensors.
+template<typename Dimension>
+void
+InflowOutflowBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+}
+
+// Specialization for fifth rank tensors.
+template<typename Dimension>
+void
+InflowOutflowBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+}
+
 // Specialization for FacetedVolume.
 template<typename Dimension>
 void
@@ -434,6 +471,8 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
     mTensorValues.clear();
     mSymTensorValues.clear();
     mThirdRankTensorValues.clear();
+    mFourthRankTensorValues.clear();
+    mFifthRankTensorValues.clear();
     mFacetedVolumeValues.clear();
     mVectorScalarValues.clear();
     mVectorVectorValues.clear();
@@ -464,6 +503,8 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
       storeFieldValues(nodeList, nodeIDs, mTensorValues);
       storeFieldValues(nodeList, nodeIDs, mSymTensorValues);
       storeFieldValues(nodeList, nodeIDs, mThirdRankTensorValues);
+      storeFieldValues(nodeList, nodeIDs, mFourthRankTensorValues);
+      storeFieldValues(nodeList, nodeIDs, mFifthRankTensorValues);
       storeFieldValues(nodeList, nodeIDs, mFacetedVolumeValues);
       storeFieldValues(nodeList, nodeIDs, mVectorScalarValues);
       storeFieldValues(nodeList, nodeIDs, mVectorVectorValues);
@@ -611,6 +652,8 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
       copyFieldValues<Dimension, Tensor>         (nodeList, mTensorValues, insideNodes, newNodes);
       copyFieldValues<Dimension, SymTensor>      (nodeList, mSymTensorValues, insideNodes, newNodes);
       copyFieldValues<Dimension, ThirdRankTensor>(nodeList, mThirdRankTensorValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, FourthRankTensor>(nodeList, mFourthRankTensorValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, FifthRankTensor>(nodeList, mFifthRankTensorValues, insideNodes, newNodes);
       copyFieldValues<Dimension, FacetedVolume>  (nodeList, mFacetedVolumeValues, insideNodes, newNodes);
       copyFieldValues<Dimension, vector<Scalar>> (nodeList, mVectorScalarValues, insideNodes, newNodes);
       copyFieldValues<Dimension, vector<Vector>> (nodeList, mVectorVectorValues, insideNodes, newNodes);
@@ -686,6 +729,8 @@ InflowOutflowBoundary<Dimension>::storedKeys() const {
   for (const auto& pairs: mTensorValues)          result.push_back(pairs.first);
   for (const auto& pairs: mSymTensorValues)       result.push_back(pairs.first);
   for (const auto& pairs: mThirdRankTensorValues) result.push_back(pairs.first);
+  for (const auto& pairs: mFourthRankTensorValues) result.push_back(pairs.first);
+  for (const auto& pairs: mFifthRankTensorValues) result.push_back(pairs.first);
   for (const auto& pairs: mFacetedVolumeValues)   result.push_back(pairs.first);
   for (const auto& pairs: mVectorScalarValues)    result.push_back(pairs.first);
   for (const auto& pairs: mVectorVectorValues)    result.push_back(pairs.first);
@@ -753,6 +798,20 @@ dumpState(FileIO& file, const string& pathName) const {
   }
   file.write(keys, pathName + "/ThirdRankTensorValues/keys");
 
+  keys.clear();
+  for (const auto& p: mFourthRankTensorValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/FourthRankTensorValues/" + p.first);
+  }
+  file.write(keys, pathName + "/FourthRankTensorValues/keys");
+
+  keys.clear();
+  for (const auto& p: mFifthRankTensorValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/FifthRankTensorValues/" + p.first);
+  }
+  file.write(keys, pathName + "/FifthRankTensorValues/keys");
+  
   keys.clear();
   for (const auto& p: mFacetedVolumeValues) {
     keys.push_back(p.first);
@@ -833,6 +892,22 @@ restoreState(const FileIO& file, const string& pathName)  {
     file.read(mThirdRankTensorValues[key], pathName + "/ThirdRankTensorValues/" + key);
   }
 
+  keys.clear();
+  file.read(keys, pathName + "/FourthRankTensorValues/keys");
+  mFourthRankTensorValues.clear();
+  for (const auto key: keys) {
+    mFourthRankTensorValues[key] = std::vector<FourthRankTensor>();
+    file.read(mFourthRankTensorValues[key], pathName + "/FourthRankTensorValues/" + key);
+  }
+
+  keys.clear();
+  file.read(keys, pathName + "/FifthRankTensorValues/keys");
+  mFifthRankTensorValues.clear();
+  for (const auto key: keys) {
+    mFifthRankTensorValues[key] = std::vector<FifthRankTensor>();
+    file.read(mFifthRankTensorValues[key], pathName + "/FifthRankTensorValues/" + key);
+  }
+  
   keys.clear();
   file.read(keys, pathName + "/FacetedVolumeValues/keys");
   mFacetedVolumeValues.clear();
