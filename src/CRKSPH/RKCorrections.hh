@@ -105,7 +105,30 @@ public:
   // Methods required for restarting.
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
+
+  // Return data
+  const CRKOrder correctionOrder() const { return mCorrectionOrder; }
+  const CRKVolumeType volumeType() const { return mVolumeType; }
+  const FieldList<Dimension, Scalar>& volume() const { return mVolume; }
   
+  const FieldList<Dimension, Scalar>& A() const { return mA; }
+  const FieldList<Dimension, Vector>& B() const { return mB; }
+  const FieldList<Dimension, Tensor>& C() const { return mC; }
+  const FieldList<Dimension, ThirdRankTensor>& D() const { return mD; }
+  const FieldList<Dimension, Vector>& gradA() const { return mGradA; }
+  const FieldList<Dimension, Tensor>& gradB() const { return mGradB; };
+  const FieldList<Dimension, ThirdRankTensor>& gradC() const { return mGradC; };
+  const FieldList<Dimension, FourthRankTensor>& gradD() const { return mGradD; };
+  const FieldList<Dimension, Tensor>& hessA() const { return mHessA; }
+  const FieldList<Dimension, ThirdRankTensor>& hessB() const { return mHessB; };
+  const FieldList<Dimension, FourthRankTensor>& hessC() const { return mHessC; };
+  const FieldList<Dimension, FifthRankTensor>& hessD() const { return mHessD; };
+
+  const FieldList<Dimension, int>& surfacePoint() const { return mSurfacePoint; }
+  const FieldList<Dimension, std::vector<Vector>>& etaVoidPoints() const { return mEtaVoidPoints; }
+  const FieldList<Dimension, FacetedVolume>& cells() const { return mCells; }
+  const FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags() const { return mCellFaceFlags; }
+
 private:
 
   // Data

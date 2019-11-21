@@ -17,6 +17,7 @@ commandLine(
     nx = 32,
     ny = 32,
     nz = 32,
+    correctionOrder = LinearOrder,
     
     # Manufactured parameters
     rho0 = 2.5e-7, # g / cm^3
@@ -155,15 +156,23 @@ else:
 output("nodes.numNodes")
 numLocal = nodes.numInternalNodes
 output("numLocal")
-exit()
+
 #-------------------------------------------------------------------------------
 # Build the RK object
 #-------------------------------------------------------------------------------
 rk = RKCorrections(dataBase = db,
                    W = WT,
-                   correctionOrder = LinearOrder,
+                   correctionOrder = correctionOrder,
                    volumeType = CRKVoronoiVolume)
-exit()
+packages = [rk]
+
+#-------------------------------------------------------------------------------
+# Run the startup stuff 
+#-------------------------------------------------------------------------------
+integrator = CheapSynchronousRK2Integrator(db)
+for p in packages:
+    integrator.appendPhysicsPackage(p)
+control = SpheralController(integrator, WT)
 
 #-------------------------------------------------------------------------------
 # Try interpolation

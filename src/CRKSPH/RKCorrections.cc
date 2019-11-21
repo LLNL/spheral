@@ -148,6 +148,7 @@ void
 RKCorrections<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
+  // Stuff RKCorrections owns
   state.enroll(mVolume);
   
   state.enroll(mA);
@@ -169,6 +170,18 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(mCells);
     state.enroll(mCellFaceFlags);
   }
+
+  // Stuff RKCorrections needs that might have been enrolled elsewhere
+  auto position = dataBase.fluidPosition();
+  auto mass = dataBase.fluidMass();
+  auto rho = dataBase.fluidMassDensity();
+  auto H = dataBase.fluidHfield();
+  auto damage = dataBase.solidEffectiveDamage();
+  if (not state.registered(position)) state.enroll(position);
+  if (not state.registered(mass)) state.enroll(mass);
+  if (not state.registered(rho)) state.enroll(rho);
+  if (not state.registered(H)) state.enroll(H);
+  if (not state.registered(damage)) state.enroll(damage);
 }
 
 //------------------------------------------------------------------------------
