@@ -18,8 +18,8 @@ commandLine(seed = "lattice",
 
             thetaFactor = 0.5,
             azimuthalOffsetFraction = 0.0,
-            nRadial = 50,
-            nTheta = 50,
+            nRadial = 200,
+            nTheta = 200,
             rmin = 0.0,
             rmax = 1.0,
             nPerh = 1.51,
@@ -93,6 +93,9 @@ commandLine(seed = "lattice",
             dataRoot = "dumps-cylindrical-Sedov",
             outputFile = "None",
             serialDump=True,
+
+            xlmin = 0.4,
+            xlmax = 0.5,
             )
 
 if smallPressure:
@@ -140,12 +143,6 @@ if asph:
 
 dataDir = os.path.join(dataRoot,
                        hydroname,
-                       "nperh=%4.2f" % nPerh,
-                       "XSPH=%s" % XSPH,
-                       "densityUpdate=%s" % densityUpdate,
-                       "compatibleEnergy=%s" % compatibleEnergy,
-                       "Cullen=%s" % boolCullenViscosity,
-                       "seed=%s" % seed,
                        "nr=%i_nt=%i" % (nRadial, nTheta))
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
@@ -213,7 +210,9 @@ generator = GenerateNodeDistribution2dRatio(nRadial, nTheta, rho0,
                                        theta = theta,
                                        azimuthalOffsetFraction = azimuthalOffsetFraction,
                                        nNodePerh = nPerh,
-                                       SPH = (not ASPH))
+                                       SPH = (not ASPH),
+                                       xlmin = xlmin,
+                                       xlmax = xlmax)
 
 if mpi.procs > 1:
     from VoronoiDistributeNodes import distributeNodes2d

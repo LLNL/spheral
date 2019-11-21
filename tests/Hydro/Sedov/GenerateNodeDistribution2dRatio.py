@@ -74,8 +74,8 @@ class GenerateNodeDistribution2dRatio(NodeGeneratorBase):
                                          self.xmax,
                                          self.rmin,
                                          self.rmax,
-                                         self.nNodePerh
-                                         self.xlmin
+                                         self.nNodePerh,
+                                         self.xlmin,
                                          self.xlmax)
 
         # If SPH has been specified, make sure the H tensors are round.
@@ -214,7 +214,7 @@ class GenerateNodeDistribution2dRatio(NodeGeneratorBase):
 
         for j in xrange(ny):
             for i in xrange(nx):
-                if i*dx < xlmin and i*dx > xlmax:
+                if i*dx < xlmin or i*dx > xlmax:
                     xx = xmin[0] + (i + 0.5)*dx
                     yy = xmin[1] + (j + 0.5)*dy
                     r = sqrt(xx*xx + yy*yy)
@@ -225,6 +225,21 @@ class GenerateNodeDistribution2dRatio(NodeGeneratorBase):
                         y.append(yy)
                         m.append(m0)
                         H.append(H0)
+        dx = dx *0.5
+        dy = dy *0.5
+        xx = xlmin + 0.5*dx
+        while (xx<=xlmax):
+            for j in range(ny*2):
+                yy = xmin[1] + (j + 0.5)*dy
+                r = sqrt(xx*xx + yy*yy)
+                m0 = dx*dy*rho(Vector2d(xx, yy))
+                if ((r >= rmin or rmin is None) and
+                        (r <= rmax or rmax is None)):
+                        x.append(xx)
+                        y.append(yy)
+                        m.append(m0)
+                        H.append(H0)
+            xx += dx
 
         return x, y, m, H
 
