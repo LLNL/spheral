@@ -5,6 +5,7 @@ from Spheral import *
 from SpheralTestUtilities import *
 import os, shutil
 import numpy as np
+from matplotlib import pyplot as plt
 title("Reproducing kernel test")
 
 #-------------------------------------------------------------------------------
@@ -16,15 +17,22 @@ commandLine(
     nx = 32,
     ny = 32,
     nz = 32,
+    x0 = -2.0,
+    x1 = 2.0,
+    y0 = -2.0,
+    y1 = 2.0,
+    z0 = -2.0,
+    z1 = 2.0,
     correctionOrder = LinearOrder,
     
     # Manufactured parameters
-    rho0 = 2.5e-7, # g / cm^3
+    funcType = "linear",
     
     # Interpolation kernel choice
     nPerh = 4.01,
     
-    # Gamma-law gas EOS
+    # Material parameters
+    rho0 = 2.5e-7,
     gamma = 5.0/3.0,
     mu = 1.0,
 
@@ -43,9 +51,7 @@ else:
 # Set up data
 #-------------------------------------------------------------------------------
 
-# Set limits to be two wavelengths so boundary conditions work
-x0 = y0 = z0 = -1.0
-x1 = y1 = z1 = 1.0
+# Set limits
 lims = [[x0, x1], [y0, y1], [z0, z1]]
 
 # Get point spacing
@@ -57,8 +63,8 @@ if dimension > 2:
     delta.append((z1 - z0)/nz)
 deltaMax = max(delta)
 deltaMin = min(delta)
-hmin = deltaMin * nPerh
-hmax = deltaMax * nPerh
+hmin = deltaMin * nPerh# * 1.e-3
+hmax = deltaMax * nPerh# * 1.e3
 h0 = 0.5 * (hmin + hmax)
 
 #-------------------------------------------------------------------------------
@@ -109,11 +115,11 @@ output("nodes.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
-db = DataBase()
-output("db")
-output("db.appendNodeList(nodes)")
-output("db.numNodeLists")
-output("db.numFluidNodeLists")
+dataBase = DataBase()
+output("dataBase")
+output("dataBase.appendNodeList(nodes)")
+output("dataBase.numNodeLists")
+output("dataBase.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
 # Seed the nodes
@@ -159,7 +165,7 @@ output("numLocal")
 #-------------------------------------------------------------------------------
 # Build the RK object
 #-------------------------------------------------------------------------------
-rk = RKCorrections(dataBase = db,
+rk = RKCorrections(dataBase = dataBase,
                    W = WT,
                    correctionOrder = correctionOrder,
                    volumeType = CRKMassOverDensity)
@@ -168,12 +174,101 @@ packages = [rk]
 #-------------------------------------------------------------------------------
 # Run the startup stuff 
 #-------------------------------------------------------------------------------
-integrator = CheapSynchronousRK2Integrator(db)
+integrator = CheapSynchronousRK2Integrator(dataBase)
 for p in packages:
     integrator.appendPhysicsPackage(p)
 control = SpheralController(integrator, WT)
 
 #-------------------------------------------------------------------------------
+# Get interpolant
+#-------------------------------------------------------------------------------
+
+if funcType == "constant":
+    def func(x):
+        return 2.0
+elif funcType == "linear":
+    def func(x):
+        return 4.0 * np.sum(x)
+else:
+    raise ValueError, "function type {} not found".format(funcType)
+
+#-------------------------------------------------------------------------------
 # Try interpolation
 #-------------------------------------------------------------------------------
-position = db.fluidPosition
+position = dataBase.fluidPosition
+H = dataBase.fluidHfield
+volume = rk.volume
+
+A = rk.A
+dA = rk.gradA
+ddA = rk.hessA
+B = rk.B
+dB = rk.gradB
+ddB = rk.hessB
+C = rk.C
+dC = rk.gradC
+ddC = rk.hessC
+D = rk.D
+dD = rk.gradD
+ddD = rk.hessD
+
+b = Vector.zero
+db = Tensor.zero
+ddb = ThirdRankTensor.zero
+c = Tensor.zero
+dc = ThirdRankTensor.zero
+ddc = FourthRankTensor.zero
+d = ThirdRankTensor.zero
+dd = FourthRankTensor.zero
+ddd = FifthRankTensor.zero
+
+connectivity = dataBase.connectivityMap()
+vals = np.zeros((nodes.numNodes, 2))
+dvals = np.zeros((nodes.numNodes, dimension, 2))
+for i in range(nodes.numNodes):
+    xi = position(0, i)
+    a = A[0][i]
+    da = dA[0][i]
+    dda = ddA[0][i]
+    if correctionOrder >=LinearOrder:
+        b = B[0][i]
+        db = dB[0][i]
+        ddb = ddB[0][i]
+        if correctionOrder >= QuadraticOrder:
+            c = C[0][i]
+            dc = dC[0][i]
+            ddc = ddC[0][i]
+            if correctionOrder >= CubicOrder:
+                d = D[0][i]
+                dd = dD[0][i]
+                ddd = ddD[0][i]
+    for j in connectivity.connectivityForNode(0, i)[0]:
+        xj = position(0, j)
+        fj = func(xj)
+        xij = xi - xj
+        Hij = H(0, j)
+        etaij = Hij * xij
+        vj = volume(0, j)
+        w = evaluateRKKernel(WT, correctionOrder,
+                             etaij, Hij,
+                             a, b, c, d)
+        dw = evaluateRKGradient(WT, correctionOrder,
+                                etaij, Hij,
+                                a, b, c, d,
+                                da, db, dc, dd)
+        ddw = evaluateRKHessian(WT, correctionOrder,
+                                etaij, Hij,
+                                a, b, c, d,
+                                da, db, dc, dd,
+                                dda, ddb, ddc, ddd)
+        vals[i,0] += w * fj * vj
+        # dvals[i,0] += dw * fj * vj
+    vals[i,1] = func(xi)
+    # dvals[i,1] = dfunc(xi)
+
+    
+plt.plot(vals[:,0])
+plt.plot(vals[:,1])
+plt.show()
+                     
+    

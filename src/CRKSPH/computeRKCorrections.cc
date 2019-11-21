@@ -219,7 +219,7 @@ addToMoments<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& eta,
   
   // Moments
   m1[q1] += v*w*eta[q1];
-  m2[q1 + q2] = v*w*eta[q1]*eta[q2];
+  m2[q1 + q2] += v*w*eta[q1]*eta[q2];
 
   // Gradients
   dm1[k1 + q1] += v*dw[k1]*eta[q1] + v*w*deta[k1 + q1];
