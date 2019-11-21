@@ -5,7 +5,6 @@ from Spheral import *
 from SpheralTestUtilities import *
 import os, shutil
 import numpy as np
-
 title("Reproducing kernel test")
 
 #-------------------------------------------------------------------------------
@@ -163,7 +162,7 @@ output("numLocal")
 rk = RKCorrections(dataBase = db,
                    W = WT,
                    correctionOrder = correctionOrder,
-                   volumeType = CRKVoronoiVolume)
+                   volumeType = CRKMassOverDensity)
 packages = [rk]
 
 #-------------------------------------------------------------------------------

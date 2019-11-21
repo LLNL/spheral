@@ -176,12 +176,10 @@ registerState(DataBase<Dimension>& dataBase,
   auto mass = dataBase.fluidMass();
   auto rho = dataBase.fluidMassDensity();
   auto H = dataBase.fluidHfield();
-  auto damage = dataBase.solidEffectiveDamage();
   if (not state.registered(position)) state.enroll(position);
   if (not state.registered(mass)) state.enroll(mass);
   if (not state.registered(rho)) state.enroll(rho);
   if (not state.registered(H)) state.enroll(H);
-  if (not state.registered(damage)) state.enroll(damage);
 }
 
 //------------------------------------------------------------------------------

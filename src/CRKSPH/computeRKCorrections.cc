@@ -98,7 +98,9 @@ addToMoments(const typename Dimension::Vector& eta,
              const typename Dimension::Vector& dw,
              const typename Dimension::Tensor& ddw,
              const typename Dimension::Scalar& v,
-             RKMomentValues<Dimension>& moments);
+             RKMomentValues<Dimension>& moments) {
+    ASSERT2(false, "order not implemented");
+}
 
 // d=1, o=0
 template<>
@@ -366,7 +368,9 @@ computeCorrections(const RKMomentValues<Dimension>& moments,
                    typename Dimension::ThirdRankTensor& dc,
                    typename Dimension::Tensor& dda,
                    typename Dimension::ThirdRankTensor& ddb,
-                   typename Dimension::FourthRankTensor& ddc);
+                   typename Dimension::FourthRankTensor& ddc) {
+  ASSERT2(false, "order not implemented");
+}
 template<typename Dimension>
 inline
 void
@@ -382,7 +386,9 @@ computeCorrections(const RKMomentValues<Dimension>& moments,
                    typename Dimension::Tensor& dda,
                    typename Dimension::ThirdRankTensor& ddb,
                    typename Dimension::FourthRankTensor& ddc,
-                   typename Dimension::FifthRankTensor& ddd);
+                   typename Dimension::FifthRankTensor& ddd) {
+    ASSERT2(false, "order not implemented");
+}
 // d=1, o=0
 template<>
 inline
@@ -842,18 +848,18 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                                                                   A, B, C, D,
                                                                   gradA, gradB, gradC, gradD,
                                                                   hessA, hessB, hessC, hessD);
-    // case CRKOrder::QuadraticOrder:
-    //   return computeRKCorrections<Dimension, CRKOrder::QuadraticOrder>(connectivityMap,
-    //                                                                 W, volume, position, H,
-    //                                                                 A, B, C, D,
-    //                                                                 gradA, gradB, gradC, gradD,
-    //                                                                 hessA, hessB, hessC, hessD);
-    // case CRKOrder::CubicOrder:
-    //   return computeRKCorrections<Dimension, CRKOrder::CubicOrder>(connectivityMap,
-    //                                                                 W, volume, position, H,
-    //                                                                 A, B, C, D,
-    //                                                                 gradA, gradB, gradC, gradD,
-    //                                                                 hessA, hessB, hessC, hessD);
+    case CRKOrder::QuadraticOrder:
+      return computeRKCorrections<Dimension, CRKOrder::QuadraticOrder>(connectivityMap,
+                                                                    W, volume, position, H,
+                                                                    A, B, C, D,
+                                                                    gradA, gradB, gradC, gradD,
+                                                                    hessA, hessB, hessC, hessD);
+    case CRKOrder::CubicOrder:
+      return computeRKCorrections<Dimension, CRKOrder::CubicOrder>(connectivityMap,
+                                                                    W, volume, position, H,
+                                                                    A, B, C, D,
+                                                                    gradA, gradB, gradC, gradD,
+                                                                    hessA, hessB, hessC, hessD);
   default:
     ASSERT2(false, "order not implemented");
     return;

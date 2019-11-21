@@ -107,8 +107,8 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName);
 
   // Return data
-  const CRKOrder correctionOrder() const { return mCorrectionOrder; }
-  const CRKVolumeType volumeType() const { return mVolumeType; }
+  CRKOrder correctionOrder() const { return mCorrectionOrder; }
+  CRKVolumeType volumeType() const { return mVolumeType; }
   const FieldList<Dimension, Scalar>& volume() const { return mVolume; }
   
   const FieldList<Dimension, Scalar>& A() const { return mA; }
