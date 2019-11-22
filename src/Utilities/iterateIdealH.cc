@@ -104,11 +104,11 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   // Iterate until we either hit the max iterations or the H's achieve convergence.
   const auto numNodeLists = dataBase.numFluidNodeLists();
   auto maxDeltaH = 2.0*tolerance;
-  int itr = 0;
+  auto itr = 0;
   while (itr < maxIterations and maxDeltaH > tolerance) {
     ++itr;
     maxDeltaH = 0.0;
-    flagNodeDone = 0;
+    // flagNodeDone = 0;
 
     // Remove any old ghost node information from the NodeLists.
     for (auto k = 0; k < numNodeLists; ++k) {
@@ -131,20 +131,20 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       }
     }
 
-    // Any nodes that have already converged we flag as done.
-    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-      const auto ni = flagNodeDone[nodeListi]->numInternalElements();
-#pragma omp parallel for
-      for (auto i = 0; i < ni; ++i) {
-        if (deltaH(nodeListi, i) <= tolerance) flagNodeDone(nodeListi, i) = 1;
-      }
-    }
+//     // Any nodes that have already converged we flag as done.
+//     for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+//       const auto ni = flagNodeDone[nodeListi]->numInternalElements();
+// #pragma omp parallel for
+//       for (auto i = 0; i < ni; ++i) {
+//         if (deltaH(nodeListi, i) <= tolerance) flagNodeDone(nodeListi, i) = 1;
+//       }
+//     }
 
     // Prepare a FieldList to hold the new H.
     FieldList<Dimension, SymTensor> H1(H);
     H1.copyFields();
-    FieldList<Dimension, Scalar> zerothMoment = dataBase.newFluidFieldList(0.0, "zerothMoment");
-    FieldList<Dimension, SymTensor> secondMoment = dataBase.newFluidFieldList(SymTensor::zero, "secondMoment");
+    auto zerothMoment = dataBase.newFluidFieldList(0.0, "zerothMoment");
+    auto secondMoment = dataBase.newFluidFieldList(SymTensor::zero, "secondMoment");
 
     // Get the new connectivity.
     dataBase.updateConnectivityMap(false, false);
@@ -259,6 +259,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
           const auto phimin = phi.minElement();
           const auto phimax = phi.maxElement();
           deltaH(nodeListi, i) = max(abs(phimin - 1.0), abs(phimax - 1.0));
+          if (deltaH(nodeListi, i) <= tolerance) flagNodeDone(nodeListi, i) = 1;
         }
       }
     }
