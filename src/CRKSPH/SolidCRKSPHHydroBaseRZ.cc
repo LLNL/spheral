@@ -623,7 +623,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   // Finish up the derivatives for each point.
   auto offset = 2*npairs;
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-    const auto& nodeList = mass[0]->nodeList();
+    const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
     const auto  hmax = nodeList.hmax();
     const auto  hminratio = nodeList.hminratio();

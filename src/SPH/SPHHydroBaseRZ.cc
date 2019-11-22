@@ -253,11 +253,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   // Size up the pair-wise accelerations before we start.
   if (mCompatibleEnergyEvolution) pairAccelerations.resize(2*npairs);
 
-  // The scale for the tensile correction.
-  const auto& nodeList = mass[0]->nodeList();
-  const auto  nPerh = nodeList.nodesPerSmoothingScale();
-  const auto  WnPerh = W(1.0/nPerh, 1.0);
-
   // Walk all the interacting pairs.
 #pragma omp parallel
   {
@@ -483,7 +478,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
   // Finish up the derivatives for each point.
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-    const auto& nodeList = mass[0]->nodeList();
+    const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
     const auto  hmax = nodeList.hmax();
     const auto  hminratio = nodeList.hminratio();

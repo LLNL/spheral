@@ -594,7 +594,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Finish up the derivatives for each point.
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-    const auto& nodeList = mass[0]->nodeList();
+    const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
     const auto  hmax = nodeList.hmax();
     const auto  hminratio = nodeList.hminratio();
