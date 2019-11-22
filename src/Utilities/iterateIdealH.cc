@@ -96,12 +96,10 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   }
 
   // Keep track of the step-wise changes in the H.
-  auto deltaH = dataBase.newFluidFieldList(0.0);
-  deltaH = 2.0*tolerance;
+  auto deltaH = dataBase.newFluidFieldList(2.0*tolerance);
 
   // Build a list of flags to indicate which nodes have been completed.
-  auto flagNodeDone = dataBase.newFluidFieldList(int());
-  flagNodeDone = 0;
+  auto flagNodeDone = dataBase.newFluidFieldList(0, "node completed");
 
   // Iterate until we either hit the max iterations or the H's achieve convergence.
   const auto numNodeLists = dataBase.numFluidNodeLists();
@@ -109,8 +107,8 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   int itr = 0;
   while (itr < maxIterations and maxDeltaH > tolerance) {
     ++itr;
-
     maxDeltaH = 0.0;
+    flagNodeDone = 0;
 
     // Remove any old ghost node information from the NodeLists.
     for (auto k = 0; k < numNodeLists; ++k) {
@@ -133,12 +131,14 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       }
     }
 
-    // // Any nodes that have already converged we flag as done.
-    // for (auto nodeItr = dataBase.fluidInternalNodeBegin();
-    //      nodeItr != dataBase.fluidInternalNodeEnd();
-    //      ++nodeItr) {
-    //   if (deltaH(nodeItr) <= tolerance) flagNodeDone(nodeItr) = 1;
-    // }
+    // Any nodes that have already converged we flag as done.
+    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+      const auto ni = flagNodeDone[nodeListi]->numInternalElements();
+#pragma omp parallel for
+      for (auto i = 0; i < ni; ++i) {
+        if (deltaH(nodeListi, i) <= tolerance) flagNodeDone(nodeListi, i) = 1;
+      }
+    }
 
     // Prepare a FieldList to hold the new H.
     FieldList<Dimension, SymTensor> H1(H);
@@ -155,15 +155,21 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     // Walk the pairs.
 #pragma omp parallel
     {
-      auto zerothMoment_thread = dataBase.newFluidArray(0.0);
-      auto secondMoment_thread = dataBase.newFluidArray(SymTensor::zero);
+      typename SpheralThreads<Dimension>::FieldListStack threadStack;
+      auto zerothMoment_thread = zerothMoment.threadCopy(threadStack);
+      auto secondMoment_thread = secondMoment.threadCopy(threadStack);
+
+      int i, j, nodeListi, nodeListj;
+      Scalar fweightij, ri, rj, mRZi, mRZj, Wi, gWi, Wj, gWj;
+      Vector xij, etai, etaj, gradWi, gradWj;
+      SymTensor thpt;
 
 #pragma omp for
       for (auto k = 0; k < npairs; ++k) {
-        auto i = pairs[k].i_node;
-        auto j = pairs[k].j_node;
-        auto nodeListi = pairs[k].i_list;
-        auto nodeListj = pairs[k].j_list;
+        i = pairs[k].i_node;
+        j = pairs[k].j_node;
+        nodeListi = pairs[k].i_list;
+        nodeListj = pairs[k].j_list;
 
         // Anything to do?
         if (flagNodeDone(nodeListi, i) == 0 or flagNodeDone(nodeListj, j) == 0) {
@@ -179,101 +185,80 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
           // Compute the node-node weighting
           auto fweightij = 1.0;
-          auto fweightji = 1.0;
           if (nodeListi != nodeListj) {
             if (dataBase.isRZ) {
-              const auto ri = abs(posi.y());
-              const auto rj = abs(posj.y());
-              const auto mRZi = mi/(2.0*M_PI*ri);
-              const auto mRZj = mj/(2.0*M_PI*rj);
+              ri = abs(posi.y());
+              rj = abs(posj.y());
+              mRZi = mi/(2.0*M_PI*ri);
+              mRZj = mj/(2.0*M_PI*rj);
               fweightij = mRZj*rhoi/(mRZi*rhoj);
-              fweightji = mRZi*rhoj/(mRZj*rhoi);
             } else {
               fweightij = mj*rhoi/(mi*rhoj);
-              fweightij = mi*rhoj/(mj*rhoi);
             }
           }
                                         
-          const auto xij = posi - posj;
-          const auto etai = (Hi*xij).magnitude();
-          const auto etaj = (Hj*xij).magnitude();
-          const auto Wi = std::abs(W.gradValue(etai, 1.0));
-          const auto Wj = std::abs(W.gradValue(etaj, 1.0));
-          const auto thpt = xij.selfdyad()/(xij.magnitude2() + 1.0e-10);
+          xij = posi - posj;
+          etai = Hi*xij;
+          etaj = Hj*xij;
+          thpt = xij.selfdyad()/(xij.magnitude2() + 1.0e-10);
+
+          std::tie(Wi, gWi) = W.kernelAndGradValue(etai.magnitude(), Hi.Determinant());
+          gradWi = gWi*Hi*etai.unitVector();
+
+          std::tie(Wj, gWj) = W.kernelAndGradValue(etaj.magnitude(), Hj.Determinant());
+          gradWj = gWj*Hj*etaj.unitVector();
 
           // Increment the moments
-          zerothMoment_thread[nodeListi][i] += fweightij*Wi;
-          secondMoment_thread[nodeListi][i] += fweightij*FastMath::square(Wi*safeInvVar(xij.magnitude2()))*thpt;
-          zerothMoment_thread[nodeListj][j] += fweightji*Wj;
-          secondMoment_thread[nodeListj][j] -= fweightji*FastMath::square(Wj*safeInvVar(xij.magnitude2()))*thpt;
+          zerothMoment_thread(nodeListi, i) += fweightij*    std::abs(gWi);
+          zerothMoment_thread(nodeListj, j) += 1.0/fweightij*std::abs(gWj);
+          secondMoment_thread(nodeListi, i) += fweightij*    gradWi.magnitude2()*thpt;
+          secondMoment_thread(nodeListj, j) += 1.0/fweightij*gradWj.magnitude2()*thpt;
         }
-
       }
-#pragma omp critical
-      {
-        for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-          const auto ni = connectivityMap.numNodes(nodeListi);
-          for (auto i = 0; i < ni; ++i) {
-            zerothMoment(nodeListi, i) += zerothMoment_thread[nodeListi][i];
-            secondMoment(nodeListi, i) += secondMoment_thread[nodeListi][i];
-          }
-        }
-      } // OpenMP critical
-    }
+
+      // Do the thread reduction for zeroth and second moments.
+      threadReduceFieldLists<Dimension>(threadStack);
+
+    }  // OMP parallel
 
     // Finish the moments and measure the new H.
     for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
       const auto nodeListPtr = *(dataBase.fluidNodeListBegin() + nodeListi);
       const auto ni = nodeListPtr->numInternalNodes();
-      const Scalar hmin = nodeListPtr->hmin();
-      const Scalar hmax = nodeListPtr->hmax();
-      const Scalar hminratio = nodeListPtr->hminratio();
-      const Scalar nPerh = nodeListPtr->nodesPerSmoothingScale();
+      const auto hmin = nodeListPtr->hmin();
+      const auto hmax = nodeListPtr->hmax();
+      const auto hminratio = nodeListPtr->hminratio();
+      const auto nPerh = nodeListPtr->nodesPerSmoothingScale();
 
-#pragma omp parallel
-      {
-        auto maxDeltaH_thread = 0.0;
-        
-#pragma omp for
-        for (auto i = 0; i < ni; ++i) {
-          if (flagNodeDone(nodeListi, i) == 0) {
-            zerothMoment(nodeListi, i) = Dimension::rootnu(zerothMoment(nodeListi, i));
-            H1(nodeListi, i) = smoothingScaleMethod.newSmoothingScale(H(nodeListi, i),
-                                                                      pos(nodeListi, i),
-                                                                      zerothMoment(nodeListi, i),
-                                                                      secondMoment(nodeListi, i),
-                                                                      W,
-                                                                      hmin,
-                                                                      hmax,
-                                                                      hminratio,
-                                                                      nPerh,
-                                                                      connectivityMap,
-                                                                      nodeListi,
-                                                                      i);
+#pragma omp parallel for
+      for (auto i = 0; i < ni; ++i) {
+        if (flagNodeDone(nodeListi, i) == 0) {
+          zerothMoment(nodeListi, i) = Dimension::rootnu(zerothMoment(nodeListi, i));
+          H1(nodeListi, i) = smoothingScaleMethod.newSmoothingScale(H(nodeListi, i),
+                                                                    pos(nodeListi, i),
+                                                                    zerothMoment(nodeListi, i),
+                                                                    secondMoment(nodeListi, i),
+                                                                    W,
+                                                                    hmin,
+                                                                    hmax,
+                                                                    hminratio,
+                                                                    nPerh,
+                                                                    connectivityMap,
+                                                                    nodeListi,
+                                                                    i);
 
-            // If we are preserving the determinant, do it.
-            if (fixDeterminant) {
-              H1(nodeListi, i) *= Dimension::rootnu(Hdet1(nodeListi, i)/H1(nodeListi, i).Determinant());
-              CHECK(fuzzyEqual(H1(nodeListi, i).Determinant(), Hdet1(nodeListi, i)));
-            }
-
-            // Check how much this H has changed.
-            const auto H1sqrt = H1(nodeListi, i).sqrt();
-            const auto phi = (H1sqrt*H(nodeListi, i).Inverse()*H1sqrt).Symmetric().eigenValues();
-            const auto phimin = phi.minElement();
-            const auto phimax = phi.maxElement();
-            const auto deltaHi = max(abs(phimin - 1.0), abs(phimax - 1.0));
-            deltaH(nodeListi, i) = deltaHi;
-            maxDeltaH_thread = max(maxDeltaH_thread, deltaHi);
-
-            // Is this node done?
-            if (deltaHi < tolerance) flagNodeDone(nodeListi, i) = 1;
+          // If we are preserving the determinant, do it.
+          if (fixDeterminant) {
+            H1(nodeListi, i) *= Dimension::rootnu(Hdet1(nodeListi, i)/H1(nodeListi, i).Determinant());
+            CHECK(fuzzyEqual(H1(nodeListi, i).Determinant(), Hdet1(nodeListi, i)));
           }
-        }
 
-#pragma omp critical
-        {
-          maxDeltaH = max(maxDeltaH, maxDeltaH_thread);
+          // Check how much this H has changed.
+          const auto H1sqrt = H1(nodeListi, i).sqrt();
+          const auto phi = (H1sqrt*H(nodeListi, i).Inverse()*H1sqrt).Symmetric().eigenValues();
+          const auto phimin = phi.minElement();
+          const auto phimax = phi.maxElement();
+          deltaH(nodeListi, i) = max(abs(phimin - 1.0), abs(phimax - 1.0));
         }
       }
     }
@@ -282,7 +267,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     H.assignFields(H1);
 
     // Globally reduce the max H change.
-    maxDeltaH = allReduce(maxDeltaH, MPI_MAX, Communicator::communicator());
+    maxDeltaH = deltaH.max();
 
     // Output the statitics.
     if (Process::getRank() == 0)
