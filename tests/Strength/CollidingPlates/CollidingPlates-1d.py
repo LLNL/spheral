@@ -130,12 +130,6 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Stainless steel material properties.
 #-------------------------------------------------------------------------------
 eos = GruneisenEquationOfState(rho0,    # reference density  
@@ -205,28 +199,27 @@ nodeSet = [nodes]
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
 eps0 = 0.0
-if restoreCycle is None:
-    print "Generating node distribution."
-    from DistributeNodes import distributeNodesInRange1d
-    distributeNodesInRange1d([(nodes, nx, rho0, (xmin, xmax))])
-    output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
-    output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
-    output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
+print "Generating node distribution."
+from DistributeNodes import distributeNodesInRange1d
+distributeNodesInRange1d([(nodes, nx, rho0, (xmin, xmax))])
+output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
+output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
+output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 
-    # Set node specific thermal energies
-    T = ScalarField("temperature", nodes, 300.0)
-    rho = nodes.massDensity()
-    eps = nodes.specificThermalEnergy()
-    eos.setSpecificThermalEnergy(eps, rho, T)
+# Set node specific thermal energies
+T = ScalarField("temperature", nodes, 300.0)
+rho = nodes.massDensity()
+eps = nodes.specificThermalEnergy()
+eos.setSpecificThermalEnergy(eps, rho, T)
 
-    # Set node velocites.
-    pos = nodes.positions()
-    vel = nodes.velocity()
-    for i in xrange(nodes.numInternalNodes):
-        if pos[i].x < 0.0:
-            vel[i].x = v0
-        else:
-            vel[i].x = -v0
+# Set node velocites.
+pos = nodes.positions()
+vel = nodes.velocity()
+for i in xrange(nodes.numInternalNodes):
+    if pos[i].x < 0.0:
+        vel[i].x = v0
+    else:
+        vel[i].x = -v0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
