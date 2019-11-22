@@ -490,7 +490,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
               }
             }
           }
-          surfacePoint(nodeListi, i) |= 1;
         }   // end over i
       }     // end over NodeLists
 
