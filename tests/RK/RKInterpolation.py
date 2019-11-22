@@ -288,7 +288,7 @@ for i in range(nodes.numNodes):
         etaij = Hij * xij
         vj = volume(nj, j)
         w = evaluateRKKernel(WT, correctionOrder,
-                             etaij, Hij, xij,
+                             etaij, Hij, xij, # etaij
                              a, b, c, d)
         dw = evaluateRKGradient(WT, correctionOrder,
                                 etaij, Hij, xij, dxij,

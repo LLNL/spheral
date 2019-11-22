@@ -737,6 +737,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   identityTensor.Identity();
 
   // Add stuff to the moments for a single point combination (so self contribution is not duplicated)
+  const bool etaInterp = false;
   auto addPointToMoments = [&](const int nodeListi, const int nodei,
                                const int nodeListj, const int nodej,
                                RKMomentValues<Dimension>& mom) {
@@ -762,8 +763,8 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     const auto vj = volume(nodeListj, nodej);
 
     // Get function to reproduce and its derivative
-    const auto g = xij;
-    const auto dg = identityTensor;
+    const auto g = etaInterp ? etaij : xij;
+    const auto dg = etaInterp ? Tensor(Hij) : identityTensor;
 
     // Add the values to the moments
     addToMoments<Dimension, correctionOrder>(g, dg, Wij, gradWij, hessWij, vj, mom);
