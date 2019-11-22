@@ -156,6 +156,12 @@ class SpheralController:
         self.integrator.setGhostNodes()
         db.updateConnectivityMap(False)
 
+        # If we're starting from scratch, initialize the H tensors.
+        if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
+            self.iterateIdealH()
+            db.reinitializeNeighbors()
+            db.updateConnectivityMap(False)
+
         # Initialize the integrator and packages.
         packages = self.integrator.physicsPackages()
         for package in packages:
@@ -166,12 +172,6 @@ class SpheralController:
         derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
         self.integrator.setGhostNodes()
         db.updateConnectivityMap(False)
-
-        # If we're starting from scratch, initialize the H tensors.
-        if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
-            self.iterateIdealH()
-            db.reinitializeNeighbors()
-            db.updateConnectivityMap(False)
 
         # If requested, initialize the derivatives.
         if initializeDerivatives or stateBCactive:
