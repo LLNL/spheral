@@ -629,7 +629,7 @@ inline
 typename FieldList<Dimension, DataType>::ElementType
 FieldList<Dimension, DataType>::
 operator[](const unsigned int index) const {
-  REQUIRE(index < mFieldPtrs.size());
+  REQUIRE2(index < mFieldPtrs.size(), "FieldList index ERROR: out of bounds " << index << " !< " << mFieldPtrs.size());
   return mFieldPtrs[index];
 }
 
@@ -718,8 +718,8 @@ DataType&
 FieldList<Dimension, DataType>::
 operator()(const unsigned int fieldIndex,
            const unsigned int nodeIndex) {
-  REQUIRE(fieldIndex < mFieldPtrs.size());
-  REQUIRE(nodeIndex < mFieldPtrs[fieldIndex]->size());
+  REQUIRE2(fieldIndex < mFieldPtrs.size(), "FieldList index ERROR: out of bounds " << fieldIndex << " !< " << mFieldPtrs.size());
+  REQUIRE2(nodeIndex < mFieldPtrs[fieldIndex]->size(), "FieldList node index ERROR: out of bounds " << nodeIndex << " !< " << mFieldPtrs[fieldIndex]->size());
   return mFieldPtrs[fieldIndex]->operator()(nodeIndex);
 }
 
@@ -729,8 +729,8 @@ const DataType&
 FieldList<Dimension, DataType>::
 operator()(const unsigned int fieldIndex,
            const unsigned int nodeIndex) const {
-  REQUIRE(fieldIndex < mFieldPtrs.size());
-  REQUIRE(nodeIndex < mFieldPtrs[fieldIndex]->size());
+  REQUIRE2(fieldIndex < mFieldPtrs.size(), "FieldList index ERROR: out of bounds " << fieldIndex << " !< " << mFieldPtrs.size());
+  REQUIRE2(nodeIndex < mFieldPtrs[fieldIndex]->size(), "FieldList node index ERROR: out of bounds " << nodeIndex << " !< " << mFieldPtrs[fieldIndex]->size());
   return mFieldPtrs[fieldIndex]->operator()(nodeIndex);
 }
 
@@ -1173,7 +1173,7 @@ FieldList<Dimension, DataType>::operator+=(const FieldList<Dimension, DataType>&
   END_CONTRACT_SCOPE
 
   for (int i = 0; i < numFields(); ++i) {
-    CHECK((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr());
+    CHECK2((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr(), (*this)[i]->nodeListPtr()->name() << " != " << rhs[i]->nodeListPtr()->name());
     *((*this)[i]) += *(rhs[i]);
   }
   return *this;
@@ -1195,7 +1195,7 @@ FieldList<Dimension, DataType>::operator-=(const FieldList<Dimension, DataType>&
   END_CONTRACT_SCOPE
 
   for (int i = 0; i < numFields(); ++i) {
-    CHECK((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr());
+    CHECK2((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr(), (*this)[i]->nodeListPtr()->name() << " != " << rhs[i]->nodeListPtr()->name());
     *((*this)[i]) -= *(rhs[i]);
   }
   return *this;
@@ -1263,7 +1263,7 @@ FieldList<Dimension, DataType>::
 operator*=(const FieldList<Dimension, typename Dimension::Scalar>& rhs) {
   REQUIRE(this->numFields() == rhs.numFields());
   for (int i = 0; i < numFields(); ++i) {
-    CHECK((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr());
+    CHECK2((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr(), (*this)[i]->nodeListPtr()->name() << " != " << rhs[i]->nodeListPtr()->name());
     *((*this)[i]) *= *(rhs[i]);
   }
   return *this;
@@ -1321,7 +1321,7 @@ FieldList<Dimension, DataType>::
 operator/=(const FieldList<Dimension, typename Dimension::Scalar>& rhs) {
   REQUIRE(this->numFields() == rhs.numFields());
   for (int i = 0; i < numFields(); ++i) {
-    CHECK((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr());
+    CHECK2((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr(), (*this)[i]->nodeListPtr()->name() << " != " << rhs[i]->nodeListPtr()->name());
     *((*this)[i]) /= *(rhs[i]);
   }
   return *this;
@@ -1846,7 +1846,7 @@ operator*(const FieldList<Dimension, DataType>& lhs,
   FieldList<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType> result;
   result.copyFields();
   for (int i = 0; i < lhs.numFields(); ++i) {
-    CHECK(lhs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
+    CHECK2(lhs[i]->nodeListPtr() == rhs[i]->nodeListPtr(), lhs[i]->nodeListPtr()->name() << " != " << rhs[i]->nodeListPtr()->name());
     result.appendField((*(lhs[i])) * (*(rhs[i])));
   }
   return result;
