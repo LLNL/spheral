@@ -30,6 +30,8 @@ commandLine(
     
     # Interpolation kernel choice
     nPerh = 4.01,
+    hminfrac = 1.e-3,
+    hmaxfrac = 1.e3,
     
     # Material parameters
     rho0 = 2.5e-7,
@@ -61,11 +63,10 @@ if dimension > 1:
     delta.append((y1 -y0)/ny)
 if dimension > 2:
     delta.append((z1 - z0)/nz)
-deltaMax = max(delta)
 deltaMin = min(delta)
-hmin = deltaMin * nPerh# * 1.e-3
-hmax = deltaMax * nPerh# * 1.e3
-h0 = 0.5 * (hmin + hmax)
+deltaMax = max(delta)
+hmin = deltaMin * nPerh * hminfrac
+hmax = deltaMax * nPerh * hmaxfrac
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -162,6 +163,9 @@ output("nodes.numNodes")
 numLocal = nodes.numInternalNodes
 output("numLocal")
 
+dataBase.updateConnectivityMap(True)
+connectivity = dataBase.connectivityMap()
+
 #-------------------------------------------------------------------------------
 # Build the RK object
 #-------------------------------------------------------------------------------
@@ -178,6 +182,11 @@ integrator = CheapSynchronousRK2Integrator(dataBase)
 for p in packages:
     integrator.appendPhysicsPackage(p)
 control = SpheralController(integrator, WT)
+
+#-------------------------------------------------------------------------------
+# Step two times
+#-------------------------------------------------------------------------------
+control.step(2)
 
 #-------------------------------------------------------------------------------
 # Get interpolant
@@ -222,42 +231,49 @@ d = ThirdRankTensor.zero
 dd = FourthRankTensor.zero
 ddd = FifthRankTensor.zero
 
-connectivity = dataBase.connectivityMap()
+dxij = Tensor.zero
+dxij.Identity()
+
 vals = np.zeros((nodes.numNodes, 2))
 dvals = np.zeros((nodes.numNodes, dimension, 2))
+ni = 0
+nj = 0
+
 for i in range(nodes.numNodes):
-    xi = position(0, i)
-    a = A[0][i]
-    da = dA[0][i]
-    dda = ddA[0][i]
+    xi = position(ni, i)
+    a = A(ni, i)
+    da = dA(ni, i)
+    dda = ddA(ni, i)
     if correctionOrder >=LinearOrder:
-        b = B[0][i]
-        db = dB[0][i]
-        ddb = ddB[0][i]
+        b = B(ni, i)
+        db = dB(ni, i)
+        ddb = ddB(ni, i)
         if correctionOrder >= QuadraticOrder:
-            c = C[0][i]
-            dc = dC[0][i]
-            ddc = ddC[0][i]
+            c = C(ni, i)
+            dc = dC(ni, i)
+            ddc = ddC(ni, i)
             if correctionOrder >= CubicOrder:
-                d = D[0][i]
-                dd = dD[0][i]
-                ddd = ddD[0][i]
-    for j in connectivity.connectivityForNode(0, i)[0]:
-        xj = position(0, j)
+                d = D(ni, i)
+                dd = dD(ni, i)
+                ddd = ddD(ni, i)
+    connectivityi = np.append(connectivity.connectivityForNode(ni, i), i)
+    print(a, b)
+    for j in connectivityi:
+        xj = position(nj, j)
         fj = func(xj)
         xij = xi - xj
-        Hij = H(0, j)
+        Hij = H(nj, j)
         etaij = Hij * xij
-        vj = volume(0, j)
+        vj = volume(nj, j)
         w = evaluateRKKernel(WT, correctionOrder,
-                             etaij, Hij,
+                             etaij, Hij, xij,
                              a, b, c, d)
         dw = evaluateRKGradient(WT, correctionOrder,
-                                etaij, Hij,
+                                etaij, Hij, xij, dxij,
                                 a, b, c, d,
                                 da, db, dc, dd)
         ddw = evaluateRKHessian(WT, correctionOrder,
-                                etaij, Hij,
+                                etaij, Hij, xij, dxij,
                                 a, b, c, d,
                                 da, db, dc, dd,
                                 dda, ddb, ddc, ddd)

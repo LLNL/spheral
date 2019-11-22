@@ -91,9 +91,8 @@ struct RKMomentValues {
 template<typename Dimension, CRKOrder correctionOrder>
 inline
 void
-addToMoments(const typename Dimension::Vector& eta,
-             const typename Dimension::Tensor& deta,
-             const typename Dimension::ThirdRankTensor& ddeta,
+addToMoments(const typename Dimension::Vector& g,
+             const typename Dimension::Tensor& dg,
              const typename Dimension::Scalar& w,
              const typename Dimension::Vector& dw,
              const typename Dimension::Tensor& ddw,
@@ -106,9 +105,8 @@ addToMoments(const typename Dimension::Vector& eta,
 template<>
 inline
 void
-addToMoments<Dim<1>, CRKOrder::ZerothOrder>(const Dim<1>::Vector& eta,
-                                            const Dim<1>::Tensor& deta,
-                                            const Dim<1>::ThirdRankTensor& ddeta,
+addToMoments<Dim<1>, CRKOrder::ZerothOrder>(const Dim<1>::Vector& g,
+                                            const Dim<1>::Tensor& dg,
                                             const Dim<1>::Scalar& w,
                                             const Dim<1>::Vector& dw,
                                             const Dim<1>::Tensor& ddw,
@@ -132,9 +130,8 @@ addToMoments<Dim<1>, CRKOrder::ZerothOrder>(const Dim<1>::Vector& eta,
 template<>
 inline
 void
-addToMoments<Dim<2>, CRKOrder::ZerothOrder>(const Dim<2>::Vector& eta,
-                                            const Dim<2>::Tensor& deta,
-                                            const Dim<2>::ThirdRankTensor& ddeta,
+addToMoments<Dim<2>, CRKOrder::ZerothOrder>(const Dim<2>::Vector& g,
+                                            const Dim<2>::Tensor& dg,
                                             const Dim<2>::Scalar& w,
                                             const Dim<2>::Vector& dw,
                                             const Dim<2>::Tensor& ddw,
@@ -162,9 +159,8 @@ addToMoments<Dim<2>, CRKOrder::ZerothOrder>(const Dim<2>::Vector& eta,
 template<>
 inline
 void
-addToMoments<Dim<3>, CRKOrder::ZerothOrder>(const Dim<3>::Vector& eta,
-                                            const Dim<3>::Tensor& deta,
-                                            const Dim<3>::ThirdRankTensor& ddeta,
+addToMoments<Dim<3>, CRKOrder::ZerothOrder>(const Dim<3>::Vector& g,
+                                            const Dim<3>::Tensor& dg,
                                             const Dim<3>::Scalar& w,
                                             const Dim<3>::Vector& dw,
                                             const Dim<3>::Tensor& ddw,
@@ -192,9 +188,8 @@ addToMoments<Dim<3>, CRKOrder::ZerothOrder>(const Dim<3>::Vector& eta,
 template<>
 inline
 void
-addToMoments<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& eta,
-                                            const Dim<1>::Tensor& deta,
-                                            const Dim<1>::ThirdRankTensor& ddeta,
+addToMoments<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& g,
+                                            const Dim<1>::Tensor& dg,
                                             const Dim<1>::Scalar& w,
                                             const Dim<1>::Vector& dw,
                                             const Dim<1>::Tensor& ddw,
@@ -213,29 +208,28 @@ addToMoments<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& eta,
   const auto q2 = 0;
 
   // Previous moments
-  addToMoments<Dim<1>, CRKOrder::ZerothOrder>(eta, deta, ddeta,
+  addToMoments<Dim<1>, CRKOrder::ZerothOrder>(g, dg, 
                                               w, dw, ddw, v,
                                               moments);
   
   // Moments
-  m1[q1] += v*w*eta[q1];
-  m2[q1 + q2] += v*w*eta[q1]*eta[q2];
+  m1[q1] += v*w*g[q1];
+  m2[q1 + q2] += v*w*g[q1]*g[q2];
 
   // Gradients
-  dm1[k1 + q1] += v*dw[k1]*eta[q1] + v*w*deta[k1 + q1];
-  dm2[k1 + q1 + q2] += v*dw[k1]*eta[q1]*eta[q2] + v*w*eta[q2]*deta[k1 + q1] + v*w*eta[q1]*deta[k1 + q2];
+  dm1[k1 + q1] += v*dw[k1]*g[q1] + v*w*dg[k1 + q1];
+  dm2[k1 + q1 + q2] += v*dw[k1]*g[q1]*g[q2] + v*w*g[q2]*dg[k1 + q1] + v*w*g[q1]*dg[k1 + q2];
   
   // Hessians
-  ddm1[k1 + k2 + q1] += v*ddw[k1 + k2]*eta[q1] + v*w*ddeta[k1 + k2 + q1] + v*dw[k2]*deta[k1 + q1] + v*dw[k1]*deta[k2 + q1];
-  ddm2[k1 + k2 + q1 + q2] += v*ddw[k1 + k2]*eta[q1]*eta[q2] + v*w*eta[q2]*ddeta[k1 + k2 + q1] + v*w*eta[q1]*ddeta[k1 + k2 + q2] + v*dw[k2]*eta[q2]*deta[k1 + q1] + v*dw[k1]*eta[q2]*deta[k2 + q1] + v*dw[k2]*eta[q1]*deta[k1 + q2] + v*w*deta[k2 + q1]*deta[k1 + q2] + v*dw[k1]*eta[q1]*deta[k2 + q2] + v*w*deta[k1 + q1]*deta[k2 + q2];
+  ddm1[k1 + k2 + q1] += v*ddw[k1 + k2]*g[q1] + v*dw[k2]*dg[k1 + q1] + v*dw[k1]*dg[k2 + q1];
+  ddm2[k1 + k2 + q1 + q2] += v*ddw[k1 + k2]*g[q1]*g[q2] + v*dw[k2]*g[q2]*dg[k1 + q1] + v*dw[k1]*g[q2]*dg[k2 + q1] + v*dw[k2]*g[q1]*dg[k1 + q2] + v*w*dg[k2 + q1]*dg[k1 + q2] + v*dw[k1]*g[q1]*dg[k2 + q2] + v*w*dg[k1 + q1]*dg[k2 + q2];
 }
 // d=2, o=1
 template<>
 inline
 void
-addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& eta,
-                                            const Dim<2>::Tensor& deta,
-                                            const Dim<2>::ThirdRankTensor& ddeta,
+addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& g,
+                                            const Dim<2>::Tensor& dg,
                                             const Dim<2>::Scalar& w,
                                             const Dim<2>::Vector& dw,
                                             const Dim<2>::Tensor& ddw,
@@ -250,23 +244,23 @@ addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& eta,
   auto& ddm2 = moments.ddm2;
   
   // Previous moments
-  addToMoments<Dim<2>, CRKOrder::ZerothOrder>(eta, deta, ddeta,
+  addToMoments<Dim<2>, CRKOrder::ZerothOrder>(g, dg,
                                               w, dw, ddw, v,
                                               moments);
   
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
-    m1[q1] += v*w*eta[q1];
+    m1[q1] += v*w*g[q1];
     for (auto q2 = 0; q2 < dim; ++q2) {
-      m2[2*q1 + q2] += v*w*eta[q1]*eta[q2];
+      m2[2*q1 + q2] += v*w*g[q1]*g[q2];
     }
   }
   // Gradients
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto q1 = 0; q1 < dim; ++q1) {
-      dm1[2*q1 + k1] += v*dw[k1]*eta[q1] + v*w*deta[k1 + 2*q1];
+      dm1[2*q1 + k1] += v*dw[k1]*g[q1] + v*w*dg[k1 + 2*q1];
       for (auto q2 = 0; q2 < dim; ++q2) {
-        dm2[4*q1 + 2*q2 + k1] += v*dw[k1]*eta[q1]*eta[q2] + v*w*eta[q2]*deta[k1 + 2*q1] + v*w*eta[q1]*deta[k1 + 2*q2];
+        dm2[4*q1 + 2*q2 + k1] += v*dw[k1]*g[q1]*g[q2] + v*w*g[q2]*dg[k1 + 2*q1] + v*w*g[q1]*dg[k1 + 2*q2];
       }
     }
   }
@@ -274,9 +268,9 @@ addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& eta,
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto k2 = k1; k2 < dim; ++k2) {
       for (auto q1 = 0; q1 < dim; ++q1) {
-        ddm1[4*q1 + 2*k1 + k2] += v*ddw[2*k1 + k2]*eta[q1] + v*w*ddeta[2*k1 + k2 + 4*q1] + v*dw[k2]*deta[k1 + 2*q1] + v*dw[k1]*deta[k2 + 2*q1];
+        ddm1[4*q1 + 2*k1 + k2] += v*ddw[2*k1 + k2]*g[q1] + v*dw[k2]*dg[k1 + 2*q1] + v*dw[k1]*dg[k2 + 2*q1];
         for (auto q2 = 0; q2 < dim; ++q2) {
-          ddm2[8*q1 + 4*q2 + 2*k1 + k2] += v*ddw[2*k1 + k2]*eta[q1]*eta[q2] + v*w*eta[q2]*ddeta[2*k1 + k2 + 4*q1] + v*w*eta[q1]*ddeta[2*k1 + k2 + 4*q2] + v*dw[k2]*eta[q2]*deta[k1 + 2*q1] + v*dw[k1]*eta[q2]*deta[k2 + 2*q1] + v*dw[k2]*eta[q1]*deta[k1 + 2*q2] + v*w*deta[k2 + 2*q1]*deta[k1 + 2*q2] + v*dw[k1]*eta[q1]*deta[k2 + 2*q2] + v*w*deta[k1 + 2*q1]*deta[k2 + 2*q2];
+          ddm2[8*q1 + 4*q2 + 2*k1 + k2] += v*ddw[2*k1 + k2]*g[q1]*g[q2] + v*dw[k2]*g[q2]*dg[k1 + 2*q1] + v*dw[k1]*g[q2]*dg[k2 + 2*q1] + v*dw[k2]*g[q1]*dg[k1 + 2*q2] + v*w*dg[k2 + 2*q1]*dg[k1 + 2*q2] + v*dw[k1]*g[q1]*dg[k2 + 2*q2] + v*w*dg[k1 + 2*q1]*dg[k2 + 2*q2];
         }
       }
     }
@@ -286,9 +280,8 @@ addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& eta,
 template<>
 inline
 void
-addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& eta,
-                                            const Dim<3>::Tensor& deta,
-                                            const Dim<3>::ThirdRankTensor& ddeta,
+addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& g,
+                                            const Dim<3>::Tensor& dg,
                                             const Dim<3>::Scalar& w,
                                             const Dim<3>::Vector& dw,
                                             const Dim<3>::Tensor& ddw,
@@ -303,23 +296,23 @@ addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& eta,
   auto& ddm2 = moments.ddm2;
   
   // Previous moments
-  addToMoments<Dim<3>, CRKOrder::ZerothOrder>(eta, deta, ddeta,
+  addToMoments<Dim<3>, CRKOrder::ZerothOrder>(g, dg, 
                                               w, dw, ddw, v,
                                               moments);
   
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
-    m1[q1] += v*w*eta[q1];
+    m1[q1] += v*w*g[q1];
     for (auto q2 = 0; q2 < dim; ++q2) {
-      m2[3*q1 + q2] += v*w*eta[q1]*eta[q2];
+      m2[3*q1 + q2] += v*w*g[q1]*g[q2];
     }
   }
   // Gradients
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto q1 = 0; q1 < dim; ++q1) {
-      dm1[3*q1 + k1] += v*dw[k1]*eta[q1] + v*w*deta[k1 + 3*q1];
+      dm1[3*q1 + k1] += v*dw[k1]*g[q1] + v*w*dg[k1 + 3*q1];
       for (auto q2 = 0; q2 < dim; ++q2) {
-        dm2[9*q1 + 3*q2 + k1] += v*dw[k1]*eta[q1]*eta[q2] + v*w*eta[q2]*deta[k1 + 3*q1] + v*w*eta[q1]*deta[k1 + 3*q2];
+        dm2[9*q1 + 3*q2 + k1] += v*dw[k1]*g[q1]*g[q2] + v*w*g[q2]*dg[k1 + 3*q1] + v*w*g[q1]*dg[k1 + 3*q2];
       }
     }
   }
@@ -327,9 +320,9 @@ addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& eta,
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto k2 = k1; k2 < dim; ++k2) {
       for (auto q1 = 0; q1 < dim; ++q1) {
-        ddm1[9*q1 + 3*k1 + k2] += v*ddw[3*k1 + k2]*eta[q1] + v*w*ddeta[3*k1 + k2 + 9*q1] + v*dw[k2]*deta[k1 + 3*q1] + v*dw[k1]*deta[k2 + 3*q1];
+        ddm1[9*q1 + 3*k1 + k2] += v*ddw[3*k1 + k2]*g[q1] + v*dw[k2]*dg[k1 + 3*q1] + v*dw[k1]*dg[k2 + 3*q1];
         for (auto q2 = 0; q2 < dim; ++q2) {
-          ddm2[27*q1 + 9*q2 + 3*k1 + k2] += v*ddw[3*k1 + k2]*eta[q1]*eta[q2] + v*w*eta[q2]*ddeta[3*k1 + k2 + 9*q1] + v*w*eta[q1]*ddeta[3*k1 + k2 + 9*q2] + v*dw[k2]*eta[q2]*deta[k1 + 3*q1] + v*dw[k1]*eta[q2]*deta[k2 + 3*q1] + v*dw[k2]*eta[q1]*deta[k1 + 3*q2] + v*w*deta[k2 + 3*q1]*deta[k1 + 3*q2] + v*dw[k1]*eta[q1]*deta[k2 + 3*q2] + v*w*deta[k1 + 3*q1]*deta[k2 + 3*q2];
+          ddm2[27*q1 + 9*q2 + 3*k1 + k2] += v*ddw[3*k1 + k2]*g[q1]*g[q2] + v*dw[k2]*g[q2]*dg[k1 + 3*q1] + v*dw[k1]*g[q2]*dg[k2 + 3*q1] + v*dw[k2]*g[q1]*dg[k1 + 3*q2] + v*w*dg[k2 + 3*q1]*dg[k1 + 3*q2] + v*dw[k1]*g[q1]*dg[k2 + 3*q2] + v*w*dg[k1 + 3*q1]*dg[k2 + 3*q2];
         }
       }
     }
@@ -739,70 +732,86 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     REQUIRE(hessA.size() == numNodeLists);
   }
 
-  // Get the moments
-  RKMomentValues<Dimension> moments;
+  // Get an identity tensor
+  Tensor identityTensor;
+  identityTensor.Identity();
+
+  // Add stuff to the moments for a single point combination (so self contribution is not duplicated)
+  auto addPointToMoments = [&](const int nodeListi, const int nodei,
+                               const int nodeListj, const int nodej,
+                               RKMomentValues<Dimension>& mom) {
+    // Get H and eta values
+    const auto xi = position(nodeListi, nodei);
+    const auto xj = position(nodeListj, nodej);
+    const auto xij = xi - xj;
+    const auto Hij = H(nodeListj, nodej);
+    const auto etaij = Hij * xij;
+    const auto etaMagInvij = safeInv(etaij.magnitude());
+    // const auto gradEtaij = Tensor(Hij);
+    const auto H2ij = Hij.square();
+    const auto Hetaij = Hij * etaij * etaMagInvij;
+    const auto Heta2ij = Hetaij.selfdyad();
+          
+    // Get kernel values
+    const auto Kij = W(etaij, Hij);
+    const auto gradKij = W.grad(etaij, Hij);
+    const auto hessKij = W.grad2(etaij, Hij);
+    const auto Wij = Kij;
+    const auto gradWij = Hij * etaij * etaMagInvij * gradKij;
+    const auto hessWij = Tensor((H2ij - Heta2ij) * etaMagInvij * gradKij + Heta2ij * hessKij);
+    const auto vj = volume(nodeListj, nodej);
+
+    // Get function to reproduce and its derivative
+    const auto g = xij;
+    const auto dg = identityTensor;
+          
+    // Add the values to the moments
+    addToMoments<Dimension, correctionOrder>(g, dg, Wij, gradWij, hessWij, vj, mom);
+          
+    return;
+  };
   
+  // Get the moments
+  RKMomentValues<Dimension> rkMoments;
+
   // Compute things point by point
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
     const auto numNodes = connectivityMap.numNodes(nodeListi);
     
     for (auto nodei = 0; nodei < numNodes; ++nodei) {
-      // Get some data
-      const auto xi = position(nodeListi, nodei);
       
       // Zero out the moments
-      moments.zero();
+      rkMoments.zero();
       
       // Calculate M values
+      addPointToMoments(nodeListi, nodei, nodeListi, nodei, rkMoments); // self contribution
       const auto& connectivity = connectivityMap.connectivityForNode(nodeListi, nodei);
       for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
         for (auto nodej : connectivity[nodeListj]) {
-          // Get H and eta values
-          const auto xj = position(nodeListj, nodej);
-          const auto xij = xi - xj;
-          const auto Hij = H(nodeListj, nodej);
-          const auto etaij = Hij * xij;
-          const auto etaMagInvij = safeInv(etaij.magnitude());
-          const auto gradEtaij = Tensor(Hij);
-          const auto hessEtaij = ThirdRankTensor::zero;
-          const auto H2ij = Hij.square();
-          const auto Hetaij = Hij * etaij * etaMagInvij;
-          const auto Heta2ij = Hetaij.selfdyad();
-          
-          // Get kernel values
-          const auto Kij = W(etaij, Hij);
-          const auto gradKij = W.grad(etaij, Hij);
-          const auto hessKij = W.grad2(etaij, Hij);
-          const auto Wij = Kij;
-          const auto gradWij = Hij * etaij * etaMagInvij * gradKij;
-          const auto hessWij = Tensor((H2ij - Heta2ij) * etaMagInvij * gradKij + Heta2ij * hessKij);
-          const auto vj = volume(nodeListj, nodej);
-          
-          // Add the values to the moments
-          addToMoments<Dimension, correctionOrder>(etaij, gradEtaij, hessEtaij, Wij, gradWij, hessWij, vj, moments);
+          addPointToMoments(nodeListi, nodei, nodeListj, nodej, rkMoments); // other points
         }
       }
       
       // Compute corrections
       switch (correctionOrder) {
       case CRKOrder::ZerothOrder:
-        computeCorrections(moments,
+        computeCorrections(rkMoments,
                            A(nodeListi, nodei), gradA(nodeListi, nodei), hessA(nodeListi, nodei));
         break;
       case CRKOrder::LinearOrder:
-        computeCorrections(moments,
+        computeCorrections(rkMoments,
                            A(nodeListi, nodei), B(nodeListi, nodei),
                            gradA(nodeListi, nodei), gradB(nodeListi, nodei),
                            hessA(nodeListi, nodei), hessB(nodeListi, nodei));
         break;
       case CRKOrder::QuadraticOrder:
-        computeCorrections(moments,
+        computeCorrections(rkMoments,
                            A(nodeListi, nodei), B(nodeListi, nodei), C(nodeListi, nodei),
                            gradA(nodeListi, nodei), gradB(nodeListi, nodei), gradC(nodeListi, nodei),
                            hessA(nodeListi, nodei), hessB(nodeListi, nodei), hessC(nodeListi, nodei));
         break;
       case CRKOrder::CubicOrder:
-        computeCorrections(moments,
+        computeCorrections(rkMoments,
                            A(nodeListi, nodei), B(nodeListi, nodei), C(nodeListi, nodei), D(nodeListi, nodei),
                            gradA(nodeListi, nodei), gradB(nodeListi, nodei), gradC(nodeListi, nodei), gradD(nodeListi, nodei),
                            hessA(nodeListi, nodei), hessB(nodeListi, nodei), hessC(nodeListi, nodei), hessD(nodeListi, nodei));

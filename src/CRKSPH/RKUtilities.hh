@@ -20,8 +20,9 @@ template<typename Dimension>
 typename Dimension::Scalar
 evaluateRKKernel(const TableKernel<Dimension>& kernel,
                  const CRKOrder correctionOrder,
-                 const typename Dimension::Vector& eta,
+                 const typename Dimension::Vector& eta, // H * r
                  const typename Dimension::SymTensor& H,
+                 const typename Dimension::Vector& g, // r, usually
                  const typename Dimension::Scalar& a,
                  const typename Dimension::Vector& b,
                  const typename Dimension::Tensor& c,
@@ -34,6 +35,8 @@ evaluateRKGradient(const TableKernel<Dimension>& kernel,
                    const CRKOrder correctionOrder,
                    const typename Dimension::Vector& eta,
                    const typename Dimension::SymTensor& H,
+                   const typename Dimension::Vector& g,
+                   const typename Dimension::Tensor& dg, // dr = identity, usually
                    const typename Dimension::Scalar& a,
                    const typename Dimension::Vector& b,
                    const typename Dimension::Tensor& c,
@@ -50,6 +53,8 @@ evaluateRKHessian(const TableKernel<Dimension>& kernel,
                   const CRKOrder correctionOrder,
                   const typename Dimension::Vector& eta,
                   const typename Dimension::SymTensor& H,
+                  const typename Dimension::Vector& g,
+                  const typename Dimension::Tensor& dg,
                   const typename Dimension::Scalar& a,
                   const typename Dimension::Vector& b,
                   const typename Dimension::Tensor& c,
