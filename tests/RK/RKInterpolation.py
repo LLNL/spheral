@@ -30,8 +30,8 @@ commandLine(
     
     # Interpolation kernel choice
     nPerh = 4.01,
-    hminfrac = 1.e-3,
-    hmaxfrac = 1.e3,
+    hminmult = 1.e-3,
+    hmaxmult = 1.e3,
     
     # Material parameters
     rho0 = 2.5e-7,
@@ -65,8 +65,8 @@ if dimension > 2:
     delta.append((z1 - z0)/nz)
 deltaMin = min(delta)
 deltaMax = max(delta)
-hmin = deltaMin * nPerh * hminfrac
-hmax = deltaMax * nPerh * hmaxfrac
+hmin = deltaMin * nPerh * hminmult
+hmax = deltaMax * nPerh * hmaxmult
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -117,8 +117,8 @@ output("nodes.nodesPerSmoothingScale")
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
 dataBase = DataBase()
+dataBase.appendNodeList(nodes)
 output("dataBase")
-output("dataBase.appendNodeList(nodes)")
 output("dataBase.numNodeLists")
 output("dataBase.numFluidNodeLists")
 
@@ -184,14 +184,13 @@ for p in packages:
 control = SpheralController(integrator, WT)
 
 #-------------------------------------------------------------------------------
-# Step two times
+# Make sure changes to H propagate to corrections
 #-------------------------------------------------------------------------------
-control.step(2)
+rk.initializeProblemStartup(dataBase)
 
 #-------------------------------------------------------------------------------
 # Get interpolant
 #-------------------------------------------------------------------------------
-
 if funcType == "constant":
     def func(x):
         return 2.0
@@ -202,12 +201,12 @@ else:
     raise ValueError, "function type {} not found".format(funcType)
 
 #-------------------------------------------------------------------------------
-# Try interpolation
+# Get some data
 #-------------------------------------------------------------------------------
 position = dataBase.fluidPosition
 H = dataBase.fluidHfield
 volume = rk.volume
-
+        
 A = rk.A
 dA = rk.gradA
 ddA = rk.hessA
@@ -221,6 +220,30 @@ D = rk.D
 dD = rk.gradD
 ddD = rk.hessD
 
+#-------------------------------------------------------------------------------
+# Get zeroth-order correction to check against
+#-------------------------------------------------------------------------------
+A_check = np.zeros(nodes.numNodes)
+if correctionOrder == ZerothOrder:
+    ni = 0
+    nj = 0
+    for i in range(nodes.numNodes):
+        xi = position(ni, i)
+        m0 = 0.
+        connectivityi = np.append(connectivity.connectivityForNode(ni, i), i)
+        for j in connectivityi:
+            xj = position(nj, j)
+            xij = xi - xj
+            Hij = H(nj, j)
+            etaij = Hij * xij
+            wij = WT(etaij, Hij)
+            vj = volume(nj, j)
+            m0 += vj * wij
+        A_check[i] = 1. / m0
+
+#-------------------------------------------------------------------------------
+# Try interpolation
+#-------------------------------------------------------------------------------
 b = Vector.zero
 db = Tensor.zero
 ddb = ThirdRankTensor.zero
@@ -257,7 +280,6 @@ for i in range(nodes.numNodes):
                 dd = dD(ni, i)
                 ddd = ddD(ni, i)
     connectivityi = np.append(connectivity.connectivityForNode(ni, i), i)
-    print(a, b)
     for j in connectivityi:
         xj = position(nj, j)
         fj = func(xj)

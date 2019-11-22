@@ -97,7 +97,7 @@ addToMoments(const typename Dimension::Vector& g,
              const typename Dimension::Vector& dw,
              const typename Dimension::Tensor& ddw,
              const typename Dimension::Scalar& v,
-             RKMomentValues<Dimension>& moments) {
+             RKMomentValues<Dimension>& mom) {
     ASSERT2(false, "order not implemented");
 }
 
@@ -111,11 +111,11 @@ addToMoments<Dim<1>, CRKOrder::ZerothOrder>(const Dim<1>::Vector& g,
                                             const Dim<1>::Vector& dw,
                                             const Dim<1>::Tensor& ddw,
                                             const Dim<1>::Scalar& v,
-                                            RKMomentValues<Dim<1>>& moments) {
+                                            RKMomentValues<Dim<1>>& mom) {
   const auto dim = Dim<1>::nDim;
-  auto& m0 = moments.m0;
-  auto& dm0 = moments.dm0;
-  auto& ddm0 = moments.ddm0;
+  auto& m0 = mom.m0;
+  auto& dm0 = mom.dm0;
+  auto& ddm0 = mom.ddm0;
   const auto k1 = 0;
   const auto k2 = 0;
   
@@ -136,11 +136,11 @@ addToMoments<Dim<2>, CRKOrder::ZerothOrder>(const Dim<2>::Vector& g,
                                             const Dim<2>::Vector& dw,
                                             const Dim<2>::Tensor& ddw,
                                             const Dim<2>::Scalar& v,
-                                            RKMomentValues<Dim<2>>& moments) {
+                                            RKMomentValues<Dim<2>>& mom) {
   const auto dim = Dim<2>::nDim;
-  auto& m0 = moments.m0;
-  auto& dm0 = moments.dm0;
-  auto& ddm0 = moments.ddm0;
+  auto& m0 = mom.m0;
+  auto& dm0 = mom.dm0;
+  auto& ddm0 = mom.ddm0;
   
   // Moments
   m0 += v*w;
@@ -165,11 +165,11 @@ addToMoments<Dim<3>, CRKOrder::ZerothOrder>(const Dim<3>::Vector& g,
                                             const Dim<3>::Vector& dw,
                                             const Dim<3>::Tensor& ddw,
                                             const Dim<3>::Scalar& v,
-                                            RKMomentValues<Dim<3>>& moments) {
+                                            RKMomentValues<Dim<3>>& mom) {
   const auto dim = Dim<3>::nDim;
-  auto& m0 = moments.m0;
-  auto& dm0 = moments.dm0;
-  auto& ddm0 = moments.ddm0;
+  auto& m0 = mom.m0;
+  auto& dm0 = mom.dm0;
+  auto& ddm0 = mom.ddm0;
   
   // Moments
   m0 += v*w;
@@ -194,14 +194,14 @@ addToMoments<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& g,
                                             const Dim<1>::Vector& dw,
                                             const Dim<1>::Tensor& ddw,
                                             const Dim<1>::Scalar& v,
-                                            RKMomentValues<Dim<1>>& moments) {
+                                            RKMomentValues<Dim<1>>& mom) {
   const auto dim = Dim<1>::nDim;
-  auto& m1 = moments.m1;
-  auto& dm1 = moments.dm1;
-  auto& ddm1 = moments.ddm1;
-  auto& m2 = moments.m2;
-  auto& dm2 = moments.dm2;
-  auto& ddm2 = moments.ddm2;
+  auto& m1 = mom.m1;
+  auto& dm1 = mom.dm1;
+  auto& ddm1 = mom.ddm1;
+  auto& m2 = mom.m2;
+  auto& dm2 = mom.dm2;
+  auto& ddm2 = mom.ddm2;
   const auto k1 = 0;
   const auto k2 = 0;
   const auto q1 = 0;
@@ -210,7 +210,7 @@ addToMoments<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& g,
   // Previous moments
   addToMoments<Dim<1>, CRKOrder::ZerothOrder>(g, dg, 
                                               w, dw, ddw, v,
-                                              moments);
+                                              mom);
   
   // Moments
   m1[q1] += v*w*g[q1];
@@ -234,19 +234,19 @@ addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& g,
                                             const Dim<2>::Vector& dw,
                                             const Dim<2>::Tensor& ddw,
                                             const Dim<2>::Scalar& v,
-                                            RKMomentValues<Dim<2>>& moments) {
+                                            RKMomentValues<Dim<2>>& mom) {
   const auto dim = Dim<2>::nDim;
-  auto& m1 = moments.m1;
-  auto& dm1 = moments.dm1;
-  auto& ddm1 = moments.ddm1;
-  auto& m2 = moments.m2;
-  auto& dm2 = moments.dm2;
-  auto& ddm2 = moments.ddm2;
+  auto& m1 = mom.m1;
+  auto& dm1 = mom.dm1;
+  auto& ddm1 = mom.ddm1;
+  auto& m2 = mom.m2;
+  auto& dm2 = mom.dm2;
+  auto& ddm2 = mom.ddm2;
   
   // Previous moments
   addToMoments<Dim<2>, CRKOrder::ZerothOrder>(g, dg,
                                               w, dw, ddw, v,
-                                              moments);
+                                              mom);
   
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
@@ -286,19 +286,19 @@ addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& g,
                                             const Dim<3>::Vector& dw,
                                             const Dim<3>::Tensor& ddw,
                                             const Dim<3>::Scalar& v,
-                                            RKMomentValues<Dim<3>>& moments) {
+                                            RKMomentValues<Dim<3>>& mom) {
   const auto dim = Dim<3>::nDim;
-  auto& m1 = moments.m1;
-  auto& dm1 = moments.dm1;
-  auto& ddm1 = moments.ddm1;
-  auto& m2 = moments.m2;
-  auto& dm2 = moments.dm2;
-  auto& ddm2 = moments.ddm2;
+  auto& m1 = mom.m1;
+  auto& dm1 = mom.dm1;
+  auto& ddm1 = mom.ddm1;
+  auto& m2 = mom.m2;
+  auto& dm2 = mom.dm2;
+  auto& ddm2 = mom.ddm2;
   
   // Previous moments
   addToMoments<Dim<3>, CRKOrder::ZerothOrder>(g, dg, 
                                               w, dw, ddw, v,
-                                              moments);
+                                              mom);
   
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
@@ -335,14 +335,14 @@ addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& g,
 template<typename Dimension>
 inline
 void
-computeCorrections(const RKMomentValues<Dimension>& moments,
+computeCorrections(const RKMomentValues<Dimension>& rkMoments,
                    typename Dimension::Scalar& a,
                    typename Dimension::Vector& da,
                    typename Dimension::Tensor& dda);
 template<typename Dimension>
 inline
 void
-computeCorrections(const RKMomentValues<Dimension>& moments,
+computeCorrections(const RKMomentValues<Dimension>& rkMoments,
                    typename Dimension::Scalar& a,
                    typename Dimension::Vector& b,
                    typename Dimension::Vector& da,
@@ -352,7 +352,7 @@ computeCorrections(const RKMomentValues<Dimension>& moments,
 template<typename Dimension>
 inline
 void
-computeCorrections(const RKMomentValues<Dimension>& moments,
+computeCorrections(const RKMomentValues<Dimension>& rkMoments,
                    typename Dimension::Scalar& a,
                    typename Dimension::Vector& b,
                    typename Dimension::Tensor& c,
@@ -367,7 +367,7 @@ computeCorrections(const RKMomentValues<Dimension>& moments,
 template<typename Dimension>
 inline
 void
-computeCorrections(const RKMomentValues<Dimension>& moments,
+computeCorrections(const RKMomentValues<Dimension>& rkMoments,
                    typename Dimension::Scalar& a,
                    typename Dimension::Vector& b,
                    typename Dimension::Tensor& c,
@@ -386,14 +386,14 @@ computeCorrections(const RKMomentValues<Dimension>& moments,
 template<>
 inline
 void
-computeCorrections(const RKMomentValues<Dim<1>>& moments,
+computeCorrections(const RKMomentValues<Dim<1>>& rkMoments,
                    Dim<1>::Scalar& a,
                    Dim<1>::Vector& da,
                    Dim<1>::Tensor& dda) {
   const auto dim = Dim<1>::nDim;
-  const auto& m0 = moments.m0;
-  const auto& dm0 = moments.dm0;
-  const auto& ddm0 = moments.ddm0;
+  const auto& m0 = rkMoments.m0;
+  const auto& dm0 = rkMoments.dm0;
+  const auto& ddm0 = rkMoments.ddm0;
   const auto k1 = 0;
   const auto k2 = 0;
   
@@ -409,15 +409,15 @@ computeCorrections(const RKMomentValues<Dim<1>>& moments,
 template<>
 inline
 void
-computeCorrections(const RKMomentValues<Dim<2>>& moments,
+computeCorrections(const RKMomentValues<Dim<2>>& rkMoments,
                    Dim<2>::Scalar& a,
                    Dim<2>::Vector& da,
                    Dim<2>::Tensor& dda) {
   
   const auto dim = Dim<2>::nDim;
-  const auto& m0 = moments.m0;
-  const auto& dm0 = moments.dm0;
-  const auto& ddm0 = moments.ddm0;
+  const auto& m0 = rkMoments.m0;
+  const auto& dm0 = rkMoments.dm0;
+  const auto& ddm0 = rkMoments.ddm0;
   
   // Value
   a = 1./m0;
@@ -436,15 +436,15 @@ computeCorrections(const RKMomentValues<Dim<2>>& moments,
 template<>
 inline
 void
-computeCorrections(const RKMomentValues<Dim<3>>& moments,
+computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
                    Dim<3>::Scalar& a,
                    Dim<3>::Vector& da,
                    Dim<3>::Tensor& dda) {
   
   const auto dim = Dim<3>::nDim;
-  const auto& m0 = moments.m0;
-  const auto& dm0 = moments.dm0;
-  const auto& ddm0 = moments.ddm0;
+  const auto& m0 = rkMoments.m0;
+  const auto& dm0 = rkMoments.dm0;
+  const auto& ddm0 = rkMoments.ddm0;
   
   // Value
   a = 1./m0;
@@ -463,7 +463,7 @@ computeCorrections(const RKMomentValues<Dim<3>>& moments,
 template<>
 inline
 void
-computeCorrections(const RKMomentValues<Dim<1>>& moments,
+computeCorrections(const RKMomentValues<Dim<1>>& rkMoments,
                    Dim<1>::Scalar& a,
                    Dim<1>::Vector& b,
                    Dim<1>::Vector& da,
@@ -474,15 +474,15 @@ computeCorrections(const RKMomentValues<Dim<1>>& moments,
   const auto size = dim + 1;
   typedef Eigen::Matrix<double, size, size> MatrixType;
   typedef Eigen::Matrix<double, size, 1> VectorType;
-  const auto& m0 = moments.m0;
-  const auto& m1 = moments.m1;
-  const auto& m2 = moments.m2;
-  const auto& dm0 = moments.dm0;
-  const auto& dm1 = moments.dm1;
-  const auto& dm2 = moments.dm2;
-  const auto& ddm0 = moments.ddm0;
-  const auto& ddm1 = moments.ddm1;
-  const auto& ddm2 = moments.ddm2;
+  const auto& m0 = rkMoments.m0;
+  const auto& m1 = rkMoments.m1;
+  const auto& m2 = rkMoments.m2;
+  const auto& dm0 = rkMoments.dm0;
+  const auto& dm1 = rkMoments.dm1;
+  const auto& dm2 = rkMoments.dm2;
+  const auto& ddm0 = rkMoments.ddm0;
+  const auto& ddm1 = rkMoments.ddm1;
+  const auto& ddm2 = rkMoments.ddm2;
   const auto k1 = 0;
   const auto k2 = 0;
   const auto p1 = 0;
@@ -520,7 +520,7 @@ computeCorrections(const RKMomentValues<Dim<1>>& moments,
 template<>
 inline
 void
-computeCorrections(const RKMomentValues<Dim<2>>& moments,
+computeCorrections(const RKMomentValues<Dim<2>>& rkMoments,
                    Dim<2>::Scalar& a,
                    Dim<2>::Vector& b,
                    Dim<2>::Vector& da,
@@ -531,15 +531,15 @@ computeCorrections(const RKMomentValues<Dim<2>>& moments,
   const auto size = dim + 1;
   typedef Eigen::Matrix<double, size, size> MatrixType;
   typedef Eigen::Matrix<double, size, 1> VectorType;
-  const auto& m0 = moments.m0;
-  const auto& m1 = moments.m1;
-  const auto& m2 = moments.m2;
-  const auto& dm0 = moments.dm0;
-  const auto& dm1 = moments.dm1;
-  const auto& dm2 = moments.dm2;
-  const auto& ddm0 = moments.ddm0;
-  const auto& ddm1 = moments.ddm1;
-  const auto& ddm2 = moments.ddm2;
+  const auto& m0 = rkMoments.m0;
+  const auto& m1 = rkMoments.m1;
+  const auto& m2 = rkMoments.m2;
+  const auto& dm0 = rkMoments.dm0;
+  const auto& dm1 = rkMoments.dm1;
+  const auto& dm2 = rkMoments.dm2;
+  const auto& ddm0 = rkMoments.ddm0;
+  const auto& ddm1 = rkMoments.ddm1;
+  const auto& ddm2 = rkMoments.ddm2;
 
   // Get matrix to invert
   VectorType rhs;
@@ -602,7 +602,7 @@ computeCorrections(const RKMomentValues<Dim<2>>& moments,
 template<>
 inline
 void
-computeCorrections(const RKMomentValues<Dim<3>>& moments,
+computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
                    Dim<3>::Scalar& a,
                    Dim<3>::Vector& b,
                    Dim<3>::Vector& da,
@@ -613,15 +613,15 @@ computeCorrections(const RKMomentValues<Dim<3>>& moments,
   const auto size = dim + 1;
   typedef Eigen::Matrix<double, size, size> MatrixType;
   typedef Eigen::Matrix<double, size, 1> VectorType;
-  const auto& m0 = moments.m0;
-  const auto& m1 = moments.m1;
-  const auto& m2 = moments.m2;
-  const auto& dm0 = moments.dm0;
-  const auto& dm1 = moments.dm1;
-  const auto& dm2 = moments.dm2;
-  const auto& ddm0 = moments.ddm0;
-  const auto& ddm1 = moments.ddm1;
-  const auto& ddm2 = moments.ddm2;
+  const auto& m0 = rkMoments.m0;
+  const auto& m1 = rkMoments.m1;
+  const auto& m2 = rkMoments.m2;
+  const auto& dm0 = rkMoments.dm0;
+  const auto& dm1 = rkMoments.dm1;
+  const auto& dm2 = rkMoments.dm2;
+  const auto& ddm0 = rkMoments.ddm0;
+  const auto& ddm1 = rkMoments.ddm1;
+  const auto& ddm2 = rkMoments.ddm2;
 
   // Get matrix to invert
   VectorType rhs;
@@ -764,7 +764,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     // Get function to reproduce and its derivative
     const auto g = xij;
     const auto dg = identityTensor;
-          
+
     // Add the values to the moments
     addToMoments<Dimension, correctionOrder>(g, dg, Wij, gradWij, hessWij, vj, mom);
           
@@ -791,7 +791,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           addPointToMoments(nodeListi, nodei, nodeListj, nodej, rkMoments); // other points
         }
       }
-      
+
       // Compute corrections
       switch (correctionOrder) {
       case CRKOrder::ZerothOrder:
