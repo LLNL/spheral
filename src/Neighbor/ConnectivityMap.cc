@@ -234,6 +234,11 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
   }
   mNodePairList = culledPairs;
 
+  // Sort the NodePairList in order to enforce domain decomposition independence.
+  if (domainDecompIndependent) {
+    sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
+  }
+
   // You can't check valid yet 'cause the NodeLists have not been resized
   // when we call patch!  The valid method should be checked by whoever called
   // this method after that point.
