@@ -95,9 +95,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     }
   }
 
-  // Keep track of the step-wise changes in the H.
-  auto deltaH = dataBase.newFluidFieldList(2.0*tolerance);
-
   // Build a list of flags to indicate which nodes have been completed.
   auto flagNodeDone = dataBase.newFluidFieldList(0, "node completed");
 
@@ -130,15 +127,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
         (*nodeListItr)->neighbor().updateNodes();
       }
     }
-
-//     // Any nodes that have already converged we flag as done.
-//     for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-//       const auto ni = flagNodeDone[nodeListi]->numInternalElements();
-// #pragma omp parallel for
-//       for (auto i = 0; i < ni; ++i) {
-//         if (deltaH(nodeListi, i) <= tolerance) flagNodeDone(nodeListi, i) = 1;
-//       }
-//     }
 
     // Prepare a FieldList to hold the new H.
     FieldList<Dimension, SymTensor> H1(H);
@@ -202,10 +190,10 @@ iterateIdealH(DataBase<Dimension>& dataBase,
           etaj = Hj*xij;
           thpt = xij.selfdyad()/(xij.magnitude2() + 1.0e-10);
 
-          std::tie(Wi, gWi) = W.kernelAndGradValue(etai.magnitude(), Hi.Determinant());
+          std::tie(Wi, gWi) = W.kernelAndGradValue(etai.magnitude(), 1.0);
           gradWi = gWi*Hi*etai.unitVector();
 
-          std::tie(Wj, gWj) = W.kernelAndGradValue(etaj.magnitude(), Hj.Determinant());
+          std::tie(Wj, gWj) = W.kernelAndGradValue(etaj.magnitude(), 1.0);
           gradWj = gWj*Hj*etaj.unitVector();
 
           // Increment the moments
@@ -258,8 +246,9 @@ iterateIdealH(DataBase<Dimension>& dataBase,
           const auto phi = (H1sqrt*H(nodeListi, i).Inverse()*H1sqrt).Symmetric().eigenValues();
           const auto phimin = phi.minElement();
           const auto phimax = phi.maxElement();
-          deltaH(nodeListi, i) = max(abs(phimin - 1.0), abs(phimax - 1.0));
-          if (deltaH(nodeListi, i) <= tolerance) flagNodeDone(nodeListi, i) = 1;
+          const auto deltaHi = max(abs(phimin - 1.0), abs(phimax - 1.0));
+          if (deltaHi <= tolerance) flagNodeDone(nodeListi, i) = 1;
+          maxDeltaH = max(maxDeltaH, deltaHi);
         }
       }
     }
@@ -268,7 +257,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     H.assignFields(H1);
 
     // Globally reduce the max H change.
-    maxDeltaH = deltaH.max();
+    maxDeltaH = allReduce(maxDeltaH, MPI_MAX, Communicator::communicator());
 
     // Output the statitics.
     if (Process::getRank() == 0)
