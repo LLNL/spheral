@@ -196,7 +196,13 @@ if funcType == "constant":
         return 2.0
 elif funcType == "linear":
     def func(x):
-        return 4.0 * np.sum(x)
+        return 2.0 + 3.0 * np.sum(x)
+elif funcType == "quadratic":
+    def func(x):
+        return 2.0 + 3.0 * np.sum(x) + 4.0 * np.sum(np.power(x, 2))
+elif funcType == "cubic":
+    def func(x):
+        return 2.0 + 3.0 * np.sum(x) + 4.0 * np.sum(np.power(x, 2)) + 5.0 * np.sum(np.power(x, 3))
 else:
     raise ValueError, "function type {} not found".format(funcType)
 
@@ -279,6 +285,7 @@ for i in range(nodes.numNodes):
                 d = D(ni, i)
                 dd = dD(ni, i)
                 ddd = ddD(ni, i)
+    # print(a,b,c)
     connectivityi = np.append(connectivity.connectivityForNode(ni, i), i)
     for j in connectivityi:
         xj = position(nj, j)
@@ -288,7 +295,7 @@ for i in range(nodes.numNodes):
         etaij = Hij * xij
         vj = volume(nj, j)
         w = evaluateRKKernel(WT, correctionOrder,
-                             etaij, Hij, xij, # etaij
+                             etaij, Hij, xij, 
                              a, b, c, d)
         dw = evaluateRKGradient(WT, correctionOrder,
                                 etaij, Hij, xij, dxij,
@@ -304,9 +311,11 @@ for i in range(nodes.numNodes):
     vals[i,1] = func(xi)
     # dvals[i,1] = dfunc(xi)
 
-    
+plt.figure()
 plt.plot(vals[:,0])
 plt.plot(vals[:,1])
+plt.figure()
+plt.plot(vals[:,0]-vals[:,1])
 plt.show()
                      
     
