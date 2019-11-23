@@ -73,13 +73,37 @@ insertUnique(const std::vector<int>& offsets,
   return false;
 }
 
+//------------------------------------------------------------------------------
+// How should we compare pairs for sorting?
+//------------------------------------------------------------------------------
 inline
 KeyTraits::Key
 hashKeys(const KeyTraits::Key& a, const KeyTraits::Key& b) {
   // Szudzik's function
-  return (a >= b ?
-          a * a + a + b :
-          a + b * b);          // where a, b >= 0
+  // return (a >= b ?
+  //         a * a + a + b :
+  //         a + b * b);          // where a, b >= 0
+  return a + b;
+}
+
+//------------------------------------------------------------------------------
+// Sort node pairs for domain independent ordering.
+//------------------------------------------------------------------------------
+template<typename KeyContainer>
+inline
+void
+sortPairs(NodePairList& pairs,
+          const KeyContainer& keys) {
+  // Start by making sure the pairs themselves are deterministically arranged.
+  for (auto& p: pairs) {
+    if (keys(p.i_list, p.i_node) > keys(p.j_list, p.j_node)) {
+      std::swap(p.i_list, p.j_list);
+      std::swap(p.i_node, p.j_node);
+    }
+  }
+
+  // Now sort the list as a whole.
+  std::sort(pairs.begin(), pairs.end(), [&](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(keys(a.i_list, a.i_node), keys(a.j_list, a.j_node)) < hashKeys(keys(b.i_list, b.i_node), keys(b.j_list, b.j_node)); });
 }
 
 }
@@ -246,7 +270,8 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
   // Sort the NodePairList in order to enforce domain decomposition independence.
   if (domainDecompIndependent) {
     // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
-    sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
+    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
+    sortPairs(mNodePairList, mKeys);
   }
 
   // You can't check valid yet 'cause the NodeLists have not been resized
@@ -921,7 +946,8 @@ computeConnectivity() {
   // Sort the NodePairList in order to enforce domain decomposition independence.
   if (domainDecompIndependent) {
     // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
-    sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
+    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
+    sortPairs(mNodePairList, mKeys);
   }
 
   // Do we need overlap connectivity?
