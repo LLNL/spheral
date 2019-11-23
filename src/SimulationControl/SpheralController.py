@@ -95,7 +95,7 @@ class SpheralController:
                                  vizFieldLists = vizFieldLists,
                                  periodicWork = periodicWork,
                                  skipInitialPeriodicWork = skipInitialPeriodicWork,
-                                 iterateInitialH = True,
+                                 iterateInitialH = iterateInitialH,
                                  reinitializeNeighborsStep = 10)
 
         # Read the restart information if requested.
