@@ -73,6 +73,15 @@ insertUnique(const std::vector<int>& offsets,
   return false;
 }
 
+inline
+KeyTraits::Key
+hashKeys(const KeyTraits::Key& a, const KeyTraits::Key& b) {
+  // Szudzik's function
+  return (a >= b ?
+          a * a + a + b :
+          a + b * b);          // where a, b >= 0
+}
+
 }
 
 //------------------------------------------------------------------------------
@@ -236,7 +245,8 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
 
   // Sort the NodePairList in order to enforce domain decomposition independence.
   if (domainDecompIndependent) {
-    sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
+    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
+    sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
   }
 
   // You can't check valid yet 'cause the NodeLists have not been resized
@@ -910,7 +920,8 @@ computeConnectivity() {
 
   // Sort the NodePairList in order to enforce domain decomposition independence.
   if (domainDecompIndependent) {
-    sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
+    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
+    sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
   }
 
   // Do we need overlap connectivity?
