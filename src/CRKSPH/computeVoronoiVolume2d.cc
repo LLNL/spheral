@@ -359,12 +359,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       // Second pass: clip by neighbor points.  Note we have to keep track of
       // which NodeLists actually clip each polygon in order to detect material
       // surfaces.
-      cerr << " --> " << omp_get_thread_num() << " SECOND PASS -- neighbor clipping" << endl;
+      // cerr << " --> " << omp_get_thread_num() << " SECOND PASS -- neighbor clipping" << endl;
       // Thread private scratch variables
       int i, j, nodeListi, nodeListj;
-      cerr << " --> " << omp_get_thread_num() << " starting..." << endl;
+      // cerr << " --> " << omp_get_thread_num() << " starting..." << endl;
       auto pairPlanes_thread = pairPlanes.threadCopy(ThreadReduction::SUM, true);  // force copying the original FieldList
-      cerr << " --> " << omp_get_thread_num() << " : " << pairPlanes_thread.size() << endl;
+      // cerr << " --> " << omp_get_thread_num() << " : " << pairPlanes_thread.size() << endl;
 #pragma omp barrier
 
 #pragma omp for
@@ -512,7 +512,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       //==========================================================================
       // Third pass: clip by any void points.
       // Start by adding any void clip planes from neighbors.
-      cerr << " --> " << omp_get_thread_num() << " THIRD PASS -- void clipping" << endl;
+      // cerr << " --> " << omp_get_thread_num() << " THIRD PASS -- void clipping" << endl;
       auto voidPlanes_thread = voidPlanes.threadCopy();
 #pragma omp barrier
 #pragma omp for
@@ -553,7 +553,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       {
         voidPlanes_thread.threadReduce();
       }
-      cerr << " --> " << omp_get_thread_num() << " THIRD PASS -- finished building voidPlanes" << endl;
+      // cerr << " --> " << omp_get_thread_num() << " THIRD PASS -- finished building voidPlanes" << endl;
 #pragma omp barrier
 
       // Now we can do the void clipping, compute the final volumes, and finalize
