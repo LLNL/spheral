@@ -295,7 +295,8 @@ dt(const DataBase<Dimension>& dataBase,
                                                     "                   @ pos(nodeListj, j) = " + vec_to_string(position(nodeListj, j)) + "\n" +
                                                     "                                   vij = " + to_string(vij.magnitude()) + "\n" +
                                                     "                            nodeScalei = " + to_string(nodeScalei) + "\n" +
-                                                    "                            nodeScalej = " + to_string(nodeScalej)));              }
+                                                    "                            nodeScalej = " + to_string(nodeScalej)));
+              }
 
               // // We also use a pairwise condition modeled on the Monaghan-Gingold viscosity formulation.
               // const auto csj = cs(nodeListj, j);
