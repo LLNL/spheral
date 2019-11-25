@@ -5,6 +5,7 @@ from Spheral import *
 from SpheralTestUtilities import *
 import os, shutil
 import numpy as np
+import time
 from matplotlib import pyplot as plt
 title("Reproducing kernel test")
 
@@ -169,6 +170,7 @@ connectivity = dataBase.connectivityMap()
 #-------------------------------------------------------------------------------
 # Build the RK object
 #-------------------------------------------------------------------------------
+rk_time = time.time()
 rk = RKCorrections(dataBase = dataBase,
                    W = WT,
                    correctionOrder = correctionOrder,
@@ -187,6 +189,8 @@ control = SpheralController(integrator, WT)
 # Make sure changes to H propagate to corrections
 #-------------------------------------------------------------------------------
 rk.initializeProblemStartup(dataBase)
+rk_time = time.time() - rk_time
+output("rk_time")
 
 #-------------------------------------------------------------------------------
 # Get interpolant
@@ -232,27 +236,28 @@ ddD = rk.hessD
 #-------------------------------------------------------------------------------
 # Get zeroth-order correction to check against
 #-------------------------------------------------------------------------------
-A_check = np.zeros(nodes.numNodes)
-if correctionOrder == ZerothOrder:
-    ni = 0
-    nj = 0
-    for i in range(nodes.numNodes):
-        xi = position(ni, i)
-        m0 = 0.
-        connectivityi = np.append(connectivity.connectivityForNode(ni, i), i)
-        for j in connectivityi:
-            xj = position(nj, j)
-            xij = xi - xj
-            Hij = H(nj, j)
-            etaij = Hij * xij
-            wij = WT(etaij, Hij)
-            vj = volume(nj, j)
-            m0 += vj * wij
-        A_check[i] = 1. / m0
+# A_check = np.zeros(nodes.numNodes)
+# if correctionOrder == ZerothOrder:
+#     ni = 0
+#     nj = 0
+#     for i in range(nodes.numNodes):
+#         xi = position(ni, i)
+#         m0 = 0.
+#         connectivityi = np.append(connectivity.connectivityForNode(ni, i), i)
+#         for j in connectivityi:
+#             xj = position(nj, j)
+#             xij = xi - xj
+#             Hij = H(nj, j)
+#             etaij = Hij * xij
+#             wij = WT(etaij, Hij)
+#             vj = volume(nj, j)
+#             m0 += vj * wij
+#         A_check[i] = 1. / m0
 
 #-------------------------------------------------------------------------------
 # Try interpolation
 #-------------------------------------------------------------------------------
+interp_time = time.time()
 b = Vector.zero
 db = Tensor.zero
 ddb = ThirdRankTensor.zero
@@ -313,6 +318,8 @@ for i in range(nodes.numNodes):
         # dvals[i,0] += dw * fj * vj
     vals[i,1] = func(xi)
     # dvals[i,1] = dfunc(xi)
+interp_time = time.time() - interp_time
+output("interp_time")
 
 plt.figure()
 plt.plot(vals[:,0])

@@ -60,30 +60,150 @@ struct RKMomentValues {
   Tensor8 ddm6;
 
   // Zero out all values
-  void zero() {
+  inline void zeroZeroth() {
     m0 = 0.0;
+    std::fill(std::begin(dm0), std::end(dm0), 0.0);
+    std::fill(std::begin(ddm0), std::end(ddm0), 0.0);
+  }
+  inline void zeroLinear() {
+    zeroZeroth();
     std::fill(std::begin(m1), std::end(m1), 0.0);
     std::fill(std::begin(m2), std::end(m2), 0.0);
-    std::fill(std::begin(m3), std::end(m3), 0.0);
-    std::fill(std::begin(m4), std::end(m4), 0.0);
-    std::fill(std::begin(m5), std::end(m5), 0.0);
-    std::fill(std::begin(m6), std::end(m6), 0.0);
-    std::fill(std::begin(dm0), std::end(dm0), 0.0);
     std::fill(std::begin(dm1), std::end(dm1), 0.0);
     std::fill(std::begin(dm2), std::end(dm2), 0.0);
-    std::fill(std::begin(dm3), std::end(dm3), 0.0);
-    std::fill(std::begin(dm4), std::end(dm4), 0.0);
-    std::fill(std::begin(dm5), std::end(dm5), 0.0);
-    std::fill(std::begin(dm6), std::end(dm6), 0.0);
-    std::fill(std::begin(ddm0), std::end(ddm0), 0.0);
     std::fill(std::begin(ddm1), std::end(ddm1), 0.0);
     std::fill(std::begin(ddm2), std::end(ddm2), 0.0);
+  }
+  inline void zeroQuadratic() {
+    zeroLinear();
+    std::fill(std::begin(m3), std::end(m3), 0.0);
+    std::fill(std::begin(m4), std::end(m4), 0.0);
+    std::fill(std::begin(dm3), std::end(dm3), 0.0);
+    std::fill(std::begin(dm4), std::end(dm4), 0.0);
     std::fill(std::begin(ddm3), std::end(ddm3), 0.0);
     std::fill(std::begin(ddm4), std::end(ddm4), 0.0);
+  }
+  inline void zeroCubic() {
+    zeroQuadratic();
+    std::fill(std::begin(m5), std::end(m5), 0.0);
+    std::fill(std::begin(m6), std::end(m6), 0.0);
+    std::fill(std::begin(dm5), std::end(dm5), 0.0);
+    std::fill(std::begin(dm6), std::end(dm6), 0.0);
     std::fill(std::begin(ddm5), std::end(ddm5), 0.0);
     std::fill(std::begin(ddm6), std::end(ddm6), 0.0);
   }
+  template<CRKOrder correctionOrder>
+  inline
+  void zero();
 };
+
+template<>
+template<>
+inline
+void
+RKMomentValues<Dim<1>>::
+zero<CRKOrder::ZerothOrder>() {
+  zeroZeroth();
+}
+
+template<>
+template<>
+inline
+void
+RKMomentValues<Dim<1>>::
+zero<CRKOrder::LinearOrder>() {
+  zeroLinear();
+}
+
+template<>
+template<>
+inline
+void
+RKMomentValues<Dim<1>>::
+zero<CRKOrder::QuadraticOrder>() {
+  zeroQuadratic();
+}
+
+template<>
+template<>
+inline
+void
+RKMomentValues<Dim<1>>::
+zero<CRKOrder::CubicOrder>() {
+  zeroCubic();
+}
+
+template<>
+template<>
+inline
+void
+RKMomentValues<Dim<2>>::
+zero<CRKOrder::ZerothOrder>() {
+  zeroZeroth();
+}
+
+template<>
+template<>
+inline
+void
+RKMomentValues<Dim<2>>::
+zero<CRKOrder::LinearOrder>() {
+  zeroLinear();
+}
+
+template<>
+template<>
+inline
+void
+RKMomentValues<Dim<2>>::
+zero<CRKOrder::QuadraticOrder>() {
+  zeroQuadratic();
+}
+
+template<>
+template<>
+inline
+void
+RKMomentValues<Dim<2>>::
+zero<CRKOrder::CubicOrder>() {
+  zeroCubic();
+}
+
+template<>
+template<>
+inline
+void
+RKMomentValues<Dim<3>>::
+zero<CRKOrder::ZerothOrder>() {
+  zeroZeroth();
+}
+
+template<>
+template<>
+inline
+void
+RKMomentValues<Dim<3>>::
+zero<CRKOrder::LinearOrder>() {
+  zeroLinear();
+}
+
+template<>
+template<>
+inline
+void
+RKMomentValues<Dim<3>>::
+zero<CRKOrder::QuadraticOrder>() {
+  zeroQuadratic();
+}
+
+template<>
+template<>
+inline
+void
+RKMomentValues<Dim<3>>::
+zero<CRKOrder::CubicOrder>() {
+  zeroCubic();
+}
 
 //------------------------------------------------------------------------------
 // Add value to moments
@@ -2014,7 +2134,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     for (auto nodei = 0; nodei < numNodes; ++nodei) {
       
       // Zero out the moments
-      rkMoments.zero();
+      rkMoments.template zero<correctionOrder>();
       
       // Calculate M values
       addPointToMoments(nodeListi, nodei, nodeListi, nodei, rkMoments); // self contribution
