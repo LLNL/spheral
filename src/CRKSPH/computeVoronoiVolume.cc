@@ -321,21 +321,21 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       voidPlanes.appendNewField("void planes", vol[nodeListi]->nodeList(), vector<Plane>());
     }
 
-#pragma omp parallel
+//#pragma omp parallel
     {
 
       //==========================================================================
       // First pass: clip by any faceted boundaries/holes.
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
         const auto ni = polycells[nodeListi]->numInternalElements();
-#pragma omp for
+//#pragma omp for
         for (auto i = 0; i < ni; ++i) {
 
           // Initialize the per point polygon by scaling by its H extent
           const auto& ri = position(nodeListi, i);
           const auto& Hi = H(nodeListi, i);
           const auto  Hinv = Hi.Inverse();
-#pragma omp critical (computeVoronoiVolume_pass1)
+//#pragma omp critical (computeVoronoiVolume_pass1)
           {
             for (auto& v: polycells(nodeListi, i)) v.position = 1.1*rin*Hinv*v.position;
           }
@@ -384,7 +384,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
             std::sort(boundPlanes.begin(), boundPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
 
             // Clip by the planes thus far.
-#pragma omp critical (computeVoronoiVolume_pass1)
+//#pragma omp critical (computeVoronoiVolume_pass1)
             {
               ClippingType<Dimension>::clip(polycells(nodeListi, i), boundPlanes);
             }
@@ -402,9 +402,9 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       // cerr << " --> " << omp_get_thread_num() << " starting..." << endl;
       auto pairPlanes_thread = pairPlanes.threadCopy(ThreadReduction::SUM, true);  // force copying the original FieldList
       // cerr << " --> " << omp_get_thread_num() << " : " << pairPlanes_thread.size() << endl;
-#pragma omp barrier
+//#pragma omp barrier
 
-#pragma omp for
+//#pragma omp for
       for (auto kk = 0; kk < npairs; ++kk) {
         i = pairs[kk].i_node;
         j = pairs[kk].j_node;
@@ -435,7 +435,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       }
 
       // Collect the pair planes across threads.
-#pragma omp critical (computeVoronoiVolume_pass2)
+//#pragma omp critical (computeVoronoiVolume_pass2)
       {
         pairPlanes_thread.threadReduce();
       }
@@ -444,14 +444,14 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       auto etaVoidPoints_thread = etaVoidPoints.threadCopy();
       PolyVolume celli;
       vector<vector<Plane>> pairPlanesi;
-#pragma omp barrier
+//#pragma omp barrier
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
         const auto ni = polycells[nodeListi]->numInternalElements();
-#pragma omp parallel for
+//#pragma omp parallel for
         for (auto i = 0; i < ni; ++i) {
           const auto& Hi = H(nodeListi, i);
           const auto  Hinvi = Hi.Inverse();
-#pragma omp critical (computeVoronoiVolume_pass2)
+//#pragma omp critical (computeVoronoiVolume_pass2)
           {
             celli = polycells(nodeListi, i);
             pairPlanesi = pairPlanes(nodeListi, i);
@@ -480,7 +480,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           }
 
           // Store the clipped cell
-#pragma omp critical (computeVoronoiVolume_pass2)
+//#pragma omp critical (computeVoronoiVolume_pass2)
           {
             polycells(nodeListi, i) = celli;
           }
@@ -520,29 +520,29 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         }   // end over i
       }     // end over NodeLists
 
-#pragma omp critical
+//#pragma omp critical
       {
         etaVoidPoints_thread.threadReduce();
       }
 
       // Apply boundary conditions to the void points.
-#pragma omp barrier
-#pragma omp master
+//#pragma omp barrier
+//#pragma omp master
       {
         if (not boundaries.empty()) {
           for (const auto bc: boundaries) bc->applyFieldListGhostBoundary(etaVoidPoints);
           for (const auto bc: boundaries) bc->finalizeGhostBoundary();
         }
       }
-#pragma omp barrier
+//#pragma omp barrier
 
       //==========================================================================
       // Third pass: clip by any void points.
       // Start by adding any void clip planes from neighbors.
       // cerr << " --> " << omp_get_thread_num() << " THIRD PASS -- void clipping" << endl;
       auto voidPlanes_thread = voidPlanes.threadCopy();
-#pragma omp barrier
-#pragma omp for
+//#pragma omp barrier
+//#pragma omp for
       for (auto kk = 0; kk < npairs; ++kk) {
         i = pairs[kk].i_node;
         j = pairs[kk].j_node;
@@ -576,16 +576,16 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         }
       }
 
-#pragma omp critical (computeVoronoiVolume_pass3)
+//#pragma omp critical (computeVoronoiVolume_pass3)
       {
         voidPlanes_thread.threadReduce();
       }
       // cerr << " --> " << omp_get_thread_num() << " THIRD PASS -- finished building voidPlanes" << endl;
-#pragma omp barrier
+//#pragma omp barrier
 
       // Now we can do the void clipping, compute the final volumes, and finalize
       // surface detection.
-#pragma omp master
+//#pragma omp master
       {
       for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
         const auto n = vol[nodeListi]->numInternalElements();
