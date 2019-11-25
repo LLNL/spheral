@@ -19,6 +19,8 @@ as they cross the specified boundary plane."""
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
+    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
     typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
     typedef GeomPlane<%(Dimension)s> Plane;
@@ -88,6 +90,8 @@ Really we should rename this post-step finalize."""
     storedValues_Tensor =          PYB11TemplateMethod(storedValues, "Tensor")
     storedValues_SymTensor =       PYB11TemplateMethod(storedValues, "SymTensor")
     storedValues_ThirdRankTensor = PYB11TemplateMethod(storedValues, "ThirdRankTensor")
+    storedValues_FourthRankTensor = PYB11TemplateMethod(storedValues, "FourthRankTensor")
+    storedValues_FifthRankTensor = PYB11TemplateMethod(storedValues, "FifthRankTensor")
     storedValues_FacetedVolume =   PYB11TemplateMethod(storedValues, "FacetedVolume")
     storedValues_vectorScalar =    PYB11TemplateMethod(storedValues, "std::vector<Scalar>")
     storedValues_vectorVector =    PYB11TemplateMethod(storedValues, "std::vector<Vector>")
@@ -107,6 +111,8 @@ Really we should rename this post-step finalize."""
     storedValuesF_Tensor =          PYB11TemplateMethod(storedValuesF, "Tensor", pyname="storedValues")
     storedValuesF_SymTensor =       PYB11TemplateMethod(storedValuesF, "SymTensor", pyname="storedValues")
     storedValuesF_ThirdRankTensor = PYB11TemplateMethod(storedValuesF, "ThirdRankTensor", pyname="storedValues")
+    storedValuesF_FourthRankTensor = PYB11TemplateMethod(storedValuesF, "FourthRankTensor", pyname="storedValues")
+    storedValuesF_FifthRankTensor = PYB11TemplateMethod(storedValuesF, "FifthRankTensor", pyname="storedValues")
     storedValuesF_FacetedVolume =   PYB11TemplateMethod(storedValuesF, "FacetedVolume", pyname="storedValues")
     storedValuesF_vectorScalar =    PYB11TemplateMethod(storedValuesF, "std::vector<Scalar>", pyname="storedValues")
     storedValuesF_vectorVector =    PYB11TemplateMethod(storedValuesF, "std::vector<Vector>", pyname="storedValues")
