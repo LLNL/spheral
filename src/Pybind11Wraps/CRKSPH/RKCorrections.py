@@ -112,7 +112,7 @@ class RKCorrections(Physics):
     A = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "A", returnpolicy="reference_internal")
     B = PYB11property("const FieldList<%(Dimension)s, Vector>&", "B", returnpolicy="reference_internal")
     C = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "C", returnpolicy="reference_internal")
-    D = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "C", returnpolicy="reference_internal")
+    D = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "D", returnpolicy="reference_internal")
     gradA = PYB11property("const FieldList<%(Dimension)s, Vector>&", "gradA", returnpolicy="reference_internal")
     gradB = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "gradB", returnpolicy="reference_internal")
     gradC = PYB11property("const FieldList<%(Dimension)s, ThirdRankTensor>&", "gradC", returnpolicy="reference_internal")

@@ -203,6 +203,9 @@ elif funcType == "quadratic":
 elif funcType == "cubic":
     def func(x):
         return 2.0 + 3.0 * np.sum(x) + 4.0 * np.sum(np.power(x, 2)) + 5.0 * np.sum(np.power(x, 3))
+elif funcType == "sinusoidal":
+    def func(x):
+        return 2.0 + 5.0 * np.sum(np.sin(5 * x))
 else:
     raise ValueError, "function type {} not found".format(funcType)
 
