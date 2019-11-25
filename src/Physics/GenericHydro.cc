@@ -297,31 +297,31 @@ dt(const DataBase<Dimension>& dataBase,
                                                     "                            nodeScalei = " + to_string(nodeScalei) + "\n" +
                                                     "                            nodeScalej = " + to_string(nodeScalej)));              }
 
-              // We also use a pairwise condition modeled on the Monaghan-Gingold viscosity formulation.
-              const auto csj = cs(nodeListj, j);
-              const auto xij = (xi - xj);
-              const auto etai = Hi*xij;
-              const auto etaj = Hj*xij;
-              const auto mui = std::abs(vij.dot(etai)/(etai.magnitude2() + Qeps2));
-              const auto muj = std::abs(vij.dot(etaj)/(etaj.magnitude2() + Qeps2));
-              const auto ei = Cl*csi*mui + Cq*mui*mui;
-              const auto ej = Cl*csj*muj + Cq*muj*muj;
-              const auto csQpair = 2.0*std::min(rhoi*ei, rhoj*ej);
-              const auto dtQpair = std::min(nodeScalei, nodeScalej)/(csQpair + tiny);
-              if (dtQpair < minDt_local.first) {
-                minDt_local = make_pair(dtQpair, ("                  Pairwise Q limit: dt = " + to_string(dtVelDiff) + "\n" + 
-                                                  "                              material = " + fluidNodeList.name() + "\n" +
-                                                  "                  (nodeListi, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
-                                                  "                  (nodeListj, i, rank) = (" + to_string(nodeListj) + " " + to_string(j) + " " + to_string(Process::getRank()) + ")\n" +
-                                                  "                   @ pos(nodeListi, i) = " + vec_to_string(position(nodeListi, i)) + "\n" +
-                                                  "                   @ pos(nodeListj, j) = " + vec_to_string(position(nodeListj, j)) + "\n" +
-                                                  "                               csQpair = " + to_string(csQpair) + "\n"
-                                                  "                                   mui = " + to_string(mui) + "\n"
-                                                  "                                   muj = " + to_string(muj) + "\n"
-                                                  "                                   vij = " + vec_to_string(vij) + "\n" +
-                                                  "                            nodeScalei = " + to_string(nodeScalei) + "\n" +
-                                                  "                            nodeScalej = " + to_string(nodeScalej)));
-              }
+              // // We also use a pairwise condition modeled on the Monaghan-Gingold viscosity formulation.
+              // const auto csj = cs(nodeListj, j);
+              // const auto xij = (xi - xj);
+              // const auto etai = Hi*xij;
+              // const auto etaj = Hj*xij;
+              // const auto mui = std::abs(vij.dot(etai)/(etai.magnitude2() + Qeps2));
+              // const auto muj = std::abs(vij.dot(etaj)/(etaj.magnitude2() + Qeps2));
+              // const auto ei = Cl*csi*mui + Cq*mui*mui;
+              // const auto ej = Cl*csj*muj + Cq*muj*muj;
+              // const auto csQpair = 2.0*std::min(rhoi*ei, rhoj*ej);
+              // const auto dtQpair = std::min(nodeScalei, nodeScalej)/(csQpair + tiny);
+              // if (dtQpair < minDt_local.first) {
+              //   minDt_local = make_pair(dtQpair, ("                  Pairwise Q limit: dt = " + to_string(dtVelDiff) + "\n" + 
+              //                                     "                              material = " + fluidNodeList.name() + "\n" +
+              //                                     "                  (nodeListi, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
+              //                                     "                  (nodeListj, i, rank) = (" + to_string(nodeListj) + " " + to_string(j) + " " + to_string(Process::getRank()) + ")\n" +
+              //                                     "                   @ pos(nodeListi, i) = " + vec_to_string(position(nodeListi, i)) + "\n" +
+              //                                     "                   @ pos(nodeListj, j) = " + vec_to_string(position(nodeListj, j)) + "\n" +
+              //                                     "                               csQpair = " + to_string(csQpair) + "\n"
+              //                                     "                                   mui = " + to_string(mui) + "\n"
+              //                                     "                                   muj = " + to_string(muj) + "\n"
+              //                                     "                                   vij = " + vec_to_string(vij) + "\n" +
+              //                                     "                            nodeScalei = " + to_string(nodeScalei) + "\n" +
+              //                                     "                            nodeScalej = " + to_string(nodeScalej)));
+              // }
             }
           }
 

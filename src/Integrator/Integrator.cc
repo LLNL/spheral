@@ -212,19 +212,11 @@ selectDt(const typename Dimension::Scalar dtMin,
     if (dtVote.first > 0.0 and dtVote.first < dt.first) dt = dtVote;
   }
 
-  // Apply any dt scaling due to iteration
-  dt.first *= mDtMultiplier;
-
   // In the parallel case we need to find the minimum timestep across all processors.
   const Scalar globalDt = allReduce(dt.first, MPI_MIN, Communicator::communicator());
-  if (dt.first == globalDt and 
-      (verbose() or globalDt < mDtMin)) {
-    cout << "Selected timestep of "
-	 << dt.first << endl
-         << dt.second << endl;
-  }
-  cout.flush();
-  dt.first = globalDt;
+
+  // Apply any dt scaling due to iteration
+  dt.first *= mDtMultiplier;
 
   // We also require that the timestep is not allowed to grow faster than a
   // prescribed fraction.
@@ -235,6 +227,16 @@ selectDt(const typename Dimension::Scalar dtMin,
 
   CHECK(dt.first >= 0.0 and
         dt.first >= dtMin and dt.first <= dtMax);
+
+  // Are we verbose?
+  if (dt.first == globalDt and 
+      (verbose() or globalDt < mDtMin)) {
+    cout << "Selected timestep of "
+         << dt.first << endl
+         << dt.second << endl;
+  }
+  cout.flush();
+  dt.first = globalDt;
 
   return dt.first;
 }
