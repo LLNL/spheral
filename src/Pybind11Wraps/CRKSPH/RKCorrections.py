@@ -26,7 +26,8 @@ class RKCorrections(Physics):
                dataBase = "const DataBase<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                correctionOrder = "const CRKOrder",
-               volumeType = "const CRKVolumeType"):
+               volumeType = "const CRKVolumeType",
+               needHessian = "const bool"):
         "Constructor"
         
     @PYB11virtual
@@ -106,6 +107,8 @@ class RKCorrections(Physics):
     correctionOrder = PYB11property("CRKOrder", "correctionOrder", "correctionOrder",
                                     doc="Flag to choose CRK Correction Order")
     volumeType = PYB11property("CRKVolumeType", "volumeType", "volumeType",
+                               doc="Flag for the CRK volume weighting definition")
+    needHessian = PYB11property("bool", "needHessian", "needHessian",
                                doc="Flag for the CRK volume weighting definition")
     volume = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "volume", returnpolicy="reference_internal")
 

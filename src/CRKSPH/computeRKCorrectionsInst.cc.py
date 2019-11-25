@@ -14,6 +14,7 @@ template void computeRKCorrections<Dim<%(ndim)s>>(const ConnectivityMap<Dim<%(nd
                                                   const FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Vector>& position,
                                                   const FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::SymTensor>& H,
                                                   const CRKOrder correctionOrder,
+                                                  const bool needHessian,
                                                   FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Scalar>& A,
                                                   FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Vector>& B,
                                                   FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Tensor>& C,

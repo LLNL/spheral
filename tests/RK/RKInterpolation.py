@@ -1,3 +1,16 @@
+#ATS:test(SELF, "--dimension 1 --correctionOrder ZerothOrder --funcType constant", label="RK zeroth 1d")
+#ATS:test(SELF, "--dimension 1 --correctionOrder LinearOrder --funcType linear", label="RK linear 1d")
+#ATS:test(SELF, "--dimension 1 --correctionOrder QuadraticOrder --funcType quadratic", label="RK quadratic 1d")
+#ATS:test(SELF, "--dimension 1 --correctionOrder CubicOrder --funcType cubic", label="RK cubic 1d")
+#ATS:test(SELF, "--dimension 2 --correctionOrder ZerothOrder --funcType constant", label="RK zeroth 2d")
+#ATS:test(SELF, "--dimension 2 --correctionOrder LinearOrder --funcType linear", label="RK linear 2d")
+#ATS:test(SELF, "--dimension 2 --correctionOrder QuadraticOrder --funcType quadratic", label="RK quadratic 2d")
+#ATS:test(SELF, "--dimension 2 --correctionOrder CubicOrder --funcType cubic", label="RK cubic 2d")
+#ATS:test(SELF, "--dimension 3 --correctionOrder ZerothOrder --funcType constant", label="RK zeroth 3d")
+#ATS:test(SELF, "--dimension 3 --correctionOrder LinearOrder --funcType linear", label="RK linear 3d")
+#ATS:test(SELF, "--dimension 3 --correctionOrder QuadraticOrder --funcType quadratic", label="RK quadratic 3d")
+#ATS:test(SELF, "--dimension 3 --correctionOrder CubicOrder --funcType cubic", label="RK cubic 3d")
+
 #-------------------------------------------------------------------------------
 # Manufactured diffusion test
 #-------------------------------------------------------------------------------
@@ -25,6 +38,7 @@ commandLine(
     z0 = -2.0,
     z1 = 2.0,
     correctionOrder = LinearOrder,
+    needHessian = True,
     
     # Manufactured parameters
     funcType = "linear",
@@ -40,7 +54,13 @@ commandLine(
     mu = 1.0,
 
     # Data dir
-    dataDirBase = "dumps-RKInterpolation"
+    dataDirBase = "dumps-RKInterpolation",
+
+    # Error
+    tolerance = 1.e-14,
+    
+    # Plotting
+    plot = False,
 )
 
 if dimension == 1:
@@ -50,6 +70,9 @@ elif dimension == 2:
 else:
     from Spheral3d import *
 
+if mpi.procs > 1:
+    raise ValueError, "need to add parallel boundaries and error calculation"
+    
 #-------------------------------------------------------------------------------
 # Set up data
 #-------------------------------------------------------------------------------
@@ -174,7 +197,8 @@ rk_time = time.time()
 rk = RKCorrections(dataBase = dataBase,
                    W = WT,
                    correctionOrder = correctionOrder,
-                   volumeType = CRKMassOverDensity)
+                   volumeType = CRKMassOverDensity,
+                   needHessian = needHessian)
 packages = [rk]
 
 #-------------------------------------------------------------------------------
@@ -321,11 +345,22 @@ for i in range(nodes.numNodes):
 interp_time = time.time() - interp_time
 output("interp_time")
 
-plt.figure()
-plt.plot(vals[:,0])
-plt.plot(vals[:,1])
-plt.figure()
-plt.plot(vals[:,0]-vals[:,1])
-plt.show()
+#-------------------------------------------------------------------------------
+# Optionally plot results
+#-------------------------------------------------------------------------------
+
+if plot:
+    plt.figure()
+    plt.plot(vals[:,0])
+    plt.plot(vals[:,1])
+    plt.figure()
+    plt.plot(vals[:,0]-vals[:,1])
+    plt.show()
                      
-    
+#-------------------------------------------------------------------------------
+# Check error
+#-------------------------------------------------------------------------------
+error = np.sum(np.abs(vals[:,0] - vals[:,1])) / np.sum(np.abs(vals[:,1]))
+output("error")
+if error > tolerance:
+    raise ValueError, "error is greater than tolerance"

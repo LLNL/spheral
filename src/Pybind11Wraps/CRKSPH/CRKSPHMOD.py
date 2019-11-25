@@ -467,6 +467,7 @@ def computeRKCorrections(connectivityMap = "const ConnectivityMap<%(Dimension)s>
                          position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
                          H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
                          correctionOrder = "const CRKOrder",
+                         needHessian = "const bool",
                          A = "FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                          B = "FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
                          C = "FieldList<%(Dimension)s, typename %(Dimension)s::Tensor>&",

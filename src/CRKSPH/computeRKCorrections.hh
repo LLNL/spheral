@@ -20,6 +20,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                      const FieldList<Dimension, typename Dimension::Vector>& position,
                      const FieldList<Dimension, typename Dimension::SymTensor>& H,
                      const CRKOrder correctionOrder,
+                     const bool needHessian,
                      FieldList<Dimension, typename Dimension::Scalar>& A,
                      FieldList<Dimension, typename Dimension::Vector>& B,
                      FieldList<Dimension, typename Dimension::Tensor>& C,
@@ -33,7 +34,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                      FieldList<Dimension, typename Dimension::FourthRankTensor>& hessC,
                      FieldList<Dimension, typename Dimension::FifthRankTensor>& hessD);
 
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, CRKOrder correctionOrder, bool needHessian>
 void
 computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                      const TableKernel<Dimension>& W,

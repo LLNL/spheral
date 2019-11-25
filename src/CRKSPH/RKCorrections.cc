@@ -28,11 +28,13 @@ RKCorrections<Dimension>::
 RKCorrections(const DataBase<Dimension>& dataBase,
               const TableKernel<Dimension>& W,
               const CRKOrder correctionOrder,
-              const CRKVolumeType volumeType) :
+              const CRKVolumeType volumeType,
+              const bool needHessian):
   mDataBase(dataBase),
   mW(W),
   mCorrectionOrder(correctionOrder),
   mVolumeType(volumeType),
+  mNeedHessian(needHessian),
   mVolume(FieldStorageType::CopyFields),
   mA(FieldStorageType::CopyFields),
   mB(FieldStorageType::CopyFields),
@@ -134,7 +136,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   }
   
   // Compute corrections
-  computeRKCorrections(connectivityMap, mW, mVolume, position, H, mCorrectionOrder,
+  computeRKCorrections(connectivityMap, mW, mVolume, position, H, mCorrectionOrder, mNeedHessian,
                        mA, mB, mC, mD,
                        mGradA, mGradB, mGradC, mGradD,
                        mHessA, mHessB, mHessC, mHessD);
@@ -376,7 +378,7 @@ initialize(const typename Dimension::Scalar time,
   auto hessD = state.fields(HydroFieldNames::hessD_RK, FifthRankTensor::zero);
   
   // Compute corrections
-  computeRKCorrections(connectivityMap, W, volume, position, H, mCorrectionOrder,
+  computeRKCorrections(connectivityMap, W, volume, position, H, mCorrectionOrder, mNeedHessian,
                        A, B, C, D,
                        gradA, gradB, gradC, gradD,
                        hessA, hessB, hessC, hessD);

@@ -211,7 +211,23 @@ zero<CRKOrder::CubicOrder>() {
 template<typename Dimension, CRKOrder correctionOrder>
 inline
 void
-addToMoments(const typename Dimension::Vector& g,
+addToMoment(const typename Dimension::Vector& g,
+            const typename Dimension::Scalar& w,
+            const typename Dimension::Scalar& v,
+            RKMomentValues<Dimension>& mom);
+template<typename Dimension, CRKOrder correctionOrder>
+inline
+void
+addToGradient(const typename Dimension::Vector& g,
+              const typename Dimension::Tensor& dg,
+              const typename Dimension::Scalar& w,
+              const typename Dimension::Vector& dw,
+              const typename Dimension::Scalar& v,
+              RKMomentValues<Dimension>& mom);
+template<typename Dimension, CRKOrder correctionOrder>
+inline
+void
+addToHessian(const typename Dimension::Vector& g,
              const typename Dimension::Tensor& dg,
              const typename Dimension::Scalar& w,
              const typename Dimension::Vector& dw,
@@ -223,7 +239,37 @@ addToMoments(const typename Dimension::Vector& g,
 template<>
 inline
 void
-addToMoments<Dim<1>, CRKOrder::ZerothOrder>(const Dim<1>::Vector& g,
+addToMoment<Dim<1>, CRKOrder::ZerothOrder>(const Dim<1>::Vector& g,
+                                           const Dim<1>::Scalar& w,
+                                           const Dim<1>::Scalar& v,
+                                           RKMomentValues<Dim<1>>& mom) {
+  const auto dim = Dim<1>::nDim;
+  auto& m0 = mom.m0;
+  const auto k1 = 0;
+  const auto k2 = 0;
+  
+  m0 += v*w;
+}
+template<>
+inline
+void
+addToGradient<Dim<1>, CRKOrder::ZerothOrder>(const Dim<1>::Vector& g,
+                                             const Dim<1>::Tensor& dg,
+                                             const Dim<1>::Scalar& w,
+                                             const Dim<1>::Vector& dw,
+                                             const Dim<1>::Scalar& v,
+                                             RKMomentValues<Dim<1>>& mom) {
+  const auto dim = Dim<1>::nDim;
+  auto& dm0 = mom.dm0;
+  const auto k1 = 0;
+  const auto k2 = 0;
+  
+  dm0[k1] += v*dw[k1];
+}
+template<>
+inline
+void
+addToHessian<Dim<1>, CRKOrder::ZerothOrder>(const Dim<1>::Vector& g,
                                             const Dim<1>::Tensor& dg,
                                             const Dim<1>::Scalar& w,
                                             const Dim<1>::Vector& dw,
@@ -231,24 +277,46 @@ addToMoments<Dim<1>, CRKOrder::ZerothOrder>(const Dim<1>::Vector& g,
                                             const Dim<1>::Scalar& v,
                                             RKMomentValues<Dim<1>>& mom) {
   const auto dim = Dim<1>::nDim;
-  auto& m0 = mom.m0;
-  auto& dm0 = mom.dm0;
   auto& ddm0 = mom.ddm0;
   const auto k1 = 0;
   const auto k2 = 0;
   
-  // Moments
-  m0 += v*w;
-  // Gradients
-  dm0[k1] += v*dw[k1];
-  // Hessians
   ddm0[k1 + k2] += v*ddw[k1 + k2];
 }
+
 // d=2, o=0
 template<>
 inline
 void
-addToMoments<Dim<2>, CRKOrder::ZerothOrder>(const Dim<2>::Vector& g,
+addToMoment<Dim<2>, CRKOrder::ZerothOrder>(const Dim<2>::Vector& g,
+                                           const Dim<2>::Scalar& w,
+                                           const Dim<2>::Scalar& v,
+                                           RKMomentValues<Dim<2>>& mom) {
+  const auto dim = Dim<2>::nDim;
+  auto& m0 = mom.m0;
+
+  m0 += v*w;
+}
+template<>
+inline
+void
+addToGradient<Dim<2>, CRKOrder::ZerothOrder>(const Dim<2>::Vector& g,
+                                             const Dim<2>::Tensor& dg,
+                                             const Dim<2>::Scalar& w,
+                                             const Dim<2>::Vector& dw,
+                                             const Dim<2>::Scalar& v,
+                                             RKMomentValues<Dim<2>>& mom) {
+  const auto dim = Dim<2>::nDim;
+  auto& dm0 = mom.dm0;
+
+  for (auto k1 = 0; k1 < dim; ++k1) {
+    dm0[k1] += v*dw[k1];
+  }
+}
+template<>
+inline
+void
+addToHessian<Dim<2>, CRKOrder::ZerothOrder>(const Dim<2>::Vector& g,
                                             const Dim<2>::Tensor& dg,
                                             const Dim<2>::Scalar& w,
                                             const Dim<2>::Vector& dw,
@@ -256,28 +324,48 @@ addToMoments<Dim<2>, CRKOrder::ZerothOrder>(const Dim<2>::Vector& g,
                                             const Dim<2>::Scalar& v,
                                             RKMomentValues<Dim<2>>& mom) {
   const auto dim = Dim<2>::nDim;
-  auto& m0 = mom.m0;
-  auto& dm0 = mom.dm0;
   auto& ddm0 = mom.ddm0;
-  
-  // Moments
-  m0 += v*w;
-  // Gradients
-  for (auto k1 = 0; k1 < dim; ++k1) {
-    dm0[k1] += v*dw[k1];
-  }
-  // Hessians
+
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto k2 = k1; k2 < dim; ++k2) {
       ddm0[2*k1 + k2] += v*ddw[2*k1 + k2];
     }
   }
 }
+
 // d=3, o=0
 template<>
 inline
 void
-addToMoments<Dim<3>, CRKOrder::ZerothOrder>(const Dim<3>::Vector& g,
+addToMoment<Dim<3>, CRKOrder::ZerothOrder>(const Dim<3>::Vector& g,
+                                           const Dim<3>::Scalar& w,
+                                           const Dim<3>::Scalar& v,
+                                           RKMomentValues<Dim<3>>& mom) {
+  const auto dim = Dim<3>::nDim;
+  auto& m0 = mom.m0;
+
+  m0 += v*w;
+}
+template<>
+inline
+void
+addToGradient<Dim<3>, CRKOrder::ZerothOrder>(const Dim<3>::Vector& g,
+                                             const Dim<3>::Tensor& dg,
+                                             const Dim<3>::Scalar& w,
+                                             const Dim<3>::Vector& dw,
+                                             const Dim<3>::Scalar& v,
+                                             RKMomentValues<Dim<3>>& mom) {
+  const auto dim = Dim<3>::nDim;
+  auto& dm0 = mom.dm0;
+
+  for (auto k1 = 0; k1 < dim; ++k1) {
+    dm0[k1] += v*dw[k1];
+  }
+}
+template<>
+inline
+void
+addToHessian<Dim<3>, CRKOrder::ZerothOrder>(const Dim<3>::Vector& g,
                                             const Dim<3>::Tensor& dg,
                                             const Dim<3>::Scalar& w,
                                             const Dim<3>::Vector& dw,
@@ -285,28 +373,66 @@ addToMoments<Dim<3>, CRKOrder::ZerothOrder>(const Dim<3>::Vector& g,
                                             const Dim<3>::Scalar& v,
                                             RKMomentValues<Dim<3>>& mom) {
   const auto dim = Dim<3>::nDim;
-  auto& m0 = mom.m0;
-  auto& dm0 = mom.dm0;
   auto& ddm0 = mom.ddm0;
   
-  // Moments
-  m0 += v*w;
-  // Gradients
-  for (auto k1 = 0; k1 < dim; ++k1) {
-    dm0[k1] += v*dw[k1];
-  }
-  // Hessians
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto k2 = k1; k2 < dim; ++k2) {
       ddm0[3*k1 + k2] += v*ddw[3*k1 + k2];
     }
   }
 }
+
 // d=1, o=1
 template<>
 inline
 void
-addToMoments<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& g,
+addToMoment<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& g,
+                                           const Dim<1>::Scalar& w,
+                                           const Dim<1>::Scalar& v,
+                                           RKMomentValues<Dim<1>>& mom) {
+  const auto dim = Dim<1>::nDim;
+  auto& m1 = mom.m1;
+  auto& m2 = mom.m2;
+  const auto k1 = 0;
+  const auto k2 = 0;
+  const auto q1 = 0;
+  const auto q2 = 0;
+
+  // Previous moments
+  addToMoment<Dim<1>, CRKOrder::ZerothOrder>(g, w, v, mom);
+  
+  // Moments
+  m1[q1] += v*w*g[q1];
+  m2[q1 + q2] += v*w*g[q1]*g[q2];
+}
+template<>
+inline
+void
+addToGradient<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& g,
+                                             const Dim<1>::Tensor& dg,
+                                             const Dim<1>::Scalar& w,
+                                             const Dim<1>::Vector& dw,
+                                             const Dim<1>::Scalar& v,
+                                             RKMomentValues<Dim<1>>& mom) {
+  const auto dim = Dim<1>::nDim;
+  auto& dm1 = mom.dm1;
+  auto& dm2 = mom.dm2;
+  const auto k1 = 0;
+  const auto k2 = 0;
+  const auto q1 = 0;
+  const auto q2 = 0;
+
+  // Previous moments
+  addToGradient<Dim<1>, CRKOrder::ZerothOrder>(g, dg, w, dw, v, mom);
+  
+  // Gradients
+  dm1[k1 + q1] += v*dw[k1]*g[q1] + v*w*dg[k1 + q1];
+  dm2[k1 + q1 + q2] += v*dw[k1]*g[q1]*g[q2] + v*w*g[q2]*dg[k1 + q1] + v*w*g[q1]*dg[k1 + q2];
+}
+template<>
+inline
+void
+addToHessian<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& g,
                                             const Dim<1>::Tensor& dg,
                                             const Dim<1>::Scalar& w,
                                             const Dim<1>::Vector& dw,
@@ -314,11 +440,7 @@ addToMoments<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& g,
                                             const Dim<1>::Scalar& v,
                                             RKMomentValues<Dim<1>>& mom) {
   const auto dim = Dim<1>::nDim;
-  auto& m1 = mom.m1;
-  auto& dm1 = mom.dm1;
   auto& ddm1 = mom.ddm1;
-  auto& m2 = mom.m2;
-  auto& dm2 = mom.dm2;
   auto& ddm2 = mom.ddm2;
   const auto k1 = 0;
   const auto k2 = 0;
@@ -326,45 +448,27 @@ addToMoments<Dim<1>, CRKOrder::LinearOrder>(const Dim<1>::Vector& g,
   const auto q2 = 0;
 
   // Previous moments
-  addToMoments<Dim<1>, CRKOrder::ZerothOrder>(g, dg, 
-                                              w, dw, ddw, v,
-                                              mom);
-  
-  // Moments
-  m1[q1] += v*w*g[q1];
-  m2[q1 + q2] += v*w*g[q1]*g[q2];
-
-  // Gradients
-  dm1[k1 + q1] += v*dw[k1]*g[q1] + v*w*dg[k1 + q1];
-  dm2[k1 + q1 + q2] += v*dw[k1]*g[q1]*g[q2] + v*w*g[q2]*dg[k1 + q1] + v*w*g[q1]*dg[k1 + q2];
+  addToHessian<Dim<1>, CRKOrder::ZerothOrder>(g, dg, w, dw, ddw, v, mom);
   
   // Hessians
   ddm1[k1 + k2 + q1] += v*ddw[k1 + k2]*g[q1] + v*dw[k2]*dg[k1 + q1] + v*dw[k1]*dg[k2 + q1];
   ddm2[k1 + k2 + q1 + q2] += v*ddw[k1 + k2]*g[q1]*g[q2] + v*dw[k2]*g[q2]*dg[k1 + q1] + v*dw[k1]*g[q2]*dg[k2 + q1] + v*dw[k2]*g[q1]*dg[k1 + q2] + v*w*dg[k2 + q1]*dg[k1 + q2] + v*dw[k1]*g[q1]*dg[k2 + q2] + v*w*dg[k1 + q1]*dg[k2 + q2];
 }
+
 // d=2, o=1
 template<>
 inline
 void
-addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& g,
-                                            const Dim<2>::Tensor& dg,
-                                            const Dim<2>::Scalar& w,
-                                            const Dim<2>::Vector& dw,
-                                            const Dim<2>::Tensor& ddw,
-                                            const Dim<2>::Scalar& v,
-                                            RKMomentValues<Dim<2>>& mom) {
+addToMoment<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& g,
+                                           const Dim<2>::Scalar& w,
+                                           const Dim<2>::Scalar& v,
+                                           RKMomentValues<Dim<2>>& mom) {
   const auto dim = Dim<2>::nDim;
   auto& m1 = mom.m1;
-  auto& dm1 = mom.dm1;
-  auto& ddm1 = mom.ddm1;
   auto& m2 = mom.m2;
-  auto& dm2 = mom.dm2;
-  auto& ddm2 = mom.ddm2;
   
   // Previous moments
-  addToMoments<Dim<2>, CRKOrder::ZerothOrder>(g, dg,
-                                              w, dw, ddw, v,
-                                              mom);
+  addToMoment<Dim<2>, CRKOrder::ZerothOrder>(g, w, v, mom);
   
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
@@ -373,6 +477,23 @@ addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& g,
       m2[2*q1 + q2] += v*w*g[q1]*g[q2];
     }
   }
+}
+template<>
+inline
+void
+addToGradient<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& g,
+                                             const Dim<2>::Tensor& dg,
+                                             const Dim<2>::Scalar& w,
+                                             const Dim<2>::Vector& dw,
+                                             const Dim<2>::Scalar& v,
+                                             RKMomentValues<Dim<2>>& mom) {
+  const auto dim = Dim<2>::nDim;
+  auto& dm1 = mom.dm1;
+  auto& dm2 = mom.dm2;
+  
+  // Previous moments
+  addToGradient<Dim<2>, CRKOrder::ZerothOrder>(g, dg, w, dw, v, mom);
+  
   // Gradients
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto q1 = 0; q1 < dim; ++q1) {
@@ -382,6 +503,24 @@ addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& g,
       }
     }
   }
+}
+template<>
+inline
+void
+addToHessian<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& g,
+                                            const Dim<2>::Tensor& dg,
+                                            const Dim<2>::Scalar& w,
+                                            const Dim<2>::Vector& dw,
+                                            const Dim<2>::Tensor& ddw,
+                                            const Dim<2>::Scalar& v,
+                                            RKMomentValues<Dim<2>>& mom) {
+  const auto dim = Dim<2>::nDim;
+  auto& ddm1 = mom.ddm1;
+  auto& ddm2 = mom.ddm2;
+  
+  // Previous moments
+  addToHessian<Dim<2>, CRKOrder::ZerothOrder>(g, dg, w, dw, ddw, v, mom);
+  
   // Hessians
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto k2 = k1; k2 < dim; ++k2) {
@@ -394,17 +533,15 @@ addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& g,
     }
   }
 }
+
 // d=3, o=1
 template<>
 inline
 void
-addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& g,
-                                            const Dim<3>::Tensor& dg,
-                                            const Dim<3>::Scalar& w,
-                                            const Dim<3>::Vector& dw,
-                                            const Dim<3>::Tensor& ddw,
-                                            const Dim<3>::Scalar& v,
-                                            RKMomentValues<Dim<3>>& mom) {
+addToMoment<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& g,
+                                           const Dim<3>::Scalar& w,
+                                           const Dim<3>::Scalar& v,
+                                           RKMomentValues<Dim<3>>& mom) {
   const auto dim = Dim<3>::nDim;
   auto& m1 = mom.m1;
   auto& dm1 = mom.dm1;
@@ -414,9 +551,7 @@ addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& g,
   auto& ddm2 = mom.ddm2;
   
   // Previous moments
-  addToMoments<Dim<3>, CRKOrder::ZerothOrder>(g, dg, 
-                                              w, dw, ddw, v,
-                                              mom);
+  addToMoment<Dim<3>, CRKOrder::ZerothOrder>(g, w, v, mom);
   
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
@@ -425,6 +560,23 @@ addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& g,
       m2[3*q1 + q2] += v*w*g[q1]*g[q2];
     }
   }
+}
+template<>
+inline
+void
+addToGradient<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& g,
+                                             const Dim<3>::Tensor& dg,
+                                             const Dim<3>::Scalar& w,
+                                             const Dim<3>::Vector& dw,
+                                             const Dim<3>::Scalar& v,
+                                             RKMomentValues<Dim<3>>& mom) {
+  const auto dim = Dim<3>::nDim;
+  auto& dm1 = mom.dm1;
+  auto& dm2 = mom.dm2;
+  
+  // Previous moments
+  addToGradient<Dim<3>, CRKOrder::ZerothOrder>(g, dg, w, dw, v, mom);
+  
   // Gradients
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto q1 = 0; q1 < dim; ++q1) {
@@ -434,6 +586,24 @@ addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& g,
       }
     }
   }
+}
+template<>
+inline
+void
+addToHessian<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& g,
+                                            const Dim<3>::Tensor& dg,
+                                            const Dim<3>::Scalar& w,
+                                            const Dim<3>::Vector& dw,
+                                            const Dim<3>::Tensor& ddw,
+                                            const Dim<3>::Scalar& v,
+                                            RKMomentValues<Dim<3>>& mom) {
+  const auto dim = Dim<3>::nDim;
+  auto& ddm1 = mom.ddm1;
+  auto& ddm2 = mom.ddm2;
+  
+  // Previous moments
+  addToHessian<Dim<3>, CRKOrder::ZerothOrder>(g, dg, w, dw, ddw, v, mom);
+  
   // Hessians
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto k2 = k1; k2 < dim; ++k2) {
@@ -446,11 +616,62 @@ addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& g,
     }
   }
 }
+
 // d=1, o=2
 template<>
 inline
 void
-addToMoments<Dim<1>, CRKOrder::QuadraticOrder>(const Dim<1>::Vector& g,
+addToMoment<Dim<1>, CRKOrder::QuadraticOrder>(const Dim<1>::Vector& g,
+                                              const Dim<1>::Scalar& w,
+                                              const Dim<1>::Scalar& v,
+                                              RKMomentValues<Dim<1>>& mom) {
+  const auto dim = Dim<1>::nDim;
+  auto& m3 = mom.m3;
+  auto& m4 = mom.m4;
+  const auto k1 = 0;
+  const auto k2 = 0;
+  const auto q1 = 0;
+  const auto q2 = 0;
+  const auto q3 = 0;
+  const auto q4 = 0;
+
+  // Previous moments
+  addToMoment<Dim<1>, CRKOrder::LinearOrder>(g, w, v, mom);
+  
+  // Moments
+  m3[q1 + q2 + q3] += v*w*g[q1]*g[q2]*g[q3];
+  m4[q1 + q2 + q3 + q4] += v*w*g[q1]*g[q2]*g[q3]*g[q4];
+}
+template<>
+inline
+void
+addToGradient<Dim<1>, CRKOrder::QuadraticOrder>(const Dim<1>::Vector& g,
+                                                const Dim<1>::Tensor& dg,
+                                                const Dim<1>::Scalar& w,
+                                                const Dim<1>::Vector& dw,
+                                                const Dim<1>::Scalar& v,
+                                                RKMomentValues<Dim<1>>& mom) {
+  const auto dim = Dim<1>::nDim;
+  auto& dm3 = mom.dm3;
+  auto& dm4 = mom.dm4;
+  const auto k1 = 0;
+  const auto k2 = 0;
+  const auto q1 = 0;
+  const auto q2 = 0;
+  const auto q3 = 0;
+  const auto q4 = 0;
+
+  // Previous moments
+  addToGradient<Dim<1>, CRKOrder::LinearOrder>(g, dg, w, dw, v, mom);
+  
+  // Gradients
+  dm3[k1 + q1 + q2 + q3] += v*dw[k1]*g[q1]*g[q2]*g[q3] + v*w*g[q2]*g[q3]*dg[k1 + q1] + v*w*g[q1]*g[q3]*dg[k1 + q2] + v*w*g[q1]*g[q2]*dg[k1 + q3];
+  dm4[k1 + q1 + q2 + q3 + q4] += v*dw[k1]*g[q1]*g[q2]*g[q3]*g[q4] + v*w*g[q2]*g[q3]*g[q4]*dg[k1 + q1] + v*w*g[q1]*g[q3]*g[q4]*dg[k1 + q2] + v*w*g[q1]*g[q2]*g[q4]*dg[k1 + q3] + v*w*g[q1]*g[q2]*g[q3]*dg[k1 + q4];
+}
+template<>
+inline
+void
+addToHessian<Dim<1>, CRKOrder::QuadraticOrder>(const Dim<1>::Vector& g,
                                                const Dim<1>::Tensor& dg,
                                                const Dim<1>::Scalar& w,
                                                const Dim<1>::Vector& dw,
@@ -458,10 +679,6 @@ addToMoments<Dim<1>, CRKOrder::QuadraticOrder>(const Dim<1>::Vector& g,
                                                const Dim<1>::Scalar& v,
                                                RKMomentValues<Dim<1>>& mom) {
   const auto dim = Dim<1>::nDim;
-  auto& m3 = mom.m3;
-  auto& m4 = mom.m4;
-  auto& dm3 = mom.dm3;
-  auto& dm4 = mom.dm4;
   auto& ddm3 = mom.ddm3;
   auto& ddm4 = mom.ddm4;
   const auto k1 = 0;
@@ -472,45 +689,27 @@ addToMoments<Dim<1>, CRKOrder::QuadraticOrder>(const Dim<1>::Vector& g,
   const auto q4 = 0;
 
   // Previous moments
-  addToMoments<Dim<1>, CRKOrder::LinearOrder>(g, dg, 
-                                              w, dw, ddw, v,
-                                              mom);
-  
-  // Moments
-  m3[q1 + q2 + q3] += v*w*g[q1]*g[q2]*g[q3];
-  m4[q1 + q2 + q3 + q4] += v*w*g[q1]*g[q2]*g[q3]*g[q4];
-
-  // Gradients
-  dm3[k1 + q1 + q2 + q3] += v*dw[k1]*g[q1]*g[q2]*g[q3] + v*w*g[q2]*g[q3]*dg[k1 + q1] + v*w*g[q1]*g[q3]*dg[k1 + q2] + v*w*g[q1]*g[q2]*dg[k1 + q3];
-  dm4[k1 + q1 + q2 + q3 + q4] += v*dw[k1]*g[q1]*g[q2]*g[q3]*g[q4] + v*w*g[q2]*g[q3]*g[q4]*dg[k1 + q1] + v*w*g[q1]*g[q3]*g[q4]*dg[k1 + q2] + v*w*g[q1]*g[q2]*g[q4]*dg[k1 + q3] + v*w*g[q1]*g[q2]*g[q3]*dg[k1 + q4];
+  addToHessian<Dim<1>, CRKOrder::LinearOrder>(g, dg, w, dw, ddw, v, mom);
   
   // Hessians
   ddm3[k1 + k2 + q1 + q2 + q3] += v*ddw[k1 + k2]*g[q1]*g[q2]*g[q3] + v*dw[k2]*g[q2]*g[q3]*dg[k1 + q1] + v*dw[k1]*g[q2]*g[q3]*dg[k2 + q1] + v*dw[k2]*g[q1]*g[q3]*dg[k1 + q2] + v*w*g[q3]*dg[k2 + q1]*dg[k1 + q2] + v*dw[k1]*g[q1]*g[q3]*dg[k2 + q2] + v*w*g[q3]*dg[k1 + q1]*dg[k2 + q2] + v*dw[k2]*g[q1]*g[q2]*dg[k1 + q3] + v*w*g[q2]*dg[k2 + q1]*dg[k1 + q3] + v*w*g[q1]*dg[k2 + q2]*dg[k1 + q3] + v*dw[k1]*g[q1]*g[q2]*dg[k2 + q3] + v*w*g[q2]*dg[k1 + q1]*dg[k2 + q3] + v*w*g[q1]*dg[k1 + q2]*dg[k2 + q3];
   ddm4[k1 + k2 + q1 + q2 + q3 + q4] += v*ddw[k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4] + v*dw[k2]*g[q2]*g[q3]*g[q4]*dg[k1 + q1] + v*dw[k1]*g[q2]*g[q3]*g[q4]*dg[k2 + q1] + v*dw[k2]*g[q1]*g[q3]*g[q4]*dg[k1 + q2] + v*w*g[q3]*g[q4]*dg[k2 + q1]*dg[k1 + q2] + v*dw[k1]*g[q1]*g[q3]*g[q4]*dg[k2 + q2] + v*w*g[q3]*g[q4]*dg[k1 + q1]*dg[k2 + q2] + v*dw[k2]*g[q1]*g[q2]*g[q4]*dg[k1 + q3] + v*w*g[q2]*g[q4]*dg[k2 + q1]*dg[k1 + q3] + v*w*g[q1]*g[q4]*dg[k2 + q2]*dg[k1 + q3] + v*dw[k1]*g[q1]*g[q2]*g[q4]*dg[k2 + q3] + v*w*g[q2]*g[q4]*dg[k1 + q1]*dg[k2 + q3] + v*w*g[q1]*g[q4]*dg[k1 + q2]*dg[k2 + q3] + v*dw[k2]*g[q1]*g[q2]*g[q3]*dg[k1 + q4] + v*w*g[q2]*g[q3]*dg[k2 + q1]*dg[k1 + q4] + v*w*g[q1]*g[q3]*dg[k2 + q2]*dg[k1 + q4] + v*w*g[q1]*g[q2]*dg[k2 + q3]*dg[k1 + q4] + v*dw[k1]*g[q1]*g[q2]*g[q3]*dg[k2 + q4] + v*w*g[q2]*g[q3]*dg[k1 + q1]*dg[k2 + q4] + v*w*g[q1]*g[q3]*dg[k1 + q2]*dg[k2 + q4] + v*w*g[q1]*g[q2]*dg[k1 + q3]*dg[k2 + q4];
 }
+
 // d=2, o=2
 template<>
 inline
 void
-addToMoments<Dim<2>, CRKOrder::QuadraticOrder>(const Dim<2>::Vector& g,
-                                               const Dim<2>::Tensor& dg,
-                                               const Dim<2>::Scalar& w,
-                                               const Dim<2>::Vector& dw,
-                                               const Dim<2>::Tensor& ddw,
-                                               const Dim<2>::Scalar& v,
-                                               RKMomentValues<Dim<2>>& mom) {
+addToMoment<Dim<2>, CRKOrder::QuadraticOrder>(const Dim<2>::Vector& g,
+                                              const Dim<2>::Scalar& w,
+                                              const Dim<2>::Scalar& v,
+                                              RKMomentValues<Dim<2>>& mom) {
   const auto dim = Dim<2>::nDim;
   auto& m3 = mom.m3;
   auto& m4 = mom.m4;
-  auto& dm3 = mom.dm3;
-  auto& dm4 = mom.dm4;
-  auto& ddm3 = mom.ddm3;
-  auto& ddm4 = mom.ddm4;
   
   // Previous moments
-  addToMoments<Dim<2>, CRKOrder::LinearOrder>(g, dg, 
-                                              w, dw, ddw, v,
-                                              mom);
+  addToMoment<Dim<2>, CRKOrder::LinearOrder>(g, w, v, mom);
   
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
@@ -523,6 +722,23 @@ addToMoments<Dim<2>, CRKOrder::QuadraticOrder>(const Dim<2>::Vector& g,
       }
     }
   }
+}
+template<>
+inline
+void
+addToGradient<Dim<2>, CRKOrder::QuadraticOrder>(const Dim<2>::Vector& g,
+                                                const Dim<2>::Tensor& dg,
+                                                const Dim<2>::Scalar& w,
+                                                const Dim<2>::Vector& dw,
+                                                const Dim<2>::Scalar& v,
+                                                RKMomentValues<Dim<2>>& mom) {
+  const auto dim = Dim<2>::nDim;
+  auto& dm3 = mom.dm3;
+  auto& dm4 = mom.dm4;
+  
+  // Previous moments
+  addToGradient<Dim<2>, CRKOrder::LinearOrder>(g, dg, w, dw, v, mom);
+  
   // Gradients
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto q1 = 0; q1 < dim; ++q1) {
@@ -536,6 +752,24 @@ addToMoments<Dim<2>, CRKOrder::QuadraticOrder>(const Dim<2>::Vector& g,
       }
     }
   }
+}
+template<>
+inline
+void
+addToHessian<Dim<2>, CRKOrder::QuadraticOrder>(const Dim<2>::Vector& g,
+                                               const Dim<2>::Tensor& dg,
+                                               const Dim<2>::Scalar& w,
+                                               const Dim<2>::Vector& dw,
+                                               const Dim<2>::Tensor& ddw,
+                                               const Dim<2>::Scalar& v,
+                                               RKMomentValues<Dim<2>>& mom) {
+  const auto dim = Dim<2>::nDim;
+  auto& ddm3 = mom.ddm3;
+  auto& ddm4 = mom.ddm4;
+  
+  // Previous moments
+  addToHessian<Dim<2>, CRKOrder::LinearOrder>(g, dg, w, dw, ddw, v, mom);
+  
   // Hessians
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto k2 = k1; k2 < dim; ++k2) {
@@ -552,17 +786,15 @@ addToMoments<Dim<2>, CRKOrder::QuadraticOrder>(const Dim<2>::Vector& g,
     }
   }
 }
+
 // d=3, o=2
 template<>
 inline
 void
-addToMoments<Dim<3>, CRKOrder::QuadraticOrder>(const Dim<3>::Vector& g,
-                                               const Dim<3>::Tensor& dg,
-                                               const Dim<3>::Scalar& w,
-                                               const Dim<3>::Vector& dw,
-                                               const Dim<3>::Tensor& ddw,
-                                               const Dim<3>::Scalar& v,
-                                               RKMomentValues<Dim<3>>& mom) {
+addToMoment<Dim<3>, CRKOrder::QuadraticOrder>(const Dim<3>::Vector& g,
+                                              const Dim<3>::Scalar& w,
+                                              const Dim<3>::Scalar& v,
+                                              RKMomentValues<Dim<3>>& mom) {
   const auto dim = Dim<3>::nDim;
   auto& m3 = mom.m3;
   auto& m4 = mom.m4;
@@ -572,9 +804,7 @@ addToMoments<Dim<3>, CRKOrder::QuadraticOrder>(const Dim<3>::Vector& g,
   auto& ddm4 = mom.ddm4;
   
   // Previous moments
-  addToMoments<Dim<3>, CRKOrder::LinearOrder>(g, dg, 
-                                              w, dw, ddw, v,
-                                              mom);
+  addToMoment<Dim<3>, CRKOrder::LinearOrder>(g, w, v, mom);
   
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
@@ -587,6 +817,23 @@ addToMoments<Dim<3>, CRKOrder::QuadraticOrder>(const Dim<3>::Vector& g,
       }
     }
   }
+}
+template<>
+inline
+void
+addToGradient<Dim<3>, CRKOrder::QuadraticOrder>(const Dim<3>::Vector& g,
+                                                const Dim<3>::Tensor& dg,
+                                                const Dim<3>::Scalar& w,
+                                                const Dim<3>::Vector& dw,
+                                                const Dim<3>::Scalar& v,
+                                                RKMomentValues<Dim<3>>& mom) {
+  const auto dim = Dim<3>::nDim;
+  auto& dm3 = mom.dm3;
+  auto& dm4 = mom.dm4;
+  
+  // Previous moments
+  addToGradient<Dim<3>, CRKOrder::LinearOrder>(g, dg, w, dw, v, mom);
+  
   // Gradients
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto q1 = 0; q1 < dim; ++q1) {
@@ -600,6 +847,24 @@ addToMoments<Dim<3>, CRKOrder::QuadraticOrder>(const Dim<3>::Vector& g,
       }
     }
   }
+}
+template<>
+inline
+void
+addToHessian<Dim<3>, CRKOrder::QuadraticOrder>(const Dim<3>::Vector& g,
+                                               const Dim<3>::Tensor& dg,
+                                               const Dim<3>::Scalar& w,
+                                               const Dim<3>::Vector& dw,
+                                               const Dim<3>::Tensor& ddw,
+                                               const Dim<3>::Scalar& v,
+                                               RKMomentValues<Dim<3>>& mom) {
+  const auto dim = Dim<3>::nDim;
+  auto& ddm3 = mom.ddm3;
+  auto& ddm4 = mom.ddm4;
+  
+  // Previous moments
+  addToHessian<Dim<3>, CRKOrder::LinearOrder>(g, dg, w, dw, ddw, v, mom);
+  
   // Hessians
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto k2 = k1; k2 < dim; ++k2) {
@@ -616,11 +881,66 @@ addToMoments<Dim<3>, CRKOrder::QuadraticOrder>(const Dim<3>::Vector& g,
     }
   }
 }
+
 // d=1, o=3
 template<>
 inline
 void
-addToMoments<Dim<1>, CRKOrder::CubicOrder>(const Dim<1>::Vector& g,
+addToMoment<Dim<1>, CRKOrder::CubicOrder>(const Dim<1>::Vector& g,
+                                          const Dim<1>::Scalar& w,
+                                          const Dim<1>::Scalar& v,
+                                          RKMomentValues<Dim<1>>& mom) {
+  const auto dim = Dim<1>::nDim;
+  auto& m5 = mom.m5;
+  auto& m6 = mom.m6;
+  const auto k1 = 0;
+  const auto k2 = 0;
+  const auto q1 = 0;
+  const auto q2 = 0;
+  const auto q3 = 0;
+  const auto q4 = 0;
+  const auto q5 = 0;
+  const auto q6 = 0;
+
+  // Previous moments
+  addToMoment<Dim<1>, CRKOrder::QuadraticOrder>(g, w, v, mom);
+  
+  // Moments
+  m5[q1 + q2 + q3 + q4 + q5] += v*w*g[q1]*g[q2]*g[q3]*g[q4]*g[q5];
+  m6[q1 + q2 + q3 + q4 + q4 + q5 + q6] += v*w*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6];
+}
+template<>
+inline
+void
+addToGradient<Dim<1>, CRKOrder::CubicOrder>(const Dim<1>::Vector& g,
+                                            const Dim<1>::Tensor& dg,
+                                            const Dim<1>::Scalar& w,
+                                            const Dim<1>::Vector& dw,
+                                            const Dim<1>::Scalar& v,
+                                            RKMomentValues<Dim<1>>& mom) {
+  const auto dim = Dim<1>::nDim;
+  auto& dm5 = mom.dm5;
+  auto& dm6 = mom.dm6;
+  const auto k1 = 0;
+  const auto k2 = 0;
+  const auto q1 = 0;
+  const auto q2 = 0;
+  const auto q3 = 0;
+  const auto q4 = 0;
+  const auto q5 = 0;
+  const auto q6 = 0;
+
+  // Previous moments
+  addToGradient<Dim<1>, CRKOrder::QuadraticOrder>(g, dg, w, dw, v, mom);
+  
+  // Gradients
+  dm5[k1 + q1 + q2 + q3 + q4 + q5] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + q3] + g[q3]*(g[q1]*g[q5]*dg[k1 + q4] + g[q4]*(g[q5]*dg[k1 + q1] + g[q1]*dg[k1 + q5]))));
+  dm6[k1 + q1 + q2 + q3 + q4 + q4 + q5 + q6] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + q1] + g[q1]*g[q6]*dg[k1 + q5] + g[q1]*g[q5]*dg[k1 + q6]))));
+}
+template<>
+inline
+void
+addToHessian<Dim<1>, CRKOrder::CubicOrder>(const Dim<1>::Vector& g,
                                            const Dim<1>::Tensor& dg,
                                            const Dim<1>::Scalar& w,
                                            const Dim<1>::Vector& dw,
@@ -628,10 +948,6 @@ addToMoments<Dim<1>, CRKOrder::CubicOrder>(const Dim<1>::Vector& g,
                                            const Dim<1>::Scalar& v,
                                            RKMomentValues<Dim<1>>& mom) {
   const auto dim = Dim<1>::nDim;
-  auto& m5 = mom.m5;
-  auto& m6 = mom.m6;
-  auto& dm5 = mom.dm5;
-  auto& dm6 = mom.dm6;
   auto& ddm5 = mom.ddm5;
   auto& ddm6 = mom.ddm6;
   const auto k1 = 0;
@@ -644,45 +960,27 @@ addToMoments<Dim<1>, CRKOrder::CubicOrder>(const Dim<1>::Vector& g,
   const auto q6 = 0;
 
   // Previous moments
-  addToMoments<Dim<1>, CRKOrder::QuadraticOrder>(g, dg, 
-                                                 w, dw, ddw, v,
-                                                 mom);
-  
-  // Moments
-  m5[q1 + q2 + q3 + q4 + q5] += v*w*g[q1]*g[q2]*g[q3]*g[q4]*g[q5];
-  m6[q1 + q2 + q3 + q4 + q4 + q5 + q6] += v*w*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6];
-
-  // Gradients
-  dm5[k1 + q1 + q2 + q3 + q4 + q5] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + q3] + g[q3]*(g[q1]*g[q5]*dg[k1 + q4] + g[q4]*(g[q5]*dg[k1 + q1] + g[q1]*dg[k1 + q5]))));
-  dm6[k1 + q1 + q2 + q3 + q4 + q4 + q5 + q6] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + q1] + g[q1]*g[q6]*dg[k1 + q5] + g[q1]*g[q5]*dg[k1 + q6]))));
+  addToHessian<Dim<1>, CRKOrder::QuadraticOrder>(g, dg, w, dw, ddw, v, mom);
   
   // Hessians
   ddm5[k1 + k2 + q1 + q2 + q3 + q4 + q5] += v*(ddw[k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + dw[k1]*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + q1] + w*g[q3]*g[q4]*g[q5]*dg[k2 + q1]*dg[k1 + q2] + dw[k1]*g[q1]*g[q3]*g[q4]*g[q5]*dg[k2 + q2] + w*g[q3]*g[q4]*g[q5]*dg[k1 + q1]*dg[k2 + q2] + w*g[q2]*g[q4]*g[q5]*dg[k2 + q1]*dg[k1 + q3] + w*g[q1]*g[q4]*g[q5]*dg[k2 + q2]*dg[k1 + q3] + dw[k1]*g[q1]*g[q2]*g[q4]*g[q5]*dg[k2 + q3] + w*g[q2]*g[q4]*g[q5]*dg[k1 + q1]*dg[k2 + q3] + w*g[q1]*g[q4]*g[q5]*dg[k1 + q2]*dg[k2 + q3] + w*g[q2]*g[q3]*g[q5]*dg[k2 + q1]*dg[k1 + q4] + w*g[q1]*g[q3]*g[q5]*dg[k2 + q2]*dg[k1 + q4] + w*g[q1]*g[q2]*g[q5]*dg[k2 + q3]*dg[k1 + q4] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q5]*dg[k2 + q4] + w*g[q2]*g[q3]*g[q5]*dg[k1 + q1]*dg[k2 + q4] + w*g[q1]*g[q3]*g[q5]*dg[k1 + q2]*dg[k2 + q4] + w*g[q1]*g[q2]*g[q5]*dg[k1 + q3]*dg[k2 + q4] + w*g[q2]*g[q3]*g[q4]*dg[k2 + q1]*dg[k1 + q5] + w*g[q1]*g[q3]*g[q4]*dg[k2 + q2]*dg[k1 + q5] + w*g[q1]*g[q2]*g[q4]*dg[k2 + q3]*dg[k1 + q5] + w*g[q1]*g[q2]*g[q3]*dg[k2 + q4]*dg[k1 + q5] + dw[k2]*(g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + q2] + g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + q3] + g[q3]*(g[q4]*g[q5]*dg[k1 + q1] + g[q1]*g[q5]*dg[k1 + q4] + g[q1]*g[q4]*dg[k1 + q5]))) + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*dg[k2 + q5] + w*g[q2]*g[q3]*g[q4]*dg[k1 + q1]*dg[k2 + q5] + w*g[q1]*g[q3]*g[q4]*dg[k1 + q2]*dg[k2 + q5] + w*g[q1]*g[q2]*g[q4]*dg[k1 + q3]*dg[k2 + q5] + w*g[q1]*g[q2]*g[q3]*dg[k1 + q4]*dg[k2 + q5]);
   ddm6[k1 + k2 + q1 + q2 + q3 + q4 + q4 + q5 + q6] += v*(ddw[k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + dw[k1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + q1] + w*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + q1]*dg[k1 + q2] + dw[k1]*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + q2] + w*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + q1]*dg[k2 + q2] + w*g[q2]*g[q4]*g[q5]*g[q6]*dg[k2 + q1]*dg[k1 + q3] + w*g[q1]*g[q4]*g[q5]*g[q6]*dg[k2 + q2]*dg[k1 + q3] + dw[k1]*g[q1]*g[q2]*g[q4]*g[q5]*g[q6]*dg[k2 + q3] + w*g[q2]*g[q4]*g[q5]*g[q6]*dg[k1 + q1]*dg[k2 + q3] + w*g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + q2]*dg[k2 + q3] + w*g[q2]*g[q3]*g[q5]*g[q6]*dg[k2 + q1]*dg[k1 + q4] + w*g[q1]*g[q3]*g[q5]*g[q6]*dg[k2 + q2]*dg[k1 + q4] + w*g[q1]*g[q2]*g[q5]*g[q6]*dg[k2 + q3]*dg[k1 + q4] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q5]*g[q6]*dg[k2 + q4] + w*g[q2]*g[q3]*g[q5]*g[q6]*dg[k1 + q1]*dg[k2 + q4] + w*g[q1]*g[q3]*g[q5]*g[q6]*dg[k1 + q2]*dg[k2 + q4] + w*g[q1]*g[q2]*g[q5]*g[q6]*dg[k1 + q3]*dg[k2 + q4] + w*g[q2]*g[q3]*g[q4]*g[q6]*dg[k2 + q1]*dg[k1 + q5] + w*g[q1]*g[q3]*g[q4]*g[q6]*dg[k2 + q2]*dg[k1 + q5] + w*g[q1]*g[q2]*g[q4]*g[q6]*dg[k2 + q3]*dg[k1 + q5] + w*g[q1]*g[q2]*g[q3]*g[q6]*dg[k2 + q4]*dg[k1 + q5] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q6]*dg[k2 + q5] + w*g[q2]*g[q3]*g[q4]*g[q6]*dg[k1 + q1]*dg[k2 + q5] + w*g[q1]*g[q3]*g[q4]*g[q6]*dg[k1 + q2]*dg[k2 + q5] + w*g[q1]*g[q2]*g[q4]*g[q6]*dg[k1 + q3]*dg[k2 + q5] + w*g[q1]*g[q2]*g[q3]*g[q6]*dg[k1 + q4]*dg[k2 + q5] + w*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + q1]*dg[k1 + q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k2 + q2]*dg[k1 + q6] + w*g[q1]*g[q2]*g[q4]*g[q5]*dg[k2 + q3]*dg[k1 + q6] + w*g[q1]*g[q2]*g[q3]*g[q5]*dg[k2 + q4]*dg[k1 + q6] + w*g[q1]*g[q2]*g[q3]*g[q4]*dg[k2 + q5]*dg[k1 + q6] + dw[k2]*(g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + q2] + g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + q1] + g[q1]*g[q6]*dg[k1 + q5] + g[q1]*g[q5]*dg[k1 + q6])))) + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + q6] + w*g[q2]*g[q3]*g[q4]*g[q5]*dg[k1 + q1]*dg[k2 + q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + q2]*dg[k2 + q6] + w*g[q1]*g[q2]*g[q4]*g[q5]*dg[k1 + q3]*dg[k2 + q6] + w*g[q1]*g[q2]*g[q3]*g[q5]*dg[k1 + q4]*dg[k2 + q6] + w*g[q1]*g[q2]*g[q3]*g[q4]*dg[k1 + q5]*dg[k2 + q6]);
 }
+
 // d=2, o=3
 template<>
 inline
 void
-addToMoments<Dim<2>, CRKOrder::CubicOrder>(const Dim<2>::Vector& g,
-                                           const Dim<2>::Tensor& dg,
-                                           const Dim<2>::Scalar& w,
-                                           const Dim<2>::Vector& dw,
-                                           const Dim<2>::Tensor& ddw,
-                                           const Dim<2>::Scalar& v,
-                                           RKMomentValues<Dim<2>>& mom) {
+addToMoment<Dim<2>, CRKOrder::CubicOrder>(const Dim<2>::Vector& g,
+                                          const Dim<2>::Scalar& w,
+                                          const Dim<2>::Scalar& v,
+                                          RKMomentValues<Dim<2>>& mom) {
   const auto dim = Dim<2>::nDim;
   auto& m5 = mom.m5;
   auto& m6 = mom.m6;
-  auto& dm5 = mom.dm5;
-  auto& dm6 = mom.dm6;
-  auto& ddm5 = mom.ddm5;
-  auto& ddm6 = mom.ddm6;
   
   // Previous moments
-  addToMoments<Dim<2>, CRKOrder::QuadraticOrder>(g, dg, 
-                                                 w, dw, ddw, v,
-                                                 mom);
+  addToMoment<Dim<2>, CRKOrder::QuadraticOrder>(g, w, v, mom);
   
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
@@ -698,35 +996,70 @@ addToMoments<Dim<2>, CRKOrder::CubicOrder>(const Dim<2>::Vector& g,
         }
       }
     }
-    // Gradients
-    for (auto k1 = 0; k1 < dim; ++k1) {
-      for (auto q1 = 0; q1 < dim; ++q1) {
-        for (auto q2 = q1; q2 < dim; ++q2) {
-          for (auto q3 = q2; q3 < dim; ++q3) {
-            for (auto q4 = q3; q4 < dim; ++q4) {
-              for (auto q5 = q4; q5 < dim; ++q5) {
-                dm5[32*q1 + 16*q2 + 8*q3 + 4*q4 + 2*q5 + k1] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + 2*q3] + g[q3]*(g[q1]*g[q5]*dg[k1 + 2*q4] + g[q4]*(g[q5]*dg[k1 + 2*q1] + g[q1]*dg[k1 + 2*q5]))));
-                for (auto q6 = q5; q6 < dim; ++q6) {
-                  dm6[64*q1 + 32*q2 + 16*q3 + 8*q4 + 4*q5 + 2*q6 + k1] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + 2*q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + 2*q1] + g[q1]*g[q6]*dg[k1 + 2*q5] + g[q1]*g[q5]*dg[k1 + 2*q6]))));
-                }
+  }
+}
+template<>
+inline
+void
+addToGradient<Dim<2>, CRKOrder::CubicOrder>(const Dim<2>::Vector& g,
+                                            const Dim<2>::Tensor& dg,
+                                            const Dim<2>::Scalar& w,
+                                            const Dim<2>::Vector& dw,
+                                            const Dim<2>::Scalar& v,
+                                            RKMomentValues<Dim<2>>& mom) {
+  const auto dim = Dim<2>::nDim;
+  auto& dm5 = mom.dm5;
+  auto& dm6 = mom.dm6;
+  
+  // Previous moments
+  addToGradient<Dim<2>, CRKOrder::QuadraticOrder>(g, dg, w, dw, v, mom);
+  
+  // Gradients
+  for (auto k1 = 0; k1 < dim; ++k1) {
+    for (auto q1 = 0; q1 < dim; ++q1) {
+      for (auto q2 = q1; q2 < dim; ++q2) {
+        for (auto q3 = q2; q3 < dim; ++q3) {
+          for (auto q4 = q3; q4 < dim; ++q4) {
+            for (auto q5 = q4; q5 < dim; ++q5) {
+              dm5[32*q1 + 16*q2 + 8*q3 + 4*q4 + 2*q5 + k1] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + 2*q3] + g[q3]*(g[q1]*g[q5]*dg[k1 + 2*q4] + g[q4]*(g[q5]*dg[k1 + 2*q1] + g[q1]*dg[k1 + 2*q5]))));
+              for (auto q6 = q5; q6 < dim; ++q6) {
+                dm6[64*q1 + 32*q2 + 16*q3 + 8*q4 + 4*q5 + 2*q6 + k1] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + 2*q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + 2*q1] + g[q1]*g[q6]*dg[k1 + 2*q5] + g[q1]*g[q5]*dg[k1 + 2*q6]))));
               }
             }
           }
         }
       }
     }
-    // Hessians
-    for (auto k1 = 0; k1 < dim; ++k1) {
-      for (auto k2 = k1; k2 < dim; ++k2) {
-        for (auto q1 = 0; q1 < dim; ++q1) {
-          for (auto q2 = q1; q2 < dim; ++q2) {
-            for (auto q3 = q2; q3 < dim; ++q3) {
-              for (auto q4 = q3; q4 < dim; ++q4) {
-                for (auto q5 = q4; q5 < dim; ++q5) {
-                  ddm5[64*q1 + 32*q2 + 16*q3 + 8*q4 + 4*q5 + 2*k1 + k2] += v*(ddw[2*k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + dw[k1]*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q1] + w*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q1]*dg[k1 + 2*q2] + dw[k1]*g[q1]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q2] + w*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q1]*dg[k2 + 2*q2] + w*g[q2]*g[q4]*g[q5]*dg[k2 + 2*q1]*dg[k1 + 2*q3] + w*g[q1]*g[q4]*g[q5]*dg[k2 + 2*q2]*dg[k1 + 2*q3] + dw[k1]*g[q1]*g[q2]*g[q4]*g[q5]*dg[k2 + 2*q3] + w*g[q2]*g[q4]*g[q5]*dg[k1 + 2*q1]*dg[k2 + 2*q3] + w*g[q1]*g[q4]*g[q5]*dg[k1 + 2*q2]*dg[k2 + 2*q3] + w*g[q2]*g[q3]*g[q5]*dg[k2 + 2*q1]*dg[k1 + 2*q4] + w*g[q1]*g[q3]*g[q5]*dg[k2 + 2*q2]*dg[k1 + 2*q4] + w*g[q1]*g[q2]*g[q5]*dg[k2 + 2*q3]*dg[k1 + 2*q4] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q5]*dg[k2 + 2*q4] + w*g[q2]*g[q3]*g[q5]*dg[k1 + 2*q1]*dg[k2 + 2*q4] + w*g[q1]*g[q3]*g[q5]*dg[k1 + 2*q2]*dg[k2 + 2*q4] + w*g[q1]*g[q2]*g[q5]*dg[k1 + 2*q3]*dg[k2 + 2*q4] + w*g[q2]*g[q3]*g[q4]*dg[k2 + 2*q1]*dg[k1 + 2*q5] + w*g[q1]*g[q3]*g[q4]*dg[k2 + 2*q2]*dg[k1 + 2*q5] + w*g[q1]*g[q2]*g[q4]*dg[k2 + 2*q3]*dg[k1 + 2*q5] + w*g[q1]*g[q2]*g[q3]*dg[k2 + 2*q4]*dg[k1 + 2*q5] + dw[k2]*(g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q2] + g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + 2*q3] + g[q3]*(g[q4]*g[q5]*dg[k1 + 2*q1] + g[q1]*g[q5]*dg[k1 + 2*q4] + g[q1]*g[q4]*dg[k1 + 2*q5]))) + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*dg[k2 + 2*q5] + w*g[q2]*g[q3]*g[q4]*dg[k1 + 2*q1]*dg[k2 + 2*q5] + w*g[q1]*g[q3]*g[q4]*dg[k1 + 2*q2]*dg[k2 + 2*q5] + w*g[q1]*g[q2]*g[q4]*dg[k1 + 2*q3]*dg[k2 + 2*q5] + w*g[q1]*g[q2]*g[q3]*dg[k1 + 2*q4]*dg[k2 + 2*q5]);
-                  for (auto q6 = q5; q6 < dim; ++q6) {
-                    ddm6[128*q1 + 64*q2 + 32*q3 + 16*q4 + 8*q5 + 4*q6 + 2*k1] += v*(ddw[2*k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + dw[k1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q1] + w*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q1]*dg[k1 + 2*q2] + dw[k1]*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q2] + w*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q1]*dg[k2 + 2*q2] + w*g[q2]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q1]*dg[k1 + 2*q3] + w*g[q1]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q2]*dg[k1 + 2*q3] + dw[k1]*g[q1]*g[q2]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q3] + w*g[q2]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q1]*dg[k2 + 2*q3] + w*g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q2]*dg[k2 + 2*q3] + w*g[q2]*g[q3]*g[q5]*g[q6]*dg[k2 + 2*q1]*dg[k1 + 2*q4] + w*g[q1]*g[q3]*g[q5]*g[q6]*dg[k2 + 2*q2]*dg[k1 + 2*q4] + w*g[q1]*g[q2]*g[q5]*g[q6]*dg[k2 + 2*q3]*dg[k1 + 2*q4] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q5]*g[q6]*dg[k2 + 2*q4] + w*g[q2]*g[q3]*g[q5]*g[q6]*dg[k1 + 2*q1]*dg[k2 + 2*q4] + w*g[q1]*g[q3]*g[q5]*g[q6]*dg[k1 + 2*q2]*dg[k2 + 2*q4] + w*g[q1]*g[q2]*g[q5]*g[q6]*dg[k1 + 2*q3]*dg[k2 + 2*q4] + w*g[q2]*g[q3]*g[q4]*g[q6]*dg[k2 + 2*q1]*dg[k1 + 2*q5] + w*g[q1]*g[q3]*g[q4]*g[q6]*dg[k2 + 2*q2]*dg[k1 + 2*q5] + w*g[q1]*g[q2]*g[q4]*g[q6]*dg[k2 + 2*q3]*dg[k1 + 2*q5] + w*g[q1]*g[q2]*g[q3]*g[q6]*dg[k2 + 2*q4]*dg[k1 + 2*q5] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q6]*dg[k2 + 2*q5] + w*g[q2]*g[q3]*g[q4]*g[q6]*dg[k1 + 2*q1]*dg[k2 + 2*q5] + w*g[q1]*g[q3]*g[q4]*g[q6]*dg[k1 + 2*q2]*dg[k2 + 2*q5] + w*g[q1]*g[q2]*g[q4]*g[q6]*dg[k1 + 2*q3]*dg[k2 + 2*q5] + w*g[q1]*g[q2]*g[q3]*g[q6]*dg[k1 + 2*q4]*dg[k2 + 2*q5] + w*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q1]*dg[k1 + 2*q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q2]*dg[k1 + 2*q6] + w*g[q1]*g[q2]*g[q4]*g[q5]*dg[k2 + 2*q3]*dg[k1 + 2*q6] + w*g[q1]*g[q2]*g[q3]*g[q5]*dg[k2 + 2*q4]*dg[k1 + 2*q6] + w*g[q1]*g[q2]*g[q3]*g[q4]*dg[k2 + 2*q5]*dg[k1 + 2*q6] + dw[k2]*(g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q2] + g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + 2*q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + 2*q1] + g[q1]*g[q6]*dg[k1 + 2*q5] + g[q1]*g[q5]*dg[k1 + 2*q6])))) + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q6] + w*g[q2]*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q1]*dg[k2 + 2*q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q2]*dg[k2 + 2*q6] + w*g[q1]*g[q2]*g[q4]*g[q5]*dg[k1 + 2*q3]*dg[k2 + 2*q6] + w*g[q1]*g[q2]*g[q3]*g[q5]*dg[k1 + 2*q4]*dg[k2 + 2*q6] + w*g[q1]*g[q2]*g[q3]*g[q4]*dg[k1 + 2*q5]*dg[k2 + 2*q6]);
-                  }
+  }
+}
+template<>
+inline
+void
+addToHessian<Dim<2>, CRKOrder::CubicOrder>(const Dim<2>::Vector& g,
+                                           const Dim<2>::Tensor& dg,
+                                           const Dim<2>::Scalar& w,
+                                           const Dim<2>::Vector& dw,
+                                           const Dim<2>::Tensor& ddw,
+                                           const Dim<2>::Scalar& v,
+                                           RKMomentValues<Dim<2>>& mom) {
+  const auto dim = Dim<2>::nDim;
+  auto& ddm5 = mom.ddm5;
+  auto& ddm6 = mom.ddm6;
+  
+  // Previous moments
+  addToHessian<Dim<2>, CRKOrder::QuadraticOrder>(g, dg, w, dw, ddw, v, mom);
+  
+  // Hessians
+  for (auto k1 = 0; k1 < dim; ++k1) {
+    for (auto k2 = k1; k2 < dim; ++k2) {
+      for (auto q1 = 0; q1 < dim; ++q1) {
+        for (auto q2 = q1; q2 < dim; ++q2) {
+          for (auto q3 = q2; q3 < dim; ++q3) {
+            for (auto q4 = q3; q4 < dim; ++q4) {
+              for (auto q5 = q4; q5 < dim; ++q5) {
+                ddm5[64*q1 + 32*q2 + 16*q3 + 8*q4 + 4*q5 + 2*k1 + k2] += v*(ddw[2*k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + dw[k1]*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q1] + w*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q1]*dg[k1 + 2*q2] + dw[k1]*g[q1]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q2] + w*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q1]*dg[k2 + 2*q2] + w*g[q2]*g[q4]*g[q5]*dg[k2 + 2*q1]*dg[k1 + 2*q3] + w*g[q1]*g[q4]*g[q5]*dg[k2 + 2*q2]*dg[k1 + 2*q3] + dw[k1]*g[q1]*g[q2]*g[q4]*g[q5]*dg[k2 + 2*q3] + w*g[q2]*g[q4]*g[q5]*dg[k1 + 2*q1]*dg[k2 + 2*q3] + w*g[q1]*g[q4]*g[q5]*dg[k1 + 2*q2]*dg[k2 + 2*q3] + w*g[q2]*g[q3]*g[q5]*dg[k2 + 2*q1]*dg[k1 + 2*q4] + w*g[q1]*g[q3]*g[q5]*dg[k2 + 2*q2]*dg[k1 + 2*q4] + w*g[q1]*g[q2]*g[q5]*dg[k2 + 2*q3]*dg[k1 + 2*q4] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q5]*dg[k2 + 2*q4] + w*g[q2]*g[q3]*g[q5]*dg[k1 + 2*q1]*dg[k2 + 2*q4] + w*g[q1]*g[q3]*g[q5]*dg[k1 + 2*q2]*dg[k2 + 2*q4] + w*g[q1]*g[q2]*g[q5]*dg[k1 + 2*q3]*dg[k2 + 2*q4] + w*g[q2]*g[q3]*g[q4]*dg[k2 + 2*q1]*dg[k1 + 2*q5] + w*g[q1]*g[q3]*g[q4]*dg[k2 + 2*q2]*dg[k1 + 2*q5] + w*g[q1]*g[q2]*g[q4]*dg[k2 + 2*q3]*dg[k1 + 2*q5] + w*g[q1]*g[q2]*g[q3]*dg[k2 + 2*q4]*dg[k1 + 2*q5] + dw[k2]*(g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q2] + g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + 2*q3] + g[q3]*(g[q4]*g[q5]*dg[k1 + 2*q1] + g[q1]*g[q5]*dg[k1 + 2*q4] + g[q1]*g[q4]*dg[k1 + 2*q5]))) + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*dg[k2 + 2*q5] + w*g[q2]*g[q3]*g[q4]*dg[k1 + 2*q1]*dg[k2 + 2*q5] + w*g[q1]*g[q3]*g[q4]*dg[k1 + 2*q2]*dg[k2 + 2*q5] + w*g[q1]*g[q2]*g[q4]*dg[k1 + 2*q3]*dg[k2 + 2*q5] + w*g[q1]*g[q2]*g[q3]*dg[k1 + 2*q4]*dg[k2 + 2*q5]);
+                for (auto q6 = q5; q6 < dim; ++q6) {
+                  ddm6[128*q1 + 64*q2 + 32*q3 + 16*q4 + 8*q5 + 4*q6 + 2*k1] += v*(ddw[2*k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + dw[k1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q1] + w*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q1]*dg[k1 + 2*q2] + dw[k1]*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q2] + w*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q1]*dg[k2 + 2*q2] + w*g[q2]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q1]*dg[k1 + 2*q3] + w*g[q1]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q2]*dg[k1 + 2*q3] + dw[k1]*g[q1]*g[q2]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q3] + w*g[q2]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q1]*dg[k2 + 2*q3] + w*g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q2]*dg[k2 + 2*q3] + w*g[q2]*g[q3]*g[q5]*g[q6]*dg[k2 + 2*q1]*dg[k1 + 2*q4] + w*g[q1]*g[q3]*g[q5]*g[q6]*dg[k2 + 2*q2]*dg[k1 + 2*q4] + w*g[q1]*g[q2]*g[q5]*g[q6]*dg[k2 + 2*q3]*dg[k1 + 2*q4] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q5]*g[q6]*dg[k2 + 2*q4] + w*g[q2]*g[q3]*g[q5]*g[q6]*dg[k1 + 2*q1]*dg[k2 + 2*q4] + w*g[q1]*g[q3]*g[q5]*g[q6]*dg[k1 + 2*q2]*dg[k2 + 2*q4] + w*g[q1]*g[q2]*g[q5]*g[q6]*dg[k1 + 2*q3]*dg[k2 + 2*q4] + w*g[q2]*g[q3]*g[q4]*g[q6]*dg[k2 + 2*q1]*dg[k1 + 2*q5] + w*g[q1]*g[q3]*g[q4]*g[q6]*dg[k2 + 2*q2]*dg[k1 + 2*q5] + w*g[q1]*g[q2]*g[q4]*g[q6]*dg[k2 + 2*q3]*dg[k1 + 2*q5] + w*g[q1]*g[q2]*g[q3]*g[q6]*dg[k2 + 2*q4]*dg[k1 + 2*q5] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q6]*dg[k2 + 2*q5] + w*g[q2]*g[q3]*g[q4]*g[q6]*dg[k1 + 2*q1]*dg[k2 + 2*q5] + w*g[q1]*g[q3]*g[q4]*g[q6]*dg[k1 + 2*q2]*dg[k2 + 2*q5] + w*g[q1]*g[q2]*g[q4]*g[q6]*dg[k1 + 2*q3]*dg[k2 + 2*q5] + w*g[q1]*g[q2]*g[q3]*g[q6]*dg[k1 + 2*q4]*dg[k2 + 2*q5] + w*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q1]*dg[k1 + 2*q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q2]*dg[k1 + 2*q6] + w*g[q1]*g[q2]*g[q4]*g[q5]*dg[k2 + 2*q3]*dg[k1 + 2*q6] + w*g[q1]*g[q2]*g[q3]*g[q5]*dg[k2 + 2*q4]*dg[k1 + 2*q6] + w*g[q1]*g[q2]*g[q3]*g[q4]*dg[k2 + 2*q5]*dg[k1 + 2*q6] + dw[k2]*(g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q2] + g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + 2*q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + 2*q1] + g[q1]*g[q6]*dg[k1 + 2*q5] + g[q1]*g[q5]*dg[k1 + 2*q6])))) + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q6] + w*g[q2]*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q1]*dg[k2 + 2*q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q2]*dg[k2 + 2*q6] + w*g[q1]*g[q2]*g[q4]*g[q5]*dg[k1 + 2*q3]*dg[k2 + 2*q6] + w*g[q1]*g[q2]*g[q3]*g[q5]*dg[k1 + 2*q4]*dg[k2 + 2*q6] + w*g[q1]*g[q2]*g[q3]*g[q4]*dg[k1 + 2*q5]*dg[k2 + 2*q6]);
                 }
               }
             }
@@ -736,29 +1069,21 @@ addToMoments<Dim<2>, CRKOrder::CubicOrder>(const Dim<2>::Vector& g,
     }
   }
 }
+
 // d=3, o=3
 template<>
 inline
 void
-addToMoments<Dim<3>, CRKOrder::CubicOrder>(const Dim<3>::Vector& g,
-                                           const Dim<3>::Tensor& dg,
-                                           const Dim<3>::Scalar& w,
-                                           const Dim<3>::Vector& dw,
-                                           const Dim<3>::Tensor& ddw,
-                                           const Dim<3>::Scalar& v,
-                                           RKMomentValues<Dim<3>>& mom) {
+addToMoment<Dim<3>, CRKOrder::CubicOrder>(const Dim<3>::Vector& g,
+                                          const Dim<3>::Scalar& w,
+                                          const Dim<3>::Scalar& v,
+                                          RKMomentValues<Dim<3>>& mom) {
   const auto dim = Dim<3>::nDim;
   auto& m5 = mom.m5;
   auto& m6 = mom.m6;
-  auto& dm5 = mom.dm5;
-  auto& dm6 = mom.dm6;
-  auto& ddm5 = mom.ddm5;
-  auto& ddm6 = mom.ddm6;
   
   // Previous moments
-  addToMoments<Dim<3>, CRKOrder::QuadraticOrder>(g, dg, 
-                                                 w, dw, ddw, v,
-                                                 mom);
+  addToMoment<Dim<3>, CRKOrder::QuadraticOrder>(g, w, v, mom);
   
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
@@ -774,35 +1099,70 @@ addToMoments<Dim<3>, CRKOrder::CubicOrder>(const Dim<3>::Vector& g,
         }
       }
     }
-    // Gradients
-    for (auto k1 = 0; k1 < dim; ++k1) {
-      for (auto q1 = 0; q1 < dim; ++q1) {
-        for (auto q2 = q1; q2 < dim; ++q2) {
-          for (auto q3 = q2; q3 < dim; ++q3) {
-            for (auto q4 = q3; q4 < dim; ++q4) {
-              for (auto q5 = q4; q5 < dim; ++q5) {
-                dm5[243*q1 + 81*q2 + 27*q3 + 9*q4 + 3*q5 + k1] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + 3*q3] + g[q3]*(g[q1]*g[q5]*dg[k1 + 3*q4] + g[q4]*(g[q5]*dg[k1 + 3*q1] + g[q1]*dg[k1 + 3*q5]))));
-                for (auto q6 = q5; q6 < dim; ++q6) {
-                  dm6[729*q1 + 243*q2 + 81*q3 + 27*q4 + 9*q5 + 3*q6 + k1] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + 3*q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + 3*q1] + g[q1]*g[q6]*dg[k1 + 3*q5] + g[q1]*g[q5]*dg[k1 + 3*q6]))));
-                }
+  }
+}
+template<>
+inline
+void
+addToGradient<Dim<3>, CRKOrder::CubicOrder>(const Dim<3>::Vector& g,
+                                            const Dim<3>::Tensor& dg,
+                                            const Dim<3>::Scalar& w,
+                                            const Dim<3>::Vector& dw,
+                                            const Dim<3>::Scalar& v,
+                                            RKMomentValues<Dim<3>>& mom) {
+  const auto dim = Dim<3>::nDim;
+  auto& dm5 = mom.dm5;
+  auto& dm6 = mom.dm6;
+  
+  // Previous moments
+  addToGradient<Dim<3>, CRKOrder::QuadraticOrder>(g, dg, w, dw, v, mom);
+  
+  // Gradients
+  for (auto k1 = 0; k1 < dim; ++k1) {
+    for (auto q1 = 0; q1 < dim; ++q1) {
+      for (auto q2 = q1; q2 < dim; ++q2) {
+        for (auto q3 = q2; q3 < dim; ++q3) {
+          for (auto q4 = q3; q4 < dim; ++q4) {
+            for (auto q5 = q4; q5 < dim; ++q5) {
+              dm5[243*q1 + 81*q2 + 27*q3 + 9*q4 + 3*q5 + k1] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + 3*q3] + g[q3]*(g[q1]*g[q5]*dg[k1 + 3*q4] + g[q4]*(g[q5]*dg[k1 + 3*q1] + g[q1]*dg[k1 + 3*q5]))));
+              for (auto q6 = q5; q6 < dim; ++q6) {
+                dm6[729*q1 + 243*q2 + 81*q3 + 27*q4 + 9*q5 + 3*q6 + k1] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + 3*q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + 3*q1] + g[q1]*g[q6]*dg[k1 + 3*q5] + g[q1]*g[q5]*dg[k1 + 3*q6]))));
               }
             }
           }
         }
       }
     }
-    // Hessians
-    for (auto k1 = 0; k1 < dim; ++k1) {
-      for (auto k2 = k1; k2 < dim; ++k2) {
-        for (auto q1 = 0; q1 < dim; ++q1) {
-          for (auto q2 = q1; q2 < dim; ++q2) {
-            for (auto q3 = q2; q3 < dim; ++q3) {
-              for (auto q4 = q3; q4 < dim; ++q4) {
-                for (auto q5 = q4; q5 < dim; ++q5) {
-                  ddm5[729*q1 + 243*q2 + 81*q3 + 27*q4 + 9*q5 + 3*k1 + k2] += v*(ddw[3*k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + dw[k1]*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q1] + w*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q1]*dg[k1 + 3*q2] + dw[k1]*g[q1]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q2] + w*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q1]*dg[k2 + 3*q2] + w*g[q2]*g[q4]*g[q5]*dg[k2 + 3*q1]*dg[k1 + 3*q3] + w*g[q1]*g[q4]*g[q5]*dg[k2 + 3*q2]*dg[k1 + 3*q3] + dw[k1]*g[q1]*g[q2]*g[q4]*g[q5]*dg[k2 + 3*q3] + w*g[q2]*g[q4]*g[q5]*dg[k1 + 3*q1]*dg[k2 + 3*q3] + w*g[q1]*g[q4]*g[q5]*dg[k1 + 3*q2]*dg[k2 + 3*q3] + w*g[q2]*g[q3]*g[q5]*dg[k2 + 3*q1]*dg[k1 + 3*q4] + w*g[q1]*g[q3]*g[q5]*dg[k2 + 3*q2]*dg[k1 + 3*q4] + w*g[q1]*g[q2]*g[q5]*dg[k2 + 3*q3]*dg[k1 + 3*q4] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q5]*dg[k2 + 3*q4] + w*g[q2]*g[q3]*g[q5]*dg[k1 + 3*q1]*dg[k2 + 3*q4] + w*g[q1]*g[q3]*g[q5]*dg[k1 + 3*q2]*dg[k2 + 3*q4] + w*g[q1]*g[q2]*g[q5]*dg[k1 + 3*q3]*dg[k2 + 3*q4] + w*g[q2]*g[q3]*g[q4]*dg[k2 + 3*q1]*dg[k1 + 3*q5] + w*g[q1]*g[q3]*g[q4]*dg[k2 + 3*q2]*dg[k1 + 3*q5] + w*g[q1]*g[q2]*g[q4]*dg[k2 + 3*q3]*dg[k1 + 3*q5] + w*g[q1]*g[q2]*g[q3]*dg[k2 + 3*q4]*dg[k1 + 3*q5] + dw[k2]*(g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q2] + g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + 3*q3] + g[q3]*(g[q4]*g[q5]*dg[k1 + 3*q1] + g[q1]*g[q5]*dg[k1 + 3*q4] + g[q1]*g[q4]*dg[k1 + 3*q5]))) + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*dg[k2 + 3*q5] + w*g[q2]*g[q3]*g[q4]*dg[k1 + 3*q1]*dg[k2 + 3*q5] + w*g[q1]*g[q3]*g[q4]*dg[k1 + 3*q2]*dg[k2 + 3*q5] + w*g[q1]*g[q2]*g[q4]*dg[k1 + 3*q3]*dg[k2 + 3*q5] + w*g[q1]*g[q2]*g[q3]*dg[k1 + 3*q4]*dg[k2 + 3*q5]);
-                  for (auto q6 = q5; q6 < dim; ++q6) {
-                    ddm6[2187*q1 + 729*q2 + 243*q3 + 81*q4 + 27*q5 + 9*q6 + 3*k1] += v*(ddw[3*k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + dw[k1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q1] + w*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q1]*dg[k1 + 3*q2] + dw[k1]*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q2] + w*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q1]*dg[k2 + 3*q2] + w*g[q2]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q1]*dg[k1 + 3*q3] + w*g[q1]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q2]*dg[k1 + 3*q3] + dw[k1]*g[q1]*g[q2]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q3] + w*g[q2]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q1]*dg[k2 + 3*q3] + w*g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q2]*dg[k2 + 3*q3] + w*g[q2]*g[q3]*g[q5]*g[q6]*dg[k2 + 3*q1]*dg[k1 + 3*q4] + w*g[q1]*g[q3]*g[q5]*g[q6]*dg[k2 + 3*q2]*dg[k1 + 3*q4] + w*g[q1]*g[q2]*g[q5]*g[q6]*dg[k2 + 3*q3]*dg[k1 + 3*q4] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q5]*g[q6]*dg[k2 + 3*q4] + w*g[q2]*g[q3]*g[q5]*g[q6]*dg[k1 + 3*q1]*dg[k2 + 3*q4] + w*g[q1]*g[q3]*g[q5]*g[q6]*dg[k1 + 3*q2]*dg[k2 + 3*q4] + w*g[q1]*g[q2]*g[q5]*g[q6]*dg[k1 + 3*q3]*dg[k2 + 3*q4] + w*g[q2]*g[q3]*g[q4]*g[q6]*dg[k2 + 3*q1]*dg[k1 + 3*q5] + w*g[q1]*g[q3]*g[q4]*g[q6]*dg[k2 + 3*q2]*dg[k1 + 3*q5] + w*g[q1]*g[q2]*g[q4]*g[q6]*dg[k2 + 3*q3]*dg[k1 + 3*q5] + w*g[q1]*g[q2]*g[q3]*g[q6]*dg[k2 + 3*q4]*dg[k1 + 3*q5] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q6]*dg[k2 + 3*q5] + w*g[q2]*g[q3]*g[q4]*g[q6]*dg[k1 + 3*q1]*dg[k2 + 3*q5] + w*g[q1]*g[q3]*g[q4]*g[q6]*dg[k1 + 3*q2]*dg[k2 + 3*q5] + w*g[q1]*g[q2]*g[q4]*g[q6]*dg[k1 + 3*q3]*dg[k2 + 3*q5] + w*g[q1]*g[q2]*g[q3]*g[q6]*dg[k1 + 3*q4]*dg[k2 + 3*q5] + w*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q1]*dg[k1 + 3*q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q2]*dg[k1 + 3*q6] + w*g[q1]*g[q2]*g[q4]*g[q5]*dg[k2 + 3*q3]*dg[k1 + 3*q6] + w*g[q1]*g[q2]*g[q3]*g[q5]*dg[k2 + 3*q4]*dg[k1 + 3*q6] + w*g[q1]*g[q2]*g[q3]*g[q4]*dg[k2 + 3*q5]*dg[k1 + 3*q6] + dw[k2]*(g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q2] + g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + 3*q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + 3*q1] + g[q1]*g[q6]*dg[k1 + 3*q5] + g[q1]*g[q5]*dg[k1 + 3*q6])))) + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q6] + w*g[q2]*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q1]*dg[k2 + 3*q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q2]*dg[k2 + 3*q6] + w*g[q1]*g[q2]*g[q4]*g[q5]*dg[k1 + 3*q3]*dg[k2 + 3*q6] + w*g[q1]*g[q2]*g[q3]*g[q5]*dg[k1 + 3*q4]*dg[k2 + 3*q6] + w*g[q1]*g[q2]*g[q3]*g[q4]*dg[k1 + 3*q5]*dg[k2 + 3*q6]);
-                  }
+  }
+}
+template<>
+inline
+void
+addToHessian<Dim<3>, CRKOrder::CubicOrder>(const Dim<3>::Vector& g,
+                                           const Dim<3>::Tensor& dg,
+                                           const Dim<3>::Scalar& w,
+                                           const Dim<3>::Vector& dw,
+                                           const Dim<3>::Tensor& ddw,
+                                           const Dim<3>::Scalar& v,
+                                           RKMomentValues<Dim<3>>& mom) {
+  const auto dim = Dim<3>::nDim;
+  auto& ddm5 = mom.ddm5;
+  auto& ddm6 = mom.ddm6;
+  
+  // Previous moments
+  addToHessian<Dim<3>, CRKOrder::QuadraticOrder>(g, dg, w, dw, ddw, v, mom);
+  
+  // Hessians
+  for (auto k1 = 0; k1 < dim; ++k1) {
+    for (auto k2 = k1; k2 < dim; ++k2) {
+      for (auto q1 = 0; q1 < dim; ++q1) {
+        for (auto q2 = q1; q2 < dim; ++q2) {
+          for (auto q3 = q2; q3 < dim; ++q3) {
+            for (auto q4 = q3; q4 < dim; ++q4) {
+              for (auto q5 = q4; q5 < dim; ++q5) {
+                ddm5[729*q1 + 243*q2 + 81*q3 + 27*q4 + 9*q5 + 3*k1 + k2] += v*(ddw[3*k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + dw[k1]*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q1] + w*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q1]*dg[k1 + 3*q2] + dw[k1]*g[q1]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q2] + w*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q1]*dg[k2 + 3*q2] + w*g[q2]*g[q4]*g[q5]*dg[k2 + 3*q1]*dg[k1 + 3*q3] + w*g[q1]*g[q4]*g[q5]*dg[k2 + 3*q2]*dg[k1 + 3*q3] + dw[k1]*g[q1]*g[q2]*g[q4]*g[q5]*dg[k2 + 3*q3] + w*g[q2]*g[q4]*g[q5]*dg[k1 + 3*q1]*dg[k2 + 3*q3] + w*g[q1]*g[q4]*g[q5]*dg[k1 + 3*q2]*dg[k2 + 3*q3] + w*g[q2]*g[q3]*g[q5]*dg[k2 + 3*q1]*dg[k1 + 3*q4] + w*g[q1]*g[q3]*g[q5]*dg[k2 + 3*q2]*dg[k1 + 3*q4] + w*g[q1]*g[q2]*g[q5]*dg[k2 + 3*q3]*dg[k1 + 3*q4] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q5]*dg[k2 + 3*q4] + w*g[q2]*g[q3]*g[q5]*dg[k1 + 3*q1]*dg[k2 + 3*q4] + w*g[q1]*g[q3]*g[q5]*dg[k1 + 3*q2]*dg[k2 + 3*q4] + w*g[q1]*g[q2]*g[q5]*dg[k1 + 3*q3]*dg[k2 + 3*q4] + w*g[q2]*g[q3]*g[q4]*dg[k2 + 3*q1]*dg[k1 + 3*q5] + w*g[q1]*g[q3]*g[q4]*dg[k2 + 3*q2]*dg[k1 + 3*q5] + w*g[q1]*g[q2]*g[q4]*dg[k2 + 3*q3]*dg[k1 + 3*q5] + w*g[q1]*g[q2]*g[q3]*dg[k2 + 3*q4]*dg[k1 + 3*q5] + dw[k2]*(g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q2] + g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + 3*q3] + g[q3]*(g[q4]*g[q5]*dg[k1 + 3*q1] + g[q1]*g[q5]*dg[k1 + 3*q4] + g[q1]*g[q4]*dg[k1 + 3*q5]))) + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*dg[k2 + 3*q5] + w*g[q2]*g[q3]*g[q4]*dg[k1 + 3*q1]*dg[k2 + 3*q5] + w*g[q1]*g[q3]*g[q4]*dg[k1 + 3*q2]*dg[k2 + 3*q5] + w*g[q1]*g[q2]*g[q4]*dg[k1 + 3*q3]*dg[k2 + 3*q5] + w*g[q1]*g[q2]*g[q3]*dg[k1 + 3*q4]*dg[k2 + 3*q5]);
+                for (auto q6 = q5; q6 < dim; ++q6) {
+                  ddm6[2187*q1 + 729*q2 + 243*q3 + 81*q4 + 27*q5 + 9*q6 + 3*k1] += v*(ddw[3*k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + dw[k1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q1] + w*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q1]*dg[k1 + 3*q2] + dw[k1]*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q2] + w*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q1]*dg[k2 + 3*q2] + w*g[q2]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q1]*dg[k1 + 3*q3] + w*g[q1]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q2]*dg[k1 + 3*q3] + dw[k1]*g[q1]*g[q2]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q3] + w*g[q2]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q1]*dg[k2 + 3*q3] + w*g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q2]*dg[k2 + 3*q3] + w*g[q2]*g[q3]*g[q5]*g[q6]*dg[k2 + 3*q1]*dg[k1 + 3*q4] + w*g[q1]*g[q3]*g[q5]*g[q6]*dg[k2 + 3*q2]*dg[k1 + 3*q4] + w*g[q1]*g[q2]*g[q5]*g[q6]*dg[k2 + 3*q3]*dg[k1 + 3*q4] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q5]*g[q6]*dg[k2 + 3*q4] + w*g[q2]*g[q3]*g[q5]*g[q6]*dg[k1 + 3*q1]*dg[k2 + 3*q4] + w*g[q1]*g[q3]*g[q5]*g[q6]*dg[k1 + 3*q2]*dg[k2 + 3*q4] + w*g[q1]*g[q2]*g[q5]*g[q6]*dg[k1 + 3*q3]*dg[k2 + 3*q4] + w*g[q2]*g[q3]*g[q4]*g[q6]*dg[k2 + 3*q1]*dg[k1 + 3*q5] + w*g[q1]*g[q3]*g[q4]*g[q6]*dg[k2 + 3*q2]*dg[k1 + 3*q5] + w*g[q1]*g[q2]*g[q4]*g[q6]*dg[k2 + 3*q3]*dg[k1 + 3*q5] + w*g[q1]*g[q2]*g[q3]*g[q6]*dg[k2 + 3*q4]*dg[k1 + 3*q5] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q6]*dg[k2 + 3*q5] + w*g[q2]*g[q3]*g[q4]*g[q6]*dg[k1 + 3*q1]*dg[k2 + 3*q5] + w*g[q1]*g[q3]*g[q4]*g[q6]*dg[k1 + 3*q2]*dg[k2 + 3*q5] + w*g[q1]*g[q2]*g[q4]*g[q6]*dg[k1 + 3*q3]*dg[k2 + 3*q5] + w*g[q1]*g[q2]*g[q3]*g[q6]*dg[k1 + 3*q4]*dg[k2 + 3*q5] + w*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q1]*dg[k1 + 3*q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q2]*dg[k1 + 3*q6] + w*g[q1]*g[q2]*g[q4]*g[q5]*dg[k2 + 3*q3]*dg[k1 + 3*q6] + w*g[q1]*g[q2]*g[q3]*g[q5]*dg[k2 + 3*q4]*dg[k1 + 3*q6] + w*g[q1]*g[q2]*g[q3]*g[q4]*dg[k2 + 3*q5]*dg[k1 + 3*q6] + dw[k2]*(g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q2] + g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + 3*q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + 3*q1] + g[q1]*g[q6]*dg[k1 + 3*q5] + g[q1]*g[q5]*dg[k1 + 3*q6])))) + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q6] + w*g[q2]*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q1]*dg[k2 + 3*q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q2]*dg[k2 + 3*q6] + w*g[q1]*g[q2]*g[q4]*g[q5]*dg[k1 + 3*q3]*dg[k2 + 3*q6] + w*g[q1]*g[q2]*g[q3]*g[q5]*dg[k1 + 3*q4]*dg[k2 + 3*q6] + w*g[q1]*g[q2]*g[q3]*g[q4]*dg[k1 + 3*q5]*dg[k2 + 3*q6]);
                 }
               }
             }
@@ -812,6 +1172,7 @@ addToMoments<Dim<3>, CRKOrder::CubicOrder>(const Dim<3>::Vector& g,
     }
   }
 }
+
 //------------------------------------------------------------------------------
 // Fill in the symmetries for the tensors
 //------------------------------------------------------------------------------
@@ -927,6 +1288,7 @@ template<typename Dimension>
 inline
 void
 computeCorrections(const RKMomentValues<Dimension>& rkMoments,
+                   const bool needHessian,
                    typename Dimension::Scalar& a,
                    typename Dimension::Vector& da,
                    typename Dimension::Tensor& dda);
@@ -934,6 +1296,7 @@ template<typename Dimension>
 inline
 void
 computeCorrections(const RKMomentValues<Dimension>& rkMoments,
+                   const bool needHessian,
                    typename Dimension::Scalar& a,
                    typename Dimension::Vector& b,
                    typename Dimension::Vector& da,
@@ -944,6 +1307,7 @@ template<typename Dimension>
 inline
 void
 computeCorrections(const RKMomentValues<Dimension>& rkMoments,
+                   const bool needHessian,
                    typename Dimension::Scalar& a,
                    typename Dimension::Vector& b,
                    typename Dimension::Tensor& c,
@@ -957,6 +1321,7 @@ template<typename Dimension>
 inline
 void
 computeCorrections(const RKMomentValues<Dimension>& rkMoments,
+                   const bool needHessian,
                    typename Dimension::Scalar& a,
                    typename Dimension::Vector& b,
                    typename Dimension::Tensor& c,
@@ -974,6 +1339,7 @@ template<>
 inline
 void
 computeCorrections(const RKMomentValues<Dim<1>>& rkMoments,
+                   const bool needHessian,
                    Dim<1>::Scalar& a,
                    Dim<1>::Vector& da,
                    Dim<1>::Tensor& dda) {
@@ -989,7 +1355,9 @@ computeCorrections(const RKMomentValues<Dim<1>>& rkMoments,
   // Gradients
   da[0] = -a*dm0[k1]/m0;
   // Hessians
-  dda[0] = -(a*ddm0[k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2])/m0;
+  if (needHessian) {
+    dda[0] = -(a*ddm0[k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2])/m0;
+  }
 }
 
 // d=2, o=0
@@ -997,6 +1365,7 @@ template<>
 inline
 void
 computeCorrections(const RKMomentValues<Dim<2>>& rkMoments,
+                   const bool needHessian,
                    Dim<2>::Scalar& a,
                    Dim<2>::Vector& da,
                    Dim<2>::Tensor& dda) {
@@ -1013,9 +1382,11 @@ computeCorrections(const RKMomentValues<Dim<2>>& rkMoments,
     da[k1] = -a*dm0[k1]/m0;
   }
   // Hessians
-  for (auto k1 = 0; k1 < dim; ++k1) {
-    for (auto k2 = k1; k2 < dim; ++k2) {
-      dda[2*k1 + k2] = -(a*ddm0[2*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2])/m0;
+  if (needHessian) {
+    for (auto k1 = 0; k1 < dim; ++k1) {
+      for (auto k2 = k1; k2 < dim; ++k2) {
+        dda[2*k1 + k2] = -(a*ddm0[2*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2])/m0;
+      }
     }
   }
 }
@@ -1024,6 +1395,7 @@ template<>
 inline
 void
 computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
+                   const bool needHessian,
                    Dim<3>::Scalar& a,
                    Dim<3>::Vector& da,
                    Dim<3>::Tensor& dda) {
@@ -1040,9 +1412,11 @@ computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
     da[k1] = -a*dm0[k1]/m0;
   }
   // Hessians
-  for (auto k1 = 0; k1 < dim; ++k1) {
-    for (auto k2 = k1; k2 < dim; ++k2) {
-      dda[3*k1 + k2] = -(a*ddm0[3*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2])/m0;
+  if (needHessian) {
+    for (auto k1 = 0; k1 < dim; ++k1) {
+      for (auto k2 = k1; k2 < dim; ++k2) {
+        dda[3*k1 + k2] = -(a*ddm0[3*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2])/m0;
+      }
     }
   }
 }
@@ -1051,6 +1425,7 @@ template<>
 inline
 void
 computeCorrections(const RKMomentValues<Dim<1>>& rkMoments,
+                   const bool needHessian,
                    Dim<1>::Scalar& a,
                    Dim<1>::Vector& b,
                    Dim<1>::Vector& da,
@@ -1095,17 +1470,20 @@ computeCorrections(const RKMomentValues<Dim<1>>& rkMoments,
   da[k1] = lhs(0);
   db[k1] = lhs(1);
   // Solve for second derivatives
-  rhs(0) = -(a*ddm0[k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2]);
-  rhs(1) = -(a*ddm1[k1 + k2] + b[0]*ddm2[k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2]);
-  lhs = solver.solve(rhs);
-  dda[k1 + k2] = lhs(0);
-  ddb[k1 + k2] = lhs(1);
+  if (needHessian) {
+    rhs(0) = -(a*ddm0[k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2]);
+    rhs(1) = -(a*ddm1[k1 + k2] + b[0]*ddm2[k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2]);
+    lhs = solver.solve(rhs);
+    dda[k1 + k2] = lhs(0);
+    ddb[k1 + k2] = lhs(1);
+  }
 }
 // d=2, o=1
 template<>
 inline
 void
 computeCorrections(const RKMomentValues<Dim<2>>& rkMoments,
+                   const bool needHessian,
                    Dim<2>::Scalar& a,
                    Dim<2>::Vector& b,
                    Dim<2>::Vector& da,
@@ -1159,20 +1537,21 @@ computeCorrections(const RKMomentValues<Dim<2>>& rkMoments,
     db[2 + k1] = lhs(2);
   }
   // Solve for second derivatives
-  for (auto k1 = 0; k1 < dim; ++k1) {
-    for (auto k2 = k1; k2 < dim; ++k2) {
-      rhs(0) = -(a*ddm0[2*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[2*k1 + k2] + b[1]*ddm1[4 + 2*k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + db[2 + k2]*dm1[2 + k1] + db[2 + k1]*dm1[2 + k2]);
-      rhs(1) = -(a*ddm1[2*k1 + k2] + b[0]*ddm2[2*k1 + k2] + b[1]*ddm2[8 + 2*k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + db[2 + k2]*dm2[4 + k1] + db[2 + k1]*dm2[4 + k2]);
-      rhs(2) = -(a*ddm1[4 + 2*k1 + k2] + b[0]*ddm2[4 + 2*k1 + k2] + b[1]*ddm2[12 + 2*k1 + k2] + da[k2]*dm1[2 + k1] + da[k1]*dm1[2 + k2] + db[k2]*dm2[2 + k1] + db[k1]*dm2[2 + k2] + db[2 + k2]*dm2[6 + k1] + db[2 + k1]*dm2[6 + k2]);
+  if (needHessian) {
+    for (auto k1 = 0; k1 < dim; ++k1) {
+      for (auto k2 = k1; k2 < dim; ++k2) {
+        rhs(0) = -(a*ddm0[2*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[2*k1 + k2] + b[1]*ddm1[4 + 2*k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + db[2 + k2]*dm1[2 + k1] + db[2 + k1]*dm1[2 + k2]);
+        rhs(1) = -(a*ddm1[2*k1 + k2] + b[0]*ddm2[2*k1 + k2] + b[1]*ddm2[8 + 2*k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + db[2 + k2]*dm2[4 + k1] + db[2 + k1]*dm2[4 + k2]);
+        rhs(2) = -(a*ddm1[4 + 2*k1 + k2] + b[0]*ddm2[4 + 2*k1 + k2] + b[1]*ddm2[12 + 2*k1 + k2] + da[k2]*dm1[2 + k1] + da[k1]*dm1[2 + k2] + db[k2]*dm2[2 + k1] + db[k1]*dm2[2 + k2] + db[2 + k2]*dm2[6 + k1] + db[2 + k1]*dm2[6 + k2]);
       
-      lhs = solver.solve(rhs);
+        lhs = solver.solve(rhs);
       
-      dda[2*k1 + k2] = lhs(0);
-      ddb[2*k1 + k2] = lhs(1);
-      ddb[4 + 2*k1 + k2] = lhs(2);
+        dda[2*k1 + k2] = lhs(0);
+        ddb[2*k1 + k2] = lhs(1);
+        ddb[4 + 2*k1 + k2] = lhs(2);
+      }
     }
   }
-
   // Fill symmetries
   fillSymmetries<Dim<2>>(ddb);
 }
@@ -1181,6 +1560,7 @@ template<>
 inline
 void
 computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
+                   const bool needHessian,
                    Dim<3>::Scalar& a,
                    Dim<3>::Vector& b,
                    Dim<3>::Vector& da,
@@ -1240,22 +1620,23 @@ computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
     db[6 + k1] = lhs(3);
   }
   // Solve for second derivatives
-  for (auto k1 = 0; k1 < dim; ++k1) {
-    for (auto k2 = k1; k2 < dim; ++k2) {
-      rhs(0) = -(a*ddm0[3*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[3*k1 + k2] + b[1]*ddm1[9 + 3*k1 + k2] + b[2]*ddm1[18 + 3*k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + db[3 + k2]*dm1[3 + k1] + db[3 + k1]*dm1[3 + k2] + db[6 + k2]*dm1[6 + k1] + db[6 + k1]*dm1[6 + k2]);
-      rhs(1) = -(a*ddm1[3*k1 + k2] + b[0]*ddm2[3*k1 + k2] + b[1]*ddm2[27 + 3*k1 + k2] + b[2]*ddm2[54 + 3*k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + db[3 + k2]*dm2[9 + k1] + db[3 + k1]*dm2[9 + k2] + db[6 + k2]*dm2[18 + k1] + db[6 + k1]*dm2[18 + k2]);
-      rhs(2) = -(a*ddm1[9 + 3*k1 + k2] + b[0]*ddm2[9 + 3*k1 + k2] + b[1]*ddm2[36 + 3*k1 + k2] + b[2]*ddm2[63 + 3*k1 + k2] + da[k2]*dm1[3 + k1] + da[k1]*dm1[3 + k2] + db[k2]*dm2[3 + k1] + db[k1]*dm2[3 + k2] + db[3 + k2]*dm2[12 + k1] + db[3 + k1]*dm2[12 + k2] + db[6 + k2]*dm2[21 + k1] + db[6 + k1]*dm2[21 + k2]);
-      rhs(3) = -(a*ddm1[18 + 3*k1 + k2] + b[0]*ddm2[18 + 3*k1 + k2] + b[1]*ddm2[45 + 3*k1 + k2] + b[2]*ddm2[72 + 3*k1 + k2] + da[k2]*dm1[6 + k1] + da[k1]*dm1[6 + k2] + db[k2]*dm2[6 + k1] + db[k1]*dm2[6 + k2] + db[3 + k2]*dm2[15 + k1] + db[3 + k1]*dm2[15 + k2] + db[6 + k2]*dm2[24 + k1] + db[6 + k1]*dm2[24 + k2]);
+  if (needHessian) {
+    for (auto k1 = 0; k1 < dim; ++k1) {
+      for (auto k2 = k1; k2 < dim; ++k2) {
+        rhs(0) = -(a*ddm0[3*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[3*k1 + k2] + b[1]*ddm1[9 + 3*k1 + k2] + b[2]*ddm1[18 + 3*k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + db[3 + k2]*dm1[3 + k1] + db[3 + k1]*dm1[3 + k2] + db[6 + k2]*dm1[6 + k1] + db[6 + k1]*dm1[6 + k2]);
+        rhs(1) = -(a*ddm1[3*k1 + k2] + b[0]*ddm2[3*k1 + k2] + b[1]*ddm2[27 + 3*k1 + k2] + b[2]*ddm2[54 + 3*k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + db[3 + k2]*dm2[9 + k1] + db[3 + k1]*dm2[9 + k2] + db[6 + k2]*dm2[18 + k1] + db[6 + k1]*dm2[18 + k2]);
+        rhs(2) = -(a*ddm1[9 + 3*k1 + k2] + b[0]*ddm2[9 + 3*k1 + k2] + b[1]*ddm2[36 + 3*k1 + k2] + b[2]*ddm2[63 + 3*k1 + k2] + da[k2]*dm1[3 + k1] + da[k1]*dm1[3 + k2] + db[k2]*dm2[3 + k1] + db[k1]*dm2[3 + k2] + db[3 + k2]*dm2[12 + k1] + db[3 + k1]*dm2[12 + k2] + db[6 + k2]*dm2[21 + k1] + db[6 + k1]*dm2[21 + k2]);
+        rhs(3) = -(a*ddm1[18 + 3*k1 + k2] + b[0]*ddm2[18 + 3*k1 + k2] + b[1]*ddm2[45 + 3*k1 + k2] + b[2]*ddm2[72 + 3*k1 + k2] + da[k2]*dm1[6 + k1] + da[k1]*dm1[6 + k2] + db[k2]*dm2[6 + k1] + db[k1]*dm2[6 + k2] + db[3 + k2]*dm2[15 + k1] + db[3 + k1]*dm2[15 + k2] + db[6 + k2]*dm2[24 + k1] + db[6 + k1]*dm2[24 + k2]);
       
-      lhs = solver.solve(rhs);
+        lhs = solver.solve(rhs);
 
-      dda[3*k1 + k2] = lhs(0);
-      ddb[3*k1 + k2] = lhs(1);
-      ddb[9 + 3*k1 + k2] = lhs(2);
-      ddb[18 + 3*k1 + k2] = lhs(3);      
+        dda[3*k1 + k2] = lhs(0);
+        ddb[3*k1 + k2] = lhs(1);
+        ddb[9 + 3*k1 + k2] = lhs(2);
+        ddb[18 + 3*k1 + k2] = lhs(3);      
+      }
     }
   }
-
   // Fill symmetries
   fillSymmetries<Dim<3>>(ddb);
 }
@@ -1264,6 +1645,7 @@ template<>
 inline
 void
 computeCorrections(const RKMomentValues<Dim<1>>& rkMoments,
+                   const bool needHessian,
                    Dim<1>::Scalar& a,
                    Dim<1>::Vector& b,
                    Dim<1>::Tensor& c,
@@ -1326,22 +1708,25 @@ computeCorrections(const RKMomentValues<Dim<1>>& rkMoments,
   da[0] = lhs(0);
   db[0] = lhs(1);
   dc[0] = lhs(2);
-  // Solve for second derivatives
-  rhs(0) = -(a*ddm0[k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[k1 + k2] + c[0]*ddm2[k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + dc[k2]*dm2[k1] + dc[k1]*dm2[k2]);
-  rhs(1) = -(a*ddm1[k1 + k2] + b[0]*ddm2[k1 + k2] + c[0]*ddm3[k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + dc[k2]*dm3[k1] + dc[k1]*dm3[k2]);
-  rhs(2) = -(a*ddm2[k1 + k2] + b[0]*ddm3[k1 + k2] + c[0]*ddm4[k1 + k2] + da[k2]*dm2[k1] + da[k1]*dm2[k2] + db[k2]*dm3[k1] + db[k1]*dm3[k2] + dc[k2]*dm4[k1] + dc[k1]*dm4[k2]);
+  if (needHessian) {
+    // Solve for second derivatives
+    rhs(0) = -(a*ddm0[k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[k1 + k2] + c[0]*ddm2[k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + dc[k2]*dm2[k1] + dc[k1]*dm2[k2]);
+    rhs(1) = -(a*ddm1[k1 + k2] + b[0]*ddm2[k1 + k2] + c[0]*ddm3[k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + dc[k2]*dm3[k1] + dc[k1]*dm3[k2]);
+    rhs(2) = -(a*ddm2[k1 + k2] + b[0]*ddm3[k1 + k2] + c[0]*ddm4[k1 + k2] + da[k2]*dm2[k1] + da[k1]*dm2[k2] + db[k2]*dm3[k1] + db[k1]*dm3[k2] + dc[k2]*dm4[k1] + dc[k1]*dm4[k2]);
 
-  lhs = solver.solve(rhs);
+    lhs = solver.solve(rhs);
 
-  dda[k1 + k2] = lhs(0);
-  ddb[k1 + k2] = lhs(1);
-  ddc[k1 + k2] = lhs(2);
+    dda[k1 + k2] = lhs(0);
+    ddb[k1 + k2] = lhs(1);
+    ddc[k1 + k2] = lhs(2);
+  }
 }
 // d=2, o=2
 template<>
 inline
 void
 computeCorrections(const RKMomentValues<Dim<2>>& rkMoments,
+                   const bool needHessian,
                    Dim<2>::Scalar& a,
                    Dim<2>::Vector& b,
                    Dim<2>::Tensor& c,
@@ -1419,26 +1804,27 @@ computeCorrections(const RKMomentValues<Dim<2>>& rkMoments,
     dc[6 + k1] = lhs(5);
   }
   // Solve for second derivatives
-  for (auto k1 = 0; k1 < dim; ++k1) {
-    for (auto k2 = k1; k2 < dim; ++k2) {
-      rhs(0) = -(a*ddm0[2*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[2*k1 + k2] + b[1]*ddm1[4 + 2*k1 + k2] + c[0]*ddm2[2*k1 + k2] + 2*c[1]*ddm2[4 + 2*k1 + k2] + c[3]*ddm2[12 + 2*k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + db[2 + k2]*dm1[2 + k1] + db[2 + k1]*dm1[2 + k2] + dc[k2]*dm2[k1] + dc[k1]*dm2[k2] + 2*dc[2 + k2]*dm2[2 + k1] + 2*dc[2 + k1]*dm2[2 + k2] + dc[6 + k2]*dm2[6 + k1] + dc[6 + k1]*dm2[6 + k2]);
-      rhs(1) = -(a*ddm1[2*k1 + k2] + b[0]*ddm2[2*k1 + k2] + b[1]*ddm2[4 + 2*k1 + k2] + c[0]*ddm3[2*k1 + k2] + 2*c[1]*ddm3[4 + 2*k1 + k2] + c[3]*ddm3[12 + 2*k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + db[2 + k2]*dm2[2 + k1] + db[2 + k1]*dm2[2 + k2] + dc[k2]*dm3[k1] + dc[k1]*dm3[k2] + 2*dc[2 + k2]*dm3[2 + k1] + 2*dc[2 + k1]*dm3[2 + k2] + dc[6 + k2]*dm3[6 + k1] + dc[6 + k1]*dm3[6 + k2]);
-      rhs(2) = -(a*ddm1[4 + 2*k1 + k2] + b[0]*ddm2[4 + 2*k1 + k2] + b[1]*ddm2[12 + 2*k1 + k2] + c[0]*ddm3[4 + 2*k1 + k2] + 2*c[1]*ddm3[12 + 2*k1 + k2] + c[3]*ddm3[28 + 2*k1 + k2] + da[k2]*dm1[2 + k1] + da[k1]*dm1[2 + k2] + db[k2]*dm2[2 + k1] + db[k1]*dm2[2 + k2] + db[2 + k2]*dm2[6 + k1] + db[2 + k1]*dm2[6 + k2] + dc[k2]*dm3[2 + k1] + dc[k1]*dm3[2 + k2] + 2*dc[2 + k2]*dm3[6 + k1] + 2*dc[2 + k1]*dm3[6 + k2] + dc[6 + k2]*dm3[14 + k1] + dc[6 + k1]*dm3[14 + k2]);
-      rhs(3) = -(a*ddm2[2*k1 + k2] + b[0]*ddm3[2*k1 + k2] + b[1]*ddm3[4 + 2*k1 + k2] + c[0]*ddm4[2*k1 + k2] + 2*c[1]*ddm4[4 + 2*k1 + k2] + c[3]*ddm4[12 + 2*k1 + k2] + da[k2]*dm2[k1] + da[k1]*dm2[k2] + db[k2]*dm3[k1] + db[k1]*dm3[k2] + db[2 + k2]*dm3[2 + k1] + db[2 + k1]*dm3[2 + k2] + dc[k2]*dm4[k1] + dc[k1]*dm4[k2] + 2*dc[2 + k2]*dm4[2 + k1] + 2*dc[2 + k1]*dm4[2 + k2] + dc[6 + k2]*dm4[6 + k1] + dc[6 + k1]*dm4[6 + k2]);
-      rhs(4) = -(a*ddm2[4 + 2*k1 + k2] + b[0]*ddm3[4 + 2*k1 + k2] + b[1]*ddm3[12 + 2*k1 + k2] + c[0]*ddm4[4 + 2*k1 + k2] + 2*c[1]*ddm4[12 + 2*k1 + k2] + c[3]*ddm4[28 + 2*k1 + k2] + da[k2]*dm2[2 + k1] + da[k1]*dm2[2 + k2] + db[k2]*dm3[2 + k1] + db[k1]*dm3[2 + k2] + db[2 + k2]*dm3[6 + k1] + db[2 + k1]*dm3[6 + k2] + dc[k2]*dm4[2 + k1] + dc[k1]*dm4[2 + k2] + 2*dc[2 + k2]*dm4[6 + k1] + 2*dc[2 + k1]*dm4[6 + k2] + dc[6 + k2]*dm4[14 + k1] + dc[6 + k1]*dm4[14 + k2]);
-      rhs(5) = -(a*ddm2[12 + 2*k1 + k2] + b[0]*ddm3[12 + 2*k1 + k2] + b[1]*ddm3[28 + 2*k1 + k2] + c[0]*ddm4[12 + 2*k1 + k2] + 2*c[1]*ddm4[28 + 2*k1 + k2] + c[3]*ddm4[60 + 2*k1 + k2] + da[k2]*dm2[6 + k1] + da[k1]*dm2[6 + k2] + db[k2]*dm3[6 + k1] + db[k1]*dm3[6 + k2] + db[2 + k2]*dm3[14 + k1] + db[2 + k1]*dm3[14 + k2] + dc[k2]*dm4[6 + k1] + dc[k1]*dm4[6 + k2] + 2*dc[2 + k2]*dm4[14 + k1] + 2*dc[2 + k1]*dm4[14 + k2] + dc[6 + k2]*dm4[30 + k1] + dc[6 + k1]*dm4[30 + k2]);
+  if (needHessian) {
+    for (auto k1 = 0; k1 < dim; ++k1) {
+      for (auto k2 = k1; k2 < dim; ++k2) {
+        rhs(0) = -(a*ddm0[2*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[2*k1 + k2] + b[1]*ddm1[4 + 2*k1 + k2] + c[0]*ddm2[2*k1 + k2] + 2*c[1]*ddm2[4 + 2*k1 + k2] + c[3]*ddm2[12 + 2*k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + db[2 + k2]*dm1[2 + k1] + db[2 + k1]*dm1[2 + k2] + dc[k2]*dm2[k1] + dc[k1]*dm2[k2] + 2*dc[2 + k2]*dm2[2 + k1] + 2*dc[2 + k1]*dm2[2 + k2] + dc[6 + k2]*dm2[6 + k1] + dc[6 + k1]*dm2[6 + k2]);
+        rhs(1) = -(a*ddm1[2*k1 + k2] + b[0]*ddm2[2*k1 + k2] + b[1]*ddm2[4 + 2*k1 + k2] + c[0]*ddm3[2*k1 + k2] + 2*c[1]*ddm3[4 + 2*k1 + k2] + c[3]*ddm3[12 + 2*k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + db[2 + k2]*dm2[2 + k1] + db[2 + k1]*dm2[2 + k2] + dc[k2]*dm3[k1] + dc[k1]*dm3[k2] + 2*dc[2 + k2]*dm3[2 + k1] + 2*dc[2 + k1]*dm3[2 + k2] + dc[6 + k2]*dm3[6 + k1] + dc[6 + k1]*dm3[6 + k2]);
+        rhs(2) = -(a*ddm1[4 + 2*k1 + k2] + b[0]*ddm2[4 + 2*k1 + k2] + b[1]*ddm2[12 + 2*k1 + k2] + c[0]*ddm3[4 + 2*k1 + k2] + 2*c[1]*ddm3[12 + 2*k1 + k2] + c[3]*ddm3[28 + 2*k1 + k2] + da[k2]*dm1[2 + k1] + da[k1]*dm1[2 + k2] + db[k2]*dm2[2 + k1] + db[k1]*dm2[2 + k2] + db[2 + k2]*dm2[6 + k1] + db[2 + k1]*dm2[6 + k2] + dc[k2]*dm3[2 + k1] + dc[k1]*dm3[2 + k2] + 2*dc[2 + k2]*dm3[6 + k1] + 2*dc[2 + k1]*dm3[6 + k2] + dc[6 + k2]*dm3[14 + k1] + dc[6 + k1]*dm3[14 + k2]);
+        rhs(3) = -(a*ddm2[2*k1 + k2] + b[0]*ddm3[2*k1 + k2] + b[1]*ddm3[4 + 2*k1 + k2] + c[0]*ddm4[2*k1 + k2] + 2*c[1]*ddm4[4 + 2*k1 + k2] + c[3]*ddm4[12 + 2*k1 + k2] + da[k2]*dm2[k1] + da[k1]*dm2[k2] + db[k2]*dm3[k1] + db[k1]*dm3[k2] + db[2 + k2]*dm3[2 + k1] + db[2 + k1]*dm3[2 + k2] + dc[k2]*dm4[k1] + dc[k1]*dm4[k2] + 2*dc[2 + k2]*dm4[2 + k1] + 2*dc[2 + k1]*dm4[2 + k2] + dc[6 + k2]*dm4[6 + k1] + dc[6 + k1]*dm4[6 + k2]);
+        rhs(4) = -(a*ddm2[4 + 2*k1 + k2] + b[0]*ddm3[4 + 2*k1 + k2] + b[1]*ddm3[12 + 2*k1 + k2] + c[0]*ddm4[4 + 2*k1 + k2] + 2*c[1]*ddm4[12 + 2*k1 + k2] + c[3]*ddm4[28 + 2*k1 + k2] + da[k2]*dm2[2 + k1] + da[k1]*dm2[2 + k2] + db[k2]*dm3[2 + k1] + db[k1]*dm3[2 + k2] + db[2 + k2]*dm3[6 + k1] + db[2 + k1]*dm3[6 + k2] + dc[k2]*dm4[2 + k1] + dc[k1]*dm4[2 + k2] + 2*dc[2 + k2]*dm4[6 + k1] + 2*dc[2 + k1]*dm4[6 + k2] + dc[6 + k2]*dm4[14 + k1] + dc[6 + k1]*dm4[14 + k2]);
+        rhs(5) = -(a*ddm2[12 + 2*k1 + k2] + b[0]*ddm3[12 + 2*k1 + k2] + b[1]*ddm3[28 + 2*k1 + k2] + c[0]*ddm4[12 + 2*k1 + k2] + 2*c[1]*ddm4[28 + 2*k1 + k2] + c[3]*ddm4[60 + 2*k1 + k2] + da[k2]*dm2[6 + k1] + da[k1]*dm2[6 + k2] + db[k2]*dm3[6 + k1] + db[k1]*dm3[6 + k2] + db[2 + k2]*dm3[14 + k1] + db[2 + k1]*dm3[14 + k2] + dc[k2]*dm4[6 + k1] + dc[k1]*dm4[6 + k2] + 2*dc[2 + k2]*dm4[14 + k1] + 2*dc[2 + k1]*dm4[14 + k2] + dc[6 + k2]*dm4[30 + k1] + dc[6 + k1]*dm4[30 + k2]);
 
-      lhs = solver.solve(rhs);
+        lhs = solver.solve(rhs);
 
-      dda[2*k1 + k2] = lhs(0);
-      ddb[2*k1 + k2] = lhs(1);
-      ddb[4 + 2*k1 + k2] = lhs(2);
-      ddc[2*k1 + k2] = lhs(3);
-      ddc[4 + 2*k1 + k2] = lhs(4);
-      ddc[12 + 2*k1 + k2] = lhs(5);
+        dda[2*k1 + k2] = lhs(0);
+        ddb[2*k1 + k2] = lhs(1);
+        ddb[4 + 2*k1 + k2] = lhs(2);
+        ddc[2*k1 + k2] = lhs(3);
+        ddc[4 + 2*k1 + k2] = lhs(4);
+        ddc[12 + 2*k1 + k2] = lhs(5);
+      }
     }
   }
-
   // Fill symmetries
   fillSymmetries<Dim<2>>(ddb);
   fillSymmetries<Dim<2>>(c, dc, ddc);
@@ -1448,6 +1834,7 @@ template<>
 inline
 void
 computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
+                   const bool needHessian,
                    Dim<3>::Scalar& a,
                    Dim<3>::Vector& b,
                    Dim<3>::Tensor& c,
@@ -1545,34 +1932,35 @@ computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
     dc[24 + k1] = lhs(9);
   }
   // Solve for second derivatives
-  for (auto k1 = 0; k1 < dim; ++k1) {
-    for (auto k2 = k1; k2 < dim; ++k2) {
-      rhs(0) = -(a*ddm0[3*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[3*k1 + k2] + b[1]*ddm1[9 + 3*k1 + k2] + b[2]*ddm1[18 + 3*k1 + k2] + c[0]*ddm2[3*k1 + k2] + 2*c[1]*ddm2[9 + 3*k1 + k2] + 2*c[2]*ddm2[18 + 3*k1 + k2] + c[4]*ddm2[36 + 3*k1 + k2] + 2*c[5]*ddm2[45 + 3*k1 + k2] + c[8]*ddm2[72 + 3*k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + db[3 + k2]*dm1[3 + k1] + db[3 + k1]*dm1[3 + k2] + db[6 + k2]*dm1[6 + k1] + db[6 + k1]*dm1[6 + k2] + dc[k2]*dm2[k1] + dc[k1]*dm2[k2] + 2*dc[3 + k2]*dm2[3 + k1] + 2*dc[3 + k1]*dm2[3 + k2] + 2*dc[6 + k2]*dm2[6 + k1] + 2*dc[6 + k1]*dm2[6 + k2] + dc[12 + k2]*dm2[12 + k1] + dc[12 + k1]*dm2[12 + k2] + 2*dc[15 + k2]*dm2[15 + k1] + 2*dc[15 + k1]*dm2[15 + k2] + dc[24 + k2]*dm2[24 + k1] + dc[24 + k1]*dm2[24 + k2]);
-      rhs(1) = -(a*ddm1[3*k1 + k2] + b[0]*ddm2[3*k1 + k2] + b[1]*ddm2[9 + 3*k1 + k2] + b[2]*ddm2[18 + 3*k1 + k2] + c[0]*ddm3[3*k1 + k2] + 2*c[1]*ddm3[9 + 3*k1 + k2] + 2*c[2]*ddm3[18 + 3*k1 + k2] + c[4]*ddm3[36 + 3*k1 + k2] + 2*c[5]*ddm3[45 + 3*k1 + k2] + c[8]*ddm3[72 + 3*k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + db[3 + k2]*dm2[3 + k1] + db[3 + k1]*dm2[3 + k2] + db[6 + k2]*dm2[6 + k1] + db[6 + k1]*dm2[6 + k2] + dc[k2]*dm3[k1] + dc[k1]*dm3[k2] + 2*dc[3 + k2]*dm3[3 + k1] + 2*dc[3 + k1]*dm3[3 + k2] + 2*dc[6 + k2]*dm3[6 + k1] + 2*dc[6 + k1]*dm3[6 + k2] + dc[12 + k2]*dm3[12 + k1] + dc[12 + k1]*dm3[12 + k2] + 2*dc[15 + k2]*dm3[15 + k1] + 2*dc[15 + k1]*dm3[15 + k2] + dc[24 + k2]*dm3[24 + k1] + dc[24 + k1]*dm3[24 + k2]);
-      rhs(2) = -(a*ddm1[9 + 3*k1 + k2] + b[0]*ddm2[9 + 3*k1 + k2] + b[1]*ddm2[36 + 3*k1 + k2] + b[2]*ddm2[45 + 3*k1 + k2] + c[0]*ddm3[9 + 3*k1 + k2] + 2*c[1]*ddm3[36 + 3*k1 + k2] + 2*c[2]*ddm3[45 + 3*k1 + k2] + c[4]*ddm3[117 + 3*k1 + k2] + 2*c[5]*ddm3[126 + 3*k1 + k2] + c[8]*ddm3[153 + 3*k1 + k2] + da[k2]*dm1[3 + k1] + da[k1]*dm1[3 + k2] + db[k2]*dm2[3 + k1] + db[k1]*dm2[3 + k2] + db[3 + k2]*dm2[12 + k1] + db[3 + k1]*dm2[12 + k2] + db[6 + k2]*dm2[15 + k1] + db[6 + k1]*dm2[15 + k2] + dc[k2]*dm3[3 + k1] + dc[k1]*dm3[3 + k2] + 2*dc[3 + k2]*dm3[12 + k1] + 2*dc[3 + k1]*dm3[12 + k2] + 2*dc[6 + k2]*dm3[15 + k1] + 2*dc[6 + k1]*dm3[15 + k2] + dc[12 + k2]*dm3[39 + k1] + dc[12 + k1]*dm3[39 + k2] + 2*dc[15 + k2]*dm3[42 + k1] + 2*dc[15 + k1]*dm3[42 + k2] + dc[24 + k2]*dm3[51 + k1] + dc[24 + k1]*dm3[51 + k2]);
-      rhs(3) = -(a*ddm1[18 + 3*k1 + k2] + b[0]*ddm2[18 + 3*k1 + k2] + b[1]*ddm2[45 + 3*k1 + k2] + b[2]*ddm2[72 + 3*k1 + k2] + c[0]*ddm3[18 + 3*k1 + k2] + 2*c[1]*ddm3[45 + 3*k1 + k2] + 2*c[2]*ddm3[72 + 3*k1 + k2] + c[4]*ddm3[126 + 3*k1 + k2] + 2*c[5]*ddm3[153 + 3*k1 + k2] + c[8]*ddm3[234 + 3*k1 + k2] + da[k2]*dm1[6 + k1] + da[k1]*dm1[6 + k2] + db[k2]*dm2[6 + k1] + db[k1]*dm2[6 + k2] + db[3 + k2]*dm2[15 + k1] + db[3 + k1]*dm2[15 + k2] + db[6 + k2]*dm2[24 + k1] + db[6 + k1]*dm2[24 + k2] + dc[k2]*dm3[6 + k1] + dc[k1]*dm3[6 + k2] + 2*dc[3 + k2]*dm3[15 + k1] + 2*dc[3 + k1]*dm3[15 + k2] + 2*dc[6 + k2]*dm3[24 + k1] + 2*dc[6 + k1]*dm3[24 + k2] + dc[12 + k2]*dm3[42 + k1] + dc[12 + k1]*dm3[42 + k2] + 2*dc[15 + k2]*dm3[51 + k1] + 2*dc[15 + k1]*dm3[51 + k2] + dc[24 + k2]*dm3[78 + k1] + dc[24 + k1]*dm3[78 + k2]);
-      rhs(4) = -(a*ddm2[3*k1 + k2] + b[0]*ddm3[3*k1 + k2] + b[1]*ddm3[9 + 3*k1 + k2] + b[2]*ddm3[18 + 3*k1 + k2] + c[0]*ddm4[3*k1 + k2] + 2*c[1]*ddm4[9 + 3*k1 + k2] + 2*c[2]*ddm4[18 + 3*k1 + k2] + c[4]*ddm4[36 + 3*k1 + k2] + 2*c[5]*ddm4[45 + 3*k1 + k2] + c[8]*ddm4[72 + 3*k1 + k2] + da[k2]*dm2[k1] + da[k1]*dm2[k2] + db[k2]*dm3[k1] + db[k1]*dm3[k2] + db[3 + k2]*dm3[3 + k1] + db[3 + k1]*dm3[3 + k2] + db[6 + k2]*dm3[6 + k1] + db[6 + k1]*dm3[6 + k2] + dc[k2]*dm4[k1] + dc[k1]*dm4[k2] + 2*dc[3 + k2]*dm4[3 + k1] + 2*dc[3 + k1]*dm4[3 + k2] + 2*dc[6 + k2]*dm4[6 + k1] + 2*dc[6 + k1]*dm4[6 + k2] + dc[12 + k2]*dm4[12 + k1] + dc[12 + k1]*dm4[12 + k2] + 2*dc[15 + k2]*dm4[15 + k1] + 2*dc[15 + k1]*dm4[15 + k2] + dc[24 + k2]*dm4[24 + k1] + dc[24 + k1]*dm4[24 + k2]);
-      rhs(5) = -(a*ddm2[9 + 3*k1 + k2] + b[0]*ddm3[9 + 3*k1 + k2] + b[1]*ddm3[36 + 3*k1 + k2] + b[2]*ddm3[45 + 3*k1 + k2] + c[0]*ddm4[9 + 3*k1 + k2] + 2*c[1]*ddm4[36 + 3*k1 + k2] + 2*c[2]*ddm4[45 + 3*k1 + k2] + c[4]*ddm4[117 + 3*k1 + k2] + 2*c[5]*ddm4[126 + 3*k1 + k2] + c[8]*ddm4[153 + 3*k1 + k2] + da[k2]*dm2[3 + k1] + da[k1]*dm2[3 + k2] + db[k2]*dm3[3 + k1] + db[k1]*dm3[3 + k2] + db[3 + k2]*dm3[12 + k1] + db[3 + k1]*dm3[12 + k2] + db[6 + k2]*dm3[15 + k1] + db[6 + k1]*dm3[15 + k2] + dc[k2]*dm4[3 + k1] + dc[k1]*dm4[3 + k2] + 2*dc[3 + k2]*dm4[12 + k1] + 2*dc[3 + k1]*dm4[12 + k2] + 2*dc[6 + k2]*dm4[15 + k1] + 2*dc[6 + k1]*dm4[15 + k2] + dc[12 + k2]*dm4[39 + k1] + dc[12 + k1]*dm4[39 + k2] + 2*dc[15 + k2]*dm4[42 + k1] + 2*dc[15 + k1]*dm4[42 + k2] + dc[24 + k2]*dm4[51 + k1] + dc[24 + k1]*dm4[51 + k2]);
-      rhs(6) = -(a*ddm2[18 + 3*k1 + k2] + b[0]*ddm3[18 + 3*k1 + k2] + b[1]*ddm3[45 + 3*k1 + k2] + b[2]*ddm3[72 + 3*k1 + k2] + c[0]*ddm4[18 + 3*k1 + k2] + 2*c[1]*ddm4[45 + 3*k1 + k2] + 2*c[2]*ddm4[72 + 3*k1 + k2] + c[4]*ddm4[126 + 3*k1 + k2] + 2*c[5]*ddm4[153 + 3*k1 + k2] + c[8]*ddm4[234 + 3*k1 + k2] + da[k2]*dm2[6 + k1] + da[k1]*dm2[6 + k2] + db[k2]*dm3[6 + k1] + db[k1]*dm3[6 + k2] + db[3 + k2]*dm3[15 + k1] + db[3 + k1]*dm3[15 + k2] + db[6 + k2]*dm3[24 + k1] + db[6 + k1]*dm3[24 + k2] + dc[k2]*dm4[6 + k1] + dc[k1]*dm4[6 + k2] + 2*dc[3 + k2]*dm4[15 + k1] + 2*dc[3 + k1]*dm4[15 + k2] + 2*dc[6 + k2]*dm4[24 + k1] + 2*dc[6 + k1]*dm4[24 + k2] + dc[12 + k2]*dm4[42 + k1] + dc[12 + k1]*dm4[42 + k2] + 2*dc[15 + k2]*dm4[51 + k1] + 2*dc[15 + k1]*dm4[51 + k2] + dc[24 + k2]*dm4[78 + k1] + dc[24 + k1]*dm4[78 + k2]);
-      rhs(7) = -(a*ddm2[36 + 3*k1 + k2] + b[0]*ddm3[36 + 3*k1 + k2] + b[1]*ddm3[117 + 3*k1 + k2] + b[2]*ddm3[126 + 3*k1 + k2] + c[0]*ddm4[36 + 3*k1 + k2] + 2*c[1]*ddm4[117 + 3*k1 + k2] + 2*c[2]*ddm4[126 + 3*k1 + k2] + c[4]*ddm4[360 + 3*k1 + k2] + 2*c[5]*ddm4[369 + 3*k1 + k2] + c[8]*ddm4[396 + 3*k1 + k2] + da[k2]*dm2[12 + k1] + da[k1]*dm2[12 + k2] + db[k2]*dm3[12 + k1] + db[k1]*dm3[12 + k2] + db[3 + k2]*dm3[39 + k1] + db[3 + k1]*dm3[39 + k2] + db[6 + k2]*dm3[42 + k1] + db[6 + k1]*dm3[42 + k2] + dc[k2]*dm4[12 + k1] + dc[k1]*dm4[12 + k2] + 2*dc[3 + k2]*dm4[39 + k1] + 2*dc[3 + k1]*dm4[39 + k2] + 2*dc[6 + k2]*dm4[42 + k1] + 2*dc[6 + k1]*dm4[42 + k2] + dc[12 + k2]*dm4[120 + k1] + dc[12 + k1]*dm4[120 + k2] + 2*dc[15 + k2]*dm4[123 + k1] + 2*dc[15 + k1]*dm4[123 + k2] + dc[24 + k2]*dm4[132 + k1] + dc[24 + k1]*dm4[132 + k2]);
-      rhs(8) = -(a*ddm2[45 + 3*k1 + k2] + b[0]*ddm3[45 + 3*k1 + k2] + b[1]*ddm3[126 + 3*k1 + k2] + b[2]*ddm3[153 + 3*k1 + k2] + c[0]*ddm4[45 + 3*k1 + k2] + 2*c[1]*ddm4[126 + 3*k1 + k2] + 2*c[2]*ddm4[153 + 3*k1 + k2] + c[4]*ddm4[369 + 3*k1 + k2] + 2*c[5]*ddm4[396 + 3*k1 + k2] + c[8]*ddm4[477 + 3*k1 + k2] + da[k2]*dm2[15 + k1] + da[k1]*dm2[15 + k2] + db[k2]*dm3[15 + k1] + db[k1]*dm3[15 + k2] + db[3 + k2]*dm3[42 + k1] + db[3 + k1]*dm3[42 + k2] + db[6 + k2]*dm3[51 + k1] + db[6 + k1]*dm3[51 + k2] + dc[k2]*dm4[15 + k1] + dc[k1]*dm4[15 + k2] + 2*dc[3 + k2]*dm4[42 + k1] + 2*dc[3 + k1]*dm4[42 + k2] + 2*dc[6 + k2]*dm4[51 + k1] + 2*dc[6 + k1]*dm4[51 + k2] + dc[12 + k2]*dm4[123 + k1] + dc[12 + k1]*dm4[123 + k2] + 2*dc[15 + k2]*dm4[132 + k1] + 2*dc[15 + k1]*dm4[132 + k2] + dc[24 + k2]*dm4[159 + k1] + dc[24 + k1]*dm4[159 + k2]);
-      rhs(9) = -(a*ddm2[72 + 3*k1 + k2] + b[0]*ddm3[72 + 3*k1 + k2] + b[1]*ddm3[153 + 3*k1 + k2] + b[2]*ddm3[234 + 3*k1 + k2] + c[0]*ddm4[72 + 3*k1 + k2] + 2*c[1]*ddm4[153 + 3*k1 + k2] + 2*c[2]*ddm4[234 + 3*k1 + k2] + c[4]*ddm4[396 + 3*k1 + k2] + 2*c[5]*ddm4[477 + 3*k1 + k2] + c[8]*ddm4[720 + 3*k1 + k2] + da[k2]*dm2[24 + k1] + da[k1]*dm2[24 + k2] + db[k2]*dm3[24 + k1] + db[k1]*dm3[24 + k2] + db[3 + k2]*dm3[51 + k1] + db[3 + k1]*dm3[51 + k2] + db[6 + k2]*dm3[78 + k1] + db[6 + k1]*dm3[78 + k2] + dc[k2]*dm4[24 + k1] + dc[k1]*dm4[24 + k2] + 2*dc[3 + k2]*dm4[51 + k1] + 2*dc[3 + k1]*dm4[51 + k2] + 2*dc[6 + k2]*dm4[78 + k1] + 2*dc[6 + k1]*dm4[78 + k2] + dc[12 + k2]*dm4[132 + k1] + dc[12 + k1]*dm4[132 + k2] + 2*dc[15 + k2]*dm4[159 + k1] + 2*dc[15 + k1]*dm4[159 + k2] + dc[24 + k2]*dm4[240 + k1] + dc[24 + k1]*dm4[240 + k2]);
+  if (needHessian) {
+    for (auto k1 = 0; k1 < dim; ++k1) {
+      for (auto k2 = k1; k2 < dim; ++k2) {
+        rhs(0) = -(a*ddm0[3*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[3*k1 + k2] + b[1]*ddm1[9 + 3*k1 + k2] + b[2]*ddm1[18 + 3*k1 + k2] + c[0]*ddm2[3*k1 + k2] + 2*c[1]*ddm2[9 + 3*k1 + k2] + 2*c[2]*ddm2[18 + 3*k1 + k2] + c[4]*ddm2[36 + 3*k1 + k2] + 2*c[5]*ddm2[45 + 3*k1 + k2] + c[8]*ddm2[72 + 3*k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + db[3 + k2]*dm1[3 + k1] + db[3 + k1]*dm1[3 + k2] + db[6 + k2]*dm1[6 + k1] + db[6 + k1]*dm1[6 + k2] + dc[k2]*dm2[k1] + dc[k1]*dm2[k2] + 2*dc[3 + k2]*dm2[3 + k1] + 2*dc[3 + k1]*dm2[3 + k2] + 2*dc[6 + k2]*dm2[6 + k1] + 2*dc[6 + k1]*dm2[6 + k2] + dc[12 + k2]*dm2[12 + k1] + dc[12 + k1]*dm2[12 + k2] + 2*dc[15 + k2]*dm2[15 + k1] + 2*dc[15 + k1]*dm2[15 + k2] + dc[24 + k2]*dm2[24 + k1] + dc[24 + k1]*dm2[24 + k2]);
+        rhs(1) = -(a*ddm1[3*k1 + k2] + b[0]*ddm2[3*k1 + k2] + b[1]*ddm2[9 + 3*k1 + k2] + b[2]*ddm2[18 + 3*k1 + k2] + c[0]*ddm3[3*k1 + k2] + 2*c[1]*ddm3[9 + 3*k1 + k2] + 2*c[2]*ddm3[18 + 3*k1 + k2] + c[4]*ddm3[36 + 3*k1 + k2] + 2*c[5]*ddm3[45 + 3*k1 + k2] + c[8]*ddm3[72 + 3*k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + db[3 + k2]*dm2[3 + k1] + db[3 + k1]*dm2[3 + k2] + db[6 + k2]*dm2[6 + k1] + db[6 + k1]*dm2[6 + k2] + dc[k2]*dm3[k1] + dc[k1]*dm3[k2] + 2*dc[3 + k2]*dm3[3 + k1] + 2*dc[3 + k1]*dm3[3 + k2] + 2*dc[6 + k2]*dm3[6 + k1] + 2*dc[6 + k1]*dm3[6 + k2] + dc[12 + k2]*dm3[12 + k1] + dc[12 + k1]*dm3[12 + k2] + 2*dc[15 + k2]*dm3[15 + k1] + 2*dc[15 + k1]*dm3[15 + k2] + dc[24 + k2]*dm3[24 + k1] + dc[24 + k1]*dm3[24 + k2]);
+        rhs(2) = -(a*ddm1[9 + 3*k1 + k2] + b[0]*ddm2[9 + 3*k1 + k2] + b[1]*ddm2[36 + 3*k1 + k2] + b[2]*ddm2[45 + 3*k1 + k2] + c[0]*ddm3[9 + 3*k1 + k2] + 2*c[1]*ddm3[36 + 3*k1 + k2] + 2*c[2]*ddm3[45 + 3*k1 + k2] + c[4]*ddm3[117 + 3*k1 + k2] + 2*c[5]*ddm3[126 + 3*k1 + k2] + c[8]*ddm3[153 + 3*k1 + k2] + da[k2]*dm1[3 + k1] + da[k1]*dm1[3 + k2] + db[k2]*dm2[3 + k1] + db[k1]*dm2[3 + k2] + db[3 + k2]*dm2[12 + k1] + db[3 + k1]*dm2[12 + k2] + db[6 + k2]*dm2[15 + k1] + db[6 + k1]*dm2[15 + k2] + dc[k2]*dm3[3 + k1] + dc[k1]*dm3[3 + k2] + 2*dc[3 + k2]*dm3[12 + k1] + 2*dc[3 + k1]*dm3[12 + k2] + 2*dc[6 + k2]*dm3[15 + k1] + 2*dc[6 + k1]*dm3[15 + k2] + dc[12 + k2]*dm3[39 + k1] + dc[12 + k1]*dm3[39 + k2] + 2*dc[15 + k2]*dm3[42 + k1] + 2*dc[15 + k1]*dm3[42 + k2] + dc[24 + k2]*dm3[51 + k1] + dc[24 + k1]*dm3[51 + k2]);
+        rhs(3) = -(a*ddm1[18 + 3*k1 + k2] + b[0]*ddm2[18 + 3*k1 + k2] + b[1]*ddm2[45 + 3*k1 + k2] + b[2]*ddm2[72 + 3*k1 + k2] + c[0]*ddm3[18 + 3*k1 + k2] + 2*c[1]*ddm3[45 + 3*k1 + k2] + 2*c[2]*ddm3[72 + 3*k1 + k2] + c[4]*ddm3[126 + 3*k1 + k2] + 2*c[5]*ddm3[153 + 3*k1 + k2] + c[8]*ddm3[234 + 3*k1 + k2] + da[k2]*dm1[6 + k1] + da[k1]*dm1[6 + k2] + db[k2]*dm2[6 + k1] + db[k1]*dm2[6 + k2] + db[3 + k2]*dm2[15 + k1] + db[3 + k1]*dm2[15 + k2] + db[6 + k2]*dm2[24 + k1] + db[6 + k1]*dm2[24 + k2] + dc[k2]*dm3[6 + k1] + dc[k1]*dm3[6 + k2] + 2*dc[3 + k2]*dm3[15 + k1] + 2*dc[3 + k1]*dm3[15 + k2] + 2*dc[6 + k2]*dm3[24 + k1] + 2*dc[6 + k1]*dm3[24 + k2] + dc[12 + k2]*dm3[42 + k1] + dc[12 + k1]*dm3[42 + k2] + 2*dc[15 + k2]*dm3[51 + k1] + 2*dc[15 + k1]*dm3[51 + k2] + dc[24 + k2]*dm3[78 + k1] + dc[24 + k1]*dm3[78 + k2]);
+        rhs(4) = -(a*ddm2[3*k1 + k2] + b[0]*ddm3[3*k1 + k2] + b[1]*ddm3[9 + 3*k1 + k2] + b[2]*ddm3[18 + 3*k1 + k2] + c[0]*ddm4[3*k1 + k2] + 2*c[1]*ddm4[9 + 3*k1 + k2] + 2*c[2]*ddm4[18 + 3*k1 + k2] + c[4]*ddm4[36 + 3*k1 + k2] + 2*c[5]*ddm4[45 + 3*k1 + k2] + c[8]*ddm4[72 + 3*k1 + k2] + da[k2]*dm2[k1] + da[k1]*dm2[k2] + db[k2]*dm3[k1] + db[k1]*dm3[k2] + db[3 + k2]*dm3[3 + k1] + db[3 + k1]*dm3[3 + k2] + db[6 + k2]*dm3[6 + k1] + db[6 + k1]*dm3[6 + k2] + dc[k2]*dm4[k1] + dc[k1]*dm4[k2] + 2*dc[3 + k2]*dm4[3 + k1] + 2*dc[3 + k1]*dm4[3 + k2] + 2*dc[6 + k2]*dm4[6 + k1] + 2*dc[6 + k1]*dm4[6 + k2] + dc[12 + k2]*dm4[12 + k1] + dc[12 + k1]*dm4[12 + k2] + 2*dc[15 + k2]*dm4[15 + k1] + 2*dc[15 + k1]*dm4[15 + k2] + dc[24 + k2]*dm4[24 + k1] + dc[24 + k1]*dm4[24 + k2]);
+        rhs(5) = -(a*ddm2[9 + 3*k1 + k2] + b[0]*ddm3[9 + 3*k1 + k2] + b[1]*ddm3[36 + 3*k1 + k2] + b[2]*ddm3[45 + 3*k1 + k2] + c[0]*ddm4[9 + 3*k1 + k2] + 2*c[1]*ddm4[36 + 3*k1 + k2] + 2*c[2]*ddm4[45 + 3*k1 + k2] + c[4]*ddm4[117 + 3*k1 + k2] + 2*c[5]*ddm4[126 + 3*k1 + k2] + c[8]*ddm4[153 + 3*k1 + k2] + da[k2]*dm2[3 + k1] + da[k1]*dm2[3 + k2] + db[k2]*dm3[3 + k1] + db[k1]*dm3[3 + k2] + db[3 + k2]*dm3[12 + k1] + db[3 + k1]*dm3[12 + k2] + db[6 + k2]*dm3[15 + k1] + db[6 + k1]*dm3[15 + k2] + dc[k2]*dm4[3 + k1] + dc[k1]*dm4[3 + k2] + 2*dc[3 + k2]*dm4[12 + k1] + 2*dc[3 + k1]*dm4[12 + k2] + 2*dc[6 + k2]*dm4[15 + k1] + 2*dc[6 + k1]*dm4[15 + k2] + dc[12 + k2]*dm4[39 + k1] + dc[12 + k1]*dm4[39 + k2] + 2*dc[15 + k2]*dm4[42 + k1] + 2*dc[15 + k1]*dm4[42 + k2] + dc[24 + k2]*dm4[51 + k1] + dc[24 + k1]*dm4[51 + k2]);
+        rhs(6) = -(a*ddm2[18 + 3*k1 + k2] + b[0]*ddm3[18 + 3*k1 + k2] + b[1]*ddm3[45 + 3*k1 + k2] + b[2]*ddm3[72 + 3*k1 + k2] + c[0]*ddm4[18 + 3*k1 + k2] + 2*c[1]*ddm4[45 + 3*k1 + k2] + 2*c[2]*ddm4[72 + 3*k1 + k2] + c[4]*ddm4[126 + 3*k1 + k2] + 2*c[5]*ddm4[153 + 3*k1 + k2] + c[8]*ddm4[234 + 3*k1 + k2] + da[k2]*dm2[6 + k1] + da[k1]*dm2[6 + k2] + db[k2]*dm3[6 + k1] + db[k1]*dm3[6 + k2] + db[3 + k2]*dm3[15 + k1] + db[3 + k1]*dm3[15 + k2] + db[6 + k2]*dm3[24 + k1] + db[6 + k1]*dm3[24 + k2] + dc[k2]*dm4[6 + k1] + dc[k1]*dm4[6 + k2] + 2*dc[3 + k2]*dm4[15 + k1] + 2*dc[3 + k1]*dm4[15 + k2] + 2*dc[6 + k2]*dm4[24 + k1] + 2*dc[6 + k1]*dm4[24 + k2] + dc[12 + k2]*dm4[42 + k1] + dc[12 + k1]*dm4[42 + k2] + 2*dc[15 + k2]*dm4[51 + k1] + 2*dc[15 + k1]*dm4[51 + k2] + dc[24 + k2]*dm4[78 + k1] + dc[24 + k1]*dm4[78 + k2]);
+        rhs(7) = -(a*ddm2[36 + 3*k1 + k2] + b[0]*ddm3[36 + 3*k1 + k2] + b[1]*ddm3[117 + 3*k1 + k2] + b[2]*ddm3[126 + 3*k1 + k2] + c[0]*ddm4[36 + 3*k1 + k2] + 2*c[1]*ddm4[117 + 3*k1 + k2] + 2*c[2]*ddm4[126 + 3*k1 + k2] + c[4]*ddm4[360 + 3*k1 + k2] + 2*c[5]*ddm4[369 + 3*k1 + k2] + c[8]*ddm4[396 + 3*k1 + k2] + da[k2]*dm2[12 + k1] + da[k1]*dm2[12 + k2] + db[k2]*dm3[12 + k1] + db[k1]*dm3[12 + k2] + db[3 + k2]*dm3[39 + k1] + db[3 + k1]*dm3[39 + k2] + db[6 + k2]*dm3[42 + k1] + db[6 + k1]*dm3[42 + k2] + dc[k2]*dm4[12 + k1] + dc[k1]*dm4[12 + k2] + 2*dc[3 + k2]*dm4[39 + k1] + 2*dc[3 + k1]*dm4[39 + k2] + 2*dc[6 + k2]*dm4[42 + k1] + 2*dc[6 + k1]*dm4[42 + k2] + dc[12 + k2]*dm4[120 + k1] + dc[12 + k1]*dm4[120 + k2] + 2*dc[15 + k2]*dm4[123 + k1] + 2*dc[15 + k1]*dm4[123 + k2] + dc[24 + k2]*dm4[132 + k1] + dc[24 + k1]*dm4[132 + k2]);
+        rhs(8) = -(a*ddm2[45 + 3*k1 + k2] + b[0]*ddm3[45 + 3*k1 + k2] + b[1]*ddm3[126 + 3*k1 + k2] + b[2]*ddm3[153 + 3*k1 + k2] + c[0]*ddm4[45 + 3*k1 + k2] + 2*c[1]*ddm4[126 + 3*k1 + k2] + 2*c[2]*ddm4[153 + 3*k1 + k2] + c[4]*ddm4[369 + 3*k1 + k2] + 2*c[5]*ddm4[396 + 3*k1 + k2] + c[8]*ddm4[477 + 3*k1 + k2] + da[k2]*dm2[15 + k1] + da[k1]*dm2[15 + k2] + db[k2]*dm3[15 + k1] + db[k1]*dm3[15 + k2] + db[3 + k2]*dm3[42 + k1] + db[3 + k1]*dm3[42 + k2] + db[6 + k2]*dm3[51 + k1] + db[6 + k1]*dm3[51 + k2] + dc[k2]*dm4[15 + k1] + dc[k1]*dm4[15 + k2] + 2*dc[3 + k2]*dm4[42 + k1] + 2*dc[3 + k1]*dm4[42 + k2] + 2*dc[6 + k2]*dm4[51 + k1] + 2*dc[6 + k1]*dm4[51 + k2] + dc[12 + k2]*dm4[123 + k1] + dc[12 + k1]*dm4[123 + k2] + 2*dc[15 + k2]*dm4[132 + k1] + 2*dc[15 + k1]*dm4[132 + k2] + dc[24 + k2]*dm4[159 + k1] + dc[24 + k1]*dm4[159 + k2]);
+        rhs(9) = -(a*ddm2[72 + 3*k1 + k2] + b[0]*ddm3[72 + 3*k1 + k2] + b[1]*ddm3[153 + 3*k1 + k2] + b[2]*ddm3[234 + 3*k1 + k2] + c[0]*ddm4[72 + 3*k1 + k2] + 2*c[1]*ddm4[153 + 3*k1 + k2] + 2*c[2]*ddm4[234 + 3*k1 + k2] + c[4]*ddm4[396 + 3*k1 + k2] + 2*c[5]*ddm4[477 + 3*k1 + k2] + c[8]*ddm4[720 + 3*k1 + k2] + da[k2]*dm2[24 + k1] + da[k1]*dm2[24 + k2] + db[k2]*dm3[24 + k1] + db[k1]*dm3[24 + k2] + db[3 + k2]*dm3[51 + k1] + db[3 + k1]*dm3[51 + k2] + db[6 + k2]*dm3[78 + k1] + db[6 + k1]*dm3[78 + k2] + dc[k2]*dm4[24 + k1] + dc[k1]*dm4[24 + k2] + 2*dc[3 + k2]*dm4[51 + k1] + 2*dc[3 + k1]*dm4[51 + k2] + 2*dc[6 + k2]*dm4[78 + k1] + 2*dc[6 + k1]*dm4[78 + k2] + dc[12 + k2]*dm4[132 + k1] + dc[12 + k1]*dm4[132 + k2] + 2*dc[15 + k2]*dm4[159 + k1] + 2*dc[15 + k1]*dm4[159 + k2] + dc[24 + k2]*dm4[240 + k1] + dc[24 + k1]*dm4[240 + k2]);
  
-      lhs = solver.solve(rhs);
+        lhs = solver.solve(rhs);
 
-      dda[3*k1 + k2] = lhs(0);
-      ddb[3*k1 + k2] = lhs(1);
-      ddb[9 + 3*k1 + k2] = lhs(2);
-      ddb[18 + 3*k1 + k2] = lhs(3);
-      ddc[3*k1 + k2] = lhs(4);
-      ddc[9 + 3*k1 + k2] = lhs(5);
-      ddc[18 + 3*k1 + k2] = lhs(6);
-      ddc[36 + 3*k1 + k2] = lhs(7);
-      ddc[45 + 3*k1 + k2] = lhs(8);
-      ddc[72 + 3*k1 + k2] = lhs(9);
+        dda[3*k1 + k2] = lhs(0);
+        ddb[3*k1 + k2] = lhs(1);
+        ddb[9 + 3*k1 + k2] = lhs(2);
+        ddb[18 + 3*k1 + k2] = lhs(3);
+        ddc[3*k1 + k2] = lhs(4);
+        ddc[9 + 3*k1 + k2] = lhs(5);
+        ddc[18 + 3*k1 + k2] = lhs(6);
+        ddc[36 + 3*k1 + k2] = lhs(7);
+        ddc[45 + 3*k1 + k2] = lhs(8);
+        ddc[72 + 3*k1 + k2] = lhs(9);
+      }
     }
-  }
-  
+  }  
   // Fill symmetries
   fillSymmetries<Dim<3>>(ddb);
   fillSymmetries<Dim<3>>(c, dc, ddc);
@@ -1582,6 +1970,7 @@ template<>
 inline
 void
 computeCorrections(const RKMomentValues<Dim<1>>& rkMoments,
+                   const bool needHessian,
                    Dim<1>::Scalar& a,
                    Dim<1>::Vector& b,
                    Dim<1>::Tensor& c,
@@ -1661,23 +2050,26 @@ computeCorrections(const RKMomentValues<Dim<1>>& rkMoments,
   dd[k1] = lhs(3);
  
   // Solve for second derivatives
-  rhs(0) = -(a*ddm0[k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[k1 + k2] + c[0]*ddm2[k1 + k2] + d[0]*ddm3[k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + dc[k2]*dm2[k1] + dc[k1]*dm2[k2] + dd[k2]*dm3[k1] + dd[k1]*dm3[k2]);
-  rhs(1) = -(a*ddm1[k1 + k2] + b[0]*ddm2[k1 + k2] + c[0]*ddm3[k1 + k2] + d[0]*ddm4[k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + dc[k2]*dm3[k1] + dc[k1]*dm3[k2] + dd[k2]*dm4[k1] + dd[k1]*dm4[k2]);
-  rhs(2) = -(a*ddm2[k1 + k2] + b[0]*ddm3[k1 + k2] + c[0]*ddm4[k1 + k2] + d[0]*ddm5[k1 + k2] + da[k2]*dm2[k1] + da[k1]*dm2[k2] + db[k2]*dm3[k1] + db[k1]*dm3[k2] + dc[k2]*dm4[k1] + dc[k1]*dm4[k2] + dd[k2]*dm5[k1] + dd[k1]*dm5[k2]);
-  rhs(3) = -(a*ddm3[k1 + k2] + b[0]*ddm4[k1 + k2] + c[0]*ddm5[k1 + k2] + d[0]*ddm6[k1 + k2] + da[k2]*dm3[k1] + da[k1]*dm3[k2] + db[k2]*dm4[k1] + db[k1]*dm4[k2] + dc[k2]*dm5[k1] + dc[k1]*dm5[k2] + dd[k2]*dm6[k1] + dd[k1]*dm6[k2]);
+  if (needHessian) {
+    rhs(0) = -(a*ddm0[k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[k1 + k2] + c[0]*ddm2[k1 + k2] + d[0]*ddm3[k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + dc[k2]*dm2[k1] + dc[k1]*dm2[k2] + dd[k2]*dm3[k1] + dd[k1]*dm3[k2]);
+    rhs(1) = -(a*ddm1[k1 + k2] + b[0]*ddm2[k1 + k2] + c[0]*ddm3[k1 + k2] + d[0]*ddm4[k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + dc[k2]*dm3[k1] + dc[k1]*dm3[k2] + dd[k2]*dm4[k1] + dd[k1]*dm4[k2]);
+    rhs(2) = -(a*ddm2[k1 + k2] + b[0]*ddm3[k1 + k2] + c[0]*ddm4[k1 + k2] + d[0]*ddm5[k1 + k2] + da[k2]*dm2[k1] + da[k1]*dm2[k2] + db[k2]*dm3[k1] + db[k1]*dm3[k2] + dc[k2]*dm4[k1] + dc[k1]*dm4[k2] + dd[k2]*dm5[k1] + dd[k1]*dm5[k2]);
+    rhs(3) = -(a*ddm3[k1 + k2] + b[0]*ddm4[k1 + k2] + c[0]*ddm5[k1 + k2] + d[0]*ddm6[k1 + k2] + da[k2]*dm3[k1] + da[k1]*dm3[k2] + db[k2]*dm4[k1] + db[k1]*dm4[k2] + dc[k2]*dm5[k1] + dc[k1]*dm5[k2] + dd[k2]*dm6[k1] + dd[k1]*dm6[k2]);
 
-  lhs = solver.solve(rhs);
+    lhs = solver.solve(rhs);
 
-  dda[k1 + k2] = lhs(0);
-  ddb[k1 + k2] = lhs(1);
-  ddc[k1 + k2] = lhs(2);
-  ddd[k1 + k2] = lhs(3);
+    dda[k1 + k2] = lhs(0);
+    ddb[k1 + k2] = lhs(1);
+    ddc[k1 + k2] = lhs(2);
+    ddd[k1 + k2] = lhs(3);
+  }
 }
 // d=2, o=3
 template<>
 inline
 void
 computeCorrections(const RKMomentValues<Dim<2>>& rkMoments,
+                   const bool needHessian,
                    Dim<2>::Scalar& a,
                    Dim<2>::Vector& b,
                    Dim<2>::Tensor& c,
@@ -1785,34 +2177,35 @@ computeCorrections(const RKMomentValues<Dim<2>>& rkMoments,
     dd[14 + k1] = lhs(9);    
   }
   // Solve for second derivatives
-  for (auto k1 = 0; k1 < dim; ++k1) {
-    for (auto k2 = k1; k2 < dim; ++k2) {
-      rhs(0) = -(a*ddm0[2*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[2*k1 + k2] + b[1]*ddm1[4 + 2*k1 + k2] + c[0]*ddm2[2*k1 + k2] + 2*c[1]*ddm2[4 + 2*k1 + k2] + c[3]*ddm2[12 + 2*k1 + k2] + d[0]*ddm3[2*k1 + k2] + 3*d[1]*ddm3[4 + 2*k1 + k2] + 3*d[3]*ddm3[12 + 2*k1 + k2] + d[7]*ddm3[28 + 2*k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + db[2 + k2]*dm1[2 + k1] + db[2 + k1]*dm1[2 + k2] + dc[k2]*dm2[k1] + dc[k1]*dm2[k2] + 2*dc[2 + k2]*dm2[2 + k1] + 2*dc[2 + k1]*dm2[2 + k2] + dc[6 + k2]*dm2[6 + k1] + dc[6 + k1]*dm2[6 + k2] + dd[k2]*dm3[k1] + dd[k1]*dm3[k2] + 3*dd[2 + k2]*dm3[2 + k1] + 3*dd[2 + k1]*dm3[2 + k2] + 3*dd[6 + k2]*dm3[6 + k1] + 3*dd[6 + k1]*dm3[6 + k2] + dd[14 + k2]*dm3[14 + k1] + dd[14 + k1]*dm3[14 + k2]);
-      rhs(1) = -(a*ddm1[2*k1 + k2] + b[0]*ddm2[2*k1 + k2] + b[1]*ddm2[4 + 2*k1 + k2] + c[0]*ddm3[2*k1 + k2] + 2*c[1]*ddm3[4 + 2*k1 + k2] + c[3]*ddm3[12 + 2*k1 + k2] + d[0]*ddm4[2*k1 + k2] + 3*d[1]*ddm4[4 + 2*k1 + k2] + 3*d[3]*ddm4[12 + 2*k1 + k2] + d[7]*ddm4[28 + 2*k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + db[2 + k2]*dm2[2 + k1] + db[2 + k1]*dm2[2 + k2] + dc[k2]*dm3[k1] + dc[k1]*dm3[k2] + 2*dc[2 + k2]*dm3[2 + k1] + 2*dc[2 + k1]*dm3[2 + k2] + dc[6 + k2]*dm3[6 + k1] + dc[6 + k1]*dm3[6 + k2] + dd[k2]*dm4[k1] + dd[k1]*dm4[k2] + 3*dd[2 + k2]*dm4[2 + k1] + 3*dd[2 + k1]*dm4[2 + k2] + 3*dd[6 + k2]*dm4[6 + k1] + 3*dd[6 + k1]*dm4[6 + k2] + dd[14 + k2]*dm4[14 + k1] + dd[14 + k1]*dm4[14 + k2]);
-      rhs(2) = -(a*ddm1[4 + 2*k1 + k2] + b[0]*ddm2[4 + 2*k1 + k2] + b[1]*ddm2[12 + 2*k1 + k2] + c[0]*ddm3[4 + 2*k1 + k2] + 2*c[1]*ddm3[12 + 2*k1 + k2] + c[3]*ddm3[28 + 2*k1 + k2] + d[0]*ddm4[4 + 2*k1 + k2] + 3*d[1]*ddm4[12 + 2*k1 + k2] + 3*d[3]*ddm4[28 + 2*k1 + k2] + d[7]*ddm4[60 + 2*k1 + k2] + da[k2]*dm1[2 + k1] + da[k1]*dm1[2 + k2] + db[k2]*dm2[2 + k1] + db[k1]*dm2[2 + k2] + db[2 + k2]*dm2[6 + k1] + db[2 + k1]*dm2[6 + k2] + dc[k2]*dm3[2 + k1] + dc[k1]*dm3[2 + k2] + 2*dc[2 + k2]*dm3[6 + k1] + 2*dc[2 + k1]*dm3[6 + k2] + dc[6 + k2]*dm3[14 + k1] + dc[6 + k1]*dm3[14 + k2] + dd[k2]*dm4[2 + k1] + dd[k1]*dm4[2 + k2] + 3*dd[2 + k2]*dm4[6 + k1] + 3*dd[2 + k1]*dm4[6 + k2] + 3*dd[6 + k2]*dm4[14 + k1] + 3*dd[6 + k1]*dm4[14 + k2] + dd[14 + k2]*dm4[30 + k1] + dd[14 + k1]*dm4[30 + k2]);
-      rhs(3) = -(a*ddm2[2*k1 + k2] + b[0]*ddm3[2*k1 + k2] + b[1]*ddm3[4 + 2*k1 + k2] + c[0]*ddm4[2*k1 + k2] + 2*c[1]*ddm4[4 + 2*k1 + k2] + c[3]*ddm4[12 + 2*k1 + k2] + d[0]*ddm5[2*k1 + k2] + 3*d[1]*ddm5[4 + 2*k1 + k2] + 3*d[3]*ddm5[12 + 2*k1 + k2] + d[7]*ddm5[28 + 2*k1 + k2] + da[k2]*dm2[k1] + da[k1]*dm2[k2] + db[k2]*dm3[k1] + db[k1]*dm3[k2] + db[2 + k2]*dm3[2 + k1] + db[2 + k1]*dm3[2 + k2] + dc[k2]*dm4[k1] + dc[k1]*dm4[k2] + 2*dc[2 + k2]*dm4[2 + k1] + 2*dc[2 + k1]*dm4[2 + k2] + dc[6 + k2]*dm4[6 + k1] + dc[6 + k1]*dm4[6 + k2] + dd[k2]*dm5[k1] + dd[k1]*dm5[k2] + 3*dd[2 + k2]*dm5[2 + k1] + 3*dd[2 + k1]*dm5[2 + k2] + 3*dd[6 + k2]*dm5[6 + k1] + 3*dd[6 + k1]*dm5[6 + k2] + dd[14 + k2]*dm5[14 + k1] + dd[14 + k1]*dm5[14 + k2]);
-      rhs(4) = -(a*ddm2[4 + 2*k1 + k2] + b[0]*ddm3[4 + 2*k1 + k2] + b[1]*ddm3[12 + 2*k1 + k2] + c[0]*ddm4[4 + 2*k1 + k2] + 2*c[1]*ddm4[12 + 2*k1 + k2] + c[3]*ddm4[28 + 2*k1 + k2] + d[0]*ddm5[4 + 2*k1 + k2] + 3*d[1]*ddm5[12 + 2*k1 + k2] + 3*d[3]*ddm5[28 + 2*k1 + k2] + d[7]*ddm5[60 + 2*k1 + k2] + da[k2]*dm2[2 + k1] + da[k1]*dm2[2 + k2] + db[k2]*dm3[2 + k1] + db[k1]*dm3[2 + k2] + db[2 + k2]*dm3[6 + k1] + db[2 + k1]*dm3[6 + k2] + dc[k2]*dm4[2 + k1] + dc[k1]*dm4[2 + k2] + 2*dc[2 + k2]*dm4[6 + k1] + 2*dc[2 + k1]*dm4[6 + k2] + dc[6 + k2]*dm4[14 + k1] + dc[6 + k1]*dm4[14 + k2] + dd[k2]*dm5[2 + k1] + dd[k1]*dm5[2 + k2] + 3*dd[2 + k2]*dm5[6 + k1] + 3*dd[2 + k1]*dm5[6 + k2] + 3*dd[6 + k2]*dm5[14 + k1] + 3*dd[6 + k1]*dm5[14 + k2] + dd[14 + k2]*dm5[30 + k1] + dd[14 + k1]*dm5[30 + k2]);
-      rhs(5) = -(a*ddm2[12 + 2*k1 + k2] + b[0]*ddm3[12 + 2*k1 + k2] + b[1]*ddm3[28 + 2*k1 + k2] + c[0]*ddm4[12 + 2*k1 + k2] + 2*c[1]*ddm4[28 + 2*k1 + k2] + c[3]*ddm4[60 + 2*k1 + k2] + d[0]*ddm5[12 + 2*k1 + k2] + 3*d[1]*ddm5[28 + 2*k1 + k2] + 3*d[3]*ddm5[60 + 2*k1 + k2] + d[7]*ddm5[124 + 2*k1 + k2] + da[k2]*dm2[6 + k1] + da[k1]*dm2[6 + k2] + db[k2]*dm3[6 + k1] + db[k1]*dm3[6 + k2] + db[2 + k2]*dm3[14 + k1] + db[2 + k1]*dm3[14 + k2] + dc[k2]*dm4[6 + k1] + dc[k1]*dm4[6 + k2] + 2*dc[2 + k2]*dm4[14 + k1] + 2*dc[2 + k1]*dm4[14 + k2] + dc[6 + k2]*dm4[30 + k1] + dc[6 + k1]*dm4[30 + k2] + dd[k2]*dm5[6 + k1] + dd[k1]*dm5[6 + k2] + 3*dd[2 + k2]*dm5[14 + k1] + 3*dd[2 + k1]*dm5[14 + k2] + 3*dd[6 + k2]*dm5[30 + k1] + 3*dd[6 + k1]*dm5[30 + k2] + dd[14 + k2]*dm5[62 + k1] + dd[14 + k1]*dm5[62 + k2]);
-      rhs(6) = -(a*ddm3[2*k1 + k2] + b[0]*ddm4[2*k1 + k2] + b[1]*ddm4[4 + 2*k1 + k2] + c[0]*ddm5[2*k1 + k2] + 2*c[1]*ddm5[4 + 2*k1 + k2] + c[3]*ddm5[12 + 2*k1 + k2] + d[0]*ddm6[2*k1 + k2] + 3*d[1]*ddm6[4 + 2*k1 + k2] + 3*d[3]*ddm6[12 + 2*k1 + k2] + d[7]*ddm6[28 + 2*k1 + k2] + da[k2]*dm3[k1] + da[k1]*dm3[k2] + db[k2]*dm4[k1] + db[k1]*dm4[k2] + db[2 + k2]*dm4[2 + k1] + db[2 + k1]*dm4[2 + k2] + dc[k2]*dm5[k1] + dc[k1]*dm5[k2] + 2*dc[2 + k2]*dm5[2 + k1] + 2*dc[2 + k1]*dm5[2 + k2] + dc[6 + k2]*dm5[6 + k1] + dc[6 + k1]*dm5[6 + k2] + dd[k2]*dm6[k1] + dd[k1]*dm6[k2] + 3*dd[2 + k2]*dm6[2 + k1] + 3*dd[2 + k1]*dm6[2 + k2] + 3*dd[6 + k2]*dm6[6 + k1] + 3*dd[6 + k1]*dm6[6 + k2] + dd[14 + k2]*dm6[14 + k1] + dd[14 + k1]*dm6[14 + k2]);
-      rhs(7) = -(a*ddm3[4 + 2*k1 + k2] + b[0]*ddm4[4 + 2*k1 + k2] + b[1]*ddm4[12 + 2*k1 + k2] + c[0]*ddm5[4 + 2*k1 + k2] + 2*c[1]*ddm5[12 + 2*k1 + k2] + c[3]*ddm5[28 + 2*k1 + k2] + d[0]*ddm6[4 + 2*k1 + k2] + 3*d[1]*ddm6[12 + 2*k1 + k2] + 3*d[3]*ddm6[28 + 2*k1 + k2] + d[7]*ddm6[60 + 2*k1 + k2] + da[k2]*dm3[2 + k1] + da[k1]*dm3[2 + k2] + db[k2]*dm4[2 + k1] + db[k1]*dm4[2 + k2] + db[2 + k2]*dm4[6 + k1] + db[2 + k1]*dm4[6 + k2] + dc[k2]*dm5[2 + k1] + dc[k1]*dm5[2 + k2] + 2*dc[2 + k2]*dm5[6 + k1] + 2*dc[2 + k1]*dm5[6 + k2] + dc[6 + k2]*dm5[14 + k1] + dc[6 + k1]*dm5[14 + k2] + dd[k2]*dm6[2 + k1] + dd[k1]*dm6[2 + k2] + 3*dd[2 + k2]*dm6[6 + k1] + 3*dd[2 + k1]*dm6[6 + k2] + 3*dd[6 + k2]*dm6[14 + k1] + 3*dd[6 + k1]*dm6[14 + k2] + dd[14 + k2]*dm6[30 + k1] + dd[14 + k1]*dm6[30 + k2]);
-      rhs(8) = -(a*ddm3[12 + 2*k1 + k2] + b[0]*ddm4[12 + 2*k1 + k2] + b[1]*ddm4[28 + 2*k1 + k2] + c[0]*ddm5[12 + 2*k1 + k2] + 2*c[1]*ddm5[28 + 2*k1 + k2] + c[3]*ddm5[60 + 2*k1 + k2] + d[0]*ddm6[12 + 2*k1 + k2] + 3*d[1]*ddm6[28 + 2*k1 + k2] + 3*d[3]*ddm6[60 + 2*k1 + k2] + d[7]*ddm6[124 + 2*k1 + k2] + da[k2]*dm3[6 + k1] + da[k1]*dm3[6 + k2] + db[k2]*dm4[6 + k1] + db[k1]*dm4[6 + k2] + db[2 + k2]*dm4[14 + k1] + db[2 + k1]*dm4[14 + k2] + dc[k2]*dm5[6 + k1] + dc[k1]*dm5[6 + k2] + 2*dc[2 + k2]*dm5[14 + k1] + 2*dc[2 + k1]*dm5[14 + k2] + dc[6 + k2]*dm5[30 + k1] + dc[6 + k1]*dm5[30 + k2] + dd[k2]*dm6[6 + k1] + dd[k1]*dm6[6 + k2] + 3*dd[2 + k2]*dm6[14 + k1] + 3*dd[2 + k1]*dm6[14 + k2] + 3*dd[6 + k2]*dm6[30 + k1] + 3*dd[6 + k1]*dm6[30 + k2] + dd[14 + k2]*dm6[62 + k1] + dd[14 + k1]*dm6[62 + k2]);
-      rhs(9) = -(a*ddm3[28 + 2*k1 + k2] + b[0]*ddm4[28 + 2*k1 + k2] + b[1]*ddm4[60 + 2*k1 + k2] + c[0]*ddm5[28 + 2*k1 + k2] + 2*c[1]*ddm5[60 + 2*k1 + k2] + c[3]*ddm5[124 + 2*k1 + k2] + d[0]*ddm6[28 + 2*k1 + k2] + 3*d[1]*ddm6[60 + 2*k1 + k2] + 3*d[3]*ddm6[124 + 2*k1 + k2] + d[7]*ddm6[252 + 2*k1 + k2] + da[k2]*dm3[14 + k1] + da[k1]*dm3[14 + k2] + db[k2]*dm4[14 + k1] + db[k1]*dm4[14 + k2] + db[2 + k2]*dm4[30 + k1] + db[2 + k1]*dm4[30 + k2] + dc[k2]*dm5[14 + k1] + dc[k1]*dm5[14 + k2] + 2*dc[2 + k2]*dm5[30 + k1] + 2*dc[2 + k1]*dm5[30 + k2] + dc[6 + k2]*dm5[62 + k1] + dc[6 + k1]*dm5[62 + k2] + dd[k2]*dm6[14 + k1] + dd[k1]*dm6[14 + k2] + 3*dd[2 + k2]*dm6[30 + k1] + 3*dd[2 + k1]*dm6[30 + k2] + 3*dd[6 + k2]*dm6[62 + k1] + 3*dd[6 + k1]*dm6[62 + k2] + dd[14 + k2]*dm6[126 + k1] + dd[14 + k1]*dm6[126 + k2]);
+  if (needHessian) {
+    for (auto k1 = 0; k1 < dim; ++k1) {
+      for (auto k2 = k1; k2 < dim; ++k2) {
+        rhs(0) = -(a*ddm0[2*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[2*k1 + k2] + b[1]*ddm1[4 + 2*k1 + k2] + c[0]*ddm2[2*k1 + k2] + 2*c[1]*ddm2[4 + 2*k1 + k2] + c[3]*ddm2[12 + 2*k1 + k2] + d[0]*ddm3[2*k1 + k2] + 3*d[1]*ddm3[4 + 2*k1 + k2] + 3*d[3]*ddm3[12 + 2*k1 + k2] + d[7]*ddm3[28 + 2*k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + db[2 + k2]*dm1[2 + k1] + db[2 + k1]*dm1[2 + k2] + dc[k2]*dm2[k1] + dc[k1]*dm2[k2] + 2*dc[2 + k2]*dm2[2 + k1] + 2*dc[2 + k1]*dm2[2 + k2] + dc[6 + k2]*dm2[6 + k1] + dc[6 + k1]*dm2[6 + k2] + dd[k2]*dm3[k1] + dd[k1]*dm3[k2] + 3*dd[2 + k2]*dm3[2 + k1] + 3*dd[2 + k1]*dm3[2 + k2] + 3*dd[6 + k2]*dm3[6 + k1] + 3*dd[6 + k1]*dm3[6 + k2] + dd[14 + k2]*dm3[14 + k1] + dd[14 + k1]*dm3[14 + k2]);
+        rhs(1) = -(a*ddm1[2*k1 + k2] + b[0]*ddm2[2*k1 + k2] + b[1]*ddm2[4 + 2*k1 + k2] + c[0]*ddm3[2*k1 + k2] + 2*c[1]*ddm3[4 + 2*k1 + k2] + c[3]*ddm3[12 + 2*k1 + k2] + d[0]*ddm4[2*k1 + k2] + 3*d[1]*ddm4[4 + 2*k1 + k2] + 3*d[3]*ddm4[12 + 2*k1 + k2] + d[7]*ddm4[28 + 2*k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + db[2 + k2]*dm2[2 + k1] + db[2 + k1]*dm2[2 + k2] + dc[k2]*dm3[k1] + dc[k1]*dm3[k2] + 2*dc[2 + k2]*dm3[2 + k1] + 2*dc[2 + k1]*dm3[2 + k2] + dc[6 + k2]*dm3[6 + k1] + dc[6 + k1]*dm3[6 + k2] + dd[k2]*dm4[k1] + dd[k1]*dm4[k2] + 3*dd[2 + k2]*dm4[2 + k1] + 3*dd[2 + k1]*dm4[2 + k2] + 3*dd[6 + k2]*dm4[6 + k1] + 3*dd[6 + k1]*dm4[6 + k2] + dd[14 + k2]*dm4[14 + k1] + dd[14 + k1]*dm4[14 + k2]);
+        rhs(2) = -(a*ddm1[4 + 2*k1 + k2] + b[0]*ddm2[4 + 2*k1 + k2] + b[1]*ddm2[12 + 2*k1 + k2] + c[0]*ddm3[4 + 2*k1 + k2] + 2*c[1]*ddm3[12 + 2*k1 + k2] + c[3]*ddm3[28 + 2*k1 + k2] + d[0]*ddm4[4 + 2*k1 + k2] + 3*d[1]*ddm4[12 + 2*k1 + k2] + 3*d[3]*ddm4[28 + 2*k1 + k2] + d[7]*ddm4[60 + 2*k1 + k2] + da[k2]*dm1[2 + k1] + da[k1]*dm1[2 + k2] + db[k2]*dm2[2 + k1] + db[k1]*dm2[2 + k2] + db[2 + k2]*dm2[6 + k1] + db[2 + k1]*dm2[6 + k2] + dc[k2]*dm3[2 + k1] + dc[k1]*dm3[2 + k2] + 2*dc[2 + k2]*dm3[6 + k1] + 2*dc[2 + k1]*dm3[6 + k2] + dc[6 + k2]*dm3[14 + k1] + dc[6 + k1]*dm3[14 + k2] + dd[k2]*dm4[2 + k1] + dd[k1]*dm4[2 + k2] + 3*dd[2 + k2]*dm4[6 + k1] + 3*dd[2 + k1]*dm4[6 + k2] + 3*dd[6 + k2]*dm4[14 + k1] + 3*dd[6 + k1]*dm4[14 + k2] + dd[14 + k2]*dm4[30 + k1] + dd[14 + k1]*dm4[30 + k2]);
+        rhs(3) = -(a*ddm2[2*k1 + k2] + b[0]*ddm3[2*k1 + k2] + b[1]*ddm3[4 + 2*k1 + k2] + c[0]*ddm4[2*k1 + k2] + 2*c[1]*ddm4[4 + 2*k1 + k2] + c[3]*ddm4[12 + 2*k1 + k2] + d[0]*ddm5[2*k1 + k2] + 3*d[1]*ddm5[4 + 2*k1 + k2] + 3*d[3]*ddm5[12 + 2*k1 + k2] + d[7]*ddm5[28 + 2*k1 + k2] + da[k2]*dm2[k1] + da[k1]*dm2[k2] + db[k2]*dm3[k1] + db[k1]*dm3[k2] + db[2 + k2]*dm3[2 + k1] + db[2 + k1]*dm3[2 + k2] + dc[k2]*dm4[k1] + dc[k1]*dm4[k2] + 2*dc[2 + k2]*dm4[2 + k1] + 2*dc[2 + k1]*dm4[2 + k2] + dc[6 + k2]*dm4[6 + k1] + dc[6 + k1]*dm4[6 + k2] + dd[k2]*dm5[k1] + dd[k1]*dm5[k2] + 3*dd[2 + k2]*dm5[2 + k1] + 3*dd[2 + k1]*dm5[2 + k2] + 3*dd[6 + k2]*dm5[6 + k1] + 3*dd[6 + k1]*dm5[6 + k2] + dd[14 + k2]*dm5[14 + k1] + dd[14 + k1]*dm5[14 + k2]);
+        rhs(4) = -(a*ddm2[4 + 2*k1 + k2] + b[0]*ddm3[4 + 2*k1 + k2] + b[1]*ddm3[12 + 2*k1 + k2] + c[0]*ddm4[4 + 2*k1 + k2] + 2*c[1]*ddm4[12 + 2*k1 + k2] + c[3]*ddm4[28 + 2*k1 + k2] + d[0]*ddm5[4 + 2*k1 + k2] + 3*d[1]*ddm5[12 + 2*k1 + k2] + 3*d[3]*ddm5[28 + 2*k1 + k2] + d[7]*ddm5[60 + 2*k1 + k2] + da[k2]*dm2[2 + k1] + da[k1]*dm2[2 + k2] + db[k2]*dm3[2 + k1] + db[k1]*dm3[2 + k2] + db[2 + k2]*dm3[6 + k1] + db[2 + k1]*dm3[6 + k2] + dc[k2]*dm4[2 + k1] + dc[k1]*dm4[2 + k2] + 2*dc[2 + k2]*dm4[6 + k1] + 2*dc[2 + k1]*dm4[6 + k2] + dc[6 + k2]*dm4[14 + k1] + dc[6 + k1]*dm4[14 + k2] + dd[k2]*dm5[2 + k1] + dd[k1]*dm5[2 + k2] + 3*dd[2 + k2]*dm5[6 + k1] + 3*dd[2 + k1]*dm5[6 + k2] + 3*dd[6 + k2]*dm5[14 + k1] + 3*dd[6 + k1]*dm5[14 + k2] + dd[14 + k2]*dm5[30 + k1] + dd[14 + k1]*dm5[30 + k2]);
+        rhs(5) = -(a*ddm2[12 + 2*k1 + k2] + b[0]*ddm3[12 + 2*k1 + k2] + b[1]*ddm3[28 + 2*k1 + k2] + c[0]*ddm4[12 + 2*k1 + k2] + 2*c[1]*ddm4[28 + 2*k1 + k2] + c[3]*ddm4[60 + 2*k1 + k2] + d[0]*ddm5[12 + 2*k1 + k2] + 3*d[1]*ddm5[28 + 2*k1 + k2] + 3*d[3]*ddm5[60 + 2*k1 + k2] + d[7]*ddm5[124 + 2*k1 + k2] + da[k2]*dm2[6 + k1] + da[k1]*dm2[6 + k2] + db[k2]*dm3[6 + k1] + db[k1]*dm3[6 + k2] + db[2 + k2]*dm3[14 + k1] + db[2 + k1]*dm3[14 + k2] + dc[k2]*dm4[6 + k1] + dc[k1]*dm4[6 + k2] + 2*dc[2 + k2]*dm4[14 + k1] + 2*dc[2 + k1]*dm4[14 + k2] + dc[6 + k2]*dm4[30 + k1] + dc[6 + k1]*dm4[30 + k2] + dd[k2]*dm5[6 + k1] + dd[k1]*dm5[6 + k2] + 3*dd[2 + k2]*dm5[14 + k1] + 3*dd[2 + k1]*dm5[14 + k2] + 3*dd[6 + k2]*dm5[30 + k1] + 3*dd[6 + k1]*dm5[30 + k2] + dd[14 + k2]*dm5[62 + k1] + dd[14 + k1]*dm5[62 + k2]);
+        rhs(6) = -(a*ddm3[2*k1 + k2] + b[0]*ddm4[2*k1 + k2] + b[1]*ddm4[4 + 2*k1 + k2] + c[0]*ddm5[2*k1 + k2] + 2*c[1]*ddm5[4 + 2*k1 + k2] + c[3]*ddm5[12 + 2*k1 + k2] + d[0]*ddm6[2*k1 + k2] + 3*d[1]*ddm6[4 + 2*k1 + k2] + 3*d[3]*ddm6[12 + 2*k1 + k2] + d[7]*ddm6[28 + 2*k1 + k2] + da[k2]*dm3[k1] + da[k1]*dm3[k2] + db[k2]*dm4[k1] + db[k1]*dm4[k2] + db[2 + k2]*dm4[2 + k1] + db[2 + k1]*dm4[2 + k2] + dc[k2]*dm5[k1] + dc[k1]*dm5[k2] + 2*dc[2 + k2]*dm5[2 + k1] + 2*dc[2 + k1]*dm5[2 + k2] + dc[6 + k2]*dm5[6 + k1] + dc[6 + k1]*dm5[6 + k2] + dd[k2]*dm6[k1] + dd[k1]*dm6[k2] + 3*dd[2 + k2]*dm6[2 + k1] + 3*dd[2 + k1]*dm6[2 + k2] + 3*dd[6 + k2]*dm6[6 + k1] + 3*dd[6 + k1]*dm6[6 + k2] + dd[14 + k2]*dm6[14 + k1] + dd[14 + k1]*dm6[14 + k2]);
+        rhs(7) = -(a*ddm3[4 + 2*k1 + k2] + b[0]*ddm4[4 + 2*k1 + k2] + b[1]*ddm4[12 + 2*k1 + k2] + c[0]*ddm5[4 + 2*k1 + k2] + 2*c[1]*ddm5[12 + 2*k1 + k2] + c[3]*ddm5[28 + 2*k1 + k2] + d[0]*ddm6[4 + 2*k1 + k2] + 3*d[1]*ddm6[12 + 2*k1 + k2] + 3*d[3]*ddm6[28 + 2*k1 + k2] + d[7]*ddm6[60 + 2*k1 + k2] + da[k2]*dm3[2 + k1] + da[k1]*dm3[2 + k2] + db[k2]*dm4[2 + k1] + db[k1]*dm4[2 + k2] + db[2 + k2]*dm4[6 + k1] + db[2 + k1]*dm4[6 + k2] + dc[k2]*dm5[2 + k1] + dc[k1]*dm5[2 + k2] + 2*dc[2 + k2]*dm5[6 + k1] + 2*dc[2 + k1]*dm5[6 + k2] + dc[6 + k2]*dm5[14 + k1] + dc[6 + k1]*dm5[14 + k2] + dd[k2]*dm6[2 + k1] + dd[k1]*dm6[2 + k2] + 3*dd[2 + k2]*dm6[6 + k1] + 3*dd[2 + k1]*dm6[6 + k2] + 3*dd[6 + k2]*dm6[14 + k1] + 3*dd[6 + k1]*dm6[14 + k2] + dd[14 + k2]*dm6[30 + k1] + dd[14 + k1]*dm6[30 + k2]);
+        rhs(8) = -(a*ddm3[12 + 2*k1 + k2] + b[0]*ddm4[12 + 2*k1 + k2] + b[1]*ddm4[28 + 2*k1 + k2] + c[0]*ddm5[12 + 2*k1 + k2] + 2*c[1]*ddm5[28 + 2*k1 + k2] + c[3]*ddm5[60 + 2*k1 + k2] + d[0]*ddm6[12 + 2*k1 + k2] + 3*d[1]*ddm6[28 + 2*k1 + k2] + 3*d[3]*ddm6[60 + 2*k1 + k2] + d[7]*ddm6[124 + 2*k1 + k2] + da[k2]*dm3[6 + k1] + da[k1]*dm3[6 + k2] + db[k2]*dm4[6 + k1] + db[k1]*dm4[6 + k2] + db[2 + k2]*dm4[14 + k1] + db[2 + k1]*dm4[14 + k2] + dc[k2]*dm5[6 + k1] + dc[k1]*dm5[6 + k2] + 2*dc[2 + k2]*dm5[14 + k1] + 2*dc[2 + k1]*dm5[14 + k2] + dc[6 + k2]*dm5[30 + k1] + dc[6 + k1]*dm5[30 + k2] + dd[k2]*dm6[6 + k1] + dd[k1]*dm6[6 + k2] + 3*dd[2 + k2]*dm6[14 + k1] + 3*dd[2 + k1]*dm6[14 + k2] + 3*dd[6 + k2]*dm6[30 + k1] + 3*dd[6 + k1]*dm6[30 + k2] + dd[14 + k2]*dm6[62 + k1] + dd[14 + k1]*dm6[62 + k2]);
+        rhs(9) = -(a*ddm3[28 + 2*k1 + k2] + b[0]*ddm4[28 + 2*k1 + k2] + b[1]*ddm4[60 + 2*k1 + k2] + c[0]*ddm5[28 + 2*k1 + k2] + 2*c[1]*ddm5[60 + 2*k1 + k2] + c[3]*ddm5[124 + 2*k1 + k2] + d[0]*ddm6[28 + 2*k1 + k2] + 3*d[1]*ddm6[60 + 2*k1 + k2] + 3*d[3]*ddm6[124 + 2*k1 + k2] + d[7]*ddm6[252 + 2*k1 + k2] + da[k2]*dm3[14 + k1] + da[k1]*dm3[14 + k2] + db[k2]*dm4[14 + k1] + db[k1]*dm4[14 + k2] + db[2 + k2]*dm4[30 + k1] + db[2 + k1]*dm4[30 + k2] + dc[k2]*dm5[14 + k1] + dc[k1]*dm5[14 + k2] + 2*dc[2 + k2]*dm5[30 + k1] + 2*dc[2 + k1]*dm5[30 + k2] + dc[6 + k2]*dm5[62 + k1] + dc[6 + k1]*dm5[62 + k2] + dd[k2]*dm6[14 + k1] + dd[k1]*dm6[14 + k2] + 3*dd[2 + k2]*dm6[30 + k1] + 3*dd[2 + k1]*dm6[30 + k2] + 3*dd[6 + k2]*dm6[62 + k1] + 3*dd[6 + k1]*dm6[62 + k2] + dd[14 + k2]*dm6[126 + k1] + dd[14 + k1]*dm6[126 + k2]);
  
-      lhs = solver.solve(rhs);
+        lhs = solver.solve(rhs);
 
-      dda[2*k1 + k2] = lhs(0);
-      ddb[2*k1 + k2] = lhs(1);
-      ddb[4 + 2*k1 + k2] = lhs(2);
-      ddc[2*k1 + k2] = lhs(3);
-      ddc[4 + 2*k1 + k2] = lhs(4);
-      ddc[12 + 2*k1 + k2] = lhs(5);
-      ddd[2*k1 + k2] = lhs(6);
-      ddd[4 + 2*k1 + k2] = lhs(7);
-      ddd[12 + 2*k1 + k2] = lhs(8);
-      ddd[28 + 2*k1 + k2] = lhs(9);      
+        dda[2*k1 + k2] = lhs(0);
+        ddb[2*k1 + k2] = lhs(1);
+        ddb[4 + 2*k1 + k2] = lhs(2);
+        ddc[2*k1 + k2] = lhs(3);
+        ddc[4 + 2*k1 + k2] = lhs(4);
+        ddc[12 + 2*k1 + k2] = lhs(5);
+        ddd[2*k1 + k2] = lhs(6);
+        ddd[4 + 2*k1 + k2] = lhs(7);
+        ddd[12 + 2*k1 + k2] = lhs(8);
+        ddd[28 + 2*k1 + k2] = lhs(9);      
+      }
     }
-  }
-  
+  }  
   // Fill symmetries
   fillSymmetries<Dim<2>>(ddb);
   fillSymmetries<Dim<2>>(c, dc, ddc);
@@ -1823,6 +2216,7 @@ template<>
 inline
 void
 computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
+                   const bool needHessian,
                    Dim<3>::Scalar& a,
                    Dim<3>::Vector& b,
                    Dim<3>::Tensor& c,
@@ -1980,54 +2374,55 @@ computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
     dd[78 + k1] = lhs(19);
   }
   // Solve for second derivatives
-  for (auto k1 = 0; k1 < dim; ++k1) {
-    for (auto k2 = k1; k2 < dim; ++k2) {
-      rhs(0) = -(a*ddm0[3*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[3*k1 + k2] + b[1]*ddm1[9 + 3*k1 + k2] + b[2]*ddm1[18 + 3*k1 + k2] + c[0]*ddm2[3*k1 + k2] + 2*c[1]*ddm2[9 + 3*k1 + k2] + 2*c[2]*ddm2[18 + 3*k1 + k2] + c[4]*ddm2[36 + 3*k1 + k2] + 2*c[5]*ddm2[45 + 3*k1 + k2] + c[8]*ddm2[72 + 3*k1 + k2] + d[0]*ddm3[3*k1 + k2] + 3*d[1]*ddm3[9 + 3*k1 + k2] + 3*d[2]*ddm3[18 + 3*k1 + k2] + 3*d[4]*ddm3[36 + 3*k1 + k2] + 6*d[5]*ddm3[45 + 3*k1 + k2] + 3*d[8]*ddm3[72 + 3*k1 + k2] + d[13]*ddm3[117 + 3*k1 + k2] + 3*d[14]*ddm3[126 + 3*k1 + k2] + 3*d[17]*ddm3[153 + 3*k1 + k2] + d[26]*ddm3[234 + 3*k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + db[3 + k2]*dm1[3 + k1] + db[3 + k1]*dm1[3 + k2] + db[6 + k2]*dm1[6 + k1] + db[6 + k1]*dm1[6 + k2] + dc[k2]*dm2[k1] + dc[k1]*dm2[k2] + 2*dc[3 + k2]*dm2[3 + k1] + 2*dc[3 + k1]*dm2[3 + k2] + 2*dc[6 + k2]*dm2[6 + k1] + 2*dc[6 + k1]*dm2[6 + k2] + dc[12 + k2]*dm2[12 + k1] + dc[12 + k1]*dm2[12 + k2] + 2*dc[15 + k2]*dm2[15 + k1] + 2*dc[15 + k1]*dm2[15 + k2] + dc[24 + k2]*dm2[24 + k1] + dc[24 + k1]*dm2[24 + k2] + dd[k2]*dm3[k1] + dd[k1]*dm3[k2] + 3*dd[3 + k2]*dm3[3 + k1] + 3*dd[3 + k1]*dm3[3 + k2] + 3*dd[6 + k2]*dm3[6 + k1] + 3*dd[6 + k1]*dm3[6 + k2] + 3*dd[12 + k2]*dm3[12 + k1] + 3*dd[12 + k1]*dm3[12 + k2] + 6*dd[15 + k2]*dm3[15 + k1] + 6*dd[15 + k1]*dm3[15 + k2] + 3*dd[24 + k2]*dm3[24 + k1] + 3*dd[24 + k1]*dm3[24 + k2] + dd[39 + k2]*dm3[39 + k1] + dd[39 + k1]*dm3[39 + k2] + 3*dd[42 + k2]*dm3[42 + k1] + 3*dd[42 + k1]*dm3[42 + k2] + 3*dd[51 + k2]*dm3[51 + k1] + 3*dd[51 + k1]*dm3[51 + k2] + dd[78 + k2]*dm3[78 + k1] + dd[78 + k1]*dm3[78 + k2]);
-      rhs(1) = -(a*ddm1[3*k1 + k2] + b[0]*ddm2[3*k1 + k2] + b[1]*ddm2[9 + 3*k1 + k2] + b[2]*ddm2[18 + 3*k1 + k2] + c[0]*ddm3[3*k1 + k2] + 2*c[1]*ddm3[9 + 3*k1 + k2] + 2*c[2]*ddm3[18 + 3*k1 + k2] + c[4]*ddm3[36 + 3*k1 + k2] + 2*c[5]*ddm3[45 + 3*k1 + k2] + c[8]*ddm3[72 + 3*k1 + k2] + d[0]*ddm4[3*k1 + k2] + 3*d[1]*ddm4[9 + 3*k1 + k2] + 3*d[2]*ddm4[18 + 3*k1 + k2] + 3*d[4]*ddm4[36 + 3*k1 + k2] + 6*d[5]*ddm4[45 + 3*k1 + k2] + 3*d[8]*ddm4[72 + 3*k1 + k2] + d[13]*ddm4[117 + 3*k1 + k2] + 3*d[14]*ddm4[126 + 3*k1 + k2] + 3*d[17]*ddm4[153 + 3*k1 + k2] + d[26]*ddm4[234 + 3*k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + db[3 + k2]*dm2[3 + k1] + db[3 + k1]*dm2[3 + k2] + db[6 + k2]*dm2[6 + k1] + db[6 + k1]*dm2[6 + k2] + dc[k2]*dm3[k1] + dc[k1]*dm3[k2] + 2*dc[3 + k2]*dm3[3 + k1] + 2*dc[3 + k1]*dm3[3 + k2] + 2*dc[6 + k2]*dm3[6 + k1] + 2*dc[6 + k1]*dm3[6 + k2] + dc[12 + k2]*dm3[12 + k1] + dc[12 + k1]*dm3[12 + k2] + 2*dc[15 + k2]*dm3[15 + k1] + 2*dc[15 + k1]*dm3[15 + k2] + dc[24 + k2]*dm3[24 + k1] + dc[24 + k1]*dm3[24 + k2] + dd[k2]*dm4[k1] + dd[k1]*dm4[k2] + 3*dd[3 + k2]*dm4[3 + k1] + 3*dd[3 + k1]*dm4[3 + k2] + 3*dd[6 + k2]*dm4[6 + k1] + 3*dd[6 + k1]*dm4[6 + k2] + 3*dd[12 + k2]*dm4[12 + k1] + 3*dd[12 + k1]*dm4[12 + k2] + 6*dd[15 + k2]*dm4[15 + k1] + 6*dd[15 + k1]*dm4[15 + k2] + 3*dd[24 + k2]*dm4[24 + k1] + 3*dd[24 + k1]*dm4[24 + k2] + dd[39 + k2]*dm4[39 + k1] + dd[39 + k1]*dm4[39 + k2] + 3*dd[42 + k2]*dm4[42 + k1] + 3*dd[42 + k1]*dm4[42 + k2] + 3*dd[51 + k2]*dm4[51 + k1] + 3*dd[51 + k1]*dm4[51 + k2] + dd[78 + k2]*dm4[78 + k1] + dd[78 + k1]*dm4[78 + k2]);
-      rhs(2) = -(a*ddm1[9 + 3*k1 + k2] + b[0]*ddm2[9 + 3*k1 + k2] + b[1]*ddm2[36 + 3*k1 + k2] + b[2]*ddm2[45 + 3*k1 + k2] + c[0]*ddm3[9 + 3*k1 + k2] + 2*c[1]*ddm3[36 + 3*k1 + k2] + 2*c[2]*ddm3[45 + 3*k1 + k2] + c[4]*ddm3[117 + 3*k1 + k2] + 2*c[5]*ddm3[126 + 3*k1 + k2] + c[8]*ddm3[153 + 3*k1 + k2] + d[0]*ddm4[9 + 3*k1 + k2] + 3*d[1]*ddm4[36 + 3*k1 + k2] + 3*d[2]*ddm4[45 + 3*k1 + k2] + 3*d[4]*ddm4[117 + 3*k1 + k2] + 6*d[5]*ddm4[126 + 3*k1 + k2] + 3*d[8]*ddm4[153 + 3*k1 + k2] + d[13]*ddm4[360 + 3*k1 + k2] + 3*d[14]*ddm4[369 + 3*k1 + k2] + 3*d[17]*ddm4[396 + 3*k1 + k2] + d[26]*ddm4[477 + 3*k1 + k2] + da[k2]*dm1[3 + k1] + da[k1]*dm1[3 + k2] + db[k2]*dm2[3 + k1] + db[k1]*dm2[3 + k2] + db[3 + k2]*dm2[12 + k1] + db[3 + k1]*dm2[12 + k2] + db[6 + k2]*dm2[15 + k1] + db[6 + k1]*dm2[15 + k2] + dc[k2]*dm3[3 + k1] + dc[k1]*dm3[3 + k2] + 2*dc[3 + k2]*dm3[12 + k1] + 2*dc[3 + k1]*dm3[12 + k2] + 2*dc[6 + k2]*dm3[15 + k1] + 2*dc[6 + k1]*dm3[15 + k2] + dc[12 + k2]*dm3[39 + k1] + dc[12 + k1]*dm3[39 + k2] + 2*dc[15 + k2]*dm3[42 + k1] + 2*dc[15 + k1]*dm3[42 + k2] + dc[24 + k2]*dm3[51 + k1] + dc[24 + k1]*dm3[51 + k2] + dd[k2]*dm4[3 + k1] + dd[k1]*dm4[3 + k2] + 3*dd[3 + k2]*dm4[12 + k1] + 3*dd[3 + k1]*dm4[12 + k2] + 3*dd[6 + k2]*dm4[15 + k1] + 3*dd[6 + k1]*dm4[15 + k2] + 3*dd[12 + k2]*dm4[39 + k1] + 3*dd[12 + k1]*dm4[39 + k2] + 6*dd[15 + k2]*dm4[42 + k1] + 6*dd[15 + k1]*dm4[42 + k2] + 3*dd[24 + k2]*dm4[51 + k1] + 3*dd[24 + k1]*dm4[51 + k2] + dd[39 + k2]*dm4[120 + k1] + dd[39 + k1]*dm4[120 + k2] + 3*dd[42 + k2]*dm4[123 + k1] + 3*dd[42 + k1]*dm4[123 + k2] + 3*dd[51 + k2]*dm4[132 + k1] + 3*dd[51 + k1]*dm4[132 + k2] + dd[78 + k2]*dm4[159 + k1] + dd[78 + k1]*dm4[159 + k2]);
-      rhs(3) = -(a*ddm1[18 + 3*k1 + k2] + b[0]*ddm2[18 + 3*k1 + k2] + b[1]*ddm2[45 + 3*k1 + k2] + b[2]*ddm2[72 + 3*k1 + k2] + c[0]*ddm3[18 + 3*k1 + k2] + 2*c[1]*ddm3[45 + 3*k1 + k2] + 2*c[2]*ddm3[72 + 3*k1 + k2] + c[4]*ddm3[126 + 3*k1 + k2] + 2*c[5]*ddm3[153 + 3*k1 + k2] + c[8]*ddm3[234 + 3*k1 + k2] + d[0]*ddm4[18 + 3*k1 + k2] + 3*d[1]*ddm4[45 + 3*k1 + k2] + 3*d[2]*ddm4[72 + 3*k1 + k2] + 3*d[4]*ddm4[126 + 3*k1 + k2] + 6*d[5]*ddm4[153 + 3*k1 + k2] + 3*d[8]*ddm4[234 + 3*k1 + k2] + d[13]*ddm4[369 + 3*k1 + k2] + 3*d[14]*ddm4[396 + 3*k1 + k2] + 3*d[17]*ddm4[477 + 3*k1 + k2] + d[26]*ddm4[720 + 3*k1 + k2] + da[k2]*dm1[6 + k1] + da[k1]*dm1[6 + k2] + db[k2]*dm2[6 + k1] + db[k1]*dm2[6 + k2] + db[3 + k2]*dm2[15 + k1] + db[3 + k1]*dm2[15 + k2] + db[6 + k2]*dm2[24 + k1] + db[6 + k1]*dm2[24 + k2] + dc[k2]*dm3[6 + k1] + dc[k1]*dm3[6 + k2] + 2*dc[3 + k2]*dm3[15 + k1] + 2*dc[3 + k1]*dm3[15 + k2] + 2*dc[6 + k2]*dm3[24 + k1] + 2*dc[6 + k1]*dm3[24 + k2] + dc[12 + k2]*dm3[42 + k1] + dc[12 + k1]*dm3[42 + k2] + 2*dc[15 + k2]*dm3[51 + k1] + 2*dc[15 + k1]*dm3[51 + k2] + dc[24 + k2]*dm3[78 + k1] + dc[24 + k1]*dm3[78 + k2] + dd[k2]*dm4[6 + k1] + dd[k1]*dm4[6 + k2] + 3*dd[3 + k2]*dm4[15 + k1] + 3*dd[3 + k1]*dm4[15 + k2] + 3*dd[6 + k2]*dm4[24 + k1] + 3*dd[6 + k1]*dm4[24 + k2] + 3*dd[12 + k2]*dm4[42 + k1] + 3*dd[12 + k1]*dm4[42 + k2] + 6*dd[15 + k2]*dm4[51 + k1] + 6*dd[15 + k1]*dm4[51 + k2] + 3*dd[24 + k2]*dm4[78 + k1] + 3*dd[24 + k1]*dm4[78 + k2] + dd[39 + k2]*dm4[123 + k1] + dd[39 + k1]*dm4[123 + k2] + 3*dd[42 + k2]*dm4[132 + k1] + 3*dd[42 + k1]*dm4[132 + k2] + 3*dd[51 + k2]*dm4[159 + k1] + 3*dd[51 + k1]*dm4[159 + k2] + dd[78 + k2]*dm4[240 + k1] + dd[78 + k1]*dm4[240 + k2]);
-      rhs(4) = -(a*ddm2[3*k1 + k2] + b[0]*ddm3[3*k1 + k2] + b[1]*ddm3[9 + 3*k1 + k2] + b[2]*ddm3[18 + 3*k1 + k2] + c[0]*ddm4[3*k1 + k2] + 2*c[1]*ddm4[9 + 3*k1 + k2] + 2*c[2]*ddm4[18 + 3*k1 + k2] + c[4]*ddm4[36 + 3*k1 + k2] + 2*c[5]*ddm4[45 + 3*k1 + k2] + c[8]*ddm4[72 + 3*k1 + k2] + d[0]*ddm5[3*k1 + k2] + 3*d[1]*ddm5[9 + 3*k1 + k2] + 3*d[2]*ddm5[18 + 3*k1 + k2] + 3*d[4]*ddm5[36 + 3*k1 + k2] + 6*d[5]*ddm5[45 + 3*k1 + k2] + 3*d[8]*ddm5[72 + 3*k1 + k2] + d[13]*ddm5[117 + 3*k1 + k2] + 3*d[14]*ddm5[126 + 3*k1 + k2] + 3*d[17]*ddm5[153 + 3*k1 + k2] + d[26]*ddm5[234 + 3*k1 + k2] + da[k2]*dm2[k1] + da[k1]*dm2[k2] + db[k2]*dm3[k1] + db[k1]*dm3[k2] + db[3 + k2]*dm3[3 + k1] + db[3 + k1]*dm3[3 + k2] + db[6 + k2]*dm3[6 + k1] + db[6 + k1]*dm3[6 + k2] + dc[k2]*dm4[k1] + dc[k1]*dm4[k2] + 2*dc[3 + k2]*dm4[3 + k1] + 2*dc[3 + k1]*dm4[3 + k2] + 2*dc[6 + k2]*dm4[6 + k1] + 2*dc[6 + k1]*dm4[6 + k2] + dc[12 + k2]*dm4[12 + k1] + dc[12 + k1]*dm4[12 + k2] + 2*dc[15 + k2]*dm4[15 + k1] + 2*dc[15 + k1]*dm4[15 + k2] + dc[24 + k2]*dm4[24 + k1] + dc[24 + k1]*dm4[24 + k2] + dd[k2]*dm5[k1] + dd[k1]*dm5[k2] + 3*dd[3 + k2]*dm5[3 + k1] + 3*dd[3 + k1]*dm5[3 + k2] + 3*dd[6 + k2]*dm5[6 + k1] + 3*dd[6 + k1]*dm5[6 + k2] + 3*dd[12 + k2]*dm5[12 + k1] + 3*dd[12 + k1]*dm5[12 + k2] + 6*dd[15 + k2]*dm5[15 + k1] + 6*dd[15 + k1]*dm5[15 + k2] + 3*dd[24 + k2]*dm5[24 + k1] + 3*dd[24 + k1]*dm5[24 + k2] + dd[39 + k2]*dm5[39 + k1] + dd[39 + k1]*dm5[39 + k2] + 3*dd[42 + k2]*dm5[42 + k1] + 3*dd[42 + k1]*dm5[42 + k2] + 3*dd[51 + k2]*dm5[51 + k1] + 3*dd[51 + k1]*dm5[51 + k2] + dd[78 + k2]*dm5[78 + k1] + dd[78 + k1]*dm5[78 + k2]);
-      rhs(5) = -(a*ddm2[9 + 3*k1 + k2] + b[0]*ddm3[9 + 3*k1 + k2] + b[1]*ddm3[36 + 3*k1 + k2] + b[2]*ddm3[45 + 3*k1 + k2] + c[0]*ddm4[9 + 3*k1 + k2] + 2*c[1]*ddm4[36 + 3*k1 + k2] + 2*c[2]*ddm4[45 + 3*k1 + k2] + c[4]*ddm4[117 + 3*k1 + k2] + 2*c[5]*ddm4[126 + 3*k1 + k2] + c[8]*ddm4[153 + 3*k1 + k2] + d[0]*ddm5[9 + 3*k1 + k2] + 3*d[1]*ddm5[36 + 3*k1 + k2] + 3*d[2]*ddm5[45 + 3*k1 + k2] + 3*d[4]*ddm5[117 + 3*k1 + k2] + 6*d[5]*ddm5[126 + 3*k1 + k2] + 3*d[8]*ddm5[153 + 3*k1 + k2] + d[13]*ddm5[360 + 3*k1 + k2] + 3*d[14]*ddm5[369 + 3*k1 + k2] + 3*d[17]*ddm5[396 + 3*k1 + k2] + d[26]*ddm5[477 + 3*k1 + k2] + da[k2]*dm2[3 + k1] + da[k1]*dm2[3 + k2] + db[k2]*dm3[3 + k1] + db[k1]*dm3[3 + k2] + db[3 + k2]*dm3[12 + k1] + db[3 + k1]*dm3[12 + k2] + db[6 + k2]*dm3[15 + k1] + db[6 + k1]*dm3[15 + k2] + dc[k2]*dm4[3 + k1] + dc[k1]*dm4[3 + k2] + 2*dc[3 + k2]*dm4[12 + k1] + 2*dc[3 + k1]*dm4[12 + k2] + 2*dc[6 + k2]*dm4[15 + k1] + 2*dc[6 + k1]*dm4[15 + k2] + dc[12 + k2]*dm4[39 + k1] + dc[12 + k1]*dm4[39 + k2] + 2*dc[15 + k2]*dm4[42 + k1] + 2*dc[15 + k1]*dm4[42 + k2] + dc[24 + k2]*dm4[51 + k1] + dc[24 + k1]*dm4[51 + k2] + dd[k2]*dm5[3 + k1] + dd[k1]*dm5[3 + k2] + 3*dd[3 + k2]*dm5[12 + k1] + 3*dd[3 + k1]*dm5[12 + k2] + 3*dd[6 + k2]*dm5[15 + k1] + 3*dd[6 + k1]*dm5[15 + k2] + 3*dd[12 + k2]*dm5[39 + k1] + 3*dd[12 + k1]*dm5[39 + k2] + 6*dd[15 + k2]*dm5[42 + k1] + 6*dd[15 + k1]*dm5[42 + k2] + 3*dd[24 + k2]*dm5[51 + k1] + 3*dd[24 + k1]*dm5[51 + k2] + dd[39 + k2]*dm5[120 + k1] + dd[39 + k1]*dm5[120 + k2] + 3*dd[42 + k2]*dm5[123 + k1] + 3*dd[42 + k1]*dm5[123 + k2] + 3*dd[51 + k2]*dm5[132 + k1] + 3*dd[51 + k1]*dm5[132 + k2] + dd[78 + k2]*dm5[159 + k1] + dd[78 + k1]*dm5[159 + k2]);
-      rhs(6) = -(a*ddm2[18 + 3*k1 + k2] + b[0]*ddm3[18 + 3*k1 + k2] + b[1]*ddm3[45 + 3*k1 + k2] + b[2]*ddm3[72 + 3*k1 + k2] + c[0]*ddm4[18 + 3*k1 + k2] + 2*c[1]*ddm4[45 + 3*k1 + k2] + 2*c[2]*ddm4[72 + 3*k1 + k2] + c[4]*ddm4[126 + 3*k1 + k2] + 2*c[5]*ddm4[153 + 3*k1 + k2] + c[8]*ddm4[234 + 3*k1 + k2] + d[0]*ddm5[18 + 3*k1 + k2] + 3*d[1]*ddm5[45 + 3*k1 + k2] + 3*d[2]*ddm5[72 + 3*k1 + k2] + 3*d[4]*ddm5[126 + 3*k1 + k2] + 6*d[5]*ddm5[153 + 3*k1 + k2] + 3*d[8]*ddm5[234 + 3*k1 + k2] + d[13]*ddm5[369 + 3*k1 + k2] + 3*d[14]*ddm5[396 + 3*k1 + k2] + 3*d[17]*ddm5[477 + 3*k1 + k2] + d[26]*ddm5[720 + 3*k1 + k2] + da[k2]*dm2[6 + k1] + da[k1]*dm2[6 + k2] + db[k2]*dm3[6 + k1] + db[k1]*dm3[6 + k2] + db[3 + k2]*dm3[15 + k1] + db[3 + k1]*dm3[15 + k2] + db[6 + k2]*dm3[24 + k1] + db[6 + k1]*dm3[24 + k2] + dc[k2]*dm4[6 + k1] + dc[k1]*dm4[6 + k2] + 2*dc[3 + k2]*dm4[15 + k1] + 2*dc[3 + k1]*dm4[15 + k2] + 2*dc[6 + k2]*dm4[24 + k1] + 2*dc[6 + k1]*dm4[24 + k2] + dc[12 + k2]*dm4[42 + k1] + dc[12 + k1]*dm4[42 + k2] + 2*dc[15 + k2]*dm4[51 + k1] + 2*dc[15 + k1]*dm4[51 + k2] + dc[24 + k2]*dm4[78 + k1] + dc[24 + k1]*dm4[78 + k2] + dd[k2]*dm5[6 + k1] + dd[k1]*dm5[6 + k2] + 3*dd[3 + k2]*dm5[15 + k1] + 3*dd[3 + k1]*dm5[15 + k2] + 3*dd[6 + k2]*dm5[24 + k1] + 3*dd[6 + k1]*dm5[24 + k2] + 3*dd[12 + k2]*dm5[42 + k1] + 3*dd[12 + k1]*dm5[42 + k2] + 6*dd[15 + k2]*dm5[51 + k1] + 6*dd[15 + k1]*dm5[51 + k2] + 3*dd[24 + k2]*dm5[78 + k1] + 3*dd[24 + k1]*dm5[78 + k2] + dd[39 + k2]*dm5[123 + k1] + dd[39 + k1]*dm5[123 + k2] + 3*dd[42 + k2]*dm5[132 + k1] + 3*dd[42 + k1]*dm5[132 + k2] + 3*dd[51 + k2]*dm5[159 + k1] + 3*dd[51 + k1]*dm5[159 + k2] + dd[78 + k2]*dm5[240 + k1] + dd[78 + k1]*dm5[240 + k2]);
-      rhs(7) = -(a*ddm2[36 + 3*k1 + k2] + b[0]*ddm3[36 + 3*k1 + k2] + b[1]*ddm3[117 + 3*k1 + k2] + b[2]*ddm3[126 + 3*k1 + k2] + c[0]*ddm4[36 + 3*k1 + k2] + 2*c[1]*ddm4[117 + 3*k1 + k2] + 2*c[2]*ddm4[126 + 3*k1 + k2] + c[4]*ddm4[360 + 3*k1 + k2] + 2*c[5]*ddm4[369 + 3*k1 + k2] + c[8]*ddm4[396 + 3*k1 + k2] + d[0]*ddm5[36 + 3*k1 + k2] + 3*d[1]*ddm5[117 + 3*k1 + k2] + 3*d[2]*ddm5[126 + 3*k1 + k2] + 3*d[4]*ddm5[360 + 3*k1 + k2] + 6*d[5]*ddm5[369 + 3*k1 + k2] + 3*d[8]*ddm5[396 + 3*k1 + k2] + d[13]*ddm5[1089 + 3*k1 + k2] + 3*d[14]*ddm5[1098 + 3*k1 + k2] + 3*d[17]*ddm5[1125 + 3*k1 + k2] + d[26]*ddm5[1206 + 3*k1 + k2] + da[k2]*dm2[12 + k1] + da[k1]*dm2[12 + k2] + db[k2]*dm3[12 + k1] + db[k1]*dm3[12 + k2] + db[3 + k2]*dm3[39 + k1] + db[3 + k1]*dm3[39 + k2] + db[6 + k2]*dm3[42 + k1] + db[6 + k1]*dm3[42 + k2] + dc[k2]*dm4[12 + k1] + dc[k1]*dm4[12 + k2] + 2*dc[3 + k2]*dm4[39 + k1] + 2*dc[3 + k1]*dm4[39 + k2] + 2*dc[6 + k2]*dm4[42 + k1] + 2*dc[6 + k1]*dm4[42 + k2] + dc[12 + k2]*dm4[120 + k1] + dc[12 + k1]*dm4[120 + k2] + 2*dc[15 + k2]*dm4[123 + k1] + 2*dc[15 + k1]*dm4[123 + k2] + dc[24 + k2]*dm4[132 + k1] + dc[24 + k1]*dm4[132 + k2] + dd[k2]*dm5[12 + k1] + dd[k1]*dm5[12 + k2] + 3*dd[3 + k2]*dm5[39 + k1] + 3*dd[3 + k1]*dm5[39 + k2] + 3*dd[6 + k2]*dm5[42 + k1] + 3*dd[6 + k1]*dm5[42 + k2] + 3*dd[12 + k2]*dm5[120 + k1] + 3*dd[12 + k1]*dm5[120 + k2] + 6*dd[15 + k2]*dm5[123 + k1] + 6*dd[15 + k1]*dm5[123 + k2] + 3*dd[24 + k2]*dm5[132 + k1] + 3*dd[24 + k1]*dm5[132 + k2] + dd[39 + k2]*dm5[363 + k1] + dd[39 + k1]*dm5[363 + k2] + 3*dd[42 + k2]*dm5[366 + k1] + 3*dd[42 + k1]*dm5[366 + k2] + 3*dd[51 + k2]*dm5[375 + k1] + 3*dd[51 + k1]*dm5[375 + k2] + dd[78 + k2]*dm5[402 + k1] + dd[78 + k1]*dm5[402 + k2]);
-      rhs(8) = -(a*ddm2[45 + 3*k1 + k2] + b[0]*ddm3[45 + 3*k1 + k2] + b[1]*ddm3[126 + 3*k1 + k2] + b[2]*ddm3[153 + 3*k1 + k2] + c[0]*ddm4[45 + 3*k1 + k2] + 2*c[1]*ddm4[126 + 3*k1 + k2] + 2*c[2]*ddm4[153 + 3*k1 + k2] + c[4]*ddm4[369 + 3*k1 + k2] + 2*c[5]*ddm4[396 + 3*k1 + k2] + c[8]*ddm4[477 + 3*k1 + k2] + d[0]*ddm5[45 + 3*k1 + k2] + 3*d[1]*ddm5[126 + 3*k1 + k2] + 3*d[2]*ddm5[153 + 3*k1 + k2] + 3*d[4]*ddm5[369 + 3*k1 + k2] + 6*d[5]*ddm5[396 + 3*k1 + k2] + 3*d[8]*ddm5[477 + 3*k1 + k2] + d[13]*ddm5[1098 + 3*k1 + k2] + 3*d[14]*ddm5[1125 + 3*k1 + k2] + 3*d[17]*ddm5[1206 + 3*k1 + k2] + d[26]*ddm5[1449 + 3*k1 + k2] + da[k2]*dm2[15 + k1] + da[k1]*dm2[15 + k2] + db[k2]*dm3[15 + k1] + db[k1]*dm3[15 + k2] + db[3 + k2]*dm3[42 + k1] + db[3 + k1]*dm3[42 + k2] + db[6 + k2]*dm3[51 + k1] + db[6 + k1]*dm3[51 + k2] + dc[k2]*dm4[15 + k1] + dc[k1]*dm4[15 + k2] + 2*dc[3 + k2]*dm4[42 + k1] + 2*dc[3 + k1]*dm4[42 + k2] + 2*dc[6 + k2]*dm4[51 + k1] + 2*dc[6 + k1]*dm4[51 + k2] + dc[12 + k2]*dm4[123 + k1] + dc[12 + k1]*dm4[123 + k2] + 2*dc[15 + k2]*dm4[132 + k1] + 2*dc[15 + k1]*dm4[132 + k2] + dc[24 + k2]*dm4[159 + k1] + dc[24 + k1]*dm4[159 + k2] + dd[k2]*dm5[15 + k1] + dd[k1]*dm5[15 + k2] + 3*dd[3 + k2]*dm5[42 + k1] + 3*dd[3 + k1]*dm5[42 + k2] + 3*dd[6 + k2]*dm5[51 + k1] + 3*dd[6 + k1]*dm5[51 + k2] + 3*dd[12 + k2]*dm5[123 + k1] + 3*dd[12 + k1]*dm5[123 + k2] + 6*dd[15 + k2]*dm5[132 + k1] + 6*dd[15 + k1]*dm5[132 + k2] + 3*dd[24 + k2]*dm5[159 + k1] + 3*dd[24 + k1]*dm5[159 + k2] + dd[39 + k2]*dm5[366 + k1] + dd[39 + k1]*dm5[366 + k2] + 3*dd[42 + k2]*dm5[375 + k1] + 3*dd[42 + k1]*dm5[375 + k2] + 3*dd[51 + k2]*dm5[402 + k1] + 3*dd[51 + k1]*dm5[402 + k2] + dd[78 + k2]*dm5[483 + k1] + dd[78 + k1]*dm5[483 + k2]);
-      rhs(9) = -(a*ddm2[72 + 3*k1 + k2] + b[0]*ddm3[72 + 3*k1 + k2] + b[1]*ddm3[153 + 3*k1 + k2] + b[2]*ddm3[234 + 3*k1 + k2] + c[0]*ddm4[72 + 3*k1 + k2] + 2*c[1]*ddm4[153 + 3*k1 + k2] + 2*c[2]*ddm4[234 + 3*k1 + k2] + c[4]*ddm4[396 + 3*k1 + k2] + 2*c[5]*ddm4[477 + 3*k1 + k2] + c[8]*ddm4[720 + 3*k1 + k2] + d[0]*ddm5[72 + 3*k1 + k2] + 3*d[1]*ddm5[153 + 3*k1 + k2] + 3*d[2]*ddm5[234 + 3*k1 + k2] + 3*d[4]*ddm5[396 + 3*k1 + k2] + 6*d[5]*ddm5[477 + 3*k1 + k2] + 3*d[8]*ddm5[720 + 3*k1 + k2] + d[13]*ddm5[1125 + 3*k1 + k2] + 3*d[14]*ddm5[1206 + 3*k1 + k2] + 3*d[17]*ddm5[1449 + 3*k1 + k2] + d[26]*ddm5[2178 + 3*k1 + k2] + da[k2]*dm2[24 + k1] + da[k1]*dm2[24 + k2] + db[k2]*dm3[24 + k1] + db[k1]*dm3[24 + k2] + db[3 + k2]*dm3[51 + k1] + db[3 + k1]*dm3[51 + k2] + db[6 + k2]*dm3[78 + k1] + db[6 + k1]*dm3[78 + k2] + dc[k2]*dm4[24 + k1] + dc[k1]*dm4[24 + k2] + 2*dc[3 + k2]*dm4[51 + k1] + 2*dc[3 + k1]*dm4[51 + k2] + 2*dc[6 + k2]*dm4[78 + k1] + 2*dc[6 + k1]*dm4[78 + k2] + dc[12 + k2]*dm4[132 + k1] + dc[12 + k1]*dm4[132 + k2] + 2*dc[15 + k2]*dm4[159 + k1] + 2*dc[15 + k1]*dm4[159 + k2] + dc[24 + k2]*dm4[240 + k1] + dc[24 + k1]*dm4[240 + k2] + dd[k2]*dm5[24 + k1] + dd[k1]*dm5[24 + k2] + 3*dd[3 + k2]*dm5[51 + k1] + 3*dd[3 + k1]*dm5[51 + k2] + 3*dd[6 + k2]*dm5[78 + k1] + 3*dd[6 + k1]*dm5[78 + k2] + 3*dd[12 + k2]*dm5[132 + k1] + 3*dd[12 + k1]*dm5[132 + k2] + 6*dd[15 + k2]*dm5[159 + k1] + 6*dd[15 + k1]*dm5[159 + k2] + 3*dd[24 + k2]*dm5[240 + k1] + 3*dd[24 + k1]*dm5[240 + k2] + dd[39 + k2]*dm5[375 + k1] + dd[39 + k1]*dm5[375 + k2] + 3*dd[42 + k2]*dm5[402 + k1] + 3*dd[42 + k1]*dm5[402 + k2] + 3*dd[51 + k2]*dm5[483 + k1] + 3*dd[51 + k1]*dm5[483 + k2] + dd[78 + k2]*dm5[726 + k1] + dd[78 + k1]*dm5[726 + k2]);
-      rhs(10) = -(a*ddm3[3*k1 + k2] + b[0]*ddm4[3*k1 + k2] + b[1]*ddm4[9 + 3*k1 + k2] + b[2]*ddm4[18 + 3*k1 + k2] + c[0]*ddm5[3*k1 + k2] + 2*c[1]*ddm5[9 + 3*k1 + k2] + 2*c[2]*ddm5[18 + 3*k1 + k2] + c[4]*ddm5[36 + 3*k1 + k2] + 2*c[5]*ddm5[45 + 3*k1 + k2] + c[8]*ddm5[72 + 3*k1 + k2] + d[0]*ddm6[3*k1 + k2] + 3*d[1]*ddm6[9 + 3*k1 + k2] + 3*d[2]*ddm6[18 + 3*k1 + k2] + 3*d[4]*ddm6[36 + 3*k1 + k2] + 6*d[5]*ddm6[45 + 3*k1 + k2] + 3*d[8]*ddm6[72 + 3*k1 + k2] + d[13]*ddm6[117 + 3*k1 + k2] + 3*d[14]*ddm6[126 + 3*k1 + k2] + 3*d[17]*ddm6[153 + 3*k1 + k2] + d[26]*ddm6[234 + 3*k1 + k2] + da[k2]*dm3[k1] + da[k1]*dm3[k2] + db[k2]*dm4[k1] + db[k1]*dm4[k2] + db[3 + k2]*dm4[3 + k1] + db[3 + k1]*dm4[3 + k2] + db[6 + k2]*dm4[6 + k1] + db[6 + k1]*dm4[6 + k2] + dc[k2]*dm5[k1] + dc[k1]*dm5[k2] + 2*dc[3 + k2]*dm5[3 + k1] + 2*dc[3 + k1]*dm5[3 + k2] + 2*dc[6 + k2]*dm5[6 + k1] + 2*dc[6 + k1]*dm5[6 + k2] + dc[12 + k2]*dm5[12 + k1] + dc[12 + k1]*dm5[12 + k2] + 2*dc[15 + k2]*dm5[15 + k1] + 2*dc[15 + k1]*dm5[15 + k2] + dc[24 + k2]*dm5[24 + k1] + dc[24 + k1]*dm5[24 + k2] + dd[k2]*dm6[k1] + dd[k1]*dm6[k2] + 3*dd[3 + k2]*dm6[3 + k1] + 3*dd[3 + k1]*dm6[3 + k2] + 3*dd[6 + k2]*dm6[6 + k1] + 3*dd[6 + k1]*dm6[6 + k2] + 3*dd[12 + k2]*dm6[12 + k1] + 3*dd[12 + k1]*dm6[12 + k2] + 6*dd[15 + k2]*dm6[15 + k1] + 6*dd[15 + k1]*dm6[15 + k2] + 3*dd[24 + k2]*dm6[24 + k1] + 3*dd[24 + k1]*dm6[24 + k2] + dd[39 + k2]*dm6[39 + k1] + dd[39 + k1]*dm6[39 + k2] + 3*dd[42 + k2]*dm6[42 + k1] + 3*dd[42 + k1]*dm6[42 + k2] + 3*dd[51 + k2]*dm6[51 + k1] + 3*dd[51 + k1]*dm6[51 + k2] + dd[78 + k2]*dm6[78 + k1] + dd[78 + k1]*dm6[78 + k2]);
-      rhs(11) = -(a*ddm3[9 + 3*k1 + k2] + b[0]*ddm4[9 + 3*k1 + k2] + b[1]*ddm4[36 + 3*k1 + k2] + b[2]*ddm4[45 + 3*k1 + k2] + c[0]*ddm5[9 + 3*k1 + k2] + 2*c[1]*ddm5[36 + 3*k1 + k2] + 2*c[2]*ddm5[45 + 3*k1 + k2] + c[4]*ddm5[117 + 3*k1 + k2] + 2*c[5]*ddm5[126 + 3*k1 + k2] + c[8]*ddm5[153 + 3*k1 + k2] + d[0]*ddm6[9 + 3*k1 + k2] + 3*d[1]*ddm6[36 + 3*k1 + k2] + 3*d[2]*ddm6[45 + 3*k1 + k2] + 3*d[4]*ddm6[117 + 3*k1 + k2] + 6*d[5]*ddm6[126 + 3*k1 + k2] + 3*d[8]*ddm6[153 + 3*k1 + k2] + d[13]*ddm6[360 + 3*k1 + k2] + 3*d[14]*ddm6[369 + 3*k1 + k2] + 3*d[17]*ddm6[396 + 3*k1 + k2] + d[26]*ddm6[477 + 3*k1 + k2] + da[k2]*dm3[3 + k1] + da[k1]*dm3[3 + k2] + db[k2]*dm4[3 + k1] + db[k1]*dm4[3 + k2] + db[3 + k2]*dm4[12 + k1] + db[3 + k1]*dm4[12 + k2] + db[6 + k2]*dm4[15 + k1] + db[6 + k1]*dm4[15 + k2] + dc[k2]*dm5[3 + k1] + dc[k1]*dm5[3 + k2] + 2*dc[3 + k2]*dm5[12 + k1] + 2*dc[3 + k1]*dm5[12 + k2] + 2*dc[6 + k2]*dm5[15 + k1] + 2*dc[6 + k1]*dm5[15 + k2] + dc[12 + k2]*dm5[39 + k1] + dc[12 + k1]*dm5[39 + k2] + 2*dc[15 + k2]*dm5[42 + k1] + 2*dc[15 + k1]*dm5[42 + k2] + dc[24 + k2]*dm5[51 + k1] + dc[24 + k1]*dm5[51 + k2] + dd[k2]*dm6[3 + k1] + dd[k1]*dm6[3 + k2] + 3*dd[3 + k2]*dm6[12 + k1] + 3*dd[3 + k1]*dm6[12 + k2] + 3*dd[6 + k2]*dm6[15 + k1] + 3*dd[6 + k1]*dm6[15 + k2] + 3*dd[12 + k2]*dm6[39 + k1] + 3*dd[12 + k1]*dm6[39 + k2] + 6*dd[15 + k2]*dm6[42 + k1] + 6*dd[15 + k1]*dm6[42 + k2] + 3*dd[24 + k2]*dm6[51 + k1] + 3*dd[24 + k1]*dm6[51 + k2] + dd[39 + k2]*dm6[120 + k1] + dd[39 + k1]*dm6[120 + k2] + 3*dd[42 + k2]*dm6[123 + k1] + 3*dd[42 + k1]*dm6[123 + k2] + 3*dd[51 + k2]*dm6[132 + k1] + 3*dd[51 + k1]*dm6[132 + k2] + dd[78 + k2]*dm6[159 + k1] + dd[78 + k1]*dm6[159 + k2]);
-      rhs(12) = -(a*ddm3[18 + 3*k1 + k2] + b[0]*ddm4[18 + 3*k1 + k2] + b[1]*ddm4[45 + 3*k1 + k2] + b[2]*ddm4[72 + 3*k1 + k2] + c[0]*ddm5[18 + 3*k1 + k2] + 2*c[1]*ddm5[45 + 3*k1 + k2] + 2*c[2]*ddm5[72 + 3*k1 + k2] + c[4]*ddm5[126 + 3*k1 + k2] + 2*c[5]*ddm5[153 + 3*k1 + k2] + c[8]*ddm5[234 + 3*k1 + k2] + d[0]*ddm6[18 + 3*k1 + k2] + 3*d[1]*ddm6[45 + 3*k1 + k2] + 3*d[2]*ddm6[72 + 3*k1 + k2] + 3*d[4]*ddm6[126 + 3*k1 + k2] + 6*d[5]*ddm6[153 + 3*k1 + k2] + 3*d[8]*ddm6[234 + 3*k1 + k2] + d[13]*ddm6[369 + 3*k1 + k2] + 3*d[14]*ddm6[396 + 3*k1 + k2] + 3*d[17]*ddm6[477 + 3*k1 + k2] + d[26]*ddm6[720 + 3*k1 + k2] + da[k2]*dm3[6 + k1] + da[k1]*dm3[6 + k2] + db[k2]*dm4[6 + k1] + db[k1]*dm4[6 + k2] + db[3 + k2]*dm4[15 + k1] + db[3 + k1]*dm4[15 + k2] + db[6 + k2]*dm4[24 + k1] + db[6 + k1]*dm4[24 + k2] + dc[k2]*dm5[6 + k1] + dc[k1]*dm5[6 + k2] + 2*dc[3 + k2]*dm5[15 + k1] + 2*dc[3 + k1]*dm5[15 + k2] + 2*dc[6 + k2]*dm5[24 + k1] + 2*dc[6 + k1]*dm5[24 + k2] + dc[12 + k2]*dm5[42 + k1] + dc[12 + k1]*dm5[42 + k2] + 2*dc[15 + k2]*dm5[51 + k1] + 2*dc[15 + k1]*dm5[51 + k2] + dc[24 + k2]*dm5[78 + k1] + dc[24 + k1]*dm5[78 + k2] + dd[k2]*dm6[6 + k1] + dd[k1]*dm6[6 + k2] + 3*dd[3 + k2]*dm6[15 + k1] + 3*dd[3 + k1]*dm6[15 + k2] + 3*dd[6 + k2]*dm6[24 + k1] + 3*dd[6 + k1]*dm6[24 + k2] + 3*dd[12 + k2]*dm6[42 + k1] + 3*dd[12 + k1]*dm6[42 + k2] + 6*dd[15 + k2]*dm6[51 + k1] + 6*dd[15 + k1]*dm6[51 + k2] + 3*dd[24 + k2]*dm6[78 + k1] + 3*dd[24 + k1]*dm6[78 + k2] + dd[39 + k2]*dm6[123 + k1] + dd[39 + k1]*dm6[123 + k2] + 3*dd[42 + k2]*dm6[132 + k1] + 3*dd[42 + k1]*dm6[132 + k2] + 3*dd[51 + k2]*dm6[159 + k1] + 3*dd[51 + k1]*dm6[159 + k2] + dd[78 + k2]*dm6[240 + k1] + dd[78 + k1]*dm6[240 + k2]);
-      rhs(13) = -(a*ddm3[36 + 3*k1 + k2] + b[0]*ddm4[36 + 3*k1 + k2] + b[1]*ddm4[117 + 3*k1 + k2] + b[2]*ddm4[126 + 3*k1 + k2] + c[0]*ddm5[36 + 3*k1 + k2] + 2*c[1]*ddm5[117 + 3*k1 + k2] + 2*c[2]*ddm5[126 + 3*k1 + k2] + c[4]*ddm5[360 + 3*k1 + k2] + 2*c[5]*ddm5[369 + 3*k1 + k2] + c[8]*ddm5[396 + 3*k1 + k2] + d[0]*ddm6[36 + 3*k1 + k2] + 3*d[1]*ddm6[117 + 3*k1 + k2] + 3*d[2]*ddm6[126 + 3*k1 + k2] + 3*d[4]*ddm6[360 + 3*k1 + k2] + 6*d[5]*ddm6[369 + 3*k1 + k2] + 3*d[8]*ddm6[396 + 3*k1 + k2] + d[13]*ddm6[1089 + 3*k1 + k2] + 3*d[14]*ddm6[1098 + 3*k1 + k2] + 3*d[17]*ddm6[1125 + 3*k1 + k2] + d[26]*ddm6[1206 + 3*k1 + k2] + da[k2]*dm3[12 + k1] + da[k1]*dm3[12 + k2] + db[k2]*dm4[12 + k1] + db[k1]*dm4[12 + k2] + db[3 + k2]*dm4[39 + k1] + db[3 + k1]*dm4[39 + k2] + db[6 + k2]*dm4[42 + k1] + db[6 + k1]*dm4[42 + k2] + dc[k2]*dm5[12 + k1] + dc[k1]*dm5[12 + k2] + 2*dc[3 + k2]*dm5[39 + k1] + 2*dc[3 + k1]*dm5[39 + k2] + 2*dc[6 + k2]*dm5[42 + k1] + 2*dc[6 + k1]*dm5[42 + k2] + dc[12 + k2]*dm5[120 + k1] + dc[12 + k1]*dm5[120 + k2] + 2*dc[15 + k2]*dm5[123 + k1] + 2*dc[15 + k1]*dm5[123 + k2] + dc[24 + k2]*dm5[132 + k1] + dc[24 + k1]*dm5[132 + k2] + dd[k2]*dm6[12 + k1] + dd[k1]*dm6[12 + k2] + 3*dd[3 + k2]*dm6[39 + k1] + 3*dd[3 + k1]*dm6[39 + k2] + 3*dd[6 + k2]*dm6[42 + k1] + 3*dd[6 + k1]*dm6[42 + k2] + 3*dd[12 + k2]*dm6[120 + k1] + 3*dd[12 + k1]*dm6[120 + k2] + 6*dd[15 + k2]*dm6[123 + k1] + 6*dd[15 + k1]*dm6[123 + k2] + 3*dd[24 + k2]*dm6[132 + k1] + 3*dd[24 + k1]*dm6[132 + k2] + dd[39 + k2]*dm6[363 + k1] + dd[39 + k1]*dm6[363 + k2] + 3*dd[42 + k2]*dm6[366 + k1] + 3*dd[42 + k1]*dm6[366 + k2] + 3*dd[51 + k2]*dm6[375 + k1] + 3*dd[51 + k1]*dm6[375 + k2] + dd[78 + k2]*dm6[402 + k1] + dd[78 + k1]*dm6[402 + k2]);
-      rhs(14) = -(a*ddm3[45 + 3*k1 + k2] + b[0]*ddm4[45 + 3*k1 + k2] + b[1]*ddm4[126 + 3*k1 + k2] + b[2]*ddm4[153 + 3*k1 + k2] + c[0]*ddm5[45 + 3*k1 + k2] + 2*c[1]*ddm5[126 + 3*k1 + k2] + 2*c[2]*ddm5[153 + 3*k1 + k2] + c[4]*ddm5[369 + 3*k1 + k2] + 2*c[5]*ddm5[396 + 3*k1 + k2] + c[8]*ddm5[477 + 3*k1 + k2] + d[0]*ddm6[45 + 3*k1 + k2] + 3*d[1]*ddm6[126 + 3*k1 + k2] + 3*d[2]*ddm6[153 + 3*k1 + k2] + 3*d[4]*ddm6[369 + 3*k1 + k2] + 6*d[5]*ddm6[396 + 3*k1 + k2] + 3*d[8]*ddm6[477 + 3*k1 + k2] + d[13]*ddm6[1098 + 3*k1 + k2] + 3*d[14]*ddm6[1125 + 3*k1 + k2] + 3*d[17]*ddm6[1206 + 3*k1 + k2] + d[26]*ddm6[1449 + 3*k1 + k2] + da[k2]*dm3[15 + k1] + da[k1]*dm3[15 + k2] + db[k2]*dm4[15 + k1] + db[k1]*dm4[15 + k2] + db[3 + k2]*dm4[42 + k1] + db[3 + k1]*dm4[42 + k2] + db[6 + k2]*dm4[51 + k1] + db[6 + k1]*dm4[51 + k2] + dc[k2]*dm5[15 + k1] + dc[k1]*dm5[15 + k2] + 2*dc[3 + k2]*dm5[42 + k1] + 2*dc[3 + k1]*dm5[42 + k2] + 2*dc[6 + k2]*dm5[51 + k1] + 2*dc[6 + k1]*dm5[51 + k2] + dc[12 + k2]*dm5[123 + k1] + dc[12 + k1]*dm5[123 + k2] + 2*dc[15 + k2]*dm5[132 + k1] + 2*dc[15 + k1]*dm5[132 + k2] + dc[24 + k2]*dm5[159 + k1] + dc[24 + k1]*dm5[159 + k2] + dd[k2]*dm6[15 + k1] + dd[k1]*dm6[15 + k2] + 3*dd[3 + k2]*dm6[42 + k1] + 3*dd[3 + k1]*dm6[42 + k2] + 3*dd[6 + k2]*dm6[51 + k1] + 3*dd[6 + k1]*dm6[51 + k2] + 3*dd[12 + k2]*dm6[123 + k1] + 3*dd[12 + k1]*dm6[123 + k2] + 6*dd[15 + k2]*dm6[132 + k1] + 6*dd[15 + k1]*dm6[132 + k2] + 3*dd[24 + k2]*dm6[159 + k1] + 3*dd[24 + k1]*dm6[159 + k2] + dd[39 + k2]*dm6[366 + k1] + dd[39 + k1]*dm6[366 + k2] + 3*dd[42 + k2]*dm6[375 + k1] + 3*dd[42 + k1]*dm6[375 + k2] + 3*dd[51 + k2]*dm6[402 + k1] + 3*dd[51 + k1]*dm6[402 + k2] + dd[78 + k2]*dm6[483 + k1] + dd[78 + k1]*dm6[483 + k2]);
-      rhs(15) = -(a*ddm3[72 + 3*k1 + k2] + b[0]*ddm4[72 + 3*k1 + k2] + b[1]*ddm4[153 + 3*k1 + k2] + b[2]*ddm4[234 + 3*k1 + k2] + c[0]*ddm5[72 + 3*k1 + k2] + 2*c[1]*ddm5[153 + 3*k1 + k2] + 2*c[2]*ddm5[234 + 3*k1 + k2] + c[4]*ddm5[396 + 3*k1 + k2] + 2*c[5]*ddm5[477 + 3*k1 + k2] + c[8]*ddm5[720 + 3*k1 + k2] + d[0]*ddm6[72 + 3*k1 + k2] + 3*d[1]*ddm6[153 + 3*k1 + k2] + 3*d[2]*ddm6[234 + 3*k1 + k2] + 3*d[4]*ddm6[396 + 3*k1 + k2] + 6*d[5]*ddm6[477 + 3*k1 + k2] + 3*d[8]*ddm6[720 + 3*k1 + k2] + d[13]*ddm6[1125 + 3*k1 + k2] + 3*d[14]*ddm6[1206 + 3*k1 + k2] + 3*d[17]*ddm6[1449 + 3*k1 + k2] + d[26]*ddm6[2178 + 3*k1 + k2] + da[k2]*dm3[24 + k1] + da[k1]*dm3[24 + k2] + db[k2]*dm4[24 + k1] + db[k1]*dm4[24 + k2] + db[3 + k2]*dm4[51 + k1] + db[3 + k1]*dm4[51 + k2] + db[6 + k2]*dm4[78 + k1] + db[6 + k1]*dm4[78 + k2] + dc[k2]*dm5[24 + k1] + dc[k1]*dm5[24 + k2] + 2*dc[3 + k2]*dm5[51 + k1] + 2*dc[3 + k1]*dm5[51 + k2] + 2*dc[6 + k2]*dm5[78 + k1] + 2*dc[6 + k1]*dm5[78 + k2] + dc[12 + k2]*dm5[132 + k1] + dc[12 + k1]*dm5[132 + k2] + 2*dc[15 + k2]*dm5[159 + k1] + 2*dc[15 + k1]*dm5[159 + k2] + dc[24 + k2]*dm5[240 + k1] + dc[24 + k1]*dm5[240 + k2] + dd[k2]*dm6[24 + k1] + dd[k1]*dm6[24 + k2] + 3*dd[3 + k2]*dm6[51 + k1] + 3*dd[3 + k1]*dm6[51 + k2] + 3*dd[6 + k2]*dm6[78 + k1] + 3*dd[6 + k1]*dm6[78 + k2] + 3*dd[12 + k2]*dm6[132 + k1] + 3*dd[12 + k1]*dm6[132 + k2] + 6*dd[15 + k2]*dm6[159 + k1] + 6*dd[15 + k1]*dm6[159 + k2] + 3*dd[24 + k2]*dm6[240 + k1] + 3*dd[24 + k1]*dm6[240 + k2] + dd[39 + k2]*dm6[375 + k1] + dd[39 + k1]*dm6[375 + k2] + 3*dd[42 + k2]*dm6[402 + k1] + 3*dd[42 + k1]*dm6[402 + k2] + 3*dd[51 + k2]*dm6[483 + k1] + 3*dd[51 + k1]*dm6[483 + k2] + dd[78 + k2]*dm6[726 + k1] + dd[78 + k1]*dm6[726 + k2]);
-      rhs(16) = -(a*ddm3[117 + 3*k1 + k2] + b[0]*ddm4[117 + 3*k1 + k2] + b[1]*ddm4[360 + 3*k1 + k2] + b[2]*ddm4[369 + 3*k1 + k2] + c[0]*ddm5[117 + 3*k1 + k2] + 2*c[1]*ddm5[360 + 3*k1 + k2] + 2*c[2]*ddm5[369 + 3*k1 + k2] + c[4]*ddm5[1089 + 3*k1 + k2] + 2*c[5]*ddm5[1098 + 3*k1 + k2] + c[8]*ddm5[1125 + 3*k1 + k2] + d[0]*ddm6[117 + 3*k1 + k2] + 3*d[1]*ddm6[360 + 3*k1 + k2] + 3*d[2]*ddm6[369 + 3*k1 + k2] + 3*d[4]*ddm6[1089 + 3*k1 + k2] + 6*d[5]*ddm6[1098 + 3*k1 + k2] + 3*d[8]*ddm6[1125 + 3*k1 + k2] + d[13]*ddm6[3276 + 3*k1 + k2] + 3*d[14]*ddm6[3285 + 3*k1 + k2] + 3*d[17]*ddm6[3312 + 3*k1 + k2] + d[26]*ddm6[3393 + 3*k1 + k2] + da[k2]*dm3[39 + k1] + da[k1]*dm3[39 + k2] + db[k2]*dm4[39 + k1] + db[k1]*dm4[39 + k2] + db[3 + k2]*dm4[120 + k1] + db[3 + k1]*dm4[120 + k2] + db[6 + k2]*dm4[123 + k1] + db[6 + k1]*dm4[123 + k2] + dc[k2]*dm5[39 + k1] + dc[k1]*dm5[39 + k2] + 2*dc[3 + k2]*dm5[120 + k1] + 2*dc[3 + k1]*dm5[120 + k2] + 2*dc[6 + k2]*dm5[123 + k1] + 2*dc[6 + k1]*dm5[123 + k2] + dc[12 + k2]*dm5[363 + k1] + dc[12 + k1]*dm5[363 + k2] + 2*dc[15 + k2]*dm5[366 + k1] + 2*dc[15 + k1]*dm5[366 + k2] + dc[24 + k2]*dm5[375 + k1] + dc[24 + k1]*dm5[375 + k2] + dd[k2]*dm6[39 + k1] + dd[k1]*dm6[39 + k2] + 3*dd[3 + k2]*dm6[120 + k1] + 3*dd[3 + k1]*dm6[120 + k2] + 3*dd[6 + k2]*dm6[123 + k1] + 3*dd[6 + k1]*dm6[123 + k2] + 3*dd[12 + k2]*dm6[363 + k1] + 3*dd[12 + k1]*dm6[363 + k2] + 6*dd[15 + k2]*dm6[366 + k1] + 6*dd[15 + k1]*dm6[366 + k2] + 3*dd[24 + k2]*dm6[375 + k1] + 3*dd[24 + k1]*dm6[375 + k2] + dd[39 + k2]*dm6[1092 + k1] + dd[39 + k1]*dm6[1092 + k2] + 3*dd[42 + k2]*dm6[1095 + k1] + 3*dd[42 + k1]*dm6[1095 + k2] + 3*dd[51 + k2]*dm6[1104 + k1] + 3*dd[51 + k1]*dm6[1104 + k2] + dd[78 + k2]*dm6[1131 + k1] + dd[78 + k1]*dm6[1131 + k2]);
-      rhs(17) = -(a*ddm3[126 + 3*k1 + k2] + b[0]*ddm4[126 + 3*k1 + k2] + b[1]*ddm4[369 + 3*k1 + k2] + b[2]*ddm4[396 + 3*k1 + k2] + c[0]*ddm5[126 + 3*k1 + k2] + 2*c[1]*ddm5[369 + 3*k1 + k2] + 2*c[2]*ddm5[396 + 3*k1 + k2] + c[4]*ddm5[1098 + 3*k1 + k2] + 2*c[5]*ddm5[1125 + 3*k1 + k2] + c[8]*ddm5[1206 + 3*k1 + k2] + d[0]*ddm6[126 + 3*k1 + k2] + 3*d[1]*ddm6[369 + 3*k1 + k2] + 3*d[2]*ddm6[396 + 3*k1 + k2] + 3*d[4]*ddm6[1098 + 3*k1 + k2] + 6*d[5]*ddm6[1125 + 3*k1 + k2] + 3*d[8]*ddm6[1206 + 3*k1 + k2] + d[13]*ddm6[3285 + 3*k1 + k2] + 3*d[14]*ddm6[3312 + 3*k1 + k2] + 3*d[17]*ddm6[3393 + 3*k1 + k2] + d[26]*ddm6[3636 + 3*k1 + k2] + da[k2]*dm3[42 + k1] + da[k1]*dm3[42 + k2] + db[k2]*dm4[42 + k1] + db[k1]*dm4[42 + k2] + db[3 + k2]*dm4[123 + k1] + db[3 + k1]*dm4[123 + k2] + db[6 + k2]*dm4[132 + k1] + db[6 + k1]*dm4[132 + k2] + dc[k2]*dm5[42 + k1] + dc[k1]*dm5[42 + k2] + 2*dc[3 + k2]*dm5[123 + k1] + 2*dc[3 + k1]*dm5[123 + k2] + 2*dc[6 + k2]*dm5[132 + k1] + 2*dc[6 + k1]*dm5[132 + k2] + dc[12 + k2]*dm5[366 + k1] + dc[12 + k1]*dm5[366 + k2] + 2*dc[15 + k2]*dm5[375 + k1] + 2*dc[15 + k1]*dm5[375 + k2] + dc[24 + k2]*dm5[402 + k1] + dc[24 + k1]*dm5[402 + k2] + dd[k2]*dm6[42 + k1] + dd[k1]*dm6[42 + k2] + 3*dd[3 + k2]*dm6[123 + k1] + 3*dd[3 + k1]*dm6[123 + k2] + 3*dd[6 + k2]*dm6[132 + k1] + 3*dd[6 + k1]*dm6[132 + k2] + 3*dd[12 + k2]*dm6[366 + k1] + 3*dd[12 + k1]*dm6[366 + k2] + 6*dd[15 + k2]*dm6[375 + k1] + 6*dd[15 + k1]*dm6[375 + k2] + 3*dd[24 + k2]*dm6[402 + k1] + 3*dd[24 + k1]*dm6[402 + k2] + dd[39 + k2]*dm6[1095 + k1] + dd[39 + k1]*dm6[1095 + k2] + 3*dd[42 + k2]*dm6[1104 + k1] + 3*dd[42 + k1]*dm6[1104 + k2] + 3*dd[51 + k2]*dm6[1131 + k1] + 3*dd[51 + k1]*dm6[1131 + k2] + dd[78 + k2]*dm6[1212 + k1] + dd[78 + k1]*dm6[1212 + k2]);
-      rhs(18) = -(a*ddm3[153 + 3*k1 + k2] + b[0]*ddm4[153 + 3*k1 + k2] + b[1]*ddm4[396 + 3*k1 + k2] + b[2]*ddm4[477 + 3*k1 + k2] + c[0]*ddm5[153 + 3*k1 + k2] + 2*c[1]*ddm5[396 + 3*k1 + k2] + 2*c[2]*ddm5[477 + 3*k1 + k2] + c[4]*ddm5[1125 + 3*k1 + k2] + 2*c[5]*ddm5[1206 + 3*k1 + k2] + c[8]*ddm5[1449 + 3*k1 + k2] + d[0]*ddm6[153 + 3*k1 + k2] + 3*d[1]*ddm6[396 + 3*k1 + k2] + 3*d[2]*ddm6[477 + 3*k1 + k2] + 3*d[4]*ddm6[1125 + 3*k1 + k2] + 6*d[5]*ddm6[1206 + 3*k1 + k2] + 3*d[8]*ddm6[1449 + 3*k1 + k2] + d[13]*ddm6[3312 + 3*k1 + k2] + 3*d[14]*ddm6[3393 + 3*k1 + k2] + 3*d[17]*ddm6[3636 + 3*k1 + k2] + d[26]*ddm6[4365 + 3*k1 + k2] + da[k2]*dm3[51 + k1] + da[k1]*dm3[51 + k2] + db[k2]*dm4[51 + k1] + db[k1]*dm4[51 + k2] + db[3 + k2]*dm4[132 + k1] + db[3 + k1]*dm4[132 + k2] + db[6 + k2]*dm4[159 + k1] + db[6 + k1]*dm4[159 + k2] + dc[k2]*dm5[51 + k1] + dc[k1]*dm5[51 + k2] + 2*dc[3 + k2]*dm5[132 + k1] + 2*dc[3 + k1]*dm5[132 + k2] + 2*dc[6 + k2]*dm5[159 + k1] + 2*dc[6 + k1]*dm5[159 + k2] + dc[12 + k2]*dm5[375 + k1] + dc[12 + k1]*dm5[375 + k2] + 2*dc[15 + k2]*dm5[402 + k1] + 2*dc[15 + k1]*dm5[402 + k2] + dc[24 + k2]*dm5[483 + k1] + dc[24 + k1]*dm5[483 + k2] + dd[k2]*dm6[51 + k1] + dd[k1]*dm6[51 + k2] + 3*dd[3 + k2]*dm6[132 + k1] + 3*dd[3 + k1]*dm6[132 + k2] + 3*dd[6 + k2]*dm6[159 + k1] + 3*dd[6 + k1]*dm6[159 + k2] + 3*dd[12 + k2]*dm6[375 + k1] + 3*dd[12 + k1]*dm6[375 + k2] + 6*dd[15 + k2]*dm6[402 + k1] + 6*dd[15 + k1]*dm6[402 + k2] + 3*dd[24 + k2]*dm6[483 + k1] + 3*dd[24 + k1]*dm6[483 + k2] + dd[39 + k2]*dm6[1104 + k1] + dd[39 + k1]*dm6[1104 + k2] + 3*dd[42 + k2]*dm6[1131 + k1] + 3*dd[42 + k1]*dm6[1131 + k2] + 3*dd[51 + k2]*dm6[1212 + k1] + 3*dd[51 + k1]*dm6[1212 + k2] + dd[78 + k2]*dm6[1455 + k1] + dd[78 + k1]*dm6[1455 + k2]);
-      rhs(19) = -(a*ddm3[234 + 3*k1 + k2] + b[0]*ddm4[234 + 3*k1 + k2] + b[1]*ddm4[477 + 3*k1 + k2] + b[2]*ddm4[720 + 3*k1 + k2] + c[0]*ddm5[234 + 3*k1 + k2] + 2*c[1]*ddm5[477 + 3*k1 + k2] + 2*c[2]*ddm5[720 + 3*k1 + k2] + c[4]*ddm5[1206 + 3*k1 + k2] + 2*c[5]*ddm5[1449 + 3*k1 + k2] + c[8]*ddm5[2178 + 3*k1 + k2] + d[0]*ddm6[234 + 3*k1 + k2] + 3*d[1]*ddm6[477 + 3*k1 + k2] + 3*d[2]*ddm6[720 + 3*k1 + k2] + 3*d[4]*ddm6[1206 + 3*k1 + k2] + 6*d[5]*ddm6[1449 + 3*k1 + k2] + 3*d[8]*ddm6[2178 + 3*k1 + k2] + d[13]*ddm6[3393 + 3*k1 + k2] + 3*d[14]*ddm6[3636 + 3*k1 + k2] + 3*d[17]*ddm6[4365 + 3*k1 + k2] + d[26]*ddm6[6552 + 3*k1 + k2] + da[k2]*dm3[78 + k1] + da[k1]*dm3[78 + k2] + db[k2]*dm4[78 + k1] + db[k1]*dm4[78 + k2] + db[3 + k2]*dm4[159 + k1] + db[3 + k1]*dm4[159 + k2] + db[6 + k2]*dm4[240 + k1] + db[6 + k1]*dm4[240 + k2] + dc[k2]*dm5[78 + k1] + dc[k1]*dm5[78 + k2] + 2*dc[3 + k2]*dm5[159 + k1] + 2*dc[3 + k1]*dm5[159 + k2] + 2*dc[6 + k2]*dm5[240 + k1] + 2*dc[6 + k1]*dm5[240 + k2] + dc[12 + k2]*dm5[402 + k1] + dc[12 + k1]*dm5[402 + k2] + 2*dc[15 + k2]*dm5[483 + k1] + 2*dc[15 + k1]*dm5[483 + k2] + dc[24 + k2]*dm5[726 + k1] + dc[24 + k1]*dm5[726 + k2] + dd[k2]*dm6[78 + k1] + dd[k1]*dm6[78 + k2] + 3*dd[3 + k2]*dm6[159 + k1] + 3*dd[3 + k1]*dm6[159 + k2] + 3*dd[6 + k2]*dm6[240 + k1] + 3*dd[6 + k1]*dm6[240 + k2] + 3*dd[12 + k2]*dm6[402 + k1] + 3*dd[12 + k1]*dm6[402 + k2] + 6*dd[15 + k2]*dm6[483 + k1] + 6*dd[15 + k1]*dm6[483 + k2] + 3*dd[24 + k2]*dm6[726 + k1] + 3*dd[24 + k1]*dm6[726 + k2] + dd[39 + k2]*dm6[1131 + k1] + dd[39 + k1]*dm6[1131 + k2] + 3*dd[42 + k2]*dm6[1212 + k1] + 3*dd[42 + k1]*dm6[1212 + k2] + 3*dd[51 + k2]*dm6[1455 + k1] + 3*dd[51 + k1]*dm6[1455 + k2] + dd[78 + k2]*dm6[2184 + k1] + dd[78 + k1]*dm6[2184 + k2]);
+  if (needHessian) {
+    for (auto k1 = 0; k1 < dim; ++k1) {
+      for (auto k2 = k1; k2 < dim; ++k2) {
+        rhs(0) = -(a*ddm0[3*k1 + k2] + da[k2]*dm0[k1] + da[k1]*dm0[k2] + b[0]*ddm1[3*k1 + k2] + b[1]*ddm1[9 + 3*k1 + k2] + b[2]*ddm1[18 + 3*k1 + k2] + c[0]*ddm2[3*k1 + k2] + 2*c[1]*ddm2[9 + 3*k1 + k2] + 2*c[2]*ddm2[18 + 3*k1 + k2] + c[4]*ddm2[36 + 3*k1 + k2] + 2*c[5]*ddm2[45 + 3*k1 + k2] + c[8]*ddm2[72 + 3*k1 + k2] + d[0]*ddm3[3*k1 + k2] + 3*d[1]*ddm3[9 + 3*k1 + k2] + 3*d[2]*ddm3[18 + 3*k1 + k2] + 3*d[4]*ddm3[36 + 3*k1 + k2] + 6*d[5]*ddm3[45 + 3*k1 + k2] + 3*d[8]*ddm3[72 + 3*k1 + k2] + d[13]*ddm3[117 + 3*k1 + k2] + 3*d[14]*ddm3[126 + 3*k1 + k2] + 3*d[17]*ddm3[153 + 3*k1 + k2] + d[26]*ddm3[234 + 3*k1 + k2] + db[k2]*dm1[k1] + db[k1]*dm1[k2] + db[3 + k2]*dm1[3 + k1] + db[3 + k1]*dm1[3 + k2] + db[6 + k2]*dm1[6 + k1] + db[6 + k1]*dm1[6 + k2] + dc[k2]*dm2[k1] + dc[k1]*dm2[k2] + 2*dc[3 + k2]*dm2[3 + k1] + 2*dc[3 + k1]*dm2[3 + k2] + 2*dc[6 + k2]*dm2[6 + k1] + 2*dc[6 + k1]*dm2[6 + k2] + dc[12 + k2]*dm2[12 + k1] + dc[12 + k1]*dm2[12 + k2] + 2*dc[15 + k2]*dm2[15 + k1] + 2*dc[15 + k1]*dm2[15 + k2] + dc[24 + k2]*dm2[24 + k1] + dc[24 + k1]*dm2[24 + k2] + dd[k2]*dm3[k1] + dd[k1]*dm3[k2] + 3*dd[3 + k2]*dm3[3 + k1] + 3*dd[3 + k1]*dm3[3 + k2] + 3*dd[6 + k2]*dm3[6 + k1] + 3*dd[6 + k1]*dm3[6 + k2] + 3*dd[12 + k2]*dm3[12 + k1] + 3*dd[12 + k1]*dm3[12 + k2] + 6*dd[15 + k2]*dm3[15 + k1] + 6*dd[15 + k1]*dm3[15 + k2] + 3*dd[24 + k2]*dm3[24 + k1] + 3*dd[24 + k1]*dm3[24 + k2] + dd[39 + k2]*dm3[39 + k1] + dd[39 + k1]*dm3[39 + k2] + 3*dd[42 + k2]*dm3[42 + k1] + 3*dd[42 + k1]*dm3[42 + k2] + 3*dd[51 + k2]*dm3[51 + k1] + 3*dd[51 + k1]*dm3[51 + k2] + dd[78 + k2]*dm3[78 + k1] + dd[78 + k1]*dm3[78 + k2]);
+        rhs(1) = -(a*ddm1[3*k1 + k2] + b[0]*ddm2[3*k1 + k2] + b[1]*ddm2[9 + 3*k1 + k2] + b[2]*ddm2[18 + 3*k1 + k2] + c[0]*ddm3[3*k1 + k2] + 2*c[1]*ddm3[9 + 3*k1 + k2] + 2*c[2]*ddm3[18 + 3*k1 + k2] + c[4]*ddm3[36 + 3*k1 + k2] + 2*c[5]*ddm3[45 + 3*k1 + k2] + c[8]*ddm3[72 + 3*k1 + k2] + d[0]*ddm4[3*k1 + k2] + 3*d[1]*ddm4[9 + 3*k1 + k2] + 3*d[2]*ddm4[18 + 3*k1 + k2] + 3*d[4]*ddm4[36 + 3*k1 + k2] + 6*d[5]*ddm4[45 + 3*k1 + k2] + 3*d[8]*ddm4[72 + 3*k1 + k2] + d[13]*ddm4[117 + 3*k1 + k2] + 3*d[14]*ddm4[126 + 3*k1 + k2] + 3*d[17]*ddm4[153 + 3*k1 + k2] + d[26]*ddm4[234 + 3*k1 + k2] + da[k2]*dm1[k1] + da[k1]*dm1[k2] + db[k2]*dm2[k1] + db[k1]*dm2[k2] + db[3 + k2]*dm2[3 + k1] + db[3 + k1]*dm2[3 + k2] + db[6 + k2]*dm2[6 + k1] + db[6 + k1]*dm2[6 + k2] + dc[k2]*dm3[k1] + dc[k1]*dm3[k2] + 2*dc[3 + k2]*dm3[3 + k1] + 2*dc[3 + k1]*dm3[3 + k2] + 2*dc[6 + k2]*dm3[6 + k1] + 2*dc[6 + k1]*dm3[6 + k2] + dc[12 + k2]*dm3[12 + k1] + dc[12 + k1]*dm3[12 + k2] + 2*dc[15 + k2]*dm3[15 + k1] + 2*dc[15 + k1]*dm3[15 + k2] + dc[24 + k2]*dm3[24 + k1] + dc[24 + k1]*dm3[24 + k2] + dd[k2]*dm4[k1] + dd[k1]*dm4[k2] + 3*dd[3 + k2]*dm4[3 + k1] + 3*dd[3 + k1]*dm4[3 + k2] + 3*dd[6 + k2]*dm4[6 + k1] + 3*dd[6 + k1]*dm4[6 + k2] + 3*dd[12 + k2]*dm4[12 + k1] + 3*dd[12 + k1]*dm4[12 + k2] + 6*dd[15 + k2]*dm4[15 + k1] + 6*dd[15 + k1]*dm4[15 + k2] + 3*dd[24 + k2]*dm4[24 + k1] + 3*dd[24 + k1]*dm4[24 + k2] + dd[39 + k2]*dm4[39 + k1] + dd[39 + k1]*dm4[39 + k2] + 3*dd[42 + k2]*dm4[42 + k1] + 3*dd[42 + k1]*dm4[42 + k2] + 3*dd[51 + k2]*dm4[51 + k1] + 3*dd[51 + k1]*dm4[51 + k2] + dd[78 + k2]*dm4[78 + k1] + dd[78 + k1]*dm4[78 + k2]);
+        rhs(2) = -(a*ddm1[9 + 3*k1 + k2] + b[0]*ddm2[9 + 3*k1 + k2] + b[1]*ddm2[36 + 3*k1 + k2] + b[2]*ddm2[45 + 3*k1 + k2] + c[0]*ddm3[9 + 3*k1 + k2] + 2*c[1]*ddm3[36 + 3*k1 + k2] + 2*c[2]*ddm3[45 + 3*k1 + k2] + c[4]*ddm3[117 + 3*k1 + k2] + 2*c[5]*ddm3[126 + 3*k1 + k2] + c[8]*ddm3[153 + 3*k1 + k2] + d[0]*ddm4[9 + 3*k1 + k2] + 3*d[1]*ddm4[36 + 3*k1 + k2] + 3*d[2]*ddm4[45 + 3*k1 + k2] + 3*d[4]*ddm4[117 + 3*k1 + k2] + 6*d[5]*ddm4[126 + 3*k1 + k2] + 3*d[8]*ddm4[153 + 3*k1 + k2] + d[13]*ddm4[360 + 3*k1 + k2] + 3*d[14]*ddm4[369 + 3*k1 + k2] + 3*d[17]*ddm4[396 + 3*k1 + k2] + d[26]*ddm4[477 + 3*k1 + k2] + da[k2]*dm1[3 + k1] + da[k1]*dm1[3 + k2] + db[k2]*dm2[3 + k1] + db[k1]*dm2[3 + k2] + db[3 + k2]*dm2[12 + k1] + db[3 + k1]*dm2[12 + k2] + db[6 + k2]*dm2[15 + k1] + db[6 + k1]*dm2[15 + k2] + dc[k2]*dm3[3 + k1] + dc[k1]*dm3[3 + k2] + 2*dc[3 + k2]*dm3[12 + k1] + 2*dc[3 + k1]*dm3[12 + k2] + 2*dc[6 + k2]*dm3[15 + k1] + 2*dc[6 + k1]*dm3[15 + k2] + dc[12 + k2]*dm3[39 + k1] + dc[12 + k1]*dm3[39 + k2] + 2*dc[15 + k2]*dm3[42 + k1] + 2*dc[15 + k1]*dm3[42 + k2] + dc[24 + k2]*dm3[51 + k1] + dc[24 + k1]*dm3[51 + k2] + dd[k2]*dm4[3 + k1] + dd[k1]*dm4[3 + k2] + 3*dd[3 + k2]*dm4[12 + k1] + 3*dd[3 + k1]*dm4[12 + k2] + 3*dd[6 + k2]*dm4[15 + k1] + 3*dd[6 + k1]*dm4[15 + k2] + 3*dd[12 + k2]*dm4[39 + k1] + 3*dd[12 + k1]*dm4[39 + k2] + 6*dd[15 + k2]*dm4[42 + k1] + 6*dd[15 + k1]*dm4[42 + k2] + 3*dd[24 + k2]*dm4[51 + k1] + 3*dd[24 + k1]*dm4[51 + k2] + dd[39 + k2]*dm4[120 + k1] + dd[39 + k1]*dm4[120 + k2] + 3*dd[42 + k2]*dm4[123 + k1] + 3*dd[42 + k1]*dm4[123 + k2] + 3*dd[51 + k2]*dm4[132 + k1] + 3*dd[51 + k1]*dm4[132 + k2] + dd[78 + k2]*dm4[159 + k1] + dd[78 + k1]*dm4[159 + k2]);
+        rhs(3) = -(a*ddm1[18 + 3*k1 + k2] + b[0]*ddm2[18 + 3*k1 + k2] + b[1]*ddm2[45 + 3*k1 + k2] + b[2]*ddm2[72 + 3*k1 + k2] + c[0]*ddm3[18 + 3*k1 + k2] + 2*c[1]*ddm3[45 + 3*k1 + k2] + 2*c[2]*ddm3[72 + 3*k1 + k2] + c[4]*ddm3[126 + 3*k1 + k2] + 2*c[5]*ddm3[153 + 3*k1 + k2] + c[8]*ddm3[234 + 3*k1 + k2] + d[0]*ddm4[18 + 3*k1 + k2] + 3*d[1]*ddm4[45 + 3*k1 + k2] + 3*d[2]*ddm4[72 + 3*k1 + k2] + 3*d[4]*ddm4[126 + 3*k1 + k2] + 6*d[5]*ddm4[153 + 3*k1 + k2] + 3*d[8]*ddm4[234 + 3*k1 + k2] + d[13]*ddm4[369 + 3*k1 + k2] + 3*d[14]*ddm4[396 + 3*k1 + k2] + 3*d[17]*ddm4[477 + 3*k1 + k2] + d[26]*ddm4[720 + 3*k1 + k2] + da[k2]*dm1[6 + k1] + da[k1]*dm1[6 + k2] + db[k2]*dm2[6 + k1] + db[k1]*dm2[6 + k2] + db[3 + k2]*dm2[15 + k1] + db[3 + k1]*dm2[15 + k2] + db[6 + k2]*dm2[24 + k1] + db[6 + k1]*dm2[24 + k2] + dc[k2]*dm3[6 + k1] + dc[k1]*dm3[6 + k2] + 2*dc[3 + k2]*dm3[15 + k1] + 2*dc[3 + k1]*dm3[15 + k2] + 2*dc[6 + k2]*dm3[24 + k1] + 2*dc[6 + k1]*dm3[24 + k2] + dc[12 + k2]*dm3[42 + k1] + dc[12 + k1]*dm3[42 + k2] + 2*dc[15 + k2]*dm3[51 + k1] + 2*dc[15 + k1]*dm3[51 + k2] + dc[24 + k2]*dm3[78 + k1] + dc[24 + k1]*dm3[78 + k2] + dd[k2]*dm4[6 + k1] + dd[k1]*dm4[6 + k2] + 3*dd[3 + k2]*dm4[15 + k1] + 3*dd[3 + k1]*dm4[15 + k2] + 3*dd[6 + k2]*dm4[24 + k1] + 3*dd[6 + k1]*dm4[24 + k2] + 3*dd[12 + k2]*dm4[42 + k1] + 3*dd[12 + k1]*dm4[42 + k2] + 6*dd[15 + k2]*dm4[51 + k1] + 6*dd[15 + k1]*dm4[51 + k2] + 3*dd[24 + k2]*dm4[78 + k1] + 3*dd[24 + k1]*dm4[78 + k2] + dd[39 + k2]*dm4[123 + k1] + dd[39 + k1]*dm4[123 + k2] + 3*dd[42 + k2]*dm4[132 + k1] + 3*dd[42 + k1]*dm4[132 + k2] + 3*dd[51 + k2]*dm4[159 + k1] + 3*dd[51 + k1]*dm4[159 + k2] + dd[78 + k2]*dm4[240 + k1] + dd[78 + k1]*dm4[240 + k2]);
+        rhs(4) = -(a*ddm2[3*k1 + k2] + b[0]*ddm3[3*k1 + k2] + b[1]*ddm3[9 + 3*k1 + k2] + b[2]*ddm3[18 + 3*k1 + k2] + c[0]*ddm4[3*k1 + k2] + 2*c[1]*ddm4[9 + 3*k1 + k2] + 2*c[2]*ddm4[18 + 3*k1 + k2] + c[4]*ddm4[36 + 3*k1 + k2] + 2*c[5]*ddm4[45 + 3*k1 + k2] + c[8]*ddm4[72 + 3*k1 + k2] + d[0]*ddm5[3*k1 + k2] + 3*d[1]*ddm5[9 + 3*k1 + k2] + 3*d[2]*ddm5[18 + 3*k1 + k2] + 3*d[4]*ddm5[36 + 3*k1 + k2] + 6*d[5]*ddm5[45 + 3*k1 + k2] + 3*d[8]*ddm5[72 + 3*k1 + k2] + d[13]*ddm5[117 + 3*k1 + k2] + 3*d[14]*ddm5[126 + 3*k1 + k2] + 3*d[17]*ddm5[153 + 3*k1 + k2] + d[26]*ddm5[234 + 3*k1 + k2] + da[k2]*dm2[k1] + da[k1]*dm2[k2] + db[k2]*dm3[k1] + db[k1]*dm3[k2] + db[3 + k2]*dm3[3 + k1] + db[3 + k1]*dm3[3 + k2] + db[6 + k2]*dm3[6 + k1] + db[6 + k1]*dm3[6 + k2] + dc[k2]*dm4[k1] + dc[k1]*dm4[k2] + 2*dc[3 + k2]*dm4[3 + k1] + 2*dc[3 + k1]*dm4[3 + k2] + 2*dc[6 + k2]*dm4[6 + k1] + 2*dc[6 + k1]*dm4[6 + k2] + dc[12 + k2]*dm4[12 + k1] + dc[12 + k1]*dm4[12 + k2] + 2*dc[15 + k2]*dm4[15 + k1] + 2*dc[15 + k1]*dm4[15 + k2] + dc[24 + k2]*dm4[24 + k1] + dc[24 + k1]*dm4[24 + k2] + dd[k2]*dm5[k1] + dd[k1]*dm5[k2] + 3*dd[3 + k2]*dm5[3 + k1] + 3*dd[3 + k1]*dm5[3 + k2] + 3*dd[6 + k2]*dm5[6 + k1] + 3*dd[6 + k1]*dm5[6 + k2] + 3*dd[12 + k2]*dm5[12 + k1] + 3*dd[12 + k1]*dm5[12 + k2] + 6*dd[15 + k2]*dm5[15 + k1] + 6*dd[15 + k1]*dm5[15 + k2] + 3*dd[24 + k2]*dm5[24 + k1] + 3*dd[24 + k1]*dm5[24 + k2] + dd[39 + k2]*dm5[39 + k1] + dd[39 + k1]*dm5[39 + k2] + 3*dd[42 + k2]*dm5[42 + k1] + 3*dd[42 + k1]*dm5[42 + k2] + 3*dd[51 + k2]*dm5[51 + k1] + 3*dd[51 + k1]*dm5[51 + k2] + dd[78 + k2]*dm5[78 + k1] + dd[78 + k1]*dm5[78 + k2]);
+        rhs(5) = -(a*ddm2[9 + 3*k1 + k2] + b[0]*ddm3[9 + 3*k1 + k2] + b[1]*ddm3[36 + 3*k1 + k2] + b[2]*ddm3[45 + 3*k1 + k2] + c[0]*ddm4[9 + 3*k1 + k2] + 2*c[1]*ddm4[36 + 3*k1 + k2] + 2*c[2]*ddm4[45 + 3*k1 + k2] + c[4]*ddm4[117 + 3*k1 + k2] + 2*c[5]*ddm4[126 + 3*k1 + k2] + c[8]*ddm4[153 + 3*k1 + k2] + d[0]*ddm5[9 + 3*k1 + k2] + 3*d[1]*ddm5[36 + 3*k1 + k2] + 3*d[2]*ddm5[45 + 3*k1 + k2] + 3*d[4]*ddm5[117 + 3*k1 + k2] + 6*d[5]*ddm5[126 + 3*k1 + k2] + 3*d[8]*ddm5[153 + 3*k1 + k2] + d[13]*ddm5[360 + 3*k1 + k2] + 3*d[14]*ddm5[369 + 3*k1 + k2] + 3*d[17]*ddm5[396 + 3*k1 + k2] + d[26]*ddm5[477 + 3*k1 + k2] + da[k2]*dm2[3 + k1] + da[k1]*dm2[3 + k2] + db[k2]*dm3[3 + k1] + db[k1]*dm3[3 + k2] + db[3 + k2]*dm3[12 + k1] + db[3 + k1]*dm3[12 + k2] + db[6 + k2]*dm3[15 + k1] + db[6 + k1]*dm3[15 + k2] + dc[k2]*dm4[3 + k1] + dc[k1]*dm4[3 + k2] + 2*dc[3 + k2]*dm4[12 + k1] + 2*dc[3 + k1]*dm4[12 + k2] + 2*dc[6 + k2]*dm4[15 + k1] + 2*dc[6 + k1]*dm4[15 + k2] + dc[12 + k2]*dm4[39 + k1] + dc[12 + k1]*dm4[39 + k2] + 2*dc[15 + k2]*dm4[42 + k1] + 2*dc[15 + k1]*dm4[42 + k2] + dc[24 + k2]*dm4[51 + k1] + dc[24 + k1]*dm4[51 + k2] + dd[k2]*dm5[3 + k1] + dd[k1]*dm5[3 + k2] + 3*dd[3 + k2]*dm5[12 + k1] + 3*dd[3 + k1]*dm5[12 + k2] + 3*dd[6 + k2]*dm5[15 + k1] + 3*dd[6 + k1]*dm5[15 + k2] + 3*dd[12 + k2]*dm5[39 + k1] + 3*dd[12 + k1]*dm5[39 + k2] + 6*dd[15 + k2]*dm5[42 + k1] + 6*dd[15 + k1]*dm5[42 + k2] + 3*dd[24 + k2]*dm5[51 + k1] + 3*dd[24 + k1]*dm5[51 + k2] + dd[39 + k2]*dm5[120 + k1] + dd[39 + k1]*dm5[120 + k2] + 3*dd[42 + k2]*dm5[123 + k1] + 3*dd[42 + k1]*dm5[123 + k2] + 3*dd[51 + k2]*dm5[132 + k1] + 3*dd[51 + k1]*dm5[132 + k2] + dd[78 + k2]*dm5[159 + k1] + dd[78 + k1]*dm5[159 + k2]);
+        rhs(6) = -(a*ddm2[18 + 3*k1 + k2] + b[0]*ddm3[18 + 3*k1 + k2] + b[1]*ddm3[45 + 3*k1 + k2] + b[2]*ddm3[72 + 3*k1 + k2] + c[0]*ddm4[18 + 3*k1 + k2] + 2*c[1]*ddm4[45 + 3*k1 + k2] + 2*c[2]*ddm4[72 + 3*k1 + k2] + c[4]*ddm4[126 + 3*k1 + k2] + 2*c[5]*ddm4[153 + 3*k1 + k2] + c[8]*ddm4[234 + 3*k1 + k2] + d[0]*ddm5[18 + 3*k1 + k2] + 3*d[1]*ddm5[45 + 3*k1 + k2] + 3*d[2]*ddm5[72 + 3*k1 + k2] + 3*d[4]*ddm5[126 + 3*k1 + k2] + 6*d[5]*ddm5[153 + 3*k1 + k2] + 3*d[8]*ddm5[234 + 3*k1 + k2] + d[13]*ddm5[369 + 3*k1 + k2] + 3*d[14]*ddm5[396 + 3*k1 + k2] + 3*d[17]*ddm5[477 + 3*k1 + k2] + d[26]*ddm5[720 + 3*k1 + k2] + da[k2]*dm2[6 + k1] + da[k1]*dm2[6 + k2] + db[k2]*dm3[6 + k1] + db[k1]*dm3[6 + k2] + db[3 + k2]*dm3[15 + k1] + db[3 + k1]*dm3[15 + k2] + db[6 + k2]*dm3[24 + k1] + db[6 + k1]*dm3[24 + k2] + dc[k2]*dm4[6 + k1] + dc[k1]*dm4[6 + k2] + 2*dc[3 + k2]*dm4[15 + k1] + 2*dc[3 + k1]*dm4[15 + k2] + 2*dc[6 + k2]*dm4[24 + k1] + 2*dc[6 + k1]*dm4[24 + k2] + dc[12 + k2]*dm4[42 + k1] + dc[12 + k1]*dm4[42 + k2] + 2*dc[15 + k2]*dm4[51 + k1] + 2*dc[15 + k1]*dm4[51 + k2] + dc[24 + k2]*dm4[78 + k1] + dc[24 + k1]*dm4[78 + k2] + dd[k2]*dm5[6 + k1] + dd[k1]*dm5[6 + k2] + 3*dd[3 + k2]*dm5[15 + k1] + 3*dd[3 + k1]*dm5[15 + k2] + 3*dd[6 + k2]*dm5[24 + k1] + 3*dd[6 + k1]*dm5[24 + k2] + 3*dd[12 + k2]*dm5[42 + k1] + 3*dd[12 + k1]*dm5[42 + k2] + 6*dd[15 + k2]*dm5[51 + k1] + 6*dd[15 + k1]*dm5[51 + k2] + 3*dd[24 + k2]*dm5[78 + k1] + 3*dd[24 + k1]*dm5[78 + k2] + dd[39 + k2]*dm5[123 + k1] + dd[39 + k1]*dm5[123 + k2] + 3*dd[42 + k2]*dm5[132 + k1] + 3*dd[42 + k1]*dm5[132 + k2] + 3*dd[51 + k2]*dm5[159 + k1] + 3*dd[51 + k1]*dm5[159 + k2] + dd[78 + k2]*dm5[240 + k1] + dd[78 + k1]*dm5[240 + k2]);
+        rhs(7) = -(a*ddm2[36 + 3*k1 + k2] + b[0]*ddm3[36 + 3*k1 + k2] + b[1]*ddm3[117 + 3*k1 + k2] + b[2]*ddm3[126 + 3*k1 + k2] + c[0]*ddm4[36 + 3*k1 + k2] + 2*c[1]*ddm4[117 + 3*k1 + k2] + 2*c[2]*ddm4[126 + 3*k1 + k2] + c[4]*ddm4[360 + 3*k1 + k2] + 2*c[5]*ddm4[369 + 3*k1 + k2] + c[8]*ddm4[396 + 3*k1 + k2] + d[0]*ddm5[36 + 3*k1 + k2] + 3*d[1]*ddm5[117 + 3*k1 + k2] + 3*d[2]*ddm5[126 + 3*k1 + k2] + 3*d[4]*ddm5[360 + 3*k1 + k2] + 6*d[5]*ddm5[369 + 3*k1 + k2] + 3*d[8]*ddm5[396 + 3*k1 + k2] + d[13]*ddm5[1089 + 3*k1 + k2] + 3*d[14]*ddm5[1098 + 3*k1 + k2] + 3*d[17]*ddm5[1125 + 3*k1 + k2] + d[26]*ddm5[1206 + 3*k1 + k2] + da[k2]*dm2[12 + k1] + da[k1]*dm2[12 + k2] + db[k2]*dm3[12 + k1] + db[k1]*dm3[12 + k2] + db[3 + k2]*dm3[39 + k1] + db[3 + k1]*dm3[39 + k2] + db[6 + k2]*dm3[42 + k1] + db[6 + k1]*dm3[42 + k2] + dc[k2]*dm4[12 + k1] + dc[k1]*dm4[12 + k2] + 2*dc[3 + k2]*dm4[39 + k1] + 2*dc[3 + k1]*dm4[39 + k2] + 2*dc[6 + k2]*dm4[42 + k1] + 2*dc[6 + k1]*dm4[42 + k2] + dc[12 + k2]*dm4[120 + k1] + dc[12 + k1]*dm4[120 + k2] + 2*dc[15 + k2]*dm4[123 + k1] + 2*dc[15 + k1]*dm4[123 + k2] + dc[24 + k2]*dm4[132 + k1] + dc[24 + k1]*dm4[132 + k2] + dd[k2]*dm5[12 + k1] + dd[k1]*dm5[12 + k2] + 3*dd[3 + k2]*dm5[39 + k1] + 3*dd[3 + k1]*dm5[39 + k2] + 3*dd[6 + k2]*dm5[42 + k1] + 3*dd[6 + k1]*dm5[42 + k2] + 3*dd[12 + k2]*dm5[120 + k1] + 3*dd[12 + k1]*dm5[120 + k2] + 6*dd[15 + k2]*dm5[123 + k1] + 6*dd[15 + k1]*dm5[123 + k2] + 3*dd[24 + k2]*dm5[132 + k1] + 3*dd[24 + k1]*dm5[132 + k2] + dd[39 + k2]*dm5[363 + k1] + dd[39 + k1]*dm5[363 + k2] + 3*dd[42 + k2]*dm5[366 + k1] + 3*dd[42 + k1]*dm5[366 + k2] + 3*dd[51 + k2]*dm5[375 + k1] + 3*dd[51 + k1]*dm5[375 + k2] + dd[78 + k2]*dm5[402 + k1] + dd[78 + k1]*dm5[402 + k2]);
+        rhs(8) = -(a*ddm2[45 + 3*k1 + k2] + b[0]*ddm3[45 + 3*k1 + k2] + b[1]*ddm3[126 + 3*k1 + k2] + b[2]*ddm3[153 + 3*k1 + k2] + c[0]*ddm4[45 + 3*k1 + k2] + 2*c[1]*ddm4[126 + 3*k1 + k2] + 2*c[2]*ddm4[153 + 3*k1 + k2] + c[4]*ddm4[369 + 3*k1 + k2] + 2*c[5]*ddm4[396 + 3*k1 + k2] + c[8]*ddm4[477 + 3*k1 + k2] + d[0]*ddm5[45 + 3*k1 + k2] + 3*d[1]*ddm5[126 + 3*k1 + k2] + 3*d[2]*ddm5[153 + 3*k1 + k2] + 3*d[4]*ddm5[369 + 3*k1 + k2] + 6*d[5]*ddm5[396 + 3*k1 + k2] + 3*d[8]*ddm5[477 + 3*k1 + k2] + d[13]*ddm5[1098 + 3*k1 + k2] + 3*d[14]*ddm5[1125 + 3*k1 + k2] + 3*d[17]*ddm5[1206 + 3*k1 + k2] + d[26]*ddm5[1449 + 3*k1 + k2] + da[k2]*dm2[15 + k1] + da[k1]*dm2[15 + k2] + db[k2]*dm3[15 + k1] + db[k1]*dm3[15 + k2] + db[3 + k2]*dm3[42 + k1] + db[3 + k1]*dm3[42 + k2] + db[6 + k2]*dm3[51 + k1] + db[6 + k1]*dm3[51 + k2] + dc[k2]*dm4[15 + k1] + dc[k1]*dm4[15 + k2] + 2*dc[3 + k2]*dm4[42 + k1] + 2*dc[3 + k1]*dm4[42 + k2] + 2*dc[6 + k2]*dm4[51 + k1] + 2*dc[6 + k1]*dm4[51 + k2] + dc[12 + k2]*dm4[123 + k1] + dc[12 + k1]*dm4[123 + k2] + 2*dc[15 + k2]*dm4[132 + k1] + 2*dc[15 + k1]*dm4[132 + k2] + dc[24 + k2]*dm4[159 + k1] + dc[24 + k1]*dm4[159 + k2] + dd[k2]*dm5[15 + k1] + dd[k1]*dm5[15 + k2] + 3*dd[3 + k2]*dm5[42 + k1] + 3*dd[3 + k1]*dm5[42 + k2] + 3*dd[6 + k2]*dm5[51 + k1] + 3*dd[6 + k1]*dm5[51 + k2] + 3*dd[12 + k2]*dm5[123 + k1] + 3*dd[12 + k1]*dm5[123 + k2] + 6*dd[15 + k2]*dm5[132 + k1] + 6*dd[15 + k1]*dm5[132 + k2] + 3*dd[24 + k2]*dm5[159 + k1] + 3*dd[24 + k1]*dm5[159 + k2] + dd[39 + k2]*dm5[366 + k1] + dd[39 + k1]*dm5[366 + k2] + 3*dd[42 + k2]*dm5[375 + k1] + 3*dd[42 + k1]*dm5[375 + k2] + 3*dd[51 + k2]*dm5[402 + k1] + 3*dd[51 + k1]*dm5[402 + k2] + dd[78 + k2]*dm5[483 + k1] + dd[78 + k1]*dm5[483 + k2]);
+        rhs(9) = -(a*ddm2[72 + 3*k1 + k2] + b[0]*ddm3[72 + 3*k1 + k2] + b[1]*ddm3[153 + 3*k1 + k2] + b[2]*ddm3[234 + 3*k1 + k2] + c[0]*ddm4[72 + 3*k1 + k2] + 2*c[1]*ddm4[153 + 3*k1 + k2] + 2*c[2]*ddm4[234 + 3*k1 + k2] + c[4]*ddm4[396 + 3*k1 + k2] + 2*c[5]*ddm4[477 + 3*k1 + k2] + c[8]*ddm4[720 + 3*k1 + k2] + d[0]*ddm5[72 + 3*k1 + k2] + 3*d[1]*ddm5[153 + 3*k1 + k2] + 3*d[2]*ddm5[234 + 3*k1 + k2] + 3*d[4]*ddm5[396 + 3*k1 + k2] + 6*d[5]*ddm5[477 + 3*k1 + k2] + 3*d[8]*ddm5[720 + 3*k1 + k2] + d[13]*ddm5[1125 + 3*k1 + k2] + 3*d[14]*ddm5[1206 + 3*k1 + k2] + 3*d[17]*ddm5[1449 + 3*k1 + k2] + d[26]*ddm5[2178 + 3*k1 + k2] + da[k2]*dm2[24 + k1] + da[k1]*dm2[24 + k2] + db[k2]*dm3[24 + k1] + db[k1]*dm3[24 + k2] + db[3 + k2]*dm3[51 + k1] + db[3 + k1]*dm3[51 + k2] + db[6 + k2]*dm3[78 + k1] + db[6 + k1]*dm3[78 + k2] + dc[k2]*dm4[24 + k1] + dc[k1]*dm4[24 + k2] + 2*dc[3 + k2]*dm4[51 + k1] + 2*dc[3 + k1]*dm4[51 + k2] + 2*dc[6 + k2]*dm4[78 + k1] + 2*dc[6 + k1]*dm4[78 + k2] + dc[12 + k2]*dm4[132 + k1] + dc[12 + k1]*dm4[132 + k2] + 2*dc[15 + k2]*dm4[159 + k1] + 2*dc[15 + k1]*dm4[159 + k2] + dc[24 + k2]*dm4[240 + k1] + dc[24 + k1]*dm4[240 + k2] + dd[k2]*dm5[24 + k1] + dd[k1]*dm5[24 + k2] + 3*dd[3 + k2]*dm5[51 + k1] + 3*dd[3 + k1]*dm5[51 + k2] + 3*dd[6 + k2]*dm5[78 + k1] + 3*dd[6 + k1]*dm5[78 + k2] + 3*dd[12 + k2]*dm5[132 + k1] + 3*dd[12 + k1]*dm5[132 + k2] + 6*dd[15 + k2]*dm5[159 + k1] + 6*dd[15 + k1]*dm5[159 + k2] + 3*dd[24 + k2]*dm5[240 + k1] + 3*dd[24 + k1]*dm5[240 + k2] + dd[39 + k2]*dm5[375 + k1] + dd[39 + k1]*dm5[375 + k2] + 3*dd[42 + k2]*dm5[402 + k1] + 3*dd[42 + k1]*dm5[402 + k2] + 3*dd[51 + k2]*dm5[483 + k1] + 3*dd[51 + k1]*dm5[483 + k2] + dd[78 + k2]*dm5[726 + k1] + dd[78 + k1]*dm5[726 + k2]);
+        rhs(10) = -(a*ddm3[3*k1 + k2] + b[0]*ddm4[3*k1 + k2] + b[1]*ddm4[9 + 3*k1 + k2] + b[2]*ddm4[18 + 3*k1 + k2] + c[0]*ddm5[3*k1 + k2] + 2*c[1]*ddm5[9 + 3*k1 + k2] + 2*c[2]*ddm5[18 + 3*k1 + k2] + c[4]*ddm5[36 + 3*k1 + k2] + 2*c[5]*ddm5[45 + 3*k1 + k2] + c[8]*ddm5[72 + 3*k1 + k2] + d[0]*ddm6[3*k1 + k2] + 3*d[1]*ddm6[9 + 3*k1 + k2] + 3*d[2]*ddm6[18 + 3*k1 + k2] + 3*d[4]*ddm6[36 + 3*k1 + k2] + 6*d[5]*ddm6[45 + 3*k1 + k2] + 3*d[8]*ddm6[72 + 3*k1 + k2] + d[13]*ddm6[117 + 3*k1 + k2] + 3*d[14]*ddm6[126 + 3*k1 + k2] + 3*d[17]*ddm6[153 + 3*k1 + k2] + d[26]*ddm6[234 + 3*k1 + k2] + da[k2]*dm3[k1] + da[k1]*dm3[k2] + db[k2]*dm4[k1] + db[k1]*dm4[k2] + db[3 + k2]*dm4[3 + k1] + db[3 + k1]*dm4[3 + k2] + db[6 + k2]*dm4[6 + k1] + db[6 + k1]*dm4[6 + k2] + dc[k2]*dm5[k1] + dc[k1]*dm5[k2] + 2*dc[3 + k2]*dm5[3 + k1] + 2*dc[3 + k1]*dm5[3 + k2] + 2*dc[6 + k2]*dm5[6 + k1] + 2*dc[6 + k1]*dm5[6 + k2] + dc[12 + k2]*dm5[12 + k1] + dc[12 + k1]*dm5[12 + k2] + 2*dc[15 + k2]*dm5[15 + k1] + 2*dc[15 + k1]*dm5[15 + k2] + dc[24 + k2]*dm5[24 + k1] + dc[24 + k1]*dm5[24 + k2] + dd[k2]*dm6[k1] + dd[k1]*dm6[k2] + 3*dd[3 + k2]*dm6[3 + k1] + 3*dd[3 + k1]*dm6[3 + k2] + 3*dd[6 + k2]*dm6[6 + k1] + 3*dd[6 + k1]*dm6[6 + k2] + 3*dd[12 + k2]*dm6[12 + k1] + 3*dd[12 + k1]*dm6[12 + k2] + 6*dd[15 + k2]*dm6[15 + k1] + 6*dd[15 + k1]*dm6[15 + k2] + 3*dd[24 + k2]*dm6[24 + k1] + 3*dd[24 + k1]*dm6[24 + k2] + dd[39 + k2]*dm6[39 + k1] + dd[39 + k1]*dm6[39 + k2] + 3*dd[42 + k2]*dm6[42 + k1] + 3*dd[42 + k1]*dm6[42 + k2] + 3*dd[51 + k2]*dm6[51 + k1] + 3*dd[51 + k1]*dm6[51 + k2] + dd[78 + k2]*dm6[78 + k1] + dd[78 + k1]*dm6[78 + k2]);
+        rhs(11) = -(a*ddm3[9 + 3*k1 + k2] + b[0]*ddm4[9 + 3*k1 + k2] + b[1]*ddm4[36 + 3*k1 + k2] + b[2]*ddm4[45 + 3*k1 + k2] + c[0]*ddm5[9 + 3*k1 + k2] + 2*c[1]*ddm5[36 + 3*k1 + k2] + 2*c[2]*ddm5[45 + 3*k1 + k2] + c[4]*ddm5[117 + 3*k1 + k2] + 2*c[5]*ddm5[126 + 3*k1 + k2] + c[8]*ddm5[153 + 3*k1 + k2] + d[0]*ddm6[9 + 3*k1 + k2] + 3*d[1]*ddm6[36 + 3*k1 + k2] + 3*d[2]*ddm6[45 + 3*k1 + k2] + 3*d[4]*ddm6[117 + 3*k1 + k2] + 6*d[5]*ddm6[126 + 3*k1 + k2] + 3*d[8]*ddm6[153 + 3*k1 + k2] + d[13]*ddm6[360 + 3*k1 + k2] + 3*d[14]*ddm6[369 + 3*k1 + k2] + 3*d[17]*ddm6[396 + 3*k1 + k2] + d[26]*ddm6[477 + 3*k1 + k2] + da[k2]*dm3[3 + k1] + da[k1]*dm3[3 + k2] + db[k2]*dm4[3 + k1] + db[k1]*dm4[3 + k2] + db[3 + k2]*dm4[12 + k1] + db[3 + k1]*dm4[12 + k2] + db[6 + k2]*dm4[15 + k1] + db[6 + k1]*dm4[15 + k2] + dc[k2]*dm5[3 + k1] + dc[k1]*dm5[3 + k2] + 2*dc[3 + k2]*dm5[12 + k1] + 2*dc[3 + k1]*dm5[12 + k2] + 2*dc[6 + k2]*dm5[15 + k1] + 2*dc[6 + k1]*dm5[15 + k2] + dc[12 + k2]*dm5[39 + k1] + dc[12 + k1]*dm5[39 + k2] + 2*dc[15 + k2]*dm5[42 + k1] + 2*dc[15 + k1]*dm5[42 + k2] + dc[24 + k2]*dm5[51 + k1] + dc[24 + k1]*dm5[51 + k2] + dd[k2]*dm6[3 + k1] + dd[k1]*dm6[3 + k2] + 3*dd[3 + k2]*dm6[12 + k1] + 3*dd[3 + k1]*dm6[12 + k2] + 3*dd[6 + k2]*dm6[15 + k1] + 3*dd[6 + k1]*dm6[15 + k2] + 3*dd[12 + k2]*dm6[39 + k1] + 3*dd[12 + k1]*dm6[39 + k2] + 6*dd[15 + k2]*dm6[42 + k1] + 6*dd[15 + k1]*dm6[42 + k2] + 3*dd[24 + k2]*dm6[51 + k1] + 3*dd[24 + k1]*dm6[51 + k2] + dd[39 + k2]*dm6[120 + k1] + dd[39 + k1]*dm6[120 + k2] + 3*dd[42 + k2]*dm6[123 + k1] + 3*dd[42 + k1]*dm6[123 + k2] + 3*dd[51 + k2]*dm6[132 + k1] + 3*dd[51 + k1]*dm6[132 + k2] + dd[78 + k2]*dm6[159 + k1] + dd[78 + k1]*dm6[159 + k2]);
+        rhs(12) = -(a*ddm3[18 + 3*k1 + k2] + b[0]*ddm4[18 + 3*k1 + k2] + b[1]*ddm4[45 + 3*k1 + k2] + b[2]*ddm4[72 + 3*k1 + k2] + c[0]*ddm5[18 + 3*k1 + k2] + 2*c[1]*ddm5[45 + 3*k1 + k2] + 2*c[2]*ddm5[72 + 3*k1 + k2] + c[4]*ddm5[126 + 3*k1 + k2] + 2*c[5]*ddm5[153 + 3*k1 + k2] + c[8]*ddm5[234 + 3*k1 + k2] + d[0]*ddm6[18 + 3*k1 + k2] + 3*d[1]*ddm6[45 + 3*k1 + k2] + 3*d[2]*ddm6[72 + 3*k1 + k2] + 3*d[4]*ddm6[126 + 3*k1 + k2] + 6*d[5]*ddm6[153 + 3*k1 + k2] + 3*d[8]*ddm6[234 + 3*k1 + k2] + d[13]*ddm6[369 + 3*k1 + k2] + 3*d[14]*ddm6[396 + 3*k1 + k2] + 3*d[17]*ddm6[477 + 3*k1 + k2] + d[26]*ddm6[720 + 3*k1 + k2] + da[k2]*dm3[6 + k1] + da[k1]*dm3[6 + k2] + db[k2]*dm4[6 + k1] + db[k1]*dm4[6 + k2] + db[3 + k2]*dm4[15 + k1] + db[3 + k1]*dm4[15 + k2] + db[6 + k2]*dm4[24 + k1] + db[6 + k1]*dm4[24 + k2] + dc[k2]*dm5[6 + k1] + dc[k1]*dm5[6 + k2] + 2*dc[3 + k2]*dm5[15 + k1] + 2*dc[3 + k1]*dm5[15 + k2] + 2*dc[6 + k2]*dm5[24 + k1] + 2*dc[6 + k1]*dm5[24 + k2] + dc[12 + k2]*dm5[42 + k1] + dc[12 + k1]*dm5[42 + k2] + 2*dc[15 + k2]*dm5[51 + k1] + 2*dc[15 + k1]*dm5[51 + k2] + dc[24 + k2]*dm5[78 + k1] + dc[24 + k1]*dm5[78 + k2] + dd[k2]*dm6[6 + k1] + dd[k1]*dm6[6 + k2] + 3*dd[3 + k2]*dm6[15 + k1] + 3*dd[3 + k1]*dm6[15 + k2] + 3*dd[6 + k2]*dm6[24 + k1] + 3*dd[6 + k1]*dm6[24 + k2] + 3*dd[12 + k2]*dm6[42 + k1] + 3*dd[12 + k1]*dm6[42 + k2] + 6*dd[15 + k2]*dm6[51 + k1] + 6*dd[15 + k1]*dm6[51 + k2] + 3*dd[24 + k2]*dm6[78 + k1] + 3*dd[24 + k1]*dm6[78 + k2] + dd[39 + k2]*dm6[123 + k1] + dd[39 + k1]*dm6[123 + k2] + 3*dd[42 + k2]*dm6[132 + k1] + 3*dd[42 + k1]*dm6[132 + k2] + 3*dd[51 + k2]*dm6[159 + k1] + 3*dd[51 + k1]*dm6[159 + k2] + dd[78 + k2]*dm6[240 + k1] + dd[78 + k1]*dm6[240 + k2]);
+        rhs(13) = -(a*ddm3[36 + 3*k1 + k2] + b[0]*ddm4[36 + 3*k1 + k2] + b[1]*ddm4[117 + 3*k1 + k2] + b[2]*ddm4[126 + 3*k1 + k2] + c[0]*ddm5[36 + 3*k1 + k2] + 2*c[1]*ddm5[117 + 3*k1 + k2] + 2*c[2]*ddm5[126 + 3*k1 + k2] + c[4]*ddm5[360 + 3*k1 + k2] + 2*c[5]*ddm5[369 + 3*k1 + k2] + c[8]*ddm5[396 + 3*k1 + k2] + d[0]*ddm6[36 + 3*k1 + k2] + 3*d[1]*ddm6[117 + 3*k1 + k2] + 3*d[2]*ddm6[126 + 3*k1 + k2] + 3*d[4]*ddm6[360 + 3*k1 + k2] + 6*d[5]*ddm6[369 + 3*k1 + k2] + 3*d[8]*ddm6[396 + 3*k1 + k2] + d[13]*ddm6[1089 + 3*k1 + k2] + 3*d[14]*ddm6[1098 + 3*k1 + k2] + 3*d[17]*ddm6[1125 + 3*k1 + k2] + d[26]*ddm6[1206 + 3*k1 + k2] + da[k2]*dm3[12 + k1] + da[k1]*dm3[12 + k2] + db[k2]*dm4[12 + k1] + db[k1]*dm4[12 + k2] + db[3 + k2]*dm4[39 + k1] + db[3 + k1]*dm4[39 + k2] + db[6 + k2]*dm4[42 + k1] + db[6 + k1]*dm4[42 + k2] + dc[k2]*dm5[12 + k1] + dc[k1]*dm5[12 + k2] + 2*dc[3 + k2]*dm5[39 + k1] + 2*dc[3 + k1]*dm5[39 + k2] + 2*dc[6 + k2]*dm5[42 + k1] + 2*dc[6 + k1]*dm5[42 + k2] + dc[12 + k2]*dm5[120 + k1] + dc[12 + k1]*dm5[120 + k2] + 2*dc[15 + k2]*dm5[123 + k1] + 2*dc[15 + k1]*dm5[123 + k2] + dc[24 + k2]*dm5[132 + k1] + dc[24 + k1]*dm5[132 + k2] + dd[k2]*dm6[12 + k1] + dd[k1]*dm6[12 + k2] + 3*dd[3 + k2]*dm6[39 + k1] + 3*dd[3 + k1]*dm6[39 + k2] + 3*dd[6 + k2]*dm6[42 + k1] + 3*dd[6 + k1]*dm6[42 + k2] + 3*dd[12 + k2]*dm6[120 + k1] + 3*dd[12 + k1]*dm6[120 + k2] + 6*dd[15 + k2]*dm6[123 + k1] + 6*dd[15 + k1]*dm6[123 + k2] + 3*dd[24 + k2]*dm6[132 + k1] + 3*dd[24 + k1]*dm6[132 + k2] + dd[39 + k2]*dm6[363 + k1] + dd[39 + k1]*dm6[363 + k2] + 3*dd[42 + k2]*dm6[366 + k1] + 3*dd[42 + k1]*dm6[366 + k2] + 3*dd[51 + k2]*dm6[375 + k1] + 3*dd[51 + k1]*dm6[375 + k2] + dd[78 + k2]*dm6[402 + k1] + dd[78 + k1]*dm6[402 + k2]);
+        rhs(14) = -(a*ddm3[45 + 3*k1 + k2] + b[0]*ddm4[45 + 3*k1 + k2] + b[1]*ddm4[126 + 3*k1 + k2] + b[2]*ddm4[153 + 3*k1 + k2] + c[0]*ddm5[45 + 3*k1 + k2] + 2*c[1]*ddm5[126 + 3*k1 + k2] + 2*c[2]*ddm5[153 + 3*k1 + k2] + c[4]*ddm5[369 + 3*k1 + k2] + 2*c[5]*ddm5[396 + 3*k1 + k2] + c[8]*ddm5[477 + 3*k1 + k2] + d[0]*ddm6[45 + 3*k1 + k2] + 3*d[1]*ddm6[126 + 3*k1 + k2] + 3*d[2]*ddm6[153 + 3*k1 + k2] + 3*d[4]*ddm6[369 + 3*k1 + k2] + 6*d[5]*ddm6[396 + 3*k1 + k2] + 3*d[8]*ddm6[477 + 3*k1 + k2] + d[13]*ddm6[1098 + 3*k1 + k2] + 3*d[14]*ddm6[1125 + 3*k1 + k2] + 3*d[17]*ddm6[1206 + 3*k1 + k2] + d[26]*ddm6[1449 + 3*k1 + k2] + da[k2]*dm3[15 + k1] + da[k1]*dm3[15 + k2] + db[k2]*dm4[15 + k1] + db[k1]*dm4[15 + k2] + db[3 + k2]*dm4[42 + k1] + db[3 + k1]*dm4[42 + k2] + db[6 + k2]*dm4[51 + k1] + db[6 + k1]*dm4[51 + k2] + dc[k2]*dm5[15 + k1] + dc[k1]*dm5[15 + k2] + 2*dc[3 + k2]*dm5[42 + k1] + 2*dc[3 + k1]*dm5[42 + k2] + 2*dc[6 + k2]*dm5[51 + k1] + 2*dc[6 + k1]*dm5[51 + k2] + dc[12 + k2]*dm5[123 + k1] + dc[12 + k1]*dm5[123 + k2] + 2*dc[15 + k2]*dm5[132 + k1] + 2*dc[15 + k1]*dm5[132 + k2] + dc[24 + k2]*dm5[159 + k1] + dc[24 + k1]*dm5[159 + k2] + dd[k2]*dm6[15 + k1] + dd[k1]*dm6[15 + k2] + 3*dd[3 + k2]*dm6[42 + k1] + 3*dd[3 + k1]*dm6[42 + k2] + 3*dd[6 + k2]*dm6[51 + k1] + 3*dd[6 + k1]*dm6[51 + k2] + 3*dd[12 + k2]*dm6[123 + k1] + 3*dd[12 + k1]*dm6[123 + k2] + 6*dd[15 + k2]*dm6[132 + k1] + 6*dd[15 + k1]*dm6[132 + k2] + 3*dd[24 + k2]*dm6[159 + k1] + 3*dd[24 + k1]*dm6[159 + k2] + dd[39 + k2]*dm6[366 + k1] + dd[39 + k1]*dm6[366 + k2] + 3*dd[42 + k2]*dm6[375 + k1] + 3*dd[42 + k1]*dm6[375 + k2] + 3*dd[51 + k2]*dm6[402 + k1] + 3*dd[51 + k1]*dm6[402 + k2] + dd[78 + k2]*dm6[483 + k1] + dd[78 + k1]*dm6[483 + k2]);
+        rhs(15) = -(a*ddm3[72 + 3*k1 + k2] + b[0]*ddm4[72 + 3*k1 + k2] + b[1]*ddm4[153 + 3*k1 + k2] + b[2]*ddm4[234 + 3*k1 + k2] + c[0]*ddm5[72 + 3*k1 + k2] + 2*c[1]*ddm5[153 + 3*k1 + k2] + 2*c[2]*ddm5[234 + 3*k1 + k2] + c[4]*ddm5[396 + 3*k1 + k2] + 2*c[5]*ddm5[477 + 3*k1 + k2] + c[8]*ddm5[720 + 3*k1 + k2] + d[0]*ddm6[72 + 3*k1 + k2] + 3*d[1]*ddm6[153 + 3*k1 + k2] + 3*d[2]*ddm6[234 + 3*k1 + k2] + 3*d[4]*ddm6[396 + 3*k1 + k2] + 6*d[5]*ddm6[477 + 3*k1 + k2] + 3*d[8]*ddm6[720 + 3*k1 + k2] + d[13]*ddm6[1125 + 3*k1 + k2] + 3*d[14]*ddm6[1206 + 3*k1 + k2] + 3*d[17]*ddm6[1449 + 3*k1 + k2] + d[26]*ddm6[2178 + 3*k1 + k2] + da[k2]*dm3[24 + k1] + da[k1]*dm3[24 + k2] + db[k2]*dm4[24 + k1] + db[k1]*dm4[24 + k2] + db[3 + k2]*dm4[51 + k1] + db[3 + k1]*dm4[51 + k2] + db[6 + k2]*dm4[78 + k1] + db[6 + k1]*dm4[78 + k2] + dc[k2]*dm5[24 + k1] + dc[k1]*dm5[24 + k2] + 2*dc[3 + k2]*dm5[51 + k1] + 2*dc[3 + k1]*dm5[51 + k2] + 2*dc[6 + k2]*dm5[78 + k1] + 2*dc[6 + k1]*dm5[78 + k2] + dc[12 + k2]*dm5[132 + k1] + dc[12 + k1]*dm5[132 + k2] + 2*dc[15 + k2]*dm5[159 + k1] + 2*dc[15 + k1]*dm5[159 + k2] + dc[24 + k2]*dm5[240 + k1] + dc[24 + k1]*dm5[240 + k2] + dd[k2]*dm6[24 + k1] + dd[k1]*dm6[24 + k2] + 3*dd[3 + k2]*dm6[51 + k1] + 3*dd[3 + k1]*dm6[51 + k2] + 3*dd[6 + k2]*dm6[78 + k1] + 3*dd[6 + k1]*dm6[78 + k2] + 3*dd[12 + k2]*dm6[132 + k1] + 3*dd[12 + k1]*dm6[132 + k2] + 6*dd[15 + k2]*dm6[159 + k1] + 6*dd[15 + k1]*dm6[159 + k2] + 3*dd[24 + k2]*dm6[240 + k1] + 3*dd[24 + k1]*dm6[240 + k2] + dd[39 + k2]*dm6[375 + k1] + dd[39 + k1]*dm6[375 + k2] + 3*dd[42 + k2]*dm6[402 + k1] + 3*dd[42 + k1]*dm6[402 + k2] + 3*dd[51 + k2]*dm6[483 + k1] + 3*dd[51 + k1]*dm6[483 + k2] + dd[78 + k2]*dm6[726 + k1] + dd[78 + k1]*dm6[726 + k2]);
+        rhs(16) = -(a*ddm3[117 + 3*k1 + k2] + b[0]*ddm4[117 + 3*k1 + k2] + b[1]*ddm4[360 + 3*k1 + k2] + b[2]*ddm4[369 + 3*k1 + k2] + c[0]*ddm5[117 + 3*k1 + k2] + 2*c[1]*ddm5[360 + 3*k1 + k2] + 2*c[2]*ddm5[369 + 3*k1 + k2] + c[4]*ddm5[1089 + 3*k1 + k2] + 2*c[5]*ddm5[1098 + 3*k1 + k2] + c[8]*ddm5[1125 + 3*k1 + k2] + d[0]*ddm6[117 + 3*k1 + k2] + 3*d[1]*ddm6[360 + 3*k1 + k2] + 3*d[2]*ddm6[369 + 3*k1 + k2] + 3*d[4]*ddm6[1089 + 3*k1 + k2] + 6*d[5]*ddm6[1098 + 3*k1 + k2] + 3*d[8]*ddm6[1125 + 3*k1 + k2] + d[13]*ddm6[3276 + 3*k1 + k2] + 3*d[14]*ddm6[3285 + 3*k1 + k2] + 3*d[17]*ddm6[3312 + 3*k1 + k2] + d[26]*ddm6[3393 + 3*k1 + k2] + da[k2]*dm3[39 + k1] + da[k1]*dm3[39 + k2] + db[k2]*dm4[39 + k1] + db[k1]*dm4[39 + k2] + db[3 + k2]*dm4[120 + k1] + db[3 + k1]*dm4[120 + k2] + db[6 + k2]*dm4[123 + k1] + db[6 + k1]*dm4[123 + k2] + dc[k2]*dm5[39 + k1] + dc[k1]*dm5[39 + k2] + 2*dc[3 + k2]*dm5[120 + k1] + 2*dc[3 + k1]*dm5[120 + k2] + 2*dc[6 + k2]*dm5[123 + k1] + 2*dc[6 + k1]*dm5[123 + k2] + dc[12 + k2]*dm5[363 + k1] + dc[12 + k1]*dm5[363 + k2] + 2*dc[15 + k2]*dm5[366 + k1] + 2*dc[15 + k1]*dm5[366 + k2] + dc[24 + k2]*dm5[375 + k1] + dc[24 + k1]*dm5[375 + k2] + dd[k2]*dm6[39 + k1] + dd[k1]*dm6[39 + k2] + 3*dd[3 + k2]*dm6[120 + k1] + 3*dd[3 + k1]*dm6[120 + k2] + 3*dd[6 + k2]*dm6[123 + k1] + 3*dd[6 + k1]*dm6[123 + k2] + 3*dd[12 + k2]*dm6[363 + k1] + 3*dd[12 + k1]*dm6[363 + k2] + 6*dd[15 + k2]*dm6[366 + k1] + 6*dd[15 + k1]*dm6[366 + k2] + 3*dd[24 + k2]*dm6[375 + k1] + 3*dd[24 + k1]*dm6[375 + k2] + dd[39 + k2]*dm6[1092 + k1] + dd[39 + k1]*dm6[1092 + k2] + 3*dd[42 + k2]*dm6[1095 + k1] + 3*dd[42 + k1]*dm6[1095 + k2] + 3*dd[51 + k2]*dm6[1104 + k1] + 3*dd[51 + k1]*dm6[1104 + k2] + dd[78 + k2]*dm6[1131 + k1] + dd[78 + k1]*dm6[1131 + k2]);
+        rhs(17) = -(a*ddm3[126 + 3*k1 + k2] + b[0]*ddm4[126 + 3*k1 + k2] + b[1]*ddm4[369 + 3*k1 + k2] + b[2]*ddm4[396 + 3*k1 + k2] + c[0]*ddm5[126 + 3*k1 + k2] + 2*c[1]*ddm5[369 + 3*k1 + k2] + 2*c[2]*ddm5[396 + 3*k1 + k2] + c[4]*ddm5[1098 + 3*k1 + k2] + 2*c[5]*ddm5[1125 + 3*k1 + k2] + c[8]*ddm5[1206 + 3*k1 + k2] + d[0]*ddm6[126 + 3*k1 + k2] + 3*d[1]*ddm6[369 + 3*k1 + k2] + 3*d[2]*ddm6[396 + 3*k1 + k2] + 3*d[4]*ddm6[1098 + 3*k1 + k2] + 6*d[5]*ddm6[1125 + 3*k1 + k2] + 3*d[8]*ddm6[1206 + 3*k1 + k2] + d[13]*ddm6[3285 + 3*k1 + k2] + 3*d[14]*ddm6[3312 + 3*k1 + k2] + 3*d[17]*ddm6[3393 + 3*k1 + k2] + d[26]*ddm6[3636 + 3*k1 + k2] + da[k2]*dm3[42 + k1] + da[k1]*dm3[42 + k2] + db[k2]*dm4[42 + k1] + db[k1]*dm4[42 + k2] + db[3 + k2]*dm4[123 + k1] + db[3 + k1]*dm4[123 + k2] + db[6 + k2]*dm4[132 + k1] + db[6 + k1]*dm4[132 + k2] + dc[k2]*dm5[42 + k1] + dc[k1]*dm5[42 + k2] + 2*dc[3 + k2]*dm5[123 + k1] + 2*dc[3 + k1]*dm5[123 + k2] + 2*dc[6 + k2]*dm5[132 + k1] + 2*dc[6 + k1]*dm5[132 + k2] + dc[12 + k2]*dm5[366 + k1] + dc[12 + k1]*dm5[366 + k2] + 2*dc[15 + k2]*dm5[375 + k1] + 2*dc[15 + k1]*dm5[375 + k2] + dc[24 + k2]*dm5[402 + k1] + dc[24 + k1]*dm5[402 + k2] + dd[k2]*dm6[42 + k1] + dd[k1]*dm6[42 + k2] + 3*dd[3 + k2]*dm6[123 + k1] + 3*dd[3 + k1]*dm6[123 + k2] + 3*dd[6 + k2]*dm6[132 + k1] + 3*dd[6 + k1]*dm6[132 + k2] + 3*dd[12 + k2]*dm6[366 + k1] + 3*dd[12 + k1]*dm6[366 + k2] + 6*dd[15 + k2]*dm6[375 + k1] + 6*dd[15 + k1]*dm6[375 + k2] + 3*dd[24 + k2]*dm6[402 + k1] + 3*dd[24 + k1]*dm6[402 + k2] + dd[39 + k2]*dm6[1095 + k1] + dd[39 + k1]*dm6[1095 + k2] + 3*dd[42 + k2]*dm6[1104 + k1] + 3*dd[42 + k1]*dm6[1104 + k2] + 3*dd[51 + k2]*dm6[1131 + k1] + 3*dd[51 + k1]*dm6[1131 + k2] + dd[78 + k2]*dm6[1212 + k1] + dd[78 + k1]*dm6[1212 + k2]);
+        rhs(18) = -(a*ddm3[153 + 3*k1 + k2] + b[0]*ddm4[153 + 3*k1 + k2] + b[1]*ddm4[396 + 3*k1 + k2] + b[2]*ddm4[477 + 3*k1 + k2] + c[0]*ddm5[153 + 3*k1 + k2] + 2*c[1]*ddm5[396 + 3*k1 + k2] + 2*c[2]*ddm5[477 + 3*k1 + k2] + c[4]*ddm5[1125 + 3*k1 + k2] + 2*c[5]*ddm5[1206 + 3*k1 + k2] + c[8]*ddm5[1449 + 3*k1 + k2] + d[0]*ddm6[153 + 3*k1 + k2] + 3*d[1]*ddm6[396 + 3*k1 + k2] + 3*d[2]*ddm6[477 + 3*k1 + k2] + 3*d[4]*ddm6[1125 + 3*k1 + k2] + 6*d[5]*ddm6[1206 + 3*k1 + k2] + 3*d[8]*ddm6[1449 + 3*k1 + k2] + d[13]*ddm6[3312 + 3*k1 + k2] + 3*d[14]*ddm6[3393 + 3*k1 + k2] + 3*d[17]*ddm6[3636 + 3*k1 + k2] + d[26]*ddm6[4365 + 3*k1 + k2] + da[k2]*dm3[51 + k1] + da[k1]*dm3[51 + k2] + db[k2]*dm4[51 + k1] + db[k1]*dm4[51 + k2] + db[3 + k2]*dm4[132 + k1] + db[3 + k1]*dm4[132 + k2] + db[6 + k2]*dm4[159 + k1] + db[6 + k1]*dm4[159 + k2] + dc[k2]*dm5[51 + k1] + dc[k1]*dm5[51 + k2] + 2*dc[3 + k2]*dm5[132 + k1] + 2*dc[3 + k1]*dm5[132 + k2] + 2*dc[6 + k2]*dm5[159 + k1] + 2*dc[6 + k1]*dm5[159 + k2] + dc[12 + k2]*dm5[375 + k1] + dc[12 + k1]*dm5[375 + k2] + 2*dc[15 + k2]*dm5[402 + k1] + 2*dc[15 + k1]*dm5[402 + k2] + dc[24 + k2]*dm5[483 + k1] + dc[24 + k1]*dm5[483 + k2] + dd[k2]*dm6[51 + k1] + dd[k1]*dm6[51 + k2] + 3*dd[3 + k2]*dm6[132 + k1] + 3*dd[3 + k1]*dm6[132 + k2] + 3*dd[6 + k2]*dm6[159 + k1] + 3*dd[6 + k1]*dm6[159 + k2] + 3*dd[12 + k2]*dm6[375 + k1] + 3*dd[12 + k1]*dm6[375 + k2] + 6*dd[15 + k2]*dm6[402 + k1] + 6*dd[15 + k1]*dm6[402 + k2] + 3*dd[24 + k2]*dm6[483 + k1] + 3*dd[24 + k1]*dm6[483 + k2] + dd[39 + k2]*dm6[1104 + k1] + dd[39 + k1]*dm6[1104 + k2] + 3*dd[42 + k2]*dm6[1131 + k1] + 3*dd[42 + k1]*dm6[1131 + k2] + 3*dd[51 + k2]*dm6[1212 + k1] + 3*dd[51 + k1]*dm6[1212 + k2] + dd[78 + k2]*dm6[1455 + k1] + dd[78 + k1]*dm6[1455 + k2]);
+        rhs(19) = -(a*ddm3[234 + 3*k1 + k2] + b[0]*ddm4[234 + 3*k1 + k2] + b[1]*ddm4[477 + 3*k1 + k2] + b[2]*ddm4[720 + 3*k1 + k2] + c[0]*ddm5[234 + 3*k1 + k2] + 2*c[1]*ddm5[477 + 3*k1 + k2] + 2*c[2]*ddm5[720 + 3*k1 + k2] + c[4]*ddm5[1206 + 3*k1 + k2] + 2*c[5]*ddm5[1449 + 3*k1 + k2] + c[8]*ddm5[2178 + 3*k1 + k2] + d[0]*ddm6[234 + 3*k1 + k2] + 3*d[1]*ddm6[477 + 3*k1 + k2] + 3*d[2]*ddm6[720 + 3*k1 + k2] + 3*d[4]*ddm6[1206 + 3*k1 + k2] + 6*d[5]*ddm6[1449 + 3*k1 + k2] + 3*d[8]*ddm6[2178 + 3*k1 + k2] + d[13]*ddm6[3393 + 3*k1 + k2] + 3*d[14]*ddm6[3636 + 3*k1 + k2] + 3*d[17]*ddm6[4365 + 3*k1 + k2] + d[26]*ddm6[6552 + 3*k1 + k2] + da[k2]*dm3[78 + k1] + da[k1]*dm3[78 + k2] + db[k2]*dm4[78 + k1] + db[k1]*dm4[78 + k2] + db[3 + k2]*dm4[159 + k1] + db[3 + k1]*dm4[159 + k2] + db[6 + k2]*dm4[240 + k1] + db[6 + k1]*dm4[240 + k2] + dc[k2]*dm5[78 + k1] + dc[k1]*dm5[78 + k2] + 2*dc[3 + k2]*dm5[159 + k1] + 2*dc[3 + k1]*dm5[159 + k2] + 2*dc[6 + k2]*dm5[240 + k1] + 2*dc[6 + k1]*dm5[240 + k2] + dc[12 + k2]*dm5[402 + k1] + dc[12 + k1]*dm5[402 + k2] + 2*dc[15 + k2]*dm5[483 + k1] + 2*dc[15 + k1]*dm5[483 + k2] + dc[24 + k2]*dm5[726 + k1] + dc[24 + k1]*dm5[726 + k2] + dd[k2]*dm6[78 + k1] + dd[k1]*dm6[78 + k2] + 3*dd[3 + k2]*dm6[159 + k1] + 3*dd[3 + k1]*dm6[159 + k2] + 3*dd[6 + k2]*dm6[240 + k1] + 3*dd[6 + k1]*dm6[240 + k2] + 3*dd[12 + k2]*dm6[402 + k1] + 3*dd[12 + k1]*dm6[402 + k2] + 6*dd[15 + k2]*dm6[483 + k1] + 6*dd[15 + k1]*dm6[483 + k2] + 3*dd[24 + k2]*dm6[726 + k1] + 3*dd[24 + k1]*dm6[726 + k2] + dd[39 + k2]*dm6[1131 + k1] + dd[39 + k1]*dm6[1131 + k2] + 3*dd[42 + k2]*dm6[1212 + k1] + 3*dd[42 + k1]*dm6[1212 + k2] + 3*dd[51 + k2]*dm6[1455 + k1] + 3*dd[51 + k1]*dm6[1455 + k2] + dd[78 + k2]*dm6[2184 + k1] + dd[78 + k1]*dm6[2184 + k2]);
  
-      lhs = solver.solve(rhs);
+        lhs = solver.solve(rhs);
 
-      dda[3*k1 + k2] = lhs(0);
-      ddb[3*k1 + k2] = lhs(1);
-      ddb[9 + 3*k1 + k2] = lhs(2);
-      ddb[18 + 3*k1 + k2] = lhs(3);
-      ddc[3*k1 + k2] = lhs(4);
-      ddc[9 + 3*k1 + k2] = lhs(5);
-      ddc[18 + 3*k1 + k2] = lhs(6);
-      ddc[36 + 3*k1 + k2] = lhs(7);
-      ddc[45 + 3*k1 + k2] = lhs(8);
-      ddc[72 + 3*k1 + k2] = lhs(9);
-      ddd[3*k1 + k2] = lhs(10);
-      ddd[9 + 3*k1 + k2] = lhs(11);
-      ddd[18 + 3*k1 + k2] = lhs(12);
-      ddd[36 + 3*k1 + k2] = lhs(13);
-      ddd[45 + 3*k1 + k2] = lhs(14);
-      ddd[72 + 3*k1 + k2] = lhs(15);
-      ddd[117 + 3*k1 + k2] = lhs(16);
-      ddd[126 + 3*k1 + k2] = lhs(17);
-      ddd[153 + 3*k1 + k2] = lhs(18);
-      ddd[234 + 3*k1 + k2] = lhs(19);
+        dda[3*k1 + k2] = lhs(0);
+        ddb[3*k1 + k2] = lhs(1);
+        ddb[9 + 3*k1 + k2] = lhs(2);
+        ddb[18 + 3*k1 + k2] = lhs(3);
+        ddc[3*k1 + k2] = lhs(4);
+        ddc[9 + 3*k1 + k2] = lhs(5);
+        ddc[18 + 3*k1 + k2] = lhs(6);
+        ddc[36 + 3*k1 + k2] = lhs(7);
+        ddc[45 + 3*k1 + k2] = lhs(8);
+        ddc[72 + 3*k1 + k2] = lhs(9);
+        ddd[3*k1 + k2] = lhs(10);
+        ddd[9 + 3*k1 + k2] = lhs(11);
+        ddd[18 + 3*k1 + k2] = lhs(12);
+        ddd[36 + 3*k1 + k2] = lhs(13);
+        ddd[45 + 3*k1 + k2] = lhs(14);
+        ddd[72 + 3*k1 + k2] = lhs(15);
+        ddd[117 + 3*k1 + k2] = lhs(16);
+        ddd[126 + 3*k1 + k2] = lhs(17);
+        ddd[153 + 3*k1 + k2] = lhs(18);
+        ddd[234 + 3*k1 + k2] = lhs(19);
+      }
     }
-  }
-  
+  }  
   // Fill symmetries
   fillSymmetries<Dim<3>>(ddb);
   fillSymmetries<Dim<3>>(c, dc, ddc);
@@ -2039,7 +2434,7 @@ computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
   //------------------------------------------------------------------------------
   // Templated version for faster summation of moments
   //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, CRKOrder correctionOrder, bool needHessian>
 void
 computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                      const TableKernel<Dimension>& W,
@@ -2070,19 +2465,19 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   case CRKOrder::CubicOrder:
     REQUIRE(D.size() == numNodeLists);
     REQUIRE(gradD.size() == numNodeLists);
-    REQUIRE(hessD.size() == numNodeLists);
+    if (needHessian) REQUIRE(hessD.size() == numNodeLists);
   case CRKOrder::QuadraticOrder:
     REQUIRE(C.size() == numNodeLists);
     REQUIRE(gradC.size() == numNodeLists);
-    REQUIRE(hessC.size() == numNodeLists);
+    if (needHessian) REQUIRE(hessC.size() == numNodeLists);
   case CRKOrder::LinearOrder:
     REQUIRE(B.size() == numNodeLists);
     REQUIRE(gradB.size() == numNodeLists);
-    REQUIRE(hessB.size() == numNodeLists);
+    if (needHessian) REQUIRE(hessB.size() == numNodeLists);
   case CRKOrder::ZerothOrder:
     REQUIRE(A.size() == numNodeLists);
     REQUIRE(gradA.size() == numNodeLists);
-    REQUIRE(hessA.size() == numNodeLists);
+    if (needHessian) REQUIRE(hessA.size() == numNodeLists);
   }
 
   // Get an identity tensor
@@ -2119,7 +2514,11 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     const auto dg = etaInterp ? Tensor(Hij) : identityTensor;
 
     // Add the values to the moments
-    addToMoments<Dimension, correctionOrder>(g, dg, Wij, gradWij, hessWij, vj, mom);
+    addToMoment<Dimension, correctionOrder>(g, Wij, vj, mom);
+    addToGradient<Dimension, correctionOrder>(g, dg, Wij, gradWij, vj, mom);
+    if (needHessian) {
+      addToHessian<Dimension, correctionOrder>(g, dg, Wij, gradWij, hessWij, vj, mom);
+    }
           
     return;
   };
@@ -2148,23 +2547,23 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       // Compute corrections
       switch (correctionOrder) {
       case CRKOrder::ZerothOrder:
-        computeCorrections(rkMoments,
+        computeCorrections(rkMoments, needHessian,
                            A(nodeListi, nodei), gradA(nodeListi, nodei), hessA(nodeListi, nodei));
         break;
       case CRKOrder::LinearOrder:
-        computeCorrections(rkMoments,
+        computeCorrections(rkMoments, needHessian,
                            A(nodeListi, nodei), B(nodeListi, nodei),
                            gradA(nodeListi, nodei), gradB(nodeListi, nodei),
                            hessA(nodeListi, nodei), hessB(nodeListi, nodei));
         break;
       case CRKOrder::QuadraticOrder:
-        computeCorrections(rkMoments,
+        computeCorrections(rkMoments, needHessian,
                            A(nodeListi, nodei), B(nodeListi, nodei), C(nodeListi, nodei),
                            gradA(nodeListi, nodei), gradB(nodeListi, nodei), gradC(nodeListi, nodei),
                            hessA(nodeListi, nodei), hessB(nodeListi, nodei), hessC(nodeListi, nodei));
         break;
       case CRKOrder::CubicOrder:
-        computeCorrections(rkMoments,
+        computeCorrections(rkMoments, needHessian,
                            A(nodeListi, nodei), B(nodeListi, nodei), C(nodeListi, nodei), D(nodeListi, nodei),
                            gradA(nodeListi, nodei), gradB(nodeListi, nodei), gradC(nodeListi, nodei), gradD(nodeListi, nodei),
                            hessA(nodeListi, nodei), hessB(nodeListi, nodei), hessC(nodeListi, nodei), hessD(nodeListi, nodei));
@@ -2185,6 +2584,7 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                      const FieldList<Dimension, typename Dimension::Vector>& position,
                      const FieldList<Dimension, typename Dimension::SymTensor>& H,
                      const CRKOrder correctionOrder,
+                     const bool needHessian,
                      FieldList<Dimension, typename Dimension::Scalar>& A,
                      FieldList<Dimension, typename Dimension::Vector>& B,
                      FieldList<Dimension, typename Dimension::Tensor>& C,
@@ -2197,31 +2597,61 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                      FieldList<Dimension, typename Dimension::ThirdRankTensor>& hessB,
                      FieldList<Dimension, typename Dimension::FourthRankTensor>& hessC,
                      FieldList<Dimension, typename Dimension::FifthRankTensor>& hessD) {
-  switch (correctionOrder) {
-  case CRKOrder::ZerothOrder:
-    return computeRKCorrections<Dimension, CRKOrder::ZerothOrder>(connectivityMap,
-                                                                  W, volume, position, H,
-                                                                  A, B, C, D,
-                                                                  gradA, gradB, gradC, gradD,
-                                                                  hessA, hessB, hessC, hessD);
-  case CRKOrder::LinearOrder:
-    return computeRKCorrections<Dimension, CRKOrder::LinearOrder>(connectivityMap,
-                                                                  W, volume, position, H,
-                                                                  A, B, C, D,
-                                                                  gradA, gradB, gradC, gradD,
-                                                                  hessA, hessB, hessC, hessD);
-  case CRKOrder::QuadraticOrder:
-    return computeRKCorrections<Dimension, CRKOrder::QuadraticOrder>(connectivityMap,
-                                                                     W, volume, position, H,
-                                                                     A, B, C, D,
-                                                                     gradA, gradB, gradC, gradD,
-                                                                     hessA, hessB, hessC, hessD);
-  case CRKOrder::CubicOrder:
-    return computeRKCorrections<Dimension, CRKOrder::CubicOrder>(connectivityMap,
-                                                                 W, volume, position, H,
-                                                                 A, B, C, D,
-                                                                 gradA, gradB, gradC, gradD,
-                                                                 hessA, hessB, hessC, hessD);
+  if (needHessian) {
+    switch (correctionOrder) {
+    case CRKOrder::ZerothOrder:
+      return computeRKCorrections<Dimension, CRKOrder::ZerothOrder, true>(connectivityMap,
+                                                                          W, volume, position, H,
+                                                                          A, B, C, D,
+                                                                          gradA, gradB, gradC, gradD,
+                                                                          hessA, hessB, hessC, hessD);
+    case CRKOrder::LinearOrder:
+      return computeRKCorrections<Dimension, CRKOrder::LinearOrder, true>(connectivityMap,
+                                                                          W, volume, position, H,
+                                                                          A, B, C, D,
+                                                                          gradA, gradB, gradC, gradD,
+                                                                          hessA, hessB, hessC, hessD);
+    case CRKOrder::QuadraticOrder:
+      return computeRKCorrections<Dimension, CRKOrder::QuadraticOrder, true>(connectivityMap,
+                                                                             W, volume, position, H,
+                                                                             A, B, C, D,
+                                                                             gradA, gradB, gradC, gradD,
+                                                                             hessA, hessB, hessC, hessD);
+    case CRKOrder::CubicOrder:
+      return computeRKCorrections<Dimension, CRKOrder::CubicOrder, true>(connectivityMap,
+                                                                         W, volume, position, H,
+                                                                         A, B, C, D,
+                                                                         gradA, gradB, gradC, gradD,
+                                                                         hessA, hessB, hessC, hessD);
+    }
+  }
+  else {
+    switch (correctionOrder) {
+    case CRKOrder::ZerothOrder:
+      return computeRKCorrections<Dimension, CRKOrder::ZerothOrder, false>(connectivityMap,
+                                                                           W, volume, position, H,
+                                                                           A, B, C, D,
+                                                                           gradA, gradB, gradC, gradD,
+                                                                           hessA, hessB, hessC, hessD);
+    case CRKOrder::LinearOrder:
+      return computeRKCorrections<Dimension, CRKOrder::LinearOrder, false>(connectivityMap,
+                                                                           W, volume, position, H,
+                                                                           A, B, C, D,
+                                                                           gradA, gradB, gradC, gradD,
+                                                                           hessA, hessB, hessC, hessD);
+    case CRKOrder::QuadraticOrder:
+      return computeRKCorrections<Dimension, CRKOrder::QuadraticOrder, false>(connectivityMap,
+                                                                              W, volume, position, H,
+                                                                              A, B, C, D,
+                                                                              gradA, gradB, gradC, gradD,
+                                                                              hessA, hessB, hessC, hessD);
+    case CRKOrder::CubicOrder:
+      return computeRKCorrections<Dimension, CRKOrder::CubicOrder, false>(connectivityMap,
+                                                                          W, volume, position, H,
+                                                                          A, B, C, D,
+                                                                          gradA, gradB, gradC, gradD,
+                                                                          hessA, hessB, hessC, hessD);
+    }
   }
 }
 

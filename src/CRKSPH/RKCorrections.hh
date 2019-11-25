@@ -39,7 +39,8 @@ public:
   RKCorrections(const DataBase<Dimension>& dataBase,
                 const TableKernel<Dimension>& W,
                 const CRKOrder correctionOrder,
-                const CRKVolumeType volumeType);
+                const CRKVolumeType volumeType,
+                const bool needHessian);
 
   // Destructor.
   virtual ~RKCorrections();
@@ -109,6 +110,7 @@ public:
   // Return data
   CRKOrder correctionOrder() const { return mCorrectionOrder; }
   CRKVolumeType volumeType() const { return mVolumeType; }
+  bool needHessian() const { return mNeedHessian; }
   const FieldList<Dimension, Scalar>& volume() const { return mVolume; }
   
   const FieldList<Dimension, Scalar>& A() const { return mA; }
@@ -136,6 +138,7 @@ private:
   const TableKernel<Dimension>& mW;
   const CRKOrder mCorrectionOrder;
   const CRKVolumeType mVolumeType;
+  const bool mNeedHessian;
 
   // State
   FieldList<Dimension, Scalar> mVolume;
