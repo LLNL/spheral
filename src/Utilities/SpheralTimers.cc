@@ -25,14 +25,9 @@ Timer TIME_Physics               ("All physics derivatives   ", TIME_Spheral);
 // Timer TimeNestedDistributedBound("Root NestedDistribBound   ");
 
 //------------------------------------------------------------------------------
-// Voronoi 2d
+// Voronoi
 //------------------------------------------------------------------------------
-Timer TIME_computeVoronoiVolume2d("computeVoronoiVolume2d", TIME_Spheral);
-
-//------------------------------------------------------------------------------
-// Voronoi 3d
-//------------------------------------------------------------------------------
-Timer TIME_computeVoronoiVolume3d("computeVoronoiVolume3d", TIME_Spheral);
+Timer TIME_computeVoronoiVolume("computeVoronoiVolume", TIME_Spheral);
 
 //------------------------------------------------------------------------------
 // Polyhedron timers

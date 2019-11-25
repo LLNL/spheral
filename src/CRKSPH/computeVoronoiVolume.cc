@@ -12,11 +12,10 @@
 #include "Utilities/Timer.hh"
 #include "Geometry/polyclipper.hh"
 
-extern Timer TIME_computeVoronoiVolume2d;
+extern Timer TIME_computeVoronoiVolume;
 
 #include <algorithm>
 #include <utility>
-#include <ctime>
 using std::vector;
 using std::string;
 using std::pair;
@@ -45,146 +44,197 @@ operator+=(std::vector<std::vector<T>>& a, const std::vector<std::vector<T>>& b)
 
 namespace Spheral {
 
-using namespace FastMath;
-
 namespace {  // anonymous namespace
-// //------------------------------------------------------------------------------
-// // A special comparator to sort r2d planes by distance.
-// //------------------------------------------------------------------------------
-// inline
-// bool compareR2Dplanes(const r2d_plane& lhs, const r2d_plane& rhs) {
-//   return lhs.d < rhs.d;
-// }
+//------------------------------------------------------------------------------
+// Trait class for local Dimension
+//------------------------------------------------------------------------------
+template<typename Dimension> struct ClippingType;
 
-// //------------------------------------------------------------------------------
-// // Find the 1D extent of an R2D cell along the given direction.
-// //------------------------------------------------------------------------------
-// inline
-// void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, const r2d_poly& celli) {
-//   REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
-//   double xi;
-//   xmin = 0.0;
-//   xmax = 0.0;
-//   for (unsigned i = 0; i != celli.nverts; ++i) {
-//     xi = (celli.verts[i].pos.x * nhat.x() +
-//           celli.verts[i].pos.y * nhat.y());
-//     xmin = std::min(xmin, xi);
-//     xmax = std::max(xmax, xi);
-//   }
-//   xmin = std::min(0.0, xmin);
-//   xmax = std::max(0.0, xmax);
-// }
+//..............................................................................
+// 2D
+template<>
+struct
+ClippingType<Dim<2>> {
+  typedef Dim<2>::Scalar Scalar;
+  typedef Dim<2>::Vector Vector;
+  typedef Dim<2>::SymTensor SymTensor;
+  typedef Dim<2>::FacetedVolume FacetedVolume;
+  typedef PolyClipper::Plane2d Plane;
+  typedef PolyClipper::Polygon PolyVolume;
+  
+  // Unit circle as template shape.
+  static PolyVolume unitPolyVolume() {
+    const auto nverts = 18;
+    PolyClipper::Polygon cell0;
+    {
+      const auto dtheta = 2.0*M_PI/nverts;
+      vector<Vector> verts0(nverts);
+      vector<vector<unsigned>> facets0(nverts, vector<unsigned>(2));
+      for (auto j = 0; j != nverts; ++j) {
+        const auto theta = j*dtheta;
+        verts0[j].x(cos(theta));
+        verts0[j].y(sin(theta));
+        facets0[j][0] = j;
+        facets0[j][1] = (j + 1) % nverts;
+      }
+      PolyClipper::convertToPolygon(cell0, FacetedVolume(verts0, facets0));
+    }
+    return cell0;
+  }
 
-// // This version fits an ellipse and slices in the chosen direction.
-// void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, r2d_poly& celli) {
-//   REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
-//   r2d_real moms[6];
-//   r2d_reduce(&celli, moms, 2);
-//   const Dim<2>::SymTensor G2(moms[3], moms[4], moms[4], moms[5]);
-//   Dim<2>::SymTensor G = G2.sqrt();
-//   // G *= sqrt(moms[0]/G.Determinant());
-//   xmax = (G*nhat).magnitude();
-//   xmin = -xmax;
-// }
+  // clipping operation
+  static void clip(PolyVolume& cell, const std::vector<Plane>& planes) {
+    PolyClipper::clipPolygon(cell, planes);
+  }
 
-// //------------------------------------------------------------------------------
-// // Worker function to clip by neighors in the given NodeList.
-// // Returns whether the geometry was affected by this operation.
-// //------------------------------------------------------------------------------
-// bool clipByNeighbors(r2d_poly& celli,
-//                      FieldList<Dim<2>, int>& surfacePoint,
-//                      FieldList<Dim<2>, vector<Dim<2>::Vector>>& etaVoidPoints,
-//                      const bool haveWeights,
-//                      const bool returnSurface,
-//                      const Dim<2>::Scalar rin,
-//                      const vector<vector<int>>& fullConnectivity,
-//                      const FieldList<Dim<2>, Dim<2>::Vector>& position,
-//                      const FieldList<Dim<2>, Dim<2>::Scalar>& weight,
-//                      const unsigned nodeListi, 
-//                      const unsigned i,
-//                      const unsigned nodeListj) {
+  // moment computation
+  static void moments(double& vol, Vector& cent, const PolyVolume& cell) {
+    PolyClipper::moments(vol, cent, cell);
+  }
 
-//   typedef Dim<2>::Scalar Scalar;
-//   typedef Dim<2>::Vector Vector;
-//   typedef Dim<2>::SymTensor SymTensor;
-//   typedef Dim<2>::FacetedVolume FacetedVolume;
-//   typedef Dim<2>::FacetedVolume::Facet Facet;
+  // collapse degenerate points
+  static void collapseDegenerates(PolyVolume& cell, const double tol) {
+    PolyClipper::collapseDegenerates(cell, tol);
+  }
 
-//   // Get the starting volume.
-//   r2d_real vol0, vol1, vol2;
-//   r2d_reduce(&celli, &vol0, 0);
-//   CHECK(vol0 > 0.0);
+  // Convert PolyClipper::Polygon -> Spheral::Polygon
+  static void convertFromPolyVolume(FacetedVolume& spheralcell, const PolyVolume& polycell) {
+    PolyClipper::convertFromPolygon(spheralcell, polycell);
+  }
 
-//   // Check for multimaterial.
-//   if (returnSurface and nodeListj != nodeListi and not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
+  // Generate the reduced void point stencil -- up to 4 for 2D
+  static std::vector<Vector> createEtaVoidPoints(const Vector& etaVoidAvg,
+                                                 const int nvoid,
+                                                 const double rin,
+                                                 const SymTensor& Hi,
+                                                 const SymTensor& Hinvi,
+                                                 const PolyVolume& celli) {
+    std::vector<Vector> result;
+    const auto nverts = 18;
+    const auto thetaVoidAvg = atan2(etaVoidAvg.y(), etaVoidAvg.x());
+    const auto nv = max(1U, min(4U, unsigned(4.0*double(nvoid)/double(nverts))));
+    for (unsigned k = 0; k != nv; ++k) {
+      const auto theta = thetaVoidAvg + (0.5*k - 0.25*(nv - 1))*M_PI;
+      const auto etaVoid = Vector(0.5*rin*cos(theta), 0.5*rin*sin(theta));
+      result.push_back(etaVoid);
+      const auto rji = Hinvi*etaVoid;
+      const auto nhat = -rji.unitVector();
+    }
+    ENSURE(result.size() == nv);
+    return result;
+  }
+    
+};
 
-//   // Build the clipping planes.
-//   const auto& ri = position(nodeListi, i);
-//   const auto  weighti = haveWeights ? weight(nodeListi, i) : 1.0;
-//   vector<r2d_plane> pairPlanes, voidPlanes;
-//   for (auto jItr = fullConnectivity[nodeListj].begin();
-//        jItr != fullConnectivity[nodeListj].end();
-//        ++jItr) {
-//     const auto  j = *jItr;
-//     const auto& rj = position(nodeListj, j);
-//     const auto  weightj = haveWeights ? weight(nodeListj, j) : 1.0;
+//..............................................................................
+// 3D
+template<>
+struct
+ClippingType<Dim<3>> {
+  typedef Dim<3>::Scalar Scalar;
+  typedef Dim<3>::Vector Vector;
+  typedef Dim<3>::SymTensor SymTensor;
+  typedef Dim<3>::FacetedVolume FacetedVolume;
+  typedef PolyClipper::Plane3d Plane;
+  typedef PolyClipper::Polyhedron PolyVolume;
+  
+  // Build an approximation of the starting kernel shape (in eta space) as an icosahedron with vertices
+  static PolyVolume unitPolyVolume() {
+    const auto t = (1.0 + sqrt(5.0)) / 2.0;
+    const vector<Vector> vertsIco = {           // Array of vertex coordinates.
+      Vector(-1,  t,  0)/sqrt(1 + t*t),
+      Vector( 1,  t,  0)/sqrt(1 + t*t),
+      Vector(-1, -t,  0)/sqrt(1 + t*t),
+      Vector( 1, -t,  0)/sqrt(1 + t*t),
+      Vector( 0, -1,  t)/sqrt(1 + t*t),
+      Vector( 0,  1,  t)/sqrt(1 + t*t),
+      Vector( 0, -1, -t)/sqrt(1 + t*t),
+      Vector( 0,  1, -t)/sqrt(1 + t*t),
+      Vector( t,  0, -1)/sqrt(1 + t*t),
+      Vector( t,  0,  1)/sqrt(1 + t*t),
+      Vector(-t,  0, -1)/sqrt(1 + t*t),
+      Vector(-t,  0,  1)/sqrt(1 + t*t)
+    };
+    const vector<vector<unsigned>> facesIco = {
+      // 5 faces around point 0
+      {0, 11, 5},
+      {0, 5, 1},
+      {0, 1, 7},
+      {0, 7, 10},
+      {0, 10, 11},
+      // 5 adjacent faces
+      {1, 5, 9},
+      {5, 11, 4},
+      {11, 10, 2},
+      {10, 7, 6},
+      {7, 1, 8},
+      // 5 faces around point 3
+      {3, 9, 4},
+      {3, 4, 2},
+      {3, 2, 6},
+      {3, 6, 8},
+      {3, 8, 9},
+      // 5 adjacent faces
+      {4, 9, 5},
+      {2, 4, 11},
+      {6, 2, 10},
+      {8, 6, 7},
+      {9, 8, 1}
+    };
+    PolyClipper::Polyhedron cell0;
+    PolyClipper::convertToPolyhedron(cell0, FacetedVolume(vertsIco, facesIco));
+    ENSURE(cell0.size() == 12);
+    return cell0;
+  }
 
-//     // Build the planes for the clipping half-spaces.
-//     const auto rij = ri - rj;
-//     const auto nhat = rij.unitVector();
-//     const auto wij = weighti/(weightj + weighti);
-//     if (voidPoint(nodeListj, j) == 0) {
-//       pairPlanes.push_back(r2d_plane());
-//       pairPlanes.back().n.x = nhat.x();
-//       pairPlanes.back().n.y = nhat.y();
-//       pairPlanes.back().d = wij*rij.magnitude();
-//     } else {
-//       voidPlanes.push_back(r2d_plane());
-//       voidPlanes.back().n.x = nhat.x();
-//       voidPlanes.back().n.y = nhat.y();
-//       voidPlanes.back().d = wij*rij.magnitude();
-//     }
-//   }
+  // clipping operation
+  static void clip(PolyVolume& cell, const std::vector<Plane>& planes) {
+    PolyClipper::clipPolyhedron(cell, planes);
+  }
 
-//   // Sort the planes by distance -- lets us clip more efficiently.
-//   std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
-//   std::sort(voidPlanes.begin(), voidPlanes.end(), compareR2Dplanes);
+  // moment computation
+  static void moments(double& vol, Vector& cent, const PolyVolume& cell) {
+    PolyClipper::moments(vol, cent, cell);
+  }
 
-//   // Clip the local cell.
-//   r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
-//   CHECK(celli.nverts > 0);
-//   r2d_reduce(&celli, &vol1, 0);
-//   CHECK(vol1 > 0.0);
+  // collapse degenerate points
+  static void collapseDegenerates(PolyVolume& cell, const double tol) {
+    PolyClipper::collapseDegenerates(cell, tol);
+  }
 
-//   // If there are void planes, check if they do anything.
-//   if (not voidPlanes.empty()) {
-//     const auto nvoid = voidPlanes.size();
-//     for (auto k = 0; k != nvoid; ++k) {
-//       r2d_clip(&celli, &voidPlanes[k], 1);
-//       CHECK(celli.nverts > 0);
-//       r2d_reduce(&celli, &vol2, 0);
-//       if (vol2 < vol1) {
-//         vol1 = vol2;
-//         if (returnSurface) {
-//           surfacePoint(nodeListi, i) |= 1;
-//           etaVoidPoints(nodeListi, i).push_back(-0.5*rin*Vector(voidPlanes[k].n.x,
-//                                                                 voidPlanes[k].n.y));
-//         }
-//       }
-//     }
-//   }
+  // Convert PolyClipper::Polyhedron -> Spheral::Polyhedron
+  static void convertFromPolyVolume(FacetedVolume& spheralcell, const PolyVolume& polycell) {
+    PolyClipper::convertFromPolyhedron(spheralcell, polycell);
+  }
 
-//   // Return whether we actually affected the cell.
-//   return vol1 < vol0;
-// }
+  // In 3D we simply use any unclipped original vertices as void generators
+  static std::vector<Vector> createEtaVoidPoints(const Vector& etaVoidAvg,
+                                                 const int nvoid,
+                                                 const double rin,
+                                                 const SymTensor& Hi,
+                                                 const SymTensor& Hinvi,
+                                                 const PolyVolume& celli) {
+    std::vector<Vector> result;
+    for (const auto& vert: celli) {
+      const auto peta = Hi*vert.position;
+      if (peta.magnitude2() > rin*rin) {
+        const Vector etaj = 0.5*rin*peta.unitVector();
+        result.push_back(etaj);
+      }
+    }
+    return result;
+  }
+    
+};
 
 //------------------------------------------------------------------------------
 // Find the 1D extent of a polygon along the given direction.
 //------------------------------------------------------------------------------
+template<typename Vector, typename Cell>
 inline
-void findPolygonExtent(double& xmin, double& xmax, 
-                       const Dim<2>::Vector& nhat, 
-                       const PolyClipper::Polygon& celli) {
+void findCellExtent(double& xmin, double& xmax, 
+                    const Vector& nhat, 
+                    const Cell& celli) {
   REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
   double xi;
   xmin = 0.0;
@@ -201,25 +251,26 @@ void findPolygonExtent(double& xmin, double& xmax,
 }           // anonymous namespace
 
 //------------------------------------------------------------------------------
-// 2D
+// The method in question
 //------------------------------------------------------------------------------
+template<typename Dimension>
 void
-computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
-                     const FieldList<Dim<2>, Dim<2>::SymTensor>& H,
-                     const ConnectivityMap<Dim<2> >& connectivityMap,
-                     const FieldList<Dim<2>, Dim<2>::SymTensor>& damage,
-                     const std::vector<Dim<2>::FacetedVolume>& facetedBoundaries,
-                     const std::vector<std::vector<Dim<2>::FacetedVolume> >& holes,
-                     const std::vector<Boundary<Dim<2>>*>& boundaries,
-                     const FieldList<Dim<2>, Dim<2>::Scalar>& weight,
-                     FieldList<Dim<2>, int>& surfacePoint,
-                     FieldList<Dim<2>, Dim<2>::Scalar>& vol,
-                     FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian,
-                     FieldList<Dim<2>, vector<Dim<2>::Vector>>& etaVoidPoints,
-                     FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells,
-                     FieldList<Dim<2>, std::vector<CellFaceFlag>>& cellFaceFlags) {
+computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& position,
+                     const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                     const ConnectivityMap<Dimension >& connectivityMap,
+                     const FieldList<Dimension, typename Dimension::SymTensor>& damage,
+                     const std::vector<typename Dimension::FacetedVolume>& facetedBoundaries,
+                     const std::vector<std::vector<typename Dimension::FacetedVolume> >& holes,
+                     const std::vector<Boundary<Dimension>*>& boundaries,
+                     const FieldList<Dimension, typename Dimension::Scalar>& weight,
+                     FieldList<Dimension, int>& surfacePoint,
+                     FieldList<Dimension, typename Dimension::Scalar>& vol,
+                     FieldList<Dimension, typename Dimension::Vector>& deltaMedian,
+                     FieldList<Dimension, vector<typename Dimension::Vector>>& etaVoidPoints,
+                     FieldList<Dimension, typename Dimension::FacetedVolume>& cells,
+                     FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags) {
 
-  TIME_computeVoronoiVolume2d.start();
+  TIME_computeVoronoiVolume.start();
 
   // Pre-conditions
   REQUIRE(facetedBoundaries.size() == 0 or facetedBoundaries.size() == position.size());
@@ -227,12 +278,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   REQUIRE(deltaMedian.size() == position.size());
   REQUIRE(holes.size() == facetedBoundaries.size());
 
-  typedef Dim<2> Dimension;
-  typedef Dim<2>::Scalar Scalar;
-  typedef Dim<2>::Vector Vector;
-  typedef Dim<2>::SymTensor SymTensor;
-  typedef Dim<2>::FacetedVolume FacetedVolume;
-  typedef PolyClipper::Plane2d Plane;
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::FacetedVolume FacetedVolume;
+  typedef typename ClippingType<Dimension>::Plane Plane;
+  typedef typename ClippingType<Dimension>::PolyVolume PolyVolume;
 
   const auto numGens = position.numNodes();
   const auto numNodeLists = position.size();
@@ -258,26 +309,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     const auto rin = 2.0/vol[0]->nodeListPtr()->nodesPerSmoothingScale();
 
     // Unit circle as template shape.
-    const auto nverts = 18;
-    PolyClipper::Polygon cell0;
-    {
-      const auto dtheta = 2.0*M_PI/nverts;
-      vector<Vector> verts0(nverts);
-      vector<vector<unsigned>> facets0(nverts, vector<unsigned>(2));
-      for (auto j = 0; j != nverts; ++j) {
-        const auto theta = j*dtheta;
-        verts0[j].x(cos(theta));
-        verts0[j].y(sin(theta));
-        facets0[j][0] = j;
-        facets0[j][1] = (j + 1) % nverts;
-      }
-      PolyClipper::convertToPolygon(cell0, FacetedVolume(verts0, facets0));
-    }
+    auto cell0 = ClippingType<Dimension>::unitPolyVolume();
 
     // We'll need to hang onto the PolyClipper cells and any per cell void points.
-    FieldList<Dim<2>, PolyClipper::Polygon> polycells(FieldStorageType::CopyFields);
-    FieldList<Dim<2>, vector<vector<Plane>>> pairPlanes(FieldStorageType::CopyFields);
-    FieldList<Dim<2>, vector<Plane>> voidPlanes(FieldStorageType::CopyFields);
+    FieldList<Dimension, PolyVolume> polycells(FieldStorageType::CopyFields);
+    FieldList<Dimension, vector<vector<Plane>>> pairPlanes(FieldStorageType::CopyFields);
+    FieldList<Dimension, vector<Plane>> voidPlanes(FieldStorageType::CopyFields);
     for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       polycells.appendNewField("polycells", vol[nodeListi]->nodeList(), cell0);
       pairPlanes.appendNewField("pair planes", vol[nodeListi]->nodeList(), vector<vector<Plane>>(numNodeLists));
@@ -349,7 +386,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             // Clip by the planes thus far.
 #pragma omp critical (computeVoronoiVolume_pass1)
             {
-              PolyClipper::clipPolygon(polycells(nodeListi, i), boundPlanes);
+              ClippingType<Dimension>::clip(polycells(nodeListi, i), boundPlanes);
             }
           }
         }
@@ -405,7 +442,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
       // Clip by the neighbors, and look for any locally generated void points.
       auto etaVoidPoints_thread = etaVoidPoints.threadCopy();
-      PolyClipper::Polygon celli;
+      PolyVolume celli;
       vector<vector<Plane>> pairPlanesi;
 #pragma omp barrier
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
@@ -424,11 +461,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             // If we're returning the surface we have to pay attention to which materials actually clip this point.
             double vol0, vol1;
             Vector cent;
-            PolyClipper::moments(vol0, cent, celli);
+            ClippingType<Dimension>::moments(vol0, cent, celli);
             for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
               std::sort(pairPlanesi[nodeListj].begin(), pairPlanesi[nodeListj].end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
-              PolyClipper::clipPolygon(celli, pairPlanesi[nodeListj]);
-              PolyClipper::moments(vol1, cent, celli);
+              ClippingType<Dimension>::clip(celli, pairPlanesi[nodeListj]);
+              ClippingType<Dimension>::moments(vol1, cent, celli);
               if (vol1 < vol0) {
                 vol0 = vol1;
                 if (nodeListj != nodeListi) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
@@ -439,7 +476,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             // Otherwise just clip by all the pair planes at once.
             for (auto nodeListj = 1; nodeListj < numNodeLists; ++nodeListj) pairPlanesi[0] += pairPlanesi[nodeListj];
             std::sort(pairPlanesi[0].begin(), pairPlanesi[0].end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
-            PolyClipper::clipPolygon(celli, pairPlanesi[0]);
+            ClippingType<Dimension>::clip(celli, pairPlanesi[0]);
           }
 
           // Store the clipped cell
@@ -464,19 +501,9 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           // If so, we have to generate void points.
           auto& etaVoidPointsi = etaVoidPoints_thread(nodeListi, i);
           CHECK2(etaVoidPointsi.empty(), "(" << nodeListi << " " << i << ") : " << etaVoidPointsi.size());
+          // Reduce the number of void points for this point to a reasonable stencil -- up to 4 for 2D.
           if (nvoid > 0) {
-
-            // Reduce the number of void points for this point to a reasonable stencil -- up to 4 for 2D.
-            const auto thetaVoidAvg = atan2(etaVoidAvg.y(), etaVoidAvg.x());
-            const auto nv = max(1U, min(4U, unsigned(4.0*float(nvoid)/float(nverts))));
-            for (unsigned k = 0; k != nv; ++k) {
-              const auto theta = thetaVoidAvg + (0.5*k - 0.25*(nv - 1))*M_PI;
-              const auto etaVoid = Vector(0.5*rin*cos(theta), 0.5*rin*sin(theta));
-              etaVoidPointsi.push_back(etaVoid);
-              const auto rji = Hinvi*etaVoid;
-              const auto nhat = -rji.unitVector();
-            }
-            CHECK2(etaVoidPointsi.size() == nv, "(" << nodeListi << " " << i << ") : " << etaVoidPointsi.size() << " " << nv);
+            etaVoidPointsi = ClippingType<Dimension>::createEtaVoidPoints(etaVoidAvg, nvoid, rin, Hi, Hinvi, celli);
           }
 
           // If this point is sufficiently damaged, we also create void points along the damaged directions.
@@ -575,10 +602,10 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           std::sort(voidPlanesi.begin(), voidPlanesi.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
           //#pragma omp critical (BLAGO1234)
           {
-            PolyClipper::moments(vol0, deltaMedian(nodeListi, i), celli);
-            PolyClipper::clipPolygon(celli, voidPlanesi);
+            ClippingType<Dimension>::moments(vol0, deltaMedian(nodeListi, i), celli);
+            ClippingType<Dimension>::clip(celli, voidPlanesi);
             CHECK(not celli.empty());
-            PolyClipper::moments(vol1, deltaMedian(nodeListi, i), celli);
+            ClippingType<Dimension>::moments(vol1, deltaMedian(nodeListi, i), celli);
           }
 
           // We only use the volume result if interior.
@@ -605,8 +632,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           if (returnCells) {
             //#pragma omp critical (computeVoronoiVolume2d_pass3_copy2cells)
             {
-              PolyClipper::collapseDegenerates(celli, 1.0e-10);
-              PolyClipper::convertFromPolygon(cells(nodeListi, i), celli);
+              ClippingType<Dimension>::collapseDegenerates(celli, 1.0e-10);
+              ClippingType<Dimension>::convertFromPolyVolume(cells(nodeListi, i), celli);
               cells(nodeListi, i) += ri;
             }
           }
@@ -617,7 +644,48 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     }  // OMP parallel
   }    // numGensGlobal > 0
 
-  TIME_computeVoronoiVolume2d.stop();
+  TIME_computeVoronoiVolume.stop();
 }
     
+//------------------------------------------------------------------------------
+// Instantiations
+//------------------------------------------------------------------------------
+#ifdef SPHERAL2D
+template
+void
+computeVoronoiVolume<Dim<2>>(const FieldList<Dim<2>, Dim<2>::Vector>& position,
+                             const FieldList<Dim<2>, Dim<2>::SymTensor>& H,
+                             const ConnectivityMap<Dim<2> >& connectivityMap,
+                             const FieldList<Dim<2>, Dim<2>::SymTensor>& damage,
+                             const std::vector<Dim<2>::FacetedVolume>& facetedBoundaries,
+                             const std::vector<std::vector<Dim<2>::FacetedVolume> >& holes,
+                             const std::vector<Boundary<Dim<2>>*>& boundaries,
+                             const FieldList<Dim<2>, Dim<2>::Scalar>& weight,
+                             FieldList<Dim<2>, int>& surfacePoint,
+                             FieldList<Dim<2>, Dim<2>::Scalar>& vol,
+                             FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian,
+                             FieldList<Dim<2>, vector<Dim<2>::Vector>>& etaVoidPoints,
+                             FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells,
+                             FieldList<Dim<2>, std::vector<CellFaceFlag>>& cellFaceFlags);
+#endif
+
+#ifdef SPHERAL3D
+template
+void
+computeVoronoiVolume<Dim<3>>(const FieldList<Dim<3>, Dim<3>::Vector>& position,
+                             const FieldList<Dim<3>, Dim<3>::SymTensor>& H,
+                             const ConnectivityMap<Dim<3> >& connectivityMap,
+                             const FieldList<Dim<3>, Dim<3>::SymTensor>& damage,
+                             const std::vector<Dim<3>::FacetedVolume>& facetedBoundaries,
+                             const std::vector<std::vector<Dim<3>::FacetedVolume> >& holes,
+                             const std::vector<Boundary<Dim<3>>*>& boundaries,
+                             const FieldList<Dim<3>, Dim<3>::Scalar>& weight,
+                             FieldList<Dim<3>, int>& surfacePoint,
+                             FieldList<Dim<3>, Dim<3>::Scalar>& vol,
+                             FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian,
+                             FieldList<Dim<3>, vector<Dim<3>::Vector>>& etaVoidPoints,
+                             FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells,
+                             FieldList<Dim<3>, std::vector<CellFaceFlag>>& cellFaceFlags);
+#endif
+
 }
