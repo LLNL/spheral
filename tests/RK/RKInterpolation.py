@@ -14,9 +14,9 @@ title("Reproducing kernel test")
 commandLine(
     # Spatial parameters
     dimension = 1,
-    nx = 32,
-    ny = 32,
-    nz = 32,
+    nx = 10,
+    ny = 10,
+    nz = 10,
     x0 = -2.0,
     x1 = 2.0,
     y0 = -2.0,
@@ -288,7 +288,7 @@ for i in range(nodes.numNodes):
                 d = D(ni, i)
                 dd = dD(ni, i)
                 ddd = ddD(ni, i)
-    # print(a,b,c)
+    # print(a,b,c,d)
     connectivityi = np.append(connectivity.connectivityForNode(ni, i), i)
     for j in connectivityi:
         xj = position(nj, j)

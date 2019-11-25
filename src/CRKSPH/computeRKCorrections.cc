@@ -257,7 +257,7 @@ addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& g,
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto q1 = 0; q1 < dim; ++q1) {
       dm1[2*q1 + k1] += v*dw[k1]*g[q1] + v*w*dg[k1 + 2*q1];
-      for (auto q2 = 0; q2 < dim; ++q2) {
+      for (auto q2 = q1; q2 < dim; ++q2) {
         dm2[4*q1 + 2*q2 + k1] += v*dw[k1]*g[q1]*g[q2] + v*w*g[q2]*dg[k1 + 2*q1] + v*w*g[q1]*dg[k1 + 2*q2];
       }
     }
@@ -267,7 +267,7 @@ addToMoments<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& g,
     for (auto k2 = k1; k2 < dim; ++k2) {
       for (auto q1 = 0; q1 < dim; ++q1) {
         ddm1[4*q1 + 2*k1 + k2] += v*ddw[2*k1 + k2]*g[q1] + v*dw[k2]*dg[k1 + 2*q1] + v*dw[k1]*dg[k2 + 2*q1];
-        for (auto q2 = 0; q2 < dim; ++q2) {
+        for (auto q2 = q1; q2 < dim; ++q2) {
           ddm2[8*q1 + 4*q2 + 2*k1 + k2] += v*ddw[2*k1 + k2]*g[q1]*g[q2] + v*dw[k2]*g[q2]*dg[k1 + 2*q1] + v*dw[k1]*g[q2]*dg[k2 + 2*q1] + v*dw[k2]*g[q1]*dg[k1 + 2*q2] + v*w*dg[k2 + 2*q1]*dg[k1 + 2*q2] + v*dw[k1]*g[q1]*dg[k2 + 2*q2] + v*w*dg[k1 + 2*q1]*dg[k2 + 2*q2];
         }
       }
@@ -301,7 +301,7 @@ addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& g,
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
     m1[q1] += v*w*g[q1];
-    for (auto q2 = 0; q2 < dim; ++q2) {
+    for (auto q2 = q1; q2 < dim; ++q2) {
       m2[3*q1 + q2] += v*w*g[q1]*g[q2];
     }
   }
@@ -309,7 +309,7 @@ addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& g,
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto q1 = 0; q1 < dim; ++q1) {
       dm1[3*q1 + k1] += v*dw[k1]*g[q1] + v*w*dg[k1 + 3*q1];
-      for (auto q2 = 0; q2 < dim; ++q2) {
+      for (auto q2 = q1; q2 < dim; ++q2) {
         dm2[9*q1 + 3*q2 + k1] += v*dw[k1]*g[q1]*g[q2] + v*w*g[q2]*dg[k1 + 3*q1] + v*w*g[q1]*dg[k1 + 3*q2];
       }
     }
@@ -319,7 +319,7 @@ addToMoments<Dim<3>, CRKOrder::LinearOrder>(const Dim<3>::Vector& g,
     for (auto k2 = k1; k2 < dim; ++k2) {
       for (auto q1 = 0; q1 < dim; ++q1) {
         ddm1[9*q1 + 3*k1 + k2] += v*ddw[3*k1 + k2]*g[q1] + v*dw[k2]*dg[k1 + 3*q1] + v*dw[k1]*dg[k2 + 3*q1];
-        for (auto q2 = 0; q2 < dim; ++q2) {
+        for (auto q2 = q1; q2 < dim; ++q2) {
           ddm2[27*q1 + 9*q2 + 3*k1 + k2] += v*ddw[3*k1 + k2]*g[q1]*g[q2] + v*dw[k2]*g[q2]*dg[k1 + 3*q1] + v*dw[k1]*g[q2]*dg[k2 + 3*q1] + v*dw[k2]*g[q1]*dg[k1 + 3*q2] + v*w*dg[k2 + 3*q1]*dg[k1 + 3*q2] + v*dw[k1]*g[q1]*dg[k2 + 3*q2] + v*w*dg[k1 + 3*q1]*dg[k2 + 3*q2];
         }
       }
@@ -394,10 +394,10 @@ addToMoments<Dim<2>, CRKOrder::QuadraticOrder>(const Dim<2>::Vector& g,
   
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
-    for (auto q2 = 0; q2 < dim; ++q2) {
-      for (auto q3 = 0; q3 < dim; ++q3) {
+    for (auto q2 = q1; q2 < dim; ++q2) {
+      for (auto q3 = q2; q3 < dim; ++q3) {
         m3[4*q1 + 2*q2 + q3] += v*w*g[q1]*g[q2]*g[q3];
-        for (auto q4 = 0; q4 < dim; ++q4) {
+        for (auto q4 = q3; q4 < dim; ++q4) {
           m4[8*q1 + 4*q2 + 2*q3 + q4] += v*w*g[q1]*g[q2]*g[q3]*g[q4];
         }
       }
@@ -406,10 +406,10 @@ addToMoments<Dim<2>, CRKOrder::QuadraticOrder>(const Dim<2>::Vector& g,
   // Gradients
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto q1 = 0; q1 < dim; ++q1) {
-      for (auto q2 = 0; q2 < dim; ++q2) {
-        for (auto q3 = 0; q3 < dim; ++q3) {
+      for (auto q2 = q1; q2 < dim; ++q2) {
+        for (auto q3 = q2; q3 < dim; ++q3) {
           dm3[8*q1 + 4*q2 + 2*q3 + k1] += v*dw[k1]*g[q1]*g[q2]*g[q3] + v*w*g[q2]*g[q3]*dg[k1 + 2*q1] + v*w*g[q1]*g[q3]*dg[k1 + 2*q2] + v*w*g[q1]*g[q2]*dg[k1 + 2*q3];
-          for (auto q4 = 0; q4 < dim; ++q4) {
+          for (auto q4 = q3; q4 < dim; ++q4) {
             dm4[16*q1 + 8*q2 + 4*q3 + 2*q4 + k1] += v*dw[k1]*g[q1]*g[q2]*g[q3]*g[q4] + v*w*g[q2]*g[q3]*g[q4]*dg[k1 + 2*q1] + v*w*g[q1]*g[q3]*g[q4]*dg[k1 + 2*q2] + v*w*g[q1]*g[q2]*g[q4]*dg[k1 + 2*q3] + v*w*g[q1]*g[q2]*g[q3]*dg[k1 + 2*q4];
           }
         }
@@ -420,10 +420,10 @@ addToMoments<Dim<2>, CRKOrder::QuadraticOrder>(const Dim<2>::Vector& g,
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto k2 = k1; k2 < dim; ++k2) {
       for (auto q1 = 0; q1 < dim; ++q1) {
-        for (auto q2 = 0; q2 < dim; ++q2) {
-          for (auto q3 = 0; q3 < dim; ++q3) {
+        for (auto q2 = q1; q2 < dim; ++q2) {
+          for (auto q3 = q2; q3 < dim; ++q3) {
             ddm3[16*q1 + 8*q2 + 4*q3 + 2*k1 + k2] += v*ddw[2*k1 + k2]*g[q1]*g[q2]*g[q3] + v*dw[k2]*g[q2]*g[q3]*dg[k1 + 2*q1] + v*dw[k1]*g[q2]*g[q3]*dg[k2 + 2*q1] + v*dw[k2]*g[q1]*g[q3]*dg[k1 + 2*q2] + v*w*g[q3]*dg[k2 + 2*q1]*dg[k1 + 2*q2] + v*dw[k1]*g[q1]*g[q3]*dg[k2 + 2*q2] + v*w*g[q3]*dg[k1 + 2*q1]*dg[k2 + 2*q2] + v*dw[k2]*g[q1]*g[q2]*dg[k1 + 2*q3] + v*w*g[q2]*dg[k2 + 2*q1]*dg[k1 + 2*q3] + v*w*g[q1]*dg[k2 + 2*q2]*dg[k1 + 2*q3] + v*dw[k1]*g[q1]*g[q2]*dg[k2 + 2*q3] + v*w*g[q2]*dg[k1 + 2*q1]*dg[k2 + 2*q3] + v*w*g[q1]*dg[k1 + 2*q2]*dg[k2 + 2*q3];
-            for (auto q4 = 0; q4 < dim; ++q4) {
+            for (auto q4 = q3; q4 < dim; ++q4) {
               ddm4[32*q1 +16*q2 + 8*q3 + 4*q4 + 2*k1] += v*ddw[2*k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4] + v*dw[k2]*g[q2]*g[q3]*g[q4]*dg[k1 + 2*q1] + v*dw[k1]*g[q2]*g[q3]*g[q4]*dg[k2 + 2*q1] + v*dw[k2]*g[q1]*g[q3]*g[q4]*dg[k1 + 2*q2] + v*w*g[q3]*g[q4]*dg[k2 + 2*q1]*dg[k1 + 2*q2] + v*dw[k1]*g[q1]*g[q3]*g[q4]*dg[k2 + 2*q2] + v*w*g[q3]*g[q4]*dg[k1 + 2*q1]*dg[k2 + 2*q2] + v*dw[k2]*g[q1]*g[q2]*g[q4]*dg[k1 + 2*q3] + v*w*g[q2]*g[q4]*dg[k2 + 2*q1]*dg[k1 + 2*q3] + v*w*g[q1]*g[q4]*dg[k2 + 2*q2]*dg[k1 + 2*q3] + v*dw[k1]*g[q1]*g[q2]*g[q4]*dg[k2 + 2*q3] + v*w*g[q2]*g[q4]*dg[k1 + 2*q1]*dg[k2 + 2*q3] + v*w*g[q1]*g[q4]*dg[k1 + 2*q2]*dg[k2 + 2*q3] + v*dw[k2]*g[q1]*g[q2]*g[q3]*dg[k1 + 2*q4] + v*w*g[q2]*g[q3]*dg[k2 + 2*q1]*dg[k1 + 2*q4] + v*w*g[q1]*g[q3]*dg[k2 + 2*q2]*dg[k1 + 2*q4] + v*w*g[q1]*g[q2]*dg[k2 + 2*q3]*dg[k1 + 2*q4] + v*dw[k1]*g[q1]*g[q2]*g[q3]*dg[k2 + 2*q4] + v*w*g[q2]*g[q3]*dg[k1 + 2*q1]*dg[k2 + 2*q4] + v*w*g[q1]*g[q3]*dg[k1 + 2*q2]*dg[k2 + 2*q4] + v*w*g[q1]*g[q2]*dg[k1 + 2*q3]*dg[k2 + 2*q4];
             }
           }
@@ -458,10 +458,10 @@ addToMoments<Dim<3>, CRKOrder::QuadraticOrder>(const Dim<3>::Vector& g,
   
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
-    for (auto q2 = 0; q2 < dim; ++q2) {
-      for (auto q3 = 0; q3 < dim; ++q3) {
+    for (auto q2 = q1; q2 < dim; ++q2) {
+      for (auto q3 = q2; q3 < dim; ++q3) {
         m3[9*q1 + 3*q2 + q3] += v*w*g[q1]*g[q2]*g[q3];
-        for (auto q4 = 0; q4 < dim; ++q4) {
+        for (auto q4 = q3; q4 < dim; ++q4) {
           m4[27*q1 + 9*q2 + 3*q3 + q4] += v*w*g[q1]*g[q2]*g[q3]*g[q4];
         }
       }
@@ -470,10 +470,10 @@ addToMoments<Dim<3>, CRKOrder::QuadraticOrder>(const Dim<3>::Vector& g,
   // Gradients
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto q1 = 0; q1 < dim; ++q1) {
-      for (auto q2 = 0; q2 < dim; ++q2) {
-        for (auto q3 = 0; q3 < dim; ++q3) {
+      for (auto q2 = q1; q2 < dim; ++q2) {
+        for (auto q3 = q2; q3 < dim; ++q3) {
           dm3[27*q1 + 9*q2 + 3*q3 + k1] += v*dw[k1]*g[q1]*g[q2]*g[q3] + v*w*g[q2]*g[q3]*dg[k1 + 3*q1] + v*w*g[q1]*g[q3]*dg[k1 + 3*q2] + v*w*g[q1]*g[q2]*dg[k1 + 3*q3];
-          for (auto q4 = 0; q4 < dim; ++q4) {
+          for (auto q4 = q3; q4 < dim; ++q4) {
             dm4[81*q1 + 27*q2 + 9*q3 + 3*q4 + k1] += v*dw[k1]*g[q1]*g[q2]*g[q3]*g[q4] + v*w*g[q2]*g[q3]*g[q4]*dg[k1 + 3*q1] + v*w*g[q1]*g[q3]*g[q4]*dg[k1 + 3*q2] + v*w*g[q1]*g[q2]*g[q4]*dg[k1 + 3*q3] + v*w*g[q1]*g[q2]*g[q3]*dg[k1 + 3*q4];
           }
         }
@@ -484,10 +484,10 @@ addToMoments<Dim<3>, CRKOrder::QuadraticOrder>(const Dim<3>::Vector& g,
   for (auto k1 = 0; k1 < dim; ++k1) {
     for (auto k2 = k1; k2 < dim; ++k2) {
       for (auto q1 = 0; q1 < dim; ++q1) {
-        for (auto q2 = 0; q2 < dim; ++q2) {
-          for (auto q3 = 0; q3 < dim; ++q3) {
+        for (auto q2 = q1; q2 < dim; ++q2) {
+          for (auto q3 = q2; q3 < dim; ++q3) {
             ddm3[81*q1 + 27*q2 + 9*q3 + 3*k1 + k2] += v*ddw[3*k1 + k2]*g[q1]*g[q2]*g[q3] + v*dw[k2]*g[q2]*g[q3]*dg[k1 + 3*q1] + v*dw[k1]*g[q2]*g[q3]*dg[k2 + 3*q1] + v*dw[k2]*g[q1]*g[q3]*dg[k1 + 3*q2] + v*w*g[q3]*dg[k2 + 3*q1]*dg[k1 + 3*q2] + v*dw[k1]*g[q1]*g[q3]*dg[k2 + 3*q2] + v*w*g[q3]*dg[k1 + 3*q1]*dg[k2 + 3*q2] + v*dw[k2]*g[q1]*g[q2]*dg[k1 + 3*q3] + v*w*g[q2]*dg[k2 + 3*q1]*dg[k1 + 3*q3] + v*w*g[q1]*dg[k2 + 3*q2]*dg[k1 + 3*q3] + v*dw[k1]*g[q1]*g[q2]*dg[k2 + 3*q3] + v*w*g[q2]*dg[k1 + 3*q1]*dg[k2 + 3*q3] + v*w*g[q1]*dg[k1 + 3*q2]*dg[k2 + 3*q3];
-            for (auto q4 = 0; q4 < dim; ++q4) {
+            for (auto q4 = q3; q4 < dim; ++q4) {
               ddm4[243*q1 +81*q2 + 27*q3 + 9*q4 + 3*k1] += v*ddw[3*k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4] + v*dw[k2]*g[q2]*g[q3]*g[q4]*dg[k1 + 3*q1] + v*dw[k1]*g[q2]*g[q3]*g[q4]*dg[k2 + 3*q1] + v*dw[k2]*g[q1]*g[q3]*g[q4]*dg[k1 + 3*q2] + v*w*g[q3]*g[q4]*dg[k2 + 3*q1]*dg[k1 + 3*q2] + v*dw[k1]*g[q1]*g[q3]*g[q4]*dg[k2 + 3*q2] + v*w*g[q3]*g[q4]*dg[k1 + 3*q1]*dg[k2 + 3*q2] + v*dw[k2]*g[q1]*g[q2]*g[q4]*dg[k1 + 3*q3] + v*w*g[q2]*g[q4]*dg[k2 + 3*q1]*dg[k1 + 3*q3] + v*w*g[q1]*g[q4]*dg[k2 + 3*q2]*dg[k1 + 3*q3] + v*dw[k1]*g[q1]*g[q2]*g[q4]*dg[k2 + 3*q3] + v*w*g[q2]*g[q4]*dg[k1 + 3*q1]*dg[k2 + 3*q3] + v*w*g[q1]*g[q4]*dg[k1 + 3*q2]*dg[k2 + 3*q3] + v*dw[k2]*g[q1]*g[q2]*g[q3]*dg[k1 + 3*q4] + v*w*g[q2]*g[q3]*dg[k2 + 3*q1]*dg[k1 + 3*q4] + v*w*g[q1]*g[q3]*dg[k2 + 3*q2]*dg[k1 + 3*q4] + v*w*g[q1]*g[q2]*dg[k2 + 3*q3]*dg[k1 + 3*q4] + v*dw[k1]*g[q1]*g[q2]*g[q3]*dg[k2 + 3*q4] + v*w*g[q2]*g[q3]*dg[k1 + 3*q1]*dg[k2 + 3*q4] + v*w*g[q1]*g[q3]*dg[k1 + 3*q2]*dg[k2 + 3*q4] + v*w*g[q1]*g[q2]*dg[k1 + 3*q3]*dg[k2 + 3*q4];
             }
           }
@@ -566,12 +566,12 @@ addToMoments<Dim<2>, CRKOrder::CubicOrder>(const Dim<2>::Vector& g,
   
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
-    for (auto q2 = 0; q2 < dim; ++q2) {
-      for (auto q3 = 0; q3 < dim; ++q3) {
-        for (auto q4 = 0; q4 < dim; ++q4) {
-          for (auto q5 = 0; q5 < dim; ++q5) {
+    for (auto q2 = q1; q2 < dim; ++q2) {
+      for (auto q3 = q2; q3 < dim; ++q3) {
+        for (auto q4 = q3; q4 < dim; ++q4) {
+          for (auto q5 = q4; q5 < dim; ++q5) {
             m5[16*q1 + 8*q2 + 4*q3 + 2*q4 + q5] += v*w*g[q1]*g[q2]*g[q3]*g[q4]*g[q5];
-            for (auto q6 = 0; q6 < dim; ++q6) {
+            for (auto q6 = q5; q6 < dim; ++q6) {
               m6[32*q1 + 16*q2 + 8*q3 + 4*q4 + 2*q5 + q6] += v*w*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6];
             }
           }
@@ -581,12 +581,12 @@ addToMoments<Dim<2>, CRKOrder::CubicOrder>(const Dim<2>::Vector& g,
     // Gradients
     for (auto k1 = 0; k1 < dim; ++k1) {
       for (auto q1 = 0; q1 < dim; ++q1) {
-        for (auto q2 = 0; q2 < dim; ++q2) {
-          for (auto q3 = 0; q3 < dim; ++q3) {
-            for (auto q4 = 0; q4 < dim; ++q4) {
-              for (auto q5 = 0; q5 < dim; ++q5) {
+        for (auto q2 = q1; q2 < dim; ++q2) {
+          for (auto q3 = q2; q3 < dim; ++q3) {
+            for (auto q4 = q3; q4 < dim; ++q4) {
+              for (auto q5 = q4; q5 < dim; ++q5) {
                 dm5[32*q1 + 16*q2 + 8*q3 + 4*q4 + 2*q5 + k1] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + 2*q3] + g[q3]*(g[q1]*g[q5]*dg[k1 + 2*q4] + g[q4]*(g[q5]*dg[k1 + 2*q1] + g[q1]*dg[k1 + 2*q5]))));
-                for (auto q6 = 0; q6 < dim; ++q6) {
+                for (auto q6 = q5; q6 < dim; ++q6) {
                   dm6[64*q1 + 32*q2 + 16*q3 + 8*q4 + 4*q5 + 2*q6 + k1] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + 2*q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + 2*q1] + g[q1]*g[q6]*dg[k1 + 2*q5] + g[q1]*g[q5]*dg[k1 + 2*q6]))));
                 }
               }
@@ -599,12 +599,12 @@ addToMoments<Dim<2>, CRKOrder::CubicOrder>(const Dim<2>::Vector& g,
     for (auto k1 = 0; k1 < dim; ++k1) {
       for (auto k2 = k1; k2 < dim; ++k2) {
         for (auto q1 = 0; q1 < dim; ++q1) {
-          for (auto q2 = 0; q2 < dim; ++q2) {
-            for (auto q3 = 0; q3 < dim; ++q3) {
-              for (auto q4 = 0; q4 < dim; ++q4) {
-                for (auto q5 = 0; q5 < dim; ++q5) {
+          for (auto q2 = q1; q2 < dim; ++q2) {
+            for (auto q3 = q2; q3 < dim; ++q3) {
+              for (auto q4 = q3; q4 < dim; ++q4) {
+                for (auto q5 = q4; q5 < dim; ++q5) {
                   ddm5[64*q1 + 32*q2 + 16*q3 + 8*q4 + 4*q5 + 2*k1 + k2] += v*(ddw[2*k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + dw[k1]*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q1] + w*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q1]*dg[k1 + 2*q2] + dw[k1]*g[q1]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q2] + w*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q1]*dg[k2 + 2*q2] + w*g[q2]*g[q4]*g[q5]*dg[k2 + 2*q1]*dg[k1 + 2*q3] + w*g[q1]*g[q4]*g[q5]*dg[k2 + 2*q2]*dg[k1 + 2*q3] + dw[k1]*g[q1]*g[q2]*g[q4]*g[q5]*dg[k2 + 2*q3] + w*g[q2]*g[q4]*g[q5]*dg[k1 + 2*q1]*dg[k2 + 2*q3] + w*g[q1]*g[q4]*g[q5]*dg[k1 + 2*q2]*dg[k2 + 2*q3] + w*g[q2]*g[q3]*g[q5]*dg[k2 + 2*q1]*dg[k1 + 2*q4] + w*g[q1]*g[q3]*g[q5]*dg[k2 + 2*q2]*dg[k1 + 2*q4] + w*g[q1]*g[q2]*g[q5]*dg[k2 + 2*q3]*dg[k1 + 2*q4] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q5]*dg[k2 + 2*q4] + w*g[q2]*g[q3]*g[q5]*dg[k1 + 2*q1]*dg[k2 + 2*q4] + w*g[q1]*g[q3]*g[q5]*dg[k1 + 2*q2]*dg[k2 + 2*q4] + w*g[q1]*g[q2]*g[q5]*dg[k1 + 2*q3]*dg[k2 + 2*q4] + w*g[q2]*g[q3]*g[q4]*dg[k2 + 2*q1]*dg[k1 + 2*q5] + w*g[q1]*g[q3]*g[q4]*dg[k2 + 2*q2]*dg[k1 + 2*q5] + w*g[q1]*g[q2]*g[q4]*dg[k2 + 2*q3]*dg[k1 + 2*q5] + w*g[q1]*g[q2]*g[q3]*dg[k2 + 2*q4]*dg[k1 + 2*q5] + dw[k2]*(g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q2] + g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + 2*q3] + g[q3]*(g[q4]*g[q5]*dg[k1 + 2*q1] + g[q1]*g[q5]*dg[k1 + 2*q4] + g[q1]*g[q4]*dg[k1 + 2*q5]))) + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*dg[k2 + 2*q5] + w*g[q2]*g[q3]*g[q4]*dg[k1 + 2*q1]*dg[k2 + 2*q5] + w*g[q1]*g[q3]*g[q4]*dg[k1 + 2*q2]*dg[k2 + 2*q5] + w*g[q1]*g[q2]*g[q4]*dg[k1 + 2*q3]*dg[k2 + 2*q5] + w*g[q1]*g[q2]*g[q3]*dg[k1 + 2*q4]*dg[k2 + 2*q5]);
-                  for (auto q6 = 0; q6 < dim; ++q6) {
+                  for (auto q6 = q5; q6 < dim; ++q6) {
                     ddm6[128*q1 + 64*q2 + 32*q3 + 16*q4 + 8*q5 + 4*q6 + 2*k1] += v*(ddw[2*k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + dw[k1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q1] + w*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q1]*dg[k1 + 2*q2] + dw[k1]*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q2] + w*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q1]*dg[k2 + 2*q2] + w*g[q2]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q1]*dg[k1 + 2*q3] + w*g[q1]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q2]*dg[k1 + 2*q3] + dw[k1]*g[q1]*g[q2]*g[q4]*g[q5]*g[q6]*dg[k2 + 2*q3] + w*g[q2]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q1]*dg[k2 + 2*q3] + w*g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q2]*dg[k2 + 2*q3] + w*g[q2]*g[q3]*g[q5]*g[q6]*dg[k2 + 2*q1]*dg[k1 + 2*q4] + w*g[q1]*g[q3]*g[q5]*g[q6]*dg[k2 + 2*q2]*dg[k1 + 2*q4] + w*g[q1]*g[q2]*g[q5]*g[q6]*dg[k2 + 2*q3]*dg[k1 + 2*q4] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q5]*g[q6]*dg[k2 + 2*q4] + w*g[q2]*g[q3]*g[q5]*g[q6]*dg[k1 + 2*q1]*dg[k2 + 2*q4] + w*g[q1]*g[q3]*g[q5]*g[q6]*dg[k1 + 2*q2]*dg[k2 + 2*q4] + w*g[q1]*g[q2]*g[q5]*g[q6]*dg[k1 + 2*q3]*dg[k2 + 2*q4] + w*g[q2]*g[q3]*g[q4]*g[q6]*dg[k2 + 2*q1]*dg[k1 + 2*q5] + w*g[q1]*g[q3]*g[q4]*g[q6]*dg[k2 + 2*q2]*dg[k1 + 2*q5] + w*g[q1]*g[q2]*g[q4]*g[q6]*dg[k2 + 2*q3]*dg[k1 + 2*q5] + w*g[q1]*g[q2]*g[q3]*g[q6]*dg[k2 + 2*q4]*dg[k1 + 2*q5] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q6]*dg[k2 + 2*q5] + w*g[q2]*g[q3]*g[q4]*g[q6]*dg[k1 + 2*q1]*dg[k2 + 2*q5] + w*g[q1]*g[q3]*g[q4]*g[q6]*dg[k1 + 2*q2]*dg[k2 + 2*q5] + w*g[q1]*g[q2]*g[q4]*g[q6]*dg[k1 + 2*q3]*dg[k2 + 2*q5] + w*g[q1]*g[q2]*g[q3]*g[q6]*dg[k1 + 2*q4]*dg[k2 + 2*q5] + w*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q1]*dg[k1 + 2*q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q2]*dg[k1 + 2*q6] + w*g[q1]*g[q2]*g[q4]*g[q5]*dg[k2 + 2*q3]*dg[k1 + 2*q6] + w*g[q1]*g[q2]*g[q3]*g[q5]*dg[k2 + 2*q4]*dg[k1 + 2*q6] + w*g[q1]*g[q2]*g[q3]*g[q4]*dg[k2 + 2*q5]*dg[k1 + 2*q6] + dw[k2]*(g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q2] + g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 2*q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + 2*q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + 2*q1] + g[q1]*g[q6]*dg[k1 + 2*q5] + g[q1]*g[q5]*dg[k1 + 2*q6])))) + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 2*q6] + w*g[q2]*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q1]*dg[k2 + 2*q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 2*q2]*dg[k2 + 2*q6] + w*g[q1]*g[q2]*g[q4]*g[q5]*dg[k1 + 2*q3]*dg[k2 + 2*q6] + w*g[q1]*g[q2]*g[q3]*g[q5]*dg[k1 + 2*q4]*dg[k2 + 2*q6] + w*g[q1]*g[q2]*g[q3]*g[q4]*dg[k1 + 2*q5]*dg[k2 + 2*q6]);
                   }
                 }
@@ -642,12 +642,12 @@ addToMoments<Dim<3>, CRKOrder::CubicOrder>(const Dim<3>::Vector& g,
   
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
-    for (auto q2 = 0; q2 < dim; ++q2) {
-      for (auto q3 = 0; q3 < dim; ++q3) {
-        for (auto q4 = 0; q4 < dim; ++q4) {
-          for (auto q5 = 0; q5 < dim; ++q5) {
+    for (auto q2 = q1; q2 < dim; ++q2) {
+      for (auto q3 = q2; q3 < dim; ++q3) {
+        for (auto q4 = q3; q4 < dim; ++q4) {
+          for (auto q5 = q4; q5 < dim; ++q5) {
             m5[81*q1 + 27*q2 + 9*q3 + 3*q4 + q5] += v*w*g[q1]*g[q2]*g[q3]*g[q4]*g[q5];
-            for (auto q6 = 0; q6 < dim; ++q6) {
+            for (auto q6 = q5; q6 < dim; ++q6) {
               m6[243*q1 + 81*q2 + 27*q3 + 9*q4 + 3*q5 + q6] += v*w*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6];
             }
           }
@@ -657,12 +657,12 @@ addToMoments<Dim<3>, CRKOrder::CubicOrder>(const Dim<3>::Vector& g,
     // Gradients
     for (auto k1 = 0; k1 < dim; ++k1) {
       for (auto q1 = 0; q1 < dim; ++q1) {
-        for (auto q2 = 0; q2 < dim; ++q2) {
-          for (auto q3 = 0; q3 < dim; ++q3) {
-            for (auto q4 = 0; q4 < dim; ++q4) {
-              for (auto q5 = 0; q5 < dim; ++q5) {
+        for (auto q2 = q1; q2 < dim; ++q2) {
+          for (auto q3 = q2; q3 < dim; ++q3) {
+            for (auto q4 = q3; q4 < dim; ++q4) {
+              for (auto q5 = q4; q5 < dim; ++q5) {
                 dm5[243*q1 + 81*q2 + 27*q3 + 9*q4 + 3*q5 + k1] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + 3*q3] + g[q3]*(g[q1]*g[q5]*dg[k1 + 3*q4] + g[q4]*(g[q5]*dg[k1 + 3*q1] + g[q1]*dg[k1 + 3*q5]))));
-                for (auto q6 = 0; q6 < dim; ++q6) {
+                for (auto q6 = q5; q6 < dim; ++q6) {
                   dm6[729*q1 + 243*q2 + 81*q3 + 27*q4 + 9*q5 + 3*q6 + k1] += v*(dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q2] + w*g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + 3*q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + 3*q1] + g[q1]*g[q6]*dg[k1 + 3*q5] + g[q1]*g[q5]*dg[k1 + 3*q6]))));
                 }
               }
@@ -675,12 +675,12 @@ addToMoments<Dim<3>, CRKOrder::CubicOrder>(const Dim<3>::Vector& g,
     for (auto k1 = 0; k1 < dim; ++k1) {
       for (auto k2 = k1; k2 < dim; ++k2) {
         for (auto q1 = 0; q1 < dim; ++q1) {
-          for (auto q2 = 0; q2 < dim; ++q2) {
-            for (auto q3 = 0; q3 < dim; ++q3) {
-              for (auto q4 = 0; q4 < dim; ++q4) {
-                for (auto q5 = 0; q5 < dim; ++q5) {
+          for (auto q2 = q1; q2 < dim; ++q2) {
+            for (auto q3 = q2; q3 < dim; ++q3) {
+              for (auto q4 = q3; q4 < dim; ++q4) {
+                for (auto q5 = q4; q5 < dim; ++q5) {
                   ddm5[729*q1 + 243*q2 + 81*q3 + 27*q4 + 9*q5 + 3*k1 + k2] += v*(ddw[3*k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5] + dw[k1]*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q1] + w*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q1]*dg[k1 + 3*q2] + dw[k1]*g[q1]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q2] + w*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q1]*dg[k2 + 3*q2] + w*g[q2]*g[q4]*g[q5]*dg[k2 + 3*q1]*dg[k1 + 3*q3] + w*g[q1]*g[q4]*g[q5]*dg[k2 + 3*q2]*dg[k1 + 3*q3] + dw[k1]*g[q1]*g[q2]*g[q4]*g[q5]*dg[k2 + 3*q3] + w*g[q2]*g[q4]*g[q5]*dg[k1 + 3*q1]*dg[k2 + 3*q3] + w*g[q1]*g[q4]*g[q5]*dg[k1 + 3*q2]*dg[k2 + 3*q3] + w*g[q2]*g[q3]*g[q5]*dg[k2 + 3*q1]*dg[k1 + 3*q4] + w*g[q1]*g[q3]*g[q5]*dg[k2 + 3*q2]*dg[k1 + 3*q4] + w*g[q1]*g[q2]*g[q5]*dg[k2 + 3*q3]*dg[k1 + 3*q4] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q5]*dg[k2 + 3*q4] + w*g[q2]*g[q3]*g[q5]*dg[k1 + 3*q1]*dg[k2 + 3*q4] + w*g[q1]*g[q3]*g[q5]*dg[k1 + 3*q2]*dg[k2 + 3*q4] + w*g[q1]*g[q2]*g[q5]*dg[k1 + 3*q3]*dg[k2 + 3*q4] + w*g[q2]*g[q3]*g[q4]*dg[k2 + 3*q1]*dg[k1 + 3*q5] + w*g[q1]*g[q3]*g[q4]*dg[k2 + 3*q2]*dg[k1 + 3*q5] + w*g[q1]*g[q2]*g[q4]*dg[k2 + 3*q3]*dg[k1 + 3*q5] + w*g[q1]*g[q2]*g[q3]*dg[k2 + 3*q4]*dg[k1 + 3*q5] + dw[k2]*(g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q2] + g[q2]*(g[q1]*g[q4]*g[q5]*dg[k1 + 3*q3] + g[q3]*(g[q4]*g[q5]*dg[k1 + 3*q1] + g[q1]*g[q5]*dg[k1 + 3*q4] + g[q1]*g[q4]*dg[k1 + 3*q5]))) + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*dg[k2 + 3*q5] + w*g[q2]*g[q3]*g[q4]*dg[k1 + 3*q1]*dg[k2 + 3*q5] + w*g[q1]*g[q3]*g[q4]*dg[k1 + 3*q2]*dg[k2 + 3*q5] + w*g[q1]*g[q2]*g[q4]*dg[k1 + 3*q3]*dg[k2 + 3*q5] + w*g[q1]*g[q2]*g[q3]*dg[k1 + 3*q4]*dg[k2 + 3*q5]);
-                  for (auto q6 = 0; q6 < dim; ++q6) {
+                  for (auto q6 = q5; q6 < dim; ++q6) {
                     ddm6[2187*q1 + 729*q2 + 243*q3 + 81*q4 + 27*q5 + 9*q6 + 3*k1] += v*(ddw[3*k1 + k2]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6] + dw[k1]*g[q2]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q1] + w*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q1]*dg[k1 + 3*q2] + dw[k1]*g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q2] + w*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q1]*dg[k2 + 3*q2] + w*g[q2]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q1]*dg[k1 + 3*q3] + w*g[q1]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q2]*dg[k1 + 3*q3] + dw[k1]*g[q1]*g[q2]*g[q4]*g[q5]*g[q6]*dg[k2 + 3*q3] + w*g[q2]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q1]*dg[k2 + 3*q3] + w*g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q2]*dg[k2 + 3*q3] + w*g[q2]*g[q3]*g[q5]*g[q6]*dg[k2 + 3*q1]*dg[k1 + 3*q4] + w*g[q1]*g[q3]*g[q5]*g[q6]*dg[k2 + 3*q2]*dg[k1 + 3*q4] + w*g[q1]*g[q2]*g[q5]*g[q6]*dg[k2 + 3*q3]*dg[k1 + 3*q4] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q5]*g[q6]*dg[k2 + 3*q4] + w*g[q2]*g[q3]*g[q5]*g[q6]*dg[k1 + 3*q1]*dg[k2 + 3*q4] + w*g[q1]*g[q3]*g[q5]*g[q6]*dg[k1 + 3*q2]*dg[k2 + 3*q4] + w*g[q1]*g[q2]*g[q5]*g[q6]*dg[k1 + 3*q3]*dg[k2 + 3*q4] + w*g[q2]*g[q3]*g[q4]*g[q6]*dg[k2 + 3*q1]*dg[k1 + 3*q5] + w*g[q1]*g[q3]*g[q4]*g[q6]*dg[k2 + 3*q2]*dg[k1 + 3*q5] + w*g[q1]*g[q2]*g[q4]*g[q6]*dg[k2 + 3*q3]*dg[k1 + 3*q5] + w*g[q1]*g[q2]*g[q3]*g[q6]*dg[k2 + 3*q4]*dg[k1 + 3*q5] + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q6]*dg[k2 + 3*q5] + w*g[q2]*g[q3]*g[q4]*g[q6]*dg[k1 + 3*q1]*dg[k2 + 3*q5] + w*g[q1]*g[q3]*g[q4]*g[q6]*dg[k1 + 3*q2]*dg[k2 + 3*q5] + w*g[q1]*g[q2]*g[q4]*g[q6]*dg[k1 + 3*q3]*dg[k2 + 3*q5] + w*g[q1]*g[q2]*g[q3]*g[q6]*dg[k1 + 3*q4]*dg[k2 + 3*q5] + w*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q1]*dg[k1 + 3*q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q2]*dg[k1 + 3*q6] + w*g[q1]*g[q2]*g[q4]*g[q5]*dg[k2 + 3*q3]*dg[k1 + 3*q6] + w*g[q1]*g[q2]*g[q3]*g[q5]*dg[k2 + 3*q4]*dg[k1 + 3*q6] + w*g[q1]*g[q2]*g[q3]*g[q4]*dg[k2 + 3*q5]*dg[k1 + 3*q6] + dw[k2]*(g[q1]*g[q3]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q2] + g[q2]*(g[q1]*g[q4]*g[q5]*g[q6]*dg[k1 + 3*q3] + g[q3]*(g[q1]*g[q5]*g[q6]*dg[k1 + 3*q4] + g[q4]*(g[q5]*g[q6]*dg[k1 + 3*q1] + g[q1]*g[q6]*dg[k1 + 3*q5] + g[q1]*g[q5]*dg[k1 + 3*q6])))) + dw[k1]*g[q1]*g[q2]*g[q3]*g[q4]*g[q5]*dg[k2 + 3*q6] + w*g[q2]*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q1]*dg[k2 + 3*q6] + w*g[q1]*g[q3]*g[q4]*g[q5]*dg[k1 + 3*q2]*dg[k2 + 3*q6] + w*g[q1]*g[q2]*g[q4]*g[q5]*dg[k1 + 3*q3]*dg[k2 + 3*q6] + w*g[q1]*g[q2]*g[q3]*g[q5]*dg[k1 + 3*q4]*dg[k2 + 3*q6] + w*g[q1]*g[q2]*g[q3]*g[q4]*dg[k1 + 3*q5]*dg[k2 + 3*q6]);
                   }
                 }
@@ -1765,7 +1765,7 @@ computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
     m3[13], m4[13], m4[40], m4[41], m5[13], 2*m5[40], 2*m5[41], m5[121], 2*m5[122], m5[125], m6[13], 3*m6[40], 3*m6[41], 3*m6[121], 6*m6[122], 3*m6[125], m6[364], 3*m6[365], 3*m6[368], m6[377], 
     m3[14], m4[14], m4[41], m4[44], m5[14], 2*m5[41], 2*m5[44], m5[122], 2*m5[125], m5[134], m6[14], 3*m6[41], 3*m6[44], 3*m6[122], 6*m6[125], 3*m6[134], m6[365], 3*m6[368], 3*m6[377], m6[404], 
     m3[17], m4[17], m4[44], m4[53], m5[17], 2*m5[44], 2*m5[53], m5[125], 2*m5[134], m5[161], m6[17], 3*m6[44], 3*m6[53], 3*m6[125], 6*m6[134], 3*m6[161], m6[368], 3*m6[377], 3*m6[404], m6[485], 
-    m3[26], m4[26], m4[53], m4[80], m5[26], 2*m5[53], 2*m5[80], m5[134], 2*m5[161], m5[242], m6[26], 3*m6[53], 3*m6[80], 3*m6[134], 6*m6[161], 3*m6[242], m6[377], 3*m6[404], 3*m6[485], m6[728];
+    m3[26], m4[26], m4[53], m4[80], m5[26], 2*m5[53], 2*m5[80], m5[134], 2*m5[161], m5[242], m6[26], 3*m6[53], 3*m6[80], 3*m6[134], 6*m6[161], 3*m6[242], m6[377], 3*m6[404], 3*m6[485], m6[728];    
   auto solver = matrix.colPivHouseholderQr();
   
   // Solve for values
@@ -1788,7 +1788,8 @@ computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
   rhs(16) = 0;
   rhs(17) = 0;
   rhs(18) = 0;
-  rhs(19) = 0; 
+  rhs(19) = 0;
+  
   lhs = solver.solve(rhs);
 
   a = lhs(0);
@@ -1810,7 +1811,8 @@ computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
   d[13] = lhs(16);
   d[14] = lhs(17);
   d[17] = lhs(18);
-  d[26] = lhs(19); 
+  d[26] = lhs(19);
+
   // Solve for derivatives
   for (auto k1 = 0; k1 < dim; ++k1) {
     rhs(0) = -(a*dm0[k1] + b[0]*dm1[k1] + b[1]*dm1[3 + k1] + b[2]*dm1[6 + k1] + c[0]*dm2[k1] + 2*c[1]*dm2[3 + k1] + 2*c[2]*dm2[6 + k1] + c[4]*dm2[12 + k1] + 2*c[5]*dm2[15 + k1] + c[8]*dm2[24 + k1] + d[0]*dm3[k1] + 3*d[1]*dm3[3 + k1] + 3*d[2]*dm3[6 + k1] + 3*d[4]*dm3[12 + k1] + 6*d[5]*dm3[15 + k1] + 3*d[8]*dm3[24 + k1] + d[13]*dm3[39 + k1] + 3*d[14]*dm3[42 + k1] + 3*d[17]*dm3[51 + k1] + d[26]*dm3[78 + k1]);
