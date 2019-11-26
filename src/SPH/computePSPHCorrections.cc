@@ -57,23 +57,105 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   if (computeMassDensity) PSPHmassDensity = 0.0;
   PSPHpbar = 0.0;
   PSPHcorrection = 0.0;
+
+  // Some useful variables.
+  const auto W0 = W.kernelValue(0.0, 1.0);
   const double tiny = 1.0e-30;
 
-  // Walk the FluidNodeLists.
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const NodeList<Dimension>& nodeList = PSPHpbar[nodeListi]->nodeList();
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
 
-    // Stuff we're going to accumulate.
-    Field<Dimension, Scalar> gradsum("sum of the gradient", nodeList);
+  FieldList<Dimension, Scalar> Nbar(FieldStorageType::CopyFields);      //Averaged Number of particles 
+  FieldList<Dimension, Scalar> gradPbar(FieldStorageType::CopyFields);  //DpbarDh
+  FieldList<Dimension, Scalar> gradNbar(FieldStorageType::CopyFields);  //DnbarDh
+  for (const auto& fieldPtr: mass) {
+    Nbar.appendNewField("Nbar", fieldPtr->nodeList(), 0.0);
+    gradPbar.appendNewField("gradPbar", fieldPtr->nodeList(), 0.0);
+    gradNbar.appendNewField("gradNbar", fieldPtr->nodeList(), 0.0);
+  }
 
-    // Iterate over the nodes in this node list.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
+  // Sum the pair contributions.
+#pragma omp parallel
+  {
+    int i, j, nodeListi, nodeListj;
+    Scalar Wi, Wj, gWi, gWj;
+
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto PSPHmassDensity_thread = PSPHmassDensity.threadCopy(threadStack);
+    auto PSPHpbar_thread = PSPHpbar.threadCopy(threadStack);
+    auto PSPHcorrection_thread = PSPHcorrection.threadCopy(threadStack);
+    auto Nbar_thread = Nbar.threadCopy(threadStack);
+    auto gradPbar_thread = gradPbar.threadCopy(threadStack);
+    auto gradNbar_thread = gradNbar.threadCopy(threadStack);
+
+#pragma omp for
+    for (auto k = 0; k < npairs; ++k) {
+      i = pairs[k].i_node;
+      j = pairs[k].j_node;
+      nodeListi = pairs[k].i_list;
+      nodeListj = pairs[k].j_list;
 
       // Get the state for node i.
-      const Vector& ri = position(nodeListi, i);
+      const auto& ri = position(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      const auto  mi = mass(nodeListi, i);
+      const auto  epsi = specificThermalEnergy(nodeListi, i);
+      const auto  gammai = gamma(nodeListi, i);
+      const auto  invhi = (Hi.Trace()/Dimension::nDim);
+      const auto  xi = (gammai-1.0)*mi*epsi;
+     
+      // Get the state for node j.
+      const auto& rj = position(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto  Hdetj = Hj.Determinant();
+      const auto  mj = mass(nodeListj, j);
+      const auto  invhj = (Hj.Trace()/Dimension::nDim);
+      const auto  epsj = specificThermalEnergy(nodeListj, j);
+      const auto  gammaj = gamma(nodeListj, j);
+      const auto  xj = (gammaj-1.0)*mj*epsj;
+
+      // Kernel weighting and gradient.
+      const Vector rij = ri - rj;
+      const Scalar etai = (Hi*rij).magnitude();
+      const Scalar etaj = (Hj*rij).magnitude();
+      std::tie(Wi, gWi) = W.kernelAndGradValue(etai, Hdeti);
+      std::tie(Wj, gWj) = W.kernelAndGradValue(etaj, Hdetj);
+
+      const auto gradhi = invhi*(Dimension::nDim*Wi+etai*gWi);
+      const auto gradhj = invhj*(Dimension::nDim*Wj+etaj*gWj);
+
+      if (computeMassDensity) {
+        PSPHmassDensity_thread(nodeListi, i) += (nodeListi == nodeListj ? mj : mi)*Wj;
+        PSPHmassDensity_thread(nodeListj, j) += (nodeListi == nodeListj ? mi : mj)*Wi;
+      }
+
+      PSPHpbar_thread(nodeListi, i) += xj*Wi;
+      PSPHpbar_thread(nodeListj, j) += xi*Wj;
+
+      Nbar_thread(nodeListi, i) += Wi;
+      Nbar_thread(nodeListj, j) += Wj;
+      
+      gradPbar_thread(nodeListi, i) -= xj*gradhi;
+      gradPbar_thread(nodeListj, j) -= xi*gradhj;
+
+      gradNbar_thread(nodeListi, i) -= gradhi;
+      gradNbar_thread(nodeListj, j) -= gradhj;
+    }
+
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+
+  }   // OMP parallel
+
+  // Finish with the self contributions.
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto n = mass[nodeListi]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0; i < n; ++i) {
+
+      // Get the state for node i.
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar mi = mass(nodeListi, i);
@@ -81,61 +163,18 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar epsi = specificThermalEnergy(nodeListi, i);
       const Scalar gammai = gamma(nodeListi, i);
      
-      // Self-contribution!!
-      Scalar W0  = W(0.0, Hdeti);
       const Scalar xi = (gammai-1.0)*mi*epsi;
-      Scalar gradh0 = invhi*(Dimension::nDim*W0);
-      PSPHpbar(nodeListi, i) = xi*W0;
-      Scalar Nbari = W0;//Averaged Number of particles 
-      Scalar gradPbari = -xi*gradh0;//DpbarDh
-      Scalar gradNbari = -gradh0;//DnbarDh
-      if (computeMassDensity) PSPHmassDensity(nodeListi, i) += mi*W0;
+      const Scalar gradh0 = invhi*(Dimension::nDim*Hdeti*W0);
+      if (computeMassDensity) PSPHmassDensity(nodeListi, i) += mi*Hdeti*W0;
+      PSPHpbar(nodeListi, i) += xi*Hdeti*W0;
+      Nbar(nodeListi, i) += Hdeti*W0;
+      gradPbar(nodeListi, i) += -xi*gradh0;
+      gradNbar(nodeListi, i) += -gradh0;
 
-      // Neighbors!
-      const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-      CHECK(fullConnectivity.size() == numNodeLists);
-
-      // Iterate over the neighbor NodeLists.
-      for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-
-        // Iterate over the neighbors for in this NodeList.
-        const vector<int>& connectivity = fullConnectivity[nodeListj];
-        for (vector<int>::const_iterator jItr = connectivity.begin();
-             jItr != connectivity.end();
-             ++jItr) {
-          const int j = *jItr;
-
-          const Vector& rj = position(nodeListj, j);
-          const SymTensor& Hj = H(nodeListj, j);
-          const Scalar Hdetj = Hj.Determinant();
-          const Scalar mj = mass(nodeListj, j);
-          const Scalar epsj = specificThermalEnergy(nodeListj, j);
-          const Scalar gammaj = gamma(nodeListj, j);
-
-          // Kernel weighting and gradient.
-          const Vector rij = ri - rj;
-          const Scalar etai = (Hi*rij).magnitude();
-          const Scalar etaj = (Hj*rij).magnitude();
-          const std::pair<double, double> WWi = W.kernelAndGradValue(etai, Hdeti);
-          const Scalar& Wi = WWi.first;
-          const Scalar& gWi = WWi.second;
-          const std::pair<double, double> WWj = W.kernelAndGradValue(etaj, Hdetj);
-          const Scalar& Wj = WWj.first;
-          const Scalar& gWj = WWj.second;
-          const Scalar xj=(gammaj-1.0)*mj*epsj;
-          const Scalar gradh=invhi*(Dimension::nDim*Wi+etai*gWi);
-          if (computeMassDensity) PSPHmassDensity(nodeListi, i) += (nodeListi == nodeListj ? mj : mi)*Wj;
-          PSPHpbar(nodeListi, i) += xj*Wi;
-          Nbari += Wi;
-          gradPbari -= xj*gradh;
-          gradNbari -= gradh;
-
-        }
-      }
       //const Scalar fi=1.0+gradNbari*safeInv(Dimension::nDim*Nbari*invhi);
       //PSPHcorrection(nodeListi, i)=gradPbari*safeInv(Dimension::nDim*(gammai-1.0)*Nbari*invhi*fi);
-      const Scalar fi=1.0+gradNbari/max(Dimension::nDim*Nbari*invhi,tiny);
-      PSPHcorrection(nodeListi, i)=gradPbari/max(Dimension::nDim*(gammai-1.0)*Nbari*invhi*fi,tiny);
+      const Scalar fi = 1.0 + gradNbar(nodeListi, i)/max(Dimension::nDim*Nbar(nodeListi, i)*invhi, tiny);
+      PSPHcorrection(nodeListi, i) += gradPbar(nodeListi, i)/max(Dimension::nDim*(gammai-1.0)*Nbar(nodeListi, i)*invhi*fi, tiny);
       CHECK2((gammai-1.0)*epsi >= 0.0, i << " " << gammai << " " << epsi);
       PSPHsoundSpeed(nodeListi, i) = sqrt(std::max(0.0, gammai*(gammai - 1.0)*epsi));
     }

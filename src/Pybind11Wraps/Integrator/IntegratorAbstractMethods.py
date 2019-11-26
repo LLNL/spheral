@@ -11,4 +11,4 @@ class IntegratorAbstractMethods:
              state = "State<%(Dimension)s>&",
              derivs = "StateDerivatives<%(Dimension)s>&"):
         "Master method to take a step, i.e., advance in time"
-        return "void"
+        return "bool"

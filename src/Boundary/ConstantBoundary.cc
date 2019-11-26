@@ -121,15 +121,21 @@ ConstantBoundary(NodeList<Dimension>& nodeList,
   mDenialPlane(denialPlane),
   mReflectOperator(planarReflectingOperator(denialPlane)),
   mActive(false),
+  mIntValues(),
   mScalarValues(),
   mVectorValues(),
   mTensorValues(),
   mSymTensorValues(),
   mThirdRankTensorValues(),
+  mFourthRankTensorValues(),
+  mFifthRankTensorValues(),
   mFacetedVolumeValues(),
   mVectorScalarValues(),
   mVectorVectorValues(),
-  mRestart(registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)),
+  mRedistribution(registerWithRedistribution(*this,
+                                             &ConstantBoundary<Dimension>::notifyBeforeRedistribution,
+                                             &ConstantBoundary<Dimension>::notifyAfterRedistribution)) {
 
   // Store the ids of the nodes we're watching.
   for (vector<int>::const_iterator itr = nodeIDs.begin();
@@ -249,6 +255,22 @@ void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
   if (mActive) resetValues(field, this->nodeIndices(), mThirdRankTensorValues, false);
+}
+
+// Specialization for fourth rank tensors.
+template<typename Dimension>
+void
+ConstantBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  if (mActive) resetValues(field, this->nodeIndices(), mFourthRankTensorValues, false);
+}
+
+// Specialization for fifth rank tensors.
+template<typename Dimension>
+void
+ConstantBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  if (mActive) resetValues(field, this->nodeIndices(), mFifthRankTensorValues, false);
 }
 
 // Specialization for FacetedVolume.
@@ -377,6 +399,22 @@ enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) co
   // resetValues(field, this->nodeIndices(), mThirdRankTensorValues);
 }
 
+// Specialization for fourth rank tensors.
+template<typename Dimension>
+void
+ConstantBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  // resetValues(field, this->nodeIndices(), mFourthRankTensorValues);
+}
+
+// Specialization for fifth rank tensors.
+template<typename Dimension>
+void
+ConstantBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  // resetValues(field, this->nodeIndices(), mFifthRankTensorValues);
+}
+
 // Specialization for FacetedVolume.
 template<typename Dimension>
 void
@@ -403,6 +441,8 @@ ConstantBoundary<Dimension>::initializeProblemStartup() {
     mTensorValues.clear();
     mSymTensorValues.clear();
     mThirdRankTensorValues.clear();
+    mFourthRankTensorValues.clear();
+    mFifthRankTensorValues.clear();
     mFacetedVolumeValues.clear();
     mVectorScalarValues.clear();
     mVectorVectorValues.clear();
@@ -418,6 +458,8 @@ ConstantBoundary<Dimension>::initializeProblemStartup() {
     storeFieldValues(*mNodeListPtr, nodeIDs, mTensorValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mSymTensorValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mThirdRankTensorValues);
+    storeFieldValues(*mNodeListPtr, nodeIDs, mFourthRankTensorValues);
+    storeFieldValues(*mNodeListPtr, nodeIDs, mFifthRankTensorValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mFacetedVolumeValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mVectorScalarValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mVectorVectorValues);
@@ -513,6 +555,20 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(keys, pathName + "/ThirdRankTensorValues/keys");
 
   keys.clear();
+  for (const auto& p: mFourthRankTensorValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/FourthRankTensorValues/" + p.first);
+  }
+  file.write(keys, pathName + "/FourthRankTensorValues/keys");
+
+  keys.clear();
+  for (const auto& p: mFifthRankTensorValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/FifthRankTensorValues/" + p.first);
+  }
+  file.write(keys, pathName + "/FifthRankTensorValues/keys");
+
+  keys.clear();
   for (const auto& p: mFacetedVolumeValues) {
     keys.push_back(p.first);
     file.write(p.second, pathName + "/FacetedVolumeValues/" + p.first);
@@ -594,6 +650,22 @@ restoreState(const FileIO& file, const string& pathName)  {
   }
 
   keys.clear();
+  file.read(keys, pathName + "/FourthRankTensorValues/keys");
+  mFourthRankTensorValues.clear();
+  for (const auto key: keys) {
+    mFourthRankTensorValues[key] = std::vector<FourthRankTensor>();
+    file.read(mFourthRankTensorValues[key], pathName + "/FourthRankTensorValues/" + key);
+  }
+
+  keys.clear();
+  file.read(keys, pathName + "/FifthRankTensorValues/keys");
+  mFifthRankTensorValues.clear();
+  for (const auto key: keys) {
+    mFifthRankTensorValues[key] = std::vector<FifthRankTensor>();
+    file.read(mFifthRankTensorValues[key], pathName + "/FifthRankTensorValues/" + key);
+  }
+  
+  keys.clear();
   file.read(keys, pathName + "/FacetedVolumeValues/keys");
   mFacetedVolumeValues.clear();
   for (const auto key: keys) {
@@ -616,6 +688,23 @@ restoreState(const FileIO& file, const string& pathName)  {
     mVectorVectorValues[key] = std::vector<std::vector<Vector> >();
     file.read(mVectorVectorValues[key], pathName + "/VectorSVectorValues/" + key);
   }
+}
+
+//------------------------------------------------------------------------------
+// Redistribution methods
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ConstantBoundary<Dimension>::
+notifyBeforeRedistribution() {
+  VERIFY2(false, "ConstantBoundary ERROR: node redistribution not allowed with constant boundaries.");
+}
+
+template<typename Dimension>
+void
+ConstantBoundary<Dimension>::
+notifyAfterRedistribution() {
+  VERIFY2(false, "ConstantBoundary ERROR: node redistribution not allowed with constant boundaries.");
 }
 
 }

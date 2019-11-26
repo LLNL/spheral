@@ -222,6 +222,44 @@ class NeighborTestBase:
                         print "Passed for node %i" % i
 
     #---------------------------------------------------------------------------
+    # Test ConnectivityMap NodePairList
+    #---------------------------------------------------------------------------
+    def testConnectivityMapNodePairs(self):
+        from SpheralTestUtilities import findNeighborNodes, checkNeighbors
+        import time
+
+        self.dataBase.updateConnectivityMap(False, False)
+        cm = self.dataBase.connectivityMap(False, False)
+        numNodeLists = self.dataBase.numNodeLists
+
+        # Build the answer based on the node neighbors
+        answer = []
+        for iNL, inodes in enumerate(self.dataBase.nodeLists()):
+            for i in xrange(inodes.numInternalNodes):
+                cmneighbors = cm.connectivityForNode(inodes, i)
+                assert len(cmneighbors) == numNodeLists
+                for jNL in xrange(iNL, numNodeLists):
+                    for j in cmneighbors[jNL]:
+                        if jNL > iNL or j > i:
+                            answer.append(NodePairIdxType(i, iNL, j, jNL))
+
+        pairs = list(cm.nodePairList)
+        assert len(pairs) == len(answer)
+
+        answer.sort()
+        pairs.sort()
+
+        # for i in xrange(len(pairs)):
+        #     print "%s\t\t%s" % (pairs[i], answer[i])
+
+        assert answer == pairs
+
+        # for pair in answer:
+        #     if not (pair in answer or (pair[2], pair[3], pair[0], pair[1]) in answer):
+        #         raise RuntimeError, "Missing pair interaction for %s" % pair
+        return
+
+    #---------------------------------------------------------------------------
     # Test ConnectivityMap overlap neighbors
     #---------------------------------------------------------------------------
     def testConnectivityMapOverlapNeighbors(self):

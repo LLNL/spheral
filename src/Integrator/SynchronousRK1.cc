@@ -79,7 +79,7 @@ operator=(const SynchronousRK1<Dimension>& rhs) {
 // Take a step.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 SynchronousRK1<Dimension>::
 step(typename Dimension::Scalar maxTime,
      State<Dimension>& state,
@@ -122,6 +122,8 @@ step(typename Dimension::Scalar maxTime,
   this->currentCycle(this->currentCycle() + 1);
   this->currentTime(t + dt);
   this->lastDt(dt);
+
+  return true;
 }
 
 }

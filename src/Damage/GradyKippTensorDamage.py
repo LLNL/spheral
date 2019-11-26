@@ -64,14 +64,6 @@ GradyKippTensorDamageOwen is constructed with the following arguments:
 """
 
 #-------------------------------------------------------------------------------
-# The material library values are in CGS, so build a units object for 
-# conversions.
-#-------------------------------------------------------------------------------
-cgs = PhysicalConstants(0.01,   # unit length in m
-                        0.001,  # unit mass in kg
-                        1.0)    # unit time in sec
-
-#-------------------------------------------------------------------------------
 # GradyKippTensorDamageBenzAsphaug : generic definition
 #-------------------------------------------------------------------------------
 GradyKippTensorDamageBAGenString = """
@@ -80,6 +72,12 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
 
     def __init__(self, *args_in, **kwargs):
         args = list(args_in)
+
+        # The material library values are in CGS, so build a units object for 
+        # conversions.
+        cgs = PhysicalConstants(0.01,   # unit length in m
+                                0.001,  # unit mass in kg
+                                1.0)    # unit time in sec
 
         # Arguments needed to build the damage model.
         damage_kwargs = {"nodeList"                 : None,
@@ -222,6 +220,12 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
 
     def __init__(self, *args_in, **kwargs):
         args = list(args_in)
+
+        # The material library values are in CGS, so build a units object for 
+        # conversions.
+        cgs = PhysicalConstants(0.01,   # unit length in m
+                                0.001,  # unit mass in kg
+                                1.0)    # unit time in sec
 
         # Arguments needed to build the damage model.
         damage_kwargs = {"nodeList"                 : None,

@@ -238,7 +238,7 @@ class DataBase:
         return "bool"
 
     #...........................................................................
-    # Template methods
+    # FieldList generation methods
     @PYB11template("DataType")
     @PYB11const
     def newGlobalFieldList(self,
@@ -388,6 +388,152 @@ will get the new value regardless of resetValues."""
     resizeSolidvector_of_doubleFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="std::vector<double>")
     resizeSolidvector_of_VectorFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="std::vector<Vector>")
 
+    #...........................................................................
+    # Array generation methods
+    @PYB11template("DataType")
+    @PYB11const
+    def newGlobalArray(self,
+                       value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()")):
+        "Construct a new array<%(DataType)s> for all NodeLists in DataBase"
+        return "std::vector<std::vector<%(DataType)s>>"
+
+    @PYB11template("DataType")
+    @PYB11const
+    def newFluidArray(self,
+                      value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()")):
+        "Construct a new array<%(DataType)s> for all FluidNodeLists in DataBase"
+        return "std::vector<std::vector<%(DataType)s>>"
+
+    @PYB11template("DataType")
+    @PYB11const
+    def newSolidArray(self,
+                      value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()")):
+        "Construct a new array<%(DataType)s> for all SolidNodeLists in DataBase"
+        return "std::vector<std::vector<%(DataType)s>>"
+
+    @PYB11template("DataType")
+    @PYB11const
+    def resizeGlobalArray(self,
+                          array = "std::vector<std::vector<%(DataType)s>>&",
+                          value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                          resetValues = ("const bool", "true")):
+        """Resize an array to the number of NodeLists.
+Optionally we can also set all elements in the Array to the specified value.
+Note that if the Array is resized it is reconstructed from scratch, so all elements
+will get the new value regardless of resetValues."""
+        return "void"
+
+    @PYB11template("DataType")
+    @PYB11const
+    def resizeFluidArray(self,
+                         array = "std::vector<std::vector<%(DataType)s>>&",
+                         value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                         resetValues = ("const bool", "true")):
+        """Resize an array to the number of FluidNodeLists.
+Optionally we can also set all elements in the Array to the specified value.
+Note that if the Array is resized it is reconstructed from scratch, so all elements
+will get the new value regardless of resetValues."""
+        return "void"
+
+    @PYB11template("DataType")
+    @PYB11const
+    def resizeSolidArray(self,
+                         array = "std::vector<std::vector<%(DataType)s>>&",
+                         value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                         resetValues = ("const bool", "true")):
+        """Resize an array to the number of SolidNodeLists.
+Optionally we can also set all elements in the Array to the specified value.
+Note that if the Array is resized it is reconstructed from scratch, so all elements
+will get the new value regardless of resetValues."""
+        return "void"
+
+    newGlobalIntArray              = PYB11TemplateMethod(newGlobalArray, template_parameters="int")
+    newGlobalScalarArray           = PYB11TemplateMethod(newGlobalArray, template_parameters="double")
+    newGlobalVectorArray           = PYB11TemplateMethod(newGlobalArray, template_parameters="Vector")
+    newGlobalTensorArray           = PYB11TemplateMethod(newGlobalArray, template_parameters="Tensor")
+    newGlobalSymTensorArray        = PYB11TemplateMethod(newGlobalArray, template_parameters="SymTensor")
+    newGlobalThirdRankTensorArray  = PYB11TemplateMethod(newGlobalArray, template_parameters="ThirdRankTensor")
+    newGlobalFourthRankTensorArray = PYB11TemplateMethod(newGlobalArray, template_parameters="FourthRankTensor")
+    newGlobalFifthRankTensorArray  = PYB11TemplateMethod(newGlobalArray, template_parameters="FifthRankTensor")
+    newGlobalFacetedVolumeArray    = PYB11TemplateMethod(newGlobalArray, template_parameters="FacetedVolume")
+    newGlobalvector_of_intArray    = PYB11TemplateMethod(newGlobalArray, template_parameters="std::vector<int>")
+    newGlobalvector_of_doubleArray = PYB11TemplateMethod(newGlobalArray, template_parameters="std::vector<double>")
+    newGlobalvector_of_VectorArray = PYB11TemplateMethod(newGlobalArray, template_parameters="std::vector<Vector>")
+    newGlobalvector_of_CellFaceFlagArray = PYB11TemplateMethod(newGlobalArray, template_parameters="std::vector<CellFaceFlag>")
+    newGlobalDomainNodeArray       = PYB11TemplateMethod(newGlobalArray, template_parameters="DomainNode<%(Dimension)s>")
+    
+    newFluidIntArray              = PYB11TemplateMethod(newFluidArray, template_parameters="int")
+    newFluidScalarArray           = PYB11TemplateMethod(newFluidArray, template_parameters="double")
+    newFluidVectorArray           = PYB11TemplateMethod(newFluidArray, template_parameters="Vector")
+    newFluidTensorArray           = PYB11TemplateMethod(newFluidArray, template_parameters="Tensor")
+    newFluidSymTensorArray        = PYB11TemplateMethod(newFluidArray, template_parameters="SymTensor")
+    newFluidThirdRankTensorArray  = PYB11TemplateMethod(newFluidArray, template_parameters="ThirdRankTensor")
+    newFluidFourthRankTensorArray = PYB11TemplateMethod(newFluidArray, template_parameters="FourthRankTensor")
+    newFluidFifthRankTensorArray  = PYB11TemplateMethod(newFluidArray, template_parameters="FifthRankTensor")
+    newFluidFacetedVolumeArray    = PYB11TemplateMethod(newFluidArray, template_parameters="FacetedVolume")
+    newFluidvector_of_intArray    = PYB11TemplateMethod(newFluidArray, template_parameters="std::vector<int>")
+    newFluidvector_of_doubleArray = PYB11TemplateMethod(newFluidArray, template_parameters="std::vector<double>")
+    newFluidvector_of_VectorArray = PYB11TemplateMethod(newFluidArray, template_parameters="std::vector<Vector>")
+    newFluidvector_of_CellFaceFlagArray = PYB11TemplateMethod(newFluidArray, template_parameters="std::vector<CellFaceFlag>")
+    newFluidDomainNodeArray       = PYB11TemplateMethod(newFluidArray, template_parameters="DomainNode<%(Dimension)s>")
+
+    newSolidIntArray              = PYB11TemplateMethod(newSolidArray, template_parameters="int")
+    newSolidScalarArray           = PYB11TemplateMethod(newSolidArray, template_parameters="double")
+    newSolidVectorArray           = PYB11TemplateMethod(newSolidArray, template_parameters="Vector")
+    newSolidTensorArray           = PYB11TemplateMethod(newSolidArray, template_parameters="Tensor")
+    newSolidSymTensorArray        = PYB11TemplateMethod(newSolidArray, template_parameters="SymTensor")
+    newSolidThirdRankTensorArray  = PYB11TemplateMethod(newSolidArray, template_parameters="ThirdRankTensor")
+    newSolidFourthRankTensorArray = PYB11TemplateMethod(newSolidArray, template_parameters="FourthRankTensor")
+    newSolidFifthRankTensorArray  = PYB11TemplateMethod(newSolidArray, template_parameters="FifthRankTensor")
+    newSolidFacetedVolumeArray    = PYB11TemplateMethod(newSolidArray, template_parameters="FacetedVolume")
+    newSolidvector_of_intArray    = PYB11TemplateMethod(newSolidArray, template_parameters="std::vector<int>")
+    newSolidvector_of_doubleArray = PYB11TemplateMethod(newSolidArray, template_parameters="std::vector<double>")
+    newSolidvector_of_VectorArray = PYB11TemplateMethod(newSolidArray, template_parameters="std::vector<Vector>")
+    newSolidvector_of_CellFaceFlagArray = PYB11TemplateMethod(newSolidArray, template_parameters="std::vector<CellFaceFlag>")
+    newSolidvector_of_CellFaceFlagArray = PYB11TemplateMethod(newSolidArray, template_parameters="std::vector<int>")
+
+    resizeGlobalIntArray              = PYB11TemplateMethod(resizeGlobalArray, template_parameters="int")
+    resizeGlobalScalarArray           = PYB11TemplateMethod(resizeGlobalArray, template_parameters="double")
+    resizeGlobalVectorArray           = PYB11TemplateMethod(resizeGlobalArray, template_parameters="Vector")
+    resizeGlobalTensorArray           = PYB11TemplateMethod(resizeGlobalArray, template_parameters="Tensor")
+    resizeGlobalSymTensorArray        = PYB11TemplateMethod(resizeGlobalArray, template_parameters="SymTensor")
+    resizeGlobalThirdRankTensorArray  = PYB11TemplateMethod(resizeGlobalArray, template_parameters="ThirdRankTensor")
+    resizeGlobalFourthRankTensorArray = PYB11TemplateMethod(resizeGlobalArray, template_parameters="FourthRankTensor")
+    resizeGlobalFifthRankTensorArray  = PYB11TemplateMethod(resizeGlobalArray, template_parameters="FifthRankTensor")
+    resizeGlobalFacetedVolumeArray    = PYB11TemplateMethod(resizeGlobalArray, template_parameters="FacetedVolume")
+    resizeGlobalvector_of_intArray    = PYB11TemplateMethod(resizeGlobalArray, template_parameters="std::vector<int>")
+    resizeGlobalvector_of_doubleArray = PYB11TemplateMethod(resizeGlobalArray, template_parameters="std::vector<double>")
+    resizeGlobalvector_of_VectorArray = PYB11TemplateMethod(resizeGlobalArray, template_parameters="std::vector<Vector>")
+    resizeGlobalDomainNodeArray       = PYB11TemplateMethod(resizeGlobalArray, template_parameters="DomainNode<%(Dimension)s>")
+
+    resizeFluidIntArray              = PYB11TemplateMethod(resizeFluidArray, template_parameters="int")
+    resizeFluidScalarArray           = PYB11TemplateMethod(resizeFluidArray, template_parameters="double")
+    resizeFluidVectorArray           = PYB11TemplateMethod(resizeFluidArray, template_parameters="Vector")
+    resizeFluidTensorArray           = PYB11TemplateMethod(resizeFluidArray, template_parameters="Tensor")
+    resizeFluidSymTensorArray        = PYB11TemplateMethod(resizeFluidArray, template_parameters="SymTensor")
+    resizeFluidThirdRankTensorArray  = PYB11TemplateMethod(resizeFluidArray, template_parameters="ThirdRankTensor")
+    resizeFluidFourthRankTensorArray = PYB11TemplateMethod(resizeFluidArray, template_parameters="FourthRankTensor")
+    resizeFluidFifthRankTensorArray  = PYB11TemplateMethod(resizeFluidArray, template_parameters="FifthRankTensor")
+    resizeFluidFacetedVolumeArray    = PYB11TemplateMethod(resizeFluidArray, template_parameters="FacetedVolume")
+    resizeFluidvector_of_intArray    = PYB11TemplateMethod(resizeFluidArray, template_parameters="std::vector<int>")
+    resizeFluidvector_of_doubleArray = PYB11TemplateMethod(resizeFluidArray, template_parameters="std::vector<double>")
+    resizeFluidvector_of_VectorArray = PYB11TemplateMethod(resizeFluidArray, template_parameters="std::vector<Vector>")
+    resizeFluidDomainNodeArray       = PYB11TemplateMethod(resizeFluidArray, template_parameters="DomainNode<%(Dimension)s>")
+
+    resizeSolidIntArray              = PYB11TemplateMethod(resizeSolidArray, template_parameters="int")
+    resizeSolidScalarArray           = PYB11TemplateMethod(resizeSolidArray, template_parameters="double")
+    resizeSolidVectorArray           = PYB11TemplateMethod(resizeSolidArray, template_parameters="Vector")
+    resizeSolidTensorArray           = PYB11TemplateMethod(resizeSolidArray, template_parameters="Tensor")
+    resizeSolidSymTensorArray        = PYB11TemplateMethod(resizeSolidArray, template_parameters="SymTensor")
+    resizeSolidThirdRankTensorArray  = PYB11TemplateMethod(resizeSolidArray, template_parameters="ThirdRankTensor")
+    resizeSolidFourthRankTensorArray = PYB11TemplateMethod(resizeSolidArray, template_parameters="FourthRankTensor")
+    resizeSolidFifthRankTensorArray  = PYB11TemplateMethod(resizeSolidArray, template_parameters="FifthRankTensor")
+    resizeSolidFacetedVolumeArray    = PYB11TemplateMethod(resizeSolidArray, template_parameters="FacetedVolume")
+    resizeSolidvector_of_intArray    = PYB11TemplateMethod(resizeSolidArray, template_parameters="std::vector<int>")
+    resizeSolidvector_of_doubleArray = PYB11TemplateMethod(resizeSolidArray, template_parameters="std::vector<double>")
+    resizeSolidvector_of_VectorArray = PYB11TemplateMethod(resizeSolidArray, template_parameters="std::vector<Vector>")
+
+    #...........................................................................
     @PYB11cppname("nodeListPtrs")
     @PYB11returnpolicy("reference_internal")
     @PYB11const

@@ -84,7 +84,7 @@ operator=(const Verlet<Dimension>& rhs) {
 // Take a step.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 Verlet<Dimension>::
 step(typename Dimension::Scalar maxTime,
      State<Dimension>& state,
@@ -108,6 +108,15 @@ step(typename Dimension::Scalar maxTime,
   const Scalar dtMax = min(this->dtMax(), maxTime - t);
   const Scalar dt0 = this->selectDt(dtMin, dtMax, state, derivs);
   const Scalar hdt0 = 0.5*dt0;
+  const auto dtcheck = this->allowDtCheck();
+  const auto dtcheckFrac = this->dtCheckFrac();
+
+  // If we're doing dt checking, we need to copy the initial state.
+  State<Dimension> state0;
+  if (dtcheck) {
+    state0 = state;
+    state0.copyState();
+  }
 
   // Evaluate the beginning of step derivatives.
   this->initializeDerivatives(t, dt0, state, derivs);
@@ -123,6 +132,18 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeGhostBoundaries();
   this->postStateUpdate(t + hdt0, hdt0, db, state, derivs);
   this->finalizeGhostBoundaries();
+
+  // Check if the timestep is still a good idea...
+  if (dtcheck) {
+    const auto dtnew = this->selectDt(dtMin,
+                                      dtMax,
+                                      state,
+                                      derivs);
+    if (dtnew < dtcheckFrac*dt0) {
+      state.assign(state0);
+      return false;
+    }
+  }
 
   // Copy the mid-point state.
   State<Dimension> state12(state);
@@ -151,6 +172,18 @@ step(typename Dimension::Scalar maxTime,
   this->evaluateDerivatives(t + dt0, dt0, db, state, derivs);
   this->finalizeDerivatives(t + dt0, dt0, db, state, derivs);
 
+  // Check if the timestep is still a good idea...
+  if (dtcheck) {
+    const auto dtnew = this->selectDt(dtMin,
+                                      dtMax,
+                                      state,
+                                      derivs);
+    if (dtnew < dtcheckFrac*dt0) {
+      state.assign(state0);
+      return false;
+    }
+  }
+
   // Correct the final state by the end-point derivatives.
   state.assign(state12);
   // state.timeAdvanceOnly(false);
@@ -172,6 +205,7 @@ step(typename Dimension::Scalar maxTime,
   this->currentCycle(this->currentCycle() + 1);
   this->currentTime(t + dt0);
   this->lastDt(dt0);
+  return true;
 }
 
 }

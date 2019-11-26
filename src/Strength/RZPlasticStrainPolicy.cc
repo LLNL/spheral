@@ -83,15 +83,14 @@ update(const KeyType& key,
   const unsigned numFields = ps.numFields();
 
   // Get the state we depend on.
-  FieldList<Dimension, SymTensor> deviatoricStress = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  FieldList<Dimension, Scalar> deviatoricStressTT = state.fields(SolidFieldNames::deviatoricStressTT, 0.0);
-  const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
-  const FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-  const FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
-  const FieldList<Dimension, Scalar> G = state.fields(SolidFieldNames::shearModulus, 0.0);
-  const FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
-  const FieldList<Dimension, Scalar> ps0 = state.fields(SolidFieldNames::plasticStrain + "0", 0.0);
-  FieldList<Dimension, Scalar> psr = derivs.fields(SolidFieldNames::plasticStrainRate, 0.0);
+  auto       deviatoricStress = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
+  const auto rho = state.fields(HydroFieldNames::massDensity, 0.0);
+  const auto eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const auto P = state.fields(HydroFieldNames::pressure, 0.0);
+  const auto G = state.fields(SolidFieldNames::shearModulus, 0.0);
+  const auto Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
+  const auto ps0 = state.fields(SolidFieldNames::plasticStrain + "0", 0.0);
+  auto       psr = derivs.fields(SolidFieldNames::plasticStrainRate, 0.0);
 
   // Iterate over the internal nodes.
   for (unsigned k = 0; k != numFields; ++k) {
@@ -99,7 +98,7 @@ update(const KeyType& key,
     for (unsigned i = 0; i != n; ++i) {
 
       // Equivalent stress deviator.
-      const double J2 = computeJ2(deviatoricStress(k,i), deviatoricStressTT(k,i));
+      const double J2 = computeJ2(deviatoricStress(k,i), -deviatoricStress(k,i).Trace());
       CHECK(J2 >= 0.0);
       const double equivalentStressDeviator = sqrt(3.0*J2);
 
@@ -116,7 +115,6 @@ update(const KeyType& key,
 
       // Scale the stress deviator.
       deviatoricStress(k,i) *= f;
-      deviatoricStressTT(k,i) *= f;
 
       // Update the plastic strain and strain rate.
       if (distinctlyGreaterThan(G(k,i), 0.0)) {

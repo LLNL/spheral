@@ -128,22 +128,22 @@ idealSmoothingScale(const SymTensor& H,
   // REQUIRE2(fuzzyEqual(H.Trace(), Dimension::nDim*H.xx(), 1.0e-5), H << " : " << H.Trace() << " " << Dimension::nDim*H.xx());
   REQUIRE2(zerothMoment >= 0.0, zerothMoment);
 
-  // Count how many neighbors we currently sample by gather.
-  unsigned n0 = 0;
-  const double kernelExtent = W.kernelExtent();
-  const vector<const NodeList<Dimension>*> nodeLists = connectivityMap.nodeLists();
-  const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-  const unsigned numNodeLists = nodeLists.size();
-  for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-    const Field<Dimension, Vector>& posj = nodeLists[nodeListj]->positions();
-    for (vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
-         jItr != fullConnectivity[nodeListj].end();
-         ++jItr) {
-      const unsigned j = *jItr;
-      const double etai = (H*(pos - posj[j])).magnitude();
-      if (etai <= kernelExtent) ++n0;
-    }
-  }
+  // // Count how many neighbors we currently sample by gather.
+  // unsigned n0 = 0;
+  // const double kernelExtent = W.kernelExtent();
+  // const vector<const NodeList<Dimension>*> nodeLists = connectivityMap.nodeLists();
+  // const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+  // const unsigned numNodeLists = nodeLists.size();
+  // for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+  //   const Field<Dimension, Vector>& posj = nodeLists[nodeListj]->positions();
+  //   for (vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
+  //        jItr != fullConnectivity[nodeListj].end();
+  //        ++jItr) {
+  //     const unsigned j = *jItr;
+  //     const double etai = (H*(pos - posj[j])).magnitude();
+  //     if (etai <= kernelExtent) ++n0;
+  //   }
+  // }
 
   // // We compute an upper-bound for h depending on if we're getting too many neighbors.
   // const double targetRadius = kernelExtent*nPerh;

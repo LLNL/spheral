@@ -20,37 +20,52 @@ computeOccupancyVolume(const ConnectivityMap<Dimension>& connectivityMap,
                        FieldList<Dimension, typename Dimension::Scalar>& vol) {
 
   // Pre-conditions.
-  const size_t numNodeLists = vol.size();
+  const auto numNodeLists = vol.size();
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
 
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef typename Dimension::FourthRankTensor FourthRankTensor;
-  typedef typename Dimension::FifthRankTensor FifthRankTensor;
-
   // Zero it out.
-  vol = 0.0;
+  vol = 1.0;
 
   // Extent of the kernel.
-  const Scalar kernelExtent = W.kernelExtent();
-  const Scalar volFactor = 2.0*kernelExtent;
+  const auto kernelExtent = W.kernelExtent();
+  const auto volFactor = 2.0*kernelExtent;
 
-  // Walk the NodeLists.
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
 
-    // Iterate over the nodes in this NodeList.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
-      const unsigned Ni = connectivityMap.numNeighborsForNode(nodeListi, i) + 1;
-      vol(nodeListi, i) = volFactor/(Ni*Hdeti);
+#pragma omp parallel
+  {
+    // Some scratch variables.
+    int i, j, nodeListi, nodeListj;
+    auto vol_thread = vol.threadCopy();
+
+#pragma omp for
+    for (auto k = 0; k < npairs; ++k) {
+      i = pairs[k].i_node;
+      j = pairs[k].j_node;
+      nodeListi = pairs[k].i_list;
+      nodeListj = pairs[k].j_list;
+
+      vol_thread(nodeListi, i) += 1;
+      vol_thread(nodeListj, j) += 1;
+    }
+
+#pragma omp critical
+    {
+      vol_thread.threadReduce();
+    } // OMP critical
+  }   // OMP parallel
+
+  // Finish the volume
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto ni = vol[nodeListi]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0; i < ni; ++i) {
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      vol(nodeListi, i) = volFactor/(Hdeti*vol(nodeListi, i));
     }
   }
 }

@@ -3,7 +3,7 @@
 // information encoded in the SortAndDivideNeighbor algorithm.
 //----------------------------------------------------------------------------//
 #include "SortAndDivideRedistributeNodes3d.hh"
-#include "DomainNode.hh"
+#include "Utilities/DomainNode.hh"
 #include "BoundingVolumeDistributedBoundary.hh"
 #include "Boundary/Boundary.hh"
 #include "DataBase/DataBase.hh"

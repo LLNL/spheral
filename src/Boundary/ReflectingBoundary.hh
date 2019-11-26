@@ -23,6 +23,8 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+  typedef typename Dimension::FifthRankTensor FifthRankTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
   // Constructors and destructors.
@@ -37,6 +39,8 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Apply the boundary condition to the violation node values in the given Field.
@@ -46,6 +50,8 @@ public:
   virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Apply the boundary condition to face centered fields on a tessellation.
@@ -55,6 +61,8 @@ public:
   virtual void enforceBoundary(std::vector<Tensor>& faceField, const Mesh<Dimension>& mesh) const override;
   virtual void enforceBoundary(std::vector<SymTensor>& faceField, const Mesh<Dimension>& mesh) const override;
   virtual void enforceBoundary(std::vector<ThirdRankTensor>& faceField, const Mesh<Dimension>& mesh) const override;
+  virtual void enforceBoundary(std::vector<FourthRankTensor>& faceField, const Mesh<Dimension>& mesh) const override;
+  virtual void enforceBoundary(std::vector<FifthRankTensor>& faceField, const Mesh<Dimension>& mesh) const override;
 
   // Fill in faces on this boundary with effective opposite face values.
   virtual void swapFaceValues(Field<Dimension, std::vector<Scalar> >& field,
@@ -66,13 +74,13 @@ public:
   const Tensor& reflectOperator() const;
 
   // Valid test.
-  virtual bool valid() const;
+  virtual bool valid() const override;
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const { return "ReflectingBoundary"; }
-  virtual void dumpState(FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIO& file, const std::string& pathName);
+  virtual std::string label() const override { return "ReflectingBoundary"; }
+  virtual void dumpState(FileIO& file, const std::string& pathName) const override;
+  virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************
 
 private:

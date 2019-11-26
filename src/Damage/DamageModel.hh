@@ -130,7 +130,7 @@ public:
 
   //**************************************************************************
   // Restart methods.
-  virtual std::string label() const { return "DamageModel"; }
+  virtual std::string label() const override { return "DamageModel"; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //**************************************************************************

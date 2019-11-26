@@ -360,6 +360,90 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field) const {
   }
 }
 
+// Specialization for fourth rank tensors.
+void
+CylindricalBoundary::
+applyGhostBoundary(Field<Dim<3>, Dim<3>::FourthRankTensor>& field) const {
+
+  // Apply the boundary condition to all the ghost node values.
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  const Field<Dimension, Vector>& position = nodeList.positions();
+  CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
+  FourthRankTensor val;
+  for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < ghostEnd(nodeList));
+    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
+    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    const Tensor T = reflectOperator(position(*controlItr), position(*ghostItr));
+    val = FourthRankTensor::zero;
+    const FourthRankTensor& fc = field(*controlItr);
+    for (unsigned i = 0; i != Dimension::nDim; ++i) {
+      for (unsigned j = 0; j != Dimension::nDim; ++j) {
+        for (unsigned k = 0; k != Dimension::nDim; ++k) {
+          for (unsigned l = 0; l != Dimension::nDim; ++l) {
+            for (unsigned q = 0; q != Dimension::nDim; ++q) {
+              for (unsigned r = 0; r != Dimension::nDim; ++r) {
+                for (unsigned s = 0; s != Dimension::nDim; ++s) {
+                  for (unsigned t = 0; t != Dimension::nDim; ++t) {
+                    val(i,j,k,l) += T(i,q)*T(j,r)*T(k,s)*T(l,t)*fc(q,r,s,t);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    field(*ghostItr) = val;
+  }
+}
+
+// Specialization for fifth rank tensors.
+void
+CylindricalBoundary::
+applyGhostBoundary(Field<Dim<3>, Dim<3>::FifthRankTensor>& field) const {
+
+  // Apply the boundary condition to all the ghost node values.
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  const Field<Dimension, Vector>& position = nodeList.positions();
+  CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
+  FifthRankTensor val;
+  for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < ghostEnd(nodeList));
+    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
+    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    const Tensor T = reflectOperator(position(*controlItr), position(*ghostItr));
+    val = FifthRankTensor::zero;
+    const FifthRankTensor& fc = field(*controlItr);
+    for (unsigned i = 0; i != Dimension::nDim; ++i) {
+      for (unsigned j = 0; j != Dimension::nDim; ++j) {
+        for (unsigned k = 0; k != Dimension::nDim; ++k) {
+          for (unsigned l = 0; l != Dimension::nDim; ++l) {
+            for (unsigned m = 0; m != Dimension::nDim; ++m) {
+              for (unsigned q = 0; q != Dimension::nDim; ++q) {
+                for (unsigned r = 0; r != Dimension::nDim; ++r) {
+                  for (unsigned s = 0; s != Dimension::nDim; ++s) {
+                    for (unsigned t = 0; t != Dimension::nDim; ++t) {
+                      for (unsigned u = 0; u != Dimension::nDim; ++u) {
+                        val(i,j,k,l,u) += T(i,q)*T(j,r)*T(k,s)*T(l,t)*T(m,u)*fc(q,r,s,t,u);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    field(*ghostItr) = val;
+  }
+}
+
 // Specialization for FacetedVolume fields.
 void
 CylindricalBoundary::
@@ -539,6 +623,18 @@ enforceBoundary(Field<Dim<3>, Dim<3>::SymTensor>& field) const {
 void
 CylindricalBoundary::
 enforceBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field) const {
+}
+
+// Specialization for FourthRankTensor fields.  Duh?
+void
+CylindricalBoundary::
+enforceBoundary(Field<Dim<3>, Dim<3>::FourthRankTensor>& field) const {
+}
+
+// Specialization for FifthRankTensor fields.  Duh?
+void
+CylindricalBoundary::
+enforceBoundary(Field<Dim<3>, Dim<3>::FifthRankTensor>& field) const {
 }
 
 // Specialization for FacetedVolume, no-op.
