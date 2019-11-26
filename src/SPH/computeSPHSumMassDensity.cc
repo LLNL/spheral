@@ -39,54 +39,62 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   // Some useful variables.
   const auto W0 = W.kernelValue(0.0, 1.0);
 
-  // Zero out the result.
-  massDensity = 0.0;
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
 
-  // Walk the FluidNodeLists.
-  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const auto& nodeList = massDensity[nodeListi]->nodeList();
-    const auto  ni = connectivityMap.numNodes(nodeListi);
-
-    // Iterate over the nodes in this node list.
+  // First the self contribution.
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto n = massDensity[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto k = 0; k < ni; ++k) {
-      const auto i = connectivityMap.ithNode(nodeListi, k);
+    for (auto i = 0; i < n; ++i) {
+      const auto  mi = mass(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      massDensity(nodeListi, i) = mi*Hdeti*W0;
+    }
+  }
 
-      // Get the state for node i.
+  // Now the pair contributions.
+#pragma omp parallel
+  {
+    int i, j, nodeListi, nodeListj;
+    auto massDensity_thread = massDensity.threadCopy();
+
+#pragma omp for
+    for (auto k = 0; k < npairs; ++k) {
+      i = pairs[k].i_node;
+      j = pairs[k].j_node;
+      nodeListi = pairs[k].i_list;
+      nodeListj = pairs[k].j_list;
+
+      // State for node i
       const auto& ri = position(nodeListi, i);
       const auto  mi = mass(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
 
-      // Self-contribution.
-      massDensity(nodeListi, i) += mi*Hdeti*W0;
+      // State for node j
+      const auto& rj = position(nodeListj, j);
+      const auto  mj = mass(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto  Hdetj = Hj.Determinant();
 
-      // Get the neighbors for this node.
-      const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-      for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        if (sumOverAllNodeLists or (nodeListi == nodeListj)) {
-          const auto& connectivity = fullConnectivity[nodeListj];
-          for (auto jItr = connectivity.begin();
-               jItr != connectivity.end();
-               ++jItr) {
-            const auto j = *jItr;
+      // Kernel weighting and gradient.
+      const auto rij = ri - rj;
+      const auto etai = (Hi*rij).magnitude();
+      const auto etaj = (Hj*rij).magnitude();
+      const auto Wi = W.kernelValue(etai, Hdeti);
+      const auto Wj = W.kernelValue(etaj, Hdetj);
 
-            const auto& rj = position(nodeListj, j);
-            const auto  mj = mass(nodeListj, j);
-            const auto& Hj = H(nodeListj, j);
-            const auto  Hdetj = Hj.Determinant();
+      // Sum the pair-wise contributions.
+      massDensity_thread(nodeListi, i) += (nodeListi == nodeListj ? mj : mi)*Wj;
+      massDensity_thread(nodeListj, j) += (nodeListi == nodeListj ? mi : mj)*Wi;
+    }
 
-            // Kernel weighting and gradient.
-            const auto rij = ri - rj;
-            const auto etaj = (Hj*rij).magnitude();
-            const auto Wj = W.kernelValue(etaj, Hdetj);
-
-            // Sum the pair-wise contributions.
-            massDensity(nodeListi, i) += (nodeListi == nodeListj ? mj : mi)*Wj;
-          }
-        }
-      }
-      CHECK(massDensity(nodeListi, i) > 0.0);
+#pragma omp critical
+    {
+      massDensity_thread.threadReduce();
     }
   }
 }

@@ -33,6 +33,8 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+  typedef typename Dimension::FifthRankTensor FifthRankTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
   // An internal type to hold the paired control/ghost node indices.
@@ -113,8 +115,10 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const = 0;
   virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const = 0;
   virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const = 0;
+  virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const = 0;
+  virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const = 0;
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const = 0;
-
+  
   // Find any internal nodes that are in violation of this Boundary.
   virtual void setViolationNodes(NodeList<Dimension>& nodeList) = 0;
 
@@ -129,6 +133,8 @@ public:
   virtual void enforceBoundary(Field<Dimension, Tensor>& field) const = 0;
   virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const = 0;
   virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const = 0;
+  virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const = 0;
+  virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const = 0;
   virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const = 0;
 
   // Apply the boundary condition to face centered fields on a tessellation.
@@ -138,6 +144,8 @@ public:
   virtual void enforceBoundary(std::vector<Tensor>& faceField, const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
   virtual void enforceBoundary(std::vector<SymTensor>& faceField, const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
   virtual void enforceBoundary(std::vector<ThirdRankTensor>& faceField, const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<FourthRankTensor>& faceField, const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<FifthRankTensor>& faceField, const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
 
   // Fill in faces on this boundary with effective opposite face values.
   virtual void swapFaceValues(Field<Dimension, std::vector<Scalar> >& field,
@@ -168,9 +176,12 @@ public:
   // Defaults to no-op.
   virtual void clip(Vector& xmin, Vector& xmax) const;
 
+  // Optionally opt-out of ghost node culling.
+  virtual bool allowGhostCulling() const { return true; }
+
   // Some boundaries have ghosts we should exclude from tessellations.
   // Provide a hook to note such cases.
-  virtual bool meshGhostNodes() const;
+  virtual bool meshGhostNodes() const { return true; };
 
   // protected:
   //--------------------------- Protected Interface ---------------------------//

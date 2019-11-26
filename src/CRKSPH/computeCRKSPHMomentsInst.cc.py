@@ -3,12 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-
-#ifdef _OPENMP
-#include "CRKSPH/computeCRKSPHMoments_OpenMP.cc"
-#else
 #include "CRKSPH/computeCRKSPHMoments.cc"
-#endif
 
 namespace Spheral {
 

@@ -4,12 +4,7 @@ text = """
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 #include "Boundary/Boundary.hh"
-
-#ifdef _OPENMP
-#include "CRKSPH/computeCRKSPHSumMassDensity_OpenMP.cc"
-#else
 #include "CRKSPH/computeCRKSPHSumMassDensity.cc"
-#endif
 
 namespace Spheral {
 template void computeCRKSPHSumMassDensity(const ConnectivityMap<Dim< %(ndim)s > >&, 

@@ -108,6 +108,15 @@ resetValues(Field<Dimension, DataType>& field,
 }
 
 //------------------------------------------------------------------------------
+// Clear the values in the storage
+//------------------------------------------------------------------------------
+template<typename DataType>
+void
+clearValues(std::map<std::string, std::vector<DataType> >& values) {
+  for (auto& pairvals: values) pairvals.second.clear();
+}
+
+//------------------------------------------------------------------------------
 // Copy Field values of the given DataType from control to target IDs.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
@@ -150,7 +159,8 @@ copyFieldValues(NodeList<Dimension>& nodeList,
 template<typename Dimension>
 InflowOutflowBoundary<Dimension>::
 InflowOutflowBoundary(DataBase<Dimension>& dataBase,
-                      const GeomPlane<Dimension>& plane):
+                      const GeomPlane<Dimension>& plane,
+                      const bool empty):
   Boundary<Dimension>(),
   Physics<Dimension>(),
   mDataBase(dataBase),
@@ -158,6 +168,7 @@ InflowOutflowBoundary(DataBase<Dimension>& dataBase,
   mBoundaryCount(dataBase.numNodeLists()),
   mDT(1e100),
   mActive(false),
+  mEmpty(empty),
   mNumInflowNodes(),
   mXmin(),
   mIntValues(),
@@ -166,6 +177,8 @@ InflowOutflowBoundary(DataBase<Dimension>& dataBase,
   mTensorValues(),
   mSymTensorValues(),
   mThirdRankTensorValues(),
+  mFourthRankTensorValues(),
+  mFifthRankTensorValues(),
   mFacetedVolumeValues(),
   mVectorScalarValues(),
   mVectorVectorValues(),
@@ -311,6 +324,27 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   }
 }
 
+
+// Specialization for fourth rank tensors.
+template<typename Dimension>
+void
+InflowOutflowBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  if (mActive) {
+    resetValues(field, this->ghostNodes(field.nodeList()), mFourthRankTensorValues, false);
+  }
+}
+
+// Specialization for fifth rank tensors.
+template<typename Dimension>
+void
+InflowOutflowBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  if (mActive) {
+    resetValues(field, this->ghostNodes(field.nodeList()), mFifthRankTensorValues, false);
+  }
+}
+
 // Specialization for FacetedVolume.
 template<typename Dimension>
 void
@@ -410,6 +444,20 @@ InflowOutflowBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
 }
 
+// Specialization for fourth rank tensors.
+template<typename Dimension>
+void
+InflowOutflowBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+}
+
+// Specialization for fifth rank tensors.
+template<typename Dimension>
+void
+InflowOutflowBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+}
+
 // Specialization for FacetedVolume.
 template<typename Dimension>
 void
@@ -425,89 +473,91 @@ template<typename Dimension>
 void
 InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
 
-  if (not mActive) {
+  // Clear any existing data.
+  mIntValues.clear();
+  mScalarValues.clear();
+  mVectorValues.clear();
+  mTensorValues.clear();
+  mSymTensorValues.clear();
+  mThirdRankTensorValues.clear();
+  mFourthRankTensorValues.clear();
+  mFifthRankTensorValues.clear();
+  mFacetedVolumeValues.clear();
+  mVectorScalarValues.clear();
+  mVectorVectorValues.clear();
 
-    // Clear any existing data.
-    mIntValues.clear();
-    mScalarValues.clear();
-    mVectorValues.clear();
-    mTensorValues.clear();
-    mSymTensorValues.clear();
-    mThirdRankTensorValues.clear();
-    mFacetedVolumeValues.clear();
-    mVectorScalarValues.clear();
-    mVectorVectorValues.clear();
+  // Check all NodeLists.
+  for (auto itr = mDataBase.nodeListBegin(); itr < mDataBase.nodeListEnd(); ++itr) {
+    auto& nodeList = **itr;
+    // cerr << "--------------------------------------------------------------------------------" << endl
+    //      << nodeList.name() << endl;
 
-    // Check all NodeLists.
-    for (auto itr = mDataBase.nodeListBegin(); itr < mDataBase.nodeListEnd(); ++itr) {
-      auto& nodeList = **itr;
-      // cerr << "--------------------------------------------------------------------------------" << endl
-      //      << nodeList.name() << endl;
+    // Use a planar boundary to figure out what sort of nodes are in range of the plane.
+    // We use those to create a stencil of the in/outflow conditions.
+    const auto& nhat = mPlane.normal();
+    auto nodeIDs = findNodesTouchingThroughPlanes(nodeList, mPlane, mPlane, 1.0);
+    if (mEmpty) nodeIDs.clear();
 
-      // Use a planar boundary to figure out what sort of nodes are in range of the plane.
-      // We use those to create a stencil of the in/outflow conditions.
-      const auto& nhat = mPlane.normal();
-      auto nodeIDs = findNodesTouchingThroughPlanes(nodeList, mPlane, mPlane, 1.0);
+    // Remove any ghost nodes from other BCs.
+    const auto firstGhostNode = nodeList.firstGhostNode();
+    nodeIDs.erase(std::remove_if(nodeIDs.begin(), nodeIDs.end(), [&](const int& x) { return x >= firstGhostNode; }), nodeIDs.end());
 
-      // Remove any ghost nodes from other BCs.
-      const auto firstGhostNode = nodeList.firstGhostNode();
-      nodeIDs.erase(std::remove_if(nodeIDs.begin(), nodeIDs.end(), [&](const int& x) { return x >= firstGhostNode; }), nodeIDs.end());
+    // cerr << "Node IDs: ";
+    // std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
+    // cerr << endl;
 
-      // cerr << "Node IDs: ";
-      // std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
-      // cerr << endl;
+    // Now take a snapshot of the Fields.
+    storeFieldValues(nodeList, nodeIDs, mIntValues);
+    storeFieldValues(nodeList, nodeIDs, mScalarValues);
+    storeFieldValues(nodeList, nodeIDs, mVectorValues);
+    storeFieldValues(nodeList, nodeIDs, mTensorValues);
+    storeFieldValues(nodeList, nodeIDs, mSymTensorValues);
+    storeFieldValues(nodeList, nodeIDs, mThirdRankTensorValues);
+    storeFieldValues(nodeList, nodeIDs, mFourthRankTensorValues);
+    storeFieldValues(nodeList, nodeIDs, mFifthRankTensorValues);
+    storeFieldValues(nodeList, nodeIDs, mFacetedVolumeValues);
+    storeFieldValues(nodeList, nodeIDs, mVectorScalarValues);
+    storeFieldValues(nodeList, nodeIDs, mVectorVectorValues);
 
-      // Now take a snapshot of the Fields.
-      storeFieldValues(nodeList, nodeIDs, mIntValues);
-      storeFieldValues(nodeList, nodeIDs, mScalarValues);
-      storeFieldValues(nodeList, nodeIDs, mVectorValues);
-      storeFieldValues(nodeList, nodeIDs, mTensorValues);
-      storeFieldValues(nodeList, nodeIDs, mSymTensorValues);
-      storeFieldValues(nodeList, nodeIDs, mThirdRankTensorValues);
-      storeFieldValues(nodeList, nodeIDs, mFacetedVolumeValues);
-      storeFieldValues(nodeList, nodeIDs, mVectorScalarValues);
-      storeFieldValues(nodeList, nodeIDs, mVectorVectorValues);
-
-      // Map the snapshot positions to put them outside the boundary.
-      auto& pos = nodeList.positions();
-      const auto poskey = StateBase<Dimension>::key(pos);
-      CHECK(mVectorValues.find(poskey) != mVectorValues.end());
-      auto& posvals = mVectorValues[poskey];
-      const auto ni = nodeIDs.size();
-      const GeomPlane<Dimension> exitPlane(mPlane.point(), -nhat);
-      for (auto k = 0; k < ni; ++k) {
-        const auto i = nodeIDs[k];
-        posvals[k] = mapPositionThroughPlanes(pos[i], mPlane, mPlane);
-        // cerr << "  Ghost position: " << i << " @ " << posvals[k] << endl;
-      }
-
-      // Determine the in/outflow velocity.
-      const auto& vel = nodeList.velocity();
-      Scalar vinflow = 0.0;
-      for (const auto i: nodeIDs) {
-        // CHECK(std::abs(vel[i].dot(nhat)/vel[i].magnitude() - 1.0) < 1.0e-5);
-        vinflow += vel[i].dot(nhat);
-      }
-      vinflow = (allReduce(vinflow, MPI_SUM, Communicator::communicator())/
-                 std::max(1.0e-30, allReduce(double(nodeIDs.size()), MPI_SUM, Communicator::communicator())));  // Negative implies outflow
-      // cerr << "Computed inflow velocity: " << vinflow << endl;
-
-      // Figure out a timestep limit such that we don't move more than the ghost
-      // node thickness.
-      Scalar xmin = 1e100, xmax = -1e100;
-      for (const auto i: nodeIDs) {
-        const auto xd = mPlane.signedDistance(pos[i]);
-        xmin = std::min(xmin, xd);
-        xmax = std::max(xmax, xd);
-      }
-      xmin = allReduce(xmin, MPI_MIN, Communicator::communicator());
-      xmax = allReduce(xmax, MPI_MAX, Communicator::communicator());
-      mXmin[nodeList.name()] = xmin;
-      mDT = std::min(mDT, std::abs(xmax - xmin)/std::max(1e-30, std::abs(vinflow)));   // Protect from negative outflow velocity
-      // cerr << "Timestep constraint: " << mDT << endl;
-
-      mNumInflowNodes[nodeList.name()] = nodeIDs.size();
+    // Map the snapshot positions to put them outside the boundary.
+    auto& pos = nodeList.positions();
+    const auto poskey = StateBase<Dimension>::key(pos);
+    CHECK(mVectorValues.find(poskey) != mVectorValues.end());
+    auto& posvals = mVectorValues[poskey];
+    const auto ni = nodeIDs.size();
+    const GeomPlane<Dimension> exitPlane(mPlane.point(), -nhat);
+    for (auto k = 0; k < ni; ++k) {
+      const auto i = nodeIDs[k];
+      posvals[k] = mapPositionThroughPlanes(pos[i], mPlane, mPlane);
+      // cerr << "  Ghost position: " << i << " @ " << posvals[k] << endl;
     }
+
+    // Determine the in/outflow velocity.
+    const auto& vel = nodeList.velocity();
+    Scalar vinflow = 0.0;
+    for (const auto i: nodeIDs) {
+      // CHECK(std::abs(vel[i].dot(nhat)/vel[i].magnitude() - 1.0) < 1.0e-5);
+      vinflow += vel[i].dot(nhat);
+    }
+    vinflow = (allReduce(vinflow, MPI_SUM, Communicator::communicator())/
+               std::max(1.0e-30, allReduce(double(nodeIDs.size()), MPI_SUM, Communicator::communicator())));  // Negative implies outflow
+    // cerr << "Computed inflow velocity: " << vinflow << endl;
+
+    // Figure out a timestep limit such that we don't move more than the ghost
+    // node thickness.
+    Scalar xmin = 1e100, xmax = -1e100;
+    for (const auto i: nodeIDs) {
+      const auto xd = mPlane.signedDistance(pos[i]);
+      xmin = std::min(xmin, xd);
+      xmax = std::max(xmax, xd);
+    }
+    xmin = allReduce(xmin, MPI_MIN, Communicator::communicator());
+    xmax = allReduce(xmax, MPI_MAX, Communicator::communicator());
+    mXmin[nodeList.name()] = xmin;
+    mDT = std::min(mDT, std::abs(xmax - xmin)/std::max(1e-30, std::abs(vinflow)));   // Protect from negative outflow velocity
+    // cerr << "Timestep constraint: " << mDT << endl;
+
+    mNumInflowNodes[nodeList.name()] = nodeIDs.size();
     CHECK(mNumInflowNodes.size() == mDataBase.numNodeLists());
 
     // Turn the BC on.
@@ -611,6 +661,8 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
       copyFieldValues<Dimension, Tensor>         (nodeList, mTensorValues, insideNodes, newNodes);
       copyFieldValues<Dimension, SymTensor>      (nodeList, mSymTensorValues, insideNodes, newNodes);
       copyFieldValues<Dimension, ThirdRankTensor>(nodeList, mThirdRankTensorValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, FourthRankTensor>(nodeList, mFourthRankTensorValues, insideNodes, newNodes);
+      copyFieldValues<Dimension, FifthRankTensor>(nodeList, mFifthRankTensorValues, insideNodes, newNodes);
       copyFieldValues<Dimension, FacetedVolume>  (nodeList, mFacetedVolumeValues, insideNodes, newNodes);
       copyFieldValues<Dimension, vector<Scalar>> (nodeList, mVectorScalarValues, insideNodes, newNodes);
       copyFieldValues<Dimension, vector<Vector>> (nodeList, mVectorVectorValues, insideNodes, newNodes);
@@ -686,10 +738,30 @@ InflowOutflowBoundary<Dimension>::storedKeys() const {
   for (const auto& pairs: mTensorValues)          result.push_back(pairs.first);
   for (const auto& pairs: mSymTensorValues)       result.push_back(pairs.first);
   for (const auto& pairs: mThirdRankTensorValues) result.push_back(pairs.first);
+  for (const auto& pairs: mFourthRankTensorValues) result.push_back(pairs.first);
+  for (const auto& pairs: mFifthRankTensorValues) result.push_back(pairs.first);
   for (const auto& pairs: mFacetedVolumeValues)   result.push_back(pairs.first);
   for (const auto& pairs: mVectorScalarValues)    result.push_back(pairs.first);
   for (const auto& pairs: mVectorVectorValues)    result.push_back(pairs.first);
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Clear the stored values.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+InflowOutflowBoundary<Dimension>::clearStoredValues() {
+  for (auto& stuff: mNumInflowNodes) stuff.second = 0;
+  clearValues(mIntValues);
+  clearValues(mScalarValues);
+  clearValues(mVectorValues);
+  clearValues(mTensorValues);
+  clearValues(mSymTensorValues);
+  clearValues(mThirdRankTensorValues);
+  clearValues(mFacetedVolumeValues);
+  clearValues(mVectorScalarValues);
+  clearValues(mVectorVectorValues);
 }
 
 //------------------------------------------------------------------------------
@@ -753,6 +825,20 @@ dumpState(FileIO& file, const string& pathName) const {
   }
   file.write(keys, pathName + "/ThirdRankTensorValues/keys");
 
+  keys.clear();
+  for (const auto& p: mFourthRankTensorValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/FourthRankTensorValues/" + p.first);
+  }
+  file.write(keys, pathName + "/FourthRankTensorValues/keys");
+
+  keys.clear();
+  for (const auto& p: mFifthRankTensorValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/FifthRankTensorValues/" + p.first);
+  }
+  file.write(keys, pathName + "/FifthRankTensorValues/keys");
+  
   keys.clear();
   for (const auto& p: mFacetedVolumeValues) {
     keys.push_back(p.first);
@@ -833,6 +919,22 @@ restoreState(const FileIO& file, const string& pathName)  {
     file.read(mThirdRankTensorValues[key], pathName + "/ThirdRankTensorValues/" + key);
   }
 
+  keys.clear();
+  file.read(keys, pathName + "/FourthRankTensorValues/keys");
+  mFourthRankTensorValues.clear();
+  for (const auto key: keys) {
+    mFourthRankTensorValues[key] = std::vector<FourthRankTensor>();
+    file.read(mFourthRankTensorValues[key], pathName + "/FourthRankTensorValues/" + key);
+  }
+
+  keys.clear();
+  file.read(keys, pathName + "/FifthRankTensorValues/keys");
+  mFifthRankTensorValues.clear();
+  for (const auto key: keys) {
+    mFifthRankTensorValues[key] = std::vector<FifthRankTensor>();
+    file.read(mFifthRankTensorValues[key], pathName + "/FifthRankTensorValues/" + key);
+  }
+  
   keys.clear();
   file.read(keys, pathName + "/FacetedVolumeValues/keys");
   mFacetedVolumeValues.clear();

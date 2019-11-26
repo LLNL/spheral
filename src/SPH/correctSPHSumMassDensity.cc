@@ -42,73 +42,76 @@ correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  // Make a single corrective pass.
+  // Some useful variables.
+  const auto W0 = W.kernelValue(0.0, 1.0);
+
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+
+  // Prepare the kernel sum correction field.
   FieldList<Dimension, Scalar> sumUnity(FieldStorageType::CopyFields);
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     sumUnity.appendNewField("SPH sum unity check", massDensity[nodeListi]->nodeList(), 0.0);
-  }
-  
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const NodeList<Dimension>& nodeList = massDensity[nodeListi]->nodeList();
-    const int firstGhostNodei = nodeList.firstGhostNode();
 
-    // Iterate over the nodes in this node list.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
-
-      // Get the state for node i.
-      const Vector& ri = position(nodeListi, i);
-      const Scalar mi = mass(nodeListi, i);
-      const Scalar rhoi = massDensity(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
-      CHECK(rhoi > 0.0);
-
-      // Self-contribution.
-      const Scalar W0 = W.kernelValue(0.0, Hdeti);
-      sumUnity(nodeListi, i) += mi/rhoi*W0;
-
-      // Get the neighbors for this node.
-      const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        if (sumOverAllNodeLists or (nodeListi == nodeListj)) {
-          const int firstGhostNodej = massDensity[nodeListj]->nodeList().firstGhostNode();
-          const vector<int>& connectivity = fullConnectivity[nodeListj];
-          for (vector<int>::const_iterator jItr = connectivity.begin();
-               jItr != connectivity.end();
-               ++jItr) {
-            const int j = *jItr;
-
-            // Check if this node pair has already been calculated.
-            if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                         nodeListj, j,
-                                                         firstGhostNodej)) {
-              const Vector& rj = position(nodeListj, j);
-              const Scalar mj = mass(nodeListj, j);
-              const Scalar rhoj = massDensity(nodeListj, j);
-              const SymTensor& Hj = H(nodeListj, j);
-              const Scalar Hdetj = Hj.Determinant();
-              CHECK(rhoj > 0.0);
-
-              // Kernel weighting and gradient.
-              const Vector rij = ri - rj;
-              const Scalar etai = (Hi*rij).magnitude();
-              const Scalar etaj = (Hj*rij).magnitude();
-              const Scalar Wi = W.kernelValue(etai, Hdeti);
-              const Scalar Wj = W.kernelValue(etaj, Hdetj);
-
-              // Sum the pair-wise contributions.
-              sumUnity(nodeListi, i) += mj/rhoj*Wj;
-              sumUnity(nodeListj, j) += mi/rhoi*Wi;
-            }
-          }
-        }
-      }
-      CHECK(sumUnity(nodeListi, i) > 0.0);
+    // Initialize the self-contribution.
+    const auto n = massDensity[nodeListi]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0; i < n; ++i) {
+      const auto  mi = mass(nodeListi, i);
+      const auto  rhoi = massDensity(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      sumUnity(nodeListi, i) += mi/rhoi*Hdeti*W0;
     }
   }
+
+  // Now the pair contributions.
+#pragma omp parallel
+  {
+    int i, j, nodeListi, nodeListj;
+    auto sumUnity_thread = sumUnity.threadCopy();
+
+#pragma omp for
+    for (auto k = 0; k < npairs; ++k) {
+      i = pairs[k].i_node;
+      j = pairs[k].j_node;
+      nodeListi = pairs[k].i_list;
+      nodeListj = pairs[k].j_list;
+
+      // State for node i
+      const auto& ri = position(nodeListi, i);
+      const auto  mi = mass(nodeListi, i);
+      const auto  rhoi = massDensity(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      CHECK(rhoi > 0.0);
+
+      // State for node j
+      const auto& rj = position(nodeListj, j);
+      const auto  mj = mass(nodeListj, j);
+      const auto  rhoj = massDensity(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto  Hdetj = Hj.Determinant();
+      CHECK(rhoj > 0.0);
+
+      // Kernel weighting and gradient.
+      const auto rij = ri - rj;
+      const auto etai = (Hi*rij).magnitude();
+      const auto etaj = (Hj*rij).magnitude();
+      const auto Wi = W.kernelValue(etai, Hdeti);
+      const auto Wj = W.kernelValue(etaj, Hdetj);
+
+      // Sum the pair-wise contributions.
+      sumUnity_thread(nodeListi, i) += mj/rhoj*Wj;
+      sumUnity_thread(nodeListj, j) += mi/rhoi*Wi;
+    }
+
+#pragma omp critical
+    {
+      sumUnity_thread.threadReduce();
+    } // OMP critical
+  }   // OMP parallel
 
   // Apply the correction.
   massDensity /= sumUnity;

@@ -46,19 +46,14 @@ computeHVolumes(const typename Dimension::Scalar nPerh,
                 FieldList<Dimension, typename Dimension::Scalar>& volume) {
 
   // Pre-conditions.
-  const size_t numNodeLists = volume.size();
+  const auto numNodeLists = volume.size();
   REQUIRE(nPerh > 0.0);
   REQUIRE(H.size() == numNodeLists);
 
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::SymTensor SymTensor;
-
-  // Walk the FluidNodeLists.
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-
-    // Iterate over the nodes in this node list.
+  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const unsigned n = volume[nodeListi]->numInternalElements();
-    for (unsigned i = 0; i != n; ++i) {
+#pragma omp parallel for
+    for (auto i = 0; i < n; ++i) {
       volume(nodeListi, i) = Hvol(H(nodeListi, i), nPerh);
     }
   }

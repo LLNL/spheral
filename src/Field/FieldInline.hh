@@ -146,7 +146,7 @@ Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::Field(const Field& field):
-  FieldBase<Dimension>(const_cast<Field<Dimension, DataType>&>(field)),
+  FieldBase<Dimension>(field),
   mDataArray(field.mDataArray),
   mValid(field.valid()) {
 }
@@ -159,7 +159,7 @@ template<typename Dimension, typename DataType>
 inline
 std::shared_ptr<FieldBase<Dimension> >
 Field<Dimension, DataType>::clone() const {
-  return std::shared_ptr<FieldBase<Dimension> >(new Field<Dimension, DataType>(*this));
+  return std::shared_ptr<FieldBase<Dimension>>(new Field<Dimension, DataType>(*this));
 }
 
 //------------------------------------------------------------------------------
