@@ -32,7 +32,6 @@ set(SPH_headers
     SolidSPHHydroBase.hh
     SolidSPHHydroBaseInline.hh
     SolidSPHHydroBaseRZ.hh
-    SolidSPHHydroBaseRZInline.hh
     computeHydrostaticEquilibriumPressure.hh
     computeSPHOmegaGradhCorrection.hh
     computeSPHSumMassDensity.hh

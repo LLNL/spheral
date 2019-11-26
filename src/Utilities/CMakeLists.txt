@@ -43,6 +43,7 @@ set(Utilities_headers
     GeometricUtilities.hh
     KeyTraits.hh
     NodeListHashMap.hh
+    OpenMP_wrapper.hh
     PairComparisons.hh
     PeanoHilbertTransform.hh
     Process.hh

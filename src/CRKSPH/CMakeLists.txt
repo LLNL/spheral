@@ -21,8 +21,9 @@ set(CRKSPH_inst
 
 set(CRKSPH_sources
     centerOfMass.cc
+    ContinuityVolumePolicyRZ.cc
+    computeVoronoiVolume.cc
     computeVoronoiVolume1d.cc
-    computeVoronoiVolume2d.cc
     computeVoronoiVolume3d.cc
    )
 
@@ -40,15 +41,14 @@ set(CRKSPH_headers
     CRKSPHHydroBase.hh
     CRKSPHHydroBaseInline.hh
     CRKSPHHydroBaseRZ.hh
-    CRKSPHSpecificThermalEnergyPolicy.hh
     CRKSPHUtilities.hh
     CRKSPHUtilitiesInline.hh
     ContinuityVolumePolicy.hh
+    ContinuityVolumePolicyRZ.hh
     HullVolumePolicy.hh
     SolidCRKSPHHydroBase.hh
     SolidCRKSPHHydroBaseInline.hh
     SolidCRKSPHHydroBaseRZ.hh
-    SolidCRKSPHHydroBaseRZInline.hh
     SurfaceNodeCoupling.hh
     centerOfMass.hh
     computeCRKSPHCorrections.hh
