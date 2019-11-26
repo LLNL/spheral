@@ -104,3 +104,21 @@ else()
     message(STATUS "Library Disabled: POLYTOPE")
     set(BLT_POLYTOPE_DEFINES "HAVE_POLYTOPE=0" CACHE PATH "")
 endif()
+
+################################
+# PYBIND11
+################################
+if (PYBIND11_DIR)
+  include(cmake/libraries/FindPybind11.cmake)
+  if (PYBIND11_FOUND)
+    blt_register_library( NAME      pybind11
+			  INCLUDES  ${PYBIND11_INCLUDE_DIRS}
+			  #LIBRARIES ${PYBIND11_LIBRARY}
+			  DEFINES   HAVE_PYBIND11=1 )
+  else()
+    message(FATAL_ERROR "Unable to find PYBIND11 with given path. ${PYBIND11_DIR}")
+  endif()
+else()
+  message(STATUS "Library Disabled: PYBIND11")
+  set(BLT_PYBIND11_DEFINES "HAVE_PYBIND11=0" CACHE PATH "")
+endif()

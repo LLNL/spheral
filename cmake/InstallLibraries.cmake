@@ -79,14 +79,14 @@ message("--------------------------------------\n")
 
 
 message("\n---------- BUILDING PYBIND11 ----------")
-#if(NOT EXISTS ${PROJECT_SOURCE_DIR}/../qhull/lib/libqhullstatic.a)
+if(NOT EXISTS ${PROJECT_SOURCE_DIR}/../pybind11/include/pybind11/pybind11.h)
   build_external_project(pybind11
     ${PROJECT_SOURCE_DIR}/../pybind11/
     "https://github.com/pybind/pybind11"
     "-DPYBIND11_TEST=Off -DCMAKE_INSTALL_PREFIX=${PROJECT_SOURCE_DIR}/../pybind11/"
     )
-  #else()
-  #  message(STATUS "Qhull Built")
-  #endif()
+else()
+  message(STATUS "Pybind11 Built")
+endif()
 set(PYBIND11_DIR "${PROJECT_SOURCE_DIR}/../pybind11")
 message("--------------------------------------\n")

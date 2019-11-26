@@ -3,6 +3,7 @@ set(PYB11_MODULE_NAME OpenMP)
 # Include directrory to source file destination
 include_directories("${PROJECT_SOURCE_DIR}/src/${PYB11_MODULE_NAME}")
 include_directories("${PROJECT_SOURCE_DIR}/src")
+include_directories("${PYBIND11_INCLUDE_DIRS}")
 #include_directories("${EIGEN_LIB_LOCATION}")
 
 # Include directory to location of pybind include header files

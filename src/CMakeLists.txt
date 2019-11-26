@@ -7,7 +7,7 @@ set(spheral_depends BOOST Eigen qhull silo polytope mpi openmp)
 set(_packages 
   ArtificialViscosity
   Boundary
-  #CRKSPH
+  CRKSPH
   Damage
   DataBase
   DataOutput
