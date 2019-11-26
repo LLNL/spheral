@@ -1179,6 +1179,20 @@ addToHessian<Dim<3>, CRKOrder::CubicOrder>(const Dim<3>::Vector& g,
 template<typename Dimension>
 inline
 void
+fillSymmetries(typename Dimension::Tensor& dda) {
+  const auto dim = Dimension::nDim;
+
+  // Fill in derivatives that were not assigned
+  for (auto k1 = 1; k1 < dim; ++k1) {
+    for (auto k2 = 0; k2 < k1; ++k2) {
+      dda[dim*k1 + k2] = dda[dim*k2 + k1];
+    }
+  }
+}
+
+template<typename Dimension>
+inline
+void
 fillSymmetries(typename Dimension::ThirdRankTensor& ddb) {
   const auto dim = Dimension::nDim;
 
@@ -1389,6 +1403,7 @@ computeCorrections(const RKMomentValues<Dim<2>>& rkMoments,
       }
     }
   }
+  fillSymmetries<Dim<2>>(dda);
 }
 // d=3, o=0
 template<>
@@ -1419,6 +1434,7 @@ computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
       }
     }
   }
+  fillSymmetries<Dim<3>>(dda);
 }
 // d=1, o=1
 template<>
@@ -1553,6 +1569,7 @@ computeCorrections(const RKMomentValues<Dim<2>>& rkMoments,
     }
   }
   // Fill symmetries
+  fillSymmetries<Dim<2>>(dda);
   fillSymmetries<Dim<2>>(ddb);
 }
 // d=3, o=1
@@ -1638,6 +1655,7 @@ computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
     }
   }
   // Fill symmetries
+  fillSymmetries<Dim<3>>(dda);
   fillSymmetries<Dim<3>>(ddb);
 }
 // d=1, o=2
@@ -1826,6 +1844,7 @@ computeCorrections(const RKMomentValues<Dim<2>>& rkMoments,
     }
   }
   // Fill symmetries
+  fillSymmetries<Dim<2>>(dda);
   fillSymmetries<Dim<2>>(ddb);
   fillSymmetries<Dim<2>>(c, dc, ddc);
 }
@@ -1962,6 +1981,7 @@ computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
     }
   }  
   // Fill symmetries
+  fillSymmetries<Dim<3>>(dda);
   fillSymmetries<Dim<3>>(ddb);
   fillSymmetries<Dim<3>>(c, dc, ddc);
 }
@@ -2207,6 +2227,7 @@ computeCorrections(const RKMomentValues<Dim<2>>& rkMoments,
     }
   }  
   // Fill symmetries
+  fillSymmetries<Dim<2>>(dda);
   fillSymmetries<Dim<2>>(ddb);
   fillSymmetries<Dim<2>>(c, dc, ddc);
   fillSymmetries<Dim<2>>(d, dd, ddd);
@@ -2424,6 +2445,7 @@ computeCorrections(const RKMomentValues<Dim<3>>& rkMoments,
     }
   }  
   // Fill symmetries
+  fillSymmetries<Dim<3>>(dda);
   fillSymmetries<Dim<3>>(ddb);
   fillSymmetries<Dim<3>>(c, dc, ddc);
   fillSymmetries<Dim<3>>(d, dd, ddd);

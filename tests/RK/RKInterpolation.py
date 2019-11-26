@@ -216,24 +216,90 @@ rk.initializeProblemStartup(dataBase)
 rk_time = time.time() - rk_time
 output("rk_time")
 
+
 #-------------------------------------------------------------------------------
 # Get interpolant
 #-------------------------------------------------------------------------------
 if funcType == "constant":
     def func(x):
         return 2.0
+    def dfunc(x):
+        return [0.0 for v in x]
+    def ddfunc(x):
+        return [[0.0 for v in x] for v in x]
 elif funcType == "linear":
     def func(x):
         return 2.0 + 3.0 * np.sum(x)
+    def dfunc(x):
+        return 3.0 * np.ones_like(x)
+    def ddfunc(x):
+        return [[0.0 for v in x] for v in x]
 elif funcType == "quadratic":
-    def func(x):
-        return 2.0 + 3.0 * np.sum(x) + 4.0 * np.sum(np.power(x, 2))
+    if dimension == 1:
+        def func(x):
+            return 2 + 3*x[0] + 4*np.power(x[0],2)
+        def dfunc(x):
+            return [3 + 8*x[0]]
+        def ddfunc(x):
+            return [[8]]
+    elif dimension == 2:
+        def func(x):
+            return 2 + 3*(x[0] + x[1]) + 4*(np.power(x[0],2) + x[0]*x[1] + np.power(x[1],2))
+        def dfunc(x):
+            return [3 + 4*(2*x[0] + x[1]), 3 + 4*(x[0] + 2*x[1])]
+        def ddfunc(x):
+            return [[8, 4], [4, 8]]
+    else:
+        def func(x):
+            return 2 + 3*(x[0] + x[1] + x[2]) + 4*(np.power(x[0],2) + x[0]*x[1] + np.power(x[1],2) + x[0]*x[2] + x[1]*x[2] + np.power(x[2],2))
+        def dfunc(x):
+            return [3 + 4*(2*x[0] + x[1] + x[2]), 3 + 4*(x[0] + 2*x[1] + x[2]), 3 + 4*(x[0] + x[1] + 2*x[2])]
+        def ddfunc(x):
+            return [[8, 4, 4], [4, 8, 4], [4, 4, 8]]
 elif funcType == "cubic":
-    def func(x):
-        return 2.0 + 3.0 * np.sum(x) + 4.0 * np.sum(np.power(x, 2)) + 5.0 * np.sum(np.power(x, 3))
+    if dimension == 1:
+        def func(x):
+            return 2 + 3*x[0] + 4*np.power(x[0],2) + 5*np.power(x[0],3)
+        def dfunc(x):
+            return [3 + 8*x[0] + 15*np.power(x[0],2)]
+        def ddfunc(x):
+            return [[8 + 30*x[0]]]
+    elif dimension == 2:
+        def func(x):
+            return 2 + 3*(x[0] + x[1]) + 4*(np.power(x[0],2) + x[0]*x[1] + np.power(x[1],2)) + 5*(np.power(x[0],3) + np.power(x[0],2)*x[1] + x[0]*np.power(x[1],2) + np.power(x[1],3))
+        def dfunc(x):
+            return [3 + 4*(2*x[0] + x[1]) + 5*(3*np.power(x[0],2) + 2*x[0]*x[1] + np.power(x[1],2)), 3 + 4*(x[0] + 2*x[1]) + 5*(np.power(x[0],2) + 2*x[0]*x[1] + 3*np.power(x[1],2))]
+        def ddfunc(x):
+            return [[8 + 5*(6*x[0] + 2*x[1]), 4 + 5*(2*x[0] + 2*x[1])], [4 + 5*(2*x[0] + 2*x[1]), 8 + 5*(2*x[0] + 6*x[1])]]
+    else:
+        def func(x):
+            return 2 + 3*(x[0] + x[1] + x[2]) + 4*(np.power(x[0],2) + x[0]*x[1] + np.power(x[1],2) + x[0]*x[2] + x[1]*x[2] + np.power(x[2],2)) + 5*(np.power(x[0],3) + np.power(x[0],2)*x[1] + x[0]*np.power(x[1],2) + np.power(x[1],3) + np.power(x[0],2)*x[2] + x[0]*x[1]*x[2] + np.power(x[1],2)*x[2] + x[0]*np.power(x[2],2) + x[1]*np.power(x[2],2) + np.power(x[2],3))
+        def dfunc(x):
+            return [3 + 4*(2*x[0] + x[1] + x[2]) + 5*(3*np.power(x[0],2) + 2*x[0]*x[1] + np.power(x[1],2) + 2*x[0]*x[2] + x[1]*x[2] + np.power(x[2],2)), 3 + 4*(x[0] + 2*x[1] + x[2]) + 5*(np.power(x[0],2) + 2*x[0]*x[1] + 3*np.power(x[1],2) + x[0]*x[2] + 2*x[1]*x[2] + np.power(x[2],2)), 3 + 4*(x[0] + x[1] + 2*x[2]) + 5*(np.power(x[0],2) + x[0]*x[1] + np.power(x[1],2) + 2*x[0]*x[2] + 2*x[1]*x[2] + 3*np.power(x[2],2))]
+        def ddfunc(x):
+            return [[8 + 5*(6*x[0] + 2*x[1] + 2*x[2]), 4 + 5*(2*x[0] + 2*x[1] + x[2]), 4 + 5*(2*x[0] + x[1] + 2*x[2])], [4 + 5*(2*x[0] + 2*x[1] + x[2]), 8 + 5*(2*x[0] + 6*x[1] + 2*x[2]), 4 + 5*(x[0] + 2*x[1] + 2*x[2])], [4 + 5*(2*x[0] + x[1] + 2*x[2]), 4 + 5*(x[0] + 2*x[1] + 2*x[2]), 8 + 5*(2*x[0] + 2*x[1] + 6*x[2])]]
 elif funcType == "sinusoidal":
-    def func(x):
-        return 2.0 + 5.0 * np.sum(np.sin(5 * x))
+    if dimension == 1:
+        def func(x):
+            return 3. + 2.*np.sin(5*x[0])
+        def dfunc(x):
+            return [10.*np.cos(5*x[0])]
+        def ddfunc(x):
+            return [[-50.*np.sin(5*x[0])]]
+    elif dimension == 2:
+        def func(x):
+            return 3. + 2.*(np.sin(5*x[0]) + np.sin(5*x[1]))
+        def dfunc(x):
+            return [10.*np.cos(5*x[0]), 10.*np.cos(5*x[1])]
+        def ddfunc(x):
+            return [[-50.*np.sin(5*x[0]), 0], [0, -50.*np.sin(5*x[1])]]
+    else:
+        def func(x):
+            return 3. + 2.*(np.sin(5*x[0]) + np.sin(5*x[1]) + np.sin(5*x[2]))
+        def dfunc(x):
+            return [10.*np.cos(5*x[0]), 10.*np.cos(5*x[1]), 10.*np.cos(5*x[2])]
+        def ddfunc(x):
+            return [[-50.*np.sin(5*x[0]), 0, 0], [0, -50.*np.sin(5*x[1]), 0], [0, 0, -50.*np.sin(5*x[2])]]
 else:
     raise ValueError, "function type {} not found".format(funcType)
 
@@ -297,6 +363,7 @@ dxij.Identity()
 
 vals = np.zeros((nodes.numNodes, 2))
 dvals = np.zeros((nodes.numNodes, dimension, 2))
+ddvals = np.zeros((nodes.numNodes, dimension, dimension, 2))
 ni = 0
 nj = 0
 
@@ -317,8 +384,9 @@ for i in range(nodes.numNodes):
                 d = D(ni, i)
                 dd = dD(ni, i)
                 ddd = ddD(ni, i)
-    # print(a,b,c,d)
     connectivityi = np.append(connectivity.connectivityForNode(ni, i), i)
+    print(c)
+    fi = func(xi)
     for j in connectivityi:
         xj = position(nj, j)
         fj = func(xj)
@@ -333,34 +401,57 @@ for i in range(nodes.numNodes):
                                 etaij, Hij, xij, dxij,
                                 a, b, c, d,
                                 da, db, dc, dd)
-        ddw = evaluateRKHessian(WT, correctionOrder,
-                                etaij, Hij, xij, dxij,
-                                a, b, c, d,
-                                da, db, dc, dd,
-                                dda, ddb, ddc, ddd)
-        vals[i,0] += w * fj * vj
-        # dvals[i,0] += dw * fj * vj
-    vals[i,1] = func(xi)
-    # dvals[i,1] = dfunc(xi)
+        vals[i,0] += vj * w * fj
+        dvals[i,:,0] += vj * dw * (fj - fi)
+        if needHessian:
+            ddw = evaluateRKHessian(WT, correctionOrder,
+                                    etaij, Hij, xij, dxij,
+                                    a, b, c, d,
+                                    da, db, dc, dd,
+                                    dda, ddb, ddc, ddd)
+            ddw = np.reshape(ddw, (dimension, dimension))
+            ddvals[i,:,:,0] += vj * ddw * (fj - fi)
+    vals[i,1] = fi
+    dvals[i,:,1] = dfunc(xi)
+    ddvals[i,:,:,1] = ddfunc(xi)
+
 interp_time = time.time() - interp_time
 output("interp_time")
 
 #-------------------------------------------------------------------------------
 # Optionally plot results
 #-------------------------------------------------------------------------------
-
+def plotThings(num, ana, title):
+    colors = ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00']
+    fig, ax1 = plt.subplots()
+    ax1.plot(num, label="num", color=colors[0], linestyle="-")
+    ax1.plot(ana, label="ana", color=colors[1], linestyle="--")
+    plt.legend()
+    ax2 = ax1.twinx()
+    err = np.divide(num - ana, np.mean(np.abs(ana)) + 1.e-15)
+    ax2.plot(err, label="err", color=colors[2], linestyle="-.")
+    plt.title(title)
+    plt.legend()
 if plot:
-    plt.figure()
-    plt.plot(vals[:,0])
-    plt.plot(vals[:,1])
-    plt.figure()
-    plt.plot(vals[:,0]-vals[:,1])
+    plotThings(vals[:,0], vals[:,1], "vals")
+    for d in range(dimension):
+        plotThings(dvals[:,d,0], dvals[:,d,1], "dvals{}".format(d))
+    if needHessian:
+        for d1 in range(dimension):
+            for d2 in range(dimension):
+                plotThings(ddvals[:,d1,d2,0], ddvals[:,d1,d2,1], "ddvals{}-{}".format(d1, d2))
     plt.show()
                      
 #-------------------------------------------------------------------------------
 # Check error
 #-------------------------------------------------------------------------------
-error = np.sum(np.abs(vals[:,0] - vals[:,1])) / np.sum(np.abs(vals[:,1]))
+def getError(num, ana):
+    return np.sum(np.abs(num - ana)) / (np.sum(np.abs(ana)) + 1.e-15)
+error = getError(vals[:,0], vals[:,1])
+derror = [getError(dvals[:,d,0], dvals[:,d,1]) for d in range(dimension)]
+dderror = [getError(ddvals[:,d1,d2,0], ddvals[:,d1,d2,1]) for d1 in range(dimension) for d2 in range(dimension)]
+derrormax = np.amax(derror)
 output("error")
+output("derror")
 if error > tolerance:
     raise ValueError, "error is greater than tolerance"
