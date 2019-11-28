@@ -291,7 +291,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
   const auto haveFacetedBoundaries = facetedBoundaries.size() == numNodeLists;
   const auto haveBoundaries = not boundaries.empty();
   const auto haveWeights = weight.size() == numNodeLists;
-  const auto haveDamage = false;  // damage.size() == numNodeLists;   // BLAGO
+  const auto haveDamage = false;  // damage.size() == numNodeLists;   // Suspending the idea of forcing surface based on damage
   const auto returnSurface = surfacePoint.size() == numNodeLists;
   const auto returnCells = cells.size() == numNodeLists;
 
@@ -321,77 +321,77 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       voidPlanes.appendNewField("void planes", vol[nodeListi]->nodeList(), vector<Plane>());
     }
 
-//#pragma omp parallel
+// #pragma omp parallel
+//     {
+
+//       //==========================================================================
+//       // First pass: clip by any faceted boundaries/holes.
+//       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+//         const auto ni = polycells[nodeListi]->numInternalElements();
+// #pragma omp for
+//         for (auto i = 0; i < ni; ++i) {
+
+//           // Initialize the per point polygon by scaling by its H extent
+//           const auto& ri = position(nodeListi, i);
+//           const auto& Hi = H(nodeListi, i);
+//           const auto  Hinv = Hi.Inverse();
+//           for (auto& v: polycells(nodeListi, i)) v.position = 1.1*rin*Hinv*v.position;
+
+//           // Clip by any faceted boundaries first.
+//           if (haveFacetedBoundaries) {
+//             vector<Plane> boundPlanes;
+//             const auto& facets = facetedBoundaries[nodeListi].facets();
+//             CHECK(facetedBoundaries[nodeListi].contains(ri, false));
+//             for (const auto& facet: facets) {
+//               const auto p = facet.closestPoint(ri);
+//               auto rji = p - ri;
+//               if ((Hi*rji).magnitude2() < rin*rin) {
+//                 Vector nhat;
+//                 if (rji.magnitude() < 1.0e-5*facet.area()) {
+//                   rji.Zero();
+//                   nhat = -facet.normal();
+//                 } else {
+//                   nhat = -rji.unitVector();
+//                 }
+//                 boundPlanes.push_back(Plane(rji, nhat));
+//               }
+//             }
+
+//             // Same thing with holes.
+//             for (const auto& hole: holes[nodeListi]) {
+//               CHECK(not hole.contains(ri, false));
+//               const auto& facets = hole.facets();
+//               for (const auto& facet: facets) {
+//                 const auto p = facet.closestPoint(ri);
+//                 auto rji = p - ri;
+//                 if ((Hi*rji).magnitude2() < rin*rin) {
+//                   Vector nhat;
+//                   if (rji.magnitude2() < 1.0e-5*facet.area()) {
+//                     rji.Zero();
+//                     nhat = facet.normal();
+//                   } else {
+//                     nhat = -rji.unitVector();
+//                   }
+//                   boundPlanes.push_back(Plane(rji, nhat));
+//                 }
+//               }
+//             }
+
+//             // Sort the planes by distance -- lets us clip more efficiently.
+//             std::sort(boundPlanes.begin(), boundPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
+
+//             // Clip by the planes thus far.
+// #pragma omp critical (computeVoronoiVolume_pass1)
+//             {
+//               ClippingType<Dimension>::clip(polycells(nodeListi, i), boundPlanes);
+//             }
+//           }
+//         }
+//       }
+//     }
+
+#pragma omp parallel
     {
-
-      //==========================================================================
-      // First pass: clip by any faceted boundaries/holes.
-      for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-        const auto ni = polycells[nodeListi]->numInternalElements();
-//#pragma omp for
-        for (auto i = 0; i < ni; ++i) {
-
-          // Initialize the per point polygon by scaling by its H extent
-          const auto& ri = position(nodeListi, i);
-          const auto& Hi = H(nodeListi, i);
-          const auto  Hinv = Hi.Inverse();
-//#pragma omp critical (computeVoronoiVolume_pass1)
-          {
-            for (auto& v: polycells(nodeListi, i)) v.position = 1.1*rin*Hinv*v.position;
-          }
-
-          // Clip by any faceted boundaries first.
-          if (haveFacetedBoundaries) {
-            vector<Plane> boundPlanes;
-            const auto& facets = facetedBoundaries[nodeListi].facets();
-            CHECK(facetedBoundaries[nodeListi].contains(ri, false));
-            for (const auto& facet: facets) {
-              const auto p = facet.closestPoint(ri);
-              auto rji = p - ri;
-              if ((Hi*rji).magnitude2() < rin*rin) {
-                Vector nhat;
-                if (rji.magnitude() < 1.0e-5*facet.area()) {
-                  rji.Zero();
-                  nhat = -facet.normal();
-                } else {
-                  nhat = -rji.unitVector();
-                }
-                boundPlanes.push_back(Plane(rji, nhat));
-              }
-            }
-
-            // Same thing with holes.
-            for (const auto& hole: holes[nodeListi]) {
-              CHECK(not hole.contains(ri, false));
-              const auto& facets = hole.facets();
-              for (const auto& facet: facets) {
-                const auto p = facet.closestPoint(ri);
-                auto rji = p - ri;
-                if ((Hi*rji).magnitude2() < rin*rin) {
-                  Vector nhat;
-                  if (rji.magnitude2() < 1.0e-5*facet.area()) {
-                    rji.Zero();
-                    nhat = facet.normal();
-                  } else {
-                    nhat = -rji.unitVector();
-                  }
-                  boundPlanes.push_back(Plane(rji, nhat));
-                }
-              }
-            }
-
-            // Sort the planes by distance -- lets us clip more efficiently.
-            std::sort(boundPlanes.begin(), boundPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
-
-            // Clip by the planes thus far.
-//#pragma omp critical (computeVoronoiVolume_pass1)
-            {
-              ClippingType<Dimension>::clip(polycells(nodeListi, i), boundPlanes);
-            }
-          }
-        }
-      }
-
       //==========================================================================
       // Second pass: clip by neighbor points.  Note we have to keep track of
       // which NodeLists actually clip each polygon in order to detect material
@@ -401,10 +401,13 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       int i, j, nodeListi, nodeListj;
       // cerr << " --> " << omp_get_thread_num() << " starting..." << endl;
       auto pairPlanes_thread = pairPlanes.threadCopy(ThreadReduction::SUM, true);  // force copying the original FieldList
+      // auto pairPlanes_thread(pairPlanes);
+      // pairPlanes_thread.copyFields();
+      // pairPlanes_thread.reductionType = ThreadReduction::SUM;
+      // pairPlanes_thread.threadMasterPtr = &pairPlanes;
       // cerr << " --> " << omp_get_thread_num() << " : " << pairPlanes_thread.size() << endl;
-//#pragma omp barrier
 
-//#pragma omp for
+#pragma omp for
       for (auto kk = 0; kk < npairs; ++kk) {
         i = pairs[kk].i_node;
         j = pairs[kk].j_node;
@@ -417,6 +420,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         const auto  Hinv = Hi.Inverse();
         const auto  weighti = haveWeights ? weight(nodeListi, i) : 1.0;
         auto&       pairPlanesi = pairPlanes_thread(nodeListi, i);
+        CHECK(pairPlanesi.size() == numNodeLists);
 
         // State of node j
         const auto& rj = position(nodeListj, j);
@@ -424,38 +428,43 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         const auto  Hjnv = Hj.Inverse();
         const auto  weightj = haveWeights ? weight(nodeListj, j) : 1.0;
         auto&       pairPlanesj = pairPlanes_thread(nodeListj, j);
+        CHECK(pairPlanesj.size() == numNodeLists);
 
         // Build the planes for the clipping half-spaces.
         const auto rji = rj - ri;
         const auto nhat = -rji.unitVector();
         const auto wij = weighti/(weighti + weightj);
         const auto wji = weightj/(weighti + weightj);
-        pairPlanesi[nodeListj].push_back(Plane( wij*rji,  nhat));
-        pairPlanesj[nodeListi].push_back(Plane(-wji*rji, -nhat));
+        // cerr << "(" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") : " << pairPlanesi.size() << " " << pairPlanesj.size() << endl;
+#pragma omp critical
+        {
+          pairPlanesi[nodeListj].push_back(Plane( wij*rji,  nhat));
+          pairPlanesj[nodeListi].push_back(Plane(-wji*rji, -nhat));
+        }
       }
 
       // Collect the pair planes across threads.
-//#pragma omp critical (computeVoronoiVolume_pass2)
+#pragma omp critical (computeVoronoiVolume_pass2)
       {
         pairPlanes_thread.threadReduce();
       }
+    }
 
+
+// #pragma omp parallel
+    {
       // Clip by the neighbors, and look for any locally generated void points.
       auto etaVoidPoints_thread = etaVoidPoints.threadCopy();
+      auto polycells_thread = polycells.threadCopy();
       PolyVolume celli;
-      vector<vector<Plane>> pairPlanesi;
-//#pragma omp barrier
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
         const auto ni = polycells[nodeListi]->numInternalElements();
-//#pragma omp parallel for
+// #pragma omp parallel for
         for (auto i = 0; i < ni; ++i) {
           const auto& Hi = H(nodeListi, i);
           const auto  Hinvi = Hi.Inverse();
-//#pragma omp critical (computeVoronoiVolume_pass2)
-          {
-            celli = polycells(nodeListi, i);
-            pairPlanesi = pairPlanes(nodeListi, i);
-          }
+          auto        pairPlanesi = pairPlanes(nodeListi, i);  // Deliberately make a copy
+          auto        celli = polycells(nodeListi, i);         // Also make a copy the starting global cell for this point
           if (returnSurface) {
 
             // If we're returning the surface we have to pay attention to which materials actually clip this point.
@@ -479,11 +488,8 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
             ClippingType<Dimension>::clip(celli, pairPlanesi[0]);
           }
 
-          // Store the clipped cell
-//#pragma omp critical (computeVoronoiVolume_pass2)
-          {
-            polycells(nodeListi, i) = celli;
-          }
+          // Store the clipped cell thread locally
+          polycells_thread(nodeListi, i) = celli;
 
           // Check if the final polygon is entirely within our "interior" check radius.  Otherwise,
           // time to make void points.
@@ -517,32 +523,37 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
               }
             }
           }
-        }   // end over i
+        }   // end over i OMP parallel for
       }     // end over NodeLists
 
-//#pragma omp critical
+// #pragma omp critical
       {
         etaVoidPoints_thread.threadReduce();
-      }
-
-      // Apply boundary conditions to the void points.
-//#pragma omp barrier
-//#pragma omp master
-      {
-        if (not boundaries.empty()) {
-          for (const auto bc: boundaries) bc->applyFieldListGhostBoundary(etaVoidPoints);
-          for (const auto bc: boundaries) bc->finalizeGhostBoundary();
+        for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+          const auto ni = polycells[nodeListi]->numInternalElements();
+          for (auto i = 0; i < ni; ++i) {
+            polycells(nodeListi, i) = polycells_thread(nodeListi, i);
+          }
         }
-      }
-//#pragma omp barrier
+      }     // OMP critical
+    }       // OMP parallel
 
+    // Apply boundary conditions to the void points.
+    if (not boundaries.empty()) {
+      for (const auto bc: boundaries) bc->applyFieldListGhostBoundary(etaVoidPoints);
+      for (const auto bc: boundaries) bc->finalizeGhostBoundary();
+    }
+
+// #pragma omp parallel
+    {
       //==========================================================================
       // Third pass: clip by any void points.
       // Start by adding any void clip planes from neighbors.
       // cerr << " --> " << omp_get_thread_num() << " THIRD PASS -- void clipping" << endl;
+      int i, j, nodeListi, nodeListj;
       auto voidPlanes_thread = voidPlanes.threadCopy();
-//#pragma omp barrier
-//#pragma omp for
+      auto cells_thread = cells.threadCopy();
+// #pragma omp for
       for (auto kk = 0; kk < npairs; ++kk) {
         i = pairs[kk].i_node;
         j = pairs[kk].j_node;
@@ -576,20 +587,18 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         }
       }
 
-//#pragma omp critical (computeVoronoiVolume_pass3)
+// #pragma omp critical (computeVoronoiVolume_pass3)
       {
         voidPlanes_thread.threadReduce();
       }
       // cerr << " --> " << omp_get_thread_num() << " THIRD PASS -- finished building voidPlanes" << endl;
-//#pragma omp barrier
+// #pragma omp barrier
 
       // Now we can do the void clipping, compute the final volumes, and finalize
       // surface detection.
-//#pragma omp master
-      {
       for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
         const auto n = vol[nodeListi]->numInternalElements();
-        //#pragma omp parallel for
+// #pragma omp parallel for
         for (auto i = 0; i < n; ++i) {
           const auto& ri = position(nodeListi, i);
           const auto& Hi = H(nodeListi, i);
@@ -600,13 +609,10 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           // Clip by the void planes, compute the volume, and check if the void surface had any effect.
           double vol0, vol1;
           std::sort(voidPlanesi.begin(), voidPlanesi.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
-          //#pragma omp critical (BLAGO1234)
-          {
-            ClippingType<Dimension>::moments(vol0, deltaMedian(nodeListi, i), celli);
-            ClippingType<Dimension>::clip(celli, voidPlanesi);
-            CHECK(not celli.empty());
-            ClippingType<Dimension>::moments(vol1, deltaMedian(nodeListi, i), celli);
-          }
+          ClippingType<Dimension>::moments(vol0, deltaMedian(nodeListi, i), celli);
+          ClippingType<Dimension>::clip(celli, voidPlanesi);
+          CHECK(not celli.empty());
+          ClippingType<Dimension>::moments(vol1, deltaMedian(nodeListi, i), celli);
 
           // We only use the volume result if interior.
           const bool interior = (vol1 >= vol0);
@@ -630,17 +636,25 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
 
           // If requested, we can return the cell geometries.
           if (returnCells) {
-            //#pragma omp critical (computeVoronoiVolume2d_pass3_copy2cells)
-            {
-              ClippingType<Dimension>::collapseDegenerates(celli, 1.0e-10);
-              ClippingType<Dimension>::convertFromPolyVolume(cells(nodeListi, i), celli);
-              cells(nodeListi, i) += ri;
-            }
+            ClippingType<Dimension>::collapseDegenerates(celli, 1.0e-10);
+            ClippingType<Dimension>::convertFromPolyVolume(cells_thread(nodeListi, i), celli);
+            cells_thread(nodeListi, i) += ri;
           }
         }
       }
-      }
 
+      // Reduce the final cells across threads.
+// #pragma omp critical
+      {
+        if (returnCells) {
+          for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+            const auto ni = cells[nodeListi]->numInternalElements();
+            for (auto i = 0; i < ni; ++i) {
+              cells(nodeListi, i) = cells_thread(nodeListi, i);
+            }
+          }
+        }
+      }// OMP critical
     }  // OMP parallel
   }    // numGensGlobal > 0
 

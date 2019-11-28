@@ -139,7 +139,7 @@ inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::
 operator=(const FieldList<Dimension, DataType>& rhs) {
-#pragma omp critical (FieldList_assign)
+// #pragma omp critical (FieldList_assign)
   {
     if (this != &rhs) {
       mStorageType = rhs.storageType();
@@ -314,7 +314,7 @@ inline
 void
 FieldList<Dimension, DataType>::
 assignFields(const FieldList<Dimension, DataType>& fieldList) {
-#pragma omp critical (FieldList_assignFields)
+// #pragma omp critical (FieldList_assignFields)
   {
     auto otherFieldListItr = fieldList.begin();
     for (auto fieldListItr = this->begin(); fieldListItr < this->end();
@@ -1759,7 +1759,7 @@ FieldList<Dimension, DataType>::
 threadCopy(const ThreadReduction reductionType,
            const bool copy) {
   FieldList<Dimension, DataType> result;
-#pragma omp critical (FieldList_threadCopy)
+// #pragma omp critical (FieldList_threadCopy)
   {
     if (omp_get_thread_num() == 0) {
       // Thread 0 always references the original fields
