@@ -11,6 +11,9 @@ class StateBase:
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
+    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
     typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef typename StateBase<%(Dimension)s>::KeyType KeyType;
     typedef typename StateBase<%(Dimension)s>::FieldName FieldName;
@@ -184,6 +187,9 @@ class StateBase:
     vectorField = PYB11TemplateMethod(field, "Vector")
     tensorField = PYB11TemplateMethod(field, "Tensor")
     symTensorField = PYB11TemplateMethod(field, "SymTensor")
+    thirdRankTensorField = PYB11TemplateMethod(field, "ThirdRankTensor")
+    fourthRankTensorField = PYB11TemplateMethod(field, "FourthRankTensor")
+    fifthRankTensorField = PYB11TemplateMethod(field, "FifthRankTensor")
     facetedVolumeField = PYB11TemplateMethod(field, "FacetedVolume")
     vector_of_CellFaceFlagField = PYB11TemplateMethod(field, "std::vector<CellFaceFlag>")
 
@@ -192,6 +198,9 @@ class StateBase:
     vectorFields = PYB11TemplateMethod(fields, "Vector")
     tensorFields = PYB11TemplateMethod(fields, "Tensor")
     symTensorFields = PYB11TemplateMethod(fields, "SymTensor")
+    thirdRankTensorFields = PYB11TemplateMethod(fields, "ThirdRankTensor")
+    fourthRankTensorFields = PYB11TemplateMethod(fields, "FourthRankTensor")
+    fifthRankTensorFields = PYB11TemplateMethod(fields, "FifthRankTensor")
     facetedVolumeFields = PYB11TemplateMethod(fields, "FacetedVolume")
     vector_of_CellFaceFlagFields = PYB11TemplateMethod(fields, "std::vector<CellFaceFlag>")
 
@@ -200,5 +209,8 @@ class StateBase:
     allVectorFields = PYB11TemplateMethod(allFields, "Vector")
     allTensorFields = PYB11TemplateMethod(allFields, "Tensor")
     allSymTensorFields = PYB11TemplateMethod(allFields, "SymTensor")
+    allThirdRankTensorFields = PYB11TemplateMethod(allFields, "ThirdRankTensor")
+    allFourthRankTensorFields = PYB11TemplateMethod(allFields, "FourthRankTensor")
+    allFifthRankTensorFields = PYB11TemplateMethod(allFields, "FifthRankTensor")
     allFacetedVolumeFields = PYB11TemplateMethod(allFields, "FacetedVolume")
     allVector_of_CellFaceFlagFields = PYB11TemplateMethod(allFields, "std::vector<CellFaceFlag>")

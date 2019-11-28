@@ -103,11 +103,11 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mDeltaCentroid = dataBase.newFluidFieldList(Vector::zero, "delta centroid");
   
   // Get some more data
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
-  const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
-  const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
-  const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto mass = dataBase.fluidMass();
+  const auto H = dataBase.fluidHfield();
+  const auto position = dataBase.fluidPosition();
+  const auto massDensity = dataBase.fluidMassDensity();
   FieldList<Dimension, SymTensor> damage;
   if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     damage = dataBase.solidEffectiveDamage();
@@ -176,11 +176,11 @@ registerState(DataBase<Dimension>& dataBase,
   // Stuff RKCorrections needs that might have been enrolled elsewhere
   auto position = dataBase.fluidPosition();
   auto mass = dataBase.fluidMass();
-  auto rho = dataBase.fluidMassDensity();
+  auto massDensity = dataBase.fluidMassDensity();
   auto H = dataBase.fluidHfield();
   if (not state.registered(position)) state.enroll(position);
   if (not state.registered(mass)) state.enroll(mass);
-  if (not state.registered(rho)) state.enroll(rho);
+  if (not state.registered(massDensity)) state.enroll(massDensity);
   if (not state.registered(H)) state.enroll(H);
 }
 
@@ -204,6 +204,8 @@ applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
   // Get state variables
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
+  auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   auto A = state.fields(HydroFieldNames::A_RK, 0.0);
   auto B = state.fields(HydroFieldNames::B_RK, Vector::zero);
   auto C = state.fields(HydroFieldNames::C_RK, Tensor::zero);
@@ -224,6 +226,8 @@ applyGhostBoundaries(State<Dimension>& state,
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
     (*boundaryItr)->applyFieldListGhostBoundary(vol);
+    (*boundaryItr)->applyFieldListGhostBoundary(mass);
+    (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
     (*boundaryItr)->applyFieldListGhostBoundary(A);
     (*boundaryItr)->applyFieldListGhostBoundary(B);
     (*boundaryItr)->applyFieldListGhostBoundary(C);
@@ -251,6 +255,8 @@ enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   // Get state variables
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
+  auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   auto A = state.fields(HydroFieldNames::A_RK, 0.0);
   auto B = state.fields(HydroFieldNames::B_RK, Vector::zero);
   auto C = state.fields(HydroFieldNames::C_RK, Tensor::zero);
@@ -269,6 +275,8 @@ enforceBoundaries(State<Dimension>& state,
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
     (*boundaryItr)->enforceFieldListBoundary(vol);
+    (*boundaryItr)->enforceFieldListBoundary(mass);
+    (*boundaryItr)->enforceFieldListBoundary(massDensity);
     (*boundaryItr)->enforceFieldListBoundary(A);
     (*boundaryItr)->enforceFieldListBoundary(B);
     (*boundaryItr)->enforceFieldListBoundary(C);
@@ -281,7 +289,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(hessB);
     (*boundaryItr)->enforceFieldListBoundary(hessC);
     (*boundaryItr)->enforceFieldListBoundary(hessD);
-  }    
+  } 
 }
 
 //------------------------------------------------------------------------------
@@ -383,23 +391,23 @@ initialize(const typename Dimension::Scalar time,
                        gradA, gradB, gradC, gradD,
                        hessA, hessB, hessC, hessD);
   
-  // Apply ghost boundaries to corrections
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) {
-    (*boundaryItr)->applyFieldListGhostBoundary(A);
-    (*boundaryItr)->applyFieldListGhostBoundary(B);
-    (*boundaryItr)->applyFieldListGhostBoundary(C);
-    (*boundaryItr)->applyFieldListGhostBoundary(D);
-    (*boundaryItr)->applyFieldListGhostBoundary(gradA);
-    (*boundaryItr)->applyFieldListGhostBoundary(gradB);
-    (*boundaryItr)->applyFieldListGhostBoundary(gradC);
-    (*boundaryItr)->applyFieldListGhostBoundary(gradD);
-    (*boundaryItr)->applyFieldListGhostBoundary(hessA);
-    (*boundaryItr)->applyFieldListGhostBoundary(hessB);
-    (*boundaryItr)->applyFieldListGhostBoundary(hessC);
-    (*boundaryItr)->applyFieldListGhostBoundary(hessD);
-  }
+  // // Apply ghost boundaries to corrections
+  // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //      boundaryItr != this->boundaryEnd();
+  //      ++boundaryItr) {
+  //   (*boundaryItr)->applyFieldListGhostBoundary(A);
+  //   (*boundaryItr)->applyFieldListGhostBoundary(B);
+  //   (*boundaryItr)->applyFieldListGhostBoundary(C);
+  //   (*boundaryItr)->applyFieldListGhostBoundary(D);
+  //   (*boundaryItr)->applyFieldListGhostBoundary(gradA);
+  //   (*boundaryItr)->applyFieldListGhostBoundary(gradB);
+  //   (*boundaryItr)->applyFieldListGhostBoundary(gradC);
+  //   (*boundaryItr)->applyFieldListGhostBoundary(gradD);
+  //   (*boundaryItr)->applyFieldListGhostBoundary(hessA);
+  //   (*boundaryItr)->applyFieldListGhostBoundary(hessB);
+  //   (*boundaryItr)->applyFieldListGhostBoundary(hessC);
+  //   (*boundaryItr)->applyFieldListGhostBoundary(hessD);
+  // }
 }
 
 //------------------------------------------------------------------------------
@@ -438,9 +446,9 @@ dumpState(FileIO& file, const std::string& pathName) const {
   file.write(mVolume, pathName + "/Volume");
   
   // file.write(mA, pathName + "/A");
-  // file.write(mA, pathName + "/B");
-  // file.write(mA, pathName + "/C");
-  // file.write(mA, pathName + "/D");
+  // file.write(mB, pathName + "/B");
+  // file.write(mC, pathName + "/C");
+  // file.write(mD, pathName + "/D");
   // file.write(mGradA, pathName + "/gradA");
   // file.write(mGradB, pathName + "/gradB");
   // file.write(mGradC, pathName + "/gradC");

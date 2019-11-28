@@ -473,7 +473,7 @@ addToMoment<Dim<2>, CRKOrder::LinearOrder>(const Dim<2>::Vector& g,
   // Moments
   for (auto q1 = 0; q1 < dim; ++q1) {
     m1[q1] += v*w*g[q1];
-    for (auto q2 = 0; q2 < dim; ++q2) {
+    for (auto q2 = q1; q2 < dim; ++q2) {
       m2[2*q1 + q2] += v*w*g[q1]*g[q2];
     }
   }
@@ -2619,6 +2619,25 @@ computeRKCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                      FieldList<Dimension, typename Dimension::ThirdRankTensor>& hessB,
                      FieldList<Dimension, typename Dimension::FourthRankTensor>& hessC,
                      FieldList<Dimension, typename Dimension::FifthRankTensor>& hessD) {
+  // const auto numNodeLists = A.size();
+  // for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  //   const auto numNodes = connectivityMap.numNodes(nodeListi);
+  //   for (auto nodei = 0; nodei < numNodes; ++nodei) {
+  //     std::cout << nodei << "\t";
+  //     std::cout << volume(nodeListi, nodei) << "\t";
+  //     std::cout << position(nodeListi, nodei) << "\t";
+  //     std::cout << H(nodeListi, nodei) << "\t";
+  //     std::cout << std::endl;
+  //     const auto& connectivity = connectivityMap.connectivityForNode(nodeListi, nodei);
+  //     for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
+  //       for (auto nodej : connectivity[nodeListj]) {
+  //         std::cout << "\t" << nodej << " ";
+  //       }
+  //     }
+  //     std::cout << std::endl;
+  //   }
+  // }
+  
   if (needHessian) {
     switch (correctionOrder) {
     case CRKOrder::ZerothOrder:
