@@ -17,6 +17,11 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
 
+  // Get the polynomial vectors
+  static inline std::vector<double> getPolynomials(Vector& x);
+  static inline std::vector<double> getGradPolynomials(Vector& x);
+  static inline std::vector<double> getHessPolynomials(Vector& x);
+  
   // Evaluate base functions
   static Scalar evaluateBaseKernel(const TableKernel<Dimension>& kernel,
                                    const Vector& x,
@@ -76,6 +81,15 @@ public:
                                       const std::vector<double>& y,
                                       const int offsetx,
                                       const int offsety);
+
+  // Get expected size of corrections
+  static inline int correctionsSize(const bool needHessian);
+  
+  // Get storage size of a symmetric matrix
+  static inline int symmetricMatrixSize(const int d);
+  
+  // Get flat index for a symmetric set of indices
+  static inline int flatSymmetricIndex(const int d1, const int d2);
   
   // Get starting index for coefficient array derivatives
   static inline int offsetGradC(const int d);
@@ -85,11 +99,6 @@ public:
   static inline int offsetGradP(const int d);
   static inline int offsetHessP(const int d1, const int d2);
   
-  // Get the polynomial vectors
-  static inline std::vector<double> getPolynomials(Vector& x);
-  static inline std::vector<double> getGradPolynomials(Vector& x);
-  static inline std::vector<double> getHessPolynomials(Vector& x);
-
   // The size of the polynomials and coefficients, not including derivatives
   static int polynomialSize;
 };

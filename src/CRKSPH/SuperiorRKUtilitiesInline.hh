@@ -19,6 +19,45 @@ innerProductRK(const std::vector<double>& x,
 }
 
 //------------------------------------------------------------------------------
+// Get flattened index for symmetric matrix
+//------------------------------------------------------------------------------
+template<typename Dimension, CRKOrder correctionOrder>
+inline
+int
+SuperiorRKUtilities<Dimension, correctionOrder>::
+flatSymmetricIndex(const int d1, const int d2) {
+  const auto dim = Dimension::nDim;
+  const auto k1 = std::min(d1, d2);
+  const auto k2 = std::max(d1, d2);
+  return dim * (dim - 1) / 2 - (dim - k1) * (dim - k1 - 1) / 2 + k2;
+}
+
+//------------------------------------------------------------------------------
+// Get storage size of a symmetric matrix
+//------------------------------------------------------------------------------
+template<typename Dimension, CRKOrder correctionOrder>
+inline
+int
+SuperiorRKUtilities<Dimension, correctionOrder>::
+symmetricMatrixSize(const int d) {
+  return d * (d + 1) / 2;
+}
+
+//------------------------------------------------------------------------------
+// Get expected length of corrections vector
+//------------------------------------------------------------------------------
+template<typename Dimension, CRKOrder correctionOrder>
+inline
+int
+SuperiorRKUtilities<Dimension, correctionOrder>::
+correctionsSize(bool needHessian) {
+  const auto dim = Dimension::nDim;
+  return (needHessian
+          ? polynomialSize * (1 + dim + symmetricMatrixSize(dim))
+          : polynomialSize * (1 + dim));
+}
+
+//------------------------------------------------------------------------------
 // Get offsets for coefficients and polynomials to allow inner products
 //------------------------------------------------------------------------------
 template<typename Dimension, CRKOrder correctionOrder>
@@ -35,10 +74,8 @@ int
 SuperiorRKUtilities<Dimension, correctionOrder>::
 offsetHessC(const int d1, const int d2) {
   const auto dim = Dimension::nDim;
-  const auto k1 = std::min(d1, d2);
-  const auto k2 = std::max(d1, d2);
-  const auto k = dim * (dim - 1) / 2 - (dim - k1) * (dim - k1 - 1) / 2 + k2;
-  return polynomialSize * (1 + dim + k);
+  const auto d12 = flatSymmetricIndex(d1, d2);
+  return polynomialSize * (1 + dim + d12);
 }
 
 template<typename Dimension, CRKOrder correctionOrder>
@@ -55,10 +92,8 @@ int
 SuperiorRKUtilities<Dimension, correctionOrder>::
 offsetHessP(const int d1, const int d2) {
   const auto dim = Dimension::nDim;
-  const auto k1 = std::min(d1, d2);
-  const auto k2 = std::max(d1, d2);
-  const auto k = dim * (dim - 1) / 2 - (dim - k1) * (dim - k1 - 1) / 2 + k2;
-  return polynomialSize * k;
+  const auto d12 = flatSymmetricIndex(d1, d2);
+  return polynomialSize * d12;
 }
 
 

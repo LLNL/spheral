@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------------//
 
 #include "SuperiorRKUtilities.hh"
-
+#include "Eigen/Dense"
 #include "Utilities/safeInv.hh"
 
 namespace Spheral {
@@ -96,7 +96,7 @@ evaluateGradient(const TableKernel<Dimension>& kernel,
   const auto dP = getGradPolynomials(x);
   
   // Get result
-  const auto CP = innerProductRK(p, corrections, 0, 0);
+  const auto CP = innerProductRK(corrections, p, 0, 0);
   Vector result = Vector::zero;
   for (auto d = 0; d < dimension; ++ d) {
     const auto CdP = innerProductRK(corrections, dP, 0, offsetGradP(d));
@@ -141,6 +141,221 @@ evaluateHessian(const TableKernel<Dimension>& kernel,
   return result;
 }
 
+// Compute the corrections
+template<typename Dimension, CRKOrder correctionOrder>
+void
+SuperiorRKUtilities<Dimension, correctionOrder>::
+static void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
+                               const TableKernel<Dimension>& kernel,
+                               const FieldList<Dimension, Scalar>& volume,
+                               const FieldList<Dimension, Vector>& position,
+                               const FieldList<Dimension, SymTensor>& H,
+                               const bool needHessian,
+                               FieldList<Dimension, std::vector<double>>& corrections) {
+  // Typedefs
+  typedef Eigen::Matrix<double, polynomialSize, polynomialSize> MatrixType;
+  typedef Eigen::Matrix<double, polynomialSize, 1> VectorType;
 
+  // Size info
+  const auto dim = Dimension::nDim;
+  const auto numNodeLists = volume.size();
+  const auto hessSize = symmetricMatrixSize(dim) if needHessian else 0;
+  
+  // Check things
+  REQUIRE(position.size() == numNodeLists);
+  REQUIRE(H.size() == numNodeLists);
+  REQUIRE(corrections.size() == numNodeLists);
+
+  // Add values to M for a given j
+  auto addToM = [this](const Scalar& v,
+                       const Scalar& w,
+                       const std::vector<double>& p,
+                       MatrixType& M) {
+    for (auto k = 0; k < polynomialSize; ++k) {
+      for (auto l = k; l < polynomialSize; ++l) {
+        M(k, l) += v * p[k] * p[l] * w;
+      }
+    }
+    return;
+  }
+  
+  // Add values to gradM for a given j
+  auto addTodM = [this](const Scalar& v,
+                        const Scalar& w,
+                        const Vector& dw,
+                        const std::vector<double>& p,
+                        const std::vector<double>& dp,
+                        std::vector<MatrixType>& dM) {
+    for (auto d = 0; d < dim; ++d) {
+      const auto offd = offsetGradP(d);
+      for (auto k = 0; k < polynomialSize; ++k) {
+        for (auto l = k; l < polynomialSize; ++l) {
+          dM[d](k,l) += v * ((dp[offd+k] * p[l] + p[k] * dp[offd+l]) * w + p[k] * p[l] * dw(d));
+        }
+      }
+    }
+    return;
+  }
+
+  // Add values to hessM for a given j
+  auto addToddM = [this](const Scalar& v,
+                         const Scalar& w,
+                         const Vector& dw,
+                         const SymTensor& ddw,
+                         const std::vector<double>& p,
+                         const std::vector<double>& dp,
+                         const std::vector<double>& ddp,
+                         std::vector<MatrixType>& ddM) {
+    for (auto d1 = 0; d1 < dim; ++d1) {
+      const auto offd1 = offsetGradP(d1);
+      for (auto d2 = d1; d2 < dim; ++d2) {
+        const auto offd2 = offsetGradP(d2);
+        const auto offd12 = offsetHessP(d1, d2);
+        const auto d12 = flatSymmetricIndex(d1, d2);
+        for (auto k = 0; k < polynomialSize; ++k) {
+          for (auto l = k; l < polynomialSize; ++l) {
+            ddM[d12](k,l) += v * ((ddp[offd12+k] * p[l] + dp[offd1+k] * dp[offd2+l] + dp[offd2+k] * dp[offd1+l] + p[k] * ddp[offd12+l]) * w + (dp[offd1+k] * p[l] + p[k] * dp[offd1+l]) * dw(d2) + (dp[offd2+k] * p[l] + p[k] * dp[offd2+l]) * dw(d1) + p[k] * p[l] * ddw(d1, d2));
+          }
+        }
+      }
+    }
+    return;
+  }
+
+  // Compute corrections for each point independently
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto numNodes = connectivityMap.numNodes(nodeListi);
+    for (auto nodei = 0; nodei < numNodes; ++nodei) {
+      // Get data for point i
+      const auto xi = position(nodeListi , nodei);
+      
+      // Initialize polynomial matrices for point i
+      MatrixType M;
+      M.zero();
+      std::vector<MatrixType> gradM(dim, M);
+      std::vector<MatrixType> hessM(hessSize, M);
+      
+      // Create matrices
+      const auto& connectivity = connectivityMap.connectivityForNode(nodeListi, nodei);
+      for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
+        for (auto nodej : connectivity[nodeListj]) {
+          // Get data for point j
+          const auto xj = position(nodeListj, nodej);
+          const auto xij = xi - xj;
+          const auto Hj = H(nodeListj, nodej);
+          const auto vj = volume(nodeListj, nodej);
+          
+          // Get kernel values
+          const auto w = evaluateBaseKernel(kernel, xij, Hj);
+          const auto dw = evaluateBaseGradient(kernel, xij, Hj);
+          
+          // Get polynomials
+          const auto p = getPolynomials(xij);
+          const auto dp = getGradPolynomials(xij);
+
+          // Add to M, dM, ddM
+          addToM(v, w, p, M);
+          addTodM(v, w, dw, p, dp, dM);
+          if (needHessian) {
+            const auto ddw = evaluateBaseHessian(kernel, xij, Hj);
+            const auto ddp = getHessPolynomials(xij);
+            addToddM(v, w, dw, ddw, p, dp, ddp, ddM);
+          }
+        } // nodej
+      } // nodeListj
+
+      // M symmetries
+      for (auto k = 0; k < polynomialSize; ++k) {
+        for (auto l = 0; l < k; ++l) {
+          M(k, l) = M(l, k);
+        }
+      }
+
+      // dM symmetries
+      for (auto d = 0; d < dim; ++d) {
+        for (auto k = 0; k < polynomialSize; ++k) {
+          for (auto l = 0; l < k; ++l) {
+            dM[d](k, l) = dM[d](l, k);
+          }
+        }
+      }
+
+      // ddM symmetries
+      if (needHessian) {
+        for (auto d1 = 0; d1 < dim; ++d1) {
+          for (auto d2 = 0; d2 < dim; ++d2) {
+            const auto d12 = flatSymmetricIndex(d1, d2);
+            for (auto k = 0; k < polynomialSize; ++k) {
+              for (auto l = 0; l < k; ++l) {
+                ddM[d12](k,l) = ddM[d12](l,k);
+              }
+            }
+          }
+        }
+      }
+
+      // Get inverse of M matrix
+      auto solver = M.colPivHouseholderQr();
+      
+      // Compute corrections
+      VectorType rhs;
+      rhs(0) = 1;
+      for (auto k = 1; k < polynomialSize; ++k) {
+        rhs(k) = 0;
+      }
+      VectorType C = solver.solve(rhs);
+
+      // Compute gradient corrections
+      std::vector<VectorType> dc(dim);
+      for (auto d = 0; d < dimension; ++d) {
+        rhs = -(dM[d] * C);
+        dC[d] = solver.solve(rhs);
+      }
+
+      // Compute hessian corrections
+      std::vector<VectorType> ddC(hessSize);
+      if (needHessian) {
+        for (auto d1 = 0; d1 < dimension; ++d1) {
+          for (auto d2 = 1; d2 < dimension; ++d2) {
+            const auto d12 = flatSymmetricIndex(d1, d2);
+            rhs = -(ddM[d12] * C + dM[d1] * dC[d2] + dM[d2] * dC[d1]);
+            ddC[d12] = solver.solve(rhs);
+          }
+        }
+      }
+
+      // Initialize corrections vector
+      const auto corrSize = correctionsSize(needHessian);
+      auto& corr = corrections(nodeListi, nodei);
+      corr.resize(corrSize);
+      
+      // Put corrections into vector
+      for (auto k = 0; k < polynomialSize; ++k) {
+        corr[k] = C(k);
+      }
+
+      // Put gradient corrections into vector
+      for (auto d = 0; d < dim; ++d) {
+        const auto offd = offsetGradC(d);
+        for (auto k = 0; k < polynomialSize; ++k) {
+          corr[offd+k] = dC[d](k);
+        }
+      }
+
+      // Put hessian corrections into vector
+      if (needHessian) {
+        for (auto d1 = 0; d1 < dim; ++d1) {
+          for (auto d2 = d1; d2 < dim; ++d2) {
+            const auto d12 = flatSymmetricIndex(d1, d2);
+            const auto offd12 = offsetHessC(d1, d2);
+            for (auto k = 0; k < polynomialSize; ++k) {
+              corr[offd12+k] = ddC[d12](k);
+            }
+          }
+        }
+      }
+    } // nodei
+  } // nodeListi
+} // computeCorrections
 
 } // end namespace Spheral
