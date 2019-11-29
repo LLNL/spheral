@@ -139,7 +139,7 @@ inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::
 operator=(const FieldList<Dimension, DataType>& rhs) {
-// #pragma omp critical (FieldList_assign)
+#pragma omp critical (FieldList_assign)
   {
     if (this != &rhs) {
       mStorageType = rhs.storageType();
@@ -314,7 +314,7 @@ inline
 void
 FieldList<Dimension, DataType>::
 assignFields(const FieldList<Dimension, DataType>& fieldList) {
-// #pragma omp critical (FieldList_assignFields)
+#pragma omp critical (FieldList_assignFields)
   {
     auto otherFieldListItr = fieldList.begin();
     for (auto fieldListItr = this->begin(); fieldListItr < this->end();
@@ -1759,19 +1759,22 @@ FieldList<Dimension, DataType>::
 threadCopy(const ThreadReduction reductionType,
            const bool copy) {
   FieldList<Dimension, DataType> result;
-// #pragma omp critical (FieldList_threadCopy)
+#pragma omp critical (FieldList_threadCopy)
   {
-    if (omp_get_thread_num() == 0) {
-      // Thread 0 always references the original fields
+    if (omp_get_num_threads() == 1) {
+
+      // In serial we can skip all the work copying
       result.referenceFields(*this);
 
     } else if (copy or
                reductionType == ThreadReduction::MIN or
                reductionType == ThreadReduction::MAX) {
+
       // For min/max operations, we need to copy the original data
       result.copyFields(*this);
 
     } else {    
+
       // Otherwise make standalone Fields of zeros
       result = FieldList<Dimension, DataType>(FieldStorageType::CopyFields);
       for (auto fitr = this->begin(); fitr < this->end(); ++fitr) result.appendNewField((*fitr)->name(),
@@ -1806,7 +1809,7 @@ FieldList<Dimension, DataType>::
 threadReduce() const {
   REQUIRE(threadMasterPtr != NULL);
   REQUIRE(threadMasterPtr->size() == this->size());
-  if (omp_get_thread_num() > 0) {
+  if (omp_get_num_threads() > 1) {
     const auto numNL = this->size();
     for (auto k = 0; k < numNL; ++k) {
       const auto n = mFieldPtrs[k]->numInternalElements();

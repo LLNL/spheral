@@ -435,12 +435,8 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         const auto nhat = -rji.unitVector();
         const auto wij = weighti/(weighti + weightj);
         const auto wji = weightj/(weighti + weightj);
-        // cerr << "(" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") : " << pairPlanesi.size() << " " << pairPlanesj.size() << endl;
-#pragma omp critical
-        {
-          pairPlanesi[nodeListj].push_back(Plane( wij*rji,  nhat));
-          pairPlanesj[nodeListi].push_back(Plane(-wji*rji, -nhat));
-        }
+        pairPlanesi[nodeListj].push_back(Plane( wij*rji,  nhat));
+        pairPlanesj[nodeListi].push_back(Plane(-wji*rji, -nhat));
       }
 
       // Collect the pair planes across threads.
