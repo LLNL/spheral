@@ -7,15 +7,22 @@
 #ifndef __Spheral_planarReflectingOperator__
 #define __Spheral_planarReflectingOperator__
 
+#include "Geometry/GeomPlane.hh"
+
 namespace Spheral {
 
-template<typename Plane>
+template<typename Dimension>
 inline
-typename Plane::Tensor
-planarReflectingOperator(const Plane& plane) {
-  typedef typename Plane::Vector Vector;
-  typedef typename Plane::Tensor Tensor;
-  return Tensor::one - 2.0*plane.normal().selfdyad();
+typename Dimension::Tensor
+planarReflectingOperator(const typename Dimension::Vector& nhat) {
+  return Dimension::Tensor::one - 2.0*nhat.selfdyad();
+}
+
+template<typename Dimension>
+inline
+typename Dimension::Tensor
+planarReflectingOperator(const GeomPlane<Dimension>& plane) {
+  return planarReflectingOperator<Dimension>(plane.normal());
 }
 
 }
