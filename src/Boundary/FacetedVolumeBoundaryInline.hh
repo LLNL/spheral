@@ -18,7 +18,7 @@ inline
 const typename Dimension::Tensor&
 FacetedVolumeBoundary<Dimension>::reflectOperator(const unsigned facetID) const {
   REQUIRE(facetID < mReflectOperators.size());
-  return mReflectOperator[facetID];
+  return mReflectOperators[facetID];
 }
 
 }

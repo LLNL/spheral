@@ -55,11 +55,11 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Find any internal nodes that are in violation of this Boundary.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList) const override;
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
 
   // For the computed set of nodes in violation of the boundary, bring them
   // back into compliance (for the positions and H's.)
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) const override;
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the violation node values in the given Field.
   virtual void enforceBoundary(Field<Dimension, int>& field) const override;
@@ -71,6 +71,9 @@ public:
   virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
+
+  // Overridable hook for clearing out the boundary condition.
+  virtual void reset(const DataBase<Dimension>& dataBase) override;
 
   // Read access to internal data
   const FacetedVolume& polyVolume() const;

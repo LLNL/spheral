@@ -52,7 +52,7 @@ facetPlane(const GeomFacet3d& facet, const bool interiorBoundary) {
 //------------------------------------------------------------------------------
 std::vector<int>
 nodesTouchingFacet(const NodeList<Dim<2>>& nodes,
-                   const Facet2d& facet,
+                   const GeomFacet2d& facet,
                    const bool interiorBoundary) {
   const auto& p1 = facet.point1();
   const auto& p2 = facet.point2();
@@ -60,10 +60,10 @@ nodesTouchingFacet(const NodeList<Dim<2>>& nodes,
   const auto  smax = (p2 - p1).magnitude();
   const auto  plane = facetPlane(facet, interiorBoundary);
   const auto potentials = findNodesTouchingThroughPlanes(nodes, plane, plane);
-  std::vector<result> result;
+  std::vector<int> result;
   const auto& pos = nodes.positions();
   for (const auto i: potentials) {
-    const auto s = (pos(i) - p0).dot(phat);
+    const auto s = (pos(i) - p1).dot(phat);
     if (s >= 0.0 and s <= smax) result.push_back(i);
   }
   return result;
@@ -74,9 +74,9 @@ nodesTouchingFacet(const NodeList<Dim<2>>& nodes,
 //------------------------------------------------------------------------------
 std::vector<int>
 nodesTouchingFacet(const NodeList<Dim<3>>& nodes,
-                   const Facet3d& facet,
+                   const GeomFacet3d& facet,
                    const bool interiorBoundary) {
-  std::vector<result> result;
+  std::vector<int> result;
   return result;
 }
 
@@ -90,16 +90,19 @@ FacetedVolumeBoundary<Dimension>::FacetedVolumeBoundary(const FacetedVolume& pol
                                                         const bool interiorBoundary,
                                                         const bool useGhosts):
   Boundary<Dimension>(),
+  mPoly(poly),
   mInteriorBoundary(interiorBoundary),
   mUseGhosts(useGhosts),
-  mReflectOperators() {
+  mReflectOperators(),
+  mFacetControlNodes(),
+  mFacetGhostNodes() {
 
   // Build the reflection operators for each facet of the poly.
   const auto& facets = poly.facets();
   for (const auto& facet: facets) {
     mReflectOperators.push_back(interiorBoundary ?
-                                planarReflectingOperator(facet.normal()) :
-                                planarReflectingOperator(-facet.normal()));
+                                planarReflectingOperator<Dimension>(facet.normal()) :
+                                planarReflectingOperator<Dimension>(-facet.normal()));
   }
   ENSURE(mReflectOperators.size() == facets.size());
 
@@ -129,7 +132,7 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
       mFacetControlNodes[name].push_back(nodesTouchingFacet(nodeList, facet, mInteriorBoundary));
       boundaryNodes.controlNodes.insert(boundaryNodes.controlNodes.end(),
                                         mFacetControlNodes[name].back().begin(),
-                                        mFacetControlNOdes[name].back().end());
+                                        mFacetControlNodes[name].back().end());
     }
     CHECK(mFacetControlNodes[name].size() == facets.size());
 
@@ -139,7 +142,7 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
     boundaryNodes.ghostNodes.resize(boundaryNodes.controlNodes.size());
     mFacetGhostNodes[name].clear();
     for (const auto& controls: mFacetControlNodes[name]) {
-      mFacetGhostNodes.push_back(std::make_pair(firstGhost, firstGhost + controls.size()));
+      mFacetGhostNodes[name].push_back(std::make_pair(firstGhost, firstGhost + controls.size()));
       firstGhost += controls.size();
     }
     CHECK(mFacetGhostNodes[name].size() == facets.size());
@@ -150,43 +153,35 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
 }
 
 //------------------------------------------------------------------------------
-// Internal method to set the minimal field values necessary to make the 
-// ghost nodes valid.
+// Set the minimal field values necessary to make the ghost nodes valid.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList) {
 
-  // Walk each of the facets
-  const auto& facets = mPoly.facets();
-  const auto  nfacets = facets.size();
   const auto  name = nodeList.name();
   const auto& controls = mFacetControlNodes[name];
   const auto& ghostRanges = mFacetGhostNodes[name];
+  const auto& facets = mPoly.facets();
+  const auto  nfacets = facets.size();
+  auto&       pos = nodeList.positions();
+  auto&       H = nodeList.Hfield();
   CHECK(controls.size() == nfacets);
   CHECK(ghostRanges.size() == nfacets);
-  auto&       pos = nodeList.positions();
-  for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
-    const auto n = controls[ifacet].size();
-    CHECK(ghostRanges[ifacet].second - ghostRanges[ifacet].first == n);
 
+  // Walk each of the facets
+  for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
+    const auto  n = controls[ifacet].size();
+    const auto  plane = facetPlane(facets[ifacet], mInteriorBoundary);
+    const auto& R = mReflectOperators[ifacet];
+    CHECK(ghostRanges[ifacet].second - ghostRanges[ifacet].first == n);
     for (auto k = 0; k < n; ++k) {
       const auto i = controls[ifacet][k];
       const auto j = ghostRanges[ifacet].first + k;
-      
-
-      pos(j) = mapPosition(pos(i),
-                                       mExitPlane,
-                                       mEnterPlane);
-    // CHECK(positions(*ghostItr) <= mEnterPlane);
+      pos(j) = mapPositionThroughPlanes(pos(i), plane, plane);
+      H(j) = (R*H(i)*R).Symmetric();
+    }
   }
-
-  // Set the Hfield.
-  Field<Dimension, SymTensor>& Hfield = nodeList.Hfield();
-  this->applyGhostBoundary(Hfield);
-
-  // // Update the neighbor information.
-  // nodeList.neighbor().updateNodes(); // (ghostNodes);
 }
 
 //------------------------------------------------------------------------------
@@ -321,5 +316,27 @@ void
 FacetedVolumeBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
 }
+
+//------------------------------------------------------------------------------
+// Clear out any NodeList information that is currently present.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+FacetedVolumeBoundary<Dimension>::reset(const DataBase<Dimension>& dataBase) {
+  Boundary<Dimension>::reset(dataBase);
+  mFacetControlNodes.clear();
+  mFacetGhostNodes.clear();
+}
+
+//------------------------------------------------------------------------------
+// Explicit instantiation.
+//------------------------------------------------------------------------------
+#ifdef SPHERAL2D
+template class FacetedVolumeBoundary<Dim<2>>;
+#endif
+
+#ifdef SPHERAL3D
+template class FacetedVolumeBoundary<Dim<3>>;
+#endif
 
 }
