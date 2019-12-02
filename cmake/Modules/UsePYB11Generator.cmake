@@ -61,17 +61,53 @@ macro(PYB11_GENERATE_BINDINGS)
   set(PYB11_GENERATED_SOURCE)
   list(APPEND PYB11_SOURCE "${PYB11_MODULE_NAME}MOD.py")
   list(APPEND PYB11_GENERATED_SOURCE "${PYB11_MODULE_NAME}.cc")
+
+  set(PYTHON_ENV 
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/polytope:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Distributed:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/OpenMP:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/CXXTypes:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Geometry:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/PolyClipper:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Silo:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/DataOutput:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/NodeList:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Field:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Kernel:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Neighbor:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Material:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/FileIO:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/DataBase:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Boundary:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Physics:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Hydro:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/ExternalForce:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Gravity:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Integrator:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Utilities:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/NodeGenerators:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/FieldOperations:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/SPH:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/CRKSPH:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/ArtificialViscosity:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/SVPH:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Mesh:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Damage:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/SolidMaterial:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Strength:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/ArtificialConduction:"
+    "${PROJECT_SOURCE_DIR}/src/SimulationControl:"
+    )
+  STRING(REPLACE ";" "<->" PYTHON_ENV_STR ${PYTHON_ENV})
+
   add_custom_command(
     OUTPUT ${PYB11_GENERATED_SOURCE} ${PYB11_GENERATED_HEADER}
-    COMMAND ${PYTHON_EXECUTABLE} -c 
+    COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
+    ${PYTHON_EXECUTABLE} -c
     'from PYB11Generator import * \; 
-    import sys \; 
-    sys.path.append(\"${PYB11_DIR}\") \; 
-    sys.path.append(\"${PYB11_DIR}/Physics\") \; 
-    sys.path.append(\"${SPHERAL_SOURCE_DIR}/SimulationControl\") \;
-    sys.path.append(\"${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/${PYB11_MODULE_NAME}\") \;
-    import ${PYB11_MODULE_NAME}MOD \; 
-    PYB11generateModule(${PYB11_MODULE_NAME}MOD, \"${PYB11_MODULE_NAME}\") '
+    import ${PYB11_MODULE_NAME}MOD \;
+    PYB11generateModule(${PYB11_MODULE_NAME}MOD, \"${PYB11_MODULE_NAME}\")'
     DEPENDS ${PYB11_SOURCE}
     )
 endmacro()
