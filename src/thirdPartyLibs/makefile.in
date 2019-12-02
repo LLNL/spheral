@@ -389,7 +389,7 @@ cache/$(MPI4PYDIST):
 	@$(MKDIR) cache
 	$(WGET) "$(MPI4PYURL)" -O cache/$(MPI4PYDIST)
 
-$(MPI4PYBUILDDATE):	$(PYTHONTARGET) cache/$(MPI4PYDIST) .numpy_pip_install.date $(NUMPYBUILDDATE)
+$(MPI4PYBUILDDATE):	$(PYTHONTARGET) cache/$(MPI4PYDIST) .numpy_pip_install.date $(NUMPYBUILDDATE) $(PIPTARGETS)
 	@echo "################################################################################"
 	@echo "# Building $(MPI4PYDIST)"
 	@echo "################################################################################"
