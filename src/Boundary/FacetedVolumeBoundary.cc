@@ -15,6 +15,8 @@
 #include "FacetedVolumeBoundary.hh"
 
 using std::vector;
+using std::pair;
+using std::make_pair;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -48,6 +50,27 @@ facetPlane(const GeomFacet3d& facet, const bool interiorBoundary) {
                        facet.normal() :
                       -facet.normal());
   return GeomPlane<Dim<3>>(p1, nhat);
+}
+
+//------------------------------------------------------------------------------
+// Construct the subvolume associated with a Facet
+//------------------------------------------------------------------------------
+// 2D
+Dim<2>::FacetedVolume
+facetSubVolume(const GeomFacet2d& facet, const Dim<2>::Vector& centroid) {
+  std::vector<Dim<2>::Vector> points = {facet.point1(), facet.point2(), centroid };
+  return Dim<2>::FacetedVolume(points);
+}
+
+//..............................................................................
+// 3D
+Dim<3>::FacetedVolume
+facetSubVolume(const GeomFacet3d& facet, const Dim<3>::Vector& centroid) {
+  std::vector<Dim<3>::Vector> points = {centroid};
+  const auto& ipoints = facet.ipoints();
+  const auto  n = ipoints.size();
+  for (auto i = 0; i < n; ++i) points.push_back(facet.point(i));
+  return Dim<3>::FacetedVolume(points);
 }
 
 //------------------------------------------------------------------------------
@@ -277,34 +300,57 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
   if (mUseGhosts) {
-
-    // Remember which node list we are setting the ghost nodes for.
-    const auto name = nodeList.name();
+    const auto& facets = mPoly.facets();
+    const auto  nfacets = facets.size();
+    const auto  name = nodeList.name();
     this->addNodeList(nodeList);
     auto& boundaryNodes = this->accessBoundaryNodes(nodeList);
-    mFacetControlNodes[nodeList.name()].clear();
-    const auto& facets = mPoly.facets();
-    for (const auto& facet: facets) {
-      mFacetControlNodes[name].push_back(nodesTouchingFacet(nodeList, facet, mInteriorBoundary));
+    const auto  centroid = mPoly.centroid();
+    auto&       pos = nodeList.positions();
+    auto&       H = nodeList.Hfield();
+
+    // Allocate storage for controls and ghosts
+    mFacetControlNodes[name] = vector<vector<int>>(nfacets);
+    mFacetGhostNodes[name] = vector<pair<int,int>>(nfacets);
+    auto& controls = mFacetControlNodes[name];
+    auto& ghostRanges = mFacetGhostNodes[name];
+
+    // Build the control points.
+    auto firstGhost = nodeList.numNodes();
+    vector<Vector> posGhost;
+    vector<SymTensor> Hghost;
+    for (auto k = 0; k < nfacets; ++k) {
+      const auto& facet = facets[k];
+      const auto  facetPoly = facetSubVolume(facet, centroid);
+      const auto  plane = facetPlane(facets[k], mInteriorBoundary);
+      const auto& R = mReflectOperators[k];
+      ghostRanges[k].first = firstGhost;
+      const auto  potentials = nodesTouchingFacet(nodeList, facet, mInteriorBoundary);
+      for (const auto i: potentials) {
+        const auto posj = mapPositionThroughPlanes(pos(i), plane, plane);
+        if (facetPoly.convexContains(posj, false)) {
+          controls[k].push_back(i);
+          firstGhost += 1;
+          posGhost.push_back(posj);
+          Hghost.push_back((R*H(i)*R).Symmetric());
+        }
+      }
+      ghostRanges[k].second = firstGhost;
+      CHECK(posGhost.size() == Hghost.size() == (firstGhost - ghostRanges[k].first));
       boundaryNodes.controlNodes.insert(boundaryNodes.controlNodes.end(),
-                                        mFacetControlNodes[name].back().begin(),
-                                        mFacetControlNodes[name].back().end());
+                                        controls[k].begin(),
+                                        controls[k].end());
     }
     CHECK(mFacetControlNodes[name].size() == facets.size());
-
-    // Allocate the ghost nodes
-    auto firstGhost = nodeList.numNodes();
-    nodeList.numGhostNodes(nodeList.numGhostNodes() + boundaryNodes.controlNodes.size());
-    boundaryNodes.ghostNodes.resize(boundaryNodes.controlNodes.size());
-    mFacetGhostNodes[name].clear();
-    for (const auto& controls: mFacetControlNodes[name]) {
-      mFacetGhostNodes[name].push_back(std::make_pair(firstGhost, firstGhost + controls.size()));
-      firstGhost += controls.size();
-    }
     CHECK(mFacetGhostNodes[name].size() == facets.size());
+    CHECK(posGhost.size() == Hghost.size() == boundaryNodes.controlNodes.size())
 
-    // Assign the positions and H's to the new ghost nodes.
-    updateGhostNodes(nodeList);
+    // Update the ghost node info.
+    const auto numNewGhosts = posGhost.size();
+    firstGhost = nodeList.numNodes();
+    nodeList.numGhostNodes(nodeList.numGhostNodes() + numNewGhosts);
+    std::copy(posGhost.begin(), posGhost.end(), &(pos[firstGhost]));
+    std::copy(Hghost.begin(), Hghost.end(), &(H[firstGhost]));
   }
 }
 
