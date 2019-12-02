@@ -1,4 +1,4 @@
-set(PYB11_MODULE_NAME Geometry)
+set(PYB11_MODULE_NAME NodeList)
 
 # Include directrory to source file destination
 include_directories("${PROJECT_SOURCE_DIR}/src/${PYB11_MODULE_NAME}")
@@ -13,7 +13,7 @@ include_directories("${PROJECT_SOURCE_DIR}/src/thirdPartyLibs/pybind11/include")
 #set(STATIC_MODULE_NAME ${PYB11_MODULE_NAME}static)
 #add_library(${STATIC_MODULE_NAME} my_src.cc)
 set(MODULE_SHARED_LIB 
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_${PYB11_MODULE_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}"
+  "${PROJECT_BINARY_DIR}/lib/libSpheral_Geometry${CMAKE_SHARED_LIBRARY_SUFFIX}"
   "${PROJECT_BINARY_DIR}/lib/libSpheral_NodeList${CMAKE_SHARED_LIBRARY_SUFFIX}"
   "${PROJECT_BINARY_DIR}/lib/libSpheral_Field${CMAKE_SHARED_LIBRARY_SUFFIX}"
   "${PROJECT_BINARY_DIR}/lib/libSpheral_FieldOperations${CMAKE_SHARED_LIBRARY_SUFFIX}"

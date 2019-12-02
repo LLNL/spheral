@@ -8,6 +8,8 @@ set(NodeList_inst
     SmoothingScaleBase
     SolidNodeList
     generateVoidNodes
+    FixedSmoothingScale
+    nthNodalMoment
    )
 
 set(NodeList_sources )
