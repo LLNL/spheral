@@ -29,6 +29,7 @@ namespace {
 //------------------------------------------------------------------------------
 // Construct the plane associated with a Facet
 //------------------------------------------------------------------------------
+// 2D
 GeomPlane<Dim<2>>
 facetPlane(const GeomFacet2d& facet, const bool interiorBoundary) {
   const auto& p1 = facet.point1();
@@ -38,6 +39,8 @@ facetPlane(const GeomFacet2d& facet, const bool interiorBoundary) {
   return GeomPlane<Dim<2>>(p1, nhat);
 }
 
+//..............................................................................
+// 3D
 GeomPlane<Dim<3>>
 facetPlane(const GeomFacet3d& facet, const bool interiorBoundary) {
   const auto& p1 = facet.point(0);
@@ -48,8 +51,9 @@ facetPlane(const GeomFacet3d& facet, const bool interiorBoundary) {
 }
 
 //------------------------------------------------------------------------------
-// Find the node touching a given facet (Polygon)
+// Find the node touching a given facet
 //------------------------------------------------------------------------------
+// Polygon
 std::vector<int>
 nodesTouchingFacet(const NodeList<Dim<2>>& nodes,
                    const GeomFacet2d& facet,
@@ -69,15 +73,166 @@ nodesTouchingFacet(const NodeList<Dim<2>>& nodes,
   return result;
 }
 
-//------------------------------------------------------------------------------
-// Find the node touching a given facet (Polyhedron)
-//------------------------------------------------------------------------------
+//..............................................................................
+// Polyhedron
 std::vector<int>
 nodesTouchingFacet(const NodeList<Dim<3>>& nodes,
                    const GeomFacet3d& facet,
                    const bool interiorBoundary) {
   std::vector<int> result;
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Copy control->ghost values
+//------------------------------------------------------------------------------
+template<typename Dimension, typename Value>
+void
+copyControlValues(Field<Dimension, Value>& field,
+                  const std::vector<int>& controls,
+                  const std::vector<int>& ghosts) {
+  REQUIRE(controls.size() == ghosts.size());
+  auto controlItr = controls.begin();
+  auto ghostItr = ghosts.begin();
+  for (; controlItr < controls.end(); ++controlItr, ++ghostItr) {
+    field(*ghostItr) = field(*controlItr);
+  }
+}
+
+//------------------------------------------------------------------------------
+// The per value type method of mapping values
+//------------------------------------------------------------------------------
+// Vector
+template<typename Dimension>
+void
+mapValue(typename Dimension::Vector& ghost,
+         const typename Dimension::Vector& control,
+         const typename Dimension::Tensor& R) {
+  ghost = R*control;
+}
+
+// Tensor
+template<typename Dimension>
+void
+mapValue(typename Dimension::Tensor& ghost,
+         const typename Dimension::Tensor& control,
+         const typename Dimension::Tensor& R) {
+  ghost = R*control*R;
+}
+
+// SymTensor
+template<typename Dimension>
+void
+mapValue(typename Dimension::SymTensor& ghost,
+         const typename Dimension::SymTensor& control,
+         const typename Dimension::Tensor& R) {
+  ghost = (R*control*R).Symmetric();
+}
+
+// ThirdRankTensor
+template<typename Dimension>
+void
+mapValue(typename Dimension::ThirdRankTensor& ghost,
+         const typename Dimension::ThirdRankTensor& control,
+         const typename Dimension::Tensor& R) {
+  ghost.Zero();
+  for (unsigned i = 0; i != Dimension::nDim; ++i) {
+    for (unsigned j = 0; j != Dimension::nDim; ++j) {
+      for (unsigned k = 0; k != Dimension::nDim; ++k) {
+        for (unsigned q = 0; q != Dimension::nDim; ++q) {
+          for (unsigned r = 0; r != Dimension::nDim; ++r) {
+            for (unsigned s = 0; s != Dimension::nDim; ++s) {
+              ghost(i,j,k) += R(i,q)*R(j,r)*R(k,s)*control(q,r,s);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// FourthRankTensor
+template<typename Dimension>
+void
+mapValue(typename Dimension::FourthRankTensor& ghost,
+         const typename Dimension::FourthRankTensor& control,
+         const typename Dimension::Tensor& R) {
+  ghost.Zero();
+  for (unsigned i = 0; i != Dimension::nDim; ++i) {
+    for (unsigned j = 0; j != Dimension::nDim; ++j) {
+      for (unsigned k = 0; k != Dimension::nDim; ++k) {
+        for (unsigned l = 0; l != Dimension::nDim; ++l) {
+          for (unsigned q = 0; q != Dimension::nDim; ++q) {
+            for (unsigned r = 0; r != Dimension::nDim; ++r) {
+              for (unsigned s = 0; s != Dimension::nDim; ++s) {
+                for (unsigned t = 0; t != Dimension::nDim; ++t) {
+                  ghost(i,j,k,l) += R(i,q)*R(j,r)*R(k,s)*R(l,t)*control(q,r,s,t);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// FifthRankTensor
+template<typename Dimension>
+void
+mapValue(typename Dimension::FifthRankTensor& ghost,
+         const typename Dimension::FifthRankTensor& control,
+         const typename Dimension::Tensor& R) {
+  ghost.Zero();
+  for (unsigned i = 0; i != Dimension::nDim; ++i) {
+    for (unsigned j = 0; j != Dimension::nDim; ++j) {
+      for (unsigned k = 0; k != Dimension::nDim; ++k) {
+        for (unsigned l = 0; l != Dimension::nDim; ++l) {
+          for (unsigned m = 0; m != Dimension::nDim; ++m) {
+            for (unsigned q = 0; q != Dimension::nDim; ++q) {
+              for (unsigned r = 0; r != Dimension::nDim; ++r) {
+                for (unsigned s = 0; s != Dimension::nDim; ++s) {
+                  for (unsigned t = 0; t != Dimension::nDim; ++t) {
+                    for (unsigned u = 0; u != Dimension::nDim; ++u) {
+                      ghost(i,j,k,l,u) += R(i,q)*R(j,r)*R(k,s)*R(l,t)*R(m,u)*control(q,r,s,t,u);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+// Map control->ghost values, depending on the Value type
+//------------------------------------------------------------------------------
+template<typename Dimension, typename Value>
+void
+mapControlValues(Field<Dimension, Value>& field,
+                 const std::vector<typename Dimension::Tensor>& reflectOperators,
+                 const std::map<std::string, std::vector<std::vector<int>>>& facetControlNodes,
+                 const std::map<std::string, std::vector<std::pair<int,int>>>& facetGhostNodes) {
+  const auto& name = field.nodeList().name();
+  const auto& controlNodes = facetControlNodes.find(name)->second;
+  const auto& ghostNodeRanges = facetGhostNodes.find(name)->second;
+  const auto  nfacets = reflectOperators.size();
+  REQUIRE(controlNodes.size() == nfacets);
+  REQUIRE(ghostNodeRanges.size() == nfacets);
+  for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
+    const auto& R = reflectOperators[ifacet];
+    const auto& controls = controlNodes[ifacet];
+    auto        ghostID = ghostNodeRanges[ifacet].first;
+    CHECK(ghostNodeRanges[ifacet].second - ghostID == controls.size());
+    for (const auto i: controls) {
+      mapValue<Dimension>(field(ghostID), field(i), R);
+      ++ghostID;
+    }
+    CHECK(ghostID == ghostNodeRanges[ifacet].second);
+  }
 }
 
 }
@@ -122,6 +277,7 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
   if (mUseGhosts) {
+
     // Remember which node list we are setting the ghost nodes for.
     const auto name = nodeList.name();
     this->addNodeList(nodeList);
@@ -136,7 +292,7 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
     }
     CHECK(mFacetControlNodes[name].size() == facets.size());
 
-    // Create the ghost nodes
+    // Allocate the ghost nodes
     auto firstGhost = nodeList.numNodes();
     nodeList.numGhostNodes(nodeList.numGhostNodes() + boundaryNodes.controlNodes.size());
     boundaryNodes.ghostNodes.resize(boundaryNodes.controlNodes.size());
@@ -192,6 +348,8 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, int>& field) const {
+  const auto& nodeList = field.nodeList();
+  copyControlValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
 }
 
 // Specialization for scalar fields, just perform a copy.
@@ -199,6 +357,8 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
+  const auto& nodeList = field.nodeList();
+  copyControlValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
 }
 
 // Specialization for Vector fields.
@@ -206,13 +366,14 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-}
+  mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);}
 
 // Specialization for Tensor fields.
 template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
+  mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
 }
 
 // Specialization for symmetric tensors.
@@ -220,6 +381,7 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
+  mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
 }
 
 // Specialization for ThirdRankTensor fields.
@@ -227,6 +389,7 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+  mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
 }
 
 // Specialization for FourthRankTensor fields.
@@ -234,6 +397,7 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
 }
 
 // Specialization for FifthRankTensor fields.
@@ -241,6 +405,7 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
 }
 
 // Specialization for FacetedVolumes
@@ -248,6 +413,8 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+  const auto& nodeList = field.nodeList();
+  copyControlValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));   // Punt for FacetedVolumes and just copy them for now
 }
 
 //------------------------------------------------------------------------------
