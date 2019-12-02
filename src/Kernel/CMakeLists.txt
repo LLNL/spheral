@@ -1,9 +1,23 @@
 include_directories(.)
 set(Kernel_inst
+    BSplineKernel
+    W4SplineKernel
     GaussianKernel
-    NBSplineKernel
+    SuperGaussianKernel
     PiGaussianKernel
-   )
+    HatKernel
+    SincKernel
+    NSincPolynomialKernel
+    NBSplineKernel
+    QuarticSplineKernel
+    QuinticSplineKernel
+    TableKernel
+    VolumeIntegrationFunctions
+    WendlandC2Kernel
+    WendlandC4Kernel
+    WendlandC6Kernel
+    ExpInvKernel
+    )
 
 
 set(Kernel_sources )
