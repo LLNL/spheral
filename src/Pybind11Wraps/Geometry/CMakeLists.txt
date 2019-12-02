@@ -43,66 +43,6 @@ set(MODULE_SHARED_LIB
   #"${PROJECT_BINARY_DIR}/lib/libSpheral_ArtificialConduction${CMAKE_SHARED_LIBRARY_SUFFIX}"
   "${PROJECT_BINARY_DIR}/lib/libSpheral_Distributed${CMAKE_SHARED_LIBRARY_SUFFIX}"
 
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_${PYB11_MODULE_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_NodeList${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Field${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_FieldOperations${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Kernel${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Material${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Neighbor${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_DataBase${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Boundary${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Physics${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_ArtificialViscosity${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Hydro${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  #"${PROJECT_BINARY_DIR}/lib/libSpheral_ExternalForce${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  #"${PROJECT_BINARY_DIR}/lib/libSpheral_Gravity${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Integrator${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_FileIO${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_DataOutput${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Utilities${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_NodeGenerators${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_SPH${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_CRKSPH${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  #"${PROJECT_BINARY_DIR}/lib/libSpheral_FVCRKH${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  #"${PROJECT_BINARY_DIR}/lib/libSpheral_SVPH${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Mesh${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Damage${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_SolidMaterial${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Strength${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  #"${PROJECT_BINARY_DIR}/lib/libSpheral_ArtificialConduction${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Distributed${CMAKE_SHARED_LIBRARY_SUFFIX}"
-
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_${PYB11_MODULE_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_NodeList${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Field${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_FieldOperations${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Kernel${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Material${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Neighbor${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_DataBase${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Boundary${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Physics${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_ArtificialViscosity${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Hydro${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  #"${PROJECT_BINARY_DIR}/lib/libSpheral_ExternalForce${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  #"${PROJECT_BINARY_DIR}/lib/libSpheral_Gravity${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Integrator${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_FileIO${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_DataOutput${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Utilities${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_NodeGenerators${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_SPH${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_CRKSPH${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  #"${PROJECT_BINARY_DIR}/lib/libSpheral_FVCRKH${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  #"${PROJECT_BINARY_DIR}/lib/libSpheral_SVPH${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Mesh${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Damage${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_SolidMaterial${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Strength${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  #"${PROJECT_BINARY_DIR}/lib/libSpheral_ArtificialConduction${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_Distributed${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  
   ${QHULL_LIBRARY}
   )
 
@@ -123,32 +63,3 @@ add_dependencies(${PYTHON_MODULE_LIB} ${SPHERAL_PYTHON_DEPENDS})
 set_target_properties(${PYTHON_MODULE_LIB} PROPERTIES OUTPUT_NAME ${PYB11_MODULE_NAME})
 set_target_properties(${PYTHON_MODULE_LIB} PROPERTIES PREFIX "")
 target_link_libraries(${PYTHON_MODULE_LIB} ${MODULE_SHARED_LIB}) #Include our static libs for implemented code.
-#-lSpheral_Geometry
-#-lSpheral_NodeList
-#-lSpheral_Field
-#-lSpheral_FieldOperations
-#-lSpheral_Kernel
-#-lSpheral_Material
-#-lSpheral_Neighbor
-#-lSpheral_DataBase
-#-lSpheral_Boundary
-#-lSpheral_Physics
-#-lSpheral_ArtificialViscosity
-#-lSpheral_Hydro
-#-lSpheral_ExternalForce
-#-lSpheral_Gravity
-#-lSpheral_Integrator
-#-lSpheral_FileIO
-#-lSpheral_DataOutput
-#-lSpheral_Utilities
-#-lSpheral_NodeGenerators
-#-lSpheral_SPH
-#-lSpheral_CRKSPH
-#-lSpheral_FVCRKH
-#-lSpheral_SVPH
-#-lSpheral_Mesh
-#-lSpheral_Damage
-#-lSpheral_SolidMaterial
-#-lSpheral_Strength
-#-lSpheral_ArtificialConduction
-#-lSpheral_Distributed  
