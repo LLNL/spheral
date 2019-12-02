@@ -9,7 +9,8 @@ set(Neighbor_inst
    )
 
 
-set(Neighbor_sources )
+set(Neighbor_sources 
+    NodePairList.cc)
 
 instantiate(Neighbor_inst Neighbor_sources)
 
@@ -26,6 +27,7 @@ set(Neighbor_headers
     NestedGridNeighbor.hh
     NestedGridNeighborInline.hh
     TreeNeighbor.hh
+    NodePairList.hh
     )
 
 blt_add_library(NAME        Spheral_Neighbor
