@@ -29,6 +29,7 @@ blt_add_library(NAME        Spheral_Gravity
                 SOURCES     ${Gravity_sources}
                 DEPENDS_ON  ${spheral_depends}
                 INCLUDES    ${Gravity_includes}
+                SHARED      TRUE
                 )
 
 install(TARGETS             Spheral_Gravity

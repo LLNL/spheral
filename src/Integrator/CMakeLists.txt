@@ -19,6 +19,7 @@ blt_add_library(NAME        Spheral_Integrator
                 SOURCES     ${Integrator_sources}
                 HEADERS     ${Integrator_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_Integrator

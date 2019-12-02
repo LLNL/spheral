@@ -17,6 +17,7 @@ blt_add_library(NAME        Spheral_FieldOperations
                 SOURCES     ${FieldOperations_sources}
                 HEADERS     ${FieldOperations_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_FieldOperations

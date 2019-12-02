@@ -44,6 +44,7 @@ blt_add_library(NAME        Spheral_Hydro
                 SOURCES     ${Hydro_sources}
                 HEADERS     ${Hydro_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_Hydro

@@ -45,6 +45,7 @@ blt_add_library(NAME        Spheral_SPH
                 SOURCES     ${SPH_sources}
                 HEADERS     ${SPH_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_SPH

@@ -35,6 +35,7 @@ blt_add_library(NAME        Spheral_ArtificialViscosity
                 SOURCES     ${ArtificialViscosity_sources}
                 HEADERS     ${ArtificialViscosity_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_ArtificialViscosity

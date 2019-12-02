@@ -18,6 +18,7 @@ blt_add_library(NAME        Spheral_NodeGenerators
                 SOURCES     ${NodeGenerators_sources}
                 HEADERS     ${NodeGenerators_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_NodeGenerators

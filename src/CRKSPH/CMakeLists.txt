@@ -16,6 +16,7 @@ set(CRKSPH_inst
     #    flagSurfaceNeighbors
     gradientCRKSPH
     interpolateCRKSPH
+    zerothOrderSurfaceCorrections
    )
 
 
@@ -68,12 +69,14 @@ set(CRKSPH_headers
     gradientCRKSPH.hh
     interpolateCRKSPH.hh
     volumeSpacing.hh
+    zerothOrderSurfaceCorrections.hh
     )
 
 blt_add_library(NAME        Spheral_CRKSPH
                 SOURCES     ${CRKSPH_sources}
                 HEADERS     ${CRKSPH_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_CRKSPH

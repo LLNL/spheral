@@ -104,6 +104,7 @@ blt_add_library(NAME        Spheral_Utilities
                 SOURCES     ${Utilities_sources}
                 HEADERS     ${Utilities_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_Utilities

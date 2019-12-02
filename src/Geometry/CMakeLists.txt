@@ -103,6 +103,7 @@ blt_add_library(NAME        Spheral_Geometry
                 SOURCES     ${Geometry_sources} ${Geometry_sources2d} ${Geometry_sources3d}
                 HEADERS     ${Geometry_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_Geometry

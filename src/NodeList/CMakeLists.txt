@@ -35,6 +35,7 @@ blt_add_library(NAME        Spheral_NodeList
                 SOURCES     ${NodeList_sources}
                 HEADERS     ${NodeList_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_NodeList

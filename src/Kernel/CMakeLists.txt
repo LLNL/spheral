@@ -29,6 +29,7 @@ blt_add_library(NAME        Spheral_Kernel
                 SOURCES     ${Kernel_sources}
                 HEADERS     ${Kernel_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_Kernel

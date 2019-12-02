@@ -48,6 +48,7 @@ blt_add_library(NAME        Spheral_Field
                 SOURCES     ${Field_sources}
                 HEADERS     ${Field_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_Field

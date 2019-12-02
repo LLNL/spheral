@@ -21,6 +21,7 @@ blt_add_library(NAME        Spheral_Physics
                 SOURCES     ${Physics_sources}
                 HEADERS     ${Physics_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_Physics

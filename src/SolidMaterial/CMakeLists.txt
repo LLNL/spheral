@@ -21,6 +21,7 @@ blt_add_library(NAME        Spheral_SolidMaterial
                 SOURCES     ${SolidMaterial_sources}
                 HEADERS     ${SolidMaterial_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_SolidMaterial

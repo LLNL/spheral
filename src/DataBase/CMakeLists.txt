@@ -58,6 +58,7 @@ blt_add_library(NAME        Spheral_DataBase
                 SOURCES     ${DataBase_sources}
                 HEADERS     ${DataBase_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_DataBase

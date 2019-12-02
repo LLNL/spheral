@@ -16,6 +16,7 @@ blt_add_library(NAME        Spheral_FileIO
                 SOURCES     ${FileIO_sources}
                 HEADERS     ${FileIO_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_FileIO

@@ -16,6 +16,7 @@ blt_add_library(NAME        Spheral_DataOutput
                 SOURCES     ${DataOutput_sources}
                 HEADERS     ${DataOutput_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_DataOutput

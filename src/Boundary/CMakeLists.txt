@@ -44,6 +44,7 @@ blt_add_library(NAME        Spheral_Boundary
                 SOURCES     ${Boundary_sources}
                 HEADERS     ${Boundary_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_Boundary

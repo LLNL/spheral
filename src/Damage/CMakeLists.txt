@@ -16,6 +16,7 @@ blt_add_library(NAME        Spheral_Damage
                 SOURCES     ${Damage_sources}
                 HEADERS     ${Damage_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_Damage

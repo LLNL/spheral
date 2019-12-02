@@ -51,6 +51,7 @@ blt_add_library(NAME        Spheral_Mesh
                 SOURCES     ${Mesh_sources}
                 HEADERS     ${Mesh_headers}
                 DEPENDS_ON  ${spheral_depends}
+                SHARED      TRUE
                 )
 
 install(TARGETS              Spheral_Mesh
