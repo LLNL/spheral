@@ -86,7 +86,7 @@ PYB11namespaces = ["Spheral"]
 #-------------------------------------------------------------------------------
 # enums
 #-------------------------------------------------------------------------------
-CRKOrder = PYB11enum(("ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder"),
+CRKOrder = PYB11enum(("ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder", "QuarticOrder", "QuinticOrder"),
                      export_values = True,
                      doc = "Selection of CRK correction orders")
 CRKVolumeType = PYB11enum(("CRKMassOverDensity", "CRKSumVolume", "CRKVoronoiVolume", "CRKHullVolume", "HVolume"),

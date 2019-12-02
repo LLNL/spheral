@@ -96,28 +96,27 @@ offsetHessP(const int d1, const int d2) {
   return polynomialSize * d12;
 }
 
-
 //------------------------------------------------------------------------------
 // Get the coefficient sizes for each case
 //------------------------------------------------------------------------------
-int SuperiorRKUtilities<Dim<1>, CRKOrder::ZerothOrder>::polynomialSize = 1;
-int SuperiorRKUtilities<Dim<2>, CRKOrder::ZerothOrder>::polynomialSize = 1;
-int SuperiorRKUtilities<Dim<3>, CRKOrder::ZerothOrder>::polynomialSize = 1;
-int SuperiorRKUtilities<Dim<1>, CRKOrder::LinearOrder>::polynomialSize = 2;
-int SuperiorRKUtilities<Dim<2>, CRKOrder::LinearOrder>::polynomialSize = 3;
-int SuperiorRKUtilities<Dim<3>, CRKOrder::LinearOrder>::polynomialSize = 4;
-int SuperiorRKUtilities<Dim<1>, CRKOrder::QuadraticOrder>::polynomialSize = 3;
-int SuperiorRKUtilities<Dim<2>, CRKOrder::QuadraticOrder>::polynomialSize = 6;
-int SuperiorRKUtilities<Dim<3>, CRKOrder::QuadraticOrder>::polynomialSize = 10;
-int SuperiorRKUtilities<Dim<1>, CRKOrder::CubicOrder>::polynomialSize = 4;
-int SuperiorRKUtilities<Dim<2>, CRKOrder::CubicOrder>::polynomialSize = 10;
-int SuperiorRKUtilities<Dim<3>, CRKOrder::CubicOrder>::polynomialSize = 20;
-int SuperiorRKUtilities<Dim<1>, CRKOrder::QuarticOrder>::polynomialSize = 5;
-int SuperiorRKUtilities<Dim<2>, CRKOrder::QuarticOrder>::polynomialSize = 15;
-int SuperiorRKUtilities<Dim<3>, CRKOrder::QuarticOrder>::polynomialSize = 35;
-int SuperiorRKUtilities<Dim<1>, CRKOrder::QuinticOrder>::polynomialSize = 6;
-int SuperiorRKUtilities<Dim<2>, CRKOrder::QuinticOrder>::polynomialSize = 21;
-int SuperiorRKUtilities<Dim<3>, CRKOrder::QuinticOrder>::polynomialSize = 56;
+// template<> constexpr int SuperiorRKUtilities<Dim<1>, CRKOrder::ZerothOrder>::polynomialSize = 1;
+// template<> constexpr int SuperiorRKUtilities<Dim<2>, CRKOrder::ZerothOrder>::polynomialSize = 1;
+// template<> constexpr int SuperiorRKUtilities<Dim<3>, CRKOrder::ZerothOrder>::polynomialSize = 1;
+// template<> constexpr int SuperiorRKUtilities<Dim<1>, CRKOrder::LinearOrder>::polynomialSize = 2;
+// template<> constexpr int SuperiorRKUtilities<Dim<2>, CRKOrder::LinearOrder>::polynomialSize = 3;
+// template<> constexpr int SuperiorRKUtilities<Dim<3>, CRKOrder::LinearOrder>::polynomialSize = 4;
+// template<> constexpr int SuperiorRKUtilities<Dim<1>, CRKOrder::QuadraticOrder>::polynomialSize = 3;
+// template<> constexpr int SuperiorRKUtilities<Dim<2>, CRKOrder::QuadraticOrder>::polynomialSize = 6;
+// template<> constexpr int SuperiorRKUtilities<Dim<3>, CRKOrder::QuadraticOrder>::polynomialSize = 10;
+// template<> constexpr int SuperiorRKUtilities<Dim<1>, CRKOrder::CubicOrder>::polynomialSize = 4;
+// template<> constexpr int SuperiorRKUtilities<Dim<2>, CRKOrder::CubicOrder>::polynomialSize = 10;
+// template<> constexpr int SuperiorRKUtilities<Dim<3>, CRKOrder::CubicOrder>::polynomialSize = 20;
+// template<> constexpr int SuperiorRKUtilities<Dim<1>, CRKOrder::QuarticOrder>::polynomialSize = 5;
+// template<> constexpr int SuperiorRKUtilities<Dim<2>, CRKOrder::QuarticOrder>::polynomialSize = 15;
+// template<> constexpr int SuperiorRKUtilities<Dim<3>, CRKOrder::QuarticOrder>::polynomialSize = 35;
+// template<> constexpr int SuperiorRKUtilities<Dim<1>, CRKOrder::QuinticOrder>::polynomialSize = 6;
+// template<> constexpr int SuperiorRKUtilities<Dim<2>, CRKOrder::QuinticOrder>::polynomialSize = 21;
+// template<> constexpr int SuperiorRKUtilities<Dim<3>, CRKOrder::QuinticOrder>::polynomialSize = 56;
 
 //------------------------------------------------------------------------------
 // Get the polynomials
@@ -128,21 +127,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::ZerothOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<1>::Vector& x) {
   return {1};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::ZerothOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<2>::Vector& x) {
   return {1};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::ZerothOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<3>::Vector& x) {
   return {1};
 }
 
@@ -151,21 +150,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::LinearOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<1>::Vector& x) {
   return {1,x[0]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::LinearOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<2>::Vector& x) {
   return {1,x[0],x[1]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::LinearOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<3>::Vector& x) {
   return {1,x[0],x[1],x[2]};
 }
 
@@ -174,21 +173,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::QuadraticOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<1>::Vector& x) {
   return {1,x[0],x[0]*x[0]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::QuadraticOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<2>::Vector& x) {
   return {1,x[0],x[1],x[0]*x[0],x[0]*x[1],x[1]*x[1]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::QuadraticOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<3>::Vector& x) {
   return {1,x[0],x[1],x[2],x[0]*x[0],x[0]*x[1],x[0]*x[2],x[1]*x[1],x[1]*x[2],x[2]*x[2]};
 }
 
@@ -197,21 +196,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::CubicOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<1>::Vector& x) {
   return {1,x[0],x[0]*x[0],x[0]*x[0]*x[0]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::CubicOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<2>::Vector& x) {
   return {1,x[0],x[1],x[0]*x[0],x[0]*x[1],x[1]*x[1],x[0]*x[0]*x[0],x[0]*x[0]*x[1],x[0]*x[1]*x[1],x[1]*x[1]*x[1]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::CubicOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<3>::Vector& x) {
   return {1,x[0],x[1],x[2],x[0]*x[0],x[0]*x[1],x[0]*x[2],x[1]*x[1],x[1]*x[2],x[2]*x[2],x[0]*x[0]*x[0],x[0]*x[0]*x[1],x[0]*x[0]*x[2],x[0]*x[1]*x[1],x[0]*x[1]*x[2],x[0]*x[2]*x[2],x[1]*x[1]*x[1],x[1]*x[1]*x[2],x[1]*x[2]*x[2],x[2]*x[2]*x[2]};
 }
 
@@ -220,21 +219,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::QuarticOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<1>::Vector& x) {
   return {1,x[0],x[0]*x[0],x[0]*x[0]*x[0],x[0]*x[0]*x[0]*x[0]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::QuarticOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<2>::Vector& x) {
   return {1,x[0],x[1],x[0]*x[0],x[0]*x[1],x[1]*x[1],x[0]*x[0]*x[0],x[0]*x[0]*x[1],x[0]*x[1]*x[1],x[1]*x[1]*x[1],x[0]*x[0]*x[0]*x[0],x[0]*x[0]*x[0]*x[1],x[0]*x[0]*x[1]*x[1],x[0]*x[1]*x[1]*x[1],x[1]*x[1]*x[1]*x[1]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::QuarticOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<3>::Vector& x) {
   return {1,x[0],x[1],x[2],x[0]*x[0],x[0]*x[1],x[0]*x[2],x[1]*x[1],x[1]*x[2],x[2]*x[2],x[0]*x[0]*x[0],x[0]*x[0]*x[1],x[0]*x[0]*x[2],x[0]*x[1]*x[1],x[0]*x[1]*x[2],x[0]*x[2]*x[2],x[1]*x[1]*x[1],x[1]*x[1]*x[2],x[1]*x[2]*x[2],x[2]*x[2]*x[2],x[0]*x[0]*x[0]*x[0],x[0]*x[0]*x[0]*x[1],x[0]*x[0]*x[0]*x[2],x[0]*x[0]*x[1]*x[1],x[0]*x[0]*x[1]*x[2],x[0]*x[0]*x[2]*x[2],x[0]*x[1]*x[1]*x[1],x[0]*x[1]*x[1]*x[2],x[0]*x[1]*x[2]*x[2],x[0]*x[2]*x[2]*x[2],x[1]*x[1]*x[1]*x[1],x[1]*x[1]*x[1]*x[2],x[1]*x[1]*x[2]*x[2],x[1]*x[2]*x[2]*x[2],x[2]*x[2]*x[2]*x[2]};
 }
 
@@ -243,21 +242,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::QuinticOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<1>::Vector& x) {
   return {1,x[0],x[0]*x[0],x[0]*x[0]*x[0],x[0]*x[0]*x[0]*x[0],x[0]*x[0]*x[0]*x[0]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::QuinticOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<2>::Vector& x) {
   return {1,x[0],x[1],x[0]*x[0],x[0]*x[1],x[1]*x[1],x[0]*x[0]*x[0],x[0]*x[0]*x[1],x[0]*x[1]*x[1],x[1]*x[1]*x[1],x[0]*x[0]*x[0]*x[0],x[0]*x[0]*x[0]*x[1],x[0]*x[0]*x[1]*x[1],x[0]*x[1]*x[1]*x[1],x[1]*x[1]*x[1]*x[1],x[0]*x[0]*x[0]*x[0],x[0]*x[0]*x[0]*x[0],x[0]*x[0]*x[0]*x[1],x[0]*x[0]*x[1]*x[1],x[0]*x[1]*x[1]*x[1],x[1]*x[1]*x[1]*x[1]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::QuinticOrder>::
-getPolynomials(typename Dimension::Vector& x) {
+getPolynomials(const Dim<3>::Vector& x) {
   return {1,x[0],x[1],x[2],x[0]*x[0],x[0]*x[1],x[0]*x[2],x[1]*x[1],x[1]*x[2],x[2]*x[2],x[0]*x[0]*x[0],x[0]*x[0]*x[1],x[0]*x[0]*x[2],x[0]*x[1]*x[1],x[0]*x[1]*x[2],x[0]*x[2]*x[2],x[1]*x[1]*x[1],x[1]*x[1]*x[2],x[1]*x[2]*x[2],x[2]*x[2]*x[2],x[0]*x[0]*x[0]*x[0],x[0]*x[0]*x[0]*x[1],x[0]*x[0]*x[0]*x[2],x[0]*x[0]*x[1]*x[1],x[0]*x[0]*x[1]*x[2],x[0]*x[0]*x[2]*x[2],x[0]*x[1]*x[1]*x[1],x[0]*x[1]*x[1]*x[2],x[0]*x[1]*x[2]*x[2],x[0]*x[2]*x[2]*x[2],x[1]*x[1]*x[1]*x[1],x[1]*x[1]*x[1]*x[2],x[1]*x[1]*x[2]*x[2],x[1]*x[2]*x[2]*x[2],x[2]*x[2]*x[2]*x[2],x[0]*x[0]*x[0]*x[0],x[0]*x[0]*x[0]*x[0],x[0]*x[0]*x[0]*x[0],x[0]*x[0]*x[0]*x[1],x[0]*x[0]*x[0]*x[1],x[0]*x[0]*x[0]*x[2],x[0]*x[0]*x[1]*x[1],x[0]*x[0]*x[1]*x[1],x[0]*x[0]*x[1]*x[2],x[0]*x[0]*x[2]*x[2],x[0]*x[1]*x[1]*x[1],x[0]*x[1]*x[1]*x[1],x[0]*x[1]*x[1]*x[2],x[0]*x[1]*x[2]*x[2],x[0]*x[2]*x[2]*x[2],x[1]*x[1]*x[1]*x[1],x[1]*x[1]*x[1]*x[1],x[1]*x[1]*x[1]*x[2],x[1]*x[1]*x[2]*x[2],x[1]*x[2]*x[2]*x[2],x[2]*x[2]*x[2]*x[2]};
 }
 
@@ -270,21 +269,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::ZerothOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<1>::Vector& x) {
   return {0};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::ZerothOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<2>::Vector& x) {
   return {0,0};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::ZerothOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<3>::Vector& x) {
   return {0,0,0};
 }
 
@@ -293,21 +292,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::LinearOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<1>::Vector& x) {
     return {0,1};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::LinearOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<2>::Vector& x) {
     return {0,1,0,0,0,1};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::LinearOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<3>::Vector& x) {
     return {0,1,0,0,0,1};
 }
 
@@ -316,21 +315,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::QuadraticOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<1>::Vector& x) {
     return {0,1,2*x[0]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::QuadraticOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<2>::Vector& x) {
     return {0,1,0,2*x[0],x[1],0,0,0,1,0,x[0],2*x[1]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::QuadraticOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<3>::Vector& x) {
     return {0,1,0,0,2*x[0],x[1],x[2],0,0,0,0,0,1,0,0,x[0],0,2*x[1],x[2],0,0,0,0,1,0,0,x[0],0,x[1],2*x[2]};
 }
 
@@ -339,21 +338,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::CubicOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<1>::Vector& x) {
     return {0,1,0,2*x[0],x[1],0,3*x[0]*x[0],2*x[0]*x[1],x[1]*x[1],0,0,0,1,0,x[0],2*x[1],0,x[0]*x[0],2*x[0]*x[1],3*x[1]*x[1]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::CubicOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<2>::Vector& x) {
     return {0,1,0,0,2*x[0],x[1],x[2],0,0,0,3*x[0]*x[0],2*x[0]*x[1],2*x[0]*x[2],x[1]*x[1],x[1]*x[2],x[2]*x[2],0,0,0,0,0,0,1,0,0,x[0],0,2*x[1],x[2],0,0,x[0]*x[0],0,2*x[0]*x[1],x[0]*x[2],0,3*x[1]*x[1],2*x[1]*x[2],x[2]*x[2],0,0,0,0,1,0,0,x[0],0,x[1],2*x[2],0,0,x[0]*x[0],0,x[0]*x[1],2*x[0]*x[2],0,x[1]*x[1],2*x[1]*x[2],3*x[2]*x[2]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::CubicOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<3>::Vector& x) {
     return {0,1,0,0,2*x[0],x[1],x[2],0,0,0,3*x[0]*x[0],2*x[0]*x[1],2*x[0]*x[2],x[1]*x[1],x[1]*x[2],x[2]*x[2],0,0,0,0,0,0,1,0,0,x[0],0,2*x[1],x[2],0,0,x[0]*x[0],0,2*x[0]*x[1],x[0]*x[2],0,3*x[1]*x[1],2*x[1]*x[2],x[2]*x[2],0,0,0,0,1,0,0,x[0],0,x[1],2*x[2],0,0,x[0]*x[0],0,x[0]*x[1],2*x[0]*x[2],0,x[1]*x[1],2*x[1]*x[2],3*x[2]*x[2]};
 }
 
@@ -362,21 +361,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::QuarticOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<1>::Vector& x) {
     return {0,1,2*x[0],3*x[0]*x[0],4*x[0]*x[0]*x[0]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::QuarticOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<2>::Vector& x) {
     return {0,1,0,2*x[0],x[1],0,3*x[0]*x[0],2*x[0]*x[1],x[1]*x[1],0,4*x[0]*x[0]*x[0],3*x[0]*x[0]*x[1],2*x[0]*x[1]*x[1],x[1]*x[1]*x[1],0,0,0,1,0,x[0],2*x[1],0,x[0]*x[0],2*x[0]*x[1],3*x[1]*x[1],0,x[0]*x[0]*x[0],2*x[0]*x[0]*x[1],3*x[0]*x[1]*x[1],4*x[1]*x[1]*x[1]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::QuarticOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<3>::Vector& x) {
     return {0,1,0,0,2*x[0],x[1],x[2],0,0,0,3*x[0]*x[0],2*x[0]*x[1],2*x[0]*x[2],x[1]*x[1],x[1]*x[2],x[2]*x[2],0,0,0,0,4*x[0]*x[0]*x[0],3*x[0]*x[0]*x[1],3*x[0]*x[0]*x[2],2*x[0]*x[1]*x[1],2*x[0]*x[1]*x[2],2*x[0]*x[2]*x[2],x[1]*x[1]*x[1],x[1]*x[1]*x[2],x[1]*x[2]*x[2],x[2]*x[2]*x[2],0,0,0,0,0,0,0,1,0,0,x[0],0,2*x[1],x[2],0,0,x[0]*x[0],0,2*x[0]*x[1],x[0]*x[2],0,3*x[1]*x[1],2*x[1]*x[2],x[2]*x[2],0,0,x[0]*x[0]*x[0],0,2*x[0]*x[0]*x[1],x[0]*x[0]*x[2],0,3*x[0]*x[1]*x[1],2*x[0]*x[1]*x[2],x[0]*x[2]*x[2],0,4*x[1]*x[1]*x[1],3*x[1]*x[1]*x[2],2*x[1]*x[2]*x[2],x[2]*x[2]*x[2],0,0,0,0,1,0,0,x[0],0,x[1],2*x[2],0,0,x[0]*x[0],0,x[0]*x[1],2*x[0]*x[2],0,x[1]*x[1],2*x[1]*x[2],3*x[2]*x[2],0,0,x[0]*x[0]*x[0],0,x[0]*x[0]*x[1],2*x[0]*x[0]*x[2],0,x[0]*x[1]*x[1],2*x[0]*x[1]*x[2],3*x[0]*x[2]*x[2],0,x[1]*x[1]*x[1],2*x[1]*x[1]*x[2],3*x[1]*x[2]*x[2],4*x[2]*x[2]*x[2]};
 }
 
@@ -385,21 +384,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::QuinticOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<1>::Vector& x) {
     return {0,1,2*x[0],3*x[0]*x[0],4*x[0]*x[0]*x[0],4*x[0]*x[0]*x[0]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::QuinticOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<2>::Vector& x) {
     return {0,1,0,2*x[0],x[1],0,3*x[0]*x[0],2*x[0]*x[1],x[1]*x[1],0,4*x[0]*x[0]*x[0],3*x[0]*x[0]*x[1],2*x[0]*x[1]*x[1],x[1]*x[1]*x[1],0,4*x[0]*x[0]*x[0],4*x[0]*x[0]*x[0],3*x[0]*x[0]*x[1],2*x[0]*x[1]*x[1],x[1]*x[1]*x[1],0,0,0,1,0,x[0],2*x[1],0,x[0]*x[0],2*x[0]*x[1],3*x[1]*x[1],0,x[0]*x[0]*x[0],2*x[0]*x[0]*x[1],3*x[0]*x[1]*x[1],4*x[1]*x[1]*x[1],0,0,x[0]*x[0]*x[0],2*x[0]*x[0]*x[1],3*x[0]*x[1]*x[1],4*x[1]*x[1]*x[1]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::QuinticOrder>::
-getDPolynomials(typename Dimension::Vector& x) {
+getGradPolynomials(const Dim<3>::Vector& x) {
     return {0,1,0,0,2*x[0],x[1],x[2],0,0,0,3*x[0]*x[0],2*x[0]*x[1],2*x[0]*x[2],x[1]*x[1],x[1]*x[2],x[2]*x[2],0,0,0,0,4*x[0]*x[0]*x[0],3*x[0]*x[0]*x[1],3*x[0]*x[0]*x[2],2*x[0]*x[1]*x[1],2*x[0]*x[1]*x[2],2*x[0]*x[2]*x[2],x[1]*x[1]*x[1],x[1]*x[1]*x[2],x[1]*x[2]*x[2],x[2]*x[2]*x[2],0,0,0,0,0,4*x[0]*x[0]*x[0],4*x[0]*x[0]*x[0],4*x[0]*x[0]*x[0],3*x[0]*x[0]*x[1],3*x[0]*x[0]*x[1],3*x[0]*x[0]*x[2],2*x[0]*x[1]*x[1],2*x[0]*x[1]*x[1],2*x[0]*x[1]*x[2],2*x[0]*x[2]*x[2],x[1]*x[1]*x[1],x[1]*x[1]*x[1],x[1]*x[1]*x[2],x[1]*x[2]*x[2],x[2]*x[2]*x[2],0,0,0,0,0,0,0,0,1,0,0,x[0],0,2*x[1],x[2],0,0,x[0]*x[0],0,2*x[0]*x[1],x[0]*x[2],0,3*x[1]*x[1],2*x[1]*x[2],x[2]*x[2],0,0,x[0]*x[0]*x[0],0,2*x[0]*x[0]*x[1],x[0]*x[0]*x[2],0,3*x[0]*x[1]*x[1],2*x[0]*x[1]*x[2],x[0]*x[2]*x[2],0,4*x[1]*x[1]*x[1],3*x[1]*x[1]*x[2],2*x[1]*x[2]*x[2],x[2]*x[2]*x[2],0,0,0,0,x[0]*x[0]*x[0],x[0]*x[0]*x[0],0,2*x[0]*x[0]*x[1],2*x[0]*x[0]*x[1],x[0]*x[0]*x[2],0,3*x[0]*x[1]*x[1],3*x[0]*x[1]*x[1],2*x[0]*x[1]*x[2],x[0]*x[2]*x[2],0,4*x[1]*x[1]*x[1],4*x[1]*x[1]*x[1],3*x[1]*x[1]*x[2],2*x[1]*x[2]*x[2],x[2]*x[2]*x[2],0,0,0,0,1,0,0,x[0],0,x[1],2*x[2],0,0,x[0]*x[0],0,x[0]*x[1],2*x[0]*x[2],0,x[1]*x[1],2*x[1]*x[2],3*x[2]*x[2],0,0,x[0]*x[0]*x[0],0,x[0]*x[0]*x[1],2*x[0]*x[0]*x[2],0,x[0]*x[1]*x[1],2*x[0]*x[1]*x[2],3*x[0]*x[2]*x[2],0,x[1]*x[1]*x[1],2*x[1]*x[1]*x[2],3*x[1]*x[2]*x[2],4*x[2]*x[2]*x[2],0,0,0,0,0,x[0]*x[0]*x[0],0,0,x[0]*x[0]*x[1],2*x[0]*x[0]*x[2],0,0,x[0]*x[1]*x[1],2*x[0]*x[1]*x[2],3*x[0]*x[2]*x[2],0,0,x[1]*x[1]*x[1],2*x[1]*x[1]*x[2],3*x[1]*x[2]*x[2],4*x[2]*x[2]*x[2]};
 }
 
@@ -412,21 +411,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::ZerothOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<1>::Vector& x) {
   return {0};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::ZerothOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<2>::Vector& x) {
     return {0,0,0};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::ZerothOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<3>::Vector& x) {
     return {0,0,0,0,0,0};
 }
 
@@ -435,21 +434,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::LinearOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<1>::Vector& x) {
     return {0,0};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::LinearOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<2>::Vector& x) {
     return {0,0,0,0,0,0,0,0,0};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::LinearOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<3>::Vector& x) {
     return {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 }
 
@@ -458,21 +457,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::QuadraticOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<1>::Vector& x) {
     return {0,0,2};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::QuadraticOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<2>::Vector& x) {
     return {0,0,0,2,0,0,0,0,0,0,1,0,0,0,0,0,0,2};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::QuadraticOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<3>::Vector& x) {
     return {0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,2};
 }
 
@@ -481,21 +480,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::CubicOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<1>::Vector& x) {
     return {0,0,2,6*x[0]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::CubicOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<2>::Vector& x) {
     return {0,0,0,2,0,0,6*x[0],2*x[1],0,0,0,0,0,0,1,0,0,2*x[0],2*x[1],0,0,0,0,0,0,2,0,0,2*x[0],6*x[1]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::CubicOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<3>::Vector& x) {
     return {0,0,0,0,2,0,0,0,0,0,6*x[0],2*x[1],2*x[2],0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,2*x[0],0,2*x[1],x[2],0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,2*x[0],0,x[1],2*x[2],0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,2*x[0],0,0,6*x[1],2*x[2],0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,x[0],0,0,2*x[1],2*x[2],0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,2*x[0],0,0,2*x[1],6*x[2]};
 }
 
@@ -504,21 +503,21 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::QuarticOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<1>::Vector& x) {
     return {0,0,2,6*x[0],12*x[0]*x[0]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::QuarticOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<2>::Vector& x) {
     return {0,0,0,2,0,0,6*x[0],2*x[1],0,0,12*x[0]*x[0],6*x[0]*x[1],2*x[1]*x[1],0,0,0,0,0,0,1,0,0,2*x[0],2*x[1],0,0,3*x[0]*x[0],4*x[0]*x[1],3*x[1]*x[1],0,0,0,0,0,0,2,0,0,2*x[0],6*x[1],0,0,2*x[0]*x[0],6*x[0]*x[1],12*x[1]*x[1]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::QuarticOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<3>::Vector& x) {
     return {0,0,0,0,2,0,0,0,0,0,6*x[0],2*x[1],2*x[2],0,0,0,0,0,0,0,12*x[0]*x[0],6*x[0]*x[1],6*x[0]*x[2],2*x[1]*x[1],2*x[1]*x[2],2*x[2]*x[2],0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,2*x[0],0,2*x[1],x[2],0,0,0,0,0,0,3*x[0]*x[0],0,4*x[0]*x[1],2*x[0]*x[2],0,3*x[1]*x[1],2*x[1]*x[2],x[2]*x[2],0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,2*x[0],0,x[1],2*x[2],0,0,0,0,0,0,3*x[0]*x[0],0,2*x[0]*x[1],4*x[0]*x[2],0,x[1]*x[1],2*x[1]*x[2],3*x[2]*x[2],0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,2*x[0],0,0,6*x[1],2*x[2],0,0,0,0,0,2*x[0]*x[0],0,0,6*x[0]*x[1],2*x[0]*x[2],0,0,12*x[1]*x[1],6*x[1]*x[2],2*x[2]*x[2],0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,x[0],0,0,2*x[1],2*x[2],0,0,0,0,0,x[0]*x[0],0,0,2*x[0]*x[1],2*x[0]*x[2],0,0,3*x[1]*x[1],4*x[1]*x[2],3*x[2]*x[2],0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,2*x[0],0,0,2*x[1],6*x[2],0,0,0,0,0,2*x[0]*x[0],0,0,2*x[0]*x[1],6*x[0]*x[2],0,0,2*x[1]*x[1],6*x[1]*x[2],12*x[2]*x[2]};
 }
 
@@ -527,20 +526,22 @@ template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<1>, CRKOrder::QuinticOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<1>::Vector& x) {
     return {0,0,2,6*x[0],12*x[0]*x[0],12*x[0]*x[0]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<2>, CRKOrder::QuinticOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<2>::Vector& x) {
     return {0,0,0,2,0,0,6*x[0],2*x[1],0,0,12*x[0]*x[0],6*x[0]*x[1],2*x[1]*x[1],0,0,12*x[0]*x[0],12*x[0]*x[0],6*x[0]*x[1],2*x[1]*x[1],0,0,0,0,0,0,1,0,0,2*x[0],2*x[1],0,0,3*x[0]*x[0],4*x[0]*x[1],3*x[1]*x[1],0,0,0,3*x[0]*x[0],4*x[0]*x[1],3*x[1]*x[1],0,0,0,0,0,0,2,0,0,2*x[0],6*x[1],0,0,2*x[0]*x[0],6*x[0]*x[1],12*x[1]*x[1],0,0,0,2*x[0]*x[0],6*x[0]*x[1],12*x[1]*x[1]};
 }
 template<>
 inline
 std::vector<double>
 SuperiorRKUtilities<Dim<3>, CRKOrder::QuinticOrder>::
-getDDPolynomials(typename Dimension::Vector& x) {
+getHessPolynomials(const Dim<3>::Vector& x) {
     return {0,0,0,0,2,0,0,0,0,0,6*x[0],2*x[1],2*x[2],0,0,0,0,0,0,0,12*x[0]*x[0],6*x[0]*x[1],6*x[0]*x[2],2*x[1]*x[1],2*x[1]*x[2],2*x[2]*x[2],0,0,0,0,0,0,0,0,0,12*x[0]*x[0],12*x[0]*x[0],12*x[0]*x[0],6*x[0]*x[1],6*x[0]*x[1],6*x[0]*x[2],2*x[1]*x[1],2*x[1]*x[1],2*x[1]*x[2],2*x[2]*x[2],0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,2*x[0],0,2*x[1],x[2],0,0,0,0,0,0,3*x[0]*x[0],0,4*x[0]*x[1],2*x[0]*x[2],0,3*x[1]*x[1],2*x[1]*x[2],x[2]*x[2],0,0,0,0,0,0,0,0,0,3*x[0]*x[0],3*x[0]*x[0],0,4*x[0]*x[1],4*x[0]*x[1],2*x[0]*x[2],0,3*x[1]*x[1],3*x[1]*x[1],2*x[1]*x[2],x[2]*x[2],0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,2*x[0],0,x[1],2*x[2],0,0,0,0,0,0,3*x[0]*x[0],0,2*x[0]*x[1],4*x[0]*x[2],0,x[1]*x[1],2*x[1]*x[2],3*x[2]*x[2],0,0,0,0,0,0,0,0,0,0,3*x[0]*x[0],0,0,2*x[0]*x[1],4*x[0]*x[2],0,0,x[1]*x[1],2*x[1]*x[2],3*x[2]*x[2],0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,2*x[0],0,0,6*x[1],2*x[2],0,0,0,0,0,2*x[0]*x[0],0,0,6*x[0]*x[1],2*x[0]*x[2],0,0,12*x[1]*x[1],6*x[1]*x[2],2*x[2]*x[2],0,0,0,0,0,0,0,0,2*x[0]*x[0],2*x[0]*x[0],0,0,6*x[0]*x[1],6*x[0]*x[1],2*x[0]*x[2],0,0,12*x[1]*x[1],12*x[1]*x[1],6*x[1]*x[2],2*x[2]*x[2],0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,x[0],0,0,2*x[1],2*x[2],0,0,0,0,0,x[0]*x[0],0,0,2*x[0]*x[1],2*x[0]*x[2],0,0,3*x[1]*x[1],4*x[1]*x[2],3*x[2]*x[2],0,0,0,0,0,0,0,0,0,x[0]*x[0],0,0,0,2*x[0]*x[1],2*x[0]*x[2],0,0,0,3*x[1]*x[1],4*x[1]*x[2],3*x[2]*x[2],0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,2*x[0],0,0,2*x[1],6*x[2],0,0,0,0,0,2*x[0]*x[0],0,0,2*x[0]*x[1],6*x[0]*x[2],0,0,2*x[1]*x[1],6*x[1]*x[2],12*x[2]*x[2],0,0,0,0,0,0,0,0,0,2*x[0]*x[0],0,0,0,2*x[0]*x[1],6*x[0]*x[2],0,0,0,2*x[1]*x[1],6*x[1]*x[2],12*x[2]*x[2]};
 }
+
+} // end namespace Spheral

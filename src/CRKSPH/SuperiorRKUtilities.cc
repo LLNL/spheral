@@ -6,6 +6,7 @@
 
 #include "SuperiorRKUtilities.hh"
 #include "Eigen/Dense"
+#include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/safeInv.hh"
 
 namespace Spheral {
@@ -75,8 +76,8 @@ evaluateKernel(const TableKernel<Dimension>& kernel,
   const auto w = evaluateBaseKernel(kernel, x, H);
   const auto P = getPolynomials(x);
   
-  // Get result
-  const auto CP = innerProductRK(p, corrections, 0, 0);
+  // Perform inner products and return result
+  const auto CP = innerProductRK(P, corrections, 0, 0);
   return CP * w;
 }
 
@@ -91,17 +92,17 @@ evaluateGradient(const TableKernel<Dimension>& kernel,
   
   // Get kernel and polynomials
   const auto w = evaluateBaseKernel(kernel, x, H);
-  const auto dw = evaluteBaseGradient(kernel, x, H);
+  const auto dw = evaluateBaseGradient(kernel, x, H);
   const auto P = getPolynomials(x);
   const auto dP = getGradPolynomials(x);
   
-  // Get result
-  const auto CP = innerProductRK(corrections, p, 0, 0);
+  // Perform inner products and return result
+  const auto CP = innerProductRK(corrections, P, 0, 0);
   Vector result = Vector::zero;
-  for (auto d = 0; d < dimension; ++ d) {
+  for (auto d = 0; d < dim; ++ d) {
     const auto CdP = innerProductRK(corrections, dP, 0, offsetGradP(d));
     const auto dCP = innerProductRK(corrections, P, offsetGradC(d), 0);
-    result(d) = (Cdp + dCP) * w + CP * dw(d);
+    result(d) = (CdP + dCP) * w + CP * dw(d);
   }
   return result;
 }
@@ -113,29 +114,32 @@ evaluateHessian(const TableKernel<Dimension>& kernel,
                 const Vector& x,
                 const SymTensor& H,
                 const std::vector<double>& corrections) {
+  const auto dim = Dimension::nDim;
+  
   // Get kernel and polynomials
   const auto w = evaluateBaseKernel(kernel, x, H);
-  const auto dw = evaluteBaseGradient(kernel, x, H);
-  const auto ddw = evaluteBaseHessian(kernel, x, H);
+  const auto dw = evaluateBaseGradient(kernel, x, H);
+  const auto ddw = evaluateBaseHessian(kernel, x, H);
   const auto P = getPolynomials(x);
   const auto dP = getGradPolynomials(x);
   const auto ddP = getHessPolynomials(x);
 
-  // Get result
-  const auto CP = innerProductRK(coefficients, P, 0, 0);
+  // Perform inner products and return result
+  // Could precompute the inner products in a separate loop for efficiency
+  const auto CP = innerProductRK(corrections, P, 0, 0);
   SymTensor result = SymTensor::zero;
-  for (auto d1 = 0; d1 < dimension; ++d1) {
-    const auto Cd1P = innerProductRK(coefficients, dP, 0, offsetGradP(d1));
-    const auto d1CP = innerProductRK(coefficients, P, offsetGradC(d1), 0);
-    for (auto d2 = d1; d2 < dimension; ++d2) {
-      const auto Cd2P = innerProductRK(coefficients, ddP, 0, offsetGradP(d2));
-      const auto d2CP = innerProductRK(coefficients, P, offsetGradC(d2), 0);
-      const auto CddP = innerProductRK(coefficients, ddP, 0, offsetHessP(d1, d2));
-      const auto d1Cd2P = innerProductRK(coefficients, dP, offsetGradC(d1), offsetGradP(d2));
-      const auto d2Cd1P = innerProductRK(coefficients, dP, offsetGradC(d2), offsetGradP(d1));
-      const auto ddCP = innerProductRK(coefficients, P, offsetHessC(d1, d2), 0);
+  for (auto d1 = 0; d1 < dim; ++d1) {
+    const auto Cd1P = innerProductRK(corrections, dP, 0, offsetGradP(d1));
+    const auto d1CP = innerProductRK(corrections, P, offsetGradC(d1), 0);
+    for (auto d2 = d1; d2 < dim; ++d2) {
+      const auto Cd2P = innerProductRK(corrections, ddP, 0, offsetGradP(d2));
+      const auto d2CP = innerProductRK(corrections, P, offsetGradC(d2), 0);
+      const auto CddP = innerProductRK(corrections, ddP, 0, offsetHessP(d1, d2));
+      const auto d1Cd2P = innerProductRK(corrections, dP, offsetGradC(d1), offsetGradP(d2));
+      const auto d2Cd1P = innerProductRK(corrections, dP, offsetGradC(d2), offsetGradP(d1));
+      const auto ddCP = innerProductRK(corrections, P, offsetHessC(d1, d2), 0);
       
-      result(d1, d2) = (CddP + d1Cd2P + d2Cd1P + ddCP) * w + (Cd1P + d1CP) * dw(d2) + (Cd2P + d2CP) * dw(d1) + CP * dw(d1, d2);
+      result(d1, d2) = (CddP + d1Cd2P + d2Cd1P + ddCP) * w + (Cd1P + d1CP) * dw(d2) + (Cd2P + d2CP) * dw(d1) + CP * ddw(d1, d2);
     }
   }
   return result;
@@ -145,13 +149,13 @@ evaluateHessian(const TableKernel<Dimension>& kernel,
 template<typename Dimension, CRKOrder correctionOrder>
 void
 SuperiorRKUtilities<Dimension, correctionOrder>::
-static void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
-                               const TableKernel<Dimension>& kernel,
-                               const FieldList<Dimension, Scalar>& volume,
-                               const FieldList<Dimension, Vector>& position,
-                               const FieldList<Dimension, SymTensor>& H,
-                               const bool needHessian,
-                               FieldList<Dimension, std::vector<double>>& corrections) {
+computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
+                   const TableKernel<Dimension>& kernel,
+                   const FieldList<Dimension, Scalar>& volume,
+                   const FieldList<Dimension, Vector>& position,
+                   const FieldList<Dimension, SymTensor>& H,
+                   const bool needHessian,
+                   FieldList<Dimension, std::vector<double>>& corrections) {
   // Typedefs
   typedef Eigen::Matrix<double, polynomialSize, polynomialSize> MatrixType;
   typedef Eigen::Matrix<double, polynomialSize, 1> VectorType;
@@ -159,7 +163,7 @@ static void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap
   // Size info
   const auto dim = Dimension::nDim;
   const auto numNodeLists = volume.size();
-  const auto hessSize = symmetricMatrixSize(dim) if needHessian else 0;
+  const auto hessSize = needHessian ? symmetricMatrixSize(dim) : 0;
   
   // Check things
   REQUIRE(position.size() == numNodeLists);
@@ -167,7 +171,7 @@ static void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap
   REQUIRE(corrections.size() == numNodeLists);
 
   // Add values to M for a given j
-  auto addToM = [this](const Scalar& v,
+  auto addToM = [&dim](const Scalar& v,
                        const Scalar& w,
                        const std::vector<double>& p,
                        MatrixType& M) {
@@ -177,10 +181,10 @@ static void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap
       }
     }
     return;
-  }
+  };
   
   // Add values to gradM for a given j
-  auto addTodM = [this](const Scalar& v,
+  auto addTodM = [&dim](const Scalar& v,
                         const Scalar& w,
                         const Vector& dw,
                         const std::vector<double>& p,
@@ -195,10 +199,10 @@ static void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap
       }
     }
     return;
-  }
+  };
 
   // Add values to hessM for a given j
-  auto addToddM = [this](const Scalar& v,
+  auto addToddM = [&dim](const Scalar& v,
                          const Scalar& w,
                          const Vector& dw,
                          const SymTensor& ddw,
@@ -220,7 +224,7 @@ static void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap
       }
     }
     return;
-  }
+  };
 
   // Compute corrections for each point independently
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
@@ -231,9 +235,9 @@ static void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap
       
       // Initialize polynomial matrices for point i
       MatrixType M;
-      M.zero();
-      std::vector<MatrixType> gradM(dim, M);
-      std::vector<MatrixType> hessM(hessSize, M);
+      M.Zero();
+      std::vector<MatrixType> dM(dim, M);
+      std::vector<MatrixType> ddM(hessSize, M);
       
       // Create matrices
       const auto& connectivity = connectivityMap.connectivityForNode(nodeListi, nodei);
@@ -254,12 +258,12 @@ static void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap
           const auto dp = getGradPolynomials(xij);
 
           // Add to M, dM, ddM
-          addToM(v, w, p, M);
-          addTodM(v, w, dw, p, dp, dM);
+          addToM(vj, w, p, M);
+          addTodM(vj, w, dw, p, dp, dM);
           if (needHessian) {
             const auto ddw = evaluateBaseHessian(kernel, xij, Hj);
             const auto ddp = getHessPolynomials(xij);
-            addToddM(v, w, dw, ddw, p, dp, ddp, ddM);
+            addToddM(vj, w, dw, ddw, p, dp, ddp, ddM);
           }
         } // nodej
       } // nodeListj
@@ -306,8 +310,8 @@ static void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap
       VectorType C = solver.solve(rhs);
 
       // Compute gradient corrections
-      std::vector<VectorType> dc(dim);
-      for (auto d = 0; d < dimension; ++d) {
+      std::vector<VectorType> dC(dim);
+      for (auto d = 0; d < dim; ++d) {
         rhs = -(dM[d] * C);
         dC[d] = solver.solve(rhs);
       }
@@ -315,8 +319,8 @@ static void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap
       // Compute hessian corrections
       std::vector<VectorType> ddC(hessSize);
       if (needHessian) {
-        for (auto d1 = 0; d1 < dimension; ++d1) {
-          for (auto d2 = 1; d2 < dimension; ++d2) {
+        for (auto d1 = 0; d1 < dim; ++d1) {
+          for (auto d2 = 1; d2 < dim; ++d2) {
             const auto d12 = flatSymmetricIndex(d1, d2);
             rhs = -(ddM[d12] * C + dM[d1] * dC[d2] + dM[d2] * dC[d1]);
             ddC[d12] = solver.solve(rhs);

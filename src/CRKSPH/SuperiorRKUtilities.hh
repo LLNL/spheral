@@ -3,12 +3,14 @@
 //
 // Computes and evaluates RK corrections
 //----------------------------------------------------------------------------//
-#ifndef __LLNLSpheral_SuperiorRKCorrections__
-#define __LLNLSpheral_SuperiorRKCorrections__
+#ifndef __LLNLSpheral_SuperiorRKUtilities__
+#define __LLNLSpheral_SuperiorRKUtilities__
 
 #include <vector>
 #include "CRKSPH/CRKSPHCorrectionParams.hh"
 #include "Field/FieldList.hh"
+
+namespace Spheral {
 
 template<typename Dimension, CRKOrder correctionOrder>
 class SuperiorRKUtilities {
@@ -18,9 +20,9 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   // Get the polynomial vectors
-  static inline std::vector<double> getPolynomials(Vector& x);
-  static inline std::vector<double> getGradPolynomials(Vector& x);
-  static inline std::vector<double> getHessPolynomials(Vector& x);
+  static inline std::vector<double> getPolynomials(const Vector& x);
+  static inline std::vector<double> getGradPolynomials(const Vector& x);
+  static inline std::vector<double> getHessPolynomials(const Vector& x);
   
   // Evaluate base functions
   static Scalar evaluateBaseKernel(const TableKernel<Dimension>& kernel,
@@ -57,7 +59,7 @@ public:
                                  FieldList<Dimension, std::vector<double>>& corrections);
 
   // Interpolate a field
-  template<typename DataType> static FieldList<Dimension, typename DataType>
+  template<typename DataType> static FieldList<Dimension, DataType>
   interpolateField(const TableKernel<Dimension>& kernel,
                    const FieldList<Dimension, Scalar>& volume,
                    const FieldList<Dimension, Vector>& position,
@@ -100,8 +102,25 @@ public:
   static inline int offsetHessP(const int d1, const int d2);
   
   // The size of the polynomials and coefficients, not including derivatives
-  static int polynomialSize;
+  static constexpr int polynomialSize = (correctionOrder == CRKOrder::ZerothOrder
+                                         ? 1
+                                         : (correctionOrder == CRKOrder::LinearOrder
+                                            ? (Dimension::nDim == 1 ? 2
+                                               : (Dimension::nDim == 2 ? 3 : 4))
+                                            : (correctionOrder == CRKOrder::QuadraticOrder
+                                               ? (Dimension::nDim == 1 ? 3
+                                                  : (Dimension::nDim == 2 ? 6 : 10))
+                                               : (correctionOrder == CRKOrder::CubicOrder
+                                                  ? (Dimension::nDim == 1 ? 4
+                                                     : (Dimension::nDim == 2 ? 10 : 20))
+                                                  : (correctionOrder == CRKOrder::QuarticOrder
+                                                     ? (Dimension::nDim == 1 ? 5
+                                                        : (Dimension::nDim == 2 ? 15 : 35))
+                                                     : (Dimension::nDim == 1 ? 6
+                                                        : (Dimension::nDim == 2 ? 21 : 36)))))));
 };
+
+} // end namespace Spheral
 
 #include "SuperiorRKUtilitiesInline.hh"
   

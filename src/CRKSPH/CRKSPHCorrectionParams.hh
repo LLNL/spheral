@@ -9,6 +9,8 @@ enum class CRKOrder : int {//Used to assign the order of the corrections
   LinearOrder = 1,
   QuadraticOrder = 2,
   CubicOrder = 3,
+  QuarticOrder = 4,
+  QuinticOrder = 5,
 };
 
 enum class CRKVolumeType : int { // Choices for the CRK volume weighting
