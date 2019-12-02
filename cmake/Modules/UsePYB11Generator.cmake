@@ -107,7 +107,7 @@ macro(PYB11_GENERATE_BINDINGS)
     ${PYTHON_EXECUTABLE} -c
     'from PYB11Generator import * \; 
     import ${PYB11_MODULE_NAME}MOD \;
-    PYB11generateModule(${PYB11_MODULE_NAME}MOD, \"Spheral${PYB11_MODULE_NAME}\")'
+    PYB11generateModule(${PYB11_MODULE_NAME}MOD, \"Spheral${PYB11_MODULE_NAME}\") '
     DEPENDS ${PYB11_SOURCE}
     )
 endmacro()
