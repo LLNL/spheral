@@ -2,9 +2,15 @@ include_directories(.)
 set(ArtificialViscosity_inst
     ArtificialViscosity
     CRKSPHMonaghanGingoldViscosity
+    CullenDehnenViscosity
+    FiniteVolumeViscosity
+    IncrementCullenMultipliers
     MonaghanGingoldViscosity
+    MorrisMonaghanReducingViscosity
+    TensorSVPHViscosity
     TensorCRKSPHViscosity
     TensorMonaghanGingoldViscosity
+    VonNeumanViscosity
    )
 
 
@@ -24,6 +30,8 @@ set(ArtificialViscosity_headers
     ArtificialViscosityList.hh
     CRKSPHMonaghanGingoldViscosity.hh
     CRKSPHMonaghanGingoldViscosityRZ.hh
+    CullenDehnenViscosity.hh
+    FiniteVolumeViscosity.hh
     MonaghanGingoldViscosity.hh
     MonaghanGingoldViscosityGSRZ.hh
     MonaghanGingoldViscosityRZ.hh
