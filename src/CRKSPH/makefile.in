@@ -35,7 +35,8 @@ INSTSRCTARGETS = \
 	$(srcdir)/RKCorrectionsInst.cc.py \
 	$(srcdir)/computeRKVolumesInst.cc.py \
 	$(srcdir)/computeRKCorrectionsInst.cc.py \
-	$(srcdir)/SuperiorRKUtilitiesInst.cc.py
+	$(srcdir)/SuperiorRKUtilitiesInst.cc.py \
+	$(srcdir)/SuperiorRKCorrectionsInst.cc.py
 
 SRCTARGETS = \
 	$(srcdir)/centerOfMass.cc \

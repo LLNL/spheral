@@ -72,6 +72,9 @@ evaluateKernel(const TableKernel<Dimension>& kernel,
                const Vector& x,
                const SymTensor& H,
                const std::vector<double>& corrections) {
+  CHECK(corrections.size() == correctionsSize(false)
+        || corrections.size() == correctionsSize(true));
+  
   // Get kernel and polynomials
   const auto w = evaluateBaseKernel(kernel, x, H);
   const auto P = getPolynomials(x);
@@ -88,6 +91,9 @@ evaluateGradient(const TableKernel<Dimension>& kernel,
                  const Vector& x,
                  const SymTensor& H,
                  const std::vector<double>& corrections) {
+  CHECK(corrections.size() == correctionsSize(false)
+        || corrections.size() == correctionsSize(true));
+  
   const auto dim = Dimension::nDim;
   
   // Get kernel and polynomials
@@ -114,6 +120,9 @@ evaluateHessian(const TableKernel<Dimension>& kernel,
                 const Vector& x,
                 const SymTensor& H,
                 const std::vector<double>& corrections) {
+  CHECK(corrections.size() == correctionsSize(false)
+        || corrections.size() == correctionsSize(true));
+  
   const auto dim = Dimension::nDim;
   
   // Get kernel and polynomials
@@ -156,10 +165,12 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                    const FieldList<Dimension, SymTensor>& H,
                    const bool needHessian,
                    FieldList<Dimension, std::vector<double>>& corrections) {
-  // Typedefs
-  typedef Eigen::Matrix<double, polynomialSize, polynomialSize> MatrixType;
+  // Typedefs: Eigen requires aligned allocator for stl containers before c++17
   typedef Eigen::Matrix<double, polynomialSize, 1> VectorType;
-
+  typedef Eigen::Matrix<double, polynomialSize, polynomialSize> MatrixType;
+  typedef std::vector<VectorType, Eigen::aligned_allocator<VectorType>> VectorOfVectorType;
+  typedef std::vector<MatrixType, Eigen::aligned_allocator<MatrixType>> VectorOfMatrixType;
+  
   // Size info
   const auto dim = Dimension::nDim;
   const auto numNodeLists = volume.size();
@@ -189,7 +200,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                         const Vector& dw,
                         const std::vector<double>& p,
                         const std::vector<double>& dp,
-                        std::vector<MatrixType>& dM) {
+                        VectorOfMatrixType& dM) {
     for (auto d = 0; d < dim; ++d) {
       const auto offd = offsetGradP(d);
       for (auto k = 0; k < polynomialSize; ++k) {
@@ -209,7 +220,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                          const std::vector<double>& p,
                          const std::vector<double>& dp,
                          const std::vector<double>& ddp,
-                         std::vector<MatrixType>& ddM) {
+                         VectorOfMatrixType& ddM) {
     for (auto d1 = 0; d1 < dim; ++d1) {
       const auto offd1 = offsetGradP(d1);
       for (auto d2 = d1; d2 < dim; ++d2) {
@@ -235,39 +246,52 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       
       // Initialize polynomial matrices for point i
       MatrixType M;
-      M.Zero();
-      std::vector<MatrixType> dM(dim, M);
-      std::vector<MatrixType> ddM(hessSize, M);
+      M.setZero();
+      VectorOfMatrixType dM(dim);
+      VectorOfMatrixType ddM(hessSize);
+      for (auto& mat : dM) {
+        mat.setZero();
+      }
+      for (auto& mat : ddM) {
+        mat.setZero();
+      }
       
-      // Create matrices
+      // Get function for adding contribution to matrices
+      auto addToMatrix = [&](const int nodeListj,
+                             const int nodej) {
+        // Get data for point j
+        const auto xj = position(nodeListj, nodej);
+        const auto xij = xi - xj;
+        const auto Hj = H(nodeListj, nodej);
+        const auto vj = volume(nodeListj, nodej);
+        
+        // Add to matrices
+        const auto w = evaluateBaseKernel(kernel, xij, Hj);
+        const auto p = getPolynomials(xij);
+        addToM(vj, w, p, M);
+        const auto dw = evaluateBaseGradient(kernel, xij, Hj);
+        const auto dp = getGradPolynomials(xij);
+        addTodM(vj, w, dw, p, dp, dM);
+        if (needHessian) {
+          const auto ddw = evaluateBaseHessian(kernel, xij, Hj);
+          const auto ddp = getHessPolynomials(xij);
+          addToddM(vj, w, dw, ddw, p, dp, ddp, ddM);
+        }
+        
+        return;
+      };
+                            
+      // Add contribution from other points
       const auto& connectivity = connectivityMap.connectivityForNode(nodeListi, nodei);
       for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
         for (auto nodej : connectivity[nodeListj]) {
-          // Get data for point j
-          const auto xj = position(nodeListj, nodej);
-          const auto xij = xi - xj;
-          const auto Hj = H(nodeListj, nodej);
-          const auto vj = volume(nodeListj, nodej);
-          
-          // Get kernel values
-          const auto w = evaluateBaseKernel(kernel, xij, Hj);
-          const auto dw = evaluateBaseGradient(kernel, xij, Hj);
-          
-          // Get polynomials
-          const auto p = getPolynomials(xij);
-          const auto dp = getGradPolynomials(xij);
-
-          // Add to M, dM, ddM
-          addToM(vj, w, p, M);
-          addTodM(vj, w, dw, p, dp, dM);
-          if (needHessian) {
-            const auto ddw = evaluateBaseHessian(kernel, xij, Hj);
-            const auto ddp = getHessPolynomials(xij);
-            addToddM(vj, w, dw, ddw, p, dp, ddp, ddM);
-          }
+          addToMatrix(nodeListj, nodej);
         } // nodej
       } // nodeListj
-
+      
+      // Add self contribution
+      addToMatrix(nodeListi, nodei);
+      
       // M symmetries
       for (auto k = 0; k < polynomialSize; ++k) {
         for (auto l = 0; l < k; ++l) {
@@ -297,7 +321,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           }
         }
       }
-
+      
       // Get inverse of M matrix
       auto solver = M.colPivHouseholderQr();
       
@@ -310,14 +334,14 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       VectorType C = solver.solve(rhs);
 
       // Compute gradient corrections
-      std::vector<VectorType> dC(dim);
+      VectorOfVectorType dC(dim);
       for (auto d = 0; d < dim; ++d) {
         rhs = -(dM[d] * C);
         dC[d] = solver.solve(rhs);
       }
-
+      
       // Compute hessian corrections
-      std::vector<VectorType> ddC(hessSize);
+      VectorOfVectorType ddC(hessSize);
       if (needHessian) {
         for (auto d1 = 0; d1 < dim; ++d1) {
           for (auto d2 = 1; d2 < dim; ++d2) {

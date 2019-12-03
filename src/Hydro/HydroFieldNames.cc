@@ -88,3 +88,4 @@ const std::string Spheral::HydroFieldNames::hessA_RK = "A RK correction hessian"
 const std::string Spheral::HydroFieldNames::hessB_RK = "B RK correction hessian";
 const std::string Spheral::HydroFieldNames::hessC_RK = "C RK correction hessian";
 const std::string Spheral::HydroFieldNames::hessD_RK = "D RK correction hessian";
+const std::string Spheral::HydroFieldNames::rkCorrections = "RK corrections";

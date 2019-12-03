@@ -13,6 +13,8 @@ from CRKSPHHydroBase import *
 from SolidCRKSPHHydroBase import *
 from CRKSPHVariant import *
 from RKCorrections import *
+from SuperiorRKCorrections import *
+from SuperiorRKUtilities import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -44,6 +46,8 @@ PYB11includes += ['"CRKSPH/CRKSPHUtilities.hh"',
                   '"CRKSPH/RKUtilities.hh"',
                   '"CRKSPH/computeRKCorrections.hh"',
                   '"CRKSPH/computeRKVolumes.hh"',
+                  '"CRKSPH/SuperiorRKCorrections.hh"',
+                  '"CRKSPH/SuperiorRKUtilities.hh"',
                   '"SPH/NodeCoupling.hh"',
                   '"FileIO/FileIO.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"',
@@ -614,7 +618,6 @@ evaluateRKGradient%(ndim)id = PYB11TemplateFunction(evaluateRKGradient, template
 evaluateRKHessian%(ndim)id = PYB11TemplateFunction(evaluateRKHessian, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
-    
 
     # CRKSPH interpolation
     exec('''interpolateCRKSPH%(ndim)id = PYB11TemplateFunction(interpolateCRKSPH, template_parameters="Dim<%(ndim)i>", pyname="interpolateCRKSPH")''' % {"ndim" : ndim})
@@ -639,6 +642,17 @@ gradientCRKSPH%(label)s = PYB11TemplateFunction(gradientCRKSPH, template_paramet
        "Dimension" : "Dim<" + str(ndim) + ">",
        "element"   : element,
        "label"     : PYB11mangle(element)})
+
+    # New RK classes
+    for num, correctionOrder in zip((0, 1, 2, 3, 4, 5),
+                                    ("ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder", "QuarticOrder", "QuinticOrder")):
+        exec(''' 
+SuperiorRKCorrections%(ndim)sd%(num)s = PYB11TemplateClass(SuperiorRKCorrections, template_parameters=("%(Dimension)s", "CRKOrder::%(correctionOrder)s"))
+SuperiorRKUtilities%(ndim)sd%(num)s = PYB11TemplateClass(SuperiorRKUtilities, template_parameters=("%(Dimension)s", "CRKOrder::%(correctionOrder)s"))
+''' % {"ndim"            : ndim,
+       "Dimension"       : "Dim<" + str(ndim) + ">",
+       "num"             : num,
+       "correctionOrder" : correctionOrder})
 
 #-------------------------------------------------------------------------------
 # 2D

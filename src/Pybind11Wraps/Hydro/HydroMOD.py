@@ -104,3 +104,4 @@ class HydroFieldNames:
     hessB_RK = PYB11readonly(static=True)
     hessC_RK = PYB11readonly(static=True)
     hessD_RK = PYB11readonly(static=True)
+    rkCorrections = PYB11readonly(static=True)

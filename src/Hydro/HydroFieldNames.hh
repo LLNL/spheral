@@ -93,6 +93,7 @@ struct HydroFieldNames {
   static const std::string hessB_RK;
   static const std::string hessC_RK;
   static const std::string hessD_RK;
+  static const std::string rkCorrections;
 };
 
 }

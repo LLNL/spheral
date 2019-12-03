@@ -192,6 +192,7 @@ class StateBase:
     fifthRankTensorField = PYB11TemplateMethod(field, "FifthRankTensor")
     facetedVolumeField = PYB11TemplateMethod(field, "FacetedVolume")
     vector_of_CellFaceFlagField = PYB11TemplateMethod(field, "std::vector<CellFaceFlag>")
+    vector_of_doubleField = PYB11TemplateMethod(field, "std::vector<double>")
 
     intFields = PYB11TemplateMethod(fields, "int")
     scalarFields = PYB11TemplateMethod(fields, "double")
@@ -203,6 +204,7 @@ class StateBase:
     fifthRankTensorFields = PYB11TemplateMethod(fields, "FifthRankTensor")
     facetedVolumeFields = PYB11TemplateMethod(fields, "FacetedVolume")
     vector_of_CellFaceFlagFields = PYB11TemplateMethod(fields, "std::vector<CellFaceFlag>")
+    vector_of_doubleFields = PYB11TemplateMethod(fields, "std::vector<double>")
 
     allIntFields = PYB11TemplateMethod(allFields, "int")
     allScalarFields = PYB11TemplateMethod(allFields, "double")
@@ -214,3 +216,4 @@ class StateBase:
     allFifthRankTensorFields = PYB11TemplateMethod(allFields, "FifthRankTensor")
     allFacetedVolumeFields = PYB11TemplateMethod(allFields, "FacetedVolume")
     allVector_of_CellFaceFlagFields = PYB11TemplateMethod(allFields, "std::vector<CellFaceFlag>")
+    allVector_of_doubleFields = PYB11TemplateMethod(allFields, "std::vector<double>")
