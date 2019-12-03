@@ -31,6 +31,11 @@ meaning that the full set of points passed in may not appear in the vertices."""
                 facetIndices = "const std::vector<std::vector<unsigned> >&"):
         "Construct with explicit vertices and facets"
 
+    @PYB11implementation("[](py::list& points) { std::vector<Vector> vpoints; for (auto p: points) vpoints.push_back(p.cast<Vector>()); return new GeomPolyhedron(vpoints); }")
+    def pyinit3(self,
+                points = "py::list"):
+        "Construct as the convex hull of a python list of points"
+
     #...........................................................................
     # Methods
     @PYB11const
