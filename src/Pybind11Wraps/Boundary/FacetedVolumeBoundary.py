@@ -8,7 +8,7 @@ from BoundaryAbstractMethods import *
 from RestartMethods import *
 
 @PYB11template("Dimension")
-class FacetedVolumeBoundary(PlanarBoundary):
+class FacetedVolumeBoundary(Boundary):
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
@@ -38,9 +38,17 @@ class FacetedVolumeBoundary(PlanarBoundary):
         "Overridable hook for clearing out the boundary condition."
         return "void"
 
+    @PYB11const
+    def reflectOperator(self, 
+                        facetID = "unsigned"):
+        "Return the effective reflection operator for the given facet"
+        return "const Tensor&"
+
     #...........................................................................
     # Properties
     polyVolume = PYB11property(doc="The faceted volume defining this boundary")
+    interiorBoundary = PYB11property(doc="Flag if this Boundary is interior or exterior to the problem")
+    useGhosts = PYB11property(doc="Flag whether we should build ghost points or not")
 
 #-------------------------------------------------------------------------------
 # Inject methods
