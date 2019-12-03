@@ -38,6 +38,7 @@ endforeach()
 
 add_subdirectory(Pybind11Wraps/CXXTypes)
 add_subdirectory(Pybind11Wraps/OpenMP)
+add_subdirectory(Pybind11Wraps/polytope)
 add_subdirectory(Pybind11Wraps/Geometry)
 #add_subdirectory(Pybind11Wraps/DataOutput)
 add_subdirectory(Pybind11Wraps/NodeList)

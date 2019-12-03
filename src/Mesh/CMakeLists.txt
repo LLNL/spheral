@@ -4,6 +4,7 @@ set(Mesh_inst
     computeGenerators
     findMatchingVertex
     generateMesh
+    copy2polytope
    )
 
 
