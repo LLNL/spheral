@@ -1,6 +1,9 @@
 include_directories(.)
 set(Material_inst
     EquationOfState
+    GammaLawGas
+    PolytropicEquationOfState
+    IsothermalEquationOfState
    )
 
 
