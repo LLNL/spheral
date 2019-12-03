@@ -258,6 +258,24 @@ mapControlValues(Field<Dimension, Value>& field,
   }
 }
 
+//------------------------------------------------------------------------------
+// Map control->ghost values, depending on the Value type
+//------------------------------------------------------------------------------
+template<typename Dimension, typename Value>
+void
+enforceViolationValues(Field<Dimension, Value>& field,
+                       const std::vector<int>& violationNodes,
+                       const std::vector<typename Dimension::Tensor>& violationOps) {
+  const auto n = violationNodes.size();
+  REQUIRE(violationOps.size() == n);
+  Value newVal;
+  for (auto k = 0; k < n; ++k) {
+    const auto i = violationNodes[k];
+    mapValue<Dimension>(newVal, field(i), violationOps[k]);
+    field(i) = newVal;
+  }
+}
+
 }
 
 //------------------------------------------------------------------------------
@@ -578,6 +596,7 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
+  enforceViolationValues(field, this->violationNodes(field.nodeList()), mViolationOperators.find(field.nodeList().name())->second);
 }
 
 // Specialization for tensor fields.  Apply the reflection operator.
@@ -585,6 +604,7 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
+  enforceViolationValues(field, this->violationNodes(field.nodeList()), mViolationOperators.find(field.nodeList().name())->second);
 }
 
 // Specialization for tensor fields.  Apply the reflection operator.
@@ -592,6 +612,7 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
+  enforceViolationValues(field, this->violationNodes(field.nodeList()), mViolationOperators.find(field.nodeList().name())->second);
 }
 
 // Specialization for third rank tensor fields.  Apply the reflection operator.
@@ -599,6 +620,7 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+  enforceViolationValues(field, this->violationNodes(field.nodeList()), mViolationOperators.find(field.nodeList().name())->second);
 }
 
 // Specialization for fourth rank tensor fields.  Apply the reflection operator.
@@ -606,6 +628,7 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  enforceViolationValues(field, this->violationNodes(field.nodeList()), mViolationOperators.find(field.nodeList().name())->second);
 }
 
 // Specialization for fifth rank tensor fields.  Apply the reflection operator.
@@ -613,6 +636,7 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  enforceViolationValues(field, this->violationNodes(field.nodeList()), mViolationOperators.find(field.nodeList().name())->second);
 }
 
 // Specialization for FacetedVolumes
@@ -620,6 +644,7 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+  // Punt on FacetedVolumes for now.
 }
 
 //------------------------------------------------------------------------------

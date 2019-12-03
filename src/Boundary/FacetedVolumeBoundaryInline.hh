@@ -11,6 +11,26 @@ FacetedVolumeBoundary<Dimension>::polyVolume() const {
 }
 
 //------------------------------------------------------------------------------
+// interior flag
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+FacetedVolumeBoundary<Dimension>::interiorBoundary() const {
+  return mInteriorBoundary;
+}
+
+//------------------------------------------------------------------------------
+// Create ghosts or not
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+FacetedVolumeBoundary<Dimension>::useGhosts() const {
+  return mUseGhosts;
+}
+
+//------------------------------------------------------------------------------
 // The reflection operator per facet of the FacetedVolume
 //------------------------------------------------------------------------------
 template<typename Dimension>
