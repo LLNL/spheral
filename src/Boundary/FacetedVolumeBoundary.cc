@@ -318,11 +318,11 @@ FacetedVolumeBoundary<Dimension>::~FacetedVolumeBoundary() {
 template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
+  this->addNodeList(nodeList);
   if (mUseGhosts) {
     const auto& facets = mPoly.facets();
     const auto  nfacets = facets.size();
     const auto  name = nodeList.name();
-    this->addNodeList(nodeList);
     auto& boundaryNodes = this->accessBoundaryNodes(nodeList);
     const auto  centroid = mPoly.centroid();
     auto&       pos = nodeList.positions();
@@ -379,28 +379,30 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList) {
+  if (mUseGhosts) {
 
-  const auto  name = nodeList.name();
-  const auto& controls = mFacetControlNodes[name];
-  const auto& ghostRanges = mFacetGhostNodes[name];
-  const auto& facets = mPoly.facets();
-  const auto  nfacets = facets.size();
-  auto&       pos = nodeList.positions();
-  auto&       H = nodeList.Hfield();
-  CHECK(controls.size() == nfacets);
-  CHECK(ghostRanges.size() == nfacets);
+    const auto  name = nodeList.name();
+    const auto& controls = mFacetControlNodes[name];
+    const auto& ghostRanges = mFacetGhostNodes[name];
+    const auto& facets = mPoly.facets();
+    const auto  nfacets = facets.size();
+    auto&       pos = nodeList.positions();
+    auto&       H = nodeList.Hfield();
+    CHECK(controls.size() == nfacets);
+    CHECK(ghostRanges.size() == nfacets);
 
-  // Walk each of the facets
-  for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
-    const auto  n = controls[ifacet].size();
-    const auto  plane = facetPlane(facets[ifacet], mInteriorBoundary);
-    const auto& R = mReflectOperators[ifacet];
-    CHECK(ghostRanges[ifacet].second - ghostRanges[ifacet].first == n);
-    for (auto k = 0; k < n; ++k) {
-      const auto i = controls[ifacet][k];
-      const auto j = ghostRanges[ifacet].first + k;
-      pos(j) = mapPositionThroughPlanes(pos(i), plane, plane);
-      H(j) = (R*H(i)*R).Symmetric();
+    // Walk each of the facets
+    for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
+      const auto  n = controls[ifacet].size();
+      const auto  plane = facetPlane(facets[ifacet], mInteriorBoundary);
+      const auto& R = mReflectOperators[ifacet];
+      CHECK(ghostRanges[ifacet].second - ghostRanges[ifacet].first == n);
+      for (auto k = 0; k < n; ++k) {
+        const auto i = controls[ifacet][k];
+        const auto j = ghostRanges[ifacet].first + k;
+        pos(j) = mapPositionThroughPlanes(pos(i), plane, plane);
+        H(j) = (R*H(i)*R).Symmetric();
+      }
     }
   }
 }
@@ -413,8 +415,10 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, int>& field) const {
-  const auto& nodeList = field.nodeList();
-  copyControlValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
+  if (mUseGhosts) {
+    const auto& nodeList = field.nodeList();
+    copyControlValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
+  }
 }
 
 // Specialization for scalar fields, just perform a copy.
@@ -422,8 +426,10 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  const auto& nodeList = field.nodeList();
-  copyControlValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
+  if (mUseGhosts) {
+    const auto& nodeList = field.nodeList();
+    copyControlValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
+  }
 }
 
 // Specialization for Vector fields.
@@ -431,14 +437,19 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);}
+  if (mUseGhosts) {
+    mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
+  }
+}
 
 // Specialization for Tensor fields.
 template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-  mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
+  if (mUseGhosts) {
+    mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
+  }
 }
 
 // Specialization for symmetric tensors.
@@ -446,7 +457,9 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-  mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
+  if (mUseGhosts) {
+    mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
+  }
 }
 
 // Specialization for ThirdRankTensor fields.
@@ -454,7 +467,9 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-  mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
+  if (mUseGhosts) {
+    mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
+  }
 }
 
 // Specialization for FourthRankTensor fields.
@@ -462,7 +477,9 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
-  mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
+  if (mUseGhosts) {
+    mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
+  }
 }
 
 // Specialization for FifthRankTensor fields.
@@ -470,7 +487,9 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
-  mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
+  if (mUseGhosts) {
+    mapControlValues(field, mReflectOperators, mFacetControlNodes, mFacetGhostNodes);
+  }
 }
 
 // Specialization for FacetedVolumes
@@ -478,8 +497,10 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
-  const auto& nodeList = field.nodeList();
-  copyControlValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));   // Punt for FacetedVolumes and just copy them for now
+  if (mUseGhosts) {
+    const auto& nodeList = field.nodeList();
+    copyControlValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));   // Punt for FacetedVolumes and just copy them for now
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -508,6 +529,10 @@ FacetedVolumeBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeLis
       if (not interior) vNodes.push_back(i);
     }
   }
+
+  std::cerr << "Violation nodes:";
+  for (auto i: vNodes) std::cerr << " " << i;
+  std::cerr << endl;
 
   // Update the positions and H for the nodes in violation.
   updateViolationNodes(nodeList);
@@ -545,6 +570,7 @@ FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& node
     auto& R = violationOps[k];
     newPos = pos(i);
     newVel = vel(i);
+    inViolation = true;
     while (inViolation) {
       // Backtrack to which facet we think the point passed through.
       const auto backPos = newPos - chordLength*newVel.unitVector();
