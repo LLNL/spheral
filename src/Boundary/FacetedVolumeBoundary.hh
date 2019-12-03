@@ -75,6 +75,9 @@ public:
   // Overridable hook for clearing out the boundary condition.
   virtual void reset(const DataBase<Dimension>& dataBase) override;
 
+  // Don't cull our ghost nodes
+  virtual bool allowGhostCulling() const { return false; }
+
   // Read access to internal data
   const FacetedVolume& polyVolume() const;
   bool interiorBoundary() const;

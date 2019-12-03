@@ -597,7 +597,7 @@ FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& node
   // Set the Hfield.
   auto& Hfield = nodeList.Hfield();
   this->enforceBoundary(Hfield);
-}    
+}
 
 //------------------------------------------------------------------------------
 // Enforce the boundary condition on the set of nodes in violation of the 
