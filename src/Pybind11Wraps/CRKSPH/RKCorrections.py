@@ -6,7 +6,7 @@ from Physics import *
 from PhysicsAbstractMethods import *
 from RestartMethods import *
 
-@PYB11template("Dimension")
+@PYB11template("Dimension", "CRKOrder correctionOrder")
 class RKCorrections(Physics):
     "Computes RK correction terms"
     
@@ -15,9 +15,6 @@ class RKCorrections(Physics):
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
-    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
-    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
     typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
@@ -25,7 +22,6 @@ class RKCorrections(Physics):
     def pyinit(self,
                dataBase = "const DataBase<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
-               correctionOrder = "const CRKOrder",
                volumeType = "const CRKVolumeType",
                needHessian = "const bool"):
         "Constructor"
@@ -104,26 +100,13 @@ class RKCorrections(Physics):
                   
     #...........................................................................
     # Properties
-    correctionOrder = PYB11property("CRKOrder", "correctionOrder", "correctionOrder",
-                                    doc="Flag to choose CRK Correction Order")
     volumeType = PYB11property("CRKVolumeType", "volumeType", "volumeType",
                                doc="Flag for the CRK volume weighting definition")
     needHessian = PYB11property("bool", "needHessian", "needHessian",
                                doc="Flag for the CRK volume weighting definition")
     volume = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "volume", returnpolicy="reference_internal")
 
-    A = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "A", returnpolicy="reference_internal")
-    B = PYB11property("const FieldList<%(Dimension)s, Vector>&", "B", returnpolicy="reference_internal")
-    C = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "C", returnpolicy="reference_internal")
-    D = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "D", returnpolicy="reference_internal")
-    gradA = PYB11property("const FieldList<%(Dimension)s, Vector>&", "gradA", returnpolicy="reference_internal")
-    gradB = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "gradB", returnpolicy="reference_internal")
-    gradC = PYB11property("const FieldList<%(Dimension)s, ThirdRankTensor>&", "gradC", returnpolicy="reference_internal")
-    gradD = PYB11property("const FieldList<%(Dimension)s, FourthRankTensor>&", "gradD", returnpolicy="reference_internal")
-    hessA = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "hessA", returnpolicy="reference_internal")
-    hessB = PYB11property("const FieldList<%(Dimension)s, ThirdRankTensor>&", "hessB", returnpolicy="reference_internal")
-    hessC = PYB11property("const FieldList<%(Dimension)s, FourthRankTensor>&", "hessC", returnpolicy="reference_internal")
-    hessD = PYB11property("const FieldList<%(Dimension)s, FifthRankTensor>&", "hessD", returnpolicy="reference_internal")
+    corrections = PYB11property("const FieldList<%(Dimension)s, std::vector<double>>&", "corrections", returnpolicy="reference_internal")
     
     surfacePoint = PYB11property("const FieldList<%(Dimension)s, int>&", "surfacePoint", returnpolicy="reference_internal")
     etaVoidPoints = PYB11property("const FieldList<%(Dimension)s, std::vector<Vector>>&", "etaVoidPoints", returnpolicy="reference_internal")

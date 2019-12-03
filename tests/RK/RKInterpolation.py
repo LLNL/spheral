@@ -1,15 +1,5 @@
-#ATS:test(SELF, "--dimension 1 --correctionOrder ZerothOrder --funcType constant", label="RK zeroth 1d")
-#ATS:test(SELF, "--dimension 1 --correctionOrder LinearOrder --funcType linear", label="RK linear 1d")
-#ATS:test(SELF, "--dimension 1 --correctionOrder QuadraticOrder --funcType quadratic", label="RK quadratic 1d")
-#ATS:test(SELF, "--dimension 1 --correctionOrder CubicOrder --funcType cubic", label="RK cubic 1d")
-#ATS:test(SELF, "--dimension 2 --correctionOrder ZerothOrder --funcType constant", label="RK zeroth 2d")
-#ATS:test(SELF, "--dimension 2 --correctionOrder LinearOrder --funcType linear", label="RK linear 2d")
-#ATS:test(SELF, "--dimension 2 --correctionOrder QuadraticOrder --funcType quadratic", label="RK quadratic 2d")
-#ATS:test(SELF, "--dimension 2 --correctionOrder CubicOrder --funcType cubic", label="RK cubic 2d")
-#ATS:test(SELF, "--dimension 3 --correctionOrder ZerothOrder --funcType constant", label="RK zeroth 3d")
-#ATS:test(SELF, "--dimension 3 --correctionOrder LinearOrder --funcType linear", label="RK linear 3d")
-#ATS:test(SELF, "--dimension 3 --correctionOrder QuadraticOrder --funcType quadratic", label="RK quadratic 3d")
-#ATS:test(SELF, "--dimension 3 --correctionOrder CubicOrder --funcType cubic", label="RK cubic 3d")
+#ATS:test(SELF, "--dimension 1 --correctionOrder ZerothOrder --funcType constant", label="RK interpolation - 1D zeroth")
+#ATS:test(SELF, "--dimension 1 --correctionOrder LinearOrder --funcType linear", label="RK interpolation - 1D linear")
 
 #-------------------------------------------------------------------------------
 # Manufactured diffusion test
@@ -37,8 +27,15 @@ commandLine(
     y1 = 2.0,
     z0 = -2.0,
     z1 = 2.0,
+
+    # CRK options
     correctionOrder = LinearOrder,
-    needHessian = True,
+    volumeType = CRKMassOverDensity,
+    testHessian = False,
+    useOldKernel = False, # Test using old kernel
+    useBaseKernel = False, # Test using standard SPH kernel
+    checkAgainstOld = False,
+    printErrors = False,
     
     # Manufactured parameters
     funcType = "linear",
@@ -60,18 +57,83 @@ commandLine(
     dataDirBase = "dumps-RKInterpolation",
 
     # Error
-    tolerance = 1.e-14,
+    tolerance = 1.e-13,
     
     # Plotting
     plot = False,
 )
 
+if useOldKernel and useBaseKernel:
+    raise ValueError, "cannot use both old and base kernel"
+if useOldKernel and correctionOrder > QuadraticOrder:
+    raise ValueError, "correction order must be quadratic to use old kernel"
+
 if dimension == 1:
     from Spheral1d import *
+    if correctionOrder == ZerothOrder:
+        RKCorrections = RKCorrections1d0
+        RKUtilities = RKUtilities1d0
+    elif correctionOrder == LinearOrder:
+        RKCorrections = RKCorrections1d1
+        RKUtilities = RKUtilities1d1
+    elif correctionOrder == QuadraticOrder:
+        RKCorrections = RKCorrections1d2
+        RKUtilities = RKUtilities1d2
+    elif correctionOrder == CubicOrder:
+        RKCorrections = RKCorrections1d3
+        RKUtilities = RKUtilities1d3
+    elif correctionOrder == QuarticOrder:
+        RKCorrections = RKCorrections1d4
+        RKUtilities = RKUtilities1d4
+    elif correctionOrder == QuinticOrder:
+        RKCorrections = RKCorrections1d5
+        RKUtilities = RKUtilities1d5
+    else:
+        raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
 elif dimension == 2:
     from Spheral2d import *
+    if correctionOrder == ZerothOrder:
+        RKCorrections = RKCorrections2d0
+        RKUtilities = RKUtilities2d0
+    elif correctionOrder == LinearOrder:
+        RKCorrections = RKCorrections2d1
+        RKUtilities = RKUtilities2d1
+    elif correctionOrder == QuadraticOrder:
+        RKCorrections = RKCorrections2d2
+        RKUtilities = RKUtilities2d2
+    elif correctionOrder == CubicOrder:
+        RKCorrections = RKCorrections2d3
+        RKUtilities = RKUtilities2d3
+    elif correctionOrder == QuarticOrder:
+        RKCorrections = RKCorrections2d4
+        RKUtilities = RKUtilities2d4
+    elif correctionOrder == QuinticOrder:
+        RKCorrections = RKCorrections2d5
+        RKUtilities = RKUtilities2d5
+    else:
+        raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
 else:
     from Spheral3d import *
+    if correctionOrder == ZerothOrder:
+        RKCorrections = RKCorrections3d0
+        RKUtilities = RKUtilities3d0
+    elif correctionOrder == LinearOrder:
+        RKCorrections = RKCorrections3d1
+        RKUtilities = RKUtilities3d1
+    elif correctionOrder == QuadraticOrder:
+        RKCorrections = RKCorrections3d2
+        RKUtilities = RKUtilities3d2
+    elif correctionOrder == CubicOrder:
+        RKCorrections = RKCorrections3d3
+        RKUtilities = RKUtilities3d3
+    elif correctionOrder == QuarticOrder:
+        RKCorrections = RKCorrections3d4
+        RKUtilities = RKUtilities3d4
+    elif correctionOrder == QuinticOrder:
+        RKCorrections = RKCorrections3d5
+        RKUtilities = RKUtilities3d5
+    else:
+        raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
 
 # if mpi.procs > 1:
 #     raise ValueError, "need to add parallel boundaries and error calculation"
@@ -79,7 +141,6 @@ else:
 #-------------------------------------------------------------------------------
 # Set up data
 #-------------------------------------------------------------------------------
-
 # Set limits
 lims = [[x0, x1], [y0, y1], [z0, z1]]
 
@@ -113,7 +174,7 @@ if mpi.rank == 0:
         os.makedirs(vizDir)
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
-mpi.barrier()
+        mpi.barrier()
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -169,7 +230,7 @@ elif dimension == 2:
         from VoronoiDistributeNodes import distributeNodes2d
     else:
         from DistributeNodes import distributeNodes2d
-    distributeNodes2d((nodes, generator))
+        distributeNodes2d((nodes, generator))
 else:
     from GenerateNodeDistribution3d import *
     generator = GenerateNodeDistribution3d(distributionType="lattice",
@@ -184,8 +245,8 @@ else:
         from VoronoiDistributeNodes import distributeNodes3d
     else:
         from DistributeNodes import distributeNodes3d
-    distributeNodes3d((nodes, generator))
-    
+        distributeNodes3d((nodes, generator))
+        
 output("nodes.numNodes")
 numLocal = nodes.numInternalNodes
 output("numLocal")
@@ -201,54 +262,7 @@ iterateIdealH(dataBase,
               method,
               100, # max h iterations
               1.e-4) # h tolerance
-
-#-------------------------------------------------------------------------------
-# Build the RK object
-#-------------------------------------------------------------------------------
-rk = RKCorrections(dataBase = dataBase,
-                   W = WT,
-                   correctionOrder = correctionOrder,
-                   volumeType = CRKMassOverDensity,
-                   needHessian = needHessian)
-packages = [rk]
-
-#-------------------------------------------------------------------------------
-# Create integrator
-#-------------------------------------------------------------------------------
-integrator = CheapSynchronousRK2Integrator(dataBase)
-for p in packages:
-    integrator.appendPhysicsPackage(p)
-for p in packages:
-    p.initializeProblemStartup(dataBase)
-        
-#-------------------------------------------------------------------------------
-# Get a state and apply the applicable methods directly to it
-#-------------------------------------------------------------------------------
 dataBase.updateConnectivityMap(True)
-
-state = State(dataBase, integrator.physicsPackages())
-derivs = StateDerivatives(dataBase, integrator.physicsPackages())
-integrator.preStepInitialize(state, derivs)
-
-rk_time = time.time()
-integrator.initializeDerivatives(0.0, 0.0, state, derivs)
-rk_time = time.time() - rk_time
-
-integrator.applyGhostBoundaries(state, derivs)
-integrator.finalizeGhostBoundaries()
-
-output("rk_time")
-
-#-------------------------------------------------------------------------------
-# Make sure changes to H propagate to corrections
-#-------------------------------------------------------------------------------
-# if initagain:
-#     dataBase.updateConnectivityMap(True)
-#     rk.initializeProblemStartup(dataBase)
-
-
-# integrator.applyGhostBoundaries(state, derivs)
-# integrator.finalizeGhostBoundaries()
 
 #-------------------------------------------------------------------------------
 # Get interpolant
@@ -337,291 +351,191 @@ else:
     raise ValueError, "function type {} not found".format(funcType)
 
 #-------------------------------------------------------------------------------
-# Get some data
+# Create RK object
+#-------------------------------------------------------------------------------
+rk = RKCorrections(dataBase = dataBase,
+                           W = WT,
+                           volumeType = volumeType,
+                           needHessian = testHessian)
+packages = [rk]
+
+#-------------------------------------------------------------------------------
+# Create a state directly and apply the applicable methods to it
+#-------------------------------------------------------------------------------
+connectivity = dataBase.connectivityMap()
+state = State(dataBase, packages)
+derivs = StateDerivatives(dataBase, packages)
+
+rk.initializeProblemStartup(dataBase)
+rk.registerState(dataBase, state)
+rk.registerDerivatives(dataBase, derivs)
+rk.preStepInitialize(dataBase, state, derivs)
+rk_time = time.time()
+rk.initialize(0.0, 0.0, dataBase, state, derivs)
+rk_time = time.time() - rk_time
+output("rk_time")
+
+#-------------------------------------------------------------------------------
+# Get data
 #-------------------------------------------------------------------------------
 position = state.vectorFields(HydroFieldNames.position)
 H = state.symTensorFields(HydroFieldNames.H)
 volume = state.scalarFields(HydroFieldNames.volume)
-
-A = state.scalarFields(HydroFieldNames.A_RK)
-dA = state.vectorFields(HydroFieldNames.gradA_RK)
-ddA = state.tensorFields(HydroFieldNames.hessA_RK)
-B = state.vectorFields(HydroFieldNames.B_RK)
-dB = state.tensorFields(HydroFieldNames.gradB_RK)
-ddB = state.thirdRankTensorFields(HydroFieldNames.hessB_RK)
-C = state.tensorFields(HydroFieldNames.C_RK)
-dC = state.thirdRankTensorFields(HydroFieldNames.gradC_RK)
-ddC = state.fourthRankTensorFields(HydroFieldNames.hessC_RK)
-D = state.thirdRankTensorFields(HydroFieldNames.D_RK)
-dD = state.fourthRankTensorFields(HydroFieldNames.gradD_RK)
-ddD = state.fifthRankTensorFields(HydroFieldNames.hessD_RK)
-
-connectivity = dataBase.connectivityMap()
+corrections = state.vector_of_doubleFields(HydroFieldNames.rkCorrections)
 
 #-------------------------------------------------------------------------------
-# Get zeroth-order correction to check against
+# Get old corrections
 #-------------------------------------------------------------------------------
-# A_check = np.zeros(nodes.numNodes)
-# if correctionOrder == ZerothOrder:
-#     ni = 0
-#     nj = 0
-#     for i in range(nodes.numNodes):
-#         xi = position(ni, i)
-#         m0 = 0.
-#         connectivityi = np.append(connectivity.connectivityForNode(ni, i), i)
-#         for j in connectivityi:
-#             xj = position(nj, j)
-#             xij = xi - xj
-#             Hij = H(nj, j)
-#             etaij = Hij * xij
-#             wij = WT(etaij, Hij)
-#             vj = volume(nj, j)
-#             m0 += vj * wij
-#         A_check[i] = 1. / m0
+if correctionOrder <= QuadraticOrder and checkAgainstOld:
+    A = dataBase.newFluidScalarFieldList(name="A")
+    B = dataBase.newFluidVectorFieldList(name="B")
+    C = dataBase.newFluidTensorFieldList(name="C")
+    gradA = dataBase.newFluidVectorFieldList(name="gradA")
+    gradB = dataBase.newFluidTensorFieldList(name="gradB")
+    gradC = dataBase.newFluidThirdRankTensorFieldList(name="gradB")
+    
+    M0 = dataBase.newFluidScalarFieldList(name="M0")
+    M1 = dataBase.newFluidVectorFieldList(name="M1")
+    M2 = dataBase.newFluidSymTensorFieldList(name="M2")
+    M3 = dataBase.newFluidThirdRankTensorFieldList(name="M3")
+    M4 = dataBase.newFluidFourthRankTensorFieldList(name="M4")
+    gradM0 = dataBase.newFluidVectorFieldList(name="grad M0")
+    gradM1 = dataBase.newFluidTensorFieldList(name="grad M1")
+    gradM2 = dataBase.newFluidThirdRankTensorFieldList(name="grad M2")
+    gradM3 = dataBase.newFluidFourthRankTensorFieldList(name="grad M3")
+    gradM4 = dataBase.newFluidFifthRankTensorFieldList(name="grad M4")
+    
+    surfacePoint = dataBase.newFluidIntFieldList(name="surface point")
+
+    old_rk_time = time.time()
+    computeCRKSPHMoments(connectivity, WT, volume, position, H, correctionOrder, NodeCoupling(),
+                         M0, M1, M2, M3, M4, gradM0, gradM1, gradM2, gradM3, gradM4)
+    computeCRKSPHCorrections(M0, M1, M2, M3, M4, gradM0, gradM1, gradM2, gradM3, gradM4,
+                             H, surfacePoint, correctionOrder,
+                             A, B, C, gradA, gradB, gradC)
+    old_rk_time = time.time() - old_rk_time
+    output("old_rk_time")
 
 #-------------------------------------------------------------------------------
 # Set up a simple method to calculate the kernel
 #-------------------------------------------------------------------------------
-interp_time = time.time()
-b = Vector.zero
-db = Tensor.zero
-ddb = ThirdRankTensor.zero
-
-dxij = Tensor.zero
-dxij.Identity()
-
-zeroTensor = Tensor.zero
-
 # Base kernel
 def getBaseKernel(ni, i, nj, j):
     xi = position(ni, i)
     xj = position(nj, j)
     xij = xi - xj
-    Hij = H(nj, j)
-    etaij = Hij * xij
-    H2ij = Hij.square()
-    etaijmag = etaij.magnitude()
-    etaijmaginv = 0.0 if etaijmag < 1.e-13 else 1. / etaijmag 
-    Hetaij = Hij * etaij * etaijmaginv
-    Heta2ij = Hetaij.selfdyad()
-    w = WT(etaij, Hij)
-    dw = Hij * etaij * etaijmaginv * WT.grad(etaij, Hij)
-    ddw = Tensor((H2ij - Heta2ij) * etaijmaginv * WT.grad(etaij, Hij) + Heta2ij * WT.grad2(etaij, Hij))
+    Hj = H(nj, j)
+    w = RKUtilities.evaluateBaseKernel(WT, xij, Hj)
+    dw = RKUtilities.evaluateBaseGradient(WT, xij, Hj)
+    if testHessian:
+        ddw = RKUtilities.evaluateBaseHessian(WT, xij, Hj)
+        ddw = np.reshape(ddw, (dimension, dimension))
+    else:
+        ddw = np.zeros((dimension, dimension))
     return w, dw, ddw
 
 # RK kernel
-def getKernel(ni, i, nj, j):
+def getNewKernel(ni, i, nj, j):
     xi = position(ni, i)
-    a = A(ni, i)
-    da = dA(ni, i)
-    dda = ddA(ni, i)
-    if correctionOrder >=LinearOrder:
-        b = B(ni, i)
-        db = dB(ni, i)
-        ddb = ddB(ni, i)
-    else:
-        b = Vector.zero
-        db = Tensor.zero
-        ddb = ThirdRankTensor.zero
-    if correctionOrder >= QuadraticOrder:
-        c = C(ni, i)
-        dc = dC(ni, i)
-        ddc = ddC(ni, i)
-    else:
-        c = Tensor.zero
-        dc = ThirdRankTensor.zero
-        ddc = FourthRankTensor.zero
-    if correctionOrder >= CubicOrder:
-        d = D(ni, i)
-        dd = dD(ni, i)
-        ddd = ddD(ni, i)
-    else:
-        d = ThirdRankTensor.zero
-        dd = FourthRankTensor.zero
-        ddd = FifthRankTensor.zero
-    vj = volume(nj, j)
     xj = position(nj, j)
     xij = xi - xj
-    Hij = H(nj, j)
-    etaij = Hij * xij
-    w = evaluateRKKernel(WT, correctionOrder,
-                         etaij, Hij, xij, 
-                         a, b, c, d)
-    dw = evaluateRKGradient(WT, correctionOrder,
-                            etaij, Hij, xij, dxij,
-                            a, b, c, d,
-                            da, db, dc, dd)
-    if needHessian:
-        ddw = evaluateRKHessian(WT, correctionOrder,
-                                etaij, Hij, xij, dxij,
-                                a, b, c, d,
-                                da, db, dc, dd,
-                                dda, ddb, ddc, ddd)
+    Hj = H(nj, j)
+    c = corrections(ni, i)
+    w = RKUtilities.evaluateKernel(WT, xij, Hj, c)
+    dw = RKUtilities.evaluateGradient(WT, xij, Hj, c)
+    if testHessian:
+        ddw = RKUtilities.evaluateHessian(WT, xij, Hj, c)
         ddw = np.reshape(ddw, (dimension, dimension))
     else:
-        ddw = zeroTensor
+        ddw = np.zeros((dimension, dimension))
     return w, dw, ddw
 
-#-------------------------------------------------------------------------------
-# Check 2d linear against analytic solutions
-#-------------------------------------------------------------------------------
-if dimension == 2 and correctionOrder == LinearOrder and checkConditions:
-    ni = 0
-    m0 = np.zeros((nodes.numNodes))
-    m1 = np.zeros((nodes.numNodes, dimension))
-    m2 = np.zeros((nodes.numNodes, dimension, dimension))
-    dm0 = np.zeros((nodes.numNodes, dimension))
-    dm1 = np.zeros((nodes.numNodes, dimension, dimension))
-    dm2 = np.zeros((nodes.numNodes, dimension, dimension, dimension))
-    ddm0 = np.zeros((nodes.numNodes, dimension, dimension))
-    ddm1 = np.zeros((nodes.numNodes, dimension, dimension, dimension))
-    ddm2 = np.zeros((nodes.numNodes, dimension, dimension, dimension, dimension))
-    aPy = np.zeros((nodes.numNodes))
-    bPy = np.zeros((nodes.numNodes, dimension))
-    daPy = np.zeros((nodes.numNodes, dimension))
-    dbPy = np.zeros((nodes.numNodes, dimension, dimension))
-    ddaPy = np.zeros((nodes.numNodes, dimension, dimension))
-    ddbPy = np.zeros((nodes.numNodes, dimension, dimension, dimension))
+# Old kernel
+def getOldKernel(ni, i, nj, j):
+    xi = position(ni, i)
+    xj = position(nj, j)
+    Hj = H(nj, j)
+    xij = xi - xj
+    etaj = Hj * xij
+    Hdetj = Hj.Determinant()
+    Ai = A(ni, i)
+    Bi = B(ni, i) if correctionOrder >= LinearOrder else Vector.zero
+    Ci = C(ni, i) if correctionOrder >= QuadraticOrder else Tensor.zero
+    dAi = gradA(ni, i)
+    dBi = gradB(ni, i) if correctionOrder >= LinearOrder else Tensor.zero
+    dCi = gradC(ni, i) if correctionOrder >= QuadraticOrder else ThirdRankTensor.zero
+    w, dwtemp, dw = CRKSPHKernelAndGradient(WT, correctionOrder,
+                                            xij, etaj, Hj, Hdetj,
+                                            Ai, Bi, Ci, dAi, dBi, dCi)
+    ddw = Tensor.zero
+    return w, dw, ddw
 
-    # Compute m values
+# Kernel to test with
+getKernel = getOldKernel if useOldKernel else getNewKernel
+getKernel = getBaseKernel if useBaseKernel else getNewKernel
+
+#-------------------------------------------------------------------------------
+# Check against old method of doing corrections
+#-------------------------------------------------------------------------------
+if correctionOrder <= QuadraticOrder and checkAgainstOld:
+    # Check old and new corrections
     for i in range(nodes.numNodes):
+        ni = 0
+        # Get old corrections in same format as new
+        old = [A(ni, i)]
+        if correctionOrder >= LinearOrder:
+            for d in range(dimension):
+                old.append(A(ni,i) * B(ni, i)[d])
+        if correctionOrder >= QuadraticOrder:
+            for d1 in range(dimension):
+                for d2 in range(d1, dimension):
+                    old.append(A(ni, i) * C(ni, i)[dimension*d1+d2])
+        for d in range(dimension):
+            old.append(gradA(ni, i)[d])
+        if correctionOrder >= LinearOrder:
+            a = A(ni, i)
+            for d2 in range(dimension):
+                da = gradA(ni, i)[d2]
+                for d1 in range(dimension):
+                    b = B(ni, i)[d1]
+                    db = gradB(ni, i)[d1 * dimension + d2]
+                    old.append(da * b + a * db)
+        if correctionOrder >= QuadraticOrder:
+            for d1 in range(dimension):
+                for d2 in range(d1, dimension):
+                    c = C(ni, i)[d1*dimension + d2]
+                    for d3 in range(dimension):
+                        da = gradA(ni, i)[d3]
+                        dc = gradC(ni, i)[d1*dimension*dimension + d2*dimension + d3]
+                        old.append(da * c + a * dc)
+        # Compare to new corrections
+        c = np.array(corrections(ni, i))
+        err = np.abs(np.subtract(c, old))
+        if any(err > 1.e-6) and printErrors:
+            print i
+            print "\t", c
+            print "\t", old
+            print "\t", np.subtract(c, old)
+
+    # Compare kernel values
+    for i in range(nodes.numNodes):
+        ni = 0
         connectivityi = connectivity.connectivityForNode(ni, i)
-        xi = position(ni, i)
-        def addToValues(nj, j):
-            xj = position(nj, j)
-            xij = xi - xj
-            dxij = np.identity(dimension)
-            vj = volume(nj, j)
-            w, dw, ddw = getBaseKernel(ni, i, nj, j)
-            m0[i] += vj * w
-            m1[i] += vj * xij * w
-            m2[i] += vj * np.outer(xij, xij) * w
-            for k1 in range(dimension):
-                dm0[i,k1] += vj * dw[k1]
-                dm1[i,k1] += vj * (dxij[k1,:] * w + xij * dw[k1])
-                dm2[i,k1] += vj * (np.outer(xij, xij) * dw[k1] + (np.outer(dxij[:,k1], xij) + np.outer(xij, dxij[:,k1])) * w)
-            return
-        addToValues(ni,i)
         for nj, neighbors in enumerate(connectivityi):
             for j in neighbors:
-                addToValues(nj, j)
-    # Compute corrections
-    for i in range(nodes.numNodes):
-        mmat = np.array([[m0[i],   m1[i,0],   m1[i,1]],
-                         [m1[i,0], m2[i,0,0], m2[i,0,1]],
-                         [m1[i,1], m2[i,1,0], m2[i,1,1]]])
-        rhs = np.array([1., 0., 0.])
-        coeff = np.linalg.solve(mmat, rhs)
-        aPy[i] = coeff[0]
-        bPy[i,0] = coeff[1]
-        bPy[i,1] = coeff[2]
-        for k1 in range(dimension):
-            dmmat = np.array([[dm0[i,k1],   dm1[i,k1,0],   dm1[i,k1,1]],
-                              [dm1[i,k1,0], dm2[i,k1,0,0], dm2[i,k1,0,1]],
-                              [dm1[i,k1,1], dm2[i,k1,1,0], dm2[i,k1,1,1]]])
-            rhs = -np.matmul(dmmat, coeff)
-            dcoeff = np.linalg.solve(mmat, rhs)
-            daPy[i,k1] = dcoeff[0]
-            dbPy[i,k1,0] = dcoeff[1]
-            dbPy[i,k1,1] = dcoeff[2]
-            
-    # Check corrections
-    ni = 0
-    for i in range(nodes.numNodes):
-        diffA = A(ni, i) - aPy[i]
-        diffB = B(ni, i) - bPy[i]
-        diffdA = dA(ni, i) - daPy[i]
-        diffdB = np.reshape(dB(ni, i), (2,2)) - dbPy[i]
+                wnew, dwnew, ddwnew = getNewKernel(ni, i, nj, j)
+                wold, dwold, ddwtemp = getOldKernel(ni, i, nj, j)
+                dwnew = np.array(dwnew)
+                dwold = np.array(dwold)
+                werr = np.abs(wnew - wold)
+                dwerr = np.abs(dwnew - dwold)
+                if werr > 1.e-6 or any(dwerr > 1.e-6) and printErrors:
+                    print i, j, wnew, wold, dwnew, dwold
 
-    def getKernelPy(ni, i, nj, j):
-        xi = position(ni, i)
-        a = aPy[i]
-        da = Vector.zero
-        dda = Tensor.zero
-        b = Vector.zero
-        db = Tensor.zero
-        ddb = ThirdRankTensor.zero
-        for k1 in range(dimension):
-            da[k1] = daPy[i,k1]
-            b[k1] = bPy[i,k1]
-            for k2 in range(dimension):
-                dda[2*k1+k2] = ddaPy[i,k2,k1]
-                db[2*k1+k2] = dbPy[i,k2,k1]
-                for k3 in range(dimension):
-                    ddb[4*k1+2*k2+k3] = ddbPy[i,k3,k2,k1]
-        c = Tensor.zero
-        dc = ThirdRankTensor.zero
-        ddc = FourthRankTensor.zero
-        d = ThirdRankTensor.zero
-        dd = FourthRankTensor.zero
-        ddd = FifthRankTensor.zero
-        vj = volume(nj, j)
-        xj = position(nj, j)
-        xij = xi - xj
-        Hij = H(nj, j)
-        etaij = Hij * xij
-        w, dw, ddw = getBaseKernel(ni, i, nj, j)
-        wr = (a + np.dot(xij, b)) * w
-        dwr = (da + b + np.multiply(xij[0], [db[0], db[1]]) + np.multiply(xij[1], [db[2],db[3]])) * w + (a + np.dot(xij, b)) * dw
-        # w = evaluateRKKernel(WT, correctionOrder,
-        #                      etaij, Hij, xij, 
-        #                      a, b, c, d)
-        # dw = evaluateRKGradient(WT, correctionOrder,
-        #                         etaij, Hij, xij, dxij,
-        #                         a, b, c, d,
-        #                         da, db, dc, dd)
-        # if needHessian:
-        #     ddw = evaluateRKHessian(WT, correctionOrder,
-        #                             etaij, Hij, xij, dxij,
-        #                             a, b, c, d,
-        #                             da, db, dc, dd,
-        #                             dda, ddb, ddc, ddd)
-        #     ddw = np.reshape(ddw, (dimension, dimension))
-        # else:
-        ddwr = zeroTensor
-        return wr, dwr, ddwr
-    # getKernel = getKernelPy
-# import code
-# code.interact(local=locals())
-#-------------------------------------------------------------------------------
-# Make sure linear conditions are satisfied
-#-------------------------------------------------------------------------------
-if correctionOrder >= LinearOrder and checkConditions:
-    val0 = np.zeros((nodes.numNodes))
-    val1 = np.zeros((nodes.numNodes, dimension))
-    dval0 = np.zeros((nodes.numNodes, dimension))
-    dval1 = np.zeros((nodes.numNodes, dimension, dimension))
-    ddval0 = np.zeros((nodes.numNodes, dimension, dimension))
-    ddval1 = np.zeros((nodes.numNodes, dimension, dimension, dimension))
-    ni = 0
-    for i in range(nodes.numNodes):
-        connectivityi = connectivity.connectivityForNode(ni, i)
-        xi = position(ni, i)
-        def addToValues(nj, j):
-            xj = position(nj, j)
-            xij = xi - xj
-            dxij = np.identity(dimension)
-            vj = volume(nj, j)
-            w, dw, ddw = getKernel(ni, i, nj, j)
-            val0[i] += vj * w
-            val1[i,:] += vj * xij * w
-            dval0[i,:] += vj * dw
-            dval1[i,:] += vj * (np.outer(xij, dw) + dxij * w)
-            return
-        addToValues(ni, i)
-        for nj, neighbors in enumerate(connectivityi):
-            for j in neighbors:
-                addToValues(nj, j)
-    val0max = np.amax(np.abs(val0 - 1))
-    val1max = np.amax(np.abs(val1))
-    dval0max = np.amax(np.abs(dval0))
-    dval1max = np.amax(np.abs(dval1))
-    output("val0max,val1max,dval0max,dval1max")
-# quit()
-            
 #-------------------------------------------------------------------------------
 # Try interpolation
 #-------------------------------------------------------------------------------
+interp_time = time.time()
 vals = np.zeros((nodes.numNodes, 2))
 dvals = np.zeros((nodes.numNodes, dimension, 2))
 ddvals = np.zeros((nodes.numNodes, dimension, dimension, 2))
@@ -639,7 +553,7 @@ for i in range(nodes.numNodes):
         w, dw, ddw = getKernel(ni, i, nj, j)
         vals[i,0] += vj * w * fj
         dvals[i,:,0] += vj * dw * fj
-        if needHessian:
+        if testHessian:
             ddvals[i,:,:,0] += vj * ddw * fj
     connectivityi = connectivity.connectivityForNode(ni, i)
     for nj, neighbors in enumerate(connectivityi):
@@ -648,7 +562,8 @@ for i in range(nodes.numNodes):
     addToValues(ni, i)
     vals[i,1] = fi
     dvals[i,:,1] = dfunc(xi)
-    ddvals[i,:,:,1] = ddfunc(xi)
+    if testHessian:
+        ddvals[i,:,:,1] = ddfunc(xi)
 
 interp_time = time.time() - interp_time
 output("interp_time")
@@ -669,19 +584,19 @@ def plotThings(numLocal, anaLocal, title):
         plt.legend()
         ax2 = ax1.twinx()
         err = np.divide(num - ana, np.mean(np.abs(ana)) + 1.e-15)
-        ax2.plot(err, label="err", color=colors[2], linestyle="-.")
+        ax2.semilogy(err, label="err", color=colors[2], linestyle="-.")
         plt.title(title)
         plt.legend()
 if plot:
     plotThings(vals[:,0], vals[:,1], "vals")
     for d in range(dimension):
         plotThings(dvals[:,d,0], dvals[:,d,1], "dvals{}".format(d))
-    if needHessian:
+    if testHessian:
         for d1 in range(dimension):
             for d2 in range(dimension):
                 plotThings(ddvals[:,d1,d2,0], ddvals[:,d1,d2,1], "ddvals{}-{}".format(d1, d2))
     plt.show()
-                     
+    
 #-------------------------------------------------------------------------------
 # Check error
 #-------------------------------------------------------------------------------
@@ -692,11 +607,18 @@ def getError(num, ana):
     tot = mpi.allreduce(tot, mpi.SUM)
     return err / (tot + 1.e-15)
 error = getError(vals[:,0], vals[:,1])
-derror = [getError(dvals[:,d,0], dvals[:,d,1]) for d in range(dimension)]
-dderror = [getError(ddvals[:,d1,d2,0], ddvals[:,d1,d2,1]) for d1 in range(dimension) for d2 in range(dimension)]
-derrormax = np.amax(derror)
 output("error")
+derror = [getError(dvals[:,d,0], dvals[:,d,1]) for d in range(dimension)]
 output("derror")
-output("dderror")
+if testHessian:
+    dderror = [getError(ddvals[:,d1,d2,0], ddvals[:,d1,d2,1]) for d1 in range(dimension) for d2 in range(dimension)]
+    output("dderror")
+    
 if error > tolerance:
     raise ValueError, "error is greater than tolerance"
+if any([de > tolerance for de in derror]):
+    raise ValueError, "gradient error is greater than tolerance"
+if testHessian:
+    if any([dde > tolerance for dde in dderror]):
+        raise ValueError, "hessian error is greater than tolerance"
+        

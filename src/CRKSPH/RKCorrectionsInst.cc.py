@@ -1,11 +1,15 @@
 text = """
 //------------------------------------------------------------------------------
-// Explicit instantiation.
+// Explict instantiation.
 //------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
 #include "RKCorrections.cc"
-
-namespace Spheral {
-  template class RKCorrections<Dim<%(ndim)s>>;
-}
+#include "Geometry/Dimension.hh"
 """
+
+for order in ["ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder", "QuarticOrder", "QuinticOrder"]:
+    text += """
+namespace Spheral {
+template class RKCorrections<Dim<%(ndim)s>, """
+    text += """CRKOrder::%(order)s>;
+}
+""" % {"order" : order}

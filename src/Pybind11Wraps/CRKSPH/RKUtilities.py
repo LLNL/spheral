@@ -4,7 +4,7 @@
 from PYB11Generator import *
 
 @PYB11template("Dimension", "CRKOrder correctionOrder")
-class SuperiorRKUtilities:
+class RKUtilities:
     "Computes RK correction terms"
     
     PYB11typedefs = """

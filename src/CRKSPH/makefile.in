@@ -28,11 +28,9 @@ INSTSRCTARGETS = \
 	$(srcdir)/SolidCRKSPHHydroBaseInst.cc.py \
 	$(srcdir)/editMultimaterialSurfaceTopologyInst.cc.py \
 	$(srcdir)/zerothOrderSurfaceCorrectionsInst.cc.py \
-	$(srcdir)/RKCorrectionsInst.cc.py \
 	$(srcdir)/computeRKVolumesInst.cc.py \
-	$(srcdir)/computeRKCorrectionsInst.cc.py \
-	$(srcdir)/SuperiorRKUtilitiesInst.cc.py \
-	$(srcdir)/SuperiorRKCorrectionsInst.cc.py
+	$(srcdir)/RKCorrectionsInst.cc.py \
+	$(srcdir)/RKUtilitiesInst.cc.py
 
 SRCTARGETS = \
 	$(srcdir)/centerOfMass.cc \
