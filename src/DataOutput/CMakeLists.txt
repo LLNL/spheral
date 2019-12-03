@@ -1,6 +1,7 @@
 include_directories(.)
 set(DataOutput_sources
     RestartRegistrar.cc
+    RestartableObject.cc
     )
 
 set(DataOutput_headers
