@@ -34,10 +34,10 @@ evaluateBaseGradient(const TableKernel<Dimension>& kernel,
                      const SymTensor& H) {
   const auto eta = H * x;
   const auto etaMag = eta.magnitude();
-  const auto etaMagInv = safeInv(etaMag);
+  const auto etaUnit = eta.unitVector();
   const auto Hdet = H.Determinant();
   const auto dk = kernel.gradValue(etaMag, Hdet);
-  const auto HetaUnit = H * eta * etaMagInv;
+  const auto HetaUnit = H * etaUnit;
   return HetaUnit * dk;
 }
 
@@ -49,11 +49,12 @@ evaluateBaseHessian(const TableKernel<Dimension>& kernel,
                     const SymTensor& H) {
   const auto eta = H * x;
   const auto etaMag = eta.magnitude();
+  const auto etaUnit = eta.unitVector();
   const auto etaMagInv = safeInv(etaMag);
   const auto Hdet = H.Determinant();
   const auto dk = kernel.gradValue(etaMag, Hdet);
   const auto ddk = kernel.grad2Value(etaMag, Hdet);
-  const auto HetaUnit = H * eta * etaMagInv;
+  const auto HetaUnit = H * etaUnit;
   const auto HetaUnit2 = HetaUnit.selfdyad();
   const auto H2 = H.square();
   return (H2 - HetaUnit2) * etaMagInv * dk + HetaUnit2 * ddk;
