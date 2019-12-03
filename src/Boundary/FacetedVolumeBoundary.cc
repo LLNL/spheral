@@ -464,6 +464,70 @@ applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) c
 }
 
 //------------------------------------------------------------------------------
+// Find the set of nodes in the given NodeList that violate this boundary
+// condition.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+FacetedVolumeBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
+
+  // Get the BoundaryNodes.violationNodes for this NodeList.
+  this->addNodeList(nodeList);
+  auto& boundaryNodes = this->accessBoundaryNodes(nodeList);
+  auto& vNodes = boundaryNodes.violationNodes;
+  vNodes.clear();
+
+  // Loop over all the internal nodes in the NodeList and look for any that have
+  // wandered into the excluded region.
+  const auto& positions = nodeList.positions();
+  const auto  n = nodeList.numInternalNodes();
+  for (auto i = 0; i < n; ++i) {
+    const auto bool interior = mPoly.contains(pos(i), false);
+    if (mInteriorBoundary) {
+      if (interior) vNodes.push_back(i);
+    } else {
+      if (not interior) vNodes.push_back(i);
+    }
+  }
+
+  // Update the positions and H for the nodes in violation.
+  updateViolationNodes(nodeList);
+}
+
+//------------------------------------------------------------------------------
+// Update the nodes in violation of the boundary condition, mapping their
+// positions and H tensors.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& nodeList) {
+
+  // Get the set of violation nodes for this NodeList.
+  const auto& vNodes = this->violationNodes(nodeList);
+
+  // Loop over these nodes, and reset their positions to valid values.
+  auto&       pos = nodeList.positions();
+  auto&       H = nodeList.Hfield();
+  const auto& vel = nodeList.velocity();
+  for (const auto i: vNodes) {
+    // Backtrack to which facet we think the point passed through.
+    
+
+    positions(*itr) = mapPosition(positions(*itr), mEnterPlane, mExitPlane);
+    // CHECK2((positions(*itr) >= enterPlane()) and
+    //        (positions(*itr) >= exitPlane()),
+    //        "Bad position mapping: " << *itr << " " << nodeList.firstGhostNode() << " " << positions(*itr));
+  }
+
+  // Set the Hfield.
+  Field<Dimension, SymTensor>& Hfield = nodeList.Hfield();
+  this->enforceBoundary(Hfield);
+
+//   // Update the neighbor information.
+//   nodeList.neighbor().updateNodes(); // (vNodes);
+}    
+
+//------------------------------------------------------------------------------
 // Enforce the boundary condition on the set of nodes in violation of the 
 // boundary.
 //------------------------------------------------------------------------------
