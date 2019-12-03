@@ -479,10 +479,10 @@ FacetedVolumeBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeLis
 
   // Loop over all the internal nodes in the NodeList and look for any that have
   // wandered into the excluded region.
-  const auto& positions = nodeList.positions();
+  const auto& pos = nodeList.positions();
   const auto  n = nodeList.numInternalNodes();
   for (auto i = 0; i < n; ++i) {
-    const auto bool interior = mPoly.contains(pos(i), false);
+    const auto interior = mPoly.contains(pos(i), false);
     if (mInteriorBoundary) {
       if (interior) vNodes.push_back(i);
     } else {
@@ -502,29 +502,29 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& nodeList) {
 
-  // Get the set of violation nodes for this NodeList.
-  const auto& vNodes = this->violationNodes(nodeList);
+//   // Get the set of violation nodes for this NodeList.
+//   const auto& vNodes = this->violationNodes(nodeList);
 
-  // Loop over these nodes, and reset their positions to valid values.
-  auto&       pos = nodeList.positions();
-  auto&       H = nodeList.Hfield();
-  const auto& vel = nodeList.velocity();
-  for (const auto i: vNodes) {
-    // Backtrack to which facet we think the point passed through.
+//   // Loop over these nodes, and reset their positions to valid values.
+//   auto&       pos = nodeList.positions();
+//   auto&       H = nodeList.Hfield();
+//   const auto& vel = nodeList.velocity();
+//   for (const auto i: vNodes) {
+//     // Backtrack to which facet we think the point passed through.
     
 
-    positions(*itr) = mapPosition(positions(*itr), mEnterPlane, mExitPlane);
-    // CHECK2((positions(*itr) >= enterPlane()) and
-    //        (positions(*itr) >= exitPlane()),
-    //        "Bad position mapping: " << *itr << " " << nodeList.firstGhostNode() << " " << positions(*itr));
-  }
+//     positions(*itr) = mapPosition(positions(*itr), mEnterPlane, mExitPlane);
+//     // CHECK2((positions(*itr) >= enterPlane()) and
+//     //        (positions(*itr) >= exitPlane()),
+//     //        "Bad position mapping: " << *itr << " " << nodeList.firstGhostNode() << " " << positions(*itr));
+//   }
 
-  // Set the Hfield.
-  Field<Dimension, SymTensor>& Hfield = nodeList.Hfield();
-  this->enforceBoundary(Hfield);
+//   // Set the Hfield.
+//   Field<Dimension, SymTensor>& Hfield = nodeList.Hfield();
+//   this->enforceBoundary(Hfield);
 
-//   // Update the neighbor information.
-//   nodeList.neighbor().updateNodes(); // (vNodes);
+// //   // Update the neighbor information.
+// //   nodeList.neighbor().updateNodes(); // (vNodes);
 }    
 
 //------------------------------------------------------------------------------
