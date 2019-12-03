@@ -666,8 +666,9 @@ intersect(const Vector& s0, const Vector& s1,
   const auto n = mVertices.size();
   for (auto i = 0; i < n; ++i) {
     const auto& e0 = mVertices[i];
-    const auto& e1 = mVertices[i % n];
+    const auto& e1 = mVertices[(i + 1) % n];
     const auto code = segmentSegmentIntersection(s0, s1, e0, e1, inter1, inter2);
+    // std::cerr << "Check " << s0 << "--" << s1 << " against " << e0 << "--" << e1 <<  " (" << i << " " << ((i + 1) % n) << ") : " << code << std::endl;
 
     if (code == '1') {
       // Simple intersection inside the edge
@@ -677,10 +678,10 @@ intersect(const Vector& s0, const Vector& s1,
     } else if (code == 'v') {
       // Intersected on a vertex -- this would count as two intersections if we're not
       // careful!
-      if ((inter1 - e0).magnitude2() < (inter1 - e1).magnitude2()) {
+      // if ((inter1 - e0).magnitude2() < (inter1 - e1).magnitude2()) {
         facetIDs.push_back(i);
         intersections.push_back(inter1);
-      }
+      // }
 
     } else if (code == 'e') {
       // Oh boy, the segment is colinear with and overlaps the edge.
