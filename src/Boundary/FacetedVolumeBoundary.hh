@@ -76,7 +76,7 @@ public:
   virtual void reset(const DataBase<Dimension>& dataBase) override;
 
   // Don't cull our ghost nodes
-  virtual bool allowGhostCulling() const { return false; }
+  virtual bool allowGhostCulling() const override { return false; }
 
   // Read access to internal data
   const FacetedVolume& polyVolume() const;

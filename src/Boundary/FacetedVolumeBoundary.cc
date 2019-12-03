@@ -324,6 +324,8 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
     const auto  nfacets = facets.size();
     const auto  name = nodeList.name();
     auto& boundaryNodes = this->accessBoundaryNodes(nodeList);
+    boundaryNodes.controlNodes.clear();
+    boundaryNodes.ghostNodes.clear();
     const auto  centroid = mPoly.centroid();
     auto&       pos = nodeList.positions();
     auto&       H = nodeList.Hfield();
@@ -355,14 +357,15 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
         }
       }
       ghostRanges[k].second = firstGhost;
-      CHECK(posGhost.size() == Hghost.size() == (firstGhost - ghostRanges[k].first));
+      CHECK(posGhost.size() == Hghost.size());
       boundaryNodes.controlNodes.insert(boundaryNodes.controlNodes.end(),
                                         controls[k].begin(),
                                         controls[k].end());
     }
     CHECK(mFacetControlNodes[name].size() == facets.size());
     CHECK(mFacetGhostNodes[name].size() == facets.size());
-    CHECK(posGhost.size() == Hghost.size() == boundaryNodes.controlNodes.size())
+    CHECK(posGhost.size() == Hghost.size());
+    CHECK(posGhost.size() == boundaryNodes.controlNodes.size());
 
     // Update the ghost node info.
     const auto numNewGhosts = posGhost.size();
@@ -370,6 +373,10 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
     nodeList.numGhostNodes(nodeList.numGhostNodes() + numNewGhosts);
     std::copy(posGhost.begin(), posGhost.end(), &(pos[firstGhost]));
     std::copy(Hghost.begin(), Hghost.end(), &(H[firstGhost]));
+    boundaryNodes.ghostNodes.resize(numNewGhosts);
+    for (auto k = 0; k < numNewGhosts; ++k) boundaryNodes.ghostNodes[k] = k + firstGhost;
+    CHECK(boundaryNodes.controlNodes.size() == boundaryNodes.ghostNodes.size());
+    // std::cerr << "Introduced ghosts in range: " << firstGhost << " " << nodeList.numNodes() << std::endl;
   }
 }
 
@@ -530,9 +537,9 @@ FacetedVolumeBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeLis
     }
   }
 
-  std::cerr << "Violation nodes:";
-  for (auto i: vNodes) std::cerr << " " << i;
-  std::cerr << endl;
+  // std::cerr << "Violation nodes:";
+  // for (auto i: vNodes) std::cerr << " " << i;
+  // std::cerr << endl;
 
   // Update the positions and H for the nodes in violation.
   updateViolationNodes(nodeList);
@@ -573,8 +580,10 @@ FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& node
     inViolation = true;
     while (inViolation) {
       // Backtrack to which facet we think the point passed through.
+      CHECK((not mInteriorBoundary) xor mPoly.contains(newPos));
       const auto backPos = newPos - chordLength*newVel.unitVector();
       mPoly.intersect(backPos, newPos, potentialFacets, intersections);
+      CHECK(potentialFacets.size() > 0);
       CHECK(potentialFacets.size() == intersections.size());
       auto minFacet = potentialFacets[0];
       auto minDist = (intersections[0] - newPos).magnitude2();
@@ -588,8 +597,7 @@ FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& node
       R *= mReflectOperators[minFacet];
       newPos = mapPositionThroughPlanes(newPos, plane, plane);
       newVel = mReflectOperators[minFacet]*newVel;
-      inViolation = mPoly.contains(newPos, false);
-      if (mInteriorBoundary) inViolation = not inViolation;
+      inViolation = ((not mInteriorBoundary) xor mPoly.contains(newPos, false));
     }
     pos(i) = newPos;
   }

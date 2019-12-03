@@ -38,6 +38,12 @@ class FacetedVolumeBoundary(Boundary):
         "Overridable hook for clearing out the boundary condition."
         return "void"
 
+    @PYB11virtual
+    @PYB11const
+    def allowGhostCulling(self):
+        "Optionally opt-out of ghost node culling."
+        return "bool"
+
     @PYB11const
     def reflectOperator(self, 
                         facetID = "unsigned"):
