@@ -376,7 +376,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     // polytope::PLC<2, double> plc = polytope::convexHull_2d(points_polytope, &(*low.begin()), 1.0e-15);
     vector<vector<int> > plc = convexHull_2d(points_polytope, low, 1.0e-8);
     const unsigned numVertices = plc.size();
-    CHECK(numVertices >= 3);
+    CHECK2(numVertices >= 3, numVertices);
 
     // Extract the hull information back to our local convention.  We use the fact that
     // polytope's convex hull method sorts the vertices in counter-clockwise here.
