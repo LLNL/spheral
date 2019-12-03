@@ -152,3 +152,5 @@ member of a pair (maintaining symmetry)."""
     nodeLists = PYB11property("const std::vector<NodeListType*>&", "nodeLists",
                               returnpolicy="reference",
                               doc="The set of NodeLists we have connectivity for")
+    nodePairList = PYB11property(returnpolicy="reference",
+                                 doc="The connectivity as a set of (nodeListi, i, nodeListj, j)")

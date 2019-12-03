@@ -42,7 +42,8 @@ public:
 
   // Constructors and destructors.
   InflowOutflowBoundary(DataBase<Dimension>& dataBase,
-                 const GeomPlane<Dimension>& plane);
+                        const GeomPlane<Dimension>& plane,
+                        const bool empty);
   virtual ~InflowOutflowBoundary();
 
   //**********************************************************************
@@ -92,6 +93,10 @@ public:
 
   // After physics have been initialized we take a snapshot of the node state.
   virtual void initializeProblemStartup() override;
+
+  // We need to not cull ghost nodes, since they might need to cross the boundary
+  // and become new inflow nodes.
+  virtual bool allowGhostCulling() const override { return false; }
   //**********************************************************************
 
   //**********************************************************************
@@ -137,6 +142,13 @@ public:
   template<typename DataType> std::vector<DataType>& storedValues(const Field<Dimension, DataType>& field);
   std::vector<std::string> storedKeys() const;
 
+  // Set new (constant) values for the ghost nodes.
+  template<typename DataType> void setStoredValues(const KeyType key, const DataType& value);
+  template<typename DataType> void setStoredValues(const Field<Dimension, DataType>& field, const DataType& value);
+
+  // Clear out stored values.
+  void clearStoredValues();
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override;
@@ -150,7 +162,7 @@ private:
   GeomPlane<Dimension> mPlane;
   int mBoundaryCount;
   Scalar mDT;
-  bool mActive;
+  bool mActive, mEmpty;
   std::map<std::string, int> mNumInflowNodes;
   std::map<std::string, Scalar> mXmin;
 

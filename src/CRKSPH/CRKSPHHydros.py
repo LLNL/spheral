@@ -206,53 +206,6 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
 """
 
 #-------------------------------------------------------------------------------
-# The variant CRKSPHHydro pattern.
-#-------------------------------------------------------------------------------
-CRKSPHVariantFactoryString = """
-class %(classname)s%(dim)s(CRKSPHVariant%(dim)s):
-
-    def __init__(self,
-                 Q,
-                 W,
-                 WPi = None,
-                 filter = 1.0,
-                 cfl = 0.25,
-                 useVelocityMagnitudeForDt = False,
-                 compatibleEnergyEvolution = True,
-                 evolveTotalEnergy = False,
-                 XSPH = True,
-                 densityUpdate = RigorousSumDensity,
-                 HUpdate = IdealH,
-                 correctionOrder = LinearOrder,
-                 volumeType = CRKVoronoiVolume,
-                 epsTensile = 0.0,
-                 nTensile = 4.0,
-                 limitMultimaterialTopology = False):
-        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
-        if WPi is None:
-            WPi = W
-        CRKSPHVariant%(dim)s.__init__(self,
-                                        self._smoothingScaleMethod,
-                                        Q,
-                                        W,
-                                        WPi,
-                                        filter,
-                                        cfl,
-                                        useVelocityMagnitudeForDt,
-                                        compatibleEnergyEvolution,
-                                        evolveTotalEnergy,
-                                        XSPH,
-                                        densityUpdate,
-                                        HUpdate,
-                                        correctionOrder,
-                                        volumeType,
-                                        epsTensile,
-                                        nTensile,
-                                        limitMultimaterialTopology)
-        return
-"""
-
-#-------------------------------------------------------------------------------
 # Make 'em.
 #-------------------------------------------------------------------------------
 for dim in dims:
@@ -269,13 +222,6 @@ for dim in dims:
     exec(SolidCRKSPHHydroFactoryString % {"dim"                  : "%id" % dim,
                                           "classname"            : "SolidACRKSPHHydro",
                                           "smoothingScaleMethod" : "ASPHSmoothingScale"})
-
-    exec(CRKSPHVariantFactoryString % {"dim"                  : "%id" % dim,
-                                       "classname"            : "CRKSPHVar",
-                                       "smoothingScaleMethod" : "SPHSmoothingScale"})
-    exec(CRKSPHVariantFactoryString % {"dim"                  : "%id" % dim,
-                                       "classname"            : "ACRKSPHVar",
-                                       "smoothingScaleMethod" : "ASPHSmoothingScale"})
 
 if 2 in dims:
     exec(CRKSPHHydroRZFactoryString % {"classname"            : "CRKSPHHydroRZ",

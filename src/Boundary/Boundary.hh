@@ -176,9 +176,12 @@ public:
   // Defaults to no-op.
   virtual void clip(Vector& xmin, Vector& xmax) const;
 
+  // Optionally opt-out of ghost node culling.
+  virtual bool allowGhostCulling() const { return true; }
+
   // Some boundaries have ghosts we should exclude from tessellations.
   // Provide a hook to note such cases.
-  virtual bool meshGhostNodes() const;
+  virtual bool meshGhostNodes() const { return true; };
 
   // protected:
   //--------------------------- Protected Interface ---------------------------//

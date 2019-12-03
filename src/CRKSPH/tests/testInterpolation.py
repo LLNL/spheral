@@ -265,6 +265,8 @@ gradM2 = db.newFluidThirdRankTensorFieldList(name="grad M2")
 gradM3 = db.newFluidFourthRankTensorFieldList(name="grad M3")
 gradM4 = db.newFluidFifthRankTensorFieldList(name="grad M4")
 
+surfacePoint = db.newFluidIntFieldList(name="surface point")
+
 db.updateConnectivityMap(True)
 cm = db.connectivityMap()
 position = db.fluidPosition
@@ -280,6 +282,7 @@ H = db.fluidHfield
 computeCRKSPHMoments(cm, WT, weight, position, H, correctionOrder, NodeCoupling(),
                      M0, M1, M2, M3, M4, gradM0, gradM1, gradM2, gradM3, gradM4)
 computeCRKSPHCorrections(M0, M1, M2, M3, M4, gradM0, gradM1, gradM2, gradM3, gradM4, H,
+                         surfacePoint,
                          correctionOrder,
                          A, B, C, gradA, gradB, gradC)
 

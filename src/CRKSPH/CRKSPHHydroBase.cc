@@ -144,7 +144,6 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mEffViscousPressure(FieldStorageType::CopyFields),
   mViscousWork(FieldStorageType::CopyFields),
   mVolume(FieldStorageType::CopyFields),
-  mMassDensityGradient(FieldStorageType::CopyFields),
   mWeightedNeighborSum(FieldStorageType::CopyFields),
   mMassSecondMoment(FieldStorageType::CopyFields),
   mXSPHDeltaV(FieldStorageType::CopyFields),
@@ -155,7 +154,7 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDHDt(FieldStorageType::CopyFields),
   mDvDx(FieldStorageType::CopyFields),
   mInternalDvDx(FieldStorageType::CopyFields),
-  mPairAccelerations(FieldStorageType::CopyFields),
+  mPairAccelerations(),
   mA(FieldStorageType::CopyFields),
   mB(FieldStorageType::CopyFields),
   mC(FieldStorageType::CopyFields),
@@ -207,7 +206,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
   mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
   mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
-  mMassDensityGradient = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massDensityGradient);
   mViscousWork = dataBase.newFluidFieldList(0.0, HydroFieldNames::viscousWork);
   mWeightedNeighborSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::weightedNeighborSum);
   mMassSecondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
@@ -219,7 +217,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H);
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
-  mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
+  mPairAccelerations.clear();
   mDeltaCentroid = dataBase.newFluidFieldList(Vector::zero, "delta centroid");
 
   mA = dataBase.newFluidFieldList(0.0,                        HydroFieldNames::A_CRKSPH);
@@ -321,7 +319,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Compute the corrections.
   const NodeCoupling couple;
   computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), couple, mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
-  computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, H, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
+  computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, H, mSurfacePoint, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
   if (mLimitMultimaterialTopology) zerothOrderSurfaceCorrections(mA, mB, mC, mGradA, mGradB, mGradC, mM0, mGradm0, mSurfacePoint);
 
   // This breaks domain independence, so we'll try being inconsistent on the first step.
@@ -537,7 +535,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mViscousWork, 0.0, HydroFieldNames::viscousWork, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
   dataBase.resizeFluidFieldList(mMassSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
-  dataBase.resizeFluidFieldList(mMassDensityGradient, Vector::zero, HydroFieldNames::massDensityGradient, false);
   dataBase.resizeFluidFieldList(mXSPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
   dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, false);
   dataBase.resizeFluidFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
@@ -546,7 +543,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
-  dataBase.resizeFluidFieldList(mPairAccelerations, vector<Vector>(), HydroFieldNames::pairAccelerations, false);
 
   derivs.enroll(mHideal);
   derivs.enroll(mMaxViscousPressure);
@@ -554,7 +550,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mViscousWork);
   derivs.enroll(mWeightedNeighborSum);
   derivs.enroll(mMassSecondMoment);
-  derivs.enroll(mMassDensityGradient);
   derivs.enroll(mXSPHDeltaV);
 
   // These two (the position and velocity updates) may be registered
@@ -568,7 +563,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDHDt);
   derivs.enroll(mDvDx);
   derivs.enroll(mInternalDvDx);
-  derivs.enroll(mPairAccelerations);
+  derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
 }
 
 //------------------------------------------------------------------------------
@@ -587,7 +582,6 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-  const auto  gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   const auto  damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   auto        vol = state.fields(HydroFieldNames::volume, 0.0);
   auto        surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
@@ -713,7 +707,7 @@ initialize(const typename Dimension::Scalar time,
   // Change CRKSPH weights here if need be!
   const NodeCoupling couple;
   computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), couple, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
-  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder(), A, B, C, gradA, gradB, gradC);
+  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, surfacePoint, correctionOrder(), A, B, C, gradA, gradB, gradC);
   if (mLimitMultimaterialTopology) zerothOrderSurfaceCorrections(A, B, C, gradA, gradB, gradC, m0, gradm0, surfacePoint);
 
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
@@ -780,99 +774,6 @@ postStateUpdate(const typename Dimension::Scalar time,
                 const DataBase<Dimension>& dataBase,
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivs) {
-}
-
-//------------------------------------------------------------------------------
-// Provide a hook to be called after the state has been updated and 
-// boundary conditions have been enforced.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-CRKSPHHydroBase<Dimension>::
-finalize(const typename Dimension::Scalar time,
-         const typename Dimension::Scalar dt,
-         DataBase<Dimension>& dataBase,
-         State<Dimension>& state,
-         StateDerivatives<Dimension>& derivs) {
-
-  // Base class finalization.
-  GenericHydro<Dimension>::finalize(time, dt, dataBase, state, derivs);
-
-  // // Volume.
-  // const auto& W = this->kernel();
-  // const auto& connectivityMap = dataBase.connectivityMap();
-  // const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-  // const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  // const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-  // const auto  gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
-  // const auto  damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
-  // auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  // auto vol = state.fields(HydroFieldNames::volume, 0.0);
-  // auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
-  // auto cells = state.fields(HydroFieldNames::cells, FacetedVolume());
-  // auto cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, vector<CellFaceFlag>());
-  // if (mVolumeType == CRKVolumeType::CRKMassOverDensity) {
-  //   vol.assignFields(mass/massDensity);
-  // } else if (mVolumeType == CRKVolumeType::CRKSumVolume) {
-  //   computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
-  // } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
-  //   vol.assignFields(mass/massDensity);
-  //   FieldList<Dimension, typename Dimension::FacetedVolume> cells;
-  //   FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
-  //   computeVoronoiVolume(position, H, connectivityMap, damage,
-  //                        vector<typename Dimension::FacetedVolume>(),                // no boundaries
-  //                        vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
-  //                        vector<Boundary<Dimension>*>(this->boundaryBegin(),         // boundaries
-  //                                                     this->boundaryEnd()),
-  //                        FieldList<Dimension, typename Dimension::Scalar>(),         // no weights
-  //                        surfacePoint, vol, mDeltaCentroid, mEtaVoidPoints,          // return values
-  //                        cells, cellFaceFlags);
-  // } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
-  //   computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
-  // } else if (mVolumeType == CRKVolumeType::HVolume) {
-  //   const Scalar nPerh = vol.nodeListPtrs()[0]->nodesPerSmoothingScale();
-  //   computeHVolumes(nPerh, H, vol);
-  // } else {
-  //   VERIFY2(false, "Unknown CRK volume weighting.");
-  // }
-  // for (auto boundItr = this->boundaryBegin();
-  //      boundItr != this->boundaryEnd();
-  //      ++boundItr) {
-  //   (*boundItr)->applyFieldListGhostBoundary(vol);
-  //   if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
-  //     (*boundItr)->applyFieldListGhostBoundary(surfacePoint);
-  //     (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
-  //     // (*boundItr)->applyFieldListGhostBoundary(cells);
-  //     // // (*boundItr)->applyFieldListGhostBoundary(cellFaceFlags);
-  //   }
-  // }
-  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //      boundItr != this->boundaryEnd();
-  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
-
-  // // Depending on the mass density advancement selected, we may want to replace the 
-  // // mass density.
-  // if (densityUpdate() == MassDensityType::RigorousSumDensity) {
-  //   computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, vol, H, massDensity);
-  //   for (auto boundaryItr = this->boundaryBegin(); 
-  //        boundaryItr != this->boundaryEnd();
-  //        ++boundaryItr) {
-  //     (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-  //   }
-  //   for (auto boundaryItr = this->boundaryBegin(); 
-  //        boundaryItr != this->boundaryEnd();
-  //        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  // } else if (densityUpdate() == MassDensityType::VoronoiCellDensity) {
-  //   massDensity.assignFields(mass/vol);
-  //   for (auto boundaryItr = this->boundaryBegin(); 
-  //        boundaryItr != this->boundaryEnd();
-  //        ++boundaryItr) {
-  //     (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-  //   }
-  //   for (auto boundaryItr = this->boundaryBegin(); 
-  //        boundaryItr != this->boundaryEnd();
-  //        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  // }
 }
 
 //------------------------------------------------------------------------------
@@ -1016,7 +917,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
   file.write(mVolume, pathName + "/Volume");
-  file.write(mMassDensityGradient, pathName + "/massDensityGradient");
   file.write(mA, pathName + "/A");
   file.write(mB, pathName + "/B");
   file.write(mC, pathName + "/C");
@@ -1054,7 +954,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mDvDx, pathName + "/DvDx");
   file.read(mInternalDvDx, pathName + "/internalDvDx");
   file.read(mVolume, pathName + "/Volume");
-  file.read(mMassDensityGradient, pathName + "/massDensityGradient");
   file.read(mA, pathName + "/A");
   file.read(mB, pathName + "/B");
   file.read(mC, pathName + "/C");

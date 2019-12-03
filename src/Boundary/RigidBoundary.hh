@@ -56,7 +56,7 @@ public:
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const { return "RigidBoundary"; }
+  virtual std::string label() const override { return "RigidBoundary"; }
   //****************************************************************************
 };
 

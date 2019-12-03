@@ -170,13 +170,12 @@ for p in packages:
 #-------------------------------------------------------------------------------
 # Construct an integrator.
 #-------------------------------------------------------------------------------
-integrator = VerletIntegrator(db) # CheapSynchronousRK2Integrator(db)
+integrator = CheapSynchronousRK2Integrator(db)
 for p in packages:
     integrator.appendPhysicsPackage(p)
 del p
 integrator.lastDt = dtMin
 integrator.dtMin = dtMin
-integrator.cullGhostNodes = False
 integrator.verbose = True
 output("integrator")
 output("integrator.lastDt")

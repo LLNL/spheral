@@ -94,7 +94,7 @@ public:
   //**********************************************************************
   // Descendent Distributed Neighbors are required to provide the 
   // setGhostNodes method for DataBases.
-  virtual void setAllGhostNodes(DataBase<Dimension>& dataBase) = 0;
+  virtual void setAllGhostNodes(DataBase<Dimension>& dataBase) override = 0;
 
   // Override the Boundary method for culling ghost nodes.
   virtual void cullGhostNodes(const FieldList<Dimension, int>& flagSet,

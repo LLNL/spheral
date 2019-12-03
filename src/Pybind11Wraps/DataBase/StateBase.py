@@ -157,7 +157,7 @@ class StateBase:
         return "void"
 
     #...........................................................................
-    # Template methods
+    # Template methods for getting Fields
     @PYB11template("Value")
     @PYB11returnpolicy("reference_internal")
     @PYB11const
@@ -217,3 +217,24 @@ class StateBase:
     allFacetedVolumeFields = PYB11TemplateMethod(allFields, "FacetedVolume")
     allVector_of_CellFaceFlagFields = PYB11TemplateMethod(allFields, "std::vector<CellFaceFlag>")
     allVector_of_doubleFields = PYB11TemplateMethod(allFields, "std::vector<double>")
+
+    #...........................................................................
+    # enrollAny/getAny
+    @PYB11template("Value")
+    def enrollAny(self,
+                  key = "const KeyType&",
+                  thing = "%(Value)s&"):
+        "Enroll a type of %(Value)s."
+        return "void"
+
+    @PYB11template("Value")
+    @PYB11const
+    @PYB11returnpolicy("reference_internal")
+    def getAny(self,
+               key = "const KeyType&"):
+        "Return a stored type of %(Value)s"
+        return "%(Value)s&"
+
+    enrollVectorVector = PYB11TemplateMethod(enrollAny, "std::vector<Vector>", pyname="enrollAny")
+    getVectorVector = PYB11TemplateMethod(getAny, "std::vector<Vector>", pyname="getAny")
+

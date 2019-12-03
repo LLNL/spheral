@@ -45,6 +45,8 @@ computeSumVoronoiCellMassDensity(const ConnectivityMap<Dimension>& connectivityM
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
+  // Some useful variables.
+  const auto W0 = W.kernelValue(0.0, 1.0);
   // Zero out the result, and prepare a FieldList to hold the effective volume.
   massDensity = 0.0;
   FieldList<Dimension, Scalar> Veff(FieldStorageType::CopyFields);
@@ -53,66 +55,80 @@ computeSumVoronoiCellMassDensity(const ConnectivityMap<Dimension>& connectivityM
     Veff.appendNewField("effective volume", nodeList, 0.0);
   }
 
-  // Walk the FluidNodeLists.
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const FluidNodeList<Dimension>& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[nodeListi]->nodeList());
-    const int firstGhostNodei = nodeList.firstGhostNode();
-    const Scalar rhoMin = nodeList.rhoMin();
-    const Scalar rhoMax = nodeList.rhoMax();
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
 
-    // Iterate over the nodes in this node list.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
+  // Walk all the interacting pairs.
+#pragma omp parallel
+  {
+    // Thread private scratch variables
+    int i, j, nodeListi, nodeListj;
+    Scalar Wi, gWi, Wj, gWj;
 
-      // Get the state for node i.
-      const Vector& ri = position(nodeListi, i);
-      const Scalar& mi = mass(nodeListi, i);
-      const Scalar& Vi = volume(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto Veff_thread = Veff.threadCopy(threadStack);
+    auto massDensity_thread = massDensity.threadCopy(threadStack);
 
-      // Get the neighbors for this node (in this NodeList).  We use the approximation here
-      // that nodes from other NodeLists do not contribute to the density of this one.
-      const vector<int>& connectivity = connectivityMap.connectivityForNode(nodeListi, i)[nodeListi];
-      for (vector<int>::const_iterator jItr = connectivity.begin();
-           jItr != connectivity.end();
-           ++jItr) {
-        const int j = *jItr;
+#pragma omp for
+    for (auto kk = 0; kk < npairs; ++kk) {
+      i = pairs[kk].i_node;
+      j = pairs[kk].j_node;
+      nodeListi = pairs[kk].i_list;
+      nodeListj = pairs[kk].j_list;
 
-        // Check if this node pair has already been calculated.
-        if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                     nodeListi, j,
-                                                     firstGhostNodei)) {
-          const Vector& rj = position(nodeListi, j);
-          const Scalar& mj = mass(nodeListi, j);
-          const Scalar& Vj = volume(nodeListi, j);
-          const SymTensor& Hj = H(nodeListi, j);
-          const Scalar Hdetj = Hj.Determinant();
+      // State for node i
+      const auto& ri = position(nodeListi, i);
+      const auto  mi = mass(nodeListi, i);
+      const auto  Vi = volume(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
 
-          // Kernel weighting and gradient.
-          const Vector rij = ri - rj;
-          const Scalar etai = (Hi*rij).magnitude();
-          const Scalar etaj = (Hj*rij).magnitude();
-          const Scalar Wi = W.kernelValue(etai, Hdeti);
-          const Scalar Wj = W.kernelValue(etaj, Hdetj);
+      // State for node j
+      const auto& rj = position(nodeListi, j);
+      const auto  mj = mass(nodeListi, j);
+      const auto  Vj = volume(nodeListi, j);
+      const auto& Hj = H(nodeListi, j);
+      const auto  Hdetj = Hj.Determinant();
 
-          // Sum the pair-wise contributions.
-          Veff(nodeListi, i) += Vj*Wi;
-          massDensity(nodeListi, i) += mj*Wi;
+      // Kernel weighting and gradient.
+      const auto rij = ri - rj;
+      const auto etai = (Hi*rij).magnitude();
+      const auto etaj = (Hj*rij).magnitude();
+      const auto Wi = W.kernelValue(etai, Hdeti);
+      const auto Wj = W.kernelValue(etaj, Hdetj);
 
-          Veff(nodeListi, j) += Vi*Wj;
-          massDensity(nodeListi, j) += mi*Wj;
-        }
-      }
-      // Finalize the density for node i.
-      const Scalar W0 = W.kernelValue(0.0, Hdeti);
+      // Sum the pair-wise contributions.
+      Veff_thread(nodeListi, i) += Vj*Wi;
+      massDensity_thread(nodeListi, i) += mj*Wi;
+
+      Veff_thread(nodeListi, j) += Vi*Wj;
+      massDensity_thread(nodeListi, j) += mi*Wj;
+    }
+
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+
+  }   // OMP parallel
+
+
+  // Finalize the density for each point.
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[0]->nodeList());
+    const auto ni = nodeList.numInternalNodes();
+    const auto rhoMin = nodeList.rhoMin();
+    const auto rhoMax = nodeList.rhoMax();
+
+#pragma omp parallel for
+    for (auto i = 0; i < ni; ++i) {
+      const auto  mi = mass(nodeListi, i);
+      const auto  Vi = volume(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
       massDensity(nodeListi, i) = max(rhoMin, 
                                       min(rhoMax,
-                                          (massDensity(nodeListi, i) + mi*W0) * 
-                                          safeInv(Veff(nodeListi, i) + Vi*W0)));
-
+                                          (massDensity(nodeListi, i) + mi*Hdeti*W0) * 
+                                          safeInv(Veff(nodeListi, i) + Vi*Hdeti*W0)));
       CHECK(massDensity(nodeListi, i) > 0.0);
     }
   }

@@ -52,7 +52,7 @@ public:
   // Override the culling of ghost nodes.
   virtual void cullGhostNodes(const FieldList<Dimension, int>& flagSet,
                               FieldList<Dimension, int>& old2newIndexMap,
-                              std::vector<int>& numNodesRemoved);
+                              std::vector<int>& numNodesRemoved) override;
 
   // Apply the boundary condition to the ghost nodes in the given Field.
   virtual void applyGhostBoundary(Field<Dimension, int>& field) const override;
@@ -80,9 +80,9 @@ public:
   virtual void reset(const DataBase<Dimension>& dataBase) override;
 
   // Report the number of ghost nodes in this boundary.
-  virtual int numGhostNodes() const;
+  virtual int numGhostNodes() const override;
 
-  virtual std::string label() const { return "PeriodicBoundary"; }
+  virtual std::string label() const override { return "PeriodicBoundary"; }
 
 private:
   //--------------------------- Private Interface ---------------------------//

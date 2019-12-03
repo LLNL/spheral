@@ -189,6 +189,10 @@ evaluateDerivatives(const Scalar time,
           normalizationi += Wi;
           Deffi += Wi * Dj;
           break;
+
+        case EffectiveDamageAlgorithm::CopyDamage:
+          // noop
+          break;
         }
 
         // Increment the gradient.

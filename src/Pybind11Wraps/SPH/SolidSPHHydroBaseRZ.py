@@ -56,12 +56,6 @@ class SolidSPHHydroBaseRZ(SolidSPHHydroBase):
         return "void"
 
     @PYB11virtual
-    def registerDerivatives(dataBase = "DataBase<%(Dimension)s>&",
-                            derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Register the derivatives/change fields for updating state."
-        return "void"
-
-    @PYB11virtual
     @PYB11const
     def evaluateDerivatives(time = "const Scalar",
                             dt = "const Scalar",
@@ -93,10 +87,6 @@ mass density, velocity, and specific thermal energy."""
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
-    #...........................................................................
-    # Properties
-    deviatoricStressTT =  PYB11property("const FieldList<%(Dimension)s, Scalar>&", "deviatoricStressTT", returnpolicy="reference_internal")
-    DdeviatoricStressTTDt =  PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DdeviatoricStressTTDt", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods

@@ -9,7 +9,7 @@ from math import *
 import shutil
 import mpi
 
-from SolidSpheralRZ import *
+from SpheralRZ import *
 from SpheralTestUtilities import *
 from findLastRestart import *
 from NodeHistory import NodeHistory
@@ -33,9 +33,9 @@ units = PhysicalConstants(0.01,  # Unit length in m
 #-------------------------------------------------------------------------------
 def F(alpha, lamb, R0, R1, n):
 
-    class integfunc(ScalarFunctor):
+    class integfunc(ScalarScalarFunctor):
         def __init__(self, R0, R1):
-            ScalarFunctor.__init__(self)
+            ScalarScalarFunctor.__init__(self)
             self.alpha = R1/R0 - 1.0
             self.thpt = 3.0*(self.alpha +
                              self.alpha*self.alpha +
@@ -66,17 +66,16 @@ commandLine(nr = 10,                     # Radial resolution of the shell in poi
             nshells = 10,
 
             # Hydro parameters.
-            CRKSPH = False,
-            SPH = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
-            Qconstructor = MonaghanGingoldViscosity,
-            Cl = 1.0,
-            Cq = 1.0,
-            linearInExpansion = False,
-            Qlimiter = False,
-            balsaraCorrection = False,
-            epsilon2 = 1e-2,
-            negligibleSoundSpeed = 1e-5,
-            csMultiplier = 1e-4,
+            crksph = False,
+            sph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            Cl = None,
+            Cq = None,
+            linearInExpansion = None,
+            Qlimiter = None,
+            balsaraCorrection = None,
+            epsilon2 = None,
+            negligibleSoundSpeed = None,
+            csMultiplier = None,
             hmin = 1e-5,
             hmax = 10.0,
             cfl = 0.25,
@@ -87,7 +86,8 @@ commandLine(nr = 10,                     # Radial resolution of the shell in poi
             filter = 0.0,
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
-            compatibleEnergy = True,
+            compatibleEnergy = False,
+            evolveTotalEnergy = True,
             gradhCorrection = False,
 
             # Time integration
@@ -130,25 +130,16 @@ Fval = F(alpha, lamb, R0, R1, 1000)
 u0 = sqrt(4.0*Y0*R1*Fval/(3.0*rho0Be*delta))
 print "  lambda = %s\n  alpha = %s\n  F = %s\n  u0 = %s\n" % (lamb, alpha, Fval, u0)
 
-# Hydro constructor.
-if CRKSPH:
-    if SPH:
-        HydroConstructor = SolidCRKSPHHydro
-    else:
-        HydroConstructor = SolidACRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+if crksph:
+    hydroname = "CRKSPH"
 else:
-    if SPH:
-        HydroConstructor = SolidSPHHydro
-    else:
-        HydroConstructor = SolidASPHHydro
+    hydroname = "SPH"
 
 # Directories.
 dataDir = os.path.join(dataDirBase,
-                       HydroConstructor.__name__,
-                       Qconstructor.__name__,
+                       hydroname,
                        "densityUpdate=%s" % densityUpdate,
-                       "compatibleEnergy=%s" % compatibleEnergy,
+                       "compatibleEnergy=%s_totalEnergy=%s" % (compatibleEnergy, evolveTotalEnergy),
                        seed,
                        geometry,
                        "nr=%i" % nr)
@@ -262,48 +253,33 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosities for the problem.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion)
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-q.epsilon2 = epsilon2
-q.negligibleSoundSpeed = negligibleSoundSpeed
-q.csMultiplier = csMultiplier
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.linearInExpansion")
-output("q.limiter")
-output("q.epsilon2")
-output("q.negligibleSoundSpeed")
-output("q.csMultiplier")
-output("q.balsaraShearCorrection")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
+if crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   XSPH = XSPH,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate,
+                   RZ = True)
 else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                filter = filter,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile,
+                RZ = True)
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
@@ -312,6 +288,28 @@ output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
+
+#-------------------------------------------------------------------------------
+# Tweak the artificial viscosity.
+#-------------------------------------------------------------------------------
+q = hydro.Q
+if not Cl is None:
+    q.Cl = Cl
+if not Cq is None:
+    q.Cq = Cq
+if not Qlimiter is None:
+    q.limiter = Qlimiter
+if not epsilon2 is None:
+    q.epsilon2 = epsilon2
+if not linearInExpansion is None:
+    q.linearInExpansion = linearInExpansion
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.limiter")
+output("q.epsilon2")
+output("q.linearInExpansion")
+output("q.quadraticInExpansion")
 
 #-------------------------------------------------------------------------------
 # Boundary conditions.

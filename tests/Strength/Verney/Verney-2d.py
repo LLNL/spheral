@@ -88,6 +88,7 @@ commandLine(nr = 10,                 # Radial resolution of the shell in points
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
             compatibleEnergy = True,
+            evolveTotalEnergy = False,
             gradhCorrection = False,
 
             # Time integration
@@ -139,7 +140,7 @@ else:
 dataDir = os.path.join(dataDirBase,
                        hydroname,
                        "densityUpdate=%s" % densityUpdate,
-                       "compatibleEnergy=%s" % compatibleEnergy,
+                       "compatibleEnergy=%s_totalEnergy=%s" % (compatibleEnergy, evolveTotalEnergy),
                        seed,
                        geometry,
                        "nr=%i" % nr)
@@ -260,6 +261,7 @@ if crksph:
                    filter = filter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate)

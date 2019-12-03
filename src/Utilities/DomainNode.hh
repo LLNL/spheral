@@ -29,6 +29,7 @@ struct DomainNode {
     domainID = rhs.domainID;
     work = rhs.work;
     position = rhs.position;
+    return *this;
   }
 
   // Helpful methods for parallel communication of DomainNodes.
