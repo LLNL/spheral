@@ -24,7 +24,7 @@ commandLine(nx = 400,
             densityUpdate = RigorousSumDensity,
 
             # Time advancement
-            goalTime = 1.0,
+            goalTime = 100.0,
             steps = None,
 
             # Output
