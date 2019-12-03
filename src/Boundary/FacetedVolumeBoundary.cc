@@ -273,7 +273,8 @@ FacetedVolumeBoundary<Dimension>::FacetedVolumeBoundary(const FacetedVolume& pol
   mUseGhosts(useGhosts),
   mReflectOperators(),
   mFacetControlNodes(),
-  mFacetGhostNodes() {
+  mFacetGhostNodes(),
+  mViolationOperators() {
 
   // Build the reflection operators for each facet of the poly.
   const auto& facets = poly.facets();
@@ -502,29 +503,56 @@ template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& nodeList) {
 
-//   // Get the set of violation nodes for this NodeList.
-//   const auto& vNodes = this->violationNodes(nodeList);
+  // Get the set of violation nodes for this NodeList.
+  const auto& vNodes = this->violationNodes(nodeList);
+  const auto  numViolation = vNodes.size();
+  auto&       violationOps = mViolationOperators[nodeList.name()];
+  violationOps = vector<Tensor>(vNodes.size(), Tensor::one);
+  const auto& facets = mPoly.facets();
 
-//   // Loop over these nodes, and reset their positions to valid values.
-//   auto&       pos = nodeList.positions();
-//   auto&       H = nodeList.Hfield();
-//   const auto& vel = nodeList.velocity();
-//   for (const auto i: vNodes) {
-//     // Backtrack to which facet we think the point passed through.
-    
+  // Find the longest scale in the FacetedVolume
+  const auto chordLength = (mPoly.xmax() - mPoly.xmin()).magnitude();
 
-//     positions(*itr) = mapPosition(positions(*itr), mEnterPlane, mExitPlane);
-//     // CHECK2((positions(*itr) >= enterPlane()) and
-//     //        (positions(*itr) >= exitPlane()),
-//     //        "Bad position mapping: " << *itr << " " << nodeList.firstGhostNode() << " " << positions(*itr));
-//   }
+  // Loop over these nodes, and reset their positions to valid values.
+  auto&       pos = nodeList.positions();
+  auto&       H = nodeList.Hfield();
+  const auto& vel = nodeList.velocity();
+  vector<unsigned> potentialFacets;
+  vector<Vector> intersections;
+  Vector newPos, newVel;
+  SymTensor newH;
+  bool inViolation;
+  for (auto k = 0; k < numViolation; ++k) {
+    auto  i = vNodes[k];
+    auto& R = violationOps[k];
+    newPos = pos(i);
+    newVel = vel(i);
+    while (inViolation) {
+      // Backtrack to which facet we think the point passed through.
+      const auto backPos = newPos - chordLength*newVel.unitVector();
+      mPoly.intersect(backPos, newPos, potentialFacets, intersections);
+      CHECK(potentialFacets.size() == intersections.size());
+      auto minFacet = potentialFacets[0];
+      auto minDist = (intersections[0] - newPos).magnitude2();
+      for (auto kk = 1; kk < intersections.size(); ++kk) {
+        if ((intersections[kk] - newPos).magnitude2() < minDist) {
+          minFacet = potentialFacets[kk];
+          minDist = (intersections[kk] - newPos).magnitude2();
+        }
+      }
+      const auto plane = facetPlane(facets[minFacet], mInteriorBoundary);
+      R *= mReflectOperators[minFacet];
+      newPos = mapPositionThroughPlanes(newPos, plane, plane);
+      newVel = mReflectOperators[minFacet]*newVel;
+      inViolation = mPoly.contains(newPos, false);
+      if (mInteriorBoundary) inViolation = not inViolation;
+    }
+    pos(i) = newPos;
+  }
 
-//   // Set the Hfield.
-//   Field<Dimension, SymTensor>& Hfield = nodeList.Hfield();
-//   this->enforceBoundary(Hfield);
-
-// //   // Update the neighbor information.
-// //   nodeList.neighbor().updateNodes(); // (vNodes);
+  // Set the Hfield.
+  auto& Hfield = nodeList.Hfield();
+  this->enforceBoundary(Hfield);
 }    
 
 //------------------------------------------------------------------------------

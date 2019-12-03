@@ -88,6 +88,7 @@ private:
   std::vector<Tensor> mReflectOperators;
   std::map<std::string, std::vector<std::vector<int>>> mFacetControlNodes;
   std::map<std::string, std::vector<std::pair<int,int>>> mFacetGhostNodes;
+  std::map<std::string, std::vector<Tensor>> mViolationOperators;
 };
 
 }
