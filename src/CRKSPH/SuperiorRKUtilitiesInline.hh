@@ -15,7 +15,7 @@ innerProductRK(const std::vector<double>& x,
                const std::vector<double>& y,
                const int offsetx,
                const int offsety) {
-  return std::inner_product(std::begin(x) + offsetx, std::end(x) + offsetx + polynomialSize, std::begin(y) + offsety, 0.0);
+  return std::inner_product(std::begin(x) + offsetx, std::begin(x) + offsetx + polynomialSize, std::begin(y) + offsety, 0.0);
 }
 
 //------------------------------------------------------------------------------

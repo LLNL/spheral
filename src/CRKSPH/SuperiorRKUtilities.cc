@@ -155,6 +155,33 @@ evaluateHessian(const TableKernel<Dimension>& kernel,
   return result;
 }
 
+// template<typename Dimension, CRKOrder correctionOrder>
+// typename Dimension::Vector
+// SuperiorRKUtilities<Dimension, correctionOrder>::
+// evaluateGradientSelf(const TableKernel<Dimension>& kernel,
+//                      const Vector& x,
+//                      const SymTensor& H,
+//                      const std::vector<double>& corrections) {
+//   CHECK(corrections.size() == correctionsSize(false)
+//         || corrections.size() == correctionsSize(true));
+  
+//   const auto dim = Dimension::nDim;
+  
+//   // Get kernel and polynomials
+//   const auto w = evaluateBaseKernel(kernel, x, H);
+//   const auto P = getPolynomials(x);
+//   const auto dP = getGradPolynomials(x);
+  
+//   // Perform inner products and return result
+//   Vector result = Vector::zero;
+//   for (auto d = 0; d < dim; ++ d) {
+//     const auto CdP = innerProductRK(corrections, dP, 0, offsetGradP(d));
+//     const auto dCP = innerProductRK(corrections, P, offsetGradC(d), 0);
+//     result(d) = (CdP + dCP) * w;
+//   }
+//   return result;
+// }
+
 // Compute the corrections
 template<typename Dimension, CRKOrder correctionOrder>
 void
@@ -259,7 +286,8 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       
       // Get function for adding contribution to matrices
       auto addToMatrix = [&](const int nodeListj,
-                             const int nodej) {
+                             const int nodej,
+                             bool selfContribution) {
         // Get data for point j
         const auto xj = position(nodeListj, nodej);
         const auto xij = xi - xj;
@@ -270,7 +298,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         const auto w = evaluateBaseKernel(kernel, xij, Hj);
         const auto p = getPolynomials(xij);
         addToM(vj, w, p, M);
-        const auto dw = evaluateBaseGradient(kernel, xij, Hj);
+        const auto dw = selfContribution ? Vector::zero : evaluateBaseGradient(kernel, xij, Hj);
         const auto dp = getGradPolynomials(xij);
         addTodM(vj, w, dw, p, dp, dM);
         if (needHessian) {
@@ -286,12 +314,12 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       const auto& connectivity = connectivityMap.connectivityForNode(nodeListi, nodei);
       for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
         for (auto nodej : connectivity[nodeListj]) {
-          addToMatrix(nodeListj, nodej);
+          addToMatrix(nodeListj, nodej, false);
         } // nodej
       } // nodeListj
       
       // Add self contribution
-      addToMatrix(nodeListi, nodei);
+      addToMatrix(nodeListi, nodei, true);
       
       // M symmetries
       for (auto k = 0; k < polynomialSize; ++k) {

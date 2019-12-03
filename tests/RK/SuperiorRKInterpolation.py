@@ -30,6 +30,8 @@ commandLine(
     volumeType = CRKMassOverDensity,
     testHessian = False,
     useOldKernel = False, # Test using old kernel
+    useBaseKernel = False, # Test using standard SPH kernel
+    checkAgainstOld = False,
     
     # Manufactured parameters
     funcType = "linear",
@@ -51,11 +53,16 @@ commandLine(
     dataDirBase = "dumps-RKInterpolation",
 
     # Error
-    tolerance = 1.e-14,
+    tolerance = 1.e-13,
     
     # Plotting
     plot = False,
 )
+
+if useOldKernel and useBaseKernel:
+    raise ValueError, "cannot use both old and base kernel"
+if useOldKernel and correctionOrder > QuadraticOrder:
+    raise ValueError, "correction order must be quadratic to use old kernel"
 
 if dimension == 1:
     from Spheral1d import *
@@ -130,7 +137,6 @@ else:
 #-------------------------------------------------------------------------------
 # Set up data
 #-------------------------------------------------------------------------------
-
 # Set limits
 lims = [[x0, x1], [y0, y1], [z0, z1]]
 
@@ -373,36 +379,35 @@ H = state.symTensorFields(HydroFieldNames.H)
 volume = state.scalarFields(HydroFieldNames.volume)
 corrections = state.vector_of_doubleFields(HydroFieldNames.rkCorrections)
 
-# for i in range(nodes.numNodes):
-#     ni = 0
-#     print i, corrections(ni, i)
-
 #-------------------------------------------------------------------------------
 # Get old corrections
 #-------------------------------------------------------------------------------
-A = dataBase.newFluidScalarFieldList(name="A")
-B = dataBase.newFluidVectorFieldList(name="B")
-C = dataBase.newFluidTensorFieldList(name="C")
-gradA = dataBase.newFluidVectorFieldList(name="gradA")
-gradB = dataBase.newFluidTensorFieldList(name="gradB")
-gradC = dataBase.newFluidThirdRankTensorFieldList(name="gradB")
-
-M0 = dataBase.newFluidScalarFieldList(name="M0")
-M1 = dataBase.newFluidVectorFieldList(name="M1")
-M2 = dataBase.newFluidSymTensorFieldList(name="M2")
-M3 = dataBase.newFluidThirdRankTensorFieldList(name="M3")
-M4 = dataBase.newFluidFourthRankTensorFieldList(name="M4")
-gradM0 = dataBase.newFluidVectorFieldList(name="grad M0")
-gradM1 = dataBase.newFluidTensorFieldList(name="grad M1")
-gradM2 = dataBase.newFluidThirdRankTensorFieldList(name="grad M2")
-gradM3 = dataBase.newFluidFourthRankTensorFieldList(name="grad M3")
-gradM4 = dataBase.newFluidFifthRankTensorFieldList(name="grad M4")
-
-computeCRKSPHMoments(connectivity, WT, volume, position, H, correctionOrder, NodeCoupling(),
-                     M0, M1, M2, M3, M4, gradM0, gradM1, gradM2, gradM3, gradM4)
-computeCRKSPHCorrections(M0, M1, M2, M3, M4, gradM0, gradM1, gradM2, gradM3, gradM4,
-                         H, correctionOrder,
-                         A, B, C, gradA, gradB, gradC)
+if correctionOrder <= QuadraticOrder and checkAgainstOld:
+    A = dataBase.newFluidScalarFieldList(name="A")
+    B = dataBase.newFluidVectorFieldList(name="B")
+    C = dataBase.newFluidTensorFieldList(name="C")
+    gradA = dataBase.newFluidVectorFieldList(name="gradA")
+    gradB = dataBase.newFluidTensorFieldList(name="gradB")
+    gradC = dataBase.newFluidThirdRankTensorFieldList(name="gradB")
+    
+    M0 = dataBase.newFluidScalarFieldList(name="M0")
+    M1 = dataBase.newFluidVectorFieldList(name="M1")
+    M2 = dataBase.newFluidSymTensorFieldList(name="M2")
+    M3 = dataBase.newFluidThirdRankTensorFieldList(name="M3")
+    M4 = dataBase.newFluidFourthRankTensorFieldList(name="M4")
+    gradM0 = dataBase.newFluidVectorFieldList(name="grad M0")
+    gradM1 = dataBase.newFluidTensorFieldList(name="grad M1")
+    gradM2 = dataBase.newFluidThirdRankTensorFieldList(name="grad M2")
+    gradM3 = dataBase.newFluidFourthRankTensorFieldList(name="grad M3")
+    gradM4 = dataBase.newFluidFifthRankTensorFieldList(name="grad M4")
+    
+    surfacePoint = dataBase.newFluidIntFieldList(name="surface point")
+    
+    computeCRKSPHMoments(connectivity, WT, volume, position, H, correctionOrder, NodeCoupling(),
+                         M0, M1, M2, M3, M4, gradM0, gradM1, gradM2, gradM3, gradM4)
+    computeCRKSPHCorrections(M0, M1, M2, M3, M4, gradM0, gradM1, gradM2, gradM3, gradM4,
+                             H, surfacePoint, correctionOrder,
+                             A, B, C, gradA, gradB, gradC)
 
 #-------------------------------------------------------------------------------
 # Set up a simple method to calculate the kernel
@@ -460,32 +465,34 @@ def getOldKernel(ni, i, nj, j):
 
 # Kernel to test with
 getKernel = getOldKernel if useOldKernel else getNewKernel
+getKernel = getBaseKernel if useBaseKernel else getNewKernel
 
 #-------------------------------------------------------------------------------
 # Check against old method of doing corrections
 #-------------------------------------------------------------------------------
-# Check old and new corrections
-for i in range(nodes.numNodes):
-    ni = 0
-    # Get old corrections in same format as new
-    old = [A(ni, i)]
-    if correctionOrder >= LinearOrder:
-        for d in range(dimension):
-            old.append(A(ni,i) * B(ni, i)[d])
+if correctionOrder <= QuadraticOrder and checkAgainstOld:
+    # Check old and new corrections
+    for i in range(nodes.numNodes):
+        ni = 0
+        # Get old corrections in same format as new
+        old = [A(ni, i)]
+        if correctionOrder >= LinearOrder:
+            for d in range(dimension):
+                old.append(A(ni,i) * B(ni, i)[d])
         if correctionOrder >= QuadraticOrder:
             for d1 in range(dimension):
                 for d2 in range(d1, dimension):
                     old.append(A(ni, i) * C(ni, i)[dimension*d1+d2])
-    for d in range(dimension):
-        old.append(gradA(ni, i)[d])
-    if correctionOrder >= LinearOrder:
-        a = A(ni, i)
-        for d2 in range(dimension):
-            da = gradA(ni, i)[d2]
-            for d1 in range(dimension):
-                b = B(ni, i)[d1]
-                db = gradB(ni, i)[d1 * dimension + d2]
-                old.append(da * b + a * db)
+        for d in range(dimension):
+            old.append(gradA(ni, i)[d])
+        if correctionOrder >= LinearOrder:
+            a = A(ni, i)
+            for d2 in range(dimension):
+                da = gradA(ni, i)[d2]
+                for d1 in range(dimension):
+                    b = B(ni, i)[d1]
+                    db = gradB(ni, i)[d1 * dimension + d2]
+                    old.append(da * b + a * db)
         if correctionOrder >= QuadraticOrder:
             for d1 in range(dimension):
                 for d2 in range(d1, dimension):
@@ -494,29 +501,29 @@ for i in range(nodes.numNodes):
                         da = gradA(ni, i)[d3]
                         dc = gradC(ni, i)[d1*dimension*dimension + d2*dimension + d3]
                         old.append(da * c + a * dc)
-    # Compare to new corrections
-    c = np.array(corrections(ni, i))
-    err = np.abs(np.subtract(c, old))
-    if any(err > 1.e-6):
-        print i
-        print "\t", c
-        print "\t", old
-        print "\t", np.subtract(c, old)
+        # Compare to new corrections
+        c = np.array(corrections(ni, i))
+        err = np.abs(np.subtract(c, old))
+        if any(err > 1.e-6):
+            print i
+            print "\t", c
+            print "\t", old
+            print "\t", np.subtract(c, old)
 
-# Compare kernel values
-for i in range(nodes.numNodes):
-    ni = 0
-    connectivityi = connectivity.connectivityForNode(ni, i)
-    for nj, neighbors in enumerate(connectivityi):
-        for j in neighbors:
-            wnew, dwnew, ddwnew = getNewKernel(ni, i, nj, j)
-            wold, dwold, ddwtemp = getOldKernel(ni, i, nj, j)
-            dwnew = np.array(dwnew)
-            dwold = np.array(dwold)
-            werr = np.abs(wnew - wold)
-            dwerr = np.abs(dwnew - dwold)
-            if werr > 1.e-6 or any(dwerr > 1.e-6):
-                print i, j, wnew, wold, dwnew, dwold
+    # Compare kernel values
+    for i in range(nodes.numNodes):
+        ni = 0
+        connectivityi = connectivity.connectivityForNode(ni, i)
+        for nj, neighbors in enumerate(connectivityi):
+            for j in neighbors:
+                wnew, dwnew, ddwnew = getNewKernel(ni, i, nj, j)
+                wold, dwold, ddwtemp = getOldKernel(ni, i, nj, j)
+                dwnew = np.array(dwnew)
+                dwold = np.array(dwold)
+                werr = np.abs(wnew - wold)
+                dwerr = np.abs(dwnew - dwold)
+                if werr > 1.e-6 or any(dwerr > 1.e-6):
+                    print i, j, wnew, wold, dwnew, dwold
 
 #-------------------------------------------------------------------------------
 # Try interpolation
