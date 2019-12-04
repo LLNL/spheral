@@ -1,12 +1,17 @@
 include_directories(.)
 set(Utilities_inst
-    boundingBox
-    computeShepardsInterpolation
-    globalBoundingVolumes
     iterateIdealH
     mortonOrderIndices
-    nodeBoundingBoxes
     peanoHilbertOrderIndices
+    nodeOrdering
+    nodeBoundingBoxes
+    boundingBox
+    globalBoundingVolumes
+    integrateThroughMeshAlongSegment
+    numberDensity
+    medianPosition
+    computeShepardsInterpolation
+    overlayRemapFields
    )
 
 set(Utilities_sources
@@ -23,7 +28,9 @@ set(Utilities_sources
     pointInPolygon.cc
     pointOnPolyhedron.cc
     pointInPolyhedron.cc
+    refinePolyhedron.cc
     coarsenBinnedValuesInst.cc
+    clipFacetedVolume.cc
     SpheralTimers.cc
     #SpheralTimersAlternate.cc
     Timer.cc
