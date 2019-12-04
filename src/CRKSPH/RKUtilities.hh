@@ -34,6 +34,9 @@ public:
   static SymTensor evaluateBaseHessian(const TableKernel<Dimension>& kernel,
                                        const Vector& x,
                                        const SymTensor& H);
+  static std::pair<Scalar, Vector> evaluateBaseKernelAndGradient(const TableKernel<Dimension>& kernel,
+                                                                 const Vector& x,
+                                                                 const SymTensor& H);
 
   // Evaluate kernels
   static Scalar evaluateKernel(const TableKernel<Dimension>& kernel,

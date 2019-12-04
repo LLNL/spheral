@@ -62,6 +62,7 @@ commandLine(
     useBaseKernel = False, # Test using standard SPH kernel
     checkAgainstOld = False,
     printErrors = False,
+    quitAfterTiming = False,
     
     # Manufactured parameters
     funcType = "linear",
@@ -531,12 +532,15 @@ rk = RKCorrections(dataBase = dataBase,
 packages = [rk]
 
 #-------------------------------------------------------------------------------
-# Create a state directly and apply the applicable methods to it
+# Create a state directly
 #-------------------------------------------------------------------------------
 connectivity = dataBase.connectivityMap()
 state = State(dataBase, packages)
 derivs = StateDerivatives(dataBase, packages)
 
+#-------------------------------------------------------------------------------
+# Compute corrections
+#-------------------------------------------------------------------------------
 rk.initializeProblemStartup(dataBase)
 rk.registerState(dataBase, state)
 rk.registerDerivatives(dataBase, derivs)
@@ -544,10 +548,11 @@ rk.preStepInitialize(dataBase, state, derivs)
 rk_time = time.time()
 rk.initialize(0.0, 0.0, dataBase, state, derivs)
 rk_time = time.time() - rk_time
+
 output("rk_time")
 
 #-------------------------------------------------------------------------------
-# Get data
+# Get data from state
 #-------------------------------------------------------------------------------
 position = state.vectorFields(HydroFieldNames.position)
 H = state.symTensorFields(HydroFieldNames.H)
@@ -587,6 +592,9 @@ if correctionOrder <= QuadraticOrder and checkAgainstOld:
     old_rk_time = time.time() - old_rk_time
     output("old_rk_time")
 
+if quitAfterTiming:
+    quit()
+    
 #-------------------------------------------------------------------------------
 # Set up a simple method to calculate the kernel
 #-------------------------------------------------------------------------------
