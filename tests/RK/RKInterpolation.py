@@ -787,10 +787,10 @@ if testHessian:
     
 if error > tolerance:
     raise ValueError, "error is greater than tolerance"
-if funcType != "zeroth":
+if funcType != "constant":
     if any([de > tolerance for de in derror]):
         raise ValueError, "gradient error is greater than tolerance"
-if testHessian and funcType != "zeroth" and funcType != "linear":
+if testHessian and funcType != "constant" and funcType != "linear":
     if any([dde > tolerance for dde in dderror]):
         raise ValueError, "hessian error is greater than tolerance"
         

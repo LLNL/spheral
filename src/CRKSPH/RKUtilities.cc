@@ -270,16 +270,23 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         const auto Hj = H(nodeListj, nodej);
         const auto vj = volume(nodeListj, nodej);
         
-        // Add to matrices
+        // Add to matrix
         const auto w = evaluateBaseKernel(kernel, xij, Hj);
         const auto p = getPolynomials(xij);
+        CHECK(p.size() == polynomialSize);
         addToM(vj, w, p, M);
+
+        // Add to gradient matrix
         const auto dw = evaluateBaseGradient(kernel, xij, Hj);
         const auto dp = getGradPolynomials(xij);
+        CHECK(dp.size() == polynomialSize * dim);
         addTodM(vj, w, dw, p, dp, dM);
+        
+        // Add to Hessian matrix
         if (needHessian) {
           const auto ddw = evaluateBaseHessian(kernel, xij, Hj);
           const auto ddp = getHessPolynomials(xij);
+          CHECK(ddp.size() == hessSize * polynomialSize);
           addToddM(vj, w, dw, ddw, p, dp, ddp, ddM);
         }
         
