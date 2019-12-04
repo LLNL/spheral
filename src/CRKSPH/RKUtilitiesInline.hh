@@ -353,7 +353,7 @@ inline
 std::vector<double>
 RKUtilities<Dim<3>, CRKOrder::LinearOrder>::
 getGradPolynomials(const Dim<3>::Vector& x) {
-  return {0,1,0,0,0,1};
+  return {0,1,0,0,0,0,1,0,0,0,0,1};
 }
 
 // Quadratic order

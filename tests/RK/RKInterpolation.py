@@ -3,20 +3,26 @@
 #ATS:test(SELF, "--dimension 1 --correctionOrder QuadraticOrder --funcType quadratic", label="RK interpolation - 1D quadratic")
 #ATS:test(SELF, "--dimension 1 --correctionOrder CubicOrder --funcType cubic", label="RK interpolation - 1D cubic")
 #ATS:test(SELF, "--dimension 1 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01", label="RK interpolation - 1D quartic")
-#ATS:test(SELF, "--dimension 1 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01", label="RK interpolation - 1D quintic")
+#ATS:test(SELF, "--dimension 1 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11", label="RK interpolation - 1D quintic")
 #ATS:test(SELF, "--dimension 2 --correctionOrder ZerothOrder --funcType constant", label="RK interpolation - 2D zeroth")
 #ATS:test(SELF, "--dimension 2 --correctionOrder LinearOrder --funcType linear", label="RK interpolation - 2D linear")
 #ATS:test(SELF, "--dimension 2 --correctionOrder QuadraticOrder --funcType quadratic", label="RK interpolation - 2D quadratic")
 #ATS:test(SELF, "--dimension 2 --correctionOrder CubicOrder --funcType cubic", label="RK interpolation - 2D cubic")
 #ATS:test(SELF, "--dimension 2 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01", label="RK interpolation - 2D quartic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01", label="RK interpolation - 2D quintic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11", label="RK interpolation - 2D quintic")
 #ATS:test(SELF, "--dimension 3 --correctionOrder ZerothOrder --funcType constant", label="RK interpolation - 3D zeroth")
 #ATS:test(SELF, "--dimension 3 --correctionOrder LinearOrder --funcType linear", label="RK interpolation - 3D linear")
 #ATS:test(SELF, "--dimension 3 --correctionOrder QuadraticOrder --funcType quadratic", label="RK interpolation - 3D quadratic")
 #ATS:test(SELF, "--dimension 3 --correctionOrder CubicOrder --funcType cubic", label="RK interpolation - 3D cubic")
 #ATS:test(SELF, "--dimension 3 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01", label="RK interpolation - 3D quartic")
-#ATS:test(SELF, "--dimension 3 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01", label="RK interpolation - 3D quintic")
+#ATS:test(SELF, "--dimension 3 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11", label="RK interpolation - 3D quintic")
 
+# #ATS:test(SELF, "--dimension 1 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 1D sextic")
+# #ATS:test(SELF, "--dimension 1 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 1D septic")
+# #ATS:test(SELF, "--dimension 2 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 2D sextic")
+# #ATS:test(SELF, "--dimension 2 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 2D septic")
+# #ATS:test(SELF, "--dimension 3 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 3D sextic")
+# #ATS:test(SELF, "--dimension 3 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 3D septic")
 #-------------------------------------------------------------------------------
 # Manufactured diffusion test
 #-------------------------------------------------------------------------------
@@ -770,7 +776,7 @@ def getError(num, ana):
     tot = np.sum(np.abs(ana))
     err = mpi.allreduce(err, mpi.SUM)
     tot = mpi.allreduce(tot, mpi.SUM)
-    return err / (tot + 1.e-15)
+    return err / (tot + 1.e-11)
 error = getError(vals[:,0], vals[:,1])
 output("error")
 derror = [getError(dvals[:,d,0], dvals[:,d,1]) for d in range(dimension)]
@@ -781,9 +787,10 @@ if testHessian:
     
 if error > tolerance:
     raise ValueError, "error is greater than tolerance"
-if any([de > tolerance for de in derror]):
-    raise ValueError, "gradient error is greater than tolerance"
-if testHessian:
+if funcType != "zeroth":
+    if any([de > tolerance for de in derror]):
+        raise ValueError, "gradient error is greater than tolerance"
+if testHessian and funcType != "zeroth" and funcType != "linear":
     if any([dde > tolerance for dde in dderror]):
         raise ValueError, "hessian error is greater than tolerance"
         
