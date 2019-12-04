@@ -18,6 +18,7 @@ set(_packages
   FieldOperations
   FileIO
   Geometry
+  Gravity
   Hydro
   Integrator
   Kernel
@@ -56,4 +57,5 @@ add_subdirectory(Pybind11Wraps/Boundary)
 add_subdirectory(Pybind11Wraps/Physics)
 add_subdirectory(Pybind11Wraps/Hydro)
 add_subdirectory(Pybind11Wraps/ExternalForce)
-##add_subdirectory(Pybind11Wraps/ArtificialViscosity)
+add_subdirectory(Pybind11Wraps/Gravity)
+#add_subdirectory(Pybind11Wraps/ArtificialViscosity)

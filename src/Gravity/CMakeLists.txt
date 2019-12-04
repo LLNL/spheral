@@ -1,3 +1,4 @@
+include_directories(.)
 set(Gravity_inst
   CompatibleGravitationalVelocityPolicy
   NBodyGravity
@@ -5,7 +6,7 @@ set(Gravity_inst
 
 set(Gravity_sources
   #LaplacianMatrixFactory.cc
-  TreeGravity.cc
+  TreeGravityInst.cc
   )
 instantiate(Gravity_inst Gravity_sources)
 
@@ -28,7 +29,6 @@ blt_add_library(NAME        Spheral_Gravity
                 HEADERS     ${Gravity_headers}
                 SOURCES     ${Gravity_sources}
                 DEPENDS_ON  ${spheral_depends}
-                INCLUDES    ${Gravity_includes}
                 SHARED      TRUE
                 )
 
