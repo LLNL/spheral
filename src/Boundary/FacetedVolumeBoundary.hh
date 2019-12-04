@@ -75,9 +75,6 @@ public:
   // Overridable hook for clearing out the boundary condition.
   virtual void reset(const DataBase<Dimension>& dataBase) override;
 
-  // Don't cull our ghost nodes
-  virtual bool allowGhostCulling() const override { return false; }
-
   // Use a set of flags to cull out inactive ghost nodes.
   virtual void cullGhostNodes(const FieldList<Dimension, int>& flagSet,
                               FieldList<Dimension, int>& old2newIndexMap,

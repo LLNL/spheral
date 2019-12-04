@@ -39,12 +39,6 @@ class FacetedVolumeBoundary(Boundary):
         return "void"
 
     @PYB11virtual
-    @PYB11const
-    def allowGhostCulling(self):
-        "Optionally opt-out of ghost node culling."
-        return "bool"
-
-    @PYB11virtual
     def cullGhostNodes(self,
                        flagSet = "const FieldList<%(Dimension)s, int>&",
                        old2newIndexMap = "FieldList<%(Dimension)s, int>&",

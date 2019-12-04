@@ -708,17 +708,37 @@ FacetedVolumeBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>
     const auto numNodeLists = flagSet.numFields();
     const auto numFacets = mPoly.facets().size();
     for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-      const auto name = flagSet[nodeListi]->nodeList().name();
-      auto& facetControls = mFacetControlNodes[name];
-      auto& facetGhostRanges = mFacetGhostNodes[name];
+      const auto& nodeList = flagSet[nodeListi]->nodeList();
+      const auto  name = nodeList.name();
+      auto&       facetControls = mFacetControlNodes[name];
+      auto&       facetGhostRanges = mFacetGhostNodes[name];
       CHECK(facetControls.size() == numFacets);
       CHECK(facetGhostRanges.size() == numFacets);
       for (auto ifacet = 0; ifacet < numFacets; ++ifacet) {
+
+        // Update facet controls
+        vector<int> newControls;
         for (auto k = 0; k < facetControls[ifacet].size(); ++k) {
-          facetControls[ifacet][k] = old2newIndexMap(nodeListi, facetControls[ifacet][k]);
+          const auto i = facetControls[ifacet][k];
+          if (flagSet(nodeListi, i) == 1) newControls.push_back(old2newIndexMap(nodeListi, i));
         }
-        facetGhostRanges[ifacet].first = old2newIndexMap(nodeListi, facetGhostRanges[ifacet].first);
-        facetGhostRanges[ifacet].second = old2newIndexMap(nodeListi, facetGhostRanges[ifacet].second);
+        facetControls[ifacet] = newControls;
+
+        // Update facet ghosts
+        int newBegin=-1, numNewGhosts=0;
+        for (auto i = facetGhostRanges[ifacet].first; i < facetGhostRanges[ifacet].second; ++i) {
+          if (flagSet(nodeListi, i) == 1) {
+            if (newBegin == -1) newBegin = old2newIndexMap(nodeListi, i);
+            ++numNewGhosts;
+          }
+        }
+        if (newBegin == -1) {
+          facetGhostRanges[ifacet] = std::make_pair(newBegin, newBegin + numNewGhosts);
+        } else {
+          facetGhostRanges[ifacet] = std::make_pair(nodeList.numNodes(), nodeList.numNodes());
+        }
+
+        CHECK(facetControls[ifacet].size() == facetGhostRanges[ifacet].second - facetGhostRanges[ifacet].first);
       }
     }
   }
