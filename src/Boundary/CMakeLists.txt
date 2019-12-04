@@ -5,10 +5,21 @@ set(Boundary_inst
     PlanarBoundary
     ReflectingBoundary
     RigidBoundary
+    PeriodicBoundary
+    ConstantVelocityBoundary
+    ConstantXVelocityBoundary
+    ConstantYVelocityBoundary
+    ConstantRVelocityBoundary
+    ConstantBoundary
    )
 
 
-set(Boundary_sources )
+set(Boundary_sources 
+    CylindricalBoundary.cc  
+    SphericalBoundary.cc
+    ConstantZVelocityBoundaryInst.cc
+    AxisBoundaryRZ.cc
+   )
 
 if(ENABLE_2D)
   list(APPEND Boundary_sources
