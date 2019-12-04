@@ -44,6 +44,14 @@ class FacetedVolumeBoundary(Boundary):
         "Optionally opt-out of ghost node culling."
         return "bool"
 
+    @PYB11virtual
+    def cullGhostNodes(self,
+                       flagSet = "const FieldList<%(Dimension)s, int>&",
+                       old2newIndexMap = "FieldList<%(Dimension)s, int>&",
+                       numNodesRemoved = "std::vector<int>&"):
+        "Use a set of flags to cull out inactive ghost nodes."
+        return "void"
+
     @PYB11const
     def reflectOperator(self, 
                         facetID = "unsigned"):

@@ -693,6 +693,38 @@ FacetedVolumeBoundary<Dimension>::reset(const DataBase<Dimension>& dataBase) {
 }
 
 //------------------------------------------------------------------------------
+// Cull out inactive ghost nodes based on a FieldList of flags.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+FacetedVolumeBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>& flagSet,
+                                                 FieldList<Dimension, int>& old2newIndexMap,
+                                                 vector<int>& numNodesRemoved) {
+  // Base class does some stuff
+  Boundary<Dimension>::cullGhostNodes(flagSet, old2newIndexMap, numNodesRemoved);
+
+  // Patch our own node indexing.
+  if (mUseGhosts) {
+    const auto numNodeLists = flagSet.numFields();
+    const auto numFacets = mPoly.facets().size();
+    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+      const auto name = flagSet[nodeListi]->nodeList().name();
+      auto& facetControls = mFacetControlNodes[name];
+      auto& facetGhostRanges = mFacetGhostNodes[name];
+      CHECK(facetControls.size() == numFacets);
+      CHECK(facetGhostRanges.size() == numFacets);
+      for (auto ifacet = 0; ifacet < numFacets; ++ifacet) {
+        for (auto k = 0; k < facetControls[ifacet].size(); ++k) {
+          facetControls[ifacet][k] = old2newIndexMap(nodeListi, facetControls[ifacet][k]);
+        }
+        facetGhostRanges[ifacet].first = old2newIndexMap(nodeListi, facetGhostRanges[ifacet].first);
+        facetGhostRanges[ifacet].second = old2newIndexMap(nodeListi, facetGhostRanges[ifacet].second);
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #ifdef SPHERAL2D

@@ -78,6 +78,11 @@ public:
   // Don't cull our ghost nodes
   virtual bool allowGhostCulling() const override { return false; }
 
+  // Use a set of flags to cull out inactive ghost nodes.
+  virtual void cullGhostNodes(const FieldList<Dimension, int>& flagSet,
+                              FieldList<Dimension, int>& old2newIndexMap,
+                              std::vector<int>& numNodesRemoved) override;
+
   // Read access to internal data
   const FacetedVolume& polyVolume() const;
   bool interiorBoundary() const;
