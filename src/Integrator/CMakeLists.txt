@@ -1,9 +1,13 @@
 include_directories(.)
 set(Integrator_inst
-    CheapSynchronousRK2
     Integrator
-   )
-
+    PredictorCorrector 
+    SynchronousRK1
+    SynchronousRK2
+    SynchronousRK4
+    CheapSynchronousRK2
+    Verlet
+    )
 
 set(Integrator_sources )
 
