@@ -10,6 +10,9 @@ set(Hydro_inst
     SumVoronoiMassDensityPolicy
     VolumePolicy
     VoronoiMassDensityPolicy
+    GammaPolicy
+    SecondMomentHourglassControl
+    ThirdMomentHourglassControl
    )
 
 
