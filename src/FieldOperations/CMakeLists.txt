@@ -1,7 +1,27 @@
 include_directories(.)
 set(FieldOperations_inst
+    smoothFields
+    gradient
+    divergence
+    smoothFieldsMash
+    smoothFieldsMash2
+    sampleFieldsMash
+    splatFieldsMash
+    gradientMash
+    divergenceMash
+    gradientPairWise
+    divergencePairWise
+    sampleMultipleFieldsMash
+    splatMultipleFieldsMash
+    gradDivVectorFieldList
+    gradDivVectorFieldListSimple
+    gradDivVectorFieldListGolden
+    gradDivVectorFieldListGolden2
+    gradDivVectorFieldListMash
+    gradDivVectorFieldListPairWise
     sampleMultipleFields2Lattice
     sampleMultipleFields2LatticeMash
+    binFieldList2Lattice
    )
 
 
