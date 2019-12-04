@@ -1,11 +1,13 @@
 include_directories(.)
 set(SPH_inst
     SPHHydroBase
+    PSPHHydroBase
     SolidSPHHydroBase
     computeSPHOmegaGradhCorrection
     computeSPHSumMassDensity
-    computeSumVoronoiCellMassDensity
     correctSPHSumMassDensity
+    computePSPHCorrections
+    computeSumVoronoiCellMassDensity
    )
 
 
@@ -16,6 +18,12 @@ if(ENABLE_2D)
        SPHHydroBaseGSRZ.cc
        SPHHydroBaseRZ.cc
        SolidSPHHydroBaseRZ.cc
+      )
+endif()
+
+if(ENABLE_3D)
+  list(APPEND SPH_sources
+       computeHydrostaticEquilibriumPressure.cc
       )
 endif()
 
