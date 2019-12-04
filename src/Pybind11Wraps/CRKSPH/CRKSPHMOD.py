@@ -83,7 +83,7 @@ PYB11namespaces = ["Spheral"]
 #-------------------------------------------------------------------------------
 # enums
 #-------------------------------------------------------------------------------
-CRKOrder = PYB11enum(("ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder", "QuarticOrder", "QuinticOrder"),
+CRKOrder = PYB11enum(("ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder", "QuarticOrder", "QuinticOrder", "SexticOrder", "SepticOrder"),
                      export_values = True,
                      doc = "Selection of CRK correction orders")
 CRKVolumeType = PYB11enum(("CRKMassOverDensity", "CRKSumVolume", "CRKVoronoiVolume", "CRKHullVolume", "HVolume"),
@@ -543,8 +543,8 @@ gradientCRKSPH%(label)s = PYB11TemplateFunction(gradientCRKSPH, template_paramet
        "label"     : PYB11mangle(element)})
 
     # New RK classes
-    for num, correctionOrder in zip((0, 1, 2, 3, 4, 5),
-                                    ("ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder", "QuarticOrder", "QuinticOrder")):
+    for num, correctionOrder in zip((0, 1, 2, 3, 4, 5, 6, 7),
+                                    ("ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder", "QuarticOrder", "QuinticOrder", "SexticOrder", "SepticOrder")):
         exec(''' 
 RKCorrections%(ndim)sd%(num)s = PYB11TemplateClass(RKCorrections, template_parameters=("%(Dimension)s", "CRKOrder::%(correctionOrder)s"))
 RKUtilities%(ndim)sd%(num)s = PYB11TemplateClass(RKUtilities, template_parameters=("%(Dimension)s", "CRKOrder::%(correctionOrder)s"))

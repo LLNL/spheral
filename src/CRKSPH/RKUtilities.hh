@@ -102,22 +102,22 @@ public:
   static inline int offsetHessP(const int d1, const int d2);
   
   // The size of the polynomials and coefficients, not including derivatives
-  static constexpr int polynomialSize = (correctionOrder == CRKOrder::ZerothOrder
-                                         ? 1
+  static constexpr int polynomialSize = (correctionOrder == CRKOrder::ZerothOrder ? 1
                                          : (correctionOrder == CRKOrder::LinearOrder
-                                            ? (Dimension::nDim == 1 ? 2
-                                               : (Dimension::nDim == 2 ? 3 : 4))
+                                            ? (Dimension::nDim == 1 ? 2 : (Dimension::nDim == 2 ? 3 : 4))
                                             : (correctionOrder == CRKOrder::QuadraticOrder
-                                               ? (Dimension::nDim == 1 ? 3
-                                                  : (Dimension::nDim == 2 ? 6 : 10))
+                                               ? (Dimension::nDim == 1 ? 3 : (Dimension::nDim == 2 ? 6 : 10))
                                                : (correctionOrder == CRKOrder::CubicOrder
-                                                  ? (Dimension::nDim == 1 ? 4
-                                                     : (Dimension::nDim == 2 ? 10 : 20))
+                                                  ? (Dimension::nDim == 1 ? 4 : (Dimension::nDim == 2 ? 10 : 20))
                                                   : (correctionOrder == CRKOrder::QuarticOrder
-                                                     ? (Dimension::nDim == 1 ? 5
-                                                        : (Dimension::nDim == 2 ? 15 : 35))
-                                                     : (Dimension::nDim == 1 ? 6
-                                                        : (Dimension::nDim == 2 ? 21 : 36)))))));
+                                                     ? (Dimension::nDim == 1 ? 5 : (Dimension::nDim == 2 ? 15 : 35))
+                                                     : (correctionOrder == CRKOrder::QuinticOrder
+                                                        ? (Dimension::nDim == 1 ? 6 : (Dimension::nDim == 2 ? 21 : 56))
+                                                        : (correctionOrder == CRKOrder::SexticOrder
+                                                           ? (Dimension::nDim == 1 ? 7 : (Dimension::nDim == 2 ? 28 : 84))
+                                                           : (correctionOrder == CRKOrder::SepticOrder
+                                                              ? (Dimension::nDim == 1 ? 8 : (Dimension::nDim == 2 ? 36 : 120))
+                                                              : -1)))))))); // if order not found, return -1 to produce error
 };
 
 } // end namespace Spheral
