@@ -1,11 +1,16 @@
 include_directories(.)
 set(NodeGenerators_inst
+    relaxNodeDistribution
+    centroidalRelaxNodesImpl
+    compactFacetedVolumes
+    chooseRandomNonoverlappingCenter
    )
 
 set(NodeGenerators_sources
-    fillFacetedVolume.cc
     generateCylDistributionFromRZ.cc
-    )
+    fillFacetedVolume.cc
+    readSiloPolyMesh.cc
+   )
 
 instantiate(NodeGenerators_inst NodeGenerators_sources)
 
