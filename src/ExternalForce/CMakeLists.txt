@@ -1,3 +1,4 @@
+include_directories(.)
 set(ExternalForce_inst
   ConstantAcceleration
   LinearAcceleration
@@ -30,7 +31,7 @@ blt_add_library(NAME        Spheral_ExternalForce
                 HEADERS     ${ExternalForce_headers}
                 SOURCES     ${ExternalForce_sources}
                 DEPENDS_ON  ${spheral_depends}
-                INCLUDES    ${ExternalForce_includes}
+                SHARED      TRUE
                 )
 
 install(TARGETS             Spheral_ExternalForce

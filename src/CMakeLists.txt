@@ -13,6 +13,7 @@ set(_packages
   DataBase
   DataOutput
   Distributed
+  ExternalForce
   Field
   FieldOperations
   FileIO
@@ -54,4 +55,5 @@ add_subdirectory(Pybind11Wraps/Material)
 add_subdirectory(Pybind11Wraps/Boundary)
 add_subdirectory(Pybind11Wraps/Physics)
 add_subdirectory(Pybind11Wraps/Hydro)
-#add_subdirectory(Pybind11Wraps/ArtificialViscosity)
+add_subdirectory(Pybind11Wraps/ExternalForce)
+##add_subdirectory(Pybind11Wraps/ArtificialViscosity)
