@@ -192,7 +192,6 @@ integrator = CheapSynchronousRK2Integrator(db)
 for p in packages:
     integrator.appendPhysicsPackage(p)
 del p
-integrator.cullGhostNodes = False
 output("integrator")
 output("integrator.lastDt")
 output("integrator.dtMin")
