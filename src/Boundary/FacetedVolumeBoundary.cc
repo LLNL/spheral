@@ -715,12 +715,15 @@ FacetedVolumeBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>
       CHECK(facetControls.size() == numFacets);
       CHECK(facetGhostRanges.size() == numFacets);
       for (auto ifacet = 0; ifacet < numFacets; ++ifacet) {
+        CHECK(facetControls[ifacet].size() == facetGhostRanges[ifacet].second - facetGhostRanges[ifacet].first);
 
         // Update facet controls
         vector<int> newControls;
+        const auto oldFirstGhost = facetGhostRanges[ifacet].first;
         for (auto k = 0; k < facetControls[ifacet].size(); ++k) {
           const auto i = facetControls[ifacet][k];
-          if (flagSet(nodeListi, i) == 1) newControls.push_back(old2newIndexMap(nodeListi, i));
+          const auto j = oldFirstGhost + k;
+          if (flagSet(nodeListi, i) == 1 and flagSet(nodeListi, j) == 1) newControls.push_back(old2newIndexMap(nodeListi, i));
         }
         facetControls[ifacet] = newControls;
 
@@ -733,12 +736,14 @@ FacetedVolumeBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>
           }
         }
         if (newBegin == -1) {
-          facetGhostRanges[ifacet] = std::make_pair(newBegin, newBegin + numNewGhosts);
-        } else {
           facetGhostRanges[ifacet] = std::make_pair(nodeList.numNodes(), nodeList.numNodes());
+        } else {
+          facetGhostRanges[ifacet] = std::make_pair(newBegin, newBegin + numNewGhosts);
         }
 
-        CHECK(facetControls[ifacet].size() == facetGhostRanges[ifacet].second - facetGhostRanges[ifacet].first);
+        CHECK2(facetControls[ifacet].size() == facetGhostRanges[ifacet].second - facetGhostRanges[ifacet].first,
+               facetControls[ifacet].size() << " != " << (facetGhostRanges[ifacet].second - facetGhostRanges[ifacet].first)
+               << "   ghostRange=(" << facetGhostRanges[ifacet].first << " " << facetGhostRanges[ifacet].second << ")");
       }
     }
   }

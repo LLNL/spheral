@@ -14,7 +14,7 @@ units = CGS()
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(nx = 400,
-            ny = 100,
+            ny = 300,
 
             # Hydro choices
             crksph = False,                  # True->CRK, False->SPH
@@ -35,8 +35,8 @@ commandLine(nx = 400,
 
 
 # Problem geometry
-x0, y0 = 0.0, 0.0
-x1, y1 = 4.0, 1.0
+x0, y0 = 0.0, -1.5
+x1, y1 = 4.0,  1.5
 
 # Material initial conditions
 rho0 = 1.0
@@ -47,9 +47,9 @@ nPerh = 4.0
 
 # Triangle geometry
 L = 0.5  # triangle edge length
-triverts = [Vector(1.0, 0.5),
-            Vector(1.0 + L*cos(pi/6.0), 0.5 - L*sin(pi/6.0)),
-            Vector(1.0 + L*cos(pi/6.0), 0.5 + L*sin(pi/6.0))]
+triverts = [Vector(1.0, 0.0),
+            Vector(1.0 + L*cos(pi/6.0), -L*sin(pi/6.0)),
+            Vector(1.0 + L*cos(pi/6.0),  L*sin(pi/6.0))]
 triangle = Polygon(triverts)
 
 # Set the directory paths
