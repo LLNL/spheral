@@ -306,7 +306,9 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
     const auto  npairs = pairs.size();
 
     // The criterion for the initial starting sphere of a point in eta space.
-    const auto rin = 2.0/vol[0]->nodeListPtr()->nodesPerSmoothingScale();
+    // const auto rin = 2.0/vol[0]->nodeListPtr()->nodesPerSmoothingScale();
+    const auto etaMax = vol[0]->nodeList().neighbor().kernelExtent();
+    const auto rin = etaMax;
 
     // Unit circle as template shape.
     auto cell0 = ClippingType<Dimension>::unitPolyVolume();
