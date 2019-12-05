@@ -111,8 +111,6 @@ evaluateGradient(const TableKernel<Dimension>& kernel,
   CHECK(corrections.size() == correctionsSize(false)
         || corrections.size() == correctionsSize(true));
   
-  const auto dim = Dimension::nDim;
-  
   // Get kernel and polynomials
   const auto wdw = evaluateBaseKernelAndGradient(kernel, x, H);
   const auto w = wdw.first;
@@ -123,7 +121,7 @@ evaluateGradient(const TableKernel<Dimension>& kernel,
   // Perform inner products and return result
   const auto CP = innerProductRK(corrections, P, 0, 0);
   Vector result = Vector::zero;
-  for (auto d = 0; d < dim; ++ d) {
+  for (auto d = 0; d < Dimension::nDim; ++ d) {
     const auto CdP = innerProductRK(corrections, dP, 0, offsetGradP(d));
     const auto dCP = innerProductRK(corrections, P, offsetGradC(d), 0);
     result(d) = (CdP + dCP) * w + CP * dw(d);
@@ -141,8 +139,6 @@ evaluateHessian(const TableKernel<Dimension>& kernel,
   CHECK(corrections.size() == correctionsSize(false)
         || corrections.size() == correctionsSize(true));
   
-  const auto dim = Dimension::nDim;
-  
   // Get kernel and polynomials
   const auto w = evaluateBaseKernel(kernel, x, H);
   const auto dw = evaluateBaseGradient(kernel, x, H);
@@ -155,10 +151,10 @@ evaluateHessian(const TableKernel<Dimension>& kernel,
   // Could precompute the inner products in a separate loop for efficiency
   const auto CP = innerProductRK(corrections, P, 0, 0);
   SymTensor result = SymTensor::zero;
-  for (auto d1 = 0; d1 < dim; ++d1) {
+  for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
     const auto Cd1P = innerProductRK(corrections, dP, 0, offsetGradP(d1));
     const auto d1CP = innerProductRK(corrections, P, offsetGradC(d1), 0);
-    for (auto d2 = d1; d2 < dim; ++d2) {
+    for (auto d2 = d1; d2 < Dimension::nDim; ++d2) {
       const auto Cd2P = innerProductRK(corrections, ddP, 0, offsetGradP(d2));
       const auto d2CP = innerProductRK(corrections, P, offsetGradC(d2), 0);
       const auto CddP = innerProductRK(corrections, ddP, 0, offsetHessP(d1, d2));
@@ -190,29 +186,88 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   typedef std::vector<MatrixType, Eigen::aligned_allocator<MatrixType>> VectorOfMatrixType;
   
   // Size info
-  const auto dim = Dimension::nDim;
   const auto numNodeLists = volume.size();
-  const auto hessSize = needHessian ? symmetricMatrixSize(dim) : 0;
-  
+  const auto hessSize = needHessian ? symmetricMatrixSize(Dimension::nDim) : 0;
+
   // Check things
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(corrections.size() == numNodeLists);
-
-  // Compute corrections for each point
+  
+  // Initialize Eigen stuff
   MatrixType M;
-  VectorOfMatrixType dM(dim);
+  VectorOfMatrixType dM(Dimension::nDim);
   VectorOfMatrixType ddM(hessSize);
-  VectorType rhs;
   VectorType C;
-  VectorOfVectorType dC(dim);
+  VectorOfVectorType dC(Dimension::nDim);
   VectorOfVectorType ddC(hessSize);
+  VectorType rhs;
+      
+  // Get function for adding contribution to matrices
+  auto addToMatrix = [&](const int nodeListi,
+                         const int nodei,
+                         const int nodeListj,
+                         const int nodej) {
+    // Get data for point i
+    const auto xi = position(nodeListi , nodei);
+    
+    // Get data for point j
+    const auto xj = position(nodeListj, nodej);
+    const auto xij = xi - xj;
+    const auto Hj = H(nodeListj, nodej);
+    const auto vj = volume(nodeListj, nodej);
+    const auto wdw = evaluateBaseKernelAndGradient(kernel, xij, Hj);
+    
+    // Add to matrix
+    const auto w = evaluateBaseKernel(kernel, xij, Hj);//wdw.first;
+    const auto p = getPolynomials(xij);
+    CHECK(p.size() == polynomialSize);
+    for (auto k = 0; k < polynomialSize; ++k) {
+      for (auto l = k; l < polynomialSize; ++l) {
+        M(k, l) += vj * p[k] * p[l] * w;
+      }
+    }
+       
+    // Add to gradient matrix
+    const auto dw = evaluateBaseGradient(kernel, xij, Hj);//wdw.second;
+    const auto dp = getGradPolynomials(xij);
+    CHECK(dp.size() == polynomialSize * Dimension::nDim);
+    for (auto d = 0; d < Dimension::nDim; ++d) {
+      const auto offd = offsetGradP(d);
+      for (auto k = 0; k < polynomialSize; ++k) {
+        for (auto l = k; l < polynomialSize; ++l) {
+          dM[d](k,l) += vj * ((dp[offd+k] * p[l] + p[k] * dp[offd+l]) * w + p[k] * p[l] * dw(d));
+        }
+      }
+    }
+       
+    // Add to Hessian matrix
+    if (needHessian) {
+      const auto ddw = evaluateBaseHessian(kernel, xij, Hj);
+      const auto ddp = getHessPolynomials(xij);
+      CHECK(ddp.size() == hessSize * polynomialSize);
+      for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
+        const auto offd1 = offsetGradP(d1);
+        for (auto d2 = d1; d2 < Dimension::nDim; ++d2) {
+          const auto offd2 = offsetGradP(d2);
+          const auto offd12 = offsetHessP(d1, d2);
+          const auto d12 = flatSymmetricIndex(d1, d2);
+          for (auto k = 0; k < polynomialSize; ++k) {
+            for (auto l = k; l < polynomialSize; ++l) {
+              ddM[d12](k,l) += vj * ((ddp[offd12+k] * p[l] + dp[offd1+k] * dp[offd2+l] + dp[offd2+k] * dp[offd1+l] + p[k] * ddp[offd12+l]) * w + (dp[offd1+k] * p[l] + p[k] * dp[offd1+l]) * dw(d2) + (dp[offd2+k] * p[l] + p[k] * dp[offd2+l]) * dw(d1) + p[k] * p[l] * ddw(d1, d2));
+            }
+          }
+        }
+      }
+    }
+       
+    return;
+  };
+     
+  // Compute corrections for each point
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
     const auto numNodes = connectivityMap.numNodes(nodeListi);
     for (auto nodei = 0; nodei < numNodes; ++nodei) {
-      // Get data for point i
-      const auto xi = position(nodeListi , nodei);
-      
       // Initialize polynomial matrices for point i
       M.setZero();
       for (auto& mat : dM) {
@@ -221,73 +276,18 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       for (auto& mat : ddM) {
         mat.setZero();
       }
-
-      // Get function for adding contribution to matrices
-      auto addToMatrix = [&](const int nodeListj,
-                             const int nodej) {
-        // Get data for point j
-        const auto xj = position(nodeListj, nodej);
-        const auto xij = xi - xj;
-        const auto Hj = H(nodeListj, nodej);
-        const auto vj = volume(nodeListj, nodej);
-        const auto wdw = evaluateBaseKernelAndGradient(kernel, xij, Hj);
-        
-        // Add to matrix
-        const auto w = wdw.first;
-        const auto p = getPolynomials(xij);
-        CHECK(p.size() == polynomialSize);
-        for (auto k = 0; k < polynomialSize; ++k) {
-          for (auto l = k; l < polynomialSize; ++l) {
-            M(k, l) += vj * p[k] * p[l] * w;
-          }
-        }
-
-        // Add to gradient matrix
-        const auto dw = wdw.second;
-        const auto dp = getGradPolynomials(xij);
-        CHECK(dp.size() == polynomialSize * dim);
-        for (auto d = 0; d < dim; ++d) {
-          const auto offd = offsetGradP(d);
-          for (auto k = 0; k < polynomialSize; ++k) {
-            for (auto l = k; l < polynomialSize; ++l) {
-              dM[d](k,l) += vj * ((dp[offd+k] * p[l] + p[k] * dp[offd+l]) * w + p[k] * p[l] * dw(d));
-            }
-          }
-        }
-        
-        // Add to Hessian matrix
-        if (needHessian) {
-          const auto ddw = evaluateBaseHessian(kernel, xij, Hj);
-          const auto ddp = getHessPolynomials(xij);
-          CHECK(ddp.size() == hessSize * polynomialSize);
-          for (auto d1 = 0; d1 < dim; ++d1) {
-            const auto offd1 = offsetGradP(d1);
-            for (auto d2 = d1; d2 < dim; ++d2) {
-              const auto offd2 = offsetGradP(d2);
-              const auto offd12 = offsetHessP(d1, d2);
-              const auto d12 = flatSymmetricIndex(d1, d2);
-              for (auto k = 0; k < polynomialSize; ++k) {
-                for (auto l = k; l < polynomialSize; ++l) {
-                  ddM[d12](k,l) += vj * ((ddp[offd12+k] * p[l] + dp[offd1+k] * dp[offd2+l] + dp[offd2+k] * dp[offd1+l] + p[k] * ddp[offd12+l]) * w + (dp[offd1+k] * p[l] + p[k] * dp[offd1+l]) * dw(d2) + (dp[offd2+k] * p[l] + p[k] * dp[offd2+l]) * dw(d1) + p[k] * p[l] * ddw(d1, d2));
-                }
-              }
-            }
-          }
-        }
-        
-        return;
-      };
+      
                             
       // Add contribution from other points
       const auto& connectivity = connectivityMap.connectivityForNode(nodeListi, nodei);
       for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
         for (auto nodej : connectivity[nodeListj]) {
-          addToMatrix(nodeListj, nodej);
+          addToMatrix(nodeListi, nodei, nodeListj, nodej);
         } // nodej
       } // nodeListj
 
       // Add self contribution
-      addToMatrix(nodeListi, nodei);
+      addToMatrix(nodeListi, nodei, nodeListi, nodei);
       
       // M symmetries
       for (auto k = 0; k < polynomialSize; ++k) {
@@ -297,7 +297,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       }
 
       // dM symmetries
-      for (auto d = 0; d < dim; ++d) {
+      for (auto d = 0; d < Dimension::nDim; ++d) {
         for (auto k = 0; k < polynomialSize; ++k) {
           for (auto l = 0; l < k; ++l) {
             dM[d](k, l) = dM[d](l, k);
@@ -307,8 +307,8 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
       // ddM symmetries
       if (needHessian) {
-        for (auto d1 = 0; d1 < dim; ++d1) {
-          for (auto d2 = 0; d2 < dim; ++d2) {
+        for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
+          for (auto d2 = 0; d2 < Dimension::nDim; ++d2) {
             const auto d12 = flatSymmetricIndex(d1, d2);
             for (auto k = 0; k < polynomialSize; ++k) {
               for (auto l = 0; l < k; ++l) {
@@ -330,15 +330,15 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       C = solver.solve(rhs);
 
       // Compute gradient corrections
-      for (auto d = 0; d < dim; ++d) {
+      for (auto d = 0; d < Dimension::nDim; ++d) {
         rhs = -(dM[d] * C);
         dC[d] = solver.solve(rhs);
       }
       
       // Compute hessian corrections
       if (needHessian) {
-        for (auto d1 = 0; d1 < dim; ++d1) {
-          for (auto d2 = 1; d2 < dim; ++d2) {
+        for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
+          for (auto d2 = 1; d2 < Dimension::nDim; ++d2) {
             const auto d12 = flatSymmetricIndex(d1, d2);
             rhs = -(ddM[d12] * C + dM[d1] * dC[d2] + dM[d2] * dC[d1]);
             ddC[d12] = solver.solve(rhs);
@@ -357,7 +357,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       }
 
       // Put gradient corrections into vector
-      for (auto d = 0; d < dim; ++d) {
+      for (auto d = 0; d < Dimension::nDim; ++d) {
         const auto offd = offsetGradC(d);
         for (auto k = 0; k < polynomialSize; ++k) {
           corr[offd+k] = dC[d](k);
@@ -366,8 +366,8 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Put hessian corrections into vector
       if (needHessian) {
-        for (auto d1 = 0; d1 < dim; ++d1) {
-          for (auto d2 = d1; d2 < dim; ++d2) {
+        for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
+          for (auto d2 = d1; d2 < Dimension::nDim; ++d2) {
             const auto d12 = flatSymmetricIndex(d1, d2);
             const auto offd12 = offsetHessC(d1, d2);
             for (auto k = 0; k < polynomialSize; ++k) {

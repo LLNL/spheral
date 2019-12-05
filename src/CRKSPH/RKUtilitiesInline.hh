@@ -31,10 +31,9 @@ inline
 int
 RKUtilities<Dimension, correctionOrder>::
 flatSymmetricIndex(const int d1, const int d2) {
-  const auto dim = Dimension::nDim;
   const auto k1 = std::min(d1, d2);
   const auto k2 = std::max(d1, d2);
-  return dim * (dim - 1) / 2 - (dim - k1) * (dim - k1 - 1) / 2 + k2;
+  return Dimension::nDim * (Dimension::nDim - 1) / 2 - (Dimension::nDim - k1) * (Dimension::nDim - k1 - 1) / 2 + k2;
 }
 
 //------------------------------------------------------------------------------
@@ -56,10 +55,9 @@ inline
 int
 RKUtilities<Dimension, correctionOrder>::
 correctionsSize(bool needHessian) {
-  const auto dim = Dimension::nDim;
   return (needHessian
-          ? polynomialSize * (1 + dim + symmetricMatrixSize(dim))
-          : polynomialSize * (1 + dim));
+          ? polynomialSize * (1 + Dimension::nDim + symmetricMatrixSize(Dimension::nDim))
+          : polynomialSize * (1 + Dimension::nDim));
 }
 
 //------------------------------------------------------------------------------
@@ -78,9 +76,8 @@ inline
 int
 RKUtilities<Dimension, correctionOrder>::
 offsetHessC(const int d1, const int d2) {
-  const auto dim = Dimension::nDim;
   const auto d12 = flatSymmetricIndex(d1, d2);
-  return polynomialSize * (1 + dim + d12);
+  return polynomialSize * (1 + Dimension::nDim + d12);
 }
 
 template<typename Dimension, CRKOrder correctionOrder>
@@ -96,7 +93,6 @@ inline
 int
 RKUtilities<Dimension, correctionOrder>::
 offsetHessP(const int d1, const int d2) {
-  const auto dim = Dimension::nDim;
   const auto d12 = flatSymmetricIndex(d1, d2);
   return polynomialSize * d12;
 }

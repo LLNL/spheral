@@ -1,28 +1,35 @@
 #ATS:test(SELF, "--dimension 1 --correctionOrder ZerothOrder --funcType constant", label="RK interpolation - 1D zeroth")
-#ATS:test(SELF, "--dimension 1 --correctionOrder LinearOrder --funcType linear", label="RK interpolation - 1D linear")
-#ATS:test(SELF, "--dimension 1 --correctionOrder QuadraticOrder --funcType quadratic", label="RK interpolation - 1D quadratic")
-#ATS:test(SELF, "--dimension 1 --correctionOrder CubicOrder --funcType cubic", label="RK interpolation - 1D cubic")
-#ATS:test(SELF, "--dimension 1 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01", label="RK interpolation - 1D quartic")
-#ATS:test(SELF, "--dimension 1 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11", label="RK interpolation - 1D quintic")
 #ATS:test(SELF, "--dimension 2 --correctionOrder ZerothOrder --funcType constant", label="RK interpolation - 2D zeroth")
-#ATS:test(SELF, "--dimension 2 --correctionOrder LinearOrder --funcType linear", label="RK interpolation - 2D linear")
-#ATS:test(SELF, "--dimension 2 --correctionOrder QuadraticOrder --funcType quadratic", label="RK interpolation - 2D quadratic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder CubicOrder --funcType cubic", label="RK interpolation - 2D cubic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01", label="RK interpolation - 2D quartic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11", label="RK interpolation - 2D quintic")
 #ATS:test(SELF, "--dimension 3 --correctionOrder ZerothOrder --funcType constant", label="RK interpolation - 3D zeroth")
+
+#ATS:test(SELF, "--dimension 2 --correctionOrder LinearOrder --funcType linear", label="RK interpolation - 2D linear")
 #ATS:test(SELF, "--dimension 3 --correctionOrder LinearOrder --funcType linear", label="RK interpolation - 3D linear")
+#ATS:test(SELF, "--dimension 1 --correctionOrder LinearOrder --funcType linear", label="RK interpolation - 1D linear")
+
+#ATS:test(SELF, "--dimension 1 --correctionOrder QuadraticOrder --funcType quadratic", label="RK interpolation - 1D quadratic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder QuadraticOrder --funcType quadratic", label="RK interpolation - 2D quadratic")
 #ATS:test(SELF, "--dimension 3 --correctionOrder QuadraticOrder --funcType quadratic", label="RK interpolation - 3D quadratic")
+
+#ATS:test(SELF, "--dimension 1 --correctionOrder CubicOrder --funcType cubic", label="RK interpolation - 1D cubic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder CubicOrder --funcType cubic", label="RK interpolation - 2D cubic")
 #ATS:test(SELF, "--dimension 3 --correctionOrder CubicOrder --funcType cubic", label="RK interpolation - 3D cubic")
+
+#ATS:test(SELF, "--dimension 1 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01", label="RK interpolation - 1D quartic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01", label="RK interpolation - 2D quartic")
 #ATS:test(SELF, "--dimension 3 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01", label="RK interpolation - 3D quartic")
+
+#ATS:test(SELF, "--dimension 1 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11", label="RK interpolation - 1D quintic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11", label="RK interpolation - 2D quintic")
 #ATS:test(SELF, "--dimension 3 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11", label="RK interpolation - 3D quintic")
 
-# #ATS:test(SELF, "--dimension 1 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 1D sextic")
-# #ATS:test(SELF, "--dimension 1 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 1D septic")
-# #ATS:test(SELF, "--dimension 2 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 2D sextic")
-# #ATS:test(SELF, "--dimension 2 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 2D septic")
-# #ATS:test(SELF, "--dimension 3 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 3D sextic")
-# #ATS:test(SELF, "--dimension 3 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 3D septic")
+#ATS:test(SELF, "--dimension 1 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 1D sextic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 2D sextic")
+#ATS:test(SELF, "--dimension 3 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 3D sextic")
+
+#ATS:test(SELF, "--dimension 1 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 1D septic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 2D septic")
+#ATS:test(SELF, "--dimension 3 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 3D septic")
+
 #-------------------------------------------------------------------------------
 # Manufactured diffusion test
 #-------------------------------------------------------------------------------
@@ -63,6 +70,7 @@ commandLine(
     checkAgainstOld = False,
     printErrors = False,
     quitAfterTiming = False,
+    computeCorrectionsDirectly = False,
     
     # Manufactured parameters
     funcType = "linear",
@@ -95,6 +103,15 @@ if useOldKernel and useBaseKernel:
 if useOldKernel and correctionOrder > QuadraticOrder:
     raise ValueError, "correction order must be quadratic to use old kernel"
 
+if nPerh < int(correctionOrder):
+    print "nPerh is not large enough for correction order: {} < {}".format(nPerh, int(correctionOrder))
+    
+if mpi.procs > 1:
+    raise ValueError, "parallel node generation not working"
+    
+#-------------------------------------------------------------------------------
+# Choose correct corrections
+#-------------------------------------------------------------------------------
 if dimension == 1:
     from Spheral1d import *
     if correctionOrder == ZerothOrder:
@@ -180,9 +197,6 @@ else:
     else:
         raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
 
-# if mpi.procs > 1:
-#     raise ValueError, "need to add parallel boundaries and error calculation"
-    
 #-------------------------------------------------------------------------------
 # Set up data
 #-------------------------------------------------------------------------------
@@ -532,24 +546,15 @@ rk = RKCorrections(dataBase = dataBase,
 packages = [rk]
 
 #-------------------------------------------------------------------------------
-# Create a state directly
+# Create a state directly and initialize physics package
 #-------------------------------------------------------------------------------
 connectivity = dataBase.connectivityMap()
 state = State(dataBase, packages)
 derivs = StateDerivatives(dataBase, packages)
-
-#-------------------------------------------------------------------------------
-# Compute corrections
-#-------------------------------------------------------------------------------
 rk.initializeProblemStartup(dataBase)
 rk.registerState(dataBase, state)
 rk.registerDerivatives(dataBase, derivs)
 rk.preStepInitialize(dataBase, state, derivs)
-rk_time = time.time()
-rk.initialize(0.0, 0.0, dataBase, state, derivs)
-rk_time = time.time() - rk_time
-
-output("rk_time")
 
 #-------------------------------------------------------------------------------
 # Get data from state
@@ -558,6 +563,20 @@ position = state.vectorFields(HydroFieldNames.position)
 H = state.symTensorFields(HydroFieldNames.H)
 volume = state.scalarFields(HydroFieldNames.volume)
 corrections = state.vector_of_doubleFields(HydroFieldNames.rkCorrections)
+
+#-------------------------------------------------------------------------------
+# Compute corrections
+#-------------------------------------------------------------------------------
+if computeCorrectionsDirectly:
+    rk_time = time.time()
+    RKUtilities.computeCorrections(connectivity, WT, volume, position, H, testHessian,
+                                   corrections)
+    rk_time = time.time() - rk_time
+else:
+    rk_time = time.time()
+    rk.initialize(0.0, 0.0, dataBase, state, derivs)
+    rk_time = time.time() - rk_time
+output("rk_time")
 
 #-------------------------------------------------------------------------------
 # Get old corrections
