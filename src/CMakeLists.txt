@@ -31,6 +31,7 @@ set(_packages
   SolidMaterial
   SPH
   Strength
+  SVPH
   Utilities
   )
 
@@ -63,4 +64,6 @@ add_subdirectory(Pybind11Wraps/Utilities)
 add_subdirectory(Pybind11Wraps/NodeGenerators)
 add_subdirectory(Pybind11Wraps/FieldOperations)
 add_subdirectory(Pybind11Wraps/SPH)
+#add_subdirectory(Pybind11Wraps/CRKSPH)
+add_subdirectory(Pybind11Wraps/SVPH)
 #add_subdirectory(Pybind11Wraps/ArtificialViscosity)
