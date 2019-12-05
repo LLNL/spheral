@@ -225,6 +225,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   // Size info
   const auto numNodeLists = volume.size();
   const auto hessSize = needHessian ? hessBaseSize : 0;
+  const auto corrSize = correctionsSize(needHessian);
 
   // Check things
   REQUIRE(position.size() == numNodeLists);
@@ -240,7 +241,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   VectorOfVectorType ddC(hessSize);
   VectorType rhs;
 
-  // Initialize polynomial vectors
+  // Initialize polynomial arrays
   PolyArray p;
   GradPolyArray dp;
   HessPolyArray ddp;
@@ -262,9 +263,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     
     // Add to matrix
     const auto w = wdw.first;
-    // const auto p = getPolynomials(xij);
     getPolynomials(xij, p);
-    CHECK(p.size() == polynomialSize);
     for (auto k = 0; k < polynomialSize; ++k) {
       for (auto l = k; l < polynomialSize; ++l) {
         M(k, l) += vj * p[k] * p[l] * w;
@@ -273,9 +272,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     
     // Add to gradient matrix
     const auto dw = wdw.second;
-    // const auto dp = getGradPolynomials(xij);
     getGradPolynomials(xij, dp);
-    CHECK(dp.size() == polynomialSize * Dimension::nDim);
     for (auto d = 0; d < Dimension::nDim; ++d) {
       const auto offd = offsetGradP(d);
       for (auto k = 0; k < polynomialSize; ++k) {
@@ -288,9 +285,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     // Add to Hessian matrix
     if (needHessian) {
       const auto ddw = evaluateBaseHessian(kernel, xij, Hj);
-      // const auto ddp = getHessPolynomials(xij);
       getHessPolynomials(xij, ddp);
-      CHECK(ddp.size() == hessSize * polynomialSize);
       for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
         const auto offd1 = offsetGradP(d1);
         for (auto d2 = d1; d2 < Dimension::nDim; ++d2) {
@@ -353,7 +348,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       // ddM symmetries
       if (needHessian) {
         for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
-          for (auto d2 = 0; d2 < Dimension::nDim; ++d2) {
+          for (auto d2 = d1; d2 < Dimension::nDim; ++d2) {
             const auto d12 = flatSymmetricIndex(d1, d2);
             for (auto k = 0; k < polynomialSize; ++k) {
               for (auto l = 0; l < k; ++l) {
@@ -383,7 +378,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       // Compute hessian corrections
       if (needHessian) {
         for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
-          for (auto d2 = 1; d2 < Dimension::nDim; ++d2) {
+          for (auto d2 = d1; d2 < Dimension::nDim; ++d2) {
             const auto d12 = flatSymmetricIndex(d1, d2);
             rhs = -(ddM[d12] * C + dM[d1] * dC[d2] + dM[d2] * dC[d1]);
             ddC[d12] = solver.solve(rhs);
@@ -392,7 +387,6 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       }
 
       // Initialize corrections vector
-      const auto corrSize = correctionsSize(needHessian);
       auto& corr = corrections(nodeListi, nodei);
       corr.resize(corrSize);
       
