@@ -600,8 +600,11 @@ class SpheralController:
         # This is the list of boundary types that need to precede the distributed
         # boundary, since their ghost nodes need to be communicated.
         precedeDistributed = []
+        if 2 in dims:
+            precedeDistributed += [FacetedVolumeBoundary2d]            
         if 3 in dims:
-            precedeDistributed += [CylindricalBoundary,
+            precedeDistributed += [FacetedVolumeBoundary3d,
+                                   CylindricalBoundary,
                                    SphericalBoundary]
         for dim in dims:
             exec("""
