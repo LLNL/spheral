@@ -15,20 +15,44 @@ namespace Spheral {
 template<typename Dimension, CRKOrder correctionOrder>
 class RKUtilities {
 public:
+  // Size of the sparse storage for the Hessian
+  static constexpr int hessBaseSize = (Dimension::nDim == 1 ? 1 : (Dimension::nDim == 2 ? 3 : 6));
+  
+  // The size of the polynomial arrays
+  static constexpr int polynomialSize = (correctionOrder == CRKOrder::ZerothOrder ? 1 
+                                         : correctionOrder == CRKOrder::LinearOrder
+                                         ? (Dimension::nDim == 1 ? 2 : (Dimension::nDim == 2 ? 3 : 4))
+                                         : correctionOrder == CRKOrder::QuadraticOrder
+                                         ? (Dimension::nDim == 1 ? 3 : (Dimension::nDim == 2 ? 6 : 10))
+                                         : correctionOrder == CRKOrder::CubicOrder
+                                         ? (Dimension::nDim == 1 ? 4 : (Dimension::nDim == 2 ? 10 : 20))
+                                         : correctionOrder == CRKOrder::QuarticOrder
+                                         ? (Dimension::nDim == 1 ? 5 : (Dimension::nDim == 2 ? 15 : 35))
+                                         : correctionOrder == CRKOrder::QuinticOrder
+                                         ? (Dimension::nDim == 1 ? 6 : (Dimension::nDim == 2 ? 21 : 56))
+                                         : correctionOrder == CRKOrder::SexticOrder
+                                         ? (Dimension::nDim == 1 ? 7 : (Dimension::nDim == 2 ? 28 : 84))
+                                         : correctionOrder == CRKOrder::SepticOrder
+                                         ? (Dimension::nDim == 1 ? 8 : (Dimension::nDim == 2 ? 36 : 120))
+                                         : -1); // if order not found, return -1 to produce error
+  static constexpr int gradPolynomialSize = polynomialSize * Dimension::nDim;
+  static constexpr int hessPolynomialSize = polynomialSize * hessBaseSize;
+
+  // Typedefs
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename std::array<double, polynomialSize> PolyArray;
+  typedef typename std::array<double, gradPolynomialSize> GradPolyArray;
+  typedef typename std::array<double, hessPolynomialSize> HessPolyArray;
 
   // Get the polynomial vectors
-  static inline std::vector<double> getPolynomials(const Vector& x);
-  static inline std::vector<double> getGradPolynomials(const Vector& x);
-  static inline std::vector<double> getHessPolynomials(const Vector& x);
   static inline void getPolynomials(const Vector& x,
-                                    std::vector<double>& p);
+                                    PolyArray& p);
   static inline void getGradPolynomials(const Vector& x,
-                                        std::vector<double>& p);
+                                        GradPolyArray& p);
   static inline void getHessPolynomials(const Vector& x,
-                                        std::vector<double>& p);
+                                        HessPolyArray& p);
   
   // Evaluate base functions
   static Scalar evaluateBaseKernel(const TableKernel<Dimension>& kernel,
@@ -57,6 +81,10 @@ public:
                                    const Vector& x,
                                    const SymTensor& H,
                                    const std::vector<double>& corrections);
+  static std::pair<Scalar, Vector> evaluateKernelAndGradient(const TableKernel<Dimension>& kernel,
+                                                             const Vector& x,
+                                                             const SymTensor& H,
+                                                             const std::vector<double>& corrections);
   
   // Compute the corrections
   static void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
@@ -88,8 +116,9 @@ public:
                 FieldList<Dimension, DataType>& interpolant);
 
   // Do inner product, given offsets
-  static inline Scalar innerProductRK(const std::vector<double>& x,
-                                      const std::vector<double>& y,
+  template<typename DataType1, typename DataType2>
+  static inline Scalar innerProductRK(const DataType1& x,
+                                      const DataType2& y,
                                       const int offsetx,
                                       const int offsety);
 
@@ -109,29 +138,6 @@ public:
   // Get starting index for gradPolynomial and hessPolynomial
   static inline int offsetGradP(const int d);
   static inline int offsetHessP(const int d1, const int d2);
-
-  // Size of the sparse storage for the Hessian
-  static constexpr int hessBaseSize = (Dimension::nDim == 1 ? 1 : (Dimension::nDim == 2 ? 3 : 6));
-  
-  // The size of the polynomials
-  static constexpr int polynomialSize = (correctionOrder == CRKOrder::ZerothOrder ? 1 
-                                         : correctionOrder == CRKOrder::LinearOrder
-                                         ? (Dimension::nDim == 1 ? 2 : (Dimension::nDim == 2 ? 3 : 4))
-                                         : correctionOrder == CRKOrder::QuadraticOrder
-                                         ? (Dimension::nDim == 1 ? 3 : (Dimension::nDim == 2 ? 6 : 10))
-                                         : correctionOrder == CRKOrder::CubicOrder
-                                         ? (Dimension::nDim == 1 ? 4 : (Dimension::nDim == 2 ? 10 : 20))
-                                         : correctionOrder == CRKOrder::QuarticOrder
-                                         ? (Dimension::nDim == 1 ? 5 : (Dimension::nDim == 2 ? 15 : 35))
-                                         : correctionOrder == CRKOrder::QuinticOrder
-                                         ? (Dimension::nDim == 1 ? 6 : (Dimension::nDim == 2 ? 21 : 56))
-                                         : correctionOrder == CRKOrder::SexticOrder
-                                         ? (Dimension::nDim == 1 ? 7 : (Dimension::nDim == 2 ? 28 : 84))
-                                         : correctionOrder == CRKOrder::SepticOrder
-                                         ? (Dimension::nDim == 1 ? 8 : (Dimension::nDim == 2 ? 36 : 120))
-                                         : -1); // if order not found, return -1 to produce error
-  static constexpr int gradPolynomialSize = polynomialSize * Dimension::nDim;
-  static constexpr int hessPolynomialSize = polynomialSize * hessBaseSize;
 };
 
 } // end namespace Spheral

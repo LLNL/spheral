@@ -94,10 +94,11 @@ evaluateKernel(const TableKernel<Dimension>& kernel,
   
   // Get kernel and polynomials
   const auto w = evaluateBaseKernel(kernel, x, H);
-  const auto P = getPolynomials(x);
+  PolyArray P;
+  getPolynomials(x, P);
   
   // Perform inner products and return result
-  const auto CP = innerProductRK(P, corrections, 0, 0);
+  const auto CP = innerProductRK(corrections, P, 0, 0);
   return CP * w;
 }
 
@@ -115,8 +116,10 @@ evaluateGradient(const TableKernel<Dimension>& kernel,
   const auto wdw = evaluateBaseKernelAndGradient(kernel, x, H);
   const auto w = wdw.first;
   const auto dw = wdw.second;
-  const auto P = getPolynomials(x);
-  const auto dP = getGradPolynomials(x);
+  PolyArray P;
+  GradPolyArray dP;
+  getPolynomials(x, P);
+  getGradPolynomials(x, dP);
   
   // Perform inner products and return result
   const auto CP = innerProductRK(corrections, P, 0, 0);
@@ -140,13 +143,17 @@ evaluateHessian(const TableKernel<Dimension>& kernel,
         || corrections.size() == correctionsSize(true));
   
   // Get kernel and polynomials
-  const auto w = evaluateBaseKernel(kernel, x, H);
-  const auto dw = evaluateBaseGradient(kernel, x, H);
+  const auto wdw = evaluateBaseKernelAndGradient(kernel, x, H);
+  const auto w = wdw.first;
+  const auto dw = wdw.second;
   const auto ddw = evaluateBaseHessian(kernel, x, H);
-  const auto P = getPolynomials(x);
-  const auto dP = getGradPolynomials(x);
-  const auto ddP = getHessPolynomials(x);
-
+  PolyArray P;
+  GradPolyArray dP;
+  HessPolyArray ddP;
+  getPolynomials(x, P);
+  getGradPolynomials(x, dP);
+  getHessPolynomials(x, ddP);
+  
   // Perform inner products and return result
   // Could precompute the inner products in a separate loop for efficiency
   const auto CP = innerProductRK(corrections, P, 0, 0);
@@ -166,6 +173,36 @@ evaluateHessian(const TableKernel<Dimension>& kernel,
     }
   }
   return result;
+}
+
+template<typename Dimension, CRKOrder correctionOrder>
+std::pair<typename Dimension::Scalar, typename Dimension::Vector>
+RKUtilities<Dimension, correctionOrder>::
+evaluateKernelAndGradient(const TableKernel<Dimension>& kernel,
+                          const Vector& x,
+                          const SymTensor& H,
+                          const std::vector<double>& corrections) {
+  CHECK(corrections.size() == correctionsSize(false)
+        || corrections.size() == correctionsSize(true));
+  
+  // Get kernel and polynomials
+  const auto wdw = evaluateBaseKernelAndGradient(kernel, x, H);
+  const auto w = wdw.first;
+  const auto dw = wdw.second;
+  PolyArray P;
+  GradPolyArray dP;
+  getPolynomials(x, P);
+  getGradPolynomials(x, dP);
+  
+  // Perform inner products and return result
+  const auto CP = innerProductRK(corrections, P, 0, 0);
+  Vector result = Vector::zero;
+  for (auto d = 0; d < Dimension::nDim; ++ d) {
+    const auto CdP = innerProductRK(corrections, dP, 0, offsetGradP(d));
+    const auto dCP = innerProductRK(corrections, P, offsetGradC(d), 0);
+    result(d) = (CdP + dCP) * w + CP * dw(d);
+  }
+  return std::make_pair(CP * w, result);
 }
 
 // Compute the corrections
@@ -204,9 +241,9 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   VectorType rhs;
 
   // Initialize polynomial vectors
-  auto p = getPolynomials(Vector::zero);
-  auto dp = getGradPolynomials(Vector::zero);
-  auto ddp = getHessPolynomials(Vector::zero);
+  PolyArray p;
+  GradPolyArray dp;
+  HessPolyArray ddp;
 
   // Get function for adding contribution to matrices
   auto addToMatrix = [&](const int nodeListi,
@@ -271,7 +308,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
        
     return;
   };
-     
+  
   // Compute corrections for each point
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
     const auto numNodes = connectivityMap.numNodes(nodeListi);
