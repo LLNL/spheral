@@ -22,13 +22,13 @@
 #ATS:test(SELF, "--dimension 2 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11", label="RK interpolation - 2D quintic")
 #ATS:test(SELF, "--dimension 3 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11", label="RK interpolation - 3D quintic")
 
-#ATS:test(SELF, "--dimension 1 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 1D sextic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 2D sextic")
-#ATS:test(SELF, "--dimension 3 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 3D sextic")
+# #ATS:test(SELF, "--dimension 1 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 1D sextic")
+# #ATS:test(SELF, "--dimension 2 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 2D sextic")
+# #ATS:test(SELF, "--dimension 3 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 3D sextic")
 
-#ATS:test(SELF, "--dimension 1 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 1D septic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 2D septic")
-#ATS:test(SELF, "--dimension 3 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 3D septic")
+# #ATS:test(SELF, "--dimension 1 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 1D septic")
+# #ATS:test(SELF, "--dimension 2 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 2D septic")
+# #ATS:test(SELF, "--dimension 3 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 3D septic")
 
 #-------------------------------------------------------------------------------
 # Manufactured diffusion test

@@ -23,6 +23,12 @@ public:
   static inline std::vector<double> getPolynomials(const Vector& x);
   static inline std::vector<double> getGradPolynomials(const Vector& x);
   static inline std::vector<double> getHessPolynomials(const Vector& x);
+  static inline void getPolynomials(const Vector& x,
+                                    std::vector<double>& p);
+  static inline void getGradPolynomials(const Vector& x,
+                                        std::vector<double>& p);
+  static inline void getHessPolynomials(const Vector& x,
+                                        std::vector<double>& p);
   
   // Evaluate base functions
   static Scalar evaluateBaseKernel(const TableKernel<Dimension>& kernel,
@@ -103,8 +109,11 @@ public:
   // Get starting index for gradPolynomial and hessPolynomial
   static inline int offsetGradP(const int d);
   static inline int offsetHessP(const int d1, const int d2);
+
+  // Size of the sparse storage for the Hessian
+  static constexpr int hessBaseSize = (Dimension::nDim == 1 ? 1 : (Dimension::nDim == 2 ? 3 : 6));
   
-  // The size of the polynomials and coefficients, not including derivatives
+  // The size of the polynomials
   static constexpr int polynomialSize = (correctionOrder == CRKOrder::ZerothOrder ? 1 
                                          : correctionOrder == CRKOrder::LinearOrder
                                          ? (Dimension::nDim == 1 ? 2 : (Dimension::nDim == 2 ? 3 : 4))
@@ -121,7 +130,8 @@ public:
                                          : correctionOrder == CRKOrder::SepticOrder
                                          ? (Dimension::nDim == 1 ? 8 : (Dimension::nDim == 2 ? 36 : 120))
                                          : -1); // if order not found, return -1 to produce error
-  static constexpr int hessBaseSize = (Dimension::nDim == 1 ? 1 : (Dimension::nDim == 2 ? 3 : 6));
+  static constexpr int gradPolynomialSize = polynomialSize * Dimension::nDim;
+  static constexpr int hessPolynomialSize = polynomialSize * hessBaseSize;
 };
 
 } // end namespace Spheral

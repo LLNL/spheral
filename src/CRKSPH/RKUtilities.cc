@@ -203,6 +203,11 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   VectorOfVectorType ddC(hessSize);
   VectorType rhs;
 
+  // Initialize polynomial vectors
+  auto p = getPolynomials(Vector::zero);
+  auto dp = getGradPolynomials(Vector::zero);
+  auto ddp = getHessPolynomials(Vector::zero);
+
   // Get function for adding contribution to matrices
   auto addToMatrix = [&](const int nodeListi,
                          const int nodei,
@@ -220,7 +225,8 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     
     // Add to matrix
     const auto w = wdw.first;
-    const auto p = getPolynomials(xij);
+    // const auto p = getPolynomials(xij);
+    getPolynomials(xij, p);
     CHECK(p.size() == polynomialSize);
     for (auto k = 0; k < polynomialSize; ++k) {
       for (auto l = k; l < polynomialSize; ++l) {
@@ -230,7 +236,8 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     
     // Add to gradient matrix
     const auto dw = wdw.second;
-    const auto dp = getGradPolynomials(xij);
+    // const auto dp = getGradPolynomials(xij);
+    getGradPolynomials(xij, dp);
     CHECK(dp.size() == polynomialSize * Dimension::nDim);
     for (auto d = 0; d < Dimension::nDim; ++d) {
       const auto offd = offsetGradP(d);
@@ -244,7 +251,8 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     // Add to Hessian matrix
     if (needHessian) {
       const auto ddw = evaluateBaseHessian(kernel, xij, Hj);
-      const auto ddp = getHessPolynomials(xij);
+      // const auto ddp = getHessPolynomials(xij);
+      getHessPolynomials(xij, ddp);
       CHECK(ddp.size() == hessSize * polynomialSize);
       for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
         const auto offd1 = offsetGradP(d1);
