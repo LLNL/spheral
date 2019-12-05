@@ -187,7 +187,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   
   // Size info
   const auto numNodeLists = volume.size();
-  const auto hessSize = needHessian ? symmetricMatrixSize(Dimension::nDim) : 0;
+  const auto hessSize = needHessian ? hessBaseSize : 0;
 
   // Check things
   REQUIRE(position.size() == numNodeLists);
@@ -202,7 +202,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   VectorOfVectorType dC(Dimension::nDim);
   VectorOfVectorType ddC(hessSize);
   VectorType rhs;
-      
+
   // Get function for adding contribution to matrices
   auto addToMatrix = [&](const int nodeListi,
                          const int nodei,
@@ -219,7 +219,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     const auto wdw = evaluateBaseKernelAndGradient(kernel, xij, Hj);
     
     // Add to matrix
-    const auto w = evaluateBaseKernel(kernel, xij, Hj);//wdw.first;
+    const auto w = wdw.first;
     const auto p = getPolynomials(xij);
     CHECK(p.size() == polynomialSize);
     for (auto k = 0; k < polynomialSize; ++k) {
@@ -227,9 +227,9 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         M(k, l) += vj * p[k] * p[l] * w;
       }
     }
-       
+    
     // Add to gradient matrix
-    const auto dw = evaluateBaseGradient(kernel, xij, Hj);//wdw.second;
+    const auto dw = wdw.second;
     const auto dp = getGradPolynomials(xij);
     CHECK(dp.size() == polynomialSize * Dimension::nDim);
     for (auto d = 0; d < Dimension::nDim; ++d) {
@@ -240,7 +240,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         }
       }
     }
-       
+    
     // Add to Hessian matrix
     if (needHessian) {
       const auto ddw = evaluateBaseHessian(kernel, xij, Hj);

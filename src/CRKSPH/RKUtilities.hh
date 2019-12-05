@@ -121,6 +121,7 @@ public:
                                          : correctionOrder == CRKOrder::SepticOrder
                                          ? (Dimension::nDim == 1 ? 8 : (Dimension::nDim == 2 ? 36 : 120))
                                          : -1); // if order not found, return -1 to produce error
+  static constexpr int hessBaseSize = (Dimension::nDim == 1 ? 1 : (Dimension::nDim == 2 ? 3 : 6));
 };
 
 } // end namespace Spheral
