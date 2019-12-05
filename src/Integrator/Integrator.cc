@@ -200,33 +200,31 @@ selectDt(const typename Dimension::Scalar dtMin,
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   // Get the current time and data base.
-  Scalar t = currentTime();
-  const DataBase<Dimension>& db = dataBase();
+  auto        t = currentTime();
+  const auto& db = dataBase();
 
   // Loop over each package, and pick their timesteps.
   TimeStepType dt(dtMax, "");
-  for (ConstPackageIterator physicsItr = physicsPackagesBegin();
-       physicsItr != physicsPackagesEnd(); 
-       ++physicsItr) {
-    TimeStepType dtVote = (*physicsItr)->dt(db, state, derivs, t);
+  for (auto physicsItr = physicsPackagesBegin(); physicsItr < physicsPackagesEnd(); ++physicsItr) {
+    auto dtVote = (*physicsItr)->dt(db, state, derivs, t);
     if (dtVote.first > 0.0 and dtVote.first < dt.first) dt = dtVote;
   }
-
-  // In the parallel case we need to find the minimum timestep across all processors.
-  const Scalar globalDt = allReduce(dt.first, MPI_MIN, Communicator::communicator());
 
   // Apply any dt scaling due to iteration
   dt.first *= mDtMultiplier;
 
   // We also require that the timestep is not allowed to grow faster than a
   // prescribed fraction.
-  dt.first = min(dt.first, dtGrowth()*lastDt());
+  dt.first = std::min(dt.first, dtGrowth()*lastDt());
 
   // Enforce the timestep boundaries.
-  dt.first = min(dtMax, max(dtMin, dt.first));
+  dt.first = std::min(dtMax, max(dtMin, dt.first));
 
   CHECK(dt.first >= 0.0 and
         dt.first >= dtMin and dt.first <= dtMax);
+
+  // In the parallel case we need to find the minimum timestep across all processors.
+  const auto globalDt = allReduce(dt.first, MPI_MIN, Communicator::communicator());
 
   // Are we verbose?
   if (dt.first == globalDt and 
