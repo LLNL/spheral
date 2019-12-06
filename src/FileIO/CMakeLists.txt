@@ -1,6 +1,10 @@
 include_directories(.)
 set(FileIO_sources
     FileIO.cc
+    FlatFileIO.cc
+    SiloFileIO.cc
+    PyFileIO.cc
+    vectorstringUtilities.cc
     )
 
 set(FileIO_headers

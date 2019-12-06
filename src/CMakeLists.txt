@@ -2,7 +2,7 @@
 include_directories(.)
 set(SPHERAL_PYTHON_DEPENDS )
 #set(spheral_depends BOOST Eigen qhull silo polytope mpi openmp)
-set(spheral_depends BOOST Eigen qhull silo polytope )
+set(spheral_depends BOOST Eigen qhull silo polytope mpi)
 
 #add_subdirectory(CInterface)
 set(_packages 
@@ -40,7 +40,7 @@ foreach(_package ${_packages})
 endforeach()
 
 add_subdirectory(Pybind11Wraps/polytope)
-#add_subdirectory(Pybind11Wraps/Distributed)
+add_subdirectory(Pybind11Wraps/Distributed)
 add_subdirectory(Pybind11Wraps/OpenMP)
 add_subdirectory(Pybind11Wraps/CXXTypes)
 add_subdirectory(Pybind11Wraps/Geometry)

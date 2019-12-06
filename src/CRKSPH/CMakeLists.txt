@@ -1,21 +1,25 @@
 include_directories(.)
 set(CRKSPH_inst
-    CRKSPHHydroBase
-    ContinuityVolumePolicy
-    SolidCRKSPHHydroBase
+    computeCRKSPHSumMassDensity
+    computeCRKSPHSumVolume
+    computeOccupancyVolume
+    computeSolidCRKSPHSumMassDensity
+    computeCRKSPHMoments
     computeCRKSPHCorrections
     computeCRKSPHEvaluation
     computeCRKSPHIntegral
-    computeCRKSPHMoments
-    computeCRKSPHSumMassDensity
-    computeCRKSPHSumVolume
-    computeHVolumes
     computeHullVolumes
-    computeSolidCRKSPHSumMassDensity
-    detectSurface
-    #    flagSurfaceNeighbors
-    gradientCRKSPH
+    computeHVolumes
+    computeNeighborHull
+    CRKSPHHydroBase
+    CRKSPHVariant
     interpolateCRKSPH
+    gradientCRKSPH
+    HVolumePolicy
+    detectSurface
+    ContinuityVolumePolicy
+    SolidCRKSPHHydroBase
+    editMultimaterialSurfaceTopology
     zerothOrderSurfaceCorrections
    )
 
@@ -23,14 +27,19 @@ set(CRKSPH_inst
 set(CRKSPH_sources
     centerOfMass.cc
     computeVoronoiVolume1d.cc
-    computeVoronoiVolume2d.cc
-    computeVoronoiVolume3d.cc
    )
 
 if(ENABLE_2D)
   list(APPEND CRKSPH_sources
        CRKSPHHydroBaseRZ.cc
+       computeVoronoiVolume2d.cc
        SolidCRKSPHHydroBaseRZ.cc
+      )
+endif()
+
+if(ENABLE_3D)
+  list(APPEND CRKSPH_sources
+       computeVoronoiVolume3d.cc
       )
 endif()
 

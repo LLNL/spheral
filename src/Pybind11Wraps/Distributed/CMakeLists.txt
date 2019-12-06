@@ -1,11 +1,10 @@
-set(PYB11_MODULE_NAME SVPH)
+set(PYB11_MODULE_NAME Distributed)
 
 # Include directrory to source file destination
 include_directories("${PROJECT_SOURCE_DIR}/src/${PYB11_MODULE_NAME}")
 include_directories("${PROJECT_SOURCE_DIR}/src")
 include_directories("${PYBIND11_INCLUDE_DIRS}")
 include_directories("${EIGEN_INCLUDE_DIRS}")
-include_directories("${POLYTOPE_INCLUDE_DIRS}")
 include_directories("${BLT_MPI_INCLUDES}")
 
 # Include directory to location of pybind include header files
@@ -37,7 +36,7 @@ set(MODULE_SHARED_LIB
   "${PROJECT_BINARY_DIR}/lib/libSpheral_SPH${CMAKE_SHARED_LIBRARY_SUFFIX}"
   "${PROJECT_BINARY_DIR}/lib/libSpheral_CRKSPH${CMAKE_SHARED_LIBRARY_SUFFIX}"
   #"${PROJECT_BINARY_DIR}/lib/libSpheral_FVCRKH${CMAKE_SHARED_LIBRARY_SUFFIX}"
-  "${PROJECT_BINARY_DIR}/lib/libSpheral_SVPH${CMAKE_SHARED_LIBRARY_SUFFIX}"
+  #"${PROJECT_BINARY_DIR}/lib/libSpheral_SVPH${CMAKE_SHARED_LIBRARY_SUFFIX}"
   "${PROJECT_BINARY_DIR}/lib/libSpheral_Mesh${CMAKE_SHARED_LIBRARY_SUFFIX}"
   "${PROJECT_BINARY_DIR}/lib/libSpheral_Damage${CMAKE_SHARED_LIBRARY_SUFFIX}"
   "${PROJECT_BINARY_DIR}/lib/libSpheral_SolidMaterial${CMAKE_SHARED_LIBRARY_SUFFIX}"

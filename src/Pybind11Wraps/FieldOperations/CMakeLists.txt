@@ -6,6 +6,7 @@ include_directories("${PROJECT_SOURCE_DIR}/src")
 include_directories("${PYBIND11_INCLUDE_DIRS}")
 include_directories("${EIGEN_INCLUDE_DIRS}")
 include_directories("${POLYTOPE_INCLUDE_DIRS}")
+include_directories("${BLT_MPI_INCLUDES}")
 
 # Include directory to location of pybind include header files
 include_directories("${PROJECT_SOURCE_DIR}/src/thirdPartyLibs/pybind11/include")

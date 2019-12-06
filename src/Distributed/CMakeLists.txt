@@ -1,6 +1,9 @@
 include_directories(.)
 set(Distributed_sources
     Communicator.cc
+    SortAndDivideRedistributeNodes1d.cc
+    SortAndDivideRedistributeNodes2d.cc
+    SortAndDivideRedistributeNodes3d.cc
    )
 
 if (ENABLE_MPI)
@@ -8,13 +11,20 @@ if (ENABLE_MPI)
         waitAllWithDeadlockDetection.cc
        )
 
-   set(Distributed_inst
-       DistributedBoundary
-       NestedGridDistributedBoundary
-       RedistributeNodes
-       TreeDistributedBoundary
-    )
 endif()
+   set(Distributed_inst
+     DistributedBoundary
+     NestedGridDistributedBoundary
+     TreeDistributedBoundary
+     BoundingVolumeDistributedBoundary
+     RedistributeNodes
+     DistributeByXPosition
+     SortAndDivideRedistributeNodes
+     SpaceFillingCurveRedistributeNodes
+     MortonOrderRedistributeNodes
+     PeanoHilbertOrderRedistributeNodes
+     VoronoiRedistributeNodes
+    )
 
 instantiate(Distributed_inst Distributed_sources)
 
@@ -31,6 +41,8 @@ set(Distributed_headers
     RedistributeNodesInline.hh
     TreeDistributedBoundary.hh
     waitAllWithDeadlockDetection.hh
+    SortAndDivideRedistributeNodes.hh
+    SortAndDivideRedistributeNodes1d.hh
     )
 
 blt_add_library(NAME        Spheral_Distributed
