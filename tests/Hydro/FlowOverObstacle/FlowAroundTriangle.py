@@ -178,12 +178,11 @@ obstacle = FacetedVolumeBoundary(triangle,
                                  interiorBoundary = True,
                                  useGhosts = True)
 bcs = [inflow, outflow, bottom, top, obstacle]
+packages += [inflow, outflow]
 
 for p in packages:
     for bc in bcs:
         p.appendBoundary(bc)
-
-packages += [inflow, outflow]
 
 #-------------------------------------------------------------------------------
 # Construct an integrator.
@@ -206,9 +205,11 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
+#import SpheralPointmeshSiloDump
 control = SpheralController(integrator, WT,
                             vizBaseName = vizName,
                             redistributeStep = 50,
+#                            vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState,
                             vizDir = vizDir,
                             vizTime = vizTime,
                             vizStep = vizStep)
