@@ -6,13 +6,15 @@ from SpheralCompiledPackages import Vector2d, Vector3d
 #-------------------------------------------------------------------------------
 class PolygonalSurfaceRejecter:
 
-    def __init__(self, surface):
+    def __init__(self, surface,
+                 interior = True):
         self.surface = surface
+        self.interior = interior # Reject interior to surface?
         return
 
     # New style rejecter
     def accept(self, x, y):
-        return not self.surface.contains(Vector2d(x,y))
+        return self.interior ^ self.surface.contains(Vector2d(x,y))
 
     # Old style rejecter
     def __call__(self, x, y, m, H):
@@ -56,13 +58,15 @@ class PolygonalSurfaceRejecter:
 #-------------------------------------------------------------------------------
 class PolyhedralSurfaceRejecter:
 
-    def __init__(self, surface):
+    def __init__(self, surface,
+                 interior = True):
         self.surface = surface
+        self.interior = interior # Reject interior to surface?
         return
 
     # New style rejecter
     def accept(self, x, y, z):
-        return not self.surface.contains(Vector3d(x,y,z))
+        return self.interior ^ self.surface.contains(Vector3d(x,y,z))
 
     # Old style rejecter
     def __call__(self, x, y, z, m, H):
