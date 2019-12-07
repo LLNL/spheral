@@ -210,6 +210,7 @@ control = SpheralController(integrator, WT,
                             vizBaseName = vizName,
                             redistributeStep = 50,
 #                            vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState,
+#                            vizGhosts = True,
                             vizDir = vizDir,
                             vizTime = vizTime,
                             vizStep = vizStep)

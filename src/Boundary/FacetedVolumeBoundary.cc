@@ -53,24 +53,50 @@ facetPlane(const GeomFacet3d& facet, const bool interiorBoundary) {
 }
 
 //------------------------------------------------------------------------------
-// Construct the subvolume associated with a Facet
+// Construct the planes bounding the unique facet volume for ghosts
 //------------------------------------------------------------------------------
 // 2D
-Dim<2>::FacetedVolume
-facetSubVolume(const GeomFacet2d& facet, const Dim<2>::Vector& centroid) {
-  std::vector<Dim<2>::Vector> points = {facet.point1(), facet.point2(), centroid };
-  return Dim<2>::FacetedVolume(points);
+std::vector<GeomPlane<Dim<2>>>
+facetGhostPlanes(const GeomPolygon& poly, const GeomFacet2d& facet) {
+  typedef Dim<2>::Vector Vector;
+  typedef GeomPlane<Dim<2>> Plane;
+  const auto& centroid = poly.centroid();
+  const auto& p1 = facet.point1();
+  const auto& p2 = facet.point2();
+  const auto& vhat1 = (p1 - centroid).unitVector();
+  const auto& vhat2 = (p2 - centroid).unitVector();
+  return std::vector<Plane>({Plane(p1, Vector(-vhat1.y(),  vhat1.x())),
+                             Plane(p2, Vector( vhat2.y(), -vhat2.x()))});
 }
 
-//..............................................................................
 // 3D
-Dim<3>::FacetedVolume
-facetSubVolume(const GeomFacet3d& facet, const Dim<3>::Vector& centroid) {
-  std::vector<Dim<3>::Vector> points = {centroid};
-  const auto& ipoints = facet.ipoints();
-  const auto  n = ipoints.size();
-  for (auto i = 0; i < n; ++i) points.push_back(facet.point(i));
-  return Dim<3>::FacetedVolume(points);
+std::vector<GeomPlane<Dim<3>>>
+facetGhostPlanes(const GeomPolyhedron& poly, const GeomFacet3d& facet) {
+  typedef Dim<3>::Vector Vector;
+  typedef GeomPlane<Dim<3>> Plane;
+  std::vector<Plane> result;
+  const auto& centroid = poly.centroid();
+  const auto& coords = poly.vertices();
+  const auto& iverts = facet.ipoints();
+  const auto  nverts = iverts.size();
+  for (auto k = 0; k < nverts; ++k) {
+    const auto& p1 = coords[iverts[k]];
+    const auto& p2 = coords[iverts[(k + 1) % nverts]];
+    result.push_back(Plane(centroid, ((p1 - centroid).cross(p2 - centroid)).unitVector()));
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Check if a point is inside the volume defined by a set of planes
+//------------------------------------------------------------------------------
+template<typename Vector, typename Plane>
+bool
+contained(const Vector& p, const std::vector<Plane>& planes) {
+  for (const auto& plane: planes) {
+    if (plane > p) return false;
+  }
+  return true;
 }
 
 //------------------------------------------------------------------------------
@@ -342,14 +368,14 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
     vector<SymTensor> Hghost;
     for (auto k = 0; k < nfacets; ++k) {
       const auto& facet = facets[k];
-      const auto  facetPoly = facetSubVolume(facet, centroid);
-      const auto  plane = facetPlane(facets[k], mInteriorBoundary);
+      const auto  boundPlanes = facetGhostPlanes(mPoly, facet);
+      const auto  plane = facetPlane(facet, mInteriorBoundary);
       const auto& R = mReflectOperators[k];
       ghostRanges[k].first = firstGhost;
       const auto  potentials = nodesTouchingFacet(nodeList, facet, mInteriorBoundary);
       for (const auto i: potentials) {
         const auto posj = mapPositionThroughPlanes(pos(i), plane, plane);
-        if (facetPoly.convexContains(posj, false)) {
+        if (contained(posj, boundPlanes)) {
           controls[k].push_back(i);
           firstGhost += 1;
           posGhost.push_back(posj);
