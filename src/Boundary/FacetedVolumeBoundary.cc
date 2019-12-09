@@ -330,8 +330,8 @@ FacetedVolumeBoundary<Dimension>::FacetedVolumeBoundary(const FacetedVolume& pol
   const auto& facets = poly.facets();
   for (const auto& facet: facets) {
     mReflectOperators.push_back(interiorBoundary ?
-                                planarReflectingOperator<Dimension>(facet.normal()) :
-                                planarReflectingOperator<Dimension>(-facet.normal()));
+                                planarReflectingOperator<Dimension>(facet.normal().unitVector()) :
+                                planarReflectingOperator<Dimension>(-facet.normal().unitVector()));
   }
   ENSURE(mReflectOperators.size() == facets.size());
 
@@ -560,12 +560,7 @@ FacetedVolumeBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeLis
   const auto& pos = nodeList.positions();
   const auto  n = nodeList.numInternalNodes();
   for (auto i = 0; i < n; ++i) {
-    const auto interior = mPoly.contains(pos(i), false);
-    if (mInteriorBoundary) {
-      if (interior) vNodes.push_back(i);
-    } else {
-      if (not interior) vNodes.push_back(i);
-    }
+    if ((not mInteriorBoundary) xor mPoly.contains(pos(i), false)) vNodes.push_back(i);
   }
 
   // std::cerr << "Violation nodes:";
