@@ -14,13 +14,13 @@
 #include <string>
 #include <sstream>
 
-#ifndef CXXONLY
+//#ifndef CXXONLY
 // Forward declare PyObject
 #ifndef PyObject_HEAD
 struct _object;
 typedef _object PyObject;
 #endif
-#endif
+//#endif
 
 namespace Spheral {
 
@@ -350,11 +350,12 @@ public:
   AccessType access() const;
   bool fileOpen() const;
 
-#ifndef CXXONLY
+//TODO
+//#ifndef CXXONLY
   // These methods are particular to Python file objects.
   void writeObject(PyObject* thing, PyObject* path);
   PyObject* readObject(PyObject* path) const;
-#endif
+//#endif
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
@@ -363,11 +364,11 @@ protected:
   AccessType mAccess;
   bool mFileOpen;
 
-#ifndef CXXONLY
+//#ifndef CXXONLY
   PyObject* mPickleMod;
   PyObject* mPickleDumps;
   PyObject* mPickleLoads;
-#endif
+//#endif
 
 private:
   //--------------------------- Private Interface ---------------------------//
