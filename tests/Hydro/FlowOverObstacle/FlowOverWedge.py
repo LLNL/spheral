@@ -33,12 +33,12 @@ commandLine(nx = 250,
             densityUpdate = RigorousSumDensity,
 
             # Time advancement
-            goalTime = 1.0,
+            goalTime = 500.0,
             steps = None,
 
             # Output
             vizStep = None,
-            vizTime = 1e-5,
+            vizTime = 5.0,
             clearDirectories = True,
             )
 
@@ -47,8 +47,7 @@ x0, x1, x2 = 0.0, 4.0, 25.0
 y0, y1 = 0.0, 15.0
 
 # Material initial conditions
-rho0, rho1 = 4.0,  1.0
-eps0, eps1 = 10.0, 1.0
+rho0, eps0 = 1.0,  1.0
 
 # Assorted hydro parameters
 nPerh = 4.0
@@ -65,6 +64,7 @@ else:
 
 dataDir = os.path.join("dumps-FlowOverWedge",
                        "wedgeAngle=%s" % angle,
+                       "v0=%s" % v0,
                        hydroname,
                        "nx=%i_ny=%i" % (nx, ny))
 restartDir = os.path.join(dataDir, "restarts")
@@ -75,7 +75,7 @@ vizName = "flowOverWedge"
 angle *= pi/180.0
 wedgePts = [(x1, y0),
             (x2, y0),
-            (x2, y0 + (x1 - x0)*sin(angle))]
+            (x2, y0 + (x2 - x1)*sin(angle))]
 wedge = Polygon([Vector(x,y) for x,y in wedgePts])
 
 #-------------------------------------------------------------------------------
@@ -131,8 +131,10 @@ output("nodes.numNodes")
 
 # Set node initial conditions
 vel = nodes.velocity()
+eps = nodes.specificThermalEnergy()
 for i in xrange(nodes.numInternalNodes):
     vel[i].x = v0
+    eps[i] = eps0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -215,12 +217,12 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-import SpheralPointmeshSiloDump
+#import SpheralPointmeshSiloDump
 control = SpheralController(integrator, WT,
                             vizBaseName = vizName,
                             redistributeStep = 50,
-                            vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState,
-                            vizGhosts = True,
+#                            vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState,
+#                            vizGhosts = True,
                             vizDir = vizDir,
                             vizTime = vizTime,
                             vizStep = vizStep)
