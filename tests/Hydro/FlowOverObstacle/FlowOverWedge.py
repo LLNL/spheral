@@ -21,6 +21,7 @@ commandLine(nx = 250,
             ny = 150,
 
             angle = 25.0,                    # Wedge angle (degrees)
+            v0 = 1.0,                        # inflow velocity
 
             xmem = 3.0,                      # initial position between high and low pressure regions
 
@@ -62,22 +63,20 @@ if crksph:
 else:
     hydroname = "SPH"
 
-dataDir = os.path.join("dumps-ShockOverWedge",
+dataDir = os.path.join("dumps-FlowOverWedge",
                        "wedgeAngle=%s" % angle,
                        hydroname,
                        "nx=%i_ny=%i" % (nx, ny))
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "viz")
-vizName = "shockOverWedge"
+vizName = "flowOverWedge"
 
-# Build the boundary geometry
+# Build the wedge geometry
 angle *= pi/180.0
-boundaryPts = [(x0, y0),
-               (x1, y0),
-               (x2, y0 + (x1 - x0)*sin(angle)),
-               (x2, y1),
-               (x0, y1)]
-boundary = Polygon([Vector(x,y) for x,y in boundaryPts])
+wedgePts = [(x1, y0),
+            (x2, y0),
+            (x2, y0 + (x1 - x0)*sin(angle))]
+wedge = Polygon([Vector(x,y) for x,y in wedgePts])
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -120,37 +119,20 @@ output("    nodes.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Initial conditions
 #-------------------------------------------------------------------------------
-nxleft = int((xmem - x0)/(x2 - x0) * nx + 0.5)
-nxright = nx - nxleft
-print nxleft, nxright
-genLeft = GenerateNodeDistribution2d(nxleft, ny,
-                                     rho0, "lattice",
-                                     xmin = (x0,   y0),
-                                     xmax = (xmem, y1),
-                                     nNodePerh = nPerh,
-                                     SPH = not asph,
-                                     rejecter = PolygonalSurfaceRejecter(boundary,
-                                                                         interior=False))
-genRight = GenerateNodeDistribution2d(nxright, ny,
-                                     rho1, "lattice",
-                                     xmin = (xmem, y0),
-                                     xmax = (x2,   y1),
-                                     nNodePerh = nPerh,
-                                     SPH = not asph,
-                                     rejecter = PolygonalSurfaceRejecter(boundary,
-                                                                         interior=False))
-gen = CompositeNodeDistribution(genLeft, genRight)
+gen = GenerateNodeDistribution2d(nx, ny, rho0,
+                                 "lattice",
+                                 xmin = (x0, y0),
+                                 xmax = (x2, y1),
+                                 nNodePerh = nPerh,
+                                 SPH = not asph,
+                                 rejecter = PolygonalSurfaceRejecter(wedge))
 distributeNodes2d((nodes, gen))
 output("nodes.numNodes")
 
 # Set node initial conditions
-pos = nodes.positions()
-eps = nodes.specificThermalEnergy()
+vel = nodes.velocity()
 for i in xrange(nodes.numInternalNodes):
-    if pos[i].x < xmem:
-        eps[i] = eps0
-    else:
-        eps[i] = eps1
+    vel[i].x = v0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -193,10 +175,20 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-bc = FacetedVolumeBoundary(boundary,
-                           interiorBoundary = False,
-                           useGhosts = True)
-bcs = [bc]
+inplane =     Plane(Vector(x0, y0), Vector( 1,  0))
+outplane =    Plane(Vector(x2, y0), Vector(-1,  0))
+bottomplane = Plane(Vector(x0, y0), Vector( 0,  1))
+topplane =    Plane(Vector(x0, y1), Vector( 0, -1))
+
+inflow = InflowOutflowBoundary(db, inplane)
+outflow = InflowOutflowBoundary(db, outplane)
+bottom = ReflectingBoundary(bottomplane)
+top = ReflectingBoundary(topplane)
+wedgeBC = FacetedVolumeBoundary(wedge,
+                                interiorBoundary = True,
+                                useGhosts = True)
+bcs = [inflow, outflow, top, bottom, wedgeBC]
+packages += [inflow, outflow]
 
 for p in packages:
     for bc in bcs:
@@ -223,12 +215,12 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-#import SpheralPointmeshSiloDump
+import SpheralPointmeshSiloDump
 control = SpheralController(integrator, WT,
                             vizBaseName = vizName,
                             redistributeStep = 50,
-#                            vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState,
-#                            vizGhosts = True,
+                            vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState,
+                            vizGhosts = True,
                             vizDir = vizDir,
                             vizTime = vizTime,
                             vizStep = vizStep)

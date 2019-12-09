@@ -149,6 +149,8 @@ class SpheralController:
         uniquebcs = self.integrator.uniqueBoundaryConditions()
         stateBCs = [eval("InflowOutflowBoundary%id" % i) for i in dims] + [eval("ConstantBoundary%id" % i) for i in dims]
         stateBCactive = max([False] + [isinstance(x, y) for y in stateBCs for x in uniquebcs])
+        for bc in uniquebcs:
+            bc.initializeProblemStartup()
 
         # Create ghost nodes for the physics packages to initialize with.
         db = self.integrator.dataBase
@@ -166,8 +168,6 @@ class SpheralController:
         packages = self.integrator.physicsPackages()
         for package in packages:
             package.initializeProblemStartup(db)
-        for bc in uniquebcs:
-            bc.initializeProblemStartup()
         state = eval("State%s(db, packages)" % (self.dim))
         derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
         self.integrator.setGhostNodes()
