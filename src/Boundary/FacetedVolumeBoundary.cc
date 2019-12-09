@@ -57,7 +57,9 @@ facetPlane(const GeomFacet3d& facet, const bool interiorBoundary) {
 //------------------------------------------------------------------------------
 // 2D
 std::vector<GeomPlane<Dim<2>>>
-facetGhostPlanes(const GeomPolygon& poly, const GeomFacet2d& facet) {
+facetGhostPlanes(const GeomPolygon& poly,
+                 const GeomFacet2d& facet,
+                 const bool interiorBoundary) {
   typedef Dim<2>::Vector Vector;
   typedef GeomPlane<Dim<2>> Plane;
   const auto& centroid = poly.centroid();
@@ -66,12 +68,15 @@ facetGhostPlanes(const GeomPolygon& poly, const GeomFacet2d& facet) {
   const auto& vhat1 = (p1 - centroid).unitVector();
   const auto& vhat2 = (p2 - centroid).unitVector();
   return std::vector<Plane>({Plane(p1, Vector(-vhat1.y(),  vhat1.x())),
-                             Plane(p2, Vector( vhat2.y(), -vhat2.x()))});
+                             Plane(p2, Vector( vhat2.y(), -vhat2.x())),
+                             facetPlane(facet, not interiorBoundary)});
 }
 
 // 3D
 std::vector<GeomPlane<Dim<3>>>
-facetGhostPlanes(const GeomPolyhedron& poly, const GeomFacet3d& facet) {
+facetGhostPlanes(const GeomPolyhedron& poly,
+                 const GeomFacet3d& facet,
+                 const bool interiorBoundary) {
   typedef Dim<3>::Vector Vector;
   typedef GeomPlane<Dim<3>> Plane;
   std::vector<Plane> result;
@@ -84,6 +89,7 @@ facetGhostPlanes(const GeomPolyhedron& poly, const GeomFacet3d& facet) {
     const auto& p2 = coords[iverts[(k + 1) % nverts]];
     result.push_back(Plane(centroid, ((p1 - centroid).cross(p2 - centroid)).unitVector()));
   }
+  result.push_back(facetPlane(facet, not interiorBoundary));
   return result;
 }
 
@@ -352,7 +358,6 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
     auto& boundaryNodes = this->accessBoundaryNodes(nodeList);
     boundaryNodes.controlNodes.clear();
     boundaryNodes.ghostNodes.clear();
-    const auto  centroid = mPoly.centroid();
     auto&       pos = nodeList.positions();
     auto&       H = nodeList.Hfield();
 
@@ -368,7 +373,7 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
     vector<SymTensor> Hghost;
     for (auto k = 0; k < nfacets; ++k) {
       const auto& facet = facets[k];
-      const auto  boundPlanes = facetGhostPlanes(mPoly, facet);
+      const auto  boundPlanes = facetGhostPlanes(mPoly, facet, mInteriorBoundary);
       const auto  plane = facetPlane(facet, mInteriorBoundary);
       const auto& R = mReflectOperators[k];
       ghostRanges[k].first = firstGhost;
