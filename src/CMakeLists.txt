@@ -7,6 +7,7 @@ set(spheral_depends BOOST Eigen qhull silo polytope mpi)
 #add_subdirectory(CInterface)
 set(_packages 
   ArtificialViscosity
+  ArtificialConduction
   Boundary
   CRKSPH
   Damage
@@ -69,5 +70,6 @@ add_subdirectory(Pybind11Wraps/ArtificialViscosity)
 add_subdirectory(Pybind11Wraps/SVPH)
 add_subdirectory(Pybind11Wraps/Mesh)
 add_subdirectory(Pybind11Wraps/Damage)
-add_subdirectory(Pybind11Wraps/Strength)
 add_subdirectory(Pybind11Wraps/SolidMaterial)
+add_subdirectory(Pybind11Wraps/Strength)
+add_subdirectory(Pybind11Wraps/ArtificialConduction)

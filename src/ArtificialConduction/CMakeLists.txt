@@ -22,6 +22,7 @@ blt_add_library(NAME        Spheral_ArtificialConduction
                 SOURCES     ${ArtificialConduction_sources}
                 DEPENDS_ON  ${spheral_depends}
                 INCLUDES    ${ArtificialConduction_includes}
+                SHARED      TRUE
                 )
 
 install(TARGETS             Spheral_ArtificialConduction
