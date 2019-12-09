@@ -1,10 +1,11 @@
 set(PYB11_MODULE_NAME DataOutput)
 
 # Include directrory to source file destination
-include_directories("${PROJECT_SOURCE_DIR}/src/${PYB11_MODULE_NAME}")
+include_directories("${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/${PYB11_MODULE_NAME}")
 include_directories("${PROJECT_SOURCE_DIR}/src")
 include_directories("${PYBIND11_INCLUDE_DIRS}")
 include_directories("${EIGEN_INCLUDE_DIRS}")
+include_directories("${BLT_MPI_INCLUDES}")
 
 # Include directory to location of pybind include header files
 include_directories("${PROJECT_SOURCE_DIR}/src/thirdPartyLibs/pybind11/include")
@@ -58,7 +59,7 @@ PYB11_GENERATE_BINDINGS()
 # otherwise python will throw <>init module errors on import.
 set(PYTHON_MODULE_LIB "Spheral${PYB11_MODULE_NAME}")
 message("${PYTHON_MODULE_LIB}")
-add_library(${PYTHON_MODULE_LIB} SHARED Spheral${PYB11_GENERATED_SOURCE} ${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/DataOutput/RestartableObject.cc)
+add_library(${PYTHON_MODULE_LIB} SHARED Spheral${PYB11_GENERATED_SOURCE} RestartableObject.cc)
 add_dependencies(${PYTHON_MODULE_LIB} ${SPHERAL_PYTHON_DEPENDS})
 set_target_properties(${PYTHON_MODULE_LIB} PROPERTIES OUTPUT_NAME Spheral${PYB11_MODULE_NAME})
 set_target_properties(${PYTHON_MODULE_LIB} PROPERTIES PREFIX "")

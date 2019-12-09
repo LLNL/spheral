@@ -63,7 +63,7 @@ else()
     add_definitions("-DDEBUG=0")
 endif()
 
-add_definitions(-DCXXONLY=1)
+add_definitions(-DCXXONLY=0)
 add_definitions(-DUSE_TETGEN=0)
 add_definitions(-DUSE_TRIANGLE=0)
 add_definitions(-DNOPOLYTOPE=1)
