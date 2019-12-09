@@ -31,7 +31,7 @@
 # #ATS:test(SELF, "--dimension 3 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 3D septic")
 
 #-------------------------------------------------------------------------------
-# Manufactured diffusion test
+# Test of interpolation for reproducing kernels
 #-------------------------------------------------------------------------------
 from Spheral import *
 from SpheralTestUtilities import *
