@@ -598,21 +598,26 @@ FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& node
   Vector newPos, newVel;
   SymTensor newH;
   bool inViolation;
+  int iter = 0;
+  int minFacet;
+  Scalar minDist;
+  const int maxIters = 5;
   for (auto k = 0; k < numViolation; ++k) {
     auto  i = vNodes[k];
     auto& R = violationOps[k];
     newPos = pos(i);
     newVel = vel(i);
     inViolation = true;
-    while (inViolation) {
+    iter = 0;
+    while (inViolation and iter++ < maxIters) {
       // Backtrack to which facet we think the point passed through.
       CHECK((not mInteriorBoundary) xor mPoly.contains(newPos));
       const auto backPos = newPos - chordLength*newVel.unitVector();
       mPoly.intersect(backPos, newPos, potentialFacets, intersections);
       CHECK(potentialFacets.size() > 0);
       CHECK(potentialFacets.size() == intersections.size());
-      auto minFacet = potentialFacets[0];
-      auto minDist = (intersections[0] - newPos).magnitude2();
+      minFacet = potentialFacets[0];
+      minDist = (intersections[0] - newPos).magnitude2();
       for (auto kk = 1; kk < intersections.size(); ++kk) {
         if ((intersections[kk] - newPos).magnitude2() < minDist) {
           minFacet = potentialFacets[kk];
