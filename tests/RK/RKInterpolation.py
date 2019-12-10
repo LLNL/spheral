@@ -1,34 +1,34 @@
 #ATS:test(SELF, "--dimension 1 --correctionOrder ZerothOrder --funcType constant", label="RK interpolation - 1D zeroth")
-#ATS:test(SELF, "--dimension 2 --correctionOrder ZerothOrder --funcType constant", label="RK interpolation - 2D zeroth")
-#ATS:test(SELF, "--dimension 3 --correctionOrder ZerothOrder --funcType constant", label="RK interpolation - 3D zeroth")
+#ATS:test(SELF, "--dimension 2 --correctionOrder ZerothOrder --funcType constant --numToCheck 10", label="RK interpolation - 2D zeroth")
+#ATS:test(SELF, "--dimension 3 --correctionOrder ZerothOrder --funcType constant --numToCheck 10", label="RK interpolation - 3D zeroth")
 
 #ATS:test(SELF, "--dimension 2 --correctionOrder LinearOrder --funcType linear", label="RK interpolation - 2D linear")
-#ATS:test(SELF, "--dimension 3 --correctionOrder LinearOrder --funcType linear", label="RK interpolation - 3D linear")
-#ATS:test(SELF, "--dimension 1 --correctionOrder LinearOrder --funcType linear", label="RK interpolation - 1D linear")
+#ATS:test(SELF, "--dimension 3 --correctionOrder LinearOrder --funcType linear --numToCheck 10", label="RK interpolation - 3D linear")
+#ATS:test(SELF, "--dimension 1 --correctionOrder LinearOrder --funcType linear --numToCheck 10", label="RK interpolation - 1D linear")
 
-#ATS:test(SELF, "--dimension 1 --correctionOrder QuadraticOrder --funcType quadratic", label="RK interpolation - 1D quadratic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder QuadraticOrder --funcType quadratic", label="RK interpolation - 2D quadratic")
-#ATS:test(SELF, "--dimension 3 --correctionOrder QuadraticOrder --funcType quadratic", label="RK interpolation - 3D quadratic")
+#ATS:test(SELF, "--dimension 1 --correctionOrder QuadraticOrder --funcType quadratic --testHessian True", label="RK interpolation - 1D quadratic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder QuadraticOrder --funcType quadratic --testHessian True --numToCheck 10", label="RK interpolation - 2D quadratic")
+#ATS:test(SELF, "--dimension 3 --correctionOrder QuadraticOrder --funcType quadratic --testHessian True --numToCheck 10", label="RK interpolation - 3D quadratic")
 
-#ATS:test(SELF, "--dimension 1 --correctionOrder CubicOrder --funcType cubic", label="RK interpolation - 1D cubic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder CubicOrder --funcType cubic", label="RK interpolation - 2D cubic")
-#ATS:test(SELF, "--dimension 3 --correctionOrder CubicOrder --funcType cubic", label="RK interpolation - 3D cubic")
+#ATS:test(SELF, "--dimension 1 --correctionOrder CubicOrder --funcType cubic --testHessian True", label="RK interpolation - 1D cubic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder CubicOrder --funcType cubic --testHessian True --numToCheck 10", label="RK interpolation - 2D cubic")
+#ATS:test(SELF, "--dimension 3 --correctionOrder CubicOrder --funcType cubic --testHessian True --numToCheck 10", label="RK interpolation - 3D cubic")
 
-#ATS:test(SELF, "--dimension 1 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01", label="RK interpolation - 1D quartic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01", label="RK interpolation - 2D quartic")
-#ATS:test(SELF, "--dimension 3 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01", label="RK interpolation - 3D quartic")
+#ATS:test(SELF, "--dimension 1 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01 --testHessian True", label="RK interpolation - 1D quartic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01 --testHessian True --numToCheck 10", label="RK interpolation - 2D quartic")
+#ATS:test(SELF, "--dimension 3 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01 --testHessian True --numToCheck 10", label="RK interpolation - 3D quartic")
 
-#ATS:test(SELF, "--dimension 1 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11", label="RK interpolation - 1D quintic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11", label="RK interpolation - 2D quintic")
-#ATS:test(SELF, "--dimension 3 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11", label="RK interpolation - 3D quintic")
+#ATS:test(SELF, "--dimension 1 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11 --testHessian True", label="RK interpolation - 1D quintic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11 --testHessian True --numToCheck 10", label="RK interpolation - 2D quintic")
+#ATS:test(SELF, "--dimension 3 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11 --testHessian True --numToCheck 10", label="RK interpolation - 3D quintic")
 
-# #ATS:test(SELF, "--dimension 1 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 1D sextic")
-# #ATS:test(SELF, "--dimension 2 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 2D sextic")
-# #ATS:test(SELF, "--dimension 3 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01", label="RK interpolation - 3D sextic")
+#ATS:test(SELF, "--dimension 1 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01 --tolerance 1.e-10 --testHessian True", label="RK interpolation - 1D sextic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01 --tolerance 1.e-10 --testHessian True --numToCheck 10", label="RK interpolation - 2D sextic")
+#ATS:test(SELF, "--dimension 3 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01 --tolerance 1.e-10 --testHessian True --numToCheck 10", label="RK interpolation - 3D sextic")
 
-# #ATS:test(SELF, "--dimension 1 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 1D septic")
-# #ATS:test(SELF, "--dimension 2 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 2D septic")
-# #ATS:test(SELF, "--dimension 3 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-7", label="RK interpolation - 3D septic")
+#ATS:test(SELF, "--dimension 1 --correctionOrder SepticOrder --funcType septic --nx 12 --nPerh 8.01 --tolerance 1.e-8 --testHessian True", label="RK interpolation - 1D septic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-8 --testHessian True --numToCheck 10", label="RK interpolation - 2D septic")
+#ATS:test(SELF, "--dimension 3 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-8 --testHessian True --numToCheck 10", label="RK interpolation - 3D septic")
 
 #-------------------------------------------------------------------------------
 # Test of interpolation for reproducing kernels
@@ -71,6 +71,7 @@ commandLine(
     printErrors = False,
     quitAfterTiming = False,
     computeCorrectionsDirectly = False,
+    numToCheck = -1, # -1 for all nodes, positive int for a few random nodes
     
     # Manufactured parameters
     funcType = "linear",
@@ -644,8 +645,11 @@ def getNewKernel(ni, i, nj, j):
     w = RKUtilities.evaluateKernel(WT, xij, Hj, c)
     dw = RKUtilities.evaluateGradient(WT, xij, Hj, c)
     if testHessian:
-        ddw = RKUtilities.evaluateHessian(WT, xij, Hj, c)
-        ddw = np.reshape(ddw, (dimension, dimension))
+        ddwtemp = RKUtilities.evaluateHessian(WT, xij, Hj, c)
+        ddw = np.zeros((dimension, dimension))
+        for d1 in range(dimension):
+            for d2 in range(dimension):
+                ddw[d1,d2] = ddwtemp(d1, d2)
     else:
         ddw = np.zeros((dimension, dimension))
     return w, dw, ddw
@@ -735,12 +739,20 @@ if correctionOrder <= QuadraticOrder and checkAgainstOld:
 #-------------------------------------------------------------------------------
 # Try interpolation
 #-------------------------------------------------------------------------------
+# Get the nodes to check
+if numToCheck == -1:
+    nodesToCheck = range(nodes.numNodes)
+elif numToCheck > 0:
+    nodesToCheck = random.sample(range(nodes.numNodes), numToCheck)
+else:
+    raise ValueError, "numToCheck must be -1 or positive"
+
 interp_time = time.time()
 vals = np.zeros((nodes.numNodes, 2))
 dvals = np.zeros((nodes.numNodes, dimension, 2))
 ddvals = np.zeros((nodes.numNodes, dimension, dimension, 2))
 ni = 0
-for i in range(nodes.numNodes):
+for i in nodesToCheck:#range(nodes.numNodes):
     xi = position(ni, i)
     fi = func(xi)
     def addToValues(nj, j):
@@ -826,9 +838,9 @@ if correctionOrder == CRKOrder.ZerothOrder:
 if error > tolerance:
     raise ValueError, "error is greater than tolerance"
 if funcType != "constant":
-    if any([de > tolerance for de in derror]):
+    if any([de > 10*tolerance for de in derror]):
         raise ValueError, "gradient error is greater than tolerance"
 if testHessian and funcType != "constant" and funcType != "linear":
-    if any([dde > tolerance for dde in dderror]):
+    if any([dde > 100*tolerance for dde in dderror]):
         raise ValueError, "hessian error is greater than tolerance"
         
