@@ -30,6 +30,7 @@ PYB11includes += ['"Boundary/Boundary.hh"',
                   '"Boundary/InflowOutflowBoundary.hh"',
                   '"Boundary/mapPositionThroughPlanes.hh"',
                   '"Boundary/findNodesTouchingThroughPlanes.hh"',
+                  '"Boundary/FacetedVolumeBoundary.hh"',
                   '"Field/Field.hh"',
                   '"Field/FieldList.hh"',
                   '"NodeList/NodeList.hh"',
@@ -82,6 +83,7 @@ from ConstantRVelocityBoundary import *
 from ConstantBoundary import *
 from CRKSPHVoidBoundary import *
 from InflowOutflowBoundary import *
+from FacetedVolumeBoundary import *
 
 for ndim in dims:
     exec('''
@@ -108,12 +110,13 @@ findNodesTouchingThroughPlanes%(ndim)id = PYB11TemplateFunction(findNodesTouchin
 
 if 2 in dims:
     ConstantYVelocityBoundary2d = PYB11TemplateClass(ConstantYVelocityBoundary, template_parameters="Dim<2>")
+    FacetedVolumeBoundary2d = PYB11TemplateClass(FacetedVolumeBoundary, template_parameters="Dim<2>")
     from AxisBoundaryRZ import *
 
 if 3 in dims:
-    ConstantYVelocityBoundary2d = PYB11TemplateClass(ConstantYVelocityBoundary, template_parameters="Dim<2>")
     ConstantYVelocityBoundary3d = PYB11TemplateClass(ConstantYVelocityBoundary, template_parameters="Dim<3>")
     ConstantZVelocityBoundary3d = PYB11TemplateClass(ConstantZVelocityBoundary, template_parameters="Dim<3>")
+    FacetedVolumeBoundary3d = PYB11TemplateClass(FacetedVolumeBoundary, template_parameters="Dim<3>")
     from CylindricalBoundary import *
     from SphericalBoundary import *
 

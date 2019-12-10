@@ -316,10 +316,16 @@ computeShepardsInterpolationSymTensor%(ndim)id = PYB11TemplateFunction(computeSh
 #-------------------------------------------------------------------------------
 # Some methods are always instantiated
 #-------------------------------------------------------------------------------
-@PYB11template("Plane")
-def planarReflectingOperator(plane = "const %(Plane)s&"):
+@PYB11template("Dimension")
+def planarReflectingOperator(nhat = "const %(Dimension)s::Vector&"):
+    "Generate the reflection operator for the (outward facing) normal"
+    return "%(Dimension)s::Tensor"
+
+@PYB11template("Dimension")
+@PYB11cppname("planarReflectingOperator")
+def planarReflectingOperator1(plane = "const GeomPlane<%(Dimension)s>&"):
     "Generate the reflection operator for the given plane."
-    return "%(Plane)s::Tensor"
+    return "%(Dimension)s::Tensor"
 
 for ndim in xrange(1, 4):
     exec('''
@@ -345,7 +351,8 @@ def testPointInBox%(ndim)id(point = "const %(Vector)s&",
     "Test if a point is contained in a box."
     return "bool"
 
-planarReflectingOperator%(ndim)id = PYB11TemplateFunction(planarReflectingOperator, template_parameters="%(Plane)s")
+planarReflectingOperator%(ndim)id = PYB11TemplateFunction(planarReflectingOperator, template_parameters="%(Dimension)s", pyname="planarReflectingOperator")
+planarReflectingOperator1%(ndim)id = PYB11TemplateFunction(planarReflectingOperator1, template_parameters="%(Dimension)s", pyname="planarReflectingOperator")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">",
        "Vector"    : "Dim<" + str(ndim) + ">::Vector",

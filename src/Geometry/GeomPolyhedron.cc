@@ -11,6 +11,7 @@
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/boundingBox.hh"
 #include "Utilities/comparisons.hh"
+#include "Utilities/lineSegmentIntersections.hh"
 #include "Utilities/PairComparisons.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolyhedron.hh"
@@ -510,6 +511,41 @@ intersect(const std::pair<Vector, Vector>& rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// Find the Facets and points intersecting a line segment (s0, s1).
+//------------------------------------------------------------------------------
+void
+GeomPolyhedron::
+intersect(const Vector& s0, const Vector& s1,
+          std::vector<unsigned>& facetIDs,
+          std::vector<Vector>& intersections) const {
+  facetIDs.clear();
+  intersections.clear();
+
+  // Check each facet of the polyhedron.
+  Vector inter;
+  const auto nf = mFacets.size();
+  for (auto k = 0; k < nf; ++k) {
+    const auto& facet = mFacets[k];
+    const auto& ipoints = facet.ipoints();
+    std::vector<Vector> points;
+    for (const auto i: ipoints) points.push_back(facet.point(i));
+    const auto code = segmentPlanarSectionIntersection(s0, s1, points, inter);
+    CHECK(code != 'd');
+
+    if (code == '1') {
+      // Simple intersection with the facet
+      facetIDs.push_back(k);
+      intersections.push_back(inter);
+
+    } else if (code == 'p') {
+      // The segment is coplanar with the facet.
+      facetIDs.push_back(k);
+      intersections.push_back(inter);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
 // Compute the centroid.
 //------------------------------------------------------------------------------
 GeomPolyhedron::Vector
@@ -838,6 +874,21 @@ convex(const double tol) const {
   }
   TIME_Polyhedron_convex.stop();
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Decompose the polyhedron into unique pyramids for each facet.
+//------------------------------------------------------------------------------
+GeomPolyhedron
+GeomPolyhedron::
+facetSubVolume(const unsigned facetID) const {
+  REQUIRE(facetID < mFacets.size());
+  const auto& facet = mFacets[facetID];
+  std::vector<Vector> points = {this->centroid()};
+  const auto& ipoints = facet.ipoints();
+  const auto  n = ipoints.size();
+  for (auto i = 0; i < n; ++i) points.push_back(facet.point(i));
+  return GeomPolyhedron(points);
 }
 
 //------------------------------------------------------------------------------
