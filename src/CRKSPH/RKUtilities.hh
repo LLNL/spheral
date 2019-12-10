@@ -93,27 +93,37 @@ public:
                                  const FieldList<Dimension, Vector>& position,
                                  const FieldList<Dimension, SymTensor>& H,
                                  const bool needHessian,
+                                 FieldList<Dimension, std::vector<double>>& zerothCorrections,
                                  FieldList<Dimension, std::vector<double>>& corrections);
 
-  // Interpolate a field
-  template<typename DataType> static FieldList<Dimension, DataType>
-  interpolateField(const TableKernel<Dimension>& kernel,
-                   const FieldList<Dimension, Scalar>& volume,
-                   const FieldList<Dimension, Vector>& position,
-                   const FieldList<Dimension, SymTensor>& H,
-                   const FieldList<Dimension, std::vector<double>>& corrections,
-                   const bool needHessian,
-                   const FieldList<Dimension, DataType>& field,
-                   FieldList<Dimension, DataType>& interpolant);
-  template<typename DataType> static FieldList<Dimension, typename MathTraits<Dimension, DataType>::GradientType>
-  gradientField(const TableKernel<Dimension>& kernel,
-                const FieldList<Dimension, Scalar>& volume,
-                const FieldList<Dimension, Vector>& position,
-                const FieldList<Dimension, SymTensor>& H,
-                const FieldList<Dimension, std::vector<double>>& corrections,
-                const bool needHessian,
-                const FieldList<Dimension, DataType>& field,
-                FieldList<Dimension, DataType>& interpolant);
+  // Get a guess for the surface normals - best if done with zeroth order
+  static void computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
+                            const TableKernel<Dimension>& kernel,
+                            const FieldList<Dimension, Scalar>& volume,
+                            const FieldList<Dimension, Vector>& position,
+                            const FieldList<Dimension, SymTensor>& H,
+                            const FieldList<Dimension, std::vector<double>>& corrections,
+                            FieldList<Dimension, Vector>& normal);
+  
+  // // Interpolate a field
+  // template<typename DataType> static FieldList<Dimension, DataType>
+  // interpolateField(const TableKernel<Dimension>& kernel,
+  //                  const FieldList<Dimension, Scalar>& volume,
+  //                  const FieldList<Dimension, Vector>& position,
+  //                  const FieldList<Dimension, SymTensor>& H,
+  //                  const FieldList<Dimension, std::vector<double>>& corrections,
+  //                  const bool needHessian,
+  //                  const FieldList<Dimension, DataType>& field,
+  //                  FieldList<Dimension, DataType>& interpolant);
+  // template<typename DataType> static FieldList<Dimension, typename MathTraits<Dimension, DataType>::GradientType>
+  // gradientField(const TableKernel<Dimension>& kernel,
+  //               const FieldList<Dimension, Scalar>& volume,
+  //               const FieldList<Dimension, Vector>& position,
+  //               const FieldList<Dimension, SymTensor>& H,
+  //               const FieldList<Dimension, std::vector<double>>& corrections,
+  //               const bool needHessian,
+  //               const FieldList<Dimension, DataType>& field,
+  //               FieldList<Dimension, DataType>& interpolant);
 
   // Do inner product, given offsets
   template<typename DataType1, typename DataType2>
@@ -123,7 +133,8 @@ public:
                                       const int offsety);
 
   // Get expected size of corrections
-  static inline int correctionsSize(const bool needHessian);
+  static inline int correctionsSize(const bool needHessian); 
+  static inline int zerothCorrectionsSize(const bool needHessian);
   
   // Get storage size of a symmetric matrix
   static inline int symmetricMatrixSize(const int d);

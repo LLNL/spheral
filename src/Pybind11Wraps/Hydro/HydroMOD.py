@@ -93,3 +93,5 @@ class HydroFieldNames:
     massDensityGradient = PYB11readonly(static=True)
     specificHeat = PYB11readonly(static=True)
     rkCorrections = PYB11readonly(static=True)
+    rkZerothCorrections = PYB11readonly(static=True)
+    normal = PYB11readonly(static=True)

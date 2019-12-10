@@ -60,6 +60,15 @@ correctionsSize(bool needHessian) {
           ? polynomialSize * (1 + Dimension::nDim + symmetricMatrixSize(Dimension::nDim))
           : polynomialSize * (1 + Dimension::nDim));
 }
+template<typename Dimension, CRKOrder correctionOrder>
+inline
+int
+RKUtilities<Dimension, correctionOrder>::
+zerothCorrectionsSize(bool needHessian) {
+  return (needHessian
+          ? 1 + Dimension::nDim + symmetricMatrixSize(Dimension::nDim)
+          : 1 + Dimension::nDim);
+}
 
 //------------------------------------------------------------------------------
 // Get offsets for coefficients and polynomials to allow inner products

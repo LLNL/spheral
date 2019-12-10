@@ -86,8 +86,21 @@ class RKUtilities:
                            position = "const FieldList<%(Dimension)s, Vector>&",
                            H = "const FieldList<%(Dimension)s, SymTensor>&",
                            needHessian = "const bool",
+                           zerothCorrections = "FieldList<%(Dimension)s, std::vector<double>>&",
                            corrections = "FieldList<%(Dimension)s, std::vector<double>>&"):
         "Compute RK corrections"
         return "void"
 
+    @PYB11static
+    def computeNormal(self,
+                      connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
+                      kernel = "const TableKernel<%(Dimension)s>&",
+                      volume = "const FieldList<%(Dimension)s, Scalar>&",
+                      position = "const FieldList<%(Dimension)s, Vector>&",
+                      H = "const FieldList<%(Dimension)s, SymTensor>&",
+                      corrections = "const FieldList<%(Dimension)s, std::vector<double>>&",
+                      normal = "FieldList<%(Dimension)s, Vector>&"):
+        "Compute RK corrections"
+        return "void"
+    
     

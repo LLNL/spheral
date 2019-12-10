@@ -562,7 +562,9 @@ rk.preStepInitialize(dataBase, state, derivs)
 position = state.vectorFields(HydroFieldNames.position)
 H = state.symTensorFields(HydroFieldNames.H)
 volume = state.scalarFields(HydroFieldNames.volume)
+zerothCorrections = state.vector_of_doubleFields(HydroFieldNames.rkZerothCorrections)
 corrections = state.vector_of_doubleFields(HydroFieldNames.rkCorrections)
+# normal = state.vectorFields(HydroFieldNames.normal)
 
 #-------------------------------------------------------------------------------
 # Compute corrections
@@ -570,7 +572,7 @@ corrections = state.vector_of_doubleFields(HydroFieldNames.rkCorrections)
 if computeCorrectionsDirectly:
     rk_time = time.time()
     RKUtilities.computeCorrections(connectivity, WT, volume, position, H, testHessian,
-                                   corrections)
+                                   zerothCorrections, corrections)
     rk_time = time.time() - rk_time
 else:
     rk_time = time.time()
@@ -811,7 +813,16 @@ output("derror")
 if testHessian:
     dderror = [getError(ddvals[:,d1,d2,0], ddvals[:,d1,d2,1]) for d1 in range(dimension) for d2 in range(dimension)]
     output("dderror")
-    
+
+if correctionOrder == CRKOrder.ZerothOrder:
+    ni = 0
+    zerothErr = np.zeros((nodes.numNodes))
+    for i in range(nodes.numNodes):
+        zerothErr[i] = getError(np.array(corrections(ni, i)), np.array(zerothCorrections(ni, i)))
+    output("np.amax(zerothErr)")
+    if any([e0 > tolerance for e0 in zerothErr]):
+        raise ValueError, "zeroth corrections do not agree"
+
 if error > tolerance:
     raise ValueError, "error is greater than tolerance"
 if funcType != "constant":

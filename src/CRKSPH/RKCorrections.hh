@@ -126,6 +126,8 @@ private:
   FieldList<Dimension, Scalar> mVolume;
   
   // Corrections
+  FieldList<Dimension, Vector> mNormal;
+  FieldList<Dimension, std::vector<double>> mZerothCorrections;
   FieldList<Dimension, std::vector<double>> mCorrections;
   
   // Voronoi stuff

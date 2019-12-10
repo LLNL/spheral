@@ -82,6 +82,8 @@ struct HydroFieldNames {
   static const std::string ArtificialViscousCqMultiplier;
   static const std::string specificHeat;
   static const std::string rkCorrections;
+  static const std::string rkZerothCorrections;
+  static const std::string normal;
 };
 
 }

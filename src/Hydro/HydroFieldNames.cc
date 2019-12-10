@@ -77,3 +77,5 @@ const std::string Spheral::HydroFieldNames::ArtificialViscousClMultiplier = "Cl 
 const std::string Spheral::HydroFieldNames::ArtificialViscousCqMultiplier = "Cq multiplier for artificial viscosity";
 const std::string Spheral::HydroFieldNames::specificHeat = "specific heat";
 const std::string Spheral::HydroFieldNames::rkCorrections = "RK corrections";
+const std::string Spheral::HydroFieldNames::rkZerothCorrections = "zeroth RK corrections";
+const std::string Spheral::HydroFieldNames::normal = "outward normal direction";

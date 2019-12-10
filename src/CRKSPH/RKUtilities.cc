@@ -205,7 +205,9 @@ evaluateKernelAndGradient(const TableKernel<Dimension>& kernel,
   return std::make_pair(CP * w, result);
 }
 
+//------------------------------------------------------------------------------
 // Compute the corrections
+//------------------------------------------------------------------------------
 template<typename Dimension, CRKOrder correctionOrder>
 void
 RKUtilities<Dimension, correctionOrder>::
@@ -215,6 +217,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                    const FieldList<Dimension, Vector>& position,
                    const FieldList<Dimension, SymTensor>& H,
                    const bool needHessian,
+                   FieldList<Dimension, std::vector<double>>& zerothCorrections, 
                    FieldList<Dimension, std::vector<double>>& corrections) {
   // Typedefs: Eigen requires aligned allocator for stl containers before c++17
   typedef Eigen::Matrix<double, polynomialSize, 1> VectorType;
@@ -225,6 +228,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   // Size info
   const auto numNodeLists = volume.size();
   const auto hessSize = needHessian ? hessBaseSize : 0;
+  const auto zerothCorrSize = zerothCorrectionsSize(needHessian);
   const auto corrSize = correctionsSize(needHessian);
 
   // Check things
@@ -300,7 +304,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         }
       }
     }
-       
+    
     return;
   };
   
@@ -415,8 +419,110 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           }
         }
       }
+
+      // Initialize zeroth corrections vector
+      auto& zerothCorr = zerothCorrections(nodeListi, nodei);
+      zerothCorr.resize(zerothCorrSize);
+      
+      // Compute zeroth correction
+      const auto C0 = safeInv(M(0,0));
+      zerothCorr[0] = C0;
+
+      // Compute zeroth gradient
+      for (auto d = 0; d < Dimension::nDim; ++d) {
+        const auto offd = RKUtilities<Dimension, CRKOrder::ZerothOrder>::offsetGradC(d);
+        zerothCorr[offd] = -dM[d](0,0) * C0 * C0;
+      }
+      
+      // Compute zeroth hessian
+      if (needHessian) {
+        for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
+          const auto offd1 = RKUtilities<Dimension, CRKOrder::ZerothOrder>::offsetGradC(d1);
+          const auto C1 = zerothCorr[offd1];
+          for (auto d2 = d1; d2 < Dimension::nDim; ++d2) {
+            const auto d12 = flatSymmetricIndex(d1, d2);
+            const auto offd2 = RKUtilities<Dimension, CRKOrder::ZerothOrder>::offsetGradC(d2);
+            const auto offd12 = RKUtilities<Dimension, CRKOrder::ZerothOrder>::offsetHessC(d1, d2);
+            const auto C2 = zerothCorr[offd2];
+            zerothCorr[offd12] = -(ddM[d12](0,0) * C0 + dM[d1](0,0) * C2 + dM[d2](0,0) * C1) * C0;
+          }
+        }
+      }
     } // nodei
   } // nodeListi
 } // computeCorrections
 
+//------------------------------------------------------------------------------
+// Compute a guess for the normal direction
+// n_{i}=\text{norm}\left(\sum_{j}V_{j}\left[\nabla\psi_{j}\left(x_{i}\right)+\nabla\psi_{i}\left(x_{j}\right)\right]\right)
+//------------------------------------------------------------------------------
+template<typename Dimension, CRKOrder correctionOrder>
+void
+RKUtilities<Dimension, correctionOrder>::
+computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
+              const TableKernel<Dimension>& kernel,
+              const FieldList<Dimension, Scalar>& volume,
+              const FieldList<Dimension, Vector>& position,
+              const FieldList<Dimension, SymTensor>& H,
+              const FieldList<Dimension, std::vector<double>>& corrections, 
+              FieldList<Dimension, Vector>& normal) {
+  // Size info
+  const auto numNodeLists = volume.size();
+  
+  // Check things
+  REQUIRE(position.size() == numNodeLists);
+  REQUIRE(H.size() == numNodeLists);
+  REQUIRE(corrections.size() == numNodeLists);
+  REQUIRE(normal.size() == numNodeLists);
+  
+  // Get function for adding contribution to normal
+  auto addToNormal = [&](const int nodeListi,
+                         const int nodei,
+                         const int nodeListj,
+                         const int nodej) {
+    // Get data for point i
+    const auto xi = position(nodeListi , nodei);
+    const auto Hi = H(nodeListi, nodei);
+    const auto& Ci = corrections(nodeListi, nodei);
+
+    // Get data for point j
+    const auto xj = position(nodeListj, nodej);
+    const auto Hj = H(nodeListj, nodej);
+    const auto vj = volume(nodeListj, nodej);
+    const auto& Cj = corrections(nodeListj, nodej);
+
+    // Get kernels
+    const auto xij = xi - xj;
+    const auto xji = xj - xi;
+    const auto dwij = evaluateGradient(kernel, xij, Hj, Ci);
+    const auto dwji = evaluateGradient(kernel, xji, Hi, Cj);
+    
+    // Add value to normal
+    normal(nodeListi, nodei) += vj * (dwij + dwji);
+  };
+
+  // Sum up normal directions
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto numNodes = connectivityMap.numNodes(nodeListi);
+    for (auto nodei = 0; nodei < numNodes; ++nodei) {
+      // Zero out normal
+      normal(nodeListi, nodei) = Vector::zero;
+      
+      // Add contribution from other points
+      const auto& connectivity = connectivityMap.connectivityForNode(nodeListi, nodei);
+      for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
+        for (auto nodej : connectivity[nodeListj]) {
+          addToNormal(nodeListi, nodei, nodeListj, nodej);
+        }
+      }
+                            
+      // Add self contribution
+      addToNormal(nodeListi, nodei, nodeListi, nodei);
+
+      // Normalize normal direction
+      normal(nodeListi, nodei) = normal(nodeListi, nodei).unitVector();
+    }
+  }
+}
+  
 } // end namespace Spheral
