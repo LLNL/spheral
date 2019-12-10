@@ -162,7 +162,7 @@ evaluateHessian(const TableKernel<Dimension>& kernel,
     const auto Cd1P = innerProductRK(corrections, dP, 0, offsetGradP(d1));
     const auto d1CP = innerProductRK(corrections, P, offsetGradC(d1), 0);
     for (auto d2 = d1; d2 < Dimension::nDim; ++d2) {
-      const auto Cd2P = innerProductRK(corrections, ddP, 0, offsetGradP(d2));
+      const auto Cd2P = innerProductRK(corrections, dP, 0, offsetGradP(d2));
       const auto d2CP = innerProductRK(corrections, P, offsetGradC(d2), 0);
       const auto CddP = innerProductRK(corrections, ddP, 0, offsetHessP(d1, d2));
       const auto d1Cd2P = innerProductRK(corrections, dP, offsetGradC(d1), offsetGradP(d2));
