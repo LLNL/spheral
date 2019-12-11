@@ -533,6 +533,9 @@ void clipPolyhedron(Polyhedron& polyhedron,
 
             }
           }
+        } else if (polyhedron[i].comp == 0) {
+          // This vertex is exactly in plane, so just add this plane as a clip.
+          polyhedron[i].clips.insert(plane.ID);
         }
       }
       nverts = polyhedron.size();
@@ -543,6 +546,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
       // TIME_PC3d_planeverts.start();
       // for (auto vptr: planeVertices) {
       //   CHECK(vptr->comp == 0);
+      //   vptr->clips.insert(plane.ID);
       //   const auto nneigh = vptr->neighbors.size();
       //   CHECK(nneigh >= 3);
       //   for (auto j = 0; j < nneigh; ++j) {
@@ -564,8 +568,8 @@ void clipPolyhedron(Polyhedron& polyhedron,
       //       CHECK(vnext != vptr);
       //       vptr->neighbors[j] = vnext;
 
-      //       const auto barf = ((vnext->position - Vector( 3.46945e-18, 0.0657523, -0.0728318 )).magnitude() < 1.0e-3);
-      //       if (barf) cerr << "Deg: " << vptr->position << " " << nneigh << endl;
+      //       // const auto barf = ((vnext->position - Vector( 3.46945e-18, 0.0657523, -0.0728318 )).magnitude() < 1.0e-3);
+      //       // if (barf) cerr << "Deg: " << vptr->position << " " << nneigh << endl;
 
       //       // Figure out which pointer on the new neighbor should point back at vptr.
       //       auto itr = find(vnext->neighbors.begin(), vnext->neighbors.end(), vprev);
