@@ -310,11 +310,11 @@ piptargets:	cache/pip
 
 #-------------------------------------------------------------------------------
 all:	$(PYTHONTARGET) \
+	piptargets \
 	$(PETSCTARGETS) \
 	$(ATSBUILDDATE) \
 	$(OPENSUBDIVTARGETS) \
 	$(EXTRATHIRDPARTYTARGETS) \
-	piptargets
 #	$(HYPREBUILDDATE)
 #	$(FLANNBUILDDATE) \
 #	$(PCLBUILDDATE)
@@ -389,7 +389,7 @@ cache/$(MPI4PYDIST):
 	@$(MKDIR) cache
 	$(WGET) "$(MPI4PYURL)" -O cache/$(MPI4PYDIST)
 
-$(MPI4PYBUILDDATE):	$(PYTHONTARGET) cache/$(MPI4PYDIST) .numpy_pip_install.date $(NUMPYBUILDDATE)
+$(MPI4PYBUILDDATE):	$(PYTHONTARGET) cache/$(MPI4PYDIST) .numpy_pip_install.date .cython_pip_install.date
 	@echo "################################################################################"
 	@echo "# Building $(MPI4PYDIST)"
 	@echo "################################################################################"
@@ -433,7 +433,7 @@ cache/$(GNUPLOTDIST):
 	@$(MKDIR) cache
 	$(WGET) "$(GNUPLOTURL)" -O cache/$(GNUPLOTDIST)
 
-$(GNUPLOTBUILDDATE):	$(PYTHONTARGET) cache/$(GNUPLOTDIST) .numpy_pip_install.date $(NUMPYBUILDDATE)
+$(GNUPLOTBUILDDATE):	$(PYTHONTARGET) cache/$(GNUPLOTDIST) .numpy_pip_install.date
 	@echo "################################################################################"
 	@echo "# Building $(GNUPLOTDIST)"
 	@echo "################################################################################"

@@ -72,6 +72,11 @@ public:
   void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs);
 
+  // This method is called once at the beginning of a timestep, after all state registration.
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;
+
   // Initialize the Hydro before we start a derivative evaluation.
   virtual
   void initialize(const Scalar time,
@@ -97,14 +102,6 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const;
 
-  // Finalize the hydro at the completion of an integration step.
-  virtual
-  void finalize(const Scalar time,
-                const Scalar dt,
-                DataBase<Dimension>& dataBase,
-                State<Dimension>& state,
-                StateDerivatives<Dimension>& derivs);
-               
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,

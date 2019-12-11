@@ -180,9 +180,9 @@ Timer TIME_SPH                   ("SPH base timer                 ", TIME_Physic
 Timer TIME_SPHinitializeStartup  ("SPH initializeProblemStartup   ", TIME_SPH);
 Timer TIME_SPHregister           ("SPH register                   ", TIME_SPH);
 Timer TIME_SPHregisterDerivs     ("SPH registerDerivatives        ", TIME_SPH);
+Timer TIME_SPHpreStepInitialize  ("SPH preStepInitialize (step)   ", TIME_SPH);
 Timer TIME_SPHinitialize         ("SPH initialize (evalderivs)    ", TIME_SPH);
 Timer TIME_SPHfinalizeDerivs     ("SPH finalizeDerivatives        ", TIME_SPH);
-Timer TIME_SPHfinalize           ("SPH finalize (step)            ", TIME_SPH);
 Timer TIME_SPHghostBounds        ("SPH ghost boundaries           ", TIME_SPH);
 Timer TIME_SPHupdateVol          ("SPH updateVolume               ", TIME_SPH);
 Timer TIME_SPHenforceBounds      ("SPH enforceBoundaries          ", TIME_SPH);
