@@ -95,3 +95,4 @@ class HydroFieldNames:
     rkCorrections = PYB11readonly(static=True)
     rkZerothCorrections = PYB11readonly(static=True)
     normal = PYB11readonly(static=True)
+    surfaceArea = PYB11readonly(static=True)

@@ -103,6 +103,7 @@ public:
                             const FieldList<Dimension, Vector>& position,
                             const FieldList<Dimension, SymTensor>& H,
                             const FieldList<Dimension, std::vector<double>>& corrections,
+                            FieldList<Dimension, Scalar>& surfaceArea,
                             FieldList<Dimension, Vector>& normal);
   
   // // Interpolate a field

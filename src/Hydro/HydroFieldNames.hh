@@ -84,6 +84,7 @@ struct HydroFieldNames {
   static const std::string rkCorrections;
   static const std::string rkZerothCorrections;
   static const std::string normal;
+  static const std::string surfaceArea;
 };
 
 }

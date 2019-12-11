@@ -99,6 +99,7 @@ class RKUtilities:
                       position = "const FieldList<%(Dimension)s, Vector>&",
                       H = "const FieldList<%(Dimension)s, SymTensor>&",
                       corrections = "const FieldList<%(Dimension)s, std::vector<double>>&",
+                      surfaceArea = "FieldList<%(Dimension)s, Scalar>&",
                       normal = "FieldList<%(Dimension)s, Vector>&"):
         "Compute RK corrections"
         return "void"

@@ -79,3 +79,4 @@ const std::string Spheral::HydroFieldNames::specificHeat = "specific heat";
 const std::string Spheral::HydroFieldNames::rkCorrections = "RK corrections";
 const std::string Spheral::HydroFieldNames::rkZerothCorrections = "zeroth RK corrections";
 const std::string Spheral::HydroFieldNames::normal = "outward normal direction";
+const std::string Spheral::HydroFieldNames::surfaceArea = "boundary surface area";

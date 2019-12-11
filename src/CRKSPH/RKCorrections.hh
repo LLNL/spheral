@@ -126,6 +126,7 @@ private:
   FieldList<Dimension, Scalar> mVolume;
   
   // Corrections
+  FieldList<Dimension, Scalar> mSurfaceArea;
   FieldList<Dimension, Vector> mNormal;
   FieldList<Dimension, std::vector<double>> mZerothCorrections;
   FieldList<Dimension, std::vector<double>> mCorrections;

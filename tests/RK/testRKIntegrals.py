@@ -67,6 +67,7 @@ if mpi.procs > 1:
 #-------------------------------------------------------------------------------
 if dimension == 1:
     from Spheral1d import *
+    ZerothRKUtilities = RKUtilities1d0
     if correctionOrder == ZerothOrder:
         RKCorrections = RKCorrections1d0
         RKUtilities = RKUtilities1d0
@@ -95,6 +96,7 @@ if dimension == 1:
         raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
 elif dimension == 2:
     from Spheral2d import *
+    ZerothRKUtilities = RKUtilities2d0
     if correctionOrder == ZerothOrder:
         RKCorrections = RKCorrections2d0
         RKUtilities = RKUtilities2d0
@@ -123,6 +125,7 @@ elif dimension == 2:
         raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
 else:
     from Spheral3d import *
+    ZerothRKUtilities = RKUtilities3d0
     if correctionOrder == ZerothOrder:
         RKCorrections = RKCorrections3d0
         RKUtilities = RKUtilities3d0
@@ -327,6 +330,7 @@ rk.preStepInitialize(dataBase, state, derivs)
 position = state.vectorFields(HydroFieldNames.position)
 H = state.symTensorFields(HydroFieldNames.H)
 volume = state.scalarFields(HydroFieldNames.volume)
+surfaceArea = state.scalarFields(HydroFieldNames.surfaceArea)
 normal = state.vectorFields(HydroFieldNames.normal)
 zerothCorrections = state.vector_of_doubleFields(HydroFieldNames.rkZerothCorrections)
 corrections = state.vector_of_doubleFields(HydroFieldNames.rkCorrections)
@@ -339,6 +343,10 @@ if computeCorrectionsDirectly:
     RKUtilities.computeCorrections(connectivity, WT, volume, position, H, needHessian,
                                    zerothCorrections, corrections)
     rk_time = time.time() - rk_time
+    # RKUtilities.computeNormal(connectivity, WT, volume, position, H, corrections,
+    #                           surfaceArea, normal)
+    ZerothRKUtilities.computeNormal(connectivity, WT, volume, position, H, zerothCorrections,
+                                    surfaceArea, normal)
 else:
     rk_time = time.time()
     rk.initialize(0.0, 0.0, dataBase, state, derivs)
@@ -391,10 +399,47 @@ def func(x):
 #-------------------------------------------------------------------------------
 # Check whether normals I'm calculating make any sense
 #-------------------------------------------------------------------------------
+# Get expected surface area
+expectedNS = np.zeros((dimension))
+if dimension == 1:
+    expectedS = 2.0
+elif dimension == 2:
+    expectedS = 2*(x1 - x0 + y1 - y0)
+else:
+    expectedS = 2*(x1-x0)*(y1-y0) + 2*(x1-x0)*(z1-z0) + 2*(y1-y0)*(z1-z0)
+
+# Get total surface area
+totalNS = np.zeros((dimension))
+totalS = 0.0
+ni = 0
 for i in range(nodes.numNodes):
     xi = position(ni, i)
     normali = normal(ni, i)
-    print xi, normali
+    si = surfaceArea(ni, i)
+    totalNS += normali * si
+    totalS += si
+    print xi, si, normali
+
+output("expectedNS")
+output("totalNS")
+output("expectedS")
+output("totalS")
+
+if dimension == 1:
+    ni = 0
+    xmid = 0.5 * (x0 + x1)
+    totalBNS = np.zeros((2))
+    for i in range(nodes.numNodes):
+        xi = position(ni, i)
+        normali = normal(ni, i)
+        si = surfaceArea(ni, i)
+        if xi[0] < xmid:
+            totalBNS[0] += normali[0] * si
+        else:
+            totalBNS[1] += normali[0] * si
+    output("totalBNS")
+
+
 
 # #-------------------------------------------------------------------------------
 # # Test out Dilts method for surface integrals

@@ -36,6 +36,7 @@ RKCorrections(const DataBase<Dimension>& dataBase,
   mVolume(FieldStorageType::CopyFields),
   mZerothCorrections(FieldStorageType::CopyFields),
   mCorrections(FieldStorageType::CopyFields),
+  mSurfaceArea(FieldStorageType::CopyFields),
   mNormal(FieldStorageType::CopyFields),
   mSurfacePoint(FieldStorageType::CopyFields),
   mEtaVoidPoints(FieldStorageType::CopyFields),
@@ -63,6 +64,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
   mCorrections = dataBase.newFluidFieldList(std::vector<double>(), HydroFieldNames::rkCorrections);
   mZerothCorrections = dataBase.newFluidFieldList(std::vector<double>(), HydroFieldNames::rkZerothCorrections);
+  mSurfaceArea = dataBase.newFluidFieldList(0.0, HydroFieldNames::surfaceArea);
   mNormal = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::normal);
   
   // Initialize the Voronoi stuff
@@ -115,7 +117,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Compute normal direction
   RKUtilities<Dimension, CRKOrder::ZerothOrder>::
     computeNormal(connectivityMap, mW, mVolume, position, H,
-                   mZerothCorrections, mNormal);
+                  mZerothCorrections, mSurfaceArea, mNormal);
 }
 
 //------------------------------------------------------------------------------
@@ -130,6 +132,7 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mVolume);
   state.enroll(mZerothCorrections);
   state.enroll(mCorrections);
+  state.enroll(mSurfaceArea);
   state.enroll(mNormal);
   
   state.enroll(mSurfacePoint);
@@ -174,6 +177,7 @@ applyGhostBoundaries(State<Dimension>& state,
   auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   auto zerothCorrections = state.fields(HydroFieldNames::rkZerothCorrections, std::vector<double>());
   auto corrections = state.fields(HydroFieldNames::rkCorrections, std::vector<double>());
+  auto surfaceArea = state.fields(HydroFieldNames::surfaceArea, 0.0);
   auto normal = state.fields(HydroFieldNames::normal, Vector::zero);
   auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   auto etaVoidPoints = state.fields(HydroFieldNames::etaVoidPoints, std::vector<Vector>());
@@ -187,6 +191,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
     (*boundaryItr)->applyFieldListGhostBoundary(zerothCorrections);
     (*boundaryItr)->applyFieldListGhostBoundary(corrections);
+    (*boundaryItr)->applyFieldListGhostBoundary(surfaceArea);
     (*boundaryItr)->applyFieldListGhostBoundary(normal);
     (*boundaryItr)->applyFieldListGhostBoundary(surfacePoint);
     (*boundaryItr)->applyFieldListGhostBoundary(etaVoidPoints);
@@ -298,6 +303,7 @@ initialize(const typename Dimension::Scalar time,
   const auto volume = state.fields(HydroFieldNames::volume, 0.0);
   auto zerothCorrections = state.fields(HydroFieldNames::rkZerothCorrections, std::vector<double>());
   auto corrections = state.fields(HydroFieldNames::rkCorrections, std::vector<double>());
+  auto surfaceArea = state.fields(HydroFieldNames::surfaceArea, 0.0);
   auto normal = state.fields(HydroFieldNames::normal, Vector::zero);
   
   // Compute corrections
@@ -307,7 +313,7 @@ initialize(const typename Dimension::Scalar time,
 
   RKUtilities<Dimension, CRKOrder::ZerothOrder>::
     computeNormal(connectivityMap, W, volume, position, H,
-                  zerothCorrections, normal);
+                  zerothCorrections, surfaceArea, normal);
   
   // Apply ghost boundaries to corrections
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
@@ -315,6 +321,7 @@ initialize(const typename Dimension::Scalar time,
        ++boundaryItr) {
     (*boundaryItr)->applyFieldListGhostBoundary(zerothCorrections);
     (*boundaryItr)->applyFieldListGhostBoundary(corrections);
+    (*boundaryItr)->applyFieldListGhostBoundary(surfaceArea);
     (*boundaryItr)->applyFieldListGhostBoundary(normal);
   }
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();

@@ -454,7 +454,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
 //------------------------------------------------------------------------------
 // Compute a guess for the normal direction
-// n_{i}=\text{norm}\left(\sum_{j}V_{j}\left[\nabla\psi_{j}\left(x_{i}\right)+\nabla\psi_{i}\left(x_{j}\right)\right]\right)
+// S_{i}n_{i}^{\alpha}=V_{i}\dfrac{\sum_{j}V_{j}\left[\partial_{x_{j}}^{\alpha}\psi_{i}\left(x_{j}\right)+\partial_{x_{i}}^{\alpha}\psi_{j}\left(x_{i}\right)\right]}{\sum_{j}V_{j}\psi_{j}\left(x_{i}\right)}
 //------------------------------------------------------------------------------
 template<typename Dimension, CRKOrder correctionOrder>
 void
@@ -464,7 +464,8 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
               const FieldList<Dimension, Scalar>& volume,
               const FieldList<Dimension, Vector>& position,
               const FieldList<Dimension, SymTensor>& H,
-              const FieldList<Dimension, std::vector<double>>& corrections, 
+              const FieldList<Dimension, std::vector<double>>& corrections,
+              FieldList<Dimension, Scalar>& surfaceArea,
               FieldList<Dimension, Vector>& normal) {
   // Size info
   const auto numNodeLists = volume.size();
@@ -473,9 +474,10 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(corrections.size() == numNodeLists);
+  REQUIRE(surfaceArea.size() == numNodeLists);
   REQUIRE(normal.size() == numNodeLists);
   
-  // Get function for adding contribution to normal
+  // Get function for adding contribution to surface area and normal
   auto addToNormal = [&](const int nodeListi,
                          const int nodei,
                          const int nodeListj,
@@ -494,10 +496,15 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
     // Get kernels
     const auto xij = xi - xj;
     const auto xji = xj - xi;
-    const auto dwij = evaluateGradient(kernel, xij, Hj, Ci);
+    const auto wdwij = evaluateKernelAndGradient(kernel, xij, Hj, Ci);
+    const auto wij = wdwij.first;
+    const auto dwij = wdwij.second;
     const auto dwji = evaluateGradient(kernel, xji, Hi, Cj);
     
-    // Add value to normal
+    // Add denominator value to surface area
+    surfaceArea(nodeListi, nodei) += vj * wij;
+    
+    // Add numerator value to normal
     normal(nodeListi, nodei) += vj * (dwij + dwji);
   };
 
@@ -519,7 +526,13 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
       // Add self contribution
       addToNormal(nodeListi, nodei, nodeListi, nodei);
 
-      // Normalize normal direction
+      // Divide the numerator by the denominator to get S_i n_i^\alpha
+      normal(nodeListi, nodei) *= volume(nodeListi, nodei) / surfaceArea(nodeListi, nodei);
+      
+      // Get the surface area
+      surfaceArea(nodeListi, nodei) = normal(nodeListi, nodei).magnitude();
+      
+      // Get the normal direction
       normal(nodeListi, nodei) = normal(nodeListi, nodei).unitVector();
     }
   }
