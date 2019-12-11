@@ -24,7 +24,6 @@ set(CRKSPH_sources
     ContinuityVolumePolicyRZ.cc
     computeVoronoiVolume.cc
     computeVoronoiVolume1d.cc
-    computeVoronoiVolume3d.cc
    )
 
 if(ENABLE_2D)
