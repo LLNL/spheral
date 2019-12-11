@@ -112,7 +112,7 @@ threadReduceFieldLists(typename SpheralThreads<Dimension>::FieldListStack& stack
   if (stack.size() > 0) {
 #pragma omp critical
     {
-      if (omp_get_thread_num() > 0) {
+      if (omp_get_num_threads() > 1) {
         const auto& nodeListPtrs = boost::apply_visitor(typename SpheralThreads<Dimension>::ExtractNodeLists(), stack[0]);
         const auto  numNodeLists = nodeListPtrs.size();
         for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
