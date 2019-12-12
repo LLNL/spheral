@@ -21,3 +21,8 @@ blt_add_library(
   CLEAR_PREFIX TRUE
   SHARED       TRUE
   )
+
+install(
+  FILES ${CMAKE_BINARY_DIR}/lib/$<TARGET_FILE_NAME:${MODULE_NAME}>
+  DESTINATION .
+  )

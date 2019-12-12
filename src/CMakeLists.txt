@@ -4,6 +4,8 @@ set(SPHERAL_PYTHON_DEPENDS )
 #set(spheral_depends BOOST Eigen qhull silo polytope mpi openmp)
 set(spheral_depends BOOST Eigen qhull silo polytope mpi pybind11)
 
+set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
+
 #add_subdirectory(CInterface)
 set(_packages 
   ArtificialViscosity
@@ -29,6 +31,10 @@ set(_packages
   NodeGenerators
   NodeList
   Physics
+  PBGWraps
+  Pybind11Wraps
+  PythonMPIInterfaces
+  SimulationControl
   SolidMaterial
   SPH
   Strength

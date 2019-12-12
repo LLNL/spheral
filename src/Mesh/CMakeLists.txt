@@ -48,6 +48,10 @@ set(Mesh_headers
     generateMesh.hh
     )
 
+set(Mesh_python_targets
+  generateMesh.py
+  siloMeshDump.py)
+
 blt_add_library(NAME        Spheral_Mesh
                 SOURCES     ${Mesh_sources}
                 HEADERS     ${Mesh_headers}
@@ -63,6 +67,10 @@ install(TARGETS              Spheral_Mesh
 
 install(FILES       ${Mesh_headers}
         DESTINATION include/Mesh
+        )
+
+install(FILES       ${Mesh_python_targets}
+        DESTINATION .
         )
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Mesh)

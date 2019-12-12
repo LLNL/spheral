@@ -44,6 +44,13 @@ set(Damage_headers
     YoungsModulusPolicy.hh
     )
 
+set(Damage_python_targets
+    identifyFragments.py
+    WeibullDamage.py
+    GradyKippTensorDamage.py
+    JohnsonCookDamageFactories.py
+    )
+
 blt_add_library(NAME        Spheral_Damage
                 SOURCES     ${Damage_sources}
                 HEADERS     ${Damage_headers}
@@ -59,6 +66,10 @@ install(TARGETS              Spheral_Damage
 
 install(FILES       ${Damage_headers}
         DESTINATION include/Damage
+        )
+
+install(FILES       ${Damage_python_targets}
+        DESTINATION .
         )
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Damage)

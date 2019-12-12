@@ -33,6 +33,12 @@ set(NodeList_headers
     secondMomentUtilities.hh
     )
 
+set(NodeList_python_targets
+    FluidNodeLists.py
+    SolidNodeLists.py
+    VoidNodeLists.py
+    )
+
 blt_add_library(NAME        Spheral_NodeList
                 SOURCES     ${NodeList_sources}
                 HEADERS     ${NodeList_headers}
@@ -48,6 +54,10 @@ install(TARGETS              Spheral_NodeList
 
 install(FILES       ${NodeList_headers}
         DESTINATION include/NodeList
+        )
+
+install(FILES       ${NodeList_python_targets}
+        DESTINATION .
         )
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_NodeList)

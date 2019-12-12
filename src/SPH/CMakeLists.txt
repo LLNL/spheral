@@ -49,6 +49,13 @@ set(SPH_headers
     correctSPHSumMassDensity.hh
     )
 
+set(SPH_python_targets
+    SPHHydros.py
+    PSPHHydros.py
+    SPHUtilities.py
+    FacetedSurfaceASPHHydro.py
+    )
+
 blt_add_library(NAME        Spheral_SPH
                 SOURCES     ${SPH_sources}
                 HEADERS     ${SPH_headers}
@@ -64,6 +71,10 @@ install(TARGETS              Spheral_SPH
 
 install(FILES       ${SPH_headers}
         DESTINATION include/SPH
+        )
+
+install(FILES       ${SPH_python_targets}
+        DESTINATION .
         )
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_SPH)

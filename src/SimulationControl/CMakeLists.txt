@@ -1,0 +1,42 @@
+set(SimulationControl_python_targets
+    spheralDimensions.py
+    Spheral.py
+    Spheral1d.py
+    Spheral2d.py
+    Spheral3d.py
+    SpheralRZ.py
+    SolidSpheral1d.py
+    SolidSpheral2d.py
+    SolidSpheral3d.py
+    SolidSpheralRZ.py
+    SpheralTestUtilities.py
+    SpheralTimer.py
+    SpheralConservation.py
+    SpheralController.py
+    SpheralOptionParser.py
+    SpheralVisitDump.py
+    SpheralVoronoiSiloDump.py
+    SpheralPolytopeSiloDump.py
+    Spheral1dVizDump.py
+    SpheralGnuPlotUtilities.py
+    SpheralMatplotlib.py
+    findLastRestart.py
+    Pnorm.py
+    filearraycmp.py
+    numericalIntegration.py
+    newtonRaphson.py
+    bisectFunction.py
+    NodeHistory.py
+    AverageStrain.py
+    EulerianTracerHistory.py
+    SpheralHadesDump.py
+    siloPointmeshDump.py
+    SpheralPointmeshSiloDump.py
+    resampleNodeList.py
+    overlayNodeList.py
+    writeSiloQuadMesh.py
+    )
+
+install(FILES       ${SimulationControl_python_targets}
+        DESTINATION .
+        )

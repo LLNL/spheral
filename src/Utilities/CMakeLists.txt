@@ -107,6 +107,10 @@ set(Utilities_headers
     timingUtilities.hh
     )
 
+set(Utilities_python_targets
+    fitspline.py
+    )
+
 blt_add_library(NAME        Spheral_Utilities
                 SOURCES     ${Utilities_sources}
                 HEADERS     ${Utilities_headers}
@@ -122,6 +126,10 @@ install(TARGETS              Spheral_Utilities
 
 install(FILES       ${Utilities_headers}
         DESTINATION include/Utilities
+        )
+
+install(FILES       ${Utilities_python_targets}
+        DESTINATION .
         )
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Utilities)

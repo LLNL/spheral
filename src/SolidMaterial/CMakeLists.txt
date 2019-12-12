@@ -50,6 +50,15 @@ set(SolidMaterial_headers
     TillotsonEquationOfStateInline.hh
     )
 
+set(SolidMaterial_python_targets
+    MaterialPropertiesLib.py
+    SolidMaterialUnits.py
+    SolidMaterialEquationsOfState.py
+    ShadowTillotsonEquationOfState.py
+    ShadowConstantStrength.py
+    )
+
+
 blt_add_library(NAME        Spheral_SolidMaterial
                 SOURCES     ${SolidMaterial_sources}
                 HEADERS     ${SolidMaterial_headers}
@@ -65,6 +74,10 @@ install(TARGETS              Spheral_SolidMaterial
 
 install(FILES       ${SolidMaterial_headers}
         DESTINATION include/SolidMaterial
+        )
+
+install(FILES       ${SolidMaterial_python_targets}
+        DESTINATION .
         )
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_SolidMaterial)

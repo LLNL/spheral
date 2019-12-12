@@ -20,6 +20,11 @@ set(Material_headers
     PhysicalConstantsInline.hh
     )
 
+set(Material_python_targets
+  MaterialUnits.py
+  MaterialEquationsOfState.py
+  )
+
 blt_add_library(NAME        Spheral_Material
                 SOURCES     ${Material_sources}
                 HEADERS     ${Material_headers}
@@ -35,6 +40,10 @@ install(TARGETS              Spheral_Material
 
 install(FILES       ${Material_headers}
         DESTINATION include/Material
+        )
+
+install(FILES       ${Material_python_targets}
+        DESTINATION .
         )
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Material)

@@ -81,6 +81,10 @@ set(CRKSPH_headers
     zerothOrderSurfaceCorrections.hh
     )
 
+set(CRKSPH_python_targets
+  CRKSPHHydros.py
+  )
+
 blt_add_library(NAME        Spheral_CRKSPH
                 SOURCES     ${CRKSPH_sources}
                 HEADERS     ${CRKSPH_headers}
@@ -97,6 +101,10 @@ install(TARGETS              Spheral_CRKSPH
 install(FILES       ${CRKSPH_headers}
         DESTINATION include/CRKSPH
         )
-      
+
+install(FILES       ${CRKSPH_python_targets}
+        DESTINATION .
+        )
+    
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_CRKSPH)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

@@ -37,6 +37,10 @@ set(SVPH_headers
     SVPHMassDensityPolicy.hh
     )
 
+set(SVPH_python_targets
+  SVPHHydros.py
+  )
+
 blt_add_library(NAME        Spheral_SVPH
                 SOURCES     ${SVPH_sources}
                 HEADERS     ${SVPH_headers}
@@ -52,6 +56,10 @@ install(TARGETS              Spheral_SVPH
 
 install(FILES       ${SVPH_headers}
         DESTINATION include/SVPH
+        )
+
+install(FILES       ${SVPH_python_targets}
+        DESTINATION .
         )
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_SVPH)

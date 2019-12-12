@@ -16,6 +16,11 @@ set(FileIO_headers
     HDF5Types.hh
     )
 
+set(FileIO_python_targets
+  GzipFileIO.py
+  PlyFileIO.py
+  )
+
 blt_add_library(NAME        Spheral_FileIO
                 SOURCES     ${FileIO_sources}
                 HEADERS     ${FileIO_headers}
@@ -31,6 +36,10 @@ install(TARGETS              Spheral_FileIO
 
 install(FILES       ${FileIO_headers}
         DESTINATION include/FileIO
+        )
+      
+install(FILES       ${FileIO_python_targets}
+        DESTINATION .
         )
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_FileIO)
