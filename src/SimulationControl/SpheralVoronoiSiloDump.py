@@ -536,12 +536,12 @@ def dumpPhysicsState(stateThingy,
                              cells,
                              cellFaceFlags)
 
-    # # Amalgamate the cell face flags into a single value per cell.  Not the best visualization yet...
+    # Amalgamate the cell face flags into a single value per cell.  Not the best visualization yet...
     # cellFaceFlagsSum = dataBase.newGlobalIntFieldList(0, HydroFieldNames.cellFaceFlags + "_sum")
     # for k in xrange(len(cellFaceFlagsSum)):
     #     for i in xrange(len(cellFaceFlagsSum[k])):
     #         cellFaceFlagsSum[k][i] = sum([x.nodeListj for x in cellFaceFlags[k][i]] + [0])
-    # fieldLists.append(cellFaceFlagsSum)
+    # fieldLists += [surfacePoint, cellFaceFlagsSum]
 
     # Now build the visit dumper.
     dumper = SpheralVoronoiSiloDump(baseFileName,

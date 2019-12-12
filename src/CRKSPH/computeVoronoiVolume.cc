@@ -291,6 +291,31 @@ std::vector<CellFaceFlag> extractFaceFlags(const GeomPolyhedron& cell,
   const auto& facets = cell.facets();
   const auto  nfacets = facets.size();
   std::vector<CellFaceFlag> result;
+  for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
+    const auto& facet = facets[ifacet];
+    const auto& ipoints = facet.ipoints();
+    const auto  npoints = ipoints.size();
+    auto intersection = vertexClips[ipoints[0]];
+    auto k = 1;
+    while (not intersection.empty() and k < npoints) {
+      std::set<int> newIntersection;
+      std::set_intersection(intersection.begin(), intersection.end(),
+                            vertexClips[ipoints[k]].begin(), vertexClips[ipoints[k]].end(),
+                            std::inserter(newIntersection, newIntersection.begin()));
+      intersection = newIntersection;
+      ++k;
+    }
+    if (not intersection.empty()) {
+      CHECK(intersection.size() == 1);
+      const auto iplane1 = *intersection.begin();
+      if (iplane1 == boundingSurfaceClipFlag or
+          iplane1 >= 0) {
+        result.push_back(CellFaceFlag({ifacet, -1, -1}));       // Clipped by a boundary/void
+      } else {
+        result.push_back(CellFaceFlag({ifacet, ~iplane1, -1})); // Clipped by another NodeList
+      }
+    }
+  }
   return result;
 }
 
