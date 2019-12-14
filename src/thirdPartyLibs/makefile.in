@@ -282,7 +282,7 @@ MANEOSBUILDDATE = .maneos-v1.0.date
 # Define patterns for downloading and installing pip packages
 .SUFFIXES:	_pip_dowload.date _pip_install.date
 
-cache/pip:
+cache/pip:	$(PIPEXE)
 	@echo "################################################################################"
 	@echo "# Downloading PIP packages"
 	@echo "################################################################################"
