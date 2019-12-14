@@ -320,7 +320,6 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       for (auto& mat : ddM) {
         mat.setZero();
       }
-      
                             
       // Add contribution from other points
       const auto& connectivity = connectivityMap.connectivityForNode(nodeListi, nodei);
