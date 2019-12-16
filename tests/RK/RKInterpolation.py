@@ -220,6 +220,8 @@ hmax = deltaMax * nPerh * hmaxmult
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
 dataDir = os.path.join(dataDirBase,
+                       "correctionOrder={}".format(correctionOrder),
+                       "funcType={}".format(funcType),
                        "dim={}".format(dimension),
                        "nx={}".format(nx))
 restartDir = os.path.join(dataDir, "restarts")
