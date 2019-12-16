@@ -72,9 +72,9 @@ extern Timer TIME_SPH;
 extern Timer TIME_SPHinitializeStartup;
 extern Timer TIME_SPHregister;
 extern Timer TIME_SPHregisterDerivs;
+extern Timer TIME_SPHpreStepInitialize;
 extern Timer TIME_SPHinitialize;
 extern Timer TIME_SPHfinalizeDerivs;
-extern Timer TIME_SPHfinalize;
 extern Timer TIME_SPHghostBounds;
 extern Timer TIME_SPHupdateVol;
 extern Timer TIME_SPHenforceBounds;
@@ -438,145 +438,66 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Initialize the hydro.
+// This method is called once at the beginning of a timestep, after all state registration.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 SPHHydroBase<Dimension>::
-initialize(const typename Dimension::Scalar time,
-           const typename Dimension::Scalar dt,
-           const DataBase<Dimension>& dataBase,
-           State<Dimension>& state,
-           StateDerivatives<Dimension>& derivs) {
-  TIME_SPHinitialize.start();
-
-  // Initialize the grad h corrrections if needed.
-  const TableKernel<Dimension>& W = this->kernel();
-  const TableKernel<Dimension>& WPi = this->PiKernel();
-
-  if (mGradhCorrection) {
-    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
-    computeSPHOmegaGradhCorrection(connectivityMap, this->kernel(), position, H, omega);
-    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-         boundItr != this->boundaryEnd();
-         ++boundItr) (*boundItr)->applyFieldListGhostBoundary(omega);
-  }
-
-  // Get the artificial viscosity and initialize it.
-  ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
-  Q.initialize(dataBase, 
-               state,
-               derivs,
-               this->boundaryBegin(),
-               this->boundaryEnd(),
-               time, 
-               dt,
-               WPi);
-
-  // We depend on the caller knowing to finalize the ghost boundaries!
-  TIME_SPHinitialize.stop();
-}
-
-//------------------------------------------------------------------------------
-// Finalize the derivatives.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-SPHHydroBase<Dimension>::
-finalizeDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
-                    const DataBase<Dimension>& dataBase,
-                    const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivs) const {
-  TIME_SPHfinalizeDerivs.start();
-
-  // If we're using the compatible energy discretization, we need to enforce
-  // boundary conditions on the accelerations.
-  if (compatibleEnergyEvolution()) {
-    auto accelerations = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-    auto DepsDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) {
-      (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
-      (*boundaryItr)->applyFieldListGhostBoundary(DepsDt);
-    }
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  }
-  TIME_SPHfinalizeDerivs.stop();
-}
-
-//------------------------------------------------------------------------------
-// Finalize the hydro.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-SPHHydroBase<Dimension>::
-finalize(const typename Dimension::Scalar time,
-         const typename Dimension::Scalar dt,
-         DataBase<Dimension>& dataBase,
-         State<Dimension>& state,
-         StateDerivatives<Dimension>& derivs) {
-  TIME_SPHfinalize.start();
-
-  // Base class finalization.
-  GenericHydro<Dimension>::finalize(time, dt, dataBase, state, derivs);
+preStepInitialize(const DataBase<Dimension>& dataBase, 
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
+  TIME_SPHpreStepInitialize.start();
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
   if (densityUpdate() == MassDensityType::RigorousSumDensity or
       densityUpdate() == MassDensityType::CorrectedSumDensity) {
-    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    const auto& connectivityMap = dataBase.connectivityMap();
+    const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+    const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+    const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     computeSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
     if (densityUpdate() == MassDensityType::CorrectedSumDensity) {
-      for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
-           boundaryItr != this->boundaryEnd();
+      for (auto boundaryItr = this->boundaryBegin();
+           boundaryItr < this->boundaryEnd();
            ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-      for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-           boundaryItr != this->boundaryEnd();
+      for (auto boundaryItr = this->boundaryBegin(); 
+           boundaryItr < this->boundaryEnd();
            ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
       correctSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
     }
   } else if (densityUpdate() == MassDensityType::SumDensity) {
-    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    const FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
-                                                                      HydroFieldNames::massDensity, 0.0);
+    auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    const auto massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+                                              HydroFieldNames::massDensity, 0.0);
     massDensity.assignFields(massDensitySum);
   } else if (densityUpdate() == MassDensityType::HybridSumDensity) {
-    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    const FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
-                                                                      HydroFieldNames::massDensity, 0.0);
-    const FieldList<Dimension, Scalar> normalization = state.fields(HydroFieldNames::normalization, 0.0);
-    const unsigned numNodeLists = normalization.size();
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const unsigned n = normalization[nodeListi]->numInternalElements();
-      for (unsigned i = 0; i != n; ++i) {
+    auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    const auto massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+                                              HydroFieldNames::massDensity, 0.0);
+    const auto normalization = state.fields(HydroFieldNames::normalization, 0.0);
+    const auto numNodeLists = normalization.size();
+    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+      const auto n = normalization[nodeListi]->numInternalElements();
+      for (auto i = 0; i < n; ++i) {
         if (normalization(nodeListi, i) > 0.95) massDensity(nodeListi, i) = massDensitySum(nodeListi, i);
       }
     }
   } else if (densityUpdate() == MassDensityType::VoronoiCellDensity) {
     this->updateVolume(state, false);
-    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-    const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
-    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+    const auto volume = state.fields(HydroFieldNames::volume, 0.0);
+    auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     massDensity = mass / volume;
   } else if (densityUpdate() == MassDensityType::SumVoronoiCellDensity) {
     this->updateVolume(state, true);
-    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-    const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
-    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    const auto& connectivityMap = dataBase.connectivityMap();
+    const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+    const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+    const auto  volume = state.fields(HydroFieldNames::volume, 0.0);
+    const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     computeSumVoronoiCellMassDensity(connectivityMap, this->kernel(), position, mass, volume, H, massDensity);
   }
 
@@ -658,7 +579,81 @@ finalize(const typename Dimension::Scalar time,
   //        ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
   //   this->enforceBoundaries(state, derivs);
   // }
-  TIME_SPHfinalize.stop();
+  TIME_SPHpreStepInitialize.stop();
+}
+
+//------------------------------------------------------------------------------
+// Initialize the hydro before calling evaluateDerivatives
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SPHHydroBase<Dimension>::
+initialize(const typename Dimension::Scalar time,
+           const typename Dimension::Scalar dt,
+           const DataBase<Dimension>& dataBase,
+           State<Dimension>& state,
+           StateDerivatives<Dimension>& derivs) {
+  TIME_SPHinitialize.start();
+
+  // Initialize the grad h corrrections if needed.
+  const TableKernel<Dimension>& W = this->kernel();
+  const TableKernel<Dimension>& WPi = this->PiKernel();
+
+  if (mGradhCorrection) {
+    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
+    computeSPHOmegaGradhCorrection(connectivityMap, this->kernel(), position, H, omega);
+    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+         boundItr != this->boundaryEnd();
+         ++boundItr) (*boundItr)->applyFieldListGhostBoundary(omega);
+  }
+
+  // Get the artificial viscosity and initialize it.
+  ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
+  Q.initialize(dataBase, 
+               state,
+               derivs,
+               this->boundaryBegin(),
+               this->boundaryEnd(),
+               time, 
+               dt,
+               WPi);
+
+  // We depend on the caller knowing to finalize the ghost boundaries!
+  TIME_SPHinitialize.stop();
+}
+
+//------------------------------------------------------------------------------
+// Finalize the derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SPHHydroBase<Dimension>::
+finalizeDerivatives(const typename Dimension::Scalar time,
+                    const typename Dimension::Scalar dt,
+                    const DataBase<Dimension>& dataBase,
+                    const State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivs) const {
+  TIME_SPHfinalizeDerivs.start();
+
+  // If we're using the compatible energy discretization, we need to enforce
+  // boundary conditions on the accelerations.
+  if (compatibleEnergyEvolution()) {
+    auto accelerations = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+    auto DepsDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) {
+      (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
+      (*boundaryItr)->applyFieldListGhostBoundary(DepsDt);
+    }
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  }
+  TIME_SPHfinalizeDerivs.stop();
 }
 
 //------------------------------------------------------------------------------

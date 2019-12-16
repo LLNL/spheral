@@ -62,11 +62,11 @@ commandLine(
 
 # Reference values for tests
 if timeStepChoice == AccelerationRatio:
-    coefsRef = np.array([ 8.33761813e+00,  1.24907202e-12, -2.87200978e-23])
-    sigmaPhiRef = 9.303285830142713
+    coefsRef = np.array([ 8.33175998e+00,  1.24358171e-12, -2.83895427e-23])
+    sigmaPhiRef = 9.25853628363647
 elif timeStepChoice == DynamicalTime:
-    coefsRef = np.array([ 8.29184255e+00,  1.20323179e-12, -2.61616502e-23])
-    sigmaPhiRef = 8.967877684261543
+    coefsRef = np.array([ 8.29012807e+00,  1.20195868e-12, -2.60750402e-23])
+    sigmaPhiRef = 8.968145544554178
 
 # Convert to MKS units.
 AU = 149597870700.0  # m

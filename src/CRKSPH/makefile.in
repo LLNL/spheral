@@ -27,11 +27,15 @@ INSTSRCTARGETS = \
 	$(srcdir)/ContinuityVolumePolicyInst.cc.py \
 	$(srcdir)/SolidCRKSPHHydroBaseInst.cc.py \
 	$(srcdir)/editMultimaterialSurfaceTopologyInst.cc.py \
-	$(srcdir)/zerothOrderSurfaceCorrectionsInst.cc.py
+	$(srcdir)/zerothOrderSurfaceCorrectionsInst.cc.py \
+	$(srcdir)/computeRKVolumesInst.cc.py \
+	$(srcdir)/RKCorrectionsInst.cc.py \
+	$(srcdir)/RKUtilitiesInst.cc.py
 
 SRCTARGETS = \
 	$(srcdir)/centerOfMass.cc \
-	$(srcdir)/computeVoronoiVolume.cc
+	$(srcdir)/computeVoronoiVolume.cc \
+	$(srcdir)/RKUtilities.cc 
 
 PYTHONTARGETS = \
 	$(srcdir)/CRKSPHHydros.py

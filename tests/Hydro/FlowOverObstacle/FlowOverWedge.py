@@ -1,20 +1,29 @@
+#-------------------------------------------------------------------------------
+# Based roughly on the discussion and results in section 17.2.1 of Toro.
+#-------------------------------------------------------------------------------
 from Spheral2d import *
 from SpheralTestUtilities import *
 from GenerateNodeDistribution2d import GenerateNodeDistribution2d
+from CompositeNodeDistribution import *
 from PeanoHilbertDistributeNodes import distributeNodes2d
 from FacetedVolumeRejecters import PolygonalSurfaceRejecter
 import os, shutil
 from math import *
 
-title("Flow around an embedded triangle")
+title("Shock over a wedge boundary")
 
 units = CGS()
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nx = 400,
-            ny = 300,
+commandLine(nx = 250,
+            ny = 150,
+
+            angle = 25.0,                    # Wedge angle (degrees)
+            v0 = 1.0,                        # inflow velocity
+
+            xmem = 3.0,                      # initial position between high and low pressure regions
 
             # Hydro choices
             crksph = False,                  # True->CRK, False->SPH
@@ -24,33 +33,24 @@ commandLine(nx = 400,
             densityUpdate = RigorousSumDensity,
 
             # Time advancement
-            goalTime = 100.0,
+            goalTime = 500.0,
             steps = None,
 
             # Output
             vizStep = None,
-            vizTime = 0.1,
+            vizTime = 5.0,
             clearDirectories = True,
             )
 
-
 # Problem geometry
-x0, y0 = 0.0, -1.5
-x1, y1 = 4.0,  1.5
+x0, x1, x2 = 0.0, 4.0, 25.0
+y0, y1 = 0.0, 15.0
 
 # Material initial conditions
-rho0 = 1.0
-v0 = 1.0
+rho0, eps0 = 1.0,  1.0
 
 # Assorted hydro parameters
 nPerh = 4.0
-
-# Triangle geometry
-L = 0.5  # triangle edge length
-triverts = [Vector(1.0, 0.0),
-            Vector(1.0 + L*cos(pi/6.0), -L*sin(pi/6.0)),
-            Vector(1.0 + L*cos(pi/6.0),  L*sin(pi/6.0))]
-triangle = Polygon(triverts)
 
 # Set the directory paths
 if ASPH:
@@ -62,12 +62,21 @@ if crksph:
 else:
     hydroname = "SPH"
 
-dataDir = os.path.join("dumps-FlowAroundTriangle",
+dataDir = os.path.join("dumps-FlowOverWedge",
+                       "wedgeAngle=%s" % angle,
+                       "v0=%s" % v0,
                        hydroname,
                        "nx=%i_ny=%i" % (nx, ny))
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "viz")
-vizName = "flowAroundTriangle"
+vizName = "flowOverWedge"
+
+# Build the wedge geometry
+angle *= pi/180.0
+wedgePts = [(x1, y0),
+            (x2, y0),
+            (x2, y0 + (x2 - x1)*sin(angle))]
+wedge = Polygon([Vector(x,y) for x,y in wedgePts])
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -110,19 +119,22 @@ output("    nodes.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Initial conditions
 #-------------------------------------------------------------------------------
-gen = GenerateNodeDistribution2d(nx, ny, rho0, "lattice",
+gen = GenerateNodeDistribution2d(nx, ny, rho0,
+                                 "lattice",
                                  xmin = (x0, y0),
-                                 xmax = (x1, y1),
+                                 xmax = (x2, y1),
                                  nNodePerh = nPerh,
                                  SPH = not asph,
-                                 rejecter = PolygonalSurfaceRejecter(triangle))
+                                 rejecter = PolygonalSurfaceRejecter(wedge))
 distributeNodes2d((nodes, gen))
 output("nodes.numNodes")
 
-# Set node velocities
+# Set node initial conditions
 vel = nodes.velocity()
+eps = nodes.specificThermalEnergy()
 for i in xrange(nodes.numInternalNodes):
     vel[i].x = v0
+    eps[i] = eps0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -166,7 +178,7 @@ packages = [hydro]
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
 inplane =     Plane(Vector(x0, y0), Vector( 1,  0))
-outplane =    Plane(Vector(x1, y0), Vector(-1,  0))
+outplane =    Plane(Vector(x2, y0), Vector(-1,  0))
 bottomplane = Plane(Vector(x0, y0), Vector( 0,  1))
 topplane =    Plane(Vector(x0, y1), Vector( 0, -1))
 
@@ -174,10 +186,10 @@ inflow = InflowOutflowBoundary(db, inplane)
 outflow = InflowOutflowBoundary(db, outplane)
 bottom = ReflectingBoundary(bottomplane)
 top = ReflectingBoundary(topplane)
-obstacle = FacetedVolumeBoundary(triangle,
-                                 interiorBoundary = True,
-                                 useGhosts = True)
-bcs = [inflow, outflow, bottom, top, obstacle]
+wedgeBC = FacetedVolumeBoundary(wedge,
+                                interiorBoundary = True,
+                                useGhosts = True)
+bcs = [inflow, outflow, top, bottom, wedgeBC]
 packages += [inflow, outflow]
 
 for p in packages:

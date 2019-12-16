@@ -1,7 +1,7 @@
 """
-Spheral Field module.
+Spheral FieldList module.
 
-Provides the Field classes.
+Provides the FieldList classes.
 """
 
 from PYB11Generator import *
@@ -9,10 +9,11 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
-from FieldBase import *
-from Field import *
-from ArithmeticField import *
-from MinMaxField import *
+from FieldListBase import *
+from FieldList import *
+from ArithmeticFieldList import *
+from MinMaxFieldList import *
+from FieldListSet import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -33,20 +34,15 @@ PYB11includes += ['"Geometry/Dimension.hh"',
 PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
-# Enums
-#-------------------------------------------------------------------------------
-FieldStorageType = PYB11enum(("ReferenceFields", "CopyFields"), export_values=True,
-                             doc="Storage types for Fields in FieldLists.")
-
-#-------------------------------------------------------------------------------
 # Do our dimension dependent instantiations.
 #-------------------------------------------------------------------------------
 for ndim in dims:
 
     #...........................................................................
-    # FieldBase
+    # FieldListBase, FieldListSet
     exec('''
-FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(ndim)i>")
+FieldListBase%(ndim)id = PYB11TemplateClass(FieldListBase, template_parameters="Dim<%(ndim)i>")
+FieldListSet%(ndim)sd = PYB11TemplateClass(FieldListSet, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
 
     #...........................................................................
@@ -60,7 +56,7 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
                            ("std::vector<CellFaceFlag>",           "vector_of_CellFaceFlag"),
                            ("DomainNode<Dim<%i>>" % ndim,          "DomainNode")):
         exec('''
-%(label)sField%(ndim)sd = PYB11TemplateClass(Field, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
+%(label)sFieldList%(ndim)sd = PYB11TemplateClass(FieldList, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 ''' % {"ndim" : ndim,
        "value" : value,
        "label" : label})
@@ -75,7 +71,7 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
                            ("Dim<%i>::FourthRankTensor" % ndim, "FourthRankTensor"),
                            ("Dim<%i>::FifthRankTensor" % ndim,  "FifthRankTensor")):
         exec('''
-%(label)sField%(ndim)sd = PYB11TemplateClass(ArithmeticField, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
+%(label)sFieldList%(ndim)sd = PYB11TemplateClass(ArithmeticFieldList, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 ''' % {"ndim" : ndim,
        "value" : value,
        "label" : label})
@@ -85,7 +81,7 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
     for (value, label) in (("double",                     "Scalar"),
                            ("Dim<%i>::SymTensor" % ndim,  "SymTensor")):
         exec('''
-%(label)sField%(ndim)sd = PYB11TemplateClass(MinMaxField, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
+%(label)sFieldList%(ndim)sd = PYB11TemplateClass(MinMaxFieldList, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 ''' % {"ndim" : ndim,
        "value" : value,
        "label" : label})
@@ -98,9 +94,9 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
                          ("Dim<%i>::Tensor" % ndim, "Tensor"),
                          ("Dim<%i>::SymTensor" % ndim, "SymTensor")):
         exec('''
-vector_of_%(label)sField%(ndim)id = PYB11_bind_vector("Field<%(Dimension)s, %(value)s>", opaque=True, local=False)
-vector_of_%(label)sFieldPtr%(ndim)id = PYB11_bind_vector("Field<%(Dimension)s, %(value)s>*", opaque=True, local=False)
-vector_of_vector_of_%(label)sField%(ndim)id = PYB11_bind_vector("std::vector<Field<%(Dimension)s, %(value)s>>", opaque=True, local=False)
+vector_of_%(label)sFieldList%(ndim)id = PYB11_bind_vector("FieldList<%(Dimension)s, %(value)s>", opaque=True, local=False)
+vector_of_%(label)sFieldListPtr%(ndim)id = PYB11_bind_vector("FieldList<%(Dimension)s, %(value)s>*", opaque=True, local=False)
+vector_of_vector_of_%(label)sFieldList%(ndim)id = PYB11_bind_vector("std::vector<FieldList<%(Dimension)s, %(value)s>>", opaque=True, local=False)
 ''' % {"ndim" : ndim,
        "value" : value,
        "label" : label,

@@ -510,6 +510,7 @@ def dumpPhysicsState(stateThingy,
     if state.fieldNameRegistered(HydroFieldNames.cells):
         assert state.fieldNameRegistered(HydroFieldNames.cellFaceFlags)
         cells = state.facetedVolumeFields(HydroFieldNames.cells)
+        cellFaceFlags = state.vector_of_CellFaceFlagFields(HydroFieldNames.cellFaceFlags)
     else:
         bounds = eval("vector_of_FacetedVolume%id()" % dataBase.nDim)
         holes = eval("vector_of_vector_of_FacetedVolume%id()" % dataBase.nDim)
@@ -534,6 +535,13 @@ def dumpPhysicsState(stateThingy,
                              etaVoidPoints,
                              cells,
                              cellFaceFlags)
+
+    # Amalgamate the cell face flags into a single value per cell.  Not the best visualization yet...
+    # cellFaceFlagsSum = dataBase.newGlobalIntFieldList(0, HydroFieldNames.cellFaceFlags + "_sum")
+    # for k in xrange(len(cellFaceFlagsSum)):
+    #     for i in xrange(len(cellFaceFlagsSum[k])):
+    #         cellFaceFlagsSum[k][i] = sum([x.nodeListj for x in cellFaceFlags[k][i]] + [0])
+    # fieldLists += [surfacePoint, cellFaceFlagsSum]
 
     # Now build the visit dumper.
     dumper = SpheralVoronoiSiloDump(baseFileName,

@@ -172,6 +172,9 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
 
+  // Base class
+  SPHHydroBase<Dimension>::preStepInitialize(dataBase, state, derivs);
+
   // Do the PSPH corrections.
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();

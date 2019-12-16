@@ -28,6 +28,8 @@
 #include <list>
 #include <set>
 
+#include "Field/FieldBase.hh"
+
 namespace Spheral {
 
 // Forward declaration.
@@ -49,6 +51,9 @@ public:
   typedef typename Dimension::Vector3d Vector3d;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+  typedef typename Dimension::FifthRankTensor FifthRankTensor;
   typedef typename Spheral::ConnectivityMap<Dimension> ConnectivityMapType;
   typedef typename Spheral::Mesh<Dimension> MeshType;
 

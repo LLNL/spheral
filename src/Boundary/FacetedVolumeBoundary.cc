@@ -53,24 +53,56 @@ facetPlane(const GeomFacet3d& facet, const bool interiorBoundary) {
 }
 
 //------------------------------------------------------------------------------
-// Construct the subvolume associated with a Facet
+// Construct the planes bounding the unique facet volume for ghosts
 //------------------------------------------------------------------------------
 // 2D
-Dim<2>::FacetedVolume
-facetSubVolume(const GeomFacet2d& facet, const Dim<2>::Vector& centroid) {
-  std::vector<Dim<2>::Vector> points = {facet.point1(), facet.point2(), centroid };
-  return Dim<2>::FacetedVolume(points);
+std::vector<GeomPlane<Dim<2>>>
+facetGhostPlanes(const GeomPolygon& poly,
+                 const GeomFacet2d& facet,
+                 const bool interiorBoundary) {
+  typedef Dim<2>::Vector Vector;
+  typedef GeomPlane<Dim<2>> Plane;
+  const auto& centroid = poly.centroid();
+  const auto& p1 = facet.point1();
+  const auto& p2 = facet.point2();
+  const auto& vhat1 = (p1 - centroid).unitVector();
+  const auto& vhat2 = (p2 - centroid).unitVector();
+  return std::vector<Plane>({Plane(p1, Vector(-vhat1.y(),  vhat1.x())),
+                             Plane(p2, Vector( vhat2.y(), -vhat2.x())),
+                             facetPlane(facet, not interiorBoundary)});
 }
 
-//..............................................................................
 // 3D
-Dim<3>::FacetedVolume
-facetSubVolume(const GeomFacet3d& facet, const Dim<3>::Vector& centroid) {
-  std::vector<Dim<3>::Vector> points = {centroid};
-  const auto& ipoints = facet.ipoints();
-  const auto  n = ipoints.size();
-  for (auto i = 0; i < n; ++i) points.push_back(facet.point(i));
-  return Dim<3>::FacetedVolume(points);
+std::vector<GeomPlane<Dim<3>>>
+facetGhostPlanes(const GeomPolyhedron& poly,
+                 const GeomFacet3d& facet,
+                 const bool interiorBoundary) {
+  typedef Dim<3>::Vector Vector;
+  typedef GeomPlane<Dim<3>> Plane;
+  std::vector<Plane> result;
+  const auto& centroid = poly.centroid();
+  const auto& coords = poly.vertices();
+  const auto& iverts = facet.ipoints();
+  const auto  nverts = iverts.size();
+  for (auto k = 0; k < nverts; ++k) {
+    const auto& p1 = coords[iverts[k]];
+    const auto& p2 = coords[iverts[(k + 1) % nverts]];
+    result.push_back(Plane(centroid, ((p1 - centroid).cross(p2 - centroid)).unitVector()));
+  }
+  result.push_back(facetPlane(facet, not interiorBoundary));
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Check if a point is inside the volume defined by a set of planes
+//------------------------------------------------------------------------------
+template<typename Vector, typename Plane>
+bool
+contained(const Vector& p, const std::vector<Plane>& planes) {
+  for (const auto& plane: planes) {
+    if (plane > p) return false;
+  }
+  return true;
 }
 
 //------------------------------------------------------------------------------
@@ -298,8 +330,8 @@ FacetedVolumeBoundary<Dimension>::FacetedVolumeBoundary(const FacetedVolume& pol
   const auto& facets = poly.facets();
   for (const auto& facet: facets) {
     mReflectOperators.push_back(interiorBoundary ?
-                                planarReflectingOperator<Dimension>(facet.normal()) :
-                                planarReflectingOperator<Dimension>(-facet.normal()));
+                                planarReflectingOperator<Dimension>(facet.normal().unitVector()) :
+                                planarReflectingOperator<Dimension>(-facet.normal().unitVector()));
   }
   ENSURE(mReflectOperators.size() == facets.size());
 
@@ -326,7 +358,6 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
     auto& boundaryNodes = this->accessBoundaryNodes(nodeList);
     boundaryNodes.controlNodes.clear();
     boundaryNodes.ghostNodes.clear();
-    const auto  centroid = mPoly.centroid();
     auto&       pos = nodeList.positions();
     auto&       H = nodeList.Hfield();
 
@@ -342,14 +373,14 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
     vector<SymTensor> Hghost;
     for (auto k = 0; k < nfacets; ++k) {
       const auto& facet = facets[k];
-      const auto  facetPoly = facetSubVolume(facet, centroid);
-      const auto  plane = facetPlane(facets[k], mInteriorBoundary);
+      const auto  boundPlanes = facetGhostPlanes(mPoly, facet, mInteriorBoundary);
+      const auto  plane = facetPlane(facet, mInteriorBoundary);
       const auto& R = mReflectOperators[k];
       ghostRanges[k].first = firstGhost;
       const auto  potentials = nodesTouchingFacet(nodeList, facet, mInteriorBoundary);
       for (const auto i: potentials) {
         const auto posj = mapPositionThroughPlanes(pos(i), plane, plane);
-        if (facetPoly.convexContains(posj, false)) {
+        if (contained(posj, boundPlanes)) {
           controls[k].push_back(i);
           firstGhost += 1;
           posGhost.push_back(posj);
@@ -529,12 +560,7 @@ FacetedVolumeBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeLis
   const auto& pos = nodeList.positions();
   const auto  n = nodeList.numInternalNodes();
   for (auto i = 0; i < n; ++i) {
-    const auto interior = mPoly.contains(pos(i), false);
-    if (mInteriorBoundary) {
-      if (interior) vNodes.push_back(i);
-    } else {
-      if (not interior) vNodes.push_back(i);
-    }
+    if ((not mInteriorBoundary) xor mPoly.contains(pos(i), false)) vNodes.push_back(i);
   }
 
   // std::cerr << "Violation nodes:";
@@ -572,21 +598,26 @@ FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& node
   Vector newPos, newVel;
   SymTensor newH;
   bool inViolation;
+  int iter = 0;
+  int minFacet;
+  Scalar minDist;
+  const int maxIters = 5;
   for (auto k = 0; k < numViolation; ++k) {
     auto  i = vNodes[k];
     auto& R = violationOps[k];
     newPos = pos(i);
     newVel = vel(i);
     inViolation = true;
-    while (inViolation) {
+    iter = 0;
+    while (inViolation and iter++ < maxIters) {
       // Backtrack to which facet we think the point passed through.
       CHECK((not mInteriorBoundary) xor mPoly.contains(newPos));
       const auto backPos = newPos - chordLength*newVel.unitVector();
       mPoly.intersect(backPos, newPos, potentialFacets, intersections);
       CHECK(potentialFacets.size() > 0);
       CHECK(potentialFacets.size() == intersections.size());
-      auto minFacet = potentialFacets[0];
-      auto minDist = (intersections[0] - newPos).magnitude2();
+      minFacet = potentialFacets[0];
+      minDist = (intersections[0] - newPos).magnitude2();
       for (auto kk = 1; kk < intersections.size(); ++kk) {
         if ((intersections[kk] - newPos).magnitude2() < minDist) {
           minFacet = potentialFacets[kk];
