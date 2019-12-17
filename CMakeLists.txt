@@ -12,8 +12,6 @@ if(ENABLE_MPI)
   set(BLT_MPI_COMPILE_FLAGS -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX)
 endif()
 
-include(cmake/InstallLibraries.cmake)
-
 ################################
 # Include blt
 ################################
@@ -36,6 +34,7 @@ option(BUILD_PYTHON_TARGETS "enable build of spheral python tagets" ON)
 ################################
 # Include standard build system logic and options
 ################################
+include(cmake/InstallLibraries.cmake)
 include(cmake/CMakeBasics.cmake)
 
 add_subdirectory(src)

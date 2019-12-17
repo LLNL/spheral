@@ -10,4 +10,5 @@ endif()
 
 install(FILES       ${PythonMPIInterfaces_python_targets}
         DESTINATION .
+        RENAME      mpi.py
         )

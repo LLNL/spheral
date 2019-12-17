@@ -1,0 +1,10 @@
+--- ../../polytope/polytope/src/polytope/src/PYB11/CMakeLists-old.txt	2019-12-17 08:52:46.793398000 -0800
++++ ../../polytope/polytope/src/polytope/src/PYB11/CMakeLists.txt	2019-12-17 08:41:43.872414000 -0800
+@@ -56,6 +56,7 @@
+ include_directories("${PYTHON_INCLUDE_DIR}")
+ include_directories("${PYB11_DIR}")
+ include_directories("${CMAKE_INSTALL_PREFIX}/include")
++include_directories("${PYBIND11_INCLUDE_DIRS}")
+ 
+ set(PYTHON_LINK "python${PYTHON_VERSION}")
+ 

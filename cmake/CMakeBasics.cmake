@@ -3,16 +3,6 @@
 ###############################################################################
 # Basic
 
-# Libraries
-include(cmake/SetupLibraries.cmake)
-
-if(BUILD_PYTHON_TARGETS)
-  include(cmake/libraries/FindPython.cmake)
-else()
-  find_package(PythonInterp)
-endif()
-
-
 # Instantiate and add source files to the project
 # _inst_var   : *name* of list variable containing base names to instantiate
 #               The file ${_inst_var}Inst.cc.py must exist.

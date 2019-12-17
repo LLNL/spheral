@@ -20,7 +20,7 @@ function(DownloadAndBuildLib TARGET_NAME)
     execute_process(COMMAND ${CMAKE_COMMAND} ..
       WORKING_DIRECTORY ${trigger_build_dir}/build
     )
-    execute_process(COMMAND ${CMAKE_COMMAND} --build . -j32
+  execute_process(COMMAND ${CMAKE_COMMAND} --build . -j32
       WORKING_DIRECTORY ${trigger_build_dir}/build
     )
     
@@ -35,6 +35,9 @@ endfunction()
 
 
 
+################################
+# BOOST
+################################
 set(BOOST_MIN_VERSION "1.62.0")
 find_package(Boost ${BOOST_MIN_VERSION} REQUIRED)
 if(Boost_FOUND)
@@ -42,7 +45,100 @@ if(Boost_FOUND)
   set(BOOST_DIR ${Boost_INCLUDE_DIRS}/..)
 endif()
 
+if (BOOST_DIR)
+    include(cmake/libraries/FindBOOST.cmake)
+    if (BOOST_FOUND)
+        blt_register_library( NAME       BOOST
+                              INCLUDES   ${BOOST_INCLUDE_DIRS}
+                              DEFINES    HAVE_BOOST=1 )
+    else()
+        message(FATAL_ERROR "Unable to find BOOST with given path.")
+    endif()
+else()
+    message(STATUS "Library Disabled: BOOST")
+    set(BLT_BOOST_DEFINES "HAVE_BOOST=0" CACHE PATH "")
+endif()
 
+
+
+################################
+# PYTHON
+################################
+message("\n---------- BUILDING PYTHON ----------")
+set(PYTHON_PREFIX ${PROJECT_SOURCE_DIR}/..)
+set(PYTHON_TARGET python)
+set(PYTHON_DIR ${PYTHON_PREFIX}/python)
+set(PYTHON_EXISTS_FILE "${PYTHON_DIR}/lib/libqhullstatic.a")
+
+set(PYTHON_URL "http://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz")
+set(PYTHON_SRC_DIR "${PYTHON_PREFIX}/python/src/python")
+set(PYTHON_EXTERNAL_PROJECT_FUNCTION "
+  ExternalProject_add(${PYTHON_TARGET}
+    PREFIX ${PYTHON_PREFIX}/${PYTHON_TARGET}
+    URL ${PYTHON_URL} 
+    #PATCH_COMMAND patch -t ${_SRC_DIR}/config/config.guess ${PATCH_DIR}/config.guess-silo-4.10.2-bsd.patch &&
+    #              patch -t ${SILO_SRC_DIR}/config/config.sub   ${PATCH_DIR}/config.sub-silo-4.10.2-bsd.patch
+    CONFIGURE_COMMAND ${PYTHON_SRC_DIR}/configure
+                      --with-cxx-main='${CMAKE_CXX_COMPILER}'
+                      --disable-ipv6
+                      --prefix=${PYTHON_PREFIX}/${PYTHON_TARGET}
+    BUILD_COMMAND make -j32
+    INSTALL_COMMAND make install
+  )
+")
+
+DownloadAndBuildLib(PYTHON)
+message("--------------------------------------\n")
+set(PYTHON_EXE ${PYTHON_DIR}/bin/python2.7)
+execute_process(COMMAND curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py)
+execute_process(COMMAND ${PYTHON_DIR}/bin/python2.7 get-pip.py)
+execute_process(COMMAND ${PYTHON_DIR}/bin/pip2.7 install PYB11Generator -t ${PYTHON_DIR}/lib/python2.7/site-packages)
+execute_process(COMMAND ${PYTHON_DIR}/bin/pip2.7 install mpi4py -t ${PYTHON_DIR}/lib/python2.7/site-packages)
+include(cmake/libraries/FindPython.cmake)
+
+
+
+################################
+# PYBIND11
+################################
+message("\n---------- BUILDING PYBIND11 ----------")
+set(PYBIND11_PREFIX ${PROJECT_SOURCE_DIR}/../pybind11/)
+set(PYBIND11_TARGET pybind11)
+set(PYBIND11_DIR ${PYBIND11_PREFIX})
+set(PYBIND11_EXISTS_FILE "${PYBIND11_PREFIX}/include/pybind11/pybind11.h")
+
+set(PYBIND11_GIT "https://github.com/pybind/pybind11")
+set(PYBIND11_CMAKE_ARGS "-DPYBIND11_TEST=Off -DCMAKE_INSTALL_PREFIX=${PROJECT_SOURCE_DIR}/../pybind11/")
+set(PYBIND11_EXTERNAL_PROJECT_FUNCTION "
+  ExternalProject_add(${PYBIND11_TARGET}
+    PREFIX ${PYBIND11_PREFIX}/${PYBIND11_TARGET}
+    GIT_REPOSITORY ${PYBIND11_GIT}
+    CMAKE_ARGS ${PYBIND11_CMAKE_ARGS}
+  )
+")
+DownloadAndBuildLib(PYBIND11)
+message("--------------------------------------\n")
+
+if (PYBIND11_DIR)
+  include(cmake/libraries/FindPybind11.cmake)
+  if (PYBIND11_FOUND)
+    blt_register_library( NAME      pybind11
+                          INCLUDES  ${PYBIND11_INCLUDE_DIRS}
+                          #LIBRARIES ${PYBIND11_LIBRARY}
+                          DEFINES   HAVE_PYBIND11=1 )
+  else()
+    message(FATAL_ERROR "Unable to find PYBIND11 with given path. ${PYBIND11_DIR}")
+  endif()
+else()
+  message(STATUS "Library Disabled: PYBIND11")
+  set(BLT_PYBIND11_DEFINES "HAVE_PYBIND11=0" CACHE PATH "")
+endif()
+
+
+
+################################
+# POLYTOPE
+################################
 message("\n---------- BUILDING POLYTOPE ----------")
 set(POLYTOPE_PREFIX ${PROJECT_SOURCE_DIR}/../polytope/)
 set(POLYTOPE_TARGET polytope)
@@ -50,10 +146,13 @@ set(POLYTOPE_DIR ${POLYTOPE_PREFIX})
 set(POLYTOPE_EXISTS_FILE "${POLYTOPE_PREFIX}/include/polytope/polytope.hh")
 
 set(POLYTOPE_GIT "https://github.com/pbtoast/polytope")
-set(POLYTOPE_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${POLYTOPE_PREFIX}")
+set(POLYTOPE_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${POLYTOPE_PREFIX} -DPYBIND11_INCLUDE_DIRS=${PYBIND11_INCLUDE_DIRS} -DUSE_PYTHON=On -DPYTHON_EXE=${PYTHON_EXE}")
 set(POLYTOPE_EXTERNAL_PROJECT_FUNCTION "
   ExternalProject_add(${POLYTOPE_TARGET}
     PREFIX ${POLYTOPE_PREFIX}/${POLYTOPE_TARGET}
+    PATCH_COMMAND patch -t ${POLYTOPE_PREFIX}/polytope/src/polytope/CMakeLists.txt            ${PATCH_DIR}/polytope-CMakeLists.patch &&
+                  patch -t ${POLYTOPE_PREFIX}/polytope/src/polytope/src/PYB11/CMakeLists.txt  ${PATCH_DIR}/polytope-PYB11-CMakeLists.patch
+
     GIT_REPOSITORY ${POLYTOPE_GIT}
     CMAKE_ARGS ${POLYTOPE_CMAKE_ARGS}
   )
@@ -61,7 +160,26 @@ set(POLYTOPE_EXTERNAL_PROJECT_FUNCTION "
 DownloadAndBuildLib(POLYTOPE)
 message("---------------------------------------\n")
 
+if (POLYTOPE_DIR)
+    include(cmake/libraries/FindPolytope.cmake)
+    if (POLYTOPE_FOUND)
+        blt_register_library( NAME       polytope
+                              INCLUDES   ${POLYTOPE_INCLUDE_DIRS}
+                              LIBRARIES  ${POLYTOPE_LIBRARY}
+                              DEFINES    HAVE_POLYTOPE=1 )
+    else()
+        message(FATAL_ERROR "Unable to find POLYTOPE with given path.")
+    endif()
+else()
+    message(STATUS "Library Disabled: POLYTOPE")
+    set(BLT_POLYTOPE_DEFINES "HAVE_POLYTOPE=0" CACHE PATH "")
+endif()
 
+
+
+################################
+# EIGEN
+################################
 message("\n---------- BUILDING EIGEN ----------")
 set(EIGEN_PREFIX ${PROJECT_SOURCE_DIR}/../eigen/)
 set(EIGEN_TARGET eigen)
@@ -80,7 +198,25 @@ set(EIGEN_EXTERNAL_PROJECT_FUNCTION "
 DownloadAndBuildLib(EIGEN)
 message("---------------------------------------\n")
 
+if (EIGEN_DIR)
+    include(cmake/libraries/FindEigen.cmake)
+    if (EIGEN_FOUND)
+        blt_register_library( NAME       eigen
+                              INCLUDES   ${EIGEN_INCLUDE_DIRS}
+                              DEFINES    HAVE_EIGEN=1 )
+    else()
+        message(FATAL_ERROR "Unable to find EIGEN with given path.")
+    endif()
+else()
+    message(STATUS "Library Disabled: EIGEN")
+    set(BLT_EIGEN_DEFINES "HAVE_EIGEN=0" CACHE PATH "")
+endif()
 
+
+
+################################
+# QHULL
+################################
 message("\n---------- BUILDING QHULL ----------")
 set(QHULL_PREFIX ${PROJECT_SOURCE_DIR}/..)
 set(QHULL_TARGET qhull)
@@ -103,27 +239,26 @@ set(QHULL_EXTERNAL_PROJECT_FUNCTION "
 DownloadAndBuildLib(QHULL)
 message("--------------------------------------\n")
 
-
-message("\n---------- BUILDING PYBIND11 ----------")
-set(PYBIND11_PREFIX ${PROJECT_SOURCE_DIR}/../pybind11/)
-set(PYBIND11_TARGET pybind11)
-set(PYBIND11_DIR ${PYBIND11_PREFIX})
-set(PYBIND11_EXISTS_FILE "${PYBIND11_PREFIX}/include/pybind11/pybind11.h")
-
-set(PYBIND11_GIT "https://github.com/pybind/pybind11")
-set(PYBIND11_CMAKE_ARGS "-DPYBIND11_TEST=Off -DCMAKE_INSTALL_PREFIX=${PROJECT_SOURCE_DIR}/../pybind11/")
-set(PYBIND11_EXTERNAL_PROJECT_FUNCTION "
-  ExternalProject_add(${PYBIND11_TARGET}
-    PREFIX ${PYBIND11_PREFIX}/${PYBIND11_TARGET}
-    GIT_REPOSITORY ${PYBIND11_GIT}
-    CMAKE_ARGS ${PYBIND11_CMAKE_ARGS}
-  )
-")
-DownloadAndBuildLib(PYBIND11)
-message("--------------------------------------\n")
+if (QHULL_DIR)
+    include(cmake/libraries/FindQhull.cmake)
+    if (QHULL_FOUND)
+        blt_register_library( NAME       qhull
+                              INCLUDES   ${QHULL_INCLUDE_DIRS}
+                              LIBRARIES  ${QHULL_LIBRARY}
+                              DEFINES    HAVE_QHULL=1 )
+    else()
+        message(FATAL_ERROR "Unable to find QHULL with given path.")
+    endif()
+else()
+    message(STATUS "Library Disabled: QHULL")
+    set(BLT_QHULL_DEFINES "HAVE_QHULL=0" CACHE PATH "")
+endif()
 
 
 
+################################
+# HDF5
+################################
 message("\n---------- BUILDING HDF5 ----------")
 set(HDF5_PREFIX ${PROJECT_SOURCE_DIR}/..)
 set(HDF5_TARGET hdf5)
@@ -145,8 +280,26 @@ set(HDF5_EXTERNAL_PROJECT_FUNCTION "
 DownloadAndBuildLib(HDF5)
 message("--------------------------------------\n")
 
+if (HDF5_DIR)
+    include(cmake/libraries/FindHDF5.cmake)
+    if (HDF5_FOUND)
+        blt_register_library( NAME       hdf5
+                              INCLUDES   ${HDF5_INCLUDE_DIRS}
+                              LIBRARIES  ${HDF5_LIBRARIES}
+                              DEFINES    HAVE_HDF5=1 )
+    else()
+        message(FATAL_ERROR "Unable to find HDF5 with given path.")
+    endif()
+else()
+    message(STATUS "Library Disabled: HDF5")
+    set(BLT_HDF5_DEFINES "HAVE_HDF5=0" CACHE PATH "")
+endif()
 
 
+
+################################
+# SILO
+################################
 message("\n---------- BUILDING SILO ----------")
 set(SILO_PREFIX ${PROJECT_SOURCE_DIR}/..)
 set(SILO_TARGET silo)
@@ -174,3 +327,19 @@ set(SILO_EXTERNAL_PROJECT_FUNCTION "
 ")
 DownloadAndBuildLib(SILO)
 message("--------------------------------------\n")
+
+if (SILO_DIR)
+    include(cmake/libraries/FindSILO.cmake)
+    if (SILO_FOUND)
+        blt_register_library( NAME       silo
+                              INCLUDES   ${SILO_INCLUDE_DIRS}
+                              LIBRARIES  ${SILO_LIBRARY}
+                              DEPENDS_ON hdf5
+                              DEFINES    HAVE_SILO=1 )
+    else()
+        message(FATAL_ERROR "Unable to find SILO with given path.")
+    endif()
+else()
+    message(STATUS "Library Disabled: SILO")
+    set(BLT_SILO_DEFINES "HAVE_SILO=0" CACHE PATH "")
+endif()
