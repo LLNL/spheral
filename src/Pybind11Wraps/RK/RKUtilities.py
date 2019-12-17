@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 
-@PYB11template("Dimension", "CRKOrder correctionOrder")
+@PYB11template("Dimension", "RKOrder correctionOrder")
 class RKUtilities:
     "Computes RK correction terms"
     

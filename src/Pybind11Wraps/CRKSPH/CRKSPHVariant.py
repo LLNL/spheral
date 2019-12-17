@@ -33,8 +33,8 @@ class CRKSPHVariant(CRKSPHHydroBase):
                XSPH = "const bool",
                densityUpdate = "const MassDensityType",
                HUpdate = "const HEvolutionType",
-               correctionOrder = "const CRKOrder",
-               volumeType = "const CRKVolumeType",
+               correctionOrder = "const RKOrder",
+               volumeType = "const RKVolumeType",
                epsTensile = "const double",
                nTensile = "const double",
                limitMultimaterialTopology = "const bool"):

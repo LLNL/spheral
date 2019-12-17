@@ -22,7 +22,7 @@ class ArtificialConduction(Physics):
     def pyinit(self,
                W = "const TableKernel<%(Dimension)s>&",
                alphaArCond = "const Scalar",
-               ACcorrectionOrder = ("const CRKOrder", "CRKOrder::LinearOrder")):
+               ACcorrectionOrder = ("const RKOrder", "RKOrder::LinearOrder")):
         "Constructor"
             
         #...........................................................................
@@ -35,7 +35,7 @@ class ArtificialConduction(Physics):
             
         #...........................................................................
         # Properties
-        ACcorrectionOrder = PYB11property("CRKOrder", "ACcorrectionOrder", "ACcorrectionOrder",
+        ACcorrectionOrder = PYB11property("RKOrder", "ACcorrectionOrder", "ACcorrectionOrder",
                                           doc="The correction order")
 
 #-------------------------------------------------------------------------------

@@ -35,8 +35,8 @@ class CRKSPHHydroBase(GenericHydro):
                XSPH = "const bool",
                densityUpdate = "const MassDensityType",
                HUpdate = "const HEvolutionType",
-               correctionOrder = "const CRKOrder",
-               volumeType = "const CRKVolumeType",
+               correctionOrder = "const RKOrder",
+               volumeType = "const RKVolumeType",
                epsTensile = "const double",
                nTensile = "const double",
                limitMultimaterialTopology = "const bool"):
@@ -134,9 +134,9 @@ mass density, velocity, and specific thermal energy."""
                                   doc="Flag to choose whether we want to sum for density, or integrate the continuity equation.")
     HEvolution = PYB11property("HEvolutionType", "HEvolution", "HEvolution",
                                doc="Flag to select how we want to evolve the H tensor.")
-    correctionOrder = PYB11property("CRKOrder", "correctionOrder", "correctionOrder",
+    correctionOrder = PYB11property("RKOrder", "correctionOrder", "correctionOrder",
                                     doc="Flag to choose CRK Correction Order")
-    volumeType = PYB11property("CRKVolumeType", "volumeType", "volumeType",
+    volumeType = PYB11property("RKVolumeType", "volumeType", "volumeType",
                                doc="Flag for the CRK volume weighting definition")
     compatibleEnergyEvolution = PYB11property("bool", "compatibleEnergyEvolution", "compatibleEnergyEvolution",
                                               doc="Flag to determine if we're using the total energy conserving compatible energy evolution scheme.")
