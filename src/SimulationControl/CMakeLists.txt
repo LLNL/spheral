@@ -1,6 +1,32 @@
+execute_process(
+  COMMAND git --git-dir ../.git rev-parse --abbrev-ref HEAD
+  OUTPUT_VARIABLE abbref
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+execute_process(
+  COMMAND git --git-dir ../.git rev-parse --short HEAD
+  OUTPUT_VARIABLE short
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+execute_process(
+  COMMAND git --git-dir ../.git log --oneline
+  COMMAND wc -l
+  OUTPUT_VARIABLE oneline
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+
+
+set(SPHERAL_VERSION_LIST ${abbref} ${short} ${oneline})
+string(REPLACE ";" " " spheralversion "${SPHERAL_VERSION_LIST}")
+configure_file(
+  Spheral.py
+  ${PROJECT_BINARY_DIR}/Spheral/Spheral.py)
+
 set(SimulationControl_python_targets
     spheralDimensions.py
-    Spheral.py
     Spheral1d.py
     Spheral2d.py
     Spheral3d.py
