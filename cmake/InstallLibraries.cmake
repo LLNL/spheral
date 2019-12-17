@@ -94,6 +94,7 @@ execute_process(COMMAND curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py)
 execute_process(COMMAND ${PYTHON_DIR}/bin/python2.7 get-pip.py)
 execute_process(COMMAND ${PYTHON_DIR}/bin/pip2.7 install PYB11Generator -t ${PYTHON_DIR}/lib/python2.7/site-packages)
 execute_process(COMMAND ${PYTHON_DIR}/bin/pip2.7 install mpi4py -t ${PYTHON_DIR}/lib/python2.7/site-packages)
+execute_process(COMMAND ${PYTHON_DIR}/bin/pip2.7 install numpy -t ${PYTHON_DIR}/lib/python2.7/site-packages)
 include(cmake/libraries/FindPython.cmake)
 
 
