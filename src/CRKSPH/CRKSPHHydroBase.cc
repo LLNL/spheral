@@ -238,7 +238,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     mGradm3 = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::gradM3_CRKSPH);
     mGradm4 = dataBase.newFluidFieldList(FifthRankTensor::zero,  HydroFieldNames::gradM4_CRKSPH);
   }
-  /*
+
   // We need volumes in order to prepare the surface detection.
   mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
   mEtaVoidPoints = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::etaVoidPoints);
@@ -326,7 +326,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // // We need to initialize the velocity gradient if we're using the CRKSPH artificial viscosity.
   // const FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
   // mDvDx.assignFields(gradientCRKSPH(velocity, position, mVolume, H, mA, mB, mC, mGradA, mGradB, mGradC, connectivityMap, correctionOrder(), W, NodeCoupling()));
-  */
+
   // Initialize the pressure, sound speed, and entropy.
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
@@ -653,12 +653,6 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   //        boundItr != this->boundaryEnd();
   //        ++boundItr) (*boundItr)->finalizeGhostBoundary();
   // }
-
-  // Compute the corrections.
-  const NodeCoupling couple;
-  computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), couple, mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
-  computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, H, mSurfacePoint, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
-  if (mLimitMultimaterialTopology) zerothOrderSurfaceCorrections(mA, mB, mC, mGradA, mGradB, mGradC, mM0, mGradm0, mSurfacePoint);
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
