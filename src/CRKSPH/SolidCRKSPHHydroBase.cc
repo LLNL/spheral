@@ -252,6 +252,10 @@ registerState(DataBase<Dimension>& dataBase,
   auto fragIDs = dataBase.solidFragmentIDs();
   state.enroll(fragIDs);
 
+  // Register the particle types.
+  auto pTypes = dataBase.solidParticleTypes();
+  state.enroll(pTypes);
+
   // And finally the intial plastic strain.
   mPlasticStrain0 = ps;
   mPlasticStrain0.copyFields();
@@ -334,6 +338,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   const auto gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   const auto A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
   const auto B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
   const auto C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
@@ -354,6 +359,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(damage.size() == numNodeLists);
   CHECK(gradDamage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
+  CHECK(pTypes.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
   CHECK(B.size() == numNodeLists);
   CHECK(C.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
@@ -449,6 +455,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& Hi = H(nodeListi, i);
       const auto  ci = soundSpeed(nodeListi, i);
       const auto& Si = S(nodeListi, i);
+      const auto  pTypei = pTypes(nodeListi, i);
       Ai = A(nodeListi, i);
       gradAi = gradA(nodeListi, i);
       if (order != CRKOrder::ZerothOrder) {
@@ -487,6 +494,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto  Pj = pressure(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto  cj = soundSpeed(nodeListj, j);
+      const auto  pTypej = pTypes(nodeListj, j);
       Aj = A(nodeListj, j);
       gradAj = gradA(nodeListj, j);
       if (order != CRKOrder::ZerothOrder) {
@@ -525,6 +533,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(etaMagi >= 0.0);
       CHECK(etaMagj >= 0.0);
       const auto vij = vi - vj;
+
+      // Flag if at least one particle is free (0).
+      const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
       // Symmetrized kernel weight and gradient.
       CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi);
@@ -603,8 +614,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       forceji = (true ? // surfacePoint(nodeListj, j) <= 1 ?
                  0.5*weighti*weightj*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij) :         // Type III CRK interpoint force.
                  mj*weighti*(((Pposj - Pposi)*gradWi - fij*(sigmaj - sigmai)*gradWi)/rhoj - rhoj*QPiji.dot(gradWi))); // RK
-      DvDti -= forceij/mi;
-      DvDtj += forceji/mj;
+      if (freeParticle) {
+        DvDti -= forceij/mi;
+        DvDtj += forceji/mj;
+      }
       if (compatibleEnergy) pairAccelerations[kk] = -forceij/mi;                                                      // Acceleration for i (j anti-symmetric)
 
       // Energy
@@ -755,6 +768,7 @@ applyGhostBoundaries(State<Dimension>& state,
   auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   auto Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
 
   for (auto boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -764,6 +778,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(mu);
     (*boundaryItr)->applyFieldListGhostBoundary(Y);
     (*boundaryItr)->applyFieldListGhostBoundary(fragIDs);
+    (*boundaryItr)->applyFieldListGhostBoundary(pTypes);
   }
 }
 
@@ -779,12 +794,13 @@ enforceBoundaries(State<Dimension>& state,
   // Ancestor method.
   CRKSPHHydroBase<Dimension>::enforceBoundaries(state, derivs);
 
-  // Enforce boundary conditions on the extra strength variable.s
+  // Enforce boundary conditions on the extra strength variables.
   auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   auto K = state.fields(SolidFieldNames::bulkModulus, 0.0);
   auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   auto Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
 
   for (auto boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -794,6 +810,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(mu);
     (*boundaryItr)->enforceFieldListBoundary(Y);
     (*boundaryItr)->enforceFieldListBoundary(fragIDs);
+    (*boundaryItr)->enforceFieldListBoundary(pTypes);
   }
 }
 

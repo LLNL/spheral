@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "findNodesTouchingThroughPlanes.cc"
+#include "Boundary/findNodesTouchingThroughPlanes.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

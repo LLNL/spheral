@@ -320,4 +320,12 @@
       <Filter>Inst Files</Filter>
     </CustomBuild>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\Utilities\DomainNode.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Utilities\DomainNodeInline.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

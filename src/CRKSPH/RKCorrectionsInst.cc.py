@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "RKCorrections.cc"
+#include "CRKSPH/RKCorrections.cc"
 #include "Geometry/Dimension.hh"
 """
 

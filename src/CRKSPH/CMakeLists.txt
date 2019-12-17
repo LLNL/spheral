@@ -10,19 +10,23 @@ set(CRKSPH_inst
     computeCRKSPHSumVolume
     computeHVolumes
     computeHullVolumes
+    computeRKVolumes
     computeSolidCRKSPHSumMassDensity
     detectSurface
-    flagSurfaceNeighbors
+    editMultimaterialSurfaceTopology
     gradientCRKSPH
     interpolateCRKSPH
+    zerothOrderSurfaceCorrections
+    RKCorrections
+    RKUtilities
    )
 
 
 set(CRKSPH_sources
     centerOfMass.cc
+    ContinuityVolumePolicyRZ.cc
+    computeVoronoiVolume.cc
     computeVoronoiVolume1d.cc
-    computeVoronoiVolume2d.cc
-    computeVoronoiVolume3d.cc
    )
 
 if(ENABLE_2D)
@@ -39,15 +43,14 @@ set(CRKSPH_headers
     CRKSPHHydroBase.hh
     CRKSPHHydroBaseInline.hh
     CRKSPHHydroBaseRZ.hh
-    CRKSPHSpecificThermalEnergyPolicy.hh
     CRKSPHUtilities.hh
     CRKSPHUtilitiesInline.hh
     ContinuityVolumePolicy.hh
+    ContinuityVolumePolicyRZ.hh
     HullVolumePolicy.hh
     SolidCRKSPHHydroBase.hh
     SolidCRKSPHHydroBaseInline.hh
     SolidCRKSPHHydroBaseRZ.hh
-    SolidCRKSPHHydroBaseRZInline.hh
     SurfaceNodeCoupling.hh
     centerOfMass.hh
     computeCRKSPHCorrections.hh
@@ -59,14 +62,19 @@ set(CRKSPH_headers
     computeHVolumes.hh
     computeHullSumMassDensity.hh
     computeHullVolumes.hh
+    computeRKVolumes.hh
     computeSolidCRKSPHSumMassDensity.hh
     computeVoronoiCentroids.hh
     computeVoronoiVolume.hh
     detectSurface.hh
-    flagSurfaceNeighbors.hh
+    editMultimaterialSurfaceTopology.hh
     gradientCRKSPH.hh
     interpolateCRKSPH.hh
     volumeSpacing.hh
+    zerothOrderSurfaceCorrections.hh
+    RKCorrections.hh
+    RKUtilities.hh
+    RKUtilitiesInline.hh
     )
 
 blt_add_library(NAME        Spheral_CRKSPH
