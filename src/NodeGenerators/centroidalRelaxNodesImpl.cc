@@ -2,7 +2,7 @@
 // Implement Lloyd's algorithm for centroidal relaxation of fluid points.
 //------------------------------------------------------------------------------
 #include "centroidalRelaxNodesImpl.hh"
-#include "CRKSPH/computeVoronoiVolume.hh"
+#include "RK/computeVoronoiVolume.hh"
 #include "CRKSPH/computeCRKSPHMoments.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
@@ -37,7 +37,7 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
                          std::vector<Boundary<Dimension>*>& boundaries,
                          const unsigned maxIterations,
                          const double fracTol,
-                         const CRKOrder correctionOrder,
+                         const RKOrder correctionOrder,
                          const double centroidFrac,
                          FieldList<Dimension, double>& vol,
                          FieldList<Dimension, int>& surfacePoint,
@@ -173,9 +173,9 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
       } else {
         // Use RK to numerically compute the new mass density gradient.
         computeCRKSPHMoments(cm, W, vol, pos, H, correctionOrder, NodeCoupling(),
-                                          m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
+                             m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
         computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, surfacePoint, correctionOrder,
-                                              A, B, C, gradA, gradB, gradC);
+                                 A, B, C, gradA, gradB, gradC);
         gradRhof.assignFields(gradientCRKSPH(rhof, pos, vol, H, A, B, C, gradA, gradB, gradC, cm, correctionOrder, W));
       }
     }

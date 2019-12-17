@@ -39,7 +39,7 @@ public:
                   const bool XSPH,
                   const MassDensityType densityUpdate,
                   const HEvolutionType HUpdate,
-                  const CRKOrder correctionOrder,
+                  const RKOrder correctionOrder,
                   const double epsTensile,
                   const double nTensile,
                   const bool limitMultimaterialTopology);
@@ -122,8 +122,8 @@ public:
   // void HEvolution(HEvolutionType type);
 
   // // Flag to choose CRK Correction Order
-  // CRKOrder correctionOrder() const;
-  // void correctionOrder(CRKOrder order);
+  // RKOrder correctionOrder() const;
+  // void correctionOrder(RKOrder order);
 
   // // Flag for the CRK volume weighting definition
   // CRKVolumeType volumeType() const;

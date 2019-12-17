@@ -5,10 +5,10 @@
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 #include "CRKSPH/CRKSPHUtilities.hh"
-#include "CRKSPH/computeVoronoiVolume.hh"
-#include "CRKSPH/computeHullVolumes.hh"
-#include "CRKSPH/computeCRKSPHSumVolume.hh"
-#include "CRKSPH/computeHVolumes.hh"
+#include "RK/computeVoronoiVolume.hh"
+#include "RK/computeHullVolumes.hh"
+#include "RK/computeRKSumVolume.hh"
+#include "RK/computeHVolumes.hh"
 #include "CRKSPH/editMultimaterialSurfaceTopology.hh"
 #include "CRKSPH/zerothOrderSurfaceCorrections.hh"
 #include "CRKSPH/SurfaceNodeCoupling.hh"
@@ -99,7 +99,7 @@ FVCRKHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                 const bool XSPH,
                 const MassDensityType densityUpdate,
                 const HEvolutionType HUpdate,
-                const CRKOrder correctionOrder,
+                const RKOrder correctionOrder,
                 const double epsTensile,
                 const double nTensile,
                 const bool limitMultimaterialTopology):
@@ -116,7 +116,7 @@ FVCRKHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                              densityUpdate,
                              HUpdate,
                              correctionOrder,
-                             CRKVolumeType::CRKVoronoiVolume,
+                             RKVolumeType::RKVoronoiVolume,
                              epsTensile,
                              nTensile,
                              limitMultimaterialTopology) {
@@ -190,11 +190,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
-  CHECK(B.size() == numNodeLists or order == CRKOrder::ZerothOrder);
-  CHECK(C.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(B.size() == numNodeLists or order == RKOrder::ZerothOrder);
+  CHECK(C.size() == numNodeLists or order != RKOrder::QuadraticOrder);
   CHECK(gradA.size() == numNodeLists);
-  CHECK(gradB.size() == numNodeLists or order == CRKOrder::ZerothOrder);
-  CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(gradB.size() == numNodeLists or order == RKOrder::ZerothOrder);
+  CHECK(gradC.size() == numNodeLists or order != RKOrder::QuadraticOrder);
   CHECK(surfacePoint.size() == numNodeLists);
   CHECK(cells.size() == numNodeLists);
 
@@ -309,11 +309,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto  surfi = surfacePoint(nodeListi, i);
       Ai = A(nodeListi, i);
       gradAi = gradA(nodeListi, i);
-      if (order != CRKOrder::ZerothOrder) {
+      if (order != RKOrder::ZerothOrder) {
         Bi = B(nodeListi, i);
         gradBi = gradB(nodeListi, i);
       }
-      if (order == CRKOrder::QuadraticOrder) {
+      if (order == RKOrder::QuadraticOrder) {
         Ci = C(nodeListi, i);
         gradCi = gradC(nodeListi, i);
       }
@@ -373,11 +373,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             const auto  surfj = surfacePoint(nodeListj, j);
             Aj = A(nodeListj, j);
             gradAj = gradA(nodeListj, j);
-            if (order != CRKOrder::ZerothOrder) {
+            if (order != RKOrder::ZerothOrder) {
               Bj = B(nodeListj, j);
               gradBj = gradB(nodeListj, j);
             }
-            if (order == CRKOrder::QuadraticOrder) {
+            if (order == RKOrder::QuadraticOrder) {
               Cj = C(nodeListj, j);
               gradCj = gradC(nodeListj, j);
             }

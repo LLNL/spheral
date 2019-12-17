@@ -9,7 +9,7 @@
 #define ArtificialConduction_HH
 
 #include "Physics/Physics.hh"
-#include "CRKSPH/CRKSPHCorrectionParams.hh"
+#include "RK/RKCorrectionParams.hh"
 
 namespace Spheral {
     template<typename Dimension> class State;
@@ -29,7 +29,7 @@ namespace Spheral {
             
         // Constructors
         ArtificialConduction(const TableKernel<Dimension>& W,
-                             const Scalar alphaArCond, const CRKOrder ACcorrectionOrder = CRKOrder::LinearOrder);
+                             const Scalar alphaArCond, const RKOrder ACcorrectionOrder = RKOrder::LinearOrder);
             
         // Destructor
         virtual ~ArtificialConduction();
@@ -41,8 +41,8 @@ namespace Spheral {
         virtual void registerState(DataBase<Dimension>& dataBase,
                                    State<Dimension>& state);
         //Allow access to the AC correction order.
-        CRKOrder ACcorrectionOrder() const;
-        void ACcorrectionOrder(CRKOrder order);
+        RKOrder ACcorrectionOrder() const;
+        void ACcorrectionOrder(RKOrder order);
             
         // Provide default methods for registering and iterating derivatives.
         virtual void registerDerivatives(DataBase<Dimension>& dataBase,
@@ -74,7 +74,7 @@ namespace Spheral {
         FieldList<Dimension, Scalar> mDepsDtArty;
         FieldList<Dimension, Scalar> mVsigMax;
         Scalar mAlphaArCond;
-        CRKOrder mACcorrectionOrder;
+        RKOrder mACcorrectionOrder;
 
     };
 }
