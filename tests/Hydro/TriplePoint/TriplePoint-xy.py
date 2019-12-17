@@ -113,7 +113,7 @@ commandLine(
     HUpdate = IdealH,
     correctionOrder = LinearOrder,
     QcorrectionOrder = LinearOrder,
-    volumeType = CRKSumVolume,
+    volumeType = RKSumVolume,
     domainIndependent = False,
     rigorousBoundaries = False,
     dtverbose = False,

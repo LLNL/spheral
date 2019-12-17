@@ -59,7 +59,7 @@ commandLine(
 
     # CRK options
     correctionOrder = LinearOrder,
-    volumeType = CRKMassOverDensity,
+    volumeType = RKMassOverDensity,
 
     # Testing options
     randomizeNodes = True,

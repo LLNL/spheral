@@ -27,7 +27,7 @@ commandLine(
 
     # CRK options
     correctionOrder = LinearOrder,
-    volumeType = CRKMassOverDensity,
+    volumeType = RKMassOverDensity,
     needHessian = False,
 
     # Testing options

@@ -107,7 +107,7 @@ commandLine(
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
     correctionOrder = LinearOrder,
-    volumeType = CRKSumVolume,
+    volumeType = RKSumVolume,
     compatibleEnergy = True,
     gradhCorrection = True,
     correctVelocityGradient = True,

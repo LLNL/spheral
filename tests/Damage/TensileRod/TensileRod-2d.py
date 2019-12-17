@@ -137,7 +137,7 @@ commandLine(seed = "lattice",
             nTensile = 4,
             hybridMassDensityThreshold = 0.01,
             filter = 0.0,
-            volumeType = CRKSumVolume,
+            volumeType = RKSumVolume,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 200.0,
