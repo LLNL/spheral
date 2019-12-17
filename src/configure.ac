@@ -201,6 +201,7 @@ AC_OUTPUT(helpers/makefile_master \
           Pybind11Wraps/DataOutput/makefile \
           Pybind11Wraps/NodeList/makefile \
           Pybind11Wraps/Field/makefile \
+          Pybind11Wraps/FieldList/makefile \
           Pybind11Wraps/Kernel/makefile \
           Pybind11Wraps/Neighbor/makefile \
           Pybind11Wraps/Material/makefile \

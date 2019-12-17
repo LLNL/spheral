@@ -11,6 +11,8 @@ dims = spheralDimensions()
 
 from CRKSPHHydroBase import *
 from SolidCRKSPHHydroBase import *
+from RKCorrections import *
+from RKUtilities import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -36,6 +38,9 @@ PYB11includes += ['"CRKSPH/CRKSPHUtilities.hh"',
                   '"CRKSPH/interpolateCRKSPH.hh"',
                   '"CRKSPH/editMultimaterialSurfaceTopology.hh"',
                   '"CRKSPH/zerothOrderSurfaceCorrections.hh"',
+                  '"CRKSPH/computeRKVolumes.hh"',
+                  '"CRKSPH/RKCorrections.hh"',
+                  '"CRKSPH/RKUtilities.hh"',
                   '"SPH/NodeCoupling.hh"',
                   '"FileIO/FileIO.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"',
@@ -78,7 +83,7 @@ PYB11namespaces = ["Spheral"]
 #-------------------------------------------------------------------------------
 # enums
 #-------------------------------------------------------------------------------
-CRKOrder = PYB11enum(("ZerothOrder", "LinearOrder", "QuadraticOrder"),
+CRKOrder = PYB11enum(("ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder", "QuarticOrder", "QuinticOrder", "SexticOrder", "SepticOrder"),
                      export_values = True,
                      doc = "Selection of CRK correction orders")
 CRKVolumeType = PYB11enum(("CRKMassOverDensity", "CRKSumVolume", "CRKVoronoiVolume", "CRKHullVolume", "HVolume"),
@@ -462,6 +467,26 @@ For such points:
     return "void"
 
 #-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+def computeRKVolumes(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
+                     W = "const TableKernel<%(Dimension)s>&",
+                     position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+                     mass = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
+                     massDensity = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
+                     H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
+                     damage = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
+                     boundaryConditions = "const std::vector<Boundary<%(Dimension)s>*>&",
+                     volumeType = "const CRKVolumeType",
+                     surfacePoint = "FieldList<%(Dimension)s, int>&",
+                     deltaCentroid = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+                     etaVoidPoints = "const FieldList<%(Dimension)s, std::vector<typename %(Dimension)s::Vector>>&",
+                     cells = "FieldList<%(Dimension)s, typename %(Dimension)s::FacetedVolume>&",
+                     cellFaceFlags = "FieldList<%(Dimension)s, std::vector<CellFaceFlag>>&",
+                     volume = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&"):
+    "Compute RK volumes"
+    return "void"
+
+#-------------------------------------------------------------------------------
 # Instantiate our types
 #-------------------------------------------------------------------------------
 for ndim in dims:
@@ -489,6 +514,7 @@ computeHullVolumes%(ndim)id = PYB11TemplateFunction(computeHullVolumes, template
 computeHVolumes%(ndim)id = PYB11TemplateFunction(computeHVolumes, template_parameters="%(Dimension)s")
 editMultimaterialSurfaceTopology%(ndim)id = PYB11TemplateFunction(editMultimaterialSurfaceTopology, template_parameters="%(Dimension)s")
 zerothOrderSurfaceCorrections%(ndim)id = PYB11TemplateFunction(zerothOrderSurfaceCorrections, template_parameters="%(Dimension)s")
+computeRKVolumes%(ndim)id = PYB11TemplateFunction(computeRKVolumes, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
@@ -515,6 +541,17 @@ gradientCRKSPH%(label)s = PYB11TemplateFunction(gradientCRKSPH, template_paramet
        "Dimension" : "Dim<" + str(ndim) + ">",
        "element"   : element,
        "label"     : PYB11mangle(element)})
+
+    # New RK classes
+    for num, correctionOrder in zip((0, 1, 2, 3, 4, 5, 6, 7),
+                                    ("ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder", "QuarticOrder", "QuinticOrder", "SexticOrder", "SepticOrder")):
+        exec(''' 
+RKCorrections%(ndim)sd%(num)s = PYB11TemplateClass(RKCorrections, template_parameters=("%(Dimension)s", "CRKOrder::%(correctionOrder)s"))
+RKUtilities%(ndim)sd%(num)s = PYB11TemplateClass(RKUtilities, template_parameters=("%(Dimension)s", "CRKOrder::%(correctionOrder)s"))
+''' % {"ndim"            : ndim,
+       "Dimension"       : "Dim<" + str(ndim) + ">",
+       "num"             : num,
+       "correctionOrder" : correctionOrder})
 
 #-------------------------------------------------------------------------------
 # 2D
