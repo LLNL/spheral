@@ -68,7 +68,7 @@ message("\n---------- BUILDING PYTHON ----------")
 set(PYTHON_PREFIX ${PROJECT_SOURCE_DIR}/..)
 set(PYTHON_TARGET python)
 set(PYTHON_DIR ${PYTHON_PREFIX}/python)
-set(PYTHON_EXISTS_FILE "${PYTHON_DIR}/lib/libqhullstatic.a")
+set(PYTHON_EXISTS_FILE "${PYTHON_DIR}/include/python2.7/Python.h")
 
 set(PYTHON_URL "http://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz")
 set(PYTHON_SRC_DIR "${PYTHON_PREFIX}/python/src/python")
@@ -89,12 +89,26 @@ set(PYTHON_EXTERNAL_PROJECT_FUNCTION "
 
 DownloadAndBuildLib(PYTHON)
 message("--------------------------------------\n")
+
+
+
+################################
+# CONFUGURING PIP/PYTHON LIBS
+################################
 set(PYTHON_EXE ${PYTHON_DIR}/bin/python2.7)
-execute_process(COMMAND curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py)
-execute_process(COMMAND ${PYTHON_DIR}/bin/python2.7 get-pip.py)
-execute_process(COMMAND ${PYTHON_DIR}/bin/pip2.7 install PYB11Generator -t ${PYTHON_DIR}/lib/python2.7/site-packages)
-execute_process(COMMAND ${PYTHON_DIR}/bin/pip2.7 install mpi4py -t ${PYTHON_DIR}/lib/python2.7/site-packages)
-execute_process(COMMAND ${PYTHON_DIR}/bin/pip2.7 install numpy -t ${PYTHON_DIR}/lib/python2.7/site-packages)
+set(PIP_EXE    ${PYTHON_DIR}/bin/pip2.7)
+set(PYTHON_SITE_PACKAGE_DIR ${PYTHON_DIR}/lib/python2.7/site-packages)
+
+# install pip and python packages
+if (NOT EXISTS ${PIP_EXE})
+  execute_process(COMMAND curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py)
+  execute_process(COMMAND ${PYTHON_EXE} get-pip.py)
+  execute_process(COMMAND ${PIP_EXE} install PYB11Generator -t ${PYTHON_SITE_PACKAGE_DIR})
+  execute_process(COMMAND ${PIP_EXE} install mpi4py -t ${PYTHON_SITE_PACKAGE_DIR})
+  execute_process(COMMAND ${PIP_EXE} install numpy -t ${PYTHON_SITE_PACKAGE_DIR})
+endif()
+
+# Find python
 include(cmake/libraries/FindPython.cmake)
 
 
