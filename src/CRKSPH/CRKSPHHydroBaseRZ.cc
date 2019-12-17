@@ -7,9 +7,8 @@
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 #include "CRKSPHUtilities.hh"
-#include "computeHullVolumes.hh"
-#include "computeCRKSPHSumVolume.hh"
-#include "computeHVolumes.hh"
+#include "RK/computeRKSumVolume.hh"
+#include "RK/computeHVolumes.hh"
 #include "SPH/computeSPHSumMassDensity.hh"
 #include "SPH/correctSPHSumMassDensity.hh"
 #include "computeCRKSPHSumMassDensity.hh"
@@ -36,7 +35,7 @@
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
 #include "Hydro/EntropyPolicy.hh"
-#include "ContinuityVolumePolicyRZ.hh"
+#include "RK/ContinuityVolumePolicyRZ.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -89,8 +88,8 @@ CRKSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                   const bool XSPH,
                   const MassDensityType densityUpdate,
                   const HEvolutionType HUpdate,
-                  const CRKOrder correctionOrder,
-                  const CRKVolumeType volumeType,
+                  const RKOrder correctionOrder,
+                  const RKVolumeType volumeType,
                   const double epsTensile,
                   const double nTensile,
                   const bool limitMultimaterialTopology):
@@ -276,11 +275,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
-  CHECK(B.size() == numNodeLists or order == CRKOrder::ZerothOrder);
-  CHECK(C.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(B.size() == numNodeLists or order == RKOrder::ZerothOrder);
+  CHECK(C.size() == numNodeLists or order != RKOrder::QuadraticOrder);
   CHECK(gradA.size() == numNodeLists);
-  CHECK(gradB.size() == numNodeLists or order == CRKOrder::ZerothOrder);
-  CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(gradB.size() == numNodeLists or order == RKOrder::ZerothOrder);
+  CHECK(gradC.size() == numNodeLists or order != RKOrder::QuadraticOrder);
   // CHECK(surfNorm.size() == numNodeLists);
 
   // Derivative FieldLists.
@@ -367,11 +366,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto  ci = soundSpeed(nodeListi, i);
       const auto  Ai = A(nodeListi, i);
       const auto& gradAi = gradA(nodeListi, i);
-      if (order != CRKOrder::ZerothOrder) {
+      if (order != RKOrder::ZerothOrder) {
         Bi = B(nodeListi, i);
         gradBi = gradB(nodeListi, i);
       }
-      if (order == CRKOrder::QuadraticOrder) {
+      if (order == RKOrder::QuadraticOrder) {
         Ci = C(nodeListi, i);
         gradCi = gradC(nodeListi, i);
       }
@@ -411,11 +410,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto  cj = soundSpeed(nodeListj, j);
       const auto  Aj = A(nodeListj, j);
       const auto& gradAj = gradA(nodeListj, j);
-      if (order != CRKOrder::ZerothOrder) {
+      if (order != RKOrder::ZerothOrder) {
         Bj = B(nodeListj, j);
         gradBj = gradB(nodeListj, j);
       }
-      if (order == CRKOrder::QuadraticOrder) {
+      if (order == RKOrder::QuadraticOrder) {
         Cj = C(nodeListj, j);
         gradCj = gradC(nodeListj, j);
       }

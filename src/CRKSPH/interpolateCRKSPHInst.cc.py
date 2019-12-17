@@ -26,7 +26,7 @@ interpolateCRKSPH<Dim<%(ndim)s>>(const std::vector<boost::variant<FieldList<Dim<
                                           const FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Vector>& B,
                                           const FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Tensor>& C,
                                           const ConnectivityMap<Dim<%(ndim)s> >& connectivityMap,
-                                          const CRKOrder correctionOrder,
+                                          const RKOrder correctionOrder,
                                           const TableKernel< Dim<%(ndim)s> >& kernel,
                                           const NodeCoupling& nodeCoupling);
 

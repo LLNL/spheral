@@ -1,11 +1,11 @@
 //------------------------------------------------------------------------------
-// Compute the moments necessary for CRKSPH corrections.
+// Compute the moments necessary for RK corrections.
 //------------------------------------------------------------------------------
 #ifndef __Spheral__computeRKVolumes__
 #define __Spheral__computeRKVolumes__
 
 #include <vector>
-#include "CRKSPHCorrectionParams.hh"
+#include "RKCorrectionParams.hh"
 #include "Geometry/CellFaceFlag.hh"
 
 namespace Spheral {
@@ -25,7 +25,7 @@ computeRKVolumes(const ConnectivityMap<Dimension>& connectivityMap,
                  const FieldList<Dimension, typename Dimension::SymTensor>& H,
                  const FieldList<Dimension, typename Dimension::SymTensor>& damage,
                  const std::vector<Boundary<Dimension>*>& boundaryConditions,
-                 const CRKVolumeType volumeType,
+                 const RKVolumeType volumeType,
                  FieldList<Dimension, int>& surfacePoint,
                  FieldList<Dimension, typename Dimension::Vector>& deltaCentroid,
                  FieldList<Dimension, std::vector<typename Dimension::Vector>>& etaVoidPoints,

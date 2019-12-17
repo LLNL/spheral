@@ -10,15 +10,11 @@
 #include <utility>
 
 #include "Geometry/Dimension.hh"
-#include "CRKSPH/CRKSPHCorrectionParams.hh"
+#include "RK/RKCorrectionParams.hh"
 
-#ifndef __GCCXML__
 #include <vector>
 #include "Field/FieldList.hh"
 #include "DataOutput/registerWithRestart.hh"
-#else
-#include "fakestl.hh"
-#endif
 
 namespace Spheral {
 
@@ -57,7 +53,7 @@ public:
   // Constructors.
   ArtificialViscosity(const Scalar Clinear,
                       const Scalar Cquadratic,
-                      const CRKOrder QcorrectionOrder = CRKOrder::LinearOrder);
+                      const RKOrder QcorrectionOrder = RKOrder::LinearOrder);
 
   // Destructor.
   virtual ~ArtificialViscosity();
@@ -98,8 +94,8 @@ public:
   void Cq(Scalar Cq);
 
   //Allow access to the Q correction order.
-  CRKOrder QcorrectionOrder() const;
-  void QcorrectionOrder(CRKOrder order);
+  RKOrder QcorrectionOrder() const;
+  void QcorrectionOrder(RKOrder order);
 
   // Toggle for the Balsara shear correction.
   bool balsaraShearCorrection() const;
@@ -192,7 +188,7 @@ protected:
 
   Scalar mClinear;
   Scalar mCquadratic;
-  CRKOrder mQcorrectionOrder;
+  RKOrder mQcorrectionOrder;
 
   // Switch for the Balsara shear correction.
   bool mBalsaraShearCorrection;

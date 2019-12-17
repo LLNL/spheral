@@ -9,7 +9,7 @@
 #include "Physics/GenericHydro.hh"
 #include "Boundary/CRKSPHVoidBoundary.hh"
 #include "Geometry/CellFaceFlag.hh"
-#include "CRKSPHCorrectionParams.hh"
+#include "RK/RKCorrectionParams.hh"
 
 #include <string>
 
@@ -56,8 +56,8 @@ public:
                   const bool XSPH,
                   const MassDensityType densityUpdate,
                   const HEvolutionType HUpdate,
-                  const CRKOrder correctionOrder,
-                  const CRKVolumeType volumeType,
+                  const RKOrder correctionOrder,
+                  const RKVolumeType volumeType,
                   const double epsTensile,
                   const double nTensile,
                   const bool limitMultimaterialTopology);
@@ -141,12 +141,12 @@ public:
   void HEvolution(HEvolutionType type);
 
   // Flag to choose CRK Correction Order
-  CRKOrder correctionOrder() const;
-  void correctionOrder(CRKOrder order);
+  RKOrder correctionOrder() const;
+  void correctionOrder(RKOrder order);
 
   // Flag for the CRK volume weighting definition
-  CRKVolumeType volumeType() const;
-  void volumeType(CRKVolumeType x);
+  RKVolumeType volumeType() const;
+  void volumeType(RKVolumeType x);
 
   // Flag to determine if we're using the total energy conserving compatible energy
   // evolution scheme.
@@ -245,8 +245,8 @@ protected:
   // A bunch of switches.
   MassDensityType mDensityUpdate;
   HEvolutionType mHEvolution;
-  CRKOrder mCorrectionOrder;
-  CRKVolumeType mVolumeType;
+  RKOrder mCorrectionOrder;
+  RKVolumeType mVolumeType;
   bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mXSPH, mLimitMultimaterialTopology;
   double mfilter;
   Scalar mEpsTensile, mnTensile;

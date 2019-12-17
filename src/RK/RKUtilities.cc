@@ -14,7 +14,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Evaluate the base kernel value, gradient, or hessian
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 typename Dimension::Scalar
 RKUtilities<Dimension, correctionOrder>::
 evaluateBaseKernel(const TableKernel<Dimension>& kernel,
@@ -26,7 +26,7 @@ evaluateBaseKernel(const TableKernel<Dimension>& kernel,
   return kernel.kernelValue(etaMag, Hdet);
 }
 
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 typename Dimension::Vector
 RKUtilities<Dimension, correctionOrder>::
 evaluateBaseGradient(const TableKernel<Dimension>& kernel,
@@ -41,7 +41,7 @@ evaluateBaseGradient(const TableKernel<Dimension>& kernel,
   return HetaUnit * dk;
 }
 
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 typename Dimension::SymTensor
 RKUtilities<Dimension, correctionOrder>::
 evaluateBaseHessian(const TableKernel<Dimension>& kernel,
@@ -60,7 +60,7 @@ evaluateBaseHessian(const TableKernel<Dimension>& kernel,
   return (H2 - HetaUnit2) * etaMagInv * dk + HetaUnit2 * ddk;
 }
 
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 std::pair<typename Dimension::Scalar, typename Dimension::Vector>
 RKUtilities<Dimension, correctionOrder>::
 evaluateBaseKernelAndGradient(const TableKernel<Dimension>& kernel,
@@ -82,7 +82,7 @@ evaluateBaseKernelAndGradient(const TableKernel<Dimension>& kernel,
 // W_{\gamma}^{R}=\left(C^{\top}P_{\gamma}+C_{\gamma}^{\top}P\right)W+C^{\top}PW_{\gamma}
 // W_{\gamma\zeta}^{R}=\left(C^{\top}P_{\gamma\zeta}+C_{\gamma}^{\top}P_{\zeta}+C_{\zeta}^{\top}P_{\gamma}+C_{\gamma\zeta}^{\top}P\right)W+\left(C^{\top}P_{\gamma}+C_{\gamma}^{\top}P\right)W_{\zeta}+\left(C^{\top}P_{\zeta}+C_{\zeta}^{\top}P\right)W_{\gamma}+C^{\top}PW_{\gamma\zeta}
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 typename Dimension::Scalar
 RKUtilities<Dimension, correctionOrder>::
 evaluateKernel(const TableKernel<Dimension>& kernel,
@@ -102,7 +102,7 @@ evaluateKernel(const TableKernel<Dimension>& kernel,
   return CP * w;
 }
 
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 typename Dimension::Vector
 RKUtilities<Dimension, correctionOrder>::
 evaluateGradient(const TableKernel<Dimension>& kernel,
@@ -132,7 +132,7 @@ evaluateGradient(const TableKernel<Dimension>& kernel,
   return result;
 }
 
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 typename Dimension::SymTensor
 RKUtilities<Dimension, correctionOrder>::
 evaluateHessian(const TableKernel<Dimension>& kernel,
@@ -175,7 +175,7 @@ evaluateHessian(const TableKernel<Dimension>& kernel,
   return result;
 }
 
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 std::pair<typename Dimension::Scalar, typename Dimension::Vector>
 RKUtilities<Dimension, correctionOrder>::
 evaluateKernelAndGradient(const TableKernel<Dimension>& kernel,
@@ -208,7 +208,7 @@ evaluateKernelAndGradient(const TableKernel<Dimension>& kernel,
 //------------------------------------------------------------------------------
 // Compute the corrections
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 void
 RKUtilities<Dimension, correctionOrder>::
 computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
@@ -429,19 +429,19 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Compute zeroth gradient
       for (auto d = 0; d < Dimension::nDim; ++d) {
-        const auto offd = RKUtilities<Dimension, CRKOrder::ZerothOrder>::offsetGradC(d);
+        const auto offd = RKUtilities<Dimension, RKOrder::ZerothOrder>::offsetGradC(d);
         zerothCorr[offd] = -dM[d](0,0) * C0 * C0;
       }
       
       // Compute zeroth hessian
       if (needHessian) {
         for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
-          const auto offd1 = RKUtilities<Dimension, CRKOrder::ZerothOrder>::offsetGradC(d1);
+          const auto offd1 = RKUtilities<Dimension, RKOrder::ZerothOrder>::offsetGradC(d1);
           const auto C1 = zerothCorr[offd1];
           for (auto d2 = d1; d2 < Dimension::nDim; ++d2) {
             const auto d12 = flatSymmetricIndex(d1, d2);
-            const auto offd2 = RKUtilities<Dimension, CRKOrder::ZerothOrder>::offsetGradC(d2);
-            const auto offd12 = RKUtilities<Dimension, CRKOrder::ZerothOrder>::offsetHessC(d1, d2);
+            const auto offd2 = RKUtilities<Dimension, RKOrder::ZerothOrder>::offsetGradC(d2);
+            const auto offd12 = RKUtilities<Dimension, RKOrder::ZerothOrder>::offsetHessC(d1, d2);
             const auto C2 = zerothCorr[offd2];
             zerothCorr[offd12] = -(ddM[d12](0,0) * C0 + dM[d1](0,0) * C2 + dM[d2](0,0) * C1) * C0;
           }
@@ -455,7 +455,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 // Compute a guess for the normal direction
 // S_{i}n_{i}^{\alpha}=V_{i}\dfrac{\sum_{j}V_{j}\left[\partial_{x_{j}}^{\alpha}\psi_{i}\left(x_{j}\right)+\partial_{x_{i}}^{\alpha}\psi_{j}\left(x_{i}\right)\right]}{\sum_{j}V_{j}\psi_{j}\left(x_{i}\right)}
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 void
 RKUtilities<Dimension, correctionOrder>::
 computeNormal(const ConnectivityMap<Dimension>& connectivityMap,

@@ -170,7 +170,7 @@ interpolateCRKSPH(const vector<variant<FieldList<Dimension, typename Dimension::
                   const FieldList<Dimension, typename Dimension::Vector>& B,
                   const FieldList<Dimension, typename Dimension::Tensor>& C,
                   const ConnectivityMap<Dimension>& connectivityMap,
-                  const CRKOrder correctionOrder,
+                  const RKOrder correctionOrder,
                   const TableKernel<Dimension>& W,
                   const NodeCoupling& nodeCoupling) {
 
@@ -194,8 +194,8 @@ interpolateCRKSPH(const vector<variant<FieldList<Dimension, typename Dimension::
   REQUIRE(weight.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(A.size() == numNodeLists);
-  REQUIRE(B.size() == numNodeLists or correctionOrder == CRKOrder::ZerothOrder);
-  REQUIRE(C.size() == numNodeLists or correctionOrder != CRKOrder::QuadraticOrder);
+  REQUIRE(B.size() == numNodeLists or correctionOrder == RKOrder::ZerothOrder);
+  REQUIRE(C.size() == numNodeLists or correctionOrder != RKOrder::QuadraticOrder);
 
   // Prepare the result.
   FieldListArray result;
@@ -239,8 +239,8 @@ interpolateCRKSPH(const vector<variant<FieldList<Dimension, typename Dimension::
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto& Ai = A(nodeListi, i);
-      if (correctionOrder != CRKOrder::ZerothOrder) Bi = B(nodeListi, i);
-      if (correctionOrder == CRKOrder::QuadraticOrder) Ci = C(nodeListi, i);
+      if (correctionOrder != RKOrder::ZerothOrder) Bi = B(nodeListi, i);
+      if (correctionOrder == RKOrder::QuadraticOrder) Ci = C(nodeListi, i);
 
       // The coupling between these nodes.
       const auto fij = nodeCoupling(nodeListi, i, nodeListj, j);
@@ -258,8 +258,8 @@ interpolateCRKSPH(const vector<variant<FieldList<Dimension, typename Dimension::
         const auto& Hj = H(nodeListj, j);
         const auto  Hdetj = Hj.Determinant();
         const auto  Aj = A(nodeListj, j);
-        if (correctionOrder != CRKOrder::ZerothOrder) Bj = B(nodeListj, j);
-        if (correctionOrder == CRKOrder::QuadraticOrder) Cj = C(nodeListj, j);
+        if (correctionOrder != RKOrder::ZerothOrder) Bj = B(nodeListj, j);
+        if (correctionOrder == RKOrder::QuadraticOrder) Cj = C(nodeListj, j);
 
         // Node displacement.
         const auto rij = ri - rj;
@@ -300,8 +300,8 @@ interpolateCRKSPH(const vector<variant<FieldList<Dimension, typename Dimension::
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto& Ai = A(nodeListi, i);
-      if (correctionOrder != CRKOrder::ZerothOrder) Bi = B(nodeListi, i);
-      if (correctionOrder == CRKOrder::QuadraticOrder) Ci = C(nodeListi, i);
+      if (correctionOrder != RKOrder::ZerothOrder) Bi = B(nodeListi, i);
+      if (correctionOrder == RKOrder::QuadraticOrder) Ci = C(nodeListi, i);
 
       // Add the self-contribution to each FieldList.
       const auto W0 = W.kernelValue(0.0, Hdeti);

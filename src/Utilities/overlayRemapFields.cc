@@ -5,7 +5,7 @@
 #include "overlayRemapFields.hh"
 #include "Utilities/clipFacetedVolume.hh"
 #include "DataBase/DataBase.hh"
-#include "CRKSPH/computeVoronoiVolume.hh"
+#include "RK/computeVoronoiVolume.hh"
 #include "Geometry/GeomPlane.hh"
 #include "Utilities/DBC.hh"
 

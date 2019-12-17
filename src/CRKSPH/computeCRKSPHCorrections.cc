@@ -683,18 +683,18 @@ computeCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Scalar>&
                          const FieldList<Dimension, typename Dimension::FifthRankTensor>& gradm4,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
                          const FieldList<Dimension, int>& surfacePoint,
-                         const CRKOrder correctionOrder,
+                         const RKOrder correctionOrder,
                          FieldList<Dimension, typename Dimension::Scalar>& A,
                          FieldList<Dimension, typename Dimension::Vector>& B,
                          FieldList<Dimension, typename Dimension::Tensor>& C,
                          FieldList<Dimension, typename Dimension::Vector>& gradA,
                          FieldList<Dimension, typename Dimension::Tensor>& gradB,
                          FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradC) {
-  if(correctionOrder == CRKOrder::ZerothOrder){
+  if(correctionOrder == RKOrder::ZerothOrder){
     computeZerothCRKSPHCorrections(m0,gradm0,A,gradA);
-  }else if(correctionOrder == CRKOrder::LinearOrder){
+  }else if(correctionOrder == RKOrder::LinearOrder){
     computeLinearCRKSPHCorrections(m0,m1,m2,gradm0,gradm1,gradm2,H,surfacePoint,A,B,gradA,gradB);
-  }else if(correctionOrder == CRKOrder::QuadraticOrder){
+  }else if(correctionOrder == RKOrder::QuadraticOrder){
     computeQuadraticCRKSPHCorrections(m0,m1,m2,m3,m4,gradm0,gradm1,gradm2,gradm3,gradm4,H,surfacePoint,A,B,C,gradA,gradB,gradC);
   }
 }

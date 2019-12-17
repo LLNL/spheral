@@ -36,7 +36,7 @@ gradientCRKSPH(const FieldList<Dimension, DataType>& fieldList,
                const FieldList<Dimension, typename Dimension::Tensor>& gradB,
                const FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradC,
                const ConnectivityMap<Dimension>& connectivityMap,
-               const CRKOrder correctionOrder,
+               const RKOrder correctionOrder,
                const TableKernel<Dimension>& W,
                const NodeCoupling& nodeCoupling) {
 
@@ -46,10 +46,10 @@ gradientCRKSPH(const FieldList<Dimension, DataType>& fieldList,
   REQUIRE(weight.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(B.size() == numNodeLists);
-  REQUIRE(C.size() == numNodeLists or correctionOrder != CRKOrder::QuadraticOrder);
+  REQUIRE(C.size() == numNodeLists or correctionOrder != RKOrder::QuadraticOrder);
   REQUIRE(gradA.size() == numNodeLists);
-  REQUIRE(gradB.size() == numNodeLists or correctionOrder == CRKOrder::ZerothOrder);
-  REQUIRE(gradC.size() == numNodeLists or correctionOrder != CRKOrder::QuadraticOrder);
+  REQUIRE(gradB.size() == numNodeLists or correctionOrder == RKOrder::ZerothOrder);
+  REQUIRE(gradC.size() == numNodeLists or correctionOrder != RKOrder::QuadraticOrder);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -87,11 +87,11 @@ gradientCRKSPH(const FieldList<Dimension, DataType>& fieldList,
       const auto  Hdeti = Hi.Determinant();
       const auto& Ai = A(nodeListi, i);
       const auto& gradAi = gradA(nodeListi, i);
-      if (correctionOrder != CRKOrder::ZerothOrder) {
+      if (correctionOrder != RKOrder::ZerothOrder) {
         Bi = B(nodeListi, i);
         gradBi = gradB(nodeListi, i);
       }
-      if (correctionOrder == CRKOrder::QuadraticOrder) {
+      if (correctionOrder == RKOrder::QuadraticOrder) {
         Ci = C(nodeListi, i);
         gradCi = gradC(nodeListi, i);
       }
@@ -143,11 +143,11 @@ gradientCRKSPH(const FieldList<Dimension, DataType>& fieldList,
               const auto  Hdetj = Hj.Determinant();
               const auto  Aj = A(nodeListj, j);
               const auto& gradAj = gradA(nodeListj, j);
-              if (correctionOrder != CRKOrder::ZerothOrder) {
+              if (correctionOrder != RKOrder::ZerothOrder) {
                 Bj = B(nodeListj, j);
                 gradBj = gradB(nodeListj, j);
               }
-              if (correctionOrder == CRKOrder::QuadraticOrder) {
+              if (correctionOrder == RKOrder::QuadraticOrder) {
                 Cj = C(nodeListj, j);
                 gradCj = gradC(nodeListj, j);
               }

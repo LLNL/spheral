@@ -18,7 +18,7 @@ template void computeCRKSPHCorrections(const FieldList<Dim<%(ndim)s> , Dim<%(ndi
                                        const FieldList<Dim<%(ndim)s> , Dim<%(ndim)s> ::FifthRankTensor>& gradm4,
                                        const FieldList<Dim<%(ndim)s> , Dim<%(ndim)s> ::SymTensor>& H,
                                        const FieldList<Dim<%(ndim)s>, int>& surfacePoint,
-                                       const CRKOrder correctionOrder,
+                                       const RKOrder correctionOrder,
                                        FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&,
                                        FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
                                        FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>&,

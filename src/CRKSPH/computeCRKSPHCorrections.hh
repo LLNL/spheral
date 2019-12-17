@@ -4,7 +4,7 @@
 #ifndef __Spheral__computeCRKSPHCorrections__
 #define __Spheral__computeCRKSPHCorrections__
 
-#include "CRKSPHCorrectionParams.hh"
+#include "RK/RKCorrectionParams.hh"
 namespace Spheral {
 
 // Forward declarations.
@@ -27,7 +27,7 @@ computeCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Scalar>&
                          const FieldList<Dimension, typename Dimension::FifthRankTensor>& gradm4,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
                          const FieldList<Dimension, int>& surfacePoint,
-                         const CRKOrder correctionOrder,
+                         const RKOrder correctionOrder,
                          FieldList<Dimension, typename Dimension::Scalar>& A,
                          FieldList<Dimension, typename Dimension::Vector>& B,
                          FieldList<Dimension, typename Dimension::Tensor>& C,
