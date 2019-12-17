@@ -55,7 +55,7 @@ commandLine(nr = 100,
 
             svph = False,
             crksph = False,
-            volumeType = CRKVoronoiVolume,
+            volumeType = RKVoronoiVolume,
             correctionOrder = LinearOrder,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,

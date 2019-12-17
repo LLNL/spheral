@@ -282,7 +282,7 @@ if mpi.rank == 0:
         os.makedirs(restartDir)
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
-    if not os.path.exists(vizDir) and crksph and volumeType == CRKVoronoiVolume:
+    if not os.path.exists(vizDir) and crksph and volumeType == RKVoronoiVolume:
         os.makedirs(vizDirCRK)
 mpi.barrier()
 

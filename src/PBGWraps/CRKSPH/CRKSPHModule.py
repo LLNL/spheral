@@ -36,7 +36,7 @@ self.CRKSPHVariant%(dim)id = addObject(self.space, "CRKSPHVariant%(dim)id", allo
                                                          ("QuadraticOrder", "Spheral::CRKOrder::QuadraticOrder")])
         self.CRKVolumeType = self.space.add_enum("CRKVolumeType", [("CRKMassOverDensity", "Spheral::CRKVolumeType::CRKMassOverDensity"),
                                                                    ("CRKSumVolume",       "Spheral::CRKVolumeType::CRKSumVolume"),
-                                                                   ("CRKVoronoiVolume",   "Spheral::CRKVolumeType::CRKVoronoiVolume"),
+                                                                   ("RKVoronoiVolume",   "Spheral::CRKVolumeType::RKVoronoiVolume"),
                                                                    ("CRKHullVolume",      "Spheral::CRKVolumeType::CRKHullVolume"),
                                                                    ("HVolume",            "Spheral::CRKVolumeType::HVolume")])
 

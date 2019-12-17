@@ -78,7 +78,7 @@ commandLine(
     rigorousBoundaries = False,
     dtverbose = False,
 
-    volumeType = CRKVoronoiVolume,
+    volumeType = RKVoronoiVolume,
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
     correctionOrder = LinearOrder,
     compatibleEnergy = True,
