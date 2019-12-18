@@ -62,7 +62,7 @@ ThreeOneDimensionBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nod
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
   addNodeList(nodeList);
   BoundaryNodes& boundaryNodes = accessBoundaryNodes(nodeList);
- std::vector<int>& vNodes = boundaryNodes.violationNodes;
+  vector<int>& vNodes = boundaryNodes.violationNodes;
   vNodes.resize(0);
 
   // Set all internal nodes as violation nodes.
