@@ -1,15 +1,3 @@
 [submodule "src/thirdPartyLibs/blt"]
 	path = src/thirdPartyLibs/blt
 	url = https://github.com/LLNL/blt.git
-[submodule "src/thirdPartyLibs/qhull"]
-	path = src/thirdPartyLibs/qhull
-	url = https://github.com/qhull/qhull
-[submodule "src/thirdPartyLibs/eigen"]
-	path = src/thirdPartyLibs/eigen
-	url = https://github.com/libigl/eigen
-[submodule "src/thirdPartyLibs/pybind11"]
-	path = src/thirdPartyLibs/pybind11
-	url = https://github.com/pybind/pybind11
-[submodule "src/thirdPartyLibs/polytope"]
-	path = src/thirdPartyLibs/polytope
-	url = https://github.com/pbtoast/polytope
