@@ -31,7 +31,7 @@ set(_packages
   NodeGenerators
   NodeList
   Physics
-  PBGWraps
+  #PBGWraps
   Pybind11Wraps
   PythonMPIInterfaces
   SimulationControl

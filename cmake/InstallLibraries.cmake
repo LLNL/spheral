@@ -38,12 +38,32 @@ endfunction()
 ################################
 # BOOST
 ################################
-set(BOOST_MIN_VERSION "1.62.0")
-find_package(Boost ${BOOST_MIN_VERSION} REQUIRED)
-if(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS})
-  set(BOOST_DIR ${Boost_INCLUDE_DIRS}/..)
-endif()
+message("\n---------- BUILDING BOOST ----------")
+set(BOOST_PREFIX ${PROJECT_SOURCE_DIR}/..)
+set(BOOST_TARGET boost)
+set(BOOST_DIR "${BOOST_PREFIX}/boost")
+set(BOOST_EXISTS_FILE "${BOOST_PREFIX}/boost/lib/libboost_system.a")
+
+#set(BOOST_URL "https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.bz2")
+set(BOOST_URL "https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.bz2")
+set(BOOST_SRC_DIR "${BOOST_PREFIX}/boost/src/boost")
+set(BOOST_EXTERNAL_PROJECT_FUNCTION "
+  ExternalProject_add(${BOOST_TARGET}
+    PREFIX ${BOOST_PREFIX}/${BOOST_TARGET}
+    URL ${BOOST_URL} 
+    #PATCH_COMMAND patch -t ${BOOST_SRC_DIR}/config/config.guess ${PATCH_DIR}/config.guess-boost-4.10.2-bsd.patch &&
+    #              patch -t ${BOOST_SRC_DIR}/config/config.sub   ${PATCH_DIR}/config.sub-boost-4.10.2-bsd.patch
+    CONFIGURE_COMMAND ${BOOST_SRC_DIR}/bootstrap.sh
+    --with-toolset=${CMAKE_C_COMPILER_ID}
+    --without-libraries=atomic,container,coroutine,log,chrono,context,date_time,exception,fiber,filesystem,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,system,test,thread,timer,type_erasure,wave
+    --prefix=${BOOST_DIR}
+    BUILD_IN_SOURCE 1
+    BUILD_COMMAND ${BOOST_SRC_DIR}/b2 install
+    INSTALL_COMMAND echo \"Skipping Install Step\"
+  )
+")
+DownloadAndBuildLib(BOOST)
+message("--------------------------------------\n")
 
 if (BOOST_DIR)
     include(cmake/libraries/FindBOOST.cmake)
@@ -76,8 +96,6 @@ set(PYTHON_EXTERNAL_PROJECT_FUNCTION "
   ExternalProject_add(${PYTHON_TARGET}
     PREFIX ${PYTHON_PREFIX}/${PYTHON_TARGET}
     URL ${PYTHON_URL} 
-    #PATCH_COMMAND patch -t ${_SRC_DIR}/config/config.guess ${PATCH_DIR}/config.guess-silo-4.10.2-bsd.patch &&
-    #              patch -t ${SILO_SRC_DIR}/config/config.sub   ${PATCH_DIR}/config.sub-silo-4.10.2-bsd.patch
     CONFIGURE_COMMAND ${PYTHON_SRC_DIR}/configure
                       --with-cxx-main='${CMAKE_CXX_COMPILER}'
                       --disable-ipv6
