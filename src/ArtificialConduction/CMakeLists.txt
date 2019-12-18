@@ -1,3 +1,4 @@
+include_directories(.)
 set(ArtificialConduction_inst
     ArtificialConduction
     ArtificialConductionPolicy
