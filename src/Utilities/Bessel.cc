@@ -1,5 +1,5 @@
-#include "Bessel.hh"
-#include "DBC.hh"
+#include "Utilities/Bessel.hh"
+#include "Utilities/DBC.hh"
 #include <algorithm>
 
 // Use the GNU scientific library to evaluate the Bessel functions.
@@ -37,7 +37,7 @@ Y0(double x)
 {
    REQUIRE2(x > 0.0, "Y0(x) is not defined for non-positive x!");
    // Fix the bounds to work with GSL if necessary.
-   x = std::min(x, (0.99 / GSL_DBL_EPSILON)); // top out
+   x = min(x, (0.99 / GSL_DBL_EPSILON)); // top out
    return gsl_sf_bessel_Y0(x);
 } // end Y0
 //----------------------------------------------------------------------------
@@ -49,8 +49,8 @@ Y1(double x)
 {
    REQUIRE2(x > 0.0, "Y1(x) is not defined for non-positive x!");
    // Fix the bounds to work with GSL if necessary.
-   x = std::min(x, (0.99 / GSL_DBL_EPSILON)); // top out
-   x = std::max(x, 2.01 * GSL_SQRT_DBL_EPSILON); // bottom out
+   x = min(x, (0.99 / GSL_DBL_EPSILON)); // top out
+   x = max(x, 2.01 * GSL_SQRT_DBL_EPSILON); // bottom out
    return gsl_sf_bessel_Y1(x);
 } // end Y1
 //----------------------------------------------------------------------------

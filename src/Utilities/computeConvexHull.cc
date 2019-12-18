@@ -6,7 +6,7 @@
 // Created by JMO, Tue Jan 26 14:33:35 PST 2010
 //----------------------------------------------------------------------------//
 #include "computeConvexHull.hh"
-//#include "orientedBoundingBox.hh"
+#include "orientedBoundingBox.hh"
 
 namespace Spheral {
 
@@ -16,7 +16,7 @@ namespace Spheral {
 Dim<1>::ConvexHull
 computeConvexHull(const std::vector<Dim<1>::WMVector>& points) {
   Dim<1>::Box result;
-//  orientedBoundingBox(
+  orientedBoundingBox(
 }
 
 Dim<2>::ConvexHull
@@ -27,4 +27,4 @@ computeConvexHull(const std::vector<Dim<3>::WMVector>& points);
 
 }
 
-//#endif
+#endif

@@ -273,7 +273,7 @@ clear() {
   mNeighborDomains =      vector<unsigned>();
   mSharedNodes =          vector<vector<unsigned> >();
   mSharedFaces =          vector<vector<unsigned> >();
-  mNodeListNameOffsets = std::map<string, unsigned>();
+  mNodeListNameOffsets =  map<string, unsigned>();
   mNodeListIndexOffsets = vector<unsigned>();
 }
 
@@ -1066,7 +1066,7 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
           const vector<int>& faces = mZones[*cellItr].faceIDs();
           packElement(unsigned(nodes.size()), buf);
           packElement(unsigned(faces.size()), buf);
-         std::map<unsigned, unsigned> nodeMap;
+          map<unsigned, unsigned> nodeMap;
           for (unsigned inode = 0; inode != nodes.size(); ++inode) {
             packElement(nodeHash2ID.right.at(nodes[inode]), buf);
             nodeMap[nodes[inode]] = inode;
