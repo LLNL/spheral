@@ -152,6 +152,39 @@ public:
   static inline int offsetHessP(const int d1, const int d2);
 };
 
+//------------------------------------------------------------------------------
+// Provide frontends to workaround templating of correction order
+//------------------------------------------------------------------------------
+// RK kernel
+template<typename Dimension>
+typename Dimension::Scalar
+RKKernel(const TableKernel<Dimension>& W,
+         const typename Dimension::Vector& x,
+         const typename Dimension::SymTensor& H,
+         const std::vector<double>& corrections,
+         const RKOrder order);
+
+// RK gradient
+template<typename Dimension>
+typename Dimension::Vector
+RKGradient(const TableKernel<Dimension>& W,
+           const typename Dimension::Vector& x,
+           const typename Dimension::SymTensor& H,
+           const std::vector<double>& corrections,
+           const RKOrder order);
+
+// RK kernel + gradient
+template<typename Dimension>
+void
+RKKernelAndGradient(typename Dimension::Scalar& WRK,
+                    typename Dimension::Vector& gradWSPH,
+                    typename Dimension::Vector& gradWRK,
+                    const TableKernel<Dimension>& W,
+                    const typename Dimension::Vector& x,
+                    const typename Dimension::SymTensor& H,
+                    const std::vector<double>& corrections,
+                    const RKOrder order);
+
 } // end namespace Spheral
 
 #include "RKUtilitiesInline.hh"

@@ -19,7 +19,8 @@ INSTSRCTARGETS = \
 	$(srcdir)/ContinuityVolumePolicyInst.cc.py \
 	$(srcdir)/computeRKVolumesInst.cc.py \
 	$(srcdir)/RKCorrectionsInst.cc.py \
-	$(srcdir)/RKUtilitiesInst.cc.py
+	$(srcdir)/RKUtilitiesInst.cc.py \
+	$(srcdir)/interpolateRKInst.cc.py
 
 SRCTARGETS = \
 	$(srcdir)/computeVoronoiVolume.cc \
