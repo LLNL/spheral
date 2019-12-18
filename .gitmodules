@@ -1,3 +1,0 @@
-[submodule "src/thirdPartyLibs/blt"]
-	path = src/thirdPartyLibs/blt
-	url = https://github.com/LLNL/blt.git
