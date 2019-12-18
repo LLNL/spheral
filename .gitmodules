@@ -1,0 +1,3 @@
+[submodule "src/thirdPartyLibs/polytope"]
+    path = src/thirdPartyLibs/polytope
+    url = https://github.com/pbtoast/polytope
