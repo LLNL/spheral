@@ -1,5 +1,5 @@
 text = """
-#include "ArtificialConduction/ArtificialConductionPolicy.cc"
+#include "ArtificialConductionPolicy.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
