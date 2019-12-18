@@ -3,9 +3,9 @@
 //
 // Created by J. Michael Owen, Wed Feb  7 22:59:14 PST 2001
 //----------------------------------------------------------------------------//
-//#ifndef CXXONLY
+#ifndef CXXONLY
 #include "Python.h"
-//#endif
+#endif
 
 #include "FileIO.hh"
 #include "Field/Field.hh"
@@ -35,7 +35,7 @@ FileIO::FileIO():
   mFileName(""),
   mAccess(AccessType::Undefined),
   mFileOpen(false)
-//#ifndef CXXONLY
+#ifndef CXXONLY
   ,
   mPickleMod(NULL),
   mPickleDumps(NULL),
@@ -47,9 +47,9 @@ FileIO::FileIO():
   mPickleDumps = PyObject_GetAttrString(mPickleMod, "dumps");
   mPickleLoads = PyObject_GetAttrString(mPickleMod, "loads");
   Py_DECREF(modName);
-//#else
-//  {
-//#endif
+#else
+  {
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ FileIO::FileIO(const string filename, AccessType access):
   mFileName(filename),
   mAccess(access),
   mFileOpen(false)
-//#ifndef CXXONLY
+#ifndef CXXONLY
   ,
   mPickleMod(NULL),
   mPickleDumps(NULL),
@@ -71,20 +71,20 @@ FileIO::FileIO(const string filename, AccessType access):
   mPickleDumps = PyObject_GetAttrString(mPickleMod, "dumps");
   mPickleLoads = PyObject_GetAttrString(mPickleMod, "loads");
   Py_DECREF(modName);
-//#else
-//  {
-//#endif
+#else
+  {
+#endif
 }
 
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
 FileIO::~FileIO() {
-//#ifndef CXXONLY
+#ifndef CXXONLY
   Py_DECREF(mPickleMod);
   Py_DECREF(mPickleDumps);
   Py_DECREF(mPickleLoads);
-//#endif
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -225,7 +225,7 @@ FileIO::fileOpen() const {
   return mFileOpen;
 }
 
-//#ifndef CXXONLY
+#ifndef CXXONLY
 //------------------------------------------------------------------------------
 // Write out a python object by pickling it.
 //------------------------------------------------------------------------------
@@ -304,6 +304,6 @@ readObject(PyObject* pathObj) const {
   Py_INCREF(result);
   return result;
 }
-//#endif
+#endif
 
 }

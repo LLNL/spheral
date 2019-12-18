@@ -14,13 +14,13 @@
 #include <string>
 #include <sstream>
 
-//#ifndef CXXONLY
+#ifndef CXXONLY
 // Forward declare PyObject
 #ifndef PyObject_HEAD
 struct _object;
 typedef _object PyObject;
 #endif
-//#endif
+#endif
 
 namespace Spheral {
 
@@ -109,7 +109,7 @@ public:
 
   // Require that all FileIO objects provide methods to read and write
   // Fields of specific DataTypes.
-//#ifdef SPHERAL1D
+#ifdef SPHERAL1D
   // Fields
   virtual void write(const Field<Dim<1>, Dim<1>::Scalar>& field, const std::string pathName) = 0;
   virtual void write(const Field<Dim<1>, Dim<1>::Vector>& field, const std::string pathName) = 0;
@@ -124,9 +124,9 @@ public:
   virtual void read(Field<Dim<1>, Dim<1>::SymTensor>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<1>, int>& field, const std::string pathName) const = 0;
-//#endif
+#endif
 
-//#ifdef SPHERAL2D
+#ifdef SPHERAL2D
   // Fields
   virtual void write(const Field<Dim<2>, Dim<2>::Scalar>& field, const std::string pathName) = 0;
   virtual void write(const Field<Dim<2>, Dim<2>::Vector>& field, const std::string pathName) = 0;
@@ -141,9 +141,9 @@ public:
   virtual void read(Field<Dim<2>, Dim<2>::SymTensor>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<2>, int>& field, const std::string pathName) const = 0;
-//#endif
+#endif
 
-//#ifdef SPHERAL3D
+#ifdef SPHERAL3D
   // Fields
   virtual void write(const Field<Dim<3>, Dim<3>::Scalar>& field, const std::string pathName) = 0;
   virtual void write(const Field<Dim<3>, Dim<3>::Vector>& field, const std::string pathName) = 0;
@@ -158,7 +158,7 @@ public:
   virtual void read(Field<Dim<3>, Dim<3>::SymTensor>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<3>, int>& field, const std::string pathName) const = 0;
-//#endif
+#endif
 
   //******************************************************************************
 
@@ -176,7 +176,7 @@ public:
   virtual double read_double(const std::string pathName) const         { double result;      this->read(result, pathName); return result; }
   virtual std::string read_string(const std::string pathName) const    { std::string result; this->read(result, pathName); return result; }
 
-//#ifdef SPHERAL1D
+#ifdef SPHERAL1D
   // FieldLists
   virtual void write(const FieldList<Dim<1>, Dim<1>::Scalar>& value, const std::string pathName)          { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<1>, Dim<1>::Vector>& value, const std::string pathName)          { this->writeFieldList(value, pathName); }
@@ -221,9 +221,9 @@ public:
   virtual void read(FieldList<Dim<1>, std::vector<Dim<1>::SymTensor>>& value, const std::string pathName) const       { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<1>, std::vector<Dim<1>::ThirdRankTensor>>& value, const std::string pathName) const { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<1>, std::vector<int>>& value, const std::string pathName) const                     { this->readFieldList(value, pathName); }
-//#endif
+#endif
 
-//#ifdef SPHERAL2D
+#ifdef SPHERAL2D
   // FieldLists
   virtual void write(const FieldList<Dim<2>, Dim<2>::Scalar>& value, const std::string pathName)          { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<2>, Dim<2>::Vector>& value, const std::string pathName)          { this->writeFieldList(value, pathName); }
@@ -268,9 +268,9 @@ public:
   virtual void read(FieldList<Dim<2>, std::vector<Dim<2>::SymTensor>>& value, const std::string pathName) const       { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<2>, std::vector<Dim<2>::ThirdRankTensor>>& value, const std::string pathName) const { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<2>, std::vector<int>>& value, const std::string pathName) const                     { this->readFieldList(value, pathName); }
-//#endif
+#endif
 
-//#ifdef SPHERAL3D
+#ifdef SPHERAL3D
   // FieldLists
   virtual void write(const FieldList<Dim<3>, Dim<3>::Scalar>& value, const std::string pathName)          { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<3>, Dim<3>::Vector>& value, const std::string pathName)          { this->writeFieldList(value, pathName); }
@@ -315,7 +315,7 @@ public:
   virtual void read(FieldList<Dim<3>, std::vector<Dim<3>::SymTensor>>& value, const std::string pathName) const       { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<3>, std::vector<Dim<3>::ThirdRankTensor>>& value, const std::string pathName) const { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<3>, std::vector<int>>& value, const std::string pathName) const                     { this->readFieldList(value, pathName); }
-//#endif
+#endif
 
   // Read/write planes using the primitive methods.
   void write(const GeomPlane<Dim<1> >& value, const std::string pathName);
@@ -351,11 +351,11 @@ public:
   bool fileOpen() const;
 
 //TODO
-//#ifndef CXXONLY
+#ifndef CXXONLY
   // These methods are particular to Python file objects.
   void writeObject(PyObject* thing, PyObject* path);
   PyObject* readObject(PyObject* path) const;
-//#endif
+#endif
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
@@ -364,11 +364,11 @@ protected:
   AccessType mAccess;
   bool mFileOpen;
 
-//#ifndef CXXONLY
+#ifndef CXXONLY
   PyObject* mPickleMod;
   PyObject* mPickleDumps;
   PyObject* mPickleLoads;
-//#endif
+#endif
 
 private:
   //--------------------------- Private Interface ---------------------------//
