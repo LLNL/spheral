@@ -85,7 +85,7 @@ posID(const int x) {
 //------------------------------------------------------------------------------
 inline
 int
-startVertex(const int id, const std::vector<std::pair<int, int>>& edges) {
+startVertex(const int id, const vector<pair<int, int>>& edges) {
   if (id < 0) {
     CHECK(~id < edges.size());
     return edges[~id].second;
@@ -100,7 +100,7 @@ startVertex(const int id, const std::vector<std::pair<int, int>>& edges) {
 //------------------------------------------------------------------------------
 inline
 int
-endVertex(const int id, const std::vector<std::pair<int, int>>& edges) {
+endVertex(const int id, const vector<pair<int, int>>& edges) {
   if (id < 0) {
     CHECK(~id < edges.size());
     return edges[~id].first;
@@ -148,10 +148,10 @@ insertVertex(std::vector<Dim<2>::Vector>& vertices,
 // Return a formatted string with the current polygon.
 //------------------------------------------------------------------------------
 inline
-std::string
+string
 poly2string(const vector<Dim<2>::Vector>& vertices,
             const vector<int>& vertexMask,
-            const vector<std::pair<int, int>>& edges,
+            const vector<pair<int, int>>& edges,
             const vector<int>& face) {
   typedef Dim<2>::Vector Vector;
   ostringstream s;
@@ -206,9 +206,9 @@ void clipConvexFacetedVolumeByPlanes(GeomPolygon& poly,
 
   // Convert the polygon to a set of edge loops.
   auto vertices = poly.vertices();             // Note this is a copy!
-  std::vector<edge> edges;                          // edges as pairs of vertex indices
-  face         face;                           // the rings of edges making up the polygon.
-  vector<int> vertexmask(vertices.size(), 1);  // mask to flag active/inactive vertices: 0->inactive, 1->active, -1->clip
+  vector<Edge> edges;                          // edges as pairs of vertex indices
+  Face         face;                           // the rings of edges making up the polygon.
+  vector<int> vertexMask(vertices.size(), 1);  // mask to flag active/inactive vertices: 0->inactive, 1->active, -1->clip
   {
     const auto& facets = poly.facets();
     int iedge;
@@ -262,7 +262,7 @@ void clipConvexFacetedVolumeByPlanes(GeomPolygon& poly,
     } else if (not above) {
       Face newface;                       // The newly clipped face as a set of edges.
       vector<int> newEdges;               // Any new edges we create.
-      vector<std::pair<int, int>> newVertices; // And new vertices we create: store (vertex id, index of edge in the new face that was clipped).
+      vector<pair<int, int>> newVertices; // And new vertices we create: store (vertex id, index of edge in the new face that was clipped).
 
       // The plane passes somewhere through the polygon, so we need to walk the ring and modify it.
       for (auto kedge = 0; kedge < face.size(); ++kedge) {

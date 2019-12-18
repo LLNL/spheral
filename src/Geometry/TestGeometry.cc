@@ -3,8 +3,7 @@
 #include "GeomTensor.hh"
 
 int main () {
-  using namespace std;
-  using namespace Spheral;
+
   // Test the GeomVector functions
   cout << "############################## Vector ##############################" << endl;
   cout << "GeomVector<3>(): " << GeomVector<3>() << endl;
