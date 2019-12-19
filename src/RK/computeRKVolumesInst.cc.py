@@ -4,7 +4,7 @@ text = """
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 
-#include "computeRKVolumes.cc"
+#include "CRKSPH/computeRKVolumes.cc"
 
 namespace Spheral {
 

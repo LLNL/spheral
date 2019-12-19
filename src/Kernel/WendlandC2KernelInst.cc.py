@@ -2,8 +2,8 @@ text = """
 //---------------------------------Spheral++----------------------------------//
 // WendlandC2Kernel -- .
 //----------------------------------------------------------------------------//
-#include "Kernel.hh"
-#include "WendlandC2Kernel.hh"
+#include "Kernel/Kernel.hh"
+#include "Kernel/WendlandC2Kernel.hh"
 
 #include <math.h>
 

@@ -2,7 +2,7 @@
 #include "TableKernel.hh"
 #include "Utilities/DBC.hh"
 
-namspace Spheral {
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Return the kernel weight for a given normalized distance.

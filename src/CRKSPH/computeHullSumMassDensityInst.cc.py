@@ -4,7 +4,7 @@ text = """
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 #include "Boundary/Boundary.hh"
-#include "computeHullSumMassDensity.cc"
+#include "CRKSPH/computeHullSumMassDensity.cc"
 #include "SolidSPH/DamagedNodeCouplingWithFrags.hh"
 
 namespace Spheral {

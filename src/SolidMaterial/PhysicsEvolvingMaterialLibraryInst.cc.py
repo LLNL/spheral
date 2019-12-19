@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "PhysicsEvolvingMaterialLibrary.cc"
+#include "SolidMaterial/PhysicsEvolvingMaterialLibrary.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

@@ -13,16 +13,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\NodeGenerators\fillFacetedVolume.cc">
-      <Filter>Inst Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\NodeGenerators\generateCylDistributionFromRZ.cc">
-      <Filter>Inst Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\NodeGenerators\relaxNodeDistributionInst.cc.2.cc">
-      <Filter>Inst Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\NodeGenerators\relaxNodeDistributionInst.cc.3.cc">
-      <Filter>Inst Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -32,13 +26,5 @@
     <None Include="..\..\src\NodeGenerators\generateCylDistributionFromRZ.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\NodeGenerators\relaxNodeDistribution.hh">
-      <Filter>Header Files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\src\NodeGenerators\relaxNodeDistributionInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
   </ItemGroup>
 </Project>

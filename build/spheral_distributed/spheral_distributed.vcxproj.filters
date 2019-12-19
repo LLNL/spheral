@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -12,19 +12,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\Distributed\BoundingVolumeDistributedBoundaryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\BoundingVolumeDistributedBoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Distributed\Communicator.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\DistributeByXPositionInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\DistributeByXPositionInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Distributed\DistributedBoundaryInst.cc.2.cc">
@@ -33,28 +21,10 @@
     <ClCompile Include="..\..\src\Distributed\DistributedBoundaryInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\MortonOrderRedistributeNodesInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\MortonOrderRedistributeNodesInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Distributed\NestedGridDistributedBoundaryInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Distributed\NestedGridDistributedBoundaryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\NestedGridRedistributeNodesInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\NestedGridRedistributeNodesInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\PeanoHilbertOrderRedistributeNodesInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\PeanoHilbertOrderRedistributeNodesInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Distributed\RedistributeNodesInst.cc.2.cc">
@@ -63,31 +33,10 @@
     <ClCompile Include="..\..\src\Distributed\RedistributeNodesInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\SortAndDivideRedistributeNodes1d.cc">
+    <ClCompile Include="..\..\src\Distributed\TreeDistributedBoundaryInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\SortAndDivideRedistributeNodes2d.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\SortAndDivideRedistributeNodes3d.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\SortAndDivideRedistributeNodesInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\SortAndDivideRedistributeNodesInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\SpaceFillingCurveRedistributeNodesInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\SpaceFillingCurveRedistributeNodesInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\VoronoiRedistributeNodesInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Distributed\VoronoiRedistributeNodesInst.cc.3.cc">
+    <ClCompile Include="..\..\src\Distributed\TreeDistributedBoundaryInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Distributed\waitAllWithDeadlockDetection.cc">
@@ -95,31 +44,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\Distributed\BoundingVolumeDistributedBoundary.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\Distributed\Communicator.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Distributed\CompareDomainNodesByPosition.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\Distributed\DistributeByXPosition.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\Distributed\DistributedBoundary.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Distributed\DistributedBoundaryInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Distributed\DomainNode.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Distributed\DomainNodeInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Distributed\MortonOrderRedistributeNodes.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Distributed\NestedGridDistributedBoundary.hh">
@@ -134,40 +68,13 @@
     <None Include="..\..\src\Distributed\NestedGridUtilities.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\Distributed\ParmetisRedistributeNodes.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Distributed\ParmetisRedistributeNodesInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Distributed\PeanoHilbertOrderRedistributeNodes.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\Distributed\RedistributeNodes.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Distributed\RedistributeNodesInline.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\Distributed\SortAndDivideRedistributeNodes.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Distributed\SortAndDivideRedistributeNodes1d.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Distributed\SortAndDivideRedistributeNodes2d.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Distributed\SortAndDivideRedistributeNodes3d.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Distributed\SortAndDivideRedistributeNodesInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Distributed\SpaceFillingCurveRedistributeNodes.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Distributed\VoronoiRedistributeNodes.hh">
+    <None Include="..\..\src\Distributed\TreeDistributedBoundary.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Distributed\waitAllWithDeadlockDetection.hh">
@@ -175,37 +82,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\src\Distributed\BoundingVolumeDistributedBoundaryInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Distributed\DistributeByXPositionInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\Distributed\DistributedBoundaryInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Distributed\MortonOrderRedistributeNodesInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Distributed\NestedGridDistributedBoundaryInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\Distributed\NestedGridRedistributeNodesInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Distributed\PeanoHilbertOrderRedistributeNodesInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\Distributed\RedistributeNodesInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\Distributed\SortAndDivideRedistributeNodesInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Distributed\SpaceFillingCurveRedistributeNodesInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Distributed\VoronoiRedistributeNodesInst.cc.py">
+    <CustomBuild Include="..\..\src\Distributed\TreeDistributedBoundaryInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
   </ItemGroup>

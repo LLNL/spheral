@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "generateMesh.cc"
+#include "Mesh/generateMesh.cc"
 
 namespace Spheral {
 

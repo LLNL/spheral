@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "ReplaceBoundedState.cc"
+#include "DataBase/ReplaceBoundedState.cc"
 
 namespace Spheral {
   template class ReplaceBoundedState<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>;

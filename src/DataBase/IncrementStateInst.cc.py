@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "IncrementState.cc"
+#include "DataBase/IncrementState.cc"
 
 namespace Spheral {
   template class IncrementState<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>;

@@ -1,0 +1,116 @@
+set(Geometry_inst
+    invertRankNTensor
+   )
+
+set(Geometry_sources
+    Dimension.cc
+    EigenStruct.cc
+    Geom3Vector.cc
+    GeomFacet2d.cc
+    GeomFacet3d.cc
+    GeomFifthRankTensor.cc
+    GeomFourthRankTensor.cc
+    GeomPlane.cc
+    GeomPolygon.cc
+    GeomPolyhedron.cc
+    GeomSymmetricTensor.cc
+    GeomTensor.cc
+    GeomThirdRankTensor.cc
+    GeomVector.cc
+    Jacobi.cc
+    Jacobi2.cc
+    buildEigenVector.cc
+    computeEigenValues.cc
+    fakemain.cc
+    polyclipper2d.cc
+    polyclipper3d.cc
+   )
+
+instantiate(Geometry_inst Geometry_sources)
+
+set(Geometry_headers
+    Box1d.hh
+    Box1dInline.hh
+    CellFaceFlag.hh
+    Dimension.hh
+    EigenStruct.hh
+    EigenStructInline.hh
+    EigenStruct_fwd.hh
+    FacetedVolumeUtilities.hh
+    Geom3Vector.hh
+    Geom3VectorInline.hh
+    GeomFacet2d.hh
+    GeomFacet2dInline.hh
+    GeomFacet3d.hh
+    GeomFacet3dInline.hh
+    GeomFifthRankTensor.hh
+    GeomFifthRankTensorInline.hh
+    GeomFifthRankTensor_fwd.hh
+    GeomFourthRankTensor.hh
+    GeomFourthRankTensorInline.hh
+    GeomFourthRankTensor_fwd.hh
+    GeomPlane.hh
+    GeomPlaneInline.hh
+    GeomPolygon.hh
+    GeomPolygonInline.hh
+    GeomPolyhedron.hh
+    GeomPolyhedronInline.hh
+    GeomSymmetricTensor.hh
+    GeomSymmetricTensorBase.hh
+    GeomSymmetricTensorInline_default.hh
+    GeomSymmetricTensorInline_eigen.hh
+    GeomSymmetricTensor_default.hh
+    GeomSymmetricTensor_eigen.hh
+    GeomSymmetricTensor_fwd.hh
+    GeomTensor.hh
+    GeomTensorBase.hh
+    GeomTensorInline_default.hh
+    GeomTensorInline_eigen.hh
+    GeomTensor_default.hh
+    GeomTensor_eigen.hh
+    GeomTensor_fwd.hh
+    GeomThirdRankTensor.hh
+    GeomThirdRankTensorInline.hh
+    GeomThirdRankTensor_fwd.hh
+    GeomVector.hh
+    GeomVectorBase_default.hh
+    GeomVectorInline_array.hh
+    GeomVectorInline_default.hh
+    GeomVectorInline_eigen.hh
+    GeomVector_array.hh
+    GeomVector_default.hh
+    GeomVector_eigen.hh
+    GeomVector_fwd.hh
+    Jacobi.hh
+    Jacobi2.hh
+    MathTraits.hh
+    RankNTensor.hh
+    RankNTensorInline.hh
+    TensorType.hh
+    aggregateFacetedVolumes.hh
+    buildEigenVector.hh
+    computeEigenValues.hh
+    findEigenValues3.hh
+    innerDoubleProduct.hh
+    innerProduct.hh
+    invertRankNTensor.hh
+    outerProduct.hh
+    polyclipper.hh
+    polyclipper_utilities.hh
+    )
+
+blt_add_library(NAME        Spheral_Geometry
+                SOURCES     ${Geometry_sources} ${Geometry_sources2d} ${Geometry_sources3d}
+                HEADERS     ${Geometry_headers}
+                DEPENDS_ON  ${spheral_depends}
+                )
+
+install(TARGETS              Spheral_Geometry
+        EXPORT               ${PROJECT_NAME}-targets
+        DESTINATION          lib
+        INCLUDES DESTINATION include
+        )
+
+install(FILES       ${Geometry_headers}
+        DESTINATION include/Geometry
+        )

@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "detectSurface.cc"
+#include "CRKSPH/detectSurface.cc"
 
 namespace Spheral {
 template void detectSurface(const ConnectivityMap< Dim< %(ndim)s > >& connectivityMap,

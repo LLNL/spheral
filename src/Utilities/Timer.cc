@@ -205,7 +205,7 @@ void Timer::clear(void) {
 
 double Timer::getTimeStampWC(){
 
-#ifdef MPI
+#ifdef USE_MPI
   return( MPI_Wtime() );
 #else    
   gettimeofday(&tv, &tz);
@@ -231,7 +231,7 @@ double Timer::getTimeStampWC(){
 void Timer::TimerSummary(void) {
 
   int rank, number_procs;
-#ifdef MPI
+#ifdef USE_MPI
   MPI_Comm_rank(Spheral::Communicator::communicator(), &rank);
   MPI_Comm_size(Spheral::Communicator::communicator(), &number_procs);
 #else
@@ -262,7 +262,7 @@ void Timer::TimerSummary(void) {
 
     } else {
 
-#ifdef MPI
+#ifdef USE_MPI
          
       MPI_Reduce(&wc, &(*tli)->minWC, 1, MPI_DOUBLE, 
 		 MPI_MIN, 0, Spheral::Communicator::communicator());

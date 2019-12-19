@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "gradientCRKSPH.cc"
+#include "CRKSPH/gradientCRKSPH.cc"
 #include "Geometry/Dimension.hh"
 #include "SPH/NodeCoupling.hh"
 

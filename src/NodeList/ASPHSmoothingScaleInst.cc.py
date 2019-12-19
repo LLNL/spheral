@@ -5,7 +5,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "ASPHSmoothingScale.cc"
+#include "NodeList/ASPHSmoothingScale.cc"
 
 namespace Spheral {
   template class ASPHSmoothingScale<Dim< %(ndim)s > >;

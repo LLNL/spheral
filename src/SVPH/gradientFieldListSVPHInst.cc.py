@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "gradientFieldListSVPH.cc"
+#include "SVPH/gradientFieldListSVPH.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

@@ -2,8 +2,8 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "invertRankNTensor.cc"
-#include "GeomFourthRankTensor.hh"
+#include "Geometry/invertRankNTensor.cc"
+#include "Geometry/GeomFourthRankTensor.hh"
 
 namespace Spheral {
   template GeomFourthRankTensor<%(ndim)s> invertRankNTensor(const GeomFourthRankTensor<%(ndim)s>&);
