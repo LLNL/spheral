@@ -209,6 +209,48 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   }
 }
 
+// Fourth Rank Tensor fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::PeriodicPlanarBoundary::
+applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+
+  REQUIRE(valid());
+
+  // Apply the boundary condition to all the ghost node values.
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
+    CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
+    CHECK(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes());
+    field(*ghostItr) = field(*controlItr);
+  }
+}
+
+// Fifth Rank Tensor fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::PeriodicPlanarBoundary::
+applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+
+  REQUIRE(valid());
+
+  // Apply the boundary condition to all the ghost node values.
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
+    CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
+    CHECK(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes());
+    field(*ghostItr) = field(*controlItr);
+  }
+}
+
 // FacetedVolume fields.
 template<typename Dimension>
 void
@@ -273,6 +315,20 @@ template<typename Dimension>
 void
 PeriodicBoundary<Dimension>::PeriodicPlanarBoundary::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+}
+
+// Fourth Rank Tensor fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::PeriodicPlanarBoundary::
+enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+}
+
+// Fifth Rank Tensor fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::PeriodicPlanarBoundary::
+enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
 }
 
 // FacetedVolume fields.

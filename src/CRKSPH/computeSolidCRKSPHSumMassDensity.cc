@@ -52,68 +52,89 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
   for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     m0.appendNewField("zeroth correction", position[nodeListi]->nodeList(), 0.0);
   }
+  massDensity = 0.0;
+
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
 
   // Walk the FluidNodeLists and sum the new mass density.
-  massDensity = 0.0;
-  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const auto& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[nodeListi]->nodeList());
-    const auto  rhoMin = nodeList.rhoMin();
-    const auto  rhoMax = nodeList.rhoMax();
+#pragma omp parallel
+  {
+    // Some scratch variables.
+    int i, j, nodeListi, nodeListj;
+    Scalar Wi, Wj;
+    Vector rij, etai, etaj;
+    Vector Bi = Vector::zero, Bj = Vector::zero;
+    Tensor Ci = Tensor::zero, Cj = Tensor::zero;
 
-    // Iterate over the nodes in this node list.
-    for (auto iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const auto i = *iItr;
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto massDensity_thread = massDensity.threadCopy(threadStack);
+    auto m0_thread = m0.threadCopy(threadStack);
+
+#pragma omp for
+    for (auto k = 0; k < npairs; ++k) {
+      i = pairs[k].i_node;
+      j = pairs[k].j_node;
+      nodeListi = pairs[k].i_list;
+      nodeListj = pairs[k].j_list;
+
+      // Check the coupling of these points.
+      const auto fij = nodeCoupling(nodeListi, i, nodeListj, j);
+      if (fij > 0.0) {
+
+        // Get the state for node i.
+        const auto& ri = position(nodeListi, i);
+        const auto  mi = mass(nodeListi, i);
+        const auto& Hi = H(nodeListi, i);
+        const auto  Hdeti = Hi.Determinant();
+        const auto  rho0i = massDensity0(nodeListi, i);
+        const auto  wi = mi/rho0i;
+
+        // State for node j.
+        const auto& rj = position(nodeListj, j);
+        const auto  mj = mass(nodeListj, j);
+        const auto& Hj = H(nodeListj, j);
+        const auto  Hdetj = Hj.Determinant();
+        const auto  rho0j = massDensity0(nodeListj, j);
+        const auto  wj = mj/rho0j;
+
+        // Kernel weighting and gradient.
+        const auto rij = ri - rj;
+        const auto etai = (Hi*rij).magnitude();
+        const auto etaj = (Hj*rij).magnitude();
+        const auto Wi = W.kernelValue(etai, Hdeti);
+        const auto Wj = W.kernelValue(etaj, Hdetj);
+
+        // Sum the pair-wise contributions.
+        massDensity_thread(nodeListi, i) += fij*wj*Wj*mi;
+        massDensity_thread(nodeListj, j) += fij*wi*Wi*mj;
+        m0_thread(nodeListi, i) += fij*wj*Wj*wi;
+        m0_thread(nodeListj, j) += fij*wi*Wi*wj;
+      }
+    }
+      
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+
+  } // OMP parallel
+  
+  // Finish for each point.
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[nodeListi]->nodeList());
+    const auto ni = nodeList.numInternalNodes();
+    const auto rhoMin = nodeList.rhoMin();
+    const auto rhoMax = nodeList.rhoMax();
+
+#pragma omp parallel for
+    for (auto i = 0; i < ni; ++i) {
 
       // Get the state for node i.
-      const auto& ri = position(nodeListi, i);
       const auto  mi = mass(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  rho0i = massDensity0(nodeListi, i);
       const auto  wi = mi/rho0i;
-      const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-
-      for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        const auto& connectivity = fullConnectivity[nodeListj];
-        const auto  firstGhostNodej = massDensity[nodeListj]->nodeList().firstGhostNode();
-        for (auto jItr = connectivity.begin();
-             jItr != connectivity.end();
-             ++jItr) {
-          const auto j = *jItr;
-
-          // Check the coupling of these points.
-          const auto fij = nodeCoupling(nodeListi, i, nodeListj, j);
-
-          // Check if this node pair has already been calculated.
-          if (fij > 0.0 and connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                                     nodeListj, j,
-                                                                     firstGhostNodej)) {
-            const auto& rj = position(nodeListj, j);
-            const auto  mj = mass(nodeListj, j);
-            const auto& Hj = H(nodeListj, j);
-            const auto  Hdetj = Hj.Determinant();
-            const auto  rho0j = massDensity0(nodeListj, j);
-            const auto  wj = mj/rho0j;
-
-            // Kernel weighting and gradient.
-            const auto rij = ri - rj;
-            const auto etai = (Hi*rij).magnitude();
-            const auto etaj = (Hj*rij).magnitude();
-            const auto Wi = W.kernelValue(etai, Hdeti);
-            const auto Wj = W.kernelValue(etaj, Hdetj);
-
-            // Sum the pair-wise contributions.
-            massDensity(nodeListi, i) += fij*wj*Wj*mi;
-            massDensity(nodeListj, j) += fij*wi*Wi*mj;
-            m0(nodeListi, i) += fij*wj*Wj*wi;
-            m0(nodeListj, j) += fij*wi*Wi*wj;
-          }
-        }
-      }
-      
-      // Finalize the density for node i.
       massDensity(nodeListi, i) = max(rhoMin, 
                                       min(rhoMax,
                                           (massDensity(nodeListi, i) + wi*Hdeti*W0*mi)/

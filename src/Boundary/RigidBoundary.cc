@@ -136,6 +136,26 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   copyFieldValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
 }
 
+// Specialization for fourth rank tensors.
+template<typename Dimension>
+void
+RigidBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  REQUIRE(this->valid());
+  const auto& nodeList = field.nodeList();
+  copyFieldValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
+}
+
+// Specialization for fifth rank tensors.
+template<typename Dimension>
+void
+RigidBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  REQUIRE(this->valid());
+  const auto& nodeList = field.nodeList();
+  copyFieldValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
+}
+
 // Specialization for FacetedVolume.
 template<typename Dimension>
 void
@@ -196,6 +216,22 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+  REQUIRE(this->valid());
+}
+
+// Specialization for fourth rank tensor fields.  No-op.
+template<typename Dimension>
+void
+RigidBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  REQUIRE(this->valid());
+}
+
+// Specialization for fifth rank tensor fields.  No-op.
+template<typename Dimension>
+void
+RigidBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
   REQUIRE(this->valid());
 }
 

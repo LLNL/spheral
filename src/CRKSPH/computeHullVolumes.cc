@@ -30,7 +30,7 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
                    FieldList<Dimension, typename Dimension::Scalar>& volume) {
 
   // Pre-conditions.
-  const size_t numNodeLists = volume.size();
+  const auto numNodeLists = volume.size();
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(kernelExtent > 0.0);
@@ -40,44 +40,75 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
-  // Walk the FluidNodeLists.
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  FieldList<Dimension, vector<Vector>> etaInv(FieldStorageType::CopyFields);
+  for (const auto& fieldPtr: position) {
+    etaInv.appendNewField("eta inv", fieldPtr->nodeList(), vector<Vector>());
+  }
 
-    // Iterate over the nodes in this node list.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+
+#pragma omp parallel
+  {
+    // Some scratch variables.
+    int i, j, nodeListi, nodeListj;
+
+    auto etaInv_thread = etaInv.threadCopy();
+
+    // Collect the half-way positions of all neighbors
+#pragma omp for
+    for (auto k = 0; k < npairs; ++k) {
+      i = pairs[k].i_node;
+      j = pairs[k].j_node;
+      nodeListi = pairs[k].i_list;
+      nodeListj = pairs[k].j_list;
 
       // Get the state for node i.
-      const Vector& ri = position(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
+      const auto& ri = position(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
 
-      // Collect the half-way positions of all neighbors *within i's sampling volume*.
-      // We do this in eta space.
-      vector<Vector> etaInv(1, Vector::zero);
-      const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-      CHECK(fullConnectivity.size() == numNodeLists);
-      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        const vector<int>& connectivity = fullConnectivity[nodeListj];
-        for (vector<int>::const_iterator jItr = connectivity.begin();
-             jItr != connectivity.end();
-             ++jItr) {
-          const int j = *jItr;
-          const Vector& rj = position(nodeListj, j);
-          const Vector rji = 0.5*(rj - ri);
-          const Vector etai = Hi*rji;
-          const Scalar etaiMag = etai.magnitude();
-          if (etaiMag < kernelExtent) {
-            const Vector etaiHat = etai.unitVector();
-            etaInv.push_back(1.0/max(etaiMag, 1.0e-30) * etaiHat);
-          }
-        }
+      // State for j
+      const auto& rj = position(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto  Hdetj = Hj.Determinant();
+
+      const auto  rji = 0.5*(rj - ri);
+      const auto  etai =  Hi*rji;
+      const auto  etaj = -Hj*rji;
+      const auto  etaiMag = etai.magnitude();
+      const auto  etajMag = etaj.magnitude();
+
+      if (etaiMag < kernelExtent) {
+        const auto etaiHat = etai.unitVector();
+        etaInv_thread(nodeListi, i).push_back(1.0/max(etaiMag, 1.0e-30) * etaiHat);
       }
 
+      if (etajMag < kernelExtent) {
+        const auto etajHat = etaj.unitVector();
+        etaInv_thread(nodeListj, j).push_back(1.0/max(etajMag, 1.0e-30) * etajHat);
+      }
+    }
+
+#pragma omp critical
+    {
+      etaInv_thread.threadReduce();
+    } // OMP critical
+  }   // OMP parallel
+
+    // Now we can do each node independently.
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto ni = position[nodeListi]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0; i < ni; ++i) {
+
+      // Get the state for node i.
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+
       // Build the hull of the inverse.
-      const FacetedVolume hullInv(etaInv);
+      const FacetedVolume hullInv(etaInv(nodeListi, i));
 
       // Use the vertices selected by the inverse hull to construct the
       // volume of the node.

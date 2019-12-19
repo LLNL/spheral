@@ -17,6 +17,8 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+  typedef typename Dimension::FifthRankTensor FifthRankTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
   // Constructors and destructors.
@@ -32,6 +34,8 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Enforce the boundary condition on the violation nodes in the given Field.
@@ -41,6 +45,8 @@ public:
   virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Valid test.

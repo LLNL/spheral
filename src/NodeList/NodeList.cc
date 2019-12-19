@@ -364,15 +364,18 @@ NodeList<Dimension>::registerField(FieldBase<Dimension>& field) const {
 template<typename Dimension>
 void
 NodeList<Dimension>::unregisterField(FieldBase<Dimension>& field) const {
-  if (!haveField(field)) {
-    cerr << "WARNING: Attempt to unregister field " << &field
-         << " from a NodeList " << this << " that does not recognize it." 
-         << endl;
-  } else {
-    FieldBaseIterator fieldPtrItr = find(mFieldBaseList.begin(),
-                                         mFieldBaseList.end(),
-                                         &field);
-    mFieldBaseList.erase(fieldPtrItr);
+#pragma omp critical
+  {
+    if (!haveField(field)) {
+      cerr << "WARNING: Attempt to unregister field " << &field
+           << " from a NodeList " << this << " that does not recognize it." 
+           << endl;
+    } else {
+      FieldBaseIterator fieldPtrItr = find(mFieldBaseList.begin(),
+                                           mFieldBaseList.end(),
+                                           &field);
+      mFieldBaseList.erase(fieldPtrItr);
+    }
   }
 }
 

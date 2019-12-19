@@ -91,11 +91,11 @@ public:
 
   // Apply boundary conditions to the physics specific fields.
   virtual void applyGhostBoundaries(State<Dimension>& state,
-                                    StateDerivatives<Dimension>& derivs);
+                                    StateDerivatives<Dimension>& derivs) override;
 
   // Enforce boundary conditions for the physics specific fields.
   virtual void enforceBoundaries(State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs);
+                                 StateDerivatives<Dimension>& derivs) override;
 
   //**************************************************************************
   // Restart methods.

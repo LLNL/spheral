@@ -116,9 +116,9 @@ public:
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const { return "PSPHHydroBase"; }
-  virtual void dumpState(FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIO& file, const std::string& pathName);
+  virtual std::string label() const override { return "PSPHHydroBase"; }
+  virtual void dumpState(FileIO& file, const std::string& pathName) const override;
+  virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************
 
 protected:

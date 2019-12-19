@@ -44,7 +44,7 @@ public:
   virtual void enforceBoundary(Field<Dimension, Vector>& field) const override;
 
   // Restart methods.
-  virtual std::string label() const { return "ConstantYVelocityBoundary"; }
+  virtual std::string label() const override { return "ConstantYVelocityBoundary"; }
 };
 
 }

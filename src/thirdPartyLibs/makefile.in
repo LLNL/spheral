@@ -272,11 +272,17 @@ EASYPROFILEURL = https://github.com/yse/easy_profiler/archive/v1.3.0.tar.gz
 EASYPROFILEDIR = easy_profiler-1.3.0
 EASYPROFILEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(EASYPROFILEDIST))
 
+# MANEOS
+MANEOSDIST = M-ANEOS-v1.0.tar.gz
+MANEOSURL = https://github.com/isale-code/M-ANEOS/releases/download/v1.0beta/$(MANEOSDIST)
+MANEOSDIR = M-ANEOS-v1.0
+MANEOSBUILDDATE = .maneos-v1.0.date
+
 #-------------------------------------------------------------------------------
 # Define patterns for downloading and installing pip packages
 .SUFFIXES:	_pip_dowload.date _pip_install.date
 
-cache/pip:
+cache/pip:	$(PIPEXE)
 	@echo "################################################################################"
 	@echo "# Downloading PIP packages"
 	@echo "################################################################################"
@@ -304,11 +310,11 @@ piptargets:	cache/pip
 
 #-------------------------------------------------------------------------------
 all:	$(PYTHONTARGET) \
+	piptargets \
 	$(PETSCTARGETS) \
 	$(ATSBUILDDATE) \
 	$(OPENSUBDIVTARGETS) \
 	$(EXTRATHIRDPARTYTARGETS) \
-	piptargets
 #	$(HYPREBUILDDATE)
 #	$(FLANNBUILDDATE) \
 #	$(PCLBUILDDATE)
@@ -383,7 +389,7 @@ cache/$(MPI4PYDIST):
 	@$(MKDIR) cache
 	$(WGET) "$(MPI4PYURL)" -O cache/$(MPI4PYDIST)
 
-$(MPI4PYBUILDDATE):	$(PYTHONTARGET) cache/$(MPI4PYDIST) .numpy_pip_install.date $(NUMPYBUILDDATE)
+$(MPI4PYBUILDDATE):	$(PYTHONTARGET) cache/$(MPI4PYDIST) .numpy_pip_install.date .cython_pip_install.date
 	@echo "################################################################################"
 	@echo "# Building $(MPI4PYDIST)"
 	@echo "################################################################################"
@@ -427,7 +433,7 @@ cache/$(GNUPLOTDIST):
 	@$(MKDIR) cache
 	$(WGET) "$(GNUPLOTURL)" -O cache/$(GNUPLOTDIST)
 
-$(GNUPLOTBUILDDATE):	$(PYTHONTARGET) cache/$(GNUPLOTDIST) .numpy_pip_install.date $(NUMPYBUILDDATE)
+$(GNUPLOTBUILDDATE):	$(PYTHONTARGET) cache/$(GNUPLOTDIST) .numpy_pip_install.date
 	@echo "################################################################################"
 	@echo "# Building $(GNUPLOTDIST)"
 	@echo "################################################################################"
@@ -1221,3 +1227,31 @@ $(EASYPROFILEBUILDDATE):	cache/$(EASYPROFILEDIST) $(CMAKEEXE)
 	fi
 	rm -fr $(EASYPROFILEDIR)
 	touch $(EASYPROFILEBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# MANEOS
+#-------------------------------------------------------------------------------
+cache/$(MANEOSDIST):
+	@$(MKDIR) cache
+	$(WGET) "$(MANEOSURL)" -O cache/$(MANEOSDIST)
+
+$(MANEOSBUILDDATE):	$(PYTHON) cache/$(MANEOSDIST)
+	@echo "################################################################################"
+	@echo "# Building $(MANEOSDIST)"
+	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR)
+	rm -fr $(MANEOSDIR)
+	$(GZIP) -dc cache/$(MANEOSDIST) | $(TAR) -xf -
+	$(PATCH) $(MANEOSDIR)/src/Makefile $(srcdir)/MANEOS-v1.0_Makefile.patch
+	$(SHELL) -ec "cd $(MANEOSDIR); \
+	env PATH=$(SAFEPATH) CONFIG_SHELL=$(CONFIG_SHELL) FORT='$(FORT)' LDFLAGS='$(LDFLAGS)'"
+	$(MAKE) -C $(MANEOSDIR)/src FORT='$(FORT)'
+	$(CP) -f $(MANEOSDIR)/src/libaneos.a $(LIBDIR)
+	@if ! test -e $(LIBDIR)/libaneos.a; then \
+	echo "ERROR building local MANEOS distribution."; \
+	rm -f $(MANEOSBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(MANEOSDIR)
+	touch $(MANEOSBUILDDATE)
+

@@ -319,6 +319,24 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   mPlane2Boundary.applyGhostBoundary(field);
 }
 
+// Fourth rank tensor Fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  mPlane1Boundary.applyGhostBoundary(field);
+  mPlane2Boundary.applyGhostBoundary(field);
+}
+
+// Fifth rank tensor Fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  mPlane1Boundary.applyGhostBoundary(field);
+  mPlane2Boundary.applyGhostBoundary(field);
+}
+
 // FacetedVolume Fields.
 template<typename Dimension>
 void
@@ -382,6 +400,24 @@ template<typename Dimension>
 void
 PeriodicBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+  mPlane1Boundary.enforceBoundary(field);
+  mPlane2Boundary.enforceBoundary(field);
+}
+
+// Fourth rank tensor Fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  mPlane1Boundary.enforceBoundary(field);
+  mPlane2Boundary.enforceBoundary(field);
+}
+
+// Fifth rank tensor Fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
   mPlane1Boundary.enforceBoundary(field);
   mPlane2Boundary.enforceBoundary(field);
 }

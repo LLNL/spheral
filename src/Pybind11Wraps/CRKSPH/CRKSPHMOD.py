@@ -11,7 +11,6 @@ dims = spheralDimensions()
 
 from CRKSPHHydroBase import *
 from SolidCRKSPHHydroBase import *
-from CRKSPHVariant import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -21,7 +20,6 @@ PYB11includes += ['"CRKSPH/CRKSPHUtilities.hh"',
                   '"CRKSPH/CRKSPHHydroBaseRZ.hh"',
                   '"CRKSPH/SolidCRKSPHHydroBase.hh"',
                   '"CRKSPH/SolidCRKSPHHydroBaseRZ.hh"',
-                  '"CRKSPH/CRKSPHVariant.hh"',
                   '"CRKSPH/computeVoronoiVolume.hh"',
                   '"CRKSPH/computeOccupancyVolume.hh"',
                   '"CRKSPH/computeCRKSPHSumVolume.hh"',
@@ -32,7 +30,6 @@ PYB11includes += ['"CRKSPH/CRKSPHUtilities.hh"',
                   '"CRKSPH/computeCRKSPHCorrections.hh"',
                   '"CRKSPH/centerOfMass.hh"',
                   '"CRKSPH/computeHullVolumes.hh"',
-                  '"CRKSPH/computeNeighborHull.hh"',
                   '"CRKSPH/computeHVolumes.hh"',
                   '"CRKSPH/computeOccupancyVolume.hh"',
                   '"CRKSPH/gradientCRKSPH.hh"',
@@ -245,6 +242,7 @@ def computeCRKSPHCorrections(m0 = "const FieldList<%(Dimension)s, typename %(Dim
                              gradm3 = "const FieldList<%(Dimension)s, typename %(Dimension)s::FourthRankTensor>&",
                              gradm4 = "const FieldList<%(Dimension)s, typename %(Dimension)s::FifthRankTensor>&",
                              H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
+                             surfacePoint = "const FieldList<%(Dimension)s, int>&",
                              correctionOrder = "const CRKOrder",
                              A = "FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                              B = "FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
@@ -401,6 +399,25 @@ def gradientCRKSPH(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
 
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
+def computeVoronoiVolume(position = "const FieldList<%(Dimension)s, %(Dimension)s::Vector>&",
+                         H = "const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>&",
+                         connectivityMap = "const ConnectivityMap<%(Dimension)s >&",
+                         damage = "const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>&",
+                         facetedBoundaries = "const std::vector<%(Dimension)s::FacetedVolume>&",
+                         holes = "const std::vector<std::vector<%(Dimension)s::FacetedVolume> >&",
+                         boundaries = "const std::vector<Boundary<%(Dimension)s>*>&",
+                         weight = "const FieldList<%(Dimension)s, %(Dimension)s::Scalar>&",
+                         surfacePoint = "FieldList<%(Dimension)s, int>&",
+                         vol = "FieldList<%(Dimension)s, %(Dimension)s::Scalar>&",
+                         deltaMedian = "FieldList<%(Dimension)s, %(Dimension)s::Vector>&",
+                         etaVoidPoints = "FieldList<%(Dimension)s, std::vector<%(Dimension)s::Vector>>&",
+                         cells = "FieldList<%(Dimension)s, %(Dimension)s::FacetedVolume>&",
+                         cellFaceFlags = "FieldList<%(Dimension)s, std::vector<CellFaceFlag>>&"):
+    "Compute the volume per point based on the Voronoi tessellation-like algorithm."
+    return "void"
+
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
 def computeHullVolumes(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
                        kernelExtent = "const typename %(Dimension)s::Scalar",
                        position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
@@ -416,16 +433,6 @@ def computeHVolumes(nPerh = "const typename %(Dimension)s::Scalar",
                     volume = "FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&"):
     "Compute a volume per point based on the local H tensor."
     return "void"
-
-#-------------------------------------------------------------------------------
-@PYB11template("Dimension")
-def computeNeighborHull(fullConnectivity = "const std::vector<std::vector<int> >&",
-                        etaCutoff = "const typename %(Dimension)s::Scalar",
-                        ri = "const typename %(Dimension)s::Vector&",
-                        Hi = "const typename %(Dimension)s::SymTensor&",
-                        position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&"):
-    "Compute the hull for a given points neighbor set."
-    return "typename %(Dimension)s::FacetedVolume"
 
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
@@ -461,25 +468,6 @@ for ndim in dims:
     exec('''
 CRKSPHHydroBase%(ndim)id = PYB11TemplateClass(CRKSPHHydroBase, template_parameters="%(Dimension)s")
 SolidCRKSPHHydroBase%(ndim)id = PYB11TemplateClass(SolidCRKSPHHydroBase, template_parameters="%(Dimension)s")
-CRKSPHVariant%(ndim)id = PYB11TemplateClass(CRKSPHVariant, template_parameters="%(Dimension)s")
-
-@PYB11pycppname("computeVoronoiVolume")
-def computeVoronoiVolume%(ndim)id(position = "const FieldList<%(Dimension)s, %(Dimension)s::Vector>&",
-                                  H = "const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>&",
-                                  connectivityMap = "const ConnectivityMap<%(Dimension)s >&",
-                                  damage = "const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>&",
-                                  facetedBoundaries = "const std::vector<%(Dimension)s::FacetedVolume>&",
-                                  holes = "const std::vector<std::vector<%(Dimension)s::FacetedVolume> >&",
-                                  boundaries = "const std::vector<Boundary<%(Dimension)s>*>&",
-                                  weight = "const FieldList<%(Dimension)s, %(Dimension)s::Scalar>&",
-                                  surfacePoint = "FieldList<%(Dimension)s, int>&",
-                                  vol = "FieldList<%(Dimension)s, %(Dimension)s::Scalar>&",
-                                  deltaMedian = "FieldList<%(Dimension)s, %(Dimension)s::Vector>&",
-                                  etaVoidPoints = "FieldList<%(Dimension)s, std::vector<%(Dimension)s::Vector>>&",
-                                  cells = "FieldList<%(Dimension)s, %(Dimension)s::FacetedVolume>&",
-                                  cellFaceFlags = "FieldList<%(Dimension)s, std::vector<CellFaceFlag>>&"):
-    "Compute the volume per point based on the Voronoi tessellation-like algorithm."
-    return "void"
 
 @PYB11pycppname("centerOfMass")
 def centerOfMass%(ndim)id(polyvol = "const %(Dimension)s::FacetedVolume&",
@@ -491,6 +479,7 @@ CRKSPHKernel%(ndim)id = PYB11TemplateFunction(CRKSPHKernel, template_parameters=
 CRKSPHKernelAndGradient%(ndim)id = PYB11TemplateFunction(CRKSPHKernelAndGradient, template_parameters="%(Dimension)s")
 computeCRKSPHSumMassDensity%(ndim)id = PYB11TemplateFunction(computeCRKSPHSumMassDensity, template_parameters="%(Dimension)s")
 computeCRKSPHSumVolume%(ndim)id = PYB11TemplateFunction(computeCRKSPHSumVolume, template_parameters="%(Dimension)s")
+computeVoronoiVolume%(ndim)id = PYB11TemplateFunction(computeVoronoiVolume, template_parameters="%(Dimension)s", pyname="computeVoronoiVolume")
 computeOccupancyVolume%(ndim)id = PYB11TemplateFunction(computeOccupancyVolume, template_parameters="%(Dimension)s")
 computeSolidCRKSPHSumMassDensity%(ndim)id = PYB11TemplateFunction(computeSolidCRKSPHSumMassDensity, template_parameters="%(Dimension)s")
 computeCRKSPHMoments%(ndim)id = PYB11TemplateFunction(computeCRKSPHMoments, template_parameters="%(Dimension)s")
@@ -498,7 +487,6 @@ detectSurface%(ndim)id = PYB11TemplateFunction(detectSurface, template_parameter
 computeCRKSPHCorrections%(ndim)id = PYB11TemplateFunction(computeCRKSPHCorrections, template_parameters="%(Dimension)s")
 computeHullVolumes%(ndim)id = PYB11TemplateFunction(computeHullVolumes, template_parameters="%(Dimension)s")
 computeHVolumes%(ndim)id = PYB11TemplateFunction(computeHVolumes, template_parameters="%(Dimension)s")
-computeNeighborHull%(ndim)id = PYB11TemplateFunction(computeNeighborHull, template_parameters="%(Dimension)s")
 editMultimaterialSurfaceTopology%(ndim)id = PYB11TemplateFunction(editMultimaterialSurfaceTopology, template_parameters="%(Dimension)s")
 zerothOrderSurfaceCorrections%(ndim)id = PYB11TemplateFunction(zerothOrderSurfaceCorrections, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,

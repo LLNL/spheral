@@ -92,7 +92,7 @@ operator=(const CheapSynchronousRK2<Dimension>& rhs) {
 // Take a step.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 CheapSynchronousRK2<Dimension>::
 step(typename Dimension::Scalar maxTime,
      State<Dimension>& state,
@@ -144,6 +144,18 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeDerivatives(t + hdt, hdt, db, state, derivs);
   TIME_CheapRK2EvalDerivs.stop();
 
+  // Check if the timestep is still a good idea...
+  if (this->allowDtCheck()) {
+    const auto dtnew = this->selectDt(min(this->dtMin(), maxTime - t),
+                                      min(this->dtMax(), maxTime - t),
+                                      state,
+                                      derivs);
+    if (dtnew < 0.5*dt) {
+      state.assign(state0);
+      return false;
+    }
+  }
+
   // Advance the state from the beginning of the cycle using the midpoint derivatives.
   TIME_CheapRK2EndStep.start();
   state.timeAdvanceOnly(false);
@@ -172,8 +184,9 @@ step(typename Dimension::Scalar maxTime,
   this->currentCycle(this->currentCycle() + 1);
   this->currentTime(t + dt);
   this->lastDt(dt);
-
   TIME_CheapRK2.stop();
+
+  return true;
 }
 
 }

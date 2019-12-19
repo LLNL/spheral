@@ -15,23 +15,23 @@
 #
 # Ordinary solid SPH
 #
-#ATS:t100 = test(      SELF, "--solid True --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar Noh problem with solid SPH -- 1-D (serial)")
+#ATS:t100 = test(        SELF, "--solid True --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar Noh problem with solid SPH -- 1-D (serial)")
 #ATS:t101 = testif(t100, SELF, "--solid True --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with solid SPH -- 1-D (serial) RESTART CHECK")
-#ATS:t102 = test(      SELF, "--solid True --graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh problem with solid SPH -- 1-D (parallel)")
+#ATS:t102 = test(        SELF, "--solid True --graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh problem with solid SPH -- 1-D (parallel)")
 #ATS:t103 = testif(t102, SELF, "--solid True --graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar Noh problem with solid SPH -- 1-D (parallel) RESTART CHECK")
-#ATS:t104 = test(      SELF, "--solid True --graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem with solid SPH -- 1-D (serial reproducing test setup)")
+#ATS:t104 = test(        SELF, "--solid True --graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem with solid SPH -- 1-D (serial reproducing test setup)")
 #ATS:t105 = testif(t104, SELF, "--solid True --graphics None --clearDirectories False  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh  problem with solid SPH -- 1-D (4 proc reproducing test)")
 #
 # CRK
 #
-#ATS:t200 = test(      SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with CRK -- 1-D (serial)")
+#ATS:t200 = test(        SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with CRK -- 1-D (serial)")
 #ATS:t201 = testif(t200, SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with CRK -- 1-D (serial) RESTART CHECK")
-#ATS:t202 = test(      SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories True  --checkError False  --dataDir 'dumps-planar-CRK-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt' --steps 100", label="Planar Noh problem with CRK -- 1-D (serial reproducing test setup)")
+#ATS:t202 = test(        SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories True  --checkError False  --dataDir 'dumps-planar-CRK-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt' --steps 100", label="Planar Noh problem with CRK -- 1-D (serial reproducing test setup)")
 #ATS:t203 = testif(t202, SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories False  --checkError False  --dataDir 'dumps-planar-CRK-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --steps 100 --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh problem with CRK -- 1-D (4 proc reproducing test)")
 #
 # PSPH
 #
-#ATS:t300 = test(      SELF, "--psph True --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with PSPH -- 1-D (serial)")
+#ATS:t300 = test(        SELF, "--psph True --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with PSPH -- 1-D (serial)")
 #ATS:t301 = testif(t300, SELF, "--psph True --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with PSPH -- 1-D (serial) RESTART CHECK")
 
 import os, shutil
@@ -62,6 +62,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             mu = 1.0,
 
             solid = False,    # If true, use the fluid limit of the solid hydro option
+            inflow = False,   # Should we impose inflow boundaries?
 
             svph = False,
             crksph = False,
@@ -89,7 +90,9 @@ commandLine(KernelConstructor = NBSplineKernel,
             Qhmult = 1.0,
             Cl = None, 
             Cq = None,
+            etaCritFrac = None,
             linearInExpansion = None,
+            quadraticInExpansion = None,
             Qlimiter = None,
             balsaraCorrection = None,
             epsilon2 = None,
@@ -146,25 +149,25 @@ commandLine(KernelConstructor = NBSplineKernel,
             writeOutputLabel = True,
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0716703               ,
-            L2rho =   0.0195511               ,
-            Linfrho = 2.31204                 ,
-                                               
-            L1P =     0.0252414               ,
-            L2P =     0.00726533              ,
-            LinfP =   0.962151                ,
-                                               
-            L1v =     0.0394611               ,
-            L2v =     0.0105341               ,
-            Linfv =   0.943421                ,
-                                               
-            L1eps =   0.014242                ,
-            L2eps =   0.00400664              ,
-            Linfeps = 0.435752                ,
-                                               
-            L1h =     0.000546767             ,
-            L2h =     0.000131226             ,
-            Linfh =   0.0091463               ,
+            L1rho =   0.0713445       ,
+            L2rho =   0.0193689       ,
+            Linfrho = 2.31211         ,
+
+            L1P =     0.0246952       ,
+            L2P =     0.0072287       ,
+            LinfP =   0.966204        ,
+
+            L1v =     0.0386543       ,
+            L2v =     0.0104419       ,
+            Linfv =   0.945782        ,
+
+            L1eps =   0.0140886       ,
+            L2eps =   0.00398204      ,
+            Linfeps = 0.437577        ,
+
+            L1h =     0.000547739     ,
+            L2h =     0.000131918     ,
+            Linfh =   0.00916578      ,
 
             tol = 1.0e-5,
 
@@ -335,8 +338,8 @@ else:
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
 output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
+output("hydro.kernel")
+output("hydro.PiKernel")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
@@ -348,17 +351,17 @@ packages = [hydro]
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
 q = hydro.Q
-if Cl:
+if not Cl is None:
     q.Cl = Cl
-if Cq:
+if not Cq is None:
     q.Cq = Cq
-if epsilon2:
+if not epsilon2 is None:
     q.epsilon2 = epsilon2
-if Qlimiter:
+if not Qlimiter is None:
     q.limiter = Qlimiter
-if balsaraCorrection:
+if not balsaraCorrection is None:
     q.balsaraShearCorrection = balsaraCorrection
-if QcorrectionOrder:
+if not QcorrectionOrder is None:
     q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")
@@ -366,12 +369,15 @@ output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
-try:
+if hasattr(q, "linearInExpansion") and not linearInExpansion is None:
     q.linearInExpansion = linearInExpansion
     output("q.linearInExpansion")
+if hasattr(q, "quadraticInExpansion") and not quadraticInExpansion is None:
+    q.quadraticInExpansion = quadraticInExpansion
     output("q.quadraticInExpansion")
-except:
-   pass
+if hasattr(q, "etaCritFrac") and not etaCritFrac is None:
+    q.etaCritFrac = etaCritFrac
+    output("q.etaCritFrac")
 
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
@@ -419,8 +425,20 @@ if hourglass:
 if x0 == xwall:
     xPlane0 = Plane(Vector(0.0), Vector(1.0))
     xbc0 = ReflectingBoundary(xPlane0)
-    for p in packages:
-        p.appendBoundary(xbc0)
+    bcs = [xbc0]
+
+if inflow:
+    right_inflow = InflowOutflowBoundary(db, Plane(Vector(x1), Vector(-1)))
+    bcs.append(right_inflow)
+    packages.append(right_inflow)
+    if x0 != xwall:
+        left_inflow = InflowOutflowBoundary(db, Plane(Vector(x0), Vector(1)))
+        bcs.append(left_inflow)
+        packages.append(left_inflow)
+
+for p in packages:
+    for bc in bcs:
+        p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
 # Construct an integrator.
@@ -562,16 +580,10 @@ if graphics:
         splot = plotFieldList(hydro.surfacePoint,
                               winTitle = "surface point",
                               colorNodeLists = False)
-        voidplot = plotFieldList(hydro.voidPoint,
-                                 winTitle = "void point",
-                                 plotStyle = "points",
-                                 plotGhosts = True,
-                                 colorNodeLists = False)
         plots += [(volPlot, "Noh-planar-vol.png"),
                    (aplot, "Noh-planar-ACRK.png"),
                    (bplot, "Noh-planar-BCRK.png"),
-                   (splot, "Noh-planar-surfacePoint.png"),
-                   (voidplot, "Noh-planar-voidPoint.png")]
+                   (splot, "Noh-planar-surfacePoint.png")]
 
     if boolCullenViscosity:
         cullAlphaPlot = plotFieldList(q.ClMultiplier(),

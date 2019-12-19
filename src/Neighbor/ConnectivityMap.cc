@@ -72,6 +72,40 @@ insertUnique(const std::vector<int>& offsets,
   }
   return false;
 }
+
+//------------------------------------------------------------------------------
+// How should we compare pairs for sorting?
+//------------------------------------------------------------------------------
+inline
+KeyTraits::Key
+hashKeys(const KeyTraits::Key& a, const KeyTraits::Key& b) {
+  // Szudzik's function
+  // return (a >= b ?
+  //         a * a + a + b :
+  //         a + b * b);          // where a, b >= 0
+  return a + b;
+}
+
+//------------------------------------------------------------------------------
+// Sort node pairs for domain independent ordering.
+//------------------------------------------------------------------------------
+template<typename KeyContainer>
+inline
+void
+sortPairs(NodePairList& pairs,
+          const KeyContainer& keys) {
+  // Start by making sure the pairs themselves are deterministically arranged.
+  for (auto& p: pairs) {
+    if (keys(p.i_list, p.i_node) > keys(p.j_list, p.j_node)) {
+      std::swap(p.i_list, p.j_list);
+      std::swap(p.i_node, p.j_node);
+    }
+  }
+
+  // Now sort the list as a whole.
+  std::sort(pairs.begin(), pairs.end(), [&](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(keys(a.i_list, a.i_node), keys(a.j_list, a.j_node)) < hashKeys(keys(b.i_list, b.i_node), keys(b.j_list, b.j_node)); });
+}
+
 }
 
 //------------------------------------------------------------------------------
@@ -209,6 +243,37 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
     }
   }
   
+  // We also need to patch the node pair structure
+  NodePairList culledPairs;
+#pragma omp parallel
+  {
+    NodePairList culledPairs_thread;
+    const auto npairs = mNodePairList.size();
+#pragma omp for
+    for (auto k = 0; k < npairs; ++k) {
+      const auto iNodeList = mNodePairList[k].i_list;
+      const auto jNodeList = mNodePairList[k].j_list;
+      const auto i = mNodePairList[k].i_node;
+      const auto j = mNodePairList[k].j_node;
+      if (flags(iNodeList, i) != 0 and flags(jNodeList, j) != 0) {
+        culledPairs_thread.push_back(NodePairIdxType(old2new(iNodeList, i), iNodeList,
+                                                     old2new(jNodeList, j), jNodeList));
+      }
+    }
+#pragma omp critical
+    {
+      culledPairs.insert(culledPairs.end(), culledPairs_thread.begin(), culledPairs_thread.end());
+    }
+  }
+  mNodePairList = culledPairs;
+
+  // Sort the NodePairList in order to enforce domain decomposition independence.
+  if (domainDecompIndependent) {
+    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
+    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
+    sortPairs(mNodePairList, mKeys);
+  }
+
   // You can't check valid yet 'cause the NodeLists have not been resized
   // when we call patch!  The valid method should be checked by whoever called
   // this method after that point.
@@ -578,30 +643,30 @@ valid() const {
     }
   }
 
-  // Check that the node traversal is ordered correctly.
-  for (int nodeList = 0; nodeList != numNodeLists; ++nodeList) {
-    if ((domainDecompIndependent and mNodeLists[nodeList]->numNodes() > 0) or
-        (not domainDecompIndependent and mNodeLists[nodeList]->numInternalNodes() > 0)) {
-      const int firstGhostNode = mNodeLists[nodeList]->firstGhostNode();
-      for (const_iterator itr = begin(nodeList); itr < end(nodeList) - 1; ++itr) {
-        if (not calculatePairInteraction(nodeList, *itr,
-                                         nodeList, *(itr + 1), 
-                                         firstGhostNode)) {
-          cerr << "ConnectivityMap::valid: mNodeTraversalIndices ordered incorrectly." << endl;
-          cerr << *itr << " "
-               << *(itr + 1) << " "
-               << mKeys(nodeList, *itr) << " "
-               << mKeys(nodeList, *(itr + 1)) << " "
-               << mNodeLists[nodeList]->positions()(*itr) << " "
-               << mNodeLists[nodeList]->positions()(*(itr + 1)) << " "
-               << endl;
-          for (int i = 0; i != 100; ++i) cerr << mKeys(nodeList, i) << " " << mNodeLists[nodeList]->positions()(i) << " ";
-          cerr << endl;
-          return false;
-        }
-      }
-    }
-  }
+  // // Check that the node traversal is ordered correctly.
+  // for (int nodeList = 0; nodeList != numNodeLists; ++nodeList) {
+  //   if ((domainDecompIndependent and mNodeLists[nodeList]->numNodes() > 0) or
+  //       (not domainDecompIndependent and mNodeLists[nodeList]->numInternalNodes() > 0)) {
+  //     const int firstGhostNode = mNodeLists[nodeList]->firstGhostNode();
+  //     for (const_iterator itr = begin(nodeList); itr < end(nodeList) - 1; ++itr) {
+  //       if (not calculatePairInteraction(nodeList, *itr,
+  //                                        nodeList, *(itr + 1), 
+  //                                        firstGhostNode)) {
+  //         cerr << "ConnectivityMap::valid: mNodeTraversalIndices ordered incorrectly." << endl;
+  //         cerr << *itr << " "
+  //              << *(itr + 1) << " "
+  //              << mKeys(nodeList, *itr) << " "
+  //              << mKeys(nodeList, *(itr + 1)) << " "
+  //              << mNodeLists[nodeList]->positions()(*itr) << " "
+  //              << mNodeLists[nodeList]->positions()(*(itr + 1)) << " "
+  //              << endl;
+  //         for (int i = 0; i != 100; ++i) cerr << mKeys(nodeList, i) << " " << mNodeLists[nodeList]->positions()(i) << " ";
+  //         cerr << endl;
+  //         return false;
+  //       }
+  //     }
+  //   }
+  // }
 
   // Everything must be OK.
   TIME_ConnectivityMap_valid.stop();
@@ -836,6 +901,7 @@ computeConnectivity() {
               auto& neighborsj = mConnectivity[mOffsets[jNodeList] + j];
               CHECK(neighborsj.size() == numNodeLists);
               neighborsj[iNodeList].push_back(i);
+              // mNodePairList.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
             }
           }
         }
@@ -877,14 +943,12 @@ computeConnectivity() {
     }
   }
 
-  // // Build the NodePairList
-  // for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
-
-  // // Sort the NodePairList to be more efficient.
-  // sort(mNodePairList.begin(), mNodePairList.end(), [](const NodePairIdxType& a, const NodePairIdxType& b) { return (a.i_list < b.i_list ? true :
-  //                                                                                                                   a.i_list > b.i_list ? false :
-  //                                                                                                                   a.i_node < b.i_node ? true :
-  //                                                                                                                   false); });
+  // Sort the NodePairList in order to enforce domain decomposition independence.
+  if (domainDecompIndependent) {
+    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
+    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
+    sortPairs(mNodePairList, mKeys);
+  }
 
   // Do we need overlap connectivity?
   if (mBuildOverlapConnectivity) {

@@ -39,6 +39,7 @@ public:
 
   // Require descendent fields be able to test equivalence.
   virtual bool operator==(const FieldBase& rhs) const = 0;
+  bool operator!=(const FieldBase& rhs) const;
 
   // Access the name.
   FieldName name() const;

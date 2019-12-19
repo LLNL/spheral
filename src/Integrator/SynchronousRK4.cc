@@ -79,7 +79,7 @@ operator=(const SynchronousRK4<Dimension>& rhs) {
 // Take a step.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 SynchronousRK4<Dimension>::
 step(typename Dimension::Scalar maxTime,
      State<Dimension>& state,
@@ -127,6 +127,17 @@ step(typename Dimension::Scalar maxTime,
   this->evaluateDerivatives(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs2);
   this->finalizeDerivatives(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs2);
 
+  // Check if the timestep is still a good idea...
+  if (this->allowDtCheck()) {
+    const auto dtnew = this->selectDt(min(this->dtMin(), maxTime - t),
+                                      min(this->dtMax(), maxTime - t),
+                                      tmpstate,
+                                      derivs2);
+    if (dtnew < this->dtCheckFrac()*dt) {
+      return false;
+    }
+  }
+
   // Stage 3: 
   // Get derivs3(t_n + 0.5*dt, state(t_n + 0.5*dt*derivs2))
   tmpstate = state;
@@ -141,6 +152,17 @@ step(typename Dimension::Scalar maxTime,
   this->evaluateDerivatives(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs3);
   this->finalizeDerivatives(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs3);
 
+  // Check if the timestep is still a good idea...
+  if (this->allowDtCheck()) {
+    const auto dtnew = this->selectDt(min(this->dtMin(), maxTime - t),
+                                      min(this->dtMax(), maxTime - t),
+                                      tmpstate,
+                                      derivs3);
+    if (dtnew < this->dtCheckFrac()*dt) {
+      return false;
+    }
+  }
+
   // Stage 4: 
   // Get derivs3(t_n + dt, state(t_n + dt*derivs3))
   tmpstate = state;
@@ -154,6 +176,17 @@ step(typename Dimension::Scalar maxTime,
   derivs4.Zero();
   this->evaluateDerivatives(t + dt, dt, db, tmpstate, derivs4);
   this->finalizeDerivatives(t + dt, dt, db, tmpstate, derivs4);
+
+  // Check if the timestep is still a good idea...
+  if (this->allowDtCheck()) {
+    const auto dtnew = this->selectDt(min(this->dtMin(), maxTime - t),
+                                      min(this->dtMax(), maxTime - t),
+                                      tmpstate,
+                                      derivs4);
+    if (dtnew < this->dtCheckFrac()*dt) {
+      return false;
+    }
+  }
 
   // Advance.
   // Now we can apply the RK4 algorithm to advance the actual state over the full time step.
@@ -178,6 +211,7 @@ step(typename Dimension::Scalar maxTime,
   this->currentCycle(this->currentCycle() + 1);
   this->currentTime(t + dt);
   this->lastDt(dt);
+  return true;
 }
 
 }

@@ -9,7 +9,7 @@
 // Created by JMO, Wed Apr  9 13:13:46 PDT 2008
 //----------------------------------------------------------------------------//
 #include "SpaceFillingCurveRedistributeNodes.hh"
-#include "DomainNode.hh"
+#include "Utilities/DomainNode.hh"
 #include "DistributedBoundary.hh"
 #include "Boundary/Boundary.hh"
 #include "DataBase/DataBase.hh"

@@ -41,7 +41,7 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
                        FieldList<Dimension, typename Dimension::Scalar>& vol) {
 
   // Pre-conditions.
-  const size_t numNodeLists = vol.size();
+  const auto numNodeLists = vol.size();
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
 
@@ -54,61 +54,71 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::FifthRankTensor FifthRankTensor;
 
   // Get the maximum allowed volume in eta space.
-  const Scalar etaVolMax = Dimension::pownu(0.5*W.kernelExtent()) * volumeElement<Dimension>();
+  const auto etaVolMax = Dimension::pownu(0.5*W.kernelExtent()) * volumeElement<Dimension>();
 
   // Zero it out.
   vol = 0.0;
 
-  // For our first pass compute the effective volume per point.
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const FluidNodeList<Dimension>& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(vol[nodeListi]->nodeList());
+  // Some useful variables.
+  const auto W0 = W.kernelValue(0.0, 1.0);
 
-    // Iterate over the nodes in this node list.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+
+#pragma omp parallel
+  {
+    // Some scratch variables.
+    int i, j, nodeListi, nodeListj;
+
+    auto vol_thread = vol.threadCopy();
+
+#pragma omp for
+    for (auto k = 0; k < npairs; ++k) {
+      i = pairs[k].i_node;
+      j = pairs[k].j_node;
+      nodeListi = pairs[k].i_list;
+      nodeListj = pairs[k].j_list;
 
       // Get the state for node i.
-      const Vector& ri = position(nodeListi, i);
-      // const Scalar mi = mass(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
-      const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+      const auto& ri = position(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
 
-      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        const vector<int>& connectivity = fullConnectivity[nodeListj];
-        const int firstGhostNodej = vol[nodeListj]->nodeList().firstGhostNode();
-        for (vector<int>::const_iterator jItr = connectivity.begin();
-             jItr != connectivity.end();
-             ++jItr) {
-          const int j = *jItr;
+      // And node j
+      const auto& rj = position(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto  Hdetj = Hj.Determinant();
 
-          // Check if this node pair has already been calculated.
-          if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                       nodeListj, j,
-                                                       firstGhostNodej)) {
-            const Vector& rj = position(nodeListj, j);
-            // const Scalar mj = mass(nodeListj, j);
-            const SymTensor& Hj = H(nodeListj, j);
-            const Scalar Hdetj = Hj.Determinant();
+      // Kernel weighting and gradient.
+      const auto rij = ri - rj;
+      const auto etai = (Hi*rij).magnitude();
+      const auto etaj = (Hj*rij).magnitude();
+      const auto Wi = W.kernelValue(etai, Hdeti);
+      const auto Wj = W.kernelValue(etaj, Hdetj);
 
-            // Kernel weighting and gradient.
-            const Vector rij = ri - rj;
-            const Scalar etai = (Hi*rij).magnitude();
-            const Scalar etaj = (Hj*rij).magnitude();
-            const Scalar Wi = W.kernelValue(etai, Hdeti);
-            const Scalar Wj = W.kernelValue(etaj, Hdetj);
+      // Sum the pair-wise contributions.
+      vol_thread(nodeListi, i) += Wi;
+      vol_thread(nodeListj, j) += Wj;
+    }
 
-            // Sum the pair-wise contributions.
-            vol(nodeListi, i) += Wi;
-            vol(nodeListj, j) += Wj;
-          }
-        }
-      }
+#pragma omp critical
+    {
+      vol_thread.threadReduce();
+    }
+  }
+
+  // The self contribution.
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto ni = vol[nodeListi]->numInternalElements();
+
+#pragma omp parallel for
+    for (auto i = 0; i < ni; ++i) {
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
   
       // Add the self-contribution.
-      vol(nodeListi, i) += W.kernelValue(0.0, Hdeti);
+      vol(nodeListi, i) += Hdeti*W0;
       CHECK(vol(nodeListi, i) > 0.0);
       vol(nodeListi, i) = min(etaVolMax/Hdeti, 1.0/vol(nodeListi, i));
     }

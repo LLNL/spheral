@@ -120,6 +120,20 @@ ConstantVelocityBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
 }
 
+// Specialization for fourth rank tensors.
+template<typename Dimension>
+void
+ConstantVelocityBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+}
+
+// Specialization for fifth rank tensors.
+template<typename Dimension>
+void
+ConstantVelocityBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+}
+
 // Specialization for FactedVolume.
 template<typename Dimension>
 void
@@ -218,6 +232,20 @@ template<typename Dimension>
 void
 ConstantVelocityBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+}
+
+// Specialization for fourth rank tensors, no-op.
+template<typename Dimension>
+void
+ConstantVelocityBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+}
+
+// Specialization for fifth rank tensors, no-op.
+template<typename Dimension>
+void
+ConstantVelocityBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
 }
 
 // Specialization for FacetedVolume, no-op.

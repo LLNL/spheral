@@ -45,7 +45,8 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/overlayRemapFields.hh"',
                   '"Utilities/computeShepardsInterpolation.hh"',
                   '"Utilities/clipFacetedVolume.hh"',
-                  '"Utilities/Timer.hh"']
+                  '"Utilities/Timer.hh"',
+                  '"Utilities/DomainNode.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -58,6 +59,7 @@ PYB11namespaces = ["Spheral"]
 from SpheralFunctor import *
 from KeyTraits import *
 from Timer import *
+from DomainNode import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
@@ -245,6 +247,9 @@ collinear%(ndim)id = PYB11TemplateFunction(collinear, template_parameters="%(Vec
 between%(ndim)id = PYB11TemplateFunction(between, template_parameters="%(Vector)s", pyname="between")
 segmentSegmentIntersectionTest%(ndim)id = PYB11TemplateFunction(segmentSegmentIntersectionTest, template_parameters="%(Vector)s", pyname="segmentSegmentIntersectionTest")
 
+DomainNode%(ndim)id = PYB11TemplateClass(DomainNode, template_parameters="%(Dimension)s")
+vector_of_DomainNode%(ndim)id = PYB11_bind_vector("DomainNode<%(Dimension)s>", opaque=True, local=False)
+
 #...............................................................................
 # segment-segment intersections (return intersect)
 @PYB11pycppname("segmentSegmentIntersection")
@@ -311,10 +316,16 @@ computeShepardsInterpolationSymTensor%(ndim)id = PYB11TemplateFunction(computeSh
 #-------------------------------------------------------------------------------
 # Some methods are always instantiated
 #-------------------------------------------------------------------------------
-@PYB11template("Plane")
-def planarReflectingOperator(plane = "const %(Plane)s&"):
+@PYB11template("Dimension")
+def planarReflectingOperator(nhat = "const %(Dimension)s::Vector&"):
+    "Generate the reflection operator for the (outward facing) normal"
+    return "%(Dimension)s::Tensor"
+
+@PYB11template("Dimension")
+@PYB11cppname("planarReflectingOperator")
+def planarReflectingOperator1(plane = "const GeomPlane<%(Dimension)s>&"):
     "Generate the reflection operator for the given plane."
-    return "%(Plane)s::Tensor"
+    return "%(Dimension)s::Tensor"
 
 for ndim in xrange(1, 4):
     exec('''
@@ -340,7 +351,8 @@ def testPointInBox%(ndim)id(point = "const %(Vector)s&",
     "Test if a point is contained in a box."
     return "bool"
 
-planarReflectingOperator%(ndim)id = PYB11TemplateFunction(planarReflectingOperator, template_parameters="%(Plane)s")
+planarReflectingOperator%(ndim)id = PYB11TemplateFunction(planarReflectingOperator, template_parameters="%(Dimension)s", pyname="planarReflectingOperator")
+planarReflectingOperator1%(ndim)id = PYB11TemplateFunction(planarReflectingOperator1, template_parameters="%(Dimension)s", pyname="planarReflectingOperator")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">",
        "Vector"    : "Dim<" + str(ndim) + ">::Vector",

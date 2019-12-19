@@ -11,6 +11,7 @@
 #define __Spheral__FieldSpace__FieldList_hh__
 
 #include "FieldListBase.hh"
+#include "Utilities/OpenMP_wrapper.hh"
 
 #include <vector>
 #include <list>
@@ -80,6 +81,9 @@ public:
   // Force the Field storage to be Copy.
   void copyFields();
 
+  // Store copies of Fields from another FieldList
+  void copyFields(const FieldList<Dimension, DataType>& fieldList);
+
   // Test if the given field (or NodeList) is part of a FieldList.
   bool haveField(const Field<Dimension, DataType>& field) const;
   bool haveNodeList(const NodeList<Dimension>& nodeList) const;
@@ -87,6 +91,9 @@ public:
   // Force the Field members of this FieldList to be equal to those of
   // another FieldList.
   void assignFields(const FieldList& fieldList);
+
+  // Make this FieldList reference the Fields of another.
+  void referenceFields(const FieldList& fieldList);
 
   // Convenience methods to add and delete Fields.
   void appendField(const Field<Dimension, DataType>& field);
@@ -256,6 +263,26 @@ public:
   std::vector<DataType> internalValues() const;
   std::vector<DataType> ghostValues() const;
   std::vector<DataType> allValues() const;
+
+  //----------------------------------------------------------------------------
+  // Methods to facilitate threaded computing
+  // Make a local thread copy of all the Fields
+  FieldList<Dimension, DataType> threadCopy(const ThreadReduction reductionType = ThreadReduction::SUM,
+                                            const bool copy = false);
+
+  // Same thing, with a "stack" object to simplify final reduction
+  FieldList<Dimension, DataType> threadCopy(typename SpheralThreads<Dimension>::FieldListStack& stack,
+                                            const ThreadReduction reductionType = ThreadReduction::SUM,
+                                            const bool copy = false);
+
+  // Reduce the values in the FieldList with the passed thread-local values.
+  void threadReduce() const;
+
+  // A data attribute to indicate how to reduce this field across threads.
+  ThreadReduction reductionType;
+
+  // The master FieldList if this is a thread copy.
+  FieldList<Dimension, DataType>* threadMasterPtr;
 
 private:
   //--------------------------- Private Interface ---------------------------//

@@ -70,6 +70,10 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::FourthRankTensor FourthRankTensor;
   typedef typename Dimension::FifthRankTensor FifthRankTensor;
 
+  // Connectivity
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+
   // Zero things out.
   m0 = 0.0;
   m1 = Vector::zero;
@@ -84,191 +88,194 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
     gradm4 = FifthRankTensor::zero;
   }
 
-  // Walk the FluidNodeLists.
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const NodeList<Dimension>& nodeList = weight[nodeListi]->nodeList();
-    const int firstGhostNodei = nodeList.firstGhostNode();
+  const auto W0 = W(0.0, 1.0);
 
-    // Iterate over the nodes in this node list.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
-
-      // Get the state for node i.
-      const Scalar weighti = weight(nodeListi, i);
-      const Vector& ri = position(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
-
-      // Self contribution.
-      const Scalar wwi = weighti*W(0.0, Hdeti);
+  // Self contributions.
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto ni = m0[nodeListi]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0; i < ni; ++i) {
+      const auto  weighti = weight(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      const auto  wwi = weighti*Hdeti*W0;
       m0(nodeListi, i) += wwi;
       gradm1(nodeListi, i) += Tensor::one*wwi;
+    }
+  }
 
-      // Neighbors!
-      const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-      CHECK(fullConnectivity.size() == numNodeLists);
+  // Walk all the interacting pairs.
+#pragma omp parallel
+  {
+    // Thread private scratch variables
+    int i, j, nodeListi, nodeListj;
+    Scalar Wi, gWi, Wj, gWj, thpt;
+    Vector gradWi, gradWj;
 
-      Scalar thpt;
-      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        const vector<int>& connectivity = fullConnectivity[nodeListj];
-        const int firstGhostNodej = weight[nodeListj]->nodeList().firstGhostNode();
+    typename SpheralThreads<Dimension>::FieldListStack threadStack, quadThreadStack;
+    auto m0_thread = m0.threadCopy(threadStack);
+    auto m1_thread = m1.threadCopy(threadStack);
+    auto m2_thread = m2.threadCopy(threadStack);
+    auto m3_thread = m3.threadCopy(quadThreadStack);
+    auto m4_thread = m4.threadCopy(quadThreadStack);
+    auto gradm0_thread = gradm0.threadCopy(threadStack);
+    auto gradm1_thread = gradm1.threadCopy(threadStack);
+    auto gradm2_thread = gradm2.threadCopy(threadStack);
+    auto gradm3_thread = gradm3.threadCopy(quadThreadStack);
+    auto gradm4_thread = gradm4.threadCopy(quadThreadStack);
 
-        // Iterate over the neighbors for in this NodeList.
-        for (vector<int>::const_iterator jItr = connectivity.begin();
-             jItr != connectivity.end();
-             ++jItr) {
-          const int j = *jItr;
+#pragma omp for
+    for (auto kk = 0; kk < npairs; ++kk) {
+      i = pairs[kk].i_node;
+      j = pairs[kk].j_node;
+      nodeListi = pairs[kk].i_list;
+      nodeListj = pairs[kk].j_list;
 
-          // Check if this node pair has already been calculated.
-          if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                       nodeListj, j,
-                                                       firstGhostNodej)) {
+      // Get the state for node i.
+      const auto  weighti = weight(nodeListi, i);
+      const auto& ri = position(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
 
-            // Find the pair weighting scaling.
-            const double fij = nodeCoupling(nodeListi, i, nodeListj, j);
-            CHECK(fij >= 0.0 and fij <= 1.0);
+      // State of node j.
+      const auto  weightj = weight(nodeListj, j);
+      const auto& rj = position(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto  Hdetj = Hj.Determinant();
 
-            // State of node j.
-            const Scalar weightj = weight(nodeListj, j);
-            const Vector& rj = position(nodeListj, j);
-            const SymTensor& Hj = H(nodeListj, j);
-            const Scalar Hdetj = Hj.Determinant();
+      // Find the pair weighting scaling.
+      const double fij = nodeCoupling(nodeListi, i, nodeListj, j);
+      CHECK(fij >= 0.0 and fij <= 1.0);
 
-            // Find the effective weights of i->j and j->i.
-            // const Scalar wi = 2.0*weighti*weightj/(weighti + weightj);
-            // const Scalar wi = 0.5*(weighti + weightj);
-            // const Scalar wj = wi;
-            const Scalar wi = fij*weighti;
-            const Scalar wj = fij*weightj;
+      // Find the effective weights of i->j and j->i.
+      // const Scalar wi = 2.0*weighti*weightj/(weighti + weightj);
+      // const Scalar wi = 0.5*(weighti + weightj);
+      // const Scalar wj = wi;
+      const auto wi = fij*weighti;
+      const auto wj = fij*weightj;
 
-            // Kernel weighting and gradient.
-            const Vector rij = ri - rj;
-            Vector etai = Hi*rij;
-            Vector etaj = Hj*rij;
+      // Kernel weighting and gradient.
+      const auto rij = ri - rj;
+      const auto etai = Hi*rij;
+      const auto etaj = Hj*rij;
 
-            const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-            const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
+      std::tie(Wi, gWi) = W.kernelAndGradValue(etai.magnitude(), Hdeti);
+      std::tie(Wj, gWj) = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
 
-            // j
-            const Scalar Wi = WWi.first;
-            const Scalar Wj = WWj.first;
-            const Vector gradWj =  (Hj*etaj.unitVector())*WWj.second;
-            const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
+      // j
+      gradWj =  (Hj*etaj.unitVector())*gWj;
+      gradWi = -(Hi*etai.unitVector())*gWi;
             
-            // // i
-            // // const Scalar Wi = WWj.first;
-            // // const Scalar Wj = WWi.first;
-            // // const Vector gradWj = -(Hi*etai.unitVector())*WWi.second;
-            // // const Vector gradWi =  (Hj*etaj.unitVector())*WWj.second;
+      // // i
+      // std::swap(Wi, Wj);
+      // gradWj = -(Hi*etai.unitVector())*gWi;
+      // gradWi =  (Hj*etaj.unitVector())*gWj
 
-            // // ij
-            // const Scalar Wi = WWi.first;
-            // const Scalar Wj = WWj.first;
-            // const Vector gradWj = 0.5*((Hj*etaj.unitVector())*WWj.second +
-            //                            (Hi*etai.unitVector())*WWi.second);
-            // const Vector gradWi = -gradWj;
+      // // ij
+      // gradWj = 0.5*((Hj*etaj.unitVector())*gWj +
+      //               (Hi*etai.unitVector())*gWi);
+      // gradWi = -gradWj;
 
-            // Zeroth moment. 
-            const Scalar wwi = wi*Wi;
-            const Scalar wwj = wj*Wj;
-            m0(nodeListi, i) += wwj;
-            m0(nodeListj, j) += wwi;
-            for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-              gradm0(nodeListi, i)(ii) += wj*gradWj(ii);
-              gradm0(nodeListj, j)(ii) += wi*gradWi(ii);
-            }
+      // Zeroth moment. 
+      const auto wwi = wi*Wi;
+      const auto wwj = wj*Wj;
+      m0_thread(nodeListi, i) += wwj;
+      m0_thread(nodeListj, j) += wwi;
+      for (auto ii = 0; ii != Dimension::nDim; ++ii) {
+        gradm0_thread(nodeListi, i)(ii) += wj*gradWj(ii);
+        gradm0_thread(nodeListj, j)(ii) += wi*gradWi(ii);
+      }
 
-            // First moment. 
-            for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-              m1(nodeListi, i)(ii) += wwj * rij(ii);
-              m1(nodeListj, j)(ii) -= wwi * rij(ii);
-              for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-                gradm1(nodeListi, i)(ii,jj) += wj*rij(ii)*gradWj(jj);
-                gradm1(nodeListj, j)(ii,jj) -= wi*rij(ii)*gradWi(jj);
+      // First moment. 
+      for (auto ii = 0; ii != Dimension::nDim; ++ii) {
+        m1_thread(nodeListi, i)(ii) += wwj * rij(ii);
+        m1_thread(nodeListj, j)(ii) -= wwi * rij(ii);
+        for (auto jj = 0; jj != Dimension::nDim; ++jj) {
+          gradm1_thread(nodeListi, i)(ii,jj) += wj*rij(ii)*gradWj(jj);
+          gradm1_thread(nodeListj, j)(ii,jj) -= wi*rij(ii)*gradWi(jj);
+        }
+        gradm1_thread(nodeListi, i)(ii,ii) += wj*Wj;
+        gradm1_thread(nodeListj, j)(ii,ii) += wi*Wi;
+      }
+
+      // Second moment.
+      for (auto ii = 0; ii != Dimension::nDim; ++ii) {
+        for (auto jj = ii; jj != Dimension::nDim; ++jj) {   // 'cause m2 is a symmetric tensor.
+          thpt = rij(ii)*rij(jj);
+          m2_thread(nodeListi,i)(ii,jj) += wwj*thpt;
+          m2_thread(nodeListj,j)(ii,jj) += wwi*thpt;
+        }
+        for (auto jj = 0; jj != Dimension::nDim; ++jj) {
+          thpt = rij(ii)*rij(jj);
+          for (auto kk = 0; kk != Dimension::nDim; ++kk) {
+            gradm2_thread(nodeListi, i)(ii,jj,kk) += wj*thpt*gradWj(kk);
+            gradm2_thread(nodeListj, j)(ii,jj,kk) += wi*thpt*gradWi(kk);
+          }
+          gradm2_thread(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
+          gradm2_thread(nodeListi, i)(jj, ii, jj) += wwj*rij(ii);
+          gradm2_thread(nodeListj, j)(ii, jj, jj) -= wwi*rij(ii);
+          gradm2_thread(nodeListj, j)(jj, ii, jj) -= wwi*rij(ii);
+        }
+      }
+
+      // We only need the next moments if doing quadratic CRK.  We avoid it otherwise
+      // since this is a lot of memory and expense.
+      if (correctionOrder == CRKOrder::QuadraticOrder) {
+
+        // Third Moment
+        for (auto ii = 0; ii != Dimension::nDim; ++ii) {
+          for (auto jj = 0; jj != Dimension::nDim; ++jj) {
+            for (auto kk = 0; kk != Dimension::nDim; ++kk) {
+              thpt = rij(ii)*rij(jj)*rij(kk);
+              m3_thread(nodeListi,i)(ii,jj,kk) += wwj*thpt;
+              m3_thread(nodeListj,j)(ii,jj,kk) -= wwi*thpt;
+              for (auto mm = 0; mm != Dimension::nDim; ++mm) {
+                gradm3_thread(nodeListi,i)(ii,jj,kk,mm) += wj*thpt*gradWj(mm);
+                gradm3_thread(nodeListj,j)(ii,jj,kk,mm) -= wi*thpt*gradWi(mm);
               }
-              gradm1(nodeListi, i)(ii,ii) += wj*Wj;
-              gradm1(nodeListj, j)(ii,ii) += wi*Wi;
+              gradm3_thread(nodeListi,i)(ii, jj, kk, kk) += wwj*rij(ii)*rij(jj);
+              gradm3_thread(nodeListi,i)(ii, jj, kk, jj) += wwj*rij(ii)*rij(kk);
+              gradm3_thread(nodeListi,i)(ii, jj, kk, ii) += wwj*rij(jj)*rij(kk);
+              gradm3_thread(nodeListj,j)(ii, jj, kk, kk) += wwi*rij(ii)*rij(jj);
+              gradm3_thread(nodeListj,j)(ii, jj, kk, jj) += wwi*rij(ii)*rij(kk);
+              gradm3_thread(nodeListj,j)(ii, jj, kk, ii) += wwi*rij(jj)*rij(kk);
             }
+          }
+        }
 
-            // Second moment.
-            for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-              for (size_t jj = ii; jj != Dimension::nDim; ++jj) {   // 'cause m2 is a symmetric tensor.
-                thpt = rij(ii)*rij(jj);
-                m2(nodeListi,i)(ii,jj) += wwj*thpt;
-                m2(nodeListj,j)(ii,jj) += wwi*thpt;
-              }
-              for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-                thpt = rij(ii)*rij(jj);
-                for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
-                  gradm2(nodeListi, i)(ii,jj,kk) += wj*thpt*gradWj(kk);
-                  gradm2(nodeListj, j)(ii,jj,kk) += wi*thpt*gradWi(kk);
+        // Fourth Moment
+        for (auto ii = 0; ii != Dimension::nDim; ++ii) {
+          for (auto jj = 0; jj != Dimension::nDim; ++jj) {
+            for (auto kk = 0; kk != Dimension::nDim; ++kk) {
+              for (auto mm = 0; mm != Dimension::nDim; ++mm) {
+                thpt = rij(ii)*rij(jj)*rij(kk)*rij(mm);
+                m4_thread(nodeListi,i)(ii,jj,kk,mm) += wwj*thpt;
+                m4_thread(nodeListj,j)(ii,jj,kk,mm) += wwi*thpt;
+                for (auto nn = 0; nn != Dimension::nDim; ++nn) {
+                  gradm4_thread(nodeListi,i)(ii,jj,kk,mm,nn) += wj*thpt*gradWj(nn);
+                  gradm4_thread(nodeListj,j)(ii,jj,kk,mm,nn) += wi*thpt*gradWi(nn);
                 }
-                gradm2(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
-                gradm2(nodeListi, i)(jj, ii, jj) += wwj*rij(ii);
-                gradm2(nodeListj, j)(ii, jj, jj) -= wwi*rij(ii);
-                gradm2(nodeListj, j)(jj, ii, jj) -= wwi*rij(ii);
+                gradm4_thread(nodeListi,i)(ii, jj, kk, mm, mm) += wwj*rij(ii)*rij(jj)*rij(kk);
+                gradm4_thread(nodeListi,i)(ii, jj, kk, mm, kk) += wwj*rij(ii)*rij(jj)*rij(mm);
+                gradm4_thread(nodeListi,i)(ii, jj, kk, mm, jj) += wwj*rij(ii)*rij(kk)*rij(mm);
+                gradm4_thread(nodeListi,i)(ii, jj, kk, mm, ii) += wwj*rij(jj)*rij(kk)*rij(mm);
+
+                gradm4_thread(nodeListj,j)(ii, jj, kk, mm, mm) -= wwi*rij(ii)*rij(jj)*rij(kk);
+                gradm4_thread(nodeListj,j)(ii, jj, kk, mm, kk) -= wwi*rij(ii)*rij(jj)*rij(mm);
+                gradm4_thread(nodeListj,j)(ii, jj, kk, mm, jj) -= wwi*rij(ii)*rij(kk)*rij(mm);
+                gradm4_thread(nodeListj,j)(ii, jj, kk, mm, ii) -= wwi*rij(jj)*rij(kk)*rij(mm);
               }
             }
-
-            // We only need the next moments if doing quadratic CRK.  We avoid it otherwise
-            // since this is a lot of memory and expense.
-            if (correctionOrder == CRKOrder::QuadraticOrder) {
-
-              // Third Moment
-              for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-                for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-                  for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
-                    thpt = rij(ii)*rij(jj)*rij(kk);
-                    m3(nodeListi,i)(ii,jj,kk) += wwj*thpt;
-                    m3(nodeListj,j)(ii,jj,kk) -= wwi*thpt;
-                    for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
-                      gradm3(nodeListi,i)(ii,jj,kk,mm) += wj*thpt*gradWj(mm);
-                      gradm3(nodeListj,j)(ii,jj,kk,mm) -= wi*thpt*gradWi(mm);
-                    }
-                    gradm3(nodeListi,i)(ii, jj, kk, kk) += wwj*rij(ii)*rij(jj);
-                    gradm3(nodeListi,i)(ii, jj, kk, jj) += wwj*rij(ii)*rij(kk);
-                    gradm3(nodeListi,i)(ii, jj, kk, ii) += wwj*rij(jj)*rij(kk);
-                    gradm3(nodeListj,j)(ii, jj, kk, kk) += wwi*rij(ii)*rij(jj);
-                    gradm3(nodeListj,j)(ii, jj, kk, jj) += wwi*rij(ii)*rij(kk);
-                    gradm3(nodeListj,j)(ii, jj, kk, ii) += wwi*rij(jj)*rij(kk);
-                  }
-                }
-              }
-
-              // Fourth Moment
-              for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-                for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-                  for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
-                    for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
-                      thpt = rij(ii)*rij(jj)*rij(kk)*rij(mm);
-                      m4(nodeListi,i)(ii,jj,kk,mm) += wwj*thpt;
-                      m4(nodeListj,j)(ii,jj,kk,mm) += wwi*thpt;
-                      for (size_t nn = 0; nn != Dimension::nDim; ++nn) {
-                        gradm4(nodeListi,i)(ii,jj,kk,mm,nn) += wj*thpt*gradWj(nn);
-                        gradm4(nodeListj,j)(ii,jj,kk,mm,nn) += wi*thpt*gradWi(nn);
-                      }
-                      gradm4(nodeListi,i)(ii, jj, kk, mm, mm) += wwj*rij(ii)*rij(jj)*rij(kk);
-                      gradm4(nodeListi,i)(ii, jj, kk, mm, kk) += wwj*rij(ii)*rij(jj)*rij(mm);
-                      gradm4(nodeListi,i)(ii, jj, kk, mm, jj) += wwj*rij(ii)*rij(kk)*rij(mm);
-                      gradm4(nodeListi,i)(ii, jj, kk, mm, ii) += wwj*rij(jj)*rij(kk)*rij(mm);
-
-                      gradm4(nodeListj,j)(ii, jj, kk, mm, mm) -= wwi*rij(ii)*rij(jj)*rij(kk);
-                      gradm4(nodeListj,j)(ii, jj, kk, mm, kk) -= wwi*rij(ii)*rij(jj)*rij(mm);
-                      gradm4(nodeListj,j)(ii, jj, kk, mm, jj) -= wwi*rij(ii)*rij(kk)*rij(mm);
-                      gradm4(nodeListj,j)(ii, jj, kk, mm, ii) -= wwi*rij(jj)*rij(kk)*rij(mm);
-                    }
-                  }
-                }
-              }
-            }
-
           }
         }
       }
     }
-  }
+
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+    threadReduceFieldLists<Dimension>(quadThreadStack);
+
+  }   // OMP parallel
 }
 
 }//End Namespace

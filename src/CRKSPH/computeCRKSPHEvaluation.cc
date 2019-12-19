@@ -28,12 +28,12 @@ namespace Spheral {
 template<typename Dimension>
 void
 computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
-                       const TableKernel<Dimension>& W,
-                       const FieldList<Dimension, typename Dimension::Scalar>& weight,
-                       const FieldList<Dimension, typename Dimension::Vector>& position,
-                       const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                       size_t nodeListi, const int i, typename Dimension::Vector reval,
-                       const bool coupleNodeLists, typename Dimension::Scalar& WCRKSPH, typename Dimension::Vector& gradWCRKSPH){
+                        const TableKernel<Dimension>& W,
+                        const FieldList<Dimension, typename Dimension::Scalar>& weight,
+                        const FieldList<Dimension, typename Dimension::Vector>& position,
+                        const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                        size_t nodeListi, const int i, typename Dimension::Vector reval,
+                        const bool coupleNodeLists, typename Dimension::Scalar& WCRKSPH, typename Dimension::Vector& gradWCRKSPH){
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -57,7 +57,6 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
   const Scalar Hdeti = Hi.Determinant();
   const Vector rei = reval - ri;
   const Vector etai = Hi*rei;
-  
 
   const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
   const Scalar Wi = WWi.first;
@@ -67,8 +66,6 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
     gradWCRKSPH = Vector::zero;
     return;
   }
-  
-  
 
   // Zero out the result.
   Scalar m0 = 0.0;
@@ -88,7 +85,7 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
 
   // Neighbors!
   bool first_time=true;//Used as a flag to include self contribution
-  const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+  const vector<vector<int> > fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
   CHECK(fullConnectivity.size() == numNodeLists);
   for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
     if (coupleNodeLists or nodeListi == nodeListj) {

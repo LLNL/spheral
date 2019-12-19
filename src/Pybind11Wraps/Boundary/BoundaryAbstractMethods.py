@@ -62,6 +62,20 @@ class BoundaryAbstractMethods:
     @PYB11pycppname("applyGhostBoundary")
     @PYB11const
     def applyGhostBoundary7(self,
+                            field = "Field<%(Dimension)s, FourthRankTensor>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11const
+    def applyGhostBoundary8(self,
+                            field = "Field<%(Dimension)s, FifthRankTensor>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+    
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11const
+    def applyGhostBoundary9(self,
                             field = "Field<%(Dimension)s, FacetedVolume>&"):
         "Apply the boundary condition to the ghost node values in the given Field."
         return "void"
@@ -121,6 +135,20 @@ class BoundaryAbstractMethods:
     @PYB11pycppname("enforceBoundary")
     @PYB11const
     def enforceBoundary7(self,
+                         field = "Field<%(Dimension)s, FourthRankTensor>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11const
+    def enforceBoundary8(self,
+                         field = "Field<%(Dimension)s, FifthRankTensor>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+    
+    @PYB11pycppname("enforceBoundary")
+    @PYB11const
+    def enforceBoundary9(self,
                          field = "Field<%(Dimension)s, FacetedVolume>&"):
         "Apply the boundary condition to the violation node values in the given Field."
         return "void"

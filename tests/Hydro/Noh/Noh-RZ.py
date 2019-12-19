@@ -4,7 +4,7 @@
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
 import os, shutil, mpi
-from SolidSpheralRZ import *
+from SpheralRZ import *
 from SpheralTestUtilities import *
 
 from GenerateNodeDistribution2d import *
@@ -35,7 +35,6 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             crksph = False,
             sph = True,       # Choose the H advancement
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
-            Qconstructor = MonaghanGingoldViscosity,
             boolReduceViscosity = False,
             nhQ = 5.0,
             nhL = 10.0,
@@ -293,8 +292,8 @@ else:
                   epsTensile = epsilonTensile,
                   nTensile = nTensile)
 output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
+output("hydro.kernel")
+output("hydro.PiKernel")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
@@ -487,7 +486,7 @@ if graphics:
     plots.append((posPlot, "Noh-%s-positions.png" % problem))
 
     if crksph:
-        volPlot = plotFieldList(hydro.volume(),
+        volPlot = plotFieldList(hydro.volume,
                                 xFunction = "%s.y",
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)

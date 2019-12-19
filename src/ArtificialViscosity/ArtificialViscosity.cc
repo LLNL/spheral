@@ -114,8 +114,8 @@ initialize(const DataBase<Dimension>& dataBase,
   // Note we set the last argument here to false, which ensures that if these Fields already exist we don't overwrite
   // their values.  This is needed 'cause some physics options (like the Morris & Monaghan time evolved Q or 
   // Cullen & Dehnen) need to evolve these parameters.
-  dataBase.resizeFluidFieldList(mClMultiplier, 1.0, HydroFieldNames::ArtificialViscousClMultiplier, false);
-  dataBase.resizeFluidFieldList(mCqMultiplier, 1.0, HydroFieldNames::ArtificialViscousCqMultiplier, false);
+  dataBase.resizeFluidFieldList(mClMultiplier, 1.0, HydroFieldNames::ArtificialViscousClMultiplier, true);
+  dataBase.resizeFluidFieldList(mCqMultiplier, 1.0, HydroFieldNames::ArtificialViscousCqMultiplier, true);
 
   // If we are applying the Balsara shear flow correction term, calculate the
   // per node multiplier.
@@ -123,36 +123,34 @@ initialize(const DataBase<Dimension>& dataBase,
   if (this->balsaraShearCorrection()) {
 
     // State we need.
-    const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+    const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+    const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    const auto DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
 
     // Calculate the shear Q suppression term for all internal fluid nodes.
-    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-    const int numNodeLists = connectivityMap.nodeLists().size();
-    for (int nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-           iItr != connectivityMap.end(nodeListi);
-           ++iItr) {
-        const int i = *iItr;
-        const Scalar div = fabs(DvDx(nodeListi, i).Trace());
-        const Scalar curl = curlVelocityMagnitude(DvDx(nodeListi, i));
-        const Scalar hmaxinverse = Dimension::rootnu(H(nodeListi, i).Determinant());
-        const Scalar cs = max(negligibleSoundSpeed(), soundSpeed(nodeListi, i));
+    const auto& connectivityMap = dataBase.connectivityMap();
+    const auto  numNodeLists = connectivityMap.nodeLists().size();
+    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const auto ni = mShearCorrection[nodeListi]->numInternalElements();
+#pragma omp parallel for
+      for (auto i = 0; i < ni; ++i) {
+        const auto div = fabs(DvDx(nodeListi, i).Trace());
+        const auto curl = curlVelocityMagnitude(DvDx(nodeListi, i));
+        const auto hmaxinverse = Dimension::rootnu(H(nodeListi, i).Determinant());
+        const auto cs = max(negligibleSoundSpeed(), soundSpeed(nodeListi, i));
         CHECK(div >= 0.0);
         CHECK(curl >= 0.0);
         CHECK(hmaxinverse > 0.0);
         CHECK(cs > 0.0);
-        const Scalar fshear = div/(div + curl + epsilon2()*cs*hmaxinverse);
-        CHECK(fshear >= 0.0 and fshear <= 1.0);
-        mShearCorrection(nodeListi, i) = fshear;
+        mShearCorrection(nodeListi, i) = div/(div + curl + epsilon2()*cs*hmaxinverse);
+        CHECK(mShearCorrection(nodeListi, i) >= 0.0 and mShearCorrection(nodeListi, i) <= 1.0);
       }
     }
   }
 
   // We deliberately do not finalize the boundaries here, depending on the calling environment
   // to know when to do this efficiently.
-  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+  for (auto boundItr = boundaryBegin;
        boundItr != boundaryEnd;
        ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(mClMultiplier);
@@ -210,22 +208,22 @@ sigmaij(const typename Dimension::Vector& rij,
   REQUIRE(nodeID >= 0 and nodeID < mSigma[nodeListID]->nodeListPtr()->numNodes());
 
   // Get the rotational transformations.
-  const Tensor R = rotationMatrix(rijUnit);  // Gets -1
-  const Tensor Rinverse = R.Transpose();
+  const auto R = rotationMatrix(rijUnit);  // Gets -1
+  const auto Rinverse = R.Transpose();
 
   // Rotate the velocity vector into the rotated frame.  We'll label this 
   // as deltaSigma, since that's what we're going to construct with this
   // rotated velocity.
-  Vector deltaSigma = R*vij;
+  auto deltaSigma = R*vij;
 
   // Construct the pairwise column of the sigma tensor as a vector.
-  const Scalar xprime2 = rij.magnitude2();
-  const Scalar norm = sqrt(xprime2)/(xprime2 + mEpsilon2*hi2);
+  const auto xprime2 = rij.magnitude2();
+  const auto norm = sqrt(xprime2)/(xprime2 + mEpsilon2*hi2);
   deltaSigma *= norm;
 
   // Now combine the background and pairwise values in the rotated frame,
   // then rotate back to the lab frame and return the result.
-  Tensor sigma = (*mSigma[nodeListID])(nodeID);
+  auto sigma = (*mSigma[nodeListID])(nodeID);
   sigma.rotationalTransform(R);
   sigma.setColumn(0, deltaSigma);
   sigma.rotationalTransform(Rinverse);
@@ -257,149 +255,150 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
   mGradDivVelocity.Zero();
 
   // Get the necessary state.
-  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
-  const FieldList<Dimension, SymTensor> Hfield = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto rho = state.fields(HydroFieldNames::massDensity, 0.0);
+  const auto Hfield = state.fields(HydroFieldNames::H, SymTensor::zero);
 
   // Prepare FieldLists to accumulate the normalizations in.
   FieldList<Dimension, Tensor> sigNormalization = dataBase.newFluidFieldList(Tensor::zero, "sigma normalization");
   FieldList<Dimension, Scalar> gdvNormalization = dataBase.newFluidFieldList(0.0, "grad div v normalization");
 
   // Grab the connectivity map from the DataBase.
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
-  const int numNodeLists = dataBase.numFluidNodeLists();
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto& nodeLists = connectivityMap.nodeLists();
+  const auto  numNodeLists = dataBase.numFluidNodeLists();
   CHECK(nodeLists.size() == numNodeLists);
 
-  // Iterate over the NodeLists.
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+
+  // Walk all the interacting pairs.
+#pragma omp parallel
+  {
+    // Thread private scratch variables
+    int i, j, nodeListi, nodeListj;
+    Scalar Wi, gWi, Wj, gWj;
+
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto sigma_thread = mSigma.threadCopy(threadStack);
+    auto gradDivVelocity_thread = mGradDivVelocity.threadCopy(threadStack);
+    auto sigNormalization_thread = sigNormalization.threadCopy(threadStack);
+    auto gdvNormalization_thread = gdvNormalization.threadCopy(threadStack);
+
+#pragma omp for
+    for (auto kk = 0; kk < npairs; ++kk) {
+      i = pairs[kk].i_node;
+      j = pairs[kk].j_node;
+      nodeListi = pairs[kk].i_list;
+      nodeListj = pairs[kk].j_list;
 
       // State for node i.
-      const Vector& ri = position(nodeListi, i);
-      const Vector& vi = velocity(nodeListi, i);
-      const SymTensor& Hi = Hfield(nodeListi, i);
-      const Scalar weighti = mass(nodeListi, i)/rho(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
+      const auto& ri = position(nodeListi, i);
+      const auto& vi = velocity(nodeListi, i);
+      const auto& Hi = Hfield(nodeListi, i);
+      const auto  weighti = mass(nodeListi, i)/rho(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
 
       // The derivatives for i.
-      Tensor& sigmai = mSigma(nodeListi, i);
-      Vector& gradDivVelocityi = mGradDivVelocity(nodeListi, i);
-      Tensor& sigNormalizationi = sigNormalization(nodeListi, i);
-      Scalar& gdvNormalizationi = gdvNormalization(nodeListi, i);
+      auto& sigmai = sigma_thread(nodeListi, i);
+      auto& gradDivVelocityi = gradDivVelocity_thread(nodeListi, i);
+      auto& sigNormalizationi = sigNormalization_thread(nodeListi, i);
+      auto& gdvNormalizationi = gdvNormalization_thread(nodeListi, i);
 
-      // Connectivity for this node.
-      const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-      CHECK(fullConnectivity.size() == numNodeLists);
+      // State for node j.
+      const auto& rj = position(nodeListj, j);
+      const auto& vj = velocity(nodeListj, j);
+      const auto& Hj = Hfield(nodeListj, j);
+      const auto  weightj = mass(nodeListj, j)/rho(nodeListj, j);
+      const auto  Hdetj = Hj.Determinant();
 
-      // Iterate over the neighboring NodeLists.
-      for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+      // The derivatives for j.
+      auto& sigmaj = sigma_thread(nodeListj, j);
+      auto& gradDivVelocityj = gradDivVelocity_thread(nodeListj, j);
+      auto& sigNormalizationj = sigNormalization_thread(nodeListj, j);
+      auto& gdvNormalizationj = gdvNormalization_thread(nodeListj, j);
 
-        // Connectivity of this node with this NodeList.  We only need to proceed if
-        // there are some nodes in this list.
-        const vector<int>& connectivity = fullConnectivity[nodeListj];
-        if (connectivity.size() > 0) {
-          const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
+      // Get an estimate of the smoothing scale for i and j.
+      CHECK(distinctlyGreaterThan(Hdeti, 0.0));
+      CHECK(distinctlyGreaterThan(Hdetj, 0.0));
+      const auto frach = 0.02/(Dimension::rootnu(Hdeti) + Dimension::rootnu(Hdetj));
+      const auto frach2 = frach*frach;
+      CHECK(distinctlyGreaterThan(frach, 0.0));
+      CHECK(distinctlyGreaterThan(frach2, 0.0));
 
-          // Iterate over the neighbors in this NodeList.
-          for (vector<int>::const_iterator jItr = connectivity.begin();
-               jItr != connectivity.end();
-               ++jItr) {
-            const int j = *jItr;
-            CHECK(j < nodeLists[nodeListj]->numNodes());
+      // Compute the relative distance and eta for i & j.
+      const auto rij = ri - rj;
+      const auto etai = Hi*rij;
+      const auto etamagi = etai.magnitude();
+      const auto Hetai = Hi*etai.unitVector();
+      std::tie(Wi, gWi) = W.kernelAndGradValue(etamagi, Hdeti);
 
-            // Only proceed if this node pair has not been calculated yet.
-            if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                         nodeListj, j,
-                                                         firstGhostNodej)) {
+      const auto etaj = Hj*rij;
+      const auto etamagj = etaj.magnitude();
+      const auto Hetaj = Hj*etaj.unitVector();
+      std::tie(Wj, gWj) = W.kernelAndGradValue(etamagj, Hdetj);
 
-              // State for node j.
-              const Vector& rj = position(nodeListj, j);
-              const Vector& vj = velocity(nodeListj, j);
-              const SymTensor& Hj = Hfield(nodeListj, j);
-              const Scalar weightj = mass(nodeListj, j)/rho(nodeListj, j);
-              const Scalar Hdetj = Hj.Determinant();
+      // Sum this pairs contribution to grad v for both i & j.
+      const auto vij = vi - vj;
 
-              // The derivatives for j.
-              Tensor& sigmaj = mSigma(nodeListj, j);
-              Vector& gradDivVelocityj = mGradDivVelocity(nodeListj, j);
-              Tensor& sigNormalizationj = sigNormalization(nodeListj, j);
-              Scalar& gdvNormalizationj = gdvNormalization(nodeListj, j);
+      const auto wij = weightj*Wi;
+      const auto gwij = weightj*Hetai*gWi;
 
-              // Get an estimate of the smoothing scale for i and j.
-              CHECK(distinctlyGreaterThan(Hdeti, 0.0));
-              CHECK(distinctlyGreaterThan(Hdetj, 0.0));
-              const Scalar frach = 0.02/(Dimension::rootnu(Hdeti) + Dimension::rootnu(Hdetj));
-              const Scalar frach2 = frach*frach;
-              CHECK(distinctlyGreaterThan(frach, 0.0));
-              CHECK(distinctlyGreaterThan(frach2, 0.0));
+      const auto wji = weighti*Wj;
+      const auto gwji = -weighti*Hetaj*gWj;
 
-              // Compute the relative distance and eta for i & j.
-              const Vector rij = ri - rj;
-              const Vector etai = Hi*rij;
-              const Scalar etamagi = etai.magnitude();
-              const Vector Hetai = Hi*etai.unitVector();
-              const pair<double, double> WWi = W.kernelAndGradValue(etamagi, Hdeti);
-              const Scalar Wi = WWi.first;
-              const Vector gWi = Hetai*WWi.second;
+      const auto rjiUnit = -rij.unitVector();
+      const auto R = rotationMatrix(rjiUnit);
+      const auto Rinverse = R.Transpose();
+      const auto rij2 = rij.magnitude2();
+      const auto rijmag = sqrt(rij2);
 
-              const Vector etaj = Hj*rij;
-              const Scalar etamagj = etaj.magnitude();
-              const Vector Hetaj = Hj*etaj.unitVector();
-              const pair<double, double> WWj = W.kernelAndGradValue(etamagj, Hdetj);
-              const Scalar Wj = WWj.first;
-              const Vector gWj = Hetaj*WWj.second;
+      const auto dxp = rijmag/(rij2 + frach2);
+      const auto dfdxpcol = -dxp*(R*vij);
+      Tensor dfdxp;
+      dfdxp.setColumn(0, dfdxpcol);
+      dfdxp.rotationalTransform(Rinverse);
 
-              // Sum this pairs contribution to grad v for both i & j.
-              const Vector vij = vi - vj;
-
-              const double wij = weightj*Wi;
-              const Vector gwij = weightj*gWi;
-
-              const double wji = weighti*Wj;
-              const Vector gwji = -weighti*gWj;
-
-              const Vector rjiUnit = -rij.unitVector();
-              const Tensor R = rotationMatrix(rjiUnit);
-              const Tensor Rinverse = R.Transpose();
-              const Scalar rij2 = rij.magnitude2();
-              const Scalar rijmag = sqrt(rij2);
-
-              const Scalar dxp = rijmag/(rij2 + frach2);
-              const Vector dfdxpcol = -dxp*(R*vij);
-              Tensor dfdxp;
-              dfdxp.setColumn(0, dfdxpcol);
-              dfdxp.rotationalTransform(Rinverse);
-
-              sigmai += wij*dfdxp;
-              sigmaj += wji*dfdxp;
+      sigmai += wij*dfdxp;
+      sigmaj += wji*dfdxp;
             
-              // Update the sigma normalization.
-              Tensor tweighti = constructTensorWithColumnValue<Tensor, 0>(wij);
-              Tensor tweightj = constructTensorWithColumnValue<Tensor, 0>(wji);
-              tweighti.rotationalTransform(Rinverse);
-              tweightj.rotationalTransform(-Rinverse);
-              inPlaceAbsAdd<Tensor>(sigNormalizationi, tweighti);
-              inPlaceAbsAdd<Tensor>(sigNormalizationj, tweightj);
+      // Update the sigma normalization.
+      auto tweighti = constructTensorWithColumnValue<Tensor, 0>(wij);
+      auto tweightj = constructTensorWithColumnValue<Tensor, 0>(wji);
+      tweighti.rotationalTransform(Rinverse);
+      tweightj.rotationalTransform(-Rinverse);
+      inPlaceAbsAdd<Tensor>(sigNormalizationi, tweighti);
+      inPlaceAbsAdd<Tensor>(sigNormalizationj, tweightj);
 
-              // Sum this pairs contribution to the second derivative of v.
-              const Scalar thpt = vij.dot(rij)/(rij2 + frach2);
+      // Sum this pairs contribution to the second derivative of v.
+      const auto thpt = vij.dot(rij)/(rij2 + frach2);
 
-              gradDivVelocityi += thpt*gwij;
-              gdvNormalizationi += wij;
+      gradDivVelocityi += thpt*gwij;
+      gdvNormalizationi += wij;
 
-              gradDivVelocityj += thpt*gwji;
-              gdvNormalizationj += wji;
+      gradDivVelocityj += thpt*gwji;
+      gdvNormalizationj += wji;
+    }
 
-            }
-          }
-        }
-      }
+    // Reduce the thread values to the masters.
+    threadReduceFieldLists<Dimension>(threadStack);
+
+  } // OpenMP parallel region
+
+  // Finish up the derivatives for each point.
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto ni = mSigma[nodeListi]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0; i < ni; ++i) {
+
+      // The derivatives for i.
+      auto& sigmai = mSigma(nodeListi, i);
+      auto& gradDivVelocityi = mGradDivVelocity(nodeListi, i);
+      auto& sigNormalizationi = sigNormalization(nodeListi, i);
+      auto& gdvNormalizationi = gdvNormalization(nodeListi, i);
 
       // Complete the sigma calculation for i.
       CHECK(*std::min_element(sigNormalizationi.begin(), sigNormalizationi.end()) >= 0.0);
@@ -407,9 +406,9 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
 
       // Now limit to just negative eigen-values.  This is 'cause we only
       // care about convergent geometries for the Q.
-      const SymTensor sigmai_s = sigmai.Symmetric();
-      const Tensor sigmai_a = sigmai.SkewSymmetric();
-      typename SymTensor::EigenStructType eigeni = sigmai_s.eigenVectors();
+      const auto sigmai_s = sigmai.Symmetric();
+      const auto sigmai_a = sigmai.SkewSymmetric();
+      auto eigeni = sigmai_s.eigenVectors();
       sigmai = constructTensorWithMinDiagonal(eigeni.eigenValues, 0.0);
       sigmai.rotationalTransform(eigeni.eigenVectors);
       sigmai += sigmai_a;
@@ -417,12 +416,11 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
       // Complete grad div v.
       CHECK(gdvNormalizationi >= 0.0);
       gradDivVelocityi /= gdvNormalizationi + tiny;
-
     }
   }
 
   // Apply boundary conditions
-  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+  for (auto boundItr = boundaryBegin;
        boundItr < boundaryEnd;
        ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(mSigma);

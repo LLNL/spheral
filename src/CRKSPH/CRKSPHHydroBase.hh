@@ -82,7 +82,7 @@ public:
   // This method is called once at the beginning of a timestep, after all state registration.
   virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
                                  State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs);
+                                 StateDerivatives<Dimension>& derivs) override;
 
   // Initialize the Hydro before we start a derivative evaluation.
   virtual
@@ -117,15 +117,6 @@ public:
                        const DataBase<Dimension>& dataBase, 
                        State<Dimension>& state,
                        StateDerivatives<Dimension>& derivatives) override;
-
-  // Provide a hook to be called after the state has been updated and 
-  // boundary conditions have been enforced.
-  virtual 
-  void finalize(const Scalar time, 
-                const Scalar dt,
-                DataBase<Dimension>& dataBase, 
-                State<Dimension>& state,
-                StateDerivatives<Dimension>& derivatives) override;
 
   // Apply boundary conditions to the physics specific fields.
   virtual
@@ -204,7 +195,6 @@ public:
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldList<Dimension, SymTensor>& massSecondMoment() const;
   const FieldList<Dimension, Scalar>&    volume() const;
-  const FieldList<Dimension, Vector>&    massDensityGradient() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
 
@@ -214,7 +204,7 @@ public:
   const FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldList<Dimension, Tensor>&    internalDvDx() const;
-  const FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
+  const std::vector<Vector>&             pairAccelerations() const;
   const FieldList<Dimension, Vector>&    deltaCentroid() const;
 
   const FieldList<Dimension, Scalar>&    A() const;
@@ -279,7 +269,6 @@ protected:
   FieldList<Dimension, SymTensor> mMassSecondMoment;
 
   FieldList<Dimension, Scalar>    mVolume;
-  FieldList<Dimension, Vector>    mMassDensityGradient;
 
   FieldList<Dimension, Vector>    mXSPHDeltaV;
   FieldList<Dimension, Vector>    mDxDt;
@@ -292,7 +281,7 @@ protected:
   FieldList<Dimension, Tensor>    mInternalDvDx;
   FieldList<Dimension, Vector>    mDeltaCentroid;
 
-  FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
+  std::vector<Vector>             mPairAccelerations;
 
   FieldList<Dimension, Scalar>    mA;
   FieldList<Dimension, Vector>    mB;

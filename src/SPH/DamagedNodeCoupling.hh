@@ -37,16 +37,20 @@ public:
                             const unsigned nodeListj, const unsigned j) const {
     const Scalar sDi = scalarDamage(nodeListi, i);
     const Scalar sDj = scalarDamage(nodeListj, j);
-    const Vector gradDi = damageDirection(nodeListi, i);
-    const Vector gradDj = damageDirection(nodeListj, j);
-    const Scalar gradDdot = gradDi.dot(gradDj);
-    const Scalar phi = ((std::abs(gradDdot) < 0.1 or std::min(sDi, sDj) < 0.05) ? 
-                        1.0 :
-                        std::max(0.0, std::min(1.0, -gradDdot)));
-    CHECK(phi >= 0.0 and phi <= 1.0);
-    const Scalar fDeffij = FastMath::pow4(std::max(0.0, std::min(1.0, 1.0 - phi*std::max(sDi, sDj))));
-    ENSURE(fDeffij >= 0.0 and fDeffij <= 1.0);
-    return fDeffij;
+    if (sDi + sDj > 1.95) {
+      return 1.0 - std::max(sDi, sDj);
+    } else {
+      const Vector gradDi = damageDirection(nodeListi, i);
+      const Vector gradDj = damageDirection(nodeListj, j);
+      const Scalar gradDdot = gradDi.dot(gradDj);
+      const Scalar phi = ((std::abs(gradDdot) < 0.1 or std::min(sDi, sDj) < 0.05) ? 
+                          1.0 :
+                          std::max(0.0, std::min(1.0, -gradDdot)));
+      CHECK(phi >= 0.0 and phi <= 1.0);
+      const Scalar fDeffij = FastMath::pow4(std::max(0.0, std::min(1.0, 1.0 - phi*std::max(sDi, sDj))));
+      ENSURE(fDeffij >= 0.0 and fDeffij <= 1.0);
+      return fDeffij;
+    }
   }
 
 private:

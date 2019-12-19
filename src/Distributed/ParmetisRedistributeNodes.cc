@@ -7,7 +7,7 @@
 //----------------------------------------------------------------------------//
 #include "RedistributeNodes.hh"
 #include "ParmetisRedistributeNodes.hh"
-#include "DomainNode.hh"
+#include "Utilities/DomainNode.hh"
 #include "BoundingVolumeDistributedBoundary.hh"
 #include "DistributedBoundary.hh"
 #include "Boundary/Boundary.hh"

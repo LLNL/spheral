@@ -37,20 +37,20 @@ public:
   virtual void shearModulus(Field<Dimension, Scalar>& shearModulus,
                             const Field<Dimension, Scalar>& density,
                             const Field<Dimension, Scalar>& specificThermalEnergy,
-                            const Field<Dimension, Scalar>& pressure) const;
+                            const Field<Dimension, Scalar>& pressure) const override;
 
   virtual void yieldStrength(Field<Dimension, Scalar>& yieldStrength,
                              const Field<Dimension, Scalar>& density,
                              const Field<Dimension, Scalar>& specificThermalEnergy,
                              const Field<Dimension, Scalar>& pressure,
                              const Field<Dimension, Scalar>& plasticStrain,
-                             const Field<Dimension, Scalar>& plasticStrainRate) const;
+                             const Field<Dimension, Scalar>& plasticStrainRate) const override;
 
   virtual void soundSpeed(Field<Dimension, Scalar>& soundSpeed,
                           const Field<Dimension, Scalar>& density,
                           const Field<Dimension, Scalar>& specificThermalEnergy,
                           const Field<Dimension, Scalar>& pressure,
-                          const Field<Dimension, Scalar>& fluidSoundSpeed) const;
+                          const Field<Dimension, Scalar>& fluidSoundSpeed) const override;
 
   // Access the strength parameters.
   const StrengthModel<Dimension>& shearModulusModel() const;

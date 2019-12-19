@@ -27,6 +27,7 @@ using namespace FastMath;
 //------------------------------------------------------------------------------
 // 1D
 //------------------------------------------------------------------------------
+template<>
 void
 computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
                      const FieldList<Dim<1>, Dim<1>::SymTensor>& H,

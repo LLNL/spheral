@@ -174,7 +174,7 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
         // Use RK to numerically compute the new mass density gradient.
         computeCRKSPHMoments(cm, W, vol, pos, H, correctionOrder, NodeCoupling(),
                                           m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
-        computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder,
+        computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, surfacePoint, correctionOrder,
                                               A, B, C, gradA, gradB, gradC);
         gradRhof.assignFields(gradientCRKSPH(rhof, pos, vol, H, A, B, C, gradA, gradB, gradC, cm, correctionOrder, W));
       }

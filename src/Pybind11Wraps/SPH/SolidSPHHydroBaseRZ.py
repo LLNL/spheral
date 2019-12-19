@@ -56,9 +56,11 @@ class SolidSPHHydroBaseRZ(SolidSPHHydroBase):
         return "void"
 
     @PYB11virtual
-    def registerDerivatives(dataBase = "DataBase<%(Dimension)s>&",
-                            derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Register the derivatives/change fields for updating state."
+    def preStepInitialize(self,
+                          dataBase = "const DataBase<%(Dimension)s>&", 
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Optional hook to be called at the beginning of a time step."
         return "void"
 
     @PYB11virtual
@@ -73,15 +75,6 @@ mass density, velocity, and specific thermal energy."""
         return "void"
 
     @PYB11virtual
-    def finalize(time = "const Scalar",
-                 dt = "const Scalar",
-                 dataBase = "DataBase<%(Dimension)s>&",
-                 state = "State<%(Dimension)s>&",
-                 derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Finalize the hydro at the completion of an integration step."
-        return "void"
-               
-    @PYB11virtual
     def applyGhostBoundaries(state = "State<%(Dimension)s>&",
                              derivs = "StateDerivatives<%(Dimension)s>&"):
         "Apply boundary conditions to the physics specific fields."
@@ -93,10 +86,6 @@ mass density, velocity, and specific thermal energy."""
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
-    #...........................................................................
-    # Properties
-    deviatoricStressTT =  PYB11property("const FieldList<%(Dimension)s, Scalar>&", "deviatoricStressTT", returnpolicy="reference_internal")
-    DdeviatoricStressTTDt =  PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DdeviatoricStressTTDt", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods

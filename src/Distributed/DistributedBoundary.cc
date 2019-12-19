@@ -62,6 +62,8 @@ DistributedBoundary<Dimension>::DistributedBoundary():
   mTensorExchangeFields(),
   mSymTensorExchangeFields(),
   mThirdRankTensorExchangeFields(),
+  mFourthRankTensorExchangeFields(),
+  mFifthRankTensorExchangeFields(),
   mVectorScalarExchangeFields(),
   mVectorVectorExchangeFields(),
   mFacetedVolumeExchangeFields(),
@@ -1266,6 +1268,22 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
 template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  beginExchangeField(field);
+  mFourthRankTensorExchangeFields.push_back(&field);
+}
+
+template<typename Dimension>
+void
+DistributedBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  beginExchangeField(field);
+  mFifthRankTensorExchangeFields.push_back(&field);
+}
+
+template<typename Dimension>
+void
+DistributedBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
   beginExchangeFieldVariableSize(field);
   mFacetedVolumeExchangeFields.push_back(&field);
@@ -1340,6 +1358,18 @@ template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+}
+
+template<typename Dimension>
+void
+DistributedBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+}
+
+template<typename Dimension>
+void
+DistributedBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
 }
 
 template<typename Dimension>
@@ -1514,16 +1544,20 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     int nTensor = mTensorExchangeFields.size();
     int nSymTensor = mSymTensorExchangeFields.size();
     int nThirdRankTensor = mThirdRankTensorExchangeFields.size();
+    int nFourthRankTensor = mFourthRankTensorExchangeFields.size();
+    int nFifthRankTensor = mFifthRankTensorExchangeFields.size();
     int nFacetedVolume = mFacetedVolumeExchangeFields.size();
     int nVectorScalar = mVectorScalarExchangeFields.size();
     int nVectorVector = mVectorVectorExchangeFields.size();
-    const int nFields = nInt + nScalar + nVector + nTensor + nSymTensor + nThirdRankTensor + nFacetedVolume + nVectorScalar + nVectorVector;
+    const int nFields = nInt + nScalar + nVector + nTensor + nSymTensor + nThirdRankTensor + nFourthRankTensor + nFifthRankTensor + nFacetedVolume + nVectorScalar + nVectorVector;
     MPI_Bcast(&nInt, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nScalar, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nVector, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nTensor, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nSymTensor, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nThirdRankTensor, 1, MPI_INT, 0, Communicator::communicator());
+    MPI_Bcast(&nFourthRankTensor, 1, MPI_INT, 0, Communicator::communicator());
+    MPI_Bcast(&nFifthRankTensor, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nFacetedVolume, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nVectorScalar, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nVectorVector, 1, MPI_INT, 0, Communicator::communicator());
@@ -1533,6 +1567,8 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     REQUIRE(nTensor == mTensorExchangeFields.size());
     REQUIRE(nSymTensor == mSymTensorExchangeFields.size());
     REQUIRE(nThirdRankTensor == mThirdRankTensorExchangeFields.size());
+    REQUIRE(nFourthRankTensor == mFourthRankTensorExchangeFields.size());
+    REQUIRE(nFifthRankTensor == mFifthRankTensorExchangeFields.size());
     REQUIRE(nFacetedVolume == mFacetedVolumeExchangeFields.size());
     REQUIRE(nVectorScalar == mVectorScalarExchangeFields.size());
     REQUIRE(nVectorVector == mVectorVectorExchangeFields.size());
@@ -1615,6 +1651,20 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
       if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
     }
 
+    // Unpack FourthRankTensor field values.
+    for (typename vector<Field<Dimension, FourthRankTensor>*>::const_iterator fieldItr = mFourthRankTensorExchangeFields.begin();
+         fieldItr != mFourthRankTensorExchangeFields.end();
+         ++fieldItr) {
+      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
+    }
+
+    // Unpack FifthRankTensor field values.
+    for (typename vector<Field<Dimension, FifthRankTensor>*>::const_iterator fieldItr = mFifthRankTensorExchangeFields.begin();
+         fieldItr != mFifthRankTensorExchangeFields.end();
+         ++fieldItr) {
+      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
+    }
+    
     // Unpack FacetedVolume field values.
     for (typename vector<Field<Dimension, FacetedVolume>*>::const_iterator fieldItr = mFacetedVolumeExchangeFields.begin();
          fieldItr != mFacetedVolumeExchangeFields.end();
@@ -1659,6 +1709,8 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
   mTensorExchangeFields.clear();
   mSymTensorExchangeFields.clear();
   mThirdRankTensorExchangeFields.clear();
+  mFourthRankTensorExchangeFields.clear();
+  mFifthRankTensorExchangeFields.clear();
   mFacetedVolumeExchangeFields.clear();
   mVectorScalarExchangeFields.clear();
   mVectorVectorExchangeFields.clear();
@@ -1685,6 +1737,8 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
   ENSURE(mTensorExchangeFields.size() == 0);
   ENSURE(mSymTensorExchangeFields.size() == 0);
   ENSURE(mThirdRankTensorExchangeFields.size() == 0);
+  ENSURE(mFourthRankTensorExchangeFields.size() == 0);
+  ENSURE(mFifthRankTensorExchangeFields.size() == 0);
   ENSURE(mFacetedVolumeExchangeFields.size() == 0);
   ENSURE(mVectorScalarExchangeFields.size() == 0);
   ENSURE(mVectorVectorExchangeFields.size() == 0);

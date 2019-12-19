@@ -14,7 +14,7 @@
 #include "Geometry/Dimension.hh"
 #include "Geometry/polyclipper.hh"
 #include "RegisterMPIDataTypes.hh"
-#include "Distributed/DomainNode.hh"
+#include "Utilities/DomainNode.hh"
 
 #ifdef USE_MPI
 extern "C" {

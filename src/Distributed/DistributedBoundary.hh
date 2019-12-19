@@ -38,6 +38,8 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+  typedef typename Dimension::FifthRankTensor FifthRankTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
   struct DomainBoundaryNodes {
@@ -92,7 +94,7 @@ public:
   //**********************************************************************
   // Descendent Distributed Neighbors are required to provide the 
   // setGhostNodes method for DataBases.
-  virtual void setAllGhostNodes(DataBase<Dimension>& dataBase) = 0;
+  virtual void setAllGhostNodes(DataBase<Dimension>& dataBase) override = 0;
 
   // Override the Boundary method for culling ghost nodes.
   virtual void cullGhostNodes(const FieldList<Dimension, int>& flagSet,
@@ -113,6 +115,8 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Vector>>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
@@ -127,6 +131,8 @@ public:
   virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
   //**********************************************************************
 
@@ -184,6 +190,8 @@ private:
   mutable std::vector<Field<Dimension, Tensor>*> mTensorExchangeFields;
   mutable std::vector<Field<Dimension, SymTensor>*> mSymTensorExchangeFields;
   mutable std::vector<Field<Dimension, ThirdRankTensor>*> mThirdRankTensorExchangeFields;
+  mutable std::vector<Field<Dimension, FourthRankTensor>*> mFourthRankTensorExchangeFields;
+  mutable std::vector<Field<Dimension, FifthRankTensor>*> mFifthRankTensorExchangeFields;
   mutable std::vector<Field<Dimension, std::vector<Scalar>>*> mVectorScalarExchangeFields;
   mutable std::vector<Field<Dimension, std::vector<Vector>>*> mVectorVectorExchangeFields;
   mutable std::vector<Field<Dimension, FacetedVolume>*> mFacetedVolumeExchangeFields;

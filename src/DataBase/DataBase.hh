@@ -249,6 +249,7 @@ public:
   // Collect the number of neighbors for each node from the ConnectivityMap.
   FieldList<Dimension, int> numNeighbors() const;
 
+  //............................................................................
   // Create new FieldLists of size the number of NodeLists or FluidNodeLists.
   template<typename DataType>
   FieldList<Dimension, DataType> newGlobalFieldList(const DataType value,
@@ -279,6 +280,24 @@ public:
                             const DataType value,
                             const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field",
                             const bool resetValues = true) const;
+
+  //............................................................................
+  // Create vector<vector<>> versions of the FieldLists.
+  template<typename DataType> std::vector<std::vector<DataType>> newGlobalArray(const DataType value) const;
+  template<typename DataType> std::vector<std::vector<DataType>> newFluidArray(const DataType value) const;
+  template<typename DataType> std::vector<std::vector<DataType>> newSolidArray(const DataType value) const;
+
+  // Resize vector<vector<>> versions of the FieldLists.
+  template<typename DataType> void resizeGlobalArray(std::vector<std::vector<DataType>>& array,
+                                                     const DataType value,
+                                                     const bool resetValues = true) const;
+  template<typename DataType> void resizeFluidArray(std::vector<std::vector<DataType>>& array,
+                                                    const DataType value,
+                                                    const bool resetValues = true) const;
+  template<typename DataType> void resizeSolidArray(std::vector<std::vector<DataType>>& array,
+                                                    const DataType value,
+                                                    const bool resetValues = true) const;
+  //............................................................................
 
   // Get the maximum kernel extent for all NodeLists.
   Scalar maxKernelExtent() const;

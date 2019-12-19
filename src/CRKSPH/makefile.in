@@ -17,13 +17,9 @@ INSTSRCTARGETS = \
 	$(srcdir)/computeSolidCRKSPHSumMassDensityInst.cc.py \
 	$(srcdir)/computeCRKSPHMomentsInst.cc.py \
 	$(srcdir)/computeCRKSPHCorrectionsInst.cc.py \
-	$(srcdir)/computeCRKSPHEvaluationInst.cc.py \
-	$(srcdir)/computeCRKSPHIntegralInst.cc.py \
 	$(srcdir)/computeHullVolumesInst.cc.py \
 	$(srcdir)/computeHVolumesInst.cc.py \
-	$(srcdir)/computeNeighborHullInst.cc.py \
 	$(srcdir)/CRKSPHHydroBaseInst.cc.py \
-	$(srcdir)/CRKSPHVariantInst.cc.py \
 	$(srcdir)/interpolateCRKSPHInst.cc.py \
 	$(srcdir)/gradientCRKSPHInst.cc.py \
 	$(srcdir)/HVolumePolicyInst.cc.py \
@@ -34,7 +30,8 @@ INSTSRCTARGETS = \
 	$(srcdir)/zerothOrderSurfaceCorrectionsInst.cc.py
 
 SRCTARGETS = \
-	$(srcdir)/centerOfMass.cc
+	$(srcdir)/centerOfMass.cc \
+	$(srcdir)/computeVoronoiVolume.cc
 
 PYTHONTARGETS = \
 	$(srcdir)/CRKSPHHydros.py
@@ -47,15 +44,9 @@ endif
 
 ifeq ("yes", "@INST2D@")
 SRCTARGETS += \
-	$(srcdir)/computeVoronoiVolume2d.cc
-SRCTARGETS += \
 	$(srcdir)/CRKSPHHydroBaseRZ.cc \
-	$(srcdir)/SolidCRKSPHHydroBaseRZ.cc
-endif
-
-ifeq ("yes", "@INST3D@")
-SRCTARGETS += \
-	$(srcdir)/computeVoronoiVolume3d.cc
+	$(srcdir)/SolidCRKSPHHydroBaseRZ.cc \
+	$(srcdir)/ContinuityVolumePolicyRZ.cc
 endif
 
 #-------------------------------------------------------------------------------

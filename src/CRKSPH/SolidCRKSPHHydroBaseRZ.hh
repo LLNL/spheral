@@ -74,10 +74,10 @@ public:
   void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state) override;
 
-  // Register the derivatives/change fields for updating state.
-  virtual
-  void registerDerivatives(DataBase<Dimension>& dataBase,
-                           StateDerivatives<Dimension>& derivs) override;
+  // This method is called once at the beginning of a timestep, after all state registration.
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;
 
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
@@ -88,14 +88,6 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
 
-  // Finalize the hydro at the completion of an integration step.
-  virtual
-  void finalize(const Scalar time,
-                const Scalar dt,
-                DataBase<Dimension>& dataBase,
-                State<Dimension>& state,
-                StateDerivatives<Dimension>& derivs) override;
-               
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
@@ -106,24 +98,13 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
 
-  // The state field lists we're maintaining.
-  // In the RZ case we have the (theta,theta) component of the deviatoric stress.
-  const FieldList<Dimension, Scalar>& deviatoricStressTT() const;
-  const FieldList<Dimension, Scalar>& DdeviatoricStressTTDt() const;
-
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const { return "SolidCRKSPHHydroBaseRZ"; }
-  virtual void dumpState(FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIO& file, const std::string& pathName);
+  virtual std::string label() const override { return "SolidCRKSPHHydroBaseRZ"; }
   //****************************************************************************
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  // Some internal scratch fields.
-  FieldList<Dimension, Scalar> mDeviatoricStressTT;
-  FieldList<Dimension, Scalar> mDdeviatoricStressTTDt;
-
   // No default constructor, copying, or assignment.
   SolidCRKSPHHydroBaseRZ();
   SolidCRKSPHHydroBaseRZ(const SolidCRKSPHHydroBaseRZ&);
@@ -131,8 +112,6 @@ private:
 };
 
 }
-
-#include "SolidCRKSPHHydroBaseRZInline.hh"
 
 #else
 

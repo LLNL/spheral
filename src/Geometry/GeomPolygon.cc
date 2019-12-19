@@ -376,7 +376,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     // polytope::PLC<2, double> plc = polytope::convexHull_2d(points_polytope, &(*low.begin()), 1.0e-15);
     vector<vector<int> > plc = convexHull_2d(points_polytope, low, 1.0e-8);
     const unsigned numVertices = plc.size();
-    CHECK(numVertices >= 3);
+    CHECK2(numVertices >= 3, numVertices);
 
     // Extract the hull information back to our local convention.  We use the fact that
     // polytope's convex hull method sorts the vertices in counter-clockwise here.
@@ -651,42 +651,44 @@ intersect(const std::pair<Vector, Vector>& rhs) const {
 }
 
 //------------------------------------------------------------------------------
-// Compute the intersections with a line segment.
+// Find the Facets and points intersecting a line segment (s0, s1).
 //------------------------------------------------------------------------------
-vector<GeomPolygon::Vector>
+void
 GeomPolygon::
-intersect(const GeomPolygon::Vector& x0, const GeomPolygon::Vector& x1) const {
-  vector<Vector> result;
-  Vector inter1, inter2;
-  for (size_t inode = 0; inode != mVertices.size(); ++inode) {
-    const Vector& e0 = mVertices[inode];
-    const Vector& e1 = mVertices[inode % mVertices.size()];
-    const char code = segmentSegmentIntersection(x0, x1, e0, e1, inter1, inter2);
+intersect(const Vector& s0, const Vector& s1,
+          std::vector<unsigned>& facetIDs,
+          std::vector<Vector>& intersections) const {
+  facetIDs.clear();
+  intersections.clear();
 
-    if (code == '1' or code == 'v') {
-      // Proper intersection.
-      result.push_back(inter1);
+  // Check each segment of the polygon.
+  Vector inter1, inter2;
+  const auto n = mVertices.size();
+  for (auto i = 0; i < n; ++i) {
+    const auto& e0 = mVertices[i];
+    const auto& e1 = mVertices[(i + 1) % n];
+    const auto code = segmentSegmentIntersection(s0, s1, e0, e1, inter1, inter2);
+    // std::cerr << "Check " << s0 << "--" << s1 << " against " << e0 << "--" << e1 <<  " (" << i << " " << ((i + 1) % n) << ") : " << code << std::endl;
+
+    if (code == '1') {
+      // Simple intersection inside the edge
+      facetIDs.push_back(i);
+      intersections.push_back(inter1);
+
+    } else if (code == 'v') {
+      // Intersected on a vertex -- this would count as two intersections if we're not
+      // careful!
+      // if ((inter1 - e0).magnitude2() < (inter1 - e1).magnitude2()) {
+        facetIDs.push_back(i);
+        intersections.push_back(inter1);
+      // }
 
     } else if (code == 'e') {
-      // The segment is colinear with and overlaps the edge.  In this case we 
-      // return the end-points of the section that is on both segments.
-      result.push_back(inter1);
-      result.push_back(inter2);
-      // if (between(x0, x1, e0)) result.push_back(e0);
-      // if (between(x0, x1, e1)) result.push_back(e1);
-      // if (between(e0, e1, x0)) result.push_back(x0);
-      // if (between(e0, e1, x1)) result.push_back(x1);
+      // Oh boy, the segment is colinear with and overlaps the edge.
+      facetIDs.push_back(i);
+      intersections.push_back(0.5*(inter1 + inter2));
     }
   }
-
-  // It's possible that we may have duplicates in the intersection set. 
-  // Make it unique!
-  sort(result.begin(), result.end());
-  result.erase(unique(result.begin(), result.end()), result.end());
-
-  // That's it.
-  ENSURE(result.size() <= 2);
-  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -964,6 +966,18 @@ convex(const double tol) const {
     ++vertexItr;
   }
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Decompose the polygon into triangles for each facet.
+//------------------------------------------------------------------------------
+GeomPolygon
+GeomPolygon::
+facetSubVolume(const unsigned facetID) const {
+  REQUIRE(facetID < mFacets.size());
+  const auto& facet = mFacets[facetID];
+  vector<Vector> points = {facet.point1(), facet.point2(), this->centroid() };
+  return GeomPolygon(points);
 }
 
 //------------------------------------------------------------------------------

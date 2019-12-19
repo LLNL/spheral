@@ -15,7 +15,7 @@
 #include <string>
 #include <tuple>
 #include "DataTypeTraits.hh"
-#include "Distributed/DomainNode.hh"
+#include "Utilities/DomainNode.hh"
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -692,6 +692,7 @@ unpackElement<PolyClipper::Vertex2d>(PolyClipper::Vertex2d& value,
   ENSURE(itr <= endPackedVector);
 }
 
+//..............................................................................
 // PolyClipper::Vertex3d
 template<>
 inline
@@ -713,6 +714,54 @@ unpackElement<PolyClipper::Vertex3d>(PolyClipper::Vertex3d& value,
   unpackElement(value.position, itr, endPackedVector);
   unpackElement(value.neighbors, itr, endPackedVector);
   unpackElement(value.comp, itr, endPackedVector);
+  unpackElement(value.ID, itr, endPackedVector);
+  ENSURE(itr <= endPackedVector);
+}
+
+//..............................................................................
+// PolyClipper::Plane2d
+template<>
+inline
+void
+packElement<PolyClipper::Plane2d>(const PolyClipper::Plane2d& value, 
+                                  std::vector<char>& buffer) {
+  packElement(value.normal, buffer);
+  packElement(value.dist, buffer);
+  packElement(value.ID, buffer);
+}
+
+template<>
+inline
+void
+unpackElement<PolyClipper::Plane2d>(PolyClipper::Plane2d& value, 
+                                    std::vector<char>::const_iterator& itr,
+                                    const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.normal, itr, endPackedVector);
+  unpackElement(value.dist, itr, endPackedVector);
+  unpackElement(value.ID, itr, endPackedVector);
+  ENSURE(itr <= endPackedVector);
+}
+
+//..............................................................................
+// PolyClipper::Plane3d
+template<>
+inline
+void
+packElement<PolyClipper::Plane3d>(const PolyClipper::Plane3d& value, 
+                                  std::vector<char>& buffer) {
+  packElement(value.normal, buffer);
+  packElement(value.dist, buffer);
+  packElement(value.ID, buffer);
+}
+
+template<>
+inline
+void
+unpackElement<PolyClipper::Plane3d>(PolyClipper::Plane3d& value, 
+                                    std::vector<char>::const_iterator& itr,
+                                    const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.normal, itr, endPackedVector);
+  unpackElement(value.dist, itr, endPackedVector);
   unpackElement(value.ID, itr, endPackedVector);
   ENSURE(itr <= endPackedVector);
 }

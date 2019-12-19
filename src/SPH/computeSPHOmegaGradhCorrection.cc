@@ -35,7 +35,6 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
 
   // Some useful variables.
   const auto W0 = W.kernelValue(0.0, 1.0);
-  Scalar Wi, gWi;
 
   // Zero out the result.
   omegaGradh = 0.0;
@@ -47,65 +46,78 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
     gradsum.appendNewField("sum of the gradient", nodeList, 0.0);
   }
 
-  // Walk the FluidNodeLists.
-  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const auto& nodeList = omegaGradh[nodeListi]->nodeList();
-    const auto ni = connectivityMap.numNodes(nodeListi);
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
 
-    // Iterate over the nodes in this node list.
-#pragma omp parallel for private(Wi, gWi)
-    for (auto k = 0; k < ni; ++k) {
-      const auto i = connectivityMap.ithNode(nodeListi, k);
+  // Walk all the interacting pairs.
+#pragma omp parallel
+  {
+    // Thread private scratch variables
+    int i, j, nodeListi, nodeListj;
+    Scalar Wi, gWi, Wj, gWj;
 
-      // If we're isolated we have to punt and just set this correction to unity.
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto omegaGradh_thread = omegaGradh.threadCopy(threadStack);
+    auto gradsum_thread = gradsum.threadCopy(threadStack);
+
+#pragma omp for
+    for (auto kk = 0; kk < npairs; ++kk) {
+      i = pairs[kk].i_node;
+      j = pairs[kk].j_node;
+      nodeListi = pairs[kk].i_list;
+      nodeListj = pairs[kk].j_list;
+
+      const auto& ri = position(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+
+      const auto& rj = position(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto  Hdetj = Hj.Determinant();
+
+      const auto rij = ri - rj;
+      const auto etai = (Hi*rij).magnitude();
+      const auto etaj = (Hj*rij).magnitude();
+
+      // Kernel weighting and gradient.
+      std::tie(Wi, gWi) = W.kernelAndGradValue(etai, Hdeti);
+      std::tie(Wj, gWj) = W.kernelAndGradValue(etaj, Hdetj);
+
+      // Sum the pair-wise contributions.
+      omegaGradh_thread(nodeListi, i) += Wi;
+      omegaGradh_thread(nodeListj, j) += Wj;
+
+      gradsum_thread(nodeListi, i) += etai*gWi;
+      gradsum_thread(nodeListj, j) += etaj*gWj;
+    }
+
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+
+  }    // OMP parallel
+  
+  // Finish up for each point.
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto ni = omegaGradh[nodeListi]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0; i < ni; ++i) {
+
+      // If this point is isolated, we punt to unity.
       if (connectivityMap.numNeighborsForNode(nodeListi, i) == 0) {
         omegaGradh(nodeListi, i) = 1.0;
 
       } else {
-
-        // Get the state for node i.
-        const auto& ri = position(nodeListi, i);
-        const auto& Hi = H(nodeListi, i);
-        const auto  Hdeti = Hi.Determinant();
-
-        // Self-contribution.
+        const Scalar Hdeti = H(nodeListi, i).Determinant();
         omegaGradh(nodeListi, i) += Hdeti*W0;
-
-        // Neighbors!
-        const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-        CHECK(fullConnectivity.size() == numNodeLists);
-
-        // Iterate over the neighbor NodeLists.
-        for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-          const auto firstGhostNodej = omegaGradh[nodeListj]->nodeList().firstGhostNode();
-
-          // Iterate over the neighbors for in this NodeList.
-          const auto& connectivity = fullConnectivity[nodeListj];
-          for (auto jItr = connectivity.begin();
-               jItr != connectivity.end();
-               ++jItr) {
-            const auto j = *jItr;
-            const auto& rj = position(nodeListj, j);
-
-            // Kernel weighting and gradient.
-            const auto rij = ri - rj;
-            const auto etai = (Hi*rij).magnitude();
-            std::tie(Wi, gWi) = W.kernelAndGradValue(etai, Hdeti);
-
-            // Sum the pair-wise contributions.
-            omegaGradh(nodeListi, i) += Wi;
-            gradsum(nodeListi, i) += etai*gWi;
-          }
-        }
-
-        // Finish the grad h correction.
         CHECK(omegaGradh(nodeListi, i) > 0.0);
         omegaGradh(nodeListi, i) = std::max(1.0e-30, -gradsum(nodeListi, i)/(Dimension::nDim * omegaGradh(nodeListi, i)));
+
       }
 
       // Post-conditions.
-      ENSURE2(i >= nodeList.firstGhostNode() or omegaGradh(nodeListi, i) >= 0.0, 
-              nodeListi << " " << i << " " << nodeList.firstGhostNode() << " " << omegaGradh(nodeListi, i));
+      ENSURE2(omegaGradh(nodeListi, i) >= 0.0, 
+              nodeListi << " " << i << " " << omegaGradh(nodeListi, i));
     }
   }
 }
