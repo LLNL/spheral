@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "zerothOrderSurfaceCorrections.cc"
+#include "CRKSPH/zerothOrderSurfaceCorrections.cc"
 
 namespace Spheral {
 template void

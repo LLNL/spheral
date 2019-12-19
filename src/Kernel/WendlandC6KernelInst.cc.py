@@ -4,8 +4,8 @@ text = """
 //
 // Created by CDR, Nov 19 2014
 //----------------------------------------------------------------------------//
-#include "Kernel.hh"
-#include "WendlandC6Kernel.hh"
+#include "Kernel/Kernel.hh"
+#include "Kernel/WendlandC6Kernel.hh"
 
 #include <math.h>
 

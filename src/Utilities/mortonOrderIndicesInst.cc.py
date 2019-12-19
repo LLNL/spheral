@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "mortonOrderIndices.cc"
+#include "Utilities/mortonOrderIndices.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

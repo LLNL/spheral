@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "computeSPHOmegaGradhCorrection.cc"
+#include "SPH/computeSPHOmegaGradhCorrection.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

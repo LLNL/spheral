@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "IncrementCullenMultipliers.cc"
+#include "ArtificialViscosity/IncrementCullenMultipliers.cc"
 
 namespace Spheral {
   template class IncrementCullenMultipliers<Dim< %(ndim)s > >;

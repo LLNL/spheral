@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -21,9 +21,6 @@
     <ClCompile Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyRZ.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Hydro\PositionPolicyInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -34,12 +31,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Hydro\PressurePolicyInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Hydro\SecondMomentHourglassControlInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Hydro\SecondMomentHourglassControlInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Hydro\SoundSpeedPolicyInst.cc.2.cc">
@@ -60,12 +51,6 @@
     <ClCompile Include="..\..\src\Hydro\SumVoronoiMassDensityPolicyInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Hydro\ThirdMomentHourglassControlInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Hydro\ThirdMomentHourglassControlInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Hydro\VolumePolicyInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -78,22 +63,23 @@
     <ClCompile Include="..\..\src\Hydro\VoronoiMassDensityPolicyInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Hydro\GammaPolicyInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Hydro\GammaPolicyInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Hydro\SpecificFromTotalThermalEnergyPolicyInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Hydro\SpecificFromTotalThermalEnergyPolicyInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Hydro\EntropyPolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\EntropyPolicyInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\Hydro\EntropyPolicyInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Hydro\EntropyPolicyInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\src\Hydro\entropyWeightingFunction.hh">
+      <Filter>Header Files</Filter>
+    </None>
     <None Include="..\..\src\Hydro\HybridMassDensityPolicyInline.hh">
       <Filter>Header Files</Filter>
     </None>
@@ -112,19 +98,10 @@
     <None Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicy.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyRZ.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\Hydro\PositionPolicy.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Hydro\PressurePolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Hydro\SecondMomentHourglassControl.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Hydro\SecondMomentHourglassControlInline.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Hydro\SoundSpeedPolicy.hh">
@@ -136,12 +113,6 @@
     <None Include="..\..\src\Hydro\SumVoronoiMassDensityPolicy.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\Hydro\ThirdMomentHourglassControl.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Hydro\ThirdMomentHourglassControlInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\Hydro\TotalHydro.hh">
       <Filter>Header Files</Filter>
     </None>
@@ -149,12 +120,6 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Hydro\VolumePolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Hydro\VoronoiHourglassControl.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Hydro\VoronoiHourglassControlInline.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Hydro\VoronoiMassDensityPolicy.hh">
@@ -171,9 +136,6 @@
     <CustomBuild Include="..\..\src\Hydro\PressurePolicyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\Hydro\SecondMomentHourglassControlInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\Hydro\SoundSpeedPolicyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
@@ -183,21 +145,17 @@
     <CustomBuild Include="..\..\src\Hydro\SumVoronoiMassDensityPolicyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\Hydro\ThirdMomentHourglassControlInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\Hydro\VolumePolicyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Hydro\VoronoiMassDensityPolicyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\Hydro\GammaPolicyInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\Hydro\SpecificFromTotalThermalEnergyPolicyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\Hydro\EntropyPolicyInst.cc.py" />
+    <CustomBuild Include="..\..\src\Hydro\EntropyPolicyInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

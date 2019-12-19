@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "globalBoundingVolumes.cc"
+#include "Utilities/globalBoundingVolumes.cc"
 
 namespace Spheral {
 

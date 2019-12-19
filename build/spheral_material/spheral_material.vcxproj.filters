@@ -15,48 +15,12 @@
     <ClCompile Include="..\..\src\Material\EquationOfStateInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Material\GammaLawGasInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Material\GammaLawGasInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Material\HelmholtzEquationOfStateInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Material\HelmholtzEquationOfStateInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Material\IsothermalEquationOfStateInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Material\IsothermalEquationOfStateInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Material\PhysicalConstants.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Material\PolytropicEquationOfStateInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Material\PolytropicEquationOfStateInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\Material\EquationOfStateInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Material\GammaLawGasInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Material\HelmholtzEquationOfStateInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Material\IsothermalEquationOfStateInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Material\PolytropicEquationOfStateInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
   </ItemGroup>

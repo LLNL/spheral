@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "IncrementBoundedFieldList.cc"
+#include "DataBase/IncrementBoundedFieldList.cc"
 
 namespace Spheral {
   template class IncrementBoundedFieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>;

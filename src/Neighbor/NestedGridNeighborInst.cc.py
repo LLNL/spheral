@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "NestedGridNeighbor.cc"
+#include "Neighbor/NestedGridNeighbor.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

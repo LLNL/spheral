@@ -2,8 +2,8 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "SPHHydroBase.cc"
-#include "SPHEvaluateDerivatives.cc"
+#include "SPH/SPHHydroBase.cc"
+#include "SPH/SPHEvaluateDerivatives.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

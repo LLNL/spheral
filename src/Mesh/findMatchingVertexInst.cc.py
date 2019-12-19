@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "findMatchingVertexTempl.cc"
+#include "Mesh/findMatchingVertexTempl.cc"
 
 namespace Spheral {
   template unsigned findMatchingVertex<Dim< %(ndim)s >::Vector>(const Dim< %(ndim)s >::Vector& target,

@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "boundingBox.cc"
+#include "Utilities/boundingBox.cc"
 
 namespace Spheral {
   template void boundingBox(const vector<Dim< %(ndim)s >::Vector>& positions,

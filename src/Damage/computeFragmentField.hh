@@ -14,7 +14,9 @@ template<typename Dimension>
 Field<Dimension, int>
 computeFragmentField(const NodeList<Dimension>& nodeList,
                      const double linkRadius,
+                     const Field<Dimension, typename Dimension::Scalar>& density,
                      const Field<Dimension, typename Dimension::SymTensor>& damage,
+                     const double densityThreshold,
                      const double damageThreshold,
                      const bool assignDustToFragments);
 

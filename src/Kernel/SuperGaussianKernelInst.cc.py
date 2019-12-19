@@ -4,7 +4,7 @@ text = """
 //
 // Created by JMO, Wed Dec  1 22:38:21 PST 1999
 //----------------------------------------------------------------------------//
-#include "SuperGaussianKernel.hh"
+#include "Kernel/SuperGaussianKernel.hh"
 
 #include <math.h>
 

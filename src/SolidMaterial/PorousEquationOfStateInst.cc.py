@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "PorousEquationOfState.cc"
+#include "SolidMaterial/PorousEquationOfState.cc"
 
 namespace Spheral {
   template class PorousEquationOfState<Dim< %(ndim)s > >;

@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "HelmholtzEquationOfState.cc"
+#include "Material/HelmholtzEquationOfState.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

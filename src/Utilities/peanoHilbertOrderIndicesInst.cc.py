@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "peanoHilbertOrderIndices.cc"
+#include "Utilities/peanoHilbertOrderIndices.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

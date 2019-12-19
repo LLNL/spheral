@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "compactFacetedVolumes.cc"
+#include "NodeGenerators/compactFacetedVolumes.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
