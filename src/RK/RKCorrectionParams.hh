@@ -1,6 +1,6 @@
 //Parameters used for RK kernels. 
-#ifndef __Spheral_RKSPHCorrectionParams_hh__
-#define __Spheral_RKSPHCorrectionParams_hh__
+#ifndef __Spheral_RKCorrectionParams_hh__
+#define __Spheral_RKCorrectionParams_hh__
 //Enumerated type for the corrected Kernels
 namespace Spheral {
 

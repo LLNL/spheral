@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "CRKSPH/computeHVolumes.cc"
+#include "RK/computeHVolumes.cc"
 
 namespace Spheral {
   template void computeHVolumes(const Dim< %(ndim)s >::Scalar nPerh,
