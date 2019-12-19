@@ -183,6 +183,7 @@ set(POLYTOPE_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${POLYTOPE_PREFIX}
                          -DPYBIND11_INCLUDE_DIRS=${PYBIND11_INCLUDE_DIRS}
                          -DUSE_PYTHON=On
                          -DPYTHON_EXE=${PYTHON_EXE}
+                         -DBoost_INCLUDE_DIR=${BOOST_INCLUDE_DIRS}
                          -DTESTING=Off")
 set(POLYTOPE_EXTERNAL_PROJECT_FUNCTION "
   ExternalProject_add(${POLYTOPE_TARGET}
