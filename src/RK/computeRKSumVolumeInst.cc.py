@@ -4,7 +4,7 @@ text = """
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 #include "Boundary/Boundary.hh"
-#include "computeRKSumVolume.cc"
+#include "RK/computeRKSumVolume.cc"
 
 namespace Spheral {
 template void computeRKSumVolume(const ConnectivityMap<Dim< %(ndim)s > >&, 
