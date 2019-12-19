@@ -15,7 +15,7 @@ using FastMath::pow3;
 //------------------------------------------------------------------------------
 // 1D
 //------------------------------------------------------------------------------
-//#ifdef SPHERAL1D
+#ifdef SPHERAL1D
 GeomVector<1>
 centerOfMass(const Dim<1>::FacetedVolume& polyvol,
              const Dim<1>::Vector& gradRhoi) {
@@ -34,12 +34,12 @@ centerOfMass(const Dim<1>::FacetedVolume& polyvol,
   ENSURE(result >= x0 and result <= x1);
   return Vector(result);
 }
-//#endif
+#endif
 
 //------------------------------------------------------------------------------
 // 2D
 //------------------------------------------------------------------------------
-//#ifdef SPHERAL2D
+#ifdef SPHERAL2D
 Dim<2>::Vector
 centerOfMass(const Dim<2>::FacetedVolume& polyvol,
              const Dim<2>::Vector& gradRhoi) {
@@ -61,12 +61,12 @@ centerOfMass(const Dim<2>::FacetedVolume& polyvol,
   result *= safeInv(msum);
   return result;
 }
-//#endif
+#endif
 
 //------------------------------------------------------------------------------
 // 3D
 //------------------------------------------------------------------------------
-//#ifdef SPHERAL3D
+#ifdef SPHERAL3D
 Dim<3>::Vector
 centerOfMass(const Dim<3>::FacetedVolume& polyvol,
              const Dim<3>::Vector& gradRhoi) {
@@ -74,7 +74,7 @@ centerOfMass(const Dim<3>::FacetedVolume& polyvol,
   VERIFY2(false, "Implement me!");
   return Vector::zero;
 }
-//#endif
+#endif
 
 }
 

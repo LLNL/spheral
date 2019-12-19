@@ -56,33 +56,32 @@ public:
   virtual void write_SymTensor3d(const Dim<3>::SymTensor& value, const std::string pathName) = 0;
   virtual void write_ThirdRankTensor3d(const Dim<3>::ThirdRankTensor& value, const std::string pathName) = 0;
 
-//TODO replace
-//#ifdef SPHERAL1D
+#ifdef SPHERAL1D
   virtual void write_ScalarField1d(const Field<Dim<1>, Dim<1>::Scalar>& field, const std::string pathName) = 0;
   virtual void write_VectorField1d(const Field<Dim<1>, Dim<1>::Vector>& field, const std::string pathName) = 0;
   virtual void write_TensorField1d(const Field<Dim<1>, Dim<1>::Tensor>& field, const std::string pathName) = 0;
   virtual void write_SymTensorField1d(const Field<Dim<1>, Dim<1>::SymTensor>& field, const std::string pathName) = 0;
   virtual void write_ThirdRankTensorField1d(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& field, const std::string pathName) = 0;
   virtual void write_IntField1d(const Field<Dim<1>, int>& field, const std::string pathName) = 0;
-//#endif
+#endif
 
-//#ifdef SPHERAL2D
+#ifdef SPHERAL2D
   virtual void write_ScalarField2d(const Field<Dim<2>, Dim<2>::Scalar>& field, const std::string pathName) = 0;
   virtual void write_VectorField2d(const Field<Dim<2>, Dim<2>::Vector>& field, const std::string pathName) = 0;
   virtual void write_TensorField2d(const Field<Dim<2>, Dim<2>::Tensor>& field, const std::string pathName) = 0;
   virtual void write_SymTensorField2d(const Field<Dim<2>, Dim<2>::SymTensor>& field, const std::string pathName) = 0;
   virtual void write_ThirdRankTensorField2d(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& field, const std::string pathName) = 0;
   virtual void write_IntField2d(const Field<Dim<2>, int>& field, const std::string pathName) = 0;
-//#endif
+#endif
 
-//#ifdef SPHERAL3D
+#ifdef SPHERAL3D
   virtual void write_ScalarField3d(const Field<Dim<3>, Dim<3>::Scalar>& field, const std::string pathName) = 0;
   virtual void write_VectorField3d(const Field<Dim<3>, Dim<3>::Vector>& field, const std::string pathName) = 0;
   virtual void write_TensorField3d(const Field<Dim<3>, Dim<3>::Tensor>& field, const std::string pathName) = 0;
   virtual void write_SymTensorField3d(const Field<Dim<3>, Dim<3>::SymTensor>& field, const std::string pathName) = 0;
   virtual void write_ThirdRankTensorField3d(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& field, const std::string pathName) = 0;
   virtual void write_IntField3d(const Field<Dim<3>, int>& field, const std::string pathName) = 0;
-//#endif
+#endif
 
   // Descendent python objects should provide these read methods.
   virtual unsigned read_unsigned_int(const std::string pathName)                          const override { VERIFY2(false, "read_unsigned_int not overridden"); }
@@ -109,33 +108,32 @@ public:
   virtual Dim<3>::SymTensor read_SymTensor3d(const std::string pathName) const = 0;
   virtual Dim<3>::ThirdRankTensor read_ThirdRankTensor3d(const std::string pathName) const = 0;
 
-//TODO: replace
-//#ifdef SPHERAL1D
+#ifdef SPHERAL1D
   virtual void read_ScalarField1d(Field<Dim<1>, Dim<1>::Scalar>* field, const std::string pathName) const = 0;
   virtual void read_VectorField1d(Field<Dim<1>, Dim<1>::Vector>* field, const std::string pathName) const = 0;
   virtual void read_TensorField1d(Field<Dim<1>, Dim<1>::Tensor>* field, const std::string pathName) const = 0;
   virtual void read_SymTensorField1d(Field<Dim<1>, Dim<1>::SymTensor>* field, const std::string pathName) const = 0;
   virtual void read_ThirdRankTensorField1d(Field<Dim<1>, Dim<1>::ThirdRankTensor>* field, const std::string pathName) const = 0;
   virtual void read_IntField1d(Field<Dim<1>, int>* field, const std::string pathName) const = 0;
-//#endif
+#endif
 
-//#ifdef SPHERAL2D
+#ifdef SPHERAL2D
   virtual void read_ScalarField2d(Field<Dim<2>, Dim<2>::Scalar>* field, const std::string pathName) const = 0;
   virtual void read_VectorField2d(Field<Dim<2>, Dim<2>::Vector>* field, const std::string pathName) const = 0;
   virtual void read_TensorField2d(Field<Dim<2>, Dim<2>::Tensor>* field, const std::string pathName) const = 0;
   virtual void read_SymTensorField2d(Field<Dim<2>, Dim<2>::SymTensor>* field, const std::string pathName) const = 0;
   virtual void read_ThirdRankTensorField2d(Field<Dim<2>, Dim<2>::ThirdRankTensor>* field, const std::string pathName) const = 0;
   virtual void read_IntField2d(Field<Dim<2>, int>* field, const std::string pathName) const = 0;
-//#endif
+#endif
 
-//#ifdef SPHERAL3D
+#ifdef SPHERAL3D
   virtual void read_ScalarField3d(Field<Dim<3>, Dim<3>::Scalar>* field, const std::string pathName) const = 0;
   virtual void read_VectorField3d(Field<Dim<3>, Dim<3>::Vector>* field, const std::string pathName) const = 0;
   virtual void read_TensorField3d(Field<Dim<3>, Dim<3>::Tensor>* field, const std::string pathName) const = 0;
   virtual void read_SymTensorField3d(Field<Dim<3>, Dim<3>::SymTensor>* field, const std::string pathName) const = 0;
   virtual void read_ThirdRankTensorField3d(Field<Dim<3>, Dim<3>::ThirdRankTensor>* field, const std::string pathName) const = 0;
   virtual void read_IntField3d(Field<Dim<3>, int>* field, const std::string pathName) const = 0;
-//#endif
+#endif
 
   //***************************************************************************
   // Override the base FileIO read methods to use the above pure virtual methods.
@@ -164,33 +162,32 @@ public:
   virtual void write(const Dim<3>::SymTensor& value, const std::string pathName) override { write_SymTensor3d(value, pathName); }
   virtual void write(const Dim<3>::ThirdRankTensor& value, const std::string pathName) override { write_ThirdRankTensor3d(value, pathName); }
 
-//TODO
-//#ifdef SPHERAL1D
+#ifdef SPHERAL1D
   virtual void write(const Field<Dim<1>, Dim<1>::Scalar>& value, const std::string pathName) override { write_ScalarField1d(value, pathName); }
   virtual void write(const Field<Dim<1>, Dim<1>::Vector>& value, const std::string pathName) override { write_VectorField1d(value, pathName); }
   virtual void write(const Field<Dim<1>, Dim<1>::Tensor>& value, const std::string pathName) override { write_TensorField1d(value, pathName); }
   virtual void write(const Field<Dim<1>, Dim<1>::SymTensor>& value, const std::string pathName) override { write_SymTensorField1d(value, pathName); }
   virtual void write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const std::string pathName) override { write_ThirdRankTensorField1d(value, pathName); }
   virtual void write(const Field<Dim<1>, int>& value, const std::string pathName) override { write_IntField1d(value, pathName); }
-//#endif
+#endif
 
-//#ifdef SPHERAL2D
+#ifdef SPHERAL2D
   virtual void write(const Field<Dim<2>, Dim<2>::Scalar>& value, const std::string pathName) override { write_ScalarField2d(value, pathName); }
   virtual void write(const Field<Dim<2>, Dim<2>::Vector>& value, const std::string pathName) override { write_VectorField2d(value, pathName); }
   virtual void write(const Field<Dim<2>, Dim<2>::Tensor>& value, const std::string pathName) override { write_TensorField2d(value, pathName); }
   virtual void write(const Field<Dim<2>, Dim<2>::SymTensor>& value, const std::string pathName) override { write_SymTensorField2d(value, pathName); }
   virtual void write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const std::string pathName) override { write_ThirdRankTensorField2d(value, pathName); }
   virtual void write(const Field<Dim<2>, int>& value, const std::string pathName) override { write_IntField2d(value, pathName); }
-//#endif
+#endif
 
-//#ifdef SPHERAL3D
+#ifdef SPHERAL3D
   virtual void write(const Field<Dim<3>, Dim<3>::Scalar>& value, const std::string pathName) override { write_ScalarField3d(value, pathName); }
   virtual void write(const Field<Dim<3>, Dim<3>::Vector>& value, const std::string pathName) override { write_VectorField3d(value, pathName); }
   virtual void write(const Field<Dim<3>, Dim<3>::Tensor>& value, const std::string pathName) override { write_TensorField3d(value, pathName); }
   virtual void write(const Field<Dim<3>, Dim<3>::SymTensor>& value, const std::string pathName) override { write_SymTensorField3d(value, pathName); }
   virtual void write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const std::string pathName) override { write_ThirdRankTensorField3d(value, pathName); }
   virtual void write(const Field<Dim<3>, int>& value, const std::string pathName) override { write_IntField3d(value, pathName); }
-//#endif
+#endif
 
   // Read methods.
   virtual void read(unsigned& value, const std::string pathName) const override                 { value = read_unsigned_int(pathName); }
@@ -217,33 +214,32 @@ public:
   virtual void read(Dim<3>::SymTensor& value, const std::string pathName) const override { value = read_SymTensor3d(pathName); }
   virtual void read(Dim<3>::ThirdRankTensor& value, const std::string pathName) const override { value = read_ThirdRankTensor3d(pathName); }
 
-//TODO
-//#ifdef SPHERAL1D
+#ifdef SPHERAL1D
   virtual void read(Field<Dim<1>, Dim<1>::Scalar>& value, const std::string pathName) const override { read_ScalarField1d(&value, pathName); }
   virtual void read(Field<Dim<1>, Dim<1>::Vector>& value, const std::string pathName) const override { read_VectorField1d(&value, pathName); }
   virtual void read(Field<Dim<1>, Dim<1>::Tensor>& value, const std::string pathName) const override { read_TensorField1d(&value, pathName); }
   virtual void read(Field<Dim<1>, Dim<1>::SymTensor>& value, const std::string pathName) const override { read_SymTensorField1d(&value, pathName); }
   virtual void read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const std::string pathName) const override { read_ThirdRankTensorField1d(&value, pathName); }
   virtual void read(Field<Dim<1>, int>& value, const std::string pathName) const override { read_IntField1d(&value, pathName); }
-//#endif
+#endif
 
-//#ifdef SPHERAL2D
+#ifdef SPHERAL2D
   virtual void read(Field<Dim<2>, Dim<2>::Scalar>& value, const std::string pathName) const override { read_ScalarField2d(&value, pathName); }
   virtual void read(Field<Dim<2>, Dim<2>::Vector>& value, const std::string pathName) const override { read_VectorField2d(&value, pathName); }
   virtual void read(Field<Dim<2>, Dim<2>::Tensor>& value, const std::string pathName) const override { read_TensorField2d(&value, pathName); }
   virtual void read(Field<Dim<2>, Dim<2>::SymTensor>& value, const std::string pathName) const override { read_SymTensorField2d(&value, pathName); }
   virtual void read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const std::string pathName) const override { read_ThirdRankTensorField2d(&value, pathName); }
   virtual void read(Field<Dim<2>, int>& value, const std::string pathName) const override { read_IntField2d(&value, pathName); }
-//#endif
+#endif
 
-//#ifdef SPHERAL3D
+#ifdef SPHERAL3D
   virtual void read(Field<Dim<3>, Dim<3>::Scalar>& value, const std::string pathName) const override { read_ScalarField3d(&value, pathName); }
   virtual void read(Field<Dim<3>, Dim<3>::Vector>& value, const std::string pathName) const override { read_VectorField3d(&value, pathName); }
   virtual void read(Field<Dim<3>, Dim<3>::Tensor>& value, const std::string pathName) const override { read_TensorField3d(&value, pathName); }
   virtual void read(Field<Dim<3>, Dim<3>::SymTensor>& value, const std::string pathName) const override { read_SymTensorField3d(&value, pathName); }
   virtual void read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const std::string pathName) const override { read_ThirdRankTensorField3d(&value, pathName); }
   virtual void read(Field<Dim<3>, int>& value, const std::string pathName) const override { read_IntField3d(&value, pathName); }
-//#endif
+#endif
   //***************************************************************************
 
   //------------------------------------------------------------------------------

@@ -461,7 +461,7 @@ read(std::vector<string>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 // 1d fields (write).
 //------------------------------------------------------------------------------
-//#ifdef SPHERAL1D
+#ifdef SPHERAL1D
 // Scalar
 void
 FlatFileIO::
@@ -548,12 +548,12 @@ FlatFileIO::
 read(Field<Dim<1>, int>& value, const string pathName) const {
   readGenericType(value, pathName);
 }
-//#endif
+#endif
 
 //------------------------------------------------------------------------------
 // 2d fields (write).
 //------------------------------------------------------------------------------
-//#ifdef SPHERAL2D
+#ifdef SPHERAL2D
 // Scalar
 void
 FlatFileIO::
@@ -640,12 +640,12 @@ FlatFileIO::
 read(Field<Dim<2>, int>& value, const string pathName) const {
   readGenericType(value, pathName);
 }
-//#endif
+#endif
 
 //------------------------------------------------------------------------------
 // 3d fields (write).
 //------------------------------------------------------------------------------
-//#ifdef SPHERAL3D
+#ifdef SPHERAL3D
 // Scalar
 void
 FlatFileIO::
@@ -732,7 +732,7 @@ FlatFileIO::
 read(Field<Dim<3>, int>& value, const string pathName) const {
   readGenericType(value, pathName);
 }
-//#endif
+#endif
 
 //------------------------------------------------------------------------------
 // Access the precision we're using to write to the file.

@@ -206,9 +206,9 @@ void clipConvexFacetedVolumeByPlanes(GeomPolygon& poly,
 
   // Convert the polygon to a set of edge loops.
   auto vertices = poly.vertices();             // Note this is a copy!
-  vector<Edge> edges;                          // edges as pairs of vertex indices
-  Face         face;                           // the rings of edges making up the polygon.
-  vector<int> vertexMask(vertices.size(), 1);  // mask to flag active/inactive vertices: 0->inactive, 1->active, -1->clip
+  vector<Edge> edges;                          // Edges as pairs of vertex indices
+  Face         face;                           // The rings of edges making up the polygon.
+  vector<int> vertexMask(vertices.size(), 1);  // Mask to flag active/inactive vertices: 0->inactive, 1->active, -1->clip
   {
     const auto& facets = poly.facets();
     int iedge;

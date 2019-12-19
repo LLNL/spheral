@@ -350,7 +350,6 @@ public:
   AccessType access() const;
   bool fileOpen() const;
 
-//TODO
 #ifndef CXXONLY
   // These methods are particular to Python file objects.
   void writeObject(PyObject* thing, PyObject* path);

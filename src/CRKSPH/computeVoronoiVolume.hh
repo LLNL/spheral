@@ -14,8 +14,7 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-//TODO: reimplement Spheral dimension defines.
-//#ifdef SPHERAL1D
+#ifdef SPHERAL1D
 // 1D
 void
 computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
@@ -32,9 +31,9 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
                      FieldList<Dim<1>, std::vector<Dim<1>::Vector>>& etaVoidPoints,
                      FieldList<Dim<1>, Dim<1>::FacetedVolume>& cells,
                      FieldList<Dim<1>, std::vector<CellFaceFlag>>& cellFaceFlags);
-//#endif
+#endif
 
-//#ifdef SPHERAL2D
+#ifdef SPHERAL2D
 // 2D
 void
 computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
@@ -51,9 +50,9 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      FieldList<Dim<2>, std::vector<Dim<2>::Vector>>& etaVoidPoints,
                      FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells,
                      FieldList<Dim<2>, std::vector<CellFaceFlag>>& cellFaceFlags);
-//#endif
+#endif
 
-//#ifdef SPHERAL3D
+#ifdef SPHERAL3D
 // 3D
 void
 computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
@@ -70,7 +69,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      FieldList<Dim<3>, std::vector<Dim<3>::Vector>>& etaVoidPoints,
                      FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells,
                      FieldList<Dim<3>, std::vector<CellFaceFlag>>& cellFaceFlags);
-//#endif
+#endif
 
 }
 

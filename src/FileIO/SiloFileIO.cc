@@ -777,7 +777,7 @@ SiloFileIO::read(Dim<3>::ThirdRankTensor& value, const string pathName) const {
           "SiloFileIO ERROR: unable to read variable " << pathName);
 }
 
-//#ifdef SPHERAL1D
+#ifdef SPHERAL1D
 //------------------------------------------------------------------------------
 // Write a Field<Dim<1>, Dim<1>::Scalar> to the file.
 //------------------------------------------------------------------------------
@@ -873,9 +873,9 @@ void
 SiloFileIO::read(Field<Dim<1>, int>& value, const string pathName) const {
   FieldIO<Dim<1>, int>::read(mFilePtr, value, pathName);
 }
-//#endif
+#endif
 
-//#ifdef SPHERAL2D
+#ifdef SPHERAL2D
 //------------------------------------------------------------------------------
 // Write a Field<Dim<2>, Dim<2>::Scalar> to the file.
 //------------------------------------------------------------------------------
@@ -971,9 +971,9 @@ void
 SiloFileIO::read(Field<Dim<2>, int>& value, const string pathName) const {
   FieldIO<Dim<2>, int>::read(mFilePtr, value, pathName);
 }
-//#endif
+#endif
 
-//#ifdef SPHERAL3D
+#ifdef SPHERAL3D
 //------------------------------------------------------------------------------
 // Write a Field<Dim<3>, Dim<3>::Scalar> to the file.
 //------------------------------------------------------------------------------
@@ -1069,6 +1069,6 @@ void
 SiloFileIO::read(Field<Dim<3>, int>& value, const string pathName) const {
   FieldIO<Dim<3>, int>::read(mFilePtr, value, pathName);
 }
-//#endif
+#endif
 
 }
