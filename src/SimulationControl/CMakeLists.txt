@@ -17,16 +17,29 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
-
-
 set(SPHERAL_VERSION_LIST ${abbref} ${short} ${oneline})
 string(REPLACE ";" " " spheralversion "${SPHERAL_VERSION_LIST}")
 configure_file(
   Spheral.py
   ${PROJECT_BINARY_DIR}/Spheral/Spheral.py)
 
+
+
+set(_dims 1)
+if(ENABLE_2D)
+   list(APPEND _dims 2)
+endif()
+if(ENABLE_3D)
+   list(APPEND _dims 3)
+endif()
+
+string(REPLACE ";" " " DIMS "${_dims}")
+configure_file(
+  spheralDimensions.py.in
+  ${PROJECT_BINARY_DIR}/Spheral/spheralDimensions.py)
+
+
 set(SimulationControl_python_targets
-    spheralDimensions.py
     Spheral1d.py
     Spheral2d.py
     Spheral3d.py
