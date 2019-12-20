@@ -98,6 +98,16 @@ def RKGradient(order = "const RKOrder",
 
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
+def RKHessian(order = "const RKOrder",
+              W = "const TableKernel<%(Dimension)s>&",
+              x = "const typename %(Dimension)s::Vector&",
+              H = "const typename %(Dimension)s::SymTensor&",
+              corrections = "const std::vector<double>&"):
+    "Compute the corrected kernel Hessian."
+    return "typename %(Dimension)s::SymTensor"
+
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
 @PYB11implementation("""[](const RKOrder order,
                            const TableKernel<%(Dimension)s>& W,
                            const typename %(Dimension)s::Vector& x,
@@ -363,6 +373,7 @@ RKCorrections%(ndim)id = PYB11TemplateClass(RKCorrections, template_parameters="
 
 RKKernel%(ndim)id = PYB11TemplateFunction(RKKernel, template_parameters="%(Dimension)s")
 RKGradient%(ndim)id = PYB11TemplateFunction(RKGradient, template_parameters="%(Dimension)s")
+RKHessian%(ndim)id = PYB11TemplateFunction(RKHessian, template_parameters="%(Dimension)s")
 RKKernelAndGradient%(ndim)id = PYB11TemplateFunction(RKKernelAndGradient, template_parameters="%(Dimension)s")
 computeRKCorrections%(ndim)id = PYB11TemplateFunction(computeRKCorrections, template_parameters="%(Dimension)s")
 computeRKNormal%(ndim)id = PYB11TemplateFunction(computeRKNormal, template_parameters="%(Dimension)s")

@@ -173,6 +173,15 @@ RKGradient(const RKOrder order,
            const typename Dimension::SymTensor& H,
            const std::vector<double>& corrections);
 
+// RK Hessian
+template<typename Dimension>
+typename Dimension::SymTensor
+RKHessian(const RKOrder order,
+          const TableKernel<Dimension>& W,
+          const typename Dimension::Vector& x,
+          const typename Dimension::SymTensor& H,
+          const std::vector<double>& corrections);
+
 // RK kernel + gradient
 template<typename Dimension>
 void

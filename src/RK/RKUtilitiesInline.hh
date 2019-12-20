@@ -826,6 +826,46 @@ RKGradient(const RKOrder order,
   }
 }
 
+// RK corrected Hessian
+template<typename Dimension>
+inline
+typename Dimension::SymTensor
+RKHessian(const RKOrder order,
+          const TableKernel<Dimension>& W,
+          const typename Dimension::Vector& x,
+          const typename Dimension::SymTensor& H,
+          const std::vector<double>& corrections) {
+  switch(order) {
+  case RKOrder::ZerothOrder:
+    return RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateHessian(W, x, H, corrections);
+    break;
+  case RKOrder::LinearOrder:
+    return RKUtilities<Dimension, RKOrder::LinearOrder>::evaluateHessian(W, x, H, corrections);
+    break;
+  case RKOrder::QuadraticOrder:
+    return RKUtilities<Dimension, RKOrder::QuadraticOrder>::evaluateHessian(W, x, H, corrections);
+    break;
+  case RKOrder::CubicOrder:
+    return RKUtilities<Dimension, RKOrder::CubicOrder>::evaluateHessian(W, x, H, corrections);
+    break;
+  case RKOrder::QuarticOrder:
+    return RKUtilities<Dimension, RKOrder::QuarticOrder>::evaluateHessian(W, x, H, corrections);
+    break;
+  case RKOrder::QuinticOrder:
+    return RKUtilities<Dimension, RKOrder::QuinticOrder>::evaluateHessian(W, x, H, corrections);
+    break;
+  case RKOrder::SexticOrder:
+    return RKUtilities<Dimension, RKOrder::SexticOrder>::evaluateHessian(W, x, H, corrections);
+    break;
+  case RKOrder::SepticOrder:
+    return RKUtilities<Dimension, RKOrder::SepticOrder>::evaluateHessian(W, x, H, corrections);
+    break;
+  default:
+    VERIFY2("Unknown order passed to RKHessian", false);
+    return Dimension::Vector::zero;
+  }
+}
+
 // RK corrected kernel + gradient
 template<typename Dimension>
 inline
