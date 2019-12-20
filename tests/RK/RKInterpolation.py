@@ -117,86 +117,64 @@ if dimension == 1:
     from Spheral1d import *
     if correctionOrder == ZerothOrder:
         RKCorrections = RKCorrections1d0
-        RKUtilities = RKUtilities1d0
     elif correctionOrder == LinearOrder:
         RKCorrections = RKCorrections1d1
-        RKUtilities = RKUtilities1d1
     elif correctionOrder == QuadraticOrder:
         RKCorrections = RKCorrections1d2
-        RKUtilities = RKUtilities1d2
     elif correctionOrder == CubicOrder:
         RKCorrections = RKCorrections1d3
-        RKUtilities = RKUtilities1d3
     elif correctionOrder == QuarticOrder:
         RKCorrections = RKCorrections1d4
-        RKUtilities = RKUtilities1d4
     elif correctionOrder == QuinticOrder:
         RKCorrections = RKCorrections1d5
-        RKUtilities = RKUtilities1d5
     elif correctionOrder == SexticOrder:
         RKCorrections = RKCorrections1d6
-        RKUtilities = RKUtilities1d6
     elif correctionOrder == SepticOrder:
         RKCorrections = RKCorrections1d7
-        RKUtilities = RKUtilities1d7
     else:
         raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
 elif dimension == 2:
     from Spheral2d import *
     if correctionOrder == ZerothOrder:
         RKCorrections = RKCorrections2d0
-        RKUtilities = RKUtilities2d0
     elif correctionOrder == LinearOrder:
         RKCorrections = RKCorrections2d1
-        RKUtilities = RKUtilities2d1
     elif correctionOrder == QuadraticOrder:
         RKCorrections = RKCorrections2d2
-        RKUtilities = RKUtilities2d2
     elif correctionOrder == CubicOrder:
         RKCorrections = RKCorrections2d3
-        RKUtilities = RKUtilities2d3
     elif correctionOrder == QuarticOrder:
         RKCorrections = RKCorrections2d4
-        RKUtilities = RKUtilities2d4
     elif correctionOrder == QuinticOrder:
         RKCorrections = RKCorrections2d5
-        RKUtilities = RKUtilities2d5
     elif correctionOrder == SexticOrder:
         RKCorrections = RKCorrections2d6
-        RKUtilities = RKUtilities2d6
     elif correctionOrder == SepticOrder:
         RKCorrections = RKCorrections2d7
-        RKUtilities = RKUtilities2d7
     else:
         raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
 else:
     from Spheral3d import *
     if correctionOrder == ZerothOrder:
         RKCorrections = RKCorrections3d0
-        RKUtilities = RKUtilities3d0
     elif correctionOrder == LinearOrder:
         RKCorrections = RKCorrections3d1
-        RKUtilities = RKUtilities3d1
     elif correctionOrder == QuadraticOrder:
         RKCorrections = RKCorrections3d2
-        RKUtilities = RKUtilities3d2
     elif correctionOrder == CubicOrder:
         RKCorrections = RKCorrections3d3
-        RKUtilities = RKUtilities3d3
     elif correctionOrder == QuarticOrder:
         RKCorrections = RKCorrections3d4
-        RKUtilities = RKUtilities3d4
     elif correctionOrder == QuinticOrder:
         RKCorrections = RKCorrections3d5
-        RKUtilities = RKUtilities3d5
     elif correctionOrder == SexticOrder:
         RKCorrections = RKCorrections3d6
-        RKUtilities = RKUtilities3d6
     elif correctionOrder == SepticOrder:
         RKCorrections = RKCorrections3d7
-        RKUtilities = RKUtilities3d7
     else:
         raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
+
+RKUtilities = makeRKUtilities(correctionOrder)
 
 #-------------------------------------------------------------------------------
 # Set up data

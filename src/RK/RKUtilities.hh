@@ -158,20 +158,20 @@ public:
 // RK kernel
 template<typename Dimension>
 typename Dimension::Scalar
-RKKernel(const TableKernel<Dimension>& W,
+RKKernel(const RKOrder order,
+         const TableKernel<Dimension>& W,
          const typename Dimension::Vector& x,
          const typename Dimension::SymTensor& H,
-         const std::vector<double>& corrections,
-         const RKOrder order);
-
+         const std::vector<double>& corrections);
+         
 // RK gradient
 template<typename Dimension>
 typename Dimension::Vector
-RKGradient(const TableKernel<Dimension>& W,
+RKGradient(const RKOrder order,
+           const TableKernel<Dimension>& W,
            const typename Dimension::Vector& x,
            const typename Dimension::SymTensor& H,
-           const std::vector<double>& corrections,
-           const RKOrder order);
+           const std::vector<double>& corrections);
 
 // RK kernel + gradient
 template<typename Dimension>
@@ -179,11 +179,24 @@ void
 RKKernelAndGradient(typename Dimension::Scalar& WRK,
                     typename Dimension::Vector& gradWSPH,
                     typename Dimension::Vector& gradWRK,
+                    const RKOrder order,
                     const TableKernel<Dimension>& W,
                     const typename Dimension::Vector& x,
                     const typename Dimension::SymTensor& H,
-                    const std::vector<double>& corrections,
-                    const RKOrder order);
+                    const std::vector<double>& corrections);
+
+// Compute corrections
+template<typename Dimension>
+void
+computeRKCorrections(const RKOrder order,
+                     const ConnectivityMap<Dimension>& connectivityMap,
+                     const TableKernel<Dimension>& kernel,
+                     const FieldList<Dimension, typename Dimension::Scalar>& volume,
+                     const FieldList<Dimension, typename Dimension::Vector>& position,
+                     const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                     const bool needHessian,
+                     FieldList<Dimension, std::vector<double>>& zerothCorrections,
+                     FieldList<Dimension, std::vector<double>>& corrections);
 
 } // end namespace Spheral
 

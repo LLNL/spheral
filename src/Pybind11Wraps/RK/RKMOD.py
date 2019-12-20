@@ -77,48 +77,62 @@ RKVolumeType = PYB11enum(("RKMassOverDensity", "RKSumVolume", "RKVoronoiVolume",
 # Methods
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
-def RKKernel(W = "const TableKernel<%(Dimension)s>&",
+def RKKernel(order = "const RKOrder",
+             W = "const TableKernel<%(Dimension)s>&",
              x = "const typename %(Dimension)s::Vector&",
              H = "const typename %(Dimension)s::SymTensor&",
-             corrections = "const std::vector<double>&",
-             order = "const RKOrder"):
+             corrections = "const std::vector<double>&"):
     "Compute the corrected kernel value."
     return "typename %(Dimension)s::Scalar"
 
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
-def RKGradient(W = "const TableKernel<%(Dimension)s>&",
+def RKGradient(order = "const RKOrder",
+               W = "const TableKernel<%(Dimension)s>&",
                x = "const typename %(Dimension)s::Vector&",
                H = "const typename %(Dimension)s::SymTensor&",
-               corrections = "const std::vector<double>&",
-               order = "const RKOrder"):
+               corrections = "const std::vector<double>&"):
     "Compute the corrected kernel gradient."
     return "typename %(Dimension)s::Vector"
 
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
-@PYB11implementation("""[](const TableKernel<%(Dimension)s>& W,
+@PYB11implementation("""[](const RKOrder order,
+                           const TableKernel<%(Dimension)s>& W,
                            const typename %(Dimension)s::Vector& x,
                            const typename %(Dimension)s::SymTensor& H,
-                           const std::vector<double>& corrections,
-                           const RKOrder order) {
+                           const std::vector<double>& corrections) {
                                typename %(Dimension)s::Scalar WRK, gradWSPH;
                                typename %(Dimension)s::Vector gradWRK;
                                RKKernelAndGradient(WRK, gradWSPH, gradWRK,                            
+                                                   order,
                                                    W,
                                                    x,
                                                    H,
-                                                   corrections,
-                                                   order);
+                                                   corrections);
                                return py::make_tuple(WRK, gradWSPH, gradWRK);
                            }""")
-def RKKernelAndGradient(W = "const TableKernel<%(Dimension)s>&",
+def RKKernelAndGradient(order = "const RKOrder",
+                        W = "const TableKernel<%(Dimension)s>&",
                         x = "const typename %(Dimension)s::Vector&",
                         H = "const typename %(Dimension)s::SymTensor&",
-                        corrections = "const std::vector<double>&",
-                        order = "const RKOrder"):
+                        corrections = "const std::vector<double>&"):
     "Compute the corrected kernel, SPH gradient magnitude, and corrected gradient."
     return "py::tuple"
+
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+def computeRKCorrections(order = "const RKOrder",
+                         connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
+                         W = "const TableKernel<%(Dimension)s>&",
+                         volume = "const FieldList<%(Dimension)s, %(Scalar)s>&",
+                         position = "const FieldList<%(Dimension)s, %(Vector)s>&",
+                         H = "const FieldList<%(Dimension)s, %(SymTensor)s>&",
+                         needHessian = "const bool",
+                         zerothCorrections = "FieldList<%(Dimension)s, std::vector<double>>&",
+                         corrections = "FieldList<%(Dimension)s, std::vector<double>>&"):
+    "Compute the RK corrections for the requested order"
+    return "void"
 
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
@@ -272,9 +286,10 @@ def interpolateRK(fieldLists = "py::list&",
 #-------------------------------------------------------------------------------
 for ndim in dims:
     exec('''
-RKKernel%(ndim)id = PYB11TemplateFunction(RKKernel, template_parameters="%(Dimension)s", pyname="RKKernel")
-RKGradient%(ndim)id = PYB11TemplateFunction(RKGradient, template_parameters="%(Dimension)s", pyname="RKGradient")
-RKKernelAndGradient%(ndim)id = PYB11TemplateFunction(RKKernelAndGradient, template_parameters="%(Dimension)s", pyname="RKKernelAndGradient")
+RKKernel%(ndim)id = PYB11TemplateFunction(RKKernel, template_parameters="%(Dimension)s")
+RKGradient%(ndim)id = PYB11TemplateFunction(RKGradient, template_parameters="%(Dimension)s")
+RKKernelAndGradient%(ndim)id = PYB11TemplateFunction(RKKernelAndGradient, template_parameters="%(Dimension)s")
+computeRKCorrections%(ndim)id = PYB11TemplateFunction(computeRKCorrections, template_parameters="%(Dimension)s")
 computeRKVolumes%(ndim)id = PYB11TemplateFunction(computeRKVolumes, template_parameters="%(Dimension)s")
 computeRKSumVolume%(ndim)id = PYB11TemplateFunction(computeRKSumVolume, template_parameters="%(Dimension)s")
 computeOccupancyVolume%(ndim)id = PYB11TemplateFunction(computeOccupancyVolume, template_parameters="%(Dimension)s")
@@ -283,11 +298,14 @@ computeHullVolumes%(ndim)id = PYB11TemplateFunction(computeHullVolumes, template
 computeHVolumes%(ndim)id = PYB11TemplateFunction(computeHVolumes, template_parameters="%(Dimension)s")
 interpolateRK%(ndim)id = PYB11TemplateFunction(interpolateRK, template_parameters="Dim<%(ndim)i>", pyname="interpolateRK")
 ''' % {"ndim"      : ndim,
-       "Dimension" : "Dim<" + str(ndim) + ">"})
+       "Dimension" : "Dim<" + str(ndim) + ">",
+       "Scalar"    : "Dim<" + str(ndim) + ">::Scalar",
+       "Vector"    : "Dim<" + str(ndim) + ">::Vector",
+       "Tensor"    : "Dim<" + str(ndim) + ">::Tensor",
+       "SymTensor" : "Dim<" + str(ndim) + ">::SymTensor"})
 
     # RKCorrections and RKUtilities
-    for num, correctionOrder in zip((0, 1, 2, 3, 4, 5, 6, 7),
-                                    ("ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder", "QuarticOrder", "QuinticOrder", "SexticOrder", "SepticOrder")):
+    for num, correctionOrder in enumerate(("ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder", "QuarticOrder", "QuinticOrder", "SexticOrder", "SepticOrder")):
         exec(''' 
 RKCorrections%(ndim)sd%(num)s = PYB11TemplateClass(RKCorrections, template_parameters=("%(Dimension)s", "RKOrder::%(correctionOrder)s"))
 RKUtilities%(ndim)sd%(num)s = PYB11TemplateClass(RKUtilities, template_parameters=("%(Dimension)s", "RKOrder::%(correctionOrder)s"))

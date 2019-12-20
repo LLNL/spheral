@@ -750,28 +750,37 @@ getHessPolynomials(const Dim<3>::Vector& x,
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-RKKernel(const TableKernel<Dimension>& W,
+RKKernel(const RKOrder order,
+         const TableKernel<Dimension>& W,
          const typename Dimension::Vector& x,
          const typename Dimension::SymTensor& H,
-         const std::vector<double>& corrections,
-         const RKOrder order) {
-  if (order == RKOrder::ZerothOrder) {
+         const std::vector<double>& corrections) {
+  switch(order) {
+  case RKOrder::ZerothOrder:
     return RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateKernel(W, x, H, corrections);
-  } else if (order == RKOrder::LinearOrder) {
+    break;
+  case RKOrder::LinearOrder:
     return RKUtilities<Dimension, RKOrder::LinearOrder>::evaluateKernel(W, x, H, corrections);
-  } else if (order == RKOrder::QuadraticOrder) {
+    break;
+  case RKOrder::QuadraticOrder:
     return RKUtilities<Dimension, RKOrder::QuadraticOrder>::evaluateKernel(W, x, H, corrections);
-  } else if (order == RKOrder::CubicOrder) {
+    break;
+  case RKOrder::CubicOrder:
     return RKUtilities<Dimension, RKOrder::CubicOrder>::evaluateKernel(W, x, H, corrections);
-  } else if (order == RKOrder::QuarticOrder) {
+    break;
+  case RKOrder::QuarticOrder:
     return RKUtilities<Dimension, RKOrder::QuarticOrder>::evaluateKernel(W, x, H, corrections);
-  } else if (order == RKOrder::QuinticOrder) {
+    break;
+  case RKOrder::QuinticOrder:
     return RKUtilities<Dimension, RKOrder::QuinticOrder>::evaluateKernel(W, x, H, corrections);
-  } else if (order == RKOrder::SexticOrder) {
+    break;
+  case RKOrder::SexticOrder:
     return RKUtilities<Dimension, RKOrder::SexticOrder>::evaluateKernel(W, x, H, corrections);
-  } else if (order == RKOrder::SepticOrder) {
+    break;
+  case RKOrder::SepticOrder:
     return RKUtilities<Dimension, RKOrder::SepticOrder>::evaluateKernel(W, x, H, corrections);
-  } else {
+    break;
+  default:
     VERIFY2("Unknown order passed to RKKernel", false);
     return 0.0;
   }
@@ -781,28 +790,37 @@ RKKernel(const TableKernel<Dimension>& W,
 template<typename Dimension>
 inline
 typename Dimension::Vector
-RKGradient(const TableKernel<Dimension>& W,
+RKGradient(const RKOrder order,
+           const TableKernel<Dimension>& W,
            const typename Dimension::Vector& x,
            const typename Dimension::SymTensor& H,
-           const std::vector<double>& corrections,
-           const RKOrder order) {
-  if (order == RKOrder::ZerothOrder) {
+           const std::vector<double>& corrections) {
+  switch(order) {
+  case RKOrder::ZerothOrder:
     return RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateGradient(W, x, H, corrections);
-  } else if (order == RKOrder::LinearOrder) {
+    break;
+  case RKOrder::LinearOrder:
     return RKUtilities<Dimension, RKOrder::LinearOrder>::evaluateGradient(W, x, H, corrections);
-  } else if (order == RKOrder::QuadraticOrder) {
+    break;
+  case RKOrder::QuadraticOrder:
     return RKUtilities<Dimension, RKOrder::QuadraticOrder>::evaluateGradient(W, x, H, corrections);
-  } else if (order == RKOrder::CubicOrder) {
+    break;
+  case RKOrder::CubicOrder:
     return RKUtilities<Dimension, RKOrder::CubicOrder>::evaluateGradient(W, x, H, corrections);
-  } else if (order == RKOrder::QuarticOrder) {
+    break;
+  case RKOrder::QuarticOrder:
     return RKUtilities<Dimension, RKOrder::QuarticOrder>::evaluateGradient(W, x, H, corrections);
-  } else if (order == RKOrder::QuinticOrder) {
+    break;
+  case RKOrder::QuinticOrder:
     return RKUtilities<Dimension, RKOrder::QuinticOrder>::evaluateGradient(W, x, H, corrections);
-  } else if (order == RKOrder::SexticOrder) {
+    break;
+  case RKOrder::SexticOrder:
     return RKUtilities<Dimension, RKOrder::SexticOrder>::evaluateGradient(W, x, H, corrections);
-  } else if (order == RKOrder::SepticOrder) {
+    break;
+  case RKOrder::SepticOrder:
     return RKUtilities<Dimension, RKOrder::SepticOrder>::evaluateGradient(W, x, H, corrections);
-  } else {
+    break;
+  default:
     VERIFY2("Unknown order passed to RKGradient", false);
     return Dimension::Vector::zero;
   }
@@ -815,38 +833,82 @@ void
 RKKernelAndGradient(typename Dimension::Scalar& WRK,
                     typename Dimension::Scalar& gradWSPH,
                     typename Dimension::Vector& gradWRK,
+                    const RKOrder order,
                     const TableKernel<Dimension>& W,
                     const typename Dimension::Vector& x,
                     const typename Dimension::SymTensor& H,
-                    const std::vector<double>& corrections,
-                    const RKOrder order) {
+                    const std::vector<double>& corrections) {
   gradWSPH = W.gradValue((H*x).magnitude(), H.Determinant());
-  if (order == RKOrder::ZerothOrder) {
-    WRK      = RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateKernel(W, x, H, corrections);
-    gradWRK  = RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateGradient(W, x, H, corrections);
-  } else if (order == RKOrder::LinearOrder) {
-    WRK      = RKUtilities<Dimension, RKOrder::LinearOrder>::evaluateKernel(W, x, H, corrections);
-    gradWRK  = RKUtilities<Dimension, RKOrder::LinearOrder>::evaluateGradient(W, x, H, corrections);
-  } else if (order == RKOrder::QuadraticOrder) {
-    WRK      = RKUtilities<Dimension, RKOrder::QuadraticOrder>::evaluateKernel(W, x, H, corrections);
-    gradWRK  = RKUtilities<Dimension, RKOrder::QuadraticOrder>::evaluateGradient(W, x, H, corrections);
-  } else if (order == RKOrder::CubicOrder) {
-    WRK      = RKUtilities<Dimension, RKOrder::CubicOrder>::evaluateKernel(W, x, H, corrections);
-    gradWRK  = RKUtilities<Dimension, RKOrder::CubicOrder>::evaluateGradient(W, x, H, corrections);
-  } else if (order == RKOrder::QuarticOrder) {
-    WRK      = RKUtilities<Dimension, RKOrder::QuarticOrder>::evaluateKernel(W, x, H, corrections);
-    gradWRK  = RKUtilities<Dimension, RKOrder::QuarticOrder>::evaluateGradient(W, x, H, corrections);
-  } else if (order == RKOrder::QuinticOrder) {
-    WRK      = RKUtilities<Dimension, RKOrder::QuinticOrder>::evaluateKernel(W, x, H, corrections);
-    gradWRK  = RKUtilities<Dimension, RKOrder::QuinticOrder>::evaluateGradient(W, x, H, corrections);
-  } else if (order == RKOrder::SexticOrder) {
-    WRK      = RKUtilities<Dimension, RKOrder::SexticOrder>::evaluateKernel(W, x, H, corrections);
-    gradWRK  = RKUtilities<Dimension, RKOrder::SexticOrder>::evaluateGradient(W, x, H, corrections);
-  } else if (order == RKOrder::SepticOrder) {
-    WRK      = RKUtilities<Dimension, RKOrder::SepticOrder>::evaluateKernel(W, x, H, corrections);
-    gradWRK  = RKUtilities<Dimension, RKOrder::SepticOrder>::evaluateGradient(W, x, H, corrections);
-  } else {
+  switch(order) {
+  case RKOrder::ZerothOrder:
+    std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateKernelAndGradient(W, x, H, corrections);
+    break;
+  case RKOrder::LinearOrder:
+    std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::LinearOrder>::evaluateKernelAndGradient(W, x, H, corrections);
+    break;
+  case RKOrder::QuadraticOrder:
+    std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::QuadraticOrder>::evaluateKernelAndGradient(W, x, H, corrections);
+    break;
+  case RKOrder::CubicOrder:
+    std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::CubicOrder>::evaluateKernelAndGradient(W, x, H, corrections);
+    break;
+  case RKOrder::QuarticOrder:
+    std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::QuarticOrder>::evaluateKernelAndGradient(W, x, H, corrections);
+    break;
+  case RKOrder::QuinticOrder:
+    std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::QuinticOrder>::evaluateKernelAndGradient(W, x, H, corrections);
+    break;
+  case RKOrder::SexticOrder:
+    std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::SexticOrder>::evaluateKernelAndGradient(W, x, H, corrections);
+    break;
+  case RKOrder::SepticOrder:
+    std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::SepticOrder>::evaluateKernelAndGradient(W, x, H, corrections);
+    break;
+  default:
     VERIFY2("Unknown order passed to RKKernelAndGradient", false);
+  }
+}
+
+// RK corrections
+template<typename Dimension>
+inline
+void
+computeRKCorrections(const RKOrder order,
+                     const ConnectivityMap<Dimension>& connectivityMap,
+                     const TableKernel<Dimension>& kernel,
+                     const FieldList<Dimension, typename Dimension::Scalar>& volume,
+                     const FieldList<Dimension, typename Dimension::Vector>& position,
+                     const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                     const bool needHessian,
+                     FieldList<Dimension, std::vector<double>>& zerothCorrections,
+                     FieldList<Dimension, std::vector<double>>& corrections) {
+  switch(order) {
+  case RKOrder::ZerothOrder:
+    RKUtilities<Dimension, RKOrder::ZerothOrder>::computeCorrections(connectivityMap, kernel, volume, position, H, needHessian, zerothCorrections, corrections);
+    break;
+  case RKOrder::LinearOrder:
+    RKUtilities<Dimension, RKOrder::LinearOrder>::computeCorrections(connectivityMap, kernel, volume, position, H, needHessian, zerothCorrections, corrections);
+    break;
+  case RKOrder::QuadraticOrder:
+    RKUtilities<Dimension, RKOrder::QuadraticOrder>::computeCorrections(connectivityMap, kernel, volume, position, H, needHessian, zerothCorrections, corrections);
+    break;
+  case RKOrder::CubicOrder:
+    RKUtilities<Dimension, RKOrder::CubicOrder>::computeCorrections(connectivityMap, kernel, volume, position, H, needHessian, zerothCorrections, corrections);
+    break;
+  case RKOrder::QuarticOrder:
+    RKUtilities<Dimension, RKOrder::QuarticOrder>::computeCorrections(connectivityMap, kernel, volume, position, H, needHessian, zerothCorrections, corrections);
+    break;
+  case RKOrder::QuinticOrder:
+    RKUtilities<Dimension, RKOrder::QuinticOrder>::computeCorrections(connectivityMap, kernel, volume, position, H, needHessian, zerothCorrections, corrections);
+    break;
+  case RKOrder::SexticOrder:
+    RKUtilities<Dimension, RKOrder::SexticOrder>::computeCorrections(connectivityMap, kernel, volume, position, H, needHessian, zerothCorrections, corrections);
+    break;
+  case RKOrder::SepticOrder:
+    RKUtilities<Dimension, RKOrder::SepticOrder>::computeCorrections(connectivityMap, kernel, volume, position, H, needHessian, zerothCorrections, corrections);
+    break;
+  default:
+    VERIFY2("Unknown order passed to computeRKCorrections", false);
   }
 }
 
