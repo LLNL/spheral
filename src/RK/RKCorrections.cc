@@ -23,12 +23,14 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
-RKCorrections<Dimension, correctionOrder>::
-RKCorrections(const DataBase<Dimension>& dataBase,
+template<typename Dimension>
+RKCorrections<Dimension>::
+RKCorrections(const RKOrder order,
+              const DataBase<Dimension>& dataBase,
               const TableKernel<Dimension>& W,
               const RKVolumeType volumeType,
               const bool needHessian):
+  mCorrectionOrder(order),
   mDataBase(dataBase),
   mW(W),
   mVolumeType(volumeType),
@@ -48,17 +50,17 @@ RKCorrections(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
-RKCorrections<Dimension, correctionOrder>::
+template<typename Dimension>
+RKCorrections<Dimension>::
 ~RKCorrections() {
 }
 
 //------------------------------------------------------------------------------
 // Optional hook to initialize once when the problem is starting up
 //------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
+template<typename Dimension>
 void
-RKCorrections<Dimension, correctionOrder>::
+RKCorrections<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Initialize state
   mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
@@ -110,22 +112,20 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   }
   
   // Compute corrections
-  RKUtilities<Dimension, correctionOrder>::
-    computeCorrections(connectivityMap, mW, mVolume, position, H,
+  computeRKCorrections(mCorrectionOrder, connectivityMap, mW, mVolume, position, H,
                        mNeedHessian, mZerothCorrections, mCorrections);
 
   // Compute normal direction
-  RKUtilities<Dimension, RKOrder::ZerothOrder>::
-    computeNormal(connectivityMap, mW, mVolume, position, H,
+  computeRKNormal(RKOrder::ZerothOrder, connectivityMap, mW, mVolume, position, H,
                   mZerothCorrections, mSurfaceArea, mNormal);
 }
 
 //------------------------------------------------------------------------------
 // Register the state
 //------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
+template<typename Dimension>
 void
-RKCorrections<Dimension, correctionOrder>::
+RKCorrections<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   // Stuff RKCorrections owns
@@ -156,9 +156,9 @@ registerState(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // No derivatives to register
 //------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
+template<typename Dimension>
 void
-RKCorrections<Dimension, correctionOrder>::
+RKCorrections<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
 }
@@ -166,9 +166,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // Apply the ghost boundary conditions
 //------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
+template<typename Dimension>
 void
-RKCorrections<Dimension, correctionOrder>::
+RKCorrections<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
   // Get state variables
@@ -201,9 +201,9 @@ applyGhostBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 // Enforce the boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
+template<typename Dimension>
 void
-RKCorrections<Dimension, correctionOrder>::
+RKCorrections<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   // Get state variables
@@ -224,9 +224,9 @@ enforceBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 // No time step vote
 //------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
-typename RKCorrections<Dimension, correctionOrder>::TimeStepType
-RKCorrections<Dimension, correctionOrder>::
+template<typename Dimension>
+typename RKCorrections<Dimension>::TimeStepType
+RKCorrections<Dimension>::
 dt(const DataBase<Dimension>& dataBase, 
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
@@ -237,9 +237,9 @@ dt(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // Compute new volumes
 //------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
+template<typename Dimension>
 void
-RKCorrections<Dimension, correctionOrder>::
+RKCorrections<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
@@ -287,9 +287,9 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // Compute new RK corrections
 //------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
+template<typename Dimension>
 void
-RKCorrections<Dimension, correctionOrder>::
+RKCorrections<Dimension>::
 initialize(const typename Dimension::Scalar time,
            const typename Dimension::Scalar dt,
            const DataBase<Dimension>& dataBase,
@@ -307,16 +307,14 @@ initialize(const typename Dimension::Scalar time,
   auto normal = state.fields(HydroFieldNames::normal, Vector::zero);
   
   // Compute corrections
-  RKUtilities<Dimension, correctionOrder>::
-    computeCorrections(connectivityMap, W, volume, position, H,
+  computeRKCorrections(mCorrectionOrder, connectivityMap, W, volume, position, H,
                        mNeedHessian, zerothCorrections, corrections);
 
-  RKUtilities<Dimension, RKOrder::ZerothOrder>::
-    computeNormal(connectivityMap, W, volume, position, H,
+  computeRKNormal(mCorrectionOrder, connectivityMap, W, volume, position, H,
                   zerothCorrections, surfaceArea, normal);
   
   // Apply ghost boundaries to corrections
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  for (auto boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
     (*boundaryItr)->applyFieldListGhostBoundary(zerothCorrections);
@@ -333,9 +331,9 @@ initialize(const typename Dimension::Scalar time,
 //------------------------------------------------------------------------------
 // No derivatives to evaluate
 //------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
+template<typename Dimension>
 void
-RKCorrections<Dimension, correctionOrder>::
+RKCorrections<Dimension>::
 evaluateDerivatives(const Scalar time,
                     const Scalar dt,
                     const DataBase<Dimension>& dataBase,
@@ -346,9 +344,9 @@ evaluateDerivatives(const Scalar time,
 //------------------------------------------------------------------------------
 // Nothing to finalize
 //------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
+template<typename Dimension>
 void
-RKCorrections<Dimension, correctionOrder>::
+RKCorrections<Dimension>::
 finalize(const Scalar time, 
          const Scalar dt,
          DataBase<Dimension>& dataBase, 
@@ -359,9 +357,9 @@ finalize(const Scalar time,
 //------------------------------------------------------------------------------
 // Dump the current state to the given file
 //------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
+template<typename Dimension>
 void
-RKCorrections<Dimension, correctionOrder>::
+RKCorrections<Dimension>::
 dumpState(FileIO& file, const std::string& pathName) const {
   file.write(mVolume, pathName + "/Volume");
   file.write(mZerothCorrections, pathName + "/ZerothRKCorrections");
@@ -371,9 +369,9 @@ dumpState(FileIO& file, const std::string& pathName) const {
 //------------------------------------------------------------------------------
 // Restore the state from the given file
 //------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
+template<typename Dimension>
 void
-RKCorrections<Dimension, correctionOrder>::
+RKCorrections<Dimension>::
 restoreState(const FileIO& file, const std::string& pathName) {
   file.read(mVolume, pathName + "/Volume");
   file.read(mZerothCorrections, pathName + "/ZerothRKCorrections");

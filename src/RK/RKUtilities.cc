@@ -182,8 +182,8 @@ evaluateKernelAndGradient(const TableKernel<Dimension>& kernel,
                           const Vector& x,
                           const SymTensor& H,
                           const std::vector<double>& corrections) {
-  CHECK(corrections.size() == correctionsSize(false)
-        || corrections.size() == correctionsSize(true));
+  CHECK2(corrections.size() == correctionsSize(false)
+         || corrections.size() == correctionsSize(true), corrections.size() << " " << correctionsSize(false) << " " << correctionsSize(true));
   
   // Get kernel and polynomials
   const auto wdw = evaluateBaseKernelAndGradient(kernel, x, H);

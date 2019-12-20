@@ -912,4 +912,47 @@ computeRKCorrections(const RKOrder order,
   }
 }
 
+// Surface normals
+template<typename Dimension>
+inline
+void
+computeRKNormal(const RKOrder order,
+                const ConnectivityMap<Dimension>& connectivityMap,
+                const TableKernel<Dimension>& kernel,
+                const FieldList<Dimension, typename Dimension::Scalar>& volume,
+                const FieldList<Dimension, typename Dimension::Vector>& position,
+                const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                FieldList<Dimension, std::vector<double>>& corrections,
+                FieldList<Dimension, typename Dimension::Scalar>& surfaceArea,
+                FieldList<Dimension, typename Dimension::Vector>& normal) {
+  switch(order) {
+  case RKOrder::ZerothOrder:
+    RKUtilities<Dimension, RKOrder::ZerothOrder>::computeNormal(connectivityMap, kernel, volume, position, H, corrections, surfaceArea, normal);
+    break;
+  case RKOrder::LinearOrder:
+    RKUtilities<Dimension, RKOrder::LinearOrder>::computeNormal(connectivityMap, kernel, volume, position, H, corrections, surfaceArea, normal);
+    break;
+  case RKOrder::QuadraticOrder:
+    RKUtilities<Dimension, RKOrder::QuadraticOrder>::computeNormal(connectivityMap, kernel, volume, position, H, corrections, surfaceArea, normal);
+    break;
+  case RKOrder::CubicOrder:
+    RKUtilities<Dimension, RKOrder::CubicOrder>::computeNormal(connectivityMap, kernel, volume, position, H, corrections, surfaceArea, normal);
+    break;
+  case RKOrder::QuarticOrder:
+    RKUtilities<Dimension, RKOrder::QuarticOrder>::computeNormal(connectivityMap, kernel, volume, position, H, corrections, surfaceArea, normal);
+    break;
+  case RKOrder::QuinticOrder:
+    RKUtilities<Dimension, RKOrder::QuinticOrder>::computeNormal(connectivityMap, kernel, volume, position, H, corrections, surfaceArea, normal);
+    break;
+  case RKOrder::SexticOrder:
+    RKUtilities<Dimension, RKOrder::SexticOrder>::computeNormal(connectivityMap, kernel, volume, position, H, corrections, surfaceArea, normal);
+    break;
+  case RKOrder::SepticOrder:
+    RKUtilities<Dimension, RKOrder::SepticOrder>::computeNormal(connectivityMap, kernel, volume, position, H, corrections, surfaceArea, normal);
+    break;
+  default:
+    VERIFY2("Unknown order passed to computeRKCorrections", false);
+  }
+}
+
 } // end namespace Spheral

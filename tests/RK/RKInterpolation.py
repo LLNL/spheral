@@ -67,10 +67,8 @@ commandLine(
     testHessian = False,
     useOldKernel = False, # Test using old kernel
     useBaseKernel = False, # Test using standard SPH kernel
-    checkAgainstOld = False,
     printErrors = False,
     quitAfterTiming = False,
-    computeCorrectionsDirectly = False,
     numToCheck = -1, # -1 for all nodes, positive int for a few random nodes
     
     # Manufactured parameters
@@ -111,70 +109,9 @@ if mpi.procs > 1:
     raise ValueError, "parallel node generation not working"
     
 #-------------------------------------------------------------------------------
-# Choose correct corrections
+# Choose correct dimension aliases
 #-------------------------------------------------------------------------------
-if dimension == 1:
-    from Spheral1d import *
-    if correctionOrder == ZerothOrder:
-        RKCorrections = RKCorrections1d0
-    elif correctionOrder == LinearOrder:
-        RKCorrections = RKCorrections1d1
-    elif correctionOrder == QuadraticOrder:
-        RKCorrections = RKCorrections1d2
-    elif correctionOrder == CubicOrder:
-        RKCorrections = RKCorrections1d3
-    elif correctionOrder == QuarticOrder:
-        RKCorrections = RKCorrections1d4
-    elif correctionOrder == QuinticOrder:
-        RKCorrections = RKCorrections1d5
-    elif correctionOrder == SexticOrder:
-        RKCorrections = RKCorrections1d6
-    elif correctionOrder == SepticOrder:
-        RKCorrections = RKCorrections1d7
-    else:
-        raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
-elif dimension == 2:
-    from Spheral2d import *
-    if correctionOrder == ZerothOrder:
-        RKCorrections = RKCorrections2d0
-    elif correctionOrder == LinearOrder:
-        RKCorrections = RKCorrections2d1
-    elif correctionOrder == QuadraticOrder:
-        RKCorrections = RKCorrections2d2
-    elif correctionOrder == CubicOrder:
-        RKCorrections = RKCorrections2d3
-    elif correctionOrder == QuarticOrder:
-        RKCorrections = RKCorrections2d4
-    elif correctionOrder == QuinticOrder:
-        RKCorrections = RKCorrections2d5
-    elif correctionOrder == SexticOrder:
-        RKCorrections = RKCorrections2d6
-    elif correctionOrder == SepticOrder:
-        RKCorrections = RKCorrections2d7
-    else:
-        raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
-else:
-    from Spheral3d import *
-    if correctionOrder == ZerothOrder:
-        RKCorrections = RKCorrections3d0
-    elif correctionOrder == LinearOrder:
-        RKCorrections = RKCorrections3d1
-    elif correctionOrder == QuadraticOrder:
-        RKCorrections = RKCorrections3d2
-    elif correctionOrder == CubicOrder:
-        RKCorrections = RKCorrections3d3
-    elif correctionOrder == QuarticOrder:
-        RKCorrections = RKCorrections3d4
-    elif correctionOrder == QuinticOrder:
-        RKCorrections = RKCorrections3d5
-    elif correctionOrder == SexticOrder:
-        RKCorrections = RKCorrections3d6
-    elif correctionOrder == SepticOrder:
-        RKCorrections = RKCorrections3d7
-    else:
-        raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
-
-RKUtilities = makeRKUtilities(correctionOrder)
+exec("from Spheral%id import *" % dimension)
 
 #-------------------------------------------------------------------------------
 # Set up data
@@ -520,10 +457,11 @@ else:
 #-------------------------------------------------------------------------------
 # Create RK object
 #-------------------------------------------------------------------------------
-rk = RKCorrections(dataBase = dataBase,
-                           W = WT,
-                           volumeType = volumeType,
-                           needHessian = testHessian)
+rk = RKCorrections(order = correctionOrder,
+                   dataBase = dataBase,
+                   W = WT,
+                   volumeType = volumeType,
+                   needHessian = testHessian)
 packages = [rk]
 
 #-------------------------------------------------------------------------------
@@ -550,171 +488,14 @@ corrections = state.vector_of_doubleFields(HydroFieldNames.rkCorrections)
 #-------------------------------------------------------------------------------
 # Compute corrections
 #-------------------------------------------------------------------------------
-if computeCorrectionsDirectly:
-    rk_time = time.time()
-    RKUtilities.computeCorrections(connectivity, WT, volume, position, H, testHessian,
-                                   zerothCorrections, corrections)
-    rk_time = time.time() - rk_time
-else:
-    rk_time = time.time()
-    rk.initialize(0.0, 0.0, dataBase, state, derivs)
-    rk_time = time.time() - rk_time
+rk_time = time.time()
+computeRKCorrections(correctionOrder, connectivity, WT, volume, position, H, testHessian,
+                     zerothCorrections, corrections)
+rk_time = time.time() - rk_time
 output("rk_time")
-
-#-------------------------------------------------------------------------------
-# Get old corrections
-#-------------------------------------------------------------------------------
-if correctionOrder <= QuadraticOrder and checkAgainstOld:
-    A = dataBase.newFluidScalarFieldList(name="A")
-    B = dataBase.newFluidVectorFieldList(name="B")
-    C = dataBase.newFluidTensorFieldList(name="C")
-    gradA = dataBase.newFluidVectorFieldList(name="gradA")
-    gradB = dataBase.newFluidTensorFieldList(name="gradB")
-    gradC = dataBase.newFluidThirdRankTensorFieldList(name="gradB")
-    
-    M0 = dataBase.newFluidScalarFieldList(name="M0")
-    M1 = dataBase.newFluidVectorFieldList(name="M1")
-    M2 = dataBase.newFluidSymTensorFieldList(name="M2")
-    M3 = dataBase.newFluidThirdRankTensorFieldList(name="M3")
-    M4 = dataBase.newFluidFourthRankTensorFieldList(name="M4")
-    gradM0 = dataBase.newFluidVectorFieldList(name="grad M0")
-    gradM1 = dataBase.newFluidTensorFieldList(name="grad M1")
-    gradM2 = dataBase.newFluidThirdRankTensorFieldList(name="grad M2")
-    gradM3 = dataBase.newFluidFourthRankTensorFieldList(name="grad M3")
-    gradM4 = dataBase.newFluidFifthRankTensorFieldList(name="grad M4")
-    
-    surfacePoint = dataBase.newFluidIntFieldList(name="surface point")
-
-    old_rk_time = time.time()
-    computeCRKSPHMoments(connectivity, WT, volume, position, H, correctionOrder, NodeCoupling(),
-                         M0, M1, M2, M3, M4, gradM0, gradM1, gradM2, gradM3, gradM4)
-    computeCRKSPHCorrections(M0, M1, M2, M3, M4, gradM0, gradM1, gradM2, gradM3, gradM4,
-                             H, surfacePoint, correctionOrder,
-                             A, B, C, gradA, gradB, gradC)
-    old_rk_time = time.time() - old_rk_time
-    output("old_rk_time")
 
 if quitAfterTiming:
     quit()
-    
-#-------------------------------------------------------------------------------
-# Set up a simple method to calculate the kernel
-#-------------------------------------------------------------------------------
-# Base kernel
-def getBaseKernel(ni, i, nj, j):
-    xi = position(ni, i)
-    xj = position(nj, j)
-    xij = xi - xj
-    Hj = H(nj, j)
-    w = RKUtilities.evaluateBaseKernel(WT, xij, Hj)
-    dw = RKUtilities.evaluateBaseGradient(WT, xij, Hj)
-    if testHessian:
-        ddw = RKUtilities.evaluateBaseHessian(WT, xij, Hj)
-        ddw = np.reshape(ddw, (dimension, dimension))
-    else:
-        ddw = np.zeros((dimension, dimension))
-    return w, dw, ddw
-
-# RK kernel
-def getNewKernel(ni, i, nj, j):
-    xi = position(ni, i)
-    xj = position(nj, j)
-    xij = xi - xj
-    Hj = H(nj, j)
-    c = corrections(ni, i)
-    w = RKUtilities.evaluateKernel(WT, xij, Hj, c)
-    dw = RKUtilities.evaluateGradient(WT, xij, Hj, c)
-    if testHessian:
-        ddwtemp = RKUtilities.evaluateHessian(WT, xij, Hj, c)
-        ddw = np.zeros((dimension, dimension))
-        for d1 in range(dimension):
-            for d2 in range(dimension):
-                ddw[d1,d2] = ddwtemp(d1, d2)
-    else:
-        ddw = np.zeros((dimension, dimension))
-    return w, dw, ddw
-
-# Old kernel
-def getOldKernel(ni, i, nj, j):
-    xi = position(ni, i)
-    xj = position(nj, j)
-    Hj = H(nj, j)
-    xij = xi - xj
-    etaj = Hj * xij
-    Hdetj = Hj.Determinant()
-    Ai = A(ni, i)
-    Bi = B(ni, i) if correctionOrder >= LinearOrder else Vector.zero
-    Ci = C(ni, i) if correctionOrder >= QuadraticOrder else Tensor.zero
-    dAi = gradA(ni, i)
-    dBi = gradB(ni, i) if correctionOrder >= LinearOrder else Tensor.zero
-    dCi = gradC(ni, i) if correctionOrder >= QuadraticOrder else ThirdRankTensor.zero
-    w, dwtemp, dw = CRKSPHKernelAndGradient(WT, correctionOrder,
-                                            xij, etaj, Hj, Hdetj,
-                                            Ai, Bi, Ci, dAi, dBi, dCi)
-    ddw = Tensor.zero
-    return w, dw, ddw
-
-# Kernel to test with
-getKernel = getOldKernel if useOldKernel else getNewKernel
-getKernel = getBaseKernel if useBaseKernel else getNewKernel
-
-#-------------------------------------------------------------------------------
-# Check against old method of doing corrections
-#-------------------------------------------------------------------------------
-if correctionOrder <= QuadraticOrder and checkAgainstOld:
-    # Check old and new corrections
-    for i in range(nodes.numNodes):
-        ni = 0
-        # Get old corrections in same format as new
-        old = [A(ni, i)]
-        if correctionOrder >= LinearOrder:
-            for d in range(dimension):
-                old.append(A(ni,i) * B(ni, i)[d])
-        if correctionOrder >= QuadraticOrder:
-            for d1 in range(dimension):
-                for d2 in range(d1, dimension):
-                    old.append(A(ni, i) * C(ni, i)[dimension*d1+d2])
-        for d in range(dimension):
-            old.append(gradA(ni, i)[d])
-        if correctionOrder >= LinearOrder:
-            a = A(ni, i)
-            for d2 in range(dimension):
-                da = gradA(ni, i)[d2]
-                for d1 in range(dimension):
-                    b = B(ni, i)[d1]
-                    db = gradB(ni, i)[d1 * dimension + d2]
-                    old.append(da * b + a * db)
-        if correctionOrder >= QuadraticOrder:
-            for d1 in range(dimension):
-                for d2 in range(d1, dimension):
-                    c = C(ni, i)[d1*dimension + d2]
-                    for d3 in range(dimension):
-                        da = gradA(ni, i)[d3]
-                        dc = gradC(ni, i)[d1*dimension*dimension + d2*dimension + d3]
-                        old.append(da * c + a * dc)
-        # Compare to new corrections
-        c = np.array(corrections(ni, i))
-        err = np.abs(np.subtract(c, old))
-        if any(err > 1.e-6) and printErrors:
-            print i
-            print "\t", c
-            print "\t", old
-            print "\t", np.subtract(c, old)
-
-    # Compare kernel values
-    for i in range(nodes.numNodes):
-        ni = 0
-        connectivityi = connectivity.connectivityForNode(ni, i)
-        for nj, neighbors in enumerate(connectivityi):
-            for j in neighbors:
-                wnew, dwnew, ddwnew = getNewKernel(ni, i, nj, j)
-                wold, dwold, ddwtemp = getOldKernel(ni, i, nj, j)
-                dwnew = np.array(dwnew)
-                dwold = np.array(dwold)
-                werr = np.abs(wnew - wold)
-                dwerr = np.abs(dwnew - dwold)
-                if werr > 1.e-6 or any(dwerr > 1.e-6) and printErrors:
-                    print i, j, wnew, wold, dwnew, dwold
 
 #-------------------------------------------------------------------------------
 # Try interpolation
@@ -727,38 +508,59 @@ elif numToCheck > 0:
 else:
     raise ValueError, "numToCheck must be -1 or positive"
 
+# Fill the FieldList we're interpolating from
+fill_time = time.time()
+answer_vals = dataBase.newGlobalScalarFieldList(0.0, name="initial values")
+for i in xrange(nodes.numNodes):
+    answer_vals[0][i] = func(position(0,i))
+fill_time = time.time() - fill_time
+output("fill_time")
+
 interp_time = time.time()
+interp_vals = interpolateRK(answer_vals, position, volume, H, connectivity, WT, correctionOrder, corrections)
+grad_vals = gradientRK(answer_vals, position, volume, H, connectivity, WT, correctionOrder, corrections)
+interp_time = time.time() - interp_time
+output("interp_time")
+
+# Check the results
+check_time = time.time()
 vals = np.zeros((nodes.numNodes, 2))
 dvals = np.zeros((nodes.numNodes, dimension, 2))
 ddvals = np.zeros((nodes.numNodes, dimension, dimension, 2))
-ni = 0
-for i in nodesToCheck:#range(nodes.numNodes):
-    xi = position(ni, i)
-    fi = func(xi)
-    def addToValues(nj, j):
-        xj = position(nj, j)
-        if type(xj) is not type(xi):
-            raise TypeError, "error in xj, i = {}, j = {}".format(i, j)
-        fj = func(xj)
-        xij = xi - xj
-        vj = volume(nj, j)
-        w, dw, ddw = getKernel(ni, i, nj, j)
-        vals[i,0] += vj * w * fj
-        dvals[i,:,0] += vj * dw * fj
-        if testHessian:
-            ddvals[i,:,:,0] += vj * ddw * fj
-    connectivityi = connectivity.connectivityForNode(ni, i)
-    for nj, neighbors in enumerate(connectivityi):
-        for j in neighbors:
-            addToValues(nj, j)
-    addToValues(ni, i)
-    vals[i,1] = fi
-    dvals[i,:,1] = dfunc(xi)
-    if testHessian:
-        ddvals[i,:,:,1] = ddfunc(xi)
+for i in nodesToCheck:
+    vals[i,0] = interp_vals(0,i)
+    vals[i,1] = answer_vals(0,i)
+    dvals[i,:,0] = grad_vals(0,i)
+    dvals[i,:,1] =  dfunc(position(0,i))
+check_time = time.time() - check_time
+output("check_time")
 
-interp_time = time.time() - interp_time
-output("interp_time")
+#     xi = position(0, i)
+#     fi = func(xi)
+#     def addToValues(nj, j):
+#         xj = position(nj, j)
+#         if type(xj) is not type(xi):
+#             raise TypeError, "error in xj, i = {}, j = {}".format(i, j)
+#         fj = func(xj)
+#         xij = xi - xj
+#         vj = volume(nj, j)
+#         w, dw, ddw = getKernel(ni, i, nj, j)
+#         vals[i,0] += vj * w * fj
+#         dvals[i,:,0] += vj * dw * fj
+#         if testHessian:
+#             ddvals[i,:,:,0] += vj * ddw * fj
+#     connectivityi = connectivity.connectivityForNode(ni, i)
+#     for nj, neighbors in enumerate(connectivityi):
+#         for j in neighbors:
+#             addToValues(nj, j)
+#     addToValues(ni, i)
+#     vals[i,1] = fi
+#     dvals[i,:,1] = dfunc(xi)
+#     if testHessian:
+#         ddvals[i,:,:,1] = ddfunc(xi)
+
+# interp_time = time.time() - interp_time
+# output("interp_time")
 
 #-------------------------------------------------------------------------------
 # Optionally plot results
@@ -812,15 +614,16 @@ if correctionOrder == RKOrder.ZerothOrder:
     for i in range(nodes.numNodes):
         zerothErr[i] = getError(np.array(corrections(ni, i)), np.array(zerothCorrections(ni, i)))
     output("np.amax(zerothErr)")
-    if any([e0 > tolerance for e0 in zerothErr]):
+    if checkConditions and any([e0 > tolerance for e0 in zerothErr]):
         raise ValueError, "zeroth corrections do not agree"
 
-if error > tolerance:
-    raise ValueError, "error is greater than tolerance"
-if funcType != "constant":
-    if any([de > 10*tolerance for de in derror]):
-        raise ValueError, "gradient error is greater than tolerance"
-if testHessian and funcType != "constant" and funcType != "linear":
-    if any([dde > 100*tolerance for dde in dderror]):
-        raise ValueError, "hessian error is greater than tolerance"
+if checkConditions:
+    if error > tolerance:
+        raise ValueError, "error is greater than tolerance"
+    if funcType != "constant":
+        if any([de > 10*tolerance for de in derror]):
+            raise ValueError, "gradient error is greater than tolerance"
+    if testHessian and funcType != "constant" and funcType != "linear":
+        if any([dde > 100*tolerance for dde in dderror]):
+            raise ValueError, "hessian error is greater than tolerance"
         

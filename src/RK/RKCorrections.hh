@@ -19,7 +19,7 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
 template<typename Dimension> class Boundary;
 
-template<typename Dimension, RKOrder correctionOrder>
+template<typename Dimension>
 class RKCorrections : public Physics<Dimension> {
 public:
   typedef typename Dimension::Scalar Scalar;
@@ -33,10 +33,11 @@ public:
   typedef typename std::pair<double, std::string> TimeStepType;
 
   // Constructor
-  RKCorrections(const DataBase<Dimension>& dataBase,
-                        const TableKernel<Dimension>& W,
-                        const RKVolumeType volumeType,
-                        const bool needHessian);
+  RKCorrections(const RKOrder order,
+                const DataBase<Dimension>& dataBase,
+                const TableKernel<Dimension>& W,
+                const RKVolumeType volumeType,
+                const bool needHessian);
 
   // Destructor.
   virtual ~RKCorrections();
@@ -103,6 +104,7 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName);
 
   // Return data
+  RKOrder correctionOrder() const { return mCorrectionOrder; }
   RKVolumeType volumeType() const { return mVolumeType; }
   bool needHessian() const { return mNeedHessian; }
   const FieldList<Dimension, Scalar>& volume() const { return mVolume; }
@@ -117,6 +119,7 @@ public:
 private:
 
   // Data
+  RKOrder mCorrectionOrder;
   const DataBase<Dimension>& mDataBase;
   const TableKernel<Dimension>& mW;
   const RKVolumeType mVolumeType;

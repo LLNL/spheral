@@ -198,6 +198,18 @@ computeRKCorrections(const RKOrder order,
                      FieldList<Dimension, std::vector<double>>& zerothCorrections,
                      FieldList<Dimension, std::vector<double>>& corrections);
 
+// Surface normals
+template<typename Dimension>
+void
+computeRKNormal(const RKOrder order,
+                const ConnectivityMap<Dimension>& connectivityMap,
+                const TableKernel<Dimension>& kernel,
+                const FieldList<Dimension, typename Dimension::Scalar>& volume,
+                const FieldList<Dimension, typename Dimension::Vector>& position,
+                const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                const FieldList<Dimension, std::vector<double>>& corrections,
+                FieldList<Dimension, typename Dimension::Scalar>& surfaceArea,
+                FieldList<Dimension, typename Dimension::Vector>& normal);
 } // end namespace Spheral
 
 #include "RKUtilitiesInline.hh"
