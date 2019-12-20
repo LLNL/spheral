@@ -125,9 +125,9 @@ def RKKernelAndGradient(order = "const RKOrder",
 def computeRKCorrections(order = "const RKOrder",
                          connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
                          W = "const TableKernel<%(Dimension)s>&",
-                         volume = "const FieldList<%(Dimension)s, %(Scalar)s>&",
-                         position = "const FieldList<%(Dimension)s, %(Vector)s>&",
-                         H = "const FieldList<%(Dimension)s, %(SymTensor)s>&",
+                         volume = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
+                         position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+                         H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
                          needHessian = "const bool",
                          zerothCorrections = "FieldList<%(Dimension)s, std::vector<double>>&",
                          corrections = "FieldList<%(Dimension)s, std::vector<double>>&"):
@@ -298,11 +298,7 @@ computeHullVolumes%(ndim)id = PYB11TemplateFunction(computeHullVolumes, template
 computeHVolumes%(ndim)id = PYB11TemplateFunction(computeHVolumes, template_parameters="%(Dimension)s")
 interpolateRK%(ndim)id = PYB11TemplateFunction(interpolateRK, template_parameters="Dim<%(ndim)i>", pyname="interpolateRK")
 ''' % {"ndim"      : ndim,
-       "Dimension" : "Dim<" + str(ndim) + ">",
-       "Scalar"    : "Dim<" + str(ndim) + ">::Scalar",
-       "Vector"    : "Dim<" + str(ndim) + ">::Vector",
-       "Tensor"    : "Dim<" + str(ndim) + ">::Tensor",
-       "SymTensor" : "Dim<" + str(ndim) + ">::SymTensor"})
+       "Dimension" : "Dim<" + str(ndim) + ">"})
 
     # RKCorrections and RKUtilities
     for num, correctionOrder in enumerate(("ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder", "QuarticOrder", "QuinticOrder", "SexticOrder", "SepticOrder")):
