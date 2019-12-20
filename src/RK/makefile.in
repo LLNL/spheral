@@ -20,7 +20,8 @@ INSTSRCTARGETS = \
 	$(srcdir)/computeRKVolumesInst.cc.py \
 	$(srcdir)/RKCorrectionsInst.cc.py \
 	$(srcdir)/RKUtilitiesInst.cc.py \
-	$(srcdir)/interpolateRKInst.cc.py
+	$(srcdir)/interpolateRKInst.cc.py \
+	$(srcdir)/gradientRKInst.cc.py
 
 SRCTARGETS = \
 	$(srcdir)/computeVoronoiVolume.cc \
