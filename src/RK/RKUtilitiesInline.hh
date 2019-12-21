@@ -907,32 +907,24 @@ RKHessian(const TableKernel<Dimension>& W,
           const std::vector<double>& corrections) {
   const int size = corrections.size();
   switch(size) {
-  case RKUtilities<Dimension, RKOrder::ZerothOrder>::gradCorrectionsSize:
   case RKUtilities<Dimension, RKOrder::ZerothOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateHessian(W, x, H, corrections);
-  case RKUtilities<Dimension, RKOrder::LinearOrder>::gradCorrectionsSize:
   case RKUtilities<Dimension, RKOrder::LinearOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::LinearOrder>::evaluateHessian(W, x, H, corrections);
-  case RKUtilities<Dimension, RKOrder::QuadraticOrder>::gradCorrectionsSize:
   case RKUtilities<Dimension, RKOrder::QuadraticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::QuadraticOrder>::evaluateHessian(W, x, H, corrections);
-  case RKUtilities<Dimension, RKOrder::CubicOrder>::gradCorrectionsSize:
   case RKUtilities<Dimension, RKOrder::CubicOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::CubicOrder>::evaluateHessian(W, x, H, corrections);
-  case RKUtilities<Dimension, RKOrder::QuarticOrder>::gradCorrectionsSize:
   case RKUtilities<Dimension, RKOrder::QuarticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::QuarticOrder>::evaluateHessian(W, x, H, corrections);
-  case RKUtilities<Dimension, RKOrder::QuinticOrder>::gradCorrectionsSize:
   case RKUtilities<Dimension, RKOrder::QuinticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::QuinticOrder>::evaluateHessian(W, x, H, corrections);
-  case RKUtilities<Dimension, RKOrder::SexticOrder>::gradCorrectionsSize:
   case RKUtilities<Dimension, RKOrder::SexticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::SexticOrder>::evaluateHessian(W, x, H, corrections);
-  case RKUtilities<Dimension, RKOrder::SepticOrder>::gradCorrectionsSize:
   case RKUtilities<Dimension, RKOrder::SepticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::SepticOrder>::evaluateHessian(W, x, H, corrections);
   default:
-    VERIFY2("Unknown order passed to RKHessian", false);
+    VERIFY2("Unknown order passed to RKHessian or grad corrections not included", false);
     return Dimension::SymTensor::zero;
   }
 }
