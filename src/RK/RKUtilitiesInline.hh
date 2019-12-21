@@ -862,7 +862,7 @@ RKHessian(const RKOrder order,
     break;
   default:
     VERIFY2("Unknown order passed to RKHessian", false);
-    return Dimension::Vector::zero;
+    return Dimension::SymTensor::zero;
   }
 }
 

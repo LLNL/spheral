@@ -26,6 +26,7 @@ PYB11includes += ['"RK/RKCorrections.hh"',
                   '"RK/computeOccupancyVolume.hh"',
                   '"RK/interpolateRK.hh"',
                   '"RK/gradientRK.hh"',
+                  '"RK/hessianRK.hh"',
                   '"FileIO/FileIO.hh"',
                   '"Boundary/Boundary.hh"',
                   '"SPH/NodeCoupling.hh"']
@@ -365,6 +366,20 @@ def gradientRK(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
     return "FieldList<%(Dimension)s, typename MathTraits<%(Dimension)s, %(DataType)s>::GradientType>"
 
 #-------------------------------------------------------------------------------
+@PYB11template("Dimension", "DataType")
+def hessianRK(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
+               position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+               weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
+               H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
+               connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
+               W = "const TableKernel<%(Dimension)s>&",
+               correctionOrder = "const RKOrder",
+               corrections = "const FieldList<%(Dimension)s, std::vector<double>>&",
+               nodeCoupling = ("const NodeCoupling&", "NodeCoupling()")):
+    "Compute the RK hessian at each point for a FieldList."
+    return "FieldList<%(Dimension)s, typename MathTraits<%(Dimension)s, %(DataType)s>::HessianType>"
+
+#-------------------------------------------------------------------------------
 # Instantiate our types
 #-------------------------------------------------------------------------------
 for ndim in dims:
@@ -405,6 +420,7 @@ interpolateRK%(label)s = PYB11TemplateFunction(interpolateRK1, template_paramete
                     "Dim<%i>::Vector" % ndim):
         exec('''
 gradientRK%(label)s = PYB11TemplateFunction(gradientRK, template_parameters=("%(Dimension)s", "%(element)s"), pyname="gradientRK")
+hessianRK%(label)s = PYB11TemplateFunction(hessianRK, template_parameters=("%(Dimension)s", "%(element)s"), pyname="hessianRK")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">",
        "element"   : element,
