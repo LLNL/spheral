@@ -519,6 +519,8 @@ output("fill_time")
 interp_time = time.time()
 interp_vals = interpolateRK(answer_vals, position, volume, H, connectivity, WT, correctionOrder, corrections)
 grad_vals = gradientRK(answer_vals, position, volume, H, connectivity, WT, correctionOrder, corrections)
+if testHessian:
+    hess_vals = hessianRK(answer_vals, position, volume, H, connectivity, WT, correctionOrder, corrections)
 interp_time = time.time() - interp_time
 output("interp_time")
 
@@ -532,6 +534,9 @@ for i in nodesToCheck:
     vals[i,1] = answer_vals(0,i)
     dvals[i,:,0] = grad_vals(0,i)
     dvals[i,:,1] =  dfunc(position(0,i))
+    if testHessian:
+        ddvals[i,:,:,0] = hess_vals(0,i)
+        ddvals[i,:,:,1] = ddfunc(position(0,i))
 check_time = time.time() - check_time
 output("check_time")
 

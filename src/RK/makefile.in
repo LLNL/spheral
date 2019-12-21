@@ -21,7 +21,8 @@ INSTSRCTARGETS = \
 	$(srcdir)/RKCorrectionsInst.cc.py \
 	$(srcdir)/RKUtilitiesInst.cc.py \
 	$(srcdir)/interpolateRKInst.cc.py \
-	$(srcdir)/gradientRKInst.cc.py
+	$(srcdir)/gradientRKInst.cc.py \
+	$(srcdir)/hessianRKInst.cc.py
 
 SRCTARGETS = \
 	$(srcdir)/computeVoronoiVolume.cc \

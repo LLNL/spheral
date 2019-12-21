@@ -520,8 +520,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                      ri, etai, vi, rhoi, ci, Hi,
-                                      rj, etaj, vj, rhoj, cj, Hj);
+                                      posi, etai, vi, rhoi, ci, Hi,
+                                      posj, etaj, vj, rhoj, cj, Hj);
       const auto Qacci = 0.5*(QPiij*gradWQi);
       const auto Qaccj = 0.5*(QPiji*gradWQj);
       const auto workQi = vij.dot(Qacci);
