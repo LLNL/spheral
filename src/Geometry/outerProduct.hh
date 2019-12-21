@@ -11,19 +11,20 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Outer product with a scalar, just return the scalar times the elements.
 //------------------------------------------------------------------------------
-template<typename ValueType>
-inline
-ValueType
-outerProduct(const double& A, const ValueType& B) {
-  return A*B;
-}
+template<typename Dimension> inline typename Dimension::Scalar           outerProduct(const typename Dimension::Scalar& A, const typename Dimension::Scalar& B)           { return A*B; }
+template<typename Dimension> inline typename Dimension::Vector           outerProduct(const typename Dimension::Scalar& A, const typename Dimension::Vector& B)           { return A*B; }
+template<typename Dimension> inline typename Dimension::Tensor           outerProduct(const typename Dimension::Scalar& A, const typename Dimension::Tensor& B)           { return A*B; }
+template<typename Dimension> inline typename Dimension::SymTensor        outerProduct(const typename Dimension::Scalar& A, const typename Dimension::SymTensor& B)        { return A*B; }
+template<typename Dimension> inline typename Dimension::ThirdRankTensor  outerProduct(const typename Dimension::Scalar& A, const typename Dimension::ThirdRankTensor& B)  { return A*B; }
+template<typename Dimension> inline typename Dimension::FourthRankTensor outerProduct(const typename Dimension::Scalar& A, const typename Dimension::FourthRankTensor& B) { return A*B; }
+template<typename Dimension> inline typename Dimension::FifthRankTensor  outerProduct(const typename Dimension::Scalar& A, const typename Dimension::FifthRankTensor& B)  { return A*B; }
 
-template<typename ValueType>
-inline
-ValueType
-outerProduct(const ValueType& A, const double& B) {
-  return A*B;
-}
+template<typename Dimension> inline typename Dimension::Vector           outerProduct(const typename Dimension::Vector& A,           const typename Dimension::Scalar& B) { return A*B; }
+template<typename Dimension> inline typename Dimension::Tensor           outerProduct(const typename Dimension::Tensor& A,           const typename Dimension::Scalar& B) { return A*B; }
+template<typename Dimension> inline typename Dimension::SymTensor        outerProduct(const typename Dimension::SymTensor& A,        const typename Dimension::Scalar& B) { return A*B; }
+template<typename Dimension> inline typename Dimension::ThirdRankTensor  outerProduct(const typename Dimension::ThirdRankTensor& A,  const typename Dimension::Scalar& B) { return A*B; }
+template<typename Dimension> inline typename Dimension::FourthRankTensor outerProduct(const typename Dimension::FourthRankTensor& A, const typename Dimension::Scalar& B) { return A*B; }
+template<typename Dimension> inline typename Dimension::FifthRankTensor  outerProduct(const typename Dimension::FifthRankTensor& A,  const typename Dimension::Scalar& B) { return A*B; }
 
 //------------------------------------------------------------------------------
 // Vector (rank 1 tensor) outer product, returns a rank 2 tensor.
@@ -44,7 +45,7 @@ template<typename Dimension, typename SecondRankTensor>
 inline
 typename Dimension::ThirdRankTensor
 _outerProduct(const SecondRankTensor& A,
-             const typename Dimension::Vector& B) {
+              const typename Dimension::Vector& B) {
   typename Dimension::ThirdRankTensor C;
   for (size_t i = 0; i != Dimension::nDim; ++i) {
     for (size_t j = 0; j != Dimension::nDim; ++j) {
@@ -60,7 +61,7 @@ template<typename Dimension, typename SecondRankTensor>
 inline
 typename Dimension::ThirdRankTensor
 _outerProduct(const typename Dimension::Vector& A,
-             const SecondRankTensor& B) {
+              const SecondRankTensor& B) {
   typename Dimension::ThirdRankTensor C;
   for (size_t i = 0; i != Dimension::nDim; ++i) {
     for (size_t j = 0; j != Dimension::nDim; ++j) {
