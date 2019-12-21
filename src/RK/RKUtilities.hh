@@ -15,8 +15,13 @@ namespace Spheral {
 template<typename Dimension, RKOrder correctionOrder>
 class RKUtilities {
 public:
-  // Size of the sparse storage for the Hessian
-  static constexpr int hessBaseSize = (Dimension::nDim == 1 ? 1 : (Dimension::nDim == 2 ? 3 : 6));
+  // Get storage size of a symmetric matrix
+  static constexpr int symmetricMatrixSize(int d) {
+    return d * (d + 1) / 2;
+  }
+  
+  // // Size of the sparse storage for the Hessian
+  // static constexpr int hessBaseSize = symmetricMatrixSize(Dimension::nDim);//(Dimension::nDim == 1 ? 1 : (Dimension::nDim == 2 ? 3 : 6));
   
   // The size of the polynomial arrays
   static constexpr int polynomialSize = (correctionOrder == RKOrder::ZerothOrder ? 1 
@@ -36,8 +41,20 @@ public:
                                          ? (Dimension::nDim == 1 ? 8 : (Dimension::nDim == 2 ? 36 : 120))
                                          : -1); // if order not found, return -1 to produce error
   static constexpr int gradPolynomialSize = polynomialSize * Dimension::nDim;
-  static constexpr int hessPolynomialSize = polynomialSize * hessBaseSize;
+  static constexpr int hessPolynomialSize = polynomialSize * symmetricMatrixSize(Dimension::nDim);
 
+  // Due to the hessian being optional, the size of the corrections vector in a dimension is not unique
+  // The below integer is added to the hessian size for certain orders to make the hessian size unique
+  // The duplicates occur between o2grad/o1hess for all dimensions, and o5grad/o3hess in 1D
+  static constexpr int hessUniqueSizeModification = (correctionOrder == RKOrder::LinearOrder
+                                                     || (Dimension::nDim == 1 && correctionOrder == RKOrder::CubicOrder)
+                                                     ? 1
+                                                     : 0);
+  
+  // The size of the corrections, with kernel + gradient only and with kernel + gradient + hessian
+  static constexpr int gradCorrectionsSize = polynomialSize * (1 + Dimension::nDim);
+  static constexpr int hessCorrectionsSize = polynomialSize * (1 + Dimension::nDim + symmetricMatrixSize(Dimension::nDim)) + hessUniqueSizeModification;
+  
   // Typedefs
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -137,9 +154,6 @@ public:
   static inline int correctionsSize(const bool needHessian); 
   static inline int zerothCorrectionsSize(const bool needHessian);
   
-  // Get storage size of a symmetric matrix
-  static inline int symmetricMatrixSize(const int d);
-  
   // Get flat index for a symmetric set of indices
   static inline int flatSymmetricIndex(const int d1, const int d2);
   
@@ -155,11 +169,21 @@ public:
 //------------------------------------------------------------------------------
 // Provide frontends to workaround templating of correction order
 //------------------------------------------------------------------------------
+// Get correction size, given the correction order and whether the hessian is needed
+template<typename Dimension>
+int
+RKCorrectionsSize(const RKOrder correctionOrder,
+                  const bool needHessian);
+
+// Get correction order and whether the hessian is used, given the corrections size
+template<typename Dimension>
+std::pair<RKOrder, bool>
+RKOrderAndHessian(const int size);
+
 // RK kernel
 template<typename Dimension>
 typename Dimension::Scalar
-RKKernel(const RKOrder order,
-         const TableKernel<Dimension>& W,
+RKKernel(const TableKernel<Dimension>& W,
          const typename Dimension::Vector& x,
          const typename Dimension::SymTensor& H,
          const std::vector<double>& corrections);
@@ -167,8 +191,7 @@ RKKernel(const RKOrder order,
 // RK gradient
 template<typename Dimension>
 typename Dimension::Vector
-RKGradient(const RKOrder order,
-           const TableKernel<Dimension>& W,
+RKGradient(const TableKernel<Dimension>& W,
            const typename Dimension::Vector& x,
            const typename Dimension::SymTensor& H,
            const std::vector<double>& corrections);
@@ -176,8 +199,7 @@ RKGradient(const RKOrder order,
 // RK Hessian
 template<typename Dimension>
 typename Dimension::SymTensor
-RKHessian(const RKOrder order,
-          const TableKernel<Dimension>& W,
+RKHessian(const TableKernel<Dimension>& W,
           const typename Dimension::Vector& x,
           const typename Dimension::SymTensor& H,
           const std::vector<double>& corrections);
@@ -188,11 +210,31 @@ void
 RKKernelAndGradient(typename Dimension::Scalar& WRK,
                     typename Dimension::Vector& gradWSPH,
                     typename Dimension::Vector& gradWRK,
-                    const RKOrder order,
                     const TableKernel<Dimension>& W,
                     const typename Dimension::Vector& x,
                     const typename Dimension::SymTensor& H,
                     const std::vector<double>& corrections);
+
+// RK base kernel
+template<typename Dimension>
+typename Dimension::Scalar
+RKBaseKernel(const TableKernel<Dimension>& W,
+             const typename Dimension::Vector& x,
+             const typename Dimension::SymTensor& H);
+         
+// RK base gradient
+template<typename Dimension>
+typename Dimension::Vector
+RKBaseGradient(const TableKernel<Dimension>& W,
+               const typename Dimension::Vector& x,
+               const typename Dimension::SymTensor& H);
+
+// RK base Hessian
+template<typename Dimension>
+typename Dimension::SymTensor
+RKBaseHessian(const TableKernel<Dimension>& W,
+              const typename Dimension::Vector& x,
+              const typename Dimension::SymTensor& H);
 
 // Compute corrections
 template<typename Dimension>

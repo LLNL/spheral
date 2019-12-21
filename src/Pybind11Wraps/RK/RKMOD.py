@@ -78,8 +78,21 @@ RKVolumeType = PYB11enum(("RKMassOverDensity", "RKSumVolume", "RKVoronoiVolume",
 # Methods
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
-def RKKernel(order = "const RKOrder",
-             W = "const TableKernel<%(Dimension)s>&",
+def RKCorrectionsSize(correctionOrder = "const RKOrder",
+                      needHessian = "const bool"):
+    "Size of the RK corrections vector"
+    return "int"
+
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+def RKOrderAndHessian(size = "const int"):
+    "Order of corrections and whether hessian information is included"
+    return "std::pair<RKOrder, bool>"
+
+
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+def RKKernel(W = "const TableKernel<%(Dimension)s>&",
              x = "const typename %(Dimension)s::Vector&",
              H = "const typename %(Dimension)s::SymTensor&",
              corrections = "const std::vector<double>&"):
@@ -88,8 +101,7 @@ def RKKernel(order = "const RKOrder",
 
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
-def RKGradient(order = "const RKOrder",
-               W = "const TableKernel<%(Dimension)s>&",
+def RKGradient(W = "const TableKernel<%(Dimension)s>&",
                x = "const typename %(Dimension)s::Vector&",
                H = "const typename %(Dimension)s::SymTensor&",
                corrections = "const std::vector<double>&"):
@@ -98,8 +110,7 @@ def RKGradient(order = "const RKOrder",
 
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
-def RKHessian(order = "const RKOrder",
-              W = "const TableKernel<%(Dimension)s>&",
+def RKHessian(W = "const TableKernel<%(Dimension)s>&",
               x = "const typename %(Dimension)s::Vector&",
               H = "const typename %(Dimension)s::SymTensor&",
               corrections = "const std::vector<double>&"):
@@ -108,23 +119,44 @@ def RKHessian(order = "const RKOrder",
 
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
-@PYB11implementation("""[](const RKOrder order,
-                           const TableKernel<%(Dimension)s>& W,
+def RKBaseKernel(W = "const TableKernel<%(Dimension)s>&",
+                 x = "const typename %(Dimension)s::Vector&",
+                 H = "const typename %(Dimension)s::SymTensor&"):
+    "Compute the base kernel value."
+    return "typename %(Dimension)s::Scalar"
+
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+def RKBaseGradient(W = "const TableKernel<%(Dimension)s>&",
+                   x = "const typename %(Dimension)s::Vector&",
+                   H = "const typename %(Dimension)s::SymTensor&"):
+    "Compute the base kernel gradient."
+    return "typename %(Dimension)s::Vector"
+
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+def RKBaseHessian(W = "const TableKernel<%(Dimension)s>&",
+                  x = "const typename %(Dimension)s::Vector&",
+                  H = "const typename %(Dimension)s::SymTensor&"):
+    "Compute the base kernel Hessian."
+    return "typename %(Dimension)s::SymTensor"
+
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+@PYB11implementation("""[](const TableKernel<%(Dimension)s>& W,
                            const typename %(Dimension)s::Vector& x,
                            const typename %(Dimension)s::SymTensor& H,
                            const std::vector<double>& corrections) {
                                typename %(Dimension)s::Scalar WRK, gradWSPH;
-                               typename %(Dimension)s::Vector gradWRK;
-                               RKKernelAndGradient(WRK, gradWSPH, gradWRK,                            
-                                                   order,
+                               typename %(Dimension)s::Vector gradWRK; 
+                               RKKernelAndGradient(WRK, gradWSPH, gradWRK, 
                                                    W,
                                                    x,
                                                    H,
                                                    corrections);
                                return py::make_tuple(WRK, gradWSPH, gradWRK);
                            }""")
-def RKKernelAndGradient(order = "const RKOrder",
-                        W = "const TableKernel<%(Dimension)s>&",
+def RKKernelAndGradient(W = "const TableKernel<%(Dimension)s>&",
                         x = "const typename %(Dimension)s::Vector&",
                         H = "const typename %(Dimension)s::SymTensor&",
                         corrections = "const std::vector<double>&"):

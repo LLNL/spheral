@@ -251,8 +251,8 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
 
         // Kernel weight.
         const auto rij = ri - rj;
-        const auto Wj = RKKernel(correctionOrder, W,  rij, Hj, correctionsi);
-        const auto Wi = RKKernel(correctionOrder, W, -rij, Hi, correctionsj);
+        const auto Wj = RKKernel(W,  rij, Hj, correctionsi);
+        const auto Wi = RKKernel(W, -rij, Hi, correctionsj);
 
         // Increment the pair-wise values.
         for (auto k = 0; k < numFieldLists; ++k) {
@@ -280,7 +280,7 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
       // Get the state for node i.
       const auto& Hi = H(nodeListi, i);
       const auto& correctionsi = corrections(nodeListi, i);
-      const auto  Wj = RKKernel(correctionOrder, W, Vector::zero, Hi, correctionsi);
+      const auto  Wj = RKKernel(W, Vector::zero, Hi, correctionsi);
 
       // Add the self-contribution to each FieldList.
       for (auto k = 0; k < numFieldLists; ++k) {

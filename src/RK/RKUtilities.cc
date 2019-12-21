@@ -227,7 +227,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   
   // Size info
   const auto numNodeLists = volume.size();
-  const auto hessSize = needHessian ? hessBaseSize : 0;
+  const auto hessSize = needHessian ? symmetricMatrixSize(Dimension::nDim) : 0;
   const auto zerothCorrSize = zerothCorrectionsSize(needHessian);
   const auto corrSize = correctionsSize(needHessian);
 

@@ -104,8 +104,8 @@ gradientRK(const FieldList<Dimension, DataType>& fieldList,
 
         // Pair contributions
         const auto xij = xi - xj;
-        gradWj = RKGradient(correctionOrder, W,  xij, Hj, correctionsi);
-        gradWi = RKGradient(correctionOrder, W, -xij, Hi, correctionsj);
+        gradWj = RKGradient(W,  xij, Hj, correctionsi);
+        gradWi = RKGradient(W, -xij, Hi, correctionsj);
         gradFi += wj*Fj*gradWj;
         gradFj += wi*Fi*gradWi;
       }
@@ -124,7 +124,7 @@ gradientRK(const FieldList<Dimension, DataType>& fieldList,
     for (auto i = 0; i < n; ++i) {
       const auto& Hi = H(nodeListi, i);
       const auto& correctionsi = corrections(nodeListi, i);
-      result(nodeListi, i) += weight(nodeListi, i)*fieldList(nodeListi, i)*RKGradient(correctionOrder, W, Vector::zero, Hi, correctionsi);
+      result(nodeListi, i) += weight(nodeListi, i)*fieldList(nodeListi, i)*RKGradient(W, Vector::zero, Hi, correctionsi);
     }
   }
 

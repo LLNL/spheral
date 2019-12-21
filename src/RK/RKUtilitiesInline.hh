@@ -37,16 +37,16 @@ flatSymmetricIndex(const int d1, const int d2) {
   return Dimension::nDim * (Dimension::nDim - 1) / 2 - (Dimension::nDim - k1) * (Dimension::nDim - k1 - 1) / 2 + k2;
 }
 
-//------------------------------------------------------------------------------
-// Get storage size of a symmetric matrix
-//------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
-inline
-int
-RKUtilities<Dimension, correctionOrder>::
-symmetricMatrixSize(const int d) {
-  return d * (d + 1) / 2;
-}
+// //------------------------------------------------------------------------------
+// // Get storage size of a symmetric matrix
+// //------------------------------------------------------------------------------
+// template<typename Dimension, RKOrder correctionOrder>
+// inline
+// int
+// RKUtilities<Dimension, correctionOrder>::
+// symmetricMatrixSize(const int d) {
+//   return d * (d + 1) / 2;
+// }
 
 //------------------------------------------------------------------------------
 // Get expected length of corrections vector
@@ -56,9 +56,7 @@ inline
 int
 RKUtilities<Dimension, correctionOrder>::
 correctionsSize(bool needHessian) {
-  return (needHessian
-          ? polynomialSize * (1 + Dimension::nDim + symmetricMatrixSize(Dimension::nDim))
-          : polynomialSize * (1 + Dimension::nDim));
+  return (needHessian ? hessCorrectionsSize : gradCorrectionsSize);
 }
 template<typename Dimension, RKOrder correctionOrder>
 inline
@@ -66,8 +64,8 @@ int
 RKUtilities<Dimension, correctionOrder>::
 zerothCorrectionsSize(bool needHessian) {
   return (needHessian
-          ? 1 + Dimension::nDim + symmetricMatrixSize(Dimension::nDim)
-          : 1 + Dimension::nDim);
+          ? RKUtilities<Dimension, RKOrder::ZerothOrder>::hessCorrectionsSize
+          : RKUtilities<Dimension, RKOrder::ZerothOrder>::gradCorrectionsSize);
 }
 
 //------------------------------------------------------------------------------
@@ -746,40 +744,113 @@ getHessPolynomials(const Dim<3>::Vector& x,
 //------------------------------------------------------------------------------
 // Non-templated frontend helper methods
 //------------------------------------------------------------------------------
+// Get the corrections size based on the correction order and whether Hessian is included
+template<typename Dimension>
+inline 
+std::pair<RKOrder, bool>
+RKCorrectionsSize(const RKOrder correctionOrder,
+                  const bool needHessian) {
+  switch(correctionOrder) {
+  case RKOrder::ZerothOrder:
+    return RKUtilities<Dimension, RKOrder::ZerothOrder>::correctionsSize(needHessian);
+  case RKOrder::LinearOrder:
+    return RKUtilities<Dimension, RKOrder::LinearOrder>::correctionsSize(needHessian);
+  case RKOrder::QuadraticOrder:
+    return RKUtilities<Dimension, RKOrder::QuadraticOrder>::correctionsSize(needHessian);
+  case RKOrder::CubicOrder:
+    return RKUtilities<Dimension, RKOrder::CubicOrder>::correctionsSize(needHessian);
+  case RKOrder::QuarticOrder:
+    return RKUtilities<Dimension, RKOrder::QuarticOrder>::correctionsSize(needHessian);
+  case RKOrder::QuinticOrder:
+    return RKUtilities<Dimension, RKOrder::QuinticOrder>::correctionsSize(needHessian);
+  case RKOrder::SexticOrder:
+    return RKUtilities<Dimension, RKOrder::SexticOrder>::correctionsSize(needHessian);
+  case RKOrder::SepticOrder:
+    return RKUtilities<Dimension, RKOrder::SepticOrder>::correctionsSize(needHessian);
+  default:
+    VERIFY2("Unknown order passed to computeRKCorrections", false);
+    return -1;
+  }
+}
+
+// Get the correction order and whether Hessian is included based on the size of the corrections
+template<typename Dimension>
+inline 
+std::pair<RKOrder, bool>
+RKOrderAndHessian(const int size) {
+  switch(size) {
+  case RKUtilities<Dimension, RKOrder::ZerothOrder>::gradCorrectionsSize:
+    return std::make_pair(RKOrder::ZerothOrder, false);
+  case RKUtilities<Dimension, RKOrder::ZerothOrder>::hessCorrectionsSize:
+    return std::make_pair(RKOrder::ZerothOrder, true);
+  case RKUtilities<Dimension, RKOrder::LinearOrder>::gradCorrectionsSize:
+    return std::make_pair(RKOrder::LinearOrder, false);
+  case RKUtilities<Dimension, RKOrder::LinearOrder>::hessCorrectionsSize:
+    return std::make_pair(RKOrder::LinearOrder, true);
+  case RKUtilities<Dimension, RKOrder::QuadraticOrder>::gradCorrectionsSize:
+    return std::make_pair(RKOrder::QuadraticOrder, false);
+  case RKUtilities<Dimension, RKOrder::QuadraticOrder>::hessCorrectionsSize:
+    return std::make_pair(RKOrder::QuadraticOrder, true);
+  case RKUtilities<Dimension, RKOrder::CubicOrder>::gradCorrectionsSize:
+    return std::make_pair(RKOrder::CubicOrder, false);
+  case RKUtilities<Dimension, RKOrder::CubicOrder>::hessCorrectionsSize:
+    return std::make_pair(RKOrder::CubicOrder, true);
+  case RKUtilities<Dimension, RKOrder::QuarticOrder>::gradCorrectionsSize:
+    return std::make_pair(RKOrder::QuarticOrder, false);
+  case RKUtilities<Dimension, RKOrder::QuarticOrder>::hessCorrectionsSize:
+    return std::make_pair(RKOrder::QuarticOrder, true);
+  case RKUtilities<Dimension, RKOrder::QuinticOrder>::gradCorrectionsSize:
+    return std::make_pair(RKOrder::QuinticOrder, false);
+  case RKUtilities<Dimension, RKOrder::QuinticOrder>::hessCorrectionsSize:
+    return std::make_pair(RKOrder::QuinticOrder, true);
+  case RKUtilities<Dimension, RKOrder::SexticOrder>::gradCorrectionsSize:
+    return std::make_pair(RKOrder::SexticOrder, false);
+  case RKUtilities<Dimension, RKOrder::SexticOrder>::hessCorrectionsSize:
+    return std::make_pair(RKOrder::SexticOrder, true);
+  case RKUtilities<Dimension, RKOrder::SepticOrder>::gradCorrectionsSize:
+    return std::make_pair(RKOrder::SepticOrder, false);
+  case RKUtilities<Dimension, RKOrder::SepticOrder>::hessCorrectionsSize:
+    return std::make_pair(RKOrder::SepticOrder, true);
+  default:
+    VERIFY2("Unknown order in RKOrderFromSize", false);
+    return std::make_pair(RKOrder::ZerothOrder, false);
+  }
+}
+
 // RK corrected kernel
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-RKKernel(const RKOrder order,
-         const TableKernel<Dimension>& W,
+RKKernel(const TableKernel<Dimension>& W,
          const typename Dimension::Vector& x,
          const typename Dimension::SymTensor& H,
          const std::vector<double>& corrections) {
-  switch(order) {
-  case RKOrder::ZerothOrder:
+  const int size = corrections.size();
+  switch(size) {
+  case RKUtilities<Dimension, RKOrder::ZerothOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::ZerothOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateKernel(W, x, H, corrections);
-    break;
-  case RKOrder::LinearOrder:
+  case RKUtilities<Dimension, RKOrder::LinearOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::LinearOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::LinearOrder>::evaluateKernel(W, x, H, corrections);
-    break;
-  case RKOrder::QuadraticOrder:
+  case RKUtilities<Dimension, RKOrder::QuadraticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::QuadraticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::QuadraticOrder>::evaluateKernel(W, x, H, corrections);
-    break;
-  case RKOrder::CubicOrder:
+  case RKUtilities<Dimension, RKOrder::CubicOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::CubicOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::CubicOrder>::evaluateKernel(W, x, H, corrections);
-    break;
-  case RKOrder::QuarticOrder:
+  case RKUtilities<Dimension, RKOrder::QuarticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::QuarticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::QuarticOrder>::evaluateKernel(W, x, H, corrections);
-    break;
-  case RKOrder::QuinticOrder:
+  case RKUtilities<Dimension, RKOrder::QuinticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::QuinticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::QuinticOrder>::evaluateKernel(W, x, H, corrections);
-    break;
-  case RKOrder::SexticOrder:
+  case RKUtilities<Dimension, RKOrder::SexticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::SexticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::SexticOrder>::evaluateKernel(W, x, H, corrections);
-    break;
-  case RKOrder::SepticOrder:
+  case RKUtilities<Dimension, RKOrder::SepticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::SepticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::SepticOrder>::evaluateKernel(W, x, H, corrections);
-    break;
   default:
     VERIFY2("Unknown order passed to RKKernel", false);
     return 0.0;
@@ -790,36 +861,36 @@ RKKernel(const RKOrder order,
 template<typename Dimension>
 inline
 typename Dimension::Vector
-RKGradient(const RKOrder order,
-           const TableKernel<Dimension>& W,
+RKGradient(const TableKernel<Dimension>& W,
            const typename Dimension::Vector& x,
            const typename Dimension::SymTensor& H,
            const std::vector<double>& corrections) {
-  switch(order) {
-  case RKOrder::ZerothOrder:
+  const int size = corrections.size();
+  switch(size) {
+  case RKUtilities<Dimension, RKOrder::ZerothOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::ZerothOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateGradient(W, x, H, corrections);
-    break;
-  case RKOrder::LinearOrder:
+  case RKUtilities<Dimension, RKOrder::LinearOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::LinearOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::LinearOrder>::evaluateGradient(W, x, H, corrections);
-    break;
-  case RKOrder::QuadraticOrder:
+  case RKUtilities<Dimension, RKOrder::QuadraticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::QuadraticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::QuadraticOrder>::evaluateGradient(W, x, H, corrections);
-    break;
-  case RKOrder::CubicOrder:
+  case RKUtilities<Dimension, RKOrder::CubicOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::CubicOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::CubicOrder>::evaluateGradient(W, x, H, corrections);
-    break;
-  case RKOrder::QuarticOrder:
+  case RKUtilities<Dimension, RKOrder::QuarticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::QuarticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::QuarticOrder>::evaluateGradient(W, x, H, corrections);
-    break;
-  case RKOrder::QuinticOrder:
+  case RKUtilities<Dimension, RKOrder::QuinticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::QuinticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::QuinticOrder>::evaluateGradient(W, x, H, corrections);
-    break;
-  case RKOrder::SexticOrder:
+  case RKUtilities<Dimension, RKOrder::SexticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::SexticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::SexticOrder>::evaluateGradient(W, x, H, corrections);
-    break;
-  case RKOrder::SepticOrder:
+  case RKUtilities<Dimension, RKOrder::SepticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::SepticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::SepticOrder>::evaluateGradient(W, x, H, corrections);
-    break;
   default:
     VERIFY2("Unknown order passed to RKGradient", false);
     return Dimension::Vector::zero;
@@ -830,39 +901,39 @@ RKGradient(const RKOrder order,
 template<typename Dimension>
 inline
 typename Dimension::SymTensor
-RKHessian(const RKOrder order,
-          const TableKernel<Dimension>& W,
+RKHessian(const TableKernel<Dimension>& W,
           const typename Dimension::Vector& x,
           const typename Dimension::SymTensor& H,
           const std::vector<double>& corrections) {
-  switch(order) {
-  case RKOrder::ZerothOrder:
+  const int size = corrections.size();
+  switch(size) {
+  case RKUtilities<Dimension, RKOrder::ZerothOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::ZerothOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateHessian(W, x, H, corrections);
-    break;
-  case RKOrder::LinearOrder:
+  case RKUtilities<Dimension, RKOrder::LinearOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::LinearOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::LinearOrder>::evaluateHessian(W, x, H, corrections);
-    break;
-  case RKOrder::QuadraticOrder:
+  case RKUtilities<Dimension, RKOrder::QuadraticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::QuadraticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::QuadraticOrder>::evaluateHessian(W, x, H, corrections);
-    break;
-  case RKOrder::CubicOrder:
+  case RKUtilities<Dimension, RKOrder::CubicOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::CubicOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::CubicOrder>::evaluateHessian(W, x, H, corrections);
-    break;
-  case RKOrder::QuarticOrder:
+  case RKUtilities<Dimension, RKOrder::QuarticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::QuarticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::QuarticOrder>::evaluateHessian(W, x, H, corrections);
-    break;
-  case RKOrder::QuinticOrder:
+  case RKUtilities<Dimension, RKOrder::QuinticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::QuinticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::QuinticOrder>::evaluateHessian(W, x, H, corrections);
-    break;
-  case RKOrder::SexticOrder:
+  case RKUtilities<Dimension, RKOrder::SexticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::SexticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::SexticOrder>::evaluateHessian(W, x, H, corrections);
-    break;
-  case RKOrder::SepticOrder:
+  case RKUtilities<Dimension, RKOrder::SepticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::SepticOrder>::hessCorrectionsSize:
     return RKUtilities<Dimension, RKOrder::SepticOrder>::evaluateHessian(W, x, H, corrections);
-    break;
   default:
     VERIFY2("Unknown order passed to RKHessian", false);
-    return Dimension::Vector::zero;
+    return Dimension::SymTensor::zero;
   }
 }
 
@@ -873,40 +944,79 @@ void
 RKKernelAndGradient(typename Dimension::Scalar& WRK,
                     typename Dimension::Scalar& gradWSPH,
                     typename Dimension::Vector& gradWRK,
-                    const RKOrder order,
                     const TableKernel<Dimension>& W,
                     const typename Dimension::Vector& x,
                     const typename Dimension::SymTensor& H,
                     const std::vector<double>& corrections) {
   gradWSPH = W.gradValue((H*x).magnitude(), H.Determinant());
-  switch(order) {
-  case RKOrder::ZerothOrder:
+  const int size = corrections.size();
+  switch(size) {
+  case RKUtilities<Dimension, RKOrder::ZerothOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::ZerothOrder>::hessCorrectionsSize:
     std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateKernelAndGradient(W, x, H, corrections);
     break;
-  case RKOrder::LinearOrder:
+  case RKUtilities<Dimension, RKOrder::LinearOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::LinearOrder>::hessCorrectionsSize:
     std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::LinearOrder>::evaluateKernelAndGradient(W, x, H, corrections);
     break;
-  case RKOrder::QuadraticOrder:
+  case RKUtilities<Dimension, RKOrder::QuadraticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::QuadraticOrder>::hessCorrectionsSize:
     std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::QuadraticOrder>::evaluateKernelAndGradient(W, x, H, corrections);
     break;
-  case RKOrder::CubicOrder:
+  case RKUtilities<Dimension, RKOrder::CubicOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::CubicOrder>::hessCorrectionsSize:
     std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::CubicOrder>::evaluateKernelAndGradient(W, x, H, corrections);
     break;
-  case RKOrder::QuarticOrder:
+  case RKUtilities<Dimension, RKOrder::QuarticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::QuarticOrder>::hessCorrectionsSize:
     std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::QuarticOrder>::evaluateKernelAndGradient(W, x, H, corrections);
     break;
-  case RKOrder::QuinticOrder:
+  case RKUtilities<Dimension, RKOrder::QuinticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::QuinticOrder>::hessCorrectionsSize:
     std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::QuinticOrder>::evaluateKernelAndGradient(W, x, H, corrections);
     break;
-  case RKOrder::SexticOrder:
+  case RKUtilities<Dimension, RKOrder::SexticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::SexticOrder>::hessCorrectionsSize:
     std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::SexticOrder>::evaluateKernelAndGradient(W, x, H, corrections);
     break;
-  case RKOrder::SepticOrder:
+  case RKUtilities<Dimension, RKOrder::SepticOrder>::gradCorrectionsSize:
+  case RKUtilities<Dimension, RKOrder::SepticOrder>::hessCorrectionsSize:
     std::tie(WRK, gradWRK) = RKUtilities<Dimension, RKOrder::SepticOrder>::evaluateKernelAndGradient(W, x, H, corrections);
     break;
   default:
     VERIFY2("Unknown order passed to RKKernelAndGradient", false);
+    break;
   }
+}
+
+// RK base kernel
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+RKBaseKernel(const TableKernel<Dimension>& W,
+             const typename Dimension::Vector& x,
+             const typename Dimension::SymTensor& H) {
+  return RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateBaseKernel(W, x, H);
+}
+
+// RK base gradient
+template<typename Dimension>
+inline
+typename Dimension::Vector
+RKBaseGradient(const TableKernel<Dimension>& W,
+               const typename Dimension::Vector& x,
+               const typename Dimension::SymTensor& H) {
+  return RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateBaseGradient(W, x, H);
+}
+
+// RK base Hessian
+template<typename Dimension>
+inline
+typename Dimension::SymTensor
+RKBaseHessian(const TableKernel<Dimension>& W,
+              const typename Dimension::Vector& x,
+              const typename Dimension::SymTensor& H) {
+  return RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateBaseHessian(W, x, H);
 }
 
 // RK corrections
@@ -991,7 +1101,7 @@ computeRKNormal(const RKOrder order,
     RKUtilities<Dimension, RKOrder::SepticOrder>::computeNormal(connectivityMap, kernel, volume, position, H, corrections, surfaceArea, normal);
     break;
   default:
-    VERIFY2("Unknown order passed to computeRKCorrections", false);
+    VERIFY2("Unknown order passed to computeRKNormal", false);
   }
 }
 
