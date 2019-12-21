@@ -145,24 +145,6 @@ operator*(const Geom3Vector& rhs) const {
 }
 
 //------------------------------------------------------------------------------
-// Add a vector to a scalar.
-//------------------------------------------------------------------------------
-inline
-Geom3Vector
-operator+(const double val, const Geom3Vector& vec) {
-  return vec + val;
-}
-
-//------------------------------------------------------------------------------
-// Subtract a vector from a scalar.
-//------------------------------------------------------------------------------
-inline
-Geom3Vector
-operator-(const double val, const Geom3Vector& vec) {
-  return -(vec - val);
-}
-
-//------------------------------------------------------------------------------
 // Multiply a scalar by a vector.
 //------------------------------------------------------------------------------
 inline
