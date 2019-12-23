@@ -102,8 +102,8 @@ hessianRK(const FieldList<Dimension, DataType>& fieldList,
 
         // Pair contributions
         const auto xij = xi - xj;
-        hessWj = RKHessian(correctionOrder, W,  xij, Hj, correctionsi);
-        hessWi = RKHessian(correctionOrder, W, -xij, Hi, correctionsj);
+        hessWj = RKHessian(W,  xij, Hj, correctionsi);
+        hessWi = RKHessian(W, -xij, Hi, correctionsj);
         gradFi += wj*outerProduct<Dimension>(hessWj, Fj);
         gradFj += wi*outerProduct<Dimension>(hessWi, Fi);
       }
@@ -122,7 +122,7 @@ hessianRK(const FieldList<Dimension, DataType>& fieldList,
     for (auto i = 0; i < n; ++i) {
       const auto& Hi = H(nodeListi, i);
       const auto& correctionsi = corrections(nodeListi, i);
-      result(nodeListi, i) += weight(nodeListi, i)*outerProduct<Dimension>(RKHessian(correctionOrder, W, Vector::zero, Hi, correctionsi), fieldList(nodeListi, i));
+      result(nodeListi, i) += weight(nodeListi, i)*outerProduct<Dimension>(RKHessian(W, Vector::zero, Hi, correctionsi), fieldList(nodeListi, i));
     }
   }
 
