@@ -8,7 +8,7 @@
 #ifndef __Spheral_NodeSpace_CRKSPHFluidGradient__
 #define __Spheral_NodeSpace_CRKSPHFluidGradient__
 
-#include "CRKSPHCorrectionParams.hh"
+#include "RK/RKCorrectionParams.hh"
 
 #include <limits>
 
@@ -23,7 +23,7 @@ namespace Spheral {
 template<typename Dimension>
 typename Dimension::Scalar
 CRKSPHKernel(const TableKernel<Dimension>& W,
-             const CRKOrder correctionOrder,
+             const RKOrder correctionOrder,
              const typename Dimension::Vector& rij,
              const typename Dimension::Vector& etaj,
              const typename Dimension::Scalar Hdetj,
@@ -39,7 +39,7 @@ CRKSPHKernelAndGradient(typename Dimension::Scalar& WCRKSPH,
                         typename Dimension::Scalar& gradWSPH,
                         typename Dimension::Vector& gradWCRKSPH,
                         const TableKernel<Dimension>& W,
-                        const CRKOrder correctionOrder,
+                        const RKOrder correctionOrder,
                         const typename Dimension::Vector& rij,
                         const typename Dimension::Vector& etaj,
                         const typename Dimension::SymTensor& Hj,

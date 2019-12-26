@@ -6,13 +6,13 @@
 #
 # CRK (SumVolume)
 #
-#ATS:crk0 = test(        SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType CRKSumVolume --clearDirectories True  --steps 50", label="Noh cylindrical CRK (sum vol), nPerh=2.0", np=2)
-#ATS:crk1 = testif(crk0, SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType CRKSumVolume --clearDirectories False --steps 10 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK (sum vol), nPerh=2.0, restart test", np=2)
+#ATS:crk0 = test(        SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKSumVolume --clearDirectories True  --steps 50", label="Noh cylindrical CRK (sum vol), nPerh=2.0", np=2)
+#ATS:crk1 = testif(crk0, SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKSumVolume --clearDirectories False --steps 10 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK (sum vol), nPerh=2.0, restart test", np=2)
 #
 # CRK (VoroniVolume)
 #
-#ATS:crk0 = test(        SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType CRKVoronoiVolume --clearDirectories True  --steps 50", label="Noh cylindrical CRK (Voronoi vol), nPerh=2.0", np=2)
-#ATS:crk1 = testif(crk0, SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType CRKVoronoiVolume --clearDirectories False --steps 10 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK (Voronoi vol) , nPerh=2.0, restart test", np=2)
+#ATS:crk0 = test(        SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKVoronoiVolume --clearDirectories True  --steps 50", label="Noh cylindrical CRK (Voronoi vol), nPerh=2.0", np=2)
+#ATS:crk1 = testif(crk0, SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKVoronoiVolume --clearDirectories False --steps 10 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK (Voronoi vol) , nPerh=2.0, restart test", np=2)
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
@@ -105,7 +105,7 @@ commandLine(order = 5,
             smoothIters = 0,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
-            volumeType = CRKSumVolume,
+            volumeType = RKSumVolume,
             domainIndependent = False,
             rigorousBoundaries = False,
             dtverbose = False,

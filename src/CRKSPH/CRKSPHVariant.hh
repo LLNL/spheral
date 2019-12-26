@@ -54,8 +54,8 @@ public:
                 const bool XSPH,
                 const MassDensityType densityUpdate,
                 const HEvolutionType HUpdate,
-                const CRKOrder correctionOrder,
-                const CRKVolumeType volumeType,
+                const RKOrder correctionOrder,
+                const RKVolumeType volumeType,
                 const double epsTensile,
                 const double nTensile,
                 const bool limitMultimaterialTopology);

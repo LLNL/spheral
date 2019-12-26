@@ -39,7 +39,7 @@ ArtificialViscosity<Dimension>::
 ArtificialViscosity():
   mClinear(1.0),
   mCquadratic(1.0),
-  mQcorrectionOrder(CRKOrder::LinearOrder),  
+  mQcorrectionOrder(RKOrder::LinearOrder),  
   mBalsaraShearCorrection(false),
   mClMultiplier(FieldStorageType::CopyFields),
   mCqMultiplier(FieldStorageType::CopyFields),
@@ -60,7 +60,7 @@ ArtificialViscosity():
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ArtificialViscosity<Dimension>::
-ArtificialViscosity(Scalar Clinear, Scalar Cquadratic, CRKOrder QcorrectionOrder):
+ArtificialViscosity(Scalar Clinear, Scalar Cquadratic, RKOrder QcorrectionOrder):
   mClinear(Clinear),
   mCquadratic(Cquadratic),
   mQcorrectionOrder(QcorrectionOrder), 

@@ -6,7 +6,7 @@ from Physics import *
 from PhysicsAbstractMethods import *
 from RestartMethods import *
 
-@PYB11template("Dimension", "CRKOrder correctionOrder")
+@PYB11template("Dimension", "RKOrder correctionOrder")
 class RKCorrections(Physics):
     "Computes RK correction terms"
     
@@ -22,7 +22,7 @@ class RKCorrections(Physics):
     def pyinit(self,
                dataBase = "const DataBase<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
-               volumeType = "const CRKVolumeType",
+               volumeType = "const RKVolumeType",
                needHessian = "const bool"):
         "Constructor"
         
@@ -100,10 +100,10 @@ class RKCorrections(Physics):
                   
     #...........................................................................
     # Properties
-    volumeType = PYB11property("CRKVolumeType", "volumeType", "volumeType",
-                               doc="Flag for the CRK volume weighting definition")
+    volumeType = PYB11property("RKVolumeType", "volumeType", "volumeType",
+                               doc="Flag for the RK volume weighting definition")
     needHessian = PYB11property("bool", "needHessian", "needHessian",
-                               doc="Flag for the CRK volume weighting definition")
+                               doc="Flag for the RK volume weighting definition")
     volume = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "volume", returnpolicy="reference_internal")
 
     corrections = PYB11property("const FieldList<%(Dimension)s, std::vector<double>>&", "corrections", returnpolicy="reference_internal")

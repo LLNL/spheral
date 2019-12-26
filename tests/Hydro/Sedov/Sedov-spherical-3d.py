@@ -63,7 +63,7 @@ commandLine(seed = "lattice",
             boolHopkinsCorrection = True,
             HopkinsConductivity = False,     # For PSPH
             evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
-            volumeType = CRKSumVolume,       # For CRK
+            volumeType = RKSumVolume,       # For CRK
 
             hmin = 1e-15,
             hmax = 1.0,

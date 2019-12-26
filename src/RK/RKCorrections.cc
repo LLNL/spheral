@@ -23,11 +23,11 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 RKCorrections<Dimension, correctionOrder>::
 RKCorrections(const DataBase<Dimension>& dataBase,
               const TableKernel<Dimension>& W,
-              const CRKVolumeType volumeType,
+              const RKVolumeType volumeType,
               const bool needHessian):
   mDataBase(dataBase),
   mW(W),
@@ -48,7 +48,7 @@ RKCorrections(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 RKCorrections<Dimension, correctionOrder>::
 ~RKCorrections() {
 }
@@ -56,7 +56,7 @@ RKCorrections<Dimension, correctionOrder>::
 //------------------------------------------------------------------------------
 // Optional hook to initialize once when the problem is starting up
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 void
 RKCorrections<Dimension, correctionOrder>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
@@ -70,7 +70,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Initialize the Voronoi stuff
   mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
   mEtaVoidPoints = dataBase.newFluidFieldList(std::vector<Vector>(), HydroFieldNames::etaVoidPoints);
-  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+  if (mVolumeType == RKVolumeType::RKVoronoiVolume) {
     mCells = dataBase.newFluidFieldList(FacetedVolume(), HydroFieldNames::cells);
     mCellFaceFlags = dataBase.newFluidFieldList(std::vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
   }
@@ -83,7 +83,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   const auto position = dataBase.fluidPosition();
   const auto massDensity = dataBase.fluidMassDensity();
   FieldList<Dimension, SymTensor> damage;
-  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+  if (mVolumeType == RKVolumeType::RKVoronoiVolume) {
     damage = dataBase.solidEffectiveDamage();
   }
   
@@ -99,7 +99,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
        boundItr != this->boundaryEnd();
        ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(mVolume);
-    if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    if (mVolumeType == RKVolumeType::RKVoronoiVolume) {
       (*boundItr)->applyFieldListGhostBoundary(mSurfacePoint);
       (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
     }
@@ -115,7 +115,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                        mNeedHessian, mZerothCorrections, mCorrections);
 
   // Compute normal direction
-  RKUtilities<Dimension, CRKOrder::ZerothOrder>::
+  RKUtilities<Dimension, RKOrder::ZerothOrder>::
     computeNormal(connectivityMap, mW, mVolume, position, H,
                   mZerothCorrections, mSurfaceArea, mNormal);
 }
@@ -123,7 +123,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 //------------------------------------------------------------------------------
 // Register the state
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 void
 RKCorrections<Dimension, correctionOrder>::
 registerState(DataBase<Dimension>& dataBase,
@@ -137,7 +137,7 @@ registerState(DataBase<Dimension>& dataBase,
   
   state.enroll(mSurfacePoint);
   state.enroll(mEtaVoidPoints);
-  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+  if (mVolumeType == RKVolumeType::RKVoronoiVolume) {
     state.enroll(mCells);
     state.enroll(mCellFaceFlags);
   }
@@ -156,7 +156,7 @@ registerState(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // No derivatives to register
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 void
 RKCorrections<Dimension, correctionOrder>::
 registerDerivatives(DataBase<Dimension>& dataBase,
@@ -166,7 +166,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // Apply the ghost boundary conditions
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 void
 RKCorrections<Dimension, correctionOrder>::
 applyGhostBoundaries(State<Dimension>& state,
@@ -201,7 +201,7 @@ applyGhostBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 // Enforce the boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 void
 RKCorrections<Dimension, correctionOrder>::
 enforceBoundaries(State<Dimension>& state,
@@ -224,7 +224,7 @@ enforceBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 // No time step vote
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 typename RKCorrections<Dimension, correctionOrder>::TimeStepType
 RKCorrections<Dimension, correctionOrder>::
 dt(const DataBase<Dimension>& dataBase, 
@@ -237,7 +237,7 @@ dt(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // Compute new volumes
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 void
 RKCorrections<Dimension, correctionOrder>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
@@ -255,7 +255,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   FieldList<Dimension, FacetedVolume> cells;
   FieldList<Dimension, std::vector<CellFaceFlag>> cellFaceFlags;
-  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+  if (mVolumeType == RKVolumeType::RKVoronoiVolume) {
     cells = state.fields(HydroFieldNames::cells, FacetedVolume());
     cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, std::vector<CellFaceFlag>());
   }
@@ -272,7 +272,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
        boundItr != this->boundaryEnd();
        ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(volume);
-    if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    if (mVolumeType == RKVolumeType::RKVoronoiVolume) {
       (*boundItr)->applyFieldListGhostBoundary(cells);
       (*boundItr)->applyFieldListGhostBoundary(surfacePoint);
       (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
@@ -287,7 +287,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // Compute new RK corrections
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 void
 RKCorrections<Dimension, correctionOrder>::
 initialize(const typename Dimension::Scalar time,
@@ -311,7 +311,7 @@ initialize(const typename Dimension::Scalar time,
     computeCorrections(connectivityMap, W, volume, position, H,
                        mNeedHessian, zerothCorrections, corrections);
 
-  RKUtilities<Dimension, CRKOrder::ZerothOrder>::
+  RKUtilities<Dimension, RKOrder::ZerothOrder>::
     computeNormal(connectivityMap, W, volume, position, H,
                   zerothCorrections, surfaceArea, normal);
   
@@ -333,7 +333,7 @@ initialize(const typename Dimension::Scalar time,
 //------------------------------------------------------------------------------
 // No derivatives to evaluate
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 void
 RKCorrections<Dimension, correctionOrder>::
 evaluateDerivatives(const Scalar time,
@@ -346,7 +346,7 @@ evaluateDerivatives(const Scalar time,
 //------------------------------------------------------------------------------
 // Nothing to finalize
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 void
 RKCorrections<Dimension, correctionOrder>::
 finalize(const Scalar time, 
@@ -359,7 +359,7 @@ finalize(const Scalar time,
 //------------------------------------------------------------------------------
 // Dump the current state to the given file
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 void
 RKCorrections<Dimension, correctionOrder>::
 dumpState(FileIO& file, const std::string& pathName) const {
@@ -371,7 +371,7 @@ dumpState(FileIO& file, const std::string& pathName) const {
 //------------------------------------------------------------------------------
 // Restore the state from the given file
 //------------------------------------------------------------------------------
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 void
 RKCorrections<Dimension, correctionOrder>::
 restoreState(const FileIO& file, const std::string& pathName) {

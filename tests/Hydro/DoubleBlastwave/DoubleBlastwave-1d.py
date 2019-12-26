@@ -28,7 +28,7 @@ commandLine(
     nTensile = 8,
     filter = 0.00,
     HUpdate = IdealH,
-    volumeType = CRKSumVolume,
+    volumeType = RKSumVolume,
     densityUpdate = RigorousSumDensity,
     correctionOrder = LinearOrder,
     compatibleEnergy = True,

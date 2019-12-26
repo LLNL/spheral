@@ -8,7 +8,7 @@
 #include "Kernel/TableKernel.hh"
 #include "Geometry/innerDoubleProduct.hh"
 #include "Geometry/innerProduct.hh"
-#include "CRKSPHCorrectionParams.hh"
+#include "RK/RKCorrectionParams.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
@@ -20,7 +20,7 @@ template<typename Dimension>
 inline
 typename Dimension::Scalar
 CRKSPHKernel(const TableKernel<Dimension>& W,
-             const CRKOrder correctionOrder,
+             const RKOrder correctionOrder,
              const typename Dimension::Vector& rij,
              const typename Dimension::Vector& etaj,
              const typename Dimension::Scalar Hdetj,
@@ -32,9 +32,9 @@ CRKSPHKernel(const TableKernel<Dimension>& W,
   typedef typename Dimension::Tensor Tensor;
 
   const Scalar Wj = W(etaj.magnitude(), Hdetj);
-  if (correctionOrder == CRKOrder::ZerothOrder) {
+  if (correctionOrder == RKOrder::ZerothOrder) {
     return Ai*Wj;
-  } else if (correctionOrder == CRKOrder::LinearOrder) {
+  } else if (correctionOrder == RKOrder::LinearOrder) {
     return Ai*(1.0 + Bi.dot(rij))*Wj;
   } else {   //correctionOrder == QuadraticOrder
     return Ai*(1.0 + Bi.dot(rij) + innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wj;
@@ -51,7 +51,7 @@ CRKSPHKernelAndGradient(typename Dimension::Scalar& WCRKSPH,
                         typename Dimension::Scalar& gradWSPH,
                         typename Dimension::Vector& gradWCRKSPH,
                         const TableKernel<Dimension>& W,
-                        const CRKOrder correctionOrder,
+                        const RKOrder correctionOrder,
                         const typename Dimension::Vector& rij,
                         const typename Dimension::Vector& etaj,
                         const typename Dimension::SymTensor& Hj,
@@ -80,11 +80,11 @@ CRKSPHKernelAndGradient(typename Dimension::Scalar& WCRKSPH,
   // const Vector gradWij = 0.5*(Hi*etai.unitVector() * WWi.second + Hj*etaj.unitVector() * WWj.second);
   // gradWSPH = 0.5*(WWi.second + WWj.second);
 
-  if (correctionOrder == CRKOrder::ZerothOrder) {
+  if (correctionOrder == RKOrder::ZerothOrder) {
     WCRKSPH = Ai*Wj;
     gradWCRKSPH = Ai*gradWj + gradAi*Wj;
 
-  } else if (correctionOrder == CRKOrder::LinearOrder) {
+  } else if (correctionOrder == RKOrder::LinearOrder) {
     const auto correction = Ai*(1.0 + Bi.dot(rij));
     WCRKSPH = correction*Wj;
     gradWCRKSPH = correction*gradWj + Ai*Bi*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
@@ -94,7 +94,7 @@ CRKSPHKernelAndGradient(typename Dimension::Scalar& WCRKSPH,
       }
     }
 
-  } else {  //correctionOrder == CRKOrder::QuadraticOrder
+  } else {  //correctionOrder == RKOrder::QuadraticOrder
     const auto correction = Ai*(1.0 + Bi.dot(rij) + innerDoubleProduct<Dimension>(Ci, rij.selfdyad()));
     WCRKSPH = correction*Wj;
     gradWCRKSPH = correction*gradWj + (Ai*Bi*Wj +

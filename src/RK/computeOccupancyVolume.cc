@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Compute the CRKSPH volume summation.
+// Compute the RK volume summation.
 //------------------------------------------------------------------------------
 #include "computeOccupancyVolume.hh"
 #include "NodeList/NodeList.hh"

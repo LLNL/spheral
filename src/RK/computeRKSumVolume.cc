@@ -1,4 +1,4 @@
-#include "computeCRKSPHSumVolume.hh"
+#include "computeRKSumVolume.hh"
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
 
@@ -30,16 +30,16 @@ template<> double volumeElement<Dim<3> >() {
 }
 
 //------------------------------------------------------------------------------
-// Compute the CRKSPH volume summation.
+// Compute the RK volume summation.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
-                       const TableKernel<Dimension>& W,
-                       const FieldList<Dimension, typename Dimension::Vector>& position,
-                       const FieldList<Dimension, typename Dimension::Scalar>& mass,
-                       const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                       FieldList<Dimension, typename Dimension::Scalar>& vol) {
+computeRKSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
+                   const TableKernel<Dimension>& W,
+                   const FieldList<Dimension, typename Dimension::Vector>& position,
+                   const FieldList<Dimension, typename Dimension::Scalar>& mass,
+                   const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                   FieldList<Dimension, typename Dimension::Scalar>& vol) {
 
   // Pre-conditions.
   const auto numNodeLists = vol.size();

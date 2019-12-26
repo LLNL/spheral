@@ -4,7 +4,7 @@ text = """
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 
-#include "CRKSPH/computeRKVolumes.cc"
+#include "RK/computeRKVolumes.cc"
 
 namespace Spheral {
 
@@ -16,7 +16,7 @@ template void computeRKVolumes<Dim<%(ndim)s>>(const ConnectivityMap<Dim<%(ndim)s
                                               const FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::SymTensor>& H,
                                               const FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::SymTensor>& damage,
                                               const std::vector<Boundary<Dim<%(ndim)s>>*>& boundaryConditions,
-                                              const CRKVolumeType volumeType,
+                                              const RKVolumeType volumeType,
                                               FieldList<Dim<%(ndim)s>, int>& surfacePoint,
                                               FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Vector>& deltaCentroid,
                                               FieldList<Dim<%(ndim)s>, std::vector<Dim<%(ndim)s>::Vector>>& etaVoidPoints,

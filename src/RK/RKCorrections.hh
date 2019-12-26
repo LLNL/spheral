@@ -6,7 +6,7 @@
 #ifndef __LLNLSpheral_RKCorrections__
 #define __LLNLSpheral_RKCorrections__
 
-#include "CRKSPH/CRKSPHCorrectionParams.hh"
+#include "RKCorrectionParams.hh"
 #include "DataOutput/registerWithRestart.hh"
 #include "Field/FieldList.hh"
 #include "Geometry/CellFaceFlag.hh"
@@ -19,7 +19,7 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
 template<typename Dimension> class Boundary;
 
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 class RKCorrections : public Physics<Dimension> {
 public:
   typedef typename Dimension::Scalar Scalar;
@@ -35,7 +35,7 @@ public:
   // Constructor
   RKCorrections(const DataBase<Dimension>& dataBase,
                         const TableKernel<Dimension>& W,
-                        const CRKVolumeType volumeType,
+                        const RKVolumeType volumeType,
                         const bool needHessian);
 
   // Destructor.
@@ -103,7 +103,7 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName);
 
   // Return data
-  CRKVolumeType volumeType() const { return mVolumeType; }
+  RKVolumeType volumeType() const { return mVolumeType; }
   bool needHessian() const { return mNeedHessian; }
   const FieldList<Dimension, Scalar>& volume() const { return mVolume; }
 
@@ -119,7 +119,7 @@ private:
   // Data
   const DataBase<Dimension>& mDataBase;
   const TableKernel<Dimension>& mW;
-  const CRKVolumeType mVolumeType;
+  const RKVolumeType mVolumeType;
   const bool mNeedHessian;
 
   // State

@@ -6,7 +6,7 @@
 #include <vector>
 #include "computeVoronoiVolume.hh"
 #include "computeHullVolumes.hh"
-#include "computeCRKSPHSumVolume.hh"
+#include "computeRKSumVolume.hh"
 #include "computeHVolumes.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -29,7 +29,7 @@ computeRKVolumes(const ConnectivityMap<Dimension>& connectivityMap,
                  const FieldList<Dimension, typename Dimension::SymTensor>& H,
                  const FieldList<Dimension, typename Dimension::SymTensor>& damage,
                  const std::vector<Boundary<Dimension>*>& boundaryConditions,
-                 const CRKVolumeType volumeType,
+                 const RKVolumeType volumeType,
                  FieldList<Dimension, int>& surfacePoint,
                  FieldList<Dimension, typename Dimension::Vector>& deltaCentroid,
                  FieldList<Dimension, std::vector<typename Dimension::Vector>>& etaVoidPoints,
@@ -39,13 +39,13 @@ computeRKVolumes(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::FacetedVolume FacetedVolume;
   
-  if (volumeType == CRKVolumeType::CRKMassOverDensity) {
+  if (volumeType == RKVolumeType::RKMassOverDensity) {
     volume.assignFields(mass/massDensity);
   }
-  else if (volumeType == CRKVolumeType::CRKSumVolume) {
-    computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, volume);
+  else if (volumeType == RKVolumeType::RKSumVolume) {
+    computeRKSumVolume(connectivityMap, W, position, mass, H, volume);
   }
-  else if (volumeType == CRKVolumeType::CRKVoronoiVolume) {
+  else if (volumeType == RKVolumeType::RKVoronoiVolume) {
     std::vector<std::vector<FacetedVolume>> holes;
     std::vector<FacetedVolume> facetedBoundaries;
     FieldList<Dimension, typename Dimension::Scalar> weights;
@@ -55,15 +55,15 @@ computeRKVolumes(const ConnectivityMap<Dimension>& connectivityMap,
                          surfacePoint, volume, deltaCentroid, etaVoidPoints,
                          cells, cellFaceFlags); 
   }
-  else if (volumeType == CRKVolumeType::CRKHullVolume) {
+  else if (volumeType == RKVolumeType::RKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, volume);
   }
-  else if (volumeType == CRKVolumeType::HVolume) {
+  else if (volumeType == RKVolumeType::HVolume) {
     const Scalar nPerh = volume.nodeListPtrs()[0]->nodesPerSmoothingScale();
     computeHVolumes(nPerh, H, volume);
   }
   else {
-    VERIFY2(false, "Unknown CRK volume weighting.");
+    VERIFY2(false, "Unknown RK volume weighting.");
   }
 }
 

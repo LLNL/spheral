@@ -57,9 +57,9 @@ commandLine(
     z0 = -2.0,
     z1 = 2.0,
 
-    # CRK options
+    # RK options
     correctionOrder = LinearOrder,
-    volumeType = CRKMassOverDensity,
+    volumeType = RKMassOverDensity,
 
     # Testing options
     randomizeNodes = True,
@@ -828,7 +828,7 @@ if testHessian:
     dderror = [getError(ddvals[:,d1,d2,0], ddvals[:,d1,d2,1]) for d1 in range(dimension) for d2 in range(dimension)]
     output("dderror")
 
-if correctionOrder == CRKOrder.ZerothOrder:
+if correctionOrder == RKOrder.ZerothOrder:
     ni = 0
     zerothErr = np.zeros((nodes.numNodes))
     for i in range(nodes.numNodes):

@@ -10,8 +10,7 @@
 #include "CRKSPHHydroBase.hh"
 #include "CRKSPHUtilities.hh"
 #include "volumeSpacing.hh"
-#include "computeHullVolumes.hh"
-#include "computeCRKSPHSumVolume.hh"
+#include "RK/computeRKSumVolume.hh"
 #include "computeCRKSPHMoments.hh"
 #include "computeCRKSPHCorrections.hh"
 #include "computeCRKSPHSumMassDensity.hh"
@@ -33,7 +32,7 @@
 #include "DataBase/IncrementBoundedFieldList.hh"
 #include "DataBase/ReplaceFieldList.hh"
 #include "DataBase/ReplaceBoundedFieldList.hh"
-#include "ContinuityVolumePolicyRZ.hh"
+#include "RK/ContinuityVolumePolicyRZ.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -122,8 +121,8 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                        const bool XSPH,
                        const MassDensityType densityUpdate,
                        const HEvolutionType HUpdate,
-                       const CRKOrder correctionOrder,
-                       const CRKVolumeType volumeType,
+                       const RKOrder correctionOrder,
+                       const RKVolumeType volumeType,
                        const double epsTensile,
                        const double nTensile,
                        const bool limitMultimaterialTopology,
@@ -337,10 +336,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   CHECK(pTypes.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
   CHECK(B.size() == numNodeLists);
-  CHECK(C.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(C.size() == numNodeLists or order != RKOrder::QuadraticOrder);
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists);
-  CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(gradC.size() == numNodeLists or order != RKOrder::QuadraticOrder);
   CHECK(surfacePoint.size() == numNodeLists);
 
   const auto& Hfield0 = this->Hfield0();
@@ -438,11 +437,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto  pTypei = pTypes(nodeListi, i);
       Ai = A(nodeListi, i);
       gradAi = gradA(nodeListi, i);
-      if (order != CRKOrder::ZerothOrder) {
+      if (order != RKOrder::ZerothOrder) {
         Bi = B(nodeListi, i);
         gradBi = gradB(nodeListi, i);
       }
-      if (order == CRKOrder::QuadraticOrder) {
+      if (order == RKOrder::QuadraticOrder) {
         Ci = C(nodeListi, i);
         gradCi = gradC(nodeListi, i);
       }
@@ -481,11 +480,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto  pTypej = pTypes(nodeListj, j);
       Aj = A(nodeListj, j);
       gradAj = gradA(nodeListj, j);
-      if (order != CRKOrder::ZerothOrder) {
+      if (order != RKOrder::ZerothOrder) {
         Bj = B(nodeListj, j);
         gradBj = gradB(nodeListj, j);
       }
-      if (order == CRKOrder::QuadraticOrder) {
+      if (order == RKOrder::QuadraticOrder) {
         Cj = C(nodeListj, j);
         gradCj = gradC(nodeListj, j);
       }

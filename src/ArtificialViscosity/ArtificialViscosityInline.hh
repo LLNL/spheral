@@ -48,7 +48,7 @@ Cq(typename Dimension::Scalar Cq) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-CRKOrder
+RKOrder
 ArtificialViscosity<Dimension>::QcorrectionOrder() const {
   return mQcorrectionOrder;
 }
@@ -57,7 +57,7 @@ template<typename Dimension>
 inline
 void
 ArtificialViscosity<Dimension>::
-QcorrectionOrder(const CRKOrder order) {
+QcorrectionOrder(const RKOrder order) {
   mQcorrectionOrder = order;
 }
 

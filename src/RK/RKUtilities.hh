@@ -7,32 +7,32 @@
 #define __LLNLSpheral_RKUtilities__
 
 #include <vector>
-#include "CRKSPH/CRKSPHCorrectionParams.hh"
+#include "RKCorrectionParams.hh"
 #include "Field/FieldList.hh"
 
 namespace Spheral {
 
-template<typename Dimension, CRKOrder correctionOrder>
+template<typename Dimension, RKOrder correctionOrder>
 class RKUtilities {
 public:
   // Size of the sparse storage for the Hessian
   static constexpr int hessBaseSize = (Dimension::nDim == 1 ? 1 : (Dimension::nDim == 2 ? 3 : 6));
   
   // The size of the polynomial arrays
-  static constexpr int polynomialSize = (correctionOrder == CRKOrder::ZerothOrder ? 1 
-                                         : correctionOrder == CRKOrder::LinearOrder
+  static constexpr int polynomialSize = (correctionOrder == RKOrder::ZerothOrder ? 1 
+                                         : correctionOrder == RKOrder::LinearOrder
                                          ? (Dimension::nDim == 1 ? 2 : (Dimension::nDim == 2 ? 3 : 4))
-                                         : correctionOrder == CRKOrder::QuadraticOrder
+                                         : correctionOrder == RKOrder::QuadraticOrder
                                          ? (Dimension::nDim == 1 ? 3 : (Dimension::nDim == 2 ? 6 : 10))
-                                         : correctionOrder == CRKOrder::CubicOrder
+                                         : correctionOrder == RKOrder::CubicOrder
                                          ? (Dimension::nDim == 1 ? 4 : (Dimension::nDim == 2 ? 10 : 20))
-                                         : correctionOrder == CRKOrder::QuarticOrder
+                                         : correctionOrder == RKOrder::QuarticOrder
                                          ? (Dimension::nDim == 1 ? 5 : (Dimension::nDim == 2 ? 15 : 35))
-                                         : correctionOrder == CRKOrder::QuinticOrder
+                                         : correctionOrder == RKOrder::QuinticOrder
                                          ? (Dimension::nDim == 1 ? 6 : (Dimension::nDim == 2 ? 21 : 56))
-                                         : correctionOrder == CRKOrder::SexticOrder
+                                         : correctionOrder == RKOrder::SexticOrder
                                          ? (Dimension::nDim == 1 ? 7 : (Dimension::nDim == 2 ? 28 : 84))
-                                         : correctionOrder == CRKOrder::SepticOrder
+                                         : correctionOrder == RKOrder::SepticOrder
                                          ? (Dimension::nDim == 1 ? 8 : (Dimension::nDim == 2 ? 36 : 120))
                                          : -1); // if order not found, return -1 to produce error
   static constexpr int gradPolynomialSize = polynomialSize * Dimension::nDim;
@@ -151,6 +151,39 @@ public:
   static inline int offsetGradP(const int d);
   static inline int offsetHessP(const int d1, const int d2);
 };
+
+//------------------------------------------------------------------------------
+// Provide frontends to workaround templating of correction order
+//------------------------------------------------------------------------------
+// RK kernel
+template<typename Dimension>
+typename Dimension::Scalar
+RKKernel(const TableKernel<Dimension>& W,
+         const typename Dimension::Vector& x,
+         const typename Dimension::SymTensor& H,
+         const std::vector<double>& corrections,
+         const RKOrder order);
+
+// RK gradient
+template<typename Dimension>
+typename Dimension::Vector
+RKGradient(const TableKernel<Dimension>& W,
+           const typename Dimension::Vector& x,
+           const typename Dimension::SymTensor& H,
+           const std::vector<double>& corrections,
+           const RKOrder order);
+
+// RK kernel + gradient
+template<typename Dimension>
+void
+RKKernelAndGradient(typename Dimension::Scalar& WRK,
+                    typename Dimension::Vector& gradWSPH,
+                    typename Dimension::Vector& gradWRK,
+                    const TableKernel<Dimension>& W,
+                    const typename Dimension::Vector& x,
+                    const typename Dimension::SymTensor& H,
+                    const std::vector<double>& corrections,
+                    const RKOrder order);
 
 } // end namespace Spheral
 
