@@ -11,12 +11,14 @@ dims = spheralDimensions()
 
 from RKCorrections import *
 from RKUtilities import *
+from ReproducingKernel import *
 
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
 PYB11includes += ['"RK/RKCorrections.hh"',
                   '"RK/RKUtilities.hh"',
+                  '"RK/ReproducingKernel.hh"',
                   '"RK/computeRKVolumes.hh"',
                   '"RK/computeVoronoiVolume.hh"',
                   '"RK/computeOccupancyVolume.hh"',
@@ -417,6 +419,7 @@ def hessianRK(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
 for ndim in dims:
     exec('''
 RKCorrections%(ndim)id = PYB11TemplateClass(RKCorrections, template_parameters="%(Dimension)s")
+ReproducingKernel%(ndim)id = PYB11TemplateClass(ReproducingKernel, template_parameters="%(Dimension)s")
 
 RKKernel%(ndim)id = PYB11TemplateFunction(RKKernel, template_parameters="%(Dimension)s")
 RKGradient%(ndim)id = PYB11TemplateFunction(RKGradient, template_parameters="%(Dimension)s")
