@@ -536,7 +536,8 @@ for i in nodesToCheck:
     dvals[i,:,0] = grad_vals(0,i)
     dvals[i,:,1] =  dfunc(position(0,i))
     if testHessian:
-        ddvals[i,:,:,0] = hess_vals(0,i)
+        for irow in xrange(dimension):
+            ddvals[i,irow,:,0] = hess_vals(0,i).getRow(irow)
         ddvals[i,:,:,1] = ddfunc(position(0,i))
 check_time = time.time() - check_time
 output("check_time")
