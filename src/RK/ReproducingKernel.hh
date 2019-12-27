@@ -67,6 +67,10 @@ public:
                      FieldList<Dimension, Scalar>& surfaceArea,
                      FieldList<Dimension, Vector>& normal);
 
+  // Access the internal state
+  RKOrder order() const;
+  const TableKernel<Dimension>& kernel() const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   const TableKernel<Dimension>& mW;   // The base interpolation kernel

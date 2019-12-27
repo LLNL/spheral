@@ -18,8 +18,7 @@ hessianRK<Dim<%%(ndim)s>, Dim<%%(ndim)s>::%(Value)s>(const FieldList<Dim<%%(ndim
                                                      const FieldList<Dim<%%(ndim)s>, Dim<%%(ndim)s>::Scalar>& weight,
                                                      const FieldList<Dim<%%(ndim)s>, Dim<%%(ndim)s>::SymTensor>& H,
                                                      const ConnectivityMap<Dim<%%(ndim)s>>& connectivityMap,
-                                                     const TableKernel<Dim<%%(ndim)s>>& W,
-                                                     const RKOrder correctionOrder,
+                                                     const ReproducingKernel<Dim<%%(ndim)s>>& WR,
                                                      const FieldList<Dim<%%(ndim)s>, std::vector<double>>& corrections,
                                                      const NodeCoupling& nodeCoupling);
 

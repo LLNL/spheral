@@ -92,6 +92,8 @@ class HydroFieldNames:
     polyvols = PYB11readonly(static=True)
     massDensityGradient = PYB11readonly(static=True)
     specificHeat = PYB11readonly(static=True)
+    reproducingKernel = PYB11readonly(static=True)
+    reproducingKernel0 = PYB11readonly(static=True)
     rkCorrections = PYB11readonly(static=True)
     rkZerothCorrections = PYB11readonly(static=True)
     normal = PYB11readonly(static=True)

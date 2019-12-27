@@ -23,8 +23,7 @@ interpolateRK<Dim<%(ndim)s>>(const std::vector<boost::variant<FieldList<Dim<%(nd
                                           const FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Scalar>& weight,
                                           const FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::SymTensor>& H,
                                           const ConnectivityMap<Dim<%(ndim)s> >& connectivityMap,
-                                          const TableKernel< Dim<%(ndim)s> >& kernel,
-                                          const RKOrder correctionOrder,
+                                          const ReproducingKernel< Dim<%(ndim)s> >& kernel,
                                           const FieldList<Dim<%(ndim)s>, std::vector<double>>& corrections,
                                           const NodeCoupling& nodeCoupling);
 

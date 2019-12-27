@@ -279,8 +279,7 @@ def computeHVolumes(nPerh = "const typename %(Dimension)s::Scalar",
                            const FieldList<%(Dimension)s, %(Dimension)s::Scalar>& weight,
                            const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>& H,
                            const ConnectivityMap<%(Dimension)s>& connectivityMap,
-                           const TableKernel<%(Dimension)s>& W,
-                           const RKOrder correctionOrder,
+                           const ReproducingKernel<%(Dimension)s>& WR,
                            const FieldList<%(Dimension)s, std::vector<double>>& corrections,
                            const NodeCoupling& nodeCoupling) {
                                std::vector<boost::variant<FieldList<%(Dimension)s, %(Dimension)s::Scalar>,
@@ -294,8 +293,7 @@ def computeHVolumes(nPerh = "const typename %(Dimension)s::Scalar",
                                                           weight,
                                                           H,
                                                           connectivityMap,
-                                                          W,
-                                                          correctionOrder,
+                                                          WR,
                                                           corrections,
                                                           nodeCoupling);
                                CHECK(flvec.size() == 1);
@@ -309,8 +307,7 @@ def interpolateRK1(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
                    weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                    H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
                    connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
-                   W = "const TableKernel<%(Dimension)s>&",
-                   correctionOrder = "const RKOrder",
+                   WR = "const ReproducingKernel<%(Dimension)s>&",
                    corrections = "const FieldList<%(Dimension)s, std::vector<double>>&",
                    nodeCoupling = ("const NodeCoupling&", "NodeCoupling()")):
     "Compute the RK interpolation at each point for a single FieldList."
@@ -323,8 +320,7 @@ def interpolateRK1(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
                            const FieldList<%(Dimension)s, %(Dimension)s::Scalar>& weight,
                            const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>& H,
                            const ConnectivityMap<%(Dimension)s>& connectivityMap,
-                           const TableKernel<%(Dimension)s>& W,
-                           const RKOrder correctionOrder,
+                           const ReproducingKernel<%(Dimension)s>& WR,
                            const FieldList<%(Dimension)s, std::vector<double>>& corrections,
                            const NodeCoupling& nodeCoupling) {
                                std::vector<boost::variant<FieldList<%(Dimension)s, %(Dimension)s::Scalar>,
@@ -365,8 +361,7 @@ def interpolateRK1(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
                                                                weight,
                                                                H,
                                                                connectivityMap,
-                                                               W,
-                                                               correctionOrder,
+                                                               WR,
                                                                corrections,
                                                                nodeCoupling);
                                py::list result;
@@ -378,8 +373,7 @@ def interpolateRK(fieldLists = "py::list&",
                   weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                   H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
                   connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
-                  W = "const TableKernel<%(Dimension)s>&",
-                  correctionOrder = "const RKOrder",
+                  WR = "const ReproducingKernel<%(Dimension)s>&",
                   corrections = "const FieldList<%(Dimension)s, std::vector<double>>&",
                   nodeCoupling = ("const NodeCoupling&", "NodeCoupling()")):
     "Compute the RK interpolation at each point for a list of FieldLists."
@@ -392,8 +386,7 @@ def gradientRK(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
                weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
                connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
-               W = "const TableKernel<%(Dimension)s>&",
-               correctionOrder = "const RKOrder",
+               WR = "const ReproducingKernel<%(Dimension)s>&",
                corrections = "const FieldList<%(Dimension)s, std::vector<double>>&",
                nodeCoupling = ("const NodeCoupling&", "NodeCoupling()")):
     "Compute the RK gradient at each point for a FieldList."
@@ -402,14 +395,13 @@ def gradientRK(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "DataType")
 def hessianRK(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
-               position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
-               weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
-               H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
-               connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
-               W = "const TableKernel<%(Dimension)s>&",
-               correctionOrder = "const RKOrder",
-               corrections = "const FieldList<%(Dimension)s, std::vector<double>>&",
-               nodeCoupling = ("const NodeCoupling&", "NodeCoupling()")):
+              position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+              weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
+              H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
+              connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
+              WR = "const ReproducingKernel<%(Dimension)s>&",
+              corrections = "const FieldList<%(Dimension)s, std::vector<double>>&",
+              nodeCoupling = ("const NodeCoupling&", "NodeCoupling()")):
     "Compute the RK hessian at each point for a FieldList."
     return "FieldList<%(Dimension)s, typename MathTraits<%(Dimension)s, %(DataType)s>::HessianType>"
 

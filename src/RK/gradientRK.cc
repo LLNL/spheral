@@ -6,7 +6,6 @@
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
-#include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
 #include "SPH/NodeCoupling.hh"
 
@@ -30,8 +29,7 @@ gradientRK(const FieldList<Dimension, DataType>& fieldList,
            const FieldList<Dimension, typename Dimension::Scalar>& weight,
            const FieldList<Dimension, typename Dimension::SymTensor>& H,
            const ConnectivityMap<Dimension>& connectivityMap,
-           const TableKernel<Dimension>& W,
-           const RKOrder correctionOrder,
+           const ReproducingKernel<Dimension>& WR,
            const FieldList<Dimension, std::vector<double>>& corrections,
            const NodeCoupling& nodeCoupling) {
 
@@ -104,8 +102,8 @@ gradientRK(const FieldList<Dimension, DataType>& fieldList,
 
         // Pair contributions
         const auto xij = xi - xj;
-        gradWj = RKGradient(W,  xij, Hj, correctionsi);
-        gradWi = RKGradient(W, -xij, Hi, correctionsj);
+        gradWj = WR.evaluateGradient( xij, Hj, correctionsi);
+        gradWi = WR.evaluateGradient(-xij, Hi, correctionsj);
         gradFi += wj*Fj*gradWj;
         gradFj += wi*Fi*gradWi;
       }
@@ -124,7 +122,7 @@ gradientRK(const FieldList<Dimension, DataType>& fieldList,
     for (auto i = 0; i < n; ++i) {
       const auto& Hi = H(nodeListi, i);
       const auto& correctionsi = corrections(nodeListi, i);
-      result(nodeListi, i) += weight(nodeListi, i)*fieldList(nodeListi, i)*RKGradient(W, Vector::zero, Hi, correctionsi);
+      result(nodeListi, i) += weight(nodeListi, i)*fieldList(nodeListi, i)*WR.evaluateGradient(Vector::zero, Hi, correctionsi);
     }
   }
 

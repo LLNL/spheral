@@ -6,7 +6,8 @@
 #ifndef __LLNLSpheral_RKCorrections__
 #define __LLNLSpheral_RKCorrections__
 
-#include "RKCorrectionParams.hh"
+#include "RK/RKCorrectionParams.hh"
+#include "RK/ReproducingKernel.hh"
 #include "DataOutput/registerWithRestart.hh"
 #include "Field/FieldList.hh"
 #include "Geometry/CellFaceFlag.hh"
@@ -77,7 +78,7 @@ public:
   // Initialize field lists and calculate initial RK corrections
   virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
   
-  // Compute the Voronoi volumes
+  // Compute the volumes
   virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
                                  State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) override;
@@ -104,7 +105,9 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName);
 
   // Return data
-  RKOrder correctionOrder() const { return mCorrectionOrder; }
+  const ReproducingKernel<Dimension>& WR() const { return mWR; }
+  const ReproducingKernel<Dimension>& WR0() const { return mWR0; }
+  RKOrder correctionOrder() const { return mWR.order(); }
   RKVolumeType volumeType() const { return mVolumeType; }
   bool needHessian() const { return mNeedHessian; }
   const FieldList<Dimension, Scalar>& volume() const { return mVolume; }
@@ -119,11 +122,10 @@ public:
 private:
 
   // Data
-  RKOrder mCorrectionOrder;
   const DataBase<Dimension>& mDataBase;
-  const TableKernel<Dimension>& mW;
   const RKVolumeType mVolumeType;
   const bool mNeedHessian;
+  ReproducingKernel<Dimension> mWR, mWR0;
 
   // State
   FieldList<Dimension, Scalar> mVolume;

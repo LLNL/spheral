@@ -6,7 +6,6 @@
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
-#include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
 #include "SPH/NodeCoupling.hh"
 #include "Geometry/outerProduct.hh"
@@ -31,8 +30,7 @@ hessianRK(const FieldList<Dimension, DataType>& fieldList,
           const FieldList<Dimension, typename Dimension::Scalar>& weight,
           const FieldList<Dimension, typename Dimension::SymTensor>& H,
           const ConnectivityMap<Dimension>& connectivityMap,
-          const TableKernel<Dimension>& W,
-          const RKOrder correctionOrder,
+          const ReproducingKernel<Dimension>& WR,
           const FieldList<Dimension, std::vector<double>>& corrections,
           const NodeCoupling& nodeCoupling) {
 
@@ -102,8 +100,8 @@ hessianRK(const FieldList<Dimension, DataType>& fieldList,
 
         // Pair contributions
         const auto xij = xi - xj;
-        hessWj = RKHessian(W,  xij, Hj, correctionsi);
-        hessWi = RKHessian(W, -xij, Hi, correctionsj);
+        hessWj = WR.evaluateHessian( xij, Hj, correctionsi);
+        hessWi = WR.evaluateHessian(-xij, Hi, correctionsj);
         gradFi += wj*outerProduct<Dimension>(hessWj, Fj);
         gradFj += wi*outerProduct<Dimension>(hessWi, Fi);
       }
@@ -122,7 +120,7 @@ hessianRK(const FieldList<Dimension, DataType>& fieldList,
     for (auto i = 0; i < n; ++i) {
       const auto& Hi = H(nodeListi, i);
       const auto& correctionsi = corrections(nodeListi, i);
-      result(nodeListi, i) += weight(nodeListi, i)*outerProduct<Dimension>(RKHessian(W, Vector::zero, Hi, correctionsi), fieldList(nodeListi, i));
+      result(nodeListi, i) += weight(nodeListi, i)*outerProduct<Dimension>(WR.evaluateHessian(Vector::zero, Hi, correctionsi), fieldList(nodeListi, i));
     }
   }
 

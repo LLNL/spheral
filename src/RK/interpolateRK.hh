@@ -6,6 +6,7 @@
 
 #include "SPH/NodeCoupling.hh"
 #include "RK/RKCorrectionParams.hh"
+#include "RK/ReproducingKernel.hh"
 
 #include "boost/variant.hpp"
 #include <vector>
@@ -14,7 +15,6 @@ namespace Spheral {
 
 // Forward declarations.
 template<typename Dimension> class ConnectivityMap;
-template<typename Dimension> class TableKernel;
 template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension>
@@ -32,8 +32,7 @@ interpolateRK(const std::vector<boost::variant<FieldList<Dimension, typename Dim
                   const FieldList<Dimension, typename Dimension::Scalar>& weight,
                   const FieldList<Dimension, typename Dimension::SymTensor>& H,
                   const ConnectivityMap<Dimension>& connectivityMap,
-                  const TableKernel<Dimension>& W,
-                  const RKOrder correctionOrder,
+                  const ReproducingKernel<Dimension>& WR,
                   const FieldList<Dimension, std::vector<double>>& corrections,
                   const NodeCoupling& nodeCoupling = NodeCoupling());
 

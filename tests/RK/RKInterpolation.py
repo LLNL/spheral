@@ -462,6 +462,7 @@ rk = RKCorrections(order = correctionOrder,
                    W = WT,
                    volumeType = volumeType,
                    needHessian = testHessian)
+WR = rk.WR
 packages = [rk]
 
 #-------------------------------------------------------------------------------
@@ -489,8 +490,8 @@ corrections = state.vector_of_doubleFields(HydroFieldNames.rkCorrections)
 # Compute corrections
 #-------------------------------------------------------------------------------
 rk_time = time.time()
-computeRKCorrections(correctionOrder, connectivity, WT, volume, position, H, testHessian,
-                     zerothCorrections, corrections)
+WR.computeCorrections(connectivity, volume, position, H, testHessian,
+                      zerothCorrections, corrections)
 rk_time = time.time() - rk_time
 output("rk_time")
 
@@ -517,10 +518,10 @@ fill_time = time.time() - fill_time
 output("fill_time")
 
 interp_time = time.time()
-interp_vals = interpolateRK(answer_vals, position, volume, H, connectivity, WT, correctionOrder, corrections)
-grad_vals = gradientRK(answer_vals, position, volume, H, connectivity, WT, correctionOrder, corrections)
+interp_vals = interpolateRK(answer_vals, position, volume, H, connectivity, WR, corrections)
+grad_vals = gradientRK(answer_vals, position, volume, H, connectivity, WR, corrections)
 if testHessian:
-    hess_vals = hessianRK(answer_vals, position, volume, H, connectivity, WT, correctionOrder, corrections)
+    hess_vals = hessianRK(answer_vals, position, volume, H, connectivity, WR, corrections)
 interp_time = time.time() - interp_time
 output("interp_time")
 

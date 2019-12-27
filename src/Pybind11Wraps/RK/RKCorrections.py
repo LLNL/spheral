@@ -101,6 +101,8 @@ class RKCorrections(Physics):
                   
     #...........................................................................
     # Properties
+    WR = PYB11property(doc="The reproducing kernel")
+    WR0 = PYB11property(doc="The reproducing kernel for forced zeroth order")
     correctionOrder = PYB11property(doc="Spatial order of the reproducing kernel corrections")
     volumeType = PYB11property(doc="Flag for the RK volume weighting definition")
     needHessian = PYB11property(doc="Flag for the RK volume weighting definition")

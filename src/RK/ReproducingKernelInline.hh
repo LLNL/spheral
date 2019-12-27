@@ -161,4 +161,26 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
                     normal);
 }
 
+//------------------------------------------------------------------------------
+// order
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+RKOrder
+ReproducingKernel<Dimension>::
+order() const {
+  return mOrder;
+}
+
+//------------------------------------------------------------------------------
+// kernel
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const TableKernel<Dimension>&
+ReproducingKernel<Dimension>::
+kernel() const {
+  return mW;
+}
+
 }

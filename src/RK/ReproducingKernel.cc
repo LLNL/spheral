@@ -121,4 +121,12 @@ ReproducingKernel(const TableKernel<Dimension>& W,
   }
 }
 
+//------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
+template<typename Dimension>
+ReproducingKernel<Dimension>::
+~ReproducingKernel() {
+}  
+
 }

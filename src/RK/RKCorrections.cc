@@ -30,11 +30,11 @@ RKCorrections(const RKOrder order,
               const TableKernel<Dimension>& W,
               const RKVolumeType volumeType,
               const bool needHessian):
-  mCorrectionOrder(order),
   mDataBase(dataBase),
-  mW(W),
   mVolumeType(volumeType),
   mNeedHessian(needHessian),
+  mWR(W, order),
+  mWR0(W, RKOrder::ZerothOrder),
   mVolume(FieldStorageType::CopyFields),
   mZerothCorrections(FieldStorageType::CopyFields),
   mCorrections(FieldStorageType::CopyFields),
@@ -69,7 +69,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mSurfaceArea = dataBase.newFluidFieldList(0.0, HydroFieldNames::surfaceArea);
   mNormal = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::normal);
   
-  // Initialize the Voronoi stuff
+  // Initialize the volume stuff
   mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
   mEtaVoidPoints = dataBase.newFluidFieldList(std::vector<Vector>(), HydroFieldNames::etaVoidPoints);
   if (mVolumeType == RKVolumeType::RKVoronoiVolume) {
@@ -80,44 +80,38 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   
   // Get some more data
   const auto& connectivityMap = dataBase.connectivityMap();
-  const auto mass = dataBase.fluidMass();
-  const auto H = dataBase.fluidHfield();
-  const auto position = dataBase.fluidPosition();
-  const auto massDensity = dataBase.fluidMassDensity();
-  FieldList<Dimension, SymTensor> damage;
-  if (mVolumeType == RKVolumeType::RKVoronoiVolume) {
-    damage = dataBase.solidEffectiveDamage();
-  }
+  const auto  mass = dataBase.fluidMass();
+  const auto  H = dataBase.fluidHfield();
+  const auto  position = dataBase.fluidPosition();
+  const auto  massDensity = dataBase.fluidMassDensity();
+  const auto  damage = dataBase.solidEffectiveDamage();
   
   // Compute the volumes
-  computeRKVolumes(connectivityMap, mW,
+  computeRKVolumes(connectivityMap, mWR.kernel(),
                    position, mass, massDensity, H, damage,
                    this->boundaryConditions(), mVolumeType,
                    mSurfacePoint, mDeltaCentroid, mEtaVoidPoints, mCells, mCellFaceFlags,
                    mVolume);
   
   // Apply boundaries to newly computed terms
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) {
+  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(mVolume);
     if (mVolumeType == RKVolumeType::RKVoronoiVolume) {
       (*boundItr)->applyFieldListGhostBoundary(mSurfacePoint);
       (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
     }
   }
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd(); ++boundItr) {
+  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {
     (*boundItr)->finalizeGhostBoundary();
   }
   
   // Compute corrections
-  computeRKCorrections(mCorrectionOrder, connectivityMap, mW, mVolume, position, H,
-                       mNeedHessian, mZerothCorrections, mCorrections);
+  mWR.computeCorrections(connectivityMap, mVolume, position, H,
+                         mNeedHessian, mZerothCorrections, mCorrections);
 
   // Compute normal direction
-  computeRKNormal(RKOrder::ZerothOrder, connectivityMap, mW, mVolume, position, H,
-                  mZerothCorrections, mSurfaceArea, mNormal);
+  mWR0.computeNormal(connectivityMap, mVolume, position, H,
+                     mZerothCorrections, mSurfaceArea, mNormal);
 }
 
 //------------------------------------------------------------------------------
@@ -129,6 +123,8 @@ RKCorrections<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   // Stuff RKCorrections owns
+  state.enrollAny(HydroFieldNames::reproducingKernel, mWR);
+  state.enrollAny(HydroFieldNames::reproducingKernel0, mWR0);
   state.enroll(mVolume);
   state.enroll(mZerothCorrections);
   state.enroll(mCorrections);
@@ -199,7 +195,7 @@ applyGhostBoundaries(State<Dimension>& state,
 }
 
 //------------------------------------------------------------------------------
-// Enforce the boundary conditions for hydro state fields.
+// Enforce the boundary conditions
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -244,15 +240,15 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   // Get data
-  const auto& W = mW;
+  const auto& W = mWR.kernel();
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto  damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
-  const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  auto volume = state.fields(HydroFieldNames::volume, 0.0);
-  auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  const auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  auto        volume = state.fields(HydroFieldNames::volume, 0.0);
+  auto        surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   FieldList<Dimension, FacetedVolume> cells;
   FieldList<Dimension, std::vector<CellFaceFlag>> cellFaceFlags;
   if (mVolumeType == RKVolumeType::RKVoronoiVolume) {
@@ -268,9 +264,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                    volume);
   
   // Apply ghost boundaries to Voronoi stuff
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) {
+  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(volume);
     if (mVolumeType == RKVolumeType::RKVoronoiVolume) {
       (*boundItr)->applyFieldListGhostBoundary(cells);
@@ -278,10 +272,9 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
     }
   }
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
-  
+  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {
+    (*boundItr)->finalizeGhostBoundary();
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -296,34 +289,29 @@ initialize(const typename Dimension::Scalar time,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
   // Get data
-  const auto& W = mW;
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-  const auto volume = state.fields(HydroFieldNames::volume, 0.0);
-  auto zerothCorrections = state.fields(HydroFieldNames::rkZerothCorrections, std::vector<double>());
-  auto corrections = state.fields(HydroFieldNames::rkCorrections, std::vector<double>());
-  auto surfaceArea = state.fields(HydroFieldNames::surfaceArea, 0.0);
-  auto normal = state.fields(HydroFieldNames::normal, Vector::zero);
+  const auto  volume = state.fields(HydroFieldNames::volume, 0.0);
+  auto        zerothCorrections = state.fields(HydroFieldNames::rkZerothCorrections, std::vector<double>());
+  auto        corrections = state.fields(HydroFieldNames::rkCorrections, std::vector<double>());
+  auto        surfaceArea = state.fields(HydroFieldNames::surfaceArea, 0.0);
+  auto        normal = state.fields(HydroFieldNames::normal, Vector::zero);
   
   // Compute corrections
-  computeRKCorrections(mCorrectionOrder, connectivityMap, W, volume, position, H,
-                       mNeedHessian, zerothCorrections, corrections);
-
-  computeRKNormal(mCorrectionOrder, connectivityMap, W, volume, position, H,
-                  zerothCorrections, surfaceArea, normal);
+  mWR.computeCorrections(connectivityMap, volume, position, H,
+                         mNeedHessian, zerothCorrections, corrections);
+  mWR0.computeNormal(connectivityMap, volume, position, H,
+                     zerothCorrections, surfaceArea, normal);
   
   // Apply ghost boundaries to corrections
-  for (auto boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) {
+  for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) {
     (*boundaryItr)->applyFieldListGhostBoundary(zerothCorrections);
     (*boundaryItr)->applyFieldListGhostBoundary(corrections);
     (*boundaryItr)->applyFieldListGhostBoundary(surfaceArea);
     (*boundaryItr)->applyFieldListGhostBoundary(normal);
   }
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd(); ++boundItr) {
+  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {
     (*boundItr)->finalizeGhostBoundary();
   }
 }
