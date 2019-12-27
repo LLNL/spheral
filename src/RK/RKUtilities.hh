@@ -6,9 +6,10 @@
 #ifndef __LLNLSpheral_RKUtilities__
 #define __LLNLSpheral_RKUtilities__
 
-#include <vector>
 #include "RKCorrectionParams.hh"
 #include "Field/FieldList.hh"
+#include <vector>
+#include <tuple>
 
 namespace Spheral {
 
@@ -102,6 +103,12 @@ public:
                                                              const Vector& x,
                                                              const SymTensor& H,
                                                              const std::vector<double>& corrections);
+
+  // This one returns the (RK kernel, RK gradient, base gradient magnitude)
+  static std::tuple<Scalar, Vector, Scalar> evaluateKernelAndGradients(const TableKernel<Dimension>& kernel,
+                                                                       const Vector& x,
+                                                                       const SymTensor& H,
+                                                                       const std::vector<double>& corrections);
   
   // Compute the corrections
   static void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,

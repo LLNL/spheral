@@ -205,6 +205,43 @@ evaluateKernelAndGradient(const TableKernel<Dimension>& kernel,
   return std::make_pair(CP * w, result);
 }
 
+template<typename Dimension, RKOrder correctionOrder>
+std::tuple<typename Dimension::Scalar, typename Dimension::Vector, typename Dimension::Scalar>
+RKUtilities<Dimension, correctionOrder>::
+evaluateKernelAndGradients(const TableKernel<Dimension>& kernel,
+                           const Vector& x,
+                           const SymTensor& H,
+                           const std::vector<double>& corrections) {
+  CHECK2(corrections.size() == correctionsSize(false)
+         || corrections.size() == correctionsSize(true), corrections.size() << " " << correctionsSize(false) << " " << correctionsSize(true));
+  
+  // Uncorrected base kernel
+  const auto eta = H * x;
+  const auto etaMag = eta.magnitude();
+  const auto etaUnit = eta.unitVector();
+  const auto Hdet = H.Determinant();
+  const auto k = kernel.kernelValue(etaMag, Hdet);
+  const auto dk = kernel.gradValue(etaMag, Hdet);
+  const auto HetaUnit = H * etaUnit;
+  const auto dw = HetaUnit*dk;
+
+  // Get kernel and polynomials
+  PolyArray P;
+  GradPolyArray dP;
+  getPolynomials(x, P);
+  getGradPolynomials(x, dP);
+  
+  // Perform inner products and return result
+  const auto CP = innerProductRK(corrections, P, 0, 0);
+  Vector result = Vector::zero;
+  for (auto d = 0; d < Dimension::nDim; ++ d) {
+    const auto CdP = innerProductRK(corrections, dP, 0, offsetGradP(d));
+    const auto dCP = innerProductRK(corrections, P, offsetGradC(d), 0);
+    result(d) = (CdP + dCP) * k + CP * dw(d);
+  }
+  return std::make_tuple(CP * k, result, dk);
+}
+
 //------------------------------------------------------------------------------
 // Compute the corrections
 //------------------------------------------------------------------------------
