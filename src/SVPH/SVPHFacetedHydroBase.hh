@@ -161,6 +161,9 @@ public:
   void xmin(const Vector& x);
   void xmax(const Vector& x);
 
+  // Access the stored interpolation kernel
+  const TableKernel<Dimension>& kernel() const;
+
   // The object defining how we evolve smoothing scales.
   const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
 
@@ -205,6 +208,9 @@ public:
 
 protected:
   //---------------------------  Protected Interface ---------------------------//
+  // The interpolation kernel
+  const TableKernel<Dimension>& mKernel;
+
   // The method defining how we evolve smoothing scales.
   const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
 

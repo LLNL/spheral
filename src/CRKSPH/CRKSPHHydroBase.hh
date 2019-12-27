@@ -46,8 +46,6 @@ public:
   // Constructors.
   CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                   ArtificialViscosity<Dimension>& Q,
-                  const TableKernel<Dimension>& W,
-                  const TableKernel<Dimension>& WPi,
                   const double filter,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
