@@ -148,6 +148,9 @@ public:
   // Some physics algorithms require overlap connectivity.
   virtual bool requireOverlapConnectivity() const;
 
+  // Does this package require reproducing kernel functions?
+  virtual bool requireReproducingKernels() const;
+
   // Many physics packages will have their own representations of energy in the
   // system (gravitational potential energy, radiative losses, etc.)
   virtual Scalar extraEnergy() const;

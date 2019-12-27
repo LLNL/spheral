@@ -207,6 +207,16 @@ requireOverlapConnectivity() const {
 }
 
 //------------------------------------------------------------------------------
+// By default assume reproducing kernels are not needed.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+Physics<Dimension>::
+requireReproducingKernels() const {
+  return false;
+}
+
+//------------------------------------------------------------------------------
 // Provide a default method for the extraEnergy method, which will return 0.0
 // for classes that don't have their own energy.
 //------------------------------------------------------------------------------
