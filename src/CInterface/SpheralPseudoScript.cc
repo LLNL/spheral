@@ -26,7 +26,7 @@
 #include "NodeList/ASPHSmoothingScale.hh"
 #include "SPH/SolidSPHHydroBase.hh"
 #include "SPH/SolidSPHHydroBaseRZ.hh"
-#include "CRKSPH/computeVoronoiVolume.hh"
+#include "RK/computeVoronoiVolume.hh"
 #include "CRKSPH/SolidCRKSPHHydroBase.hh"
 #include "CRKSPH/SolidCRKSPHHydroBaseRZ.hh"
 #include "ArtificialViscosity/MonaghanGingoldViscosity.hh"
@@ -362,8 +362,8 @@ template<> struct HydroConstructor<Dim<3>> {
                                                       const bool sumMassDensityOverAllNodeLists,
                                                       const MassDensityType densityUpdate,
                                                       const HEvolutionType HUpdate,
-                                                      const CRKOrder correctionOrder,
-                                                      const CRKVolumeType volumeType,
+                                                      const RKOrder correctionOrder,
+                                                      const RKVolumeType volumeType,
                                                       const double epsTensile,
                                                       const double nTensile,
                                                       const bool limitMultimaterialTopology,
@@ -442,8 +442,8 @@ template<> struct HydroConstructor<Dim<2>> {
                                                       const bool sumMassDensityOverAllNodeLists,
                                                       const MassDensityType densityUpdate,
                                                       const HEvolutionType HUpdate,
-                                                      const CRKOrder correctionOrder,
-                                                      const CRKVolumeType volumeType,
+                                                      const RKOrder correctionOrder,
+                                                      const RKVolumeType volumeType,
                                                       const double epsTensile,
                                                       const double nTensile,
                                                       const bool limitMultimaterialTopology,
@@ -715,15 +715,15 @@ initialize(const bool     RZ,
     me.mDataBasePtr->appendNodeList(*me.mNodeLists[imat]);
   }
 
-  CRKOrder correctionOrder;
+  RKOrder correctionOrder;
   if (crkorder == 0) {
-    correctionOrder = CRKOrder::ZerothOrder;
+    correctionOrder = RKOrder::ZerothOrder;
   }
   else if (crkorder == 1) {
-    correctionOrder = CRKOrder::LinearOrder;
+    correctionOrder = RKOrder::LinearOrder;
   }
   else if (crkorder == 2) {
-    correctionOrder = CRKOrder::QuadraticOrder;
+    correctionOrder = RKOrder::QuadraticOrder;
   }
 
   // Build the hydro physics objects.
@@ -760,8 +760,8 @@ initialize(const bool     RZ,
                                                           sumMassDensity,                       // sumMassDensityOverAllNodeLists
                                                           MassDensityType::RigorousSumDensity,  // densityUpdate
                                                           HEvolutionType::IdealH,               // HUpdate
-                                                          correctionOrder,                      // CRK order
-                                                          CRKVolumeType::CRKVoronoiVolume,      // CRK volume type
+                                                          correctionOrder,                      // RK order
+                                                          RKVolumeType::RKVoronoiVolume,        // RK volume type
                                                           0.0,                                  // epsTensile
                                                           4.0,                                  // nTensile
                                                           false,                                // limitMultimaterialTopology
