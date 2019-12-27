@@ -26,30 +26,46 @@ public:
 
   // Base kernel calls
   Scalar evaluateBaseKernel(const Vector& x,
-                            const SymTensor& H);
+                            const SymTensor& H) const;
   Vector evaluateBaseGradient(const Vector& x,
-                              const SymTensor& H);
+                              const SymTensor& H) const;
   SymTensor evaluateBaseHessian(const Vector& x,
-                                const SymTensor& H);
+                                const SymTensor& H) const;
   std::pair<Scalar, Vector> evaluateBaseKernelAndGradient(const Vector& x,
-                                                          const SymTensor& H);
+                                                          const SymTensor& H) const;
 
   // Corrected kernel calls
   Scalar evaluateKernel(const Vector& x,
                         const SymTensor& H,
-                        const std::vector<double>& corrections);
+                        const std::vector<double>& corrections) const;
   Vector evaluateGradient(const Vector& x,
                           const SymTensor& H,
-                          const std::vector<double>& corrections);
+                          const std::vector<double>& corrections) const;
   SymTensor evaluateHessian(const Vector& x,
                             const SymTensor& H,
-                            const std::vector<double>& corrections);
+                            const std::vector<double>& corrections) const;
   std::pair<Scalar, Vector> evaluateKernelAndGradient(const Vector& x,
                                                       const SymTensor& H,
-                                                      const std::vector<double>& corrections);
+                                                      const std::vector<double>& corrections) const;
   std::tuple<Scalar, Vector, Scalar> evaluateKernelAndGradients(const Vector& x,
                                                                 const SymTensor& H,
-                                                                const std::vector<double>& corrections);
+                                                                const std::vector<double>& corrections) const;
+
+  // Compute corrections and normals
+  void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
+                          const FieldList<Dimension, Scalar>& volume,
+                          const FieldList<Dimension, Vector>& position,
+                          const FieldList<Dimension, SymTensor>& H,
+                          const bool needHessian,
+                          FieldList<Dimension, std::vector<double>>& zerothCorrections,
+                          FieldList<Dimension, std::vector<double>>& corrections);
+  void computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
+                     const FieldList<Dimension, Scalar>& volume,
+                     const FieldList<Dimension, Vector>& position,
+                     const FieldList<Dimension, SymTensor>& H,
+                     const FieldList<Dimension, std::vector<double>>& corrections,
+                     FieldList<Dimension, Scalar>& surfaceArea,
+                     FieldList<Dimension, Vector>& normal);
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -58,15 +74,15 @@ private:
 
   // Pointers to the correct member methods of RKUtilities
   Scalar                    (*mEvaluateBaseKernel)(const TableKernel<Dimension>&, const Vector&, const SymTensor&);
-  Scalar                    (*mEvaluateBaseGradient)(const TableKernel<Dimension>&, const Vector&, const SymTensor&);
-  Scalar                    (*mEvaluateBaseHessian)(const TableKernel<Dimension>&, const Vector&, const SymTensor&);
+  Vector                    (*mEvaluateBaseGradient)(const TableKernel<Dimension>&, const Vector&, const SymTensor&);
+  SymTensor                 (*mEvaluateBaseHessian)(const TableKernel<Dimension>&, const Vector&, const SymTensor&);
   std::pair<Scalar, Vector> (*mEvaluateBaseKernelAndGradient)(const TableKernel<Dimension>&, const Vector&, const SymTensor&);
 
-  Scalar                             (*mEvaluateKernel)(const TableKernel<Dimension>&, const Vector&, const SymTensor&);
-  Scalar                             (*mEvaluateGradient)(const TableKernel<Dimension>&, const Vector&, const SymTensor&);
-  Scalar                             (*mEvaluateHessian)(const TableKernel<Dimension>&, const Vector&, const SymTensor&);
-  std::pair<Scalar, Vector>          (*mEvaluateKernelAndGradient)(const TableKernel<Dimension>&, const Vector&, const SymTensor&);
-  std::tuple<Scalar, Vector, Scalar> (*mEvaluateKernelAndGradients)(const TableKernel<Dimension>&, const Vector&, const SymTensor&);
+  Scalar                             (*mEvaluateKernel)(const TableKernel<Dimension>&, const Vector&, const SymTensor&, const std::vector<double>&);
+  Vector                             (*mEvaluateGradient)(const TableKernel<Dimension>&, const Vector&, const SymTensor&, const std::vector<double>&);
+  SymTensor                          (*mEvaluateHessian)(const TableKernel<Dimension>&, const Vector&, const SymTensor&, const std::vector<double>&);
+  std::pair<Scalar, Vector>          (*mEvaluateKernelAndGradient)(const TableKernel<Dimension>&, const Vector&, const SymTensor&, const std::vector<double>&);
+  std::tuple<Scalar, Vector, Scalar> (*mEvaluateKernelAndGradients)(const TableKernel<Dimension>&, const Vector&, const SymTensor&, const std::vector<double>&);
 
   void (*mComputeCorrections)(const ConnectivityMap<Dimension>&,
                               const TableKernel<Dimension>&,
