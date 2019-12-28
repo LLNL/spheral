@@ -109,7 +109,7 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              const double nTensile,
              const Vector& xmin,
              const Vector& xmax):
-  GenericHydro<Dimension>(W, WPi, Q, cfl, useVelocityMagnitudeForDt),
+  GenericHydro<Dimension>(Q, cfl, useVelocityMagnitudeForDt),
   mKernel(W),
   mPiKernel(WPi),
   mSmoothingScaleMethod(smoothingScaleMethod),

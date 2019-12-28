@@ -1,6 +1,24 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// The order of RK
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+RKOrder
+CRKSPHHydroBase<Dimension>::correctionOrder() const {
+  return mOrder;
+}
+
+template<typename Dimension>
+inline
+void
+CRKSPHHydroBase<Dimension>::
+correctionOrder(RKOrder val) {
+  mOrder = val;
+}
+
+//------------------------------------------------------------------------------
 // Choose whether we want to sum for mass density, or integrate the continuity
 // equation.
 //------------------------------------------------------------------------------

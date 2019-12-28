@@ -115,7 +115,7 @@ class Physics:
     @PYB11const
     def requireReproducingKernels(self):
         "Some physics algorithms require reproducing kernels."
-        return "bool"
+        return "std::set<RKOrder>"
 
     @PYB11virtual
     @PYB11const

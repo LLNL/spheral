@@ -9,7 +9,10 @@
 #ifndef Physics_HH
 #define Physics_HH
 
+#include "RK/RKCorrectionParams.hh"
+
 #include <vector>
+#include <set>
 #include <string>
 
 namespace Spheral {
@@ -149,7 +152,7 @@ public:
   virtual bool requireOverlapConnectivity() const;
 
   // Does this package require reproducing kernel functions?
-  virtual bool requireReproducingKernels() const;
+  virtual std::set<RKOrder> requireReproducingKernels() const;
 
   // Many physics packages will have their own representations of energy in the
   // system (gravitational potential energy, radiative losses, etc.)

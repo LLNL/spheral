@@ -45,6 +45,7 @@ public:
   // Constructors.
   CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                   ArtificialViscosity<Dimension>& Q,
+                  const RKOrder order,
                   const double filter,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
@@ -114,7 +115,11 @@ public:
                          StateDerivatives<Dimension>& derivs) override;
 
   // We require RK corrections
-  virtual bool requireReproducingKernels() const override { return true; }
+  virtual std::set<RKOrder> requireReproducingKernels() const override;
+
+  // The spatial order
+  RKOrder correctionOrder() const;
+  void correctionOrder(RKOrder val);
 
   // Flag to choose whether we want to sum for density, or integrate
   // the continuity equation.
@@ -188,6 +193,7 @@ protected:
   const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
 
   // A bunch of switches.
+  RKOrder mOrder;
   MassDensityType mDensityUpdate;
   HEvolutionType mHEvolution;
   bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mXSPH;

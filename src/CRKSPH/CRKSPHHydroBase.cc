@@ -106,6 +106,7 @@ template<typename Dimension>
 CRKSPHHydroBase<Dimension>::
 CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                 ArtificialViscosity<Dimension>& Q,
+                const RKOrder order,
                 const double filter,
                 const double cfl,
                 const bool useVelocityMagnitudeForDt,
@@ -118,6 +119,7 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                 const double nTensile):
   GenericHydro<Dimension>(Q, cfl, useVelocityMagnitudeForDt),
   mSmoothingScaleMethod(smoothingScaleMethod),
+  mOrder(order),
   mDensityUpdate(densityUpdate),
   mHEvolution(HUpdate),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
@@ -513,6 +515,16 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(entropy);
     if (compatibleEnergyEvolution()) (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
   }
+}
+
+//------------------------------------------------------------------------------
+// Return the RK orders we want to use
+//------------------------------------------------------------------------------
+template<typename Dimension>
+std::set<RKOrder>
+CRKSPHHydroBase<Dimension>::
+requireReproducingKernels() const {
+  return std::set<RKOrder>({RKOrder::ZerothOrder, mOrder});
 }
 
 //------------------------------------------------------------------------------

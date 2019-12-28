@@ -210,10 +210,10 @@ requireOverlapConnectivity() const {
 // By default assume reproducing kernels are not needed.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-bool
+std::set<RKOrder>
 Physics<Dimension>::
 requireReproducingKernels() const {
-  return false;
+  return std::set<RKOrder>();
 }
 
 //------------------------------------------------------------------------------
