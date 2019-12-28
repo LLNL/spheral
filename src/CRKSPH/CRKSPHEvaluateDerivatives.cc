@@ -16,8 +16,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto& Q = this->artificialViscosity();
 
   // The kernels and such.
-  const auto& WR = state.getAny<ReproducingKernel<Dimension>>(HydroFieldNames::reproducingKernel);
-  const auto& WR0 = state.getAny<ReproducingKernel<Dimension>>(HydroFieldNames::reproducingKernel0);
+  const auto& WR = state.template getAny<ReproducingKernel<Dimension>>(HydroFieldNames::reproducingKernel);
+  const auto& WR0 = state.template getAny<ReproducingKernel<Dimension>>(HydroFieldNames::reproducingKernel0);
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;

@@ -385,7 +385,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   if (mDensityUpdate == MassDensityType::RigorousSumDensity or
       mDensityUpdate == MassDensityType::VoronoiCellDensity) {
     auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    const auto& WR = state.getAny<ReproducingKernel<Dimension>>(HydroFieldNames::reproducingKernel);
+    const auto& WR = state.template getAny<ReproducingKernel<Dimension>>(HydroFieldNames::reproducingKernel);
     const auto& W = WR.kernel();
     const auto& connectivityMap = dataBase.connectivityMap();
     const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -414,7 +414,7 @@ initialize(const typename Dimension::Scalar time,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
   // Initialize the artificial viscosity
-  const auto& WR = state.getAny<ReproducingKernel<Dimension>>(HydroFieldNames::reproducingKernel);
+  const auto& WR = state.template getAny<ReproducingKernel<Dimension>>(HydroFieldNames::reproducingKernel);
   auto&       Q = this->artificialViscosity();
   Q.initialize(dataBase, 
                state,
