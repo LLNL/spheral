@@ -20,7 +20,7 @@ class RKCorrections(Physics):
 """
 
     def pyinit(self,
-               order = "const RKOrder",
+               order = "const std::set<RKOrder>",
                dataBase = "const DataBase<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                volumeType = "const RKVolumeType",
@@ -99,20 +99,28 @@ class RKCorrections(Physics):
         "Finalize the hydro at the completion of an integration step."
         return "void"
                   
+    @PYB11const
+    def WR(self,
+           order = "const RKOrder"):
+        "Look up the ReproducingKernel for the given order"
+        return "ReproducingKernel<%(Dimension)s>"
+
+    @PYB11const
+    @PYB11returnpolicy("reference_internal")
+    def corrections(self,
+                    order = "const RKOrder"):
+        "Look up the corrections for the given order"
+        return "FieldList<%(Dimension)s, std::vector<double>>&"
+
     #...........................................................................
     # Properties
-    WR = PYB11property(doc="The reproducing kernel")
-    WR0 = PYB11property(doc="The reproducing kernel for forced zeroth order")
-    correctionOrder = PYB11property(doc="Spatial order of the reproducing kernel corrections")
+    correctionOrders = PYB11property(doc="The set of spatial orders for the reproducing kernel corrections")
     volumeType = PYB11property(doc="Flag for the RK volume weighting definition")
     needHessian = PYB11property(doc="Flag for the RK volume weighting definition")
     volume = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "volume", returnpolicy="reference_internal")
 
     surfaceArea = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "surfaceArea", returnpolicy="reference_internal")
     normal = PYB11property("const FieldList<%(Dimension)s, Vector>&", "normal", returnpolicy="reference_internal")
-    zerothCorrections = PYB11property("const FieldList<%(Dimension)s, std::vector<double>>&", "zerothCorrections", returnpolicy="reference_internal")
-    corrections = PYB11property("const FieldList<%(Dimension)s, std::vector<double>>&", "corrections", returnpolicy="reference_internal")
-    
     surfacePoint = PYB11property("const FieldList<%(Dimension)s, int>&", "surfacePoint", returnpolicy="reference_internal")
     etaVoidPoints = PYB11property("const FieldList<%(Dimension)s, std::vector<Vector>>&", "etaVoidPoints", returnpolicy="reference_internal")
     cells = PYB11property("const FieldList<%(Dimension)s, FacetedVolume>&", "cells", returnpolicy="reference_internal")
