@@ -23,6 +23,7 @@ template<typename Dimension> class Boundary;
 template<typename Dimension>
 class RKCorrections : public Physics<Dimension> {
 public:
+  //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
@@ -104,22 +105,27 @@ public:
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
 
-  // Return data
+  // Parameters
   const ReproducingKernel<Dimension>& WR() const { return mWR; }
   const ReproducingKernel<Dimension>& WR0() const { return mWR0; }
-  RKOrder correctionOrder() const { return mWR.order(); }
-  RKVolumeType volumeType() const { return mVolumeType; }
-  bool needHessian() const { return mNeedHessian; }
-  const FieldList<Dimension, Scalar>& volume() const { return mVolume; }
+  RKOrder                             correctionOrder() const { return mWR.order(); }
+  RKVolumeType                        volumeType() const { return mVolumeType; }
+  bool                                needHessian() const { return mNeedHessian; }
 
-  const FieldList<Dimension, std::vector<double>>& corrections() const { return mCorrections; }
-
-  const FieldList<Dimension, int>& surfacePoint() const { return mSurfacePoint; }
-  const FieldList<Dimension, std::vector<Vector>>& etaVoidPoints() const { return mEtaVoidPoints; }
-  const FieldList<Dimension, FacetedVolume>& cells() const { return mCells; }
+  // The state field lists we're maintaining.
+  const FieldList<Dimension, Scalar>&                    volume() const { return mVolume; }
+  const FieldList<Dimension, Scalar>&                    surfaceArea() const { return mSurfaceArea; }
+  const FieldList<Dimension, Vector>&                    normal() const { return mNormal; }
+  const FieldList<Dimension, std::vector<double>>&       zerothCorrections() const { return mZerothCorrections; }
+  const FieldList<Dimension, std::vector<double>>&       corrections() const { return mCorrections; }
+  const FieldList<Dimension, int>&                       surfacePoint() const { return mSurfacePoint; }
+  const FieldList<Dimension, std::vector<Vector>>&       etaVoidPoints() const { return mEtaVoidPoints; }
+  const FieldList<Dimension, FacetedVolume>&             cells() const { return mCells; }
   const FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags() const { return mCellFaceFlags; }
+  const FieldList<Dimension, Vector>&                    deltaCentroid() const { return mDeltaCentroid; }
 
 private:
+  //--------------------------- Private Interface ---------------------------//
 
   // Data
   const DataBase<Dimension>& mDataBase;

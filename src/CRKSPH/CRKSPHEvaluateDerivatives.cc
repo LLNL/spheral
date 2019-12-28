@@ -16,15 +16,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto& Q = this->artificialViscosity();
 
   // The kernels and such.
-  const auto& W = this->kernel();
-  const auto& WQ = this->PiKernel();
+  const auto& WR = state.getAny<ReproducingKernel<Dimension>>(HydroFieldNames::reproducingKernel);
+  const auto& WR0 = state.getAny<ReproducingKernel<Dimension>>(HydroFieldNames::reproducingKernel0);
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;
   const auto compatibleEnergy = this->compatibleEnergyEvolution();
   const auto evolveTotalEnergy = this->evolveTotalEnergy();
   const auto XSPH = this->XSPH();
-  const auto order = this->correctionOrder();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -44,12 +43,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  const auto A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
-  const auto B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-  const auto C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
-  const auto gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
-  const auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-  const auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  const auto corrections = state.fields(HydroFieldNames::rkCorrections, vector<double>());
+  const auto zerothCorrections = state.fields(HydroFieldNames::rkZerothCorrections, vector<double>());
   const auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -59,12 +54,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
-  CHECK(A.size() == numNodeLists);
-  CHECK(B.size() == numNodeLists or order == RKOrder::ZerothOrder);
-  CHECK(C.size() == numNodeLists or order != RKOrder::QuadraticOrder);
-  CHECK(gradA.size() == numNodeLists);
-  CHECK(gradB.size() == numNodeLists or order == RKOrder::ZerothOrder);
-  CHECK(gradC.size() == numNodeLists or order != RKOrder::QuadraticOrder);
+  CHECK(corrections.size() == numNodeLists);
+  CHECK(zerothCorrections.size() == numNodeLists);
   CHECK(surfacePoint.size() == numNodeLists);
 
   // Derivative FieldLists.
@@ -106,16 +97,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   {
     // Thread private scratch variables
     int i, j, nodeListi, nodeListj;
-    Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
+    Scalar Wi, gWi, Wj, gWj;
     Tensor QPiij, QPiji;
-    Scalar Ai, Aj;
-    Vector gradAi, gradAj, forceij, forceji;
-    Vector Bi = Vector::zero, Bj = Vector::zero;
-    Tensor Ci = Tensor::zero, Cj = Tensor::zero;
-    Tensor gradBi = Tensor::zero, gradBj = Tensor::zero;
-    ThirdRankTensor gradCi = ThirdRankTensor::zero, gradCj = ThirdRankTensor::zero;
     Vector gradWi, gradWj, gradWSPHi, gradWSPHj;
     Vector deltagrad;
+    Vector forceij, forceji;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);
@@ -146,21 +132,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto  Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  ci = soundSpeed(nodeListi, i);
-      Ai = A(nodeListi, i);
-      gradAi = gradA(nodeListi, i);
-      if (order != RKOrder::ZerothOrder) {
-        Bi = B(nodeListi, i);
-        gradBi = gradB(nodeListi, i);
-      }
-      if (order == RKOrder::QuadraticOrder) {
-        Ci = C(nodeListi, i);
-        gradCi = gradC(nodeListi, i);
-      }
+      const auto& correctionsi = corrections(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
       CHECK2(mi > 0.0, i << " " << mi);
       CHECK2(rhoi > 0.0, i << " " << rhoi);
-      // CHECK2(Ai > 0.0, i << " " << Ai);
       CHECK2(Hdeti > 0.0, i << " " << Hdeti);
       CHECK2(weighti > 0.0, i << " " << weighti);
 
@@ -184,21 +160,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto  Pj = pressure(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto  cj = soundSpeed(nodeListj, j);
-      Aj = A(nodeListj, j);
-      gradAj = gradA(nodeListj, j);
-      if (order != RKOrder::ZerothOrder) {
-        Bj = B(nodeListj, j);
-        gradBj = gradB(nodeListj, j);
-      }
-      if (order == RKOrder::QuadraticOrder) {
-        Cj = C(nodeListj, j);
-        gradCj = gradC(nodeListj, j);
-      }
+      const auto& correctionsj = corrections(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
       const auto  weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
-      // CHECK(Aj > 0.0 or j >= firstGhostNodej);
       CHECK(Hdetj > 0.0);
       CHECK(weightj > 0.0);
 
@@ -213,10 +179,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
       auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
 
-      // Find the effective weights of i->j and j->i.
-      // const auto wi = 2.0*weighti*weightj/(weighti + weightj);
-      // const auto wij = 0.5*(weighti + weightj);
-
       // Node displacement.
       const auto rij = ri - rj;
       const auto etai = Hi*rij;
@@ -228,11 +190,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto vij = vi - vj;
 
       // Symmetrized kernel weight and gradient.
-      CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi);
-      CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj);
+      std::tie(Wj, gradWj, gWj) = WR.evaluateKernelAndGradients( rij, Hj, correctionsi);  // Hj because we compute RK using scatter formalism
+      std::tie(Wi, gradWi, gWi) = WR.evaluateKernelAndGradients(-rij, Hi, correctionsj);
       deltagrad = gradWj - gradWi;
-      gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
-      gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
+      gradWSPHi = (Hi*etai.unitVector())*gWi;
+      gradWSPHj = (Hj*etaj.unitVector())*gWj;
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -377,7 +339,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                         ri,
                                                         weightedNeighborSumi,
                                                         massSecondMomenti,
-                                                        W,
+                                                        WR.kernel(),
                                                         hmin,
                                                         hmax,
                                                         hminratio,

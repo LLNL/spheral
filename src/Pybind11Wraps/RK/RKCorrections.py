@@ -108,12 +108,16 @@ class RKCorrections(Physics):
     needHessian = PYB11property(doc="Flag for the RK volume weighting definition")
     volume = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "volume", returnpolicy="reference_internal")
 
+    surfaceArea = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "surfaceArea", returnpolicy="reference_internal")
+    normal = PYB11property("const FieldList<%(Dimension)s, Vector>&", "normal", returnpolicy="reference_internal")
+    zerothCorrections = PYB11property("const FieldList<%(Dimension)s, std::vector<double>>&", "zerothCorrections", returnpolicy="reference_internal")
     corrections = PYB11property("const FieldList<%(Dimension)s, std::vector<double>>&", "corrections", returnpolicy="reference_internal")
     
     surfacePoint = PYB11property("const FieldList<%(Dimension)s, int>&", "surfacePoint", returnpolicy="reference_internal")
     etaVoidPoints = PYB11property("const FieldList<%(Dimension)s, std::vector<Vector>>&", "etaVoidPoints", returnpolicy="reference_internal")
     cells = PYB11property("const FieldList<%(Dimension)s, FacetedVolume>&", "cells", returnpolicy="reference_internal")
     cellFaceFlags = PYB11property("const FieldList<%(Dimension)s, std::vector<CellFaceFlag>>&", "cellFaceFlags", returnpolicy="reference_internal")
+    deltaCentroid = PYB11property("const FieldList<%(Dimension)s, Vector>&", "deltaCentroid", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods

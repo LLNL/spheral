@@ -38,42 +38,6 @@ HEvolution(HEvolutionType type) {
 }
 
 //------------------------------------------------------------------------------
-// Choose which order we use for the CRK Corrections
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-RKOrder
-CRKSPHHydroBase<Dimension>::correctionOrder() const {
-  return mCorrectionOrder;
-}
-
-template<typename Dimension>
-inline
-void
-CRKSPHHydroBase<Dimension>::
-correctionOrder(RKOrder order) {
-  mCorrectionOrder = order;
-}
-
-//------------------------------------------------------------------------------
-// Choose which volume weighting to use.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-RKVolumeType
-CRKSPHHydroBase<Dimension>::volumeType() const {
-  return mVolumeType;
-}
-
-template<typename Dimension>
-inline
-void
-CRKSPHHydroBase<Dimension>::
-volumeType(RKVolumeType x) {
-  mVolumeType = x;
-}
-
-//------------------------------------------------------------------------------
 // Access the flag determining if we're using the compatible energy evolution 
 // algorithm.
 //------------------------------------------------------------------------------
@@ -123,23 +87,6 @@ inline
 void
 CRKSPHHydroBase<Dimension>::XSPH(bool val) {
   mXSPH = val;
-}
-
-//------------------------------------------------------------------------------
-// Flag determining if we're using the limitMultimaterialTopology algorithm.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-CRKSPHHydroBase<Dimension>::limitMultimaterialTopology() const {
-  return mLimitMultimaterialTopology;
-}
-
-template<typename Dimension>
-inline
-void
-CRKSPHHydroBase<Dimension>::limitMultimaterialTopology(bool val) {
-  mLimitMultimaterialTopology = val;
 }
 
 //------------------------------------------------------------------------------
@@ -301,14 +248,6 @@ massSecondMoment() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-CRKSPHHydroBase<Dimension>::
-volume() const {
-  return mVolume;
-}
-
-template<typename Dimension>
-inline
 const FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
 XSPHDeltaV() const {
@@ -377,182 +316,6 @@ const std::vector<typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
 pairAccelerations() const {
   return mPairAccelerations;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
-deltaCentroid() const {
-  return mDeltaCentroid;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-CRKSPHHydroBase<Dimension>::
-A() const {
-  return mA;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
-B() const {
-  return mB;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Tensor>&
-CRKSPHHydroBase<Dimension>::
-C() const {
-  return mC;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
-gradA() const {
-  return mGradA;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Tensor>&
-CRKSPHHydroBase<Dimension>::
-gradB() const {
-  return mGradB;
-}
-  
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::ThirdRankTensor>&
-CRKSPHHydroBase<Dimension>::
-gradC() const {
-  return mGradC;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-CRKSPHHydroBase<Dimension>::
-m0() const {
-  return mM0;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
-m1() const {
-  return mM1;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-CRKSPHHydroBase<Dimension>::
-m2() const {
-  return mM2;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::ThirdRankTensor>&
-CRKSPHHydroBase<Dimension>::
-m3() const {
-  return mM3;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::FourthRankTensor>&
-CRKSPHHydroBase<Dimension>::
-m4() const {
-  return mM4;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
-gradm0() const {
-  return mGradm0;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Tensor>&
-CRKSPHHydroBase<Dimension>::
-gradm1() const {
-  return mGradm1;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::ThirdRankTensor>&
-CRKSPHHydroBase<Dimension>::
-gradm2() const {
-  return mGradm2;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::FourthRankTensor>&
-CRKSPHHydroBase<Dimension>::
-gradm3() const {
-  return mGradm3;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::FifthRankTensor>&
-CRKSPHHydroBase<Dimension>::
-gradm4() const {
-  return mGradm4;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, int>&
-CRKSPHHydroBase<Dimension>::
-surfacePoint() const {
-  return mSurfacePoint;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, std::vector<typename Dimension::Vector>>&
-CRKSPHHydroBase<Dimension>::
-etaVoidPoints() const {
-  return mEtaVoidPoints;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::FacetedVolume>&
-CRKSPHHydroBase<Dimension>::
-cells() const {
-  return mCells;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, std::vector<CellFaceFlag>>&
-CRKSPHHydroBase<Dimension>::
-cellFaceFlags() const {
-  return mCellFaceFlags;
-}
-
-template<typename Dimension>
-inline
-const CRKSPHVoidBoundary<Dimension>&
-CRKSPHHydroBase<Dimension>::
-voidBoundary() const {
-  return mVoidBoundary;
 }
 
 }

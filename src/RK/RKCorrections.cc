@@ -352,6 +352,7 @@ dumpState(FileIO& file, const std::string& pathName) const {
   file.write(mVolume, pathName + "/Volume");
   file.write(mZerothCorrections, pathName + "/ZerothRKCorrections");
   file.write(mCorrections, pathName + "/RKCorrections");
+  file.write(mSurfacePoint, pathName + "/surfacePoint");
 }
 
 //------------------------------------------------------------------------------
@@ -364,6 +365,7 @@ restoreState(const FileIO& file, const std::string& pathName) {
   file.read(mVolume, pathName + "/Volume");
   file.read(mZerothCorrections, pathName + "/ZerothRKCorrections");
   file.read(mCorrections, pathName + "/RKCorrections");
+  file.read(mSurfacePoint, pathName + "/surfacePoint");
 }
 
 } // end namespace Spheral
