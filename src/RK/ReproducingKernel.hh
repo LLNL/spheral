@@ -18,10 +18,12 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
 
-  // Constructor
-  explicit ReproducingKernel(const TableKernel<Dimension>& W,
-                             const RKOrder order);
-                             
+  // Constructors, destructor
+  ReproducingKernel(const TableKernel<Dimension>& W,
+                    const RKOrder order);
+  ReproducingKernel();
+  ReproducingKernel(const ReproducingKernel& rhs);
+  ReproducingKernel& operator=(const ReproducingKernel& rhs);
   ~ReproducingKernel();
 
   // Base kernel calls
@@ -73,7 +75,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const TableKernel<Dimension>& mW;   // The base interpolation kernel
+  const TableKernel<Dimension>* mWptr;   // The base interpolation kernel
   RKOrder mOrder;
 
   // Pointers to the correct member methods of RKUtilities
@@ -104,9 +106,6 @@ private:
                          const FieldList<Dimension, std::vector<double>>&,
                          FieldList<Dimension, Scalar>&,
                          FieldList<Dimension, Vector>&);
-
-  // No default constructor
-  ReproducingKernel();
 };
 
 }

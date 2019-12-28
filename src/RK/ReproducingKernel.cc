@@ -9,7 +9,7 @@ template<typename Dimension>
 ReproducingKernel<Dimension>::
 ReproducingKernel(const TableKernel<Dimension>& W,
                   const RKOrder order):
-  mW(W),
+  mWptr(&W),
   mOrder(order) {
   switch(order) {
   case RKOrder::ZerothOrder:
@@ -119,6 +119,70 @@ ReproducingKernel(const TableKernel<Dimension>& W,
   default:
     VERIFY2("Unknown order passed to ReproducingKernel", false);
   }
+}
+
+//------------------------------------------------------------------------------
+// Default constructor (everything NULL, invalid)
+//------------------------------------------------------------------------------
+template<typename Dimension>
+ReproducingKernel<Dimension>::
+ReproducingKernel():
+  mWptr(nullptr),
+  mEvaluateBaseKernel(nullptr),
+  mEvaluateBaseGradient(nullptr),
+  mEvaluateBaseHessian(nullptr),
+  mEvaluateBaseKernelAndGradient(nullptr),
+  mEvaluateKernel(nullptr),
+  mEvaluateGradient(nullptr),
+  mEvaluateHessian(nullptr),
+  mEvaluateKernelAndGradient(nullptr),
+  mEvaluateKernelAndGradients(nullptr),
+  mComputeCorrections(nullptr),
+  mComputeNormal(nullptr) {
+}
+
+//------------------------------------------------------------------------------
+// Copy
+//------------------------------------------------------------------------------
+template<typename Dimension>
+ReproducingKernel<Dimension>::
+ReproducingKernel(const ReproducingKernel<Dimension>& rhs):
+  mWptr(rhs.mWptr),
+  mOrder(rhs.mOrder),
+  mEvaluateBaseKernel(rhs.mEvaluateBaseKernel),
+  mEvaluateBaseGradient(rhs.mEvaluateBaseGradient),
+  mEvaluateBaseHessian(rhs.mEvaluateBaseHessian),
+  mEvaluateBaseKernelAndGradient(rhs.mEvaluateBaseKernelAndGradient),
+  mEvaluateKernel(rhs.mEvaluateKernel),
+  mEvaluateGradient(rhs.mEvaluateGradient),
+  mEvaluateHessian(rhs.mEvaluateHessian),
+  mEvaluateKernelAndGradient(rhs.mEvaluateKernelAndGradient),
+  mEvaluateKernelAndGradients(rhs.mEvaluateKernelAndGradients),
+  mComputeCorrections(rhs.mComputeCorrections),
+  mComputeNormal(rhs.mComputeNormal) {
+}
+
+//------------------------------------------------------------------------------
+// Assignment
+//------------------------------------------------------------------------------
+template<typename Dimension>
+ReproducingKernel<Dimension>&
+ReproducingKernel<Dimension>::
+operator=(const ReproducingKernel<Dimension>& rhs) {
+  mWptr = rhs.mWptr;
+  mOrder = rhs.mOrder;
+  mEvaluateBaseKernel = rhs.mEvaluateBaseKernel;
+  mEvaluateBaseGradient = rhs.mEvaluateBaseGradient;
+  mEvaluateBaseHessian = rhs.mEvaluateBaseHessian;
+  mEvaluateBaseKernelAndGradient = rhs.mEvaluateBaseKernelAndGradient;
+  mEvaluateKernel = rhs.mEvaluateKernel;
+  mEvaluateGradient = rhs.mEvaluateGradient;
+  mEvaluateHessian = rhs.mEvaluateHessian;
+  mEvaluateKernelAndGradient = rhs.mEvaluateKernelAndGradient;
+  mEvaluateKernelAndGradients = rhs.mEvaluateKernelAndGradients;
+  mComputeCorrections = rhs.mComputeCorrections;
+  mComputeNormal = rhs.mComputeNormal;
+  return *this;
 }
 
 //------------------------------------------------------------------------------

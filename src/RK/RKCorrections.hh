@@ -13,6 +13,9 @@
 #include "Geometry/CellFaceFlag.hh"
 #include "Physics/Physics.hh"
 
+#include <set>
+#include <unordered_map>
+
 namespace Spheral {
 
 template<typename Dimension> class State;
@@ -35,7 +38,7 @@ public:
   typedef typename std::pair<double, std::string> TimeStepType;
 
   // Constructor
-  RKCorrections(const RKOrder order,
+  RKCorrections(const std::set<RKOrder> orders,
                 const DataBase<Dimension>& dataBase,
                 const TableKernel<Dimension>& W,
                 const RKVolumeType volumeType,
@@ -106,32 +109,33 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName);
 
   // Parameters
-  const ReproducingKernel<Dimension>& WR() const { return mWR; }
-  const ReproducingKernel<Dimension>& WR0() const { return mWR0; }
-  RKOrder                             correctionOrder() const { return mWR.order(); }
-  RKVolumeType                        volumeType() const { return mVolumeType; }
-  bool                                needHessian() const { return mNeedHessian; }
+  std::set<RKOrder> correctionOrders() const { return mOrders; }
+  RKVolumeType      volumeType()       const { return mVolumeType; }
+  bool              needHessian()      const { return mNeedHessian; }
 
   // The state field lists we're maintaining.
-  const FieldList<Dimension, Scalar>&                    volume() const { return mVolume; }
-  const FieldList<Dimension, Scalar>&                    surfaceArea() const { return mSurfaceArea; }
-  const FieldList<Dimension, Vector>&                    normal() const { return mNormal; }
-  const FieldList<Dimension, std::vector<double>>&       zerothCorrections() const { return mZerothCorrections; }
-  const FieldList<Dimension, std::vector<double>>&       corrections() const { return mCorrections; }
-  const FieldList<Dimension, int>&                       surfacePoint() const { return mSurfacePoint; }
+  const FieldList<Dimension, Scalar>&                    volume()        const { return mVolume; }
+  const FieldList<Dimension, Scalar>&                    surfaceArea()   const { return mSurfaceArea; }
+  const FieldList<Dimension, Vector>&                    normal()        const { return mNormal; }
+  const FieldList<Dimension, int>&                       surfacePoint()  const { return mSurfacePoint; }
   const FieldList<Dimension, std::vector<Vector>>&       etaVoidPoints() const { return mEtaVoidPoints; }
-  const FieldList<Dimension, FacetedVolume>&             cells() const { return mCells; }
+  const FieldList<Dimension, FacetedVolume>&             cells()         const { return mCells; }        
   const FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags() const { return mCellFaceFlags; }
   const FieldList<Dimension, Vector>&                    deltaCentroid() const { return mDeltaCentroid; }
+
+  // RKOrder dependent state
+  const ReproducingKernel<Dimension>&              WR(const RKOrder order)          const;
+  const FieldList<Dimension, std::vector<double>>& corrections(const RKOrder order) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
 
   // Data
+  std::set<RKOrder> mOrders;
   const DataBase<Dimension>& mDataBase;
   const RKVolumeType mVolumeType;
   const bool mNeedHessian;
-  ReproducingKernel<Dimension> mWR, mWR0;
+  std::unordered_map<RKOrder, ReproducingKernel<Dimension>> mWR;
 
   // State
   FieldList<Dimension, Scalar> mVolume;
@@ -139,8 +143,7 @@ private:
   // Corrections
   FieldList<Dimension, Scalar> mSurfaceArea;
   FieldList<Dimension, Vector> mNormal;
-  FieldList<Dimension, std::vector<double>> mZerothCorrections;
-  FieldList<Dimension, std::vector<double>> mCorrections;
+  std::unordered_map<RKOrder, FieldList<Dimension, std::vector<double>>> mCorrections;
   
   // Voronoi stuff
   FieldList<Dimension, int> mSurfacePoint;
