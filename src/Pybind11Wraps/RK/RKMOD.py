@@ -12,12 +12,14 @@ dims = spheralDimensions()
 from RKCorrections import *
 from RKUtilities import *
 from ReproducingKernel import *
+from RKFieldNames import *
 
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
 PYB11includes += ['"RK/RKCorrections.hh"',
                   '"RK/RKUtilities.hh"',
+                  '"RK/RKFieldNames.hh"',
                   '"RK/ReproducingKernel.hh"',
                   '"RK/computeRKVolumes.hh"',
                   '"RK/computeVoronoiVolume.hh"',
