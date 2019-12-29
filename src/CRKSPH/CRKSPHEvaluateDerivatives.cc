@@ -16,8 +16,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto& Q = this->artificialViscosity();
 
   // The kernels and such.
-  const auto& WR = state.template getAny<ReproducingKernel<Dimension>>(HydroFieldNames::reproducingKernel);
-  const auto& WR0 = state.template getAny<ReproducingKernel<Dimension>>(HydroFieldNames::reproducingKernel0);
+  const auto& WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(mOrder));
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;
@@ -43,8 +42,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  const auto corrections = state.fields(HydroFieldNames::rkCorrections, vector<double>());
-  const auto zerothCorrections = state.fields(HydroFieldNames::rkZerothCorrections, vector<double>());
+  const auto corrections = state.fields(RKFieldNames::rkCorrections(mOrder), vector<double>());
   const auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -55,7 +53,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(corrections.size() == numNodeLists);
-  CHECK(zerothCorrections.size() == numNodeLists);
   CHECK(surfacePoint.size() == numNodeLists);
 
   // Derivative FieldLists.
@@ -100,8 +97,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     Scalar Wi, gWi, Wj, gWj;
     Tensor QPiij, QPiji;
     Vector gradWi, gradWj, gradWSPHi, gradWSPHj;
-    Vector deltagrad;
-    Vector forceij, forceji;
+    Vector deltagrad, forceij, forceji;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);
@@ -183,10 +179,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto rij = ri - rj;
       const auto etai = Hi*rij;
       const auto etaj = Hj*rij;
-      const auto etaMagi = etai.magnitude();
-      const auto etaMagj = etaj.magnitude();
-      CHECK(etaMagi >= 0.0);
-      CHECK(etaMagj >= 0.0);
       const auto vij = vi - vj;
 
       // Symmetrized kernel weight and gradient.

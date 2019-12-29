@@ -19,7 +19,7 @@ INSTSRCTARGETS = \
 	$(srcdir)/interpolateCRKSPHInst.cc.py \
 	$(srcdir)/gradientCRKSPHInst.cc.py \
 	$(srcdir)/detectSurfaceInst.cc.py \
-	#$(srcdir)/SolidCRKSPHHydroBaseInst.cc.py \
+	$(srcdir)/SolidCRKSPHHydroBaseInst.cc.py \
 	$(srcdir)/editMultimaterialSurfaceTopologyInst.cc.py \
 	$(srcdir)/zerothOrderSurfaceCorrectionsInst.cc.py
 
@@ -29,12 +29,12 @@ SRCTARGETS = \
 PYTHONTARGETS = \
 	$(srcdir)/CRKSPHHydros.py
 
-# # A few of our target files are only valid for certain dimensions.
-# ifeq ("yes", "@INST2D@")
-# SRCTARGETS += \
-# 	$(srcdir)/CRKSPHHydroBaseRZ.cc \
-# 	$(srcdir)/SolidCRKSPHHydroBaseRZ.cc
-# endif
+# A few of our target files are only valid for certain dimensions.
+ifeq ("yes", "@INST2D@")
+SRCTARGETS += \
+	$(srcdir)/CRKSPHHydroBaseRZ.cc \
+	$(srcdir)/SolidCRKSPHHydroBaseRZ.cc
+endif
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
