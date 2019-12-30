@@ -70,6 +70,9 @@ class SpheralController:
         self.vizGhosts = vizGhosts
         self.vizDerivs = vizDerivs
 
+        # Organize the physics packages as appropriate
+        self.organizePhysicsPackages(self.kernel, volumeType)
+
         # If this is a parallel run, automatically construct and insert
         # a DistributedBoundaryCondition into each physics package.
         self.insertDistributedBoundary(integrator.physicsPackages())
@@ -147,9 +150,6 @@ class SpheralController:
         
         # Set the simulation time.
         self.integrator.currentTime = initialTime
-
-        # Organize the physics packages as appropriate
-        self.organizePhysicsPackages(self.kernel, volumeType)
 
         # Check if we have any boundary conditions that need to copy initial state
         uniquebcs = self.integrator.uniqueBoundaryConditions()
