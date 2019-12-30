@@ -113,10 +113,12 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     (*boundItr)->finalizeGhostBoundary();
   }
   
+  // Allocate correction fields
+  for (auto order: mOrders) mCorrections[order] = dataBase.newFluidFieldList(std::vector<double>(), RKFieldNames::rkCorrections(order));
+  
   // Compute corrections
   for (auto order: mOrders) {
     if (mOrders.size() == 1 or order != RKOrder::ZerothOrder) {  // Zeroth order is always computed anyway
-      mCorrections[order] = dataBase.newFluidFieldList(std::vector<double>(), RKFieldNames::rkCorrections(order));
       mWR[order].computeCorrections(connectivityMap, mVolume, position, H,
                                     mNeedHessian, mCorrections[RKOrder::ZerothOrder], mCorrections[order]);
     }

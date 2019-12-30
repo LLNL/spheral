@@ -20,7 +20,7 @@ class RKCorrections(Physics):
 """
 
     def pyinit(self,
-               order = "const std::set<RKOrder>",
+               orders = "const std::set<RKOrder>",
                dataBase = "const DataBase<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                volumeType = "const RKVolumeType",
