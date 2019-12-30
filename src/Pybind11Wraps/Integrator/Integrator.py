@@ -113,8 +113,7 @@ several times during a time step."""
         "Add a Physics package."
         return "void"
 
-    @PYB11implementation("[](Integrator<%(Dimension)s>& self, py::list packages) { std::vector<Physics<%(Dimension)s>*> stuff; for (auto& x: packages) stuff.push_back(x.cast<Physics<%(Dimension)s>*>()); self.resetPhysicsPackages(stuff); }")
-    def resetPhysicsPackages(self, packages="py::list"):
+    def resetPhysicsPackages(self, packages="std::vector<Physics<%(Dimension)s>*>&"):
         "Reset the list of Physics packages."
         return "void"
 
