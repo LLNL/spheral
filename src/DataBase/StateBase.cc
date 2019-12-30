@@ -380,7 +380,8 @@ assign(const StateBase<Dimension>& rhs) {
         const auto rhsptr = boost::any_cast<vector<Vector>*>(anyrhs);
         *lhsptr = *rhsptr;
       } catch(boost::bad_any_cast) {
-        VERIFY2(false, "StateBase::assign ERROR: unknown type for key " << itr->first << "\n");
+        // We'll assume other things don't need to be assigned...
+        // VERIFY2(false, "StateBase::assign ERROR: unknown type for key " << itr->first << "\n");
       }
     }
   }
@@ -434,7 +435,8 @@ copyState() {
         itr->second = clone.get();
 
       } catch (boost::bad_any_cast) {
-        VERIFY2(false, "StateBase::copyState ERROR: unrecognized type for " << itr->first << "\n");
+        // We'll assume other things don't need to be copied...
+        // VERIFY2(false, "StateBase::copyState ERROR: unrecognized type for " << itr->first << "\n");
       }
     }
   }
