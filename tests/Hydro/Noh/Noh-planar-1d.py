@@ -298,15 +298,13 @@ if svph:
                  xmax = Vector( 100.0))
 elif crksph:
     hydro = CRKSPH(dataBase = db,
-                   W = WT,
+                   order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
-                   correctionOrder = correctionOrder,
-                   volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
                    crktype = crktype)
@@ -338,8 +336,11 @@ else:
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
 output("hydro")
-output("hydro.kernel")
-output("hydro.PiKernel")
+try:
+    output("hydro.kernel")
+    output("hydro.PiKernel")
+except:
+    pass
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
@@ -392,7 +393,6 @@ elif boolCullenViscosity:
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
 #-------------------------------------------------------------------------------
-
 if bArtificialConduction:
     #q.reducingViscosityCorrection = True
     ArtyCond = ArtificialConduction(WT,arCondAlpha)
@@ -567,23 +567,14 @@ if graphics:
     plots.append((Aplot, "Noh-planar-A.png"))
     
     if crksph:
-        volPlot = plotFieldList(hydro.volume, 
+        volPlot = plotFieldList(control.RKCorrections.volume, 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
-        aplot = plotFieldList(hydro.A,
-                              winTitle = "A",
-                              colorNodeLists = False)
-        bplot = plotFieldList(hydro.B,
-                              yFunction = "%s.x",
-                              winTitle = "B",
-                              colorNodeLists = False)
-        splot = plotFieldList(hydro.surfacePoint,
+        splot = plotFieldList(control.RKCorrections.surfacePoint,
                               winTitle = "surface point",
                               colorNodeLists = False)
         plots += [(volPlot, "Noh-planar-vol.png"),
-                   (aplot, "Noh-planar-ACRK.png"),
-                   (bplot, "Noh-planar-BCRK.png"),
-                   (splot, "Noh-planar-surfacePoint.png")]
+                  (splot, "Noh-planar-surfacePoint.png")]
 
     if boolCullenViscosity:
         cullAlphaPlot = plotFieldList(q.ClMultiplier(),

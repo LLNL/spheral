@@ -45,7 +45,8 @@ class SpheralController:
                  skipInitialPeriodicWork = False,
                  iterateInitialH = True,
                  numHIterationsBetweenCycles = 0,
-                 reinitializeNeighborsStep = 10):
+                 reinitializeNeighborsStep = 10,
+                 volumeType = RKVolumeType.RKVoronoiVolume):
         self.restart = RestartableObject(self)
         self.integrator = integrator
         self.kernel = kernel
@@ -96,7 +97,8 @@ class SpheralController:
                                  periodicWork = periodicWork,
                                  skipInitialPeriodicWork = skipInitialPeriodicWork,
                                  iterateInitialH = iterateInitialH,
-                                 reinitializeNeighborsStep = 10)
+                                 reinitializeNeighborsStep = reinitializeNeighborsStep,
+                                 volumeType = volumeType)
 
         # Read the restart information if requested.
         if not restoreCycle is None:
@@ -127,7 +129,8 @@ class SpheralController:
                             periodicWork = [],
                             skipInitialPeriodicWork = False,
                             iterateInitialH = True,
-                            reinitializeNeighborsStep = 10):
+                            reinitializeNeighborsStep = 10,
+                            volumeType = RKVolumeType.RKVoronoiVolume):
 
         # Intialize the cycle count.
         self.totalSteps = 0
@@ -144,6 +147,9 @@ class SpheralController:
         
         # Set the simulation time.
         self.integrator.currentTime = initialTime
+
+        # Organize the physics packages as appropriate
+        self.organizePhysicsPackages(self.kernel, volumeType)
 
         # Check if we have any boundary conditions that need to copy initial state
         uniquebcs = self.integrator.uniqueBoundaryConditions()
@@ -589,6 +595,44 @@ class SpheralController:
     def restoreState(self, file, path):
         controlPath = path + "/self"
         self.totalSteps = file.readObject(controlPath + "/totalSteps")
+        return
+
+    #--------------------------------------------------------------------------
+    # Properly arrange the physics packages, including adding any needed ones.
+    #--------------------------------------------------------------------------
+    def organizePhysicsPackages(self, W, volumeType):
+        packages = self.integrator.physicsPackages()
+        db = self.integrator.dataBase
+        RKCorrections = eval("RKCorrections%s" % self.dim)
+        vector_of_Physics = eval("vector_of_Physics%s" % self.dim)
+
+        # Are there any packages that require reproducing kernels?
+        # If so, insert the RKCorrections package prior to any RK packages
+        rkorders = set()
+        rkbcs = set()
+        needHessian = False
+        index = -1
+        for (ipack, package) in enumerate(packages):
+            ords = package.requireReproducingKernels()
+            rkorders = rkorders.union(ords)
+            needHessian |= package.requireReproducingKernelHessian()
+            if ords:
+                rkbcs = rkbcs.union(package.boundaryConditions())
+                if index == -1:
+                    index = ipack
+        if rkorders:
+            if W is None:
+                raise RuntimeError, "SpheralController ERROR: the base interpolation kernel 'W' must be specified to the SpheralController when using Reproducing Kernels"
+            self.RKCorrections = RKCorrections(orders = rkorders,
+                                               dataBase = db,
+                                               W = W,
+                                               volumeType = volumeType,
+                                               needHessian = needHessian)
+            for bc in rkbcs:
+                self.RKCorrections.appendBoundary(bc)
+            packages.insert(index, self.RKCorrections)
+            self.integrator.resetPhysicsPackages(packages)
+
         return
 
     #--------------------------------------------------------------------------
