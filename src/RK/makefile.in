@@ -26,6 +26,7 @@ INSTSRCTARGETS = \
 	$(srcdir)/hessianRKInst.cc.py
 
 SRCTARGETS = \
+	$(srcdir)/RKFieldNames.cc \
 	$(srcdir)/computeVoronoiVolume.cc \
 	$(srcdir)/RKUtilities.cc 
 

@@ -138,6 +138,7 @@ RKCorrections<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   // Stuff RKCorrections owns
+  state.enrollAny(RKFieldNames::rkOrders, mOrders);
   for (auto order: mOrders) {
     state.enrollAny(RKFieldNames::reproducingKernel(order), mWR[order]);
     state.enroll(mCorrections[order]);
