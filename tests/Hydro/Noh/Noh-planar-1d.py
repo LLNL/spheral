@@ -422,6 +422,7 @@ if hourglass:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
+bcs = []
 if x0 == xwall:
     xPlane0 = Plane(Vector(0.0), Vector(1.0))
     xbc0 = ReflectingBoundary(xPlane0)
