@@ -5,12 +5,13 @@
 // Created by CDR, 9/24/2014
 //----------------------------------------------------------------------------//
 #include <stdio.h>
-#include "ArtificialConduction.hh"
-#include "ArtificialConductionPolicy.hh"
+#include "ArtificialConduction/ArtificialConduction.hh"
+#include "ArtificialConduction/ArtificialConductionPolicy.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "FieldOperations/FieldListFunctions.hh"
-#include "CRKSPH/gradientCRKSPH.hh"
+#include "RK/RKFieldNames.hh"
+#include "RK/gradientRK.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/safeInv.hh"
@@ -120,8 +121,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     
     const TableKernel<Dimension>& W = mKernel;
     
-    bool CRKSPHisOn = 0;
-    
+    // If CRK is on, what order?
+    const auto useRK = state.registered(RKFieldNames::rkOrders);
+    ReproducingKernel<Dimension> WR;
+    auto maxOrder = RKOrder::ZerothOrder;
+    if (useRK) {
+      const auto& rkOrders = state.template getAny<std::set<RKOrder>>(RKFieldNames::rkOrders);
+      CHECK(not rkOrders.empty());
+      const auto maxOrder = *rkOrders.rbegin();
+      WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(maxOrder));
+    }
+
     // The connectivity map
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
     const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
@@ -149,25 +159,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     CHECK(gradP.size() == numNodeLists);
     
     // Now check if CRKSPH is active
-    if (state.registered(HydroFieldNames::A_CRKSPH))
-    {
-        CRKSPHisOn = 1;
-        const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
-        const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-        const FieldList<Dimension, Tensor> C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
-        const FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CRKSPH, Vector::zero);
-        const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
-        const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-        const FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
-        CHECK(A.size() == numNodeLists);
-        CHECK(B.size() == numNodeLists);
-        CHECK(gradA0.size() == numNodeLists);
-        CHECK(gradA.size() == numNodeLists);
-        CHECK(gradB.size() == numNodeLists);
-        gradP = gradientCRKSPH(pressure, position, mass, H, A, B, C, gradA, gradB, gradC, connectivityMap, ACcorrectionOrder(), W, NodeCoupling());
+    if (useRK) {
+      const auto corrections = state.fields(RKFieldNames::rkCorrections(maxOrder), vector<double>());
+      const auto vol = state.fields(HydroFieldNames::volume, 0.0);
+      gradP = gradientRK(pressure, position, vol, H, connectivityMap, WR, corrections, NodeCoupling());
+    } else {
+      gradP = gradient(pressure,position,mass,mass,massDensity,H,W);
     }
-    else { gradP = gradient(pressure,position,mass,mass,massDensity,H,W); }
-    
     
     // Start our big loop over all FluidNodeLists.
     size_t nodeListi = 0;
