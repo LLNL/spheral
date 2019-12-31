@@ -26,7 +26,7 @@ AC_ARG_WITH(pybindgen,
     AC_MSG_RESULT(no)
     PYTHONBINDING="PYBINDGEN"
     PYTHONPKGDIR="PBGWraps"
-    PYTHONPKGS="Geometry CXXTypes PolyClipper Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator Utilities NodeGenerators FieldOperations SPH RK CRKSPH SVPH Mesh Damage SolidMaterial Strength ArtificialConduction $PYTHONPKGS"
+    PYTHONPKGS="Geometry CXXTypes PolyClipper Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator Utilities NodeGenerators FieldOperations SPH RK CRKSPH Mesh Damage SolidMaterial Strength ArtificialConduction $PYTHONPKGS"
     PYOPT="$PYOPT"
     MODULELINK="-L\$(LIBDIR) \$(PKGLIBS)"
     if test "`uname -s`" = "AIX"; then
@@ -53,7 +53,7 @@ AC_ARG_WITH(pybind11,
     AC_MSG_RESULT(yes)
     PYTHONBINDING="PYBIND11"
     PYTHONPKGDIR="Pybind11Wraps"
-    PYTHONPKGS+=" CXXTypes Geometry PolyClipper Silo DataOutput NodeList Field FieldList Kernel Neighbor Material FileIO Utilities DataBase Boundary Physics Hydro ExternalForce Gravity Integrator NodeGenerators FieldOperations SPH RK CRKSPH ArtificialViscosity SVPH Mesh Damage SolidMaterial Strength ArtificialConduction"
+    PYTHONPKGS+=" CXXTypes Geometry PolyClipper Silo DataOutput NodeList Field FieldList Kernel Neighbor Material FileIO Utilities DataBase Boundary Physics Hydro ExternalForce Gravity Integrator NodeGenerators FieldOperations SPH RK CRKSPH ArtificialViscosity Mesh Damage SolidMaterial Strength ArtificialConduction"
     INCS+="-I\$(prefix)/include -I\$prefix/include/python\$(PYTHONVERSION) \$(patsubst %, -I\$(SRCTOP)/%, \$(CXXPKGS))"
     MODULELINK="-L\$(LIBDIR) \$(PKGLIBS)"
     PIPTARGETS+=" decorator"
