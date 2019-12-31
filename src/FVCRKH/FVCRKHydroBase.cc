@@ -15,7 +15,6 @@
 #include "CRKSPH/computeCRKSPHSumMassDensity.hh"
 #include "CRKSPH/computeCRKSPHMoments.hh"
 #include "CRKSPH/detectSurface.hh"
-#include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/computeCRKSPHIntegral.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
 #include "CRKSPH/centerOfMass.hh"

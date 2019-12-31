@@ -8,9 +8,8 @@
 #include "Field/FieldList.hh"
 #include "Kernel/TableKernel.hh"
 #include "Boundary/Boundary.hh"
-#include "CRKSPH/computeCRKSPHMoments.hh"
-#include "CRKSPH/computeCRKSPHCorrections.hh"
-#include "CRKSPH/gradientCRKSPH.hh"
+#include "RK/RKFieldNames.hh"
+#include "RK/gradientRK.hh"
 #include "Hydro/HydroFieldNames.hh"
 
 #include "VonNeumanViscosity.hh"
@@ -69,10 +68,8 @@ initialize(const DataBase<Dimension>& dataBase,
   // Let the base class do it's thing.
   ArtificialViscosity<Dimension>::initialize(dataBase, state, derivs, boundaryBegin, boundaryEnd, time, dt, W);
 
-  // Make sure the CRKSPH corrections have had boundaries completed.
-  for (ConstBoundaryIterator boundItr = boundaryBegin;
-       boundItr != boundaryEnd;
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  // Make sure the RK corrections have had boundaries completed.
+  for (auto boundItr = boundaryBegin; boundItr < boundaryEnd; ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // Verify that the internal pressure field is properly initialized for this
   // set of fluid node lists.
