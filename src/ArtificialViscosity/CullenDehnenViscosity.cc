@@ -16,9 +16,6 @@
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "DataBase/IncrementBoundedFieldList.hh"
-#include "CRKSPH/CRKSPHUtilities.hh"
-#include "CRKSPH/computeCRKSPHMoments.hh"
-#include "CRKSPH/computeCRKSPHCorrections.hh"
 
 #include "CullenDehnenViscosity.hh"
 

@@ -67,6 +67,7 @@ initialize(const DataBase<Dimension>& dataBase,
 
   // Let the base class do it's thing.
   ArtificialViscosity<Dimension>::initialize(dataBase, state, derivs, boundaryBegin, boundaryEnd, time, dt, W);
+  const auto order = this->QcorrectionOrder();
 
   // Make sure the RK corrections have had boundaries completed.
   for (auto boundItr = boundaryBegin; boundItr < boundaryEnd; ++boundItr) (*boundItr)->finalizeGhostBoundary();
@@ -77,85 +78,44 @@ initialize(const DataBase<Dimension>& dataBase,
   CHECK(mViscousEnergy.numFields() == dataBase.numFluidNodeLists());
 
   // Get the fluid state.
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  const FieldList<Dimension, Scalar> specificEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
-  const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  const FieldList<Dimension, Scalar> vol = mass/massDensity;
-
-  const RKOrder correctionOrder = this->QcorrectionOrder();
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const auto  specificEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto  pressure = state.fields(HydroFieldNames::pressure, 0.0);
+  const auto  soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  const auto  vol = mass/massDensity;
+  const auto  WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(order));
+  const auto  corrections = state.fields(RKFieldNames::rkCorrections(order), vector<double>());
 
   // We'll compute the higher-accuracy RK gradient.
-  FieldList<Dimension, Scalar> m0 = dataBase.newFluidFieldList(0.0, HydroFieldNames::m0_CRKSPH);
-  FieldList<Dimension, Vector> m1 = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::m1_CRKSPH);
-  FieldList<Dimension, SymTensor> m2 = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::m2_CRKSPH);
-  FieldList<Dimension, ThirdRankTensor> m3(FieldStorageType::CopyFields);
-  FieldList<Dimension, FourthRankTensor> m4(FieldStorageType::CopyFields);
-  FieldList<Dimension, Vector> gradm0 = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradM0_CRKSPH);
-  FieldList<Dimension, Tensor> gradm1 = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::gradM1_CRKSPH);
-  FieldList<Dimension, ThirdRankTensor> gradm2 = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradM2_CRKSPH);
-  FieldList<Dimension, FourthRankTensor> gradm3(FieldStorageType::CopyFields);
-  FieldList<Dimension, FifthRankTensor> gradm4(FieldStorageType::CopyFields);
-  FieldList<Dimension, Scalar> A = dataBase.newFluidFieldList(0.0, "Q A");
-  FieldList<Dimension, Vector> B;
-  FieldList<Dimension, Tensor> C;
-  FieldList<Dimension, Vector> gradA = dataBase.newFluidFieldList(Vector::zero, "Q grad A");
-  FieldList<Dimension, Tensor> gradB;
-  FieldList<Dimension, ThirdRankTensor> gradC;
-  FieldList<Dimension, int> surfacePoint;
-  if (correctionOrder == RKOrder::LinearOrder or correctionOrder == RKOrder::QuadraticOrder) {
-    B = dataBase.newFluidFieldList(Vector::zero, "Q B");
-    gradB = dataBase.newFluidFieldList(Tensor::zero, "Q grad B");
-  }
-  if (correctionOrder == RKOrder::QuadraticOrder) {
-    m3 = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::m3_CRKSPH);
-    m4 = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::m4_CRKSPH);
-    gradm3 = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::gradM3_CRKSPH);
-    gradm4 = dataBase.newFluidFieldList(FifthRankTensor::zero, HydroFieldNames::gradM4_CRKSPH);
-    C = dataBase.newFluidFieldList(Tensor::zero, "Q C");
-    gradC = dataBase.newFluidFieldList(ThirdRankTensor::zero, "Q grad C");
-  }
-  computeCRKSPHMoments(connectivityMap, W, vol, position, H,correctionOrder, NodeCoupling(), 
-                       m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
-  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, surfacePoint,
-                           correctionOrder, A, B, C, gradA, gradB, gradC);
-  const FieldList<Dimension, Tensor> velocityGradient = gradientCRKSPH(velocity,
-                                                                       position,
-                                                                       vol,
-                                                                       H,
-                                                                       A,
-                                                                       B,
-                                                                       C,
-                                                                       gradA,
-                                                                       gradB,
-                                                                       gradC,
-                                                                       connectivityMap,
-                                                                       correctionOrder,
-                                                                       W,
-                                                                       NodeCoupling());
+  const auto velocityGradient = gradientRK(velocity,
+                                           position,
+                                           vol,
+                                           H,
+                                           connectivityMap,
+                                           WR,
+                                           corrections,
+                                           NodeCoupling());
 
   // Set the viscous energy for each fluid node.
-  const Scalar Cl = this->Cl();
-  const Scalar Cq = this->Cq();
-  const unsigned numNodeLists = dataBase.numFluidNodeLists();
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const unsigned n = velocityGradient[nodeListi]->numInternalElements();
-    for (unsigned i = 0; i != n; ++i) {
-      const Scalar mui = min(0.0, velocityGradient(nodeListi, i).Trace());
-      const Scalar l = 1.0/(H(nodeListi, i).eigenValues().maxElement());
+  const auto Cl = this->Cl();
+  const auto Cq = this->Cq();
+  const auto numNodeLists = dataBase.numFluidNodeLists();
+  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const auto n = velocityGradient[nodeListi]->numInternalElements();
+    for (auto i = 0; i != n; ++i) {
+      const auto mui = min(0.0, velocityGradient(nodeListi, i).Trace());
+      const auto l = 1.0/(H(nodeListi, i).eigenValues().maxElement());
       mViscousEnergy(nodeListi, i) = (-Cl*soundSpeed(nodeListi, i) + Cq*l*mui)*l*mui;
     }
   }
 
   // Finally apply the boundary conditions to the viscous energy FieldList.
-  for (ConstBoundaryIterator boundaryItr = boundaryBegin;
-       boundaryItr < boundaryEnd;
-       ++boundaryItr) {
+  for (auto boundaryItr = boundaryBegin; boundaryItr < boundaryEnd; ++boundaryItr) {
     (*boundaryItr)->applyFieldListGhostBoundary(mViscousEnergy);
   }
 }

@@ -12,7 +12,8 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/rotationMatrix.hh"
 #include "Utilities/GeometricUtilities.hh"
-#include "CRKSPH/gradientCRKSPH.hh"
+#include "RK/RKFieldNames.hh"
+#include "RK/gradientRK.hh"
 
 #include "TensorCRKSPHViscosity.hh"
 
@@ -173,48 +174,43 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
                           typename TensorCRKSPHViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
                           typename TensorCRKSPHViscosity<Dimension>::ConstBoundaryIterator boundaryEnd) {
 
-  FieldList<Dimension, Tensor>& sigma = ArtificialViscosity<Dimension>::mSigma;
-  FieldList<Dimension, Vector>& gradDivVelocity = ArtificialViscosity<Dimension>::mGradDivVelocity;
+  const auto order = ArtificialViscosity<Dimension>::QcorrectionOrder();
+  auto& sigma = ArtificialViscosity<Dimension>::mSigma;
+  auto& gradDivVelocity = ArtificialViscosity<Dimension>::mGradDivVelocity;
 
   // Get the necessary state.
-  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
-  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
-  const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-  const FieldList<Dimension, Tensor> C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
-  const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
-  const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-  const FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto rho = state.fields(HydroFieldNames::massDensity, 0.0);
+  const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(order));
+  const auto corrections = state.fields(RKFieldNames::rkCorrections(order), vector<double>());
 
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const int numNodeLists = dataBase.numFluidNodeLists();
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto numNodeLists = dataBase.numFluidNodeLists();
 
   // Compute the basic velocity gradient.
-  const FieldList<Dimension, Scalar> vol = mass/rho;
-  mGradVel = gradientCRKSPH(velocity, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, ArtificialViscosity<Dimension>::QcorrectionOrder(), W, NodeCoupling());
+  const auto vol = mass/rho;
+  mGradVel = gradientRK(velocity, position, vol, H, connectivityMap, WR, corrections,  NodeCoupling());
   sigma = mGradVel;
   sigma.copyFields();
 
   // Compute sigma and build the velocity divergence.
-  FieldList<Dimension, Scalar> divVel = dataBase.newFluidFieldList(0.0, "velocity divergence");
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
-      Tensor& sigmai = sigma(nodeListi, i);
+  auto divVel = dataBase.newFluidFieldList(0.0, "velocity divergence");
+  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    for (auto iItr = connectivityMap.begin(nodeListi); iItr < connectivityMap.end(nodeListi); ++iItr) {
+      const auto i = *iItr;
+      auto& sigmai = sigma(nodeListi, i);
 
       // Update the velocity divergence.
       divVel(nodeListi, i) = sigmai.Trace();
 
       // Now limit to just negative eigen-values.  This is 'cause we only
       // care about convergent geometries for the Q.
-      const SymTensor sigmai_s = sigmai.Symmetric();
-      const Tensor sigmai_a = sigmai.SkewSymmetric();
-      typename SymTensor::EigenStructType eigeni = sigmai_s.eigenVectors();
+      const auto sigmai_s = sigmai.Symmetric();
+      const auto sigmai_a = sigmai.SkewSymmetric();
+      auto eigeni = sigmai_s.eigenVectors();
       sigmai = constructTensorWithMinDiagonal(eigeni.eigenValues, 0.0);
       sigmai.rotationalTransform(eigeni.eigenVectors);
       // sigmai += sigmai_a;
@@ -222,20 +218,14 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
   }
 
   // Apply boundary conditions.
-  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
-       boundItr < boundaryEnd;
-       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(divVel);
-  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
-       boundItr != boundaryEnd;
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  for (auto boundItr = boundaryBegin; boundItr < boundaryEnd; ++boundItr) (*boundItr)->applyFieldListGhostBoundary(divVel);
+  for (auto boundItr = boundaryBegin; boundItr < boundaryEnd; ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // Compute the gradient of div vel.
-  gradDivVelocity = gradientCRKSPH(divVel, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, ArtificialViscosity<Dimension>::QcorrectionOrder(), W, NodeCoupling());
+  gradDivVelocity = gradientRK(divVel, position, vol, H, connectivityMap, WR, corrections, NodeCoupling());
 
   // Apply boundary conditions.
-  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
-       boundItr < boundaryEnd;
-       ++boundItr) {
+  for (auto boundItr = boundaryBegin; boundItr < boundaryEnd; ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(sigma);
     (*boundItr)->applyFieldListGhostBoundary(gradDivVelocity);
     (*boundItr)->applyFieldListGhostBoundary(mGradVel);
