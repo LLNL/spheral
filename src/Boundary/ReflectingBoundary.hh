@@ -42,6 +42,7 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const override;
 
   // Apply the boundary condition to the violation node values in the given Field.
   virtual void enforceBoundary(Field<Dimension, int>& field) const override;
@@ -53,6 +54,7 @@ public:
   virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, std::vector<Scalar>>& field) const override;
 
   // Apply the boundary condition to face centered fields on a tessellation.
   virtual void enforceBoundary(std::vector<int>& faceField, const Mesh<Dimension>& mesh) const override;

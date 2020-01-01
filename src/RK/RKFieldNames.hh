@@ -14,8 +14,13 @@ namespace Spheral {
 
 struct RKFieldNames {
   static const std::string rkOrders;
-  static const std::string rkCorrections(const RKOrder order)     { return "rkCorrections_" + std::to_string(static_cast<int>(order)); }
-  static const std::string reproducingKernel(const RKOrder order) { return "reproducingKernel_" + std::to_string(static_cast<int>(order)); }
+  static const std::string rkCorrectionsBase;
+  static const std::string reproducingKernelBase;
+  static const std::string rkCorrections(const RKOrder order)     { return RKFieldNames::rkCorrectionsBase + std::to_string(static_cast<int>(order)); }
+  static const std::string reproducingKernel(const RKOrder order) { return RKFieldNames::reproducingKernelBase + std::to_string(static_cast<int>(order)); }
+
+  // Extract the correction order from the encoding in the correction name
+  static const RKOrder correctionOrder(const std::string& x)      { const auto i = x.find("_"); return static_cast<RKOrder>(std::stoi(x.substr(i))); }
 };
 
 }

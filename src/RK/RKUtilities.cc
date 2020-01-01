@@ -489,6 +489,17 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 } // computeCorrections
 
 //------------------------------------------------------------------------------
+// Apply a transformation operator to a corrections vector
+//------------------------------------------------------------------------------
+template<typename Dimension, RKOrder correctionOrder>
+void
+RKUtilities<Dimension, correctionOrder>::
+applyTransformation(const typename Dimension::Tensor& T,
+                    std::vector<double>& corrections) {
+  // FIXME -- need to fill in implementation
+}  
+
+//------------------------------------------------------------------------------
 // Compute a guess for the normal direction
 // S_{i}n_{i}^{\alpha}=V_{i}\dfrac{\sum_{j}V_{j}\left[\partial_{x_{j}}^{\alpha}\psi_{i}\left(x_{j}\right)+\partial_{x_{i}}^{\alpha}\psi_{j}\left(x_{i}\right)\right]}{\sum_{j}V_{j}\psi_{j}\left(x_{i}\right)}
 //------------------------------------------------------------------------------

@@ -130,6 +130,10 @@ public:
                             FieldList<Dimension, Scalar>& surfaceArea,
                             FieldList<Dimension, Vector>& normal);
   
+  // Apply a transformation operator to a corrections vector
+  static void applyTransformation(const typename Dimension::Tensor& T,
+                                  std::vector<double>& corrections);
+
   // // Interpolate a field
   // template<typename DataType> static FieldList<Dimension, DataType>
   // interpolateField(const TableKernel<Dimension>& kernel,

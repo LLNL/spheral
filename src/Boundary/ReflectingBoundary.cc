@@ -11,8 +11,9 @@
 #include "Utilities/DBC.hh"
 #include "Utilities/planarReflectingOperator.hh"
 #include "Mesh/Mesh.hh"
+#include "RK/RKFieldNames.hh"
 
-#include "ReflectingBoundary.hh"
+#include "Boundary/ReflectingBoundary.hh"
 
 using std::vector;
 using std::cout;
@@ -363,6 +364,31 @@ applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) c
     CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
     CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
     field(*ghostItr) = reflectFacetedVolume(*this, field(*controlItr));
+  }
+}
+
+// Specialization for std::vector<Scalar>
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar>>& field) const {
+
+  // We treat the RK corrections field specially
+  const auto fname = field.name();
+  if (fname.rfind(RKFieldNames::rkCorrectionsBase, 0) == 0) {            // Somewhat obtuse STL method for checking if a string starts with another string
+    const auto& nodeList = field.nodeList();
+    CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+    if (this->controlNodes(nodeList).size() > 0) {                       // Is there anything to do?
+      const auto correctionOrder = RKFieldNames::correctionOrder(fname);
+      auto controlItr = this->controlBegin(nodeList);
+      auto ghostItr = this->ghostBegin(nodeList);
+      auto cEnd = this->controlEnd(nodeList);
+      for (; controlItr < cEnd; ++controlItr, ++ghostItr) {
+      }
+    }
+  } else {
+    // The general case is handled by the base method.
+    Boundary<Dimension>::applyGhostBoundary(field);
   }
 }
 

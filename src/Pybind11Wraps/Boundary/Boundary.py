@@ -63,6 +63,20 @@ class Boundary:
         "We provide default copies for arrays of values, but descendants can override these."
         return "void"
 
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary20(self,
+                          field = "Field<%(Dimension)s, std::vector<Scalar>>&"):
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary21(self,
+                          field = "Field<%(Dimension)s, std::vector<Vector>>&"):
+        return "void"
+
     @PYB11virtual
     def initializeProblemStartup(self):
         "Some boundaries need to know when a problem is starting up and all the physics packages have been initialized."

@@ -69,6 +69,10 @@ public:
                      FieldList<Dimension, Scalar>& surfaceArea,
                      FieldList<Dimension, Vector>& normal);
 
+  // Apply a transformation operator to a corrections vector
+  void applyTransformation(const typename Dimension::Tensor& T,
+                           std::vector<double>& corrections);
+
   // Access the internal state
   RKOrder order() const;
   const TableKernel<Dimension>& kernel() const;
@@ -106,6 +110,8 @@ private:
                          const FieldList<Dimension, std::vector<double>>&,
                          FieldList<Dimension, Scalar>&,
                          FieldList<Dimension, Vector>&);
+  void (*mApplyTransformation)(const typename Dimension::Tensor& T,
+                               std::vector<double>& corrections);
 };
 
 }

@@ -24,6 +24,7 @@ ReproducingKernel(const TableKernel<Dimension>& W,
     mEvaluateKernelAndGradients = &RKUtilities<Dimension, RKOrder::ZerothOrder>::evaluateKernelAndGradients;
     mComputeCorrections = &RKUtilities<Dimension, RKOrder::ZerothOrder>::computeCorrections;
     mComputeNormal = &RKUtilities<Dimension, RKOrder::ZerothOrder>::computeNormal;
+    mApplyTransformation = RKUtilities<Dimension, RKOrder::ZerothOrder>::applyTransformation;
     break;
   case RKOrder::LinearOrder:
     mEvaluateBaseKernel = &RKUtilities<Dimension, RKOrder::LinearOrder>::evaluateBaseKernel;
@@ -37,6 +38,7 @@ ReproducingKernel(const TableKernel<Dimension>& W,
     mEvaluateKernelAndGradients = &RKUtilities<Dimension, RKOrder::LinearOrder>::evaluateKernelAndGradients;
     mComputeCorrections = &RKUtilities<Dimension, RKOrder::LinearOrder>::computeCorrections;
     mComputeNormal = &RKUtilities<Dimension, RKOrder::LinearOrder>::computeNormal;
+    mApplyTransformation = RKUtilities<Dimension, RKOrder::LinearOrder>::applyTransformation;
     break;
   case RKOrder::QuadraticOrder:
     mEvaluateBaseKernel = &RKUtilities<Dimension, RKOrder::QuadraticOrder>::evaluateBaseKernel;
@@ -50,6 +52,7 @@ ReproducingKernel(const TableKernel<Dimension>& W,
     mEvaluateKernelAndGradients = &RKUtilities<Dimension, RKOrder::QuadraticOrder>::evaluateKernelAndGradients;
     mComputeCorrections = &RKUtilities<Dimension, RKOrder::QuadraticOrder>::computeCorrections;
     mComputeNormal = &RKUtilities<Dimension, RKOrder::QuadraticOrder>::computeNormal;
+    mApplyTransformation = RKUtilities<Dimension, RKOrder::QuadraticOrder>::applyTransformation;
     break;
   case RKOrder::CubicOrder:
     mEvaluateBaseKernel = &RKUtilities<Dimension, RKOrder::CubicOrder>::evaluateBaseKernel;
@@ -63,6 +66,7 @@ ReproducingKernel(const TableKernel<Dimension>& W,
     mEvaluateKernelAndGradients = &RKUtilities<Dimension, RKOrder::CubicOrder>::evaluateKernelAndGradients;
     mComputeCorrections = &RKUtilities<Dimension, RKOrder::CubicOrder>::computeCorrections;
     mComputeNormal = &RKUtilities<Dimension, RKOrder::CubicOrder>::computeNormal;
+    mApplyTransformation = RKUtilities<Dimension, RKOrder::CubicOrder>::applyTransformation;
     break;
   case RKOrder::QuarticOrder:
     mEvaluateBaseKernel = &RKUtilities<Dimension, RKOrder::QuarticOrder>::evaluateBaseKernel;
@@ -76,6 +80,7 @@ ReproducingKernel(const TableKernel<Dimension>& W,
     mEvaluateKernelAndGradients = &RKUtilities<Dimension, RKOrder::QuarticOrder>::evaluateKernelAndGradients;
     mComputeCorrections = &RKUtilities<Dimension, RKOrder::QuarticOrder>::computeCorrections;
     mComputeNormal = &RKUtilities<Dimension, RKOrder::QuarticOrder>::computeNormal;
+    mApplyTransformation = RKUtilities<Dimension, RKOrder::QuarticOrder>::applyTransformation;
     break;
   case RKOrder::QuinticOrder:
     mEvaluateBaseKernel = &RKUtilities<Dimension, RKOrder::QuinticOrder>::evaluateBaseKernel;
@@ -89,6 +94,7 @@ ReproducingKernel(const TableKernel<Dimension>& W,
     mEvaluateKernelAndGradients = &RKUtilities<Dimension, RKOrder::QuinticOrder>::evaluateKernelAndGradients;
     mComputeCorrections = &RKUtilities<Dimension, RKOrder::QuinticOrder>::computeCorrections;
     mComputeNormal = &RKUtilities<Dimension, RKOrder::QuinticOrder>::computeNormal;
+    mApplyTransformation = RKUtilities<Dimension, RKOrder::QuinticOrder>::applyTransformation;
     break;
   case RKOrder::SexticOrder:
     mEvaluateBaseKernel = &RKUtilities<Dimension, RKOrder::SexticOrder>::evaluateBaseKernel;
@@ -102,6 +108,7 @@ ReproducingKernel(const TableKernel<Dimension>& W,
     mEvaluateKernelAndGradients = &RKUtilities<Dimension, RKOrder::SexticOrder>::evaluateKernelAndGradients;
     mComputeCorrections = &RKUtilities<Dimension, RKOrder::SexticOrder>::computeCorrections;
     mComputeNormal = &RKUtilities<Dimension, RKOrder::SexticOrder>::computeNormal;
+    mApplyTransformation = RKUtilities<Dimension, RKOrder::SexticOrder>::applyTransformation;
     break;
   case RKOrder::SepticOrder:
     mEvaluateBaseKernel = &RKUtilities<Dimension, RKOrder::SepticOrder>::evaluateBaseKernel;
@@ -115,6 +122,7 @@ ReproducingKernel(const TableKernel<Dimension>& W,
     mEvaluateKernelAndGradients = &RKUtilities<Dimension, RKOrder::SepticOrder>::evaluateKernelAndGradients;
     mComputeCorrections = &RKUtilities<Dimension, RKOrder::SepticOrder>::computeCorrections;
     mComputeNormal = &RKUtilities<Dimension, RKOrder::SepticOrder>::computeNormal;
+    mApplyTransformation = RKUtilities<Dimension, RKOrder::SepticOrder>::applyTransformation;
     break;
   default:
     VERIFY2("Unknown order passed to ReproducingKernel", false);
@@ -138,7 +146,8 @@ ReproducingKernel():
   mEvaluateKernelAndGradient(nullptr),
   mEvaluateKernelAndGradients(nullptr),
   mComputeCorrections(nullptr),
-  mComputeNormal(nullptr) {
+  mComputeNormal(nullptr),
+  mApplyTransformation(nullptr) {
 }
 
 //------------------------------------------------------------------------------
@@ -159,7 +168,8 @@ ReproducingKernel(const ReproducingKernel<Dimension>& rhs):
   mEvaluateKernelAndGradient(rhs.mEvaluateKernelAndGradient),
   mEvaluateKernelAndGradients(rhs.mEvaluateKernelAndGradients),
   mComputeCorrections(rhs.mComputeCorrections),
-  mComputeNormal(rhs.mComputeNormal) {
+  mComputeNormal(rhs.mComputeNormal),
+  mApplyTransformation(rhs.mApplyTransformation) {
 }
 
 //------------------------------------------------------------------------------
@@ -182,6 +192,7 @@ operator=(const ReproducingKernel<Dimension>& rhs) {
   mEvaluateKernelAndGradients = rhs.mEvaluateKernelAndGradients;
   mComputeCorrections = rhs.mComputeCorrections;
   mComputeNormal = rhs.mComputeNormal;
+  mApplyTransformation = rhs.mApplyTransformation;
   return *this;
 }
 

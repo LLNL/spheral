@@ -158,6 +158,10 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const;
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Vector>>& field) const;
 
+  // Default no-op for enforcement on arrays.
+  virtual void enforceBoundary(Field<Dimension, std::vector<Scalar>>& field) const {};
+  virtual void enforceBoundary(Field<Dimension, std::vector<Vector>>& field) const {};
+
   // Some boundaries need to know when a problem is starting up and all the physics
   // packages have been initialized.
   virtual void initializeProblemStartup() {};

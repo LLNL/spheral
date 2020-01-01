@@ -10,6 +10,7 @@ class RKUtilities:
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
 """
 
@@ -104,4 +105,10 @@ class RKUtilities:
         "Compute RK corrections"
         return "void"
     
+    @PYB11static
+    def applyTransformation(self,
+                            T = "const Tensor&",
+                            corrections = "std::vector<double>&"):
+        "Apply a transformation to the corrections"
+        return "void"
     
