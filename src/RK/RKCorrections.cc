@@ -222,6 +222,10 @@ enforceBoundaries(State<Dimension>& state,
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
   auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  auto surfaceArea = state.fields(HydroFieldNames::surfaceArea, 0.0);
+  auto normal = state.fields(HydroFieldNames::normal, Vector::zero);
+  auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  auto etaVoidPoints = state.fields(HydroFieldNames::etaVoidPoints, std::vector<Vector>());
 
   // Enforce boundary conditions
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
@@ -230,6 +234,9 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(vol);
     (*boundaryItr)->enforceFieldListBoundary(mass);
     (*boundaryItr)->enforceFieldListBoundary(massDensity);
+    (*boundaryItr)->enforceFieldListBoundary(surfaceArea);
+    (*boundaryItr)->enforceFieldListBoundary(normal);
+    (*boundaryItr)->enforceFieldListBoundary(surfacePoint);
   } 
 }
 
