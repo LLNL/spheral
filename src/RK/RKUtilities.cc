@@ -3,11 +3,12 @@
 //
 // Computes and evaluates RK corrections
 //----------------------------------------------------------------------------//
-
 #include "RKUtilities.hh"
 #include "Eigen/Dense"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/safeInv.hh"
+
+#include <iostream>
 
 namespace Spheral {
 
@@ -509,7 +510,7 @@ applyTransformation(const typename Dimension::Tensor& T,
     EVector gradA;
     for (auto d = 0; d < Dimension::nDim; ++d) gradA[d] = corrections[offsetGradC(d)];
     auto gradA1 = TT*gradA;
-    for (auto d = 0; d < Dimension::nDim; ++d) corrections[offsetGradC(d)] = gradA1[d];
+    for (auto d = 0; d < Dimension::nDim; ++d) corrections[offsetGradC(d)] = gradA1(d,0);
   }
   if (correctionOrder == RKOrder::ZerothOrder) return;
 }

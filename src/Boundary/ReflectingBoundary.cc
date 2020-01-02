@@ -393,7 +393,7 @@ applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar>>& fi
       }
     }
   } else {
-    // The general case is handled by the base method.
+    // The general case is handled by the base method, just a copy
     Boundary<Dimension>::applyGhostBoundary(field);
   }
 }
