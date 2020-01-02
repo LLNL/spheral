@@ -273,8 +273,8 @@ def CRKSPH(dataBase,
 
     # Artificial viscosity.
     if not Q:
-        Cl = 2.0 # *(W.kernelExtent/4.0)
-        Cq = 1.0 # *(W.kernelExtent/4.0)**2
+        Cl = 2.0*(dataBase.maxKernelExtent/4.0)
+        Cq = 1.0*(dataBase.maxKernelExtent/4.0)**2
         Q = eval("CRKSPHMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
     # Build the constructor arguments
