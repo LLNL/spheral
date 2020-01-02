@@ -64,6 +64,7 @@ macro(PYB11_GENERATE_BINDINGS)
 
   set(PYTHON_ENV 
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/${PYB11_MODULE_NAME}:"
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/polytope:"
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Distributed:"
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/OpenMP:"
@@ -74,6 +75,7 @@ macro(PYB11_GENERATE_BINDINGS)
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/DataOutput:"
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/NodeList:"
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Field:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/FieldList:"
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Kernel:"
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Neighbor:"
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Material:"
