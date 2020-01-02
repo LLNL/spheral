@@ -594,6 +594,33 @@ enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) cons
   }
 }
 
+// Specialization for std::vector<Scalar>
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+enforceBoundary(Field<Dimension, std::vector<typename Dimension::Scalar>>& field) const {
+
+  // We treat the RK corrections field specially
+  const auto fname = field.name();
+  if (fname.rfind(RKFieldNames::rkCorrectionsBase, 0) == 0) {            // Somewhat obtuse STL method for checking if a string starts with another string
+    const auto& nodeList = field.nodeList();
+    if (this->violationNodes(nodeList).size() > 0) {                     // Is there anything to do?
+      const auto correctionOrder = RKFieldNames::correctionOrder(fname);
+      const ReproducingKernel<Dimension> WR(TableKernel<Dimension>(BSplineKernel<Dimension>()), correctionOrder); // Build a bogus kernel, just to applyTransformation
+      const auto& op = this->reflectOperator();
+      for (vector<int>::const_iterator itr = this->violationBegin(nodeList);
+           itr < this->violationEnd(nodeList); 
+           ++itr) {
+        CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
+        WR.applyTransformation(op, field(*itr));
+      }
+    }
+  } else {
+    // The general case is handled by the base method.
+    Boundary<Dimension>::applyGhostBoundary(field);
+  }
+}
+
 //------------------------------------------------------------------------------
 // Enforce the boundary condition on fields on faces of a tessellation.
 // We assume these fields have been summed, and therefore the application of the

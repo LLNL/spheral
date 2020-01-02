@@ -162,6 +162,18 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
 }
 
 //------------------------------------------------------------------------------
+// applyTransformation
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+ReproducingKernel<Dimension>::
+applyTransformation(const typename Dimension::Tensor& T,
+                    std::vector<double>& corrections) const {
+  (*mApplyTransformation)(T, corrections);
+}
+
+//------------------------------------------------------------------------------
 // order
 //------------------------------------------------------------------------------
 template<typename Dimension>
