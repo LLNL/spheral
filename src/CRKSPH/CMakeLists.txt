@@ -6,13 +6,13 @@ set(CRKSPH_inst
     computeSolidCRKSPHSumMassDensity
     computeCRKSPHMoments
     computeCRKSPHCorrections
-    computeCRKSPHEvaluation
-    computeCRKSPHIntegral
+    #computeCRKSPHEvaluation
+    #computeCRKSPHIntegral
     computeHullVolumes
     computeHVolumes
-    computeNeighborHull
+    #computeNeighborHull
     CRKSPHHydroBase
-    CRKSPHVariant
+    #CRKSPHVariant
     interpolateCRKSPH
     gradientCRKSPH
     HVolumePolicy
@@ -26,20 +26,22 @@ set(CRKSPH_inst
 
 set(CRKSPH_sources
     centerOfMass.cc
+    computeVoronoiVolume.cc
     computeVoronoiVolume1d.cc
    )
 
 if(ENABLE_2D)
   list(APPEND CRKSPH_sources
        CRKSPHHydroBaseRZ.cc
-       computeVoronoiVolume2d.cc
+       #computeVoronoiVolume2d.cc
        SolidCRKSPHHydroBaseRZ.cc
+       ContinuityVolumePolicyRZ.cc
       )
 endif()
 
 if(ENABLE_3D)
   list(APPEND CRKSPH_sources
-       computeVoronoiVolume3d.cc
+      #computeVoronoiVolume3d.cc
       )
 endif()
 
@@ -50,7 +52,7 @@ set(CRKSPH_headers
     CRKSPHHydroBase.hh
     CRKSPHHydroBaseInline.hh
     CRKSPHHydroBaseRZ.hh
-    CRKSPHSpecificThermalEnergyPolicy.hh
+    #CRKSPHSpecificThermalEnergyPolicy.hh
     CRKSPHUtilities.hh
     CRKSPHUtilitiesInline.hh
     ContinuityVolumePolicy.hh
@@ -58,7 +60,7 @@ set(CRKSPH_headers
     SolidCRKSPHHydroBase.hh
     SolidCRKSPHHydroBaseInline.hh
     SolidCRKSPHHydroBaseRZ.hh
-    SolidCRKSPHHydroBaseRZInline.hh
+    #SolidCRKSPHHydroBaseRZInline.hh
     SurfaceNodeCoupling.hh
     centerOfMass.hh
     computeCRKSPHCorrections.hh

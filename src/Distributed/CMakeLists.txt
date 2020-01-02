@@ -33,8 +33,8 @@ set(Distributed_headers
     CompareDomainNodesByPosition.hh
     DistributedBoundary.hh
     DistributedBoundaryInline.hh
-    DomainNode.hh
-    DomainNodeInline.hh
+    #DomainNode.hh
+    #DomainNodeInline.hh
     NestedGridDistributedBoundary.hh
     NestedGridUtilities.hh
     RedistributeNodes.hh

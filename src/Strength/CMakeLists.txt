@@ -15,7 +15,7 @@ set(Strength_sources
 
 if(ENABLE_2D)
   list(APPEND Strength_sources
-       RZDeviatoricStressPolicy.cc
+       #RZDeviatoricStressPolicy.cc
        RZPlasticStrainPolicy.cc
       )
 endif()
@@ -27,7 +27,7 @@ set(Strength_headers
     DeviatoricStressPolicy.hh
     MeltEnergyPolicy.hh
     PlasticStrainPolicy.hh
-    RZDeviatoricStressPolicy.hh
+    #RZDeviatoricStressPolicy.hh
     RZPlasticStrainPolicy.hh
     ShearModulusPolicy.hh
     SolidFieldNames.hh

@@ -11,15 +11,14 @@ set(Boundary_inst
     ConstantYVelocityBoundary
     ConstantRVelocityBoundary
     ConstantBoundary
+    findNodesTouchingThroughPlanes
+    InflowOutflowBoundary
    )
 
 
 set(Boundary_sources 
-    CylindricalBoundary.cc  
-    SphericalBoundary.cc
-    ConstantZVelocityBoundaryInst.cc
-    AxisBoundaryRZ.cc
-   )
+  FacetedVolumeBoundary.cc
+       )
 
 if(ENABLE_2D)
   list(APPEND Boundary_sources
@@ -29,7 +28,10 @@ endif()
 
 if(ENABLE_3D)
   list(APPEND Boundary_sources
-    #       AxialSymmetryBoundary.cc
+      CylindricalBoundary.cc  
+      SphericalBoundary.cc
+      ConstantZVelocityBoundaryInst.cc
+      AxisBoundaryRZ.cc
       )
 endif()
 

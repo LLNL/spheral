@@ -42,6 +42,8 @@ set(Utilities_headers
     Bessel.hh
     CounterClockwiseComparator.hh
     DBC.hh
+    DomainNode.hh
+    DomainNodeInline.hh
     DataTypeTraits.hh
     FastMath.hh
     FieldDataTypeTraits.hh
