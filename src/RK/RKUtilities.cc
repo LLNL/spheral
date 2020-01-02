@@ -90,8 +90,8 @@ evaluateKernel(const TableKernel<Dimension>& kernel,
                const Vector& x,
                const SymTensor& H,
                const std::vector<double>& corrections) {
-  CHECK(corrections.size() == correctionsSize(false)
-        || corrections.size() == correctionsSize(true));
+  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+         corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
   const auto w = evaluateBaseKernel(kernel, x, H);
@@ -110,8 +110,8 @@ evaluateGradient(const TableKernel<Dimension>& kernel,
                  const Vector& x,
                  const SymTensor& H,
                  const std::vector<double>& corrections) {
-  CHECK(corrections.size() == correctionsSize(false)
-        || corrections.size() == correctionsSize(true));
+  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+         corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
   const auto wdw = evaluateBaseKernelAndGradient(kernel, x, H);
@@ -140,8 +140,8 @@ evaluateHessian(const TableKernel<Dimension>& kernel,
                 const Vector& x,
                 const SymTensor& H,
                 const std::vector<double>& corrections) {
-  CHECK(corrections.size() == correctionsSize(false)
-        || corrections.size() == correctionsSize(true));
+  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+         corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
   const auto wdw = evaluateBaseKernelAndGradient(kernel, x, H);
@@ -183,8 +183,8 @@ evaluateKernelAndGradient(const TableKernel<Dimension>& kernel,
                           const Vector& x,
                           const SymTensor& H,
                           const std::vector<double>& corrections) {
-  CHECK2(corrections.size() == correctionsSize(false)
-         || corrections.size() == correctionsSize(true), corrections.size() << " " << correctionsSize(false) << " " << correctionsSize(true));
+  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+         corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
   const auto wdw = evaluateBaseKernelAndGradient(kernel, x, H);
@@ -213,8 +213,8 @@ evaluateKernelAndGradients(const TableKernel<Dimension>& kernel,
                            const Vector& x,
                            const SymTensor& H,
                            const std::vector<double>& corrections) {
-  CHECK2(corrections.size() == correctionsSize(false)
-         || corrections.size() == correctionsSize(true), corrections.size() << " " << correctionsSize(false) << " " << correctionsSize(true));
+  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+         corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Uncorrected base kernel
   const auto eta = H * x;
