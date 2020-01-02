@@ -499,13 +499,16 @@ applyTransformation(const typename Dimension::Tensor& T,
                     std::vector<double>& corrections) {
 
   typedef Eigen::Matrix<double, Dimension::nDim, 1> EVector;
-  typedef Eigen::Map<Eigen::Matrix<double, Dimension::nDim, Dimension::nDim, Eigen::RowMajor>> ETensor2;
+  typedef Eigen::Matrix<double, Dimension::nDim, Dimension::nDim, Eigen::RowMajor> ETensor2;
+  typedef Eigen::Map<Eigen::Matrix<double, Dimension::nDim, 1>> MVector;
+  typedef Eigen::Map<Eigen::Matrix<double, Dimension::nDim, Dimension::nDim, Eigen::RowMajor>> MTensor2;
 
   // Map the transformation operator as an Eigen matrix
-  const ETensor2 TT(const_cast<double*>(&(*T.begin())));
+  const MTensor2 TT(const_cast<double*>(&(*T.begin())));
      
   //............................................................................
   // ZerothOrder and up
+  // Note the copied scalar A correction is already OK.
   {
     EVector gradA;
     for (auto d = 0; d < Dimension::nDim; ++d) gradA[d] = corrections[offsetGradC(d)];
@@ -513,6 +516,29 @@ applyTransformation(const typename Dimension::Tensor& T,
     for (auto d = 0; d < Dimension::nDim; ++d) corrections[offsetGradC(d)] = gradA1(d,0);
   }
   if (correctionOrder == RKOrder::ZerothOrder) return;
+
+  //............................................................................
+  // LinearOrder and up
+  {
+    MVector B(&corrections[1]);
+    ETensor2 gradB;
+    for (auto d = 0; d < Dimension::nDim; ++d) {
+      const auto doff = offsetGradC(d);
+      for (auto k = 0; k < Dimension::nDim; ++k) {
+        gradB(d,k) = corrections[doff+k];
+      }
+    }
+    const auto B1 = TT*B;
+    const auto gradB1 = TT*gradB*TT;
+    for (auto d = 0; d < Dimension::nDim; ++d) {
+      corrections[1+d] = B1(d);
+      const auto doff = offsetGradC(d);
+      for (auto k = 0; k < Dimension::nDim; ++k) {
+        corrections[doff+k] = gradB1(d,k);
+      }
+    }
+  }
+  if (correctionOrder == RKOrder::LinearOrder) return;
 }
 
 //------------------------------------------------------------------------------
