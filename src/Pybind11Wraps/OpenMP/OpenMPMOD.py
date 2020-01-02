@@ -9,20 +9,20 @@ from PYB11Generator import *
 PYB11includes = ['"Utilities/OpenMP_wrapper.hh"']
 
 PYB11preamble = """
-#ifdef _OPENMP
 //------------------------------------------------------------------------------
 // In order to report the number of threads, we have to check in an OpenMP 
 // section.
 //------------------------------------------------------------------------------
 inline int wrap_omp_get_num_threads() {
-  int result;
+  int result = 1;
+#ifdef _OPENMP
   #pragma omp parallel
   {
     if (omp_get_thread_num() == 0) result = omp_get_num_threads();
   }
+#endif
   return result;
 }
-#endif
 """
 
 @PYB11cppname("wrap_omp_get_num_threads")
