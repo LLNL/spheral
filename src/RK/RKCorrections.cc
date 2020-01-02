@@ -124,6 +124,16 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     }
   }
 
+  // Apply boundaries to corrections before computing normal
+  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {
+    for (auto order: mOrders) {
+      (*boundItr)->applyFieldListGhostBoundary(mCorrections[order]);
+    }
+  }
+  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {
+    (*boundItr)->finalizeGhostBoundary();
+  }
+
   // Compute normal direction
   mWR[RKOrder::ZerothOrder].computeNormal(connectivityMap, mVolume, position, H,
                                           mCorrections[RKOrder::ZerothOrder], mSurfaceArea, mNormal);
