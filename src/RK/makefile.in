@@ -27,8 +27,7 @@ INSTSRCTARGETS = \
 
 SRCTARGETS = \
 	$(srcdir)/RKFieldNames.cc \
-	$(srcdir)/computeVoronoiVolume.cc \
-	$(srcdir)/RKUtilities.cc 
+	$(srcdir)/computeVoronoiVolume.cc
 
 # A few of our target files are only valid for certain dimensions.
 ifeq ("yes", "@INST1D@")
