@@ -295,13 +295,11 @@ if svph:
                  ASPH = asph)
 elif crksph:
     hydro = CRKSPH(dataBase = db,
-                   W = WT,
+                   order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
-                   correctionOrder = correctionOrder,
-                   volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
                    ASPH = asph)
@@ -334,8 +332,6 @@ else:
                 nTensile = nTensile,
                 ASPH = asph)
 output("hydro")
-output("hydro.kernel")
-output("hydro.PiKernel")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
@@ -428,7 +424,9 @@ else:
     #import SpheralVisitDump
     #vizMethod = SpheralVisitDump.dumpPhysicsState
 
-control = SpheralController(integrator, WT,
+control = SpheralController(integrator,
+                            kernel = WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
@@ -544,12 +542,12 @@ if graphics:
              (htPlot, "Noh-cylindrical-ht.png")]
 
     if crksph:
-        volPlot = plotFieldList(hydro.volume, 
+        volPlot = plotFieldList(control.RKCorrections.volume, 
                                 xFunction = "%s.magnitude()",
                                 winTitle = "volume",
                                 plotStyle = "ro",
                                 colorNodeLists = False, plotGhosts = False)
-        spPlot = plotFieldList(hydro.surfacePoint, 
+        spPlot = plotFieldList(control.RKCorrections.surfacePoint, 
                                xFunction = "%s.magnitude()",
                                winTitle = "Surface",
                                plotStyle = "ro",
