@@ -60,18 +60,18 @@ public:
                           const FieldList<Dimension, SymTensor>& H,
                           const bool needHessian,
                           FieldList<Dimension, std::vector<double>>& zerothCorrections,
-                          FieldList<Dimension, std::vector<double>>& corrections);
+                          FieldList<Dimension, std::vector<double>>& corrections) const;
   void computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
                      const FieldList<Dimension, Scalar>& volume,
                      const FieldList<Dimension, Vector>& position,
                      const FieldList<Dimension, SymTensor>& H,
                      const FieldList<Dimension, std::vector<double>>& corrections,
                      FieldList<Dimension, Scalar>& surfaceArea,
-                     FieldList<Dimension, Vector>& normal);
+                     FieldList<Dimension, Vector>& normal) const;
 
   // Apply a transformation operator to a corrections vector
   void applyTransformation(const typename Dimension::Tensor& T,
-                           std::vector<double>& corrections);
+                           std::vector<double>& corrections) const;
 
   // Access the internal state
   RKOrder order() const;

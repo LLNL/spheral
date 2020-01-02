@@ -126,7 +126,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                    const FieldList<Dimension, SymTensor>& H,
                    const bool needHessian,
                    FieldList<Dimension, std::vector<double>>& zerothCorrections,
-                   FieldList<Dimension, std::vector<double>>& corrections) {
+                   FieldList<Dimension, std::vector<double>>& corrections) const {
   (*mComputeCorrections)(connectivityMap,
                          *mWptr,
                          volume,
@@ -150,7 +150,7 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
               const FieldList<Dimension, SymTensor>& H,
               const FieldList<Dimension, std::vector<double>>& corrections,
               FieldList<Dimension, Scalar>& surfaceArea,
-              FieldList<Dimension, Vector>& normal) {
+              FieldList<Dimension, Vector>& normal) const {
   (*mComputeNormal)(connectivityMap,
                     *mWptr,
                     volume,
