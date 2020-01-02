@@ -3,10 +3,6 @@
 #define TIMER_H
 
 #ifdef USE_MPI
-#define MPI
-#endif
-
-#ifdef MPI
 #include "mpi.h"
 #include "Distributed/Communicator.hh"
 #endif
@@ -81,7 +77,7 @@ private:
   double accumulated_WCtime, last_WCtime_stamp;
 
   // wall-clock timer data
-#ifndef MPI  
+#ifndef USE_MPI  
   struct timeval tv;   //  Values from call to gettimeofday
   struct timezone tz;
 #endif
@@ -148,7 +144,7 @@ public:
 
   static void TimerSummary(void) {
     int rank;
-#ifdef MPI
+#ifdef USE_MPI
     MPI_Comm_rank(Spheral::Communicator::communicator(), &rank);
 #else
     rank=0;

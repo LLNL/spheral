@@ -137,7 +137,7 @@ commandLine(seed = "lattice",
             nTensile = 4,
             hybridMassDensityThreshold = 0.01,
             filter = 0.0,
-            volumeType = CRKSumVolume,
+            volumeType = RKSumVolume,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 200.0,
@@ -282,7 +282,7 @@ if mpi.rank == 0:
         os.makedirs(restartDir)
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
-    if not os.path.exists(vizDir) and crksph and volumeType == CRKVoronoiVolume:
+    if not os.path.exists(vizDir) and crksph and volumeType == RKVoronoiVolume:
         os.makedirs(vizDirCRK)
 mpi.barrier()
 

@@ -4,7 +4,7 @@ text = """
 //
 // Created by JMO, Wed Dec  1 14:38:51 PST 1999
 //----------------------------------------------------------------------------//
-#include "SincKernel.hh"
+#include "Kernel/SincKernel.hh"
 
 #include <math.h>
 

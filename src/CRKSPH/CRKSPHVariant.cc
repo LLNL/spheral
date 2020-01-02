@@ -6,7 +6,7 @@
 #include "FileIO/FileIO.hh"
 #include "CRKSPHHydroBase.hh"
 #include "CRKSPHUtilities.hh"
-#include "computeVoronoiVolume.hh"
+#include "RK/computeVoronoiVolume.hh"
 #include "computeHullVolumes.hh"
 #include "computeCRKSPHSumVolume.hh"
 #include "computeHVolumes.hh"
@@ -95,8 +95,8 @@ CRKSPHVariant(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
               const bool XSPH,
               const MassDensityType densityUpdate,
               const HEvolutionType HUpdate,
-              const CRKOrder correctionOrder,
-              const CRKVolumeType volumeType,
+              const RKOrder correctionOrder,
+              const RKVolumeType volumeType,
               const double epsTensile,
               const double nTensile,
               const bool limitMultimaterialTopology):
@@ -170,7 +170,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   this->mGradm0 = dataBase.newFluidFieldList(Vector::zero,          HydroFieldNames::gradM0_CRKSPH);
   this->mGradm1 = dataBase.newFluidFieldList(Tensor::zero,          HydroFieldNames::gradM1_CRKSPH);
   this->mGradm2 = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradM2_CRKSPH);
-  if (this->mCorrectionOrder == CRKOrder::QuadraticOrder) {
+  if (this->mCorrectionOrder == RKOrder::QuadraticOrder) {
     this->mC = dataBase.newFluidFieldList(Tensor::zero,                HydroFieldNames::C_CRKSPH);
     this->mGradC = dataBase.newFluidFieldList(ThirdRankTensor::zero,   HydroFieldNames::gradC_CRKSPH);
     this->mM3 = dataBase.newFluidFieldList(ThirdRankTensor::zero,      HydroFieldNames::m3_CRKSPH);
@@ -190,11 +190,11 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
 
   // Compute the volumes for real.
-  if (this->mVolumeType == CRKVolumeType::CRKMassOverDensity) {
+  if (this->mVolumeType == RKVolumeType::CRKMassOverDensity) {
     this->mVolume.assignFields(mass/massDensity);
-  } else if (this->mVolumeType == CRKVolumeType::CRKSumVolume) {
+  } else if (this->mVolumeType == RKVolumeType::CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, this->mVolume);
-  } else if (this->mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+  } else if (this->mVolumeType == RKVolumeType::CRKVoronoiVolume) {
     this->mVolume.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
     FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
@@ -206,9 +206,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                          FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
                          this->mSurfacePoint, this->mVolume, this->mDeltaCentroid, this->mEtaVoidPoints,    // return values
                          cells, cellFaceFlags);                                     // no return cells
-  } else if (this->mVolumeType == CRKVolumeType::CRKHullVolume) {
+  } else if (this->mVolumeType == RKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, this->mVolume);
-  } else if (this->mVolumeType == CRKVolumeType::HVolume) {
+  } else if (this->mVolumeType == RKVolumeType::HVolume) {
     const Scalar nPerh = this->mVolume.nodeListPtrs()[0]->nodesPerSmoothingScale();
     computeHVolumes(nPerh, H, this->mVolume);
   } else {
@@ -218,7 +218,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
        boundItr != this->boundaryEnd();
        ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(this->mVolume);
-    if (this->mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    if (this->mVolumeType == RKVolumeType::CRKVoronoiVolume) {
       (*boundItr)->applyFieldListGhostBoundary(this->mVolume);
       (*boundItr)->applyFieldListGhostBoundary(this->mSurfacePoint);
       (*boundItr)->applyFieldListGhostBoundary(this->mEtaVoidPoints);
@@ -227,7 +227,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
-  // if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+  // if (mVolumeType == RKVolumeType::CRKVoronoiVolume) {
   //   // flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
   //   // mVolume = computeShepardsInterpolation(mVolume,
   //   //                                        connectivityMap,
@@ -381,11 +381,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
-  CHECK(B.size() == numNodeLists or order == CRKOrder::ZerothOrder);
-  CHECK(C.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(B.size() == numNodeLists or order == RKOrder::ZerothOrder);
+  CHECK(C.size() == numNodeLists or order != RKOrder::QuadraticOrder);
   CHECK(gradA.size() == numNodeLists);
-  CHECK(gradB.size() == numNodeLists or order == CRKOrder::ZerothOrder);
-  CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(gradB.size() == numNodeLists or order == RKOrder::ZerothOrder);
+  CHECK(gradC.size() == numNodeLists or order != RKOrder::QuadraticOrder);
   CHECK(surfacePoint.size() == numNodeLists);
 
   // Derivative FieldLists.
@@ -481,11 +481,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto ci = soundSpeed(nodeListi, i);
       Ai = A(nodeListi, i);
       gradAi = gradA(nodeListi, i);
-      if (order != CRKOrder::ZerothOrder) {
+      if (order != RKOrder::ZerothOrder) {
         Bi = B(nodeListi, i);
         gradBi = gradB(nodeListi, i);
       }
-      if (order == CRKOrder::QuadraticOrder) {
+      if (order == RKOrder::QuadraticOrder) {
         Ci = C(nodeListi, i);
         gradCi = gradC(nodeListi, i);
       }
@@ -550,11 +550,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const auto  cj = soundSpeed(nodeListj, j);
               Aj = A(nodeListj, j);
               gradAj = gradA(nodeListj, j);
-              if (order != CRKOrder::ZerothOrder) {
+              if (order != RKOrder::ZerothOrder) {
                 Bj = B(nodeListj, j);
                 gradBj = gradB(nodeListj, j);
               }
-              if (order == CRKOrder::QuadraticOrder) {
+              if (order == RKOrder::QuadraticOrder) {
                 Cj = C(nodeListj, j);
                 gradCj = gradC(nodeListj, j);
               }

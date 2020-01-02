@@ -51,6 +51,15 @@ namespace Spheral {
 
 namespace {
 
+using std::vector;
+using std::pair;
+using std::string;
+using std::ostringstream;
+using std::ostream_iterator;
+using std::make_pair;
+using std::set;
+using std::tie;
+
 //------------------------------------------------------------------------------
 // Compare a plane and point (our built-in plane one has some issues).
 //------------------------------------------------------------------------------

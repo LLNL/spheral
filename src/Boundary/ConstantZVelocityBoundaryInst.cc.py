@@ -2,11 +2,12 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "ContinuityVolumePolicy.cc"
 #include "Geometry/Dimension.hh"
+#include "Boundary/ConstantZVelocityBoundary.cc"
 
 namespace Spheral {
-  template class ContinuityVolumePolicy<Dim< %(ndim)s > >;
+  namespace BoundarySpace {
+    template class ConstantZVelocityBoundary< Dim< %(ndim)s > >;
+  }
 }
-
 """

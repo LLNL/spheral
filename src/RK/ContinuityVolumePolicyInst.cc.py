@@ -2,11 +2,11 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "HVolumePolicy.cc"
+#include "RK/ContinuityVolumePolicy.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class HVolumePolicy<Dim< %(ndim)s > >;
+  template class ContinuityVolumePolicy<Dim< %(ndim)s > >;
 }
 
 """

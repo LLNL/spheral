@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -40,9 +40,6 @@
       <Filter>Header Files\Strength</Filter>
     </None>
     <None Include="..\..\src\Strength\SolidFieldNames.hh">
-      <Filter>Header Files\Strength</Filter>
-    </None>
-    <None Include="..\..\src\Strength\SolidNodeList.hh">
       <Filter>Header Files\Strength</Filter>
     </None>
     <None Include="..\..\src\Strength\SolidNodeListInline.hh">
@@ -89,12 +86,6 @@
     <ClCompile Include="..\..\src\Strength\SolidFieldNames.cc">
       <Filter>Source Files\Strength</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Strength\SolidNodeListInst.cc.2.cc">
-      <Filter>Source Files\Strength</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Strength\SolidNodeListInst.cc.3.cc">
-      <Filter>Source Files\Strength</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Strength\StrengthSoundSpeedPolicyInst.cc.2.cc">
       <Filter>Source Files\Strength</Filter>
     </ClCompile>
@@ -119,9 +110,6 @@
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Strength\ShearModulusPolicyInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Strength\SolidNodeListInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Strength\StrengthSoundSpeedPolicyInst.cc.py">

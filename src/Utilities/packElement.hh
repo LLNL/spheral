@@ -87,17 +87,19 @@ packElement<int>(const int& value,
 // }
 
 // // Specialization for an unsigned long int type.
-// template<>
-// inline
-// void
-// packElement<unsigned long>(const unsigned long& value, 
-//                            std::vector<char>& buffer) {
-//   const int packSize = sizeof(unsigned long);
-//   char* data = reinterpret_cast<char*>(const_cast<unsigned long*>(&value));
-//   for (int i = 0; i != packSize; ++i) {
-//     buffer.push_back(*(data + i));
-//   }
-// }
+#if __APPLE__
+template<>
+inline
+void
+packElement<unsigned long>(const unsigned long& value, 
+                           std::vector<char>& buffer) {
+  const int packSize = sizeof(unsigned long);
+  char* data = reinterpret_cast<char*>(const_cast<unsigned long*>(&value));
+  for (int i = 0; i != packSize; ++i) {
+    buffer.push_back(*(data + i));
+  }
+}
+#endif
 
 // // Specialization for an unsigned long long int type.
 // template<>
@@ -290,20 +292,22 @@ unpackElement<int>(int& value,
 // }
 
 // // Specialization for an unsigned long int type.
-// template<>
-// inline
-// void
-// unpackElement<unsigned long>(unsigned long& value,
-//                         std::vector<char>::const_iterator& itr,
-//                         const std::vector<char>::const_iterator& endPackedVector) {
-//   const int packSize = sizeof(unsigned long);
-//   char* data = reinterpret_cast<char*>(&value);
-//   for (int i = 0; i != packSize; ++i, ++itr) {
-//     CHECK(itr < endPackedVector);
-//     *(data + i) = *itr;
-//   }
-//   ENSURE(itr <= endPackedVector);
-// }
+#if __APPLE__
+template<>
+inline
+void
+unpackElement<unsigned long>(unsigned long& value,
+                        std::vector<char>::const_iterator& itr,
+                        const std::vector<char>::const_iterator& endPackedVector) {
+  const int packSize = sizeof(unsigned long);
+  char* data = reinterpret_cast<char*>(&value);
+  for (int i = 0; i != packSize; ++i, ++itr) {
+    CHECK(itr < endPackedVector);
+    *(data + i) = *itr;
+  }
+  ENSURE(itr <= endPackedVector);
+}
+#endif
 
 // Specialization for an uint32_t int type.
 template<>

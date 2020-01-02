@@ -271,7 +271,7 @@ Boundary<Dimension>::addNodeList(NodeList<Dimension>& nodeList) {
 }
 
 //------------------------------------------------------------------------------
-// Deafult for vector<Scalar> fields, just perform a copy.
+// Default for vector<Scalar> fields, just perform a copy.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void

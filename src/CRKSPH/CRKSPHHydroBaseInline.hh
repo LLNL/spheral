@@ -42,7 +42,7 @@ HEvolution(HEvolutionType type) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-CRKOrder
+RKOrder
 CRKSPHHydroBase<Dimension>::correctionOrder() const {
   return mCorrectionOrder;
 }
@@ -51,7 +51,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-correctionOrder(CRKOrder order) {
+correctionOrder(RKOrder order) {
   mCorrectionOrder = order;
 }
 
@@ -60,7 +60,7 @@ correctionOrder(CRKOrder order) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-CRKVolumeType
+RKVolumeType
 CRKSPHHydroBase<Dimension>::volumeType() const {
   return mVolumeType;
 }
@@ -69,7 +69,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-volumeType(CRKVolumeType x) {
+volumeType(RKVolumeType x) {
   mVolumeType = x;
 }
 

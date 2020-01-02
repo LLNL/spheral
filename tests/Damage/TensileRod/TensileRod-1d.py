@@ -134,7 +134,7 @@ commandLine(length = 3.0,
             nTensile = 4,
             hybridMassDensityThreshold = 0.01,
             filter = 0.0,
-            volumeType = CRKSumVolume,
+            volumeType = RKSumVolume,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 50.0,

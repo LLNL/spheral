@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "SpecificFromTotalThermalEnergyPolicy.cc"
+#include "Hydro/SpecificFromTotalThermalEnergyPolicy.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "iterateIdealH.cc"
+#include "Utilities/iterateIdealH.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

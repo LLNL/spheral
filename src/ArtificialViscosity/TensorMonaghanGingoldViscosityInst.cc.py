@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "TensorMonaghanGingoldViscosity.cc"
+#include "ArtificialViscosity/TensorMonaghanGingoldViscosity.cc"
 
 namespace Spheral {
   template class TensorMonaghanGingoldViscosity< Dim< %(ndim)s > >;

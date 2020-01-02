@@ -126,7 +126,7 @@ commandLine(asph = False,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             HUpdate = IdealH,
             filter = 0.0,
-            volumeType = CRKSumVolume,
+            volumeType = RKSumVolume,
 
             # Timestep constraints
             cfl = 0.5,

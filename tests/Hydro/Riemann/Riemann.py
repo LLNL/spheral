@@ -47,7 +47,7 @@ commandLine(
     evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
     HopkinsConductivity = False,     # PSPH
     correctionOrder = LinearOrder,   # CRK
-    volumeType = CRKSumVolume,       # CRK
+    volumeType = RKSumVolume,       # CRK
     linearConsistent = False,        # SVPH
     correctVelocityGradient = True,  # SPH
     epsilonTensile = 0.0,            # SPH

@@ -12,41 +12,28 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 
 INSTSRCTARGETS = \
 	$(srcdir)/computeCRKSPHSumMassDensityInst.cc.py \
-	$(srcdir)/computeCRKSPHSumVolumeInst.cc.py \
-	$(srcdir)/computeOccupancyVolumeInst.cc.py \
 	$(srcdir)/computeSolidCRKSPHSumMassDensityInst.cc.py \
 	$(srcdir)/computeCRKSPHMomentsInst.cc.py \
 	$(srcdir)/computeCRKSPHCorrectionsInst.cc.py \
-	$(srcdir)/computeHullVolumesInst.cc.py \
-	$(srcdir)/computeHVolumesInst.cc.py \
 	$(srcdir)/CRKSPHHydroBaseInst.cc.py \
 	$(srcdir)/interpolateCRKSPHInst.cc.py \
 	$(srcdir)/gradientCRKSPHInst.cc.py \
-	$(srcdir)/HVolumePolicyInst.cc.py \
 	$(srcdir)/detectSurfaceInst.cc.py \
-	$(srcdir)/ContinuityVolumePolicyInst.cc.py \
 	$(srcdir)/SolidCRKSPHHydroBaseInst.cc.py \
 	$(srcdir)/editMultimaterialSurfaceTopologyInst.cc.py \
 	$(srcdir)/zerothOrderSurfaceCorrectionsInst.cc.py
 
 SRCTARGETS = \
-	$(srcdir)/centerOfMass.cc \
-	$(srcdir)/computeVoronoiVolume.cc
+	$(srcdir)/centerOfMass.cc
 
 PYTHONTARGETS = \
 	$(srcdir)/CRKSPHHydros.py
 
 # A few of our target files are only valid for certain dimensions.
-ifeq ("yes", "@INST1D@")
-SRCTARGETS += \
-	$(srcdir)/computeVoronoiVolume1d.cc
-endif
-
 ifeq ("yes", "@INST2D@")
 SRCTARGETS += \
 	$(srcdir)/CRKSPHHydroBaseRZ.cc \
-	$(srcdir)/SolidCRKSPHHydroBaseRZ.cc \
-	$(srcdir)/ContinuityVolumePolicyRZ.cc
+	$(srcdir)/SolidCRKSPHHydroBaseRZ.cc
 endif
 
 #-------------------------------------------------------------------------------

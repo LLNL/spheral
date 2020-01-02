@@ -86,7 +86,9 @@ template<typename Dimension>
 Field<Dimension, int>
 computeFragmentField(const NodeList<Dimension>& nodes,
                      const double linkRadius,
+                     const Field<Dimension, typename Dimension::Scalar>& density,
                      const Field<Dimension, typename Dimension::SymTensor>& damage,
+                     const double densityThreshold,
                      const double damageThreshold,
                      const bool assignDustToFragments) {
 
@@ -96,6 +98,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
   typedef typename Dimension::SymTensor SymTensor;
 
   REQUIRE(nodes.numGhostNodes() == 0);
+  REQUIRE(density.nodeListPtr() == &nodes);
   REQUIRE(damage.nodeListPtr() == &nodes);
 
   // Get the rank and total number of processors.
@@ -143,11 +146,11 @@ computeFragmentField(const NodeList<Dimension>& nodes,
   Field<Dimension, int> result(SolidFieldNames::fragmentIDs, nodes, maxGlobalID);
   int numFragments = 0;
 
-  // Flag any nodes above the damage threshold as dust.
+  // Flag any nodes above the damage threshold or below the density threshold as dust.
   // Simultaneously remove them from the set of globalNodesRemaining.
   int numDustNodes = 0;
   for (int i = 0; i != nodes.numInternalNodes(); ++i) {
-    if (damage(i).Trace() > damageThreshold) {
+    if (damage(i).Trace() > damageThreshold || density(i) < densityThreshold) {
       result(i) = maxGlobalID + 1;
       ++numDustNodes;
       vector<int>::iterator removeItr = find(globalNodesRemaining.begin(),

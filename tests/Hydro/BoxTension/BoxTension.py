@@ -140,7 +140,7 @@ commandLine(
     redistributeStep = 1000,
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-    volumeType = CRKSumVolume,
+    volumeType = RKSumVolume,
     correctionOrder = LinearOrder,
     compatibleEnergy = True,
     gradhCorrection = True,

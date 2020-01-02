@@ -10,8 +10,7 @@
 #include "CRKSPHHydroBase.hh"
 #include "CRKSPHUtilities.hh"
 #include "volumeSpacing.hh"
-#include "computeHullVolumes.hh"
-#include "computeCRKSPHSumVolume.hh"
+#include "RK/computeRKSumVolume.hh"
 #include "computeCRKSPHMoments.hh"
 #include "computeCRKSPHCorrections.hh"
 #include "computeCRKSPHSumMassDensity.hh"
@@ -33,7 +32,7 @@
 #include "DataBase/IncrementBoundedFieldList.hh"
 #include "DataBase/ReplaceFieldList.hh"
 #include "DataBase/ReplaceBoundedFieldList.hh"
-#include "ContinuityVolumePolicyRZ.hh"
+#include "RK/ContinuityVolumePolicyRZ.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -122,8 +121,8 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                        const bool XSPH,
                        const MassDensityType densityUpdate,
                        const HEvolutionType HUpdate,
-                       const CRKOrder correctionOrder,
-                       const CRKVolumeType volumeType,
+                       const RKOrder correctionOrder,
+                       const RKVolumeType volumeType,
                        const double epsTensile,
                        const double nTensile,
                        const bool limitMultimaterialTopology,
@@ -313,6 +312,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const auto damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   const auto gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   const auto A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
   const auto B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
   const auto C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
@@ -333,12 +333,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   CHECK(damage.size() == numNodeLists);
   CHECK(gradDamage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
+  CHECK(pTypes.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
   CHECK(B.size() == numNodeLists);
-  CHECK(C.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(C.size() == numNodeLists or order != RKOrder::QuadraticOrder);
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists);
-  CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(gradC.size() == numNodeLists or order != RKOrder::QuadraticOrder);
   CHECK(surfacePoint.size() == numNodeLists);
 
   const auto& Hfield0 = this->Hfield0();
@@ -433,13 +434,14 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto& Hi = H(nodeListi, i);
       const auto  ci = soundSpeed(nodeListi, i);
       const auto  Si = S(nodeListi, i);
+      const auto  pTypei = pTypes(nodeListi, i);
       Ai = A(nodeListi, i);
       gradAi = gradA(nodeListi, i);
-      if (order != CRKOrder::ZerothOrder) {
+      if (order != RKOrder::ZerothOrder) {
         Bi = B(nodeListi, i);
         gradBi = gradB(nodeListi, i);
       }
-      if (order == CRKOrder::QuadraticOrder) {
+      if (order == RKOrder::QuadraticOrder) {
         Ci = C(nodeListi, i);
         gradCi = gradC(nodeListi, i);
       }
@@ -475,13 +477,14 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto  Pj = pressure(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto  cj = soundSpeed(nodeListj, j);
+      const auto  pTypej = pTypes(nodeListj, j);
       Aj = A(nodeListj, j);
       gradAj = gradA(nodeListj, j);
-      if (order != CRKOrder::ZerothOrder) {
+      if (order != RKOrder::ZerothOrder) {
         Bj = B(nodeListj, j);
         gradBj = gradB(nodeListj, j);
       }
-      if (order == CRKOrder::QuadraticOrder) {
+      if (order == RKOrder::QuadraticOrder) {
         Cj = C(nodeListj, j);
         gradCj = gradC(nodeListj, j);
       }
@@ -513,6 +516,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       CHECK(etaMagi >= 0.0);
       CHECK(etaMagj >= 0.0);
       const auto vij = vi - vj;
+
+      // Flag if at least one particle is free (0).
+      const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
       // Symmetrized kernel weight and gradient.
       CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, CRKSPHHydroBase<Dimension>::correctionOrder(),  xij,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi);
@@ -588,8 +594,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       forceji = (true ? // surfacePoint(nodeListj, j) <= 1 ?
                  0.5*weighti*weightj*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij) :                // Type III CRK interpoint force.
                  mj*weighti*(((Pposj - Pposi)*gradWi - fij*(sigmaj - sigmai)*gradWi)/rhoj - rhoj*QPiji.dot(gradWi)));        // RK
-      DvDti -= forceij/mRZi;
-      DvDtj += forceji/mRZj;
+      if (freeParticle) {
+        DvDti -= forceij/mRZi;
+        DvDtj += forceji/mRZj;
+      }
       if (compatibleEnergy) {
         pairAccelerations[kk]   = -forceij/mRZi;
         pairAccelerations[2*kk] =  forceji/mRZj;

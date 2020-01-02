@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "ANEOS.cc"
+#include "SolidMaterial/ANEOS.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

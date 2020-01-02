@@ -29,8 +29,8 @@ GeomFacet2d(const std::vector<GeomFacet2d::Vector>& vertices,
   mPoints[0] = point1;
   mPoints[1] = point2;
   // REQUIRE((this->point2() - this->point1()).magnitude2() > 0.0);
-  REQUIRE(fuzzyEqual((this->point2() - this->point1()).dot(mNormal), 0.0, 1.0e-6));
-  REQUIRE((this->point2() - this->point1()).cross(mNormal).z() <= 0.0);
+  REQUIRE(fuzzyEqual((this->point2() - this->point1()).unitVector().dot(mNormal), 0.0, 1.0e-6));
+  REQUIRE((this->point2() - this->point1()).unitVector().cross(mNormal).z() <= 0.0);
 }
 
 inline

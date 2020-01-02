@@ -771,8 +771,8 @@ computeConnectivity() {
   flagNodeDone = 0;
 
   // Get the position and H fields.
-  const auto position = dataBase.globalPosition();
-  const auto H = dataBase.globalHfield();
+  const FieldList<Dimension, Vector> position = dataBase.globalPosition();
+  const FieldList<Dimension, SymTensor> H = dataBase.globalHfield();
 
   // Iterate over the NodeLists.
   // std::clock_t t0, 

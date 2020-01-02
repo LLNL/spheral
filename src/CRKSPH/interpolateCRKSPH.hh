@@ -5,7 +5,7 @@
 #define __Spheral__interpolateCRKSPH__
 
 #include "SPH/NodeCoupling.hh"
-#include "CRKSPHCorrectionParams.hh"
+#include "RK/RKCorrectionParams.hh"
 
 #include "boost/variant.hpp"
 #include <vector>
@@ -35,7 +35,7 @@ interpolateCRKSPH(const std::vector<boost::variant<FieldList<Dimension, typename
                   const FieldList<Dimension, typename Dimension::Vector>& B,
                   const FieldList<Dimension, typename Dimension::Tensor>& C,
                   const ConnectivityMap<Dimension>& connectivityMap,
-                  const CRKOrder correctionOrder,
+                  const RKOrder correctionOrder,
                   const TableKernel<Dimension>& W,
                   const NodeCoupling& nodeCoupling = NodeCoupling());
 

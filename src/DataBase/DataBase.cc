@@ -1240,6 +1240,21 @@ DataBase<Dimension>::solidFragmentIDs() const {
 }
 
 //------------------------------------------------------------------------------
+// Return the solid particle type field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, int>
+DataBase<Dimension>::solidParticleTypes() const {
+  REQUIRE(valid());
+  FieldList<Dimension, int> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->particleTypes());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Return the node extent for each NodeList.
 //------------------------------------------------------------------------------
 template<typename Dimension>

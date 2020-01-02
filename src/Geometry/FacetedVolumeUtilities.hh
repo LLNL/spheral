@@ -12,6 +12,7 @@
 #include "Utilities/safeInv.hh"
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 #include <set>
 #include <deque>

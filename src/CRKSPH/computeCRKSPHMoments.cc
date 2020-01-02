@@ -19,6 +19,7 @@ using std::vector;
 using std::min;
 using std::max;
 using std::abs;
+using std::vector;
 
 namespace Spheral {
 
@@ -32,7 +33,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
                      const FieldList<Dimension, typename Dimension::Scalar>& weight,
                      const FieldList<Dimension, typename Dimension::Vector>& position,
                      const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                     const CRKOrder correctionOrder,
+                     const RKOrder correctionOrder,
                      const NodeCoupling& nodeCoupling,
                      FieldList<Dimension, typename Dimension::Scalar>& m0,
                      FieldList<Dimension, typename Dimension::Vector>& m1,
@@ -55,7 +56,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(gradm0.size() == numNodeLists);
   REQUIRE(gradm1.size() == numNodeLists);
   REQUIRE(gradm2.size() == numNodeLists);
-  if (correctionOrder == CRKOrder::QuadraticOrder) {
+  if (correctionOrder == RKOrder::QuadraticOrder) {
     REQUIRE(m3.size() == numNodeLists);
     REQUIRE(m4.size() == numNodeLists);
     REQUIRE(gradm3.size() == numNodeLists);
@@ -81,7 +82,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
   gradm0 = Vector::zero;
   gradm1 = Tensor::zero;
   gradm2 = ThirdRankTensor::zero;
-  if (correctionOrder == CRKOrder::QuadraticOrder) {
+  if (correctionOrder == RKOrder::QuadraticOrder) {
     m3 = ThirdRankTensor::zero;
     m4 = FourthRankTensor::zero;
     gradm3 = FourthRankTensor::zero;
@@ -220,7 +221,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
 
       // We only need the next moments if doing quadratic CRK.  We avoid it otherwise
       // since this is a lot of memory and expense.
-      if (correctionOrder == CRKOrder::QuadraticOrder) {
+      if (correctionOrder == RKOrder::QuadraticOrder) {
 
         // Third Moment
         for (auto ii = 0; ii != Dimension::nDim; ++ii) {

@@ -32,6 +32,7 @@ instantiate(Geometry_inst Geometry_sources)
 set(Geometry_headers
     Box1d.hh
     Box1dInline.hh
+    CellFaceFlag.hh
     Dimension.hh
     EigenStruct.hh
     EigenStructInline.hh

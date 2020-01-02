@@ -8,6 +8,7 @@
 #include "Utilities/DBC.hh"
 
 #include "computeElementOwner.hh"
+#include <algorithm>
 
 using std::vector;
 using std::string;

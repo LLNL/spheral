@@ -1,5 +1,5 @@
 text = """
-#include "TreeNeighbor.cc"
+#include "Neighbor/TreeNeighbor.cc"
 
 namespace Spheral {
   template class TreeNeighbor< Dim< %(ndim)s > >;

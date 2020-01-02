@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "CheapSynchronousRK2.cc"
+#include "Integrator/CheapSynchronousRK2.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

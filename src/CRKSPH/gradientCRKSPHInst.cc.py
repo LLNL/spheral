@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "gradientCRKSPH.cc"
+#include "CRKSPH/gradientCRKSPH.cc"
 #include "Geometry/Dimension.hh"
 #include "SPH/NodeCoupling.hh"
 
@@ -21,7 +21,7 @@ gradientCRKSPH<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>(const FieldList<Dim< %(
                                        const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>& gradB,
                                        const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::ThirdRankTensor>& gradC,
                                        const ConnectivityMap<Dim< %(ndim)s > >& connectivityMap,
-                                       const CRKOrder correctionOrder,
+                                       const RKOrder correctionOrder,
                                        const TableKernel< Dim< %(ndim)s > >& kernel,
                                        const NodeCoupling& nodeCoupling);
   template 
@@ -37,7 +37,7 @@ gradientCRKSPH<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>(const FieldList<Dim< %(
                                          const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>& gradB,
                                          const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::ThirdRankTensor>& gradC,
                                          const ConnectivityMap<Dim< %(ndim)s > >& connectivityMap,
-                                         const CRKOrder correctionOrder,
+                                         const RKOrder correctionOrder,
                                          const TableKernel< Dim< %(ndim)s > >& kernel,
                                          const NodeCoupling& nodeCoupling);
 }

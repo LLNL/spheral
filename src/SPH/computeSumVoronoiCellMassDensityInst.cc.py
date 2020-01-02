@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "computeSumVoronoiCellMassDensity.cc"
+#include "SPH/computeSumVoronoiCellMassDensity.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

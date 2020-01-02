@@ -26,7 +26,7 @@ commandLine(nx = 250,
             crksph = False,                  # True->CRK, False->SPH
             asph = False,                    # Choose the H algorithm, works with CRK or SPH
             correctionOrder = LinearOrder,   # for crksph
-            volumeType = CRKVoronoiVolume,   # for crksph
+            volumeType = RKVoronoiVolume,   # for crksph
             densityUpdate = RigorousSumDensity,
 
             # Time advancement

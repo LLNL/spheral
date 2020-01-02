@@ -91,7 +91,7 @@ initialize(const DataBase<Dimension>& dataBase,
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> vol = mass/massDensity;
 
-  const CRKOrder correctionOrder = this->QcorrectionOrder();
+  const RKOrder correctionOrder = this->QcorrectionOrder();
 
   // We'll compute the higher-accuracy RK gradient.
   FieldList<Dimension, Scalar> m0 = dataBase.newFluidFieldList(0.0, HydroFieldNames::m0_CRKSPH);
@@ -111,11 +111,11 @@ initialize(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Tensor> gradB;
   FieldList<Dimension, ThirdRankTensor> gradC;
   FieldList<Dimension, int> surfacePoint;
-  if (correctionOrder == CRKOrder::LinearOrder or correctionOrder == CRKOrder::QuadraticOrder) {
+  if (correctionOrder == RKOrder::LinearOrder or correctionOrder == RKOrder::QuadraticOrder) {
     B = dataBase.newFluidFieldList(Vector::zero, "Q B");
     gradB = dataBase.newFluidFieldList(Tensor::zero, "Q grad B");
   }
-  if (correctionOrder == CRKOrder::QuadraticOrder) {
+  if (correctionOrder == RKOrder::QuadraticOrder) {
     m3 = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::m3_CRKSPH);
     m4 = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::m4_CRKSPH);
     gradm3 = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::gradM3_CRKSPH);

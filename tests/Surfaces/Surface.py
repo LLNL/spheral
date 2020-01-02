@@ -118,7 +118,7 @@ commandLine(lattice = True,
             densityUpdate       = RigorousSumDensity,
             HUpdate             = IdealH,
             linearInExpansion   = False,
-            volumeType          = CRKVoronoiVolume,
+            volumeType          = RKVoronoiVolume,
             
             # Timestep constraints
             cfl                 = 0.5,
