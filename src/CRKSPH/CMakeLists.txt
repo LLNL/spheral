@@ -1,23 +1,23 @@
 include_directories(.)
 set(CRKSPH_inst
     computeCRKSPHSumMassDensity
-    computeCRKSPHSumVolume
-    computeOccupancyVolume
+    #computeCRKSPHSumVolume
+    #computeOccupancyVolume
     computeSolidCRKSPHSumMassDensity
     computeCRKSPHMoments
     computeCRKSPHCorrections
     #computeCRKSPHEvaluation
     #computeCRKSPHIntegral
-    computeHullVolumes
-    computeHVolumes
+    #computeHullVolumes
+    #computeHVolumes
     #computeNeighborHull
     CRKSPHHydroBase
     #CRKSPHVariant
     interpolateCRKSPH
     gradientCRKSPH
-    HVolumePolicy
+    #HVolumePolicy
     detectSurface
-    ContinuityVolumePolicy
+    #ContinuityVolumePolicy
     SolidCRKSPHHydroBase
     editMultimaterialSurfaceTopology
     zerothOrderSurfaceCorrections
@@ -26,8 +26,8 @@ set(CRKSPH_inst
 
 set(CRKSPH_sources
     centerOfMass.cc
-    computeVoronoiVolume.cc
-    computeVoronoiVolume1d.cc
+    #computeVoronoiVolume.cc
+    #computeVoronoiVolume1d.cc
    )
 
 if(ENABLE_2D)
@@ -35,7 +35,7 @@ if(ENABLE_2D)
        CRKSPHHydroBaseRZ.cc
        #computeVoronoiVolume2d.cc
        SolidCRKSPHHydroBaseRZ.cc
-       ContinuityVolumePolicyRZ.cc
+       #ContinuityVolumePolicyRZ.cc
       )
 endif()
 
@@ -48,15 +48,15 @@ endif()
 instantiate(CRKSPH_inst CRKSPH_sources)
 
 set(CRKSPH_headers
-    CRKSPHCorrectionParams.hh
+  #CRKSPHCorrectionParams.hh
     CRKSPHHydroBase.hh
     CRKSPHHydroBaseInline.hh
     CRKSPHHydroBaseRZ.hh
     #CRKSPHSpecificThermalEnergyPolicy.hh
     CRKSPHUtilities.hh
     CRKSPHUtilitiesInline.hh
-    ContinuityVolumePolicy.hh
-    HullVolumePolicy.hh
+    #ContinuityVolumePolicy.hh
+    #HullVolumePolicy.hh
     SolidCRKSPHHydroBase.hh
     SolidCRKSPHHydroBaseInline.hh
     SolidCRKSPHHydroBaseRZ.hh
@@ -68,13 +68,13 @@ set(CRKSPH_headers
     computeCRKSPHIntegral.hh
     computeCRKSPHMoments.hh
     computeCRKSPHSumMassDensity.hh
-    computeCRKSPHSumVolume.hh
-    computeHVolumes.hh
+    #computeCRKSPHSumVolume.hh
+    #computeHVolumes.hh
     computeHullSumMassDensity.hh
-    computeHullVolumes.hh
+    #computeHullVolumes.hh
     computeSolidCRKSPHSumMassDensity.hh
     computeVoronoiCentroids.hh
-    computeVoronoiVolume.hh
+    #computeVoronoiVolume.hh
     detectSurface.hh
     #flagSurfaceNeighbors.hh
     gradientCRKSPH.hh
