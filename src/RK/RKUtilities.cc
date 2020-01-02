@@ -496,8 +496,23 @@ void
 RKUtilities<Dimension, correctionOrder>::
 applyTransformation(const typename Dimension::Tensor& T,
                     std::vector<double>& corrections) {
-  // FIXME -- need to fill in implementation
-}  
+
+  typedef Eigen::Matrix<double, Dimension::nDim, 1> EVector;
+  typedef Eigen::Map<Eigen::Matrix<double, Dimension::nDim, Dimension::nDim, Eigen::RowMajor>> ETensor2;
+
+  // Map the transformation operator as an Eigen matrix
+  const ETensor2 TT(const_cast<double*>(&(*T.begin())));
+     
+  //............................................................................
+  // ZerothOrder and up
+  {
+    EVector gradA;
+    for (auto d = 0; d < Dimension::nDim; ++d) gradA[d] = corrections[offsetGradC(d)];
+    auto gradA1 = TT*gradA;
+    for (auto d = 0; d < Dimension::nDim; ++d) corrections[offsetGradC(d)] = gradA1[d];
+  }
+  if (correctionOrder == RKOrder::ZerothOrder) return;
+}
 
 //------------------------------------------------------------------------------
 // Compute a guess for the normal direction
