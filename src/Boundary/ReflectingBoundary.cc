@@ -12,6 +12,8 @@
 #include "Utilities/planarReflectingOperator.hh"
 #include "Mesh/Mesh.hh"
 #include "RK/RKFieldNames.hh"
+#include "RK/ReproducingKernel.hh"
+#include "Kernel/BSplineKernel.hh"
 
 #include "Boundary/ReflectingBoundary.hh"
 
@@ -380,10 +382,14 @@ applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar>>& fi
     CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
     if (this->controlNodes(nodeList).size() > 0) {                       // Is there anything to do?
       const auto correctionOrder = RKFieldNames::correctionOrder(fname);
+      const ReproducingKernel<Dimension> WR(TableKernel<Dimension>(BSplineKernel<Dimension>()), correctionOrder); // Build a bogus kernel, just to applyTransformation
+      const auto& op = this->reflectOperator();
       auto controlItr = this->controlBegin(nodeList);
       auto ghostItr = this->ghostBegin(nodeList);
       auto cEnd = this->controlEnd(nodeList);
       for (; controlItr < cEnd; ++controlItr, ++ghostItr) {
+        field(*ghostItr) = field(*controlItr);
+        WR.applyTransformation(op, field(*ghostItr));
       }
     }
   } else {
