@@ -24,7 +24,6 @@ configure_file(
   ${PROJECT_BINARY_DIR}/Spheral/Spheral.py)
 
 
-
 set(_dims 1)
 if(ENABLE_2D)
    list(APPEND _dims 2)

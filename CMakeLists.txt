@@ -26,11 +26,16 @@ endif()
 
 include(${PROJECT_SOURCE_DIR}/blt/SetupBLT.cmake)
 
+option(ENABLE_CXXONLY "enable C++ only build without python bindings" OFF)
 option(ENABLE_2D "enable 2d" ON)
 option(ENABLE_3D "enable 3d" ON)
 option(ENABLE_INSTANTIATIONS "enable instantiations" ON)
 option(BUILD_PYTHON_TARGETS "enable build of spheral python tagets" ON)
 option(INSTALL_TPLS "download and install third party libs" ON)
+
+if(ENABLE_CXXONLY)
+  set(BUILD_PYTHON_TARGETS OFF)
+endif()
 
 ################################
 # Include standard build system logic and options
