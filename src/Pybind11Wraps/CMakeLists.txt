@@ -1,5 +1,5 @@
 set(PYTHONPKGS
-  "polytope Distributed OpenMP CXXTypes Geometry PolyClipper Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics Hydro ExternalForce Gravity Integrator Utilities NodeGenerators FieldOperations SPH CRKSPH ArtificialViscosity SVPH Mesh Damage SolidMaterial Strength ArtificialConduction"
+  "CXXTypes Geometry PolyClipper Silo DataOutput NodeList Field FieldList Kernel Neighbor Material FileIO Utilities DataBase Boundary Physics Hydro ExternalForce Gravity Integrator NodeGenerators FieldOperations SPH RK CRKSPH ArtificialViscosity SVPH Mesh Damage SolidMaterial Strength ArtificialConduction polytope Distributed OpenMP"
   )
 
 configure_file(

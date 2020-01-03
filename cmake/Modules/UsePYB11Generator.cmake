@@ -91,6 +91,7 @@ macro(PYB11_GENERATE_BINDINGS)
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/NodeGenerators:"
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/FieldOperations:"
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/SPH:"
+    "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/RK:"
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/CRKSPH:"
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/ArtificialViscosity:"
     "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/SVPH:"
