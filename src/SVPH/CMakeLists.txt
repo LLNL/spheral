@@ -58,9 +58,11 @@ install(FILES       ${SVPH_headers}
         DESTINATION include/SVPH
         )
 
-install(FILES       ${SVPH_python_targets}
-        DESTINATION .
-        )
+if(NOT ENABLE_CXXONLY)
+  install(FILES       ${SVPH_python_targets}
+          DESTINATION .
+          )
+endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_SVPH)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

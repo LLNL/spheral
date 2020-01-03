@@ -38,9 +38,11 @@ install(FILES       ${FileIO_headers}
         DESTINATION include/FileIO
         )
       
-install(FILES       ${FileIO_python_targets}
-        DESTINATION .
-        )
+if(NOT ENABLE_CXXONLY)
+  install(FILES       ${FileIO_python_targets}
+          DESTINATION .
+          )
+endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_FileIO)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

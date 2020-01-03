@@ -76,9 +76,11 @@ install(FILES       ${SolidMaterial_headers}
         DESTINATION include/SolidMaterial
         )
 
-install(FILES       ${SolidMaterial_python_targets}
-        DESTINATION .
-        )
+if(NOT ENABLE_CXXONLY)
+  install(FILES       ${SolidMaterial_python_targets}
+          DESTINATION .
+          )
+endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_SolidMaterial)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

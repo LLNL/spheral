@@ -131,9 +131,11 @@ install(FILES       ${Utilities_headers}
         DESTINATION include/Utilities
         )
 
-install(FILES       ${Utilities_python_targets}
-        DESTINATION .
-        )
+if(NOT ENABLE_CXXONLY)
+  install(FILES       ${Utilities_python_targets}
+          DESTINATION .
+          )
+endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Utilities)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

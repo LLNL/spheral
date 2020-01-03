@@ -42,9 +42,11 @@ install(FILES       ${Material_headers}
         DESTINATION include/Material
         )
 
-install(FILES       ${Material_python_targets}
-        DESTINATION .
-        )
+if(NOT ENABLE_CXXONLY)
+  install(FILES       ${Material_python_targets}
+          DESTINATION .
+          )
+endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Material)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

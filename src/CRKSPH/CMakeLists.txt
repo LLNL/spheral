@@ -79,9 +79,11 @@ install(FILES       ${CRKSPH_headers}
         DESTINATION include/CRKSPH
         )
 
-install(FILES       ${CRKSPH_python_targets}
-        DESTINATION .
-        )
+if(NOT ENABLE_CXXONLY)
+  install(FILES       ${CRKSPH_python_targets}
+          DESTINATION .
+          )
+endif()
     
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_CRKSPH)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

@@ -56,9 +56,11 @@ install(FILES       ${NodeList_headers}
         DESTINATION include/NodeList
         )
 
-install(FILES       ${NodeList_python_targets}
-        DESTINATION .
-        )
+if(NOT ENABLE_CXXONLY)
+  install(FILES       ${NodeList_python_targets}
+          DESTINATION .
+          )
+endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_NodeList)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

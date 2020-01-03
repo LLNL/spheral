@@ -69,9 +69,11 @@ install(FILES       ${Mesh_headers}
         DESTINATION include/Mesh
         )
 
-install(FILES       ${Mesh_python_targets}
-        DESTINATION .
-        )
+if(NOT ENABLE_CXXONLY)
+  install(FILES       ${Mesh_python_targets}
+          DESTINATION .
+          )
+endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Mesh)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)
