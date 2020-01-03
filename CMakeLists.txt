@@ -30,6 +30,7 @@ option(ENABLE_2D "enable 2d" ON)
 option(ENABLE_3D "enable 3d" ON)
 option(ENABLE_INSTANTIATIONS "enable instantiations" ON)
 option(BUILD_PYTHON_TARGETS "enable build of spheral python tagets" ON)
+option(INSTALL_TPLS "download and install third party libs" ON)
 
 ################################
 # Include standard build system logic and options
