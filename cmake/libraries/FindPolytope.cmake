@@ -37,7 +37,9 @@ find_package_handle_standard_args(POLYTOPE  DEFAULT_MSG
                                   POLYTOPE_INCLUDE_DIRS
                                   POLYTOPE_LIBRARY )
 
-install(
-  DIRECTORY ${POLYTOPE_DIR}/lib/python2.7/site-packages/polytope
-  DESTINATION .
-  )
+if(NOT ENABLE_CXXONLY)
+  install(
+    FILES ${POLYTOPE_DIR}/lib/python2.7/site-packages/polytope/polytope.so
+    DESTINATION .
+    )
+endif()
