@@ -112,12 +112,12 @@ This is really just a convenient front-end for the methods in RKUtilities"""
         "Compute RK corrections"
         return "void"
     
-    @PYB11const
-    def applyTransformation(self,
-                            T = "const Tensor&",
-                            corrections = "RKCoefficients<%(Dimension)s>&"):
-        "Apply the transformations T to the corrections"
-        return "void"
+    # @PYB11const
+    # def applyTransformation(self,
+    #                         T = "const Tensor&",
+    #                         corrections = "RKCoefficients<%(Dimension)s>&"):
+    #     "Apply the transformations T to the corrections"
+    #     return "void"
 
     #..........................................................................
     # Attributes

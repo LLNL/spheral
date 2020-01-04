@@ -490,57 +490,57 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   } // nodeListi
 } // computeCorrections
 
-//------------------------------------------------------------------------------
-// Apply a transformation operator to a corrections vector
-//------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
-void
-RKUtilities<Dimension, correctionOrder>::
-applyTransformation(const typename Dimension::Tensor& T,
-                    RKCoefficients<Dimension>& corrections) {
+// //------------------------------------------------------------------------------
+// // Apply a transformation operator to a corrections vector
+// //------------------------------------------------------------------------------
+// template<typename Dimension, RKOrder correctionOrder>
+// void
+// RKUtilities<Dimension, correctionOrder>::
+// applyTransformation(const typename Dimension::Tensor& T,
+//                     RKCoefficients<Dimension>& corrections) {
 
-  typedef Eigen::Matrix<double, Dimension::nDim, 1> EVector;
-  typedef Eigen::Matrix<double, Dimension::nDim, Dimension::nDim, Eigen::RowMajor> ETensor2;
-  typedef Eigen::Map<Eigen::Matrix<double, Dimension::nDim, 1>> MVector;
-  typedef Eigen::Map<Eigen::Matrix<double, Dimension::nDim, Dimension::nDim, Eigen::RowMajor>> MTensor2;
+//   typedef Eigen::Matrix<double, Dimension::nDim, 1> EVector;
+//   typedef Eigen::Matrix<double, Dimension::nDim, Dimension::nDim, Eigen::RowMajor> ETensor2;
+//   typedef Eigen::Map<Eigen::Matrix<double, Dimension::nDim, 1>> MVector;
+//   typedef Eigen::Map<Eigen::Matrix<double, Dimension::nDim, Dimension::nDim, Eigen::RowMajor>> MTensor2;
 
-  // Map the transformation operator as an Eigen matrix
-  const MTensor2 TT(const_cast<double*>(&(*T.begin())));
+//   // Map the transformation operator as an Eigen matrix
+//   const MTensor2 TT(const_cast<double*>(&(*T.begin())));
      
-  //............................................................................
-  // ZerothOrder and up
-  // Note the copied scalar A correction is already OK.
-  {
-    EVector gradA;
-    for (auto d = 0; d < Dimension::nDim; ++d) gradA[d] = corrections[offsetGradC(d)];
-    auto gradA1 = TT*gradA;
-    for (auto d = 0; d < Dimension::nDim; ++d) corrections[offsetGradC(d)] = gradA1(d,0);
-  }
-  if (correctionOrder == RKOrder::ZerothOrder) return;
+//   //............................................................................
+//   // ZerothOrder and up
+//   // Note the copied scalar A correction is already OK.
+//   {
+//     EVector gradA;
+//     for (auto d = 0; d < Dimension::nDim; ++d) gradA[d] = corrections[offsetGradC(d)];
+//     auto gradA1 = TT*gradA;
+//     for (auto d = 0; d < Dimension::nDim; ++d) corrections[offsetGradC(d)] = gradA1(d,0);
+//   }
+//   if (correctionOrder == RKOrder::ZerothOrder) return;
 
-  //............................................................................
-  // LinearOrder and up
-  {
-    MVector B(&corrections[1]);
-    ETensor2 gradB;
-    for (auto d = 0; d < Dimension::nDim; ++d) {
-      const auto doff = offsetGradC(d);
-      for (auto k = 0; k < Dimension::nDim; ++k) {
-        gradB(d,k) = corrections[doff+k];
-      }
-    }
-    const auto B1 = TT*B;
-    const auto gradB1 = TT*gradB*TT;
-    for (auto d = 0; d < Dimension::nDim; ++d) {
-      corrections[1+d] = B1(d);
-      const auto doff = offsetGradC(d);
-      for (auto k = 0; k < Dimension::nDim; ++k) {
-        corrections[doff+k] = gradB1(d,k);
-      }
-    }
-  }
-  if (correctionOrder == RKOrder::LinearOrder) return;
-}
+//   //............................................................................
+//   // LinearOrder and up
+//   {
+//     MVector B(&corrections[1]);
+//     ETensor2 gradB;
+//     for (auto d = 0; d < Dimension::nDim; ++d) {
+//       const auto doff = offsetGradC(d);
+//       for (auto k = 0; k < Dimension::nDim; ++k) {
+//         gradB(d,k) = corrections[doff+k];
+//       }
+//     }
+//     const auto B1 = TT*B;
+//     const auto gradB1 = TT*gradB*TT;
+//     for (auto d = 0; d < Dimension::nDim; ++d) {
+//       corrections[1+d] = B1(d);
+//       const auto doff = offsetGradC(d);
+//       for (auto k = 0; k < Dimension::nDim; ++k) {
+//         corrections[doff+k] = gradB1(d,k);
+//       }
+//     }
+//   }
+//   if (correctionOrder == RKOrder::LinearOrder) return;
+// }
 
 //------------------------------------------------------------------------------
 // Compute a guess for the normal direction
@@ -700,18 +700,18 @@ getTransformationMatrix(const Tensor& T,
   return;
 }
 
-//------------------------------------------------------------------------------
-// Apply the transformation matrix to the corrections
-//------------------------------------------------------------------------------
-template<typename Dimension, RKOrder correctionOrder>
-void
-RKUtilities<Dimension, correctionOrder>::
-applyTransformation(const TransformationMatrix& T,
-                    std::vector<double>& corrections) {
-  auto size = T.cols();
-  CHECK(size == corrections.size());
-  Eigen::Map<Eigen::VectorXd, Eigen::AlignmentType::Aligned> V(&corrections[0], size);
-  V = T * V;
-}
+// //------------------------------------------------------------------------------
+// // Apply the transformation matrix to the corrections
+// //------------------------------------------------------------------------------
+// template<typename Dimension, RKOrder correctionOrder>
+// void
+// RKUtilities<Dimension, correctionOrder>::
+// applyTransformation(const TransformationMatrix& T,
+//                     std::vector<double>& corrections) {
+//   auto size = T.cols();
+//   CHECK(size == corrections.size());
+//   Eigen::Map<Eigen::VectorXd, Eigen::AlignmentType::Aligned> V(&corrections[0], size);
+//   V = T * V;
+// }
 
 } // end namespace Spheral

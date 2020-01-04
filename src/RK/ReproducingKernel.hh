@@ -70,9 +70,9 @@ public:
                      FieldList<Dimension, Scalar>& surfaceArea,
                      FieldList<Dimension, Vector>& normal) const;
 
-  // Apply a transformation operator to a corrections vector
-  void applyTransformation(const typename Dimension::Tensor& T,
-                           RKCoefficients<Dimension>& corrections) const;
+  // // Apply a transformation operator to a corrections vector
+  // void applyTransformation(const typename Dimension::Tensor& T,
+  //                          RKCoefficients<Dimension>& corrections) const;
 
   // Access the internal state
   RKOrder order() const;
@@ -111,8 +111,8 @@ private:
                          const FieldList<Dimension, RKCoefficients<Dimension>>&,
                          FieldList<Dimension, Scalar>&,
                          FieldList<Dimension, Vector>&);
-  void (*mApplyTransformation)(const typename Dimension::Tensor& T,
-                               RKCoefficients<Dimension>& corrections);
+  // void (*mApplyTransformation)(const typename Dimension::Tensor& T,
+  //                              RKCoefficients<Dimension>& corrections);
 };
 
 }

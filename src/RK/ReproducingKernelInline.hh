@@ -161,17 +161,17 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
                     normal);
 }
 
-//------------------------------------------------------------------------------
-// applyTransformation
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-ReproducingKernel<Dimension>::
-applyTransformation(const typename Dimension::Tensor& T,
-                    RKCoefficients<Dimension>& corrections) const {
-  (*mApplyTransformation)(T, corrections);
-}
+// //------------------------------------------------------------------------------
+// // applyTransformation
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// void
+// ReproducingKernel<Dimension>::
+// applyTransformation(const typename Dimension::Tensor& T,
+//                     RKCoefficients<Dimension>& corrections) const {
+//   (*mApplyTransformation)(T, corrections);
+// }
 
 //------------------------------------------------------------------------------
 // order
