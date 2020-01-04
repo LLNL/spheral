@@ -77,6 +77,22 @@ class Boundary:
                           field = "Field<%(Dimension)s, std::vector<Vector>>&"):
         return "void"
 
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary22(self,
+                             field = "Field<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"):
+        "We provide default copies for RKCoefficients, but descendants can override these."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary22(self,
+                          field = "Field<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"):
+        "Default noop for RKCoefficients"
+        return "void"
+
     @PYB11virtual
     def initializeProblemStartup(self):
         "Some boundaries need to know when a problem is starting up and all the physics packages have been initialized."

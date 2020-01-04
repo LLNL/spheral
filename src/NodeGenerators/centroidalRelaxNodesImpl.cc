@@ -63,8 +63,8 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
   // Prepare the storage for the point-wise fields.
   auto gradRhof = db.newFluidFieldList(Vector::zero, "mass density gradient");
   auto deltaCentroid = db.newFluidFieldList(Vector::zero, "delta centroid");
-  auto corrections0 = db.newFluidFieldList(vector<double>(), "corrections0");
-  auto corrections = db.newFluidFieldList(vector<double>(), "corrections");
+  auto corrections0 = db.newFluidFieldList(RKCoefficients<Dimension>(), "corrections0");
+  auto corrections = db.newFluidFieldList(RKCoefficients<Dimension>(), "corrections");
 
   // Temporary until we decide to propagate void info to this method.
   auto etaVoidPoints = db.newFluidFieldList(vector<Vector>(), "eta void points");

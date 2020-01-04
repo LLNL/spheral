@@ -50,7 +50,7 @@ RKCorrections(const std::set<RKOrder> orders,
   mOrders.insert(RKOrder::ZerothOrder);     // We always at least want ZerothOrder
   for (auto order: mOrders) {
     mWR.emplace(std::make_pair(order, ReproducingKernel<Dimension>(W, order)));   // cause ReproducingKernel is not default constructible
-    mCorrections.emplace(std::make_pair(order, FieldList<Dimension, vector<double>>(FieldStorageType::CopyFields)));
+    mCorrections.emplace(std::make_pair(order, FieldList<Dimension, RKCoefficients<Dimension>>(FieldStorageType::CopyFields)));
   }
   ENSURE(mWR.size() == mOrders.size());
   ENSURE(mCorrections.size() == mOrders.size());
@@ -114,7 +114,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   }
   
   // Allocate correction fields
-  for (auto order: mOrders) mCorrections[order] = dataBase.newFluidFieldList(std::vector<double>(), RKFieldNames::rkCorrections(order));
+  for (auto order: mOrders) mCorrections[order] = dataBase.newFluidFieldList(RKCoefficients<Dimension>(), RKFieldNames::rkCorrections(order));
   
   // Compute corrections
   for (auto order: mOrders) {
@@ -214,7 +214,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(surfacePoint);
     (*boundaryItr)->applyFieldListGhostBoundary(etaVoidPoints);
     for (auto order: mOrders) {
-      auto corrections = state.fields(RKFieldNames::rkCorrections(order), std::vector<double>());
+      auto corrections = state.fields(RKFieldNames::rkCorrections(order), RKCoefficients<Dimension>());
       (*boundaryItr)->applyFieldListGhostBoundary(corrections);
     }
   }
@@ -326,14 +326,14 @@ initialize(const typename Dimension::Scalar time,
   const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto  volume = state.fields(HydroFieldNames::volume, 0.0);
-  auto        zerothCorrections = state.fields(RKFieldNames::rkCorrections(RKOrder::ZerothOrder), std::vector<double>());
+  auto        zerothCorrections = state.fields(RKFieldNames::rkCorrections(RKOrder::ZerothOrder), RKCoefficients<Dimension>());
   auto        surfaceArea = state.fields(HydroFieldNames::surfaceArea, 0.0);
   auto        normal = state.fields(HydroFieldNames::normal, Vector::zero);
   
   // Compute corrections
   for (auto order: mOrders) {
     if (mOrders.size() == 1 or order != RKOrder::ZerothOrder) {  // Zeroth order is always computed anyway
-      auto corrections = state.fields(RKFieldNames::rkCorrections(order), std::vector<double>());
+      auto corrections = state.fields(RKFieldNames::rkCorrections(order), RKCoefficients<Dimension>());
       mWR[order].computeCorrections(connectivityMap, volume, position, H,
                                     mNeedHessian, zerothCorrections, corrections);
     }
@@ -346,7 +346,7 @@ initialize(const typename Dimension::Scalar time,
     (*boundaryItr)->applyFieldListGhostBoundary(normal);
     for (auto order: mOrders) {
       if (order != RKOrder::ZerothOrder) {
-        auto corrections = state.fields(RKFieldNames::rkCorrections(order), std::vector<double>());
+        auto corrections = state.fields(RKFieldNames::rkCorrections(order), RKCoefficients<Dimension>());
         (*boundaryItr)->applyFieldListGhostBoundary(corrections);
       }
     }

@@ -54,7 +54,7 @@ This is really just a convenient front-end for the methods in RKUtilities"""
     def evaluateKernel(self,
                        x = "const Vector&",
                        H = "const SymTensor&",
-                       corrections = "const std::vector<double>&"):
+                       corrections = "const RKCoefficients<%(Dimension)s>&"):
         "Evaluate base kernel"
         return "Scalar"
 
@@ -62,7 +62,7 @@ This is really just a convenient front-end for the methods in RKUtilities"""
     def evaluateGradient(self,
                          x = "const Vector&",
                          H = "const SymTensor&",
-                         corrections = "const std::vector<double>&"):
+                         corrections = "const RKCoefficients<%(Dimension)s>&"):
         "Evaluate base gradient"
         return "Vector"
 
@@ -70,7 +70,7 @@ This is really just a convenient front-end for the methods in RKUtilities"""
     def evaluateHessian(self,
                         x = "const Vector&",
                         H = "const SymTensor&",
-                        corrections = "const std::vector<double>&"):
+                        corrections = "const RKCoefficients<%(Dimension)s>&"):
         "Evaluate base hessian"
         return "SymTensor"
     
@@ -95,8 +95,8 @@ This is really just a convenient front-end for the methods in RKUtilities"""
                            position = "const FieldList<%(Dimension)s, Vector>&",
                            H = "const FieldList<%(Dimension)s, SymTensor>&",
                            needHessian = "const bool",
-                           zerothCorrections = "FieldList<%(Dimension)s, std::vector<double>>&",
-                           corrections = "FieldList<%(Dimension)s, std::vector<double>>&"):
+                           zerothCorrections = "FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&",
+                           corrections = "FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"):
         "Compute RK corrections"
         return "void"
 
@@ -106,7 +106,7 @@ This is really just a convenient front-end for the methods in RKUtilities"""
                       volume = "const FieldList<%(Dimension)s, Scalar>&",
                       position = "const FieldList<%(Dimension)s, Vector>&",
                       H = "const FieldList<%(Dimension)s, SymTensor>&",
-                      corrections = "const FieldList<%(Dimension)s, std::vector<double>>&",
+                      corrections = "const FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&",
                       surfaceArea = "FieldList<%(Dimension)s, Scalar>&",
                       normal = "FieldList<%(Dimension)s, Vector>&"):
         "Compute RK corrections"
@@ -115,7 +115,7 @@ This is really just a convenient front-end for the methods in RKUtilities"""
     @PYB11const
     def applyTransformation(self,
                             T = "const Tensor&",
-                            corrections = "std::vector<double>&"):
+                            corrections = "RKCoefficients<%(Dimension)s>&"):
         "Apply the transformations T to the corrections"
         return "void"
 

@@ -89,7 +89,7 @@ RKUtilities<Dimension, correctionOrder>::
 evaluateKernel(const TableKernel<Dimension>& kernel,
                const Vector& x,
                const SymTensor& H,
-               const std::vector<double>& corrections) {
+               const RKCoefficients<Dimension>& corrections) {
   CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
@@ -109,7 +109,7 @@ RKUtilities<Dimension, correctionOrder>::
 evaluateGradient(const TableKernel<Dimension>& kernel,
                  const Vector& x,
                  const SymTensor& H,
-                 const std::vector<double>& corrections) {
+                 const RKCoefficients<Dimension>& corrections) {
   CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
@@ -139,7 +139,7 @@ RKUtilities<Dimension, correctionOrder>::
 evaluateHessian(const TableKernel<Dimension>& kernel,
                 const Vector& x,
                 const SymTensor& H,
-                const std::vector<double>& corrections) {
+                const RKCoefficients<Dimension>& corrections) {
   CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
@@ -182,7 +182,7 @@ RKUtilities<Dimension, correctionOrder>::
 evaluateKernelAndGradient(const TableKernel<Dimension>& kernel,
                           const Vector& x,
                           const SymTensor& H,
-                          const std::vector<double>& corrections) {
+                          const RKCoefficients<Dimension>& corrections) {
   CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
@@ -212,7 +212,7 @@ RKUtilities<Dimension, correctionOrder>::
 evaluateKernelAndGradients(const TableKernel<Dimension>& kernel,
                            const Vector& x,
                            const SymTensor& H,
-                           const std::vector<double>& corrections) {
+                           const RKCoefficients<Dimension>& corrections) {
   CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
@@ -255,8 +255,8 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                    const FieldList<Dimension, Vector>& position,
                    const FieldList<Dimension, SymTensor>& H,
                    const bool needHessian,
-                   FieldList<Dimension, std::vector<double>>& zerothCorrections, 
-                   FieldList<Dimension, std::vector<double>>& corrections) {
+                   FieldList<Dimension, RKCoefficients<Dimension>>& zerothCorrections, 
+                   FieldList<Dimension, RKCoefficients<Dimension>>& corrections) {
   // Typedefs: Eigen requires aligned allocator for stl containers before c++17
   typedef Eigen::Matrix<double, polynomialSize, 1> VectorType;
   typedef Eigen::Matrix<double, polynomialSize, polynomialSize> MatrixType;
@@ -429,6 +429,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Initialize corrections vector
       auto& corr = corrections(nodeListi, nodei);
+      corr.correctionOrder = correctionOrder;
       corr.resize(corrSize);
       
       // Put corrections into vector
@@ -496,7 +497,7 @@ template<typename Dimension, RKOrder correctionOrder>
 void
 RKUtilities<Dimension, correctionOrder>::
 applyTransformation(const typename Dimension::Tensor& T,
-                    std::vector<double>& corrections) {
+                    RKCoefficients<Dimension>& corrections) {
 
   typedef Eigen::Matrix<double, Dimension::nDim, 1> EVector;
   typedef Eigen::Matrix<double, Dimension::nDim, Dimension::nDim, Eigen::RowMajor> ETensor2;
@@ -553,7 +554,7 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
               const FieldList<Dimension, Scalar>& volume,
               const FieldList<Dimension, Vector>& position,
               const FieldList<Dimension, SymTensor>& H,
-              const FieldList<Dimension, std::vector<double>>& corrections,
+              const FieldList<Dimension, RKCoefficients<Dimension>>& corrections,
               FieldList<Dimension, Scalar>& surfaceArea,
               FieldList<Dimension, Vector>& normal) {
   // Size info

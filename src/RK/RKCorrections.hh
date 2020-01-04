@@ -124,8 +124,8 @@ public:
   const FieldList<Dimension, Vector>&                    deltaCentroid() const { return mDeltaCentroid; }
 
   // RKOrder dependent state
-  const ReproducingKernel<Dimension>&              WR(const RKOrder order)          const;
-  const FieldList<Dimension, std::vector<double>>& corrections(const RKOrder order) const;
+  const ReproducingKernel<Dimension>&                    WR(const RKOrder order)          const;
+  const FieldList<Dimension, RKCoefficients<Dimension>>& corrections(const RKOrder order) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -143,7 +143,7 @@ private:
   // Corrections
   FieldList<Dimension, Scalar> mSurfaceArea;
   FieldList<Dimension, Vector> mNormal;
-  std::unordered_map<RKOrder, FieldList<Dimension, std::vector<double>>> mCorrections;
+  std::unordered_map<RKOrder, FieldList<Dimension, RKCoefficients<Dimension>>> mCorrections;
   
   // Voronoi stuff
   FieldList<Dimension, int> mSurfacePoint;

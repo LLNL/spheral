@@ -110,7 +110,7 @@ class RKCorrections(Physics):
     def corrections(self,
                     order = "const RKOrder"):
         "Look up the corrections for the given order"
-        return "FieldList<%(Dimension)s, std::vector<double>>&"
+        return "FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"
 
     #...........................................................................
     # Properties

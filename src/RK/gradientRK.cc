@@ -30,7 +30,7 @@ gradientRK(const FieldList<Dimension, DataType>& fieldList,
            const FieldList<Dimension, typename Dimension::SymTensor>& H,
            const ConnectivityMap<Dimension>& connectivityMap,
            const ReproducingKernel<Dimension>& WR,
-           const FieldList<Dimension, std::vector<double>>& corrections,
+           const FieldList<Dimension, RKCoefficients<Dimension>>& corrections,
            const NodeCoupling& nodeCoupling) {
 
   // Pre-conditions.

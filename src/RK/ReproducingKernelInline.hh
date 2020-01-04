@@ -57,7 +57,7 @@ typename Dimension::Scalar
 ReproducingKernel<Dimension>::
 evaluateKernel(const typename Dimension::Vector& x,
                const typename Dimension::SymTensor& H,
-               const std::vector<double>& corrections) const {
+               const RKCoefficients<Dimension>& corrections) const {
   return (*mEvaluateKernel)(*mWptr, x, H, corrections);
 }
 
@@ -70,7 +70,7 @@ typename Dimension::Vector
 ReproducingKernel<Dimension>::
 evaluateGradient(const typename Dimension::Vector& x,
                  const typename Dimension::SymTensor& H,
-                 const std::vector<double>& corrections) const {
+                 const RKCoefficients<Dimension>& corrections) const {
   return (*mEvaluateGradient)(*mWptr, x, H, corrections);
 }
 
@@ -83,7 +83,7 @@ typename Dimension::SymTensor
 ReproducingKernel<Dimension>::
 evaluateHessian(const typename Dimension::Vector& x,
                 const typename Dimension::SymTensor& H,
-                const std::vector<double>& corrections) const {
+                const RKCoefficients<Dimension>& corrections) const {
   return (*mEvaluateHessian)(*mWptr, x, H, corrections);
 }
 
@@ -96,7 +96,7 @@ std::pair<typename Dimension::Scalar, typename Dimension::Vector>
 ReproducingKernel<Dimension>::
 evaluateKernelAndGradient(const typename Dimension::Vector& x,
                           const typename Dimension::SymTensor& H,
-                          const std::vector<double>& corrections) const {
+                          const RKCoefficients<Dimension>& corrections) const {
   return (*mEvaluateKernelAndGradient)(*mWptr, x, H, corrections);
 }
 
@@ -109,7 +109,7 @@ std::tuple<typename Dimension::Scalar, typename Dimension::Vector, typename Dime
 ReproducingKernel<Dimension>::
 evaluateKernelAndGradients(const typename Dimension::Vector& x,
                            const typename Dimension::SymTensor& H,
-                           const std::vector<double>& corrections) const {
+                           const RKCoefficients<Dimension>& corrections) const {
   return (*mEvaluateKernelAndGradients)(*mWptr, x, H, corrections);
 }
 
@@ -125,8 +125,8 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                    const FieldList<Dimension, Vector>& position,
                    const FieldList<Dimension, SymTensor>& H,
                    const bool needHessian,
-                   FieldList<Dimension, std::vector<double>>& zerothCorrections,
-                   FieldList<Dimension, std::vector<double>>& corrections) const {
+                   FieldList<Dimension, RKCoefficients<Dimension>>& zerothCorrections,
+                   FieldList<Dimension, RKCoefficients<Dimension>>& corrections) const {
   (*mComputeCorrections)(connectivityMap,
                          *mWptr,
                          volume,
@@ -148,7 +148,7 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
               const FieldList<Dimension, Scalar>& volume,
               const FieldList<Dimension, Vector>& position,
               const FieldList<Dimension, SymTensor>& H,
-              const FieldList<Dimension, std::vector<double>>& corrections,
+              const FieldList<Dimension, RKCoefficients<Dimension>>& corrections,
               FieldList<Dimension, Scalar>& surfaceArea,
               FieldList<Dimension, Vector>& normal) const {
   (*mComputeNormal)(connectivityMap,
@@ -169,7 +169,7 @@ inline
 void
 ReproducingKernel<Dimension>::
 applyTransformation(const typename Dimension::Tensor& T,
-                    std::vector<double>& corrections) const {
+                    RKCoefficients<Dimension>& corrections) const {
   (*mApplyTransformation)(T, corrections);
 }
 

@@ -300,7 +300,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const auto gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  const auto corrections = state.fields(RKFieldNames::rkCorrections(order), vector<double>());
+  const auto corrections = state.fields(RKFieldNames::rkCorrections(order), RKCoefficients<Dimension>());
   const auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);

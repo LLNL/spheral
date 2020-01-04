@@ -375,27 +375,27 @@ void
 ReflectingBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar>>& field) const {
 
-  // We treat the RK corrections field specially
-  const auto fname = field.name();
-  if (fname.rfind(RKFieldNames::rkCorrectionsBase, 0) == 0) {            // Somewhat obtuse STL method for checking if a string starts with another string
-    const auto& nodeList = field.nodeList();
-    CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-    if (this->controlNodes(nodeList).size() > 0) {                       // Is there anything to do?
-      const auto correctionOrder = RKFieldNames::correctionOrder(fname);
-      const ReproducingKernel<Dimension> WR(TableKernel<Dimension>(BSplineKernel<Dimension>()), correctionOrder); // Build a bogus kernel, just to applyTransformation
-      const auto& op = this->reflectOperator();
-      auto controlItr = this->controlBegin(nodeList);
-      auto ghostItr = this->ghostBegin(nodeList);
-      auto cEnd = this->controlEnd(nodeList);
-      for (; controlItr < cEnd; ++controlItr, ++ghostItr) {
-        field(*ghostItr) = field(*controlItr);
-        WR.applyTransformation(op, field(*ghostItr));
-      }
-    }
-  } else {
+  // // We treat the RK corrections field specially
+  // const auto fname = field.name();
+  // if (fname.rfind(RKFieldNames::rkCorrectionsBase, 0) == 0) {            // Somewhat obtuse STL method for checking if a string starts with another string
+  //   const auto& nodeList = field.nodeList();
+  //   CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  //   if (this->controlNodes(nodeList).size() > 0) {                       // Is there anything to do?
+  //     const auto correctionOrder = RKFieldNames::correctionOrder(fname);
+  //     const ReproducingKernel<Dimension> WR(TableKernel<Dimension>(BSplineKernel<Dimension>()), correctionOrder); // Build a bogus kernel, just to applyTransformation
+  //     const auto& op = this->reflectOperator();
+  //     auto controlItr = this->controlBegin(nodeList);
+  //     auto ghostItr = this->ghostBegin(nodeList);
+  //     auto cEnd = this->controlEnd(nodeList);
+  //     for (; controlItr < cEnd; ++controlItr, ++ghostItr) {
+  //       field(*ghostItr) = field(*controlItr);
+  //       WR.applyTransformation(op, field(*ghostItr));
+  //     }
+  //   }
+  // } else {
     // The general case is handled by the base method, just a copy
     Boundary<Dimension>::applyGhostBoundary(field);
-  }
+  // }
 }
 
 //------------------------------------------------------------------------------
@@ -600,25 +600,25 @@ void
 ReflectingBoundary<Dimension>::
 enforceBoundary(Field<Dimension, std::vector<typename Dimension::Scalar>>& field) const {
 
-  // We treat the RK corrections field specially
-  const auto fname = field.name();
-  if (fname.rfind(RKFieldNames::rkCorrectionsBase, 0) == 0) {            // Somewhat obtuse STL method for checking if a string starts with another string
-    const auto& nodeList = field.nodeList();
-    if (this->violationNodes(nodeList).size() > 0) {                     // Is there anything to do?
-      const auto correctionOrder = RKFieldNames::correctionOrder(fname);
-      const ReproducingKernel<Dimension> WR(TableKernel<Dimension>(BSplineKernel<Dimension>()), correctionOrder); // Build a bogus kernel, just to applyTransformation
-      const auto& op = this->reflectOperator();
-      for (vector<int>::const_iterator itr = this->violationBegin(nodeList);
-           itr < this->violationEnd(nodeList); 
-           ++itr) {
-        CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
-        WR.applyTransformation(op, field(*itr));
-      }
-    }
-  } else {
+  // // We treat the RK corrections field specially
+  // const auto fname = field.name();
+  // if (fname.rfind(RKFieldNames::rkCorrectionsBase, 0) == 0) {            // Somewhat obtuse STL method for checking if a string starts with another string
+  //   const auto& nodeList = field.nodeList();
+  //   if (this->violationNodes(nodeList).size() > 0) {                     // Is there anything to do?
+  //     const auto correctionOrder = RKFieldNames::correctionOrder(fname);
+  //     const ReproducingKernel<Dimension> WR(TableKernel<Dimension>(BSplineKernel<Dimension>()), correctionOrder); // Build a bogus kernel, just to applyTransformation
+  //     const auto& op = this->reflectOperator();
+  //     for (vector<int>::const_iterator itr = this->violationBegin(nodeList);
+  //          itr < this->violationEnd(nodeList); 
+  //          ++itr) {
+  //       CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
+  //       WR.applyTransformation(op, field(*itr));
+  //     }
+  //   }
+  // } else {
     // The general case is handled by the base method.
     Boundary<Dimension>::applyGhostBoundary(field);
-  }
+  // }
 }
 
 //------------------------------------------------------------------------------

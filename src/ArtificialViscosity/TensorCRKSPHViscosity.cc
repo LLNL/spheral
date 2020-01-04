@@ -185,7 +185,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
   const auto rho = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(order));
-  const auto corrections = state.fields(RKFieldNames::rkCorrections(order), vector<double>());
+  const auto corrections = state.fields(RKFieldNames::rkCorrections(order), RKCoefficients<Dimension>());
 
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto numNodeLists = dataBase.numFluidNodeLists();

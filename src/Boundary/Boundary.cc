@@ -11,6 +11,7 @@
 #include "NodeList/NodeList.hh"
 #include "Field/FieldList.hh"
 #include "Utilities/removeElements.hh"
+#include "RK/RKCoefficients.hh"
 
 #include "Utilities/DBC.hh"
 
@@ -296,6 +297,25 @@ template<typename Dimension>
 void
 Boundary<Dimension>::
 applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Vector> >& field) const {
+  const auto& nodeList = field.nodeList();
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  auto controlItr = this->controlBegin(nodeList);
+  auto ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
+    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
+    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    field(*ghostItr) = field(*controlItr);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Default for RKCoefficients fields, just perform a copy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Boundary<Dimension>::
+applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const {
   const auto& nodeList = field.nodeList();
   CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
   auto controlItr = this->controlBegin(nodeList);

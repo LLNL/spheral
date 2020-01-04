@@ -59,7 +59,7 @@ class RKUtilities:
                        kernel = "const TableKernel<%(Dimension)s>&",
                        x = "const Vector&",
                        H = "const SymTensor&",
-                       corrections = "const std::vector<double>&"):
+                       corrections = "const RKCoefficients<%(Dimension)s>&"):
         "Evaluate base kernel"
         return "Scalar"
     @PYB11static
@@ -67,7 +67,7 @@ class RKUtilities:
                          kernel = "const TableKernel<%(Dimension)s>&",
                          x = "const Vector&",
                          H = "const SymTensor&",
-                         corrections = "const std::vector<double>&"):
+                         corrections = "const RKCoefficients<%(Dimension)s>&"):
         "Evaluate base gradient"
         return "Vector"
     @PYB11static
@@ -75,7 +75,7 @@ class RKUtilities:
                         kernel = "const TableKernel<%(Dimension)s>&",
                         x = "const Vector&",
                         H = "const SymTensor&",
-                        corrections = "const std::vector<double>&"):
+                        corrections = "const RKCoefficients<%(Dimension)s>&"):
         "Evaluate base hessian"
         return "SymTensor"
     
@@ -87,8 +87,8 @@ class RKUtilities:
                            position = "const FieldList<%(Dimension)s, Vector>&",
                            H = "const FieldList<%(Dimension)s, SymTensor>&",
                            needHessian = "const bool",
-                           zerothCorrections = "FieldList<%(Dimension)s, std::vector<double>>&",
-                           corrections = "FieldList<%(Dimension)s, std::vector<double>>&"):
+                           zerothCorrections = "FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&",
+                           corrections = "FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"):
         "Compute RK corrections"
         return "void"
 
@@ -99,7 +99,7 @@ class RKUtilities:
                       volume = "const FieldList<%(Dimension)s, Scalar>&",
                       position = "const FieldList<%(Dimension)s, Vector>&",
                       H = "const FieldList<%(Dimension)s, SymTensor>&",
-                      corrections = "const FieldList<%(Dimension)s, std::vector<double>>&",
+                      corrections = "const FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&",
                       surfaceArea = "FieldList<%(Dimension)s, Scalar>&",
                       normal = "FieldList<%(Dimension)s, Vector>&"):
         "Compute RK corrections"

@@ -6,9 +6,9 @@
 #ifndef __LLNLSpheral_RKUtilities__
 #define __LLNLSpheral_RKUtilities__
 
-#include "RKCorrectionParams.hh"
+#include "RK/RKCorrectionParams.hh"
+#include "RK/RKCoefficients.hh"
 #include "Field/FieldList.hh"
-#include <vector>
 #include <tuple>
 
 namespace Spheral {
@@ -90,25 +90,25 @@ public:
   static Scalar evaluateKernel(const TableKernel<Dimension>& kernel,
                                const Vector& x,
                                const SymTensor& H,
-                               const std::vector<double>& corrections);
+                               const RKCoefficients<Dimension>& corrections);
   static Vector evaluateGradient(const TableKernel<Dimension>& kernel,
                                  const Vector& x,
                                  const SymTensor& H,
-                                 const std::vector<double>& corrections);
+                                 const RKCoefficients<Dimension>& corrections);
   static SymTensor evaluateHessian(const TableKernel<Dimension>& kernel,
                                    const Vector& x,
                                    const SymTensor& H,
-                                   const std::vector<double>& corrections);
+                                   const RKCoefficients<Dimension>& corrections);
   static std::pair<Scalar, Vector> evaluateKernelAndGradient(const TableKernel<Dimension>& kernel,
                                                              const Vector& x,
                                                              const SymTensor& H,
-                                                             const std::vector<double>& corrections);
+                                                             const RKCoefficients<Dimension>& corrections);
 
   // This one returns the (RK kernel, RK gradient, base gradient magnitude)
   static std::tuple<Scalar, Vector, Scalar> evaluateKernelAndGradients(const TableKernel<Dimension>& kernel,
                                                                        const Vector& x,
                                                                        const SymTensor& H,
-                                                                       const std::vector<double>& corrections);
+                                                                       const RKCoefficients<Dimension>& corrections);
   
   // Compute the corrections
   static void computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
@@ -117,8 +117,8 @@ public:
                                  const FieldList<Dimension, Vector>& position,
                                  const FieldList<Dimension, SymTensor>& H,
                                  const bool needHessian,
-                                 FieldList<Dimension, std::vector<double>>& zerothCorrections,
-                                 FieldList<Dimension, std::vector<double>>& corrections);
+                                 FieldList<Dimension, RKCoefficients<Dimension>>& zerothCorrections,
+                                 FieldList<Dimension, RKCoefficients<Dimension>>& corrections);
 
   // Get a guess for the surface normals - best if done with zeroth order
   static void computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
@@ -126,13 +126,13 @@ public:
                             const FieldList<Dimension, Scalar>& volume,
                             const FieldList<Dimension, Vector>& position,
                             const FieldList<Dimension, SymTensor>& H,
-                            const FieldList<Dimension, std::vector<double>>& corrections,
+                            const FieldList<Dimension, RKCoefficients<Dimension>>& corrections,
                             FieldList<Dimension, Scalar>& surfaceArea,
                             FieldList<Dimension, Vector>& normal);
   
   // Apply a transformation operator to a corrections vector
   static void applyTransformation(const typename Dimension::Tensor& T,
-                                  std::vector<double>& corrections);
+                                  RKCoefficients<Dimension>& corrections);
 
   // // Interpolate a field
   // template<typename DataType> static FieldList<Dimension, DataType>
@@ -140,7 +140,7 @@ public:
   //                  const FieldList<Dimension, Scalar>& volume,
   //                  const FieldList<Dimension, Vector>& position,
   //                  const FieldList<Dimension, SymTensor>& H,
-  //                  const FieldList<Dimension, std::vector<double>>& corrections,
+  //                  const FieldList<Dimension, RKCoefficients<Dimension>>& corrections,
   //                  const bool needHessian,
   //                  const FieldList<Dimension, DataType>& field,
   //                  FieldList<Dimension, DataType>& interpolant);
@@ -149,7 +149,7 @@ public:
   //               const FieldList<Dimension, Scalar>& volume,
   //               const FieldList<Dimension, Vector>& position,
   //               const FieldList<Dimension, SymTensor>& H,
-  //               const FieldList<Dimension, std::vector<double>>& corrections,
+  //               const FieldList<Dimension, RKCoefficients<Dimension>>& corrections,
   //               const bool needHessian,
   //               const FieldList<Dimension, DataType>& field,
   //               FieldList<Dimension, DataType>& interpolant);

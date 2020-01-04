@@ -160,7 +160,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     
     // Now check if CRKSPH is active
     if (useRK) {
-      const auto corrections = state.fields(RKFieldNames::rkCorrections(maxOrder), vector<double>());
+      const auto corrections = state.fields(RKFieldNames::rkCorrections(maxOrder), RKCoefficients<Dimension>());
       const auto vol = state.fields(HydroFieldNames::volume, 0.0);
       gradP = gradientRK(pressure, position, vol, H, connectivityMap, WR, corrections, NodeCoupling());
     } else {

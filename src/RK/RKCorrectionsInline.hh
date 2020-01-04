@@ -19,7 +19,7 @@ WR(const RKOrder order) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldList<Dimension, std::vector<double>>&
+const FieldList<Dimension, RKCoefficients<Dimension>>&
 RKCorrections<Dimension>::
 corrections(const RKOrder order) const {
   const auto itr = mCorrections.find(order);

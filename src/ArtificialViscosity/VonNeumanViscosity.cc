@@ -89,7 +89,7 @@ initialize(const DataBase<Dimension>& dataBase,
   const auto  soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const auto  vol = mass/massDensity;
   const auto  WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(order));
-  const auto  corrections = state.fields(RKFieldNames::rkCorrections(order), vector<double>());
+  const auto  corrections = state.fields(RKFieldNames::rkCorrections(order), RKCoefficients<Dimension>());
 
   // We'll compute the higher-accuracy RK gradient.
   const auto velocityGradient = gradientRK(velocity,

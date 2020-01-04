@@ -42,7 +42,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  const auto corrections = state.fields(RKFieldNames::rkCorrections(mOrder), vector<double>());
+  const auto corrections = state.fields(RKFieldNames::rkCorrections(mOrder), RKCoefficients<Dimension>());
   const auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
