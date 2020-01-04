@@ -2,13 +2,29 @@
 // RKUtilities
 //
 // Computes and evaluates RK corrections
+//
+// As an example, the polynomial vector for 2d and cubic order is
+// p = {1, x, y, xx, xy, yy, xxx, xxy, xyy, yyy}
+// The gradient of the polynomial vector is dp = {d/dx p, d/dy p}
+// The hessian of the polynomial vector is ddp = {d/dxdx p, d/dxdy p, d/dydy p}
+// The corrections correspond to these vectors flattened,
+// c = {corrections for p, corrections for dp, corrections for ddp}
+// 
+// The offset for the corrections vector refers to the starting position for the
+// corrections corresponding to a given derivative. The indexing is i + offsetGradC(d),
+// where i is the polynomial index and d is the gradient dimension. 
 //----------------------------------------------------------------------------//
 #ifndef __LLNLSpheral_RKUtilities__
 #define __LLNLSpheral_RKUtilities__
 
 #include "RK/RKCorrectionParams.hh"
 #include "RK/RKCoefficients.hh"
+#include "RKCorrectionParams.hh"
 #include "Field/FieldList.hh"
+
+#include "Eigen/Sparse"
+
+#include <vector>
 #include <tuple>
 
 namespace Spheral {
@@ -20,9 +36,6 @@ public:
   static constexpr int symmetricMatrixSize(int d) {
     return d * (d + 1) / 2;
   }
-  
-  // // Size of the sparse storage for the Hessian
-  // static constexpr int hessBaseSize = symmetricMatrixSize(Dimension::nDim);//(Dimension::nDim == 1 ? 1 : (Dimension::nDim == 2 ? 3 : 6));
   
   // The size of the polynomial arrays
   static constexpr int polynomialSize = (correctionOrder == RKOrder::ZerothOrder ? 1 
@@ -60,9 +73,12 @@ public:
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::Tensor Tensor;
   typedef typename std::array<double, polynomialSize> PolyArray;
   typedef typename std::array<double, gradPolynomialSize> GradPolyArray;
   typedef typename std::array<double, hessPolynomialSize> HessPolyArray;
+  typedef typename Eigen::SparseMatrix<double> TransformationMatrix;
+  typedef typename std::vector<std::vector<int>> GeometryDataType;
 
   // Get the polynomial vectors
   static inline void getPolynomials(const Vector& x,
@@ -71,6 +87,9 @@ public:
                                         GradPolyArray& p);
   static inline void getHessPolynomials(const Vector& x,
                                         HessPolyArray& p);
+
+  // Get the geometry data
+  static inline void getGeometryData(GeometryDataType& g);
   
   // Evaluate base functions
   static Scalar evaluateBaseKernel(const TableKernel<Dimension>& kernel,
@@ -129,11 +148,21 @@ public:
                             const FieldList<Dimension, RKCoefficients<Dimension>>& corrections,
                             FieldList<Dimension, Scalar>& surfaceArea,
                             FieldList<Dimension, Vector>& normal);
+
+  // Get matrix for transformation of corrections
+  static void getTransformationMatrix(const Tensor& T,
+                                      const bool needHessian,
+                                      TransformationMatrix& matrix);
+  
   
   // Apply a transformation operator to a corrections vector
-  static void applyTransformation(const typename Dimension::Tensor& T,
+  static void applyTransformation(const TransformationMatrix& T,
                                   RKCoefficients<Dimension>& corrections);
 
+  // Old method
+  static void applyTransformation(const Tensor& T,
+                                  std::vector<double>& corrections);
+  
   // // Interpolate a field
   // template<typename DataType> static FieldList<Dimension, DataType>
   // interpolateField(const TableKernel<Dimension>& kernel,

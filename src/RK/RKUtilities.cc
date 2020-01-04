@@ -628,4 +628,90 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
   }
 }
   
+//------------------------------------------------------------------------------
+// Get a matrix that transforms the corrections vector appropriately
+//------------------------------------------------------------------------------
+template<typename Dimension, RKOrder correctionOrder>
+void
+RKUtilities<Dimension, correctionOrder>::
+getTransformationMatrix(const Tensor& T,
+                        const bool needHessian,
+                        TransformationMatrix& matrix) {
+  // Get the transformation between one set of indices to another
+  // For example, {0,2,1} -> {1,2,0} would be T(0,1) * T(2,2) * T(1,0)
+  auto getT = [&T](const std::vector<int>& g1,
+                   const std::vector<int>& g2) {
+    const auto size = g1.size();
+    CHECK(size == g2.size());
+    auto val = 1.;
+    for (auto k = 0; k < size; ++k) {
+      val *= T(g1[k], g2[k]);
+    }
+    return val;
+  };
+
+  // Resize the matrix
+  const auto matrixSize = needHessian ? hessCorrectionsSize : gradCorrectionsSize;
+  matrix.resize(matrixSize, matrixSize);
+
+  // Get geometry data
+  GeometryDataType geometryData;
+  getGeometryData(geometryData);
+  
+  // Get triplets of ind1, ind2, value
+  std::vector<Eigen::Triplet<double>> triplets;
+  triplets.reserve(matrixSize * matrixSize);
+  for (auto i = 0; i < polynomialSize; ++i) {
+    for (auto j = 0; j < polynomialSize; ++j) {
+      if (geometryData[i].size() == geometryData[j].size()) {
+        // Corrections
+        triplets.emplace_back(i, j, getT(geometryData[i], geometryData[j]));
+
+        // Gradient corrections
+        for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
+          for (auto d2 = 0; d2 < Dimension::nDim; ++d2) {
+            auto id1 = i + offsetGradC(d1);
+            auto jd2 = j + offsetGradC(d2);
+            triplets.emplace_back(id1, jd2, getT(geometryData[id1], geometryData[jd2]));
+          }
+        }
+        
+        // Hessian corrections
+        if (needHessian) {
+          for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
+            for (auto d2 = 0; d2 < Dimension::nDim; ++d2) {
+              for (auto d3 = 0; d3 < Dimension::nDim; ++d3) {
+                for (auto d4 = 0; d4 < Dimension::nDim; ++d4) {
+                  auto id12 = i + offsetHessC(d1, d2);
+                  auto jd34 = j + offsetHessC(d3, d4);
+                  triplets.emplace_back(id12, jd34, getT(geometryData[id12], geometryData[jd34]));
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Create matrix from triplets, which automatically sums duplicates
+  matrix.setFromTriplets(triplets.begin(), triplets.end());
+  matrix.makeCompressed();
+  return;
+}
+
+//------------------------------------------------------------------------------
+// Apply the transformation matrix to the corrections
+//------------------------------------------------------------------------------
+template<typename Dimension, RKOrder correctionOrder>
+void
+RKUtilities<Dimension, correctionOrder>::
+applyTransformation(const TransformationMatrix& T,
+                    std::vector<double>& corrections) {
+  auto size = T.cols();
+  CHECK(size == corrections.size());
+  Eigen::Map<Eigen::VectorXd, Eigen::AlignmentType::Aligned> V(&corrections[0], size);
+  V = T * V;
+}
+
 } // end namespace Spheral
