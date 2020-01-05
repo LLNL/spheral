@@ -105,10 +105,10 @@ class RKUtilities:
         "Compute RK corrections"
         return "void"
     
-    # @PYB11static
-    # def applyTransformation(self,
-    #                         T = "const Tensor&",
-    #                         corrections = "std::vector<double>&"):
-    #     "Apply a transformation to the corrections"
-    #     return "void"
+    @PYB11static
+    def applyTransformation(self,
+                            T = "const Tensor&",
+                            corrections = "RKCoefficients<%(Dimension)s>&"):
+        "Apply a transformation to the corrections"
+        return "void"
     

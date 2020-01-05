@@ -700,18 +700,18 @@ getTransformationMatrix(const Tensor& T,
   return;
 }
 
-// //------------------------------------------------------------------------------
-// // Apply the transformation matrix to the corrections
-// //------------------------------------------------------------------------------
-// template<typename Dimension, RKOrder correctionOrder>
-// void
-// RKUtilities<Dimension, correctionOrder>::
-// applyTransformation(const TransformationMatrix& T,
-//                     std::vector<double>& corrections) {
-//   auto size = T.cols();
-//   CHECK(size == corrections.size());
-//   Eigen::Map<Eigen::VectorXd, Eigen::AlignmentType::Aligned> V(&corrections[0], size);
-//   V = T * V;
-// }
+//------------------------------------------------------------------------------
+// Apply the transformation matrix to the corrections
+//------------------------------------------------------------------------------
+template<typename Dimension, RKOrder correctionOrder>
+void
+RKUtilities<Dimension, correctionOrder>::
+applyTransformation(const TransformationMatrix& T,
+                    RKCoefficients<Dimension>& corrections) {
+  auto size = T.cols();
+  CHECK(size == corrections.size());
+  Eigen::Map<Eigen::VectorXd, Eigen::AlignmentType::Aligned> V(&corrections[0], size);
+  V = T * V;
+}
 
 } // end namespace Spheral

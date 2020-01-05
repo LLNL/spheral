@@ -154,9 +154,9 @@ public:
                                       const bool needHessian,
                                       TransformationMatrix& matrix);
   
-  // // Apply a transformation operator to a corrections vector
-  // static void applyTransformation(const TransformationMatrix& T,
-  //                                 RKCoefficients<Dimension>& corrections);
+  // Apply a transformation operator to a corrections vector
+  static void applyTransformation(const TransformationMatrix& T,
+                                  RKCoefficients<Dimension>& corrections);
 
   // // Interpolate a field
   // template<typename DataType> static FieldList<Dimension, DataType>
