@@ -2,7 +2,10 @@
 include_directories(.)
 set(SPHERAL_PYTHON_DEPENDS )
 #set(spheral_depends BOOST Eigen qhull silo polytope mpi openmp)
-set(spheral_depends BOOST Eigen qhull silo polytope mpi pybind11)
+set(spheral_depends BOOST Eigen qhull silo polytope pybind11)
+if(ENABLE_MPI)
+  list(APPEND spheral_depends mpi)
+endif()
 
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
@@ -43,6 +46,12 @@ if(NOT ENABLE_CXXONLY)
     PythonMPIInterfaces
     SimulationControl
     Pybind11Wraps
+    )
+endif()
+
+if(NOT ENABLE_MPI)
+  list(REMOVE_ITEM _packages
+    Distributed
     )
 endif()
 

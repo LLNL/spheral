@@ -36,11 +36,15 @@ set (_python_packages
   OpenMP
   )
 
-if(NOT ENABLE_CXXONLY)
-  foreach(_python_package ${_python_packages})
-    add_subdirectory(${_python_package})
-  endforeach()
+if(NOT ENABLE_MPI)
+  list(REMOVE_ITEM _python_packages
+    Distributed
+    )
 endif()
+
+foreach(_python_package ${_python_packages})
+  add_subdirectory(${_python_package})
+endforeach()
 
 string(REPLACE ";" " " PYTHONPKGS "${_python_packages}")
 configure_file(
