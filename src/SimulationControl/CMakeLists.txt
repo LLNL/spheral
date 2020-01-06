@@ -21,8 +21,7 @@ set(SPHERAL_VERSION_LIST ${abbref} ${short} ${oneline})
 string(REPLACE ";" " " spheralversion "${SPHERAL_VERSION_LIST}")
 configure_file(
   Spheral.py
-  ${PROJECT_BINARY_DIR}/Spheral/Spheral.py)
-
+  ${CMAKE_INSTALL_PREFIX}/Spheral.py)
 
 set(_dims 1)
 if(ENABLE_2D)
@@ -35,7 +34,7 @@ endif()
 string(REPLACE ";" " " DIMS "${_dims}")
 configure_file(
   spheralDimensions.py.in
-  ${PROJECT_BINARY_DIR}/Spheral/spheralDimensions.py)
+  ${CMAKE_INSTALL_PREFIX}/spheralDimensions.py)
 
 
 set(SimulationControl_python_targets

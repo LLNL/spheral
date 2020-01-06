@@ -2,20 +2,19 @@
 cmake_minimum_required(VERSION 3.4)
 project(spheral LANGUAGES CXX)
 
+################################
+# Configure CMake
+################################
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -w")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake/Modules")
-set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/Spheral)
-#set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/Spheral)
 
+
+################################
+# Configure and Include blt
+################################
 set(ENABLE_MPI ON CACHE BOOL "")
-if(ENABLE_MPI)
-  set(BLT_MPI_COMPILE_FLAGS -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX)
-endif()
 
-################################
-# Include blt
-################################
 set (SPHERAL_BLT_REL_DIR "${PROJECT_SOURCE_DIR}/../blt" CACHE PATH "")
 get_filename_component(SPHERAL_BLT_DIR "${SPHERAL_BLT_REL_DIR}" ABSOLUTE)
 
@@ -27,31 +26,42 @@ endif()
 
 include(${PROJECT_SOURCE_DIR}/../blt/SetupBLT.cmake)
 
+
+################################
+# Install / Locate third party libraries
+################################
+option(INSTALL_TPLS "download and install third party libs" ON)
+include(../cmake/InstallLibraries.cmake)
+set(spheral_depends BOOST Eigen qhull silo polytope pybind11)
+
+
+################################
+# Include standard build system logic and options / definitions
+################################
 option(ENABLE_CXXONLY "enable C++ only build without python bindings" OFF)
 option(ENABLE_2D "enable 2d" ON)
 option(ENABLE_3D "enable 3d" ON)
 option(ENABLE_INSTANTIATIONS "enable instantiations" ON)
-option(BUILD_PYTHON_TARGETS "enable build of spheral python tagets" ON)
-option(INSTALL_TPLS "download and install third party libs" ON)
 
 if(ENABLE_CXXONLY)
-  set(BUILD_PYTHON_TARGETS OFF)
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/Spheral)
+else()
+  set(CMAKE_INSTALL_PREFIX ${PYTHON_SITE_PACKAGE_DIR}/Spheral)
 endif()
 
-################################
-# Include standard build system logic and options
-################################
-include(../cmake/InstallLibraries.cmake)
-include(../cmake/CMakeBasics.cmake)
-
-# Libraries
-include_directories(.)
-set(SPHERAL_PYTHON_DEPENDS )
-#set(spheral_depends BOOST Eigen qhull silo polytope mpi openmp)
-set(spheral_depends BOOST Eigen qhull silo polytope pybind11)
 if(ENABLE_MPI)
+  set(BLT_MPI_COMPILE_FLAGS -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX)
   list(APPEND spheral_depends mpi)
 endif()
+
+include(../cmake/CMakeBasics.cmake)
+
+
+################################
+# Build spheral packages 
+################################
+include_directories(.)
+set(SPHERAL_PYTHON_DEPENDS )
 
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 

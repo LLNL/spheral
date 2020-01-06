@@ -49,7 +49,7 @@ endforeach()
 string(REPLACE ";" " " PYTHONPKGS "${_python_packages}")
 configure_file(
   SpheralCompiledPackages.py.in
-  ${PROJECT_BINARY_DIR}/Spheral/SpheralCompiledPackages.py)
+  ${CMAKE_INSTALL_PREFIX}/SpheralCompiledPackages.py)
 
 set(Pybind11Wraps_python_targets
   SpheralPickle.py
@@ -58,4 +58,8 @@ set(Pybind11Wraps_python_targets
 
 install(FILES       ${Pybind11Wraps_python_targets}
         DESTINATION .
+        )
+
+install(FILES       Spheral.pth 
+        DESTINATION ..
         )
