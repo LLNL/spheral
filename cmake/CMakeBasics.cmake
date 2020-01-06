@@ -25,7 +25,7 @@ function(instantiate _inst_var _source_var)
            set(_inst_py ${CMAKE_CURRENT_SOURCE_DIR}/${_inst}Inst.cc.py)
            set(_inst_file ${_inst}Inst${_dim}d.cc)
            # Run the python script to generate the instantiation files
-           execute_process(COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/src/helpers/InstantiationGenerator.py
+           execute_process(COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/helpers/InstantiationGenerator.py
                                        ${_inst_py} ${_inst_file} ${_dim}
                            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
                

@@ -1,4 +1,4 @@
-set(PATCH_DIR ${PROJECT_SOURCE_DIR}/src/thirdPartyLibs)
+set(PATCH_DIR ${PROJECT_SOURCE_DIR}/thirdPartyLibs)
 
 function(DownloadAndBuildLib TARGET_NAME)
   if(NOT EXISTS ${${TARGET_NAME}_EXISTS_FILE})
@@ -68,7 +68,7 @@ if(INSTALL_TPLS AND NOT BOOST_DIR)
 endif()
 
 if (BOOST_DIR)
-    include(cmake/libraries/FindBOOST.cmake)
+    include(../cmake/libraries/FindBOOST.cmake)
     if (BOOST_FOUND)
         blt_register_library( NAME       BOOST
                               INCLUDES   ${BOOST_INCLUDE_DIRS}
@@ -131,7 +131,7 @@ if(PYTHON_DIR)
 endif()
 
 # Find python
-include(cmake/libraries/FindPython.cmake)
+include(../cmake/libraries/FindPython.cmake)
 
 
 
@@ -159,7 +159,7 @@ if(INSTALL_TPLS AND NOT PYBIND11_DIR)
 endif()
 
 if (PYBIND11_DIR)
-  include(cmake/libraries/FindPybind11.cmake)
+  include(../cmake/libraries/FindPybind11.cmake)
   if (PYBIND11_FOUND)
     blt_register_library( NAME      pybind11
                           INCLUDES  ${PYBIND11_INCLUDE_DIRS}
@@ -207,7 +207,7 @@ if(INSTALL_TPLS AND NOT POLYTOPE_DIR)
 endif()
 
 if (POLYTOPE_DIR)
-    include(cmake/libraries/FindPolytope.cmake)
+    include(../cmake/libraries/FindPolytope.cmake)
     if (POLYTOPE_FOUND)
         blt_register_library( NAME       polytope
                               INCLUDES   ${POLYTOPE_INCLUDE_DIRS}
@@ -247,7 +247,7 @@ if(INSTALL_TPLS AND NOT EIGEN_DIR)
 endif()
 
 if (EIGEN_DIR)
-    include(cmake/libraries/FindEigen.cmake)
+    include(../cmake/libraries/FindEigen.cmake)
     if (EIGEN_FOUND)
         blt_register_library( NAME       eigen
                               INCLUDES   ${EIGEN_INCLUDE_DIRS}
@@ -290,7 +290,7 @@ if(INSTALL_TPLS AND NOT QHULL_DIR)
 endif()
 
 if (QHULL_DIR)
-    include(cmake/libraries/FindQhull.cmake)
+    include(../cmake/libraries/FindQhull.cmake)
     if (QHULL_FOUND)
         blt_register_library( NAME       qhull
                               INCLUDES   ${QHULL_INCLUDE_DIRS}
@@ -333,7 +333,7 @@ if(INSTALL_TPLS AND NOT HDF5_DIR)
 endif()
 
 if (HDF5_DIR)
-    include(cmake/libraries/FindHDF5.cmake)
+    include(../cmake/libraries/FindHDF5.cmake)
     if (HDF5_FOUND)
         blt_register_library( NAME       hdf5
                               INCLUDES   ${HDF5_INCLUDE_DIRS}
@@ -383,7 +383,7 @@ if(INSTALL_TPLS AND NOT SILO_DIR)
 endif()
 
 if (SILO_DIR)
-    include(cmake/libraries/FindSILO.cmake)
+    include(../cmake/libraries/FindSILO.cmake)
     if (SILO_FOUND)
         blt_register_library( NAME       silo
                               INCLUDES   ${SILO_INCLUDE_DIRS}
