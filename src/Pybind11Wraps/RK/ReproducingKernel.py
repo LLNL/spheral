@@ -2,9 +2,10 @@
 # ReproducingKernel
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
+import ReproducingKernelMethods
 
 @PYB11template("Dimension")
-class ReproducingKernel:
+class ReproducingKernel(ReproducingKernelMethods.ReproducingKernelMethods):
     """Provides the reproducing kernel methods, analogous to the Kernel class for SPH
 
 This is really just a convenient front-end for the methods in RKUtilities"""
@@ -112,14 +113,6 @@ This is really just a convenient front-end for the methods in RKUtilities"""
         "Compute RK corrections"
         return "void"
     
-    # @PYB11const
-    # def applyTransformation(self,
-    #                         T = "const Tensor&",
-    #                         corrections = "RKCoefficients<%(Dimension)s>&"):
-    #     "Apply the transformations T to the corrections"
-    #     return "void"
-
     #..........................................................................
     # Attributes
-    order = PYB11property(doc="order to which we are enforcing reproducibility")
     kernel = PYB11property(doc="The base (uncorrected) interpolation kernel")

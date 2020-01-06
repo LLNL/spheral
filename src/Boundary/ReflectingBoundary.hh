@@ -8,8 +8,13 @@
 #ifndef ReflectingBoundary_HH
 #define ReflectingBoundary_HH
 
-#include "Boundary.hh"
-#include "PlanarBoundary.hh"
+#include "Boundary/Boundary.hh"
+#include "Boundary/PlanarBoundary.hh"
+#include "RK/RKCorrectionParams.hh"
+
+#include "Eigen/Sparse"
+
+#include <unordered_map>
 
 namespace Spheral {
 
@@ -26,6 +31,7 @@ public:
   typedef typename Dimension::FourthRankTensor FourthRankTensor;
   typedef typename Dimension::FifthRankTensor FifthRankTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
+  typedef typename Eigen::SparseMatrix<double> TransformationMatrix;
 
   // Constructors and destructors.
   ReflectingBoundary();
@@ -42,7 +48,6 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const override;
 
   // Apply the boundary condition to the violation node values in the given Field.
   virtual void enforceBoundary(Field<Dimension, int>& field) const override;
@@ -54,7 +59,6 @@ public:
   virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, std::vector<Scalar>>& field) const override;
 
   // Apply the boundary condition to face centered fields on a tessellation.
   virtual void enforceBoundary(std::vector<int>& faceField, const Mesh<Dimension>& mesh) const override;
@@ -72,8 +76,14 @@ public:
   virtual void swapFaceValues(Field<Dimension, std::vector<Vector> >& field,
                               const Mesh<Dimension>& mesh) const override;
 
-  // Allow read only access to the reflection operator.
+  // We have to handle RK coefficients specially
+  virtual void applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const;
+  virtual void enforceBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const;
+
+  // Allow read only access to the reflection operators.
   const Tensor& reflectOperator() const;
+  const TransformationMatrix& rkReflectOperator(const RKOrder order,
+                                                const bool useHessian) const;
 
   // Valid test.
   virtual bool valid() const override;
@@ -88,6 +98,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   Tensor mReflectOperator;
+  std::unordered_map<RKOrder, std::pair<TransformationMatrix, TransformationMatrix>> mrkReflectOperators;
 };
 
 }

@@ -9,11 +9,12 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
+from RKFieldNames import *
 from RKCoefficients import *
 from RKCorrections import *
 from RKUtilities import *
+from ReproducingKernelMethods import *
 from ReproducingKernel import *
-from RKFieldNames import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -22,6 +23,7 @@ PYB11includes += ['"RK/RKCoefficients.hh"',
                   '"RK/RKCorrections.hh"',
                   '"RK/RKUtilities.hh"',
                   '"RK/RKFieldNames.hh"',
+                  '"RK/ReproducingKernelMethods.hh"',
                   '"RK/ReproducingKernel.hh"',
                   '"RK/computeRKVolumes.hh"',
                   '"RK/computeVoronoiVolume.hh"',
