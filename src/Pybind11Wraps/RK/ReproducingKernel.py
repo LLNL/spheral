@@ -2,10 +2,10 @@
 # ReproducingKernel
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-import ReproducingKernelMethods
+from ReproducingKernelMethods import *
 
 @PYB11template("Dimension")
-class ReproducingKernel(ReproducingKernelMethods.ReproducingKernelMethods):
+class ReproducingKernel(ReproducingKernelMethods):
     """Provides the reproducing kernel methods, analogous to the Kernel class for SPH
 
 This is really just a convenient front-end for the methods in RKUtilities"""
