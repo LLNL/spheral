@@ -14,6 +14,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake/Modules")
 # Configure and Include blt
 ################################
 set(ENABLE_MPI ON CACHE BOOL "")
+set(ENABLE_OPENMP ON CACHE BOOL "")
 
 set (SPHERAL_BLT_REL_DIR "${PROJECT_SOURCE_DIR}/../blt" CACHE PATH "")
 get_filename_component(SPHERAL_BLT_DIR "${SPHERAL_BLT_REL_DIR}" ABSOLUTE)
@@ -52,6 +53,10 @@ endif()
 if(ENABLE_MPI)
   set(BLT_MPI_COMPILE_FLAGS -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX)
   list(APPEND spheral_depends mpi)
+endif()
+
+if(ENABLE_OPENMP)
+  list(APPEND spheral_depends openmp)
 endif()
 
 include(../cmake/CMakeBasics.cmake)
