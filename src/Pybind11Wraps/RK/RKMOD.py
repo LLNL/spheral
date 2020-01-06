@@ -304,6 +304,7 @@ for ndim in dims:
 RKCorrections%(ndim)id = PYB11TemplateClass(RKCorrections, template_parameters="%(Dimension)s")
 ReproducingKernelMethods%(ndim)id = PYB11TemplateClass(ReproducingKernelMethods, template_parameters="%(Dimension)s")
 ReproducingKernel%(ndim)id = PYB11TemplateClass(ReproducingKernel, template_parameters="%(Dimension)s")
+RKCoefficients%(ndim)id = PYB11TemplateClass(RKCoefficients, template_parameters="%(Dimension)s")
 
 interpolateRK%(ndim)id = PYB11TemplateFunction(interpolateRK, template_parameters="Dim<%(ndim)i>", pyname="interpolateRK")
 computeRKVolumes%(ndim)id = PYB11TemplateFunction(computeRKVolumes, template_parameters="%(Dimension)s")
