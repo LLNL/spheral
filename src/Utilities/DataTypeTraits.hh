@@ -468,7 +468,7 @@ struct DataTypeTraits<RKCoefficients<Dim<ndim>>> {
   typedef double ElementType;
   static bool fixedSize() { return false; }
   static int numElements(const RKCoefficients<Dim<ndim>>& x) { return x.size() + 1; }
-  static RKCoefficients<Dim<ndim>> zero() { return RKCoefficients<Dim<ndim>>({RKOrder::ZerothOrder, {}}); }
+  static RKCoefficients<Dim<ndim>> zero() { return RKCoefficients<Dim<ndim>>(); }
 };
 
 }
