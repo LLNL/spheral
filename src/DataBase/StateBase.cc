@@ -140,7 +140,7 @@ operator==(const StateBase<Dimension>& rhs) const {
           result = false;
         }
       } catch (boost::bad_any_cast) {
-        VERIFY2(false, "StateBase::operator== ERROR: unknown type for " << lhsItr->first << "\n");
+        std::cerr << "StateBase::operator== WARNING: unable to compare values for " << lhsItr->first << "\n";
       }
     }
   }
