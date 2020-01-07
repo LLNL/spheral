@@ -120,6 +120,7 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Vector>>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const override;
 
   // Distributed boundaries don't have "violate" nodes, so override these
   // methods to no-ops.
@@ -195,6 +196,7 @@ private:
   mutable std::vector<Field<Dimension, std::vector<Scalar>>*> mVectorScalarExchangeFields;
   mutable std::vector<Field<Dimension, std::vector<Vector>>*> mVectorVectorExchangeFields;
   mutable std::vector<Field<Dimension, FacetedVolume>*> mFacetedVolumeExchangeFields;
+  mutable std::vector<Field<Dimension, RKCoefficients<Dimension>>*> mRKCoefficientsExchangeFields;
 
   // Internal tag for MPI communiators.
   mutable int mMPIFieldTag;
