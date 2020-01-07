@@ -8,6 +8,7 @@
 
 #include "RK/RKCorrectionParams.hh"
 #include <vector>
+#include <iostream>
 
 namespace Spheral {
 
@@ -15,6 +16,11 @@ template<typename Dimension>
 struct RKCoefficients {
   RKOrder correctionOrder;        // The correction order
   std::vector<double> coeffs;     // The coefficients for use with ReproducingKernel/RKUtilities
+
+  // Constructors and such
+  RKCoefficients(): correctionOrder(RKOrder::ZerothOrder), coeffs() {}
+  RKCoefficients(const RKCoefficients& rhs): correctionOrder(rhs.correctionOrder), coeffs(rhs.coeffs) {}
+  RKCoefficients& operator=(const RKCoefficients& rhs) { correctionOrder = rhs.correctionOrder; coeffs = rhs.coeffs; return *this; }
 
   // Some convient methods to make us behave like a std::vector<double>
   typedef std::vector<double>::value_type value_type;
@@ -71,6 +77,23 @@ struct RKCoefficients {
   bool operator<=(const RKCoefficients<Dimension>& rhs) const { return (*this) == rhs or (*this) < rhs; }
   bool operator>=(const RKCoefficients<Dimension>& rhs) const { return (*this) == rhs or (*this) > rhs; }
 };
+
+//------------------------------------------------------------------------------
+// Output (ostream) operator.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+std::ostream&
+operator<<(std::ostream& os, const RKCoefficients<Dimension>& x) {
+  os << "[";
+  if (not x.empty()) {
+    const auto n1 = x.size() - 1;
+    for (auto i = 0; i < n1; ++i) os << x[i] << " ";
+    os << x.back();
+  }
+  os << "]";
+  return os;
+}
 
 }
 

@@ -55,14 +55,7 @@ class RKCoefficients:
 
     #...........................................................................
     # String representation
-    @PYB11implementation("""
-[](const SelfType& self) {
-    const auto n1 = self.size() - 1;
-    std::string result = "[";
-    for (auto i = 0; i < n1; ++i) result += std::to_string(self[i]) + " ";
-    result += std::to_string(self[n1+1]) + "]";
-    return result;
-}""")
+    @PYB11implementation("[](const SelfType& self) { std::ostringstream os; os << self; return os.str(); }")
     def __repr__(self):
         return
 

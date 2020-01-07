@@ -37,7 +37,8 @@ PYB11includes += ['"RK/RKCoefficients.hh"',
                   '"RK/hessianRK.hh"',
                   '"FileIO/FileIO.hh"',
                   '"Boundary/Boundary.hh"',
-                  '"SPH/NodeCoupling.hh"']
+                  '"SPH/NodeCoupling.hh"',
+                  '<sstream>']
 
 #-------------------------------------------------------------------------------
 # Namespaces
