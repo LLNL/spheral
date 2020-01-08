@@ -4,14 +4,13 @@
 //
 // Created by JMO, Tue Jun 28 14:54:03 PDT 2011
 //----------------------------------------------------------------------------//
-#include "VoronoiHourglassControl.hh"
+#include "Hydro/VoronoiHourglassControl.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Mesh/Mesh.hh"
 #include "Mesh/MeshPolicy.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
-#include "CRKSPH/CRKSPHUtilities.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "FieldOperations/monotonicallyLimitedGradient.hh"
 #include "Distributed/Communicator.hh"

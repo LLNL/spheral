@@ -4,8 +4,7 @@
 // Created by JMO, Thu Oct 12 14:24:43 PDT 2017
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "CRKSPHHydroBase.hh"
-#include "CRKSPHUtilities.hh"
+#include "CRKSPH/CRKSPHHydroBase.hh"
 #include "RK/computeVoronoiVolume.hh"
 #include "computeHullVolumes.hh"
 #include "computeCRKSPHSumVolume.hh"

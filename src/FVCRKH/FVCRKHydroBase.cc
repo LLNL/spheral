@@ -4,7 +4,6 @@
 // Created by JMO, Mon Jul 19 22:11:09 PDT 2010
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "CRKSPH/CRKSPHUtilities.hh"
 #include "RK/computeVoronoiVolume.hh"
 #include "RK/computeHullVolumes.hh"
 #include "RK/computeRKSumVolume.hh"
