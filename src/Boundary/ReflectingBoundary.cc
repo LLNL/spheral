@@ -621,7 +621,7 @@ enforceBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const {
 
   const auto& nodeList = field.nodeList();
   const auto& vnodes = this->violationNodes(nodeList);
-  if (vnodes.size() > 0) {                       // Is there anything to do?
+  if (not vnodes.empty()) {                       // Is there anything to do?
 
     // Extract the order of the corrections, and the appropriate transformation
     const auto fname = field.name();
@@ -629,7 +629,7 @@ enforceBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const {
     const ReproducingKernelMethods<Dimension> WR(order);
     const auto ncoeff = field[0].size();
     CHECK(ncoeff == WR.gradCorrectionsSize() or ncoeff == WR.hessCorrectionsSize());
-    const bool useHessian = (ncoeff == WR.hessCorrectionsSize());
+    const auto useHessian = (ncoeff == WR.hessCorrectionsSize());
     const auto itr = mrkReflectOperators.find(order);
     CHECK(itr != mrkReflectOperators.end());
     const auto& T = useHessian ? itr->second.second : itr->second.first;
