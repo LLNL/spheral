@@ -84,4 +84,4 @@ source("Damage/TensileRod/TensileRod-1d.py")
 
 # RK tests
 source("RK/RKInterpolation.py")
-source("../src/CRKSPH/tests/testVoronoiVolume.py")
+source("RK/testVoronoiVolume.py")
