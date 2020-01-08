@@ -4,8 +4,9 @@
 // Created by JMO, Sun Jul 28 20:57:01 PDT 2013
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "computeSVPHCorrectionsOnFaces.hh"
-#include "SVPHCorrectionsPolicy.hh"
+#include "SVPH/computeSVPHCorrectionsOnFaces.hh"
+#include "SVPH/SVPHCorrectionsPolicy.hh"
+#include "SVPH/SVPHFieldNames.hh"
 #include "computeSumVoronoiCellMassDensityFromFaces.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -239,9 +240,9 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Create the local storage for time step mask, pressure, sound speed, and position weight.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
-  // dataBase.resizeFluidFieldList(mA, vector<Scalar>(), HydroFieldNames::A_CRKSPH);
-  // dataBase.resizeFluidFieldList(mB, vector<Vector>(), HydroFieldNames::B_CRKSPH);
-  // dataBase.resizeFluidFieldList(mGradB, vector<Tensor>(), HydroFieldNames::gradB_CRKSPH);
+  // dataBase.resizeFluidFieldList(mA, vector<Scalar>(), SVPHFieldNames::A_SVPH);
+  // dataBase.resizeFluidFieldList(mB, vector<Vector>(), SVPHFieldNames::B_SVPH);
+  // dataBase.resizeFluidFieldList(mGradB, vector<Tensor>(), SVPHFieldNames::gradB_SVPH);
   dataBase.resizeFluidFieldList(mVolume, 0.0, HydroFieldNames::volume, false);
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);

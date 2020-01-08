@@ -179,6 +179,7 @@ AC_OUTPUT(helpers/makefile_master \
           RK/makefile \
           CRKSPH/makefile \
           FVCRKH/makefile \
+          SVPH/makefile \
           Mesh/makefile \
           Damage/makefile \
           SolidMaterial/makefile \
@@ -219,6 +220,7 @@ AC_OUTPUT(helpers/makefile_master \
           Pybind11Wraps/SPH/makefile \
           Pybind11Wraps/RK/makefile \
           Pybind11Wraps/CRKSPH/makefile \
+          Pybind11Wraps/SVPH/makefile \
           Pybind11Wraps/Mesh/makefile \
           Pybind11Wraps/Damage/makefile \
           Pybind11Wraps/SolidMaterial/makefile \

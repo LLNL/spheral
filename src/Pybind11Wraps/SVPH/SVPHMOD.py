@@ -9,12 +9,14 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
+from SVPHFieldNames import *
 from SVPHFacetedHydroBase import *
 
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-PYB11includes += ['"SVPH/sampleFieldListSVPH.hh"',
+PYB11includes += ['"SVPH/SVPHFieldNames.hh"',
+                  '"SVPH/sampleFieldListSVPH.hh"',
                   '"SVPH/gradientFieldListSVPH.hh"',
                   '"SVPH/SVPHHydroBase.hh"',
                   '"SVPH/SVPHFacetedHydroBase.hh"',

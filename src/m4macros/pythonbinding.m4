@@ -53,7 +53,7 @@ AC_ARG_WITH(pybind11,
     AC_MSG_RESULT(yes)
     PYTHONBINDING="PYBIND11"
     PYTHONPKGDIR="Pybind11Wraps"
-    PYTHONPKGS+=" CXXTypes Geometry PolyClipper Silo DataOutput NodeList Field FieldList Kernel Neighbor Material FileIO Utilities RK DataBase Boundary Physics Hydro ExternalForce Gravity Integrator NodeGenerators FieldOperations SPH CRKSPH ArtificialViscosity Mesh Damage SolidMaterial Strength ArtificialConduction"
+    PYTHONPKGS+=" CXXTypes Geometry PolyClipper Silo DataOutput NodeList Field FieldList Kernel Neighbor Material FileIO Utilities RK DataBase Boundary Physics Hydro ExternalForce Gravity Integrator NodeGenerators FieldOperations SPH CRKSPH SVPH ArtificialViscosity Mesh Damage SolidMaterial Strength ArtificialConduction"
     INCS+="-I\$(prefix)/include -I\$prefix/include/python\$(PYTHONVERSION) \$(patsubst %, -I\$(SRCTOP)/%, \$(CXXPKGS))"
     MODULELINK="-L\$(LIBDIR) \$(PKGLIBS)"
     PIPTARGETS+=" decorator"
