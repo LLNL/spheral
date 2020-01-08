@@ -4,7 +4,7 @@
 #ifndef __Spheral__interpolateRK__
 #define __Spheral__interpolateRK__
 
-#include "SPH/NodeCoupling.hh"
+#include "Utilities/NodeCoupling.hh"
 #include "RK/RKCorrectionParams.hh"
 #include "RK/ReproducingKernel.hh"
 

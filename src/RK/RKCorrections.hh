@@ -163,8 +163,6 @@ private:
 
 } // end namespace Spheral
 
-#include "RK/RKCorrectionsInline.hh"
-
 #else
 
 // Forward declaration

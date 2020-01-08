@@ -10,7 +10,7 @@
 #ifndef __Spheral_DamagedNodeCouplingWithFrags__
 #define __Spheral_DamagedNodeCouplingWithFrags__
 
-#include "DamagedNodeCoupling.hh"
+#include "Utilities/DamagedNodeCoupling.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/FastMath.hh"
 

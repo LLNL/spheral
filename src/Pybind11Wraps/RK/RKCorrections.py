@@ -100,13 +100,16 @@ class RKCorrections(Physics):
         return "void"
                   
     @PYB11const
+    @PYB11returnpolicy("reference_internal")
+    @PYB11keepalive(0,1)
     def WR(self,
            order = "const RKOrder"):
         "Look up the ReproducingKernel for the given order"
-        return "ReproducingKernel<%(Dimension)s>"
+        return "ReproducingKernel<%(Dimension)s>&"
 
     @PYB11const
     @PYB11returnpolicy("reference_internal")
+    @PYB11keepalive(0,1)
     def corrections(self,
                     order = "const RKOrder"):
         "Look up the corrections for the given order"

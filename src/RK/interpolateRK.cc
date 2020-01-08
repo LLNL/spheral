@@ -8,7 +8,6 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
-#include "SPH/NodeCoupling.hh"
 #include "Utilities/Timer.hh"
 
 extern Timer TIME_interpolateRK;

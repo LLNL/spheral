@@ -10,7 +10,7 @@
 #ifndef __Spheral_SurfaceNodeCoupling__
 #define __Spheral_SurfaceNodeCoupling__
 
-#include "SPH/NodeCoupling.hh"
+#include "Utilities/NodeCoupling.hh"
 #include "Utilities/DBC.hh"
 #include "Field/FieldList.hh"
 

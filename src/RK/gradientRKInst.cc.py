@@ -4,7 +4,6 @@ text = """
 //------------------------------------------------------------------------------
 #include "RK/gradientRK.cc"
 #include "Geometry/Dimension.hh"
-#include "SPH/NodeCoupling.hh"
 
 namespace Spheral {
 """

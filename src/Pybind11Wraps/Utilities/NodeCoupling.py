@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 
-@PYB11module("SpheralSPH")
+@PYB11module("SpheralUtilities")
 class NodeCoupling:
     "A functor base class encapsulating how we couple pairs of nodes."
 

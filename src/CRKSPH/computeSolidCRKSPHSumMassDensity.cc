@@ -7,7 +7,7 @@
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "SPH/NodeCoupling.hh"
+#include "Utilities/NodeCoupling.hh"
 
 using std::vector;
 using std::string;

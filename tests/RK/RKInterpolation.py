@@ -457,12 +457,15 @@ else:
 #-------------------------------------------------------------------------------
 # Create RK object
 #-------------------------------------------------------------------------------
-rk = RKCorrections(order = correctionOrder,
+rk = RKCorrections(orders = set([ZerothOrder, correctionOrder]),
                    dataBase = dataBase,
                    W = WT,
                    volumeType = volumeType,
                    needHessian = testHessian)
-WR = rk.WR
+output("rk")
+output("rk.correctionOrders")
+WR = rk.WR(correctionOrder)
+output("WR")
 packages = [rk]
 
 #-------------------------------------------------------------------------------
@@ -482,8 +485,8 @@ rk.preStepInitialize(dataBase, state, derivs)
 position = state.vectorFields(HydroFieldNames.position)
 H = state.symTensorFields(HydroFieldNames.H)
 volume = state.scalarFields(HydroFieldNames.volume)
-zerothCorrections = state.vector_of_doubleFields(HydroFieldNames.rkZerothCorrections)
-corrections = state.vector_of_doubleFields(HydroFieldNames.rkCorrections)
+zerothCorrections = state.RKCoefficientsFields(RKFieldNames.rkCorrections(ZerothOrder))
+corrections = state.RKCoefficientsFields(RKFieldNames.rkCorrections(correctionOrder))
 # normal = state.vectorFields(HydroFieldNames.normal)
 
 #-------------------------------------------------------------------------------

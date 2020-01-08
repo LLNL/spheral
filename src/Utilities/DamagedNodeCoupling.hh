@@ -9,7 +9,7 @@
 #ifndef __Spheral_DamagedNodeCoupling__
 #define __Spheral_DamagedNodeCoupling__
 
-#include "NodeCoupling.hh"
+#include "Utilities/NodeCoupling.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/FastMath.hh"
 

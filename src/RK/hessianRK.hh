@@ -5,7 +5,7 @@
 #define __Spheral__hessianRK__
 
 #include "Geometry/MathTraits.hh"
-#include "SPH/NodeCoupling.hh"
+#include "Utilities/NodeCoupling.hh"
 #include "RK/RKCorrectionParams.hh"
 #include "RK/ReproducingKernel.hh"
 

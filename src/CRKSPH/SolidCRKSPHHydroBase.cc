@@ -34,7 +34,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
-#include "SPH/DamagedNodeCouplingWithFrags.hh"
+#include "Utilities/DamagedNodeCouplingWithFrags.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 
 #include "SolidCRKSPHHydroBase.hh"

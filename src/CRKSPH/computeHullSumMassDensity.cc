@@ -10,7 +10,7 @@
 #include "Utilities/comparisons.hh"
 #include "Utilities/boundingBox.hh"
 #include "Utilities/pointOnPolygon.hh"
-#include "SPH/DamagedNodeCouplingWithFrags.hh"
+#include "Utilities/DamagedNodeCouplingWithFrags.hh"
 
 #include "polytope/polytope.hh"
 #include "polytope/convexHull_2d.hh"

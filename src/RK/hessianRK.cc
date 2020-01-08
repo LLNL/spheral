@@ -7,7 +7,6 @@
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "NodeList/NodeList.hh"
-#include "SPH/NodeCoupling.hh"
 #include "Geometry/outerProduct.hh"
 
 using std::vector;

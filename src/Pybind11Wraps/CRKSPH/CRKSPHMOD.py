@@ -25,7 +25,7 @@ PYB11includes += ['"CRKSPH/CRKSPHHydroBase.hh"',
                   '"CRKSPH/centerOfMass.hh"',
                   '"CRKSPH/editMultimaterialSurfaceTopology.hh"',
                   '"CRKSPH/zerothOrderSurfaceCorrections.hh"',
-                  '"SPH/NodeCoupling.hh"',
+                  '"Utilities/NodeCoupling.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"',
                   '"FileIO/FileIO.hh"',
                   '<iterator>']

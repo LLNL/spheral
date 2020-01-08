@@ -4,7 +4,6 @@ text = """
 //------------------------------------------------------------------------------
 #include "RK/hessianRK.cc"
 #include "Geometry/Dimension.hh"
-#include "SPH/NodeCoupling.hh"
 
 namespace Spheral {
 """
