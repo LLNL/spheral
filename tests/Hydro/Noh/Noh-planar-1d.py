@@ -181,7 +181,9 @@ if smallPressure:
 if svph:
     hydroname = "SVPH"
 elif crksph:
-    hydroname = os.path.join("CRKSPH", str(volumeType))
+    hydroname = os.path.join("CRKSPH",
+                             str(volumeType),
+                             str(correctionOrder))
 elif psph:
     hydroname = "PSPH"
 else:
