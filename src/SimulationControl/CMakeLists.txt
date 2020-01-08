@@ -34,7 +34,7 @@ endif()
 string(REPLACE ";" " " DIMS "${_dims}")
 configure_file(
   spheralDimensions.py.in
-  ${CMAKE_INSTALL_PREFIX}/spheralDimensions.py)
+  ${CMAKE_SOURCE_DIR}/SimulationControl/spheralDimensions.py)
 
 
 set(SimulationControl_python_targets
@@ -72,6 +72,7 @@ set(SimulationControl_python_targets
     resampleNodeList.py
     overlayNodeList.py
     writeSiloQuadMesh.py
+    spheralDimensions.py
     )
 
 install(FILES       ${SimulationControl_python_targets}
