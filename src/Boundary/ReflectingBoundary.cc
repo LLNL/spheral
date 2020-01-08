@@ -634,7 +634,7 @@ enforceBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const {
     CHECK(itr != mrkReflectOperators.end());
     const auto& T = useHessian ? itr->second.second : itr->second.first;
   
-    // Apply the transformation to the ghost values
+    // Apply the transformation
     for (auto i: vnodes) {
       WR.applyTransformation(T, field(i));
     }
