@@ -13,12 +13,7 @@ set(DataOutput_headers
     registerWithRestart.hh
     )
 
-blt_add_library(NAME        Spheral_DataOutput
-                SOURCES     ${DataOutput_sources}
-                HEADERS     ${DataOutput_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(DataOutput)
 
 install(TARGETS              Spheral_DataOutput
         EXPORT               ${PROJECT_NAME}-targets

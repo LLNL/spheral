@@ -56,12 +56,7 @@ set(SPH_python_targets
     FacetedSurfaceASPHHydro.py
     )
 
-blt_add_library(NAME        Spheral_SPH
-                SOURCES     ${SPH_sources}
-                HEADERS     ${SPH_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(SPH)
 
 install(TARGETS              Spheral_SPH
         EXPORT               ${PROJECT_NAME}-targets

@@ -19,12 +19,7 @@ set(Integrator_headers
     IntegratorInline.hh
     )
 
-blt_add_library(NAME        Spheral_Integrator
-                SOURCES     ${Integrator_sources}
-                HEADERS     ${Integrator_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(Integrator)
 
 install(TARGETS              Spheral_Integrator
         EXPORT               ${PROJECT_NAME}-targets

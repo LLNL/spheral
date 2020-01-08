@@ -30,12 +30,7 @@ set(Neighbor_headers
     NodePairList.hh
     )
 
-blt_add_library(NAME        Spheral_Neighbor
-                SOURCES     ${Neighbor_sources}
-                HEADERS     ${Neighbor_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(Neighbor)
 
 install(TARGETS              Spheral_Neighbor
         EXPORT               ${PROJECT_NAME}-targets

@@ -25,12 +25,7 @@ set(Material_python_targets
   MaterialEquationsOfState.py
   )
 
-blt_add_library(NAME        Spheral_Material
-                SOURCES     ${Material_sources}
-                HEADERS     ${Material_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(Material)
 
 install(TARGETS              Spheral_Material
         EXPORT               ${PROJECT_NAME}-targets

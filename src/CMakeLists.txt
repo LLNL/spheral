@@ -8,7 +8,7 @@ project(spheral LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -w")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake/Modules")
-
+include(${CMAKE_MODULE_PATH}/SpheralCMake.cmake)
 
 ################################
 # Configure and Include blt
@@ -43,6 +43,11 @@ option(ENABLE_CXXONLY "enable C++ only build without python bindings" OFF)
 option(ENABLE_2D "enable 2d" ON)
 option(ENABLE_3D "enable 3d" ON)
 option(ENABLE_INSTANTIATIONS "enable instantiations" ON)
+option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
+
+if(ENABLE_STATIC_CXXONLY)
+  set(ENABLE_CXXONLY ON)
+endif()
 
 if(ENABLE_CXXONLY)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/Spheral)
@@ -58,6 +63,7 @@ endif()
 if(ENABLE_OPENMP)
   list(APPEND spheral_depends openmp)
 endif()
+
 
 include(../cmake/CMakeBasics.cmake)
 

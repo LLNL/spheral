@@ -39,12 +39,7 @@ set(Kernel_headers
     VolumeIntegrationFunctions.hh
     )
 
-blt_add_library(NAME        Spheral_Kernel
-                SOURCES     ${Kernel_sources}
-                HEADERS     ${Kernel_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(Kernel)
 
 install(TARGETS              Spheral_Kernel
         EXPORT               ${PROJECT_NAME}-targets

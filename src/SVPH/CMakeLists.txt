@@ -41,12 +41,7 @@ set(SVPH_python_targets
   SVPHHydros.py
   )
 
-blt_add_library(NAME        Spheral_SVPH
-                SOURCES     ${SVPH_sources}
-                HEADERS     ${SVPH_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(SVPH)
 
 install(TARGETS              Spheral_SVPH
         EXPORT               ${PROJECT_NAME}-targets

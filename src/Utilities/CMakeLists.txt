@@ -114,12 +114,7 @@ set(Utilities_python_targets
     fitspline.py
     )
 
-blt_add_library(NAME        Spheral_Utilities
-                SOURCES     ${Utilities_sources}
-                HEADERS     ${Utilities_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(Utilities)
 
 install(TARGETS              Spheral_Utilities
         EXPORT               ${PROJECT_NAME}-targets

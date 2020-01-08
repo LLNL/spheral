@@ -39,12 +39,7 @@ set(ArtificialViscosity_headers
     TensorMonaghanGingoldViscosity.hh
     )
 
-blt_add_library(NAME        Spheral_ArtificialViscosity
-                SOURCES     ${ArtificialViscosity_sources}
-                HEADERS     ${ArtificialViscosity_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(ArtificialViscosity)
 
 install(TARGETS              Spheral_ArtificialViscosity
         EXPORT               ${PROJECT_NAME}-targets

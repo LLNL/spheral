@@ -45,12 +45,7 @@ set(Distributed_headers
     SortAndDivideRedistributeNodes1d.hh
     )
 
-blt_add_library(NAME        Spheral_Distributed
-                SOURCES     ${Distributed_sources}
-                HEADERS     ${Distributed_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(Distributed)
 
 install(TARGETS              Spheral_Distributed
         EXPORT               ${PROJECT_NAME}-targets

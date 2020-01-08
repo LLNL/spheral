@@ -51,12 +51,7 @@ set(Damage_python_targets
     JohnsonCookDamageFactories.py
     )
 
-blt_add_library(NAME        Spheral_Damage
-                SOURCES     ${Damage_sources}
-                HEADERS     ${Damage_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(Damage)
 
 install(TARGETS              Spheral_Damage
         EXPORT               ${PROJECT_NAME}-targets

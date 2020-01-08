@@ -21,12 +21,7 @@ set(FileIO_python_targets
   PlyFileIO.py
   )
 
-blt_add_library(NAME        Spheral_FileIO
-                SOURCES     ${FileIO_sources}
-                HEADERS     ${FileIO_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(FileIO)
 
 install(TARGETS              Spheral_FileIO
         EXPORT               ${PROJECT_NAME}-targets

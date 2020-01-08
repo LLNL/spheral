@@ -18,19 +18,8 @@ set(Gravity_headers
   TreeGravityInline.hh
   )
 
-set(Gravity_includes
-  ${SPHERAL_SOURCE_DIR}
-  ${SPHERAL_SOURCE_DIR}/Gravity
-  ${EIGEN_LIB_LOCATION}
-  )
 
-
-blt_add_library(NAME        Spheral_Gravity
-                HEADERS     ${Gravity_headers}
-                SOURCES     ${Gravity_sources}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(Gravity)
 
 install(TARGETS             Spheral_Gravity
         EXPORT              ${PROJECT_NAME}-targets

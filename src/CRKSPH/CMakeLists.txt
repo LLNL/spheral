@@ -62,12 +62,7 @@ set(CRKSPH_python_targets
   CRKSPHHydros.py
   )
 
-blt_add_library(NAME        Spheral_CRKSPH
-                SOURCES     ${CRKSPH_sources}
-                HEADERS     ${CRKSPH_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(CRKSPH)
 
 install(TARGETS              Spheral_CRKSPH
         EXPORT               ${PROJECT_NAME}-targets

@@ -36,12 +36,7 @@ set(Strength_headers
     effectiveKernelVolume.hh
     )
 
-blt_add_library(NAME        Spheral_Strength
-                SOURCES     ${Strength_sources}
-                HEADERS     ${Strength_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(Strength)
 
 install(TARGETS              Spheral_Strength
         EXPORT               ${PROJECT_NAME}-targets

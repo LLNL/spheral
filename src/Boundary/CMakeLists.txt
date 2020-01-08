@@ -53,12 +53,7 @@ set(Boundary_headers
     mapPositionThroughPlanes.hh
     )
 
-blt_add_library(NAME        Spheral_Boundary
-                SOURCES     ${Boundary_sources}
-                HEADERS     ${Boundary_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(Boundary)
 
 install(TARGETS              Spheral_Boundary
         EXPORT               ${PROJECT_NAME}-targets

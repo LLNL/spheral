@@ -39,12 +39,7 @@ set(NodeList_python_targets
     VoidNodeLists.py
     )
 
-blt_add_library(NAME        Spheral_NodeList
-                SOURCES     ${NodeList_sources}
-                HEADERS     ${NodeList_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(NodeList)
 
 install(TARGETS              Spheral_NodeList
         EXPORT               ${PROJECT_NAME}-targets

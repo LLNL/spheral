@@ -12,19 +12,7 @@ set(ArtificialConduction_headers
     ArtificialConductionPolicy.hh
     ) 
 
-set(ArtificialConduction_includes
-  ${SPHERAL_SOURCE_DIR}
-  ${EIGEN_LIB_LOCATION}
-  )
-
-
-blt_add_library(NAME        Spheral_ArtificialConduction
-                HEADERS     ${ArtificialConduction_headers}
-                SOURCES     ${ArtificialConduction_sources}
-                DEPENDS_ON  ${spheral_depends}
-                INCLUDES    ${ArtificialConduction_includes}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(ArtificialConduction)
 
 install(TARGETS             Spheral_ArtificialConduction
         EXPORT              ${PROJECT_NAME}-targets

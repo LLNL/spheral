@@ -59,12 +59,7 @@ set(SolidMaterial_python_targets
     )
 
 
-blt_add_library(NAME        Spheral_SolidMaterial
-                SOURCES     ${SolidMaterial_sources}
-                HEADERS     ${SolidMaterial_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(SolidMaterial)
 
 install(TARGETS              Spheral_SolidMaterial
         EXPORT               ${PROJECT_NAME}-targets

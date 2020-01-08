@@ -56,12 +56,7 @@ set(NodeGenerators_python_targets
     SEAGenerator.py
     )
 
-blt_add_library(NAME        Spheral_NodeGenerators
-                SOURCES     ${NodeGenerators_sources}
-                HEADERS     ${NodeGenerators_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(NodeGenerators)
 
 install(TARGETS              Spheral_NodeGenerators
         EXPORT               ${PROJECT_NAME}-targets

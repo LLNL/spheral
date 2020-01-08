@@ -44,12 +44,7 @@ set(Field_headers
     uvm_allocator.hh
     )
 
-blt_add_library(NAME        Spheral_Field
-                SOURCES     ${Field_sources}
-                HEADERS     ${Field_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(Field)
 
 install(TARGETS              Spheral_Field
         EXPORT               ${PROJECT_NAME}-targets

@@ -17,12 +17,7 @@ set(Physics_headers
     PhysicsInline.hh
     )
 
-blt_add_library(NAME        Spheral_Physics
-                SOURCES     ${Physics_sources}
-                HEADERS     ${Physics_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(Physics)
 
 install(TARGETS              Spheral_Physics
         EXPORT               ${PROJECT_NAME}-targets

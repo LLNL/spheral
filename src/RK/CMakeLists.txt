@@ -44,12 +44,7 @@ set(RK_headers
   RKUtilitiesInline.hh
   )
 
-blt_add_library(NAME        Spheral_RK
-                SOURCES     ${RK_sources}
-                HEADERS     ${RK_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(RK)
 
 install(TARGETS              Spheral_RK
         EXPORT               ${PROJECT_NAME}-targets

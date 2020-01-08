@@ -52,12 +52,7 @@ set(Mesh_python_targets
   generateMesh.py
   siloMeshDump.py)
 
-blt_add_library(NAME        Spheral_Mesh
-                SOURCES     ${Mesh_sources}
-                HEADERS     ${Mesh_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(Mesh)
 
 install(TARGETS              Spheral_Mesh
         EXPORT               ${PROJECT_NAME}-targets

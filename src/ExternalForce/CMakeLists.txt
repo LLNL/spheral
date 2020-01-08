@@ -27,12 +27,7 @@ set(ExternalForce_includes
   )
 
 
-blt_add_library(NAME        Spheral_ExternalForce
-                HEADERS     ${ExternalForce_headers}
-                SOURCES     ${ExternalForce_sources}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(ExternalForce)
 
 install(TARGETS             Spheral_ExternalForce
         EXPORT              ${PROJECT_NAME}-targets

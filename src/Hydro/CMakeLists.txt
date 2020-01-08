@@ -43,12 +43,7 @@ set(Hydro_headers
     entropyWeightingFunction.hh
     )
 
-blt_add_library(NAME        Spheral_Hydro
-                SOURCES     ${Hydro_sources}
-                HEADERS     ${Hydro_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(Hydro)
 
 install(TARGETS              Spheral_Hydro
         EXPORT               ${PROJECT_NAME}-targets

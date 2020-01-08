@@ -54,12 +54,7 @@ set(DataBase_headers
     UpdatePolicyBaseInline.hh
     )
 
-blt_add_library(NAME        Spheral_DataBase
-                SOURCES     ${DataBase_sources}
-                HEADERS     ${DataBase_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(DataBase)
 
 install(TARGETS              Spheral_DataBase
         EXPORT               ${PROJECT_NAME}-targets

@@ -33,12 +33,7 @@ set(FieldOperations_headers
     sampleMultipleFields2Lattice.hh
     )
 
-blt_add_library(NAME        Spheral_FieldOperations
-                SOURCES     ${FieldOperations_sources}
-                HEADERS     ${FieldOperations_headers}
-                DEPENDS_ON  ${spheral_depends}
-                SHARED      TRUE
-                )
+spheral_add_cxx_library(FieldOperations)
 
 install(TARGETS              Spheral_FieldOperations
         EXPORT               ${PROJECT_NAME}-targets
