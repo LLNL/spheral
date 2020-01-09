@@ -11,17 +11,17 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
 
     def __init__(self,
                  Q,
-                 order = LinearOrder,
-                 filter = 1.0,
-                 cfl = 0.25,
-                 useVelocityMagnitudeForDt = False,
-                 compatibleEnergyEvolution = True,
-                 evolveTotalEnergy = False,
-                 XSPH = True,
-                 densityUpdate = RigorousSumDensity,
-                 HUpdate = IdealH,
-                 epsTensile = 0.0,
-                 nTensile = 4.0):
+                 order,
+                 filter,
+                 cfl,
+                 useVelocityMagnitudeForDt,
+                 compatibleEnergyEvolution,
+                 evolveTotalEnergy,
+                 XSPH,
+                 densityUpdate,
+                 HUpdate,
+                 epsTensile,
+                 nTensile):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
         CRKSPHHydroBase%(dim)s.__init__(self,
                                         self._smoothingScaleMethod,
@@ -48,19 +48,19 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
 
     def __init__(self,
                  Q,
-                 order = LinearOrder,
-                 filter = 1.0,
-                 cfl = 0.25,
-                 useVelocityMagnitudeForDt = False,
-                 compatibleEnergyEvolution = True,
-                 evolveTotalEnergy = False,
-                 XSPH = True,
-                 densityUpdate = RigorousSumDensity,
-                 HUpdate = IdealH,
-                 epsTensile = 0.0,
-                 nTensile = 4.0,
-                 damageRelieveRubble = False,
-                 negativePressureInDamage = False):
+                 order,
+                 filter,
+                 cfl,
+                 useVelocityMagnitudeForDt,
+                 compatibleEnergyEvolution,
+                 evolveTotalEnergy,
+                 XSPH,
+                 densityUpdate,
+                 HUpdate,
+                 epsTensile,
+                 nTensile,
+                 damageRelieveRubble,
+                 negativePressureInDamage):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
         if WPi is None:
             WPi = W
@@ -91,18 +91,18 @@ class %(classname)s(CRKSPHHydroBaseRZ):
 
     def __init__(self,
                  Q,
-                 order = LinearOrder,
-                 filter = 1.0,
-                 cfl = 0.25,
-                 useVelocityMagnitudeForDt = False,
-                 compatibleEnergyEvolution = True,
-                 evolveTotalEnergy = False,
-                 XSPH = True,
-                 densityUpdate = RigorousSumDensity,
-                 HUpdate = IdealH,
-                 epsTensile = 0.0,
-                 nTensile = 4.0,
-                 etaMinAxis = 0.1):
+                 order,
+                 filter,
+                 cfl,
+                 useVelocityMagnitudeForDt,
+                 compatibleEnergyEvolution,
+                 evolveTotalEnergy,
+                 XSPH,
+                 densityUpdate,
+                 HUpdate,
+                 epsTensile,
+                 nTensile,
+                 etaMinAxis):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
             WPi = W
@@ -133,20 +133,20 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
 
     def __init__(self,
                  Q,
-                 order = LinearOrder,
-                 filter = 1.0,
-                 cfl = 0.25,
-                 useVelocityMagnitudeForDt = False,
-                 compatibleEnergyEvolution = True,
-                 evolveTotalEnergy = False,
-                 XSPH = True,
-                 densityUpdate = RigorousSumDensity,
-                 HUpdate = IdealH,
-                 epsTensile = 0.0,
-                 nTensile = 4.0,
-                 damageRelieveRubble = False,
-                 negativePressureInDamage = False,
-                 etaMinAxis = 0.1):
+                 order,
+                 filter,
+                 cfl,
+                 useVelocityMagnitudeForDt,
+                 compatibleEnergyEvolution,
+                 evolveTotalEnergy,
+                 XSPH,
+                 densityUpdate,
+                 HUpdate,
+                 epsTensile,
+                 nTensile,
+                 damageRelieveRubble,
+                 negativePressureInDamage,
+                 etaMinAxis):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
             WPi = W
@@ -205,7 +205,7 @@ if 2 in dims:
 #-------------------------------------------------------------------------------
 def CRKSPH(dataBase,
            Q = None,
-           order = LinearOrder,
+           order = RKOrder.LinearOrder,
            filter = 0.0,
            cfl = 0.25,
            useVelocityMagnitudeForDt = False,
@@ -220,6 +220,7 @@ def CRKSPH(dataBase,
            negativePressureInDamage = False,
            ASPH = False,
            RZ = False,
+           etaMinAxis = 0.1,
            crktype = "default"):
 
     # We use the provided DataBase to sniff out what sort of NodeLists are being
@@ -295,6 +296,9 @@ def CRKSPH(dataBase,
         kwargs.update({"damageRelieveRubble" : damageRelieveRubble,
                        "negativePressureInDamage" : negativePressureInDamage})
 
+    if RZ:
+        kwargs.update({"etaMinAxis" : etaMinAxis})
+
     # Build the thing.
     result = Constructor(**kwargs)
     result.Q = Q
@@ -305,7 +309,7 @@ def CRKSPH(dataBase,
 #-------------------------------------------------------------------------------
 def ACRKSPH(dataBase,
             Q = None,
-            order = LinearOrder,
+            order = RKOrder.LinearOrder,
             filter = 0.0,
             cfl = 0.25,
             useVelocityMagnitudeForDt = False,
@@ -341,7 +345,7 @@ def ACRKSPH(dataBase,
 #-------------------------------------------------------------------------------
 def CRKSPHRZ(dataBase,
              Q = None,
-             order = LinearOrder,
+             order = RKOrder.LinearOrder,
              filter = 0.0,
              cfl = 0.25,
              useVelocityMagnitudeForDt = False,
@@ -353,7 +357,8 @@ def CRKSPHRZ(dataBase,
              epsTensile = 0.0,
              nTensile = 4.0,
              damageRelieveRubble = False,
-             negativePressureInDamage = False):
+             negativePressureInDamage = False,
+             etaMinAxis = 0.1):
     return CRKSPH(dataBase = dataBase,
                   Q = Q,
                   order = order,
@@ -370,14 +375,15 @@ def CRKSPHRZ(dataBase,
                   negativePressureInDamage = negativePressureInDamage,
                   nTensile = nTensile,
                   ASPH = False,
-                  RZ = True)
+                  RZ = True,
+                  etaMinAxis = etaMinAxis)
 
 #-------------------------------------------------------------------------------
 # RZ ACRKSPH
 #-------------------------------------------------------------------------------
 def ACRKSPHRZ(dataBase,
               Q = None,
-              order = LinearOrder,
+              order = RKOrder.LinearOrder,
               filter = 0.0,
               cfl = 0.25,
               useVelocityMagnitudeForDt = False,
@@ -389,7 +395,8 @@ def ACRKSPHRZ(dataBase,
               epsTensile = 0.0,
               nTensile = 4.0,
               damageRelieveRubble = False,
-              negativePressureInDamage = False):
+              negativePressureInDamage = False,
+              etaMinAxis = 0.1):
     return CRKSPH(dataBase = dataBase,
                   Q = Q,
                   order = order,
@@ -406,4 +413,5 @@ def ACRKSPHRZ(dataBase,
                   damageRelieveRubble = damageRelieveRubble,
                   negativePressureInDamage = negativePressureInDamage,
                   ASPH = True,
-                  RZ = True)
+                  RZ = True,
+                  etaMinAxis = etaMinAxis)
