@@ -133,35 +133,15 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\RK\computeHullVolumesInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
-    <None Include="..\..\src\RK\computeHVolumesInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
-    <None Include="..\..\src\RK\computeOccupancyVolumeInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
-    <None Include="..\..\src\RK\computeRKSumVolumeInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
-    <None Include="..\..\src\RK\computeRKVolumesInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
-    <None Include="..\..\src\RK\ContinuityVolumePolicyInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
-    <None Include="..\..\src\RK\HVolumePolicyInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
-    <None Include="..\..\src\RK\interpolateRKInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
-    <None Include="..\..\src\RK\RKCorrectionsInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
-    <None Include="..\..\src\RK\RKUtilitiesInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
+    <CustomBuild Include="..\..\src\RK\computeHullVolumesInst.cc.py" />
+    <CustomBuild Include="..\..\src\RK\computeHVolumesInst.cc.py" />
+    <CustomBuild Include="..\..\src\RK\computeOccupancyVolumeInst.cc.py" />
+    <CustomBuild Include="..\..\src\RK\computeRKSumVolumeInst.cc.py" />
+    <CustomBuild Include="..\..\src\RK\computeRKVolumesInst.cc.py" />
+    <CustomBuild Include="..\..\src\RK\ContinuityVolumePolicyInst.cc.py" />
+    <CustomBuild Include="..\..\src\RK\HVolumePolicyInst.cc.py" />
+    <CustomBuild Include="..\..\src\RK\interpolateRKInst.cc.py" />
+    <CustomBuild Include="..\..\src\RK\RKCorrectionsInst.cc.py" />
+    <CustomBuild Include="..\..\src\RK\RKUtilitiesInst.cc.py" />
   </ItemGroup>
 </Project>
