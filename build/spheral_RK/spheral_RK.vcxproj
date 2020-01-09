@@ -82,18 +82,6 @@
     <ClInclude Include="..\..\src\RK\RKUtilitiesInline.hh" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\RK\computeHullVolumesInst.cc.py" />
-    <None Include="..\..\src\RK\computeHVolumesInst.cc.py" />
-    <None Include="..\..\src\RK\computeOccupancyVolumeInst.cc.py" />
-    <None Include="..\..\src\RK\computeRKSumVolumeInst.cc.py" />
-    <None Include="..\..\src\RK\computeRKVolumesInst.cc.py" />
-    <None Include="..\..\src\RK\ContinuityVolumePolicyInst.cc.py" />
-    <None Include="..\..\src\RK\HVolumePolicyInst.cc.py" />
-    <None Include="..\..\src\RK\interpolateRKInst.cc.py" />
-    <None Include="..\..\src\RK\RKCorrectionsInst.cc.py" />
-    <None Include="..\..\src\RK\RKUtilitiesInst.cc.py" />
-  </ItemGroup>
-  <ItemGroup>
     <CustomBuild Include="..\..\src\RK\computeHullVolumesInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
