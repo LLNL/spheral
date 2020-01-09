@@ -609,7 +609,7 @@ class SpheralController:
         # Are there any packages that require reproducing kernels?
         # If so, insert the RKCorrections package prior to any RK packages
         rkorders = set()
-        rkbcs = set()
+        rkbcs = []
         needHessian = False
         index = -1
         for (ipack, package) in enumerate(packages):
@@ -617,7 +617,8 @@ class SpheralController:
             rkorders = rkorders.union(ords)
             needHessian |= package.requireReproducingKernelHessian()
             if ords:
-                rkbcs = rkbcs.union(package.boundaryConditions())
+                pbcs = package.boundaryConditions()
+                rkbcs += [bc for bc in pbcs if not bc in rkbcs]
                 if index == -1:
                     index = ipack
         if rkorders:
