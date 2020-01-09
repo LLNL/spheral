@@ -412,6 +412,9 @@
     <ProjectReference Include="..\spheral_dataoutput\spheral_dataoutput.vcxproj">
       <Project>{0a7c9e40-2802-420d-9867-6deb977b078e}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\spheral_distributed\spheral_distributed.vcxproj">
+      <Project>{46240108-1c29-4f3b-9a88-e6bcfdec7ebe}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\spheral_fieldoperations\spheral_fieldoperations.vcxproj">
       <Project>{66d95603-f93e-429e-af51-fd8a93adf044}</Project>
     </ProjectReference>
@@ -450,6 +453,9 @@
     </ProjectReference>
     <ProjectReference Include="..\spheral_physics\spheral_physics.vcxproj">
       <Project>{3539b82b-87bb-4978-8385-6be114d06546}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\spheral_RK\spheral_RK.vcxproj">
+      <Project>{4ff41911-47c6-4ddc-8f3c-87109695bc38}</Project>
     </ProjectReference>
     <ProjectReference Include="..\spheral_SolidMaterial\spheral_SolidMaterial.vcxproj">
       <Project>{2a0b7886-a83d-4f52-8d6e-e6abfc3581a2}</Project>

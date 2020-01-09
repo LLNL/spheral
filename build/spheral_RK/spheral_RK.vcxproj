@@ -38,8 +38,145 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\RK\computeHullVolumesInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\computeHullVolumesInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\computeHVolumesInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\computeHVolumesInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\computeOccupancyVolumeInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\computeOccupancyVolumeInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\computeRKSumVolumeInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\computeRKSumVolumeInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\computeRKVolumesInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\computeRKVolumesInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\computeVoronoiVolume.cc" />
+    <ClCompile Include="..\..\src\RK\computeVoronoiVolume1d.cc" />
+    <ClCompile Include="..\..\src\RK\ContinuityVolumePolicyInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\ContinuityVolumePolicyInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\ContinuityVolumePolicyRZ.cc" />
+    <ClCompile Include="..\..\src\RK\HullVolumePolicy.cc" />
+    <ClCompile Include="..\..\src\RK\HVolumePolicyInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\HVolumePolicyInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\interpolateRKInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\interpolateRKInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\RKCorrectionsInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\RKCorrectionsInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\RKUtilitiesInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\RKUtilitiesInst.cc.3.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\RK\computeHullVolumes.hh" />
+    <ClInclude Include="..\..\src\RK\computeHVolumes.hh" />
+    <ClInclude Include="..\..\src\RK\computeOccupancyVolume.hh" />
+    <ClInclude Include="..\..\src\RK\computeRKSumVolume.hh" />
+    <ClInclude Include="..\..\src\RK\computeRKVolumes.hh" />
+    <ClInclude Include="..\..\src\RK\computeVoronoiVolume.hh" />
+    <ClInclude Include="..\..\src\RK\ContinuityVolumePolicy.hh" />
+    <ClInclude Include="..\..\src\RK\ContinuityVolumePolicyRZ.hh" />
+    <ClInclude Include="..\..\src\RK\HullVolumePolicy.hh" />
+    <ClInclude Include="..\..\src\RK\HVolumePolicy.hh" />
+    <ClInclude Include="..\..\src\RK\interpolateRK.hh" />
+    <ClInclude Include="..\..\src\RK\RKCorrectionParams.hh" />
+    <ClInclude Include="..\..\src\RK\RKCorrections.hh" />
+    <ClInclude Include="..\..\src\RK\RKUtilities.hh" />
+    <ClInclude Include="..\..\src\RK\RKUtilitiesInline.hh" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\RK\computeHullVolumesInst.cc.py" />
+    <None Include="..\..\src\RK\computeHVolumesInst.cc.py" />
+    <None Include="..\..\src\RK\computeOccupancyVolumeInst.cc.py" />
+    <None Include="..\..\src\RK\computeRKSumVolumeInst.cc.py" />
+    <None Include="..\..\src\RK\computeRKVolumesInst.cc.py" />
+    <None Include="..\..\src\RK\ContinuityVolumePolicyInst.cc.py" />
+    <None Include="..\..\src\RK\HVolumePolicyInst.cc.py" />
+    <None Include="..\..\src\RK\interpolateRKInst.cc.py" />
+    <None Include="..\..\src\RK\RKCorrectionsInst.cc.py" />
+    <None Include="..\..\src\RK\RKUtilitiesInst.cc.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\src\RK\computeHullVolumesInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\computeHVolumesInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\computeOccupancyVolumeInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\computeRKSumVolumeInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\computeRKVolumesInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\ContinuityVolumePolicyInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\HVolumePolicyInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\interpolateRKInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\RKCorrectionsInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\RKUtilitiesInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{54C026D4-44C3-4F35-A4FA-F6A83FDEA938}</ProjectGuid>
+    <ProjectGuid>{4FF41911-47C6-4DDC-8F3C-87109695BC38}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>spheral</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
@@ -201,6 +338,7 @@
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <Cpp0xSupport>true</Cpp0xSupport>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -346,128 +484,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\src\Boundary\AxisBoundaryRZ.cc" />
-    <ClCompile Include="..\..\src\Boundary\BoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Boundary\BoundaryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Boundary\FacetedVolumeBoundary.cc" />
-    <ClCompile Include="..\..\src\Boundary\findNodesTouchingThroughPlanesInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Boundary\findNodesTouchingThroughPlanesInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Boundary\PlanarBoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Boundary\PlanarBoundaryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Boundary\ReflectingBoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Boundary\ReflectingBoundaryInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Boundary\RigidBoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Boundary\RigidBoundaryInst.cc.3.cc" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\src\Boundary\AxisBoundaryRZ.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\Boundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\BoundaryInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Boundary\BoundaryInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Boundary\CRKSPHVoidBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Boundary\findNodesTouchingThroughPlanesInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Boundary\mapPositionThroughPlanes.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\PeriodicBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\PeriodicPlanarBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Boundary\PlanarBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\PlanarBoundaryInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Boundary\PlanarBoundaryInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Boundary\PlanarSymmetryBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\ReflectingBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Boundary\ReflectingBoundaryInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Boundary\ReflectingBoundaryInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Boundary\RigidBoundary.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Boundary\RigidBoundaryInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\src\Boundary\FacetedVolumeBoundary.hh" />
-    <ClInclude Include="..\..\src\Boundary\FacetedVolumeBoundaryInline.hh" />
-    <ClInclude Include="..\..\src\Boundary\findNodesTouchingThroughPlanes.hh" />
-    <ClInclude Include="..\..\src\Boundary\InflowOutflowBoundary.hh" />
-    <ClInclude Include="..\..\src\Boundary\InflowOutflowBoundaryInline.hh" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
