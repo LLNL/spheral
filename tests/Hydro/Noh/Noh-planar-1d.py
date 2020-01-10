@@ -181,7 +181,9 @@ if smallPressure:
 if svph:
     hydroname = "SVPH"
 elif crksph:
-    hydroname = "CRKSPH"
+    hydroname = os.path.join("CRKSPH",
+                             str(volumeType),
+                             str(correctionOrder))
 elif psph:
     hydroname = "PSPH"
 else:
@@ -298,15 +300,13 @@ if svph:
                  xmax = Vector( 100.0))
 elif crksph:
     hydro = CRKSPH(dataBase = db,
-                   W = WT,
+                   order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
-                   correctionOrder = correctionOrder,
-                   volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
                    crktype = crktype)
@@ -338,8 +338,11 @@ else:
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
 output("hydro")
-output("hydro.kernel")
-output("hydro.PiKernel")
+try:
+    output("hydro.kernel")
+    output("hydro.PiKernel")
+except:
+    pass
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
@@ -392,7 +395,6 @@ elif boolCullenViscosity:
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
 #-------------------------------------------------------------------------------
-
 if bArtificialConduction:
     #q.reducingViscosityCorrection = True
     ArtyCond = ArtificialConduction(WT,arCondAlpha)
@@ -422,6 +424,7 @@ if hourglass:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
+bcs = []
 if x0 == xwall:
     xPlane0 = Plane(Vector(0.0), Vector(1.0))
     xbc0 = ReflectingBoundary(xPlane0)
@@ -470,7 +473,9 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-control = SpheralController(integrator, WT,
+control = SpheralController(integrator,
+                            kernel = WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
@@ -567,23 +572,14 @@ if graphics:
     plots.append((Aplot, "Noh-planar-A.png"))
     
     if crksph:
-        volPlot = plotFieldList(hydro.volume, 
+        volPlot = plotFieldList(control.RKCorrections.volume, 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
-        aplot = plotFieldList(hydro.A,
-                              winTitle = "A",
-                              colorNodeLists = False)
-        bplot = plotFieldList(hydro.B,
-                              yFunction = "%s.x",
-                              winTitle = "B",
-                              colorNodeLists = False)
-        splot = plotFieldList(hydro.surfacePoint,
+        splot = plotFieldList(control.RKCorrections.surfacePoint,
                               winTitle = "surface point",
                               colorNodeLists = False)
         plots += [(volPlot, "Noh-planar-vol.png"),
-                   (aplot, "Noh-planar-ACRK.png"),
-                   (bplot, "Noh-planar-BCRK.png"),
-                   (splot, "Noh-planar-surfacePoint.png")]
+                  (splot, "Noh-planar-surfacePoint.png")]
 
     if boolCullenViscosity:
         cullAlphaPlot = plotFieldList(q.ClMultiplier(),

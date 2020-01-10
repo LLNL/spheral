@@ -46,8 +46,7 @@ public:
   // Constructors.
   CRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                     ArtificialViscosity<Dimension>& Q,
-                    const TableKernel<Dimension>& W,
-                    const TableKernel<Dimension>& WPi,
+                    const RKOrder order,
                     const double filter,
                     const double cfl,
                     const bool useVelocityMagnitudeForDt,
@@ -56,11 +55,8 @@ public:
                     const bool XSPH,
                     const MassDensityType densityUpdate,
                     const HEvolutionType HUpdate,
-                    const RKOrder correctionOrder,
-                    const RKVolumeType volumeType,
                     const double epsTensile,
-                    const double nTensile,
-                    const bool limitMultimaterialTopology);
+                    const double nTensile);
 
   // Destructor.
   virtual ~CRKSPHHydroBaseRZ();

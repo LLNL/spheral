@@ -180,7 +180,6 @@ AC_OUTPUT(helpers/makefile_master \
           CRKSPH/makefile \
           FVCRKH/makefile \
           SVPH/makefile \
-          TaylorSPH/makefile \
           Mesh/makefile \
           Damage/makefile \
           SolidMaterial/makefile \

@@ -123,7 +123,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         x1 = xbound0 - xi;
         H1 = Hi;
         surfacePoint(nodeListi, i) |= 1;
-        etaVoidPoints(nodeListi, i).push_back(-0.5*rin);
+        etaVoidPoints(nodeListi, i).push_back(Vector(-0.5*rin));
         // cerr << "Surface condition 1: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
       } else {
         nodeListj1 = coords[k-1].second.first;
@@ -146,7 +146,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         x2 = xbound1 - xi;
         H2 = Hi;
         surfacePoint(nodeListi, i) |= 1;
-        etaVoidPoints(nodeListi, i).push_back(0.5*rin);
+        etaVoidPoints(nodeListi, i).push_back(Vector(0.5*rin));
         // cerr << "Surface condition 4: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
       } else {
         nodeListj2 = coords[k+1].second.first;
@@ -194,16 +194,16 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         }
       } else {
         surfacePoint(nodeListi, i) |= 1;
-        if (-Hi*x1 >= rin) etaVoidPoints(nodeListi, i).push_back(max(Hi*x1, -0.5*rin));
-        if ( Hi*x2 >= rin) etaVoidPoints(nodeListi, i).push_back(min(Hi*x2,  0.5*rin));
+        if (-Hi*x1 >= rin) etaVoidPoints(nodeListi, i).push_back(Vector(max(Hi*x1, -0.5*rin)));
+        if ( Hi*x2 >= rin) etaVoidPoints(nodeListi, i).push_back(Vector(min(Hi*x2,  0.5*rin)));
         // cerr << "Surface condition 7: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
       }
 
       // If this point is fully damaged, we force creation of void points.
       if (haveDamage and damage(nodeListi, i).xx() > 1.0 - 1.0e-5) {
         etaVoidPoints(nodeListi, i).clear();
-        etaVoidPoints(nodeListi, i).push_back(-0.5*rin);
-        etaVoidPoints(nodeListi, i).push_back( 0.5*rin);
+        etaVoidPoints(nodeListi, i).push_back(Vector(-0.5*rin));
+        etaVoidPoints(nodeListi, i).push_back(Vector( 0.5*rin));
         surfacePoint(nodeListi, i) |= 1;
       }
     }

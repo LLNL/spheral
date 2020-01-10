@@ -11,8 +11,10 @@
 #include "Utilities/DBC.hh"
 #include "Utilities/planarReflectingOperator.hh"
 #include "Mesh/Mesh.hh"
+#include "RK/RKFieldNames.hh"
+#include "RK/ReproducingKernelMethods.hh"
 
-#include "ReflectingBoundary.hh"
+#include "Boundary/ReflectingBoundary.hh"
 
 using std::vector;
 using std::cout;
@@ -72,7 +74,9 @@ reflectFacetedVolume(const ReflectingBoundary<Dim<3>>& bc,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ReflectingBoundary<Dimension>::ReflectingBoundary():
-  PlanarBoundary<Dimension>() {
+  PlanarBoundary<Dimension>(),
+  mReflectOperator(),
+  mrkReflectOperators() {
 }
 
 //------------------------------------------------------------------------------
@@ -85,6 +89,21 @@ ReflectingBoundary(const GeomPlane<Dimension>& plane):
 
   // Once the plane has been set, construct the reflection operator.
   mReflectOperator = planarReflectingOperator(plane);
+
+  // Now build the various RK reflection operators
+  const std::vector<RKOrder> orders = {RKOrder::ZerothOrder,
+                                       RKOrder::LinearOrder,
+                                       RKOrder::QuadraticOrder,
+                                       RKOrder::CubicOrder,
+                                       RKOrder::QuarticOrder,
+                                       RKOrder::QuinticOrder,
+                                       RKOrder::SexticOrder,
+                                       RKOrder::SepticOrder};
+  for (const auto order: orders) {
+    const ReproducingKernelMethods<Dimension> WR(order);
+    mrkReflectOperators[order] = std::make_pair(WR.transformationMatrix(mReflectOperator, false),
+                                                WR.transformationMatrix(mReflectOperator, true));
+  }
 
   // Once we're done the boundary condition should be in a valid state.
   ENSURE(valid());
@@ -366,6 +385,38 @@ applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) c
   }
 }
 
+// Specialization for rkCoefficients
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const {
+
+  const auto& nodeList = field.nodeList();
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  if (this->controlNodes(nodeList).size() > 0) {                       // Is there anything to do?
+
+    // Extract the order of the corrections, and the appropriate transformation
+    const auto fname = field.name();
+    const auto order = RKFieldNames::correctionOrder(fname);
+    const ReproducingKernelMethods<Dimension> WR(order);
+    const auto ncoeff = field[0].size();
+    CHECK(ncoeff == WR.gradCorrectionsSize() or ncoeff == WR.hessCorrectionsSize());
+    const bool useHessian = (ncoeff == WR.hessCorrectionsSize());
+    const auto itr = mrkReflectOperators.find(order);
+    CHECK(itr != mrkReflectOperators.end());
+    const auto& T = useHessian ? itr->second.second : itr->second.first;
+  
+    // Apply the transformation to the ghost values
+    auto controlItr = this->controlBegin(nodeList);
+    auto ghostItr = this->ghostBegin(nodeList);
+    auto cEnd = this->controlEnd(nodeList);
+    for (; controlItr < cEnd; ++controlItr, ++ghostItr) {
+      field(*ghostItr) = field(*controlItr);
+      WR.applyTransformation(T, field(*ghostItr));
+    }
+  }
+}
+
 //------------------------------------------------------------------------------
 // Enforce the boundary condition on the set of nodes in violation of the 
 // boundary.
@@ -559,6 +610,34 @@ enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) cons
        ++itr) {
     CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
     field(*itr) = reflectFacetedVolume(*this, field(*itr));
+  }
+}
+
+// Specialization for std::vector<Scalar>
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+enforceBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const {
+
+  const auto& nodeList = field.nodeList();
+  const auto& vnodes = this->violationNodes(nodeList);
+  if (not vnodes.empty()) {                       // Is there anything to do?
+
+    // Extract the order of the corrections, and the appropriate transformation
+    const auto fname = field.name();
+    const auto order = RKFieldNames::correctionOrder(fname);
+    const ReproducingKernelMethods<Dimension> WR(order);
+    const auto ncoeff = field[0].size();
+    CHECK(ncoeff == WR.gradCorrectionsSize() or ncoeff == WR.hessCorrectionsSize());
+    const auto useHessian = (ncoeff == WR.hessCorrectionsSize());
+    const auto itr = mrkReflectOperators.find(order);
+    CHECK(itr != mrkReflectOperators.end());
+    const auto& T = useHessian ? itr->second.second : itr->second.first;
+  
+    // Apply the transformation
+    for (auto i: vnodes) {
+      WR.applyTransformation(T, field(i));
+    }
   }
 }
 

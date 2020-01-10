@@ -28,21 +28,18 @@ public:
 
   // Constructors.
   FVCRKHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                  ArtificialViscosity<Dimension>& Q,
-                  const TableKernel<Dimension>& W,
-                  const TableKernel<Dimension>& WPi,
-                  const double filter,
-                  const double cfl,
-                  const bool useVelocityMagnitudeForDt,
-                  const bool compatibleEnergyEvolution,
-                  const bool evolveTotalEnergy,
-                  const bool XSPH,
-                  const MassDensityType densityUpdate,
-                  const HEvolutionType HUpdate,
-                  const RKOrder correctionOrder,
-                  const double epsTensile,
-                  const double nTensile,
-                  const bool limitMultimaterialTopology);
+                 ArtificialViscosity<Dimension>& Q,
+                 const RKOrder order,
+                 const double filter,
+                 const double cfl,
+                 const bool useVelocityMagnitudeForDt,
+                 const bool compatibleEnergyEvolution,
+                 const bool evolveTotalEnergy,
+                 const bool XSPH,
+                 const MassDensityType densityUpdate,
+                 const HEvolutionType HUpdate,
+                 const double epsTensile,
+                 const double nTensile);
 
   // Destructor.
   virtual ~FVCRKHydroBase();

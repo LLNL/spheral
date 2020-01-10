@@ -4,7 +4,7 @@
 // Created by JMO, Fri Jul 30 11:07:33 PDT 2010
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "DamagedNodeCouplingWithFrags.hh"
+#include "Utilities/DamagedNodeCouplingWithFrags.hh"
 #include "SPH/SPHHydroBase.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"

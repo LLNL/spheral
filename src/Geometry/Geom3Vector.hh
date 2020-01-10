@@ -30,9 +30,9 @@ class Geom3Vector
   static const Geom3Vector zero;
 
   // Constructors.
-  Geom3Vector(const double x = 0.0,
-              const double y = 0.0,
-              const double z = 0.0);
+  explicit Geom3Vector(const double x = 0.0,
+                       const double y = 0.0,
+                       const double z = 0.0);
 
   Geom3Vector(const Geom3Vector& vec);
 
@@ -72,15 +72,11 @@ class Geom3Vector
 
   Geom3Vector operator+(const Geom3Vector& vec) const { return Geom3Vector(mGeomVector + vec.mGeomVector); }
   Geom3Vector operator-(const Geom3Vector& vec) const { return Geom3Vector(mGeomVector - vec.mGeomVector); }
-  Geom3Vector operator+(const double val) const { return Geom3Vector(mGeomVector + val); }
-  Geom3Vector operator-(const double val) const { return Geom3Vector(mGeomVector - val); }
   Geom3Vector operator*(const double val) const { return Geom3Vector(mGeomVector * val); }
   Geom3Vector operator/(const double val) const { return Geom3Vector(mGeomVector / val); }
 
   Geom3Vector& operator+=(const Geom3Vector& vec) { mGeomVector += vec.mGeomVector; return *this; }
   Geom3Vector& operator-=(const Geom3Vector& vec) { mGeomVector -= vec.mGeomVector; return *this; }
-  Geom3Vector& operator+=(const double val) { mGeomVector += val; return *this; }
-  Geom3Vector& operator-=(const double val) { mGeomVector -= val; return *this; }
   Geom3Vector& operator*=(const double val) { mGeomVector *= val; return *this; }
   Geom3Vector& operator/=(const double val) { mGeomVector /= val; return *this; }
 

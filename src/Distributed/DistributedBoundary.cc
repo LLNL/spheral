@@ -1305,6 +1305,14 @@ applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Vector> >& f
   mVectorVectorExchangeFields.push_back(&field);
 }
 
+template<typename Dimension>
+void
+DistributedBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const {
+  beginExchangeFieldVariableSize(field);
+  mRKCoefficientsExchangeFields.push_back(&field);
+}
+
 //------------------------------------------------------------------------------
 // The required method to select nodes in violation of this boundary.  A no-op
 // for Distributed boundaries.
@@ -1549,7 +1557,8 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     int nFacetedVolume = mFacetedVolumeExchangeFields.size();
     int nVectorScalar = mVectorScalarExchangeFields.size();
     int nVectorVector = mVectorVectorExchangeFields.size();
-    const int nFields = nInt + nScalar + nVector + nTensor + nSymTensor + nThirdRankTensor + nFourthRankTensor + nFifthRankTensor + nFacetedVolume + nVectorScalar + nVectorVector;
+    int nRKCoefficient = mRKCoefficientsExchangeFields.size();
+    const int nFields = nInt + nScalar + nVector + nTensor + nSymTensor + nThirdRankTensor + nFourthRankTensor + nFifthRankTensor + nFacetedVolume + nVectorScalar + nVectorVector + nRKCoefficient;
     MPI_Bcast(&nInt, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nScalar, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nVector, 1, MPI_INT, 0, Communicator::communicator());
@@ -1561,6 +1570,7 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     MPI_Bcast(&nFacetedVolume, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nVectorScalar, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nVectorVector, 1, MPI_INT, 0, Communicator::communicator());
+    MPI_Bcast(&nRKCoefficient, 1, MPI_INT, 0, Communicator::communicator());
     REQUIRE(nInt == mIntExchangeFields.size());
     REQUIRE(nScalar == mScalarExchangeFields.size());
     REQUIRE(nVector == mVectorExchangeFields.size());
@@ -1572,6 +1582,7 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     REQUIRE(nFacetedVolume == mFacetedVolumeExchangeFields.size());
     REQUIRE(nVectorScalar == mVectorScalarExchangeFields.size());
     REQUIRE(nVectorVector == mVectorVectorExchangeFields.size());
+    REQUIRE(nRKCoefficient == mRKCoefficientsExchangeFields.size());
     REQUIRE(mSendBuffers.size() <= nFields);
     REQUIRE(mRecvBuffers.size() <= nFields);
     REQUIRE(mField2SendBuffer.size() <= nFields);
@@ -1686,6 +1697,13 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
       if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
     }
 
+    // Unpack RKCoefficient field values.
+    for (typename vector<Field<Dimension, RKCoefficients<Dimension>>*>::const_iterator fieldItr = mRKCoefficientsExchangeFields.begin();
+         fieldItr != mRKCoefficientsExchangeFields.end();
+         ++fieldItr) {
+      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
+    }
+
   }
 
   // Do we have any data we're waiting to send?
@@ -1714,6 +1732,7 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
   mFacetedVolumeExchangeFields.clear();
   mVectorScalarExchangeFields.clear();
   mVectorVectorExchangeFields.clear();
+  mRKCoefficientsExchangeFields.clear();
 
   // Reset the buffers.
   mMPIFieldTag = 0;
@@ -1742,6 +1761,7 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
   ENSURE(mFacetedVolumeExchangeFields.size() == 0);
   ENSURE(mVectorScalarExchangeFields.size() == 0);
   ENSURE(mVectorVectorExchangeFields.size() == 0);
+  ENSURE(mRKCoefficientsExchangeFields.size() == 0);
   ENSURE(mMPIFieldTag == 0);
   ENSURE(mSendRequests.size() == 0);
   ENSURE(mRecvRequests.size() == 0);

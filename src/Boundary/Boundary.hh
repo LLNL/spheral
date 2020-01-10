@@ -22,6 +22,7 @@ template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class DataBase;
 template<typename Dimension> class Mesh;
+template<typename Dimension> struct RKCoefficients;
 
 template<typename Dimension>
 class Boundary {
@@ -157,6 +158,16 @@ public:
   // We provide default copies for arrays of values, but descendants can override these.
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const;
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Vector>>& field) const;
+
+  // Default no-op for enforcement on arrays.
+  virtual void enforceBoundary(Field<Dimension, std::vector<Scalar>>& field) const {};
+  virtual void enforceBoundary(Field<Dimension, std::vector<Vector>>& field) const {};
+
+  // Default copy for RKCoefficients
+  virtual void applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const;
+
+  // Default no-op for enforcement on RKCoefficients
+  virtual void enforceBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const {};
 
   // Some boundaries need to know when a problem is starting up and all the physics
   // packages have been initialized.

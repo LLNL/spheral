@@ -6,7 +6,7 @@ from Physics import *
 from PhysicsAbstractMethods import *
 from RestartMethods import *
 
-@PYB11template("Dimension", "RKOrder correctionOrder")
+@PYB11template("Dimension")
 class RKCorrections(Physics):
     "Computes RK correction terms"
     
@@ -20,6 +20,7 @@ class RKCorrections(Physics):
 """
 
     def pyinit(self,
+               orders = "const std::set<RKOrder>",
                dataBase = "const DataBase<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                volumeType = "const RKVolumeType",
@@ -98,20 +99,36 @@ class RKCorrections(Physics):
         "Finalize the hydro at the completion of an integration step."
         return "void"
                   
+    @PYB11const
+    @PYB11returnpolicy("reference_internal")
+    @PYB11keepalive(0,1)
+    def WR(self,
+           order = "const RKOrder"):
+        "Look up the ReproducingKernel for the given order"
+        return "ReproducingKernel<%(Dimension)s>&"
+
+    @PYB11const
+    @PYB11returnpolicy("reference_internal")
+    @PYB11keepalive(0,1)
+    def corrections(self,
+                    order = "const RKOrder"):
+        "Look up the corrections for the given order"
+        return "FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"
+
     #...........................................................................
     # Properties
-    volumeType = PYB11property("RKVolumeType", "volumeType", "volumeType",
-                               doc="Flag for the RK volume weighting definition")
-    needHessian = PYB11property("bool", "needHessian", "needHessian",
-                               doc="Flag for the RK volume weighting definition")
+    correctionOrders = PYB11property(doc="The set of spatial orders for the reproducing kernel corrections")
+    volumeType = PYB11property(doc="Flag for the RK volume weighting definition")
+    needHessian = PYB11property(doc="Flag for the RK volume weighting definition")
     volume = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "volume", returnpolicy="reference_internal")
 
-    corrections = PYB11property("const FieldList<%(Dimension)s, std::vector<double>>&", "corrections", returnpolicy="reference_internal")
-    
+    surfaceArea = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "surfaceArea", returnpolicy="reference_internal")
+    normal = PYB11property("const FieldList<%(Dimension)s, Vector>&", "normal", returnpolicy="reference_internal")
     surfacePoint = PYB11property("const FieldList<%(Dimension)s, int>&", "surfacePoint", returnpolicy="reference_internal")
     etaVoidPoints = PYB11property("const FieldList<%(Dimension)s, std::vector<Vector>>&", "etaVoidPoints", returnpolicy="reference_internal")
     cells = PYB11property("const FieldList<%(Dimension)s, FacetedVolume>&", "cells", returnpolicy="reference_internal")
     cellFaceFlags = PYB11property("const FieldList<%(Dimension)s, std::vector<CellFaceFlag>>&", "cellFaceFlags", returnpolicy="reference_internal")
+    deltaCentroid = PYB11property("const FieldList<%(Dimension)s, Vector>&", "deltaCentroid", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods

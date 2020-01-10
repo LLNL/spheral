@@ -58,7 +58,8 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
                            ("std::vector<Dim<%i>::Tensor>" % ndim, "VectorSymTensor"),
                            ("std::vector<Dim<%i>::Tensor>" % ndim, "VectorSymTensor"),
                            ("std::vector<CellFaceFlag>",           "vector_of_CellFaceFlag"),
-                           ("DomainNode<Dim<%i>>" % ndim,          "DomainNode")):
+                           ("DomainNode<Dim<%i>>" % ndim,          "DomainNode"),
+                           ("RKCoefficients<Dim<%i>>" % ndim,      "RKCoefficients")):
         exec('''
 %(label)sField%(ndim)sd = PYB11TemplateClass(Field, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 ''' % {"ndim" : ndim,
