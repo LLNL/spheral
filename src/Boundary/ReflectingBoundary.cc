@@ -119,48 +119,6 @@ ReflectingBoundary<Dimension>::~ReflectingBoundary() {
 //------------------------------------------------------------------------------
 // Apply the ghost boundary condition to fields of different DataTypes.
 //------------------------------------------------------------------------------
-// Specialization for int fields, just perform a copy.
-template<typename Dimension>
-void
-ReflectingBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, int>& field) const {
-
-  REQUIRE(valid());
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
-  }
-}
-
-// Specialization for scalar fields, just perform a copy.
-template<typename Dimension>
-void
-ReflectingBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-
-  REQUIRE(valid());
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
-  }
-}
-
 // Specialization for Vector fields.
 template<typename Dimension>
 void
@@ -421,22 +379,6 @@ applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const {
 // Enforce the boundary condition on the set of nodes in violation of the 
 // boundary.
 //------------------------------------------------------------------------------
-// Specialization for int fields.  A no-op.
-template<typename Dimension>
-void
-ReflectingBoundary<Dimension>::
-enforceBoundary(Field<Dimension, int>& field) const {
-  REQUIRE(valid());
-}
-
-// Specialization for scalar fields.  A no-op.
-template<typename Dimension>
-void
-ReflectingBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  REQUIRE(valid());
-}
-
 // Specialization for vector fields.  Apply the reflection operator.
 template<typename Dimension>
 void

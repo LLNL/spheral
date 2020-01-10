@@ -54,15 +54,7 @@ public:
   virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the ghost node values in the given Field.
-  virtual void applyGhostBoundary(Field<Dimension, int>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
+  virtual void applyGhostBoundary(FieldBase<Dimension>& fieldBase) const override;
 
   // Find any internal nodes that are in violation of this Boundary.
   virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
