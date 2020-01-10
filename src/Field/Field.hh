@@ -215,6 +215,8 @@ public:
   virtual std::vector<char> packValues(const std::vector<int>& nodeIDs) const;
   virtual void unpackValues(const std::vector<int>& nodeIDs,
                             const std::vector<char>& buffer);
+  virtual void copyElements(const std::vector<int>& fromIndices,
+                            const std::vector<int>& toIndices);
 
   // Methods to use the iostream methods converting a Field to/from a string.
   std::string string(const int precision = 20) const;

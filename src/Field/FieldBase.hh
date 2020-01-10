@@ -62,6 +62,8 @@ public:
   virtual std::vector<char> packValues(const std::vector<int>& nodeIDs) const = 0;
   virtual void unpackValues(const std::vector<int>& nodeIDs,
                             const std::vector<char>& buffer) = 0;
+  virtual void copyElements(const std::vector<int>& fromIndices,
+                            const std::vector<int>& toIndices) = 0;
 
 //   // Methods to support cacheing of coarse and refine neighbor values.
 //   void notifyNewCoarseNodes() const;
