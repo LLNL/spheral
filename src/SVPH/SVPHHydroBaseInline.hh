@@ -144,6 +144,17 @@ xmax(const typename Dimension::Vector& x) {
 }
 
 //------------------------------------------------------------------------------
+// The interpolation kernel
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const TableKernel<Dimension>&
+SVPHHydroBase<Dimension>::
+kernel() const {
+  return mKernel;
+}
+
+//------------------------------------------------------------------------------
 // The object defining how smoothing scales are evolved.
 //------------------------------------------------------------------------------
 template<typename Dimension>

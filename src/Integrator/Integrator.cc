@@ -412,6 +412,16 @@ appendPhysicsPackage(Physics<Dimension>& package) {
 }
 
 //------------------------------------------------------------------------------
+// Reset the Physics packages to a new set
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Integrator<Dimension>::
+resetPhysicsPackages(std::vector<Physics<Dimension>*>& packages) {
+  mPhysicsPackages = packages;
+}
+
+//------------------------------------------------------------------------------
 // Test if the given physics package is listed in the integrator.
 //------------------------------------------------------------------------------
 template<typename Dimension>

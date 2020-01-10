@@ -180,6 +180,17 @@ xmax(const typename Dimension::Vector& x) {
 }
 
 //------------------------------------------------------------------------------
+// Access the main kernel used for (A)SPH field estimates.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const TableKernel<Dimension>&
+SVPHFacetedHydroBase<Dimension>::
+kernel() const {
+  return mKernel;
+}
+
+//------------------------------------------------------------------------------
 // The object defining how smoothing scales are evolved.
 //------------------------------------------------------------------------------
 template<typename Dimension>

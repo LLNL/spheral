@@ -634,14 +634,14 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
       // The H tensor evolution.
       DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
-                                                             ri,
+                                                             posi,
                                                              DvDxi,
                                                              hmin,
                                                              hmax,
                                                              hminratio,
                                                              nPerh);
       Hideali = mSmoothingScaleMethod.newSmoothingScale(Hi,
-                                                        ri,
+                                                        posi,
                                                         weightedNeighborSumi,
                                                         massSecondMomenti,
                                                         W,

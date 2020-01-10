@@ -3,9 +3,8 @@
 //------------------------------------------------------------------------------
 #include "centroidalRelaxNodesImpl.hh"
 #include "RK/computeVoronoiVolume.hh"
-#include "CRKSPH/computeCRKSPHMoments.hh"
-#include "CRKSPH/computeCRKSPHCorrections.hh"
-#include "CRKSPH/gradientCRKSPH.hh"
+#include "RK/ReproducingKernel.hh"
+#include "RK/gradientRK.hh"
 #include "NodeList/ASPHSmoothingScale.hh"
 #include "Utilities/iterateIdealH.hh"
 
@@ -64,22 +63,8 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
   // Prepare the storage for the point-wise fields.
   auto gradRhof = db.newFluidFieldList(Vector::zero, "mass density gradient");
   auto deltaCentroid = db.newFluidFieldList(Vector::zero, "delta centroid");
-  auto A = db.newFluidFieldList(0.0, "A");
-  auto B = db.newFluidFieldList(Vector::zero, "B");
-  auto C = db.newFluidFieldList(Tensor::zero, "B");
-  auto gradA = db.newFluidFieldList(Vector::zero, "gradA");
-  auto gradB = db.newFluidFieldList(Tensor::zero, "gradB");
-  auto gradC = db.newFluidFieldList(ThirdRankTensor::zero, "gradC");
-  auto m0 = db.newFluidFieldList(0.0, "m0");
-  auto m1 = db.newFluidFieldList(Vector::zero, "m1");
-  auto m2 = db.newFluidFieldList(SymTensor::zero, "m2");
-  auto m3 = db.newFluidFieldList(ThirdRankTensor::zero, "m3");
-  auto m4 = db.newFluidFieldList(FourthRankTensor::zero, "m4");
-  auto gradm0 = db.newFluidFieldList(Vector::zero, "gradm0");
-  auto gradm1 = db.newFluidFieldList(Tensor::zero, "gradm1");
-  auto gradm2 = db.newFluidFieldList(ThirdRankTensor::zero, "gradm2");
-  auto gradm3 = db.newFluidFieldList(FourthRankTensor::zero, "gradm3");
-  auto gradm4 = db.newFluidFieldList(FifthRankTensor::zero, "gradm4");
+  auto corrections0 = db.newFluidFieldList(RKCoefficients<Dimension>(), "corrections0");
+  auto corrections = db.newFluidFieldList(RKCoefficients<Dimension>(), "corrections");
 
   // Temporary until we decide to propagate void info to this method.
   auto etaVoidPoints = db.newFluidFieldList(vector<Vector>(), "eta void points");
@@ -172,11 +157,9 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
 
       } else {
         // Use RK to numerically compute the new mass density gradient.
-        computeCRKSPHMoments(cm, W, vol, pos, H, correctionOrder, NodeCoupling(),
-                             m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
-        computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, surfacePoint, correctionOrder,
-                                 A, B, C, gradA, gradB, gradC);
-        gradRhof.assignFields(gradientCRKSPH(rhof, pos, vol, H, A, B, C, gradA, gradB, gradC, cm, correctionOrder, W));
+        ReproducingKernel<Dimension> WR(W, correctionOrder);
+        WR.computeCorrections(cm, vol, pos, H, false, corrections0, corrections);
+        gradRhof.assignFields(gradientRK(rhof, pos, vol, H, cm, WR, corrections));
       }
     }
      

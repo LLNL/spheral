@@ -20,11 +20,15 @@ INSTSRCTARGETS = \
 	$(srcdir)/computeRKVolumesInst.cc.py \
 	$(srcdir)/RKCorrectionsInst.cc.py \
 	$(srcdir)/RKUtilitiesInst.cc.py \
-	$(srcdir)/interpolateRKInst.cc.py
+	$(srcdir)/ReproducingKernelMethodsInst.cc.py \
+	$(srcdir)/ReproducingKernelInst.cc.py \
+	$(srcdir)/interpolateRKInst.cc.py \
+	$(srcdir)/gradientRKInst.cc.py \
+	$(srcdir)/hessianRKInst.cc.py
 
 SRCTARGETS = \
-	$(srcdir)/computeVoronoiVolume.cc \
-	$(srcdir)/RKUtilities.cc 
+	$(srcdir)/RKFieldNames.cc \
+	$(srcdir)/computeVoronoiVolume.cc
 
 # A few of our target files are only valid for certain dimensions.
 ifeq ("yes", "@INST1D@")

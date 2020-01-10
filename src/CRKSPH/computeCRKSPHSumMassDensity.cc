@@ -2,7 +2,6 @@
 // Compute the CRKSPH mass density summation.
 //------------------------------------------------------------------------------
 #include "computeCRKSPHSumMassDensity.hh"
-#include "computeCRKSPHMoments.hh"
 #include "RK/RKCorrectionParams.hh"
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"

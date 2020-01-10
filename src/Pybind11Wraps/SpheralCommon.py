@@ -5,6 +5,7 @@ from PYB11Generator import *
 
 PYB11includes = ['"Geometry/Dimension.hh"',
                  '"Geometry/GeomPlane.hh"',
+                 '"RK/RKCoefficients.hh"',
                  "<vector>",
                  "<map>",
                  "<set>",
@@ -91,4 +92,8 @@ PYB11opaque = ["std::vector<char>",
 
                "std::vector<Plane1d>",
                "std::vector<Plane2d>",
-               "std::vector<Plane3d>"]
+               "std::vector<Plane3d>",
+
+               "std::vector<RKCoefficients<Dim<1>>>",
+               "std::vector<RKCoefficients<Dim<2>>>",
+               "std::vector<RKCoefficients<Dim<3>>>"]

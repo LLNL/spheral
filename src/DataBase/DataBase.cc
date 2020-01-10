@@ -469,7 +469,7 @@ reinitializeNeighbors() const {
 
   // Find the current bounding box and average node extent in one loop.
   // Compute the average node extent.
-  Vector xmin = std::numeric_limits<Scalar>::max(), xmax = std::numeric_limits<Scalar>::lowest();
+  auto xmin = Vector(std::numeric_limits<Scalar>::max()), xmax = Vector(std::numeric_limits<Scalar>::lowest());
   unsigned ntot = 0;
   Scalar havg = 0.0, hmax = 0.0, maxExtent = 0.0;
   for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {

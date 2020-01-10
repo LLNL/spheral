@@ -17,9 +17,6 @@
 #include "Boundary/Boundary.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
-#include "CRKSPH/computeCRKSPHMoments.hh"
-#include "CRKSPH/computeCRKSPHCorrections.hh"
-#include "CRKSPH/gradientCRKSPH.hh"
 
 using std::vector;
 using std::string;

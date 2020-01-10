@@ -16,28 +16,6 @@ GenericHydro<Dimension>::artificialViscosity() const {
 }
 
 //------------------------------------------------------------------------------
-// Access the main kernel used for (A)SPH field estimates.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const TableKernel<Dimension>&
-GenericHydro<Dimension>::
-kernel() const {
-  return mKernel;
-}
-
-//------------------------------------------------------------------------------
-// Access the kernel used for artificial viscosity gradients.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const TableKernel<Dimension>&
-GenericHydro<Dimension>::
-PiKernel() const {
-  return mPiKernel;
-}
-
-//------------------------------------------------------------------------------
 // Access the CFL safety criteria.
 //------------------------------------------------------------------------------
 template<typename Dimension>
