@@ -3,11 +3,15 @@ set(RK_inst
     HVolumePolicy
     RKCorrections
     RKUtilities
+    ReproducingKernel
+    ReproducingKernelMethods
     computeHVolumes
     computeHullVolumes
     computeOccupancyVolume
     computeRKSumVolume
     computeRKVolumes
+    gradientRK
+    hessianRK
     interpolateRK
    )
 
@@ -16,6 +20,7 @@ set(RK_sources
     HullVolumePolicy.cc
     computeVoronoiVolume.cc
     computeVoronoiVolume1d.cc
+    RKFieldNames.cc
    )
 
 if(ENABLE_2D)
@@ -31,16 +36,24 @@ set(RK_headers
     ContinuityVolumePolicyRZ.hh
     HVolumePolicy.hh
     HullVolumePolicy.hh
+    RKCoefficients.hh
     RKCorrectionParams.hh
     RKCorrections.hh
+    RKFieldNames.hh
     RKUtilities.hh
     RKUtilitiesInline.hh
+    ReproducingKernel.hh
+    ReproducingKernelInline.hh
+    ReproducingKernelMethods.hh
+    ReproducingKernelMethodsInline.hh
     computeHVolumes.hh
     computeHullVolumes.hh
     computeOccupancyVolume.hh
     computeRKSumVolume.hh
     computeRKVolumes.hh
     computeVoronoiVolume.hh
+    gradientRK.hh
+    hessianRK.hh
     interpolateRK.hh
     )
 

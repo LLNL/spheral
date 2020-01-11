@@ -1,11 +1,7 @@
 set(CRKSPH_inst
     computeCRKSPHSumMassDensity
     computeSolidCRKSPHSumMassDensity
-    computeCRKSPHMoments
-    computeCRKSPHCorrections
     CRKSPHHydroBase
-    interpolateCRKSPH
-    gradientCRKSPH
     detectSurface
     SolidCRKSPHHydroBase
     editMultimaterialSurfaceTopology
@@ -30,25 +26,18 @@ set(CRKSPH_headers
     CRKSPHHydroBase.hh
     CRKSPHHydroBaseInline.hh
     CRKSPHHydroBaseRZ.hh
-    CRKSPHUtilities.hh
-    CRKSPHUtilitiesInline.hh
     CRKSPHVariant.hh
     SolidCRKSPHHydroBase.hh
     SolidCRKSPHHydroBaseInline.hh
     SolidCRKSPHHydroBaseRZ.hh
-    SurfaceNodeCoupling.hh
     centerOfMass.hh
-    computeCRKSPHCorrections.hh
     computeCRKSPHEvaluation.hh
     computeCRKSPHIntegral.hh
-    computeCRKSPHMoments.hh
     computeCRKSPHSumMassDensity.hh
     computeHullSumMassDensity.hh
     computeSolidCRKSPHSumMassDensity.hh
     detectSurface.hh
     editMultimaterialSurfaceTopology.hh
-    gradientCRKSPH.hh
-    interpolateCRKSPH.hh
     volumeSpacing.hh
     zerothOrderSurfaceCorrections.hh
     )

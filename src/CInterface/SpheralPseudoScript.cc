@@ -375,8 +375,7 @@ template<> struct HydroConstructor<Dim<3>> {
     if (CRK) {
       return std::shared_ptr<Physics<Dim<3>>>(new SolidCRKSPHHydroBase<Dim<3>>(smoothingScaleMethod,
                                                                                Q,
-                                                                               W,
-                                                                               WPi,
+                                                                               correctionOrder,
                                                                                filter,
                                                                                cfl,
                                                                                useVelocityMagnitudeForDt,
@@ -385,11 +384,8 @@ template<> struct HydroConstructor<Dim<3>> {
                                                                                XSPH,
                                                                                densityUpdate,
                                                                                HUpdate,
-                                                                               correctionOrder,
-                                                                               volumeType,
                                                                                epsTensile,
                                                                                nTensile,
-                                                                               limitMultimaterialTopology,
                                                                                damageRelieveRubble,
                                                                                negativePressureInDamage));
     }
@@ -456,8 +452,7 @@ template<> struct HydroConstructor<Dim<2>> {
       if (CRK) {
         return std::shared_ptr<Physics<Dim<2>>>(new SolidCRKSPHHydroBaseRZ(smoothingScaleMethod,
                                                                            Q,
-                                                                           W,
-                                                                           WPi,
+                                                                           correctionOrder,
                                                                            filter,
                                                                            cfl,
                                                                            useVelocityMagnitudeForDt,
@@ -466,11 +461,8 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                            XSPH,
                                                                            densityUpdate,
                                                                            HUpdate,
-                                                                           correctionOrder,
-                                                                           volumeType,
                                                                            epsTensile,
                                                                            nTensile,
-                                                                           limitMultimaterialTopology,
                                                                            damageRelieveRubble,
                                                                            negativePressureInDamage));
       }
@@ -502,8 +494,7 @@ template<> struct HydroConstructor<Dim<2>> {
       if (CRK) {
         return std::shared_ptr<Physics<Dim<2>>>(new SolidCRKSPHHydroBase<Dim<2>>(smoothingScaleMethod,
                                                                                  Q,
-                                                                                 W,
-                                                                                 WPi,
+                                                                                 correctionOrder,
                                                                                  filter,
                                                                                  cfl,
                                                                                  useVelocityMagnitudeForDt,
@@ -512,11 +503,8 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                                  XSPH,
                                                                                  densityUpdate,
                                                                                  HUpdate,
-                                                                                 correctionOrder,
-                                                                                 volumeType,
                                                                                  epsTensile,
                                                                                  nTensile,
-                                                                                 limitMultimaterialTopology,
                                                                                  damageRelieveRubble,
                                                                                  negativePressureInDamage));
       }

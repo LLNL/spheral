@@ -21,9 +21,6 @@ endif()
 instantiate(SPH_inst SPH_sources)
 
 set(SPH_headers
-    DamagedNodeCoupling.hh
-    DamagedNodeCouplingWithFrags.hh
-    NodeCoupling.hh
     OmegaGradhPolicy.hh
     SPHHydroBase.hh
     SPHHydroBaseGSRZ.hh
