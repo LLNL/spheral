@@ -43,8 +43,8 @@ struct RKCoefficients {
   pointer data()                                              { return coeffs.data(); }   
   iterator begin()                                            { return coeffs.begin(); }  
   iterator end()                                              { return coeffs.end(); }    
-  iterator rbegin()                                           { return coeffs.rbegin(); } 
-  iterator rend()                                             { return coeffs.rend(); }   
+  reverse_iterator rbegin()                                   { return coeffs.rbegin(); } 
+  reverse_iterator rend()                                     { return coeffs.rend(); }   
 
   const_reference at(size_type i)                       const { return coeffs.at(i); }
   const_reference operator[](size_type i)               const { return coeffs[i]; }
@@ -53,13 +53,13 @@ struct RKCoefficients {
   const_pointer data()                                  const { return coeffs.data(); }
   const_iterator begin()                                const { return coeffs.begin(); }
   const_iterator end()                                  const { return coeffs.end(); }
-  const_iterator rbegin()                               const { return coeffs.rbegin(); }
-  const_iterator rend()                                 const { return coeffs.rend(); }
+  const_reverse_iterator rbegin()                       const { return coeffs.rbegin(); }
+  const_reverse_iterator rend()                         const { return coeffs.rend(); }
   
   const_iterator cbegin()                               const { return coeffs.cbegin(); }
   const_iterator cend()                                 const { return coeffs.cend(); }
-  const_iterator crbegin()                              const { return coeffs.crbegin(); }
-  const_iterator crend()                                const { return coeffs.crend(); }
+  const_reverse_iterator crbegin()                      const { return coeffs.crbegin(); }
+  const_reverse_iterator crend()                        const { return coeffs.crend(); }
 
   void clear()                                                { coeffs.clear(); }
   bool empty()                                          const { return coeffs.empty(); }
