@@ -59,38 +59,6 @@ extractValues(const std::vector<char>& buffer) {
   return result;
 }
 
-//------------------------------------------------------------------------------
-// Copy Field values of the given DataType from control to target IDs.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-void
-copyFieldValues(NodeList<Dimension>& nodeList,
-                const std::map<std::string, std::vector<char>>& storage,
-                const std::vector<int>& controlIDs,
-                const std::vector<int>& targetIDs) {
-  REQUIRE(controlIDs.size() == targetIDs.size());
-  const auto n = controlIDs.size();
-
-  // Iterate over all the Fields defined on the NodeList.
-  for (auto fieldItr = nodeList.registeredFieldsBegin();
-       fieldItr != nodeList.registeredFieldsEnd();
-       ++fieldItr) {
-
-    // Determine if this Field is the type we're looking for.
-    if (typeid(**fieldItr) == typeid(Field<Dimension, DataType>)) {
-      auto& field = (Field<Dimension, DataType>&) **fieldItr;
-      if ((*fieldItr)->name() != HydroFieldNames::position) {
-        const auto key = StateBase<Dimension>::key(field);
-        const auto itr = storage.find(key);
-        if (itr != storage.end()) {
-          // CHECK2(itr != storage.end(), "Key not found: " << key);
-          const auto& vals = itr->second;
-
-          // Copy the requested entries.
-          for (auto k = 0; k < n; ++k) field[targetIDs[k]] = vals[controlIDs[k]];
-        }
-      }
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -384,26 +352,19 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
     if (numNew > 0) {
       nodeListAltered = true;
 
-      // cerr << "Promoting to internal: ";
-      // for (auto i: insideNodes) cerr << " : " << gNodes[0] + i << " " << pos[gNodes[0] + i];
-      // cerr << endl;
-
       // Allocate new internal nodes for those we're promoting.
       const auto firstID = nodeList.numInternalNodes();
       nodeList.numInternalNodes(firstID + numNew);
 
-      // Update the positions.
-      vector<int> newNodes(numNew);
+      // Build the map of ghost IDs --> new internal IDs
+      vector<int> fromIDs(numNew), toIDs(numNew);
       for (auto k = 0; k < numNew; ++k) {
-        newNodes[k] = firstID + k;
-        pos[firstID + k] = pos[gNodes[0] + insideNodes[k] + numNew];
+        fromIDs[k] = gNodes[0] + insideNodes[k] + numNew;
+        toIDs[k] = firstID + k;
       }
 
       // Copy all field values from ghosts to the new internal nodes.
-      storeFieldValues(nodeList, mBufferedValues, insideNodes, newNodes);
-      // for (auto k = 0; k < numNew; ++k) {
-      //   cerr << " assigning position " << newNodes[k] << " @ " << pos[newNodes[k]] << " vel=" << nodeList.velocity()[newNodes[k]] << endl;
-      // }
+      copyFieldValues(nodeList, fromIDs, toIDs);
     }
 
     // Look for any internal points that have exited through the plane.
