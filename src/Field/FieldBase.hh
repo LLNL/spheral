@@ -64,6 +64,9 @@ public:
                             const std::vector<char>& buffer) = 0;
   virtual void copyElements(const std::vector<int>& fromIndices,
                             const std::vector<int>& toIndices) = 0;
+  virtual bool fixedSizeDataType() const = 0;
+  virtual bool numValsInDataType() const = 0;
+  virtual int sizeofDataType() const = 0;
 
 //   // Methods to support cacheing of coarse and refine neighbor values.
 //   void notifyNewCoarseNodes() const;

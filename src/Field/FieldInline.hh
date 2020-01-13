@@ -1304,6 +1304,39 @@ copyElements(const std::vector<int>& fromIndices,
 }
 
 //------------------------------------------------------------------------------
+// fixedSizeDataType
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+bool
+Field<Dimension, DataType>::
+fixedSizeDataType() const {
+  return DataTypeTraits<DataType>::fixedSize();
+}
+
+//------------------------------------------------------------------------------
+// numValsInDataType
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+int
+Field<Dimension, DataType>::
+numValsInDataType() const {
+  return DataTypeTraits<DataType>::numElements(DataType());
+}
+
+//------------------------------------------------------------------------------
+// sizeofDataType
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+int
+Field<Dimension, DataType>::
+sizeofDataType() const {
+  return sizeof(DataTypeTraits<DataType>::zero());
+}
+
+//------------------------------------------------------------------------------
 // Pack the Field into a string.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>

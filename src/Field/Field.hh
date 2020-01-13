@@ -205,7 +205,7 @@ public:
   DataType& operator[](const unsigned int index);
   const DataType& operator[](const unsigned int index) const;
 
-  // Required functions to control size of fields.
+  // Required functions from FieldBase
   virtual void setNodeList(const NodeList<Dimension>& nodeList);
   virtual void resizeField(unsigned size);
   virtual void resizeFieldInternal(unsigned size, unsigned oldFirstGhostNode);
@@ -217,6 +217,9 @@ public:
                             const std::vector<char>& buffer);
   virtual void copyElements(const std::vector<int>& fromIndices,
                             const std::vector<int>& toIndices);
+  virtual bool fixedSizeDataType() const override;
+  virtual bool numValsInDataType() const override;
+  virtual int sizeofDataType() const override;
 
   // Methods to use the iostream methods converting a Field to/from a string.
   std::string string(const int precision = 20) const;
