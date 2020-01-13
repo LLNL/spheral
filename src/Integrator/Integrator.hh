@@ -110,6 +110,9 @@ public:
   // Add a Physics package.
   void appendPhysicsPackage(Physics<Dimension>& package);
 
+  // Reset the Physics packages to a new set
+  void resetPhysicsPackages(std::vector<Physics<Dimension>*>& packages);
+
   // Test if the given Physics package is listed in the integrator.
   bool havePhysicsPackage(const Physics<Dimension>& package) const;
 

@@ -16,6 +16,8 @@
 #include <tuple>
 #include "DataTypeTraits.hh"
 #include "Utilities/DomainNode.hh"
+#include "RK/RKCorrectionParams.hh"
+#include "RK/RKCoefficients.hh"
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -216,6 +218,27 @@ packElement(const std::vector<DataType>& value,
        ++itr) {
     packElement(*itr, buffer);
   }
+}
+
+
+
+// RKOrder
+template<>
+inline
+void
+packElement(const RKOrder& value,
+            std::vector<char>& buffer) {
+  packElement(static_cast<int>(value), buffer);
+}
+
+// RKCoefficients<Dimension>
+template<typename Dimension>
+inline
+void
+packElement(const RKCoefficients<Dimension>& value,
+            std::vector<char>& buffer) {
+  packElement(value.correctionOrder, buffer);
+  packElement(value.coeffs, buffer);
 }
 
 //------------------------------------------------------------------------------
@@ -439,6 +462,31 @@ unpackElement(std::vector<DataType>& value,
     value.push_back(element);
   }
 
+  ENSURE(itr <= endPackedVector);
+}
+
+// RKOrder
+template<>
+inline
+void
+unpackElement(RKOrder& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  int iorder;
+  unpackElement(iorder, itr, endPackedVector);
+  value = static_cast<RKOrder>(iorder);
+  ENSURE(itr <= endPackedVector);
+}
+
+// RKCoeffients
+template<typename Dimension>
+inline
+void
+unpackElement(RKCoefficients<Dimension>& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.correctionOrder, itr, endPackedVector);
+  unpackElement(value.coeffs, itr, endPackedVector);
   ENSURE(itr <= endPackedVector);
 }
 

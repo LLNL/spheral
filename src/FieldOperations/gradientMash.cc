@@ -467,7 +467,7 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
           }
           Wij *= a(masterItr) + b(masterItr)*rij.x();
           gradWij = ((a(masterItr) + b(masterItr)*rij.x())*gradWij -
-                     b(masterItr)*Wij);
+                     Vector(b(masterItr)*Wij));
 
           // Add this nodes contribution to the master value.
           normalization += weightj*Wij;

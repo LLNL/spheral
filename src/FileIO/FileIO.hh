@@ -27,6 +27,7 @@ namespace Spheral {
 template<typename Dimension> class GeomPlane;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> struct RKCoefficients;
 
 // Define the standard file access types.
 enum class AccessType {
@@ -177,6 +178,10 @@ public:
   virtual std::string read_string(const std::string pathName) const    { std::string result; this->read(result, pathName); return result; }
 
 #ifdef SPHERAL1D
+  // RKCoefficients
+  virtual void write(const Field<Dim<1>, RKCoefficients<Dim<1>>>& value, const std::string pathName)      { this->writeFieldBlob(value, pathName); }
+  virtual void read(Field<Dim<1>, RKCoefficients<Dim<1>>>& value, const std::string pathName) const       { this->readFieldBlob(value, pathName); }
+
   // FieldLists
   virtual void write(const FieldList<Dim<1>, Dim<1>::Scalar>& value, const std::string pathName)          { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<1>, Dim<1>::Vector>& value, const std::string pathName)          { this->writeFieldList(value, pathName); }
@@ -184,6 +189,7 @@ public:
   virtual void write(const FieldList<Dim<1>, Dim<1>::SymTensor>& value, const std::string pathName)       { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<1>, Dim<1>::ThirdRankTensor>& value, const std::string pathName) { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<1>, int>& value, const std::string pathName)                     { this->writeFieldList(value, pathName); }
+  virtual void write(const FieldList<Dim<1>, RKCoefficients<Dim<1>>>& value, const std::string pathName)  { this->writeFieldList(value, pathName); }
 
   virtual void read(FieldList<Dim<1>, Dim<1>::Scalar>& value, const std::string pathName) const           { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<1>, Dim<1>::Vector>& value, const std::string pathName) const           { this->readFieldList(value, pathName); }
@@ -191,6 +197,7 @@ public:
   virtual void read(FieldList<Dim<1>, Dim<1>::SymTensor>& value, const std::string pathName) const        { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<1>, Dim<1>::ThirdRankTensor>& value, const std::string pathName) const  { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<1>, int>& value, const std::string pathName) const                      { this->readFieldList(value, pathName); }
+  virtual void read(FieldList<Dim<1>, RKCoefficients<Dim<1>>>& value, const std::string pathName) const   { this->readFieldList(value, pathName); }
 
   // Fields of vectors
   virtual void write(const Field<Dim<1>, std::vector<Dim<1>::Scalar>>& value, const std::string pathName)          { this->writeFieldVector(value, pathName); }
@@ -224,6 +231,10 @@ public:
 #endif
 
 #ifdef SPHERAL2D
+  // RKCoefficients
+  virtual void write(const Field<Dim<2>, RKCoefficients<Dim<2>>>& value, const std::string pathName)      { this->writeFieldBlob(value, pathName); }
+  virtual void read(Field<Dim<2>, RKCoefficients<Dim<2>>>& value, const std::string pathName) const       { this->readFieldBlob(value, pathName); }
+
   // FieldLists
   virtual void write(const FieldList<Dim<2>, Dim<2>::Scalar>& value, const std::string pathName)          { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<2>, Dim<2>::Vector>& value, const std::string pathName)          { this->writeFieldList(value, pathName); }
@@ -231,6 +242,7 @@ public:
   virtual void write(const FieldList<Dim<2>, Dim<2>::SymTensor>& value, const std::string pathName)       { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<2>, Dim<2>::ThirdRankTensor>& value, const std::string pathName) { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<2>, int>& value, const std::string pathName)                     { this->writeFieldList(value, pathName); }
+  virtual void write(const FieldList<Dim<2>, RKCoefficients<Dim<2>>>& value, const std::string pathName)  { this->writeFieldList(value, pathName); }
 
   virtual void read(FieldList<Dim<2>, Dim<2>::Scalar>& value, const std::string pathName) const           { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<2>, Dim<2>::Vector>& value, const std::string pathName) const           { this->readFieldList(value, pathName); }
@@ -238,6 +250,7 @@ public:
   virtual void read(FieldList<Dim<2>, Dim<2>::SymTensor>& value, const std::string pathName) const        { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<2>, Dim<2>::ThirdRankTensor>& value, const std::string pathName) const  { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<2>, int>& value, const std::string pathName) const                      { this->readFieldList(value, pathName); }
+  virtual void read(FieldList<Dim<2>, RKCoefficients<Dim<2>>>& value, const std::string pathName) const   { this->readFieldList(value, pathName); }
 
   // Fields of vectors
   virtual void write(const Field<Dim<2>, std::vector<Dim<2>::Scalar>>& value, const std::string pathName)          { this->writeFieldVector(value, pathName); }
@@ -271,6 +284,10 @@ public:
 #endif
 
 #ifdef SPHERAL3D
+  // RKCoefficients
+  virtual void write(const Field<Dim<3>, RKCoefficients<Dim<3>>>& value, const std::string pathName)      { this->writeFieldBlob(value, pathName); }
+  virtual void read(Field<Dim<3>, RKCoefficients<Dim<3>>>& value, const std::string pathName) const       { this->readFieldBlob(value, pathName); }
+
   // FieldLists
   virtual void write(const FieldList<Dim<3>, Dim<3>::Scalar>& value, const std::string pathName)          { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<3>, Dim<3>::Vector>& value, const std::string pathName)          { this->writeFieldList(value, pathName); }
@@ -278,6 +295,7 @@ public:
   virtual void write(const FieldList<Dim<3>, Dim<3>::SymTensor>& value, const std::string pathName)       { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<3>, Dim<3>::ThirdRankTensor>& value, const std::string pathName) { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<3>, int>& value, const std::string pathName)                     { this->writeFieldList(value, pathName); }
+  virtual void write(const FieldList<Dim<3>, RKCoefficients<Dim<3>>>& value, const std::string pathName)  { this->writeFieldList(value, pathName); }
 
   virtual void read(FieldList<Dim<3>, Dim<3>::Scalar>& value, const std::string pathName) const           { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<3>, Dim<3>::Vector>& value, const std::string pathName) const           { this->readFieldList(value, pathName); }
@@ -285,6 +303,7 @@ public:
   virtual void read(FieldList<Dim<3>, Dim<3>::SymTensor>& value, const std::string pathName) const        { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<3>, Dim<3>::ThirdRankTensor>& value, const std::string pathName) const  { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<3>, int>& value, const std::string pathName) const                      { this->readFieldList(value, pathName); }
+  virtual void read(FieldList<Dim<3>, RKCoefficients<Dim<3>>>& value, const std::string pathName) const   { this->readFieldList(value, pathName); }
 
   // Fields of vectors
   virtual void write(const Field<Dim<3>, std::vector<Dim<3>::Scalar>>& value, const std::string pathName)          { this->writeFieldVector(value, pathName); }
@@ -377,6 +396,10 @@ private:
   // Private methods to help with std::vector specializations
   template<typename Value> void writeVector(const std::vector<Value>& x, const std::string pathName);
   template<typename Value> void readVector(std::vector<Value>& x, const std::string pathName) const;
+
+  // Fields of serializable values
+  template<typename Dimension, typename DataType> void writeFieldBlob(const Field<Dimension, DataType>& value, const std::string pathName);
+  template<typename Dimension, typename DataType> void readFieldBlob(Field<Dimension, DataType>& value, const std::string pathName) const;
 
   // Write/read FieldLists.
   template<typename Dimension, typename DataType> void writeFieldList(const FieldList<Dimension, DataType>& fieldList, const std::string pathName);

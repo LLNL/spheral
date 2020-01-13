@@ -24,8 +24,7 @@ class SolidCRKSPHHydroBase(CRKSPHHydroBase):
     def pyinit(self,
                smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
-               W = "const TableKernel<%(Dimension)s>&",
-               WPi = "const TableKernel<%(Dimension)s>&",
+               order = "const RKOrder",
                filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
@@ -34,11 +33,8 @@ class SolidCRKSPHHydroBase(CRKSPHHydroBase):
                XSPH = "const bool",
                densityUpdate = "const MassDensityType",
                HUpdate = "const HEvolutionType",
-               correctionOrder = "const RKOrder",
-               volumeType = "const RKVolumeType",
                epsTensile = "const double",
                nTensile = "const double",
-               limitMultimaterialTopology = "const bool",
                damageRelieveRubble = "const bool",
                negativePressureInDamage = "const bool"):
         "Constructor"

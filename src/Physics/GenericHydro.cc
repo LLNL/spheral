@@ -77,15 +77,11 @@ vec_to_string(const Vector& vec) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 GenericHydro<Dimension>::
-GenericHydro(const TableKernel<Dimension>& W,
-             const TableKernel<Dimension>& WPi,
-             ArtificialViscosity<Dimension>& Q,
+GenericHydro(ArtificialViscosity<Dimension>& Q,
              const double cfl,
              const bool useVelocityMagnitudeForDt):
   Physics<Dimension>(),
   mArtificialViscosity(Q),
-  mKernel(W),
-  mPiKernel(WPi),
   mCfl(cfl),
   mUseVelocityMagnitudeForDt(useVelocityMagnitudeForDt),
   mMinMasterNeighbor(INT_MAX),

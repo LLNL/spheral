@@ -4,8 +4,9 @@
 //
 // Created by JMO, Fri Aug  9 15:24:04 PDT 2013
 //----------------------------------------------------------------------------//
-#include "SVPHCorrectionsPolicy.hh"
-#include "computeSVPHCorrections.hh"
+#include "SVPH/SVPHCorrectionsPolicy.hh"
+#include "SVPH/computeSVPHCorrections.hh"
+#include "SVPH/SVPHFieldNames.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -56,9 +57,9 @@ update(const KeyType& key,
 
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  const KeyType Akey = StateBase<Dimension>::buildFieldKey(HydroFieldNames::A_CRKSPH, nodeListKey);
-  const KeyType Bkey = StateBase<Dimension>::buildFieldKey(HydroFieldNames::B_CRKSPH, nodeListKey);
-  const KeyType gradBkey = StateBase<Dimension>::buildFieldKey(HydroFieldNames::gradB_CRKSPH, nodeListKey);
+  const KeyType Akey = StateBase<Dimension>::buildFieldKey(SVPHFieldNames::A_SVPH, nodeListKey);
+  const KeyType Bkey = StateBase<Dimension>::buildFieldKey(SVPHFieldNames::B_SVPH, nodeListKey);
+  const KeyType gradBkey = StateBase<Dimension>::buildFieldKey(SVPHFieldNames::gradB_SVPH, nodeListKey);
 
   Field<Dimension, Scalar>& A = state.field(Akey, 0.0);
   Field<Dimension, Vector>& B = state.field(Bkey, Vector::zero);

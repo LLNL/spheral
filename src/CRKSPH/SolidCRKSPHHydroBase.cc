@@ -4,15 +4,10 @@
 // Created by JMO, Fri Jul 30 11:07:33 PDT 2010
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "CRKSPHHydroBase.hh"
-#include "CRKSPHUtilities.hh"
-#include "volumeSpacing.hh"
-#include "RK/computeHullVolumes.hh"
-#include "RK/computeRKSumVolume.hh"
-#include "computeCRKSPHMoments.hh"
-#include "computeCRKSPHCorrections.hh"
-#include "computeCRKSPHSumMassDensity.hh"
-#include "gradientCRKSPH.hh"
+#include "CRKSPH/CRKSPHHydroBase.hh"
+#include "RK/ReproducingKernel.hh"
+#include "RK/RKFieldNames.hh"
+#include "CRKSPH/computeCRKSPHSumMassDensity.hh"
 #include "Physics/GenericHydro.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -39,7 +34,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
-#include "SPH/DamagedNodeCouplingWithFrags.hh"
+#include "Utilities/DamagedNodeCouplingWithFrags.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 
 #include "SolidCRKSPHHydroBase.hh"
@@ -110,8 +105,7 @@ template<typename Dimension>
 SolidCRKSPHHydroBase<Dimension>::
 SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                      ArtificialViscosity<Dimension>& Q,
-                     const TableKernel<Dimension>& W,
-                     const TableKernel<Dimension>& WPi,
+                     const RKOrder order,
                      const double filter,
                      const double cfl,
                      const bool useVelocityMagnitudeForDt,
@@ -120,17 +114,13 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                      const bool XSPH,
                      const MassDensityType densityUpdate,
                      const HEvolutionType HUpdate,
-                     const RKOrder correctionOrder,
-                     const RKVolumeType volumeType,
                      const double epsTensile,
                      const double nTensile,
-                     const bool limitMultimaterialTopology,
                      const bool damageRelieveRubble,
                      const bool negativePressureInDamage):
   CRKSPHHydroBase<Dimension>(smoothingScaleMethod, 
                              Q,
-                             W,
-                             WPi,
+                             order,
                              filter,
                              cfl,
                              useVelocityMagnitudeForDt,
@@ -139,11 +129,8 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                              XSPH,
                              densityUpdate,
                              HUpdate,
-                             correctionOrder,
-                             volumeType,
                              epsTensile,
-                             nTensile,
-                             limitMultimaterialTopology),
+                             nTensile),
   mDamageRelieveRubble(damageRelieveRubble),
   mNegativePressureInDamage(negativePressureInDamage),
   mDdeviatoricStressDt(FieldStorageType::CopyFields),
@@ -183,7 +170,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   size_t nodeListi = 0;
   for (auto itr = dataBase.solidNodeListBegin();
-       itr != dataBase.solidNodeListEnd();
+       itr < dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
 
     // Set the moduli.
@@ -303,17 +290,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto& Q = this->artificialViscosity();
 
   // The kernels and such.
-  const auto& W = this->kernel();
-  const auto& WQ = this->PiKernel();
-  const auto& smoothingScaleMethod = this->smoothingScaleMethod();
+  const auto  order = this->correctionOrder();
+  const auto& WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(order));
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;
-  const auto compatibleEnergy = this->compatibleEnergyEvolution();
-  const auto evolveTotalEnergy = this->evolveTotalEnergy();
-  const auto XSPH = this->XSPH();
-  const auto order = this->correctionOrder();
-  const auto damageRelieveRubble = this->damageRelieveRubble();
+  const auto  compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto  evolveTotalEnergy = this->evolveTotalEnergy();
+  const auto  XSPH = this->XSPH();
+  const auto  damageRelieveRubble = this->damageRelieveRubble();
+  const auto& smoothingScaleMethod = this->smoothingScaleMethod();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -339,12 +325,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  const auto A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
-  const auto B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-  const auto C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
-  const auto gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
-  const auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-  const auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  const auto corrections = state.fields(RKFieldNames::rkCorrections(order), RKCoefficients<Dimension>());
   const auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -360,12 +341,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradDamage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
-  CHECK(A.size() == numNodeLists);
-  CHECK(B.size() == numNodeLists);
-  CHECK(C.size() == numNodeLists or order != RKOrder::QuadraticOrder);
-  CHECK(gradA.size() == numNodeLists);
-  CHECK(gradB.size() == numNodeLists);
-  CHECK(gradC.size() == numNodeLists or order != RKOrder::QuadraticOrder);
+  CHECK(corrections.size() == numNodeLists);
   CHECK(surfacePoint.size() == numNodeLists);
 
   // Derivative FieldLists.
@@ -412,17 +388,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   {
     // Thread private scratch variables
     int i, j, nodeListi, nodeListj;
-    Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
+    Scalar Wi, gWi, Wj, gWj;
     Tensor QPiij, QPiji;
-    Scalar Ai, Aj;
-    Vector gradAi, gradAj, forceij, forceji;
-    Vector Bi = Vector::zero, Bj = Vector::zero;
-    Tensor Ci = Tensor::zero, Cj = Tensor::zero;
-    Tensor gradBi = Tensor::zero, gradBj = Tensor::zero;
-    ThirdRankTensor gradCi = ThirdRankTensor::zero, gradCj = ThirdRankTensor::zero;
     Scalar Pposi, Pnegi, Pposj, Pnegj;
-    Vector gradWi, gradWj, gradW0i, gradW0j, gradWSPHi, gradWSPHj;
-    Vector deltagrad;
+    Vector gradWi, gradWj, gradWSPHi, gradWSPHj;
+    Vector deltagrad, forceij, forceji;
     SymTensor sigmai, sigmaj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
@@ -456,21 +426,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto  ci = soundSpeed(nodeListi, i);
       const auto& Si = S(nodeListi, i);
       const auto  pTypei = pTypes(nodeListi, i);
-      Ai = A(nodeListi, i);
-      gradAi = gradA(nodeListi, i);
-      if (order != RKOrder::ZerothOrder) {
-        Bi = B(nodeListi, i);
-        gradBi = gradB(nodeListi, i);
-      }
-      if (order == RKOrder::QuadraticOrder) {
-        Ci = C(nodeListi, i);
-        gradCi = gradC(nodeListi, i);
-      }
-      const auto Hdeti = Hi.Determinant();
-      const auto weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
+      const auto& correctionsi = corrections(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      const auto  weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
-      CHECK(Ai > 0.0);
       CHECK(Hdeti > 0.0);
       CHECK(weighti > 0.0);
 
@@ -494,18 +454,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto  Pj = pressure(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto  cj = soundSpeed(nodeListj, j);
-      const auto  pTypej = pTypes(nodeListj, j);
-      Aj = A(nodeListj, j);
-      gradAj = gradA(nodeListj, j);
-      if (order != RKOrder::ZerothOrder) {
-        Bj = B(nodeListj, j);
-        gradBj = gradB(nodeListj, j);
-      }
-      if (order == RKOrder::QuadraticOrder) {
-        Cj = C(nodeListj, j);
-        gradCj = gradC(nodeListj, j);
-      }
       const auto& Sj = S(nodeListj, j);
+      const auto  pTypej = pTypes(nodeListj, j);
+      const auto& correctionsj = corrections(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
       const auto  weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
       CHECK(mj > 0.0);
@@ -528,29 +479,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto rij = ri - rj;
       const auto etai = Hi*rij;
       const auto etaj = Hj*rij;
-      const auto etaMagi = etai.magnitude();
-      const auto etaMagj = etaj.magnitude();
-      CHECK(etaMagi >= 0.0);
-      CHECK(etaMagj >= 0.0);
       const auto vij = vi - vj;
 
       // Flag if at least one particle is free (0).
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
       // Symmetrized kernel weight and gradient.
-      CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi);
-      CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj);
+      std::tie(Wj, gradWj, gWj) = WR.evaluateKernelAndGradients( rij, Hj, correctionsi);  // Hj because we compute RK using scatter formalism
+      std::tie(Wi, gradWi, gWi) = WR.evaluateKernelAndGradients(-rij, Hi, correctionsj);
       deltagrad = gradWj - gradWi;
-      gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
-      gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
+      gradWSPHi = (Hi*etai.unitVector())*gWi;
+      gradWSPHj = (Hj*etaj.unitVector())*gWj;
 
       // Find the damaged pair weighting scaling.
       const auto fij = coupling(nodeListi, i, nodeListj, j);
       CHECK(fij >= 0.0 and fij <= 1.0);
-
-      // // Find the effective weights of i->j and j->i.
-      // // const auto wi = 2.0*weighti*weightj/(weighti + weightj);
-      // const auto wij = 0.5*(weighti + weightj);
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -721,7 +664,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                        ri,
                                                        weightedNeighborSumi,
                                                        massSecondMomenti,
-                                                       W,
+                                                       WR.kernel(),
                                                        hmin,
                                                        hmax,
                                                        hminratio,

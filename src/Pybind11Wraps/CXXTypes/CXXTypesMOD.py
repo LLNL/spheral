@@ -2,8 +2,12 @@
 # STL containers of primitives
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
+from spheralDimensions import *
+dims = spheralDimensions()
 
-PYB11includes = ["<vector>",
+PYB11includes = ['"Geometry/Dimension.hh"',
+                 '"RK/RKCoefficients.hh"',
+                 "<vector>",
                  "<map>",
                  "<set>",
                  "<string>",
@@ -65,3 +69,11 @@ class pair:
 
 # std::pair
 pair_double_string = PYB11TemplateClass(pair, template_parameters=("double", "std::string"))
+
+# RKCoefficients
+
+for ndim in dims:
+    exec('''
+vector_of_RKCoefficients%(ndim)id = PYB11_bind_vector("Spheral::RKCoefficients<%(Dimension)s>", opaque=True, local=False)
+''' % {"ndim"      : ndim,
+       "Dimension" : "Spheral::Dim<" + str(ndim) + ">"})

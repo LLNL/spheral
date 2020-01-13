@@ -9,7 +9,6 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
-from NodeCoupling import *
 from SPHHydroBase import *
 from PSPHHydroBase import *
 from SolidSPHHydroBase import *
@@ -25,9 +24,9 @@ PYB11includes += ['"SPH/SPHHydroBase.hh"',
                   '"SPH/SPHHydroBaseGSRZ.hh"',
                   '"SPH/SolidSPHHydroBase.hh"',
                   '"SPH/SolidSPHHydroBaseRZ.hh"',
-                  '"SPH/NodeCoupling.hh"',
-                  '"SPH/DamagedNodeCoupling.hh"',
-                  '"SPH/DamagedNodeCouplingWithFrags.hh"',
+                  '"Utilities/NodeCoupling.hh"',
+                  '"Utilities/DamagedNodeCoupling.hh"',
+                  '"Utilities/DamagedNodeCouplingWithFrags.hh"',
                   '"FileIO/FileIO.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"']
 
@@ -64,9 +63,6 @@ def computeSPHOmegaGradhCorrection(connectivityMap = "const ConnectivityMap<%(Di
 #-------------------------------------------------------------------------------
 for ndim in dims:
     exec('''
-DamagedNodeCoupling%(ndim)id = PYB11TemplateClass(DamagedNodeCoupling, template_parameters="%(Dimension)s")
-DamagedNodeCouplingWithFrags%(ndim)id = PYB11TemplateClass(DamagedNodeCouplingWithFrags, template_parameters="%(Dimension)s")
-
 SPHHydroBase%(ndim)id = PYB11TemplateClass(SPHHydroBase, template_parameters="%(Dimension)s")
 PSPHHydroBase%(ndim)id = PYB11TemplateClass(PSPHHydroBase, template_parameters="%(Dimension)s")
 SolidSPHHydroBase%(ndim)id = PYB11TemplateClass(SolidSPHHydroBase, template_parameters="%(Dimension)s")
