@@ -218,7 +218,7 @@ public:
   virtual void copyElements(const std::vector<int>& fromIndices,
                             const std::vector<int>& toIndices);
   virtual bool fixedSizeDataType() const override;
-  virtual bool numValsInDataType() const override;
+  virtual int numValsInDataType() const override;
   virtual int sizeofDataType() const override;
 
   // Methods to use the iostream methods converting a Field to/from a string.

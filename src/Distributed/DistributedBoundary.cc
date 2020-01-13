@@ -1272,7 +1272,7 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     // Make sure everyone has the same number of exchange fields.
     const int nProcs = numDomains();
     const int procID = domainID();
-    const int nFields = mExchangeFields.size();
+    int nFields = mExchangeFields.size();
     MPI_Bcast(&nFields, 1, MPI_INT, 0, Communicator::communicator());
     REQUIRE(nFields == mExchangeFields.size())
     REQUIRE(mSendBuffers.size() <= nFields);

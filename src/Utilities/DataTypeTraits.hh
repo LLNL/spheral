@@ -458,7 +458,7 @@ template<>
 struct DataTypeTraits<RKOrder> {
   typedef int ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const RKOrder& x) { 1; }
+  static int numElements(const RKOrder& x) { return 1; }
   static RKOrder zero() { return RKOrder::ZerothOrder; }
 };
 
