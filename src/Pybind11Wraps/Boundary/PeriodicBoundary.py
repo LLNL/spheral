@@ -54,6 +54,31 @@ class PeriodicBoundary(PlanarBoundary):
         "Label for restart files"
         return "std::string"
 
+    #............................................................................
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11const
+    def applyGhostBoundary0(self,
+                            fieldBase = "FieldBase<%(Dimension)s>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary9(self,
+                            field = "Field<%(Dimension)s, FacetedVolume>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    #............................................................................
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary9(self,
+                         field = "Field<%(Dimension)s, FacetedVolume>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
     #...........................................................................
     # Properties
     enterPlane = PYB11property("const Plane&", "enterPlane", "setEnterPlane", doc="The first plane for periodic wrapping")

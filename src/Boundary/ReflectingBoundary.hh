@@ -46,6 +46,7 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const;
 
   // Apply the boundary condition to the violation node values in the given Field.
   virtual void enforceBoundary(Field<Dimension, Vector>& field) const override;
@@ -55,6 +56,7 @@ public:
   virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const;
 
   // Apply the boundary condition to face centered fields on a tessellation.
   virtual void enforceBoundary(std::vector<int>& faceField, const Mesh<Dimension>& mesh) const override;
@@ -71,10 +73,6 @@ public:
                               const Mesh<Dimension>& mesh) const override;
   virtual void swapFaceValues(Field<Dimension, std::vector<Vector> >& field,
                               const Mesh<Dimension>& mesh) const override;
-
-  // We have to handle RK coefficients specially
-  virtual void applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const;
-  virtual void enforceBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const;
 
   // Allow read only access to the reflection operators.
   const Tensor& reflectOperator() const;

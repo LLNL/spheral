@@ -9,6 +9,7 @@
 #include "Geometry/innerProduct.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "Utilities/DBC.hh"
+#include "RK/ReproducingKernelMethods.hh"
 
 #include "CylindricalBoundary.hh"
 
@@ -228,42 +229,6 @@ updateGhostNodes(NodeList<Dim<3> >& nodeList) {
 //------------------------------------------------------------------------------
 // Apply the ghost boundary condition to fields of different DataTypes.
 //------------------------------------------------------------------------------
-// Specialization for int fields, just perform a copy.
-void
-CylindricalBoundary::
-applyGhostBoundary(Field<Dim<3>, int>& field) const {
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
-  for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
-  }
-}
-
-// Specialization for scalar fields, just perform a copy.
-void
-CylindricalBoundary::
-applyGhostBoundary(Field<Dim<3>, Dim<3>::Scalar>& field) const {
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
-  for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
-  }
-}
-
 // Specialization for Vector fields.
 void
 CylindricalBoundary::
@@ -468,21 +433,56 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::FacetedVolume>& field) const {
   }
 }
 
-// Specialization for vector<scalar> fields, just perform a copy.
+// Specialization for RKCoefficients fields
 void
 CylindricalBoundary::
-applyGhostBoundary(Field<Dim<3>, std::vector<Dim<3>::Scalar> >& field) const {
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
+applyGhostBoundary(Field<Dim<3>, RKCoefficients<Dim<3>>>& field) const {
+  const auto& nodeList = field.nodeList();
   CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
-  for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
+  if (not ghostNodes(nodeList).empty()) {
+
+    // Figure out the order of the corrections
+    ReproducingKernelMethods<Dim<3>> WR(RKOrder::ZerothOrder);
+    switch (field[0].size()) {
+    case RKUtilities<Dimension, RKOrder::ZerothOrder>::gradPolynomialSize:
+      break;
+    case RKUtilities<Dimension, RKOrder::LinearOrder>::gradPolynomialSize:
+      WR = ReproducingKernelMethods<Dim<3>>(RKOrder::LinearOrder);
+      break;
+    case RKUtilities<Dimension, RKOrder::QuadraticOrder>::gradPolynomialSize:
+      WR = ReproducingKernelMethods<Dim<3>>(RKOrder::QuadraticOrder);
+      break;
+    case RKUtilities<Dimension, RKOrder::CubicOrder>::gradPolynomialSize:
+      WR = ReproducingKernelMethods<Dim<3>>(RKOrder::CubicOrder);
+      break;
+    case RKUtilities<Dimension, RKOrder::QuarticOrder>::gradPolynomialSize:
+      WR = ReproducingKernelMethods<Dim<3>>(RKOrder::QuarticOrder);
+      break;
+    case RKUtilities<Dimension, RKOrder::QuinticOrder>::gradPolynomialSize:
+      WR = ReproducingKernelMethods<Dim<3>>(RKOrder::QuinticOrder);
+      break;
+    case RKUtilities<Dimension, RKOrder::SexticOrder>::gradPolynomialSize:
+      WR = ReproducingKernelMethods<Dim<3>>(RKOrder::SexticOrder);
+      break;
+    case RKUtilities<Dimension, RKOrder::SepticOrder>::gradPolynomialSize:
+      WR = ReproducingKernelMethods<Dim<3>>(RKOrder::SepticOrder);
+      break;
+    default:
+      VERIFY2(false, "Cylindrical boundary ERROR: unknown order for RKCoefficients");
+    };
+
+    const auto& position = nodeList.positions();
+    auto controlItr = controlBegin(nodeList);
+    auto ghostItr = ghostBegin(nodeList);
+    for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
+      CHECK(ghostItr < ghostEnd(nodeList));
+      CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
+      CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+      field(*ghostItr) = field(*controlItr);
+      const auto R = reflectOperator(position(*controlItr), position(*ghostItr));
+      const auto T = WR.transformationMatrix(R, false);
+      WR.applyTransformation(T, field(*ghostItr));
+    }
   }
 }
 
@@ -553,18 +553,6 @@ updateViolationNodes(NodeList<Dim<3> >& nodeList) {
 // Enforce consistency with the boundary condition on fields of different
 // DataTypes.
 //------------------------------------------------------------------------------
-// Specialization for int fields, no-op.
-void
-CylindricalBoundary::
-enforceBoundary(Field<Dim<3>, int>& field) const {
-}
-
-// Specialization for scalar fields, no-op.
-void
-CylindricalBoundary::
-enforceBoundary(Field<Dim<3>, Dim<3>::Scalar>& field) const {
-}
-
 // Specialization for Vector fields, forcing Vector's to lie in the xy plane.
 void
 CylindricalBoundary::
@@ -619,29 +607,6 @@ enforceBoundary(Field<Dim<3>, Dim<3>::SymTensor>& field) const {
   }
 }
 
-// Specialization for ThirdRankTensor fields.  Duh?
-void
-CylindricalBoundary::
-enforceBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field) const {
-}
-
-// Specialization for FourthRankTensor fields.  Duh?
-void
-CylindricalBoundary::
-enforceBoundary(Field<Dim<3>, Dim<3>::FourthRankTensor>& field) const {
-}
-
-// Specialization for FifthRankTensor fields.  Duh?
-void
-CylindricalBoundary::
-enforceBoundary(Field<Dim<3>, Dim<3>::FifthRankTensor>& field) const {
-}
-
-// Specialization for FacetedVolume, no-op.
-void
-CylindricalBoundary::
-enforceBoundary(Field<Dim<3>, Dim<3>::FacetedVolume>& field) const {
-}
 
 //------------------------------------------------------------------------------
 // Compute the target azimuthal angular spacing.

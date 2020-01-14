@@ -276,6 +276,7 @@ struct DataTypeTraits<Dim<1>::FifthRankTensor> {
 template<>
 struct DataTypeTraits<Dim<1>::FacetedVolume> {
   static bool fixedSize() { return false; }
+  static int numElements(const Dim<1>::FacetedVolume) { return 0; }
   static Dim<1>::FacetedVolume zero() { return Dim<1>::FacetedVolume(); }
 };
 
@@ -349,6 +350,7 @@ struct DataTypeTraits<Dim<2>::FifthRankTensor> {
 template<>
 struct DataTypeTraits<Dim<2>::FacetedVolume> {
   static bool fixedSize() { return false; }
+  static int numElements(const Dim<2>::FacetedVolume) { return 0; }
   static Dim<2>::FacetedVolume zero() { return Dim<2>::FacetedVolume(); }
 };
 
@@ -422,6 +424,7 @@ struct DataTypeTraits<Dim<3>::FifthRankTensor> {
 template<>
 struct DataTypeTraits<Dim<3>::FacetedVolume> {
   static bool fixedSize() { return false; }
+  static int numElements(const Dim<3>::FacetedVolume) { return 0; }
   static Dim<3>::FacetedVolume zero() { return Dim<3>::FacetedVolume(); }
 };
 

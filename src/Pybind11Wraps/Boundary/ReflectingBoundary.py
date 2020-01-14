@@ -22,7 +22,7 @@ class ReflectingBoundary(PlanarBoundary):
     typedef GeomPlane<%(Dimension)s> Plane;
 """
 
-    #...........................................................................
+    #............................................................................
     # Constructors
     def pyinit(self):
         "Default constructor"
@@ -31,9 +31,146 @@ class ReflectingBoundary(PlanarBoundary):
                 plane = "const Plane&"):
         "Construct with the reflecting plane"
 
+    #............................................................................
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary3(self,
+                            field = "Field<%(Dimension)s, Vector>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary4(self,
+                            field = "Field<%(Dimension)s, Tensor>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary5(self,
+                            field = "Field<%(Dimension)s, SymTensor>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary6(self,
+                            field = "Field<%(Dimension)s, ThirdRankTensor>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary7(self,
+                            field = "Field<%(Dimension)s, FourthRankTensor>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary8(self,
+                            field = "Field<%(Dimension)s, FifthRankTensor>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+    
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary9(self,
+                            field = "Field<%(Dimension)s, FacetedVolume>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary10(self,
+                             field = "Field<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    #............................................................................
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary3(self,
+                         field = "Field<%(Dimension)s, Vector>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary4(self,
+                         field = "Field<%(Dimension)s, Tensor>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary5(self,
+                         field = "Field<%(Dimension)s, SymTensor>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary6(self,
+                         field = "Field<%(Dimension)s, ThirdRankTensor>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary7(self,
+                         field = "Field<%(Dimension)s, FourthRankTensor>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary8(self,
+                         field = "Field<%(Dimension)s, FifthRankTensor>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+    
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary9(self,
+                         field = "Field<%(Dimension)s, FacetedVolume>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary10(self,
+                          field = "Field<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    #...........................................................................
+    def rkReflectOperator(self,
+                          order = "const RKOrder",
+                          useHessian = "const bool"):
+        "The special reflection operator for RKCoefficients"
+        return "ReflectingBoundary<%(Dimension)s>::TransformationMatrix"
+
     #...........................................................................
     # Properties
-    reflectOperator = PYB11property("const Tensor&", "reflectOperator", doc="The tensor reflection transformation")
+    reflectOperator = PYB11property(doc="The tensor reflection transformation")
 
 #-------------------------------------------------------------------------------
 # Inject methods

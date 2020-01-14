@@ -61,6 +61,23 @@ copyFieldValues(const NodeList<Dimension>& nodeList,
   }
 }
 
+//------------------------------------------------------------------------------
+// Extract the encoded values
+//------------------------------------------------------------------------------
+template<typename Value>
+std::vector<Value>
+extractBufferedValues(const std::vector<char>& buffer) {
+  std::vector<Value> result;
+  auto itr = buffer.begin();
+  auto endbuf = buffer.end();
+  auto n = 0;
+  while (itr < endbuf) {
+    result.resize(++n);
+    unpackElement(result.back(), itr, endbuf);
+  }
+  return result;
+}
+
 }
 
 #endif

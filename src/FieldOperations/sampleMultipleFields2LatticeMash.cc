@@ -68,6 +68,7 @@ makeIndex(const int ix,
           const int iy,
           const int iz) {
   REQUIRE(false);
+  return vector<int>();
 }
 
 template<>

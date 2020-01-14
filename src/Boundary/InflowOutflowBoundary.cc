@@ -42,23 +42,6 @@ clearValues(std::map<std::string, std::vector<char>>& values) {
   for (auto& pairvals: values) pairvals.second.clear();
 }
 
-//------------------------------------------------------------------------------
-// Extract the encoded values
-//------------------------------------------------------------------------------
-template<typename Value>
-vector<Value>
-extractValues(const std::vector<char>& buffer) {
-  vector<Value> result;
-  auto itr = buffer.begin();
-  auto endbuf = buffer.end();
-  auto n = 0;
-  while (itr < endbuf) {
-    result.resize(++n);
-    unpackElement(result.back(), itr, endbuf);
-  }
-  return result;
-}
-
 }
 
 //------------------------------------------------------------------------------
@@ -235,7 +218,7 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
     auto positr = mBufferedValues.find(poskey);
     CHECK(positr != mBufferedValues.end());
     auto& posbuf = positr->second;
-    auto posvals = extractValues<Vector>(posbuf);
+    auto posvals = extractBufferedValues<Vector>(posbuf);
     const GeomPlane<Dimension> exitPlane(mPlane.point(), -nhat);
     for (auto k = 0; k < ni; ++k) {
       const auto i = nodeIDs[k];

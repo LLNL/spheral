@@ -77,25 +77,19 @@ public:
   void communicatedProcs(std::vector<int>& sendProcs,
 			 std::vector<int>& recvProcs) const;
 
-  // Non-blocking exchanges.
-  void beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const;
-  void beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const;
-
   //****************************************************************************
-  // Use the given NodeList's neighbor object to select the ghost nodes.
-  // This method should never be called for the DistributedBoundary!
-  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override;
+  // Required Boundary interface
+  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override;       // This one should not be used with DistributedBoundary
   virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
 
   // Distributed boundaries don't have "violate" nodes, so override these methods to no-ops.
   virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
   virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
 
-  //****************************************************************************
   // Apply the boundary condition to the given Field.
   virtual void applyGhostBoundary(FieldBase<Dimension>& field) const override;
 
-  //**********************************************************************
+  //****************************************************************************
   // Require descendent Distributed Neighbors to provide the setGhostNodes method for DataBases.
   virtual void setAllGhostNodes(DataBase<Dimension>& dataBase) override = 0;
 
@@ -110,12 +104,17 @@ public:
   // We do not want to use the parallel ghost nodes as generators.
   virtual bool meshGhostNodes() const override;
 
-  // Unpack a packed set of Field values back into the Field.
-  void unpackField(FieldBase<Dimension>& field,
-                   const std::list< std::vector<char> >& packedValues) const;
+  //****************************************************************************
+  // Non-blocking exchanges.
+  void beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const;
+  void beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const;
 
   // Force the exchanges which have been registered to execute.
   void finalizeExchanges();
+
+  // Unpack a packed set of Field values back into the Field.
+  void unpackField(FieldBase<Dimension>& field,
+                   const std::list< std::vector<char> >& packedValues) const;
 
   // Update the control and ghost nodes of the base class.
   void setControlAndGhostNodes();
