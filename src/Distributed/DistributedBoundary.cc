@@ -682,11 +682,12 @@ beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const {
 
         // Post a non-blocking receive for this domain.
         const int neighborDomainID = domainItr->first;
-        const int bufSize = boundNodes.receiveNodes.size() * numElementsInType * sizeofElement;
+        const int bufSize = field.computeCommBufferSize(boundNodes.receiveNodes, neighborDomainID, procID);
         packedRecvValues.push_back(vector<char>(bufSize));
         VERIFY(mRecvRequests.size() < mRecvRequests.capacity() - 1);
         mRecvRequests.push_back(MPI_Request());
         vector<char>& recvValues = packedRecvValues.back();
+        // cerr << " --> Recieve buffer for " << field.name() << " from " << neighborDomainID << " : " << mField2RecvBuffer[&field] << endl;
         MPI_Irecv(&(*recvValues.begin()), bufSize, MPI_CHAR,
                   neighborDomainID, mMPIFieldTag, Communicator::communicator(), &(mRecvRequests.back()));
 
@@ -1009,8 +1010,10 @@ void
 DistributedBoundary<Dimension>::
 applyGhostBoundary(FieldBase<Dimension>& field) const {
   if (field.fixedSizeDataType()) {
+    // cerr << " -->    FIXED SIZE: " << field.name() << endl;
     beginExchangeFieldFixedSize(field);
   } else {
+    // cerr << " --> VARIABLE SIZE: " << field.name() << endl;
     beginExchangeFieldVariableSize(field);
   }
   mExchangeFields.push_back(&field);
@@ -1249,6 +1252,7 @@ unpackField(FieldBase<Dimension>& field,
     if (boundNodes.receiveNodes.size() > 0) {
       CHECK(bufferItr != packedValues.end());
       const vector<char>& recvValues = *bufferItr;
+      // cerr << " --> UNPACKING " << field.name() << " from " << domainItr->first << " in buffer " << &recvValues << endl;
 
       // Unpack this domains values...
       field.unpackValues(boundNodes.receiveNodes, recvValues);

@@ -1337,6 +1337,19 @@ sizeofDataType() const {
 }
 
 //------------------------------------------------------------------------------
+// computeCommBufferSize
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+int
+Field<Dimension, DataType>::
+computeCommBufferSize(const std::vector<int>& packIndices,
+                      const int sendProc,
+                      const int recvProc) const {
+  return computeBufferSize(*this, packIndices, sendProc, recvProc);
+}
+
+//------------------------------------------------------------------------------
 // Pack the Field into a string.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>

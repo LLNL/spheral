@@ -275,6 +275,7 @@ struct DataTypeTraits<Dim<1>::FifthRankTensor> {
 
 template<>
 struct DataTypeTraits<Dim<1>::FacetedVolume> {
+  typedef double ElementType;
   static bool fixedSize() { return false; }
   static int numElements(const Dim<1>::FacetedVolume) { return 0; }
   static Dim<1>::FacetedVolume zero() { return Dim<1>::FacetedVolume(); }
@@ -349,6 +350,7 @@ struct DataTypeTraits<Dim<2>::FifthRankTensor> {
 
 template<>
 struct DataTypeTraits<Dim<2>::FacetedVolume> {
+  typedef double ElementType;
   static bool fixedSize() { return false; }
   static int numElements(const Dim<2>::FacetedVolume) { return 0; }
   static Dim<2>::FacetedVolume zero() { return Dim<2>::FacetedVolume(); }
@@ -423,6 +425,7 @@ struct DataTypeTraits<Dim<3>::FifthRankTensor> {
 
 template<>
 struct DataTypeTraits<Dim<3>::FacetedVolume> {
+  typedef double ElementType;
   static bool fixedSize() { return false; }
   static int numElements(const Dim<3>::FacetedVolume) { return 0; }
   static Dim<3>::FacetedVolume zero() { return Dim<3>::FacetedVolume(); }
@@ -445,6 +448,23 @@ struct DataTypeTraits<PolyClipper::Vertex3d> {
                                                          x.neighbors.size() +
                                                          2); }
   static ElementType zero() { return PolyClipper::Vertex3d(); }
+};
+
+//------------------------------------------------------------------------------
+template<>
+struct DataTypeTraits<PolyClipper::Plane2d> {
+  typedef double ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const PolyClipper::Plane2d& x) { return 6; }
+  static PolyClipper::Plane2d zero() { return PolyClipper::Plane2d(); }
+};
+
+template<>
+struct DataTypeTraits<PolyClipper::Plane3d> {
+  typedef double ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const PolyClipper::Plane3d& x) { return 8; }
+  static PolyClipper::Plane3d zero() { return PolyClipper::Plane3d(); }
 };
 
 //------------------------------------------------------------------------------

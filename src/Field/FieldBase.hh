@@ -67,6 +67,9 @@ public:
   virtual bool fixedSizeDataType() const = 0;
   virtual int numValsInDataType() const = 0;
   virtual int sizeofDataType() const = 0;
+  virtual int computeCommBufferSize(const std::vector<int>& packIndices,
+                                    const int sendProc,
+                                    const int recvProc) const = 0;
 
 //   // Methods to support cacheing of coarse and refine neighbor values.
 //   void notifyNewCoarseNodes() const;
