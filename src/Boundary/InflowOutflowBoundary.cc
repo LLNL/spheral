@@ -254,11 +254,9 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
     // cerr << "Timestep constraint: " << mDT << endl;
 
     mNumInflowNodes[nodeList.name()] = nodeIDs.size();
-    CHECK(mNumInflowNodes.size() == mDataBase.numNodeLists());
-
-    // Turn the BC on.
-    mActive = true;
   }
+  CHECK2(mNumInflowNodes.size() == mDataBase.numNodeLists(), mNumInflowNodes.size() << " != " <<  mDataBase.numNodeLists());
+  mActive = true;
 }
 
 //------------------------------------------------------------------------------
