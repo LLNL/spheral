@@ -12,6 +12,7 @@ set (_python_packages
   Material
   FileIO
   Utilities
+  RK
   DataBase
   Boundary
   Physics
@@ -22,10 +23,9 @@ set (_python_packages
   NodeGenerators
   FieldOperations
   SPH
-  RK
   CRKSPH
-  ArtificialViscosity
   SVPH
+  ArtificialViscosity
   Mesh
   Damage
   SolidMaterial

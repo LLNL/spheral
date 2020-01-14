@@ -41,6 +41,8 @@ instantiate(Utilities_inst Utilities_sources)
 set(Utilities_headers
     Bessel.hh
     CounterClockwiseComparator.hh
+    DamagedNodeCoupling.hh
+    DamagedNodeCouplingWithFrags.hh
     DBC.hh
     DomainNode.hh
     DomainNodeInline.hh
@@ -90,6 +92,7 @@ set(Utilities_headers
     newtonRaphson.hh
     nodeBoundingBoxes.hh
     nodeBoundingBoxesInline.hh
+    NodeCoupling.hh
     overlayRemapFields.hh
     packElement.hh
     peanoHilbertOrderIndices.hh
@@ -106,6 +109,7 @@ set(Utilities_headers
     segmentIntersectEdges.hh
     simpsonsIntegration.hh
     sort_permutation.hh
+    SurfaceNodeCoupling.hh
     testBoxIntersection.hh
     timingUtilities.hh
     )

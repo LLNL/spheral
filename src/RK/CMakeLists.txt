@@ -9,13 +9,17 @@ set(RK_inst
   computeRKVolumes
   RKCorrections
   RKUtilities
+  ReproducingKernelMethods
+  ReproducingKernel
   interpolateRK
+  gradientRK
+  hessianRK
   )
 
 set(RK_sources
   computeVoronoiVolume.cc
-  RKUtilities.cc 
   computeVoronoiVolume1d.cc
+  RKFieldNames.cc
   )
 
 if(ENABLE_2D)

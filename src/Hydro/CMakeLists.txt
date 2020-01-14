@@ -36,8 +36,6 @@ set(Hydro_headers
     SpecificFromTotalThermalEnergyPolicy.hh
     SpecificThermalEnergyPolicy.hh
     SumVoronoiMassDensityPolicy.hh
-    TotalHydro.hh
-    TotalHydroInline.hh
     VolumePolicy.hh
     VoronoiMassDensityPolicy.hh
     entropyWeightingFunction.hh
