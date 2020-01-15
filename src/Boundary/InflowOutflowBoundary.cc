@@ -111,10 +111,15 @@ void
 InflowOutflowBoundary<Dimension>::
 updateGhostNodes(NodeList<Dimension>& nodeList) {
   if (mActive) {
-    auto& pos = nodeList.positions();
-    this->applyGhostBoundary(pos);
-    this->applyGhostBoundary(nodeList.Hfield());
 
+    // Go ahead and set all the ghost values!
+    for (auto fieldItr = nodeList.registeredFieldsBegin();
+         fieldItr != nodeList.registeredFieldsEnd();
+         ++fieldItr) this->applyGhostBoundary(**fieldItr);
+    // this->applyGhostBoundary(pos);
+    // this->applyGhostBoundary(nodeList.Hfield());
+
+    auto&       pos = nodeList.positions();
     const auto& boundaryNodes = this->accessBoundaryNodes(nodeList);
     const auto& cNodes = boundaryNodes.controlNodes;
     const auto& gNodes = boundaryNodes.ghostNodes;
@@ -333,6 +338,10 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
     if (numNew > 0) {
       nodeListAltered = true;
 
+      // cerr << "Promoting to internal: ";
+      // for (auto i: insideNodes) cerr << " : " << gNodes[0] + i << " " << pos[gNodes[0] + i];
+      // cerr << endl;
+
       // Allocate new internal nodes for those we're promoting.
       const auto firstID = nodeList.numInternalNodes();
       nodeList.numInternalNodes(firstID + numNew);
@@ -346,6 +355,10 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
 
       // Copy all field values from ghosts to the new internal nodes.
       copyFieldValues(nodeList, fromIDs, toIDs);
+
+      // cerr << "New internal positions:";
+      // for (auto k = 0; k < numNew; ++k) cerr << " [" << (firstID + k) << " " << pos[firstID + k] << " " << nodeList.mass()[firstID + k] << " " << nodeList.Hfield()[firstID + k] << "]";
+      // cerr << endl;
     }
 
     // Look for any internal points that have exited through the plane.
