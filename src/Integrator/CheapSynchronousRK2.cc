@@ -131,7 +131,6 @@ step(typename Dimension::Scalar maxTime,
   state.update(derivs, hdt, t, hdt);
   this->currentTime(t + hdt);
   this->applyGhostBoundaries(state, derivs);
-  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + hdt, hdt, db, state, derivs);
   this->finalizeGhostBoundaries();
   TIME_CheapRK2MidStep.stop();
@@ -164,7 +163,6 @@ step(typename Dimension::Scalar maxTime,
   state.update(derivs, dt, t, dt);
   this->currentTime(t + dt);
   this->applyGhostBoundaries(state, derivs);
-  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + dt, dt, db, state, derivs);
   this->finalizeGhostBoundaries();
   // this->enforceBoundaries(state, derivs);
