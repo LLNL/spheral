@@ -200,7 +200,6 @@ step(typename Dimension::Scalar maxTime,
 
   // Set the new current time and last time step.
   this->currentCycle(this->currentCycle() + 1);
-  this->currentTime(t + dt0);
   this->lastDt(dt0);
   return true;
 }
