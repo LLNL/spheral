@@ -455,6 +455,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   switch(densityUpdate()) {
 
   case MassDensityType::RigorousSumDensity:
+  case MassDensityType::CorrectedSumDensity:
     {
       const auto& connectivityMap = dataBase.connectivityMap();
       const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -464,18 +465,11 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       computeSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-    }
-
-  case MassDensityType::CorrectedSumDensity:  // Depends on sum density call prior!  So no break...
-    {
-      const auto& connectivityMap = dataBase.connectivityMap();
-      const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-      const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-      const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
-      auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-      correctSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      if (densityUpdate() == MassDensityType::CorrectedSumDensity) {
+        correctSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
+        for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+        for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      }
     }
     break;
 
