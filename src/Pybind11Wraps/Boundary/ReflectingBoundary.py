@@ -96,6 +96,13 @@ class ReflectingBoundary(PlanarBoundary):
         "Apply the boundary condition to the ghost node values in the given Field."
         return "void"
 
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary21(self,
+                             field = "Field<%(Dimension)s, std::vector<Vector>>&"):
+        return "void"
+
     #............................................................................
     @PYB11pycppname("enforceBoundary")
     @PYB11virtual
@@ -159,6 +166,13 @@ class ReflectingBoundary(PlanarBoundary):
     def enforceBoundary10(self,
                           field = "Field<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"):
         "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary21(self,
+                          field = "Field<%(Dimension)s, std::vector<Vector>>&"):
         return "void"
 
     #...........................................................................

@@ -375,6 +375,29 @@ applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const {
   }
 }
 
+// Specialization for vector<Vector> fields.
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, vector<typename Dimension::Vector>>& field) const {
+
+  REQUIRE(valid());
+  const auto& R = this->reflectOperator();
+
+  // Apply the boundary condition to all the ghost node values.
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
+    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
+    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    field(*ghostItr).clear();
+    for (const auto& x: field(*controlItr)) field(*ghostItr).push_back(R*x);
+  }
+}
+
 //------------------------------------------------------------------------------
 // Enforce the boundary condition on the set of nodes in violation of the 
 // boundary.
@@ -555,7 +578,7 @@ enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) cons
   }
 }
 
-// Specialization for std::vector<Scalar>
+// Specialization for RKCoefficients
 template<typename Dimension>
 void
 ReflectingBoundary<Dimension>::
@@ -580,6 +603,24 @@ enforceBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const {
     for (auto i: vnodes) {
       WR.applyTransformation(T, field(i));
     }
+  }
+}
+
+// Specialization for vector<Vector> fields.
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+enforceBoundary(Field<Dimension, vector<typename Dimension::Vector>>& field) const {
+
+  REQUIRE(valid());
+  const auto& R = reflectOperator();
+
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  for (auto itr = this->violationBegin(nodeList);
+       itr < this->violationEnd(nodeList); 
+       ++itr) {
+    CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
+    for (auto& x: field(*itr)) x = R*x;
   }
 }
 
