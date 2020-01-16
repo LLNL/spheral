@@ -626,8 +626,8 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
 
     // Apply boundary conditions to the void points.
     if (not boundaries.empty()) {
-      for (const auto bc: boundaries) bc->applyFieldListGhostBoundary(etaVoidPoints);
-      for (const auto bc: boundaries) bc->finalizeGhostBoundary();
+      for (const auto& bc: boundaries) bc->applyFieldListGhostBoundary(etaVoidPoints);
+      for (const auto& bc: boundaries) bc->finalizeGhostBoundary();
     }
 
 #pragma omp parallel

@@ -55,25 +55,10 @@ public:
                               std::vector<int>& numNodesRemoved) override;
 
   // Apply the boundary condition to the ghost nodes in the given Field.
-  virtual void applyGhostBoundary(Field<Dimension, int>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
+  virtual void applyGhostBoundary(FieldBase<Dimension>& fieldBase) const override;
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Enforce the boundary condition on the violation node values in the given Field.
-  virtual void enforceBoundary(Field<Dimension, int>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, Vector>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Override the base reset method.

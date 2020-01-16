@@ -77,23 +77,20 @@ public:
   void communicatedProcs(std::vector<int>& sendProcs,
 			 std::vector<int>& recvProcs) const;
 
-//   // Generic exchange method for Fields.
-//   template<typename DataType>
-//   void exchangeField(Field<Dimension, DataType>& field) const;
+  //****************************************************************************
+  // Required Boundary interface
+  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override;       // This one should not be used with DistributedBoundary
+  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
 
-//   // We also have a specialized version for Field<vector<double> >.
-//   void exchangeField(Field<Dimension, std::vector<double> >& field) const;
+  // Distributed boundaries don't have "violate" nodes, so override these methods to no-ops.
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
 
-  // Non-blocking exchanges.
-  template<typename DataType>
-  void beginExchangeField(Field<Dimension, DataType>& field) const;
+  // Apply the boundary condition to the given Field.
+  virtual void applyGhostBoundary(FieldBase<Dimension>& field) const override;
 
-  template<typename DataType>
-  void beginExchangeFieldVariableSize(Field<Dimension, DataType>& field) const;
-
-  //**********************************************************************
-  // Descendent Distributed Neighbors are required to provide the 
-  // setGhostNodes method for DataBases.
+  //****************************************************************************
+  // Require descendent Distributed Neighbors to provide the setGhostNodes method for DataBases.
   virtual void setAllGhostNodes(DataBase<Dimension>& dataBase) override = 0;
 
   // Override the Boundary method for culling ghost nodes.
@@ -101,55 +98,23 @@ public:
                               FieldList<Dimension, int>& old2newIndexMap,
                               std::vector<int>& numNodesRemoved) override;
 
-  // Use the given NodeList's neighbor object to select the ghost nodes.
-  // This method should never be called for the DistributedBoundary!
-  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override;
-
-  // For the computed set of ghost nodes, set the positions and H's.
-  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
-
-  // Apply the boundary condition to the given Field.
-  virtual void applyGhostBoundary(Field<Dimension, int>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, std::vector<Vector>>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const override;
-
-  // Distributed boundaries don't have "violate" nodes, so override these
-  // methods to no-ops.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
-  virtual void enforceBoundary(Field<Dimension, int>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, Vector>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
-  //**********************************************************************
-
   // Override the base method to finalize ghost boundaries.
   virtual void finalizeGhostBoundary() const override;
 
   // We do not want to use the parallel ghost nodes as generators.
   virtual bool meshGhostNodes() const override;
 
-  // Unpack a packed set of Field values back into the Field.
-  template<typename DataType>
-  void unpackField(Field<Dimension, DataType>& field,
-                   const std::list< std::vector<char> >& packedValues) const;
+  //****************************************************************************
+  // Non-blocking exchanges.
+  void beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const;
+  void beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const;
 
   // Force the exchanges which have been registered to execute.
   void finalizeExchanges();
+
+  // Unpack a packed set of Field values back into the Field.
+  void unpackField(FieldBase<Dimension>& field,
+                   const std::list< std::vector<char> >& packedValues) const;
 
   // Update the control and ghost nodes of the base class.
   void setControlAndGhostNodes();
@@ -185,18 +150,7 @@ private:
   NodeListDomainBoundaryNodeMap mNodeListDomainBoundaryNodeMap;
   
   // List of the fields that are currently backlogged for exchanging.
-  mutable std::vector<Field<Dimension, int>*> mIntExchangeFields;
-  mutable std::vector<Field<Dimension, Scalar>*> mScalarExchangeFields;
-  mutable std::vector<Field<Dimension, Vector>*> mVectorExchangeFields;
-  mutable std::vector<Field<Dimension, Tensor>*> mTensorExchangeFields;
-  mutable std::vector<Field<Dimension, SymTensor>*> mSymTensorExchangeFields;
-  mutable std::vector<Field<Dimension, ThirdRankTensor>*> mThirdRankTensorExchangeFields;
-  mutable std::vector<Field<Dimension, FourthRankTensor>*> mFourthRankTensorExchangeFields;
-  mutable std::vector<Field<Dimension, FifthRankTensor>*> mFifthRankTensorExchangeFields;
-  mutable std::vector<Field<Dimension, std::vector<Scalar>>*> mVectorScalarExchangeFields;
-  mutable std::vector<Field<Dimension, std::vector<Vector>>*> mVectorVectorExchangeFields;
-  mutable std::vector<Field<Dimension, FacetedVolume>*> mFacetedVolumeExchangeFields;
-  mutable std::vector<Field<Dimension, RKCoefficients<Dimension>>*> mRKCoefficientsExchangeFields;
+  mutable std::vector<FieldBase<Dimension>*> mExchangeFields;
 
   // Internal tag for MPI communiators.
   mutable int mMPIFieldTag;
@@ -213,12 +167,12 @@ private:
 #endif
 
   // Buffers for holding send/receive data.
-  typedef std::list< std::list< std::vector<char> > > CommBufferSet;
+  typedef std::list<std::list<std::vector<char>>> CommBufferSet;
   mutable CommBufferSet mSendBuffers;
   mutable CommBufferSet mRecvBuffers;
 
   // Maps linking fields to their communication buffers.
-  typedef std::map<const FieldBase<Dimension>*, std::list< std::vector<char> >* > Field2BufferType;
+  typedef std::map<const FieldBase<Dimension>*, std::list<std::vector<char>>*> Field2BufferType;
   mutable Field2BufferType mField2SendBuffer;
   mutable Field2BufferType mField2RecvBuffer;
 

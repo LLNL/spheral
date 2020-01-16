@@ -82,63 +82,7 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 ConstantVelocityBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, int>& field) const {
-}
-
-// Specialization for scalar fields.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-}
-
-// Specialization for Vector fields.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-}
-
-// Specialization for Tensor fields.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-}
-
-// Specialization for symmetric tensors.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-}
-
-// Specialization for third rank tensors.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-}
-
-// Specialization for fourth rank tensors.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
-}
-
-// Specialization for fifth rank tensors.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
-}
-
-// Specialization for FactedVolume.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+applyGhostBoundary(FieldBase<Dimension>& field) const {
 }
 
 //------------------------------------------------------------------------------
@@ -173,20 +117,6 @@ updateViolationNodes(NodeList<Dimension>& nodeList) {
 //------------------------------------------------------------------------------
 // Apply the boundary condition to fields of different DataTypes.
 //------------------------------------------------------------------------------
-// Specialization for int fields, no-op.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-enforceBoundary(Field<Dimension, int>& field) const {
-}
-
-// Specialization for scalar fields, no-op.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-}
-
 // Specialization for Vector fields.  In this case check if we're applying to the
 // velocity field or not.  If so, set the velocities to their constant values, otherwise
 // a no-op.
@@ -211,48 +141,6 @@ enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
       field[*itr] = mVelocity[*itr];
     }
   }
-}
-
-// Specialization for Tensor fields, no-op.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-}
-
-// Specialization for symmetric tensors, no-op.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-}
-
-// Specialization for third rank tensors, no-op.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-}
-
-// Specialization for fourth rank tensors, no-op.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
-}
-
-// Specialization for fifth rank tensors, no-op.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
-}
-
-// Specialization for FacetedVolume, no-op.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
 }
 
 //------------------------------------------------------------------------------

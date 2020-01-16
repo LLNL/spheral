@@ -33,22 +33,6 @@ using std::abs;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Define a local trait class to map elements to MPI_DATATYPES.
-//------------------------------------------------------------------------------
-template<typename ElementType>
-struct MPIType {};
-
-template<>
-struct MPIType<int> {
-  static MPI_Datatype MPIElementType() { return MPI_INT; }
-};
-
-template<>
-struct MPIType<double> {
-  static MPI_Datatype MPIElementType() { return MPI_DOUBLE; }
-};
-
-//------------------------------------------------------------------------------
 // Default constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -56,17 +40,7 @@ DistributedBoundary<Dimension>::DistributedBoundary():
   Boundary<Dimension>(),
   mDomainID(-1),
   mNodeListDomainBoundaryNodeMap(),
-  mIntExchangeFields(),
-  mScalarExchangeFields(),
-  mVectorExchangeFields(),
-  mTensorExchangeFields(),
-  mSymTensorExchangeFields(),
-  mThirdRankTensorExchangeFields(),
-  mFourthRankTensorExchangeFields(),
-  mFifthRankTensorExchangeFields(),
-  mVectorScalarExchangeFields(),
-  mVectorVectorExchangeFields(),
-  mFacetedVolumeExchangeFields(),
+  mExchangeFields(),
   mMPIFieldTag(0),
   mSendRequests(),
   mRecvRequests(),
@@ -197,7 +171,7 @@ communicatedProcs(vector<int>& sendProcs,
 //   // We use a handy trait class to tell us how many elements there are in the
 //   // type we're exchanging.
 //   typedef typename DataTypeTraits<DataType>::ElementType ElementType;
-//   MPI_Datatype MPI_TYPE = MPIType<ElementType>::MPIElementType();
+//   MPI_Datatype MPI_TYPE = DataTypeTraits<ElementType>::MpiDataType();
 //   const int numElementsInType = DataTypeTraits<DataType>::numElements();
 //   const NodeList<Dimension>* nodeListPtr = field.nodeListPtr();
 
@@ -593,15 +567,15 @@ communicatedProcs(vector<int>& sendProcs,
 // Begin exchange of a Field with a fixed size DataType.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-template<typename DataType>
 void
 DistributedBoundary<Dimension>::
-beginExchangeField(Field<Dimension, DataType>& field) const {
+beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const {
 
   // We use a handy trait class to tell us how many elements there are in the
   // type we're exchanging.
-  VERIFY2(DataTypeTraits<DataType>::fixedSize(), "Assuming we're communicating fixed size types!");
-  const int numElementsInType = DataTypeTraits<DataType>::numElements(DataType());
+  VERIFY2(field.fixedSizeDataType(), "Assuming we're communicating fixed size types!");
+  const int numElementsInType = field.numValsInDataType();
+  const int sizeofElement = field.sizeofDataType();
   const NodeList<Dimension>* nodeListPtr = field.nodeListPtr();
 
   // Grab the number of domains and processor ID.
@@ -708,14 +682,12 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
 
         // Post a non-blocking receive for this domain.
         const int neighborDomainID = domainItr->first;
-        const int bufSize = computeBufferSize(field,
-                                              boundNodes.receiveNodes,
-                                              neighborDomainID,
-                                              procID);
+        const int bufSize = field.computeCommBufferSize(boundNodes.receiveNodes, neighborDomainID, procID);
         packedRecvValues.push_back(vector<char>(bufSize));
         VERIFY(mRecvRequests.size() < mRecvRequests.capacity() - 1);
         mRecvRequests.push_back(MPI_Request());
         vector<char>& recvValues = packedRecvValues.back();
+        // cerr << " --> Recieve buffer for " << field.name() << " from " << neighborDomainID << " : " << mField2RecvBuffer[&field] << endl;
         MPI_Irecv(&(*recvValues.begin()), bufSize, MPI_CHAR,
                   neighborDomainID, mMPIFieldTag, Communicator::communicator(), &(mRecvRequests.back()));
 
@@ -753,7 +725,7 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
         const int neighborDomainID = domainItr->first;
         VERIFY(mSendRequests.size() < mSendRequests.capacity() - 1);
         mSendRequests.push_back(MPI_Request());
-        packedSendValues.push_back(packFieldValues(field, boundNodes.sendNodes));
+        packedSendValues.push_back(field.packValues(boundNodes.sendNodes));
         vector<char>& sendValues = packedSendValues.back();
         MPI_Isend(&(*sendValues.begin()), sendValues.size(), MPI_CHAR,
                   neighborDomainID, mMPIFieldTag, Communicator::communicator(), &(mSendRequests.back()));
@@ -776,9 +748,6 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
       CHECK(mSendRequests.size() == totalNumSends);
     }
     END_CONTRACT_SCOPE
-
-
-
   }
 }
 
@@ -786,10 +755,9 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
 // Begin exchange for a Field of variable size DataType.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-template<typename DataType>
 void
 DistributedBoundary<Dimension>::
-beginExchangeFieldVariableSize(Field<Dimension, DataType>& field) const {
+beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const {
 
   const NodeList<Dimension>* nodeListPtr = field.nodeListPtr();
 
@@ -903,7 +871,7 @@ beginExchangeFieldVariableSize(Field<Dimension, DataType>& field) const {
         const int neighborDomainID = domainItr->first;
         VERIFY(mSendRequests.size() < mSendRequests.capacity() - 1);
         mSendRequests.push_back(MPI_Request());
-        packedSendValues.push_back(packFieldValues(field, boundNodes.sendNodes));
+        packedSendValues.push_back(field.packValues(boundNodes.sendNodes));
         vector<char>& sendValues = packedSendValues.back();
 
         // Send the size of the buffer.
@@ -987,6 +955,68 @@ beginExchangeFieldVariableSize(Field<Dimension, DataType>& field) const {
     }
     END_CONTRACT_SCOPE
   }
+}
+
+//------------------------------------------------------------------------------
+// Override the required setGhostNodes for NodeLists as a no-op.  We prefer
+// the DataBase setGhostNodes for DistributedBoundaries, to facilitate more
+// efficient parallel exchanges.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DistributedBoundary<Dimension>::
+setGhostNodes(NodeList<Dimension>& nodeList) {
+  VERIFY(0);
+}
+
+//------------------------------------------------------------------------------
+// Set the ghost nodes positions and H tensors, but don't recompute the set
+// of ghost nodes.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DistributedBoundary<Dimension>::
+updateGhostNodes(NodeList<Dimension>& nodeList) {
+
+  // Exchange the positions and H fields for this NodeList.
+  Field<Dimension, Vector>& positions = nodeList.positions();
+  Field<Dimension, SymTensor>& Hfield = nodeList.Hfield();
+  applyGhostBoundary(positions);
+  applyGhostBoundary(Hfield);
+}
+
+//------------------------------------------------------------------------------
+// The required method to select nodes in violation of this boundary.  A no-op
+// for Distributed boundaries.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DistributedBoundary<Dimension>::
+setViolationNodes(NodeList<Dimension>& nodeList) {
+}
+
+template<typename Dimension>
+void
+DistributedBoundary<Dimension>::
+updateViolationNodes(NodeList<Dimension>& nodeList) {
+}
+
+//------------------------------------------------------------------------------
+// Provide the required ghost node Boundary conditions for Fields.  Just call
+// the templated exchangeField method.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DistributedBoundary<Dimension>::
+applyGhostBoundary(FieldBase<Dimension>& field) const {
+  if (field.fixedSizeDataType()) {
+    // cerr << " -->    FIXED SIZE: " << field.name() << endl;
+    beginExchangeFieldFixedSize(field);
+  } else {
+    // cerr << " --> VARIABLE SIZE: " << field.name() << endl;
+    beginExchangeFieldVariableSize(field);
+  }
+  mExchangeFields.push_back(&field);
 }
 
 //------------------------------------------------------------------------------
@@ -1186,207 +1216,6 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
 }
 
 //------------------------------------------------------------------------------
-// Override the required setGhostNodes for NodeLists as a no-op.  We prefer
-// the DataBase setGhostNodes for DistributedBoundaries, to facilitate more
-// efficient parallel exchanges.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-setGhostNodes(NodeList<Dimension>& nodeList) {
-  VERIFY(0);
-}
-
-//------------------------------------------------------------------------------
-// Set the ghost nodes positions and H tensors, but don't recompute the set
-// of ghost nodes.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-updateGhostNodes(NodeList<Dimension>& nodeList) {
-
-  // Exchange the positions and H fields for this NodeList.
-  Field<Dimension, Vector>& positions = nodeList.positions();
-  Field<Dimension, SymTensor>& Hfield = nodeList.Hfield();
-  applyGhostBoundary(positions);
-  applyGhostBoundary(Hfield);
-}
-
-//------------------------------------------------------------------------------
-// Provide the required ghost node Boundary conditions for Fields.  Just call
-// the templated exchangeField method.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, int>& field) const {
-  beginExchangeField(field);
-  mIntExchangeFields.push_back(&field);
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  beginExchangeField(field);
-  mScalarExchangeFields.push_back(&field);
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  beginExchangeField(field);
-  mVectorExchangeFields.push_back(&field);
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-  beginExchangeField(field);
-  mTensorExchangeFields.push_back(&field);
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-  beginExchangeField(field);
-  mSymTensorExchangeFields.push_back(&field);
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-  beginExchangeField(field);
-  mThirdRankTensorExchangeFields.push_back(&field);
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
-  beginExchangeField(field);
-  mFourthRankTensorExchangeFields.push_back(&field);
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
-  beginExchangeField(field);
-  mFifthRankTensorExchangeFields.push_back(&field);
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
-  beginExchangeFieldVariableSize(field);
-  mFacetedVolumeExchangeFields.push_back(&field);
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& field) const {
-  beginExchangeFieldVariableSize(field);
-  mVectorScalarExchangeFields.push_back(&field);
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Vector> >& field) const {
-  beginExchangeFieldVariableSize(field);
-  mVectorVectorExchangeFields.push_back(&field);
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const {
-  beginExchangeFieldVariableSize(field);
-  mRKCoefficientsExchangeFields.push_back(&field);
-}
-
-//------------------------------------------------------------------------------
-// The required method to select nodes in violation of this boundary.  A no-op
-// for Distributed boundaries.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-setViolationNodes(NodeList<Dimension>& nodeList) {
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-updateViolationNodes(NodeList<Dimension>& nodeList) {
-}
-
-//------------------------------------------------------------------------------
-// Provide the required enforce conditions for Boundary conditions for Fields.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-enforceBoundary(Field<Dimension, int>& field) const {
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
-}
-
-//------------------------------------------------------------------------------
 // Finalize the ghost boundary condition.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -1394,6 +1223,205 @@ void
 DistributedBoundary<Dimension>::
 finalizeGhostBoundary() const {
   const_cast<DistributedBoundary<Dimension>*>(this)->finalizeExchanges();
+}
+
+//------------------------------------------------------------------------------
+// Unpack the encoded field buffer to the field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DistributedBoundary<Dimension>::
+unpackField(FieldBase<Dimension>& field,
+            const list< vector<char> >& packedValues) const {
+
+  // Get the domain mappings for the NodeList of this Field.
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  const DomainBoundaryNodeMap& domBoundNodeMap = domainBoundaryNodeMap(nodeList);
+  CHECK(packedValues.size() <= domBoundNodeMap.size());
+
+  // Loop over receive domains.
+  typename list< vector<char> >::const_iterator bufferItr = packedValues.begin();
+  for (typename DomainBoundaryNodeMap::const_iterator domainItr = domBoundNodeMap.begin();
+       domainItr != domBoundNodeMap.end();
+       ++domainItr) {
+
+    // Get the set of send/recv nodes for this neighbor domain.
+    const DomainBoundaryNodes& boundNodes = domainItr->second;
+
+    // If there are any receive nodes for this domain...
+    if (boundNodes.receiveNodes.size() > 0) {
+      CHECK(bufferItr != packedValues.end());
+      const vector<char>& recvValues = *bufferItr;
+      // cerr << " --> UNPACKING " << field.name() << " from " << domainItr->first << " in buffer " << &recvValues << endl;
+
+      // Unpack this domains values...
+      field.unpackValues(boundNodes.receiveNodes, recvValues);
+      ++bufferItr;
+
+    }
+  }
+  ENSURE(bufferItr == packedValues.end());
+}
+
+//------------------------------------------------------------------------------
+// Finalize the exchanges, which means actually perform them sequentially
+// and clear out the pending exchange field buffers.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DistributedBoundary<Dimension>::finalizeExchanges() {
+
+  BEGIN_CONTRACT_SCOPE
+  {
+    // Make sure everyone has the same number of exchange fields.
+    const int nProcs = numDomains();
+    const int procID = domainID();
+    int nFields = mExchangeFields.size();
+    MPI_Bcast(&nFields, 1, MPI_INT, 0, Communicator::communicator());
+    REQUIRE(nFields == mExchangeFields.size())
+    REQUIRE(mSendBuffers.size() <= nFields);
+    REQUIRE(mRecvBuffers.size() <= nFields);
+    REQUIRE(mField2SendBuffer.size() <= nFields);
+    REQUIRE(mField2RecvBuffer.size() <= nFields);
+
+    // Count the numbers of send and receive buffers and requests.
+    int numSendBuffers = 0;
+    int numRecvBuffers = 0;
+    for (typename list< list< vector<char> > >::const_iterator itr = mSendBuffers.begin();
+         itr != mSendBuffers.end();
+         ++itr) numSendBuffers += itr->size();
+    for (typename list< list< vector<char> > >::const_iterator itr = mRecvBuffers.begin();
+         itr != mRecvBuffers.end();
+         ++itr) numRecvBuffers += itr->size();
+    REQUIRE(mSendRequests.size() == numSendBuffers);
+    REQUIRE(mRecvRequests.size() == numRecvBuffers);
+  }
+  END_CONTRACT_SCOPE
+
+#ifdef USE_MPI_DEADLOCK_DETECTION
+  vector<int> dummyInts;
+  vector<MPI_Request> dummyRequests;
+  vector<MPI_Status> dummyStatus;
+#endif
+
+  // Do we have any data we're waiting to receive?
+  if (mRecvRequests.size() > 0) {
+
+    // Wait until all of our receives have been satisfied.
+    vector<MPI_Status> recvStatus(mRecvRequests.size());
+#ifdef USE_MPI_DEADLOCK_DETECTION
+    waitallWithDeadlockDetection("DistributedBoundary::finalizeExchanges -- RECEIVE waitall",
+                                 dummyInts, mRecvProcIDs, dummyRequests, mRecvRequests, dummyStatus, recvStatus, Communicator::communicator());
+#else
+    MPI_Waitall(mRecvRequests.size(), &(*mRecvRequests.begin()), &(*recvStatus.begin()));
+#endif
+
+    // Unpack all field values.
+    for (typename vector<FieldBase<Dimension>*>::const_iterator fieldItr = mExchangeFields.begin();
+         fieldItr != mExchangeFields.end();
+         ++fieldItr) {
+      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
+    }
+  }
+
+  // Do we have any data we're waiting to send?
+  if (mSendRequests.size() > 0) {
+
+    // Wait until all of our sends have been satisfied.
+    vector<MPI_Status> sendStatus(mSendRequests.size());
+#ifdef USE_MPI_DEADLOCK_DETECTION
+    waitallWithDeadlockDetection("DistributedBoundary::finalizeExchanges -- RECEIVE waitall",
+                                 mSendProcIDs, dummyInts, mSendRequests, dummyRequests, sendStatus, dummyStatus, Communicator::communicator());
+#else
+    MPI_Waitall(mSendRequests.size(), &(*mSendRequests.begin()), &(*sendStatus.begin()));
+#endif
+
+  }
+
+  // Clear out the pending exchange fields.
+  mExchangeFields.clear();
+
+  // Reset the buffers.
+  mMPIFieldTag = 0;
+  mSendRequests = vector<MPI_Request>();
+  mRecvRequests = vector<MPI_Request>();
+#ifdef USE_MPI_DEADLOCK_DETECTION
+  mSendProcIDs = vector<int>();
+  mRecvProcIDs = vector<int>();
+#endif
+  mSendRequests.reserve(100000);
+  mRecvRequests.reserve(100000);
+  mSendBuffers = CommBufferSet();
+  mRecvBuffers = CommBufferSet();
+  mField2SendBuffer = Field2BufferType();
+  mField2RecvBuffer = Field2BufferType();
+
+  // Post-conditions.
+  ENSURE(mExchangeFields.size() == 0);
+  ENSURE(mMPIFieldTag == 0);
+  ENSURE(mSendRequests.size() == 0);
+  ENSURE(mRecvRequests.size() == 0);
+  ENSURE(mSendRequests.capacity() >= 100000);
+  ENSURE(mRecvRequests.capacity() >= 100000);
+  ENSURE(mSendBuffers.size() == 0);
+  ENSURE(mRecvBuffers.size() == 0);
+  ENSURE(mField2SendBuffer.size() == 0);
+  ENSURE(mField2RecvBuffer.size() == 0);
+}
+
+//------------------------------------------------------------------------------
+// Update the control and ghost node lists of the base class.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DistributedBoundary<Dimension>::
+setControlAndGhostNodes() {
+
+  typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
+  typedef typename DistributedBoundary<Dimension>::DomainBoundaryNodeMap DomainBoundaryNodeMap;
+
+  const NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
+  for (typename NodeListRegistrar<Dimension>::const_iterator nodeListItr = registrar.begin();
+       nodeListItr != registrar.end();
+       ++nodeListItr) {
+
+    // Add an entry for this NodeList.
+    this->addNodeList(**nodeListItr);
+    BoundaryNodes& boundNodes = this->accessBoundaryNodes(**nodeListItr);
+    vector<int>& controlNodes = boundNodes.controlNodes;
+    vector<int>& ghostNodes = boundNodes.ghostNodes;
+    controlNodes = vector<int>();
+    ghostNodes = vector<int>();
+
+    // Loop over all the domains this NodeList communicates with.
+    if (communicatedNodeList(**nodeListItr)) {
+      const DomainBoundaryNodeMap& domBoundaryNodeMap = domainBoundaryNodeMap(**nodeListItr);
+      for (typename DomainBoundaryNodeMap::const_iterator domItr = domBoundaryNodeMap.begin();
+           domItr != domBoundaryNodeMap.end();
+           ++domItr) {
+        int neighborDomainID = domItr->first;
+        const typename DistributedBoundary<Dimension>::DomainBoundaryNodes& domainNodes = domItr->second;
+
+        // Add the send nodes for this domain to the control node list.
+        const vector<int>& sendNodes = domainNodes.sendNodes;
+        CHECK(controlNodes.size() + sendNodes.size() >= 0 and
+              controlNodes.size() + sendNodes.size() < 10000000);
+        controlNodes.reserve(controlNodes.size() + sendNodes.size());
+        for (vector<int>::const_iterator sendItr = sendNodes.begin();
+             sendItr < sendNodes.end();
+             ++sendItr) controlNodes.push_back(*sendItr);
+
+        // Add the receive nodes to the ghost node list.
+        const vector<int>& recvNodes = domainNodes.receiveNodes;
+        CHECK(ghostNodes.size() + sendNodes.size() >= 0 and
+              ghostNodes.size() + sendNodes.size() < 10000000);
+        ghostNodes.reserve(ghostNodes.size() + sendNodes.size());
+        for (vector<int>::const_iterator recvItr = recvNodes.begin();
+             recvItr < recvNodes.end();
+             ++recvItr) ghostNodes.push_back(*recvItr);
+      }      
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -1493,339 +1521,6 @@ DistributedBoundary<Dimension>::reset(const DataBase<Dimension>& dataBase) {
     dataBase.nodeListBegin(); iter != dataBase.nodeListEnd(); ++iter) {
     mNodeListDomainBoundaryNodeMap.erase(*iter);
   } // end for
-}
-
-//------------------------------------------------------------------------------
-// Unpack the encoded field buffer to the field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-template<typename DataType>
-void
-DistributedBoundary<Dimension>::
-unpackField(Field<Dimension, DataType>& field,
-            const list< vector<char> >& packedValues) const {
-
-  // Get the domain mappings for the NodeList of this Field.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  const DomainBoundaryNodeMap& domBoundNodeMap = domainBoundaryNodeMap(nodeList);
-  CHECK(packedValues.size() <= domBoundNodeMap.size());
-
-  // Loop over receive domains.
-  typename list< vector<char> >::const_iterator bufferItr = packedValues.begin();
-  for (typename DomainBoundaryNodeMap::const_iterator domainItr = domBoundNodeMap.begin();
-       domainItr != domBoundNodeMap.end();
-       ++domainItr) {
-
-    // Get the set of send/recv nodes for this neighbor domain.
-    const DomainBoundaryNodes& boundNodes = domainItr->second;
-
-    // If there are any receive nodes for this domain...
-    if (boundNodes.receiveNodes.size() > 0) {
-      CHECK(bufferItr != packedValues.end());
-      const vector<char>& recvValues = *bufferItr;
-
-      // Unpack this domains values...
-      unpackFieldValues(field, boundNodes.receiveNodes, recvValues);
-      ++bufferItr;
-
-    }
-  }
-  ENSURE(bufferItr == packedValues.end());
-}
-
-//------------------------------------------------------------------------------
-// Finalize the exchanges, which means actually perform them sequentially
-// and clear out the pending exchange field buffers.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::finalizeExchanges() {
-
-  BEGIN_CONTRACT_SCOPE
-  {
-    // Make sure everyone has the same number of exchange fields.
-    const int nProcs = numDomains();
-    const int procID = domainID();
-    int nInt = mIntExchangeFields.size();
-    int nScalar = mScalarExchangeFields.size();
-    int nVector = mVectorExchangeFields.size();
-    int nTensor = mTensorExchangeFields.size();
-    int nSymTensor = mSymTensorExchangeFields.size();
-    int nThirdRankTensor = mThirdRankTensorExchangeFields.size();
-    int nFourthRankTensor = mFourthRankTensorExchangeFields.size();
-    int nFifthRankTensor = mFifthRankTensorExchangeFields.size();
-    int nFacetedVolume = mFacetedVolumeExchangeFields.size();
-    int nVectorScalar = mVectorScalarExchangeFields.size();
-    int nVectorVector = mVectorVectorExchangeFields.size();
-    int nRKCoefficient = mRKCoefficientsExchangeFields.size();
-    const int nFields = nInt + nScalar + nVector + nTensor + nSymTensor + nThirdRankTensor + nFourthRankTensor + nFifthRankTensor + nFacetedVolume + nVectorScalar + nVectorVector + nRKCoefficient;
-    MPI_Bcast(&nInt, 1, MPI_INT, 0, Communicator::communicator());
-    MPI_Bcast(&nScalar, 1, MPI_INT, 0, Communicator::communicator());
-    MPI_Bcast(&nVector, 1, MPI_INT, 0, Communicator::communicator());
-    MPI_Bcast(&nTensor, 1, MPI_INT, 0, Communicator::communicator());
-    MPI_Bcast(&nSymTensor, 1, MPI_INT, 0, Communicator::communicator());
-    MPI_Bcast(&nThirdRankTensor, 1, MPI_INT, 0, Communicator::communicator());
-    MPI_Bcast(&nFourthRankTensor, 1, MPI_INT, 0, Communicator::communicator());
-    MPI_Bcast(&nFifthRankTensor, 1, MPI_INT, 0, Communicator::communicator());
-    MPI_Bcast(&nFacetedVolume, 1, MPI_INT, 0, Communicator::communicator());
-    MPI_Bcast(&nVectorScalar, 1, MPI_INT, 0, Communicator::communicator());
-    MPI_Bcast(&nVectorVector, 1, MPI_INT, 0, Communicator::communicator());
-    MPI_Bcast(&nRKCoefficient, 1, MPI_INT, 0, Communicator::communicator());
-    REQUIRE(nInt == mIntExchangeFields.size());
-    REQUIRE(nScalar == mScalarExchangeFields.size());
-    REQUIRE(nVector == mVectorExchangeFields.size());
-    REQUIRE(nTensor == mTensorExchangeFields.size());
-    REQUIRE(nSymTensor == mSymTensorExchangeFields.size());
-    REQUIRE(nThirdRankTensor == mThirdRankTensorExchangeFields.size());
-    REQUIRE(nFourthRankTensor == mFourthRankTensorExchangeFields.size());
-    REQUIRE(nFifthRankTensor == mFifthRankTensorExchangeFields.size());
-    REQUIRE(nFacetedVolume == mFacetedVolumeExchangeFields.size());
-    REQUIRE(nVectorScalar == mVectorScalarExchangeFields.size());
-    REQUIRE(nVectorVector == mVectorVectorExchangeFields.size());
-    REQUIRE(nRKCoefficient == mRKCoefficientsExchangeFields.size());
-    REQUIRE(mSendBuffers.size() <= nFields);
-    REQUIRE(mRecvBuffers.size() <= nFields);
-    REQUIRE(mField2SendBuffer.size() <= nFields);
-    REQUIRE(mField2RecvBuffer.size() <= nFields);
-
-    // Count the numbers of send and receive buffers and requests.
-    int numSendBuffers = 0;
-    int numRecvBuffers = 0;
-    for (typename list< list< vector<char> > >::const_iterator itr = mSendBuffers.begin();
-         itr != mSendBuffers.end();
-         ++itr) numSendBuffers += itr->size();
-    for (typename list< list< vector<char> > >::const_iterator itr = mRecvBuffers.begin();
-         itr != mRecvBuffers.end();
-         ++itr) numRecvBuffers += itr->size();
-    REQUIRE(mSendRequests.size() == numSendBuffers);
-    REQUIRE(mRecvRequests.size() == numRecvBuffers);
-  }
-  END_CONTRACT_SCOPE
-
-#ifdef USE_MPI_DEADLOCK_DETECTION
-  vector<int> dummyInts;
-  vector<MPI_Request> dummyRequests;
-  vector<MPI_Status> dummyStatus;
-#endif
-
-  // Do we have any data we're waiting to receive?
-  if (mRecvRequests.size() > 0) {
-
-    // Wait until all of our receives have been satisfied.
-    vector<MPI_Status> recvStatus(mRecvRequests.size());
-#ifdef USE_MPI_DEADLOCK_DETECTION
-    waitallWithDeadlockDetection("DistributedBoundary::finalizeExchanges -- RECEIVE waitall",
-                                 dummyInts, mRecvProcIDs, dummyRequests, mRecvRequests, dummyStatus, recvStatus, Communicator::communicator());
-#else
-    MPI_Waitall(mRecvRequests.size(), &(*mRecvRequests.begin()), &(*recvStatus.begin()));
-#endif
-
-    // Unpack int field values.
-    for (typename vector<Field<Dimension, int>*>::const_iterator fieldItr = mIntExchangeFields.begin();
-         fieldItr != mIntExchangeFields.end();
-         ++fieldItr) {
-      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
-    }
-
-    // Unpack Scalar field values.
-    for (typename vector<Field<Dimension, Scalar>*>::const_iterator fieldItr = mScalarExchangeFields.begin();
-         fieldItr != mScalarExchangeFields.end();
-         ++fieldItr) {
-      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
-    }
-
-    // Unpack Vector field values.
-    for (typename vector<Field<Dimension, Vector>*>::const_iterator fieldItr = mVectorExchangeFields.begin();
-         fieldItr != mVectorExchangeFields.end();
-         ++fieldItr) {
-      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
-    }
-
-    // Unpack Tensor field values.
-    for (typename vector<Field<Dimension, Tensor>*>::const_iterator fieldItr = mTensorExchangeFields.begin();
-         fieldItr != mTensorExchangeFields.end();
-         ++fieldItr) {
-      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
-    }
-
-    // Unpack SymTensor field values.
-    for (typename vector<Field<Dimension, SymTensor>*>::const_iterator fieldItr = mSymTensorExchangeFields.begin();
-         fieldItr != mSymTensorExchangeFields.end();
-         ++fieldItr) {
-      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
-    }
-
-    // Unpack ThirdRankTensor field values.
-    for (typename vector<Field<Dimension, ThirdRankTensor>*>::const_iterator fieldItr = mThirdRankTensorExchangeFields.begin();
-         fieldItr != mThirdRankTensorExchangeFields.end();
-         ++fieldItr) {
-      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
-    }
-
-    // Unpack FourthRankTensor field values.
-    for (typename vector<Field<Dimension, FourthRankTensor>*>::const_iterator fieldItr = mFourthRankTensorExchangeFields.begin();
-         fieldItr != mFourthRankTensorExchangeFields.end();
-         ++fieldItr) {
-      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
-    }
-
-    // Unpack FifthRankTensor field values.
-    for (typename vector<Field<Dimension, FifthRankTensor>*>::const_iterator fieldItr = mFifthRankTensorExchangeFields.begin();
-         fieldItr != mFifthRankTensorExchangeFields.end();
-         ++fieldItr) {
-      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
-    }
-    
-    // Unpack FacetedVolume field values.
-    for (typename vector<Field<Dimension, FacetedVolume>*>::const_iterator fieldItr = mFacetedVolumeExchangeFields.begin();
-         fieldItr != mFacetedVolumeExchangeFields.end();
-         ++fieldItr) {
-      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
-    }
-
-    // Unpack vector<Scalar> field values.
-    for (typename vector<Field<Dimension, vector<Scalar> >*>::const_iterator fieldItr = mVectorScalarExchangeFields.begin();
-         fieldItr != mVectorScalarExchangeFields.end();
-         ++fieldItr) {
-      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
-    }
-
-    // Unpack vector<Vector> field values.
-    for (auto fieldItr = mVectorVectorExchangeFields.begin();
-         fieldItr != mVectorVectorExchangeFields.end();
-         ++fieldItr) {
-      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
-    }
-
-    // Unpack RKCoefficient field values.
-    for (typename vector<Field<Dimension, RKCoefficients<Dimension>>*>::const_iterator fieldItr = mRKCoefficientsExchangeFields.begin();
-         fieldItr != mRKCoefficientsExchangeFields.end();
-         ++fieldItr) {
-      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
-    }
-
-  }
-
-  // Do we have any data we're waiting to send?
-  if (mSendRequests.size() > 0) {
-
-    // Wait until all of our sends have been satisfied.
-    vector<MPI_Status> sendStatus(mSendRequests.size());
-#ifdef USE_MPI_DEADLOCK_DETECTION
-    waitallWithDeadlockDetection("DistributedBoundary::finalizeExchanges -- RECEIVE waitall",
-                                 mSendProcIDs, dummyInts, mSendRequests, dummyRequests, sendStatus, dummyStatus, Communicator::communicator());
-#else
-    MPI_Waitall(mSendRequests.size(), &(*mSendRequests.begin()), &(*sendStatus.begin()));
-#endif
-
-  }
-
-  // Clear out the pending exchange fields.
-  mIntExchangeFields.clear();
-  mScalarExchangeFields.clear();
-  mVectorExchangeFields.clear();
-  mTensorExchangeFields.clear();
-  mSymTensorExchangeFields.clear();
-  mThirdRankTensorExchangeFields.clear();
-  mFourthRankTensorExchangeFields.clear();
-  mFifthRankTensorExchangeFields.clear();
-  mFacetedVolumeExchangeFields.clear();
-  mVectorScalarExchangeFields.clear();
-  mVectorVectorExchangeFields.clear();
-  mRKCoefficientsExchangeFields.clear();
-
-  // Reset the buffers.
-  mMPIFieldTag = 0;
-  mSendRequests = vector<MPI_Request>();
-  mRecvRequests = vector<MPI_Request>();
-#ifdef USE_MPI_DEADLOCK_DETECTION
-  mSendProcIDs = vector<int>();
-  mRecvProcIDs = vector<int>();
-#endif
-  mSendRequests.reserve(100000);
-  mRecvRequests.reserve(100000);
-  mSendBuffers = CommBufferSet();
-  mRecvBuffers = CommBufferSet();
-  mField2SendBuffer = Field2BufferType();
-  mField2RecvBuffer = Field2BufferType();
-
-  // Post-conditions.
-  ENSURE(mIntExchangeFields.size() == 0);
-  ENSURE(mScalarExchangeFields.size() == 0);
-  ENSURE(mVectorExchangeFields.size() == 0);
-  ENSURE(mTensorExchangeFields.size() == 0);
-  ENSURE(mSymTensorExchangeFields.size() == 0);
-  ENSURE(mThirdRankTensorExchangeFields.size() == 0);
-  ENSURE(mFourthRankTensorExchangeFields.size() == 0);
-  ENSURE(mFifthRankTensorExchangeFields.size() == 0);
-  ENSURE(mFacetedVolumeExchangeFields.size() == 0);
-  ENSURE(mVectorScalarExchangeFields.size() == 0);
-  ENSURE(mVectorVectorExchangeFields.size() == 0);
-  ENSURE(mRKCoefficientsExchangeFields.size() == 0);
-  ENSURE(mMPIFieldTag == 0);
-  ENSURE(mSendRequests.size() == 0);
-  ENSURE(mRecvRequests.size() == 0);
-  ENSURE(mSendRequests.capacity() >= 100000);
-  ENSURE(mRecvRequests.capacity() >= 100000);
-  ENSURE(mSendBuffers.size() == 0);
-  ENSURE(mRecvBuffers.size() == 0);
-  ENSURE(mField2SendBuffer.size() == 0);
-  ENSURE(mField2RecvBuffer.size() == 0);
-}
-
-//------------------------------------------------------------------------------
-// Update the control and ghost node lists of the base class.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-setControlAndGhostNodes() {
-
-  typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
-  typedef typename DistributedBoundary<Dimension>::DomainBoundaryNodeMap DomainBoundaryNodeMap;
-
-  const NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
-  for (typename NodeListRegistrar<Dimension>::const_iterator nodeListItr = registrar.begin();
-       nodeListItr != registrar.end();
-       ++nodeListItr) {
-
-    // Add an entry for this NodeList.
-    this->addNodeList(**nodeListItr);
-    BoundaryNodes& boundNodes = this->accessBoundaryNodes(**nodeListItr);
-    vector<int>& controlNodes = boundNodes.controlNodes;
-    vector<int>& ghostNodes = boundNodes.ghostNodes;
-    controlNodes = vector<int>();
-    ghostNodes = vector<int>();
-
-    // Loop over all the domains this NodeList communicates with.
-    if (communicatedNodeList(**nodeListItr)) {
-      const DomainBoundaryNodeMap& domBoundaryNodeMap = domainBoundaryNodeMap(**nodeListItr);
-      for (typename DomainBoundaryNodeMap::const_iterator domItr = domBoundaryNodeMap.begin();
-           domItr != domBoundaryNodeMap.end();
-           ++domItr) {
-        int neighborDomainID = domItr->first;
-        const typename DistributedBoundary<Dimension>::DomainBoundaryNodes& domainNodes = domItr->second;
-
-        // Add the send nodes for this domain to the control node list.
-        const vector<int>& sendNodes = domainNodes.sendNodes;
-        CHECK(controlNodes.size() + sendNodes.size() >= 0 and
-              controlNodes.size() + sendNodes.size() < 10000000);
-        controlNodes.reserve(controlNodes.size() + sendNodes.size());
-        for (vector<int>::const_iterator sendItr = sendNodes.begin();
-             sendItr < sendNodes.end();
-             ++sendItr) controlNodes.push_back(*sendItr);
-
-        // Add the receive nodes to the ghost node list.
-        const vector<int>& recvNodes = domainNodes.receiveNodes;
-        CHECK(ghostNodes.size() + sendNodes.size() >= 0 and
-              ghostNodes.size() + sendNodes.size() < 10000000);
-        ghostNodes.reserve(ghostNodes.size() + sendNodes.size());
-        for (vector<int>::const_iterator recvItr = recvNodes.begin();
-             recvItr < recvNodes.end();
-             ++recvItr) ghostNodes.push_back(*recvItr);
-      }      
-    }
-  }
 }
 
 //------------------------------------------------------------------------------
