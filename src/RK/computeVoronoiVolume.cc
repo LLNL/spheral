@@ -412,7 +412,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           const auto& ri = position(nodeListi, i);
           const auto& Hi = H(nodeListi, i);
           const auto  Hinv = Hi.Inverse();
-#pragma omp critical (computeVoronoiVolume_pass1)
+#pragma omp critical (computeVoronoiVolume_polycells)
           {
             for (auto& v: polycells(nodeListi, i)) v.position = 1.1*rin*Hinv*v.position;
           }
@@ -461,7 +461,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
             std::sort(boundPlanes.begin(), boundPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
 
             // Clip by the planes thus far.
-#pragma omp critical (computeVoronoiVolume_pass1)
+#pragma omp critical (computeVoronoiVolume_polycells)
             {
               ClippingType<Dimension>::clip(polycells(nodeListi, i), boundPlanes);
 
@@ -522,19 +522,22 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       {
         pairPlanes_thread.threadReduce();
       }
-#pragma omp barrier  // Wait for the pairPlanes to be done
+// #pragma omp barrier  // Wait for the pairPlanes to be done
+    }   // OMP parallel
 
+#pragma omp parallel
+    {
       // Clip by the neighbors, and look for any locally generated void points.
-      auto etaVoidPoints_thread = etaVoidPoints.threadCopy();
+      auto etaVoidPoints_thread = etaVoidPoints.threadCopy(); // ThreadReduction::SUM, true);
       PolyVolume celli;
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-        const auto ni = polycells[nodeListi]->numInternalElements();
+        const auto ni = etaVoidPoints_thread[nodeListi]->numInternalElements();
 #pragma omp parallel for
         for (auto i = 0; i < ni; ++i) {
           const auto& Hi = H(nodeListi, i);
           const auto  Hinvi = Hi.Inverse();
           auto        pairPlanesi = pairPlanes(nodeListi, i);  // Deliberately make a copy
-#pragma omp critical (computeVornoiVolume_pass2_polycells)
+#pragma omp critical (computeVornoiVolume_polycells)
           {
             celli = polycells(nodeListi, i);         // Also make a copy the starting global cell for this point
           }
@@ -610,7 +613,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           }
 
           // Store the clipped cell thus far
-#pragma omp critical (computeVornoiVolume_pass2_polycells)
+#pragma omp critical (computeVornoiVolume_polycells)
           {
             polycells(nodeListi, i) = celli;
           }
@@ -618,7 +621,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         }   // end over i OMP parallel for
       }     // end over NodeLists
 
-#pragma omp critical (computeVoronoiVolujme_pass2_reduce)
+#pragma omp critical (computeVoronoiVolume_pass2_reduce)
       {
         etaVoidPoints_thread.threadReduce();
       }     // OMP critical
@@ -626,8 +629,12 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
 
     // Apply boundary conditions to the void points.
     if (not boundaries.empty()) {
+      cerr << "Starting boundaries..." << endl;
+      MPI_Barrier(Communicator::communicator());
       for (const auto& bc: boundaries) bc->applyFieldListGhostBoundary(etaVoidPoints);
       for (const auto& bc: boundaries) bc->finalizeGhostBoundary();
+      MPI_Barrier(Communicator::communicator());
+      cerr << "Finished boundaries..." << endl;
     }
 
 #pragma omp parallel
@@ -689,7 +696,11 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           const auto& Hi = H(nodeListi, i);
           const auto  Hinvi = Hi.Inverse();
           auto        voidPlanesi = voidPlanes(nodeListi, i);  // Deliberate copy for thread safety
-          auto        celli = polycells(nodeListi, i);         // Deliberate copy for thread safety
+          PolyVolume celli;
+#pragma omp critical (computeVoronoiVolume_polycells)
+          {
+            celli = polycells(nodeListi, i);         // Deliberate copy for thread safety
+          }
           CHECK(not celli.empty());
 
           // Clip by the void planes, compute the volume, and check if the void surface had any effect.
@@ -744,6 +755,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
     }  // OMP parallel
   }    // numGensGlobal > 0
 
+  cerr << "computeVoronoiVolume FINISHED" << endl;
   TIME_computeVoronoiVolume.stop();
 }
     
