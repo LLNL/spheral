@@ -1286,6 +1286,70 @@ Field<Dimension, DataType>::resizeFieldGhost(const unsigned size) {
 }
 
 //------------------------------------------------------------------------------
+// Copy values between sets of indices.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+void
+Field<Dimension, DataType>::
+copyElements(const std::vector<int>& fromIndices,
+             const std::vector<int>& toIndices) {
+  REQUIRE(fromIndices.size() == toIndices.size());
+  REQUIRE(std::all_of(fromIndices.begin(), fromIndices.end(),
+                      [&](const int i) { return i >= 0 and i < this->size(); }));
+  REQUIRE(std::all_of(toIndices.begin(), toIndices.end(),
+                      [&](const int i) { return i >= 0 and i < this->size(); }));
+  const auto ni = fromIndices.size();
+  for (auto k = 0; k < ni; ++k) (*this)(toIndices[k]) = (*this)(fromIndices[k]);
+}
+
+//------------------------------------------------------------------------------
+// fixedSizeDataType
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+bool
+Field<Dimension, DataType>::
+fixedSizeDataType() const {
+  return DataTypeTraits<DataType>::fixedSize();
+}
+
+//------------------------------------------------------------------------------
+// numValsInDataType
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+int
+Field<Dimension, DataType>::
+numValsInDataType() const {
+  return DataTypeTraits<DataType>::numElements(DataType());
+}
+
+//------------------------------------------------------------------------------
+// sizeofDataType
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+int
+Field<Dimension, DataType>::
+sizeofDataType() const {
+  return sizeof(DataTypeTraits<DataType>::zero());
+}
+
+//------------------------------------------------------------------------------
+// computeCommBufferSize
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+int
+Field<Dimension, DataType>::
+computeCommBufferSize(const std::vector<int>& packIndices,
+                      const int sendProc,
+                      const int recvProc) const {
+  return computeBufferSize(*this, packIndices, sendProc, recvProc);
+}
+
+//------------------------------------------------------------------------------
 // Pack the Field into a string.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>

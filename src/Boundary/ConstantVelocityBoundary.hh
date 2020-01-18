@@ -51,15 +51,7 @@ public:
   virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the given Field.
-  virtual void applyGhostBoundary(Field<Dimension, int>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
+  virtual void applyGhostBoundary(FieldBase<Dimension>& field) const override;
 
   // Find any internal nodes that are in violation of this Boundary.
   virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
@@ -69,15 +61,7 @@ public:
   virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the violation node values in the given Field.
-  virtual void enforceBoundary(Field<Dimension, int>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const override;
   virtual void enforceBoundary(Field<Dimension, Vector>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
   //**********************************************************************
 
   // Allow read only access to the node indices and their forced velocities.

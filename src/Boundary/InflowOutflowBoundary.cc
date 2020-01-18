@@ -3,9 +3,9 @@
 // as they cross the specified boundary plane.
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "Boundary.hh"
-#include "findNodesTouchingThroughPlanes.hh"
-#include "mapPositionThroughPlanes.hh"
+#include "Boundary/Boundary.hh"
+#include "Boundary/findNodesTouchingThroughPlanes.hh"
+#include "Boundary/mapPositionThroughPlanes.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
 #include "Field/FieldBase.hh"
@@ -14,7 +14,8 @@
 #include "Utilities/planarReflectingOperator.hh"
 #include "Utilities/DBC.hh"
 
-#include "InflowOutflowBoundary.hh"
+#include "Boundary/InflowOutflowBoundary.hh"
+#include "Boundary/ConstantBoundaryUtilities.hh"
 
 #include "boost/lexical_cast.hpp"
 #include "boost/algorithm/string.hpp"
@@ -34,123 +35,13 @@ namespace Spheral {
 namespace {
 
 //------------------------------------------------------------------------------
-// Store the Field values of the given DataType for the given NodeList.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-void
-storeFieldValues(const NodeList<Dimension>& nodeList,
-                 const std::vector<int>& nodeIDs,
-                 std::map<std::string, std::vector<DataType> >& values) {
-
-  // Iterate over all the Fields defined on the NodeList.
-  for (auto fieldItr = nodeList.registeredFieldsBegin();
-       fieldItr != nodeList.registeredFieldsEnd();
-       ++fieldItr) {
-
-    // Determine if this Field is the type we're looking for.
-    if (typeid(**fieldItr) == typeid(Field<Dimension, DataType>)) {
-      const auto& field = (const Field<Dimension, DataType>&) **fieldItr;
-
-      // Build a vector of the values of this field on the requested nodes.
-      std::vector<DataType> vals;
-      vals.reserve(nodeIDs.size());
-      for (typename std::vector<int>::const_iterator nodeItr = nodeIDs.begin();
-           nodeItr != nodeIDs.end();
-           ++nodeItr) {
-        CHECK2(*nodeItr >= 0 && *nodeItr < field.numElements(), *nodeItr << " " << field.numElements());
-        vals.push_back(field(*nodeItr));
-      }
-      CHECK(vals.size() == nodeIDs.size());
-
-      // Put this data into the result.
-      // cerr << " --> ";
-      // for (typename std::map<std::string, std::vector<DataType> >::const_iterator itr = values.begin();
-      //      itr != values.end();
-      //      ++itr) cerr << itr->first << " ";
-      // cerr << endl;
-      const auto key = StateBase<Dimension>::key(**fieldItr);
-      CHECK2(values.find(key) == values.end(), key);
-      values[key] = vals;
-      // cerr << "Stored " << vals.size() << " values for " << key << endl;
-    }
-  }
-}
-  
-//------------------------------------------------------------------------------
-// Set the Field values in the given field using the given map.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-void
-resetValues(Field<Dimension, DataType>& field,
-            const std::vector<int>& nodeIDs,
-            const std::map<std::string, std::vector<DataType> >& values,
-            const bool dieOnMissingField) {
-
-  const auto& nodeList = field.nodeList();
-
-  // Find this Field in the set of stored values.
-  const auto key = StateBase<Dimension>::key(field);
-  auto itr = values.find(key);
-  VERIFY2(itr != values.end() or not dieOnMissingField,
-          "InflowOutflowBoundary error: " << key << " not found in stored field values.");
-
-  // Now set the values.
-  if (itr != values.end()) {
-    const auto& newValues = itr->second;
-    CHECK2(newValues.size() == nodeIDs.size(), key << " " << newValues.size() << " " << nodeIDs.size());
-    for (int i = 0; i < nodeIDs.size(); ++i) {
-      CHECK2(nodeIDs[i] >= 0 &&
-             nodeIDs[i] < nodeList.numNodes(), nodeIDs[i] << " " << nodeList.numNodes());
-      field(nodeIDs[i]) = newValues[i];
-      // cerr << "Setting " << field.name() << "(" << nodeIDs[i] << ")" << endl;
-    }
-  }
-}
-
-//------------------------------------------------------------------------------
 // Clear the values in the storage
 //------------------------------------------------------------------------------
-template<typename DataType>
 void
-clearValues(std::map<std::string, std::vector<DataType> >& values) {
+clearValues(std::map<std::string, std::vector<char>>& values) {
   for (auto& pairvals: values) pairvals.second.clear();
 }
 
-//------------------------------------------------------------------------------
-// Copy Field values of the given DataType from control to target IDs.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-void
-copyFieldValues(NodeList<Dimension>& nodeList,
-                const std::map<std::string, std::vector<DataType>>& storage,
-                const std::vector<int>& controlIDs,
-                const std::vector<int>& targetIDs) {
-  REQUIRE(controlIDs.size() == targetIDs.size());
-  const auto n = controlIDs.size();
-
-  // Iterate over all the Fields defined on the NodeList.
-  for (auto fieldItr = nodeList.registeredFieldsBegin();
-       fieldItr != nodeList.registeredFieldsEnd();
-       ++fieldItr) {
-
-    // Determine if this Field is the type we're looking for.
-    if (typeid(**fieldItr) == typeid(Field<Dimension, DataType>)) {
-      auto& field = (Field<Dimension, DataType>&) **fieldItr;
-      if ((*fieldItr)->name() != HydroFieldNames::position) {
-        const auto key = StateBase<Dimension>::key(field);
-        const auto itr = storage.find(key);
-        if (itr != storage.end()) {
-          // CHECK2(itr != storage.end(), "Key not found: " << key);
-          const auto& vals = itr->second;
-
-          // Copy the requested entries.
-          for (auto k = 0; k < n; ++k) field[targetIDs[k]] = vals[controlIDs[k]];
-        }
-      }
-    }
-  }
-}
-  
 }
 
 //------------------------------------------------------------------------------
@@ -171,17 +62,7 @@ InflowOutflowBoundary(DataBase<Dimension>& dataBase,
   mEmpty(empty),
   mNumInflowNodes(),
   mXmin(),
-  mIntValues(),
-  mScalarValues(),
-  mVectorValues(),
-  mTensorValues(),
-  mSymTensorValues(),
-  mThirdRankTensorValues(),
-  mFourthRankTensorValues(),
-  mFifthRankTensorValues(),
-  mFacetedVolumeValues(),
-  mVectorScalarValues(),
-  mVectorVectorValues(),
+  mBufferedValues(),
   mRestart(registerWithRestart(*this)) {
 }
 
@@ -230,10 +111,15 @@ void
 InflowOutflowBoundary<Dimension>::
 updateGhostNodes(NodeList<Dimension>& nodeList) {
   if (mActive) {
-    auto& pos = nodeList.positions();
-    this->applyGhostBoundary(pos);
-    this->applyGhostBoundary(nodeList.Hfield());
 
+    // Go ahead and set all the ghost values!
+    for (auto fieldItr = nodeList.registeredFieldsBegin();
+         fieldItr != nodeList.registeredFieldsEnd();
+         ++fieldItr) this->applyGhostBoundary(**fieldItr);
+    // this->applyGhostBoundary(pos);
+    // this->applyGhostBoundary(nodeList.Hfield());
+
+    auto&       pos = nodeList.positions();
     const auto& boundaryNodes = this->accessBoundaryNodes(nodeList);
     const auto& cNodes = boundaryNodes.controlNodes;
     const auto& gNodes = boundaryNodes.ghostNodes;
@@ -264,114 +150,12 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
 //------------------------------------------------------------------------------
 // Apply the boundary condition to fields of different DataTypes.
 //------------------------------------------------------------------------------
-// Specialization for int fields.
 template<typename Dimension>
 void
 InflowOutflowBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, int>& field) const {
+applyGhostBoundary(FieldBase<Dimension>& field) const {
   if (mActive) {
-    resetValues(field, this->ghostNodes(field.nodeList()), mIntValues, false);
-  }
-}
-
-// Specialization for scalar fields.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  if (mActive) {
-    resetValues(field, this->ghostNodes(field.nodeList()), mScalarValues, false);
-  }
-}
-
-// Specialization for Vector fields.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  if (mActive) {
-    resetValues(field, this->ghostNodes(field.nodeList()), mVectorValues, false);
-  }
-}
-
-// Specialization for Tensor fields.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-  if (mActive) {
-    resetValues(field, this->ghostNodes(field.nodeList()), mTensorValues, false);
-  }
-}
-
-// Specialization for symmetric tensors.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-  if (mActive) {
-    resetValues(field, this->ghostNodes(field.nodeList()), mSymTensorValues, false);
-  }
-}
-
-// Specialization for third rank tensors.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-  if (mActive) {
-    resetValues(field, this->ghostNodes(field.nodeList()), mThirdRankTensorValues, false);
-  }
-}
-
-
-// Specialization for fourth rank tensors.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
-  if (mActive) {
-    resetValues(field, this->ghostNodes(field.nodeList()), mFourthRankTensorValues, false);
-  }
-}
-
-// Specialization for fifth rank tensors.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
-  if (mActive) {
-    resetValues(field, this->ghostNodes(field.nodeList()), mFifthRankTensorValues, false);
-  }
-}
-
-// Specialization for FacetedVolume.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
-  if (mActive) {
-    resetValues(field, this->ghostNodes(field.nodeList()), mFacetedVolumeValues, false);
-  }
-}
-
-// Specialization for vector<Scalar> fields.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar>>& field) const {
-  if (mActive) {
-    resetValues(field, this->ghostNodes(field.nodeList()), mVectorScalarValues, false);
-  }
-}
-
-// Specialization for vector<Vector> fields.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Vector>>& field) const {
-  if (mActive) {
-    resetValues(field, this->ghostNodes(field.nodeList()), mVectorVectorValues, false);
+    resetValues(field, this->ghostNodes(field.nodeList()), mBufferedValues, false);
   }
 }
 
@@ -399,73 +183,6 @@ updateViolationNodes(NodeList<Dimension>& nodeList) {
 }
 
 //------------------------------------------------------------------------------
-// Apply the boundary condition to fields of different DataTypes.
-//------------------------------------------------------------------------------
-// Specialization for int fields.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-enforceBoundary(Field<Dimension, int>& field) const {
-}
-
-// Specialization for scalar fields.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-}
-
-
-// Specialization for Vector fields.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-}
-
-// Specialization for Tensor fields.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-}
-
-// Specialization for symmetric tensors.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-}
-
-// Specialization for third rank tensors.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-}
-
-// Specialization for fourth rank tensors.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
-}
-
-// Specialization for fifth rank tensors.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
-}
-
-// Specialization for FacetedVolume.
-template<typename Dimension>
-void
-InflowOutflowBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
-}
-
-//------------------------------------------------------------------------------
 // On problem startup we take our snapshot of the state of the points that
 // see/interact with the boundary plane.
 //------------------------------------------------------------------------------
@@ -474,17 +191,7 @@ void
 InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
 
   // Clear any existing data.
-  mIntValues.clear();
-  mScalarValues.clear();
-  mVectorValues.clear();
-  mTensorValues.clear();
-  mSymTensorValues.clear();
-  mThirdRankTensorValues.clear();
-  mFourthRankTensorValues.clear();
-  mFifthRankTensorValues.clear();
-  mFacetedVolumeValues.clear();
-  mVectorScalarValues.clear();
-  mVectorVectorValues.clear();
+  mBufferedValues.clear();
 
   // Check all NodeLists.
   for (auto itr = mDataBase.nodeListBegin(); itr < mDataBase.nodeListEnd(); ++itr) {
@@ -507,30 +214,24 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
     // cerr << endl;
 
     // Now take a snapshot of the Fields.
-    storeFieldValues(nodeList, nodeIDs, mIntValues);
-    storeFieldValues(nodeList, nodeIDs, mScalarValues);
-    storeFieldValues(nodeList, nodeIDs, mVectorValues);
-    storeFieldValues(nodeList, nodeIDs, mTensorValues);
-    storeFieldValues(nodeList, nodeIDs, mSymTensorValues);
-    storeFieldValues(nodeList, nodeIDs, mThirdRankTensorValues);
-    storeFieldValues(nodeList, nodeIDs, mFourthRankTensorValues);
-    storeFieldValues(nodeList, nodeIDs, mFifthRankTensorValues);
-    storeFieldValues(nodeList, nodeIDs, mFacetedVolumeValues);
-    storeFieldValues(nodeList, nodeIDs, mVectorScalarValues);
-    storeFieldValues(nodeList, nodeIDs, mVectorVectorValues);
+    storeFieldValues(nodeList, nodeIDs, mBufferedValues);
 
     // Map the snapshot positions to put them outside the boundary.
+    const auto ni = nodeIDs.size();
     auto& pos = nodeList.positions();
     const auto poskey = StateBase<Dimension>::key(pos);
-    CHECK(mVectorValues.find(poskey) != mVectorValues.end());
-    auto& posvals = mVectorValues[poskey];
-    const auto ni = nodeIDs.size();
+    auto positr = mBufferedValues.find(poskey);
+    CHECK(positr != mBufferedValues.end());
+    auto& posbuf = positr->second;
+    auto posvals = extractBufferedValues<Vector>(posbuf);
     const GeomPlane<Dimension> exitPlane(mPlane.point(), -nhat);
     for (auto k = 0; k < ni; ++k) {
       const auto i = nodeIDs[k];
       posvals[k] = mapPositionThroughPlanes(pos[i], mPlane, mPlane);
       // cerr << "  Ghost position: " << i << " @ " << posvals[k] << endl;
     }
+    posbuf.clear();
+    for (const auto& p: posvals) packElement(p, posbuf);
 
     // Determine the in/outflow velocity.
     const auto& vel = nodeList.velocity();
@@ -558,11 +259,9 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
     // cerr << "Timestep constraint: " << mDT << endl;
 
     mNumInflowNodes[nodeList.name()] = nodeIDs.size();
-    CHECK(mNumInflowNodes.size() == mDataBase.numNodeLists());
-
-    // Turn the BC on.
-    mActive = true;
   }
+  CHECK2(mNumInflowNodes.size() == mDataBase.numNodeLists(), mNumInflowNodes.size() << " != " <<  mDataBase.numNodeLists());
+  mActive = true;
 }
 
 //------------------------------------------------------------------------------
@@ -647,29 +346,19 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
       const auto firstID = nodeList.numInternalNodes();
       nodeList.numInternalNodes(firstID + numNew);
 
-      // Update the positions.
-      vector<int> newNodes(numNew);
+      // Build the map of ghost IDs --> new internal IDs
+      vector<int> fromIDs(numNew), toIDs(numNew);
       for (auto k = 0; k < numNew; ++k) {
-        newNodes[k] = firstID + k;
-        pos[firstID + k] = pos[gNodes[0] + insideNodes[k] + numNew];
+        fromIDs[k] = gNodes[0] + insideNodes[k] + numNew;
+        toIDs[k] = firstID + k;
       }
 
       // Copy all field values from ghosts to the new internal nodes.
-      copyFieldValues<Dimension, int>            (nodeList, mIntValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, Scalar>         (nodeList, mScalarValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, Vector>         (nodeList, mVectorValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, Tensor>         (nodeList, mTensorValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, SymTensor>      (nodeList, mSymTensorValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, ThirdRankTensor>(nodeList, mThirdRankTensorValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, FourthRankTensor>(nodeList, mFourthRankTensorValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, FifthRankTensor>(nodeList, mFifthRankTensorValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, FacetedVolume>  (nodeList, mFacetedVolumeValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, vector<Scalar>> (nodeList, mVectorScalarValues, insideNodes, newNodes);
-      copyFieldValues<Dimension, vector<Vector>> (nodeList, mVectorVectorValues, insideNodes, newNodes);
+      copyFieldValues(nodeList, fromIDs, toIDs);
 
-      // for (auto k = 0; k < numNew; ++k) {
-      //   cerr << " assigning position " << newNodes[k] << " @ " << pos[newNodes[k]] << " vel=" << nodeList.velocity()[newNodes[k]] << endl;
-      // }
+      // cerr << "New internal positions:";
+      // for (auto k = 0; k < numNew; ++k) cerr << " [" << (firstID + k) << " " << pos[firstID + k] << " " << nodeList.mass()[firstID + k] << " " << nodeList.Hfield()[firstID + k] << "]";
+      // cerr << endl;
     }
 
     // Look for any internal points that have exited through the plane.
@@ -732,17 +421,7 @@ template<typename Dimension>
 std::vector<std::string>
 InflowOutflowBoundary<Dimension>::storedKeys() const {
   vector<string> result;
-  for (const auto& pairs: mIntValues)             result.push_back(pairs.first);
-  for (const auto& pairs: mScalarValues)          result.push_back(pairs.first);
-  for (const auto& pairs: mVectorValues)          result.push_back(pairs.first);
-  for (const auto& pairs: mTensorValues)          result.push_back(pairs.first);
-  for (const auto& pairs: mSymTensorValues)       result.push_back(pairs.first);
-  for (const auto& pairs: mThirdRankTensorValues) result.push_back(pairs.first);
-  for (const auto& pairs: mFourthRankTensorValues) result.push_back(pairs.first);
-  for (const auto& pairs: mFifthRankTensorValues) result.push_back(pairs.first);
-  for (const auto& pairs: mFacetedVolumeValues)   result.push_back(pairs.first);
-  for (const auto& pairs: mVectorScalarValues)    result.push_back(pairs.first);
-  for (const auto& pairs: mVectorVectorValues)    result.push_back(pairs.first);
+  for (const auto& pairs: mBufferedValues) result.push_back(pairs.first);
   return result;
 }
 
@@ -753,15 +432,7 @@ template<typename Dimension>
 void
 InflowOutflowBoundary<Dimension>::clearStoredValues() {
   for (auto& stuff: mNumInflowNodes) stuff.second = 0;
-  clearValues(mIntValues);
-  clearValues(mScalarValues);
-  clearValues(mVectorValues);
-  clearValues(mTensorValues);
-  clearValues(mSymTensorValues);
-  clearValues(mThirdRankTensorValues);
-  clearValues(mFacetedVolumeValues);
-  clearValues(mVectorScalarValues);
-  clearValues(mVectorVectorValues);
+  clearValues(mBufferedValues);
 }
 
 //------------------------------------------------------------------------------
@@ -784,81 +455,12 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mBoundaryCount, pathName + "/boundaryCount");
 
   vector<std::string> keys;
-  for (const auto& p: mIntValues) {
+  for (const auto& p: mBufferedValues) {
     keys.push_back(p.first);
-    file.write(p.second, pathName + "/IntValues/" + p.first);
+    std::string val(p.second.begin(), p.second.end());
+    file.write(val, pathName + "/BufferedValues/" + p.first);
   }
-  file.write(keys, pathName + "/IntValues/keys");
-
-  keys.clear();
-  for (const auto& p: mScalarValues) {
-    keys.push_back(p.first);
-    file.write(p.second, pathName + "/ScalarValues/" + p.first);
-  }
-  file.write(keys, pathName + "/ScalarValues/keys");
-
-  keys.clear();
-  for (const auto& p: mVectorValues) {
-    keys.push_back(p.first);
-    file.write(p.second, pathName + "/VectorValues/" + p.first);
-  }
-  file.write(keys, pathName + "/VectorValues/keys");
-
-  keys.clear();
-  for (const auto& p: mTensorValues) {
-    keys.push_back(p.first);
-    file.write(p.second, pathName + "/TensorValues/" + p.first);
-  }
-  file.write(keys, pathName + "/TensorValues/keys");
-
-  keys.clear();
-  for (const auto& p: mSymTensorValues) {
-    keys.push_back(p.first);
-    file.write(p.second, pathName + "/SymTensorValues/" + p.first);
-  }
-  file.write(keys, pathName + "/SymTensorValues/keys");
-
-  keys.clear();
-  for (const auto& p: mThirdRankTensorValues) {
-    keys.push_back(p.first);
-    file.write(p.second, pathName + "/ThirdRankTensorValues/" + p.first);
-  }
-  file.write(keys, pathName + "/ThirdRankTensorValues/keys");
-
-  keys.clear();
-  for (const auto& p: mFourthRankTensorValues) {
-    keys.push_back(p.first);
-    file.write(p.second, pathName + "/FourthRankTensorValues/" + p.first);
-  }
-  file.write(keys, pathName + "/FourthRankTensorValues/keys");
-
-  keys.clear();
-  for (const auto& p: mFifthRankTensorValues) {
-    keys.push_back(p.first);
-    file.write(p.second, pathName + "/FifthRankTensorValues/" + p.first);
-  }
-  file.write(keys, pathName + "/FifthRankTensorValues/keys");
-  
-  keys.clear();
-  for (const auto& p: mFacetedVolumeValues) {
-    keys.push_back(p.first);
-    file.write(p.second, pathName + "/FacetedVolumeValues/" + p.first);
-  }
-  file.write(keys, pathName + "/FacetedVolumeValues/keys");
-
-  keys.clear();
-  for (const auto& p: mVectorScalarValues) {
-    keys.push_back(p.first);
-    file.write(p.second, pathName + "/VectorScalarValues/" + p.first);
-  }
-  file.write(keys, pathName + "/VectorScalarValues/keys");
-
-  keys.clear();
-  for (const auto& p: mVectorVectorValues) {
-    keys.push_back(p.first);
-    file.write(p.second, pathName + "/VectorVectorValues/" + p.first);
-  }
-  file.write(keys, pathName + "/VectorVectorValues/keys");
+  file.write(keys, pathName + "/keys");
 }
 
 //------------------------------------------------------------------------------
@@ -872,91 +474,12 @@ restoreState(const FileIO& file, const string& pathName)  {
   file.read(mBoundaryCount, pathName + "/boundaryCount");
 
   vector<std::string> keys;
-  file.read(keys, pathName + "/IntValues/keys");
-  mIntValues.clear();
+  file.read(keys, pathName + "/keys");
+  mBufferedValues.clear();
   for (const auto key: keys) {
-    mIntValues[key] = std::vector<int>();
-    file.read(mIntValues[key], pathName + "/IntValues/" + key);
-  }
-
-  keys.clear();
-  file.read(keys, pathName + "/ScalarValues/keys");
-  mScalarValues.clear();
-  for (const auto key: keys) {
-    mScalarValues[key] = std::vector<Scalar>();
-    file.read(mScalarValues[key], pathName + "/ScalarValues/" + key);
-  }
-
-  keys.clear();
-  file.read(keys, pathName + "/VectorValues/keys");
-  mVectorValues.clear();
-  for (const auto key: keys) {
-    mVectorValues[key] = std::vector<Vector>();
-    file.read(mVectorValues[key], pathName + "/VectorValues/" + key);
-  }
-
-  keys.clear();
-  file.read(keys, pathName + "/TensorValues/keys");
-  mTensorValues.clear();
-  for (const auto key: keys) {
-    mTensorValues[key] = std::vector<Tensor>();
-    file.read(mTensorValues[key], pathName + "/TensorValues/" + key);
-  }
-
-  keys.clear();
-  file.read(keys, pathName + "/SymTensorValues/keys");
-  mSymTensorValues.clear();
-  for (const auto key: keys) {
-    mSymTensorValues[key] = std::vector<SymTensor>();
-    file.read(mSymTensorValues[key], pathName + "/SymTensorValues/" + key);
-  }
-
-  keys.clear();
-  file.read(keys, pathName + "/ThirdRankTensorValues/keys");
-  mThirdRankTensorValues.clear();
-  for (const auto key: keys) {
-    mThirdRankTensorValues[key] = std::vector<ThirdRankTensor>();
-    file.read(mThirdRankTensorValues[key], pathName + "/ThirdRankTensorValues/" + key);
-  }
-
-  keys.clear();
-  file.read(keys, pathName + "/FourthRankTensorValues/keys");
-  mFourthRankTensorValues.clear();
-  for (const auto key: keys) {
-    mFourthRankTensorValues[key] = std::vector<FourthRankTensor>();
-    file.read(mFourthRankTensorValues[key], pathName + "/FourthRankTensorValues/" + key);
-  }
-
-  keys.clear();
-  file.read(keys, pathName + "/FifthRankTensorValues/keys");
-  mFifthRankTensorValues.clear();
-  for (const auto key: keys) {
-    mFifthRankTensorValues[key] = std::vector<FifthRankTensor>();
-    file.read(mFifthRankTensorValues[key], pathName + "/FifthRankTensorValues/" + key);
-  }
-  
-  keys.clear();
-  file.read(keys, pathName + "/FacetedVolumeValues/keys");
-  mFacetedVolumeValues.clear();
-  for (const auto key: keys) {
-    mFacetedVolumeValues[key] = std::vector<FacetedVolume>();
-    file.read(mFacetedVolumeValues[key], pathName + "/FacetedVolumeValues/" + key);
-  }
-
-  keys.clear();
-  file.read(keys, pathName + "/VectorScalarValues/keys");
-  mVectorScalarValues.clear();
-  for (const auto key: keys) {
-    mVectorScalarValues[key] = std::vector<std::vector<Scalar> >();
-    file.read(mVectorScalarValues[key], pathName + "/VectorScalarValues/" + key);
-  }
-
-  keys.clear();
-  file.read(keys, pathName + "/VectorVectorValues/keys");
-  mVectorVectorValues.clear();
-  for (const auto key: keys) {
-    mVectorVectorValues[key] = std::vector<std::vector<Vector> >();
-    file.read(mVectorVectorValues[key], pathName + "/VectorVectorValues/" + key);
+    std::string val;
+    file.read(val, pathName + "/BufferedValues/" + key);
+    mBufferedValues[key] = vector<char>(val.begin(), val.end());
   }
 }
 

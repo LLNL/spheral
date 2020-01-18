@@ -119,7 +119,6 @@ step(typename Dimension::Scalar maxTime,
   // Get derivs2(t_n + 0.5*dt, state(t_n + 0.5*dt*derivs1))
   tmpstate.update(derivs1, 0.5*dt, t, 0.5*dt);
   this->applyGhostBoundaries(tmpstate, derivs1);
-  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs1);
   this->finalizeGhostBoundaries();
   this->initializeDerivatives(t + 0.5*dt, 0.5*dt, tmpstate, derivs2);
@@ -144,7 +143,6 @@ step(typename Dimension::Scalar maxTime,
   tmpstate.copyState();
   tmpstate.update(derivs2, 0.5*dt, t, 0.5*dt);
   this->applyGhostBoundaries(tmpstate, derivs2);
-  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs2);
   this->finalizeGhostBoundaries();
   this->initializeDerivatives(t + 0.5*dt, 0.5*dt, tmpstate, derivs3);
@@ -169,7 +167,6 @@ step(typename Dimension::Scalar maxTime,
   tmpstate.copyState();
   tmpstate.update(derivs3, dt, t, dt);
   this->applyGhostBoundaries(tmpstate, derivs3);
-  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + dt, dt, db, tmpstate, derivs3);
   this->finalizeGhostBoundaries();
   this->initializeDerivatives(t + dt, dt, tmpstate, derivs4);
@@ -197,7 +194,6 @@ step(typename Dimension::Scalar maxTime,
   state.update(derivs3, dt/3.0, t, dt);
   state.update(derivs4, dt/6.0, t, dt);
   this->applyGhostBoundaries(state, derivs4);
-  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + dt, dt, db, state, derivs4);
   this->finalizeGhostBoundaries();
 
