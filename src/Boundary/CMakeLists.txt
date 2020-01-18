@@ -23,6 +23,7 @@ set(Boundary_headers
     AxisBoundaryRZ.hh
     Boundary.hh
     BoundaryInline.hh
+    ConstantBoundaryUtilities.hh
     CRKSPHVoidBoundary.hh
     findNodesTouchingThroughPlanes.hh
     PeriodicBoundary.hh
