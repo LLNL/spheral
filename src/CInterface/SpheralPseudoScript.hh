@@ -230,6 +230,7 @@ private:
   std::shared_ptr<TableKernel<Dimension> > mGradKernelPtr;
   std::shared_ptr<SmoothingScaleBase<Dimension> > mSmoothingScaleMethodPtr;
   std::shared_ptr<ArtificialViscosity<Dimension> > mQptr;
+  std::shared_ptr<Physics<Dimension> > mCorrectionsPtr;
   std::shared_ptr<Physics<Dimension> > mHydroPtr;
 
   // Integrator and state.

@@ -27,6 +27,7 @@
 #include "SPH/SolidSPHHydroBase.hh"
 #include "SPH/SolidSPHHydroBaseRZ.hh"
 #include "RK/computeVoronoiVolume.hh"
+#include "RK/RKCorrections.hh"
 #include "CRKSPH/SolidCRKSPHHydroBase.hh"
 #include "CRKSPH/SolidCRKSPHHydroBaseRZ.hh"
 #include "ArtificialViscosity/MonaghanGingoldViscosity.hh"
@@ -704,14 +705,21 @@ initialize(const bool     RZ,
   }
 
   RKOrder correctionOrder;
+  std::set<RKOrder> orderSet;
   if (crkorder == 0) {
     correctionOrder = RKOrder::ZerothOrder;
+    orderSet.insert(RKOrder::ZerothOrder);
   }
   else if (crkorder == 1) {
     correctionOrder = RKOrder::LinearOrder;
+    orderSet.insert(RKOrder::ZerothOrder);
+    orderSet.insert(RKOrder::LinearOrder);
   }
   else if (crkorder == 2) {
     correctionOrder = RKOrder::QuadraticOrder;
+    orderSet.insert(RKOrder::ZerothOrder);
+    orderSet.insert(RKOrder::LinearOrder);
+    orderSet.insert(RKOrder::QuadraticOrder);
   }
 
   // Build the hydro physics objects.
@@ -762,6 +770,14 @@ initialize(const bool     RZ,
   // Build a time integrator.  We're not going to use this to advance state,
   // but the other methods are useful.
   me.mIntegratorPtr.reset(new CheapSynchronousRK2<Dimension>(*me.mDataBasePtr));
+  if (CRK) {
+    me.mCorrectionsPtr.reset(new RKCorrections<Dimension>(orderSet,
+                                                          *me.mDataBasePtr,
+                                                          *me.mKernelPtr,
+                                                          RKVolumeType::RKVoronoiVolume,
+                                                          false));
+    me.mIntegratorPtr->appendPhysicsPackage(*me.mCorrectionsPtr);
+  }
   me.mIntegratorPtr->appendPhysicsPackage(*me.mHydroPtr);
 
   // Remember if we're feeding damage in
