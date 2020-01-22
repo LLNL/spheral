@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "SteinbergGuinanStrength.cc"
+#include "SolidMaterial/SteinbergGuinanStrength.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

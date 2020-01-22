@@ -1,6 +1,6 @@
 text = """
-#include "Kernel.hh"
-#include "ExpInvKernel.hh"
+#include "Kernel/Kernel.hh"
+#include "Kernel/ExpInvKernel.hh"
 
 #include <math.h>
 

@@ -39,7 +39,7 @@ public:
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const { return "AxisBoundaryRZ"; }
+  virtual std::string label() const override { return "AxisBoundaryRZ"; }
   //****************************************************************************
 
 private:

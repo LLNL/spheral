@@ -29,6 +29,8 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+  typedef typename Dimension::FifthRankTensor FifthRankTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
   // Constructors and destructors.
@@ -51,6 +53,8 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar> >& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
@@ -60,15 +64,6 @@ public:
   // For the computed set of nodes in violation of the boundary, bring them
   // back into compliance (for the positions and H's.)
   virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
-
-  // Apply the boundary condition to the violation node values in the given Field.
-  virtual void enforceBoundary(Field<Dimension, int>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, Vector>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
   //**********************************************************************
 
 private:

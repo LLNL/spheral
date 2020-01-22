@@ -39,6 +39,7 @@ public:
 
   // Require descendent fields be able to test equivalence.
   virtual bool operator==(const FieldBase& rhs) const = 0;
+  bool operator!=(const FieldBase& rhs) const;
 
   // Access the name.
   FieldName name() const;
@@ -61,6 +62,14 @@ public:
   virtual std::vector<char> packValues(const std::vector<int>& nodeIDs) const = 0;
   virtual void unpackValues(const std::vector<int>& nodeIDs,
                             const std::vector<char>& buffer) = 0;
+  virtual void copyElements(const std::vector<int>& fromIndices,
+                            const std::vector<int>& toIndices) = 0;
+  virtual bool fixedSizeDataType() const = 0;
+  virtual int numValsInDataType() const = 0;
+  virtual int sizeofDataType() const = 0;
+  virtual int computeCommBufferSize(const std::vector<int>& packIndices,
+                                    const int sendProc,
+                                    const int recvProc) const = 0;
 
 //   // Methods to support cacheing of coarse and refine neighbor values.
 //   void notifyNewCoarseNodes() const;

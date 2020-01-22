@@ -92,7 +92,7 @@ operator=(const CheapSynchronousRK2<Dimension>& rhs) {
 // Take a step.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 CheapSynchronousRK2<Dimension>::
 step(typename Dimension::Scalar maxTime,
      State<Dimension>& state,
@@ -131,7 +131,6 @@ step(typename Dimension::Scalar maxTime,
   state.update(derivs, hdt, t, hdt);
   this->currentTime(t + hdt);
   this->applyGhostBoundaries(state, derivs);
-  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + hdt, hdt, db, state, derivs);
   this->finalizeGhostBoundaries();
   TIME_CheapRK2MidStep.stop();
@@ -144,6 +143,18 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeDerivatives(t + hdt, hdt, db, state, derivs);
   TIME_CheapRK2EvalDerivs.stop();
 
+  // Check if the timestep is still a good idea...
+  if (this->allowDtCheck()) {
+    const auto dtnew = this->selectDt(min(this->dtMin(), maxTime - t),
+                                      min(this->dtMax(), maxTime - t),
+                                      state,
+                                      derivs);
+    if (dtnew < 0.5*dt) {
+      state.assign(state0);
+      return false;
+    }
+  }
+
   // Advance the state from the beginning of the cycle using the midpoint derivatives.
   TIME_CheapRK2EndStep.start();
   state.timeAdvanceOnly(false);
@@ -152,7 +163,6 @@ step(typename Dimension::Scalar maxTime,
   state.update(derivs, dt, t, dt);
   this->currentTime(t + dt);
   this->applyGhostBoundaries(state, derivs);
-  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + dt, dt, db, state, derivs);
   this->finalizeGhostBoundaries();
   // this->enforceBoundaries(state, derivs);
@@ -170,10 +180,10 @@ step(typename Dimension::Scalar maxTime,
 
   // Set the new current time and last time step.
   this->currentCycle(this->currentCycle() + 1);
-  this->currentTime(t + dt);
   this->lastDt(dt);
-
   TIME_CheapRK2.stop();
+
+  return true;
 }
 
 }

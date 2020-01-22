@@ -18,6 +18,8 @@ conditions, connecting NodeLists across parallel domains."""
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
+    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
     typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
 
     typedef typename DistributedBoundary<%(Dimension)s>::DomainBoundaryNodes DomainBoundaryNodes;
@@ -70,44 +72,6 @@ conditions, connecting NodeLists across parallel domains."""
         "Extract the current set of processors we're communicating with."
         return "void"
 
-    def finalizeExchanges(self):
-        "Force the exchanges which have been registered to execute."
-        return "void"
-
-    def setControlAndGhostNodes(self):
-        "Update the control and ghost nodes of the base class"
-        return "void"
-
-    #...........................................................................
-    # Non-blocking exchanges
-    @PYB11template("DataType")
-    @PYB11const
-    def beginExchangeField(self,
-                           field = "Field<%(Dimension)s, %(DataType)s>&"):
-        "Start a non-blocking Field exchange"
-        return "void"
-
-    @PYB11template("DataType")
-    @PYB11const
-    def beginExchangeFieldVariableSize(self,
-                                       field = "Field<%(Dimension)s, %(DataType)s>&"):
-        "Start a non-blocking Field exchange"
-        return "void"
-
-    def finalizeExchanges(self):
-        "Force the exchanges which have been registered to execute."
-        return "void"
-
-    beginExchangeFieldInt             = PYB11TemplateMethod(beginExchangeField, template_parameters="int", pyname="beginExchangeField")
-    beginExchangeFieldScalar          = PYB11TemplateMethod(beginExchangeField, template_parameters="Scalar", pyname="beginExchangeField")
-    beginExchangeFieldVector          = PYB11TemplateMethod(beginExchangeField, template_parameters="Vector", pyname="beginExchangeField")
-    beginExchangeFieldTensor          = PYB11TemplateMethod(beginExchangeField, template_parameters="Tensor", pyname="beginExchangeField")
-    beginExchangeFieldSymTensor       = PYB11TemplateMethod(beginExchangeField, template_parameters="SymTensor", pyname="beginExchangeField")
-    beginExchangeFieldThirdRankTensor = PYB11TemplateMethod(beginExchangeField, template_parameters="ThirdRankTensor", pyname="beginExchangeField")
-
-    beginExchangeFieldVS1             = PYB11TemplateMethod(beginExchangeFieldVariableSize, template_parameters="std::vector<Scalar>", pyname="beginExchangeFieldVariableSize")
-    beginExchangeFieldVS2             = PYB11TemplateMethod(beginExchangeFieldVariableSize, template_parameters="std::vector<Vector>", pyname="beginExchangeFieldVariableSize")
-
     #...........................................................................
     # Virtual methods
     @PYB11pure_virtual
@@ -135,6 +99,35 @@ conditions, connecting NodeLists across parallel domains."""
     def meshGhostNodes(self):
         "We do not want to use the parallel ghost nodes as generators."
         return "bool"
+
+    #...........................................................................
+    # Non-blocking exchanges
+    @PYB11const
+    def beginExchangeFieldFixedSize(self,
+                                    field = "FieldBase<%(Dimension)s>&"):
+        "Start a non-blocking Field exchange"
+        return "void"
+
+    @PYB11const
+    def beginExchangeFieldVariableSize(self,
+                                       field = "FieldBase<%(Dimension)s>&"):
+        "Start a non-blocking Field exchange"
+        return "void"
+
+    def finalizeExchanges(self):
+        "Force the exchanges which have been registered to execute."
+        return "void"
+
+    @PYB11const
+    def unpackField(self,
+                    field = "FieldBase<%(Dimension)s>&",
+                    packedValues = "const std::list< std::vector<char> >&"):
+        "Unpack a packed set of Field values back into the Field."
+        return "void"
+
+    def setControlAndGhostNodes(self):
+        "Update the control and ghost nodes of the base class"
+        return "void"
 
     #...........................................................................
     # Protected methods

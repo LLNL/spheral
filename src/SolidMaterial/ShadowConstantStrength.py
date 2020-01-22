@@ -30,13 +30,6 @@ ConstantStrength can be constructed one of two ways:
 """
 
 #-------------------------------------------------------------------------------
-# The base units for parameters in this file.
-#-------------------------------------------------------------------------------
-cgs = PhysicalConstants(0.01,    # Length in m
-                        0.001,   # Mass in kg
-                        1.0)     # Time in sec
-
-#-------------------------------------------------------------------------------
 # The generic factory function, where you pass in the dimension specific 
 # ConstantStrength constructor.
 # This one is for internal use only -- people will actually call the dimension
@@ -52,6 +45,11 @@ def _ConstantStrengthFactory(*args,
     expectedArgs = ["materialName", "units"]
     optionalKwArgs = {"mu0" : None,
                       "Y0" : None}
+
+    # The base units for parameters in this file.
+    cgs = PhysicalConstants(0.01,    # Length in m
+                            0.001,   # Mass in kg
+                            1.0)     # Time in sec
 
     # What sort of information did the user pass in?
     if ("materialName" in kwargs or 

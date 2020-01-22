@@ -145,6 +145,60 @@ registerState(DataBase<Dim<2> >& dataBase,
 }
 
 //------------------------------------------------------------------------------
+// Finalize the hydro.
+//------------------------------------------------------------------------------
+void
+SPHHydroBaseGSRZ::
+preStepInitialize(const DataBase<Dimension>& dataBase, 
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
+
+  // If we're going to do the SPH summation density, we need to convert the mass
+  // to mass per unit length first.
+  if (densityUpdate() == MassDensityType::RigorousSumDensity or
+      densityUpdate() == MassDensityType::CorrectedSumDensity) {
+    FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+    const FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
+    const unsigned numNodeLists = mass.numFields();
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const unsigned n = mass[nodeListi]->numElements();
+      for (unsigned i = 0; i != n; ++i) {
+        const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+        mass(nodeListi, i) *= safeInvVar(circi);
+      }
+    }
+  }
+
+  // Base class finalization does most of the work.
+  SPHHydroBase<Dimension>::preStepInitialize(dataBase, state, derivs);
+
+  // Now convert back to true masses and mass densities.  We also apply the RZ
+  // correction factor to the mass density.
+  if (densityUpdate() == MassDensityType::RigorousSumDensity or
+      densityUpdate() == MassDensityType::CorrectedSumDensity) {
+    const TableKernel<Dimension>& W = this->kernel();
+    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    const unsigned numNodeLists = massDensity.numFields();
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const unsigned n = massDensity[nodeListi]->numElements();
+      for (unsigned i = 0; i != n; ++i) {
+        const Vector& xi = position(nodeListi, i);
+        const SymTensor& Hi = H(nodeListi, i);
+        const Scalar zetai = abs((Hi*xi).y());
+        const Scalar fi = W.f1(zetai);
+        const Scalar circi = 2.0*M_PI*abs(xi.y());
+        mass(nodeListi, i) *= circi;
+        // massDensity(nodeListi, i) *= fi;
+        // massDensity(nodeListi, i) *= fi*safeInvVar(2.0*M_PI*abs(xi.y()));
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 void
@@ -580,14 +634,14 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
       // The H tensor evolution.
       DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
-                                                             ri,
+                                                             posi,
                                                              DvDxi,
                                                              hmin,
                                                              hmax,
                                                              hminratio,
                                                              nPerh);
       Hideali = mSmoothingScaleMethod.newSmoothingScale(Hi,
-                                                        ri,
+                                                        posi,
                                                         weightedNeighborSumi,
                                                         massSecondMomenti,
                                                         W,
@@ -620,62 +674,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
             }
           }
         }
-      }
-    }
-  }
-}
-
-//------------------------------------------------------------------------------
-// Finalize the hydro.
-//------------------------------------------------------------------------------
-void
-SPHHydroBaseGSRZ::
-finalize(const Dim<2>::Scalar time,
-         const Dim<2>::Scalar dt,
-         DataBase<Dim<2> >& dataBase,
-         State<Dim<2> >& state,
-         StateDerivatives<Dim<2> >& derivs) {
-
-  // If we're going to do the SPH summation density, we need to convert the mass
-  // to mass per unit length first.
-  if (densityUpdate() == MassDensityType::RigorousSumDensity or
-      densityUpdate() == MassDensityType::CorrectedSumDensity) {
-    FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-    const FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
-    const unsigned numNodeLists = mass.numFields();
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const unsigned n = mass[nodeListi]->numElements();
-      for (unsigned i = 0; i != n; ++i) {
-        const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
-        mass(nodeListi, i) *= safeInvVar(circi);
-      }
-    }
-  }
-
-  // Base class finalization does most of the work.
-  SPHHydroBase<Dimension>::finalize(time, dt, dataBase, state, derivs);
-
-  // Now convert back to true masses and mass densities.  We also apply the RZ
-  // correction factor to the mass density.
-  if (densityUpdate() == MassDensityType::RigorousSumDensity or
-      densityUpdate() == MassDensityType::CorrectedSumDensity) {
-    const TableKernel<Dimension>& W = this->kernel();
-    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    const unsigned numNodeLists = massDensity.numFields();
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const unsigned n = massDensity[nodeListi]->numElements();
-      for (unsigned i = 0; i != n; ++i) {
-        const Vector& xi = position(nodeListi, i);
-        const SymTensor& Hi = H(nodeListi, i);
-        const Scalar zetai = abs((Hi*xi).y());
-        const Scalar fi = W.f1(zetai);
-        const Scalar circi = 2.0*M_PI*abs(xi.y());
-        mass(nodeListi, i) *= circi;
-        // massDensity(nodeListi, i) *= fi;
-        // massDensity(nodeListi, i) *= fi*safeInvVar(2.0*M_PI*abs(xi.y()));
       }
     }
   }

@@ -146,7 +146,7 @@ Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::Field(const Field& field):
-  FieldBase<Dimension>(const_cast<Field<Dimension, DataType>&>(field)),
+  FieldBase<Dimension>(field),
   mDataArray(field.mDataArray),
   mValid(field.valid()) {
 }
@@ -159,7 +159,7 @@ template<typename Dimension, typename DataType>
 inline
 std::shared_ptr<FieldBase<Dimension> >
 Field<Dimension, DataType>::clone() const {
-  return std::shared_ptr<FieldBase<Dimension> >(new Field<Dimension, DataType>(*this));
+  return std::shared_ptr<FieldBase<Dimension>>(new Field<Dimension, DataType>(*this));
 }
 
 //------------------------------------------------------------------------------
@@ -1283,6 +1283,70 @@ Field<Dimension, DataType>::resizeFieldGhost(const unsigned size) {
   }
 
   mValid = true;
+}
+
+//------------------------------------------------------------------------------
+// Copy values between sets of indices.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+void
+Field<Dimension, DataType>::
+copyElements(const std::vector<int>& fromIndices,
+             const std::vector<int>& toIndices) {
+  REQUIRE(fromIndices.size() == toIndices.size());
+  REQUIRE(std::all_of(fromIndices.begin(), fromIndices.end(),
+                      [&](const int i) { return i >= 0 and i < this->size(); }));
+  REQUIRE(std::all_of(toIndices.begin(), toIndices.end(),
+                      [&](const int i) { return i >= 0 and i < this->size(); }));
+  const auto ni = fromIndices.size();
+  for (auto k = 0; k < ni; ++k) (*this)(toIndices[k]) = (*this)(fromIndices[k]);
+}
+
+//------------------------------------------------------------------------------
+// fixedSizeDataType
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+bool
+Field<Dimension, DataType>::
+fixedSizeDataType() const {
+  return DataTypeTraits<DataType>::fixedSize();
+}
+
+//------------------------------------------------------------------------------
+// numValsInDataType
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+int
+Field<Dimension, DataType>::
+numValsInDataType() const {
+  return DataTypeTraits<DataType>::numElements(DataType());
+}
+
+//------------------------------------------------------------------------------
+// sizeofDataType
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+int
+Field<Dimension, DataType>::
+sizeofDataType() const {
+  return sizeof(DataTypeTraits<DataType>::zero());
+}
+
+//------------------------------------------------------------------------------
+// computeCommBufferSize
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+int
+Field<Dimension, DataType>::
+computeCommBufferSize(const std::vector<int>& packIndices,
+                      const int sendProc,
+                      const int recvProc) const {
+  return computeBufferSize(*this, packIndices, sendProc, recvProc);
 }
 
 //------------------------------------------------------------------------------

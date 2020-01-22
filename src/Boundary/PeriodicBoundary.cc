@@ -265,58 +265,13 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
 // Apply the boundary condition to fields of different DataTypes.
 // For the Periodic boundary, the nested sub classes do all the work.
 //------------------------------------------------------------------------------
-// int Fields.
+// FieldBase
 template<typename Dimension>
 void
 PeriodicBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, int>& field) const {
-  mPlane1Boundary.applyGhostBoundary(field);
-  mPlane2Boundary.applyGhostBoundary(field);
-}
-
-// Scalar Fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  mPlane1Boundary.applyGhostBoundary(field);
-  mPlane2Boundary.applyGhostBoundary(field);
-}
-
-// Vector fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  mPlane1Boundary.applyGhostBoundary(field);
-  mPlane2Boundary.applyGhostBoundary(field);
-}
-
-// Tensor fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-  mPlane1Boundary.applyGhostBoundary(field);
-  mPlane2Boundary.applyGhostBoundary(field);
-}
-
-// Symmetric tensor Fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-  mPlane1Boundary.applyGhostBoundary(field);
-  mPlane2Boundary.applyGhostBoundary(field);
-}
-
-// Third rank tensor Fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-  mPlane1Boundary.applyGhostBoundary(field);
-  mPlane2Boundary.applyGhostBoundary(field);
+applyGhostBoundary(FieldBase<Dimension>& fieldBase) const {
+  mPlane1Boundary.applyGhostBoundary(fieldBase);
+  mPlane2Boundary.applyGhostBoundary(fieldBase);
 }
 
 // FacetedVolume Fields.
@@ -332,60 +287,6 @@ applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) c
 // Enforce the boundary condition to fields of different DataTypes.
 // For the Periodic boundary, the nested sub classes do all the work.
 //------------------------------------------------------------------------------
-// int Fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::
-enforceBoundary(Field<Dimension, int>& field) const {
-  mPlane1Boundary.enforceBoundary(field);
-  mPlane2Boundary.enforceBoundary(field);
-}
-
-// Scalar Fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  mPlane1Boundary.enforceBoundary(field);
-  mPlane2Boundary.enforceBoundary(field);
-}
-
-// Vector fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  mPlane1Boundary.enforceBoundary(field);
-  mPlane2Boundary.enforceBoundary(field);
-}
-
-// Tensor fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-  mPlane1Boundary.enforceBoundary(field);
-  mPlane2Boundary.enforceBoundary(field);
-}
-
-// Symmetric tensor Fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-  mPlane1Boundary.enforceBoundary(field);
-  mPlane2Boundary.enforceBoundary(field);
-}
-
-// Third rank tensor Fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-  mPlane1Boundary.enforceBoundary(field);
-  mPlane2Boundary.enforceBoundary(field);
-}
-
 // FacetedVolumeFields.
 template<typename Dimension>
 void

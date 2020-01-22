@@ -65,6 +65,11 @@ public:
   void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state);
 
+  // This method is called once at the beginning of a timestep, after all state registration.
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;
+
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual
@@ -73,14 +78,6 @@ public:
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const;
-
-  // Finalize the hydro at the completion of an integration step.
-  virtual
-  void finalize(const Scalar time,
-                const Scalar dt,
-                DataBase<Dimension>& dataBase,
-                State<Dimension>& state,
-                StateDerivatives<Dimension>& derivs);
 
   // Apply boundary conditions to the physics specific fields.
   virtual

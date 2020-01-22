@@ -55,10 +55,10 @@ public:
   Integrator& operator=(const Integrator& rhs);
 
   // All Integrator classes must define the dt and step methods.
-  virtual void step(Scalar maxTime,
+  virtual bool step(Scalar maxTime,
                     State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) = 0;
-  virtual void step(Scalar maxTime);
+  virtual bool step(Scalar maxTime);
 
   // Provide a method of looping over the physics packages and picking a
   // time step.
@@ -110,6 +110,9 @@ public:
   // Add a Physics package.
   void appendPhysicsPackage(Physics<Dimension>& package);
 
+  // Reset the Physics packages to a new set
+  void resetPhysicsPackages(std::vector<Physics<Dimension>*>& packages);
+
   // Test if the given Physics package is listed in the integrator.
   bool havePhysicsPackage(const Physics<Dimension>& package) const;
 
@@ -140,9 +143,6 @@ public:
   void copyGhostState(const State<Dimension>& state0,
                       State<Dimension>& state1) const;
 
-  // Advance the set of Physics packages to the given time.
-  virtual void advance(Scalar goalTime);
-
   // Access the current time.
   Scalar currentTime() const;
   void currentTime(Scalar time);
@@ -166,6 +166,10 @@ public:
   // Access the timestep growth factor.
   Scalar dtGrowth() const;
   void dtGrowth(Scalar fraction);
+
+  // The fraction of the timestep we consider when checking for stable behavior.
+  Scalar dtCheckFrac() const;
+  void dtCheckFrac(Scalar fraction);
 
   // Public const access to the DataBase.
   const DataBase<Dimension>& dataBase() const;
@@ -193,6 +197,10 @@ public:
   bool verbose() const;
   void verbose(bool x);
 
+  // Should the integrator check interim timestep votes and abort steps?
+  bool allowDtCheck() const;
+  void allowDtCheck(bool x);
+
   // Select whether we should run in a mode the ensures domain decomposition independence.
   // Possibly some performance impact.
   bool domainDecompositionIndependent() const;
@@ -216,9 +224,9 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  Scalar mDtMin, mDtMax, mDtGrowth, mLastDt, mCurrentTime;
+  Scalar mDtMin, mDtMax, mDtGrowth, mLastDt, mDtMultiplier, mDtCheckFrac, mCurrentTime;
   int mCurrentCycle, mUpdateBoundaryFrequency;
-  bool mVerbose, mRequireConnectivity, mRequireGhostConnectivity, mRequireOverlapConnectivity;
+  bool mVerbose, mAllowDtCheck, mRequireConnectivity, mRequireGhostConnectivity, mRequireOverlapConnectivity;
   DataBase<Dimension>* mDataBasePtr;
   std::vector<Physics<Dimension>*> mPhysicsPackages;
   bool mRigorousBoundaries, mCullGhostNodes;

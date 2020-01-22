@@ -24,36 +24,6 @@
     <ClCompile Include="..\..\src\Integrator\IntegratorInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Integrator\PredictorCorrectorInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Integrator\PredictorCorrectorInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Integrator\SynchronousRK1Inst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Integrator\SynchronousRK1Inst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Integrator\SynchronousRK2Inst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Integrator\SynchronousRK2Inst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Integrator\SynchronousRK4Inst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Integrator\SynchronousRK4Inst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Integrator\VerletInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Integrator\VerletInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\Integrator\CheapSynchronousRK2.hh">
@@ -65,42 +35,12 @@
     <None Include="..\..\src\Integrator\IntegratorInline.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\Integrator\PredictorCorrector.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Integrator\SynchronousRK1.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Integrator\SynchronousRK2.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Integrator\SynchronousRK4.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Integrator\Verlet.hh">
-      <Filter>Header Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\Integrator\CheapSynchronousRK2Inst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Integrator\IntegratorInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Integrator\PredictorCorrectorInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Integrator\SynchronousRK1Inst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Integrator\SynchronousRK2Inst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Integrator\SynchronousRK4Inst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Integrator\VerletInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
   </ItemGroup>

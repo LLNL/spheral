@@ -38,7 +38,10 @@ struct Plane2d {
   Plane2d(const Vector& p, const Vector& nhat)               : dist(-p.dot(nhat)), normal(nhat), ID(std::numeric_limits<int>::min()) {}
   Plane2d(const Vector& p, const Vector& nhat, const int id) : dist(-p.dot(nhat)), normal(nhat), ID(id) {}
   Plane2d& operator=(const Plane2d& rhs)                     { dist = rhs.dist; normal = rhs.normal; ID = rhs.ID; return *this; }
-  bool operator==(const Plane2d& rhs)                        { return (dist == rhs.dist and normal == rhs.normal); }
+  bool operator==(const Plane2d& rhs) const                  { return (dist == rhs.dist and normal == rhs.normal); }
+  bool operator!=(const Plane2d& rhs) const                  { return not (*this == rhs); }
+  bool operator< (const Plane2d& rhs) const                  { return (dist < rhs.dist); }
+  bool operator> (const Plane2d& rhs) const                  { return (dist > rhs.dist); }
 };
 
 //------------------------------------------------------------------------------
@@ -54,7 +57,10 @@ struct Plane3d {
   Plane3d(const Vector& p, const Vector& nhat)               : dist(-p.dot(nhat)), normal(nhat), ID(std::numeric_limits<int>::min()) {}
   Plane3d(const Vector& p, const Vector& nhat, const int id) : dist(-p.dot(nhat)), normal(nhat), ID(id) {}
   Plane3d& operator=(const Plane3d& rhs)                     { dist = rhs.dist; normal = rhs.normal; ID = rhs.ID; return *this; }
-  bool operator==(const Plane3d& rhs)                        { return (dist == rhs.dist and normal == rhs.normal); }
+  bool operator==(const Plane3d& rhs) const                  { return (dist == rhs.dist and normal == rhs.normal); }
+  bool operator!=(const Plane3d& rhs) const                  { return not (*this == rhs); }
+  bool operator< (const Plane3d& rhs) const                  { return (dist < rhs.dist); }
+  bool operator> (const Plane3d& rhs) const                  { return (dist > rhs.dist); }
 };
 
 //------------------------------------------------------------------------------

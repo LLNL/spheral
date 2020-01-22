@@ -86,6 +86,52 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& outerBoundary,
 }
 
 //------------------------------------------------------------------------------
+// Fill an outer bounding volume where dx is user-defined.
+//------------------------------------------------------------------------------
+vector<Dim<3>::Vector>
+fillFacetedVolume2(const Dim<3>::FacetedVolume& outerBoundary,
+                   const double   dx,
+                   const unsigned domain,
+                   const unsigned numDomains) {
+  VERIFY(dx > 0.0);
+  VERIFY(numDomains >= 1);
+  VERIFY(domain < numDomains);
+
+  typedef Dim<3>::Vector Vector;
+  typedef Dim<3>::FacetedVolume FacetedVolume;
+
+  vector<Vector> result;
+  unsigned i, ix, iy, iz;
+  const Vector& xmin = outerBoundary.xmin();
+  const Vector& xmax = outerBoundary.xmax();
+  const unsigned nx = std::max(1U, unsigned((xmax.x() - xmin.x())/dx + 0.5));
+  const unsigned ny = std::max(1U, unsigned((xmax.y() - xmin.y())/dx + 0.5));
+  const unsigned nz = std::max(1U, unsigned((xmax.z() - xmin.z())/dx + 0.5));
+  CHECK(nx > 0);
+  CHECK(ny > 0);
+  CHECK(nz > 0);
+
+  // Figure out the range of global IDs for this domain.
+  const unsigned nxy = nx*ny;
+  const unsigned nxyz = nx*ny*nz;
+  const unsigned ndomain0 = nxyz/numDomains;
+  const unsigned remainder = nxyz - ndomain0*numDomains;
+  CHECK(remainder < numDomains);
+  const unsigned ndomain = nxyz/numDomains + (domain < remainder ? 1 : 0);
+  const unsigned imin = domain*ndomain0 + min(domain, remainder);
+  const unsigned imax = imin + ndomain;
+  CHECK(domain < numDomains - 1 or imax == nxyz);
+  result.reserve(ndomain);
+
+  // Use an HCP lattice to do the filling.
+  for (i = imin; i != imax; ++i) {
+    const Vector pos = HCPposition(i, nx, ny, nz, dx, dx, dx, xmin, xmax);    
+    if (outerBoundary.contains(pos)) result.push_back(pos);
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Fill between an inner and outer boundary.
 //------------------------------------------------------------------------------
 vector<Dim<3>::Vector>

@@ -55,7 +55,8 @@ PYTHONTARGETS = \
 	$(srcdir)/MedialGenerator.py \
 	$(srcdir)/MultiScaleMedialGenerator.py \
 	$(srcdir)/RecursivePrimitiveRefinementGenerator.py \
-	$(srcdir)/SEAGenerator.py
+	$(srcdir)/SEAGenerator.py \
+	$(srcdir)/FacetedVolumeRejecters.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

@@ -19,7 +19,11 @@ INSTSRCTARGETS = \
 	$(srcdir)/ConstantXVelocityBoundaryInst.cc.py \
 	$(srcdir)/ConstantRVelocityBoundaryInst.cc.py \
 	$(srcdir)/ConstantBoundaryInst.cc.py \
-	$(srcdir)/CRKSPHVoidBoundaryInst.cc.py
+	$(srcdir)/InflowOutflowBoundaryInst.cc.py \
+	$(srcdir)/CRKSPHVoidBoundaryInst.cc.py \
+	$(srcdir)/findNodesTouchingThroughPlanesInst.cc.py
+SRCTARGETS = \
+	$(srcdir)/FacetedVolumeBoundary.cc
 
 # A few of our target files are only valid for certain dimensions.
 ifneq (,$(filter "yes", "@INST2D@" "@INST3D@"))

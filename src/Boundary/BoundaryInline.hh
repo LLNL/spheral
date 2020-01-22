@@ -1,18 +1,6 @@
-#include "Utilities/DBC.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-
-//------------------------------------------------------------------------------
-// Do we have an entry for the NodeList?
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-Boundary<Dimension>::
-haveNodeList(const NodeList<Dimension>& nodeList) const {
-  return mBoundaryNodes.find(const_cast<NodeList<Dimension>*>(&nodeList)) != mBoundaryNodes.end();
-}
 
 //------------------------------------------------------------------------------
 // Apply the Boundary condtion to the given FieldList.
@@ -49,14 +37,14 @@ enforceFieldListBoundary(FieldList<Dimension, DataType>& fieldList) const {
 }
 
 //------------------------------------------------------------------------------
-// Default choice for whether to mesh ghost nodes.
+// Do we have an entry for the NodeList?
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 bool
 Boundary<Dimension>::
-meshGhostNodes() const {
-  return true;
+haveNodeList(const NodeList<Dimension>& nodeList) const {
+  return mBoundaryNodes.find(const_cast<NodeList<Dimension>*>(&nodeList)) != mBoundaryNodes.end();
 }
 
 }

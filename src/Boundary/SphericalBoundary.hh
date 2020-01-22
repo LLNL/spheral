@@ -28,6 +28,8 @@ public:
   typedef Dimension::Tensor Tensor;
   typedef Dimension::SymTensor SymTensor;
   typedef Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef Dimension::FourthRankTensor FourthRankTensor;
+  typedef Dimension::FifthRankTensor FifthRankTensor;
   typedef Dimension::FacetedVolume FacetedVolume;
   typedef Boundary<Dimension>::BoundaryNodes BoundaryNodes;
 
@@ -46,12 +48,14 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar> >& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Find the set of nodes in violation of this boundary in the given NodeList.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList);
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the violation node values in the given Field.
   virtual void enforceBoundary(Field<Dimension, int>& field) const override;
@@ -60,6 +64,8 @@ public:
   virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Find the effective reflection operator between the given x-axis

@@ -8,14 +8,19 @@
 #ifndef __Spheral_packElement__
 #define __Spheral_packElement__
 
+#include "Geometry/Dimension.hh"
+#include "Geometry/polyclipper.hh"
+#include "Utilities/DataTypeTraits.hh"
+#include "Utilities/DomainNode.hh"
+#include "RK/RKCorrectionParams.hh"
+#include "RK/RKCoefficients.hh"
+
 #include <stdint.h>
 #include <vector>
 #include <map>
 #include <iterator>
 #include <string>
 #include <tuple>
-#include "DataTypeTraits.hh"
-#include "Distributed/DomainNode.hh"
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -87,17 +92,19 @@ packElement<int>(const int& value,
 // }
 
 // // Specialization for an unsigned long int type.
-// template<>
-// inline
-// void
-// packElement<unsigned long>(const unsigned long& value, 
-//                            std::vector<char>& buffer) {
-//   const int packSize = sizeof(unsigned long);
-//   char* data = reinterpret_cast<char*>(const_cast<unsigned long*>(&value));
-//   for (int i = 0; i != packSize; ++i) {
-//     buffer.push_back(*(data + i));
-//   }
-// }
+#if __APPLE__
+template<>
+inline
+void
+packElement<unsigned long>(const unsigned long& value, 
+                           std::vector<char>& buffer) {
+  const int packSize = sizeof(unsigned long);
+  char* data = reinterpret_cast<char*>(const_cast<unsigned long*>(&value));
+  for (int i = 0; i != packSize; ++i) {
+    buffer.push_back(*(data + i));
+  }
+}
+#endif
 
 // // Specialization for an unsigned long long int type.
 // template<>
@@ -216,6 +223,27 @@ packElement(const std::vector<DataType>& value,
   }
 }
 
+
+
+// RKOrder
+template<>
+inline
+void
+packElement(const RKOrder& value,
+            std::vector<char>& buffer) {
+  packElement(static_cast<int>(value), buffer);
+}
+
+// RKCoefficients<Dimension>
+template<typename Dimension>
+inline
+void
+packElement(const RKCoefficients<Dimension>& value,
+            std::vector<char>& buffer) {
+  packElement(value.correctionOrder, buffer);
+  packElement(value.coeffs, buffer);
+}
+
 //------------------------------------------------------------------------------
 // A standalone method to unpack an encoded value from the given
 // vector<*>::iterator to the dataType.
@@ -290,20 +318,22 @@ unpackElement<int>(int& value,
 // }
 
 // // Specialization for an unsigned long int type.
-// template<>
-// inline
-// void
-// unpackElement<unsigned long>(unsigned long& value,
-//                         std::vector<char>::const_iterator& itr,
-//                         const std::vector<char>::const_iterator& endPackedVector) {
-//   const int packSize = sizeof(unsigned long);
-//   char* data = reinterpret_cast<char*>(&value);
-//   for (int i = 0; i != packSize; ++i, ++itr) {
-//     CHECK(itr < endPackedVector);
-//     *(data + i) = *itr;
-//   }
-//   ENSURE(itr <= endPackedVector);
-// }
+#if __APPLE__
+template<>
+inline
+void
+unpackElement<unsigned long>(unsigned long& value,
+                        std::vector<char>::const_iterator& itr,
+                        const std::vector<char>::const_iterator& endPackedVector) {
+  const int packSize = sizeof(unsigned long);
+  char* data = reinterpret_cast<char*>(&value);
+  for (int i = 0; i != packSize; ++i, ++itr) {
+    CHECK(itr < endPackedVector);
+    *(data + i) = *itr;
+  }
+  ENSURE(itr <= endPackedVector);
+}
+#endif
 
 // Specialization for an uint32_t int type.
 template<>
@@ -435,6 +465,31 @@ unpackElement(std::vector<DataType>& value,
     value.push_back(element);
   }
 
+  ENSURE(itr <= endPackedVector);
+}
+
+// RKOrder
+template<>
+inline
+void
+unpackElement(RKOrder& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  int iorder;
+  unpackElement(iorder, itr, endPackedVector);
+  value = static_cast<RKOrder>(iorder);
+  ENSURE(itr <= endPackedVector);
+}
+
+// RKCoeffients
+template<typename Dimension>
+inline
+void
+unpackElement(RKCoefficients<Dimension>& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.correctionOrder, itr, endPackedVector);
+  unpackElement(value.coeffs, itr, endPackedVector);
   ENSURE(itr <= endPackedVector);
 }
 
@@ -692,6 +747,7 @@ unpackElement<PolyClipper::Vertex2d>(PolyClipper::Vertex2d& value,
   ENSURE(itr <= endPackedVector);
 }
 
+//..............................................................................
 // PolyClipper::Vertex3d
 template<>
 inline
@@ -713,6 +769,54 @@ unpackElement<PolyClipper::Vertex3d>(PolyClipper::Vertex3d& value,
   unpackElement(value.position, itr, endPackedVector);
   unpackElement(value.neighbors, itr, endPackedVector);
   unpackElement(value.comp, itr, endPackedVector);
+  unpackElement(value.ID, itr, endPackedVector);
+  ENSURE(itr <= endPackedVector);
+}
+
+//..............................................................................
+// PolyClipper::Plane2d
+template<>
+inline
+void
+packElement<PolyClipper::Plane2d>(const PolyClipper::Plane2d& value, 
+                                  std::vector<char>& buffer) {
+  packElement(value.normal, buffer);
+  packElement(value.dist, buffer);
+  packElement(value.ID, buffer);
+}
+
+template<>
+inline
+void
+unpackElement<PolyClipper::Plane2d>(PolyClipper::Plane2d& value, 
+                                    std::vector<char>::const_iterator& itr,
+                                    const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.normal, itr, endPackedVector);
+  unpackElement(value.dist, itr, endPackedVector);
+  unpackElement(value.ID, itr, endPackedVector);
+  ENSURE(itr <= endPackedVector);
+}
+
+//..............................................................................
+// PolyClipper::Plane3d
+template<>
+inline
+void
+packElement<PolyClipper::Plane3d>(const PolyClipper::Plane3d& value, 
+                                  std::vector<char>& buffer) {
+  packElement(value.normal, buffer);
+  packElement(value.dist, buffer);
+  packElement(value.ID, buffer);
+}
+
+template<>
+inline
+void
+unpackElement<PolyClipper::Plane3d>(PolyClipper::Plane3d& value, 
+                                    std::vector<char>::const_iterator& itr,
+                                    const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.normal, itr, endPackedVector);
+  unpackElement(value.dist, itr, endPackedVector);
   unpackElement(value.ID, itr, endPackedVector);
   ENSURE(itr <= endPackedVector);
 }

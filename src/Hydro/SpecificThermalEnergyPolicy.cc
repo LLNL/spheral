@@ -77,7 +77,7 @@ update(const KeyType& key,
   REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and 
           nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
   auto eps = state.fields(fieldKey, Scalar());
-  const unsigned numFields = eps.numFields();
+  const auto numFields = eps.numFields();
 
   // Get the state fields.
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
@@ -85,28 +85,30 @@ update(const KeyType& key,
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   // const auto  entropy = state.fields(HydroFieldNames::entropy, Scalar());
   const auto  eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
-  const auto  pairAccelerations = derivs.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
+  const auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   const auto  DepsDt0 = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
-  const auto& nodeLists = connectivityMap.nodeLists();
-  CHECK(nodeLists.size() == numFields);
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+  CHECK(pairAccelerations.size() == npairs);
 
-  // Prepare a counter to keep track of how we go through the pair-accelerations.
-  auto DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
-  auto offset = mDataBasePtr->newFluidFieldList(0, "offset");
-
-  // Walk all the NodeLists.
   const auto hdt = 0.5*multiplier;
-  for (size_t nodeListi = 0; nodeListi != numFields; ++nodeListi) {
+  auto DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
 
-    // Iterate over the internal nodes of this NodeList.
-    for (auto iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
+  // Walk all pairs and figure out the discrete work for each point
+#pragma omp parallel
+  {
+    // Thread private variables
+    auto DepsDt_thread = DepsDt.threadCopy();
+
+#pragma omp for
+    for (auto kk = 0; kk < npairs; ++kk) {
+      const auto i = pairs[kk].i_node;
+      const auto j = pairs[kk].j_node;
+      const auto nodeListi = pairs[kk].i_list;
+      const auto nodeListj = pairs[kk].j_list;
 
       // State for node i.
-      auto& DepsDti = DepsDt(nodeListi, i);
       const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
       // const auto  si = entropy(nodeListi, i);
       const auto  mi = mass(nodeListi, i);
@@ -114,71 +116,39 @@ update(const KeyType& key,
       const auto  ui = eps0(nodeListi, i);
       const auto& ai = acceleration(nodeListi, i);
       const auto  vi12 = vi + ai*hdt;
-      const auto& pacci = pairAccelerations(nodeListi, i);
-      CHECK(pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) or
-            NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
+      const auto& paccij = pairAccelerations[kk];
 
-      // Get the connectivity (neighbor set) for this node.
-      const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+      // State for node j.
+      const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
+      // const auto  sj = entropy(nodeListj, j);
+      const auto  mj = mass(nodeListj, j);
+      const auto& vj = velocity(nodeListj, j);
+      const auto  uj = eps0(nodeListj, j);
+      const auto& aj = acceleration(nodeListj, j);
+      const auto  vj12 = vj + aj*hdt;
 
-      // Iterate over the neighbor NodeLists.
-      for (size_t nodeListj = 0; nodeListj != numFields; ++nodeListj) {
+      const auto  vji12 = vj12 - vi12;
+      const Scalar duij = vji12.dot(paccij);
+      const Scalar wi = weighti/(weighti + weightj);         // Du/Dt weighting
+      // const Scalar wi = entropyWeighting(si, sj, duij);   // entropy weighting
+      CHECK(wi >= 0.0 and wi <= 1.0);
 
-        // The set of neighbors from this NodeList.
-        const auto& connectivity = fullConnectivity[nodeListj];
-        if (connectivity.size() > 0) {
-          const auto firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
+      DepsDt_thread(nodeListi, i) += wi*duij;
+      DepsDt_thread(nodeListj, j) += (1.0 - wi)*duij*mi/mj;
+    }
 
-          // Iterate over the neighbors, and accumulate the specific energy
-          // change.
-          for (auto jitr = connectivity.begin();
-               jitr != connectivity.end();
-               ++jitr) {
-            const int j = *jitr;
+#pragma omp critical
+    {
+      DepsDt_thread.threadReduce();
+    }
+  }
 
-            if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                         nodeListj, j,
-                                                         firstGhostNodej)) {
-              auto& DepsDtj = DepsDt(nodeListj, j);
-              const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
-              // const auto  sj = entropy(nodeListj, j);
-              const auto  mj = mass(nodeListj, j);
-              const auto& vj = velocity(nodeListj, j);
-              const auto  uj = eps0(nodeListj, j);
-              const auto& aj = acceleration(nodeListj, j);
-              const auto  vj12 = vj + aj*hdt;
-              const auto  vji12 = vj12 - vi12;
-              const auto& paccj = pairAccelerations(nodeListj, j);
-              CHECK(j >= firstGhostNodej or 
-                    paccj.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j) or
-                    NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
-
-              CHECK(offset(nodeListi, i) < pacci.size());
-              const auto& pai = pacci[offset(nodeListi, i)];
-              ++offset(nodeListi, i);
-
-              CHECK(offset(nodeListj, j) < paccj.size());
-              const auto& paj = paccj[offset(nodeListj, j)];
-              ++offset(nodeListj, j);
-
-              CHECK2(fuzzyEqual(mi*mj*pai.dot(paj) + mi*mi*pai.dot(pai), 0.0, 1.0e-6),
-                     "Symmetric forces?  (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") " << mi << " " << mj << " " << pai << " " << paj << " " << mi*pai << " " << mj*paj);
-
-              const Scalar duij = vji12.dot(pai);
-              const Scalar wi = weighti/(weighti + weightj);      // Du/Dt weighting
-              // const Scalar wi = entropyWeighting(si, sj, duij);   // entropy weighting
-              CHECK(wi >= 0.0 and wi <= 1.0);
-              DepsDti += wi*duij;
-              DepsDtj += (1.0 - wi)*duij*mi/mj;
-            }
-          }
-        }
-      }
-
-      // Now we can update the energy.
-      CHECK2(offset(nodeListi, i) == pacci.size() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent(),
-             "Bad sizing : (" << nodeListi << " " << i << ") " << offset(nodeListi, i) << " " << pacci.size());
-      eps(nodeListi, i) += DepsDti*multiplier;
+  // Now we can update the energy.
+  for (auto nodeListi = 0; nodeListi < numFields; ++nodeListi) {
+    const auto n = eps[nodeListi]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0; i < n; ++i) {
+      eps(nodeListi, i) += DepsDt(nodeListi, i)*multiplier;
     }
   }
 }

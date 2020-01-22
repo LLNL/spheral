@@ -17,6 +17,13 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& outerBoundary,
                   const unsigned domain,
                   const unsigned numDomains);
 
+// Fill a bounding volume where dx is user-defined.
+std::vector<Dim<3>::Vector>
+fillFacetedVolume2(const Dim<3>::FacetedVolume& outerBoundary,
+                   const double   dx,
+                   const unsigned domain,
+                   const unsigned numDomains);
+
 // Fill between inner and outer bounding volumes.
 std::vector<Dim<3>::Vector>
 fillFacetedVolume(const Dim<3>::FacetedVolume& innerBoundary,

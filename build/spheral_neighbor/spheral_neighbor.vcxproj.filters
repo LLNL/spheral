@@ -48,6 +48,9 @@
     <ClCompile Include="..\..\src\Neighbor\TreeNeighborInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Neighbor\NodePairList.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\Neighbor\ConnectivityMapInst.cc.py">
@@ -68,5 +71,10 @@
     <CustomBuild Include="..\..\src\Neighbor\NeighborInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\Neighbor\NodePairList.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

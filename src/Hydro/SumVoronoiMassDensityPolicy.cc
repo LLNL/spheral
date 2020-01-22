@@ -73,18 +73,21 @@ update(const KeyType& key,
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::massDensity and 
           nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  FieldList<Dimension, Scalar> massDensity = state.fields(fieldKey, Scalar());
-  const unsigned numFields = massDensity.numFields();
+  auto massDensity = state.fields(fieldKey, Scalar());
+  const auto numFields = massDensity.numFields();
+  const auto W0 = mW.kernelValue(0.0, 1.0);
 
   // Intitialize the mass density.
   massDensity = 0.0;
 
   // Grab the state we need to do our job.
-  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
-  const FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
-  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const ConnectivityMap<Dimension>& cm = state.connectivityMap();
+  const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto  volume = state.fields(HydroFieldNames::volume, 0.0);
+  const auto  pos = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto& cm = state.connectivityMap();
+  const auto& pairs = cm.nodePairList();
+  const auto  npairs = pairs.size();
 
   // // The volume still needs to have boundary conditions enforced.
   // typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
@@ -98,62 +101,72 @@ update(const KeyType& key,
   //      boundaryItr != mPackage.boundaryEnd();
   //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
-  // Walk the fields.
-  for (unsigned nodeListi = 0; nodeListi != numFields; ++nodeListi) {
+  // Prepare the effective volume storage.
+  FieldList<Dimension, Scalar> volEff(mass);
+  volEff.copyFields();
+  volEff = 0.0;
 
-    // We need a place to keep the volume as we accumulate it.
-    const NodeList<Dimension>& nodeList = massDensity[nodeListi]->nodeList();
-    Field<Dimension, Scalar> volEff("effective volume", nodeList);
-
-    // Walk the local nodes.
-    typename ConnectivityMap<Dimension>::const_iterator iItr;
-    typename vector<int>::const_iterator jItr;
-    unsigned i, j;
-    Scalar Hdeti, Hdetj, etai, etaj, Wi, Wj, W0;
+#pragma omp parallel
+  {
+    // Thread private scratch variables
+    int i, j, nodeListi, nodeListj;
+    Scalar Hdeti, Hdetj, etai, etaj, Wi, Wj;
     Vector xij;
-    const unsigned firstGhostNodei = nodeList.firstGhostNode();
-    for (iItr = cm.begin(nodeListi); iItr != cm.end(nodeListi); ++iItr) {
-      i = *iItr;
-      const Scalar& Vi = volume(nodeListi, i);
-      const Scalar& mi = mass(nodeListi, i);
-      const Vector& xi = pos(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
+
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto volEff_thread = volEff.threadCopy(threadStack);
+
+#pragma omp for
+    for (auto k = 0; k < npairs; ++k) {
+      i = pairs[k].i_node;
+      j = pairs[k].j_node;
+      nodeListi = pairs[k].i_list;
+      nodeListj = pairs[k].j_list;
+
+      const auto& Vi = volume(nodeListi, i);
+      const auto& mi = mass(nodeListi, i);
+      const auto& xi = pos(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
       Hdeti = Hi.Determinant();
-      Scalar& rhoi = massDensity(nodeListi, i);
-      Scalar& Veffi = volEff(i);
+      auto& rhoi = massDensity(nodeListi, i);
+      auto& Veffi = volEff_thread(nodeListi, i);
 
-      // Walk the neighbors of this node.
-      const vector<int>& connectivity = cm.connectivityForNode(nodeListi, i)[nodeListi];
-      for (jItr = connectivity.begin(); jItr != connectivity.end(); ++jItr) {
-        j = *jItr;
-        if (cm.calculatePairInteraction(nodeListi, i, 
-                                        nodeListi, j,
-                                        firstGhostNodei)) {
-          const Scalar& Vj = volume(nodeListi, j);
-          const Scalar& mj = mass(nodeListi, j);
-          const Vector& xj = pos(nodeListi, j);
-          const SymTensor& Hj = H(nodeListi, j);
-          Hdetj = Hj.Determinant();
-          Scalar& rhoj = massDensity(nodeListi, j);
-          Scalar& Veffj = volEff(j);
+      const auto& Vj = volume(nodeListi, j);
+      const auto& mj = mass(nodeListi, j);
+      const auto& xj = pos(nodeListi, j);
+      const auto& Hj = H(nodeListi, j);
+      Hdetj = Hj.Determinant();
+      auto& rhoj = massDensity(nodeListi, j);
+      auto& Veffj = volEff_thread(nodeListj, j);
 
-          xij = xi - xj;
-          etai = (Hi*xij).magnitude();
-          etaj = (Hj*xij).magnitude();
-          Wi = mW.kernelValue(etai, Hdeti);
-          Wj = mW.kernelValue(etaj, Hdetj);
+      xij = xi - xj;
+      etai = (Hi*xij).magnitude();
+      etaj = (Hj*xij).magnitude();
+      Wi = mW.kernelValue(etai, Hdeti);
+      Wj = mW.kernelValue(etaj, Hdetj);
 
-          Veffi += Vj*Wi;
-          rhoi +=  mj*Wi;
+      Veffi += Vj*Wi;
+      rhoi +=  mj*Wi;
 
-          Veffj += Vi*Wj;
-          rhoj +=  mi*Wj;
-        }
-      }
+      Veffj += Vi*Wj;
+      rhoj +=  mi*Wj;
+    }
 
-      // Finalize the density for node i.
-      W0 = mW.kernelValue(0.0, Hdeti);
-      rhoi = max(mRhoMin, min(mRhoMax, (rhoi + mi*W0) * safeInv(Veffi + Vi*W0)));
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+  }
+
+  // Finalize the density for node i.
+  for (auto nodeListi = 0; nodeListi < numFields; ++nodeListi) {
+    const auto ni = mass[nodeListi]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0; i < ni; ++i) {
+      const auto& Vi = volume(nodeListi, i);
+      const auto& mi = mass(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto Hdeti = Hi.Determinant();
+      auto& rhoi = massDensity(nodeListi, i);
+      rhoi = max(mRhoMin, min(mRhoMax, (rhoi + mi*Hdeti*W0) * safeInv(volEff(nodeListi, i) + Vi*Hdeti*W0)));
     }
   }
 }
@@ -184,7 +197,9 @@ updateAsIncrement(const KeyType& key,
   // Loop over the internal values of the field.
   const unsigned numFields = f.numFields();
   for (unsigned i = 0; i != numFields; ++i) {
-    for (unsigned j = 0; j != f[i]->numInternalElements(); ++j) {
+    const auto ni = f[i]->numInternalElements();
+#pragma omp parallel for
+    for (unsigned j = 0; j < ni; ++j) {
       f(i,j) = max(mRhoMin, min(mRhoMax, f(i,j) + multiplier*(df(i,j))));
     }
   }

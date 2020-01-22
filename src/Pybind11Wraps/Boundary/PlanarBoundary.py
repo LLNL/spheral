@@ -14,7 +14,9 @@ class PlanarBoundary(Boundary):
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor; 
+    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
+    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
     typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef typename Boundary<%(Dimension)s>::BoundaryNodes BoundaryNodes;
     typedef GeomPlane<%(Dimension)s> Plane;
@@ -32,30 +34,6 @@ class PlanarBoundary(Boundary):
 
     #...........................................................................
     # Virtual methods
-    @PYB11virtual
-    def setGhostNodes(self,
-                      nodeList = "NodeList<%(Dimension)s>&"):
-        "Set ghost nodes for the NodeList"
-        return "void"
-
-    @PYB11virtual
-    def updateGhostNodes(self,
-                         nodeList = "NodeList<%(Dimension)s>&"):
-        "Update position and H for ghost nodes for the NodeList"
-        return "void"
-
-    @PYB11virtual
-    def setViolationNodes(self,
-                      nodeList = "NodeList<%(Dimension)s>&"):
-        "Set violation nodes for the NodeList"
-        return "void"
-
-    @PYB11virtual
-    def updateViolationNodes(self,
-                         nodeList = "NodeList<%(Dimension)s>&"):
-        "Update nodes in violation of this Boundary for the NodeList"
-        return "void"
-                    
     @PYB11virtual
     @PYB11const
     def enterPlane(self):
@@ -118,4 +96,5 @@ class PlanarBoundary(Boundary):
 #-------------------------------------------------------------------------------
 # Inject restart methods
 #-------------------------------------------------------------------------------
+PYB11inject(BoundaryAbstractMethods, PlanarBoundary, virtual=True, pure_virtual=False)
 PYB11inject(RestartMethods, PlanarBoundary)

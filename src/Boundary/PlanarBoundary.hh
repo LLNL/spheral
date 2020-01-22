@@ -76,7 +76,7 @@ public:
   //****************************************************************************
 
   // Override the clip method for clipping a box.
-  virtual void clip(Vector& xmin, Vector& xmax) const;
+  virtual void clip(Vector& xmin, Vector& xmax) const override;
 
   // Provide a method to identify tessellation faces on a plane.
   std::vector<unsigned> facesOnPlane(const Mesh<Dimension>& mesh,

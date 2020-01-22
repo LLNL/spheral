@@ -2,6 +2,7 @@
 # Optional ANEOS interface
 # -----------------------------------------------------------------
 AC_DEFUN([SETUP_ANEOS],[
+AC_SUBST(EXTRATHIRDPARTYTARGETS)
 AC_SUBST(ANEOSSRCS)
 AC_SUBST(ANEOSFSRCS)
 AC_SUBST(ANEOSLIBS)
@@ -9,22 +10,23 @@ AC_SUBST(PYTHONPKGS)
 AC_SUBST(LDFLAGS)
 
 # -----------------------------------------------------------------
-# Optionally build the ANEOS package
+# Optionally build without the ANEOS package
 # -----------------------------------------------------------------
-AC_MSG_CHECKING(for --with-aneos)
+AC_MSG_CHECKING(for --without-aneos)
 AC_ARG_WITH(aneos,
-[  --with-aneos ............................. optionally build the interface to ANEOS (requires the external ANEOS library)],
+[  --without-aneos .......................... optionally do not build the interface to ANEOS],
 [
    AC_MSG_RESULT(yes)
+   ANEOSSRCS=""
+   ANEOSFSRCS=""
+],
+[
+   AC_MSG_RESULT(no)
+   EXTRATHIRDPARTYTARGETS+=" .maneos-v1.0.date"
    ANEOSSRCS="ANEOSInst.cc.py"
    ANEOSFSRCS="ANEOS_initialize.f"
    PYTHONPKGS+=" ANEOS"
    LDFLAGS+=" $FORTLINK"
-],
-[
-   AC_MSG_RESULT(no)
-   ANEOSSRCS=""
-   ANEOSFSRCS=""
 ]
 )
 
@@ -40,7 +42,7 @@ AC_ARG_WITH(aneos-link,
 ],
 [
    AC_MSG_RESULT(no)
-   ANEOSLIBS=""
+   ANEOSLIBS="-laneos"
 ]
 )
 

@@ -25,8 +25,7 @@ class SolidCRKSPHHydroBaseRZ(CRKSPHHydroBase):
     def pyinit(self,
                smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
-               W = "const TableKernel<%(Dimension)s>&",
-               WPi = "const TableKernel<%(Dimension)s>&",
+               order = "const RKOrder",
                filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
@@ -35,11 +34,8 @@ class SolidCRKSPHHydroBaseRZ(CRKSPHHydroBase):
                XSPH = "const bool",
                densityUpdate = "const MassDensityType",
                HUpdate = "const HEvolutionType",
-               correctionOrder = "const CRKOrder",
-               volumeType = "const CRKVolumeType",
                epsTensile = "const double",
                nTensile = "const double",
-               limitMultimaterialTopology = "const bool",
                damageRelieveRubble = "const bool",
                negativePressureInDamage = "const bool"):
         "Constructor"
@@ -66,6 +62,14 @@ class SolidCRKSPHHydroBaseRZ(CRKSPHHydroBase):
         return "void"
 
     @PYB11virtual
+    def preStepInitialize(self,
+                          dataBase = "const DataBase<%(Dimension)s>&", 
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Optional hook to be called at the beginning of a time step."
+        return "void"
+
+    @PYB11virtual
     @PYB11const
     def evaluateDerivatives(self,
                             time = "const Scalar",
@@ -77,16 +81,6 @@ class SolidCRKSPHHydroBaseRZ(CRKSPHHydroBase):
 mass density, velocity, and specific thermal energy."""
         return "void"
 
-    @PYB11virtual
-    def finalize(self,
-                 time = "const Scalar",
-                 dt = "const Scalar",
-                 dataBase = "DataBase<%(Dimension)s>&",
-                 state = "State<%(Dimension)s>&",
-                 derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Finalize the hydro at the completion of an integration step."
-        return "void"
-                  
     @PYB11virtual
     def applyGhostBoundaries(self,
                              state = "State<%(Dimension)s>&",
@@ -100,10 +94,6 @@ mass density, velocity, and specific thermal energy."""
                           derivs = "StateDerivatives<%(Dimension)s>&"):
         "Enforce boundary conditions for the physics specific fields."
         return "void"
-
-    #...........................................................................
-    deviatoricStressTT = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "deviatoricStressTT", returnpolicy="reference_internal")
-    DdeviatoricStressTTDt = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DdeviatoricStressTTDt", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods

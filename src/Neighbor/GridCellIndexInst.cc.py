@@ -5,7 +5,7 @@ text = """
 // Instantiate the static variables.
 // Set the maximum index value to 2^21/2, so that (mIndexMax - mIndexMin)^3 will
 // be in the range of an unsigned long long (2^64 on the machines I'm using).
-#include "GridCellIndex.cc"
+#include "Neighbor/GridCellIndex.cc"
 
 namespace Spheral {
 

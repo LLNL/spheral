@@ -24,7 +24,6 @@ INSTSRCTARGETS = \
 
 ifeq ("yes", "@INST2D@")
 SRCTARGETS += \
-	$(srcdir)/RZDeviatoricStressPolicy.cc \
 	$(srcdir)/RZPlasticStrainPolicy.cc
 endif
 

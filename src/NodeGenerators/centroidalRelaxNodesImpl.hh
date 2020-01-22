@@ -9,7 +9,7 @@
 #include "NodeList/FluidNodeList.hh"
 #include "Kernel/TableKernel.hh"
 #include "Boundary/Boundary.hh"
-#include "CRKSPH/CRKSPHCorrectionParams.hh"
+#include "RK/RKCorrectionParams.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
 
@@ -30,7 +30,7 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
                          std::vector<Boundary<Dimension>*>& boundaries,
                          const unsigned maxIterations,
                          const double fracTol,
-                         const CRKOrder correctionOrder,
+                         const RKOrder correctionOrder,
                          const double centroidFrac,
                          FieldList<Dimension, double>& vol,
                          FieldList<Dimension, int>& surfacePoint,

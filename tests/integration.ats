@@ -21,10 +21,6 @@ source("../src/Boundary/tests/testPeriodicBoundary-2d.py")
 # SPH unit tests
 source("../src/SPH/tests/testLinearVelocityGradient.py")
 
-# CRKSPH unit tests
-source("../src/CRKSPH/tests/testInterpolation.py")
-source("../src/CRKSPH/tests/testVoronoiVolume.py")
-
 # SVPH unit tests
 source("../src/SVPH/tests/testSVPHInterpolation-1d.py")
 # source("../src/SVPH/tests/testSVPHInterpolation-2d.py")
@@ -85,3 +81,7 @@ source("Damage/TensileRod/TensileRod-1d.py")
 # Surface detection test
 # Susending this until we fix the test for the up to date surface detection method.
 # source("Surfaces/Surface.py")
+
+# RK tests
+source("RK/RKInterpolation.py")
+source("RK/testVoronoiVolume.py")

@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "centroidalRelaxNodesImpl.cc"
+#include "NodeGenerators/centroidalRelaxNodesImpl.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
@@ -19,7 +19,7 @@ centroidalRelaxNodesImpl(DataBase< Dim<%(ndim)s > >& db,
                          std::vector<Boundary<Dim< %(ndim)s > >*>& boundaries,
                          const unsigned maxIterations,
                          const double fracTol,
-                         const CRKOrder correctionOrder,
+                         const RKOrder correctionOrder,
                          const double centroidFrac,
                          FieldList<Dim< %(ndim)s >, double>& vol,
                          FieldList<Dim< %(ndim)s >, int>& surfacePoint,

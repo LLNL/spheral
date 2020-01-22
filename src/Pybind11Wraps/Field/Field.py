@@ -73,7 +73,8 @@ class Field(FieldBase):
     @PYB11implementation("[](FieldType& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }")
     def __call__(self):
         "Index into a Field"
-        return "%(Value)s&"
+        #return "%(Value)s&"
+        return
 
     #...........................................................................
     # FieldBase virtual methods
@@ -129,6 +130,13 @@ class Field(FieldBase):
                      nodeIDs="const std::vector<int>&",
                      buffer = "const std::vector<char>&"):
         "Deserialize values from the given buffer"
+        return "void"
+
+    @PYB11virtual
+    def copyElements(self,
+                     fromIndices="const std::vector<int>&",
+                     toIndices="const std::vector<int>&"):
+        "Copy a range of values from/to elements of the Field"
         return "void"
 
     #...........................................................................

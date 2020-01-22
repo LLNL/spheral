@@ -232,6 +232,28 @@ xmax(const typename Dimension::Vector& x) {
 }
 
 //------------------------------------------------------------------------------
+// Access the main kernel used for (A)SPH field estimates.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const TableKernel<Dimension>&
+SPHHydroBase<Dimension>::
+kernel() const {
+  return mKernel;
+}
+
+//------------------------------------------------------------------------------
+// Access the kernel used for artificial viscosity gradients.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const TableKernel<Dimension>&
+SPHHydroBase<Dimension>::
+PiKernel() const {
+  return mPiKernel;
+}
+
+//------------------------------------------------------------------------------
 // The object defining how smoothing scales are evolved.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -463,7 +485,7 @@ internalDvDx() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, std::vector<typename Dimension::Vector> >&
+const std::vector<typename Dimension::Vector>&
 SPHHydroBase<Dimension>::
 pairAccelerations() const {
   return mPairAccelerations;

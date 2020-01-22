@@ -11,6 +11,7 @@
 #include "NodeList/NodeList.hh"
 #include "Field/FieldList.hh"
 #include "Utilities/removeElements.hh"
+#include "RK/RKCoefficients.hh"
 
 #include "Utilities/DBC.hh"
 
@@ -41,103 +42,15 @@ Boundary<Dimension>::~Boundary() {
 }
 
 //------------------------------------------------------------------------------
-// Allow read access to the map of NodeList->BoundaryNodes.
+// Default method for handing ghost nodes for Fields -- copy control->ghost values
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const map<NodeList<Dimension>*, typename Boundary<Dimension>::BoundaryNodes>&
-Boundary<Dimension>::boundaryNodeMap() const {
-  return mBoundaryNodes;
-}
-
-//------------------------------------------------------------------------------
-// Return the list of control nodes for the given NodeList.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-const vector<int>&
-Boundary<Dimension>::controlNodes(const NodeList<Dimension>& nodeList) const {
-  typename map<NodeList<Dimension>*, BoundaryNodes>::const_iterator
-    itr = mBoundaryNodes.find(const_cast<NodeList<Dimension>*>(&nodeList));
-  if (itr != mBoundaryNodes.end()) {
-    return itr->second.controlNodes;
-  } else {
-    VERIFY2(false, "Boundary::controlNodes: no entry for NodeList: " << nodeList.name());
-  }
-}
-
-//------------------------------------------------------------------------------
-// Return the list of ghost nodes for the given NodeList.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-const vector<int>&
-Boundary<Dimension>::ghostNodes(const NodeList<Dimension>& nodeList) const {
-  typename map<NodeList<Dimension>*, BoundaryNodes>::const_iterator 
-    itr = mBoundaryNodes.find(const_cast<NodeList<Dimension>*>(&nodeList));
-  if (itr != mBoundaryNodes.end()) {
-    return itr->second.ghostNodes;
-  } else {
-    std::cerr << "Number of known NodeLists: " << mBoundaryNodes.size() << std::endl;
-    VERIFY2(false, "Boundary::ghostNodes: no entry for NodeList: " << nodeList.name());
-  }
-}
-
-//------------------------------------------------------------------------------
-// Return the list of violation nodes for the given NodeList.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-const vector<int>&
-Boundary<Dimension>::violationNodes(const NodeList<Dimension>& nodeList) const {
-  typename map<NodeList<Dimension>*, BoundaryNodes>::const_iterator 
-    itr = mBoundaryNodes.find(const_cast<NodeList<Dimension>*>(&nodeList));
-  if (itr != mBoundaryNodes.end()) {
-    return itr->second.violationNodes;
-  } else {
-    VERIFY2(false, "Boundary::violationNodes: no entry for NodeList: " << nodeList.name());
-  }
-}
-
-//------------------------------------------------------------------------------
-// Return begin/end iterators for the control nodes of the given NodeList.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename vector<int>::const_iterator
-Boundary<Dimension>::controlBegin(const NodeList<Dimension>& nodeList) const {
-  return controlNodes(nodeList).begin();
-}
-
-template<typename Dimension>
-typename vector<int>::const_iterator
-Boundary<Dimension>::controlEnd(const NodeList<Dimension>& nodeList) const {
-  return controlNodes(nodeList).end();
-}
-
-//------------------------------------------------------------------------------
-// Return begin/end iterators for the ghost nodes of the given NodeList.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename vector<int>::const_iterator
-Boundary<Dimension>::ghostBegin(const NodeList<Dimension>& nodeList) const {
-  return ghostNodes(nodeList).begin();
-}
-
-template<typename Dimension>
-typename vector<int>::const_iterator
-Boundary<Dimension>::ghostEnd(const NodeList<Dimension>& nodeList) const {
-  return ghostNodes(nodeList).end();
-}
-
-//------------------------------------------------------------------------------
-// Return begin/end iterators for the violation nodes of the given NodeList.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename vector<int>::const_iterator
-Boundary<Dimension>::violationBegin(const NodeList<Dimension>& nodeList) const {
-  return violationNodes(nodeList).begin();
-}
-
-template<typename Dimension>
-typename vector<int>::const_iterator
-Boundary<Dimension>::violationEnd(const NodeList<Dimension>& nodeList) const {
-  return violationNodes(nodeList).end();
+void
+Boundary<Dimension>::applyGhostBoundary(FieldBase<Dimension>& fieldBase) const {
+  const auto& boundaryNodes = accessBoundaryNodes(const_cast<NodeList<Dimension>&>(fieldBase.nodeList()));
+  CHECK(boundaryNodes.ghostNodes.size() == boundaryNodes.controlNodes.size());
+  if (not boundaryNodes.ghostNodes.empty()) fieldBase.copyElements(boundaryNodes.controlNodes,
+                                                                   boundaryNodes.ghostNodes);
 }
 
 //------------------------------------------------------------------------------
@@ -146,12 +59,9 @@ Boundary<Dimension>::violationEnd(const NodeList<Dimension>& nodeList) const {
 template<typename Dimension>
 void
 Boundary<Dimension>::setAllGhostNodes(DataBase<Dimension>& dataBase) {
-  for (typename DataBase<Dimension>::NodeListIterator 
-	 nodeListItr = dataBase.nodeListBegin();
+  for (auto nodeListItr = dataBase.nodeListBegin();
        nodeListItr < dataBase.nodeListEnd();
-       ++nodeListItr) {
-    setGhostNodes(**nodeListItr);
-  }
+       ++nodeListItr) setGhostNodes(**nodeListItr);
 }
 
 //------------------------------------------------------------------------------
@@ -236,7 +146,127 @@ Boundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>& flagSet,
 }
 
 //------------------------------------------------------------------------------
-// Return a non-const reference to the full map of BoundaryNodes.
+// Clear out any NodeList information that is currently present.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Boundary<Dimension>::reset(const DataBase<Dimension>& dataBase) {
+  // Clear our own internal data.
+  mBoundaryNodes.clear();
+}
+
+//------------------------------------------------------------------------------
+// Report the number of ghost nodes.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+int
+Boundary<Dimension>::numGhostNodes() const {
+  int result = 0;
+  for (auto itr = mBoundaryNodes.begin(); itr != mBoundaryNodes.end(); ++itr) {
+    result += itr->second.ghostNodes.size();
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Allow read access to the map of NodeList->BoundaryNodes.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const map<NodeList<Dimension>*, typename Boundary<Dimension>::BoundaryNodes>&
+Boundary<Dimension>::boundaryNodeMap() const {
+  return mBoundaryNodes;
+}
+
+//------------------------------------------------------------------------------
+// Return the list of control nodes for the given NodeList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const vector<int>&
+Boundary<Dimension>::controlNodes(const NodeList<Dimension>& nodeList) const {
+  auto itr = mBoundaryNodes.find(const_cast<NodeList<Dimension>*>(&nodeList));
+  if (itr != mBoundaryNodes.end()) {
+    return itr->second.controlNodes;
+  } else {
+    VERIFY2(false, "Boundary::controlNodes: no entry for NodeList: " << nodeList.name());
+  }
+}
+
+//------------------------------------------------------------------------------
+// Return the list of ghost nodes for the given NodeList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const vector<int>&
+Boundary<Dimension>::ghostNodes(const NodeList<Dimension>& nodeList) const {
+  auto itr = mBoundaryNodes.find(const_cast<NodeList<Dimension>*>(&nodeList));
+  if (itr != mBoundaryNodes.end()) {
+    return itr->second.ghostNodes;
+  } else {
+    std::cerr << "Number of known NodeLists: " << mBoundaryNodes.size() << std::endl;
+    VERIFY2(false, "Boundary::ghostNodes: no entry for NodeList: " << nodeList.name());
+  }
+}
+
+//------------------------------------------------------------------------------
+// Return the list of violation nodes for the given NodeList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const vector<int>&
+Boundary<Dimension>::violationNodes(const NodeList<Dimension>& nodeList) const {
+  auto itr = mBoundaryNodes.find(const_cast<NodeList<Dimension>*>(&nodeList));
+  if (itr != mBoundaryNodes.end()) {
+    return itr->second.violationNodes;
+  } else {
+    VERIFY2(false, "Boundary::violationNodes: no entry for NodeList: " << nodeList.name());
+  }
+}
+
+//------------------------------------------------------------------------------
+// Return begin/end iterators for the control nodes of the given NodeList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename vector<int>::const_iterator
+Boundary<Dimension>::controlBegin(const NodeList<Dimension>& nodeList) const {
+  return controlNodes(nodeList).begin();
+}
+
+template<typename Dimension>
+typename vector<int>::const_iterator
+Boundary<Dimension>::controlEnd(const NodeList<Dimension>& nodeList) const {
+  return controlNodes(nodeList).end();
+}
+
+//------------------------------------------------------------------------------
+// Return begin/end iterators for the ghost nodes of the given NodeList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename vector<int>::const_iterator
+Boundary<Dimension>::ghostBegin(const NodeList<Dimension>& nodeList) const {
+  return ghostNodes(nodeList).begin();
+}
+
+template<typename Dimension>
+typename vector<int>::const_iterator
+Boundary<Dimension>::ghostEnd(const NodeList<Dimension>& nodeList) const {
+  return ghostNodes(nodeList).end();
+}
+
+//------------------------------------------------------------------------------
+// Return begin/end iterators for the violation nodes of the given NodeList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename vector<int>::const_iterator
+Boundary<Dimension>::violationBegin(const NodeList<Dimension>& nodeList) const {
+  return violationNodes(nodeList).begin();
+}
+
+template<typename Dimension>
+typename vector<int>::const_iterator
+Boundary<Dimension>::violationEnd(const NodeList<Dimension>& nodeList) const {
+  return violationNodes(nodeList).end();
+}
+
+//------------------------------------------------------------------------------
+// accessBoundaryNodes
 //------------------------------------------------------------------------------
 template<typename Dimension>
 map<NodeList<Dimension>*, typename Boundary<Dimension>::BoundaryNodes>&
@@ -244,16 +274,32 @@ Boundary<Dimension>::accessBoundaryNodes() {
   return mBoundaryNodes;
 }
 
+template<typename Dimension>
+const map<NodeList<Dimension>*, typename Boundary<Dimension>::BoundaryNodes>&
+Boundary<Dimension>::accessBoundaryNodes() const {
+  return mBoundaryNodes;
+}
+
 //------------------------------------------------------------------------------
-// Return a non-const reference to the current list of control nodes.
+// accessBoundaryNodes(nodeList)
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Boundary<Dimension>::BoundaryNodes&
 Boundary<Dimension>::accessBoundaryNodes(NodeList<Dimension>& nodeList) {
-  typename map<NodeList<Dimension>*, BoundaryNodes>::const_iterator 
-    itr = mBoundaryNodes.find(&nodeList);
+  auto itr = mBoundaryNodes.find(&nodeList);
   if (itr != mBoundaryNodes.end()) {
-    return mBoundaryNodes[&nodeList];
+    return itr->second;
+  } else {
+    VERIFY2(false, "Boundary::accessBoundaryNodes: no entry for NodeList: " << nodeList.name());
+  }
+}
+
+template<typename Dimension>
+const typename Boundary<Dimension>::BoundaryNodes&
+Boundary<Dimension>::accessBoundaryNodes(NodeList<Dimension>& nodeList) const {
+  auto itr = mBoundaryNodes.find(&nodeList);
+  if (itr != mBoundaryNodes.end()) {
+    return itr->second;
   } else {
     VERIFY2(false, "Boundary::accessBoundaryNodes: no entry for NodeList: " << nodeList.name());
   }
@@ -268,78 +314,6 @@ Boundary<Dimension>::addNodeList(NodeList<Dimension>& nodeList) {
   if (mBoundaryNodes.find(&nodeList) == mBoundaryNodes.end()) {
     mBoundaryNodes[&nodeList] = BoundaryNodes();
   }
-}
-
-//------------------------------------------------------------------------------
-// Deafult for vector<Scalar> fields, just perform a copy.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Boundary<Dimension>::
-applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar>>& field) const {
-  const auto& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  auto controlItr = this->controlBegin(nodeList);
-  auto ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
-  }
-}
-
-//------------------------------------------------------------------------------
-// Default for vector<Vector> fields, just perform a copy
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Boundary<Dimension>::
-applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Vector> >& field) const {
-  const auto& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  auto controlItr = this->controlBegin(nodeList);
-  auto ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
-  }
-}
-
-//------------------------------------------------------------------------------
-// Clear out any NodeList information that is currently present.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Boundary<Dimension>::reset(const DataBase<Dimension>& dataBase) {
-  // Clear our own internal data.
-  mBoundaryNodes = std::map<NodeList<Dimension>*, BoundaryNodes>();
-}
-
-//------------------------------------------------------------------------------
-// Report the number of ghost nodes.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-int
-Boundary<Dimension>::numGhostNodes() const {
-  int result = 0;
-  for (typename map<NodeList<Dimension>*, BoundaryNodes>::const_iterator itr = mBoundaryNodes.begin();
-       itr != mBoundaryNodes.end();
-       ++itr) {
-    result += itr->second.ghostNodes.size();
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// Default clipping opertion to a no-op.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Boundary<Dimension>::
-clip(typename Dimension::Vector& xmin, typename Dimension::Vector& xmax) const {
 }
 
 }

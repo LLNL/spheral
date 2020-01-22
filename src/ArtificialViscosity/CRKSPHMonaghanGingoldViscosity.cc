@@ -17,9 +17,6 @@
 #include "Boundary/Boundary.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
-#include "CRKSPH/computeCRKSPHMoments.hh"
-#include "CRKSPH/computeCRKSPHCorrections.hh"
-#include "CRKSPH/gradientCRKSPH.hh"
 
 using std::vector;
 using std::string;
@@ -79,6 +76,30 @@ double limiterSB(const double x) {
   }
 }
 
+// template<typename Vector, typename Tensor>
+// double limiterConservative(const Vector& vi, const Vector& vj,
+//                            const Vector& xi, const Vector& xj,
+//                            const Tensor& DvDxi, const Tensor& DvDxj) {
+//   const auto xji = xj - xi;
+//   const auto vji = vj - vi;
+//   const auto di = DvDxi.dot(xji);
+//   const auto dj = DvDxj.dot(xji);
+//   if (di.dot(dj) <= 0.0 or
+//       di.dot(vji) <= 0.0 or
+//       dj.dot(vji) <= 0.0) return 0.0;
+//   const auto vjimag = vji.magnitude();
+//   const auto dimag = di.magnitude();
+//   const auto djmag = dj.magnitude();
+//   return min(1.0, min(abs(vjimag*safeInv(dimag)), abs(vjimag*safeInv(djmag))));
+// }
+
+double limiterConservative(const double vji, const double deltavi, const double deltavj) {
+  if (deltavi*deltavj <= 0.0 or
+      deltavi*vji <= 0.0 or
+      deltavj*vji <= 0.0) return 0.0;
+  return min(1.0, min(abs(vji*safeInv(deltavi)), abs(vji*safeInv(deltavj))));
+}
+
 }
 
 //------------------------------------------------------------------------------
@@ -128,9 +149,26 @@ initialize(const DataBase<Dimension>& dataBase,
   ArtificialViscosity<Dimension>::initialize(dataBase, state, derivs, boundaryBegin, boundaryEnd, time, dt, W);
 
   // Cache the last velocity gradient for use during the step.
-  const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  const auto DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   mGradVel = DvDx;
   mGradVel.copyFields();
+
+  // // If any points are flagged as surface, force zero velocity gradient.
+  // if (state.fieldNameRegistered(HydroFieldNames::surfacePoint)) {
+  //   const auto surface = state.fields(HydroFieldNames::surfacePoint, 0);
+  //   // const auto m0 = state.fields(HydroFieldNames::m0_CRKSPH, 0.0);
+  //   const auto numNodeLists = mGradVel.size();
+  //   CHECK(surfacePoint.size() == numNodeLists);
+  //   for (auto k = 0; k < numNodeLists; ++k) {
+  //     const auto nk = mGradVel[k]->numInternalElements();
+  //     for (auto i = 0; i < nk; ++i) {
+  //       if (surface(k,i) != 0) mGradVel(k,i).Zero();
+  //       // const auto m0i = min(m0(k,i), 1.0/m0(k,i));
+  //       // mGradVel(k,i) *= std::max(0.0, 2.0*m0i - 1.0);
+  //     }
+  //   }
+  // }
+
   for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
        boundItr < boundaryEnd;
        ++boundItr) {
@@ -227,13 +265,16 @@ Piij(const unsigned nodeListi, const unsigned i,
   // Compute the corrected velocity difference.
   // Vector vij = vi - vj;
   const Vector xij = 0.5*(xi - xj);
-  const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
-  const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
-  const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
-  const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
-  CHECK(min(ri, rj) <= 1.0);
+  // const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
+  // const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
+  // const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
+  // const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
+  // CHECK(min(ri, rj) <= 1.0);
   //const Scalar phi = limiterMM(min(ri, rj));
-  Scalar phi = limiterVL(min(ri, rj));
+  // Scalar phi = limiterVL(min(ri, rj));
+  
+  const Vector xjihat = -xij.unitVector();
+  auto phi = limiterConservative((vj - vi).dot(xjihat), (DvDxi*xjihat).dot(xjihat), (DvDxj*xjihat).dot(xjihat));
 
   // If the points are getting too close, we let the Q come back full force.
   const Scalar etaij = min(etai.magnitude(), etaj.magnitude());
@@ -246,6 +287,9 @@ Piij(const unsigned nodeListi, const unsigned i,
   // "Mike" method.
   const Vector vi1 = vi - phi*DvDxi*xij;
   const Vector vj1 = vj + phi*DvDxj*xij;
+
+  // const Vector vi1 = vi - phi*DvDxi*xij;
+  // const Vector vj1 = vj + phi*DvDxj*xij;
   
   const Vector vij = vi1 - vj1;
   

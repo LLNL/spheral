@@ -5,7 +5,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiations.
 //------------------------------------------------------------------------------
-#include "integrateThroughMeshAlongSegment.cc"
+#include "Utilities/integrateThroughMeshAlongSegment.cc"
 
 namespace Spheral {
 

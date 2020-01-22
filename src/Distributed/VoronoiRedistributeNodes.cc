@@ -11,7 +11,7 @@
 // Created by JMO, Fri Jan 15 09:56:56 PST 2010
 //----------------------------------------------------------------------------//
 #include "VoronoiRedistributeNodes.hh"
-#include "DomainNode.hh"
+#include "Utilities/DomainNode.hh"
 #include "Boundary/Boundary.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"

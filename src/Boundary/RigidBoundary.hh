@@ -23,6 +23,8 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+  typedef typename Dimension::FifthRankTensor FifthRankTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
   // Constructors and destructors.
@@ -31,26 +33,26 @@ public:
   virtual ~RigidBoundary();
 
   // Apply the boundary condition to the ghost values of given Field.
-  virtual void applyGhostBoundary(Field<Dimension, int>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Apply the boundary condition to the violation node values in the given Field.
-  virtual void enforceBoundary(Field<Dimension, int>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const override;
   virtual void enforceBoundary(Field<Dimension, Vector>& field) const override;
   virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const { return "RigidBoundary"; }
+  virtual std::string label() const override { return "RigidBoundary"; }
   //****************************************************************************
 };
 

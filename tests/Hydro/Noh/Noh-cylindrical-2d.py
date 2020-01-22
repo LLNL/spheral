@@ -6,13 +6,13 @@
 #
 # CRK (SumVolume)
 #
-#ATS:crk0 = test(        SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType CRKSumVolume --clearDirectories True  --steps 50", label="Noh cylindrical CRK (sum vol), nPerh=2.0", np=2)
-#ATS:crk1 = testif(crk0, SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType CRKSumVolume --clearDirectories False --steps 10 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK (sum vol), nPerh=2.0, restart test", np=2)
+#ATS:crk0 = test(        SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKSumVolume --clearDirectories True  --steps 50", label="Noh cylindrical CRK (sum vol), nPerh=2.0", np=2)
+#ATS:crk1 = testif(crk0, SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKSumVolume --clearDirectories False --steps 10 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK (sum vol), nPerh=2.0, restart test", np=2)
 #
 # CRK (VoroniVolume)
 #
-#ATS:crk0 = test(        SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType CRKVoronoiVolume --clearDirectories True  --steps 50", label="Noh cylindrical CRK (Voronoi vol), nPerh=2.0", np=2)
-#ATS:crk1 = testif(crk0, SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType CRKVoronoiVolume --clearDirectories False --steps 10 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK (Voronoi vol) , nPerh=2.0, restart test", np=2)
+#ATS:crk2 = test(        SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKVoronoiVolume --clearDirectories True  --steps 50", label="Noh cylindrical CRK (Voronoi vol), nPerh=2.0", np=2)
+#ATS:crk3 = testif(crk2, SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKVoronoiVolume --clearDirectories False --steps 10 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK (Voronoi vol) , nPerh=2.0, restart test", np=2)
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
@@ -105,7 +105,7 @@ commandLine(order = 5,
             smoothIters = 0,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
-            volumeType = CRKSumVolume,
+            volumeType = RKSumVolume,
             domainIndependent = False,
             rigorousBoundaries = False,
             dtverbose = False,
@@ -149,7 +149,9 @@ if smallPressure:
 if svph:
     hydroname = "SVPH"
 elif crksph:
-    hydroname = os.path.join("CRKSPH", str(volumeType))
+    hydroname = os.path.join("CRKSPH",
+                             str(correctionOrder),
+                             str(volumeType))
 elif psph:
     hydroname = "PSPH"
 else:
@@ -295,13 +297,11 @@ if svph:
                  ASPH = asph)
 elif crksph:
     hydro = CRKSPH(dataBase = db,
-                   W = WT,
+                   order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
-                   correctionOrder = correctionOrder,
-                   volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
                    ASPH = asph)
@@ -334,12 +334,12 @@ else:
                 nTensile = nTensile,
                 ASPH = asph)
 output("hydro")
-output("hydro.kernel")
-output("hydro.PiKernel")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
+if crksph:
+    output("hydro.correctionOrder")
 
 packages = [hydro]
 
@@ -428,7 +428,9 @@ else:
     #import SpheralVisitDump
     #vizMethod = SpheralVisitDump.dumpPhysicsState
 
-control = SpheralController(integrator, WT,
+control = SpheralController(integrator,
+                            kernel = WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
@@ -544,12 +546,12 @@ if graphics:
              (htPlot, "Noh-cylindrical-ht.png")]
 
     if crksph:
-        volPlot = plotFieldList(hydro.volume, 
+        volPlot = plotFieldList(control.RKCorrections.volume, 
                                 xFunction = "%s.magnitude()",
                                 winTitle = "volume",
                                 plotStyle = "ro",
                                 colorNodeLists = False, plotGhosts = False)
-        spPlot = plotFieldList(hydro.surfacePoint, 
+        spPlot = plotFieldList(control.RKCorrections.surfacePoint, 
                                xFunction = "%s.magnitude()",
                                winTitle = "Surface",
                                plotStyle = "ro",

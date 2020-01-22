@@ -263,16 +263,16 @@ ConnectivityMap<Dimension>::
 calculatePairInteraction(const int nodeListi, const int i,
                          const int nodeListj, const int j,
                          const int firstGhostNodej) const {
-  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
-  if (domainDecompIndependent) {
-    return ((nodeListj > nodeListi) or
-            (nodeListj == nodeListi and 
-             (mKeys(nodeListj, j) == mKeys(nodeListi, i) ? j > 1 : mKeys(nodeListj, j) > mKeys(nodeListi, i))));
-  } else {
+  // const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+  // if (domainDecompIndependent) {
+  //   return ((nodeListj > nodeListi) or
+  //           (nodeListj == nodeListi and 
+  //            (mKeys(nodeListj, j) == mKeys(nodeListi, i) ? j > 1 : mKeys(nodeListj, j) > mKeys(nodeListi, i))));
+  // } else {
     return ((nodeListj > nodeListi) or
             (nodeListj == nodeListi and j > i) or
             (nodeListj < nodeListi and j >= firstGhostNodej));
-  }
+  // }
 }
 
 //------------------------------------------------------------------------------

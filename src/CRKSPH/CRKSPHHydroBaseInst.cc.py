@@ -2,14 +2,9 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "CRKSPHHydroBase.cc"
+#include "CRKSPH/CRKSPHHydroBase.cc"
+#include "CRKSPH/CRKSPHEvaluateDerivatives.cc"
 #include "Geometry/Dimension.hh"
-
-#ifdef _OPENMP
-#include "CRKSPHEvaluateDerivatives_OpenMP.cc"
-#else
-#include "CRKSPHEvaluateDerivatives.cc"
-#endif
 
 namespace Spheral {
 template class CRKSPHHydroBase< Dim< %(ndim)s > >;

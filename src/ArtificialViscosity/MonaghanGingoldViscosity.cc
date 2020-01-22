@@ -79,11 +79,11 @@ Piij(const unsigned nodeListi, const unsigned i,
   // Grab the FieldLists scaling the coefficients.
   // These incorporate things like the Balsara shearing switch or Morris & Monaghan time evolved
   // coefficients.
-  const Scalar fCli = this->mClMultiplier(nodeListi, i);
-  const Scalar fCqi = this->mCqMultiplier(nodeListi, i);
-  const Scalar fClj = this->mClMultiplier(nodeListj, j);
-  const Scalar fCqj = this->mCqMultiplier(nodeListj, j);
-  const Scalar fshear = std::max(this->mShearCorrection(nodeListi, i), this->mShearCorrection(nodeListj, j));
+  const auto fCli = this->mClMultiplier(nodeListi, i);
+  const auto fCqi = this->mCqMultiplier(nodeListi, i);
+  const auto fClj = this->mClMultiplier(nodeListj, j);
+  const auto fCqj = this->mCqMultiplier(nodeListj, j);
+  const auto fshear = std::max(this->mShearCorrection(nodeListi, i), this->mShearCorrection(nodeListj, j));
   Cl *= 0.5*(fCli + fClj)*fshear;
   Cq *= 0.5*(fCqi + fCqj)*fshear;
 
@@ -108,15 +108,15 @@ Piij(const unsigned nodeListi, const unsigned i,
   // }
 
   // Compute mu.
-  const Vector vij = vi - vj;
-  const Scalar mui = vij.dot(etai)/(etai.magnitude2() + eps2);
-  const Scalar muj = vij.dot(etaj)/(etaj.magnitude2() + eps2);
+  const auto vij = vi - vj;
+  const auto mui = vij.dot(etai)/(etai.magnitude2() + eps2);
+  const auto muj = vij.dot(etaj)/(etaj.magnitude2() + eps2);
 
   // The artificial internal energy.
-  const Scalar ei = -Cl*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
-                     Cq    *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)));
-  const Scalar ej = -Cl*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
-                     Cq    *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj)));
+  const auto ei = -Cl*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
+                   Cq    *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)));
+  const auto ej = -Cl*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
+                   Cq    *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj)));
   CHECK2(ei >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ei << " " << csi << " " << mui);
   CHECK2(ej >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ej << " " << csj << " " << muj);
 

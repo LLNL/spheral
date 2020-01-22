@@ -149,9 +149,9 @@ case $COMPILERS in
       CXX=clang++
       FORT=gfortran
       MPICC=mpicc
-      MPICXX=mpiCC
-      MPICCFLAGS="-cc=clang"
-      MPICXXFLAGS="-cc=clang++"
+      MPICXX=mpicxx
+      MPICCFLAGS=
+      MPICXXFLAGS=
       CMAKECC=clang
       CMAKECXX=clang++
       GCCXMLCC=$CMAKECC

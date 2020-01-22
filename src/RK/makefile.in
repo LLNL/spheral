@@ -1,0 +1,45 @@
+# -*-makefile-*-
+# Spheral++ RK (reproducing kernel) package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = RK
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+
+INSTSRCTARGETS = \
+	$(srcdir)/computeRKSumVolumeInst.cc.py \
+	$(srcdir)/computeOccupancyVolumeInst.cc.py \
+	$(srcdir)/computeHullVolumesInst.cc.py \
+	$(srcdir)/computeHVolumesInst.cc.py \
+	$(srcdir)/HVolumePolicyInst.cc.py \
+	$(srcdir)/ContinuityVolumePolicyInst.cc.py \
+	$(srcdir)/computeRKVolumesInst.cc.py \
+	$(srcdir)/RKCorrectionsInst.cc.py \
+	$(srcdir)/RKUtilitiesInst.cc.py \
+	$(srcdir)/ReproducingKernelMethodsInst.cc.py \
+	$(srcdir)/ReproducingKernelInst.cc.py \
+	$(srcdir)/interpolateRKInst.cc.py \
+	$(srcdir)/gradientRKInst.cc.py \
+	$(srcdir)/hessianRKInst.cc.py
+
+SRCTARGETS = \
+	$(srcdir)/RKFieldNames.cc \
+	$(srcdir)/computeVoronoiVolume.cc
+
+# A few of our target files are only valid for certain dimensions.
+ifeq ("yes", "@INST1D@")
+SRCTARGETS += \
+	$(srcdir)/computeVoronoiVolume1d.cc
+endif
+
+ifeq ("yes", "@INST2D@")
+SRCTARGETS += \
+	$(srcdir)/ContinuityVolumePolicyRZ.cc
+endif
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master

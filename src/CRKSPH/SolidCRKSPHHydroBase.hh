@@ -42,8 +42,7 @@ public:
   // Constructors.
   SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                        ArtificialViscosity<Dimension>& Q,
-                       const TableKernel<Dimension>& W,
-                       const TableKernel<Dimension>& WPi,
+                       const RKOrder order,
                        const double filter,
                        const double cfl,
                        const bool useVelocityMagnitudeForDt,
@@ -52,11 +51,8 @@ public:
                        const bool XSPH,
                        const MassDensityType densityUpdate,
                        const HEvolutionType HUpdate,
-                       const CRKOrder correctionOrder,
-                       const CRKVolumeType volumeType,
                        const double epsTensile,
                        const double nTensile,
-                       const bool limitMultimaterialTopology,
                        const bool damageRelieveRubble,
                        const bool negativePressureInDamage);
 
@@ -98,10 +94,10 @@ public:
 
   // The state field lists we're maintaining.
   const FieldList<Dimension, SymTensor>& DdeviatoricStressDt() const;
-  const FieldList<Dimension, Scalar>& bulkModulus() const;
-  const FieldList<Dimension, Scalar>& shearModulus() const;
-  const FieldList<Dimension, Scalar>& yieldStrength() const;
-  const FieldList<Dimension, Scalar>& plasticStrain0() const;
+  const FieldList<Dimension, Scalar>&    bulkModulus() const;
+  const FieldList<Dimension, Scalar>&    shearModulus() const;
+  const FieldList<Dimension, Scalar>&    yieldStrength() const;
+  const FieldList<Dimension, Scalar>&    plasticStrain0() const;
   const FieldList<Dimension, SymTensor>& Hfield0() const;
 
   // Control whether allow damaged material to have stress relieved.
@@ -114,9 +110,9 @@ public:
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const { return "SolidCRKSPHHydroBase"; }
-  virtual void dumpState(FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIO& file, const std::string& pathName);
+  virtual std::string label() const override { return "SolidCRKSPHHydroBase"; }
+  virtual void dumpState(FileIO& file, const std::string& pathName) const override;
+  virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************
 
 protected:
@@ -125,7 +121,6 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-
   // Some internal scratch fields.
   FieldList<Dimension, SymTensor> mDdeviatoricStressDt;
   FieldList<Dimension, Scalar> mBulkModulus;

@@ -28,21 +28,18 @@ public:
 
   // Constructors.
   FVCRKHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                  ArtificialViscosity<Dimension>& Q,
-                  const TableKernel<Dimension>& W,
-                  const TableKernel<Dimension>& WPi,
-                  const double filter,
-                  const double cfl,
-                  const bool useVelocityMagnitudeForDt,
-                  const bool compatibleEnergyEvolution,
-                  const bool evolveTotalEnergy,
-                  const bool XSPH,
-                  const MassDensityType densityUpdate,
-                  const HEvolutionType HUpdate,
-                  const CRKOrder correctionOrder,
-                  const double epsTensile,
-                  const double nTensile,
-                  const bool limitMultimaterialTopology);
+                 ArtificialViscosity<Dimension>& Q,
+                 const RKOrder order,
+                 const double filter,
+                 const double cfl,
+                 const bool useVelocityMagnitudeForDt,
+                 const bool compatibleEnergyEvolution,
+                 const bool evolveTotalEnergy,
+                 const bool XSPH,
+                 const MassDensityType densityUpdate,
+                 const HEvolutionType HUpdate,
+                 const double epsTensile,
+                 const double nTensile);
 
   // Destructor.
   virtual ~FVCRKHydroBase();
@@ -122,8 +119,8 @@ public:
   // void HEvolution(HEvolutionType type);
 
   // // Flag to choose CRK Correction Order
-  // CRKOrder correctionOrder() const;
-  // void correctionOrder(CRKOrder order);
+  // RKOrder correctionOrder() const;
+  // void correctionOrder(RKOrder order);
 
   // // Flag for the CRK volume weighting definition
   // CRKVolumeType volumeType() const;

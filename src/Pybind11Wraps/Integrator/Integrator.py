@@ -37,7 +37,7 @@ class Integrator:
     @PYB11pycppname("step")
     def step1(self, maxTime="Scalar"):
         "Take a step"
-        return "void"
+        return "bool"
 
     @PYB11virtual
     @PYB11const
@@ -77,11 +77,6 @@ several times during a time step."""
         "Finalize at the end a timestep, therefore called once at the end of a timestep."
         return "void"
 
-    @PYB11virtual
-    def advance(self, goalTime="Scalar"):
-        "Advance the set of Physics packages to the given time."
-        return "void"
-
     #...........................................................................
     # Methods
     @PYB11const
@@ -116,6 +111,10 @@ several times during a time step."""
 
     def appendPhysicsPackage(self, package="Physics<%(Dimension)s>&"):
         "Add a Physics package."
+        return "void"
+
+    def resetPhysicsPackages(self, packages="std::vector<Physics<%(Dimension)s>*>&"):
+        "Reset the list of Physics packages."
         return "void"
 
     @PYB11const
@@ -174,11 +173,13 @@ into compliance."""
     dtMax = PYB11property("Scalar", "dtMax", "dtMax", doc="Maximum allowed time step")
     lastDt = PYB11property("Scalar", "lastDt", "lastDt", doc="Last timestep used")
     dtGrowth = PYB11property("Scalar", "dtGrowth", "dtGrowth", doc="Maximum allowed fractional time step growth")
+    dtCheckFrac = PYB11property("Scalar", "dtCheckFrac", "dtCheckFrac", doc="The fraction of the timestep we consider when checking for stable behavior")
     dataBase = PYB11property("DataBase<%(Dimension)s>&", "dataBase", returnpolicy="reference_internal", doc="The DataBase of NodeLists")
     #physicsPackages = PYB11property("const std::vector<Physics<%(Dimension)s>*>&", returnpolicy="reference_internal", doc="The set of physics packages")
     rigorousBoundaries = PYB11property("bool", "rigorousBoundaries", "rigorousBoundaries", doc="Toggle if ghost nodes should be recomputed every derivative estimate")
     updateBoundaryFrequency = PYB11property("int", "updateBoundaryFrequency", "updateBoundaryFrequency", doc="Optionally update the boundary ghost nodes only on this frequency of cycles")
     verbose = PYB11property("bool", "verbose", "verbose", doc="Verbose time step information every step")
+    allowDtCheck = PYB11property("bool", "allowDtCheck", "allowDtCheck", doc="Should the integrator check interim timestep votes and abort steps?")
     domainDecompositionIndependent = PYB11property("bool", "domainDecompositionIndependent", "domainDecompositionIndependent", doc="Order operations to be bit perfect reproducible regardless of domain decomposition")
     cullGhostNodes = PYB11property("bool", "cullGhostNodes", "cullGhostNodes", doc="Cull ghost nodes to just active set")
 

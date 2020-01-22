@@ -17,7 +17,7 @@ std::list<Timer*> Timer::TimerList(0);
 //------------------------------------------------------------------------------
 Timer TIME_Spheral               ("Root Timer                ");
 // Timer TimeNestedGridNeighbor    ("Root NestedGridNeighbor   ");
-// Timer TimePhysics               ("All physics derivatives   ");
+Timer TIME_Physics               ("All physics derivatives   ", TIME_Spheral);
 // Timer TimeSphNodeList           ("Root Sph NodeList         ");
 // Timer TimeMashNodeList          ("Root MASH NodeList        ");
 // Timer TimeDataBase              ("Root DataBase             ");
@@ -25,14 +25,9 @@ Timer TIME_Spheral               ("Root Timer                ");
 // Timer TimeNestedDistributedBound("Root NestedDistribBound   ");
 
 //------------------------------------------------------------------------------
-// Voronoi 2d
+// Voronoi
 //------------------------------------------------------------------------------
-Timer TIME_computeVoronoiVolume2d("computeVoronoiVolume2d", TIME_Spheral);
-
-//------------------------------------------------------------------------------
-// Voronoi 3d
-//------------------------------------------------------------------------------
-Timer TIME_computeVoronoiVolume3d("computeVoronoiVolume3d", TIME_Spheral);
+Timer TIME_computeVoronoiVolume("computeVoronoiVolume", TIME_Spheral);
 
 //------------------------------------------------------------------------------
 // Polyhedron timers
@@ -90,6 +85,7 @@ Timer TIME_ConnectivityMap_computeOverlapConnectivity("ConnectivityMap::computeO
 //------------------------------------------------------------------------------
 Timer TIME_CRKSPH_editMultimaterialSurfaceTopology("CRKSPH editMultimaterialSurfaceTopology", TIME_Spheral);
 Timer TIME_interpolateCRKSPH("RK interpolation standalone function", TIME_Spheral);
+Timer TIME_interpolateRK("RK interpolation standalone function", TIME_Spheral);
 
 // //------------------------------------------------------------------------------
 // // Second order predictor corrector integrator
@@ -178,20 +174,23 @@ Timer TIME_CheapRK2EnforceBound   ("Enforce boundaries      ", TIME_CheapRK2);
 // Timer TimeHydroSetRefine        ("Set the refine nodes      ", TimeHydro);
 // Timer TimeHydroEvalDerivs       ("Set derivs for node       ", TimeHydro);
 
-// //------------------------------------------------------------------------------
-// // Sph NodeList
-// //------------------------------------------------------------------------------
-// Timer TimeSphSum                ("Sph Mass Summation        ", TimeSphNodeList);
-
-// Timer TimeSphDerivs             ("Base Sph Derivs           ", TimeSphNodeList);
-// Timer TimeSphNodeIState         ("Get state for node i      ", TimeSphDerivs);
-// Timer TimeSphNodeJState         ("Get state for node j      ", TimeSphDerivs);
-// Timer TimeSphRij                ("Calc rij, etaij, ...      ", TimeSphDerivs);
-// Timer TimeSphKernel             ("Evaluate Wij              ", TimeSphDerivs);
-// Timer TimeSphQ                  ("Evaluate Qij              ", TimeSphDerivs);
-// Timer TimeSphIncDerivs          ("Increment the derivs      ", TimeSphDerivs);
-// Timer TimeSphHDeriv             ("Evaluate the H deriv      ", TimeSphDerivs);
-// Timer TimeSphHSmooth            ("Smoothing contrib to H    ", TimeSphDerivs);
+//------------------------------------------------------------------------------
+// SPH 
+//------------------------------------------------------------------------------
+Timer TIME_SPH                   ("SPH base timer                 ", TIME_Physics);
+Timer TIME_SPHinitializeStartup  ("SPH initializeProblemStartup   ", TIME_SPH);
+Timer TIME_SPHregister           ("SPH register                   ", TIME_SPH);
+Timer TIME_SPHregisterDerivs     ("SPH registerDerivatives        ", TIME_SPH);
+Timer TIME_SPHpreStepInitialize  ("SPH preStepInitialize (step)   ", TIME_SPH);
+Timer TIME_SPHinitialize         ("SPH initialize (evalderivs)    ", TIME_SPH);
+Timer TIME_SPHfinalizeDerivs     ("SPH finalizeDerivatives        ", TIME_SPH);
+Timer TIME_SPHghostBounds        ("SPH ghost boundaries           ", TIME_SPH);
+Timer TIME_SPHupdateVol          ("SPH updateVolume               ", TIME_SPH);
+Timer TIME_SPHenforceBounds      ("SPH enforceBoundaries          ", TIME_SPH);
+Timer TIME_SPHevalDerivs         ("SPH evaluateDerivates          ", TIME_SPH);
+Timer TIME_SPHevalDerivs_initial ("SPH evaluateDerivates (initial)", TIME_SPHevalDerivs);
+Timer TIME_SPHevalDerivs_pairs   ("SPH evaluateDerivates (pairs)  ", TIME_SPHevalDerivs);
+Timer TIME_SPHevalDerivs_final   ("SPH evaluateDerivates (final)  ", TIME_SPHevalDerivs);
 
 // //------------------------------------------------------------------------------
 // // MASH NodeList

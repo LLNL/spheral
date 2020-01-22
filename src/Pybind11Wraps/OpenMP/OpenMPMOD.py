@@ -6,12 +6,14 @@ This module provide thin front-end wrappers for the OpenMP methods.
 
 from PYB11Generator import *
 
+PYB11includes = ['"Utilities/OpenMP_wrapper.hh"']
+
 PYB11preamble = """
-//------------------------------------------------------------------------------
-// Provide dummy OpenMP methods for when we compile without OpenMP support.
-//------------------------------------------------------------------------------
 #ifdef _OPENMP
-#include "omp.h"
+//------------------------------------------------------------------------------
+// In order to report the number of threads, we have to check in an OpenMP 
+// section.
+//------------------------------------------------------------------------------
 inline int wrap_omp_get_num_threads() {
   int result;
   #pragma omp parallel
@@ -20,19 +22,14 @@ inline int wrap_omp_get_num_threads() {
   }
   return result;
 }
-#else
-inline int wrap_omp_get_num_threads() { return 1; }
-inline void     omp_set_num_threads() {}
 #endif
 """
 
-@PYB11call_guard("py::gil_scoped_release")
 @PYB11cppname("wrap_omp_get_num_threads")
 def omp_get_num_threads():
     "Get the number of OpenMP threads."
     return
 
-@PYB11call_guard("py::gil_scoped_release")
 def omp_set_num_threads():
     "Set the number of OpenMP threads."
     return

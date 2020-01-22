@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -39,12 +39,6 @@
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensityInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\computeHullSumMassDensityInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\computeHullSumMassDensityInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\CRKSPH\computeHullVolumesInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -57,10 +51,10 @@
     <ClCompile Include="..\..\src\CRKSPH\computeHVolumesInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\computeNeighborHullInst.cc.2.cc">
+    <ClCompile Include="..\..\src\CRKSPH\ContinuityVolumePolicyInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\computeNeighborHullInst.cc.3.cc">
+    <ClCompile Include="..\..\src\CRKSPH\ContinuityVolumePolicyInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\CRKSPH\CRKSPHHydroBaseInst.cc.2.cc">
@@ -72,16 +66,22 @@
     <ClCompile Include="..\..\src\CRKSPH\CRKSPHHydroBaseRZ.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\detectSurfaceInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\detectSurfaceInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\HVolumePolicyInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\HVolumePolicyInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\CRKSPH\interpolateCRKSPHInst.cc.2.cc">
@@ -126,8 +126,12 @@
     <ClCompile Include="..\..\src\CRKSPH\computeVoronoiVolume3d.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\computeOccupancyVolumeInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeOccupancyVolumeInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrectionsInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrectionsInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\CRKSPH\centerOfMass.hh">
@@ -142,7 +146,13 @@
     <None Include="..\..\src\CRKSPH\computeCRKSPHIntegral.hh">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="..\..\src\CRKSPH\computeCRKSPHMoments.hh">
+      <Filter>Header Files</Filter>
+    </None>
     <None Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensity.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\CRKSPH\computeCRKSPHSumVolume.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\CRKSPH\computeHullSumMassDensity.hh">
@@ -154,10 +164,13 @@
     <None Include="..\..\src\CRKSPH\computeHVolumes.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\CRKSPH\computeNeighborHull.hh">
+    <None Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensity.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\CRKSPH\computeVoronoiCentroids.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\CRKSPH\ContinuityVolumePolicy.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\CRKSPH\CRKSPHHydroBase.hh">
@@ -169,10 +182,28 @@
     <None Include="..\..\src\CRKSPH\CRKSPHHydroBaseRZ.hh">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="..\..\src\CRKSPH\detectSurface.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopology.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\CRKSPH\SolidCRKSPHHydroBase.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInline.hh">
+      <Filter>Header Files</Filter>
+    </None>
     <None Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseRZ.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseRZInline.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\CRKSPH\SurfaceNodeCoupling.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\CRKSPH\CRKSPHCorrectionParams.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\CRKSPH\CRKSPHSpecificThermalEnergyPolicy.hh">
@@ -190,10 +221,16 @@
     <None Include="..\..\src\CRKSPH\HullVolumePolicy.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\CRKSPH\HVolumePolicy.hh">
+    <None Include="..\..\src\CRKSPH\interpolateCRKSPH.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\CRKSPH\interpolateCRKSPH.hh">
+    <None Include="..\..\src\CRKSPH\volumeSpacing.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\CRKSPH\computeVoronoiVolumes.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrections.hh">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
@@ -210,25 +247,25 @@
     <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensityInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\computeHullSumMassDensityInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\computeHullVolumesInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\computeHVolumesInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\computeNeighborHullInst.cc.py">
+    <CustomBuild Include="..\..\src\CRKSPH\ContinuityVolumePolicyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\CRKSPHHydroBaseInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.py">
+    <CustomBuild Include="..\..\src\CRKSPH\detectSurfaceInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\HVolumePolicyInst.cc.py">
+    <CustomBuild Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\interpolateCRKSPHInst.cc.py">
@@ -246,6 +283,8 @@
     <CustomBuild Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\computeOccupancyVolumeInst.cc.py" />
+    <CustomBuild Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrectionsInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

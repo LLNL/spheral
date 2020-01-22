@@ -11,8 +11,10 @@
 #include "Utilities/DBC.hh"
 #include "Utilities/planarReflectingOperator.hh"
 #include "Mesh/Mesh.hh"
+#include "RK/RKFieldNames.hh"
+#include "RK/ReproducingKernelMethods.hh"
 
-#include "ReflectingBoundary.hh"
+#include "Boundary/ReflectingBoundary.hh"
 
 using std::vector;
 using std::cout;
@@ -72,7 +74,9 @@ reflectFacetedVolume(const ReflectingBoundary<Dim<3>>& bc,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ReflectingBoundary<Dimension>::ReflectingBoundary():
-  PlanarBoundary<Dimension>() {
+  PlanarBoundary<Dimension>(),
+  mReflectOperator(),
+  mrkReflectOperators() {
 }
 
 //------------------------------------------------------------------------------
@@ -85,6 +89,21 @@ ReflectingBoundary(const GeomPlane<Dimension>& plane):
 
   // Once the plane has been set, construct the reflection operator.
   mReflectOperator = planarReflectingOperator(plane);
+
+  // Now build the various RK reflection operators
+  const std::vector<RKOrder> orders = {RKOrder::ZerothOrder,
+                                       RKOrder::LinearOrder,
+                                       RKOrder::QuadraticOrder,
+                                       RKOrder::CubicOrder,
+                                       RKOrder::QuarticOrder,
+                                       RKOrder::QuinticOrder,
+                                       RKOrder::SexticOrder,
+                                       RKOrder::SepticOrder};
+  for (const auto order: orders) {
+    const ReproducingKernelMethods<Dimension> WR(order);
+    mrkReflectOperators[order] = std::make_pair(WR.transformationMatrix(mReflectOperator, false),
+                                                WR.transformationMatrix(mReflectOperator, true));
+  }
 
   // Once we're done the boundary condition should be in a valid state.
   ENSURE(valid());
@@ -100,48 +119,6 @@ ReflectingBoundary<Dimension>::~ReflectingBoundary() {
 //------------------------------------------------------------------------------
 // Apply the ghost boundary condition to fields of different DataTypes.
 //------------------------------------------------------------------------------
-// Specialization for int fields, just perform a copy.
-template<typename Dimension>
-void
-ReflectingBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, int>& field) const {
-
-  REQUIRE(valid());
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
-  }
-}
-
-// Specialization for scalar fields, just perform a copy.
-template<typename Dimension>
-void
-ReflectingBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-
-  REQUIRE(valid());
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
-  }
-}
-
 // Specialization for Vector fields.
 template<typename Dimension>
 void
@@ -254,6 +231,96 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   }
 }
 
+// Specialization for FourthRankTensor fields.
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+
+  REQUIRE(valid());
+
+  // Apply the boundary condition to all the ghost node values.
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  const Tensor T = this->reflectOperator();
+  const Tensor T2 = innerProduct<Dimension>(T.Transpose(), T.Transpose());
+  FourthRankTensor val;
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
+    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
+    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    val = FourthRankTensor::zero;
+    const FourthRankTensor& fc = field(*controlItr);
+    for (unsigned i = 0; i != Dimension::nDim; ++i) {
+      for (unsigned j = 0; j != Dimension::nDim; ++j) {
+        for (unsigned k = 0; k != Dimension::nDim; ++k) {
+          for (unsigned l = 0; l != Dimension::nDim; ++l) {
+            for (unsigned q = 0; q != Dimension::nDim; ++q) {
+              for (unsigned r = 0; r != Dimension::nDim; ++r) {
+                for (unsigned s = 0; s != Dimension::nDim; ++s) {
+                  for (unsigned t = 0; t != Dimension::nDim; ++t) {
+                    val(i,j,k,l) += T(i,q)*T(j,r)*T(k,s)*T(l,t)*fc(q,r,s,t);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    field(*ghostItr) = val; //innerProduct<Dimension>(T, innerProduct<Dimension>(field(*controlItr), T2));
+  }
+}
+
+// Specialization for FifthRankTensor fields.
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+
+  REQUIRE(valid());
+
+  // Apply the boundary condition to all the ghost node values.
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  const Tensor T = this->reflectOperator();
+  const Tensor T2 = innerProduct<Dimension>(T.Transpose(), T.Transpose());
+  FifthRankTensor val;
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
+    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
+    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    val = FifthRankTensor::zero;
+    const FifthRankTensor& fc = field(*controlItr);
+    for (unsigned i = 0; i != Dimension::nDim; ++i) {
+      for (unsigned j = 0; j != Dimension::nDim; ++j) {
+        for (unsigned k = 0; k != Dimension::nDim; ++k) {
+          for (unsigned l = 0; l != Dimension::nDim; ++l) {
+            for (unsigned m = 0; m != Dimension::nDim; ++m) {
+              for (unsigned q = 0; q != Dimension::nDim; ++q) {
+                for (unsigned r = 0; r != Dimension::nDim; ++r) {
+                  for (unsigned s = 0; s != Dimension::nDim; ++s) {
+                    for (unsigned t = 0; t != Dimension::nDim; ++t) {
+                      for (unsigned u = 0; u != Dimension::nDim; ++u) {
+                        val(i,j,k,l,u) += T(i,q)*T(j,r)*T(k,s)*T(l,t)*T(m,u)*fc(q,r,s,t,u);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    field(*ghostItr) = val; //innerProduct<Dimension>(T, innerProduct<Dimension>(field(*controlItr), T2));
+  }
+}
+
 // Specialization for FacetedVolumes
 template<typename Dimension>
 void
@@ -276,26 +343,65 @@ applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) c
   }
 }
 
+// Specialization for rkCoefficients
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const {
+
+  const auto& nodeList = field.nodeList();
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  if (this->controlNodes(nodeList).size() > 0) {                       // Is there anything to do?
+
+    // Extract the order of the corrections, and the appropriate transformation
+    const auto fname = field.name();
+    const auto order = RKFieldNames::correctionOrder(fname);
+    const ReproducingKernelMethods<Dimension> WR(order);
+    const auto ncoeff = field[0].size();
+    CHECK(ncoeff == WR.gradCorrectionsSize() or ncoeff == WR.hessCorrectionsSize());
+    const bool useHessian = (ncoeff == WR.hessCorrectionsSize());
+    const auto itr = mrkReflectOperators.find(order);
+    CHECK(itr != mrkReflectOperators.end());
+    const auto& T = useHessian ? itr->second.second : itr->second.first;
+  
+    // Apply the transformation to the ghost values
+    auto controlItr = this->controlBegin(nodeList);
+    auto ghostItr = this->ghostBegin(nodeList);
+    auto cEnd = this->controlEnd(nodeList);
+    for (; controlItr < cEnd; ++controlItr, ++ghostItr) {
+      field(*ghostItr) = field(*controlItr);
+      WR.applyTransformation(T, field(*ghostItr));
+    }
+  }
+}
+
+// Specialization for vector<Vector> fields.
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, vector<typename Dimension::Vector>>& field) const {
+
+  REQUIRE(valid());
+  const auto& R = this->reflectOperator();
+
+  // Apply the boundary condition to all the ghost node values.
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
+    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
+    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    field(*ghostItr).clear();
+    for (const auto& x: field(*controlItr)) field(*ghostItr).push_back(R*x);
+  }
+}
+
 //------------------------------------------------------------------------------
 // Enforce the boundary condition on the set of nodes in violation of the 
 // boundary.
 //------------------------------------------------------------------------------
-// Specialization for int fields.  A no-op.
-template<typename Dimension>
-void
-ReflectingBoundary<Dimension>::
-enforceBoundary(Field<Dimension, int>& field) const {
-  REQUIRE(valid());
-}
-
-// Specialization for scalar fields.  A no-op.
-template<typename Dimension>
-void
-ReflectingBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  REQUIRE(valid());
-}
-
 // Specialization for vector fields.  Apply the reflection operator.
 template<typename Dimension>
 void
@@ -377,6 +483,84 @@ enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) co
   }
 }
 
+// Specialization for fourth rank tensor fields.  Apply the reflection operator.
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  REQUIRE(valid());
+  const Tensor T = this->reflectOperator();
+  const Tensor T2 = innerProduct<Dimension>(T.Transpose(), T.Transpose());
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  FourthRankTensor val;
+  for (vector<int>::const_iterator itr = this->violationBegin(nodeList);
+       itr < this->violationEnd(nodeList); 
+       ++itr) {
+    CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
+    val = FourthRankTensor::zero;
+    const FourthRankTensor& fc = field(*itr);
+    for (unsigned i = 0; i != Dimension::nDim; ++i) {
+      for (unsigned j = 0; j != Dimension::nDim; ++j) {
+        for (unsigned k = 0; k != Dimension::nDim; ++k) {
+          for (unsigned l = 0; l != Dimension::nDim; ++l) {
+          for (unsigned q = 0; q != Dimension::nDim; ++q) {
+            for (unsigned r = 0; r != Dimension::nDim; ++r) {
+              for (unsigned s = 0; s != Dimension::nDim; ++s) {
+                    for (unsigned t = 0; t != Dimension::nDim; ++t) {
+                    val(i,j,k,l) += T(i,q)*T(j,r)*T(k,s)*T(l,t)*fc(q,r,s,t);
+                    }
+              }
+              }
+            }
+          }
+        }
+      }
+    }
+    field(*itr) = val; // innerProduct<Dimension>(T, innerProduct<Dimension>(field(*itr), T2));
+  }
+}
+
+// Specialization for fifth rank tensor fields.  Apply the reflection operator.
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  REQUIRE(valid());
+  const Tensor T = this->reflectOperator();
+  const Tensor T2 = innerProduct<Dimension>(T.Transpose(), T.Transpose());
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  FifthRankTensor val;
+  for (vector<int>::const_iterator itr = this->violationBegin(nodeList);
+       itr < this->violationEnd(nodeList); 
+       ++itr) {
+    CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
+    val = FifthRankTensor::zero;
+    const FifthRankTensor& fc = field(*itr);
+    for (unsigned i = 0; i != Dimension::nDim; ++i) {
+      for (unsigned j = 0; j != Dimension::nDim; ++j) {
+        for (unsigned k = 0; k != Dimension::nDim; ++k) {
+          for (unsigned l = 0; l != Dimension::nDim; ++l) {
+            for (unsigned m = 0; m != Dimension::nDim; ++m) {
+              for (unsigned q = 0; q != Dimension::nDim; ++q) {
+                for (unsigned r = 0; r != Dimension::nDim; ++r) {
+                  for (unsigned s = 0; s != Dimension::nDim; ++s) {
+                    for (unsigned t = 0; t != Dimension::nDim; ++t) {
+                      for (unsigned u = 0; u != Dimension::nDim; ++u) {
+                        val(i,j,k,l,u) += T(i,q)*T(j,r)*T(k,s)*T(l,t)*T(m,u)*fc(q,r,s,t,u);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    field(*itr) = val; // innerProduct<Dimension>(T, innerProduct<Dimension>(field(*itr), T2));
+  }
+}
+
 // Specialization for FacetedVolumes
 template<typename Dimension>
 void
@@ -391,6 +575,52 @@ enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) cons
        ++itr) {
     CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
     field(*itr) = reflectFacetedVolume(*this, field(*itr));
+  }
+}
+
+// Specialization for RKCoefficients
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+enforceBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const {
+
+  const auto& nodeList = field.nodeList();
+  const auto& vnodes = this->violationNodes(nodeList);
+  if (not vnodes.empty()) {                       // Is there anything to do?
+
+    // Extract the order of the corrections, and the appropriate transformation
+    const auto fname = field.name();
+    const auto order = RKFieldNames::correctionOrder(fname);
+    const ReproducingKernelMethods<Dimension> WR(order);
+    const auto ncoeff = field[0].size();
+    CHECK(ncoeff == WR.gradCorrectionsSize() or ncoeff == WR.hessCorrectionsSize());
+    const auto useHessian = (ncoeff == WR.hessCorrectionsSize());
+    const auto itr = mrkReflectOperators.find(order);
+    CHECK(itr != mrkReflectOperators.end());
+    const auto& T = useHessian ? itr->second.second : itr->second.first;
+  
+    // Apply the transformation
+    for (auto i: vnodes) {
+      WR.applyTransformation(T, field(i));
+    }
+  }
+}
+
+// Specialization for vector<Vector> fields.
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+enforceBoundary(Field<Dimension, vector<typename Dimension::Vector>>& field) const {
+
+  REQUIRE(valid());
+  const auto& R = reflectOperator();
+
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  for (auto itr = this->violationBegin(nodeList);
+       itr < this->violationEnd(nodeList); 
+       ++itr) {
+    CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
+    for (auto& x: field(*itr)) x = R*x;
   }
 }
 
@@ -510,6 +740,88 @@ enforceBoundary(vector<typename Dimension::ThirdRankTensor>& faceField,
             for (unsigned r = 0; r != Dimension::nDim; ++r) {
               for (unsigned s = 0; s != Dimension::nDim; ++s) {
                 val(i,j,k) += T(i,q)*T(j,r)*T(k,s)*fc(q,r,s);
+              }
+            }
+          }
+        }
+      }
+    }
+    faceField[*itr] += val; // += innerProduct<Dimension>(T, innerProduct<Dimension>(faceField[*itr], T2));
+  }
+}
+
+// Specialization for FourthRankTensor fields.
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+enforceBoundary(vector<typename Dimension::FourthRankTensor>& faceField,
+                const Mesh<Dimension>& mesh) const {
+  REQUIRE(faceField.size() == mesh.numFaces());
+  const Tensor T = this->reflectOperator();
+  const Tensor T2 = innerProduct<Dimension>(T.Transpose(), T.Transpose());
+  const GeomPlane<Dimension>& plane = this->enterPlane();
+  const vector<unsigned> faceIDs = this->facesOnPlane(mesh, plane, 1.0e-6);
+  FourthRankTensor val;
+  for (vector<unsigned>::const_iterator itr = faceIDs.begin();
+       itr != faceIDs.end();
+       ++itr) {
+    CHECK(*itr < faceField.size());
+    val = FourthRankTensor::zero;
+    const FourthRankTensor& fc = faceField[*itr];
+    for (unsigned i = 0; i != Dimension::nDim; ++i) {
+      for (unsigned j = 0; j != Dimension::nDim; ++j) {
+        for (unsigned k = 0; k != Dimension::nDim; ++k) {
+          for (unsigned l = 0; l != Dimension::nDim; ++l) {
+            for (unsigned q = 0; q != Dimension::nDim; ++q) {
+              for (unsigned r = 0; r != Dimension::nDim; ++r) {
+                for (unsigned s = 0; s != Dimension::nDim; ++s) {
+                  for (unsigned t = 0; t != Dimension::nDim; ++t) {
+                    val(i,j,k,l) += T(i,q)*T(j,r)*T(k,s)*T(l,t)*fc(q,r,s,t);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    faceField[*itr] += val; // += innerProduct<Dimension>(T, innerProduct<Dimension>(faceField[*itr], T2));
+  }
+}
+
+// Specialization for FifthRankTensor fields.
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+enforceBoundary(vector<typename Dimension::FifthRankTensor>& faceField,
+                const Mesh<Dimension>& mesh) const {
+  REQUIRE(faceField.size() == mesh.numFaces());
+  const Tensor T = this->reflectOperator();
+  const Tensor T2 = innerProduct<Dimension>(T.Transpose(), T.Transpose());
+  const GeomPlane<Dimension>& plane = this->enterPlane();
+  const vector<unsigned> faceIDs = this->facesOnPlane(mesh, plane, 1.0e-6);
+  FifthRankTensor val;
+  for (vector<unsigned>::const_iterator itr = faceIDs.begin();
+       itr != faceIDs.end();
+       ++itr) {
+    CHECK(*itr < faceField.size());
+    val = FifthRankTensor::zero;
+    const FifthRankTensor& fc = faceField[*itr];
+    for (unsigned i = 0; i != Dimension::nDim; ++i) {
+      for (unsigned j = 0; j != Dimension::nDim; ++j) {
+        for (unsigned k = 0; k != Dimension::nDim; ++k) {
+          for (unsigned l = 0; l != Dimension::nDim; ++l) {
+            for (unsigned m = 0; m != Dimension::nDim; ++m) {
+              for (unsigned q = 0; q != Dimension::nDim; ++q) {
+                for (unsigned r = 0; r != Dimension::nDim; ++r) {
+                  for (unsigned s = 0; s != Dimension::nDim; ++s) {
+                    for (unsigned t = 0; t != Dimension::nDim; ++t) {
+                      for (unsigned u = 0; u != Dimension::nDim; ++u) {
+                        val(i,j,k,l,u) += T(i,q)*T(j,r)*T(k,s)*T(l,t)*T(m,u)*fc(q,r,s,t,u);
+                      }
+                    }
+                  }
+                }
               }
             }
           }

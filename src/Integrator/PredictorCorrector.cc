@@ -79,7 +79,7 @@ operator=(const PredictorCorrector<Dimension>& rhs) {
 // Take a step.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 PredictorCorrector<Dimension>::
 step(typename Dimension::Scalar maxTime,
      State<Dimension>& state,
@@ -118,11 +118,23 @@ step(typename Dimension::Scalar maxTime,
   // Enforce Boundary conditions.
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-  this->finalizeGhostBoundaries();
                                
   // Do any physics specific stuff relating to the fact the state was just updated.
   this->postStateUpdate(t + dt, dt, db, state, derivs);
   this->finalizeGhostBoundaries();
+
+  // Check if the timestep is still a good idea...
+  if (this->allowDtCheck()) {
+    const auto dtnew = this->selectDt(min(this->dtMin(), maxTime - t),
+                                      min(this->dtMax(), maxTime - t),
+                                      state,
+                                      derivs);
+
+    if (dtnew < this->dtCheckFrac()*dt) {
+      state.assign(state0);
+      return false;
+    }
+  }
 
   // Loop over the physics packages and perform any necessary initializations.
   this->initializeDerivatives(t + dt, dt, state, derivs);
@@ -142,11 +154,11 @@ step(typename Dimension::Scalar maxTime,
   state.update(derivs0, hdt, t, hdt);
   this->applyGhostBoundaries(state, derivs);
   state.update(derivs, hdt, t + hdt, hdt);
+  this->currentTime(t + dt);
 
   // Enforce boundaries.
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-  this->finalizeGhostBoundaries();
 
   // Do any physics specific stuff relating to the fact the state was just updated.
   this->postStateUpdate(t + dt, dt, db, state, derivs);
@@ -157,8 +169,8 @@ step(typename Dimension::Scalar maxTime,
 
   // Set the new current time and last time step.
   this->currentCycle(this->currentCycle() + 1);
-  this->currentTime(t + dt);
   this->lastDt(dt);
+  return true;
 }
 
 }

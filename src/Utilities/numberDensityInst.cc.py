@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "numberDensity.cc"
+#include "Utilities/numberDensity.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

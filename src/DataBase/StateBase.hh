@@ -16,6 +16,10 @@
 #ifndef __Spheral_StateBase_hh__
 #define __Spheral_StateBase_hh__
 
+#include "Field/FieldBase.hh"
+
+#include "boost/any.hpp"
+
 #include <string>
 #include <utility>
 #include <memory>
@@ -24,11 +28,12 @@
 #include <list>
 #include <set>
 
+#include "Field/FieldBase.hh"
+
 namespace Spheral {
 
 // Forward declaration.
 template<typename Dimension> class NodeList;
-template<typename Dimension> class FieldBase;
 template<typename Dimension> class FieldListBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
@@ -46,6 +51,9 @@ public:
   typedef typename Dimension::Vector3d Vector3d;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+  typedef typename Dimension::FifthRankTensor FifthRankTensor;
   typedef typename Spheral::ConnectivityMap<Dimension> ConnectivityMapType;
   typedef typename Spheral::Mesh<Dimension> MeshType;
 
@@ -66,42 +74,49 @@ public:
   // Test if two StateBases have equivalent fields.
   virtual bool operator==(const StateBase& rhs) const;
 
+  //............................................................................
   // Test if the specified Field or key is currently registered.
   bool registered(const KeyType& key) const;
   bool registered(const FieldBase<Dimension>& field) const;
   bool registered(const FieldListBase<Dimension>& fieldList) const;
   bool fieldNameRegistered(const FieldName& fieldName) const;
 
+  //............................................................................
   // Enroll a Field.
   virtual void enroll(FieldBase<Dimension>& field);
   virtual void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr);
 
-  // Enroll a FieldList.
-  virtual void enroll(FieldListBase<Dimension>& fieldList);
-
-  // Enroll an externally held Mesh.
-  void enrollMesh(MeshPtr meshPtr);
-
-  // // Enroll a std::vector<Scalar>.
-  // void enroll(const FieldName& key, std::vector<Scalar>& vec);
-
   // Return the field for the given key.
   template<typename Value>
   Field<Dimension, Value>& field(const KeyType& key,
-                                             const Value& dummy) const;
-
-  // Return FieldLists constructed from all registered Fields with the given name.
-  template<typename Value>
-  FieldList<Dimension, Value> fields(const std::string& name, 
-                                                 const Value& dummy) const;
+                                 const Value& dummy) const;
 
   // Return all the fields of the given Value.
   template<typename Value>
   std::vector<Field<Dimension, Value>*> allFields(const Value& dummy) const;
 
-  // // Return the vector<Scalar>.
-  // std::vector<Scalar>& array(const FieldName& key);
+  //............................................................................
+  // Enroll a FieldList.
+  virtual void enroll(FieldListBase<Dimension>& fieldList);
 
+  // Return FieldLists constructed from all registered Fields with the given name.
+  template<typename Value>
+  FieldList<Dimension, Value> fields(const std::string& name, 
+                                     const Value& dummy) const;
+
+  //............................................................................
+  // Enroll an arbitrary type
+  template<typename Value>
+  void enrollAny(const KeyType& key, Value& thing);
+
+  // Return an arbitrary type (held by any)
+  template<typename Value>
+  Value& getAny(const KeyType& key) const;
+
+  template<typename Value>
+  Value& getAny(const KeyType& key, const Value& dummy) const;
+
+  //............................................................................
   // Return the complete set of keys registered.
   std::vector<KeyType> keys() const;
 
@@ -109,21 +124,26 @@ public:
   // convention with the NodeList name).
   std::vector<FieldName> fieldKeys() const;
 
+  //............................................................................
   // A state object can carry around a reference to a ConnectivityMap.
   void enrollConnectivityMap(ConnectivityMapPtr connectivityMapPtr);
   const ConnectivityMapType& connectivityMap() const;
 
+  //............................................................................
   // We also provide support for registering a mesh (though only one per StateBase).
+  void enrollMesh(MeshPtr meshPtr);
   bool meshRegistered() const;
   const MeshType& mesh() const;
   MeshType& mesh();
 
+  //............................................................................
   // Set the Fields equal to those in another State object.
   void assign(const StateBase<Dimension>& rhs);
 
   // Force the StateBase to create new internally owned copies of all state.
   virtual void copyState();
 
+  //............................................................................
   // Construct the lookup key for the given field.
   static KeyType key(const FieldBase<Dimension>& field);
 
@@ -137,16 +157,14 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
-  typedef std::map<KeyType, FieldBase<Dimension>*> StorageType;
-  typedef std::list<std::shared_ptr<FieldBase<Dimension> > > CacheType;
-  typedef std::map<KeyType, std::vector<Scalar>*> VectorStorageType;
-  typedef std::list<std::shared_ptr<std::vector<Scalar> > > VectorCacheType;
+  typedef std::map<KeyType, boost::any> StorageType;
+  typedef std::list<std::shared_ptr<FieldBase<Dimension>>> FieldCacheType;
+  typedef std::list<boost::any> CacheType;
 
   // Protected data.
   StorageType mStorage;
   CacheType mCache;
-  VectorStorageType mVectorStorage;
-  VectorCacheType mVectorCache;
+  FieldCacheType mFieldCache;
   std::set<const NodeList<Dimension>*> mNodeListPtrs;
   ConnectivityMapPtr mConnectivityMapPtr;
   MeshPtr mMeshPtr;

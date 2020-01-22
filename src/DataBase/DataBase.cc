@@ -469,31 +469,43 @@ reinitializeNeighbors() const {
 
   // Find the current bounding box and average node extent in one loop.
   // Compute the average node extent.
-  Vector xmin = std::numeric_limits<Scalar>::max(), xmax = std::numeric_limits<Scalar>::lowest();
+  auto xmin = Vector(std::numeric_limits<Scalar>::max()), xmax = Vector(std::numeric_limits<Scalar>::lowest());
   unsigned ntot = 0;
-  Scalar havg = 0.0;
+  Scalar havg = 0.0, hmax = 0.0, maxExtent = 0.0;
   for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
     const auto positions = (*itr)->positions();
     const auto  n = (*itr)->numInternalNodes();
     const auto& neighbor = (*itr)->neighbor();
     const auto  etaMax = neighbor.kernelExtent();
+    maxExtent = std::max(maxExtent, etaMax);
     ntot += n;
     for (auto i = 0; i < n; ++i) {
       const auto& xi = positions(i);
       xmin = elementWiseMin(xmin, xi);
       xmax = elementWiseMax(xmax, xi);
-      havg += neighbor.nodeExtent(i).maxElement()/etaMax;
+      const auto hi = neighbor.nodeExtent(i).maxElement()/etaMax;
+      havg += hi;
+      hmax = std::max(hmax, hi);
     }
   }
 
   // Find the global result across all processors.
+  auto box = 0.0;
   for (auto i = 0; i != Dimension::nDim; ++i) {
     xmin(i) = allReduce(xmin(i), MPI_MIN, Communicator::communicator());
     xmax(i) = allReduce(xmax(i), MPI_MAX, Communicator::communicator());
+    box = std::max(box, xmax(i) - xmin(i));
   }
   havg = allReduce(havg, MPI_SUM, Communicator::communicator());
   ntot = allReduce(ntot, MPI_SUM, Communicator::communicator());
   if (ntot > 0) havg /= ntot;
+  hmax = allReduce(hmax, MPI_MAX, Communicator::communicator());
+
+  box = std::max(box, maxExtent*hmax);
+  for (auto i = 0; i < Dimension::nDim; ++i) {
+    xmin(i) -= box;
+    xmax(i) += box;
+  }
 
   // Now initialize the neighbors.
   for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
@@ -1223,6 +1235,21 @@ DataBase<Dimension>::solidFragmentIDs() const {
   for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
        nodeListItr < solidNodeListEnd(); ++nodeListItr) {
     result.appendField((*nodeListItr)->fragmentIDs());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid particle type field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, int>
+DataBase<Dimension>::solidParticleTypes() const {
+  REQUIRE(valid());
+  FieldList<Dimension, int> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->particleTypes());
   }
   return result;
 }

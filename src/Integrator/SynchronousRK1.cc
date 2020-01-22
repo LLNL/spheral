@@ -79,7 +79,7 @@ operator=(const SynchronousRK1<Dimension>& rhs) {
 // Take a step.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 SynchronousRK1<Dimension>::
 step(typename Dimension::Scalar maxTime,
      State<Dimension>& state,
@@ -108,7 +108,6 @@ step(typename Dimension::Scalar maxTime,
   state.update(derivs, dt, t, dt);
   this->currentTime(t + dt);
   this->applyGhostBoundaries(state, derivs);
-  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + dt, dt, db, state, derivs);
   this->finalizeGhostBoundaries();
 
@@ -120,8 +119,9 @@ step(typename Dimension::Scalar maxTime,
 
   // Set the new current time and last time step.
   this->currentCycle(this->currentCycle() + 1);
-  this->currentTime(t + dt);
   this->lastDt(dt);
+
+  return true;
 }
 
 }

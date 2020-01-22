@@ -4,8 +4,7 @@ text = """
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 #include "Boundary/Boundary.hh"
-#include "SPH/NodeCoupling.hh"
-#include "computeSolidCRKSPHSumMassDensity.cc"
+#include "CRKSPH/computeSolidCRKSPHSumMassDensity.cc"
 
 namespace Spheral {
 template void computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dim< %(ndim)s > >&, 

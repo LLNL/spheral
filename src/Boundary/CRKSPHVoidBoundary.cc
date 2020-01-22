@@ -222,6 +222,26 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = ThirdRankTensor::zero;
 }
 
+// Specialization for fourth rank tensors.
+template<typename Dimension>
+void
+CRKSPHVoidBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  const vector<int>& gNodes = this->ghostNodes(field.nodeList());
+  const unsigned nvoid = gNodes.size();
+  for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = FourthRankTensor::zero;
+}
+
+// Specialization for fifth rank tensors.
+template<typename Dimension>
+void
+CRKSPHVoidBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  const vector<int>& gNodes = this->ghostNodes(field.nodeList());
+  const unsigned nvoid = gNodes.size();
+  for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = FifthRankTensor::zero;
+}
+
 // Specialization for FacetedVolume fields.
 template<typename Dimension>
 void
@@ -260,58 +280,6 @@ template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
 updateViolationNodes(NodeList<Dimension>& nodeList) {
-}
-
-//------------------------------------------------------------------------------
-// Apply the boundary condition to fields of different DataTypes.
-//------------------------------------------------------------------------------
-// Specialization for int fields.
-template<typename Dimension>
-void
-CRKSPHVoidBoundary<Dimension>::
-enforceBoundary(Field<Dimension, int>& field) const {
-}
-
-// Specialization for scalar fields.
-template<typename Dimension>
-void
-CRKSPHVoidBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-}
-
-// Specialization for Vector fields.
-template<typename Dimension>
-void
-CRKSPHVoidBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-}
-
-// Specialization for Tensor fields.
-template<typename Dimension>
-void
-CRKSPHVoidBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-}
-
-// Specialization for symmetric tensors.
-template<typename Dimension>
-void
-CRKSPHVoidBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-}
-
-// Specialization for third rank tensors.
-template<typename Dimension>
-void
-CRKSPHVoidBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-}
-
-// Specialization for FacetedVolume fields.
-template<typename Dimension>
-void
-CRKSPHVoidBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
 }
 
 }

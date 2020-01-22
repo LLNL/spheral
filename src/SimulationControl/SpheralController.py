@@ -45,7 +45,8 @@ class SpheralController:
                  skipInitialPeriodicWork = False,
                  iterateInitialH = True,
                  numHIterationsBetweenCycles = 0,
-                 reinitializeNeighborsStep = 10):
+                 reinitializeNeighborsStep = 10,
+                 volumeType = RKVolumeType.RKVoronoiVolume):
         self.restart = RestartableObject(self)
         self.integrator = integrator
         self.kernel = kernel
@@ -68,6 +69,9 @@ class SpheralController:
         self.vizMethod = dumpPhysicsState
         self.vizGhosts = vizGhosts
         self.vizDerivs = vizDerivs
+
+        # Organize the physics packages as appropriate
+        self.organizePhysicsPackages(self.kernel, volumeType)
 
         # If this is a parallel run, automatically construct and insert
         # a DistributedBoundaryCondition into each physics package.
@@ -95,8 +99,9 @@ class SpheralController:
                                  vizFieldLists = vizFieldLists,
                                  periodicWork = periodicWork,
                                  skipInitialPeriodicWork = skipInitialPeriodicWork,
-                                 iterateInitialH = True,
-                                 reinitializeNeighborsStep = 10)
+                                 iterateInitialH = iterateInitialH,
+                                 reinitializeNeighborsStep = reinitializeNeighborsStep,
+                                 volumeType = volumeType)
 
         # Read the restart information if requested.
         if not restoreCycle is None:
@@ -127,7 +132,8 @@ class SpheralController:
                             periodicWork = [],
                             skipInitialPeriodicWork = False,
                             iterateInitialH = True,
-                            reinitializeNeighborsStep = 10):
+                            reinitializeNeighborsStep = 10,
+                            volumeType = RKVolumeType.RKVoronoiVolume):
 
         # Intialize the cycle count.
         self.totalSteps = 0
@@ -145,35 +151,44 @@ class SpheralController:
         # Set the simulation time.
         self.integrator.currentTime = initialTime
 
-        # Prepare the neighbor objects.
-        db = self.integrator.dataBase
-        db.reinitializeNeighbors()
-        db.updateConnectivityMap(False)
+        # Check if we have any boundary conditions that need to copy initial state
+        uniquebcs = self.integrator.uniqueBoundaryConditions()
+        stateBCs = [eval("InflowOutflowBoundary%id" % i) for i in dims] + [eval("ConstantBoundary%id" % i) for i in dims]
+        stateBCactive = max([False] + [isinstance(x, y) for y in stateBCs for x in uniquebcs])
+        for bc in uniquebcs:
+            bc.initializeProblemStartup()
 
         # Create ghost nodes for the physics packages to initialize with.
+        db = self.integrator.dataBase
+        db.reinitializeNeighbors()
         self.integrator.setGhostNodes()
         db.updateConnectivityMap(False)
-
-        # Initialize the integrator and packages.
-        packages = self.integrator.physicsPackages()
-        for package in packages:
-            package.initializeProblemStartup(db)
-            for bc in package.boundaryConditions():
-                bc.initializeProblemStartup()
-        state = eval("State%s(db, packages)" % (self.dim))
-        derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
-        self.integrator.preStepInitialize(state, derivs)
-        self.integrator.initializeDerivatives(initialTime, 0.0, state, derivs)
-
-        # If requested, initialize the derivatives.
-        if initializeDerivatives:
-            self.integrator.evaluateDerivatives(initialTime, 0.0, db, state, derivs)
 
         # If we're starting from scratch, initialize the H tensors.
         if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
             self.iterateIdealH()
             db.reinitializeNeighbors()
             db.updateConnectivityMap(False)
+
+        # Initialize the integrator and packages.
+        packages = self.integrator.physicsPackages()
+        for package in packages:
+            package.initializeProblemStartup(db)
+        state = eval("State%s(db, packages)" % (self.dim))
+        derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
+        self.integrator.setGhostNodes()
+        db.updateConnectivityMap(False)
+
+        # If requested, initialize the derivatives.
+        if initializeDerivatives or stateBCactive:
+            self.integrator.preStepInitialize(state, derivs)
+            dt = self.integrator.selectDt(self.integrator.dtMin, self.integrator.dtMax, state, derivs)
+            self.integrator.initializeDerivatives(initialTime, dt, state, derivs)
+            self.integrator.evaluateDerivatives(initialTime, dt, db, state, derivs)
+
+        # If there are stateful boundaries present, give them one more crack at copying inital state
+        for bc in uniquebcs:
+            bc.initializeProblemStartup()
 
         # Set up the default periodic work.
         self.appendPeriodicWork(self.printCycleStatus, printStep)
@@ -583,6 +598,45 @@ class SpheralController:
         return
 
     #--------------------------------------------------------------------------
+    # Properly arrange the physics packages, including adding any needed ones.
+    #--------------------------------------------------------------------------
+    def organizePhysicsPackages(self, W, volumeType):
+        packages = self.integrator.physicsPackages()
+        db = self.integrator.dataBase
+        RKCorrections = eval("RKCorrections%s" % self.dim)
+        vector_of_Physics = eval("vector_of_Physics%s" % self.dim)
+
+        # Are there any packages that require reproducing kernels?
+        # If so, insert the RKCorrections package prior to any RK packages
+        rkorders = set()
+        rkbcs = []
+        needHessian = False
+        index = -1
+        for (ipack, package) in enumerate(packages):
+            ords = package.requireReproducingKernels()
+            rkorders = rkorders.union(ords)
+            needHessian |= package.requireReproducingKernelHessian()
+            if ords:
+                pbcs = package.boundaryConditions()
+                rkbcs += [bc for bc in pbcs if not bc in rkbcs]
+                if index == -1:
+                    index = ipack
+        if rkorders:
+            if W is None:
+                raise RuntimeError, "SpheralController ERROR: the base interpolation kernel 'W' must be specified to the SpheralController when using Reproducing Kernels"
+            self.RKCorrections = RKCorrections(orders = rkorders,
+                                               dataBase = db,
+                                               W = W,
+                                               volumeType = volumeType,
+                                               needHessian = needHessian)
+            for bc in rkbcs:
+                self.RKCorrections.appendBoundary(bc)
+            packages.insert(index, self.RKCorrections)
+            self.integrator.resetPhysicsPackages(packages)
+
+        return
+
+    #--------------------------------------------------------------------------
     # If necessary create and add a distributed boundary condition to each
     # physics package
     #--------------------------------------------------------------------------
@@ -591,13 +645,17 @@ class SpheralController:
         # This is the list of boundary types that need to precede the distributed
         # boundary, since their ghost nodes need to be communicated.
         precedeDistributed = []
+        if 2 in dims:
+            precedeDistributed += [FacetedVolumeBoundary2d]            
         if 3 in dims:
-            precedeDistributed += [CylindricalBoundary,
+            precedeDistributed += [FacetedVolumeBoundary3d,
+                                   CylindricalBoundary,
                                    SphericalBoundary]
         for dim in dims:
             exec("""
 precedeDistributed += [PeriodicBoundary%(dim)sd,
-                       ConstantBoundary%(dim)sd]
+                       ConstantBoundary%(dim)sd,
+                       InflowOutflowBoundary%(dim)sd]
 """ % {"dim" : dim})
 
         # Check if this is a parallel process or not.
@@ -671,8 +729,8 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
             try:
                 #self.redistribute = eval("ParmetisRedistributeNodes%s(W.kernelExtent)" % self.dim)
                 #self.redistribute = eval("SortAndDivideRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                #self.redistribute = eval("PeanoHilbertOrderRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                self.redistribute = eval("VoronoiRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                self.redistribute = eval("PeanoHilbertOrderRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                #self.redistribute = eval("VoronoiRedistributeNodes%s(W.kernelExtent)" % self.dim)
             except:
                 print "Warning: this appears to be a parallel run, but Controller cannot construct"
                 print "         dynamic redistributer."
@@ -716,6 +774,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         db = self.integrator.dataBase
         db.updateConnectivityMap(False)
         bcs = self.integrator.uniqueBoundaryConditions()
+        self.integrator.setGhostNodes()
         self.vizMethod(self.integrator,
                        baseFileName = self.vizBaseName,
                        baseDirectory = self.vizDir,

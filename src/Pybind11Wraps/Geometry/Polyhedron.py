@@ -31,6 +31,11 @@ meaning that the full set of points passed in may not appear in the vertices."""
                 facetIndices = "const std::vector<std::vector<unsigned> >&"):
         "Construct with explicit vertices and facets"
 
+    @PYB11implementation("[](py::list& points) { std::vector<Vector> vpoints; for (auto p: points) vpoints.push_back(p.cast<Vector>()); return new GeomPolyhedron(vpoints); }")
+    def pyinit3(self,
+                points = "py::list"):
+        "Construct as the convex hull of a python list of points"
+
     #...........................................................................
     # Methods
     @PYB11const
@@ -67,6 +72,15 @@ meaning that the full set of points passed in may not appear in the vertices."""
                    rhs = "const std::pair<Vector, Vector>&"):
         "Test if we intersect a box represented by a min/max pair of coordinates."
         return "bool"
+
+    @PYB11const
+    @PYB11pycppname("intersect")
+    @PYB11implementation("[](const Polyhedron& self, const Vector& s0, const Vector& s1) { std::vector<unsigned> facetIDs; std::vector<Vector> intersections; self.intersect(s0, s1, facetIDs, intersections); return py::make_tuple(facetIDs, intersections); }")
+    def intersect2(self,
+                   s0 = "const Vector&",
+                   s1 = "const Vector&"):
+        "Return the intersections of this polyhedron with a line segment denoted by it's end points."
+        return "py::tuple"
 
     @PYB11const
     def edges(self):
@@ -112,6 +126,11 @@ indices that define the facets, and outward normals at the facets."""
     @PYB11const
     def facetAreaNormal(self, facetID="const unsigned"):
         return "Vector"
+
+    @PYB11const
+    def facetSubVolume(self, facetID="const unsigned"):
+        "Decompose the polyhedron into tetrahedra for each facet"
+        return "Polyhedron"
 
     #...........................................................................
     # Operators

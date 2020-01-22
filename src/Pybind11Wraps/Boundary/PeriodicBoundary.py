@@ -16,6 +16,8 @@ class PeriodicBoundary(PlanarBoundary):
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
+    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
     typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef GeomPlane<%(Dimension)s> Plane;
 """
@@ -51,6 +53,31 @@ class PeriodicBoundary(PlanarBoundary):
     def label(self):
         "Label for restart files"
         return "std::string"
+
+    #............................................................................
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11const
+    def applyGhostBoundary0(self,
+                            fieldBase = "FieldBase<%(Dimension)s>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary9(self,
+                            field = "Field<%(Dimension)s, FacetedVolume>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    #............................................................................
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary9(self,
+                         field = "Field<%(Dimension)s, FacetedVolume>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
 
     #...........................................................................
     # Properties

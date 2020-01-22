@@ -36,8 +36,8 @@ Box1d(const std::vector<Box1d::Vector>& points):
     mCenter = 0.5*(xmin + xmax);
     mExtent = 0.5*(xmax - xmin);
   }
-  mVertices.push_back(mCenter - mExtent);
-  mVertices.push_back(mCenter + mExtent);
+  mVertices.push_back(mCenter - Vector(mExtent));
+  mVertices.push_back(mCenter + Vector(mExtent));
 }
 
 inline
@@ -59,8 +59,8 @@ Box1d(const std::vector<Box1d::Vector>& points,
                xmax = std::max(points[i].x(), points[j].x());
   mCenter = 0.5*(xmin + xmax);
   mExtent = 0.5*(xmax - xmin);
-  mVertices.push_back(mCenter - mExtent);
-  mVertices.push_back(mCenter + mExtent);
+  mVertices.push_back(mCenter - Vector(mExtent));
+  mVertices.push_back(mCenter + Vector(mExtent));
 }
 
 inline
@@ -70,8 +70,8 @@ Box1d(const GeomVector<1>& center,
   mCenter(center),
   mExtent(extent) {
   REQUIRE(mExtent >= 0.0);
-  mVertices.push_back(mCenter - mExtent);
-  mVertices.push_back(mCenter + mExtent);
+  mVertices.push_back(mCenter - Vector(mExtent));
+  mVertices.push_back(mCenter + Vector(mExtent));
 }
 
 inline
@@ -188,8 +188,8 @@ Box1d::
 center(const GeomVector<1>& val) {
   mCenter = val;
   mVertices = std::vector<Vector>();
-  mVertices.push_back(mCenter - mExtent);
-  mVertices.push_back(mCenter + mExtent);
+  mVertices.push_back(mCenter - Vector(mExtent));
+  mVertices.push_back(mCenter + Vector(mExtent));
 }
 
 //------------------------------------------------------------------------------
@@ -215,8 +215,8 @@ Box1d::
 extent(double val) {
   mExtent = val;
   mVertices = std::vector<Vector>();
-  mVertices.push_back(mCenter - mExtent);
-  mVertices.push_back(mCenter + mExtent);
+  mVertices.push_back(mCenter - Vector(mExtent));
+  mVertices.push_back(mCenter + Vector(mExtent));
 }
 
 //------------------------------------------------------------------------------

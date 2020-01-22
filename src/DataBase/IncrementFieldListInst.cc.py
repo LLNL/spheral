@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "IncrementFieldList.cc"
+#include "DataBase/IncrementFieldList.cc"
 
 namespace Spheral {
   template class IncrementFieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>;

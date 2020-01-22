@@ -95,7 +95,7 @@ public:
   virtual Scalar molecularWeight() const override;
   void molecularWeight(Scalar molecularWeight);
   
-  virtual bool valid() const;
+  virtual bool valid() const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//

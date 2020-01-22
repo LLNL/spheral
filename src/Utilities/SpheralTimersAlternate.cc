@@ -5,6 +5,7 @@
 //----------------------------------------------------------------------------//
 
 #include "Timer.hh"
+using std::list;
 
 // Must initialize the static list defined in Timer.hh
 #ifdef TIMER

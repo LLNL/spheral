@@ -28,14 +28,14 @@ public:
   virtual ~SiloFileIO();
 
   // All File objects must provide methods to open and close the files.
-  virtual void open(const std::string fileName, AccessType access);
-  virtual void close();
+  virtual void open(const std::string fileName, AccessType access) override;
+  virtual void close() override;
 
   //******************************************************************************
   // Methods all FileIO descendent classes must provide.
   //******************************************************************************
   // Check if the specified path is in the file.
-  virtual bool pathExists(const std::string pathName) const;
+  virtual bool pathExists(const std::string pathName) const override;
 
   // All FileIO objects had better be able to read and write the primitive 
   // DataTypes.

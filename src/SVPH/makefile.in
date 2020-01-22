@@ -23,6 +23,9 @@ INSTSRCTARGETS = \
 	$(srcdir)/SpecificThermalEnergyVolumePolicyInst.cc.py \
 	$(srcdir)/CellPressurePolicyInst.cc.py
 
+SRCTARGETS = \
+	$(srcdir)/SVPHFieldNames.cc
+
 PYTHONTARGETS = \
 	$(srcdir)/SVPHHydros.py
 

@@ -21,6 +21,8 @@ NodeList.
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
+    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
     typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef GeomPlane<%(Dimension)s> Plane;
 """
@@ -35,28 +37,21 @@ NodeList.
 
     #...........................................................................
     # Methods
-    @PYB11pycppname("applyGhostBoundary")
     @PYB11virtual
     @PYB11const
-    def applyGhostBoundary20(self,
-                             field = "Field<%(Dimension)s, std::vector<Scalar>>&"):
+    def applyGhostBoundary(self,
+                           fieldBase = "FieldBase<%(Dimension)s>&"):
         return "void"
 
-    @PYB11pycppname("applyGhostBoundary")
     @PYB11virtual
     @PYB11const
-    def applyGhostBoundary21(self,
-                             field = "Field<%(Dimension)s, std::vector<Vector>>&"):
+    def enforceBoundary(self,
+                        fieldBase = "FieldBase<%(Dimension)s>&"):
         return "void"
 
     @PYB11virtual
     def initializeProblemStartup(self):
         return "void"
-
-    @PYB11virtual
-    @PYB11const
-    def valid(self):
-        return "bool"
 
     #...........................................................................
     # Properties

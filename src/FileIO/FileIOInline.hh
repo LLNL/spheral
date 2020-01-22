@@ -6,6 +6,39 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// Write Field as binary blob
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+void
+FileIO::writeFieldBlob(const Field<Dimension, DataType>& value,
+                       const std::string pathName) {
+  const auto n = value.nodeList().numInternalNodes();
+  std::vector<int> inds(n);
+  for (auto i = 0; i < n; ++i) inds[i] = i;
+  const auto blob = value.packValues(inds);
+  const std::string sblob(blob.begin(), blob.end());
+  this->write(sblob, pathName);
+}
+
+//------------------------------------------------------------------------------
+// Read Field as binary blob
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+void
+FileIO::readFieldBlob(Field<Dimension, DataType>& value,
+                      const std::string pathName) const {
+  const auto n = value.nodeList().numInternalNodes();
+  std::vector<int> inds(n);
+  for (auto i = 0; i < n; ++i) inds[i] = i;
+  std::string sblob;
+  this->read(sblob, pathName);
+  std::vector<char> blob(sblob.begin(), sblob.end());
+  value.unpackValues(inds, blob);
+}
+
+//------------------------------------------------------------------------------
 // Write a FieldList of arbitrary DataType (private)
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>

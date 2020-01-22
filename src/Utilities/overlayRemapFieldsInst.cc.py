@@ -4,7 +4,7 @@ if ndim != "1":
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "overlayRemapFields.cc"
+#include "Utilities/overlayRemapFields.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

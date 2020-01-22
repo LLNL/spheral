@@ -42,7 +42,7 @@ sacrificing some accuracy vs. the the true RK2 algorithm."""
     @PYB11pycppname("step")
     def step1(self, maxTime="Scalar"):
         "Take a step"
-        return "void"
+        return "bool"
 
     @PYB11virtual
     @PYB11const
