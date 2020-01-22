@@ -129,7 +129,6 @@ step(typename Dimension::Scalar maxTime,
   state.update(derivs, hdt0, t, dt0);
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + hdt0, hdt0, db, state, derivs);
   this->finalizeGhostBoundaries();
 
@@ -161,7 +160,6 @@ step(typename Dimension::Scalar maxTime,
   }
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + dt0, dt0, db, state, derivs);
   this->finalizeGhostBoundaries();
 
@@ -194,7 +192,6 @@ step(typename Dimension::Scalar maxTime,
   }
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-  this->finalizeGhostBoundaries();
   this->postStateUpdate(t + dt0, dt0, db, state, derivs);
   this->finalizeGhostBoundaries();
 
@@ -203,7 +200,6 @@ step(typename Dimension::Scalar maxTime,
 
   // Set the new current time and last time step.
   this->currentCycle(this->currentCycle() + 1);
-  this->currentTime(t + dt0);
   this->lastDt(dt0);
   return true;
 }

@@ -8,16 +8,19 @@
 #ifndef __Spheral_packElement__
 #define __Spheral_packElement__
 
+#include "Geometry/Dimension.hh"
+#include "Geometry/polyclipper.hh"
+#include "Utilities/DataTypeTraits.hh"
+#include "Utilities/DomainNode.hh"
+#include "RK/RKCorrectionParams.hh"
+#include "RK/RKCoefficients.hh"
+
 #include <stdint.h>
 #include <vector>
 #include <map>
 #include <iterator>
 #include <string>
 #include <tuple>
-#include "DataTypeTraits.hh"
-#include "Utilities/DomainNode.hh"
-#include "RK/RKCorrectionParams.hh"
-#include "RK/RKCoefficients.hh"
 
 #ifdef USE_MPI
 #include "mpi.h"

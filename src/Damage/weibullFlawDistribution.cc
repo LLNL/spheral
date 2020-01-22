@@ -5,7 +5,8 @@
 #include <set>
 #include <algorithm>
 #include <limits>
-#include "boost/unordered_map.hpp"
+#include <unordered_map>
+#include <random>
 
 #include "weibullFlawDistribution.hh"
 #include "Utilities/globalNodeIDs.hh"
@@ -18,10 +19,7 @@
 #include "Distributed/Communicator.hh"
 #include "Utilities/allReduce.hh"
 
-#include <boost/random.hpp>
-#include <boost/random/uniform_01.hpp>
-using boost::unordered_map;
-
+using std::unordered_map;
 using std::vector;
 using std::string;
 using std::pair;
@@ -108,9 +106,8 @@ weibullFlawDistributionBenzAsphaug(double volume,
     CHECK(epsMin > 0.0);
 
     // Construct a random number generator.
-    typedef boost::mt19937 base_generator_type;
-    base_generator_type basegen(seed);
-    boost::uniform_01<base_generator_type> generator(basegen);
+    std::mt19937 gen(seed);
+    std::uniform_real_distribution<double> uniform01(0.0, 1.0);
 
     // Loop and initialize flaws until:
     // a) every node has the minimum number of flaws per node, and
@@ -120,7 +117,7 @@ weibullFlawDistributionBenzAsphaug(double volume,
     while ((numCompletedNodes < n) || (ienergy <= minTotalFlaws)) {
 
       // Randomly select a global node.
-      const int iglobal = int(generator() * n);
+      const int iglobal = int(uniform01(gen) * n);
       CHECK(iglobal >= 0 && iglobal < n);
 
       // Increment the number of flaws for this node, and check if this
@@ -255,9 +252,8 @@ weibullFlawDistributionOwen(const unsigned seed,
     const Field<Dimension, Scalar>& rho = nodeList.massDensity();
 
     // Construct a random number generator.
-    typedef boost::mt19937 base_generator_type;
-    base_generator_type basegen(seed);
-    boost::uniform_01<base_generator_type> generator(basegen);
+    std::mt19937 gen(seed);
+    std::uniform_real_distribution<double> uniform01(0.0, 1.0);
 
     // Find the minimum and maximum node volumes.
     double Vmin = std::numeric_limits<double>::max(), 
@@ -302,16 +298,16 @@ weibullFlawDistributionOwen(const unsigned seed,
 
           // Seed flaws on the node.
           for (int j = 0; j != numFlawsi; ++j) {
-            flaws(i).push_back(pow(Ai * generator(), mInv));
+            flaws(i).push_back(pow(Ai * uniform01(gen), mInv));
           }
 
           // Spin the random number generator to keep in sync with other processors.
-          for (int j = numFlawsi; j != maxFlawsPerNode; ++j) double tmp = generator();
+          for (int j = numFlawsi; j != maxFlawsPerNode; ++j) double tmp = uniform01(gen);
 
         } else{
 
           // Spin the random number generator to keep in sync with other processors.
-          for (int j = 0; j != maxFlawsPerNode; ++j) double tmp = generator();
+          for (int j = 0; j != maxFlawsPerNode; ++j) double tmp = uniform01(gen);
 
         }
 
@@ -319,7 +315,7 @@ weibullFlawDistributionOwen(const unsigned seed,
 
         // Other domains just cycle the random number generator so that
         // we can be domain decomposition independent.
-        for (int j = 0; j != maxFlawsPerNode; ++j) double tmp = generator();
+        for (int j = 0; j != maxFlawsPerNode; ++j) double tmp = uniform01(gen);
 
       }
     }

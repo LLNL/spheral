@@ -35,30 +35,6 @@ class PlanarBoundary(Boundary):
     #...........................................................................
     # Virtual methods
     @PYB11virtual
-    def setGhostNodes(self,
-                      nodeList = "NodeList<%(Dimension)s>&"):
-        "Set ghost nodes for the NodeList"
-        return "void"
-
-    @PYB11virtual
-    def updateGhostNodes(self,
-                         nodeList = "NodeList<%(Dimension)s>&"):
-        "Update position and H for ghost nodes for the NodeList"
-        return "void"
-
-    @PYB11virtual
-    def setViolationNodes(self,
-                      nodeList = "NodeList<%(Dimension)s>&"):
-        "Set violation nodes for the NodeList"
-        return "void"
-
-    @PYB11virtual
-    def updateViolationNodes(self,
-                         nodeList = "NodeList<%(Dimension)s>&"):
-        "Update nodes in violation of this Boundary for the NodeList"
-        return "void"
-                    
-    @PYB11virtual
     @PYB11const
     def enterPlane(self):
         "Get the enter plane"
@@ -120,4 +96,5 @@ class PlanarBoundary(Boundary):
 #-------------------------------------------------------------------------------
 # Inject restart methods
 #-------------------------------------------------------------------------------
+PYB11inject(BoundaryAbstractMethods, PlanarBoundary, virtual=True, pure_virtual=False)
 PYB11inject(RestartMethods, PlanarBoundary)
