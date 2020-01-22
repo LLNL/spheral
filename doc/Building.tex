@@ -163,6 +163,10 @@ Some lesser used options that may be of interest include
 \Spheral\ will build and run just fine on the Apple Mac architecture using Apple's \verb+Xcode+ compiler suite.  The following steps have proven successful.
 \begin{enumerate}
 \item Install Apple's \verb+Xcode+ (available in the App Store), which provides the necessary compiler suite.  Unfortunately the default Apple version of \verb.g++. has some RTTI problems, but the included \verb.clang++. compiler works fine.
+\item In order to successfully build a functional python, some support libraries need to be installed.  How to do this depends on what sort of Mac Unix package manager you are using (such as \verb.MacPorts. or \verb.Brew.).  In \verb.MacPorts. for instance the following set should be installed:
+\begin{verbatim}
+    sudo port install wget mpich openssl ncurses readline sqlite3 gdbm db53 expat lzma libffi libuuid kerberos5
+\end{verbatim}
 \item Optional.  If you would like to use the parallel capabilities of \Spheral\ you need to install an implementation of \verb.MPI..  The MacPorts (\ref{free.sec}.\ref{Macports.sec}) project's distribution of \verb.MPICH2. works well.  Be sure to install the \verb.clang. variant if you use Macports as follows:
 \begin{verbatim}
     sudo port install mpich2 +clang
