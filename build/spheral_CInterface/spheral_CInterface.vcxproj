@@ -412,9 +412,6 @@
     <ProjectReference Include="..\spheral_dataoutput\spheral_dataoutput.vcxproj">
       <Project>{0a7c9e40-2802-420d-9867-6deb977b078e}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\spheral_distributed\spheral_distributed.vcxproj">
-      <Project>{46240108-1c29-4f3b-9a88-e6bcfdec7ebe}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\spheral_fieldoperations\spheral_fieldoperations.vcxproj">
       <Project>{66d95603-f93e-429e-af51-fd8a93adf044}</Project>
     </ProjectReference>
