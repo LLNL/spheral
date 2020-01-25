@@ -5,7 +5,7 @@
 #define __Spheral__computeCRKSPHMoments__
 
 #include "SPH/NodeCoupling.hh"
-#include "CRKSPHCorrectionParams.hh"
+#include "RK/RKCorrectionParams.hh"
 
 namespace Spheral {
 
@@ -21,7 +21,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
                      const FieldList<Dimension, typename Dimension::Scalar>& weight,
                      const FieldList<Dimension, typename Dimension::Vector>& position,
                      const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                     const CRKOrder correctionOrder,
+                     const RKOrder correctionOrder,
                      const NodeCoupling& nodeCoupling,
                      FieldList<Dimension, typename Dimension::Scalar>& m0,
                      FieldList<Dimension, typename Dimension::Vector>& m1,

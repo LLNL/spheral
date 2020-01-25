@@ -53,6 +53,12 @@ public:
   bool convexIntersect(const GeomPolyhedron& rhs) const;
   bool intersect(const std::pair<Vector, Vector>& rhs) const;  // Another way of representing a box.
 
+  // Find intersections of this polyhedron with a line segment (s0, s1).  Returns
+  // both the intersection points and facet IDs.
+  void intersect(const Vector& s0, const Vector& s1,
+                 std::vector<unsigned>& facetIDs,
+                 std::vector<Vector>& intersections) const;
+
   // Return the centroid of the vertices.
   Vector centroid() const;
 
@@ -71,6 +77,10 @@ public:
   // Spit out a vector<vector<unsigned> > and vector<Vector> that encode the facets.
   std::vector<std::vector<unsigned> > facetVertices() const;
   std::vector<Vector> facetNormals() const;
+
+  // Useful facet properties.
+  double facetArea(const unsigned facetID) const;
+  Vector facetAreaNormal(const unsigned facetID) const;
 
   // Reconstruct the internal data given a set of vertices and the vertex
   // indicies that define the facets.
@@ -111,6 +121,9 @@ public:
 
   // Set the bounding box.
   void setBoundingBox();
+
+  // Decompose the polyhedron into pyramids for each facet.
+  GeomPolyhedron facetSubVolume(const unsigned facetID) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//

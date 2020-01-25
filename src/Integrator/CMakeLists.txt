@@ -1,11 +1,6 @@
 set(Integrator_inst
     CheapSynchronousRK2
     Integrator
-    PredictorCorrector
-    SynchronousRK1
-    SynchronousRK2
-    SynchronousRK4
-    Verlet
    )
 
 
@@ -17,11 +12,6 @@ set(Integrator_headers
     CheapSynchronousRK2.hh
     Integrator.hh
     IntegratorInline.hh
-    PredictorCorrector.hh
-    SynchronousRK1.hh
-    SynchronousRK2.hh
-    SynchronousRK4.hh
-    Verlet.hh
     )
 
 blt_add_library(NAME        Spheral_Integrator

@@ -19,9 +19,6 @@
 #include "mpi.h"
 #endif
 
-#include <boost/tuple/tuple.hpp>
-using namespace boost::tuples;
-
 #include <algorithm>
 #include <vector>
 using std::vector;
@@ -39,9 +36,9 @@ namespace Spheral {
 
 template<typename DataType>
 struct CompareTuples {
-  bool operator()(const boost::tuple<int, int, DataType>& lhs,
-                  const boost::tuple<int, int, DataType>& rhs) {
-    return get<2>(lhs) < get<2>(rhs);
+  bool operator()(const std::tuple<int, int, DataType>& lhs,
+                  const std::tuple<int, int, DataType>& rhs) {
+    return std::get<2>(lhs) < std::get<2>(rhs);
   }
 };
 
@@ -59,14 +56,14 @@ nodeOrdering(const FieldList<Dimension, DataType>& criteria) {
 
   // Make a set of tuples containing the node info and indicies.
   int iNodeList = 0;
-  vector<boost::tuple<int, int, DataType> > sortedList;
+  vector<std::tuple<int, int, DataType> > sortedList;
   for (typename FieldList<Dimension, DataType>::const_iterator fieldItr = criteria.begin();
        fieldItr != criteria.end();
        ++fieldItr, ++iNodeList) {
     const NodeList<Dimension>& nodeList = (**fieldItr).nodeList();
     result.appendField(Field<Dimension, int>("node indicies", nodeList, -1));
     for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
-      sortedList.push_back(boost::make_tuple(iNodeList, i, (**fieldItr)(i)));
+      sortedList.push_back(std::make_tuple(iNodeList, i, (**fieldItr)(i)));
     }
   }
 
@@ -88,7 +85,7 @@ nodeOrdering(const FieldList<Dimension, DataType>& criteria) {
   int iGlobal = 0;
   while (iGlobal < numGlobalNodes) {
     Key localKey = KeyTraits::maxKey;
-    if (iLocal < numLocalNodes) localKey = get<2>(sortedList[iLocal]);
+    if (iLocal < numLocalNodes) localKey = std::get<2>(sortedList[iLocal]);
 
     // Find the next key globally.
     Key globalKey = localKey;
@@ -111,7 +108,7 @@ nodeOrdering(const FieldList<Dimension, DataType>& criteria) {
 
     // Are we the next global key?
     if (localKey == globalKey and procID == minProcID) {
-      result(get<0>(sortedList[iLocal]), get<1>(sortedList[iLocal])) = iGlobal;
+      result(std::get<0>(sortedList[iLocal]), std::get<1>(sortedList[iLocal])) = iGlobal;
       ++iLocal;
     }
 

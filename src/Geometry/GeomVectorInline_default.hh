@@ -1,12 +1,12 @@
+#include "GeomTensor.hh"
+#include "GeomSymmetricTensor.hh"
+#include "Utilities/DBC.hh"
+
 #include <algorithm>
 #include <limits.h>
 #include <math.h>
 #include <cfloat>
 #include <string>
-
-#include "GeomTensor.hh"
-#include "GeomSymmetricTensor.hh"
-#include "Utilities/DBC.hh"
 
 namespace Spheral {
 

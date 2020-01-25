@@ -1,7 +1,9 @@
 #-------------------------------------------------------------------------------
 # A set of methods to help reading and writing Spheral Polyhedra to/from files.
 #-------------------------------------------------------------------------------
-from Spheral3d import Vector, Tensor, SymTensor, Polygon, Polyhedron
+from SpheralCompiledPackages import *
+import numpy as np
+import stl
 
 #-------------------------------------------------------------------------------
 # Read an OBJ (vertex-facet labeled) shape file to create a polyhedron.
@@ -18,18 +20,19 @@ def readPolyhedronOBJ(filename):
         if stuff:
             if stuff[0] == "v":
                 assert len(stuff) == 4
-                verts.append(Vector(double(stuff[1]), double(stuff[2]), double(stuff[3])))
+                verts.append(Vector3d(float(stuff[1]), float(stuff[2]), float(stuff[3])))
             elif stuff[0] == "f":
                 assert len(stuff) >= 4
-                facets.append([])
+                facet = []
                 for x in stuff[1:]:
-                    facets[-1].append(int(x.split("/")[0]) - 1)
+                    facet.append(int(x.split("/")[0]) - 1)
+                facets.append(vector_of_unsigned(facet))
     f.close()
     nverts = len(verts)
-    for i in xrange(len(facets)):
-        for j in xrange(len(facets[i])):
-            assert facets[i][j] < nverts
-    poly = Polyhedron(verts, facets)
+    # for i in xrange(len(facets)):
+    #     for j in xrange(len(facets[i])):
+    #         assert facets[i][j] < nverts
+    poly = Polyhedron(vector_of_Vector3d(verts), vector_of_vector_of_unsigned(facets))
     return poly
 
 #-------------------------------------------------------------------------------
@@ -39,8 +42,8 @@ def readPolyhedronOBJ(filename):
 #-------------------------------------------------------------------------------
 def writePolyhedronOBJ(poly, filename, forceTriangles=False):
     f = open(filename, "w")
-    verts = poly.vertices()
-    facets = poly.facets()
+    verts = poly.vertices
+    facets = poly.facets
     for v in verts:
         f.write("v %g %g %g\n" % (v.x, v.y, v.z))
 
@@ -102,7 +105,7 @@ def readPolyhedronOFF(filename):
         line = f.readline()
         stuff = line.split()
         assert len(stuff) == 3
-        verts.append(Vector(double(stuff[0]), double(stuff[1]), double(stuff[2])))
+        verts.append(Vector3d(float(stuff[0]), float(stuff[1]), float(stuff[2])))
     
     # Read the face vertex indices.
     facets = []
@@ -111,14 +114,15 @@ def readPolyhedronOFF(filename):
         stuff = line.split()
         assert len(stuff) >= 4
         n = int(stuff[0])
-        facets.push_back([])
+        facet = []
         for j in xrange(n):
             k = int(stuff[j+1])
             assert k < nv
-            facets[-1][j] = k
+            facet.append(k)
+        facets.append(vector_of_unsigned(facet))
     
     # Build the polyhedron and we're done.
-    poly = Polyhedron(verts, facets)
+    poly = Polyhedron(vector_of_vector3d(verts), vector_of_vector_of_unsigned(facets))
     return poly
 
 
@@ -129,8 +133,8 @@ def readPolyhedronOFF(filename):
 #-------------------------------------------------------------------------------
 def writePolyhedronOFF(poly, filename):
     f = open(filename, "w")
-    verts = poly.vertices()
-    facets = poly.facets()
+    verts = poly.vertices
+    facets = poly.facets
     f.write("OFF\n")
 
     # Check for 2d/3d.
@@ -198,8 +202,8 @@ def writePolyhedraSTL(polys,
     assert len(polys) == len(names)
     f = open(filename, "w")
     for name, poly in zip(names, polys):
-        verts = poly.vertices()
-        facets = poly.facets()
+        verts = poly.vertices
+        facets = poly.facets
         f.write("solid %s\n" % name)
         for facet in facets:
             ipoints = facet.ipoints
@@ -212,3 +216,21 @@ def writePolyhedraSTL(polys,
         f.write("endsolid\n")
     f.close()
     return
+
+#-------------------------------------------------------------------------------
+# Read an STL polyhedron
+#-------------------------------------------------------------------------------
+def readPolyhedronSTL(filename):
+    mesh = stl.mesh.Mesh.from_file(filename)
+    nfacets = len(mesh.v0)
+    assert len(mesh.v1) == len(mesh.v2) == nfacets
+    points, facets = [], []
+    for i in xrange(nfacets):
+        points += [Vector3d(*tuple(mesh.v0[i])), Vector3d(*tuple(mesh.v1[i])), Vector3d(*tuple(mesh.v2[i]))]
+        facets.append(vector_of_unsigned([3*i, 3*i + 1, 3*i + 2]))
+    assert len(points)/3 == nfacets
+    assert len(facets) == nfacets
+    points = vector_of_Vector3d(points)
+    facets = vector_of_vector_of_unsigned(facets)
+    poly = Polyhedron(points, facets)
+    return poly

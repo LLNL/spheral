@@ -22,9 +22,10 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
-                 volumeType = CRKVoronoiVolume,
+                 volumeType = RKVoronoiVolume,
                  epsTensile = 0.0,
-                 nTensile = 4.0):
+                 nTensile = 4.0,
+                 limitMultimaterialTopology = False):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
         if WPi is None:
             WPi = W
@@ -44,7 +45,8 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                                         correctionOrder,
                                         volumeType,
                                         epsTensile,
-                                        nTensile)
+                                        nTensile,
+                                        limitMultimaterialTopology)
         return
 """
 
@@ -67,10 +69,12 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
-                 volumeType = CRKVoronoiVolume,
+                 volumeType = RKVoronoiVolume,
                  epsTensile = 0.0,
                  nTensile = 4.0,
-                 damageRelieveRubble = False):
+                 limitMultimaterialTopology = False,
+                 damageRelieveRubble = False,
+                 negativePressureInDamage = False):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
         if WPi is None:
             WPi = W
@@ -91,7 +95,9 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                                              volumeType,
                                              epsTensile,
                                              nTensile,
-                                             damageRelieveRubble)
+                                             limitMultimaterialTopology,
+                                             damageRelieveRubble,
+                                             negativePressureInDamage)
         return
 """
 
@@ -114,9 +120,10 @@ class %(classname)s(CRKSPHHydroBaseRZ):
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
-                 volumeType = CRKVoronoiVolume,
+                 volumeType = RKVoronoiVolume,
                  epsTensile = 0.0,
                  nTensile = 4.0,
+                 limitMultimaterialTopology = False,
                  etaMinAxis = 0.1):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
@@ -137,6 +144,7 @@ class %(classname)s(CRKSPHHydroBaseRZ):
                                    correctionOrder,
                                    volumeType,
                                    epsTensile,
+                                   limitMultimaterialTopology,
                                    nTensile)
         self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
         self.appendBoundary(self.zaxisBC)
@@ -162,10 +170,12 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
-                 volumeType = CRKVoronoiVolume,
+                 volumeType = RKVoronoiVolume,
                  epsTensile = 0.0,
                  nTensile = 4.0,
+                 limitMultimaterialTopology = False,
                  damageRelieveRubble = False,
+                 negativePressureInDamage = False,
                  etaMinAxis = 0.1):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
@@ -187,54 +197,11 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
                                         volumeType,
                                         epsTensile,
                                         nTensile,
-                                        damageRelieveRubble)
+                                        limitMultimaterialTopology,
+                                        damageRelieveRubble,
+                                        negativePressureInDamage)
         self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
         self.appendBoundary(self.zaxisBC)
-        return
-"""
-
-#-------------------------------------------------------------------------------
-# The variant CRKSPHHydro pattern.
-#-------------------------------------------------------------------------------
-CRKSPHVariantFactoryString = """
-class %(classname)s%(dim)s(CRKSPHVariant%(dim)s):
-
-    def __init__(self,
-                 Q,
-                 W,
-                 WPi = None,
-                 filter = 1.0,
-                 cfl = 0.25,
-                 useVelocityMagnitudeForDt = False,
-                 compatibleEnergyEvolution = True,
-                 evolveTotalEnergy = False,
-                 XSPH = True,
-                 densityUpdate = RigorousSumDensity,
-                 HUpdate = IdealH,
-                 correctionOrder = LinearOrder,
-                 volumeType = CRKVoronoiVolume,
-                 epsTensile = 0.0,
-                 nTensile = 4.0):
-        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
-        if WPi is None:
-            WPi = W
-        CRKSPHVariant%(dim)s.__init__(self,
-                                        self._smoothingScaleMethod,
-                                        Q,
-                                        W,
-                                        WPi,
-                                        filter,
-                                        cfl,
-                                        useVelocityMagnitudeForDt,
-                                        compatibleEnergyEvolution,
-                                        evolveTotalEnergy,
-                                        XSPH,
-                                        densityUpdate,
-                                        HUpdate,
-                                        correctionOrder,
-                                        volumeType,
-                                        epsTensile,
-                                        nTensile)
         return
 """
 
@@ -255,13 +222,6 @@ for dim in dims:
     exec(SolidCRKSPHHydroFactoryString % {"dim"                  : "%id" % dim,
                                           "classname"            : "SolidACRKSPHHydro",
                                           "smoothingScaleMethod" : "ASPHSmoothingScale"})
-
-    exec(CRKSPHVariantFactoryString % {"dim"                  : "%id" % dim,
-                                       "classname"            : "CRKSPHVar",
-                                       "smoothingScaleMethod" : "SPHSmoothingScale"})
-    exec(CRKSPHVariantFactoryString % {"dim"                  : "%id" % dim,
-                                       "classname"            : "ACRKSPHVar",
-                                       "smoothingScaleMethod" : "ASPHSmoothingScale"})
 
 if 2 in dims:
     exec(CRKSPHHydroRZFactoryString % {"classname"            : "CRKSPHHydroRZ",
@@ -290,9 +250,12 @@ def CRKSPH(dataBase,
            densityUpdate = RigorousSumDensity,
            HUpdate = IdealH,
            correctionOrder = LinearOrder,
-           volumeType = CRKVoronoiVolume,
+           volumeType = RKVoronoiVolume,
            epsTensile = 0.0,
            nTensile = 4.0,
+           limitMultimaterialTopology = False,
+           damageRelieveRubble = False,
+           negativePressureInDamage = False,
            ASPH = False,
            RZ = False,
            crktype = "default"):
@@ -353,25 +316,31 @@ def CRKSPH(dataBase,
         Cq = 1.0*(W.kernelExtent/4.0)**2
         Q = eval("CRKSPHMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
-    # Build the thing.
-    result = Constructor(Q = Q,
-                         W = W,
-                         WPi = WPi,
-                         filter = filter,
-                         cfl = cfl,
-                         useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                         compatibleEnergyEvolution = compatibleEnergyEvolution,
-                         evolveTotalEnergy = evolveTotalEnergy,
-                         XSPH = XSPH,
-                         densityUpdate = densityUpdate,
-                         HUpdate = HUpdate,
-                         correctionOrder = correctionOrder,
-                         volumeType = volumeType,
-                         epsTensile = epsTensile,
-                         nTensile = nTensile)
-    result.Q = Q
+    # Build the constructor arguments
+    kwargs = {"W" : W,
+              "WPi" : WPi,
+              "Q" : Q,
+              "filter" : filter,
+              "cfl" : cfl,
+              "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
+              "compatibleEnergyEvolution" : compatibleEnergyEvolution,
+              "evolveTotalEnergy" : evolveTotalEnergy,
+              "XSPH" : XSPH,
+              "densityUpdate" : densityUpdate,
+              "HUpdate" : HUpdate,
+              "correctionOrder" : correctionOrder,
+              "volumeType" : volumeType,
+              "epsTensile" : epsTensile,
+              "nTensile" : nTensile,
+              "limitMultimaterialTopology" : limitMultimaterialTopology}
 
-    # Store the Q and special BC as attributes, and return the thing.
+    if nsolid > 0:
+        kwargs.update({"damageRelieveRubble" : damageRelieveRubble,
+                       "negativePressureInDamage" : negativePressureInDamage})
+
+    # Build the thing.
+    result = Constructor(**kwargs)
+    result.Q = Q
     return result
 
 #-------------------------------------------------------------------------------
@@ -390,9 +359,12 @@ def ACRKSPH(dataBase,
             densityUpdate = RigorousSumDensity,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
-            volumeType = CRKVoronoiVolume,
+            volumeType = RKVoronoiVolume,
             epsTensile = 0.0,
-            nTensile = 4.0):
+            nTensile = 4.0,
+            limitMultimaterialTopology = False,
+            damageRelieveRubble = False,
+            negativePressureInDamage = False):
     return CRKSPH(dataBase = dataBase,
                   W = W,
                   WPi = WPi,
@@ -409,6 +381,9 @@ def ACRKSPH(dataBase,
                   volumeType = volumeType,
                   epsTensile = epsTensile,
                   nTensile = nTensile,
+                  limitMultimaterialTopology = limitMultimaterialTopology,
+                  damageRelieveRubble = damageRelieveRubble,
+                  negativePressureInDamage = negativePressureInDamage,
                   ASPH = True,
                   RZ = False)
 
@@ -428,9 +403,12 @@ def CRKSPHRZ(dataBase,
              densityUpdate = RigorousSumDensity,
              HUpdate = IdealH,
              correctionOrder = LinearOrder,
-             volumeType = CRKVoronoiVolume,
+             volumeType = RKVoronoiVolume,
              epsTensile = 0.0,
-             nTensile = 4.0):
+             nTensile = 4.0,
+             limitMultimaterialTopology = False,
+             damageRelieveRubble = False,
+             negativePressureInDamage = False):
     return CRKSPH(dataBase = dataBase,
                   W = W,
                   WPi = WPi,
@@ -446,6 +424,9 @@ def CRKSPHRZ(dataBase,
                   correctionOrder = correctionOrder,
                   volumeType = volumeType,
                   epsTensile = epsTensile,
+                  limitMultimaterialTopology = limitMultimaterialTopology,
+                  damageRelieveRubble = damageRelieveRubble,
+                  negativePressureInDamage = negativePressureInDamage,
                   nTensile = nTensile,
                   ASPH = False,
                   RZ = True)
@@ -466,9 +447,12 @@ def ACRKSPHRZ(dataBase,
               densityUpdate = RigorousSumDensity,
               HUpdate = IdealH,
               correctionOrder = LinearOrder,
-              volumeType = CRKVoronoiVolume,
+              volumeType = RKVoronoiVolume,
               epsTensile = 0.0,
-              nTensile = 4.0):
+              nTensile = 4.0,
+              limitMultimaterialTopology = False,
+              damageRelieveRubble = False,
+              negativePressureInDamage = False):
     return CRKSPH(dataBase = dataBase,
                   W = W,
                   WPi = WPi,
@@ -485,5 +469,8 @@ def ACRKSPHRZ(dataBase,
                   volumeType = volumeType,
                   epsTensile = epsTensile,
                   nTensile = nTensile,
+                  limitMultimaterialTopology = limitMultimaterialTopology,
+                  damageRelieveRubble = damageRelieveRubble,
+                  negativePressureInDamage = negativePressureInDamage,
                   ASPH = True,
                   RZ = True)

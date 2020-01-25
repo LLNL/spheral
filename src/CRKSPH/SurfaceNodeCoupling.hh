@@ -20,23 +20,22 @@ template<typename Dimension>
 class SurfaceNodeCoupling: public NodeCoupling {
 public:
   // Constructor, destructor.
-  SurfaceNodeCoupling(const FieldList<Dimension, int>& surfacePoints):
+  SurfaceNodeCoupling(const FieldList<Dimension, int>& surfacePoint):
     NodeCoupling(),
-    mSurfacePoints(surfacePoints) {}
+    mSurfacePoint(surfacePoint) {}
 
   virtual ~SurfaceNodeCoupling() {}
 
   // The coupling operator.
   virtual double operator()(const unsigned nodeListi, const unsigned i,
                             const unsigned nodeListj, const unsigned j) const {
-    if (nodeListi == nodeListj) return 1.0;
-    if (mSurfacePoints(nodeListi, i) != 0 or
-        mSurfacePoints(nodeListj, j) != 0) return 1.0;
-    return 0.0;
+    return (nodeListi == nodeListj          ? 1.0 :
+            mSurfacePoint(nodeListj, j) > 0 ? 1.0 :
+                                              0.0);
   }
 
 private:
-  const FieldList<Dimension, int>& mSurfacePoints;
+  const FieldList<Dimension, int>& mSurfacePoint;
 };
 
 }

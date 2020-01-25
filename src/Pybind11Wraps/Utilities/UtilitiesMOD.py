@@ -44,28 +44,9 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/refinePolyhedron.hh"',
                   '"Utilities/overlayRemapFields.hh"',
                   '"Utilities/computeShepardsInterpolation.hh"',
-                  '"Utilities/Timer.hh"']
-
-PYB11preamble = """
-#ifndef NOR3D
-#include "Utilities/r3d_utils.hh"
-#else
-//------------------------------------------------------------------------------
-// Stub these methods out when we're not allowing R3D.
-//------------------------------------------------------------------------------
-namespace Spheral {
-  inline Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
-                                                 const std::vector<GeomPlane<Dim<2> > >& planes) {
-    VERIFY2(false, "ERROR: clipFacetedVolume unavailable without R3D.");
-  }
-
-  inline Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
-                                                 const std::vector<GeomPlane<Dim<3> > >& planes) {
-    VERIFY2(false, "ERROR: clipFacetedVolume unavailable without R3D.");
-  }
-}
-#endif
-"""
+                  '"Utilities/clipFacetedVolume.hh"',
+                  '"Utilities/Timer.hh"',
+                  '"Utilities/DomainNode.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -78,6 +59,7 @@ PYB11namespaces = ["Spheral"]
 from SpheralFunctor import *
 from KeyTraits import *
 from Timer import *
+from DomainNode import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
@@ -265,6 +247,9 @@ collinear%(ndim)id = PYB11TemplateFunction(collinear, template_parameters="%(Vec
 between%(ndim)id = PYB11TemplateFunction(between, template_parameters="%(Vector)s", pyname="between")
 segmentSegmentIntersectionTest%(ndim)id = PYB11TemplateFunction(segmentSegmentIntersectionTest, template_parameters="%(Vector)s", pyname="segmentSegmentIntersectionTest")
 
+DomainNode%(ndim)id = PYB11TemplateClass(DomainNode, template_parameters="%(Dimension)s")
+vector_of_DomainNode%(ndim)id = PYB11_bind_vector("DomainNode<%(Dimension)s>", opaque=True, local=False)
+
 #...............................................................................
 # segment-segment intersections (return intersect)
 @PYB11pycppname("segmentSegmentIntersection")
@@ -331,10 +316,16 @@ computeShepardsInterpolationSymTensor%(ndim)id = PYB11TemplateFunction(computeSh
 #-------------------------------------------------------------------------------
 # Some methods are always instantiated
 #-------------------------------------------------------------------------------
-@PYB11template("Plane")
-def planarReflectingOperator(plane = "const %(Plane)s&"):
+@PYB11template("Dimension")
+def planarReflectingOperator(nhat = "const %(Dimension)s::Vector&"):
+    "Generate the reflection operator for the (outward facing) normal"
+    return "%(Dimension)s::Tensor"
+
+@PYB11template("Dimension")
+@PYB11cppname("planarReflectingOperator")
+def planarReflectingOperator1(plane = "const GeomPlane<%(Dimension)s>&"):
     "Generate the reflection operator for the given plane."
-    return "%(Plane)s::Tensor"
+    return "%(Dimension)s::Tensor"
 
 for ndim in xrange(1, 4):
     exec('''
@@ -360,7 +351,8 @@ def testPointInBox%(ndim)id(point = "const %(Vector)s&",
     "Test if a point is contained in a box."
     return "bool"
 
-planarReflectingOperator%(ndim)id = PYB11TemplateFunction(planarReflectingOperator, template_parameters="%(Plane)s")
+planarReflectingOperator%(ndim)id = PYB11TemplateFunction(planarReflectingOperator, template_parameters="%(Dimension)s", pyname="planarReflectingOperator")
+planarReflectingOperator1%(ndim)id = PYB11TemplateFunction(planarReflectingOperator1, template_parameters="%(Dimension)s", pyname="planarReflectingOperator")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">",
        "Vector"    : "Dim<" + str(ndim) + ">::Vector",
@@ -474,7 +466,6 @@ pointPlaneDistance%(ndim)id = PYB11TemplateFunction(pointPlaneDistance, template
 overlayRemapFields%(ndim)id = PYB11TemplateFunction(overlayRemapFields, template_parameters="Dim<%(ndim)i>", pyname="overlayRemapFields")
 ''' % {"ndim"   : ndim,
        "Vector" : "Dim<" + str(ndim) + ">::Vector"})
-
 
 #-------------------------------------------------------------------------------
 # Geometry operations only available in 3D.
@@ -686,7 +677,7 @@ def refinePolyhedron(poly0 = "const Dim<3>::FacetedVolume&",
     return "Dim<3>::FacetedVolume"
 
 #-------------------------------------------------------------------------------
-# R2D/R3D utilities
+# PolyClipper utilities
 #-------------------------------------------------------------------------------
 @PYB11pycppname("clipFacetedVolume")
 def clipFacetedVolume1(poly = "const Dim<2>::FacetedVolume&",

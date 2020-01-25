@@ -16,6 +16,9 @@ class CylindricalBoundary(Boundary):
     typedef Dim<3>::Tensor Tensor;
     typedef Dim<3>::SymTensor SymTensor;
     typedef Dim<3>::ThirdRankTensor ThirdRankTensor;
+    typedef Dim<3>::FourthRankTensor FourthRankTensor;
+    typedef Dim<3>::FifthRankTensor FifthRankTensor;
+    typedef Dim<3>::FacetedVolume FacetedVolume;
 """
 
     #...........................................................................

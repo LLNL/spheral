@@ -1,32 +1,20 @@
 set(CRKSPH_inst
-    CRKSPHHydroBase
-    CRKSPHVariant
-    ContinuityVolumePolicy
-    HVolumePolicy
-    SolidCRKSPHHydroBase
-    computeCRKSPHCorrections
-    computeCRKSPHEvaluation
-    computeCRKSPHIntegral
-    computeCRKSPHMoments
     computeCRKSPHSumMassDensity
-    computeCRKSPHSumVolume
-    computeHVolumes
-    computeHullVolumes
-    computeNeighborHull
-    computeOccupancyVolume
     computeSolidCRKSPHSumMassDensity
-    detectSurface
-    flagSurfaceNeighbors
-    gradientCRKSPH
+    computeCRKSPHMoments
+    computeCRKSPHCorrections
+    CRKSPHHydroBase
     interpolateCRKSPH
+    gradientCRKSPH
+    detectSurface
+    SolidCRKSPHHydroBase
+    editMultimaterialSurfaceTopology
+    zerothOrderSurfaceCorrections
    )
 
 
 set(CRKSPH_sources
     centerOfMass.cc
-    computeVoronoiVolume1d.cc
-    computeVoronoiVolume2d.cc
-    computeVoronoiVolume3d.cc
    )
 
 if(ENABLE_2D)
@@ -39,21 +27,15 @@ endif()
 instantiate(CRKSPH_inst CRKSPH_sources)
 
 set(CRKSPH_headers
-    CRKSPHCorrectionParams.hh
     CRKSPHHydroBase.hh
     CRKSPHHydroBaseInline.hh
     CRKSPHHydroBaseRZ.hh
-    CRKSPHSpecificThermalEnergyPolicy.hh
     CRKSPHUtilities.hh
     CRKSPHUtilitiesInline.hh
     CRKSPHVariant.hh
-    ContinuityVolumePolicy.hh
-    HVolumePolicy.hh
-    HullVolumePolicy.hh
     SolidCRKSPHHydroBase.hh
     SolidCRKSPHHydroBaseInline.hh
     SolidCRKSPHHydroBaseRZ.hh
-    SolidCRKSPHHydroBaseRZInline.hh
     SurfaceNodeCoupling.hh
     centerOfMass.hh
     computeCRKSPHCorrections.hh
@@ -61,20 +43,14 @@ set(CRKSPH_headers
     computeCRKSPHIntegral.hh
     computeCRKSPHMoments.hh
     computeCRKSPHSumMassDensity.hh
-    computeCRKSPHSumVolume.hh
-    computeHVolumes.hh
     computeHullSumMassDensity.hh
-    computeHullVolumes.hh
-    computeNeighborHull.hh
-    computeOccupancyVolume.hh
     computeSolidCRKSPHSumMassDensity.hh
-    computeVoronoiCentroids.hh
-    computeVoronoiVolume.hh
     detectSurface.hh
-    flagSurfaceNeighbors.hh
+    editMultimaterialSurfaceTopology.hh
     gradientCRKSPH.hh
     interpolateCRKSPH.hh
     volumeSpacing.hh
+    zerothOrderSurfaceCorrections.hh
     )
 
 blt_add_library(NAME        Spheral_CRKSPH

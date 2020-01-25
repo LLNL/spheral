@@ -51,9 +51,13 @@ endif
 ifneq (,$(filter "yes", "@INST2D@" "@INST3D@"))
 INSTSRCTARGETS += \
 	$(srcdir)/findMatchingVertexInst.cc.py
+
+ifeq ("1", "@USE_POLYTOPE@")
+INSTSRCTARGETS += \
+	$(srcdir)/copy2polytopeInst.cc.py
 endif
 
-
+endif
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

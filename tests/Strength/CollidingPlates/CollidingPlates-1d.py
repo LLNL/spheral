@@ -1,12 +1,12 @@
 # Non-compatible tests
-#ATS:t10 = test(SELF, "--graphics False --restartStep 50 --clearDirectories True --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20180814.txt'", np=1, label="Colliding plates domain independence test SERIAL Non-compatible RUN")
-#ATS:t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20180814.txt' --restoreCycle 50", np=1, label="Colliding plates domain independence test SERIAL RESTART Non-compatible RUN")
-#ATS:t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20180814.txt' --comparisonFile 'dumps-CollidingPlates-1d/SolidSPHHydro1d/MonaghanGingoldViscosity1d/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Non-compatible RUN")
+#ATS:t10 = test(SELF, "--graphics False --restartStep 50 --clearDirectories True --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20191105.txt'", np=1, label="Colliding plates domain independence test SERIAL Non-compatible RUN")
+#ATS:t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20191105.txt' --restoreCycle 50", np=1, label="Colliding plates domain independence test SERIAL RESTART Non-compatible RUN")
+#ATS:t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20191105.txt' --comparisonFile 'dumps-CollidingPlates-1d/SPH/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Non-compatible RUN")
 #
 # Compatible tests
-#ATS:t50 = test(SELF, "--graphics False --restartStep 50 --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories True --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20180814.txt'", np=1, label="Colliding plates domain independence test SERIAL Compatible RUN")
-#ATS:t51 = testif(t50, SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories False --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20180814.txt' --restoreCycle 50", np=1, label="Colliding plates domain independence test SERIAL RESTART Compatible RUN")
-#ATS:t52 = testif(t50, SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories False --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20180814.txt' --comparisonFile 'dumps-CollidingPlates-compatible-1d/SolidSPHHydro1d/MonaghanGingoldViscosity1d/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Compatible RUN")
+#ATS:t50 = test(SELF, "--graphics False --restartStep 50 --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories True --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20191105.txt'", np=1, label="Colliding plates domain independence test SERIAL Compatible RUN")
+#ATS:t51 = testif(t50, SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories False --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20191105.txt' --restoreCycle 50", np=1, label="Colliding plates domain independence test SERIAL RESTART Compatible RUN")
+#ATS:t52 = testif(t50, SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories False --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20191105.txt' --comparisonFile 'dumps-CollidingPlates-compatible-1d/SPH/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Compatible RUN")
 
 #-------------------------------------------------------------------------------
 # A pair of steel plates colliding at the origin.  This is a useful test of
@@ -27,15 +27,20 @@ import mpi
 title("1-D colliding plates strength test")
 
 #-------------------------------------------------------------------------------
+# Pick our units
+#-------------------------------------------------------------------------------
+units = CGuS()
+
+#-------------------------------------------------------------------------------
 # Generic problem parameters
-# All CGS units.
+# All CGuS units.
 #-------------------------------------------------------------------------------
 commandLine(# Geometry
             length = 3.0,
             radius = 0.5,
             nx = 100,
             reflect = False,
-            v0 = 1.0e4,        # Initial collision velocity
+            v0 = 1.0e-2,        # Initial collision velocity
 
             # Material specific bounds on the mass density.
             rho0 = 7.9,
@@ -43,8 +48,7 @@ commandLine(# Geometry
             etamax = 1.5,
 
             # Hydro
-            CRKSPH = False,
-            Qconstructor = MonaghanGingoldViscosity,
+            crksph = False,
             Cl = 1.0,
             Cq = 1.0,
             Qlimiter = False,
@@ -52,7 +56,6 @@ commandLine(# Geometry
             balsaraCorrection = False,
             epsilon2 = 1e-2,
             negligibleSoundSpeed = 1e-5,
-            csMultiplier = 1e-4,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = True,
@@ -71,11 +74,11 @@ commandLine(# Geometry
 
             # Time advancement.
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 2.0e-6,
+            goalTime = 2.0,
             steps = None,
-            dt = 1e-10,
-            dtMin = 1e-12,
-            dtMax = 1e-5,
+            dt = 1e-6,
+            dtMin = 1e-6,
+            dtMax = 0.1,
             dtGrowth = 2.0,
             dumpFrac = 1.0,
             maxSteps = None,
@@ -90,21 +93,19 @@ commandLine(# Geometry
             graphics = True,
             testtol = 1.0e-3,
             clearDirectories = False,
-            referenceFile = "Reference/CollidingPlates-1d-reference-compatible-20180814.txt",
+            referenceFile = "Reference/CollidingPlates-1d-reference-compatible-20191105.txt",
             dataDirBase = "dumps-CollidingPlates-1d",
             outputFile = "None",
             comparisonFile = "None",
             )
 
-if CRKSPH:
-    HydroConstructor = SolidCRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+if crksph:
+    hydroname = "CRKSPH"
 else:
-    HydroConstructor = SolidSPHHydro
+    hydroname = "SPH"
 
 dataDir = os.path.join(dataDirBase,
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1],
+                       hydroname,
                        str(nx))
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "CollidingPlates-%i" % nx)
@@ -129,65 +130,59 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Stainless steel material properties.
 #-------------------------------------------------------------------------------
-eos = GruneisenEquationOfStateCGS(rho0,    # reference density  
-                                  etamin,  # etamin             
-                                  etamax,  # etamax             
-                                  0.457e6, # C0                 
-                                  1.49,    # S1                 
-                                  0.0,     # S2                 
-                                  0.0,     # S3                 
-                                  1.93,    # gamma0             
-                                  0.5,     # b                  
-                                  55.350)  # atomic weight
-coldFit = NinthOrderPolynomialFit(-1.06797724e10,
-                                  -2.06872020e10,
-                                   8.24893246e11,
-                                  -2.39505843e10,
-                                  -2.44522017e10,
-                                   5.38030101e10,
+eos = GruneisenEquationOfState(rho0,    # reference density  
+                               etamin,  # etamin             
+                               etamax,  # etamax             
+                               0.457,   # C0                 
+                               1.49,    # S1                 
+                               0.0,     # S2                 
+                               0.0,     # S3                 
+                               1.93,    # gamma0             
+                               0.5,     # b                  
+                               55.350,  # atomic weight
+                               constants = units)
+
+coldFit = NinthOrderPolynomialFit(-1.06797724e-2,
+                                  -2.06872020e-2,
+                                   8.24893246e-1,
+                                  -2.39505843e-2,
+                                  -2.44522017e-2,
+                                   5.38030101e-2,
                                    0.0,
                                    0.0,
                                    0.0,
                                    0.0)
-meltFit = NinthOrderPolynomialFit(7.40464217e10,
-                                  2.49802214e11,
-                                  1.00445029e12,
-                                 -1.36451475e11,
-                                  7.72897829e9,
-                                  5.06390305e10,
+meltFit = NinthOrderPolynomialFit(7.40464217e-2,
+                                  2.49802214e-1,
+                                  1.00445029e00,
+                                 -1.36451475e-1,
+                                  7.72897829e-3,
+                                  5.06390305e-2,
                                   0.0,
                                   0.0,
                                   0.0,
                                   0.0)
-strengthModel = SteinbergGuinanStrengthCGS(eos,
-                                           7.700000e11,        # G0
-                                           2.2600e-12,         # A
-                                           4.5500e-04,          # B
-                                           3.4000e9,           # Y0
-                                           2.5e10,             # Ymax
-                                           1.0e-3,             # Yp
-                                           43.0000,            # beta
-                                           0.0,                # gamma0
-                                           0.35,               # nhard
-                                           coldFit,
-                                           meltFit)
+strengthModel = SteinbergGuinanStrength(eos,
+                                        7.700000e-1,        # G0
+                                        2.2600,             # A
+                                        4.5500e-04,         # B
+                                        3.4000e-3,          # Y0
+                                        2.5e-2,             # Ymax
+                                        1.0e-3,             # Yp
+                                        43.0000,            # beta
+                                        0.0,                # gamma0
+                                        0.35,               # nhard
+                                        coldFit,
+                                        meltFit)
 
 #-------------------------------------------------------------------------------
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
 WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
 output("WT")
-output("WTPi")
 
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
@@ -204,28 +199,27 @@ nodeSet = [nodes]
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
 eps0 = 0.0
-if restoreCycle is None:
-    print "Generating node distribution."
-    from DistributeNodes import distributeNodesInRange1d
-    distributeNodesInRange1d([(nodes, nx, rho0, (xmin, xmax))])
-    output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
-    output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
-    output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
+print "Generating node distribution."
+from DistributeNodes import distributeNodesInRange1d
+distributeNodesInRange1d([(nodes, nx, rho0, (xmin, xmax))])
+output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
+output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
+output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 
-    # Set node specific thermal energies
-    T = ScalarField("temperature", nodes, 300.0)
-    rho = nodes.massDensity()
-    eps = nodes.specificThermalEnergy()
-    eos.setSpecificThermalEnergy(eps, rho, T)
+# Set node specific thermal energies
+T = ScalarField("temperature", nodes, 300.0)
+rho = nodes.massDensity()
+eps = nodes.specificThermalEnergy()
+eos.setSpecificThermalEnergy(eps, rho, T)
 
-    # Set node velocites.
-    pos = nodes.positions()
-    vel = nodes.velocity()
-    for i in xrange(nodes.numInternalNodes):
-        if pos[i].x < 0.0:
-            vel[i].x = v0
-        else:
-            vel[i].x = -v0
+# Set node velocites.
+pos = nodes.positions()
+vel = nodes.velocity()
+for i in xrange(nodes.numInternalNodes):
+    if pos[i].x < 0.0:
+        vel[i].x = v0
+    else:
+        vel[i].x = -v0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -240,58 +234,58 @@ output("db.numFluidNodeLists")
 output("db.numSolidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosities for the problem.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion)
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-q.epsilon2 = epsilon2
-q.negligibleSoundSpeed = negligibleSoundSpeed
-q.csMultiplier = csMultiplier
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.linearInExpansion")
-output("q.limiter")
-output("q.epsilon2")
-output("q.negligibleSoundSpeed")
-output("q.csMultiplier")
-output("q.balsaraShearCorrection")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
+if crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                filter = filter,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
+output("hydro.kernel")
+output("hydro.PiKernel")
+
+#-------------------------------------------------------------------------------
+# Set the artificial viscosity parameters.
+#-------------------------------------------------------------------------------
+q = hydro.Q
+if not Cl is None:
+    q.Cl = Cl
+if not Cq is None:
+    q.Cq = Cq
+if not Qlimiter is None:
+    q.limiter = Qlimiter
+if not balsaraCorrection is None:
+    q.balsaraShearCorrection = balsaraCorrection
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.epsilon2")
+output("q.limiter")
+output("q.balsaraShearCorrection")
 
 #-------------------------------------------------------------------------------
 # Boundary conditions.

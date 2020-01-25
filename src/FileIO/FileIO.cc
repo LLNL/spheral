@@ -3,6 +3,10 @@
 //
 // Created by J. Michael Owen, Wed Feb  7 22:59:14 PST 2001
 //----------------------------------------------------------------------------//
+#ifndef CXXONLY
+#include "Python.h"
+#endif
+
 #include "FileIO.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"

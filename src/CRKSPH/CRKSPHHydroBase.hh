@@ -7,8 +7,9 @@
 #define __Spheral_CRKSPHHydroBase_hh__
 
 #include "Physics/GenericHydro.hh"
-#include "CRKSPHCorrectionParams.hh"
 #include "Boundary/CRKSPHVoidBoundary.hh"
+#include "Geometry/CellFaceFlag.hh"
+#include "RK/RKCorrectionParams.hh"
 
 #include <string>
 
@@ -55,10 +56,11 @@ public:
                   const bool XSPH,
                   const MassDensityType densityUpdate,
                   const HEvolutionType HUpdate,
-                  const CRKOrder correctionOrder,
-                  const CRKVolumeType volumeType,
+                  const RKOrder correctionOrder,
+                  const RKVolumeType volumeType,
                   const double epsTensile,
-                  const double nTensile);
+                  const double nTensile,
+                  const bool limitMultimaterialTopology);
 
   // Destructor.
   virtual ~CRKSPHHydroBase();
@@ -76,6 +78,11 @@ public:
   virtual
   void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs) override;
+
+  // This method is called once at the beginning of a timestep, after all state registration.
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;
 
   // Initialize the Hydro before we start a derivative evaluation.
   virtual
@@ -102,14 +109,15 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const override;
 
-  // Finalize the hydro at the completion of an integration step.
-  virtual
-  void finalize(const Scalar time,
-                const Scalar dt,
-                DataBase<Dimension>& dataBase,
-                State<Dimension>& state,
-                StateDerivatives<Dimension>& derivs) override;
-                  
+  // Provide a hook to be called after the state has been updated and 
+  // boundary conditions have been enforced.
+  virtual 
+  void postStateUpdate(const Scalar time, 
+                       const Scalar dt,
+                       const DataBase<Dimension>& dataBase, 
+                       State<Dimension>& state,
+                       StateDerivatives<Dimension>& derivatives) override;
+
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
@@ -133,12 +141,12 @@ public:
   void HEvolution(HEvolutionType type);
 
   // Flag to choose CRK Correction Order
-  CRKOrder correctionOrder() const;
-  void correctionOrder(CRKOrder order);
+  RKOrder correctionOrder() const;
+  void correctionOrder(RKOrder order);
 
   // Flag for the CRK volume weighting definition
-  CRKVolumeType volumeType() const;
-  void volumeType(CRKVolumeType x);
+  RKVolumeType volumeType() const;
+  void volumeType(RKVolumeType x);
 
   // Flag to determine if we're using the total energy conserving compatible energy
   // evolution scheme.
@@ -152,6 +160,10 @@ public:
   // Flag to determine if we're using the XSPH algorithm.
   bool XSPH() const;
   void XSPH(bool val);
+
+  // Flag to determine if we cut multimaterial topology.
+  bool limitMultimaterialTopology() const;
+  void limitMultimaterialTopology(bool val);
 
   // The object defining how we evolve smoothing scales.
   const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
@@ -167,13 +179,6 @@ public:
   Scalar nTensile() const;
   void nTensile(Scalar val);
     
-  // Limits to impose on node by node corrections.
-  double correctionMin() const;
-  void correctionMin(double val);
-
-  double correctionMax() const;
-  void correctionMax(double val);
-
   // We maintain a special boundary condition to handle void points.
   const CRKSPHVoidBoundary<Dimension>& voidBoundary() const;
 
@@ -190,7 +195,6 @@ public:
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldList<Dimension, SymTensor>& massSecondMoment() const;
   const FieldList<Dimension, Scalar>&    volume() const;
-  const FieldList<Dimension, Vector>&    massDensityGradient() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
 
@@ -200,7 +204,7 @@ public:
   const FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldList<Dimension, Tensor>&    internalDvDx() const;
-  const FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
+  const std::vector<Vector>&             pairAccelerations() const;
   const FieldList<Dimension, Vector>&    deltaCentroid() const;
 
   const FieldList<Dimension, Scalar>&    A() const;
@@ -222,8 +226,9 @@ public:
   const FieldList<Dimension, FifthRankTensor>&       gradm4() const;
 
   const FieldList<Dimension, int>&       surfacePoint() const;
-  const FieldList<Dimension, int>&       voidPoint() const;
   const FieldList<Dimension, std::vector<Vector>>& etaVoidPoints() const;
+  const FieldList<Dimension, FacetedVolume>& cells() const;
+  const FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -240,14 +245,13 @@ protected:
   // A bunch of switches.
   MassDensityType mDensityUpdate;
   HEvolutionType mHEvolution;
-  CRKOrder mCorrectionOrder;
-  CRKVolumeType mVolumeType;
-  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mXSPH;
+  RKOrder mCorrectionOrder;
+  RKVolumeType mVolumeType;
+  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mXSPH, mLimitMultimaterialTopology;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
   bool mDetectSurfaces;
   double mDetectThreshold, mSweepAngle, mDetectRange;
-  double mCorrectionMin, mCorrectionMax;
 
   // Some internal scratch fields.
   FieldList<Dimension, int>       mTimeStepMask;
@@ -265,7 +269,6 @@ protected:
   FieldList<Dimension, SymTensor> mMassSecondMoment;
 
   FieldList<Dimension, Scalar>    mVolume;
-  FieldList<Dimension, Vector>    mMassDensityGradient;
 
   FieldList<Dimension, Vector>    mXSPHDeltaV;
   FieldList<Dimension, Vector>    mDxDt;
@@ -278,7 +281,7 @@ protected:
   FieldList<Dimension, Tensor>    mInternalDvDx;
   FieldList<Dimension, Vector>    mDeltaCentroid;
 
-  FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
+  std::vector<Vector>             mPairAccelerations;
 
   FieldList<Dimension, Scalar>    mA;
   FieldList<Dimension, Vector>    mB;
@@ -299,8 +302,9 @@ protected:
   FieldList<Dimension, FifthRankTensor>       mGradm4;
 
   FieldList<Dimension, int>       mSurfacePoint;
-  FieldList<Dimension, int>       mVoidPoint;
   FieldList<Dimension, std::vector<Vector>> mEtaVoidPoints;
+  FieldList<Dimension, FacetedVolume> mCells;
+  FieldList<Dimension, std::vector<CellFaceFlag>> mCellFaceFlags;
 
   CRKSPHVoidBoundary<Dimension> mVoidBoundary;
 

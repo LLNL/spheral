@@ -29,7 +29,7 @@ using std::string;
 template<typename Dimension>
 ArtificialConduction<Dimension>::
 ArtificialConduction(const TableKernel<Dimension>& W,
-                     const Scalar alphaArCond, const CRKOrder ACcorrectionOrder):
+                     const Scalar alphaArCond, const RKOrder ACcorrectionOrder):
     Physics<Dimension>(),
     mKernel(W),
     mACcorrectionOrder(ACcorrectionOrder),
@@ -49,7 +49,7 @@ ArtificialConduction<Dimension>::~ArtificialConduction() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-CRKOrder
+RKOrder
 ArtificialConduction<Dimension>::ACcorrectionOrder() const {
   return mACcorrectionOrder;
 }
@@ -58,7 +58,7 @@ template<typename Dimension>
 inline
 void
 ArtificialConduction<Dimension>::
-ACcorrectionOrder(const CRKOrder order) {
+ACcorrectionOrder(const RKOrder order) {
   mACcorrectionOrder = order;
 }
 

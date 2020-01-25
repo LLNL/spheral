@@ -16,7 +16,7 @@ class Mesh:
   typedef typename %(Dimension)s::ConvexHull ConvexHull;
   typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
   typedef uint64_t KeyElement;
-  typedef boost::tuple<KeyElement, KeyElement, KeyElement> Key;
+  typedef std::tuple<KeyElement, KeyElement, KeyElement> Key;
 """
 
     #...........................................................................

@@ -28,7 +28,10 @@
 #include "Distributed/Communicator.hh"
 #endif
 
+#include <vector>
+#include <tuple>
 #include <algorithm>
+
 using std::vector;
 using std::map;
 using std::cout;
@@ -38,7 +41,7 @@ using std::min;
 using std::max;
 using std::abs;
 
-using boost::tuple;
+using std::tuple;
 
 namespace Spheral {
 
@@ -347,7 +350,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
     VERIFY(position[i]->nodeListPtr() == mask[i]->nodeListPtr());
   }
   VERIFY(xmin < xmax);
-  VERIFY(nsample.size() == Dimension::nDim);
+  VERIFY2(nsample.size() == Dimension::nDim, nsample.size() << " != " << Dimension::nDim);
   for (int i = 0; i != Dimension::nDim; ++i) VERIFY(nsample[i] > 0);
 
   // Get the parallel geometry.
@@ -456,7 +459,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
 
         // Scalar fields.
         {
-          vector<Scalar>& samples = boost::tuples::get<0>(localResult[j]);
+          vector<Scalar>& samples = std::get<0>(localResult[j]);
           for (int k = 0; k != numScalarFieldLists; ++k) {
             CHECK(k < samples.size());
             const FieldList<Dimension, Scalar>& fieldList = fieldListSet.ScalarFieldLists[k];
@@ -467,7 +470,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
           
         // Vector fields.
         {
-          vector<Vector>& samples = boost::tuples::get<1>(localResult[j]);
+          vector<Vector>& samples = std::get<1>(localResult[j]);
           for (int k = 0; k != numVectorFieldLists; ++k) {
             CHECK(k < samples.size());
             const FieldList<Dimension, Vector>& fieldList = fieldListSet.VectorFieldLists[k];
@@ -478,7 +481,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
           
         // Tensor fields.
         {
-          vector<Tensor>& samples = boost::tuples::get<2>(localResult[j]);
+          vector<Tensor>& samples = std::get<2>(localResult[j]);
           for (int k = 0; k != numTensorFieldLists; ++k) {
             CHECK(k < samples.size());
             const FieldList<Dimension, Tensor>& fieldList = fieldListSet.TensorFieldLists[k];
@@ -489,7 +492,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
           
         // SymTensor fields.
         {
-          vector<SymTensor>& samples = boost::tuples::get<3>(localResult[j]);
+          vector<SymTensor>& samples = std::get<3>(localResult[j]);
           for (int k = 0; k != numSymTensorFieldLists; ++k) {
             CHECK(k < samples.size());
             const FieldList<Dimension, SymTensor>& fieldList = fieldListSet.SymTensorFieldLists[k];
@@ -527,7 +530,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
       
       // Scalar fields.
       {
-        const vector<Scalar>& localSamples = boost::tuples::get<0>(itr->second);
+        const vector<Scalar>& localSamples = std::get<0>(itr->second);
         for (int k = 0; k != numScalarFieldLists; ++k) {
           CHECK(k < localSamples.size());
           CHECK(k < scalarValues.size() and jlocal < scalarValues[k].size());
@@ -537,7 +540,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
       
       // Vector fields.
       {
-        const vector<Vector>& localSamples = boost::tuples::get<1>(itr->second);
+        const vector<Vector>& localSamples = std::get<1>(itr->second);
         for (int k = 0; k != numVectorFieldLists; ++k) {
           CHECK(k < localSamples.size());
           CHECK(k < vectorValues.size() and jlocal < vectorValues[k].size());
@@ -547,7 +550,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
       
       // Tensor fields.
       {
-        const vector<Tensor>& localSamples = boost::tuples::get<2>(itr->second);
+        const vector<Tensor>& localSamples = std::get<2>(itr->second);
         for (int k = 0; k != numTensorFieldLists; ++k) {
           CHECK(k < localSamples.size());
           CHECK(k < tensorValues.size() and jlocal < tensorValues[k].size());
@@ -557,7 +560,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
       
       // SymTensor fields.
       {
-        const vector<SymTensor>& localSamples = boost::tuples::get<3>(itr->second);
+        const vector<SymTensor>& localSamples = std::get<3>(itr->second);
         for (int k = 0; k != numSymTensorFieldLists; ++k) {
           CHECK(k < localSamples.size());
           CHECK(k < symTensorValues.size() and jlocal < symTensorValues[k].size());
@@ -574,7 +577,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
 
       // Scalar fields.
       {
-        const vector<Scalar>& localSamples = boost::tuples::get<0>(itr->second);
+        const vector<Scalar>& localSamples = std::get<0>(itr->second);
         for (int k = 0; k != numScalarFieldLists; ++k) {
           CHECK(k < localSamples.size());
           packElement(localSamples[k], sendValuesBuffers[jdomain]);
@@ -583,7 +586,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
 
       // Vector fields.
       {
-        const vector<Vector>& localSamples = boost::tuples::get<1>(itr->second);
+        const vector<Vector>& localSamples = std::get<1>(itr->second);
         for (int k = 0; k != numVectorFieldLists; ++k) {
           CHECK(k < localSamples.size());
           packElement(localSamples[k], sendValuesBuffers[jdomain]);
@@ -592,7 +595,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
 
       // Tensor fields.
       {
-        const vector<Tensor>& localSamples = boost::tuples::get<2>(itr->second);
+        const vector<Tensor>& localSamples = std::get<2>(itr->second);
         for (int k = 0; k != numTensorFieldLists; ++k) {
           CHECK(k < localSamples.size());
           packElement(localSamples[k], sendValuesBuffers[jdomain]);
@@ -601,7 +604,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
 
       // SymTensor fields.
       {
-        const vector<SymTensor>& localSamples = boost::tuples::get<3>(itr->second);
+        const vector<SymTensor>& localSamples = std::get<3>(itr->second);
         for (int k = 0; k != numSymTensorFieldLists; ++k) {
           CHECK(k < localSamples.size());
           packElement(localSamples[k], sendValuesBuffers[jdomain]);

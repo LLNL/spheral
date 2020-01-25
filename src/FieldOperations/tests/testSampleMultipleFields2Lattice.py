@@ -169,7 +169,7 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
         xbc = PeriodicBoundary1d(p0, p1)
         self.bcs = [xbc]
         try:
-            dbc = BoundingVolumeDistributedBoundary1d.instance()
+            dbc = TreeDistributedBoundary1d.instance()
             self.bcs.append(dbc)
         except:
             if mpi.procs > 1:
@@ -259,7 +259,7 @@ class TestSampleMultipleFields2Lattice2d(TestSampleMultipleFields2Lattice,
         ybc = PeriodicBoundary2d(py0, py1)
         self.bcs = [xbc, ybc]
         try:
-            dbc = BoundingVolumeDistributedBoundary2d.instance()
+            dbc = TreeDistributedBoundary2d.instance()
             self.bcs.append(dbc)
         except:
             if mpi.procs > 1:

@@ -40,13 +40,13 @@ public:
   virtual ~PlanarBoundary();
 
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void setGhostNodes(NodeList<Dimension>& nodeList);
-  virtual void updateGhostNodes(NodeList<Dimension>& nodeList);
+  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override;
+  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
 
   // Find the set of nodes in violation of this boundary in the given NodeList.
   // For planar boundaries this is any node that is "behind" the enter plane.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList);
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
 
   // Set the ghost nodes for a predefined set of control nodes.
   void setGhostNodes(NodeList<Dimension>& nodeList, 
@@ -76,7 +76,7 @@ public:
   //****************************************************************************
 
   // Override the clip method for clipping a box.
-  virtual void clip(Vector& xmin, Vector& xmax) const;
+  virtual void clip(Vector& xmin, Vector& xmax) const override;
 
   // Provide a method to identify tessellation faces on a plane.
   std::vector<unsigned> facesOnPlane(const Mesh<Dimension>& mesh,

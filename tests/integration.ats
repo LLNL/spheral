@@ -42,6 +42,7 @@ source("../src/Distributed/tests/distributedUnitTests.py")
 # Material unit tests.
 source("../src/Material/tests/testEOS.py")
 source("../src/SolidMaterial/tests/testTillotsonEquationOfState.py")
+source("Material/UnitConversion.py")
 
 # Test the sampling to lattice method.
 source("../src/FieldOperations/tests/testSampleMultipleFields2Lattice.py")
@@ -84,3 +85,6 @@ source("Damage/TensileRod/TensileRod-1d.py")
 # Surface detection test
 # Susending this until we fix the test for the up to date surface detection method.
 # source("Surfaces/Surface.py")
+
+# RK tests
+source("RK/RKInterpolation.py")

@@ -1,15 +1,12 @@
 set(Hydro_inst
     EntropyPolicy
-    GammaPolicy
     NonSymmetricSpecificThermalEnergyPolicy
     PositionPolicy
     PressurePolicy
-    SecondMomentHourglassControl
     SoundSpeedPolicy
     SpecificFromTotalThermalEnergyPolicy
     SpecificThermalEnergyPolicy
     SumVoronoiMassDensityPolicy
-    ThirdMomentHourglassControl
     VolumePolicy
     VoronoiMassDensityPolicy
    )
@@ -23,7 +20,6 @@ instantiate(Hydro_inst Hydro_sources)
 
 set(Hydro_headers
     EntropyPolicy.hh
-    GammaPolicy.hh
     HybridMassDensityPolicyInline.hh
     HydroFieldNames.hh
     HydroInline.hh
@@ -32,19 +28,13 @@ set(Hydro_headers
     NonSymmetricSpecificThermalEnergyPolicy.hh
     PositionPolicy.hh
     PressurePolicy.hh
-    SecondMomentHourglassControl.hh
-    SecondMomentHourglassControlInline.hh
     SoundSpeedPolicy.hh
     SpecificFromTotalThermalEnergyPolicy.hh
     SpecificThermalEnergyPolicy.hh
     SumVoronoiMassDensityPolicy.hh
-    ThirdMomentHourglassControl.hh
-    ThirdMomentHourglassControlInline.hh
     TotalHydro.hh
     TotalHydroInline.hh
     VolumePolicy.hh
-    VoronoiHourglassControl.hh
-    VoronoiHourglassControlInline.hh
     VoronoiMassDensityPolicy.hh
     entropyWeightingFunction.hh
     )

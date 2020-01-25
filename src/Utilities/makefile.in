@@ -28,12 +28,8 @@ SRCTARGETS = \
 	$(srcdir)/pointInPolyhedron.cc \
 	$(srcdir)/refinePolyhedron.cc \
 	$(srcdir)/coarsenBinnedValuesInst.cc \
+	$(srcdir)/clipFacetedVolume.cc \
 	$(TIMERTARGETS)
-
-ifeq ("yes", "@USE_R3D@")
-SRCTARGETS += \
-	$(srcdir)/r3d_utils.cc
-endif
 
 INSTSRCTARGETS = \
 	$(srcdir)/iterateIdealHInst.cc.py \

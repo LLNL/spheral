@@ -109,6 +109,14 @@ nodeLists() const {
   return mNodeLists;
 }
 
+template<typename Dimension>
+inline
+const NodePairList&
+ConnectivityMap<Dimension>::
+nodePairList() const {
+  return mNodePairList;
+}
+
 //------------------------------------------------------------------------------
 // Get the set of neighbors for the given node in the given NodeList.
 //------------------------------------------------------------------------------
@@ -218,6 +226,33 @@ numNeighborsForNode(const int nodeListID,
 }
 
 //------------------------------------------------------------------------------
+// Compute the number of overlap neighbors for the given node.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+ConnectivityMap<Dimension>::
+numOverlapNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
+                           const int nodeID) const {
+  const std::vector< std::vector<int> >& neighbors = overlapConnectivityForNode(nodeListPtr, nodeID);
+  int result = 0;
+  for (std::vector< std::vector<int> >::const_iterator itr = neighbors.begin();
+       itr != neighbors.end();
+       ++itr) result += itr->size();
+  return result;
+}
+
+template<typename Dimension>
+inline
+int
+ConnectivityMap<Dimension>::
+numOverlapNeighborsForNode(const int nodeListID,
+                           const int nodeID) const {
+  REQUIRE(nodeListID < mNodeLists.size());
+  return this->numOverlapNeighborsForNode(mNodeLists[nodeListID], nodeID);
+}
+
+//------------------------------------------------------------------------------
 // A single point to determine if in looping over nodes and neighbors the given
 // pair should be calculated or not when we are doing pairs simultaneously.
 //------------------------------------------------------------------------------
@@ -228,16 +263,16 @@ ConnectivityMap<Dimension>::
 calculatePairInteraction(const int nodeListi, const int i,
                          const int nodeListj, const int j,
                          const int firstGhostNodej) const {
-  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
-  if (domainDecompIndependent) {
-    return ((nodeListj > nodeListi) or
-            (nodeListj == nodeListi and 
-             (mKeys(nodeListj, j) == mKeys(nodeListi, i) ? j > 1 : mKeys(nodeListj, j) > mKeys(nodeListi, i))));
-  } else {
+  // const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+  // if (domainDecompIndependent) {
+  //   return ((nodeListj > nodeListi) or
+  //           (nodeListj == nodeListi and 
+  //            (mKeys(nodeListj, j) == mKeys(nodeListi, i) ? j > 1 : mKeys(nodeListj, j) > mKeys(nodeListi, i))));
+  // } else {
     return ((nodeListj > nodeListi) or
             (nodeListj == nodeListi and j > i) or
             (nodeListj < nodeListi and j >= firstGhostNodej));
-  }
+  // }
 }
 
 //------------------------------------------------------------------------------

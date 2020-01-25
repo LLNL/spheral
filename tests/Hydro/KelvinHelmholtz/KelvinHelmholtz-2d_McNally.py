@@ -55,7 +55,7 @@ commandLine(nx1 = 256,
             filter = 0.0,   # CRKSPH filtering
             order = 5,
             correctionOrder = LinearOrder,
-            volumeType = CRKSumVolume,
+            volumeType = RKSumVolume,
             linearConsistent = False,
             fcentroidal = 0.0,
             fcellPressure = 0.0,
@@ -376,8 +376,8 @@ elif psph:
                  XSPH = XSPH,
                  ASPH = asph)
 else:
-    hydro = SPH(W = WT,
-                Q = q,
+    hydro = SPH(dataBase = db,
+                W = WT,
                 cfl = cfl,
                 useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                 compatibleEnergyEvolution = compatibleEnergy,
@@ -483,12 +483,6 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-if useVoronoiOutput and crksph:
-    import SpheralVoronoiSiloDump
-    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
-else:
-    import SpheralPointmeshSiloDump
-    vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
                             initializeDerivatives = True,
                             statsStep = statsStep,
@@ -496,7 +490,6 @@ control = SpheralController(integrator, WT,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             redistributeStep = redistributeStep,
-                            vizMethod = vizMethod,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,

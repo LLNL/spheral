@@ -34,6 +34,8 @@ GradyKippTensorDamageBenzAsphaug is constructed with the following arguments:
         criticalDamageThreshold : (optional) defaults to 3.0
         minFlawsPerNode     : (optional) defaults to "1"
         minTotalFlaws       : (optional) defaults to "1"
+        mask                : (optional) a field of flags: a node with zero implies
+                              do not initialize flaws on that node.  default=None
 """
 
 expectedUsageStringO = """
@@ -57,15 +59,9 @@ GradyKippTensorDamageOwen is constructed with the following arguments:
         flawAlgorithm       : (optional) defaults to "FullSpectrumFlaws"
         criticalDamageThreshold : (optional) defaults to 3.0
         minFlawsPerNode     : (optional) defaults to "1"
+        mask                : (optional) a field of flags: a node with zero implies
+                              do not initialize flaws on that node.  default=None
 """
-
-#-------------------------------------------------------------------------------
-# The material library values are in CGS, so build a units object for 
-# conversions.
-#-------------------------------------------------------------------------------
-CGS = PhysicalConstants(0.01,   # unit length in m
-                        0.001,  # unit mass in kg
-                        1.0)    # unit time in sec
 
 #-------------------------------------------------------------------------------
 # GradyKippTensorDamageBenzAsphaug : generic definition
@@ -76,6 +72,12 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
 
     def __init__(self, *args_in, **kwargs):
         args = list(args_in)
+
+        # The material library values are in CGS, so build a units object for 
+        # conversions.
+        cgs = PhysicalConstants(0.01,   # unit length in m
+                                0.001,  # unit mass in kg
+                                1.0)    # unit time in sec
 
         # Arguments needed to build the damage model.
         damage_kwargs = {"nodeList"                 : None,
@@ -96,7 +98,8 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
                           "mWeibull"                 : None,
                           "nodeList"                 : None,
                           "minFlawsPerNode"          : 1,
-                          "minTotalFlaws"            : 1}
+                          "minTotalFlaws"            : 1,
+                          "mask"                     : None}
 
         # Extra arguments for our convenient constructor.
         convenient_kwargs = {"materialName"          : None,
@@ -150,7 +153,7 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
             # Any attempt to specify units?
             if "units" in kwargs:
                 units = kwargs["units"]
-                weibull_kwargs["kWeibull"] *= (CGS.unitLengthMeters/units.unitLengthMeters)**3
+                weibull_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
                 del kwargs["units"]
 
         # Process the other user arguments.
@@ -172,6 +175,10 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
         self.seed = weibull_kwargs["seed"]
         self.kWeibull = weibull_kwargs["kWeibull"]
         self.mWeibull = weibull_kwargs["mWeibull"]
+
+        # Check for any mask on generating Weibull flaws.
+        if weibull_kwargs["mask"] is None:
+            weibull_kwargs["mask"] = IntField%(dim)s("mask", damage_kwargs["nodeList"], 1)
 
         # Build the flaw distribution.
         damage_kwargs["flaws"] = weibullFlawDistributionBenzAsphaug%(dim)s(**weibull_kwargs)
@@ -214,6 +221,12 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
     def __init__(self, *args_in, **kwargs):
         args = list(args_in)
 
+        # The material library values are in CGS, so build a units object for 
+        # conversions.
+        cgs = PhysicalConstants(0.01,   # unit length in m
+                                0.001,  # unit mass in kg
+                                1.0)    # unit time in sec
+
         # Arguments needed to build the damage model.
         damage_kwargs = {"nodeList"                 : None,
                          "strainAlgorithm"          : BenzAsphaugStrain,
@@ -231,7 +244,8 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
                           "mWeibull"                 : None,
                           "nodeList"                 : None,
                           "minFlawsPerNode"          : 1,
-                          "volumeMultiplier"         : 1.0}
+                          "volumeMultiplier"         : 1.0,
+                          "mask"                     : None}
 
         # Extra arguments for our convenient constructor.
         convenient_kwargs = {"materialName"          : None,
@@ -283,7 +297,7 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
             # Any attempt to specify units?
             if "units" in kwargs:
                 units = kwargs["units"]
-                weibull_kwargs["kWeibull"] *= (CGS.unitLengthMeters/units.unitLengthMeters)**3
+                weibull_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
                 del kwargs["units"]
 
         # Process the other user arguments.
@@ -305,6 +319,10 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
         self.seed = weibull_kwargs["seed"]
         self.kWeibull = weibull_kwargs["kWeibull"]
         self.mWeibull = weibull_kwargs["mWeibull"]
+
+        # Check for any mask on generating Weibull flaws.
+        if weibull_kwargs["mask"] is None:
+            weibull_kwargs["mask"] = IntField%(dim)s("mask", damage_kwargs["nodeList"], 1)
 
         # Build the flaw distribution.
         damage_kwargs["flaws"] = weibullFlawDistributionOwen%(dim)s(**weibull_kwargs)

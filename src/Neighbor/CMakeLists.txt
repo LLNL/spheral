@@ -8,7 +8,9 @@ set(Neighbor_inst
    )
 
 
-set(Neighbor_sources )
+set(Neighbor_sources
+    NodePairList.cc
+   )
 
 instantiate(Neighbor_inst Neighbor_sources)
 
@@ -24,6 +26,7 @@ set(Neighbor_headers
     NeighborInline.hh
     NestedGridNeighbor.hh
     NestedGridNeighborInline.hh
+    NodePairList.hh
     TreeNeighbor.hh
     )
 

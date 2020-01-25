@@ -6,11 +6,11 @@
 #include "FileIO/FileIO.hh"
 #include "CRKSPHHydroBase.hh"
 #include "CRKSPHUtilities.hh"
-#include "computeVoronoiVolume.hh"
+#include "RK/computeVoronoiVolume.hh"
 #include "computeHullVolumes.hh"
 #include "computeCRKSPHSumVolume.hh"
 #include "computeHVolumes.hh"
-#include "flagSurfaceNeighbors.hh"
+#include "editMultimaterialSurfaceTopology.hh"
 #include "SurfaceNodeCoupling.hh"
 #include "SPH/computeSPHSumMassDensity.hh"
 #include "SPH/correctSPHSumMassDensity.hh"
@@ -95,10 +95,11 @@ CRKSPHVariant(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
               const bool XSPH,
               const MassDensityType densityUpdate,
               const HEvolutionType HUpdate,
-              const CRKOrder correctionOrder,
-              const CRKVolumeType volumeType,
+              const RKOrder correctionOrder,
+              const RKVolumeType volumeType,
               const double epsTensile,
-              const double nTensile):
+              const double nTensile,
+              const bool limitMultimaterialTopology):
   CRKSPHHydroBase<Dimension>(smoothingScaleMethod,
                              Q,
                              W,
@@ -114,7 +115,8 @@ CRKSPHVariant(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                              correctionOrder,
                              volumeType,
                              epsTensile,
-                             nTensile) {
+                             nTensile,
+                             limitMultimaterialTopology) {
 }
 
 //------------------------------------------------------------------------------
@@ -144,7 +146,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   this->mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
   this->mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
   this->mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
-  this->mMassDensityGradient = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massDensityGradient);
   this->mViscousWork = dataBase.newFluidFieldList(0.0, HydroFieldNames::viscousWork);
   this->mWeightedNeighborSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::weightedNeighborSum);
   this->mMassSecondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
@@ -156,7 +157,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   this->mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H);
   this->mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   this->mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
-  this->mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
+  this->mPairAccelerations.clear();
   this->mDeltaCentroid = dataBase.newFluidFieldList(Vector::zero, "delta centroid");
 
   this->mA = dataBase.newFluidFieldList(0.0,                        HydroFieldNames::A_CRKSPH);
@@ -169,7 +170,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   this->mGradm0 = dataBase.newFluidFieldList(Vector::zero,          HydroFieldNames::gradM0_CRKSPH);
   this->mGradm1 = dataBase.newFluidFieldList(Tensor::zero,          HydroFieldNames::gradM1_CRKSPH);
   this->mGradm2 = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradM2_CRKSPH);
-  if (this->mCorrectionOrder == CRKOrder::QuadraticOrder) {
+  if (this->mCorrectionOrder == RKOrder::QuadraticOrder) {
     this->mC = dataBase.newFluidFieldList(Tensor::zero,                HydroFieldNames::C_CRKSPH);
     this->mGradC = dataBase.newFluidFieldList(ThirdRankTensor::zero,   HydroFieldNames::gradC_CRKSPH);
     this->mM3 = dataBase.newFluidFieldList(ThirdRankTensor::zero,      HydroFieldNames::m3_CRKSPH);
@@ -180,7 +181,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // We need volumes in order to prepare the surface detection.
   this->mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
-  this->mVoidPoint = dataBase.newFluidFieldList(0, HydroFieldNames::voidPoint);
   this->mEtaVoidPoints = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::etaVoidPoints);
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -190,25 +190,25 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
 
   // Compute the volumes for real.
-  if (this->mVolumeType == CRKVolumeType::CRKMassOverDensity) {
+  if (this->mVolumeType == RKVolumeType::CRKMassOverDensity) {
     this->mVolume.assignFields(mass/massDensity);
-  } else if (this->mVolumeType == CRKVolumeType::CRKSumVolume) {
+  } else if (this->mVolumeType == RKVolumeType::CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, this->mVolume);
-  } else if (this->mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+  } else if (this->mVolumeType == RKVolumeType::CRKVoronoiVolume) {
     this->mVolume.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
+    FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
     const FieldList<Dimension, typename Dimension::SymTensor> damage = dataBase.solidEffectiveDamage();
-    computeVoronoiVolume(position, H, massDensity, this->mMassDensityGradient, connectivityMap, damage,
+    computeVoronoiVolume(position, H, connectivityMap, damage,
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),      // no holes
                          vector<Boundary<Dimension>*>(),                            // no boundaries
                          FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
-                         this->mVoidPoint,                                                // void point flags
                          this->mSurfacePoint, this->mVolume, this->mDeltaCentroid, this->mEtaVoidPoints,    // return values
-                         cells);                                                    // no return cells
-  } else if (this->mVolumeType == CRKVolumeType::CRKHullVolume) {
+                         cells, cellFaceFlags);                                     // no return cells
+  } else if (this->mVolumeType == RKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, this->mVolume);
-  } else if (this->mVolumeType == CRKVolumeType::HVolume) {
+  } else if (this->mVolumeType == RKVolumeType::HVolume) {
     const Scalar nPerh = this->mVolume.nodeListPtrs()[0]->nodesPerSmoothingScale();
     computeHVolumes(nPerh, H, this->mVolume);
   } else {
@@ -218,7 +218,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
        boundItr != this->boundaryEnd();
        ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(this->mVolume);
-    if (this->mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    if (this->mVolumeType == RKVolumeType::CRKVoronoiVolume) {
       (*boundItr)->applyFieldListGhostBoundary(this->mVolume);
       (*boundItr)->applyFieldListGhostBoundary(this->mSurfacePoint);
       (*boundItr)->applyFieldListGhostBoundary(this->mEtaVoidPoints);
@@ -227,7 +227,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
-  // if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+  // if (mVolumeType == RKVolumeType::CRKVoronoiVolume) {
   //   // flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
   //   // mVolume = computeShepardsInterpolation(mVolume,
   //   //                                        connectivityMap,
@@ -246,7 +246,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Compute the corrections.
   const NodeCoupling couple;
   computeCRKSPHMoments(connectivityMap, W, this->mVolume, position, H, this->correctionOrder(), couple, this->mM0, this->mM1, this->mM2, this->mM3, this->mM4, this->mGradm0, this->mGradm1, this->mGradm2, this->mGradm3, this->mGradm4);
-  computeCRKSPHCorrections(this->mM0, this->mM1, this->mM2, this->mM3, this->mM4, this->mGradm0, this->mGradm1, this->mGradm2, this->mGradm3, this->mGradm4, H, this->correctionOrder(), this->mA, this->mB, this->mC, this->mGradA, this->mGradB, this->mGradC);
+  computeCRKSPHCorrections(this->mM0, this->mM1, this->mM2, this->mM3, this->mM4, this->mGradm0, this->mGradm1, this->mGradm2, this->mGradm3, this->mGradm4, H, this->surfacePoint(), this->correctionOrder(), this->mA, this->mB, this->mC, this->mGradA, this->mGradB, this->mGradC);
 
   // This breaks domain independence, so we'll try being inconsistent on the first step.
   // // We need to initialize the velocity gradient if we're using the CRKSPH artificial viscosity.
@@ -300,7 +300,7 @@ initialize(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
   const NodeCoupling couple;
   computeCRKSPHMoments(connectivityMap, W, vol, position, H, this->correctionOrder(), couple, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
-  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, this->correctionOrder(), A, B, C, gradA, gradB, gradC);
+  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, surfacePoint, this->correctionOrder(), A, B, C, gradA, gradB, gradC);
 
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -372,7 +372,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
   const auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
-  const auto voidPoint = state.fields(HydroFieldNames::voidPoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -382,13 +381,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
-  CHECK(B.size() == numNodeLists or order == CRKOrder::ZerothOrder);
-  CHECK(C.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(B.size() == numNodeLists or order == RKOrder::ZerothOrder);
+  CHECK(C.size() == numNodeLists or order != RKOrder::QuadraticOrder);
   CHECK(gradA.size() == numNodeLists);
-  CHECK(gradB.size() == numNodeLists or order == CRKOrder::ZerothOrder);
-  CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(gradB.size() == numNodeLists or order == RKOrder::ZerothOrder);
+  CHECK(gradC.size() == numNodeLists or order != RKOrder::QuadraticOrder);
   CHECK(surfacePoint.size() == numNodeLists);
-  CHECK(voidPoint.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto DxDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
@@ -406,7 +404,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   auto massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
-  auto gradRho = derivatives.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -422,7 +419,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
-  CHECK(gradRho.size() == numNodeLists);
 
   // Size up the pair-wise accelerations before we start.
   if (this->mCompatibleEnergyEvolution) {
@@ -485,11 +481,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto ci = soundSpeed(nodeListi, i);
       Ai = A(nodeListi, i);
       gradAi = gradA(nodeListi, i);
-      if (order != CRKOrder::ZerothOrder) {
+      if (order != RKOrder::ZerothOrder) {
         Bi = B(nodeListi, i);
         gradBi = gradB(nodeListi, i);
       }
-      if (order == CRKOrder::QuadraticOrder) {
+      if (order == RKOrder::QuadraticOrder) {
         Ci = C(nodeListi, i);
         gradCi = gradC(nodeListi, i);
       }
@@ -516,7 +512,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
-      auto& gradRhoi = gradRho(nodeListi, i);
       auto& worki = workFieldi(i);
 
       // Get the connectivity info for this node.
@@ -555,11 +550,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const auto  cj = soundSpeed(nodeListj, j);
               Aj = A(nodeListj, j);
               gradAj = gradA(nodeListj, j);
-              if (order != CRKOrder::ZerothOrder) {
+              if (order != RKOrder::ZerothOrder) {
                 Bj = B(nodeListj, j);
                 gradBj = gradB(nodeListj, j);
               }
-              if (order == CRKOrder::QuadraticOrder) {
+              if (order == RKOrder::QuadraticOrder) {
                 Cj = C(nodeListj, j);
                 gradCj = gradC(nodeListj, j);
               }
@@ -584,7 +579,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               auto& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
               auto& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
               auto& massSecondMomentj = massSecondMoment(nodeListj, j);
-              auto& gradRhoj = gradRho(nodeListj, j);
 
               // Find the effective weights of i->j and j->i.
               // const auto wi = 2.0*weighti*weightj/(weighti + weightj);
@@ -601,23 +595,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const auto vij = vi - vj;
 
               // Symmetrized kernel weight and gradient.
-              CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, this->mCorrectionMin, this->mCorrectionMax);
-              CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, this->mCorrectionMin, this->mCorrectionMax);
+              CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi);
+              CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj);
               deltagrad = gradWj - gradWi;
               const auto gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const auto gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
-              if (voidPoint(nodeListi, i) == 0 and voidPoint(nodeListj, j) == 0) {
-                const auto fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
-                const auto rij2 = rij.magnitude2();
-                const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
-                weightedNeighborSumi +=     fweightij*std::abs(gWi);
-                weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
-                massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;
-                massSecondMomentj += 1.0/fweightij*gradWSPHj.magnitude2()*thpt;
-              }
+              const auto fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
+              const auto rij2 = rij.magnitude2();
+              const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
+              weightedNeighborSumi +=     fweightij*std::abs(gWi);
+              weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
+              massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;
+              massSecondMomentj += 1.0/fweightij*gradWSPHj.magnitude2()*thpt;
 
               // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
               const auto QPiij = Q.Piij(nodeListi, i, nodeListj, j,
@@ -646,9 +638,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 localDvDxj += wij*vij.dyad(gradWi);
               }
 
-              // Mass density gradient.
-              gradRhoi += wij*(rhoj - rhoi)*gradWj;
-              gradRhoj += wij*(rhoi - rhoj)*gradWi;
+              // // Mass density gradient.
+              // gradRhoi += wij*(rhoj - rhoi)*gradWj;
+              // gradRhoj += wij*(rhoi - rhoj)*gradWi;
 
               // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
               // Momentum

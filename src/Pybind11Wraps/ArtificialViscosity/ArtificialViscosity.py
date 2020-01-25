@@ -22,7 +22,7 @@ class ArtificialViscosity:
     def pyinit(self,
                Clinear = "const Scalar",
                Cquadratic = "const Scalar",
-               QcorrectionOrder = ("const CRKOrder", "CRKOrder::LinearOrder")):
+               QcorrectionOrder = ("const RKOrder", "RKOrder::LinearOrder")):
         "ArtificialViscosity constructor"
 
     #...........................................................................
@@ -76,7 +76,7 @@ class ArtificialViscosity:
                        doc="The linear coefficient")
     Cq = PYB11property("Scalar", "Cq", "Cq",
                        doc="The quadratic coefficient")
-    QcorrectionOrder = PYB11property("CRKOrder", "QcorrectionOrder", "QcorrectionOrder",
+    QcorrectionOrder = PYB11property("RKOrder", "QcorrectionOrder", "QcorrectionOrder",
                                      doc="The RK correction order used for computing gradients in the viscosity")
     balsaraShearCorrection = PYB11property("bool", "balsaraShearCorrection", "balsaraShearCorrection",
                                            doc="Toggle whether to use the Balsara suppression for shear flows")

@@ -178,28 +178,30 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 #pragma omp parallel for
     for (int i = 0; i < ni; ++i) {
       const auto& flawsi = mFlaws(i);
-      CHECK(flawsi.size() > 0);
+      if (flawsi.size() > 0) {
 
-      switch(mEffectiveFlawAlgorithm) {
+        switch(mEffectiveFlawAlgorithm) {
 
-      case EffectiveFlawAlgorithm::MinFlaw:
-        effectiveFlaws(i) = *min_element(flawsi.begin(), flawsi.end());
-        break;
+        case EffectiveFlawAlgorithm::MinFlaw:
+          effectiveFlaws(i) = *min_element(flawsi.begin(), flawsi.end());
+          break;
 
-      case EffectiveFlawAlgorithm::MaxFlaw:
-        effectiveFlaws(i) = *max_element(flawsi.begin(), flawsi.end());
-        break;
+        case EffectiveFlawAlgorithm::MaxFlaw:
+          effectiveFlaws(i) = *max_element(flawsi.begin(), flawsi.end());
+          break;
 
-      case EffectiveFlawAlgorithm::InverseSumFlaws:
-      case EffectiveFlawAlgorithm::SampledFlaws:
-        effectiveFlaws(i) = 0.0;
-        for (auto itr = flawsi.begin(); itr != flawsi.end(); ++itr) effectiveFlaws(i) += 1.0/(*itr);
-        effectiveFlaws(i) = flawsi.size()/effectiveFlaws(i);
-        break;
+        case EffectiveFlawAlgorithm::InverseSumFlaws:
+        case EffectiveFlawAlgorithm::SampledFlaws:
+          effectiveFlaws(i) = 0.0;
+          for (auto itr = flawsi.begin(); itr != flawsi.end(); ++itr) effectiveFlaws(i) += 1.0/(*itr);
+          effectiveFlaws(i) = flawsi.size()/effectiveFlaws(i);
+          break;
 
-      default:
-        CHECK(false);
-        break;
+        default:
+          CHECK(false);
+          break;
+
+        }
 
       }
     }

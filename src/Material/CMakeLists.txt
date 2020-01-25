@@ -1,8 +1,5 @@
 set(Material_inst
     EquationOfState
-    GammaLawGas
-    IsothermalEquationOfState
-    PolytropicEquationOfState
    )
 
 
@@ -15,13 +12,8 @@ instantiate(Material_inst Material_sources)
 set(Material_headers
     EquationOfState.hh
     EquationOfStateInline.hh
-    GammaLawGas.hh
-    IsothermalEquationOfState.hh
-    IsothermalEquationOfStateInline.hh
     PhysicalConstants.hh
     PhysicalConstantsInline.hh
-    PolytropicEquationOfState.hh
-    PolytropicEquationOfStateInline.hh
     )
 
 blt_add_library(NAME        Spheral_Material

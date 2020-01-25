@@ -1,9 +1,9 @@
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 1d --testCase linear", label="CRKSPH linear interpolation test -- 1D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 2d --testCase linear", label="CRKSPH linear interpolation test -- 2D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 3d --testCase linear", label="CRKSPH linear interpolation test -- 3D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 1d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 1D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 2d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 2D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 3d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 3D (serial)")
+#ATS:test(SELF, "--graphics False --testSPH False --nx1 10 --nx2 100 --testDim 1d --testCase linear", label="RK linear interpolation test -- 1D (serial)")
+#ATS:test(SELF, "--graphics False --testSPH False --nx1 10 --nx2 20  --testDim 2d --testCase linear", label="RK linear interpolation test -- 2D (serial)")
+#ATS:test(SELF, "--graphics False --testSPH False --nx1 5  --nx2 10  --testDim 3d --testCase linear", label="RK linear interpolation test -- 3D (serial)")
+#ATS:test(SELF, "--graphics False --testSPH False --nx1 10 --nx2 100 --testDim 1d --testCase quadratic --correctionOrder QuadraticOrder", label="RK quadratic interpolation test -- 1D (serial)")
+#ATS:test(SELF, "--graphics False --testSPH False --nx1 10 --nx2 20  --testDim 2d --testCase quadratic --correctionOrder QuadraticOrder", label="RK quadratic interpolation test -- 2D (serial)")
+#ATS:test(SELF, "--graphics False --testSPH False --nx1 5  --nx2 5   --testDim 3d --testCase quadratic --correctionOrder QuadraticOrder", label="RK quadratic interpolation test -- 3D (serial)")
 #-------------------------------------------------------------------------------
 # A set of tests to compare how different meshless methods interpolate fields.
 #-------------------------------------------------------------------------------
@@ -26,9 +26,9 @@ commandLine(
     x0 = 0.0,
     x1 = 0.5,
     x2 = 1.0,
-    nPerh = 2.01,
+    nPerh = 4.01,
     hmin = 0.0001, 
-    hmax = 10.0,
+    hmax = 1000.0,
 
     # What order of reproducing kernel should we use (0,1,2)?
     correctionOrder = LinearOrder,
@@ -40,6 +40,9 @@ commandLine(
     # What test problem are we doing?
     testDim = "1d",
     testCase = "linear",
+
+    # Should we compare with SPH?
+    testSPH = True,
 
     # The fields we're going to interpolate.
     # Linear coefficients: y = y0 + m0*x
@@ -65,7 +68,6 @@ commandLine(
     graphics = True,
     plotKernels = False,
     outputFile = "None",
-    plotSPH = True,
 )
 
 assert testCase in ("linear", "quadratic", "step")
@@ -99,7 +101,7 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(WendlandC4Kernel(), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -110,22 +112,27 @@ nodes1 = makeFluidNodeList("nodes1", eos,
                            hmin = hmin,
                            hmax = hmax,
                            nPerh = nPerh)
-output("nodes1")
-output("nodes1.hmin")
-output("nodes1.hmax")
-output("nodes1.nodesPerSmoothingScale")
+nodes2 = makeFluidNodeList("nodes2", eos,
+                           hmin = hmin,
+                           hmax = hmax,
+                           nPerh = nPerh)
+nodeSet = [nodes1, nodes2]
+for nodes in nodeSet:
+    output("nodes")
+    output("nodes.hmin")
+    output("nodes.hmax")
+    output("nodes.nodesPerSmoothingScale")
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
 if testDim == "1d":
     from DistributeNodes import distributeNodesInRange1d
-    distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1)),
-                                        (nx2, rho2, (x1, x2))])], nPerh = nPerh)
+    distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1))])], nPerh = nPerh)
+    distributeNodesInRange1d([(nodes2, [(nx2, rho2, (x1, x2))])], nPerh = nPerh)
 elif testDim == "2d":
     from DistributeNodes import distributeNodes2d
     from GenerateNodeDistribution2d import GenerateNodeDistribution2d
-    from CompositeNodeDistribution import CompositeNodeDistribution
     gen1 = GenerateNodeDistribution2d(nx1, nx1 + nx2, rho1,
                                       distributionType = "lattice",
                                       xmin = (x0, x0),
@@ -138,13 +145,12 @@ elif testDim == "2d":
                                       xmax = (x2, x2),
                                       nNodePerh = nPerh,
                                       SPH = True)
-    gen = CompositeNodeDistribution(gen1, gen2)
-    distributeNodes2d((nodes1, gen))
+    distributeNodes2d((nodes1, gen1),
+                      (nodes2, gen2))
 
 elif testDim == "3d":
     from DistributeNodes import distributeNodes3d
     from GenerateNodeDistribution3d import GenerateNodeDistribution3d
-    from CompositeNodeDistribution import CompositeNodeDistribution
     gen1 = GenerateNodeDistribution3d(nx1, nx1 + nx2, nx1 + nx2, rho1,
                                       distributionType = "lattice",
                                       xmin = (x0, x0, x0),
@@ -157,20 +163,21 @@ elif testDim == "3d":
                                       xmax = (x2, x2, x2),
                                       nNodePerh = nPerh,
                                       SPH = True)
-    gen = CompositeNodeDistribution(gen1, gen2)
-    distributeNodes3d((nodes1, gen))
+    distributeNodes3d((nodes1, gen1),
+                      (nodes2, gen2))
 
 else:
     raise ValueError, "Only tests cases for 1d,2d and 3d." 
 
-output("nodes1.numNodes")
+for nodes in nodeSet:
+    output("nodes.name, nodes.numNodes")
 
 # Set node properties.
-eps = nodes1.specificThermalEnergy()
-for i in xrange(nx1):
-    eps[i] = eps1
-for i in xrange(nx2):
-    eps[i + nx1] = eps2
+for nodes, eps0 in ((nodes1, eps1),
+                    (nodes2, eps2)):
+    eps = nodes.specificThermalEnergy()
+    for i in xrange(nodes.numInternalNodes):
+        eps[i] = eps0
 
 #-------------------------------------------------------------------------------
 # Optionally randomly jitter the node positions.
@@ -179,28 +186,27 @@ dx1 = (x1 - x0)/nx1
 dx2 = (x2 - x1)/nx2
 dy = (x2 - x0)/(nx1 + nx2)
 dz = (x2 - x0)/(nx1 + nx2)
-pos = nodes1.positions()
-for i in xrange(nodes1.numInternalNodes):
-    if pos[i] < x1:
-        dx = dx1
-    else:
-        dx = dx2
-    if testDim == "1d":
-        pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
-    elif testDim == "2d":
-        pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
-        pos[i].y += ranfrac * dy * rangen.uniform(-1.0, 1.0)
-    elif testDim == "3d":
-        pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
-        pos[i].y += ranfrac * dy * rangen.uniform(-1.0, 1.0)
-        pos[i].z += ranfrac * dz * rangen.uniform(-1.0, 1.0)
+for nodes, dx in ((nodes1, dx1),
+                  (nodes2, dx2)):
+    pos = nodes.positions()
+    for i in xrange(nodes.numInternalNodes):
+        if testDim == "1d":
+            pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
+        elif testDim == "2d":
+            pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
+            pos[i].y += ranfrac * dy * rangen.uniform(-1.0, 1.0)
+        elif testDim == "3d":
+            pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
+            pos[i].y += ranfrac * dy * rangen.uniform(-1.0, 1.0)
+            pos[i].z += ranfrac * dz * rangen.uniform(-1.0, 1.0)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
 db = DataBase()
+for nodes in nodeSet:
+    db.appendNodeList(nodes)
 output("db")
-output("db.appendNodeList(nodes1)")
 output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
@@ -220,322 +226,297 @@ if iterateH:
 #-------------------------------------------------------------------------------
 # Initialize our field.
 #-------------------------------------------------------------------------------
-f = ScalarField("test field", nodes1)
-for i in xrange(nodes1.numInternalNodes):
-    x = nodes1.positions()[i].x
-    if testCase == "linear":
-        f[i] = y0 + m0*x
-    elif testCase == "quadratic":
-        f[i] = y2 + m2*x*x
-    elif testCase == "step":
-        if x < x1:
-            f[i] = y0
-        else:
-            f[i] = 2*y0
+f = db.newFluidScalarFieldList(name="test field")
+pos = db.fluidPosition
+for iNodeList, nodes in enumerate(db.nodeLists()):
+    for i in xrange(nodes.numInternalNodes):
+        x = pos(iNodeList, i).x
+        if testCase == "linear":
+            f[iNodeList][i] = y0 + m0*x
+        elif testCase == "quadratic":
+            f[iNodeList][i] = y2 + m2*x*x
+        elif testCase == "step":
+            if x < x1:
+                f[iNodeList][i] = y0
+            else:
+                f[iNodeList][i] = 2*y0
 
 #-------------------------------------------------------------------------------
 # Prepare variables to accumulate the test values.
 #-------------------------------------------------------------------------------
-fSPH = ScalarField("SPH interpolated values", nodes1)
-dfSPH = VectorField("SPH derivative values", nodes1)
+fSPH = db.newFluidScalarFieldList(name="SPH interpolated values")
+dfSPH = db.newFluidVectorFieldList(name="SPH derivative values")
 
-A_fl = db.newFluidScalarFieldList(0.0, "A")
-B_fl = db.newFluidVectorFieldList(Vector.zero, "B")
-C_fl = db.newFluidTensorFieldList(Tensor.zero, "C")
-gradA_fl = db.newFluidVectorFieldList(Vector.zero, "gradA")
-gradB_fl = db.newFluidTensorFieldList(Tensor.zero, "gradB")
-gradC_fl = db.newFluidThirdRankTensorFieldList(ThirdRankTensor.zero, "gradB")
+A = db.newFluidScalarFieldList(name="A")
+B = db.newFluidVectorFieldList(name="B")
+C = db.newFluidTensorFieldList(name="C")
+gradA = db.newFluidVectorFieldList(name="gradA")
+gradB = db.newFluidTensorFieldList(name="gradB")
+gradC = db.newFluidThirdRankTensorFieldList(name="gradB")
 
-m0_fl = db.newFluidScalarFieldList(0.0, "m0")
-m1_fl = db.newFluidVectorFieldList(Vector.zero, "m1")
-m2_fl = db.newFluidSymTensorFieldList(SymTensor.zero, "m2")
-m3_fl = db.newFluidThirdRankTensorFieldList(ThirdRankTensor.zero, "m3")
-m4_fl = db.newFluidFourthRankTensorFieldList(FourthRankTensor.zero, "m4")
-gradm0_fl = db.newFluidVectorFieldList(Vector.zero, "grad m0")
-gradm1_fl = db.newFluidTensorFieldList(Tensor.zero, "grad m1")
-gradm2_fl = db.newFluidThirdRankTensorFieldList(ThirdRankTensor.zero, "grad m2")
-gradm3_fl = db.newFluidFourthRankTensorFieldList(FourthRankTensor.zero, "grad m3")
-gradm4_fl = db.newFluidFifthRankTensorFieldList(FifthRankTensor.zero, "grad m4")
+M0 = db.newFluidScalarFieldList(name="M0")
+M1 = db.newFluidVectorFieldList(name="M1")
+M2 = db.newFluidSymTensorFieldList(name="M2")
+M3 = db.newFluidThirdRankTensorFieldList(name="M3")
+M4 = db.newFluidFourthRankTensorFieldList(name="M4")
+gradM0 = db.newFluidVectorFieldList(name="grad M0")
+gradM1 = db.newFluidTensorFieldList(name="grad M1")
+gradM2 = db.newFluidThirdRankTensorFieldList(name="grad M2")
+gradM3 = db.newFluidFourthRankTensorFieldList(name="grad M3")
+gradM4 = db.newFluidFifthRankTensorFieldList(name="grad M4")
+
+surfacePoint = db.newFluidIntFieldList(name="surface point")
 
 db.updateConnectivityMap(True)
 cm = db.connectivityMap()
-position_fl = db.fluidPosition
-weight_fl = db.fluidMass
-H_fl = db.fluidHfield
+position = db.fluidPosition
+weight = db.fluidMass
+weight /= db.fluidMassDensity
+H = db.fluidHfield
 
 # Compute the volumes to use as weighting.
-polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
-#weight_fl = db.newFluidScalarFieldList(1.0, "volume")
-#computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
-computeCRKSPHMoments(cm, WT, weight_fl, position_fl, H_fl, correctionOrder, NodeCoupling(),
-                     m0_fl, m1_fl, m2_fl, m3_fl, m4_fl, gradm0_fl, gradm1_fl, gradm2_fl, gradm3_fl, gradm4_fl)
-computeCRKSPHCorrections(m0_fl, m1_fl, m2_fl, m3_fl, m4_fl, gradm0_fl, gradm1_fl, gradm2_fl, gradm3_fl, gradm4_fl, H_fl,
-                         correctionOrder,
-                         A_fl, B_fl, C_fl, gradA_fl, gradB_fl, gradC_fl)
+#polyvol = db.newFluidFacetedVolumeFieldList(name=FacetedVolume(), "polyvols")
+#weight = db.newFluidScalarFieldList(name=1.0, "volume")
+#computeHullVolumes(cm, position, polyvol, weight)
 
-# Extract the field state for the following calculations.
-positions = position_fl[0]
-weight = weight_fl[0]
-H = H_fl[0]
-A = A_fl[0]
-B = B_fl[0]
-C = C_fl[0]
-gradA = gradA_fl[0]
-gradB = gradB_fl[0]
-gradC = gradC_fl[0]
+computeCRKSPHMoments(cm, WT, weight, position, H, correctionOrder, NodeCoupling(),
+                     M0, M1, M2, M3, M4, gradM0, gradM1, gradM2, gradM3, gradM4)
+computeCRKSPHCorrections(M0, M1, M2, M3, M4, gradM0, gradM1, gradM2, gradM3, gradM4, H,
+                         surfacePoint,
+                         correctionOrder,
+                         A, B, C, gradA, gradB, gradC)
 
 #-------------------------------------------------------------------------------
 # Measure the interpolated values and gradients.
 #-------------------------------------------------------------------------------
-for i in xrange(nodes1.numInternalNodes):
-    ri = positions[i]
-    Hi = H[i]
-    Hdeti = H[i].Determinant()
-    wi = weight[i]
-    fi = f[i]
+if testSPH:
+    for iNodeList, nodes in enumerate(db.nodeLists()):
+        for i in xrange(nodes.numInternalNodes):
+            ri = position(iNodeList, i)
+            Hi = H(iNodeList, i)
+            Hdeti = Hi.Determinant()
+            wi = weight(iNodeList, i)
+            fi = f(iNodeList, i)
 
-    # Self contribution.
-    W0 = WT.kernelValue(0.0, Hdeti)
-    fSPH[i] = wi*W0 * fi
+            # Self contribution.
+            W0 = WT.kernelValue(0.0, Hdeti)
+            fSPH[iNodeList][i] = wi*W0 * fi
 
-    # Go over them neighbors.
-    neighbors = cm.connectivityForNode(nodes1, i)
-    assert len(neighbors) == 1
-    for j in neighbors[0]:
-        rj = positions[j]
-        Hj = H[j]
-        Hdetj = H[j].Determinant()
-        wj = weight[j]
-        fj = f[j]
+            # Go over them neighbors.
+            allneighbors = cm.connectivityForNode(iNodeList, i)
+            for jNodeList, neighbors in enumerate(allneighbors):
+                for j in neighbors:
+                    rj = position(jNodeList, j)
+                    Hj = H(jNodeList, j)
+                    Hdetj = Hj.Determinant()
+                    wj = weight(jNodeList, j)
+                    fj = f(jNodeList, j)
 
-        # The standard SPH kernel and it's gradient.
-        rij = ri - rj
-        etai = Hi*rij
-        etaj = Hj*rij
-        Wj = WT.kernelValue(etaj.magnitude(), Hdetj)
-        gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
+                    # The standard SPH kernel and it's gradient.
+                    rij = ri - rj
+                    etai = Hi*rij
+                    etaj = Hj*rij
+                    Wj = WT.kernelValue(etaj.magnitude(), Hdetj)
+                    gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
 
-        # Increment our interpolated values.
-        fSPH[i] += fj * wj*Wj
+                    # Increment our interpolated values.
+                    fSPH[iNodeList][i] += fj * wj*Wj
 
-        # Increment the derivatives.
-        dfSPH[i] += fj * wj*gradWj
+                    # Increment the derivatives.
+                    dfSPH[iNodeList][i] += fj * wj*gradWj
 
 #-------------------------------------------------------------------------------
 # Check the C++ interpolation and gradient methods.
 #-------------------------------------------------------------------------------
-f_fl = ScalarFieldList()
-f_fl.appendField(f)
-fCRKSPH_fl = interpolateCRKSPH(f_fl, position_fl, weight_fl, H_fl, A_fl, B_fl, C_fl,
-                               cm, correctionOrder, WT)
-dfCRKSPH_fl = gradientCRKSPH(f_fl, position_fl, weight_fl, H_fl,
-                             A_fl, B_fl, C_fl, gradA_fl, gradB_fl, gradC_fl,
-                             cm, correctionOrder, WT)
-fCRKSPH = fCRKSPH_fl[0]
-dfCRKSPH = dfCRKSPH_fl[0]
+fRK = interpolateCRKSPH(f, position, weight, H, A, B, C,
+                            cm, correctionOrder, WT)
+dfRK = gradientCRKSPH(f, position, weight, H,
+                          A, B, C, gradA, gradB, gradC,
+                          cm, correctionOrder, WT)
 
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
-xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
-yans = ScalarField("interpolation answer", nodes1)
-dyans = ScalarField("derivative answer", nodes1)
-for i in xrange(nodes1.numInternalNodes):
-    if testCase == "linear":
-        yans[i] = y0 + m0*xans[i]
-        dyans[i] = m0
-    elif testCase == "quadratic":
-        yans[i] = y2 + m2*xans[i]*xans[i]
-        dyans[i] = 2*m2*xans[i]
-    elif testCase == "step":
-        if i < nx1:
-            yans[i] = y0
-        else:
-            yans[i] = 2*y0
-        dyans[i] = 0.0
+yans = db.newFluidScalarFieldList(name="interpolation answer")
+dyans = db.newFluidScalarFieldList(name="derivative answer")
+for iNodeList in xrange(db.numNodeLists):
+    n = yans[iNodeList].numInternalElements
+    for i in xrange(n):
+        xi = position(iNodeList, i).x
+        if testCase == "linear":
+            yans[iNodeList][i] = y0 + m0*xi
+            dyans[iNodeList][i] = m0
+        elif testCase == "quadratic":
+            yans[iNodeList][i] = y2 + m2*xi*xi
+            dyans[iNodeList][i] = 2*m2*xi
+        elif testCase == "step":
+            if iNodeList == 0:
+                yans[iNodeList][i] = y0
+            else:
+                yans[iNodeList][i] = 2*y0
+            dyans[iNodeList][i] = 0.0
 
 #-------------------------------------------------------------------------------
 # Check our answers accuracy.
 #-------------------------------------------------------------------------------
-errySPH =   ScalarField("SPH interpolation error", nodes1)
-erryCRKSPH =  ScalarField("CRKSPH interpolation error", nodes1)
-errdySPH =  ScalarField("SPH derivative error", nodes1)
-errdyCRKSPH = ScalarField("CRKSPH derivative error", nodes1)
-for i in xrange(nodes1.numInternalNodes):
-    errySPH[i] =   fSPH[i] - yans[i]
-    erryCRKSPH[i] =  fCRKSPH[i] - yans[i]
-    errdySPH[i] =  dfSPH[i].x - dyans[i]
-    errdyCRKSPH[i] = dfCRKSPH[i].x - dyans[i]
+def flattenFieldList(fl):
+    result = []
+    for f in fl:
+        result += list(f.internalValues())
+    return result
+
+errySPH = flattenFieldList(fSPH - yans)
+erryRK = flattenFieldList(fRK - yans)
+
+errdySPH = []
+errdyRK = []
+for iNodeList in xrange(db.numNodeLists):
+    n = fSPH[iNodeList].numInternalElements
+    for i in xrange(n):
+        errdySPH.append(dfSPH(iNodeList, i).x - dyans(iNodeList, i))
+        errdyRK.append(dfRK(iNodeList, i).x - dyans(iNodeList, i))
 
 maxySPHerror = max([abs(x) for x in errySPH])
 maxdySPHerror = max([abs(x) for x in errdySPH])
-maxyCRKSPHerror = max([abs(x) for x in erryCRKSPH])
-maxdyCRKSPHerror = max([abs(x) for x in errdyCRKSPH])
+maxyRKerror = max([abs(x) for x in erryRK])
+maxdyRKerror = max([abs(x) for x in errdyRK])
 
-print "Maximum errors (interpolation): SPH = %g, CRKSPH = %g" % (maxySPHerror, maxyCRKSPHerror)
-print "Maximum errors   (derivatives): SPH = %g, CRKSPH = %g" % (maxdySPHerror, maxdyCRKSPHerror)
+print "Maximum errors (interpolation): SPH = %g, RK = %g" % (maxySPHerror, maxyRKerror)
+print "Maximum errors   (derivatives): SPH = %g, RK = %g" % (maxdySPHerror, maxdyRKerror)
+
+# Output timing tables.
+Timer.TimerSummary()
 
 #-------------------------------------------------------------------------------
 # Plot the things.
 #-------------------------------------------------------------------------------
 if graphics:
-    from SpheralGnuPlotUtilities import *
-    import Gnuplot
-    xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
+    from SpheralMatplotlib import *
+
+    xans = [x.x for x in flattenFieldList(position)]
 
     # Interpolated values.
-    ansdata = Gnuplot.Data(xans, yans.internalValues(),
-                           with_ = "lines",
-                           title = "Answer",
-                           inline = True)
-    SPHdata = Gnuplot.Data(xans, fSPH.internalValues(),
-                           with_ = "points",
-                           title = "SPH",
-                           inline = True)
-    CRKSPHdata = Gnuplot.Data(xans, fCRKSPH.internalValues(),
-                            with_ = "points",
-                            title = "CRKSPH",
-                            inline = True)
-    errSPHdata = Gnuplot.Data(xans, errySPH.internalValues(),
-                              with_ = "points",
-                              title = "SPH",
-                              inline = True)
-    errCRKSPHdata = Gnuplot.Data(xans, erryCRKSPH.internalValues(),
-                               with_ = "points",
-                               title = "CRKSPH",
-                               inline = True)
+    p1 = plotFieldList(fRK,
+                       plotStyle = "g*",
+                       lineTitle = "RK",
+                       winTitle = "Interpolated values")
+    if testSPH:
+        plotFieldList(fSPH,
+                      plotStyle = "r+",
+                      lineTitle = "SPH",
+                      plot = p1)
+    plotFieldList(yans,
+                  plotStyle = "k-",
+                  lineTitle = "Answer",
+                  plot = p1)
 
-    p1 = generateNewGnuPlot()
-    p1.plot(ansdata)
-    if plotSPH:
-     p1.replot(SPHdata)
-    p1.replot(CRKSPHdata)
-    p1("set key top left")
-    p1.title("Interpolated values")
-    p1.refresh()
-
-    p2 = generateNewGnuPlot()
-    if plotSPH:
-     p2.plot(errSPHdata)
-    p2.replot(errCRKSPHdata)
-    p2.title("Error in interpolation")
-    p2.refresh()
+    # Interpolation error
+    p2 = newFigure()
+    p2.plot(xans, erryRK, "g*",
+            label = "RK")
+    if testSPH:
+        p2.plot(xans, errySPH, "r+",
+                label = "SPH")
+    p2.axes.legend()
+    plt.title("Error in interpolation")
 
     # Derivative values.
-    dansdata = Gnuplot.Data(xans, dyans.internalValues(),
-                            with_ = "lines",
-                            title = "Answer",
-                            inline = True)
-    dSPHdata = Gnuplot.Data(xans, [x.x for x in dfSPH.internalValues()],
-                            with_ = "points",
-                            title = "SPH",
-                            inline = True)
-    dCRKSPHdata = Gnuplot.Data(xans, [x.x for x in dfCRKSPH.internalValues()],
-                             with_ = "points",
-                             title = "CRKSPH",
-                             inline = True)
-    errdSPHdata = Gnuplot.Data(xans, errdySPH.internalValues(),
-                               with_ = "points",
-                               title = "SPH",
-                              inline = True)
-    errdCRKSPHdata = Gnuplot.Data(xans, errdyCRKSPH.internalValues(),
-                                with_ = "points",
-                                title = "CRKSPH",
-                                inline = True)
+    p3 = plotFieldList(dfRK,
+                       yFunction = "%s.x",
+                       plotStyle = "g*",
+                       lineTitle = "RK",
+                       winTitle = "Derivative values")
+    if testSPH:
+        plotFieldList(dfSPH,
+                      yFunction = "%s.x",
+                      plotStyle = "r+",
+                      lineTitle = "SPH",
+                      plot = p3)
+    plotFieldList(dyans,
+                  plotStyle = "k-",
+                  lineTitle = "Answer",
+                  plot = p3)
 
-    p3 = generateNewGnuPlot()
-    p3.plot(dansdata)
-    if plotSPH:
-     p3.replot(dSPHdata)
-    p3.replot(dCRKSPHdata)
-    p3("set key top left")
-    p3.title("Derivative values")
-    p3.refresh()
-
-    p4 = generateNewGnuPlot()
-    if plotSPH:
-     p4.plot(errdSPHdata)
-    p4.replot(errdCRKSPHdata)
-    p4.title("Error in derivatives")
-    p4.refresh()
+    # Derivative error
+    p4 = newFigure()
+    p4.plot(xans, errdyRK, "g*",
+            label = "RK")
+    if testSPH:
+        p4.plot(xans, errdySPH, "r+",
+                label = "SPH")
+    p4.axes.legend()
+    plt.title("Error in derivatives")
 
     # Plot the kernel shapes as appropriate.
     if testDim == "1d":
-        p7 = generateNewGnuPlot()
+        p7 = newFigure()
         j = -2 # int(nodes1.numInternalNodes/2)
-        Hj = H[j]
+        Hj = H[1][j]
         hj = 1.0/Hj.xx
-        Hdetj = H[j].Determinant()
-        Aj = A[j]
-        Bj = B[j].x
-        Cj = C[j].xx
+        Hdetj = Hj.Determinant()
+        Aj = A[1][j]
+        Bj = B[1][j].x
+        Cj = C[1][j].xx
         nsamp = 100
         dx = 4.0/nsamp
-        W = [WT.kernelValue(abs(i*dx - 2.0), Hdetj) for i in xrange(nsamp)]
-        #WR = [x*Aj*(1.0 + Bj*(2.0 - i*dx)*hj) for i, x in enumerate(W)]
-        WR = [x*Aj*(1.0 + Bj*(2.0 - i*dx)*hj+Cj*(2.0 - i*dx)*(2.0 - i*dx)*hj*hj) for i, x in enumerate(W)]
-        p7.plot(W)
-        p7.replot(WR)
-        p7.title("Kernel")
-        p7.refresh()
+        xvals = [i*dx - 2.0 for i in xrange(nsamp)]
+        W = [WT.kernelValue(abs(xi), Hdetj) for xi in xvals]
+        WR = [Wi*Aj*(1.0 + Bj*(xi)*hj+Cj*(xi)*(xi)*hj*hj) for xi, Wi in zip(xvals, W)]
+        p7.plot(xvals, W, "r-", label="SPH")
+        p7.plot(xvals, WR, "g-", label="RK")
+        p7.axes.legend()
+        plt.title("Kernel")
         if outputFile != "None":
             f = open("Kernel_" + outputFile, "w")
             f.write(("#" + 3*' "%20s"' + "\n") % ("eta", "Wj", "WRj"))
-            for i in xrange(nsamp):
-                f.write((3*" %20g" + "\n") % ((i*dx - 2.0), W[i], WR[i]))
+            for xi, Wi, WRi in zip(xvals, W, WR):
+                f.write((3*" %20g" + "\n") % (xi, Wi, WRi))
             f.close()
 
     # We may want a gnu/pdv style text file.
     if outputFile != "None" and testDim == "2d":
         of = open(outputFile, "w")
         of.write(('#' + 7*' "%20s"' + '\n') % ("x", "interp answer", "grad answer", "interp SPH", "interp CRK", "grad SPH", "grad CRK"))
-        for i in xrange(nodes1.numInternalNodes):
-            of.write((7*" %20g" + "\n") %
-                    (xans[i], yans[i], dyans[i], fSPH[i], fCRKSPH[i], dfSPH[i].x, dfCRKSPH[i].x))
+        for iNodeList, nodes in enumerate(db.nodeLists()):
+            for i in xrange(nodes.numInternalNodes):
+                of.write((7*" %20g" + "\n") %
+                         (position(iNodeList,i), yans(iNodeList,i), dyans(iNodeList,i), fSPH(iNodeList,i), fRK(iNodeList,i), dfSPH(iNodeList,i).x, dfRK(iNodeList,i).x))
         of.close()
 
-    # If we're in 2D dump a silo file too.
-    if testDim == "2d":
-        # from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
-        # dumper = SpheralVoronoiSiloDump("testInterpolation_%s_2d" % testCase,
-        #                                 listOfFields = [fSPH, fCRKSPH, dfSPH, dfCRKSPH,
-        #                                                 yans, dyans,
-        #                                                 errySPH, erryCRKSPH, errdySPH, errdyCRKSPH],
-        #                                 listOfFieldLists = [weight_fl, 
-        #                                                     A_fl, B_fl, gradA_fl, gradB_fl,
-        #                                                     dfCRKSPH_fl])
-        # dumper.dump(0.0, 0)
+    # If we're in 2D/3D dump a silo file too.
+    if testDim != "1d":
         from siloPointmeshDump import siloPointmeshDump
-        siloPointmeshDump("testInterpolation_%s_2d" % testCase,
-                          fields = [fSPH, fCRKSPH, dfSPH, dfCRKSPH,
-                                    yans, dyans,
-                                    errySPH, erryCRKSPH, errdySPH, errdyCRKSPH],
-                          fieldLists = [weight_fl, A_fl, B_fl, gradA_fl, gradB_fl])
+        siloPointmeshDump("testInterpolation_%s_%s" % (testCase, testDim),
+                          fieldLists = [fSPH, fRK, dfSPH, dfRK,
+                                        yans, dyans,
+                                        weight, H, A, B, gradA, gradB,
+                                        M0, M1, M2])
 
 if plotKernels:
     import Gnuplot
     pk = generateNewGnuPlot()
-    for i in xrange(nodes1.numInternalNodes):
-        xi = positions[i].x
-        Hi = H[i]
-        Hdeti = Hi.Determinant()
-        hi = 1.0/Hi.xx
-        Ai = A[i]
-        Bi = B[i]
-        Ci = C[i]
+    for iNodeList, nodes in enumerate(db.nodeLists()):
+        for i in xrange(nodes.numInternalNodes):
+            xi = positions(iNodeList,i).x
+            Hi = H(iNodeList,i)
+            Hdeti = Hi.Determinant()
+            hi = 1.0/Hi.xx
+            Ai = A(iNodeList,i)
+            Bi = B(iNodeList,i)
+            Ci = C(iNodeList,i)
 
-        dx = 2.0*kernelExtent*hi/50
-        x = [xi - kernelExtent*hi + (i + 0.5)*dx for i in xrange(50)]
-        #y = [Ai*(1.0 + Bi.x*(xi - xj))*WT.kernelValue(abs(xi - xj)/hi, Hdeti) for xj in x]
-        y = [Ai*(1.0 + Bi.x*(xi - xj)+Ci.xx*(xi-xj)*(xi-xj))*WT.kernelValue(abs(xi - xj)/hi, Hdeti) for xj in x]
-        d = Gnuplot.Data(x, y, with_="lines", inline=True)
-        pk.replot(d)
+            dx = 2.0*kernelExtent*hi/50
+            x = [xi - kernelExtent*hi + (i + 0.5)*dx for i in xrange(50)]
+            #y = [Ai*(1.0 + Bi.x*(xi - xj))*WT.kernelValue(abs(xi - xj)/hi, Hdeti) for xj in x]
+            y = [Ai*(1.0 + Bi.x*(xi - xj)+Ci.xx*(xi-xj)*(xi-xj))*WT.kernelValue(abs(xi - xj)/hi, Hdeti) for xj in x]
+            d = Gnuplot.Data(x, y, with_="lines", inline=True)
+            pk.replot(d)
 
 #-------------------------------------------------------------------------------
-# Check the maximum CRKSPH error and fail the test if it's out of bounds.
+# Check the maximum RK error and fail the test if it's out of bounds.
 #-------------------------------------------------------------------------------
-if maxyCRKSPHerror > interpolationTolerance:
-    raise ValueError, "CRKSPH interpolation error out of bounds: %g > %g" % (maxyCRKSPHerror, interpolationTolerance)
+if maxyRKerror > interpolationTolerance:
+    raise ValueError, "RK interpolation error out of bounds: %g > %g" % (maxyRKerror, interpolationTolerance)
 
-if maxdyCRKSPHerror > derivativeTolerance:
-    raise ValueError, "CRKSPH derivative error out of bounds: %g > %g" % (maxdyCRKSPHerror, derivativeTolerance)
+if maxdyRKerror > derivativeTolerance:
+    raise ValueError, "RK derivative error out of bounds: %g > %g" % (maxdyRKerror, derivativeTolerance)

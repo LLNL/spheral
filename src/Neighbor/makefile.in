@@ -9,6 +9,8 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Neighbor
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/NodePairList.cc
 INSTSRCTARGETS = \
 	$(srcdir)/GridCellIndexInst.cc.py \
 	$(srcdir)/GridCellPlaneInst.cc.py \

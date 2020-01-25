@@ -20,6 +20,25 @@ damageRelieveRubble(bool x) {
 }
 
 //------------------------------------------------------------------------------
+// Do we allow damaged material to have negative pressure?
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+SolidSPHHydroBase<Dimension>::
+negativePressureInDamage() const {
+  return mNegativePressureInDamage;
+}
+
+template<typename Dimension>
+inline
+void
+SolidSPHHydroBase<Dimension>::
+negativePressureInDamage(bool x) {
+  mNegativePressureInDamage = x;
+}
+
+//------------------------------------------------------------------------------
 // Kernel for velocity gradient.
 //------------------------------------------------------------------------------
 template<typename Dimension>

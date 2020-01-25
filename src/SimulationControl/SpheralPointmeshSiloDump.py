@@ -35,11 +35,11 @@ def dumpPhysicsState(stateThingy,
     dim = type(stateThingy).__name__[-2:]
     if isinstance(stateThingy, eval("Integrator%s" % dim)):
         integrator = stateThingy
-        dataBase = integrator.dataBase()
-        state = eval("State%id(integrator.dataBase(), integrator.physicsPackages())" % integrator.dataBase().nDim)
+        dataBase = integrator.dataBase
+        state = eval("State%id(dataBase, integrator.physicsPackages())" % dataBase.nDim)
         for p in integrator.physicsPackages():
             p.registerAdditionalVisualizationState(dataBase, state)
-        derivs = eval("StateDerivatives%id(integrator.dataBase(), integrator.physicsPackages())" % integrator.dataBase().nDim)
+        derivs = eval("StateDerivatives%id(dataBase, integrator.physicsPackages())" % dataBase.nDim)
         if dumpGhosts:
             integrator.setGhostNodes()
             integrator.applyGhostBoundaries(state, derivs)
@@ -48,12 +48,18 @@ def dumpPhysicsState(stateThingy,
         currentCycle = integrator.currentCycle
     elif isinstance(stateThingy, eval("State%s" % dim)):
         integrator = None
-        dataBase = None
         state = stateThingy
         derivs = None
         assert currentTime is not None
         assert currentCycle is not None
+        dataBase = eval("DataBase%s()" % dim)
+        assert state.fieldNameRegistered(HydroFieldNames.mass)
+        mass = state.scalarFields(HydroFieldNames.mass)
+        for nodes in mass.nodeListPtrs():
+            dataBase.appendNodeList(nodes)
+
     assert state is not None
+    assert dataBase is not None
 
     # Did the user specify any data to be dumped?
     if not fields:

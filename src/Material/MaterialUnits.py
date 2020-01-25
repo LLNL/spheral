@@ -8,7 +8,9 @@ class MKS(PhysicalConstants):
         PhysicalConstants.__init__(self, 
                                    1.0,   # Unit length (m)
                                    1.0,   # Unit mass (kg)
-                                   1.0)   # Unit time (sec)
+                                   1.0,   # Unit time (sec)
+                                   1.0,   # Unit temp (kelvin)
+                                   1.0)   # Unit charge (coulomb)
         return
 
 #-------------------------------------------------------------------------------
@@ -19,7 +21,9 @@ class CGS(PhysicalConstants):
         PhysicalConstants.__init__(self, 
                                    0.01,  # Unit length (m)
                                    0.001, # Unit mass (kg)
-                                   1.0)   # Unit time (sec)
+                                   1.0,   # Unit time (sec)
+                                   1.0,   # Unit temp (kelvin)
+                                   1.0)   # Unit charge (coulomb)
         return
 
 #-------------------------------------------------------------------------------
@@ -30,7 +34,9 @@ class Cosmological(PhysicalConstants):
         PhysicalConstants.__init__(self, 
                                    3.08567757e22, # Unit length (m)
                                    1.9891e36,     # Unit mass (kg)
-                                   3.155674e19)   # Unit time (sec)
+                                   3.155674e19,   # Unit time (sec)
+                                   1.0,   # Unit temp (kelvin)
+                                   1.0)   # Unit charge (coulomb)
         return
 
 #-------------------------------------------------------------------------------
@@ -41,6 +47,8 @@ class Solar(PhysicalConstants):
         PhysicalConstants.__init__(self, 
                                    149597870700.0,   # Unit length (m)
                                    1.98892e30,       # Unit mass (kg)
-                                   365.25*3600*24)   # Unit time (sec)
+                                   365.25*3600*24,   # Unit time (sec)
+                                   1.0,   # Unit temp (kelvin)
+                                   1.0)   # Unit charge (coulomb)
         return
 

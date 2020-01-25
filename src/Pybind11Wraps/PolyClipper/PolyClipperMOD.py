@@ -12,6 +12,22 @@ PYB11includes = ['"Geometry/polyclipper.hh"']
 
 PYB11namespaces = ["PolyClipper"]
 
+PYB11opaque = ["std::vector<char>",
+               "std::vector<unsigned>",
+               "std::vector<uint64_t>",
+               "std::vector<int>",
+               "std::vector<float>",
+               "std::vector<double>",
+               "std::vector<std::string>",
+
+               "std::vector<std::vector<char>>",
+               "std::vector<std::vector<unsigned>>",
+               "std::vector<std::vector<uint64_t>>",
+               "std::vector<std::vector<int>>",
+               "std::vector<std::vector<float>>",
+               "std::vector<std::vector<double>>",
+               "std::vector<std::vector<std::string>>"]
+
 #-------------------------------------------------------------------------------
 # Planes.
 #-------------------------------------------------------------------------------
@@ -36,9 +52,16 @@ class PlaneBase:
                 normal = "const Plane%(ndim)sd::Vector&"):
         "Construct with a point and normal."
 
+    def pyinit4(self,
+                point = "const Plane%(ndim)sd::Vector&",
+                normal = "const Plane%(ndim)sd::Vector&",
+                id = "const int"):
+        "Construct with a point, normal, and ID."
+
     # Attributes
     dist = PYB11readwrite(doc="The distance to the origin along the normal.")
     normal = PYB11readwrite(doc="The normal to the plane.")
+    ID = PYB11readwrite(doc="Arbitrary ID number for plane")
 
 @PYB11template_dict({"ndim" : "2"})
 class Plane2d:
@@ -75,6 +98,7 @@ class VertexBase:
     neighbors = PYB11readwrite(doc="The connectivty of the vertex.")
     comp = PYB11readwrite(doc="The current comparison flag.")
     ID = PYB11readwrite(doc="The ID or index of the vertex.")
+    clips = PYB11readwrite(doc="The set of plane IDs (if any) responsible for this vertex.")
 
     def __eq__(self):
         return
@@ -119,8 +143,8 @@ def convertToPolygon(polygon = "Polygon&",
 @PYB11namespace("PolyClipper")
 def convertFromPolygon(Spheral_polygon = "Spheral::Dim<2>::FacetedVolume&",
                        polygon = "const Polygon&"):
-    "Construct a Spheral::Polygon from a PolyClipper::Polygon."
-    return "void"
+    "Construct a Spheral::Polygon from a PolyClipper::Polygon.  Returns the set of clip planes responsible for each vertex."
+    return "std::vector<std::set<int>>"
 
 @PYB11namespace("PolyClipper")
 @PYB11implementation("""[](const Polygon& self) {
@@ -179,8 +203,8 @@ def convertToPolyhedron(polyhedron = "Polyhedron&",
 @PYB11namespace("PolyClipper")
 def convertFromPolyhedron(Spheral_polyhedron = "Spheral::Dim<3>::FacetedVolume&",
                           polyhedron = "const Polyhedron&"):
-    "Construct a Spheral::Polyhedron from a PolyClipper::Polyhedron."
-    return "void"
+    "Construct a Spheral::Polyhedron from a PolyClipper::Polyhedron.  Returns the set of clip planes responsible for each vertex."
+    return "std::vector<std::set<int>>"
 
 @PYB11namespace("PolyClipper")
 @PYB11implementation("""[](const Polyhedron& self) {

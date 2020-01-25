@@ -79,6 +79,7 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                  epsTensile = 0.0,
                  nTensile = 4.0,
                  damageRelieveRubble = False,
+                 negativePressureInDamage = False,
                  xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
                  xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
@@ -106,6 +107,7 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                                           epsTensile,
                                           nTensile,
                                           damageRelieveRubble,
+                                          negativePressureInDamage,
                                           xmin,
                                           xmax)
         return
@@ -244,6 +246,7 @@ class %(classname)s(SolidSPHHydroBaseRZ):
                  epsTensile = 0.0,
                  nTensile = 4.0,
                  damageRelieveRubble = False,
+                 negativePressureInDamage = False,
                  xmin = Vector2d(-1e100, -1e100),
                  xmax = Vector2d( 1e100,  1e100),
                  etaMinAxis = 0.1):
@@ -272,6 +275,7 @@ class %(classname)s(SolidSPHHydroBaseRZ):
                                      epsTensile,
                                      nTensile,
                                      damageRelieveRubble,
+                                     negativePressureInDamage,
                                      xmin,
                                      xmax)
         self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
@@ -333,6 +337,8 @@ def SPH(dataBase,
         HUpdate = IdealH,
         epsTensile = 0.0,
         nTensile = 4.0,
+        damageRelieveRubble = False,
+        negativePressureInDamage = False,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100),
         ASPH = False,
@@ -384,27 +390,34 @@ def SPH(dataBase,
         Cq = 1.0*(W.kernelExtent/2.0)**2
         Q = eval("MonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
-    # Build and return the thing.
+    # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
-    result = Constructor(Q = Q,
-                         W = W,
-                         WPi = WPi,
-                         filter = filter,
-                         cfl = cfl,
-                         useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                         compatibleEnergyEvolution = compatibleEnergyEvolution,
-                         evolveTotalEnergy = evolveTotalEnergy,
-                         gradhCorrection = gradhCorrection,
-                         XSPH = XSPH,
-                         correctVelocityGradient = correctVelocityGradient,
-                         sumMassDensityOverAllNodeLists = sumMassDensityOverAllNodeLists,
-                         densityUpdate = densityUpdate,
-                         HUpdate = HUpdate,
-                         epsTensile = epsTensile,
-                         nTensile = nTensile,
-                         xmin = eval("Vector%id(%g, %g, %g)" % xmin),
-                         xmax = eval("Vector%id(%g, %g, %g)" % xmax))
+    kwargs = {"W" : W,
+              "WPi" : WPi,
+              "Q" : Q,
+              "filter" : filter,
+              "cfl" : cfl,
+              "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
+              "compatibleEnergyEvolution" : compatibleEnergyEvolution,
+              "evolveTotalEnergy" : evolveTotalEnergy,
+              "gradhCorrection" : gradhCorrection,
+              "XSPH" : XSPH,
+              "correctVelocityGradient" : correctVelocityGradient,
+              "sumMassDensityOverAllNodeLists" : sumMassDensityOverAllNodeLists,
+              "densityUpdate" : densityUpdate,
+              "HUpdate" : HUpdate,
+              "epsTensile" : epsTensile,
+              "nTensile" : nTensile,
+              "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),
+              "xmax" : eval("Vector%id(%g, %g, %g)" % xmax)}
+
+    if nsolid > 0:
+        kwargs.update({"damageRelieveRubble" : damageRelieveRubble,
+                       "negativePressureInDamage" : negativePressureInDamage})
+
+    # Build and return the thing.
+    result = Constructor(**kwargs)
     result.Q = Q
     return result
 
@@ -428,6 +441,8 @@ def ASPH(dataBase,
          HUpdate = IdealH,
          epsTensile = 0.0,
          nTensile = 4.0,
+         damageRelieveRubble = False,
+         negativePressureInDamage = False,
          xmin = (-1e100, -1e100, -1e100),
          xmax = ( 1e100,  1e100,  1e100)):
     return SPH(dataBase = dataBase,
@@ -447,6 +462,8 @@ def ASPH(dataBase,
                HUpdate = HUpdate,
                epsTensile = epsTensile,
                nTensile = nTensile,
+               damageRelieveRubble = damageRelieveRubble,
+               negativePressureInDamage = negativePressureInDamage,
                xmin = xmin,
                xmax = xmax,
                ASPH = True)
@@ -471,6 +488,8 @@ def SPHRZ(dataBase,
           HUpdate = IdealH,
           epsTensile = 0.0,
           nTensile = 4.0,
+          damageRelieveRubble = False,
+          negativePressureInDamage = False,
           xmin = (-1e100, -1e100, -1e100),
           xmax = ( 1e100,  1e100,  1e100),
           etaMinAxis = 0.1,
@@ -492,6 +511,8 @@ def SPHRZ(dataBase,
                HUpdate = HUpdate,
                epsTensile = epsTensile,
                nTensile = nTensile,
+               damageRelieveRubble = damageRelieveRubble,
+               negativePressureInDamage = negativePressureInDamage,
                xmin = xmin,
                xmax = xmax,
                ASPH = ASPH,
@@ -517,6 +538,8 @@ def ASPHRZ(dataBase,
            HUpdate = IdealH,
            epsTensile = 0.0,
            nTensile = 4.0,
+           damageRelieveRubble = False,
+           negativePressureInDamage = False,
            xmin = (-1e100, -1e100, -1e100),
            xmax = ( 1e100,  1e100,  1e100),
            etaMinAxis = 0.1):
@@ -537,6 +560,8 @@ def ASPHRZ(dataBase,
                HUpdate = HUpdate,
                epsTensile = epsTensile,
                nTensile = nTensile,
+               damageRelieveRubble = damageRelieveRubble,
+               negativePressureInDamage = negativePressureInDamage,
                xmin = xmin,
                xmax = xmax,
                ASPH = True,

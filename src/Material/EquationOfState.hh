@@ -81,6 +81,9 @@ public:
                                                   const Scalar Ptol,
                                                   const unsigned maxIterations) const;
 
+  // Optionally provide a molecular weight.
+  virtual Scalar molecularWeight() const;
+
   // The set of constants defining our units.
   const PhysicalConstants& constants() const;
 

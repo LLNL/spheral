@@ -4,7 +4,6 @@
 // Created by JMO, Tue Oct 12 23:07:22 PDT 2010
 //----------------------------------------------------------------------------//
 #include "boost/unordered_map.hpp"
-#include "boost/tuple/tuple_comparison.hpp"
 #include "boost/functional/hash.hpp"
 #include "boost/bimap.hpp"
 using namespace boost;

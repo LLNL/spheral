@@ -285,9 +285,7 @@ template<int nDim> std::ostream& operator<<(std::ostream& os, const GeomVector<n
 
 }
 
-#ifndef __GCCXML__
 #include "GeomVectorInline_default.hh"
-#endif
 
 #endif
 

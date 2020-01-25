@@ -13,6 +13,7 @@
 #define __Spheral_removeElements__
 
 #include <vector>
+#include "DBC.hh"
 
 #ifdef USE_UVM
 #include "../Field/uvm_allocator.hh"

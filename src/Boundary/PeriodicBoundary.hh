@@ -24,6 +24,9 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+  typedef typename Dimension::FifthRankTensor FifthRankTensor;
+  typedef typename Dimension::FacetedVolume FacetedVolume;
 
   // Constructors and destructors.
   PeriodicBoundary();
@@ -32,48 +35,54 @@ public:
   virtual ~PeriodicBoundary();
 
   // Override the default methods for setting ghost nodes.
-  virtual void setGhostNodes(NodeList<Dimension>& nodeList);
-  virtual void updateGhostNodes(NodeList<Dimension>& nodeList);
+  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override;
+  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
 
   // Override the default methods for setting violation nodes.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList);
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
 
   // Override the methods for setting the enter and exit planes.
-  virtual const GeomPlane<Dimension>& enterPlane() const;
-  virtual void setEnterPlane(const GeomPlane<Dimension>& enterPlane);
+  virtual const GeomPlane<Dimension>& enterPlane() const override;
+  virtual void setEnterPlane(const GeomPlane<Dimension>& enterPlane) override;
 
-  virtual const GeomPlane<Dimension>& exitPlane() const;
-  virtual void setExitPlane(const GeomPlane<Dimension>& exitPlane);
+  virtual const GeomPlane<Dimension>& exitPlane() const override;
+  virtual void setExitPlane(const GeomPlane<Dimension>& exitPlane) override;
 
   // Override the culling of ghost nodes.
   virtual void cullGhostNodes(const FieldList<Dimension, int>& flagSet,
                               FieldList<Dimension, int>& old2newIndexMap,
-                              std::vector<int>& numNodesRemoved);
+                              std::vector<int>& numNodesRemoved) override;
 
   // Apply the boundary condition to the ghost nodes in the given Field.
-  virtual void applyGhostBoundary(Field<Dimension, int>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, int>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Enforce the boundary condition on the violation node values in the given Field.
-  virtual void enforceBoundary(Field<Dimension, int>& field) const;
-  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const;
-  virtual void enforceBoundary(Field<Dimension, Vector>& field) const;
-  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const;
-  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const;
-  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, int>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, Vector>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Override the base reset method.
-  virtual void reset(const DataBase<Dimension>& dataBase);
+  virtual void reset(const DataBase<Dimension>& dataBase) override;
 
   // Report the number of ghost nodes in this boundary.
-  virtual int numGhostNodes() const;
+  virtual int numGhostNodes() const override;
 
-  virtual std::string label() const { return "PeriodicBoundary"; }
+  virtual std::string label() const override { return "PeriodicBoundary"; }
 
 private:
   //--------------------------- Private Interface ---------------------------//

@@ -14,7 +14,7 @@ rangen = random.Random()
 # We'll just use a gamma-law gas to base our tests on.
 gamma = 5.0/3.0
 mu = 5.0
-units = CGS
+units = CGS()
 eos = GammaLawGas(gamma = gamma,
                   mu = mu,
                   constants = units)

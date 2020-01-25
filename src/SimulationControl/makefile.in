@@ -43,7 +43,8 @@ PYTHONTARGETS = \
 	$(srcdir)/siloPointmeshDump.py \
 	$(srcdir)/SpheralPointmeshSiloDump.py \
 	$(srcdir)/resampleNodeList.py \
-	$(srcdir)/overlayNodeList.py
+	$(srcdir)/overlayNodeList.py \
+	$(srcdir)/writeSiloQuadMesh.py
 
 #-------------------------------------------------------------------------------
 # This stuff is for generating git revision info in the python.
@@ -51,6 +52,7 @@ PYTHONTARGETS = \
 #   https://www.mercurial-scm.org/wiki/VersioningWithMake
 #GITVERSION:= $(shell git --git-dir $(SPHERALTOP)/../.git rev-parse --short HEAD) $(shell git --git-dir $(SPHERALTOP)/../.git rev-list --all --count HEAD)
 GITVERSION:= $(shell git --git-dir $(SPHERALTOP)/../.git rev-parse --abbrev-ref HEAD) $(shell git --git-dir $(SPHERALTOP)/../.git rev-parse --short HEAD) $(shell git --git-dir $(SPHERALTOP)/../.git log --oneline | wc -l)
+GITVERSION:=$(subst /,\/,$(GITVERSION))
 Spheral.py: gitstamp
 .PHONY: update_gitstamp
 gitstamp: update_gitstamp

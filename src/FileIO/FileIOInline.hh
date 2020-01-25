@@ -6,13 +6,13 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Write a FieldList of arbitrary DataType.
+// Write a FieldList of arbitrary DataType (private)
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
 void
-FileIO::write(const FieldList<Dimension, DataType>& fieldList,
-              const std::string pathName) {
+FileIO::writeFieldList(const FieldList<Dimension, DataType>& fieldList,
+                       const std::string pathName) {
 
   const std::string divider = "|";
 
@@ -48,13 +48,13 @@ FileIO::write(const FieldList<Dimension, DataType>& fieldList,
 }
 
 //------------------------------------------------------------------------------
-// Read a FieldList of arbitrary DataType.
+// Read a FieldList of arbitrary DataType. (private)
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
 void
-FileIO::read(FieldList<Dimension, DataType>& fieldList,
-             const std::string pathName) const {
+FileIO::readFieldList(FieldList<Dimension, DataType>& fieldList,
+                      const std::string pathName) const {
 
   const std::string divider = "|";
 
@@ -108,13 +108,13 @@ FileIO::read(FieldList<Dimension, DataType>& fieldList,
 }
 
 //------------------------------------------------------------------------------
-// Write a Field of std::vector<DataType>.
+// Write a Field of std::vector<DataType>. (private)
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
 void
-FileIO::write(const Field<Dimension, std::vector<DataType> >& field,
-              const std::string pathName) {
+FileIO::writeFieldVector(const Field<Dimension, std::vector<DataType> >& field,
+                         const std::string pathName) {
 
   // Build an array with the number of elements per node, and count the total number of elements.
   std::vector<int> numElementsPerNode;
@@ -146,13 +146,13 @@ FileIO::write(const Field<Dimension, std::vector<DataType> >& field,
 }
 
 //------------------------------------------------------------------------------
-// Read a Field of std::vector<DataType>.
+// Read a Field of std::vector<DataType>. (private)
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
 void
-FileIO::read(Field<Dimension, std::vector<DataType> >& field,
-             const std::string pathName) const {
+FileIO::readFieldVector(Field<Dimension, std::vector<DataType> >& field,
+                        const std::string pathName) const {
 
   // Read the serialized data back in.
   std::vector<int> numElementsPerNode;

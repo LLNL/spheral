@@ -4,7 +4,7 @@
 #ifndef __Spheral__computeCRKSPHCorrections__
 #define __Spheral__computeCRKSPHCorrections__
 
-#include "CRKSPHCorrectionParams.hh"
+#include "RK/RKCorrectionParams.hh"
 namespace Spheral {
 
 // Forward declarations.
@@ -26,7 +26,8 @@ computeCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Scalar>&
                          const FieldList<Dimension, typename Dimension::FourthRankTensor>& gradm3,
                          const FieldList<Dimension, typename Dimension::FifthRankTensor>& gradm4,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                         const CRKOrder correctionOrder,
+                         const FieldList<Dimension, int>& surfacePoint,
+                         const RKOrder correctionOrder,
                          FieldList<Dimension, typename Dimension::Scalar>& A,
                          FieldList<Dimension, typename Dimension::Vector>& B,
                          FieldList<Dimension, typename Dimension::Tensor>& C,
@@ -52,6 +53,7 @@ computeLinearCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Sc
                                const FieldList<Dimension, typename Dimension::Tensor>& gradm1,
                                const FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradm2,
                                const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                               const FieldList<Dimension, int>& surfacePoint,
                                FieldList<Dimension, typename Dimension::Scalar>& A,
                                FieldList<Dimension, typename Dimension::Vector>& B,
                                FieldList<Dimension, typename Dimension::Vector>& gradA,
@@ -71,6 +73,7 @@ computeQuadraticCRKSPHCorrections(const FieldList<Dimension, typename Dimension:
                                   const FieldList<Dimension, typename Dimension::FourthRankTensor>& gradm3,
                                   const FieldList<Dimension, typename Dimension::FifthRankTensor>& gradm4,
                                   const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                                  const FieldList<Dimension, int>& surfacePoint,
                                   FieldList<Dimension, typename Dimension::Scalar>& A,
                                   FieldList<Dimension, typename Dimension::Vector>& B,
                                   FieldList<Dimension, typename Dimension::Tensor>& C,

@@ -39,25 +39,27 @@ PYB11includes = ['"Geometry/Dimension.hh"',
                  '"Geometry/outerProduct.hh"',
                  '"Geometry/innerDoubleProduct.hh"',
                  '"Geometry/aggregateFacetedVolumes.hh"',
+                 '"Geometry/CellFaceFlag.hh"',
                  '"Field/Field.hh"',
                  '"Utilities/DataTypeTraits.hh"',
 
                  '<vector>',
                  '<sstream>']
 
-# # STL containers
-# for element in geomtypes:
-#     for ndim in (1, 2, 3):
-#         exec('''
-# vector_of_%(mangle)s = PYB11_bind_vector("%(element)s", opaque=True, local=False)
-# vector_of_vector_of_%(mangle)s = PYB11_bind_vector("std::vector<%(element)s>", opaque=True, local=False)
-# ''' % {"element": "Dim<" + str(ndim) + ">::" + element,
-#        "mangle" : element + str(ndim) + "d"})
-# vector_of_Facet2d = PYB11_bind_vector("GeomFacet2d", opaque=True, local=False)
-# vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True, local=False)
-# vector_of_Plane1d = PYB11_bind_vector("GeomPlane<Dim<1>>", opaque=True, local=False)
-# vector_of_Plane2d = PYB11_bind_vector("GeomPlane<Dim<2>>", opaque=True, local=False)
-# vector_of_Plane3d = PYB11_bind_vector("GeomPlane<Dim<3>>", opaque=True, local=False)
+# STL containers
+for element in geomtypes:
+    for ndim in (1, 2, 3):
+        exec('''
+vector_of_%(mangle)s = PYB11_bind_vector("%(element)s", opaque=True, local=False)
+vector_of_vector_of_%(mangle)s = PYB11_bind_vector("std::vector<%(element)s>", opaque=True, local=False)
+''' % {"element": "Dim<" + str(ndim) + ">::" + element,
+       "mangle" : element + str(ndim) + "d"})
+vector_of_Facet2d = PYB11_bind_vector("GeomFacet2d", opaque=True, local=False)
+vector_of_Facet3d = PYB11_bind_vector("GeomFacet3d", opaque=True, local=False)
+vector_of_Plane1d = PYB11_bind_vector("GeomPlane<Dim<1>>", opaque=True, local=False)
+vector_of_Plane2d = PYB11_bind_vector("GeomPlane<Dim<2>>", opaque=True, local=False)
+vector_of_Plane3d = PYB11_bind_vector("GeomPlane<Dim<3>>", opaque=True, local=False)
+vector_of_CellFaceFlag = PYB11_bind_vector("CellFaceFlag", opaque=True, local=False)
 
 # Get the objects wrapped in other files.
 from Vector import Vector1d, Vector2d, Vector3d
@@ -73,6 +75,30 @@ from Polygon import *
 from Polyhedron import *
 from Facet2d import *
 from Facet3d import *
+from CellFaceFlag import *
+
+#-------------------------------------------------------------------------------
+# Vector standalone functions
+#-------------------------------------------------------------------------------
+@PYB11template("nDim")
+def elementWiseMin(lhs = "Dim<%(nDim)s>::Vector",
+                   rhs = "Dim<%(nDim)s>::Vector"):
+    "Find the coordinate by coordinate minimum of two Vectors."
+    return "Dim<%(nDim)s>::Vector"
+
+@PYB11template("nDim")
+def elementWiseMax(lhs = "Dim<%(nDim)s>::Vector",
+                   rhs = "Dim<%(nDim)s>::Vector"):
+    "Find the coordinate by coordinate maximum of two Vectors."
+    return "Dim<%(nDim)s>::Vector"
+
+elementWiseMin1 = PYB11TemplateFunction(elementWiseMin, template_parameters="1", pyname="elementWiseMin")
+elementWiseMin2 = PYB11TemplateFunction(elementWiseMin, template_parameters="2", pyname="elementWiseMin")
+elementWiseMin3 = PYB11TemplateFunction(elementWiseMin, template_parameters="3", pyname="elementWiseMin")
+                                        
+elementWiseMax1 = PYB11TemplateFunction(elementWiseMax, template_parameters="1", pyname="elementWiseMax")
+elementWiseMax2 = PYB11TemplateFunction(elementWiseMax, template_parameters="2", pyname="elementWiseMax")
+elementWiseMax3 = PYB11TemplateFunction(elementWiseMax, template_parameters="3", pyname="elementWiseMax")
 
 #-------------------------------------------------------------------------------
 # invertRankNTensor template

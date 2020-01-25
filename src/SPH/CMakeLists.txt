@@ -1,8 +1,6 @@
 set(SPH_inst
-    PSPHHydroBase
     SPHHydroBase
     SolidSPHHydroBase
-    computePSPHCorrections
     computeSPHOmegaGradhCorrection
     computeSPHSumMassDensity
     computeSumVoronoiCellMassDensity
@@ -19,11 +17,6 @@ if(ENABLE_2D)
        SolidSPHHydroBaseRZ.cc
       )
 endif()
-if(ENABLE_3D)
-  list(APPEND SPH_sources
-       computeHydrostaticEquilibriumPressure.cc
-      )
-endif()
 
 instantiate(SPH_inst SPH_sources)
 
@@ -32,8 +25,6 @@ set(SPH_headers
     DamagedNodeCouplingWithFrags.hh
     NodeCoupling.hh
     OmegaGradhPolicy.hh
-    PSPHHydroBase.hh
-    PSPHHydroBaseInline.hh
     SPHHydroBase.hh
     SPHHydroBaseGSRZ.hh
     SPHHydroBaseInline.hh
@@ -41,9 +32,7 @@ set(SPH_headers
     SolidSPHHydroBase.hh
     SolidSPHHydroBaseInline.hh
     SolidSPHHydroBaseRZ.hh
-    SolidSPHHydroBaseRZInline.hh
     computeHydrostaticEquilibriumPressure.hh
-    computePSPHCorrections.hh
     computeSPHOmegaGradhCorrection.hh
     computeSPHSumMassDensity.hh
     computeSumVoronoiCellMassDensity.hh

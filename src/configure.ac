@@ -48,11 +48,16 @@ SETUP_DISTRIBUTEDMAKE
 SETUP_GEOMMEM
 
 # -------------------------------------------------
+# setup python binding (m4macros/pythonbinding.m4)
+# -------------------------------------------------
+SETUP_PYTHONBINDING
+
+# -------------------------------------------------
 # setup polytope (m4macros/polytope.m4)
 # -------------------------------------------------
 SETUP_POLYTOPE
 
-v# -------------------------------------------------
+# -------------------------------------------------
 # setup mpi (m4macros/mpi.m4)
 # -------------------------------------------------
 SETUP_MPI
@@ -70,11 +75,6 @@ SETUP_COMPILERS_THE_WAY_I_WANT
 AC_CHECK_OPTIMIZATION
 SETUP_DEBUG_PRINT
 SETUP_DBC
-
-# -------------------------------------------------
-# setup python binding (m4macros/pythonbinding.m4)
-# -------------------------------------------------
-SETUP_PYTHONBINDING
 
 # -------------------------------------------------
 # setup ParMETIS (m4macros/mpi.m4)
@@ -176,7 +176,9 @@ AC_OUTPUT(helpers/makefile_master \
           NodeGenerators/makefile \
           SimulationControl/makefile \
           SPH/makefile \
+          RK/makefile \
           CRKSPH/makefile \
+          FVCRKH/makefile \
           SVPH/makefile \
           TaylorSPH/makefile \
           Mesh/makefile \
@@ -191,13 +193,16 @@ AC_OUTPUT(helpers/makefile_master \
           PBGWraps/SpheralCompiledPackages.py \
           Pybind11Wraps/makefile \
           Pybind11Wraps/SpheralCompiledPackages.py \
+          Pybind11Wraps/CXXTypes/makefile \
           Pybind11Wraps/OpenMP/makefile \
           Pybind11Wraps/PolyClipper/makefile \
+          Pybind11Wraps/polytope/makefile \
           Pybind11Wraps/Geometry/makefile \
           Pybind11Wraps/Silo/makefile \
           Pybind11Wraps/DataOutput/makefile \
           Pybind11Wraps/NodeList/makefile \
           Pybind11Wraps/Field/makefile \
+          Pybind11Wraps/FieldList/makefile \
           Pybind11Wraps/Kernel/makefile \
           Pybind11Wraps/Neighbor/makefile \
           Pybind11Wraps/Material/makefile \
@@ -214,6 +219,7 @@ AC_OUTPUT(helpers/makefile_master \
           Pybind11Wraps/NodeGenerators/makefile \
           Pybind11Wraps/FieldOperations/makefile \
           Pybind11Wraps/SPH/makefile \
+          Pybind11Wraps/RK/makefile \
           Pybind11Wraps/CRKSPH/makefile \
           Pybind11Wraps/SVPH/makefile \
           Pybind11Wraps/Mesh/makefile \

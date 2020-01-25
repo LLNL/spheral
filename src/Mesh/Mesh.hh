@@ -13,8 +13,8 @@
 #include <vector>
 #include <map>
 #include <string>
-#include "boost/shared_ptr.hpp"
-#include "boost/tuple/tuple.hpp"
+#include <tuple>
+#include <memory>
 
 #include "Geometry/Dimension.hh"
 
@@ -32,7 +32,7 @@ public:
   typedef typename Dimension::ConvexHull ConvexHull;
   typedef typename Dimension::FacetedVolume FacetedVolume;
   typedef uint64_t KeyElement;
-  typedef boost::tuple<KeyElement, KeyElement, KeyElement> Key;
+  typedef std::tuple<KeyElement, KeyElement, KeyElement> Key;
   static const unsigned UNSETID;
   static const unsigned minFacesPerZone, minEdgesPerZone, minNodesPerZone;
   static const unsigned minEdgesPerFace, minNodesPerFace;

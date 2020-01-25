@@ -104,30 +104,30 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
   // Do the polytope tessellation.  We use the TetGen based tessellator.
   Timing::Time t0 = Timing::currentTime();
   polytope::Tessellation<3, double> tessellation;
-  {
-#ifdef USE_MPI
-    polytope::SerialDistributedTessellator<3, double> tessellator
-#if defined USE_TETGEN && ( USE_TETGEN>0 )
-        (new polytope::TetgenTessellator(),
-#else
-        (new polytope::VoroPP_3d<double>(),
-#endif
-         true,     // Manage memory for serial tessellator
-         true);    // Build parallel connectivity
-#else  // not USE_MPI
-#if defined USE_TETGEN && ( USE_TETGEN>0 )
-    polytope::TetgenTessellator tessellator ;
-#else
-    polytope::VoroPP_3d<double> tessellator ;
-#endif
-#endif  // USE_MPI
+//   {
+// #ifdef USE_MPI
+//     polytope::SerialDistributedTessellator<3, double> tessellator
+// #if defined USE_TETGEN && ( USE_TETGEN>0 )
+//         (new polytope::TetgenTessellator(),
+// #else
+//         (new polytope::VoroPP_3d<double>(),
+// #endif
+//          true,     // Manage memory for serial tessellator
+//          true);    // Build parallel connectivity
+// #else  // not USE_MPI
+// #if defined USE_TETGEN && ( USE_TETGEN>0 )
+//     polytope::TetgenTessellator tessellator ;
+// #else
+//     polytope::VoroPP_3d<double> tessellator ;
+// #endif
+// #endif  // USE_MPI
 
-    // Bounded Voronoi tessellation
-    tessellator.tessellate(gens, 
-                           const_cast<double*>(xmin.begin()), 
-                           const_cast<double*>(xmax.begin()),
-                           tessellation);
-  }
+//     // Bounded Voronoi tessellation
+//     tessellator.tessellate(gens, 
+//                            const_cast<double*>(xmin.begin()), 
+//                            const_cast<double*>(xmax.begin()),
+//                            tessellation);
+// }
   CHECK(tessellation.cells.size() == numGens);
   if (Process::getRank() == 0) cerr << "PolyhedralMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())

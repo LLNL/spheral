@@ -19,7 +19,7 @@
 #include <iostream>
 #include <vector>
 #include <set>
-#include "boost/tuple/tuple.hpp"
+#include <tuple>
 #include "boost/functional/hash.hpp"
 
 namespace Spheral {
@@ -68,18 +68,18 @@ hashX(const double x,
 }
 
 inline
-boost::tuple<uint64_t, uint64_t, uint64_t>
+std::tuple<uint64_t, uint64_t, uint64_t>
 hashPosition(const Dim<1>::Vector& position,
              const Dim<1>::Vector& xmin,
              const Dim<1>::Vector& xmax,
              const Dim<1>::Vector& boxInv) {
   typedef Dim<1>::Vector Vector;
   const uint64_t ix0 = hashX(position.x(), xmin.x(), xmax.x(), boxInv.x(), MeshTraits<Vector>::ncells, MeshTraits<Vector>::ncoarse, MeshTraits<Vector>::ncellsperbin);
-  return boost::make_tuple(ix0, 0U, 0U);
+  return std::make_tuple(ix0, 0U, 0U);
 }
 
 inline
-boost::tuple<uint64_t, uint64_t, uint64_t>
+std::tuple<uint64_t, uint64_t, uint64_t>
 hashPosition(const Dim<2>::Vector& position,
              const Dim<2>::Vector& xmin,
              const Dim<2>::Vector& xmax,
@@ -87,11 +87,11 @@ hashPosition(const Dim<2>::Vector& position,
   typedef Dim<2>::Vector Vector;
   const uint64_t ix0 = hashX(position.x(), xmin.x(), xmax.x(), boxInv.x(), MeshTraits<Vector>::ncells, MeshTraits<Vector>::ncoarse, MeshTraits<Vector>::ncellsperbin);
   const uint64_t iy0 = hashX(position.y(), xmin.y(), xmax.y(), boxInv.y(), MeshTraits<Vector>::ncells, MeshTraits<Vector>::ncoarse, MeshTraits<Vector>::ncellsperbin);
-  return boost::make_tuple(ix0, iy0, 0U);
+  return std::make_tuple(ix0, iy0, 0U);
 }
 
 inline
-boost::tuple<uint64_t, uint64_t, uint64_t>
+std::tuple<uint64_t, uint64_t, uint64_t>
 hashPosition(const Dim<3>::Vector& position,
              const Dim<3>::Vector& xmin,
              const Dim<3>::Vector& xmax,
@@ -100,7 +100,7 @@ hashPosition(const Dim<3>::Vector& position,
   const uint64_t ix0 = hashX(position.x(), xmin.x(), xmax.x(), boxInv.x(), MeshTraits<Vector>::ncells, MeshTraits<Vector>::ncoarse, MeshTraits<Vector>::ncellsperbin);
   const uint64_t iy0 = hashX(position.y(), xmin.y(), xmax.y(), boxInv.y(), MeshTraits<Vector>::ncells, MeshTraits<Vector>::ncoarse, MeshTraits<Vector>::ncellsperbin);
   const uint64_t iz0 = hashX(position.z(), xmin.z(), xmax.z(), boxInv.z(), MeshTraits<Vector>::ncells, MeshTraits<Vector>::ncoarse, MeshTraits<Vector>::ncellsperbin);
-  return boost::make_tuple(ix0, iy0, iz0);
+  return std::make_tuple(ix0, iy0, iz0);
 }
 
 //------------------------------------------------------------------------------
@@ -109,34 +109,34 @@ hashPosition(const Dim<3>::Vector& position,
 //------------------------------------------------------------------------------
 inline
 Dim<1>::Vector
-quantizedPosition(const boost::tuple<uint64_t, uint64_t, uint64_t>& hash,
+quantizedPosition(const std::tuple<uint64_t, uint64_t, uint64_t>& hash,
                   const Dim<1>::Vector& xmin,
                   const Dim<1>::Vector& xmax) {
   const Dim<1>::Vector dx = cellSize(xmin, xmax);
-  return boundPointWithinBox(Dim<1>::Vector(xmin.x() + boost::get<0>(hash)*dx.x()) +
+  return boundPointWithinBox(Dim<1>::Vector(xmin.x() + std::get<0>(hash)*dx.x()) +
                              0.5*dx, xmin, xmax);
 }
 
 inline
 Dim<2>::Vector
-quantizedPosition(const boost::tuple<uint64_t, uint64_t, uint64_t>& hash,
+quantizedPosition(const std::tuple<uint64_t, uint64_t, uint64_t>& hash,
                   const Dim<2>::Vector& xmin,
                   const Dim<2>::Vector& xmax) {
   const Dim<2>::Vector dx = cellSize(xmin, xmax);
-  return boundPointWithinBox(Dim<2>::Vector(xmin.x() + boost::get<0>(hash)*dx.x(),
-                                            xmin.y() + boost::get<1>(hash)*dx.y()) +
+  return boundPointWithinBox(Dim<2>::Vector(xmin.x() + std::get<0>(hash)*dx.x(),
+                                            xmin.y() + std::get<1>(hash)*dx.y()) +
                              0.5*dx, xmin, xmax);
 }
 
 inline
 Dim<3>::Vector
-quantizedPosition(const boost::tuple<uint64_t, uint64_t, uint64_t>& hash,
+quantizedPosition(const std::tuple<uint64_t, uint64_t, uint64_t>& hash,
                   const Dim<3>::Vector& xmin,
                   const Dim<3>::Vector& xmax) {
   const Dim<3>::Vector dx = cellSize(xmin, xmax);
-  return boundPointWithinBox(Dim<3>::Vector(xmin.x() + boost::get<0>(hash)*dx.x(),
-                                            xmin.y() + boost::get<1>(hash)*dx.y(),
-                                            xmin.z() + boost::get<2>(hash)*dx.z()) +
+  return boundPointWithinBox(Dim<3>::Vector(xmin.x() + std::get<0>(hash)*dx.x(),
+                                            xmin.y() + std::get<1>(hash)*dx.y(),
+                                            xmin.z() + std::get<2>(hash)*dx.z()) +
                              0.5*dx, xmin, xmax);
 }
 
@@ -145,9 +145,9 @@ quantizedPosition(const boost::tuple<uint64_t, uint64_t, uint64_t>& hash,
 //------------------------------------------------------------------------------
 inline
 int
-compare(const boost::tuple<uint64_t, uint64_t, uint64_t>& lhs,
-        const boost::tuple<uint64_t, uint64_t, uint64_t>& rhs) {
-  using namespace boost;
+compare(const std::tuple<uint64_t, uint64_t, uint64_t>& lhs,
+        const std::tuple<uint64_t, uint64_t, uint64_t>& rhs) {
+  using namespace std;
   return (get<2>(lhs) < get<2>(rhs)                     ? -1 :
           get<2>(lhs) > get<2>(rhs)                     ?  1 :
           get<1>(lhs) < get<1>(rhs)                     ? -1 :
@@ -159,19 +159,18 @@ compare(const boost::tuple<uint64_t, uint64_t, uint64_t>& lhs,
 
 inline
 int
-fuzzyCompare(const boost::tuple<uint64_t, uint64_t, uint64_t>& lhs,
-             const boost::tuple<uint64_t, uint64_t, uint64_t>& rhs,
+fuzzyCompare(const std::tuple<uint64_t, uint64_t, uint64_t>& lhs,
+             const std::tuple<uint64_t, uint64_t, uint64_t>& rhs,
              const uint64_t delta) {
-  using namespace boost;
-  const unsigned dx = std::max(get<0>(lhs), get<0>(rhs)) - std::min(get<0>(lhs), get<0>(rhs));
-  const unsigned dy = std::max(get<1>(lhs), get<1>(rhs)) - std::min(get<1>(lhs), get<1>(rhs));
-  const unsigned dz = std::max(get<2>(lhs), get<2>(rhs)) - std::min(get<2>(lhs), get<2>(rhs));
+  const unsigned dx = std::max(std::get<0>(lhs), std::get<0>(rhs)) - std::min(std::get<0>(lhs), std::get<0>(rhs));
+  const unsigned dy = std::max(std::get<1>(lhs), std::get<1>(rhs)) - std::min(std::get<1>(lhs), std::get<1>(rhs));
+  const unsigned dz = std::max(std::get<2>(lhs), std::get<2>(rhs)) - std::min(std::get<2>(lhs), std::get<2>(rhs));
   return ((dx <= delta and dy <= delta and dz <= delta) ?  0 :
-          get<2>(lhs) < get<2>(rhs)                     ? -1 :
-          get<2>(lhs) > get<2>(rhs)                     ?  1 :
-          get<1>(lhs) < get<1>(rhs)                     ? -1 :
-          get<1>(lhs) > get<1>(rhs)                     ?  1 :
-          get<0>(lhs) < get<0>(rhs)                     ? -1 : 
+          std::get<2>(lhs) < std::get<2>(rhs)                     ? -1 :
+          std::get<2>(lhs) > std::get<2>(rhs)                     ?  1 :
+          std::get<1>(lhs) < std::get<1>(rhs)                     ? -1 :
+          std::get<1>(lhs) > std::get<1>(rhs)                     ?  1 :
+          std::get<0>(lhs) < std::get<0>(rhs)                     ? -1 : 
                                                            1);
 }
 
@@ -181,12 +180,11 @@ fuzzyCompare(const boost::tuple<uint64_t, uint64_t, uint64_t>& lhs,
 template<typename T>
 inline
 void
-incrementTuple(boost::tuple<T, T, T>& lhs,
-               const boost::tuple<T, T, T>& rhs) {
-  using namespace boost;
-  get<0>(lhs) += get<0>(rhs);
-  get<1>(lhs) += get<1>(rhs);
-  get<2>(lhs) += get<2>(rhs);
+incrementTuple(std::tuple<T, T, T>& lhs,
+               const std::tuple<T, T, T>& rhs) {
+  std::get<0>(lhs) += std::get<0>(rhs);
+  std::get<1>(lhs) += std::get<1>(rhs);
+  std::get<2>(lhs) += std::get<2>(rhs);
 }
 
 //------------------------------------------------------------------------------
@@ -195,11 +193,10 @@ incrementTuple(boost::tuple<T, T, T>& lhs,
 template<typename T>
 inline
 void
-divideTuple(boost::tuple<T, T, T>& lhs, const T& rhs) {
-  using namespace boost;
-  get<0>(lhs) /= rhs;
-  get<1>(lhs) /= rhs;
-  get<2>(lhs) /= rhs;
+divideTuple(std::tuple<T, T, T>& lhs, const T& rhs) {
+  std::get<0>(lhs) /= rhs;
+  std::get<1>(lhs) /= rhs;
+  std::get<2>(lhs) /= rhs;
 }
 
 //------------------------------------------------------------------------------
@@ -207,9 +204,9 @@ divideTuple(boost::tuple<T, T, T>& lhs, const T& rhs) {
 //------------------------------------------------------------------------------
 inline
 int
-compare(const boost::tuple<uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t>& lhs,
-        const boost::tuple<uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t>& rhs) {
-  using namespace boost;
+compare(const std::tuple<uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t>& lhs,
+        const std::tuple<uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t>& rhs) {
+  using namespace std;
   return (get<5>(lhs) < get<5>(rhs)                     ? -1 :
           get<5>(lhs) > get<5>(rhs)                     ?  1 :
           get<4>(lhs) < get<4>(rhs)                     ? -1 :
@@ -231,14 +228,14 @@ compare(const boost::tuple<uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uin
 //------------------------------------------------------------------------------
 template<typename Vector, typename Uint>
 inline
-std::vector<boost::tuple<Uint, Uint, Uint> >
+std::vector<std::tuple<Uint, Uint, Uint> >
 collapseDegenerateVertices(const std::vector<Vector>& vertices,
                            const Vector& xmin,
                            const Vector& xmax,
                            const Vector& boxInv,
                            const Uint tol) {
   using namespace boost;
-  typedef boost::tuple<Uint, Uint, Uint> Key;
+  typedef std::tuple<Uint, Uint, Uint> Key;
   using std::vector;
   using std::set;
 
@@ -325,12 +322,12 @@ voroVertex(const Vector& centroid,
 template<typename T>
 inline
 void
-exchangeTuples(const std::vector<boost::tuple<T, T, T> >& localKeys,
+exchangeTuples(const std::vector<std::tuple<T, T, T> >& localKeys,
                const std::vector<unsigned>& neighborDomains,
-               std::vector<std::vector<boost::tuple<T, T, T> > >& neighborKeys) {
+               std::vector<std::vector<std::tuple<T, T, T> > >& neighborKeys) {
 #ifdef USE_MPI
   using namespace boost;
-  typedef boost::tuple<T, T, T> Key;
+  typedef std::tuple<T, T, T> Key;
   using std::vector;
 
   const unsigned rank = Process::getRank();
@@ -385,13 +382,13 @@ exchangeTuples(const std::vector<boost::tuple<T, T, T> >& localKeys,
 template<typename T>
 inline
 void
-exchangeTuples(const std::vector<boost::tuple<T, T, T> >& localKeys,
+exchangeTuples(const std::vector<std::tuple<T, T, T> >& localKeys,
                const std::vector<unsigned>& neighborDomains,
                const std::vector<std::vector<unsigned> >& sendIndices,
-               std::vector<std::vector<boost::tuple<T, T, T> > >& neighborKeys) {
+               std::vector<std::vector<std::tuple<T, T, T> > >& neighborKeys) {
 #ifdef USE_MPI
   using namespace boost;
-  typedef boost::tuple<T, T, T> Key;
+  typedef std::tuple<T, T, T> Key;
 
   const unsigned numNeighborDomains = neighborDomains.size();
   REQUIRE(sendIndices.size() == numNeighborDomains);
@@ -773,15 +770,15 @@ hashEdge(const unsigned i, const unsigned j) {
 
 template<typename T>
 inline
-boost::tuple<T, T, T, T, T, T>
-hashEdge(const boost::tuple<T, T, T>& hashi,
-         const boost::tuple<T, T, T>& hashj) {
+std::tuple<T, T, T, T, T, T>
+hashEdge(const std::tuple<T, T, T>& hashi,
+         const std::tuple<T, T, T>& hashj) {
   using namespace boost;
   return (hashi < hashj ? 
-          make_tuple(get<0>(hashi), get<1>(hashi), get<2>(hashi),
-                     get<0>(hashj), get<1>(hashj), get<2>(hashj)) :
-          make_tuple(get<0>(hashj), get<1>(hashj), get<2>(hashj),
-                     get<0>(hashi), get<1>(hashi), get<2>(hashi)));
+          std::make_tuple(std::get<0>(hashi), std::get<1>(hashi), std::get<2>(hashi),
+                          std::get<0>(hashj), std::get<1>(hashj), std::get<2>(hashj)) :
+          std::make_tuple(std::get<0>(hashj), std::get<1>(hashj), std::get<2>(hashj),
+                          std::get<0>(hashi), std::get<1>(hashi), std::get<2>(hashi)));
 }
 
 }
@@ -789,32 +786,30 @@ hashEdge(const boost::tuple<T, T, T>& hashi,
 //------------------------------------------------------------------------------
 // Hash the Key.
 //------------------------------------------------------------------------------
-namespace boost {
-  namespace tuples {
-    template<typename T>
-    inline
-    std::size_t
-    hash_value(const ::boost::tuple<T, T, T>& x) {
-      size_t result = 0;
-      hash_combine(result, ::boost::tuples::get<0>(x));
-      hash_combine(result, ::boost::tuples::get<1>(x));
-      hash_combine(result, ::boost::tuples::get<2>(x));
-      return result;
-    }
+namespace std {
+  template<typename T>
+  inline
+  std::size_t
+  hash_value(const ::std::tuple<T, T, T>& x) {
+    size_t result = 0;
+    boost::hash_combine(result, ::std::get<0>(x));
+    boost::hash_combine(result, ::std::get<1>(x));
+    boost::hash_combine(result, ::std::get<2>(x));
+    return result;
+  }
 
-    template<typename T>
-    inline
-    std::size_t
-    hash_value(const ::boost::tuple<T, T, T, T, T, T>& x) {
-      size_t result = 0;
-      hash_combine(result, ::boost::tuples::get<0>(x));
-      hash_combine(result, ::boost::tuples::get<1>(x));
-      hash_combine(result, ::boost::tuples::get<2>(x));
-      hash_combine(result, ::boost::tuples::get<3>(x));
-      hash_combine(result, ::boost::tuples::get<4>(x));
-      hash_combine(result, ::boost::tuples::get<5>(x));
-      return result;
-    }
+  template<typename T>
+  inline
+  std::size_t
+  hash_value(const ::std::tuple<T, T, T, T, T, T>& x) {
+    size_t result = 0;
+    boost::hash_combine(result, ::std::get<0>(x));
+    boost::hash_combine(result, ::std::get<1>(x));
+    boost::hash_combine(result, ::std::get<2>(x));
+    boost::hash_combine(result, ::std::get<3>(x));
+    boost::hash_combine(result, ::std::get<4>(x));
+    boost::hash_combine(result, ::std::get<5>(x));
+    return result;
   }
 }
 
@@ -828,24 +823,24 @@ namespace std {
   // operator==
   template<typename T>
   inline
-  bool operator==(const ::boost::tuple<T, T, T>& lhs,
-                  const ::boost::tuple<T, T, T>& rhs) {
+  bool operator==(const ::std::tuple<T, T, T>& lhs,
+                  const ::std::tuple<T, T, T>& rhs) {
     return (Spheral::compare(lhs, rhs) == 0);
   }
 
   // operator!=
   template<typename T>
   inline
-  bool operator!=(const ::boost::tuple<T, T, T>& lhs,
-                  const ::boost::tuple<T, T, T>& rhs) {
+  bool operator!=(const ::std::tuple<T, T, T>& lhs,
+                  const ::std::tuple<T, T, T>& rhs) {
     return (Spheral::compare(lhs, rhs) != 0);
   }
 
   // operator<
   template<typename T>
   inline
-  bool operator<(const ::boost::tuple<T, T, T>& lhs,
-                 const ::boost::tuple<T, T, T>& rhs) {
+  bool operator<(const ::std::tuple<T, T, T>& lhs,
+                 const ::std::tuple<T, T, T>& rhs) {
     return (Spheral::compare(lhs, rhs) == -1);
   }
 
@@ -853,8 +848,8 @@ namespace std {
   template<typename T>
   inline
   std::ostream&
-  operator<<(std::ostream& os, const ::boost::tuple<T, T, T>& x) {
-    using namespace boost;
+  operator<<(std::ostream& os, const ::std::tuple<T, T, T>& x) {
+    using namespace std;
     os << "(" << get<0>(x) << " " << get<1>(x) << " " << get<2>(x) << ")";
     return os;
   }
@@ -865,24 +860,24 @@ namespace std {
   // operator==
   template<typename T>
   inline
-  bool operator==(const ::boost::tuple<T, T, T, T, T, T>& lhs,
-                  const ::boost::tuple<T, T, T, T, T, T>& rhs) {
+  bool operator==(const ::std::tuple<T, T, T, T, T, T>& lhs,
+                  const ::std::tuple<T, T, T, T, T, T>& rhs) {
     return (Spheral::compare(lhs, rhs) == 0);
   }
 
   // operator!=
   template<typename T>
   inline
-  bool operator!=(const ::boost::tuple<T, T, T, T, T, T>& lhs,
-                  const ::boost::tuple<T, T, T, T, T, T>& rhs) {
+  bool operator!=(const ::std::tuple<T, T, T, T, T, T>& lhs,
+                  const ::std::tuple<T, T, T, T, T, T>& rhs) {
     return (Spheral::compare(lhs, rhs) != 0);
   }
 
   // operator<
   template<typename T>
   inline
-  bool operator<(const ::boost::tuple<T, T, T, T, T, T>& lhs,
-                 const ::boost::tuple<T, T, T, T, T, T>& rhs) {
+  bool operator<(const ::std::tuple<T, T, T, T, T, T>& lhs,
+                 const ::std::tuple<T, T, T, T, T, T>& rhs) {
     return (Spheral::compare(lhs, rhs) == -1);
   }
 
@@ -890,8 +885,8 @@ namespace std {
   template<typename T>
   inline
   std::ostream&
-  operator<<(std::ostream& os, const ::boost::tuple<T, T, T, T, T, T>& x) {
-    using namespace boost;
+  operator<<(std::ostream& os, const ::std::tuple<T, T, T, T, T, T>& x) {
+    using namespace std;
     os << "(" 
        << get<0>(x) << " " << get<1>(x) << " " << get<2>(x) 
        << get<3>(x) << " " << get<4>(x) << " " << get<5>(x) 

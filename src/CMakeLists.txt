@@ -1,10 +1,11 @@
 # Libraries
 include_directories(.)
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
+set(spheral_depends BOOST Eigen qhull silo polytope mpi openmp)
 
 add_subdirectory(CInterface)
 set(_packages SPH
               CRKSPH
+              RK
               ArtificialViscosity
               Boundary
               Damage

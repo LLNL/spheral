@@ -57,13 +57,6 @@ TillotsonEquationOfState can be constructed one of two ways:
 """
 
 #-------------------------------------------------------------------------------
-# The base units for parameters in this file.
-#-------------------------------------------------------------------------------
-CGS = PhysicalConstants(0.01,    # Length in m
-                        0.001,   # Mass in kg
-                        1.0)     # Time in sec
-
-#-------------------------------------------------------------------------------
 # The generic factory function, where you pass in the dimension specific 
 # Tillotson constructor.
 # This one is for internal use only -- people will actually call the dimension
@@ -84,6 +77,10 @@ def _TillotsonFactory(*args,
                       "maximumPressure"  :  1e200,
                       "minPressureType"  : PressureFloor}
 
+    # The base units for parameters in this file.
+    CGS = PhysicalConstants(0.01,    # Length in m
+                            0.001,   # Mass in kg
+                            1.0)     # Time in sec
     # What sort of information did the user pass in?
     if ("materialName" in kwargs or 
         len(args) > 0 and type(args[0]) is str):
@@ -102,6 +99,8 @@ def _TillotsonFactory(*args,
         for arg in optionalKwArgs: # make sure all optional args have a value
             if arg not in kwargs:
                 exec("%s = optionalKwArgs['%s']" % (arg, arg))
+
+        import sys
 
         # Check that the caller specified a valid material label.
         mat = materialName.lower()

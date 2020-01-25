@@ -16,7 +16,9 @@ SI units (m, kg, sec). All other constants are then derived from those choices.
     def pyinit(self,
                unitLm = "const double",
                unitMkg = "const double",
-               unitTsec = "const double"):
+               unitTsec = "const double",
+               unitTeK = ("const double", 1.0),
+               unitCcou = ("const double", 1.0)):
         "Construct based on a unit length, unit mass, and unit time in SI units"
         return
 
@@ -25,7 +27,9 @@ SI units (m, kg, sec). All other constants are then derived from those choices.
     unitLengthMeters = PYB11property("double", "unitLengthMeters", doc="unit of length in SI")
     unitMassKg       = PYB11property("double", "unitMassKg", doc="unit of length in SI")
     unitTimeSec      = PYB11property("double", "unitTimeSec", doc="unit of length in SI")
-
+    unitTemperatureKelvin      = PYB11property("double", "unitTemperatureKelvin", doc="unit of temperature in SI")
+    unitChargeCoulomb      = PYB11property("double", "unitChargeCoulomb", doc="unit of charge in SI")
+    
     protonMass              = PYB11property("double", "protonMass", doc="proton mass")
     electronMass            = PYB11property("double", "electronMass", doc="electron mass")
     electronCharge          = PYB11property("double", "electronCharge", doc="electron charge")
@@ -41,3 +45,5 @@ SI units (m, kg, sec). All other constants are then derived from those choices.
                                             doc="What the unit mass density in these units corresponds to in SI")
     stefanBoltzmannConstant = PYB11property("double", "stefanBoltzmannConstant",
                                             doc="sigma: the Steffan-Boltzmann constant")
+    blackBodyConstant = PYB11property("double", "blackBodyConstant",
+                                      doc="a: the black body constant")

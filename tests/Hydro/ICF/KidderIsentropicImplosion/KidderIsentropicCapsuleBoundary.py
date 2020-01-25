@@ -285,7 +285,7 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
 
         # Extract the state we're going to set.
         DxDt = derivs.vectorFields("delta " + HydroFieldNames.position)
-        DvDt = derivs.vectorFields("delta " + HydroFieldNames.velocity)
+        DvDt = derivs.vectorFields(HydroFieldNames.hydroAcceleration)
         DvDx = derivs.tensorFields(HydroFieldNames.velocityGradient)
         internalDvDx = derivs.tensorFields(HydroFieldNames.internalVelocityGradient)
         DHDt = derivs.symTensorFields("delta " + HydroFieldNames.H)
@@ -338,7 +338,6 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
     #---------------------------------------------------------------------------
     def dt(self, dataBase, state, derivs, currentTime):
         return pair_double_string(1.0e50, "No vote.")
-        return
 
     #---------------------------------------------------------------------------
     # Physics::registerState
@@ -377,7 +376,7 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
     #---------------------------------------------------------------------------
     # Physics::postStateUpdate
     #---------------------------------------------------------------------------
-    def postStateUpdate(self, dataBase, state, derivs):
+    def postStateUpdate(self, currentTime, dt, dataBase, state, derivs):
 
 ##         # Take a snapshot of the internal energies.
 ##         Key = pair_NodeList1d_string
@@ -387,8 +386,7 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
 ##         eps = state.scalarField(epsKey)
 ##         self.preEps = [eps[i] for i in self.nodeIDs]
 
-        t = self.integrator.currentTime
-        self.overrideState(state, t)
+        self.overrideState(state, currentTime)
 
 ##         # Redistribute the energy change we imposed to the interior nodes.
 ##         deltaE = sum([mass[i] * (eps[i] - self.preEps[k]) for i, k in zip(self.nodeIDs, range(len(self.nodeIDs)))])

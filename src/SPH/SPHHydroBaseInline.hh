@@ -463,7 +463,7 @@ internalDvDx() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, std::vector<typename Dimension::Vector> >&
+const std::vector<typename Dimension::Vector>&
 SPHHydroBase<Dimension>::
 pairAccelerations() const {
   return mPairAccelerations;

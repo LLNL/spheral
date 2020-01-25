@@ -22,12 +22,35 @@ using std::abs;
 
 namespace Spheral {
 
+namespace {
+
+//------------------------------------------------------------------------------
+// Copy control->target values in a Field
+//------------------------------------------------------------------------------
+template<typename FieldType>
+void
+copyFieldValues(FieldType& field,
+                const vector<int>& control,
+                const vector<int>& target) {
+  REQUIRE(control.size() == target.size());
+  auto controlItr = control.begin();
+  auto targetItr = target.begin();
+  for (; controlItr < control.end(); ++controlItr, ++targetItr) {
+    CHECK(targetItr < target.end());
+    CHECK(*controlItr >= 0 && *controlItr < field.numElements());
+    CHECK(*targetItr >= 0 && *targetItr < field.numElements());
+    field(*targetItr) = field(*controlItr);
+  }
+}
+  
+}
+
 //------------------------------------------------------------------------------
 // Empty constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 RigidBoundary<Dimension>::RigidBoundary():
-  PlanarBoundary<Dimension>() {
+  ReflectingBoundary<Dimension>() {
 }
 
 //------------------------------------------------------------------------------
@@ -36,14 +59,7 @@ RigidBoundary<Dimension>::RigidBoundary():
 template<typename Dimension>
 RigidBoundary<Dimension>::
 RigidBoundary(const GeomPlane<Dimension>& plane):
-  PlanarBoundary<Dimension>(plane, plane) {
-
-  // Once the plane has been set, construct the reflection operator.
-  mReflectOperator.Identity();
-  mReflectOperator -= 2.0*plane.normal().selfdyad();
-
-  // Once we're done the boundary condition should be in a valid state.
-  ENSURE(valid());
+  ReflectingBoundary<Dimension>(plane) {
 }
 
 //------------------------------------------------------------------------------
@@ -61,20 +77,9 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, int>& field) const {
-
-  REQUIRE(valid());
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
-  }
+  REQUIRE(this->valid());
+  const auto& nodeList = field.nodeList();
+  copyFieldValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
 }
 
 // Specialization for scalar fields, just perform a copy.
@@ -82,20 +87,9 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-
-  REQUIRE(valid());
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
-  }
+  REQUIRE(this->valid());
+  const auto& nodeList = field.nodeList();
+  copyFieldValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
 }
 
 // Specialization for Vector fields.
@@ -103,32 +97,12 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-
-  REQUIRE(valid());
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
-  if ((field.name() == HydroFieldNames::position) || 
-      (field.name() == HydroFieldNames::velocity))
-  {
-     for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-        CHECK(ghostItr < this->ghostEnd(nodeList));
-        CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-        CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-        field(*ghostItr) = reflectOperator()*field(*controlItr);
-     }
-  }
-  else
-  {
-     for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-        CHECK(ghostItr < this->ghostEnd(nodeList));
-        CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-        CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-        field(*ghostItr) = field(*controlItr);
-     }
+  REQUIRE(this->valid());
+  if (field.name() == HydroFieldNames::velocity) {
+    ReflectingBoundary<Dimension>::applyGhostBoundary(field);
+  } else {
+    const auto& nodeList = field.nodeList();
+    copyFieldValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
   }
 }
 
@@ -137,21 +111,9 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-
-  REQUIRE(valid());
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-     CHECK(ghostItr < this->ghostEnd(nodeList));
-     CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-     CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-     //     field(*ghostItr) = inverseReflectOperator*field(*controlItr)*reflectOperator();
-     field(*ghostItr) = field(*controlItr);
-  }
+  REQUIRE(this->valid());
+  const auto& nodeList = field.nodeList();
+  copyFieldValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
 }
 
 // Specialization for symmetric tensors.
@@ -159,20 +121,9 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-
-  REQUIRE(valid());
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
-  }
+  REQUIRE(this->valid());
+  const auto& nodeList = field.nodeList();
+  copyFieldValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
 }
 
 // Specialization for third rank tensors.
@@ -180,20 +131,39 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+  REQUIRE(this->valid());
+  const auto& nodeList = field.nodeList();
+  copyFieldValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
+}
 
-  REQUIRE(valid());
+// Specialization for fourth rank tensors.
+template<typename Dimension>
+void
+RigidBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  REQUIRE(this->valid());
+  const auto& nodeList = field.nodeList();
+  copyFieldValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
+}
 
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
-  }
+// Specialization for fifth rank tensors.
+template<typename Dimension>
+void
+RigidBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  REQUIRE(this->valid());
+  const auto& nodeList = field.nodeList();
+  copyFieldValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
+}
+
+// Specialization for FacetedVolume.
+template<typename Dimension>
+void
+RigidBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+  REQUIRE(this->valid());
+  const auto& nodeList = field.nodeList();
+  copyFieldValues(field, this->controlNodes(nodeList), this->ghostNodes(nodeList));
 }
 
 //------------------------------------------------------------------------------
@@ -205,7 +175,7 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, int>& field) const {
-  REQUIRE(valid());
+  REQUIRE(this->valid());
 }
 
 // Specialization for scalar fields.  A no-op.
@@ -213,7 +183,7 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  REQUIRE(valid());
+  REQUIRE(this->valid());
 }
 
 // Specialization for vector fields.  Apply the reflection operator to x and v.
@@ -221,19 +191,8 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  REQUIRE(valid());
-
-  if ((field.name() == HydroFieldNames::position) || 
-      (field.name() == HydroFieldNames::velocity))
-  {
-     const NodeList<Dimension>& nodeList = field.nodeList();
-     for (vector<int>::const_iterator itr = this->violationBegin(nodeList);
-           itr < this->violationEnd(nodeList); 
-           ++itr) {
-        CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
-        field(*itr) = reflectOperator()*field(*itr);
-     }
-  }
+  REQUIRE(this->valid());
+  if (field.name() == HydroFieldNames::velocity) ReflectingBoundary<Dimension>::applyGhostBoundary(field);
 }
 
 // Specialization for tensor fields.  No-op.
@@ -241,7 +200,7 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-  REQUIRE(valid());
+  REQUIRE(this->valid());
 }
 
 // Specialization for tensor fields.  No-op.
@@ -249,7 +208,7 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-  REQUIRE(valid());
+  REQUIRE(this->valid());
 }
 
 // Specialization for third rank tensor fields.  No-op.
@@ -257,47 +216,31 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-  REQUIRE(valid());
+  REQUIRE(this->valid());
 }
 
-//------------------------------------------------------------------------------
-// Dump state.
-//------------------------------------------------------------------------------
+// Specialization for fourth rank tensor fields.  No-op.
 template<typename Dimension>
 void
 RigidBoundary<Dimension>::
-dumpState(FileIO& file,
-          const std::string& pathName) const {
-
-  // Call the ancestor class.
-  PlanarBoundary<Dimension>::dumpState(file, pathName);
-
-  file.write(reflectOperator(), pathName + "/reflectOperator");
+enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  REQUIRE(this->valid());
 }
 
-//------------------------------------------------------------------------------
-// Restore state.
-//------------------------------------------------------------------------------
+// Specialization for fifth rank tensor fields.  No-op.
 template<typename Dimension>
 void
 RigidBoundary<Dimension>::
-restoreState(const FileIO& file,
-             const std::string& pathName) {
-
-  // Call the ancestor class.
-  PlanarBoundary<Dimension>::restoreState(file, pathName);
-
-  file.read(mReflectOperator, pathName + "/reflectOperator");
+enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  REQUIRE(this->valid());
 }
 
-//------------------------------------------------------------------------------
-// Test if the reflecting boundary is minimally valid.
-//------------------------------------------------------------------------------
+// Specialization for FacetedVolume fields.  No-op.
 template<typename Dimension>
-bool
-RigidBoundary<Dimension>::valid() const {
-  return (reflectOperator().Determinant() != 0.0 &&
-          PlanarBoundary<Dimension>::valid());
+void
+RigidBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+  REQUIRE(this->valid());
 }
 
 }

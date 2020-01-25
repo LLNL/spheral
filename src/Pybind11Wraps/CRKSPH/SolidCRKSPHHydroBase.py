@@ -34,11 +34,13 @@ class SolidCRKSPHHydroBase(CRKSPHHydroBase):
                XSPH = "const bool",
                densityUpdate = "const MassDensityType",
                HUpdate = "const HEvolutionType",
-               correctionOrder = "const CRKOrder",
-               volumeType = "const CRKVolumeType",
+               correctionOrder = "const RKOrder",
+               volumeType = "const RKVolumeType",
                epsTensile = "const double",
                nTensile = "const double",
-               damageRelieveRubble = "const bool"):
+               limitMultimaterialTopology = "const bool",
+               damageRelieveRubble = "const bool",
+               negativePressureInDamage = "const bool"):
         "Constructor"
 
     #...........................................................................
@@ -92,6 +94,8 @@ mass density, velocity, and specific thermal energy."""
     # Properties
     damageRelieveRubble = PYB11property("bool", "damageRelieveRubble", "damageRelieveRubble",
                                         doc="Control whether allow damaged material to have stress relieved.")
+    negativePressureInDamage = PYB11property("bool", "negativePressureInDamage", "negativePressureInDamage", 
+                                             doc="Should we allow damage material to support negative pressures?")
 
     DdeviatoricStressDt = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "DdeviatoricStressDt", returnpolicy="reference_internal")
     bulkModulus = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "bulkModulus", returnpolicy="reference_internal")

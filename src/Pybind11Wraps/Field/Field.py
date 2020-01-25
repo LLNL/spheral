@@ -56,10 +56,12 @@ class Field(FieldBase):
 
     @PYB11cppname("operator[]")
     @PYB11returnpolicy("reference_internal")
-    def __getitem__(self, index="unsigned"):
-        return "%(Value)s&"
+    @PYB11implementation('[](FieldType& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }')
+    def __getitem__(self):
+        #return "%(Value)s&"
+        return
 
-    @PYB11implementation("[](FieldType& self, size_t i, const %(Value)s v) { if (i >= self.size()) throw py::index_error(); self[i] = v; }") 
+    @PYB11implementation("[](FieldType& self, int i, const %(Value)s v) { const int n = self.size(); if (i >= n) throw py::index_error(); self[(i %% n + n) %% n] = v; }")
     def __setitem__(self):
         "Set a value"
 
@@ -68,9 +70,11 @@ class Field(FieldBase):
         "Python iteration through a Field."
 
     @PYB11returnpolicy("reference_internal")
-    def __call__(self, i="int"):
+    @PYB11implementation("[](FieldType& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }")
+    def __call__(self):
         "Index into a Field"
-        return "%(Value)s&"
+        #return "%(Value)s&"
+        return
 
     #...........................................................................
     # FieldBase virtual methods
@@ -123,8 +127,7 @@ class Field(FieldBase):
 
     @PYB11virtual
     def unpackValues(self,
-                     numElements = "int",
-                     beginInsertionIndex = "int",
+                     nodeIDs="const std::vector<int>&",
                      buffer = "const std::vector<char>&"):
         "Deserialize values from the given buffer"
         return "void"
@@ -162,10 +165,7 @@ class Field(FieldBase):
         return "py::list"
 
     #...........................................................................
-    # operators
-
-    #...........................................................................
     # Properties
     numElements = PYB11property("unsigned", doc="Number of elements in field")
-    numInternalElements = PYB11property("unsigned", doc="Number of elements in field")
-
+    numInternalElements = PYB11property("unsigned", doc="Number of internal elements in field")
+    numGhostElements = PYB11property("unsigned", doc="Number of ghost elements in field")

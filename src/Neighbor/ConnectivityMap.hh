@@ -10,6 +10,7 @@
 
 #include "Utilities/KeyTraits.hh"
 #include "Field/FieldList.hh"
+#include "NodePairList.hh"
 
 #include <vector>
 #include <map>
@@ -50,6 +51,11 @@ public:
   void patchConnectivity(const FieldList<Dimension, int>& flags,
                          const FieldList<Dimension, int>& old2new);
 
+  // Remove connectivity between neighbors.
+  // Note this method assumes neighbor info is symmetric, and removes the pair connectivity for each
+  // member of a pair (maintaining symmetry).
+  void removeConnectivity(const FieldList<Dimension, std::vector<std::vector<int>>>& neighborsToCut);
+
   // Are we computing neighbors for ghosts?
   bool buildGhostConnectivity() const;
 
@@ -58,6 +64,7 @@ public:
 
   // Get the set of NodeLists.
   const std::vector<const NodeList<Dimension>*>& nodeLists() const;
+  const NodePairList& nodePairList() const;
 
   //............................................................................
   // Get the set of neighbors for the given (internal!) node in the given NodeList.
@@ -84,7 +91,6 @@ public:
   overlapConnectivityForNode(const int nodeListID,
                              const int nodeID) const;
 
-
   //............................................................................
   // Compute the common neighbors for a pair of nodes.  Note this method 
   // returns by value since this information is not stored by ConnectivityMap.
@@ -105,6 +111,13 @@ public:
   int numNeighborsForNode(const int nodeListID,
                           const int nodeID) const;
 
+  // Compute the number of overlap neighbors for the given node.
+  int numOverlapNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
+                                 const int nodeID) const;
+
+  int numOverlapNeighborsForNode(const int nodeListID,
+                                 const int nodeID) const;
+  
   // Return the connectivity in terms of global node IDs.
   std::map<int, std::vector<int> > globalConnectivity(std::vector<Boundary<Dimension>*>& boundaries) const;
 
@@ -149,6 +162,9 @@ private:
   typedef std::vector<std::vector<std::vector<int>>> ConnectivityStorageType;
   std::vector<int> mOffsets;
   ConnectivityStorageType mConnectivity;
+
+  // List of Node conncetion pairs.
+  NodePairList mNodePairList;
 
   // Same for overlap connectivity.
   ConnectivityStorageType mOverlapConnectivity;

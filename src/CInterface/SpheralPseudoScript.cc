@@ -26,6 +26,7 @@
 #include "NodeList/ASPHSmoothingScale.hh"
 #include "SPH/SolidSPHHydroBase.hh"
 #include "SPH/SolidSPHHydroBaseRZ.hh"
+#include "RK/computeVoronoiVolume.hh"
 #include "CRKSPH/SolidCRKSPHHydroBase.hh"
 #include "CRKSPH/SolidCRKSPHHydroBaseRZ.hh"
 #include "ArtificialViscosity/MonaghanGingoldViscosity.hh"
@@ -41,16 +42,14 @@
 #include "Utilities/iterateIdealH.hh"
 #include "Utilities/globalNodeIDsInline.hh"
 #if USE_MPI
-#include "Distributed/VoronoiRedistributeNodes.hh"
-#include "Distributed/BoundingVolumeDistributedBoundary.hh"
 #include "Distributed/NestedGridDistributedBoundary.hh"
 #include "Distributed/TreeDistributedBoundary.hh"
 #endif
+#include "Boundary/PeriodicBoundary.hh"
 #include "Boundary/ReflectingBoundary.hh"
 #include "Boundary/AxisBoundaryRZ.hh"
 #include "Field/Field.hh"
 #include "Field/FieldListSet.hh"
-#include "FieldOperations/FieldListFunctions.hh"
 #include "FieldOperations/sampleMultipleFields2Lattice.hh"
 
 namespace Spheral {
@@ -363,11 +362,13 @@ template<> struct HydroConstructor<Dim<3>> {
                                                       const bool sumMassDensityOverAllNodeLists,
                                                       const MassDensityType densityUpdate,
                                                       const HEvolutionType HUpdate,
-                                                      const CRKOrder correctionOrder,
-                                                      const CRKVolumeType volumeType,
+                                                      const RKOrder correctionOrder,
+                                                      const RKVolumeType volumeType,
                                                       const double epsTensile,
                                                       const double nTensile,
+                                                      const bool limitMultimaterialTopology,
                                                       const bool damageRelieveRubble,
+                                                      const bool negativePressureInDamage,
                                                       const Dim<3>::Vector& xmin,
                                                       const Dim<3>::Vector& xmax,
                                                       const bool RZ) {
@@ -388,7 +389,9 @@ template<> struct HydroConstructor<Dim<3>> {
                                                                                volumeType,
                                                                                epsTensile,
                                                                                nTensile,
-                                                                               damageRelieveRubble));
+                                                                               limitMultimaterialTopology,
+                                                                               damageRelieveRubble,
+                                                                               negativePressureInDamage));
     }
     else {
       return std::shared_ptr<Physics<Dim<3>>>(new SolidSPHHydroBase<Dim<3>>(smoothingScaleMethod,
@@ -410,6 +413,7 @@ template<> struct HydroConstructor<Dim<3>> {
                                                                             epsTensile,
                                                                             nTensile,
                                                                             damageRelieveRubble,
+                                                                            negativePressureInDamage,
                                                                             xmin,
                                                                             xmax));
     }
@@ -438,11 +442,13 @@ template<> struct HydroConstructor<Dim<2>> {
                                                       const bool sumMassDensityOverAllNodeLists,
                                                       const MassDensityType densityUpdate,
                                                       const HEvolutionType HUpdate,
-                                                      const CRKOrder correctionOrder,
-                                                      const CRKVolumeType volumeType,
+                                                      const RKOrder correctionOrder,
+                                                      const RKVolumeType volumeType,
                                                       const double epsTensile,
                                                       const double nTensile,
+                                                      const bool limitMultimaterialTopology,
                                                       const bool damageRelieveRubble,
+                                                      const bool negativePressureInDamage,
                                                       const Dim<2>::Vector& xmin,
                                                       const Dim<2>::Vector& xmax,
                                                       const bool RZ) {
@@ -464,7 +470,9 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                            volumeType,
                                                                            epsTensile,
                                                                            nTensile,
-                                                                           damageRelieveRubble));
+                                                                           limitMultimaterialTopology,
+                                                                           damageRelieveRubble,
+                                                                           negativePressureInDamage));
       }
       else {
         return std::shared_ptr<Physics<Dim<2>>>(new SolidSPHHydroBaseRZ(smoothingScaleMethod,
@@ -486,6 +494,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                         epsTensile,
                                                                         nTensile,
                                                                         damageRelieveRubble,
+                                                                        negativePressureInDamage,
                                                                         xmin,
                                                                         xmax));
       }
@@ -507,7 +516,9 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                                  volumeType,
                                                                                  epsTensile,
                                                                                  nTensile,
-                                                                                 damageRelieveRubble));
+                                                                                 limitMultimaterialTopology,
+                                                                                 damageRelieveRubble,
+                                                                                 negativePressureInDamage));
       }
       else {
         return std::shared_ptr<Physics<Dim<2>>>(new SolidSPHHydroBase<Dim<2>>(smoothingScaleMethod,
@@ -529,6 +540,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                               epsTensile,
                                                                               nTensile,
                                                                               damageRelieveRubble,
+                                                                              negativePressureInDamage,
                                                                               xmin,
                                                                               xmax));
       }
@@ -580,6 +592,7 @@ initialize(const bool     RZ,
            const int      piKernelType,
            const int      gradKernelType,
            const int      nbspline,
+           const int      crkorder,
            const int      damage,
            const unsigned nmats,
            const double   CFL,
@@ -594,72 +607,75 @@ initialize(const bool     RZ,
 
   // Pre-conditions.
   VERIFY2(not RZ or Dimension::nDim == 2,
-          "Axisymmetric coordinates (RZ) can only be requested in the 2D instantiation of Spheral.");
+          "SpheralPseudoScript::initialize: Axisymmetric coordinates (RZ) can only be requested in the 2D instantiation of Spheral.");
+
+  VERIFY2(distributedBoundary >= 0 && distributedBoundary < 3,
+          "SpheralPseudoScript::initialize: Distributed boundary option must be 0 (None), 1 (Nested Grid), or 2 (Tree).");
+
+  VERIFY2(crkorder >= 0 && crkorder < 3,
+          "SpheralPseudoScript::initialize: CRK correction order must be 0 (Constant), 1 (Linear), or 2 (Quadratic).");
+
+  VERIFY2(kernelType >= 0 && kernelType < 3 && piKernelType >= 0 && piKernelType < 3 && gradKernelType >= 0 && gradKernelType < 3,
+          "SpheralPseudoScript::initialize: SPH kernel type must be 0 (NBSpline), 1 (Gaussian), or 2 (PiGaussian).");
 
   // Get our instance.
   SpheralPseudoScript<Dimension>& me = SpheralPseudoScript<Dimension>::instance();
 
   // Create internal units (cm, gm, usec).
-  me.mUnitsPtr = std::shared_ptr<PhysicalConstants>(new PhysicalConstants(0.01,     // unit length (m)
-                                                                          0.001,    // unit mass (kg)
-                                                                          1.0e-6)); // unit time (sec)
+  me.mUnitsPtr.reset(new PhysicalConstants(0.01,     // unit length (m)
+                                           0.001,    // unit mass (kg)
+                                           1.0e-6)); // unit time (sec)
 
   // Construct the stand-in fake EOS and strength model.  The host code will
   // actually fill in the state fields Spheral normally uses these for.
-  me.mEOSptr = std::shared_ptr<SolidEquationOfState<Dimension>>(new LinearPolynomialEquationOfState<Dimension>(1.0, 0.1, 10.0, 
-                                                                                                               1.0, 0.0, 0.0, 0.0,
-                                                                                                               1.0, 0.0, 0.0,
-                                                                                                               100.0, 
-                                                                                                               *me.mUnitsPtr,
-                                                                                                               0.0, 0.0, 1e100,
-                                                                                                               MaterialPressureMinType::ZeroPressure));
-  me.mStrengthModelPtr = std::shared_ptr<StrengthModel<Dimension>>(new NullStrength<Dimension>());
+  me.mEOSptr.reset(new LinearPolynomialEquationOfState<Dimension>(1.0, 0.1, 10.0, 
+                                                                  1.0, 0.0, 0.0, 0.0,
+                                                                  1.0, 0.0, 0.0,
+                                                                  100.0, 
+                                                                  *me.mUnitsPtr,
+                                                                  0.0, 0.0, 1e100,
+                                                                  MaterialPressureMinType::ZeroPressure));
+  me.mStrengthModelPtr.reset(new NullStrength<Dimension>());
 
   // Build the general interpolation kernel.
   if(kernelType == 0) {
-    me.mKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
   }
   else if(kernelType == 1) {
-    me.mKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
   }
   else if(kernelType == 2) {
-    me.mKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
-  }
-  else {
-    me.mKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
   }
 
   // Build the interpolation kernel for artificial viscosity.
   if(piKernelType == 0) {
-    me.mPiKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
+    me.mPiKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
   }
   else if(piKernelType == 1) {
-    me.mPiKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
+    me.mPiKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
   }
   else if(piKernelType == 2) {
-    me.mPiKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
-  }
-  else {
-    me.mPiKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
+    me.mPiKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
   }
 
   // Build the interpolation kernel for the velocity gradient.
   if(gradKernelType == 0) {
-    me.mGradKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
+    me.mGradKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
   }
   else if(gradKernelType == 1) {
-    me.mGradKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
+    me.mGradKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
   }
   else if(gradKernelType == 2) {
-    me.mGradKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
-  }
-  else {
-    me.mGradKernelPtr = std::shared_ptr<TableKernel<Dimension>>(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
+    me.mGradKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
   }
 
   // Construct the NodeLists for our materials.
   // me.mNodeLists.reserve(nmats);
   // me.mNeighbors.reserve(nmats);
+  me.mNodeLists.clear();
+  me.mNeighbors.clear();
+  me.mHostCodeBoundaries.clear();
   for (unsigned imat = 0; imat != nmats; ++imat) {
     const string name = "NodeList " + std::to_string(imat);
     me.mNodeLists.push_back(std::shared_ptr< SolidNodeList<Dimension>>(new SolidNodeList<Dimension>(name,
@@ -681,7 +697,7 @@ initialize(const bool     RZ,
                                                                                                     xmin,
                                                                                                     xmax)));
     }
-    else {
+    else if (distributedBoundary == 1) {
       me.mNeighbors.push_back(std::shared_ptr< NestedGridNeighbor<Dimension>>(new NestedGridNeighbor<Dimension>(*me.mNodeLists.back(),
                                                                                                                 NeighborSearchType::GatherScatter,
                                                                                                                 31,
@@ -694,61 +710,71 @@ initialize(const bool     RZ,
   }
 
   // Build the database and add our NodeLists.
-  me.mDataBasePtr = std::shared_ptr<DataBase<Dimension>>(new DataBase<Dimension>());
+  me.mDataBasePtr.reset(new DataBase<Dimension>());
   for (unsigned imat = 0; imat != nmats; ++imat) {
     me.mDataBasePtr->appendNodeList(*me.mNodeLists[imat]);
   }
 
+  RKOrder correctionOrder;
+  if (crkorder == 0) {
+    correctionOrder = RKOrder::ZerothOrder;
+  }
+  else if (crkorder == 1) {
+    correctionOrder = RKOrder::LinearOrder;
+  }
+  else if (crkorder == 2) {
+    correctionOrder = RKOrder::QuadraticOrder;
+  }
+
   // Build the hydro physics objects.
   if (ASPH) {
-    me.mSmoothingScaleMethodPtr = std::shared_ptr<SmoothingScaleBase<Dimension>>(new ASPHSmoothingScale<Dimension>());
+    me.mSmoothingScaleMethodPtr.reset(new ASPHSmoothingScale<Dimension>());
   } else {
-    me.mSmoothingScaleMethodPtr = std::shared_ptr<SmoothingScaleBase<Dimension>>(new SPHSmoothingScale<Dimension>());
+    me.mSmoothingScaleMethodPtr.reset(new SPHSmoothingScale<Dimension>());
   }
   if (CRK) {
-    me.mQptr = std::shared_ptr<ArtificialViscosity<Dimension>>(new CRKSPHMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, false, false, 1.0, 0.2));
+    me.mQptr.reset(new CRKSPHMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, false, false, 1.0, 0.2));
   } else {
     if (ScalarQ) {
-      me.mQptr = std::shared_ptr<ArtificialViscosity<Dimension>>(new MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, false, false));
+      me.mQptr.reset(new MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, false, false));
     } else {
-      me.mQptr = std::shared_ptr<ArtificialViscosity<Dimension>>(new TensorMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic));
+      me.mQptr.reset(new TensorMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic));
     }
   }
   me.mQptr->epsilon2(0.01);
+  me.mHydroPtr.reset();
   me.mHydroPtr = HydroConstructor<Dimension>::newinstance(CRK,
                                                           *me.mSmoothingScaleMethodPtr,
                                                           *me.mQptr,
                                                           *me.mKernelPtr,
                                                           *me.mPiKernelPtr,
                                                           *me.mGradKernelPtr,
-                                                          0.0,                                               // filter
-                                                          CFL,                                               // cfl
-                                                          useVelocityDt,                                     // useVelocityMagnitudeForDt
-                                                          compatibleEnergy,                                  // compatibleEnergyEvolution
-                                                          totalEnergy,                                       // evolve total energy
-                                                          hGradCorrection,                                   // gradhCorrection
-                                                          XSPH,                                              // XSPH
-                                                          vGradCorrection,                                   // correctVelocityGradient
-                                                          sumMassDensity,                                    // sumMassDensityOverAllNodeLists
-                                                          MassDensityType::RigorousSumDensity, // densityUpdate
-                                                          HEvolutionType::IdealH,              // HUpdate
-                                                          CRKOrder::LinearOrder,                // CRK order
-                                                          CRKVolumeType::CRKSumVolume,          // CRK volume type
-                                                          0.0,                                               // epsTensile
-                                                          4.0,                                               // nTensile
-                                                          false,                                             // damageRelieve
-                                                          xmin,                                              // xmin
-                                                          xmax,                                              // xmax
+                                                          0.0,                                  // filter
+                                                          CFL,                                  // cfl
+                                                          useVelocityDt,                        // useVelocityMagnitudeForDt
+                                                          compatibleEnergy,                     // compatibleEnergyEvolution
+                                                          totalEnergy,                          // evolve total energy
+                                                          hGradCorrection,                      // gradhCorrection
+                                                          XSPH,                                 // XSPH
+                                                          vGradCorrection,                      // correctVelocityGradient
+                                                          sumMassDensity,                       // sumMassDensityOverAllNodeLists
+                                                          MassDensityType::RigorousSumDensity,  // densityUpdate
+                                                          HEvolutionType::IdealH,               // HUpdate
+                                                          correctionOrder,                      // RK order
+                                                          RKVolumeType::RKVoronoiVolume,        // RK volume type
+                                                          0.0,                                  // epsTensile
+                                                          4.0,                                  // nTensile
+                                                          false,                                // limitMultimaterialTopology
+                                                          false,                                // damageRelieve
+                                                          false,                                // negativePressureInDamage
+                                                          xmin,                                 // xmin
+                                                          xmax,                                 // xmax
                                                           RZ);
 
   // Build a time integrator.  We're not going to use this to advance state,
   // but the other methods are useful.
-  me.mIntegratorPtr = std::shared_ptr<CheapSynchronousRK2<Dimension>>(new CheapSynchronousRK2<Dimension>(*me.mDataBasePtr));
+  me.mIntegratorPtr.reset(new CheapSynchronousRK2<Dimension>(*me.mDataBasePtr));
   me.mIntegratorPtr->appendPhysicsPackage(*me.mHydroPtr);
-
-  // Remember if we're using CRK
-  me.mCRK = CRK;
-  me.mCRKInitialized = false;
 
   // Remember if we're feeding damage in
   me.mDamage = damage;
@@ -757,9 +783,7 @@ initialize(const bool     RZ,
   me.mDistributedBoundary = distributedBoundary;
 
   // Do the one-time initialization work for our packages.
-  if (!me.mCRK) {
-    me.mHydroPtr->initializeProblemStartup(*me.mDataBasePtr);
-  }
+  me.mHydroPtr->initializeProblemStartup(*me.mDataBasePtr);
 
   // Add the axis reflecting boundary in RZ.
   HydroConstructor<Dimension>::addBoundaries(RZ, me.mHostCodeBoundaries);
@@ -809,12 +833,12 @@ initializeStep(const unsigned* nintpermat,
   }
 
   // Prepare the state and such.
-  me.mStatePtr = std::shared_ptr<State<Dimension>>(new State<Dimension>(*me.mDataBasePtr,
-                                                                        me.mIntegratorPtr->physicsPackagesBegin(), 
-                                                                        me.mIntegratorPtr->physicsPackagesEnd()));
-  me.mDerivsPtr = std::shared_ptr<StateDerivatives<Dimension>>(new StateDerivatives<Dimension>(*me.mDataBasePtr,
-                                                                                               me.mIntegratorPtr->physicsPackagesBegin(), 
-                                                                                               me.mIntegratorPtr->physicsPackagesEnd()));
+  me.mStatePtr.reset(new State<Dimension>(*me.mDataBasePtr,
+                                          me.mIntegratorPtr->physicsPackagesBegin(), 
+                                          me.mIntegratorPtr->physicsPackagesEnd()));
+  me.mDerivsPtr.reset(new StateDerivatives<Dimension>(*me.mDataBasePtr,
+                                                      me.mIntegratorPtr->physicsPackagesBegin(), 
+                                                      me.mIntegratorPtr->physicsPackagesEnd()));
 
   // Copy the given state into Spheral's structures.
   SpheralPseudoScript::updateState(mass, 
@@ -833,13 +857,6 @@ initializeStep(const unsigned* nintpermat,
                                    plasticStrain,
                                    scalarDamage,
                                    particleType);
-
-  if (me.mCRK && me.mCRKInitialized == false) {
-    me.mHydroPtr->initializeProblemStartup(*me.mDataBasePtr);
-    me.mHydroPtr->registerState(*me.mDataBasePtr, *me.mStatePtr);
-    me.mHydroPtr->registerDerivatives(*me.mDataBasePtr, *me.mDerivsPtr);
-    me.mCRKInitialized = true;
-  }
 
   // Vote on a time step and return it.
   me.mIntegratorPtr->lastDt(1e10);
@@ -931,7 +948,7 @@ updateState(const double*  mass,
   if (me.mDistributedBoundary == 2) {
     me.mHydroPtr->appendBoundary(TreeDistributedBoundary<Dimension>::instance());
   }
-  else {
+  else if (me.mDistributedBoundary == 1) {
     me.mHydroPtr->appendBoundary(NestedGridDistributedBoundary<Dimension>::instance());
   }
 #endif
@@ -1013,6 +1030,25 @@ addBoundary(const Vector& point,
 
   // Add reflecting boundary
   me.mHostCodeBoundaries.push_back(std::shared_ptr<ReflectingBoundary<Dimension>>(new ReflectingBoundary<Dimension>( (GeomPlane<Dimension>(point,normal)))));
+}
+
+//------------------------------------------------------------------------------
+// addPeriodicBoundary
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SpheralPseudoScript<Dimension>::
+addPeriodicBoundary(const Vector& point1,
+                    const Vector& normal1,
+                    const Vector& point2,
+                    const Vector& normal2) {
+
+  // Get our instance.
+  auto& me = SpheralPseudoScript<Dimension>::instance();
+
+  // Add reflecting boundary
+  me.mHostCodeBoundaries.push_back(std::shared_ptr<PeriodicBoundary<Dimension>>(new PeriodicBoundary<Dimension>(GeomPlane<Dimension>(point1,normal1),
+                                                                                                                GeomPlane<Dimension>(point2,normal2))));
 }
 
 //------------------------------------------------------------------------------
@@ -1131,25 +1167,95 @@ sampleLatticeMesh(const Vector&  xmin,
 }
 
 //------------------------------------------------------------------------------
+// Create the polyhedral cells given the SPH particles.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SpheralPseudoScript<Dimension>::
+polyhedralMesh(int*           nnodes,
+               int*           nfaces,
+               int*           ncells,
+               double**       coords,
+               int**          facetonodes,
+               int**          celltofaces) {
+
+  // Get our instance.
+  SpheralPseudoScript<Dimension>& me = SpheralPseudoScript<Dimension>::instance();
+
+  auto mass = me.mStatePtr->fields(HydroFieldNames::mass, 0.0);
+  auto massDensity = me.mStatePtr->fields(HydroFieldNames::massDensity, 0.0);
+  auto vol = me.mStatePtr->fields(HydroFieldNames::volume, 0.0);
+  auto position = me.mStatePtr->fields(HydroFieldNames::position, Vector::zero);
+  auto H = me.mStatePtr->fields(HydroFieldNames::H, SymTensor::zero);
+  auto damage = me.mStatePtr->fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+  const auto& connectivityMap = me.mDataBasePtr->connectivityMap();
+  auto surfacePoint = me.mDataBasePtr->newFluidFieldList(0, HydroFieldNames::surfacePoint);
+  auto deltaCentroid = me.mDataBasePtr->newFluidFieldList(Vector::zero, "delta centroid");
+  auto etaVoidPoints = me.mDataBasePtr->newFluidFieldList(vector<Vector>(), HydroFieldNames::etaVoidPoints);
+  auto cells = me.mDataBasePtr->newFluidFieldList(typename Dimension::FacetedVolume(), HydroFieldNames::cells);
+  auto cellFaceFlags = me.mDataBasePtr->newFluidFieldList(vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
+  vol.assignFields(mass/massDensity);
+  computeVoronoiVolume(position, H, connectivityMap, damage,
+                       vector<typename Dimension::FacetedVolume>(),                // no boundaries
+                       vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
+                       vector<Boundary<Dimension>*>(me.mHydroPtr->boundaryBegin(), // boundaries
+                                                    me.mHydroPtr->boundaryEnd()),
+                       FieldList<Dimension, typename Dimension::Scalar>(),         // no weights
+                       surfacePoint, vol, deltaCentroid, etaVoidPoints,            // return values
+                       cells,                                                      // return cells
+                       cellFaceFlags);                                             // node cell multimaterial faces
+
+  int numNodes = 0;
+  const unsigned nmats = me.mNodeLists.size();
+  for (unsigned imat = 0; imat != nmats; ++imat) {
+    numNodes += me.mNodeLists[imat]->numInternalNodes();
+  }
+
+  for (unsigned imat = 0; imat != nmats; ++imat) {
+    const unsigned n = me.mNodeLists[imat]->numInternalNodes();
+    for (unsigned i = 0; i != n; ++i) {
+      auto celli = cells(imat, i);
+      auto vertices = celli.vertices();
+      auto facets = celli.facets();
+      auto vertConn = celli.vertexFacetConnectivity();
+      auto faceConn = celli.facetFacetConnectivity();
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
 // Fill a volume with evenly spaced distribution of particles.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 SpheralPseudoScript<Dimension>::
 fillVolume(const int*     nnodes,
+           const int*     nfaces,
            const double** coords,
+           const int*     conn,
            const double   spacing,
+           const int      domain,
+           const int      ndomains,
            double*        volume,
            int*           nparticles,
            double**       sphcoords) {
 
   if (Dimension::nDim == 3) {
     std::vector< Dim<3>::Vector > nodeVec;
+    std::vector< std::vector<unsigned> > faceVec;
     for (int i = 0 ; i < nnodes[0] ; ++i) {
       nodeVec.push_back(Dim<3>::Vector(coords[0][i], coords[1][i], coords[2][i]));
     }
-    Dim<3>::FacetedVolume mesh(nodeVec);
-    std::vector< Dim<3>::Vector > sphNodes = fillFacetedVolume2(mesh, spacing, 0, 1);
+    for (int i = 0 ; i < nfaces[0] ; ++i) {
+      std::vector<unsigned> faceSet;
+      int offset = 3*i;
+      faceSet.push_back(conn[offset+0]);
+      faceSet.push_back(conn[offset+1]);
+      faceSet.push_back(conn[offset+2]);
+      faceVec.push_back(faceSet);
+    }
+    Dim<3>::FacetedVolume mesh(nodeVec, faceVec);
+    std::vector< Dim<3>::Vector > sphNodes = fillFacetedVolume2(mesh, spacing, domain, ndomains);
     volume[0] = mesh.volume();
     nparticles[0] = sphNodes.size();
     double * sphcoordx = new double[sphNodes.size()];

@@ -9,7 +9,7 @@
 // Created by JMO, Wed Apr  9 13:13:46 PDT 2008
 //----------------------------------------------------------------------------//
 #include "SpaceFillingCurveRedistributeNodes.hh"
-#include "DomainNode.hh"
+#include "Utilities/DomainNode.hh"
 #include "DistributedBoundary.hh"
 #include "Boundary/Boundary.hh"
 #include "DataBase/DataBase.hh"
@@ -275,42 +275,17 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     CHECK(this->validDomainDecomposition(nodeDistribution, dataBase));
     if (not this->localReorderOnly()) this->enforceDomainDecomposition(nodeDistribution, dataBase);
 
-    // At this point we have the nodes on each domain, but they are not sorted locally.
-    // That is the next step.  Rebuild the local sorting.
-    nodeDistribution = this->currentDomainDecomposition(dataBase, globalIDs);
-    sortedIndices = buildIndex2IDPairs(indices, nodeDistribution);
-
-    // Extract the desired node orderings for each NodeList.
-    const size_t numNodeLists = dataBase.numNodeLists();
-    vector<vector<int> > orderings;
-    vector<int> newNodeIDs(numNodeLists, 0);
-    for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-         nodeListItr != dataBase.nodeListEnd();
-         ++nodeListItr) orderings.push_back(vector<int>((*nodeListItr)->numInternalNodes()));
-    for (typename vector<pair<Key, DomainNode<Dimension> > >::const_iterator itr = sortedIndices.begin();
-         itr != sortedIndices.end();
-         ++itr) {
-      const DomainNode<Dimension>& node = itr->second;
-      CHECK(node.nodeListID >= 0 and node.nodeListID < numNodeLists);
-      CHECK(node.localNodeID >= 0 and node.localNodeID < orderings[node.nodeListID].size());
-      CHECK(newNodeIDs[node.nodeListID] < orderings[node.nodeListID].size());
-      orderings[node.nodeListID][newNodeIDs[node.nodeListID]] = node.localNodeID;
-      ++newNodeIDs[node.nodeListID];
-    }
-
-    // Now we have the local orderings, so enforce them!
-    {
-      int nodeListID = 0;
-      for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-           nodeListItr != dataBase.nodeListEnd();
-           ++nodeListItr, ++nodeListID) (*nodeListItr)->reorderNodes(orderings[nodeListID]);
-    }
-
-    // Reinitialize neighbor info.
-    for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-         nodeListItr != dataBase.nodeListEnd();
-         ++nodeListItr) {
-      (*nodeListItr)->neighbor().updateNodes();
+    // Sort the local indices in each NodeList to find the local ordering.
+    for (auto nodeListPtr: dataBase.nodeListPtrs()) {
+      const auto n = nodeListPtr->numInternalNodes();
+      const auto& keys = **indices.fieldForNodeList(*nodeListPtr);
+      vector<pair<Key, int>> orderedkeys(n);
+      for (auto i = 0; i < n; ++i) orderedkeys[i] = make_pair(keys(i), i);
+      sort(orderedkeys.begin(), orderedkeys.end(), SortNodesByHashedIndex<int>());  // [](const pair<Key, int>& lhs, const pair<Key, int>& rhs) { return lhs.first < rhs.first; });
+      vector<int> ordering(n);
+      for (auto i = 0; i < n; ++i) ordering[orderedkeys[i].second] = i;
+      nodeListPtr->reorderNodes(ordering);
+      nodeListPtr->neighbor().updateNodes();
     }
 
     // Notify everyone that the nodes have just been shuffled around.
@@ -330,7 +305,9 @@ redistributeNodes(DataBase<Dimension>& dataBase,
              ++nodeListItr) {
           const Field<Dimension, Key> keyField = **indices.fieldForNodeList(**nodeListItr);
           for (int i = 1; i < (*nodeListItr)->numInternalNodes(); ++i) {
-            ENSURE(keyField(i) >= keyField(i - 1));
+            ENSURE2(keyField(i) >= keyField(i - 1), (**nodeListItr).name()
+                    << " (" << (i - 1) << " " << i << ") (" 
+                    << keyField(i-1) << " " << keyField(i) << ")");
           }
         }
       }
@@ -373,7 +350,7 @@ buildIndex2IDPairs(const FieldList<Dimension, typename SpaceFillingCurveRedistri
        ++nodeItr, ++i) {
     CHECK(i < domainNodes.size());
     result.push_back(pair<Key, DomainNode<Dimension> >(indices(nodeItr),
-                                                                 domainNodes[i]));
+                                                       domainNodes[i]));
   }
   ENSURE(i == domainNodes.size());
   ENSURE(result.size() == domainNodes.size());
@@ -581,12 +558,11 @@ findNextIndex(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension
     if (inext < indices.size() and indices[inext] > index) result = indices[inext];
     //   cerr << "  Local result: " << result << endl;
 
-    // Get the global answer.
-    result = allReduce(result, MPI_MIN, Communicator::communicator());
     //   cerr << "Global result: " << result << endl;
-  } else {
-    result = 0;
   }
+
+  // Get the global answer.
+  result = allReduce(result, MPI_MIN, Communicator::communicator());
 
   // That's it.
   ENSURE(result <= maxIndex);

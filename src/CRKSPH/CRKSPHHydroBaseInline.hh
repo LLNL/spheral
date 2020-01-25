@@ -42,7 +42,7 @@ HEvolution(HEvolutionType type) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-CRKOrder
+RKOrder
 CRKSPHHydroBase<Dimension>::correctionOrder() const {
   return mCorrectionOrder;
 }
@@ -51,7 +51,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-correctionOrder(CRKOrder order) {
+correctionOrder(RKOrder order) {
   mCorrectionOrder = order;
 }
 
@@ -60,7 +60,7 @@ correctionOrder(CRKOrder order) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-CRKVolumeType
+RKVolumeType
 CRKSPHHydroBase<Dimension>::volumeType() const {
   return mVolumeType;
 }
@@ -69,7 +69,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-volumeType(CRKVolumeType x) {
+volumeType(RKVolumeType x) {
   mVolumeType = x;
 }
 
@@ -123,6 +123,23 @@ inline
 void
 CRKSPHHydroBase<Dimension>::XSPH(bool val) {
   mXSPH = val;
+}
+
+//------------------------------------------------------------------------------
+// Flag determining if we're using the limitMultimaterialTopology algorithm.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+CRKSPHHydroBase<Dimension>::limitMultimaterialTopology() const {
+  return mLimitMultimaterialTopology;
+}
+
+template<typename Dimension>
+inline
+void
+CRKSPHHydroBase<Dimension>::limitMultimaterialTopology(bool val) {
+  mLimitMultimaterialTopology = val;
 }
 
 //------------------------------------------------------------------------------
@@ -189,41 +206,6 @@ void
 CRKSPHHydroBase<Dimension>::
 nTensile(typename Dimension::Scalar val) {
   mnTensile = val;
-}
-    
-//------------------------------------------------------------------------------
-// Per node correction limits.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-double
-CRKSPHHydroBase<Dimension>::
-correctionMin() const {
-  return mCorrectionMin;
-}
-
-template<typename Dimension>
-inline
-void
-CRKSPHHydroBase<Dimension>::
-correctionMin(double val) {
-  mCorrectionMin = val;
-}
-    
-template<typename Dimension>
-inline
-double
-CRKSPHHydroBase<Dimension>::
-correctionMax() const {
-  return mCorrectionMax;
-}
-
-template<typename Dimension>
-inline
-void
-CRKSPHHydroBase<Dimension>::
-correctionMax(double val) {
-  mCorrectionMax = val;
 }
     
 //------------------------------------------------------------------------------
@@ -329,14 +311,6 @@ template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
-massDensityGradient() const {
-  return mMassDensityGradient;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
 XSPHDeltaV() const {
   return mXSPHDeltaV;
 }
@@ -399,7 +373,7 @@ internalDvDx() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, std::vector<typename Dimension::Vector> >&
+const std::vector<typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
 pairAccelerations() const {
   return mPairAccelerations;
@@ -551,18 +525,26 @@ surfacePoint() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, int>&
-CRKSPHHydroBase<Dimension>::
-voidPoint() const {
-  return mVoidPoint;
-}
-
-template<typename Dimension>
-inline
 const FieldList<Dimension, std::vector<typename Dimension::Vector>>&
 CRKSPHHydroBase<Dimension>::
 etaVoidPoints() const {
   return mEtaVoidPoints;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::FacetedVolume>&
+CRKSPHHydroBase<Dimension>::
+cells() const {
+  return mCells;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, std::vector<CellFaceFlag>>&
+CRKSPHHydroBase<Dimension>::
+cellFaceFlags() const {
+  return mCellFaceFlags;
 }
 
 template<typename Dimension>

@@ -15,9 +15,9 @@ std::list<Timer*> Timer::TimerList(0);
 //------------------------------------------------------------------------------
 // Root Timers
 //------------------------------------------------------------------------------
-Timer TimeSpheral               ("Root Timer                ");
+Timer TIME_Spheral               ("Root Timer                ");
 // Timer TimeNestedGridNeighbor    ("Root NestedGridNeighbor   ");
-// Timer TimePhysics               ("All physics derivatives   ");
+Timer TIME_Physics               ("All physics derivatives   ", TIME_Spheral);
 // Timer TimeSphNodeList           ("Root Sph NodeList         ");
 // Timer TimeMashNodeList          ("Root MASH NodeList        ");
 // Timer TimeDataBase              ("Root DataBase             ");
@@ -25,69 +25,72 @@ Timer TimeSpheral               ("Root Timer                ");
 // Timer TimeNestedDistributedBound("Root NestedDistribBound   ");
 
 //------------------------------------------------------------------------------
-// Voronoi 2d
+// Voronoi
 //------------------------------------------------------------------------------
-Timer TIME_computeVoronoiVolume2d("computeVoronoiVolume2d", TimeSpheral);
-
-//------------------------------------------------------------------------------
-// Voronoi 3d
-//------------------------------------------------------------------------------
-Timer TIME_computeVoronoiVolume3d("computeVoronoiVolume3d", TimeSpheral);
+Timer TIME_computeVoronoiVolume("computeVoronoiVolume", TIME_Spheral);
 
 //------------------------------------------------------------------------------
 // Polyhedron timers
 //------------------------------------------------------------------------------
-Timer TIME_Polyhedron_construct1       ("Polyhedron::Polyhedron(points)", TimeSpheral);
-Timer TIME_Polyhedron_construct2       ("Polyhedron::Polyhedron(points, facets)", TimeSpheral);
-Timer TIME_Polyhedron_BB               ("Polyhedron::setBoundingBox", TimeSpheral);
+Timer TIME_Polyhedron_construct1       ("Polyhedron::Polyhedron(points)", TIME_Spheral);
+Timer TIME_Polyhedron_construct2       ("Polyhedron::Polyhedron(points, facets)", TIME_Spheral);
+Timer TIME_Polyhedron_BB               ("Polyhedron::setBoundingBox", TIME_Spheral);
 Timer   TIME_Polyhedron_BB_ancillary   ("Polyhedron::setBoundingBox - computeAncillaryGeometry", TIME_Polyhedron_BB);
 Timer   TIME_Polyhedron_BB_centroid    ("Polyhedron::setBoundingBox - centroid", TIME_Polyhedron_BB);
 Timer   TIME_Polyhedron_BB_R2          ("Polyhedron::setBoundingBox - Rinterior2", TIME_Polyhedron_BB);
-Timer TIME_Polyhedron_convex           ("Polyhedron::convex", TimeSpheral);
+Timer TIME_Polyhedron_convex           ("Polyhedron::convex", TIME_Spheral);
 
 //------------------------------------------------------------------------------
 // PolyClipper2d timers
 //------------------------------------------------------------------------------
-Timer TIME_PC2d_convertto           ("Spheral::Polygon -> PolyClipper::Polygon", TimeSpheral);
-Timer TIME_PC2d_convertfrom         ("PolyClipper::Polygon -> Spheral::Polygon", TimeSpheral);
-Timer TIME_PC2d_copy                ("Copy PolyClipper::Polygon", TimeSpheral);
-Timer TIME_PC2d_moments             ("Compute polygon moments", TimeSpheral);
-Timer TIME_PC2d_clip                ("clipPolygon", TimeSpheral);
+Timer TIME_PC2d_convertto           ("Spheral::Polygon -> PolyClipper::Polygon", TIME_Spheral);
+Timer TIME_PC2d_convertfrom         ("PolyClipper::Polygon -> Spheral::Polygon", TIME_Spheral);
+Timer TIME_PC2d_copy                ("Copy PolyClipper::Polygon", TIME_Spheral);
+Timer TIME_PC2d_moments             ("Compute polygon moments", TIME_Spheral);
+Timer TIME_PC2d_clip                ("clipPolygon", TIME_Spheral);
 Timer   TIME_PC2d_planes            ("Apply clip planes (clipPolygon)", TIME_PC2d_clip);
 Timer   TIME_PC2d_checkverts        ("Clip vertices", TIME_PC2d_planes);
 Timer   TIME_PC2d_insertverts       ("Insert new vertices", TIME_PC2d_planes);
 Timer   TIME_PC2d_hanging           ("Link hanging vertices", TIME_PC2d_planes);
 Timer   TIME_PC2d_compress          ("Compress to active vertices", TIME_PC2d_planes);
-Timer TIME_PC2d_collapseDegenerates ("Remove degenerate edges/vertices", TimeSpheral);
+Timer TIME_PC2d_collapseDegenerates ("Remove degenerate edges/vertices", TIME_Spheral);
 
 //------------------------------------------------------------------------------
 // PolyClipper3d timers
 //------------------------------------------------------------------------------
-Timer TIME_PC3d_convertto("Spheral::Polyhedron -> PolyClipper::Polyhedron", TimeSpheral);
-Timer TIME_PC3d_convertfrom("PolyClipper::Polyhedron -> Spheral::Polyhedron", TimeSpheral);
-Timer TIME_PC3d_copy("Copy PolyClipper::Polyhedron", TimeSpheral);
-Timer TIME_PC3d_moments("Compute polyhedron moments", TimeSpheral);
-Timer TIME_PC3d_clip("clipPolyhedron", TimeSpheral);
+Timer TIME_PC3d_convertto("Spheral::Polyhedron -> PolyClipper::Polyhedron", TIME_Spheral);
+Timer TIME_PC3d_convertfrom("PolyClipper::Polyhedron -> Spheral::Polyhedron", TIME_Spheral);
+Timer TIME_PC3d_copy("Copy PolyClipper::Polyhedron", TIME_Spheral);
+Timer TIME_PC3d_moments("Compute polyhedron moments", TIME_Spheral);
+Timer TIME_PC3d_clip("clipPolyhedron", TIME_Spheral);
 Timer   TIME_PC3d_planes("Apply clip planes (clipPolyhedron)", TIME_PC3d_clip);
 Timer   TIME_PC3d_checkverts("Clip vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_insertverts("Insert new vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_planeverts("Relink in-plane vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_linknew("Link hanging vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_compress("Compress to active vertices", TIME_PC3d_planes);
-Timer TIME_PC3d_collapseDegenerates ("Remove degenerate edges/vertices", TimeSpheral);
+Timer TIME_PC3d_collapseDegenerates ("Remove degenerate edges/vertices", TIME_Spheral);
 
 //------------------------------------------------------------------------------
 // ConnectivityMap
 //------------------------------------------------------------------------------
-Timer TIME_ConnectivityMap_patch("ConnectivityMap::patchConnectivity", TimeSpheral);
-Timer TIME_ConnectivityMap_valid("ConnectivityMap::valid", TimeSpheral);
-Timer TIME_ConnectivityMap_computeConnectivity("ConnectivityMap::computeConnectivity", TimeSpheral);
+Timer TIME_ConnectivityMap_patch("ConnectivityMap::patchConnectivity", TIME_Spheral);
+Timer TIME_ConnectivityMap_cutConnectivity("ConnectivityMap::cutConnectivity", TIME_Spheral);
+Timer TIME_ConnectivityMap_valid("ConnectivityMap::valid", TIME_Spheral);
+Timer TIME_ConnectivityMap_computeConnectivity("ConnectivityMap::computeConnectivity", TIME_Spheral);
 Timer TIME_ConnectivityMap_computeOverlapConnectivity("ConnectivityMap::computeOverlapConnectivity", TIME_ConnectivityMap_computeConnectivity);
+
+//------------------------------------------------------------------------------
+// CRKSPH
+//------------------------------------------------------------------------------
+Timer TIME_CRKSPH_editMultimaterialSurfaceTopology("CRKSPH editMultimaterialSurfaceTopology", TIME_Spheral);
+Timer TIME_interpolateCRKSPH("RK interpolation standalone function", TIME_Spheral);
+Timer TIME_interpolateRK("RK interpolation standalone function", TIME_Spheral);
 
 // //------------------------------------------------------------------------------
 // // Second order predictor corrector integrator
 // //------------------------------------------------------------------------------
-// Timer TimePC2               ("Root Pred-Correct 2nd or", TimeSpheral);
+// Timer TimePC2               ("Root Pred-Correct 2nd or", TIME_Spheral);
 // Timer TimePC2Boundaries1    ("Set boundaries 1        ", TimePC2);
 // Timer TimePC2Dt             ("Set dt                  ", TimePC2);
 // Timer TimePC2StepInitialize1("Pre-step initialize 1   ", TimePC2);
@@ -114,7 +117,7 @@ Timer TIME_ConnectivityMap_computeOverlapConnectivity("ConnectivityMap::computeO
 // //------------------------------------------------------------------------------
 // // RK2 Synchronous integrator
 // //------------------------------------------------------------------------------
-// Timer TimeSyncRK2               ("Root Sync RK2Integrator ", TimeSpheral);
+// Timer TimeSyncRK2               ("Root Sync RK2Integrator ", TIME_Spheral);
 // Timer TimeSyncRK2Boundaries1    ("Set boundaries 1        ", TimeSyncRK2);
 // Timer TimeSyncRK2Dt             ("Set dt                  ", TimeSyncRK2);
 // Timer TimeSyncRK2StepInitialize1("Pre-step initialize 1   ", TimeSyncRK2);
@@ -138,27 +141,18 @@ Timer TIME_ConnectivityMap_computeOverlapConnectivity("ConnectivityMap::computeO
 // Timer TimeSyncRK2SumDensity     ("Sum end mass density    ", TimeSyncRK2);
 // Timer TimeSyncRK2Weights3       ("Update Weights 3        ", TimeSyncRK2);
 
-// //------------------------------------------------------------------------------
-// // Cheap RK2 Synchronous integrator
-// //------------------------------------------------------------------------------
-// Timer TimeCheapRK2               ("Root Cheap RK2Integrator", TimeSpheral);
-// Timer TimeCheapRK2Boundaries1    ("Set boundaries 1        ", TimeCheapRK2);
-// Timer TimeCheapRK2Dt             ("Set dt                  ", TimeCheapRK2);
-// Timer TimeCheapRK2StepInitialize1("Pre-step initialize 1   ", TimeCheapRK2);
-// Timer TimeCheapRK2ReadDB         ("Read DataBase FieldLists", TimeCheapRK2);
-// Timer TimeCheapRK2CopyFields     ("Copy initial Derivs     ", TimeCheapRK2);
-// Timer TimeCheapRK2MidStep        ("Advance to mid-step     ", TimeCheapRK2);
-// Timer TimeCheapRK2Weights1       ("Update Weights 1        ", TimeCheapRK2);
-// Timer TimeCheapRK2Boundaries2    ("Set boundaries 2        ", TimeCheapRK2);
-// Timer TimeCheapRK2StepInitialize2("Pre-step initialize 2   ", TimeCheapRK2);
-// Timer TimeCheapRK2Zero1          ("Zero derivs  1          ", TimeCheapRK2);
-// Timer TimeCheapRK2CopyDvDx1      ("Copy DvDx to temp       ", TimeCheapRK2);
-// Timer TimeCheapRK2EvalDerivs1    ("Eval derivs mid step    ", TimeCheapRK2);
-// Timer TimeCheapRK2EndStep        ("Advance to end of step  ", TimeCheapRK2);
-// Timer TimeCheapRK2CopyDvDx2      ("Copy DvDx to DB         ", TimeCheapRK2);
-// Timer TimeCheapRK2SumDensity     ("Sum end mass density    ", TimeCheapRK2);
-// Timer TimeCheapRK2Weights2       ("Update Weights 2        ", TimeCheapRK2);
-// Timer TimeCheapRK2Boundaries3    ("Set boundaries 3        ", TimeCheapRK2);
+//------------------------------------------------------------------------------
+// Cheap RK2 Synchronous integrator
+//------------------------------------------------------------------------------
+Timer TIME_CheapRK2               ("Root Cheap RK2Integrator", TIME_Spheral);
+Timer TIME_CheapRK2PreInit        ("preStepIntialize        ", TIME_CheapRK2);
+Timer TIME_CheapRK2Dt             ("Set dt                  ", TIME_CheapRK2);
+Timer TIME_CheapRK2CopyState      ("Copy initial state      ", TIME_CheapRK2);
+Timer TIME_CheapRK2MidStep        ("Advance to mid-step     ", TIME_CheapRK2);
+Timer TIME_CheapRK2EvalDerivs     ("Eval derivs mid step    ", TIME_CheapRK2);
+Timer TIME_CheapRK2EndStep        ("Advance to end of step  ", TIME_CheapRK2);
+Timer TIME_CheapRK2Finalize       ("postStepFinalize        ", TIME_CheapRK2);
+Timer TIME_CheapRK2EnforceBound   ("Enforce boundaries      ", TIME_CheapRK2);
 
 // //------------------------------------------------------------------------------
 // // NestedGridNeighbor
@@ -180,20 +174,23 @@ Timer TIME_ConnectivityMap_computeOverlapConnectivity("ConnectivityMap::computeO
 // Timer TimeHydroSetRefine        ("Set the refine nodes      ", TimeHydro);
 // Timer TimeHydroEvalDerivs       ("Set derivs for node       ", TimeHydro);
 
-// //------------------------------------------------------------------------------
-// // Sph NodeList
-// //------------------------------------------------------------------------------
-// Timer TimeSphSum                ("Sph Mass Summation        ", TimeSphNodeList);
-
-// Timer TimeSphDerivs             ("Base Sph Derivs           ", TimeSphNodeList);
-// Timer TimeSphNodeIState         ("Get state for node i      ", TimeSphDerivs);
-// Timer TimeSphNodeJState         ("Get state for node j      ", TimeSphDerivs);
-// Timer TimeSphRij                ("Calc rij, etaij, ...      ", TimeSphDerivs);
-// Timer TimeSphKernel             ("Evaluate Wij              ", TimeSphDerivs);
-// Timer TimeSphQ                  ("Evaluate Qij              ", TimeSphDerivs);
-// Timer TimeSphIncDerivs          ("Increment the derivs      ", TimeSphDerivs);
-// Timer TimeSphHDeriv             ("Evaluate the H deriv      ", TimeSphDerivs);
-// Timer TimeSphHSmooth            ("Smoothing contrib to H    ", TimeSphDerivs);
+//------------------------------------------------------------------------------
+// SPH 
+//------------------------------------------------------------------------------
+Timer TIME_SPH                   ("SPH base timer                 ", TIME_Physics);
+Timer TIME_SPHinitializeStartup  ("SPH initializeProblemStartup   ", TIME_SPH);
+Timer TIME_SPHregister           ("SPH register                   ", TIME_SPH);
+Timer TIME_SPHregisterDerivs     ("SPH registerDerivatives        ", TIME_SPH);
+Timer TIME_SPHpreStepInitialize  ("SPH preStepInitialize (step)   ", TIME_SPH);
+Timer TIME_SPHinitialize         ("SPH initialize (evalderivs)    ", TIME_SPH);
+Timer TIME_SPHfinalizeDerivs     ("SPH finalizeDerivatives        ", TIME_SPH);
+Timer TIME_SPHghostBounds        ("SPH ghost boundaries           ", TIME_SPH);
+Timer TIME_SPHupdateVol          ("SPH updateVolume               ", TIME_SPH);
+Timer TIME_SPHenforceBounds      ("SPH enforceBoundaries          ", TIME_SPH);
+Timer TIME_SPHevalDerivs         ("SPH evaluateDerivates          ", TIME_SPH);
+Timer TIME_SPHevalDerivs_initial ("SPH evaluateDerivates (initial)", TIME_SPHevalDerivs);
+Timer TIME_SPHevalDerivs_pairs   ("SPH evaluateDerivates (pairs)  ", TIME_SPHevalDerivs);
+Timer TIME_SPHevalDerivs_final   ("SPH evaluateDerivates (final)  ", TIME_SPHevalDerivs);
 
 // //------------------------------------------------------------------------------
 // // MASH NodeList

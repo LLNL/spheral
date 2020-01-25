@@ -8,6 +8,45 @@
 // #include "PeriodicBoundary.hh"
 #include "Utilities/DBC.hh"
 
+namespace {
+
+//------------------------------------------------------------------------------
+// Map a faceted volume
+//------------------------------------------------------------------------------
+template<typename BC, typename Dimension>
+struct MapFacetedVolume {
+  typename Dimension::FacetedVolume 
+  static doit(const BC& bc,
+       const typename Dimension::FacetedVolume& poly) {
+    typedef typename Dimension::Vector Vector;
+    typedef typename Dimension::FacetedVolume FacetedVolume;
+    const auto& enterPlane = bc.enterPlane();
+    const auto& exitPlane = bc.exitPlane();
+    const auto& verts0 = poly.vertices();
+    const auto& facets = poly.facetVertices();
+    const auto n = verts0.size();
+    vector<Vector> verts1;
+    for (auto& vert: verts0) verts1.push_back(bc.mapPosition(vert, enterPlane, exitPlane));
+    return FacetedVolume(verts1, facets);
+  }
+};
+
+template<typename BC>
+struct MapFacetedVolume<BC, Dim<1>> {
+  Dim<1>::FacetedVolume 
+  static doit(const BC& bc,
+       const Dim<1>::FacetedVolume& poly) {
+    const auto& enterPlane = bc.enterPlane();
+    const auto& exitPlane = bc.exitPlane();
+    return Dim<1>::FacetedVolume(bc.mapPosition(poly.center(),
+                                                enterPlane,
+                                                exitPlane),
+                                 poly.extent());
+  }
+};
+
+}
+
 //------------------------------------------------------------------------------
 // Empty constructor.
 //------------------------------------------------------------------------------
@@ -170,9 +209,71 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   }
 }
 
+// Fourth Rank Tensor fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::PeriodicPlanarBoundary::
+applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+
+  REQUIRE(valid());
+
+  // Apply the boundary condition to all the ghost node values.
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
+    CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
+    CHECK(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes());
+    field(*ghostItr) = field(*controlItr);
+  }
+}
+
+// Fifth Rank Tensor fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::PeriodicPlanarBoundary::
+applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+
+  REQUIRE(valid());
+
+  // Apply the boundary condition to all the ghost node values.
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
+    CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
+    CHECK(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes());
+    field(*ghostItr) = field(*controlItr);
+  }
+}
+
+// FacetedVolume fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::PeriodicPlanarBoundary::
+applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+
+  REQUIRE(valid());
+
+  // Apply the boundary condition to all the ghost node values.
+  const NodeList<Dimension>& nodeList = field.nodeList();
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
+    CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
+    CHECK(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes());
+    field(*ghostItr) = MapFacetedVolume<PeriodicBoundary<Dimension>::PeriodicPlanarBoundary, Dimension>::doit(*this, field(*controlItr));
+  }
+}
+
 //------------------------------------------------------------------------------
 // Enforce the boundary condition on nodes in violation for the given field.
-// For periodic boundaries, this is always simple.  Do nothing!
 //------------------------------------------------------------------------------
 // int fields.
 template<typename Dimension>
@@ -214,6 +315,35 @@ template<typename Dimension>
 void
 PeriodicBoundary<Dimension>::PeriodicPlanarBoundary::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+}
+
+// Fourth Rank Tensor fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::PeriodicPlanarBoundary::
+enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+}
+
+// Fifth Rank Tensor fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::PeriodicPlanarBoundary::
+enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+}
+
+// FacetedVolume fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::PeriodicPlanarBoundary::
+enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+  REQUIRE(valid());
+  const auto& nodeList = field.nodeList();
+  for (auto itr = this->violationBegin(nodeList);
+       itr < this->violationEnd(nodeList); 
+       ++itr) {
+    CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
+    field(*itr) = MapFacetedVolume<PeriodicBoundary<Dimension>::PeriodicPlanarBoundary, Dimension>::doit(*this, field(*itr));
+  }
 }
 
 //------------------------------------------------------------------------------

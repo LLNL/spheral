@@ -319,6 +319,33 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   mPlane2Boundary.applyGhostBoundary(field);
 }
 
+// Fourth rank tensor Fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  mPlane1Boundary.applyGhostBoundary(field);
+  mPlane2Boundary.applyGhostBoundary(field);
+}
+
+// Fifth rank tensor Fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  mPlane1Boundary.applyGhostBoundary(field);
+  mPlane2Boundary.applyGhostBoundary(field);
+}
+
+// FacetedVolume Fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+  mPlane1Boundary.applyGhostBoundary(field);
+  mPlane2Boundary.applyGhostBoundary(field);
+}
+
 //------------------------------------------------------------------------------
 // Enforce the boundary condition to fields of different DataTypes.
 // For the Periodic boundary, the nested sub classes do all the work.
@@ -373,6 +400,33 @@ template<typename Dimension>
 void
 PeriodicBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+  mPlane1Boundary.enforceBoundary(field);
+  mPlane2Boundary.enforceBoundary(field);
+}
+
+// Fourth rank tensor Fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+  mPlane1Boundary.enforceBoundary(field);
+  mPlane2Boundary.enforceBoundary(field);
+}
+
+// Fifth rank tensor Fields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+  mPlane1Boundary.enforceBoundary(field);
+  mPlane2Boundary.enforceBoundary(field);
+}
+
+// FacetedVolumeFields.
+template<typename Dimension>
+void
+PeriodicBoundary<Dimension>::
+enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
   mPlane1Boundary.enforceBoundary(field);
   mPlane2Boundary.enforceBoundary(field);
 }

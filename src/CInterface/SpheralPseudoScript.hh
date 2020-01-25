@@ -31,7 +31,6 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Integrator/CheapSynchronousRK2.hh"
-#include "Boundary/ConstantBoundary.hh"
 
 namespace Spheral {
 
@@ -65,6 +64,7 @@ public:
                          const int      piKernelType,
                          const int      gradKernelType,
                          const int      nbspline,
+                         const int      crkorder,
                          const int      damage,
                          const unsigned nmats,
                          const double   CFL,
@@ -133,6 +133,12 @@ public:
   static void addBoundary(const Vector& point,
                           const Vector& normal);
 
+  // Add boundary conditions
+  static void addPeriodicBoundary(const Vector& point1,
+                                  const Vector& normal1,
+                                  const Vector& point2,
+                                  const Vector& normal2);
+
   // Take an initial guess for the H tensor field and optimize it.
   static void iterateHfield(double**     Hfield,
                             const int    maxIterations = 50,
@@ -151,9 +157,20 @@ public:
                                 const int*     nsamples,
                                 double*        latticeDensity);
 
+  static void polyhedralMesh(int*           nnodes,
+                             int*           nfaces,
+                             int*           ncells,
+                             double**       coords,
+                             int**          facetonodes,
+                             int**          celltofaces);
+
   static void fillVolume(const int*     nnodes,
+                         const int*     nfaces,
                          const double** coords,
+                         const int*     conn,
                          const double   spacing,
+                         const int      domain,
+                         const int      ndomains,
                          double*        volume,
                          int*           nparticles,
                          double**       sphcoords);
@@ -191,9 +208,6 @@ private:
 
   // Numbers of nodes per material.
   std::vector<unsigned> mNumInternalNodes, mNumHostGhostNodes;
-
-  // CRK flags
-  bool mCRK, mCRKInitialized;
 
   // Damage flag
   bool mDamage;

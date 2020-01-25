@@ -6,7 +6,7 @@
 
 #include "Geometry/MathTraits.hh"
 #include "SPH/NodeCoupling.hh"
-#include "CRKSPHCorrectionParams.hh"
+#include "RK/RKCorrectionParams.hh"
 
 namespace Spheral {
 
@@ -28,7 +28,7 @@ gradientCRKSPH(const FieldList<Dimension, DataType>& fieldList,
                const FieldList<Dimension, typename Dimension::Tensor>& gradB,
                const FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradC,
                const ConnectivityMap<Dimension>& connectivityMap,
-               const CRKOrder correctionOrder,
+               const RKOrder correctionOrder,
                const TableKernel<Dimension>& W,
                const NodeCoupling& nodeCoupling = NodeCoupling());
 

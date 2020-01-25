@@ -34,10 +34,11 @@ class CRKSPHHydroBaseRZ(CRKSPHHydroBase):
                XSPH = "const bool",
                densityUpdate = "const MassDensityType",
                HUpdate = "const HEvolutionType",
-               correctionOrder = "const CRKOrder",
-               volumeType = "const CRKVolumeType",
+               correctionOrder = "const RKOrder",
+               volumeType = "const RKVolumeType",
                epsTensile = "const double",
-               nTensile = "const double"):
+               nTensile = "const double",
+               limitMultimaterialTopology = "const bool"):
         "Constructor"
 
     #...........................................................................
@@ -55,6 +56,14 @@ class CRKSPHHydroBaseRZ(CRKSPHHydroBase):
         return "void"
 
     @PYB11virtual
+    def preStepInitialize(self,
+                          dataBase = "const DataBase<%(Dimension)s>&", 
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Optional hook to be called at the beginning of a time step."
+        return "void"
+
+    @PYB11virtual
     @PYB11const
     def evaluateDerivatives(self,
                             time = "const Scalar",
@@ -66,16 +75,6 @@ class CRKSPHHydroBaseRZ(CRKSPHHydroBase):
 mass density, velocity, and specific thermal energy."""
         return "void"
 
-    @PYB11virtual
-    def finalize(self,
-                 time = "const Scalar",
-                 dt = "const Scalar",
-                 dataBase = "DataBase<%(Dimension)s>&",
-                 state = "State<%(Dimension)s>&",
-                 derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Finalize the hydro at the completion of an integration step."
-        return "void"
-                  
     @PYB11virtual
     def applyGhostBoundaries(self,
                              state = "State<%(Dimension)s>&",

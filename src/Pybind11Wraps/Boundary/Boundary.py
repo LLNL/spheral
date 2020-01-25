@@ -14,6 +14,9 @@ class Boundary:
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
+    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
+    typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef typename Boundary<%(Dimension)s>::BoundaryNodes BoundaryNodes;
 """
 
@@ -87,6 +90,12 @@ class Boundary:
 
     @PYB11virtual
     @PYB11const
+    def allowGhostCulling(self):
+        "Optionally opt-out of ghost node culling."
+        return "bool"
+
+    @PYB11virtual
+    @PYB11const
     def meshGhostNodes(self):
         "Some boundaries have ghosts we should exclude from tessellations. Provide a hook to note such cases."
         return "bool"
@@ -138,7 +147,7 @@ class Boundary:
         "Enforce boundary on all Fields in FieldList"
         return "void"
 
-    for T in ("int", "Scalar", "Vector", "Tensor", "SymTensor", "ThirdRankTensor"):
+    for T in ("int", "Scalar", "Vector", "Tensor", "SymTensor", "ThirdRankTensor", "FourthRankTensor", "FifthRankTensor"):
         exec('''
 aflgb%(T)s = PYB11TemplateMethod(applyFieldListGhostBoundary, template_parameters="%(T)s", pyname="applyFieldListGhostBoundary")
 eflgb%(T)s = PYB11TemplateMethod(enforceFieldListBoundary, template_parameters="%(T)s", pyname="enforceFieldListBoundary")

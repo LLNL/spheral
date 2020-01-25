@@ -12,15 +12,6 @@
     <ClCompile Include="..\..\src\FileIO\FileIO.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\FileIO\FlatFileIO.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\FileIO\PyFileIO.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\FileIO\vectorstringUtilities.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\FileIO\DbFileIO.hh">
@@ -32,9 +23,6 @@
     <None Include="..\..\src\FileIO\FileIOInline.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\FileIO\FlatFileIO.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\FileIO\HDF5IO.hh">
       <Filter>Header Files</Filter>
     </None>
@@ -42,12 +30,6 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\FileIO\HDF5Types.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\FileIO\PyFileIO.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\FileIO\vectorstringUtilities.hh">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

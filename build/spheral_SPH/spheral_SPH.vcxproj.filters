@@ -9,9 +9,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\SPH\computeHydrostaticEquilibriumPressure.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\SPH\computeSPHOmegaGradhCorrectionInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -42,18 +39,6 @@
     <ClCompile Include="..\..\src\SPH\SPHHydroBaseGSRZ.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\SPH\computePSPHCorrectionsInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SPH\computePSPHCorrectionsInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SPH\PSPHHydroBaseInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SPH\PSPHHydroBaseInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\SPH\correctSPHSumMassDensityInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -71,9 +56,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\src\SPH\computePSPHCorrectionsInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\SPH\computeSPHOmegaGradhCorrectionInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
@@ -84,9 +66,6 @@
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\SPH\SPHHydroBaseInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\SPH\PSPHHydroBaseInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\SPH\correctSPHSumMassDensityInst.cc.py">

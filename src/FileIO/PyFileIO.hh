@@ -245,14 +245,6 @@ public:
   //------------------------------------------------------------------------------
   // We have to forward the templated write/read methods to the base class due to
   // function hiding.
-  // Write/read FieldLists.
-  template<typename Dimension, typename Value> void write(const FieldList<Dimension, Value>& fieldList, const std::string pathName) { FileIO::write(fieldList, pathName); }
-  template<typename Dimension, typename Value> void  read(FieldList<Dimension, Value>& fieldList, const std::string pathName) const { FileIO::read(fieldList, pathName); }
-
-  // Write/read Fields of vectors.
-  template<typename Dimension, typename Value> void write(const Field<Dimension, std::vector<Value> >& field, const std::string pathName) { FileIO::write(field, pathName); }
-  template<typename Dimension, typename Value> void  read(Field<Dimension, std::vector<Value> >& field, const std::string pathName) const { FileIO::read(field, pathName); }
-
   // Write/read a vector<Value> if Value is a primitive we already know about.
   template<typename Value> void write(const std::vector<Value>& x, const std::string pathName) { FileIO::write(x, pathName); }
   template<typename Value> void  read(std::vector<Value>& x, const std::string pathName) const { FileIO::read(x, pathName); }

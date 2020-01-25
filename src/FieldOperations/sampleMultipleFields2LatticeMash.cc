@@ -24,13 +24,13 @@
 
 #ifdef USE_MPI
 #include "mpi.h"
-#include "Distributed/BoundingVolumeDistributedBoundary.hh"
 #include "Distributed/NestedGridDistributedBoundary.hh"
 #include "Distributed/Communicator.hh"
 #endif
 
 #include <algorithm>
 using std::vector;
+using std::tuple;
 using std::map;
 using std::cout;
 using std::cerr;
@@ -38,8 +38,6 @@ using std::endl;
 using std::min;
 using std::max;
 using std::abs;
-
-using boost::tuple;
 
 namespace Spheral {
 
@@ -363,12 +361,8 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
   for (int i = 0; i != Dimension::nDim; ++i) VERIFY(nsample[i] > 0);
 
   // Get the parallel geometry.
-  int procID = 0;
-  int numProcs = 1;
-#ifdef USE_MPI
-  MPI_Comm_rank(Communicator::communicator(), &procID);
-  MPI_Comm_size(Communicator::communicator(), &numProcs);
-#endif
+  const auto procID = Process::getRank();
+  const auto numProcs = Process::getTotalNumberOfProcesses();
   CHECK(numProcs > 0);
 
   // We need to exclude any nodes that come from the Distributed boundary condition.
@@ -421,9 +415,10 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
        ++nodeItr) {
 
 #ifdef USE_MPI
-    const bool useNode = count(distributedBoundary.ghostNodes(*(nodeItr.nodeListPtr())).begin(),
-                               distributedBoundary.ghostNodes(*(nodeItr.nodeListPtr())).end(),
-                               nodeItr.nodeID()) == 0;
+    const bool useNode = (numProcs == 1 ? true :
+                          count(distributedBoundary.ghostNodes(*(nodeItr.nodeListPtr())).begin(),
+                                distributedBoundary.ghostNodes(*(nodeItr.nodeListPtr())).end(),
+                                nodeItr.nodeID()) == 0);
 #else
     const bool useNode = true;
 #endif
@@ -468,7 +463,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
 
         // Scalar fields.
         {
-          vector<Scalar>& samples = boost::tuples::get<0>(localResult[j]);
+          vector<Scalar>& samples = std::get<0>(localResult[j]);
           for (int k = 0; k != numScalarFieldLists; ++k) {
             CHECK(k < samples.size());
             const FieldList<Dimension, Scalar>& fieldList = fieldListSet.ScalarFieldLists[k];
@@ -479,7 +474,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
           
         // Vector fields.
         {
-          vector<Vector>& samples = boost::tuples::get<1>(localResult[j]);
+          vector<Vector>& samples = std::get<1>(localResult[j]);
           for (int k = 0; k != numVectorFieldLists; ++k) {
             CHECK(k < samples.size());
             const FieldList<Dimension, Vector>& fieldList = fieldListSet.VectorFieldLists[k];
@@ -490,7 +485,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
           
         // Tensor fields.
         {
-          vector<Tensor>& samples = boost::tuples::get<2>(localResult[j]);
+          vector<Tensor>& samples = std::get<2>(localResult[j]);
           for (int k = 0; k != numTensorFieldLists; ++k) {
             CHECK(k < samples.size());
             const FieldList<Dimension, Tensor>& fieldList = fieldListSet.TensorFieldLists[k];
@@ -501,7 +496,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
           
         // SymTensor fields.
         {
-          vector<SymTensor>& samples = boost::tuples::get<3>(localResult[j]);
+          vector<SymTensor>& samples = std::get<3>(localResult[j]);
           for (int k = 0; k != numSymTensorFieldLists; ++k) {
             CHECK(k < samples.size());
             const FieldList<Dimension, SymTensor>& fieldList = fieldListSet.SymTensorFieldLists[k];
@@ -511,7 +506,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
         }
           
         // Normalization.
-        boost::tuples::get<4>(localResult[j]) += thpt;
+        std::get<4>(localResult[j]) += thpt;
 
       }
     }
@@ -543,7 +538,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
       
       // Scalar fields.
       {
-        const vector<Scalar>& localSamples = boost::tuples::get<0>(itr->second);
+        const vector<Scalar>& localSamples = std::get<0>(itr->second);
         for (int k = 0; k != numScalarFieldLists; ++k) {
           CHECK(k < localSamples.size());
           CHECK(k < scalarValues.size() and jlocal < scalarValues[k].size());
@@ -553,7 +548,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
       
       // Vector fields.
       {
-        const vector<Vector>& localSamples = boost::tuples::get<1>(itr->second);
+        const vector<Vector>& localSamples = std::get<1>(itr->second);
         for (int k = 0; k != numVectorFieldLists; ++k) {
           CHECK(k < localSamples.size());
           CHECK(k < vectorValues.size() and jlocal < vectorValues[k].size());
@@ -563,7 +558,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
       
       // Tensor fields.
       {
-        const vector<Tensor>& localSamples = boost::tuples::get<2>(itr->second);
+        const vector<Tensor>& localSamples = std::get<2>(itr->second);
         for (int k = 0; k != numTensorFieldLists; ++k) {
           CHECK(k < localSamples.size());
           CHECK(k < tensorValues.size() and jlocal < tensorValues[k].size());
@@ -573,7 +568,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
       
       // SymTensor fields.
       {
-        const vector<SymTensor>& localSamples = boost::tuples::get<3>(itr->second);
+        const vector<SymTensor>& localSamples = std::get<3>(itr->second);
         for (int k = 0; k != numSymTensorFieldLists; ++k) {
           CHECK(k < localSamples.size());
           CHECK(k < symTensorValues.size() and jlocal < symTensorValues[k].size());
@@ -582,7 +577,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
       }
 
       // Normalization.
-      normalization[jlocal] += boost::tuples::get<4>(itr->second);
+      normalization[jlocal] += std::get<4>(itr->second);
 
     } else {
 
@@ -593,7 +588,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
 
       // Scalar fields.
       {
-        const vector<Scalar>& localSamples = boost::tuples::get<0>(itr->second);
+        const vector<Scalar>& localSamples = std::get<0>(itr->second);
         for (int k = 0; k != numScalarFieldLists; ++k) {
           CHECK(k < localSamples.size());
           packElement(localSamples[k], sendValuesBuffers[jdomain]);
@@ -602,7 +597,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
 
       // Vector fields.
       {
-        const vector<Vector>& localSamples = boost::tuples::get<1>(itr->second);
+        const vector<Vector>& localSamples = std::get<1>(itr->second);
         for (int k = 0; k != numVectorFieldLists; ++k) {
           CHECK(k < localSamples.size());
           packElement(localSamples[k], sendValuesBuffers[jdomain]);
@@ -611,7 +606,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
 
       // Tensor fields.
       {
-        const vector<Tensor>& localSamples = boost::tuples::get<2>(itr->second);
+        const vector<Tensor>& localSamples = std::get<2>(itr->second);
         for (int k = 0; k != numTensorFieldLists; ++k) {
           CHECK(k < localSamples.size());
           packElement(localSamples[k], sendValuesBuffers[jdomain]);
@@ -620,7 +615,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
 
       // SymTensor fields.
       {
-        const vector<SymTensor>& localSamples = boost::tuples::get<3>(itr->second);
+        const vector<SymTensor>& localSamples = std::get<3>(itr->second);
         for (int k = 0; k != numSymTensorFieldLists; ++k) {
           CHECK(k < localSamples.size());
           packElement(localSamples[k], sendValuesBuffers[jdomain]);
@@ -628,128 +623,129 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
       }
 
       // Normalization.
-      packElement(boost::tuples::get<4>(itr->second), sendValuesBuffers[jdomain]);
+      packElement(std::get<4>(itr->second), sendValuesBuffers[jdomain]);
 
     }
   }
 
 #ifdef USE_MPI
-  // Send everyone all the information we have for them.
-  vector<int> numSends(numProcs);
   vector<MPI_Request> sendRequests(3*(numProcs - 1));
-  for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
-    if (sendProc != procID) {
-      const int bufIndex = sendProc > procID ? sendProc - 1 : sendProc;
-      numSends[sendProc] = sendIndiciesBuffers[sendProc].size();
-      CHECK(sendValuesBuffers[sendProc].size() == numSends[sendProc]*sizeOfElement);
-      MPI_Isend(&numSends[sendProc], 1, MPI_INT, sendProc, 1, Communicator::communicator(), &sendRequests[bufIndex]);
-      MPI_Isend(&(*sendIndiciesBuffers[sendProc].begin()), numSends[sendProc], MPI_INT, sendProc, 2, Communicator::communicator(), &sendRequests[(numProcs - 1) + bufIndex]);
-      MPI_Isend(&(*sendValuesBuffers[sendProc].begin()), numSends[sendProc]*sizeOfElement, MPI_CHAR, sendProc, 3, Communicator::communicator(), &sendRequests[2*(numProcs - 1) + bufIndex]);
-    }
-  }
-
-  // Post receives to see how many indicies other processors are sending to us.
-  vector<int> numReceiveNodes(size_t(numProcs), 0);
-  vector<MPI_Request> recvRequests0(numProcs - 1);
-  for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
-    if (recvProc != procID) {
-      const int bufIndex = recvProc > procID ? recvProc - 1 : recvProc;
-      MPI_Irecv(&numReceiveNodes[recvProc], 1, MPI_INT, recvProc, 1, Communicator::communicator(), &recvRequests0[bufIndex]);
-    }
-  }
-
-  // Wait until we have the sizes from everyone.
-  {
-    vector<MPI_Status> recvStatus(recvRequests0.size());
-    MPI_Waitall(recvRequests0.size(), &(*recvRequests0.begin()), &(*recvStatus.begin()));
-  }
-
-  // Size up the receive buffers.
-  vector<vector<int>  > recvIndiciesBuffers(numProcs);
-  vector<vector<char> > recvValuesBuffers(numProcs);
-  for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
-    recvIndiciesBuffers[recvProc].resize(numReceiveNodes[recvProc]);
-    recvValuesBuffers[recvProc].resize(numReceiveNodes[recvProc]*sizeOfElement);
-  }
-
-  // Post receives for the nodal data.
-  vector<MPI_Request> recvRequests1(2*(numProcs - 1));
-  for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
-    if (recvProc != procID) {
-      const int bufIndex = recvProc > procID ? recvProc - 1 : recvProc;
-      MPI_Irecv(&(*recvIndiciesBuffers[recvProc].begin()), numReceiveNodes[recvProc], MPI_INT, recvProc, 2, Communicator::communicator(), &recvRequests1[bufIndex]);
-      MPI_Irecv(&(*recvValuesBuffers[recvProc].begin()), numReceiveNodes[recvProc]*sizeOfElement, MPI_CHAR, recvProc, 3, Communicator::communicator(), &recvRequests1[numProcs - 1 + bufIndex]);
-    }
-  }
-
-  // Wait until we have the full receive data.
-  {
-    vector<MPI_Status> recvStatus(recvRequests1.size());
-    MPI_Waitall(recvRequests1.size(), &(*recvRequests1.begin()), &(*recvStatus.begin()));
-  }
-
-  // Now unpack the receive values and add them onto our local values.
-  for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
-    if (recvProc != procID) {
-      const vector<char>& buffer = recvValuesBuffers[recvProc];
-      CHECK(buffer.size() % sizeOfElement == 0);
-      vector<char>::const_iterator bufItr = buffer.begin();
-      for (int i = 0; i != numReceiveNodes[recvProc]; ++i) {
-        const int jlocal = recvIndiciesBuffers[recvProc][i];
-        CHECK(jlocal >= 0 and jlocal < nlocalsizing);
-
-        // Scalar Fields.
-        {
-          Scalar element;
-          for (int k = 0; k != numScalarFieldLists; ++k) {
-            CHECK(k < scalarValues.size() and jlocal < scalarValues[k].size());
-            unpackElement(element, bufItr, buffer.end());
-            scalarValues[k][jlocal] += element;
-          }
-        }
-
-        // Vector Fields.
-        {
-          Vector element;
-          for (int k = 0; k != numVectorFieldLists; ++k) {
-            CHECK(k < vectorValues.size() and jlocal < vectorValues[k].size());
-            unpackElement(element, bufItr, buffer.end());
-            vectorValues[k][jlocal] += element;
-          }
-        }
-
-        // Tensor Fields.
-        {
-          Tensor element;
-          for (int k = 0; k != numTensorFieldLists; ++k) {
-            CHECK(k < tensorValues.size() and jlocal < tensorValues[k].size());
-            unpackElement(element, bufItr, buffer.end());
-            tensorValues[k][jlocal] += element;
-          }
-        }
-
-        // SymTensor Fields.
-        {
-          SymTensor element;
-          for (int k = 0; k != numSymTensorFieldLists; ++k) {
-            CHECK(k < symTensorValues.size() and jlocal < symTensorValues[k].size());
-            unpackElement(element, bufItr, buffer.end());
-            symTensorValues[k][jlocal] += element;
-          }
-        }
-
-        // Normalization.
-        {
-          Scalar thpt;
-          unpackElement(thpt, bufItr, buffer.end());
-          normalization[jlocal] += thpt;
-        }
-
+  if (numProcs > 1) {
+    // Send everyone all the information we have for them.
+    vector<int> numSends(numProcs);
+    for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
+      if (sendProc != procID) {
+        const int bufIndex = sendProc > procID ? sendProc - 1 : sendProc;
+        numSends[sendProc] = sendIndiciesBuffers[sendProc].size();
+        CHECK(sendValuesBuffers[sendProc].size() == numSends[sendProc]*sizeOfElement);
+        MPI_Isend(&numSends[sendProc], 1, MPI_INT, sendProc, 1, Communicator::communicator(), &sendRequests[bufIndex]);
+        MPI_Isend(&(*sendIndiciesBuffers[sendProc].begin()), numSends[sendProc], MPI_INT, sendProc, 2, Communicator::communicator(), &sendRequests[(numProcs - 1) + bufIndex]);
+        MPI_Isend(&(*sendValuesBuffers[sendProc].begin()), numSends[sendProc]*sizeOfElement, MPI_CHAR, sendProc, 3, Communicator::communicator(), &sendRequests[2*(numProcs - 1) + bufIndex]);
       }
-      CHECK(bufItr == buffer.end());
+    }
+
+    // Post receives to see how many indicies other processors are sending to us.
+    vector<int> numReceiveNodes(size_t(numProcs), 0);
+    vector<MPI_Request> recvRequests0(numProcs - 1);
+    for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
+      if (recvProc != procID) {
+        const int bufIndex = recvProc > procID ? recvProc - 1 : recvProc;
+        MPI_Irecv(&numReceiveNodes[recvProc], 1, MPI_INT, recvProc, 1, Communicator::communicator(), &recvRequests0[bufIndex]);
+      }
+    }
+
+    // Wait until we have the sizes from everyone.
+    {
+      vector<MPI_Status> recvStatus(recvRequests0.size());
+      MPI_Waitall(recvRequests0.size(), &(*recvRequests0.begin()), &(*recvStatus.begin()));
+    }
+
+    // Size up the receive buffers.
+    vector<vector<int>  > recvIndiciesBuffers(numProcs);
+    vector<vector<char> > recvValuesBuffers(numProcs);
+    for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
+      recvIndiciesBuffers[recvProc].resize(numReceiveNodes[recvProc]);
+      recvValuesBuffers[recvProc].resize(numReceiveNodes[recvProc]*sizeOfElement);
+    }
+
+    // Post receives for the nodal data.
+    vector<MPI_Request> recvRequests1(2*(numProcs - 1));
+    for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
+      if (recvProc != procID) {
+        const int bufIndex = recvProc > procID ? recvProc - 1 : recvProc;
+        MPI_Irecv(&(*recvIndiciesBuffers[recvProc].begin()), numReceiveNodes[recvProc], MPI_INT, recvProc, 2, Communicator::communicator(), &recvRequests1[bufIndex]);
+        MPI_Irecv(&(*recvValuesBuffers[recvProc].begin()), numReceiveNodes[recvProc]*sizeOfElement, MPI_CHAR, recvProc, 3, Communicator::communicator(), &recvRequests1[numProcs - 1 + bufIndex]);
+      }
+    }
+
+    // Wait until we have the full receive data.
+    {
+      vector<MPI_Status> recvStatus(recvRequests1.size());
+      MPI_Waitall(recvRequests1.size(), &(*recvRequests1.begin()), &(*recvStatus.begin()));
+    }
+
+    // Now unpack the receive values and add them onto our local values.
+    for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
+      if (recvProc != procID) {
+        const vector<char>& buffer = recvValuesBuffers[recvProc];
+        CHECK(buffer.size() % sizeOfElement == 0);
+        vector<char>::const_iterator bufItr = buffer.begin();
+        for (int i = 0; i != numReceiveNodes[recvProc]; ++i) {
+          const int jlocal = recvIndiciesBuffers[recvProc][i];
+          CHECK(jlocal >= 0 and jlocal < nlocalsizing);
+
+          // Scalar Fields.
+          {
+            Scalar element;
+            for (int k = 0; k != numScalarFieldLists; ++k) {
+              CHECK(k < scalarValues.size() and jlocal < scalarValues[k].size());
+              unpackElement(element, bufItr, buffer.end());
+              scalarValues[k][jlocal] += element;
+            }
+          }
+
+          // Vector Fields.
+          {
+            Vector element;
+            for (int k = 0; k != numVectorFieldLists; ++k) {
+              CHECK(k < vectorValues.size() and jlocal < vectorValues[k].size());
+              unpackElement(element, bufItr, buffer.end());
+              vectorValues[k][jlocal] += element;
+            }
+          }
+
+          // Tensor Fields.
+          {
+            Tensor element;
+            for (int k = 0; k != numTensorFieldLists; ++k) {
+              CHECK(k < tensorValues.size() and jlocal < tensorValues[k].size());
+              unpackElement(element, bufItr, buffer.end());
+              tensorValues[k][jlocal] += element;
+            }
+          }
+
+          // SymTensor Fields.
+          {
+            SymTensor element;
+            for (int k = 0; k != numSymTensorFieldLists; ++k) {
+              CHECK(k < symTensorValues.size() and jlocal < symTensorValues[k].size());
+              unpackElement(element, bufItr, buffer.end());
+              symTensorValues[k][jlocal] += element;
+            }
+          }
+
+          // Normalization.
+          {
+            Scalar thpt;
+            unpackElement(thpt, bufItr, buffer.end());
+            normalization[jlocal] += thpt;
+          }
+
+        }
+        CHECK(bufItr == buffer.end());
+      }
     }
   }
-
 #endif
 
   // Adjust the normalizations, so that if we're getting into vacuum we go gently.
@@ -790,7 +786,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
 
 #ifdef USE_MPI
   // Wait until all our sends are completed.
-  {
+  if (numProcs > 1) {
     vector<MPI_Status> sendStatus(sendRequests.size());
     MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
   }

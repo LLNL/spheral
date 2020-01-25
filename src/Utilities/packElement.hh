@@ -13,7 +13,9 @@
 #include <map>
 #include <iterator>
 #include <string>
+#include <tuple>
 #include "DataTypeTraits.hh"
+#include "Utilities/DomainNode.hh"
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -185,15 +187,15 @@ packElement(const std::pair<T1, T2>& value,
   packElement(value.second, buffer);
 }
 
-// Specialization for a boost::tuple of three common elements.
+// Specialization for a std::tuple of three common elements.
 template<typename T>
 inline
 void
-packElement(const boost::tuple<T, T, T>& value,
+packElement(const std::tuple<T, T, T>& value,
             std::vector<char>& buffer) {
-  packElement(boost::get<0>(value), buffer);
-  packElement(boost::get<1>(value), buffer);
-  packElement(boost::get<2>(value), buffer);
+  packElement(std::get<0>(value), buffer);
+  packElement(std::get<1>(value), buffer);
+  packElement(std::get<2>(value), buffer);
 }
 
 // Specialize for a std::vector<DataType>.
@@ -397,20 +399,20 @@ unpackElement(std::pair<T1, T2>& value,
   unpackElement(value.second, itr, endPackedVector);
 }
 
-// boost::tuple<T,T,T>
+// std::tuple<T,T,T>
 template<typename DataType>
 inline
 void
-unpackElement(boost::tuple<DataType, DataType, DataType>& value,
+unpackElement(std::tuple<DataType, DataType, DataType>& value,
               std::vector<char>::const_iterator& itr,
               const std::vector<char>::const_iterator& endPackedVector) {
   DataType x, y, z;
   unpackElement(x, itr, endPackedVector);
   unpackElement(y, itr, endPackedVector);
   unpackElement(z, itr, endPackedVector);
-  boost::get<0>(value) = x;
-  boost::get<1>(value) = y;
-  boost::get<2>(value) = z;
+  std::get<0>(value) = x;
+  std::get<1>(value) = y;
+  std::get<2>(value) = z;
 }
 
 // Handle the vector<DataType> case, so long as DataType is one of the types
@@ -447,10 +449,10 @@ template<typename Dimension, typename DataType>
 inline
 int
 computeBufferSize(const Field<Dimension, DataType>& field,
-                  const std::vector<int>& packIndicies,
+                  const std::vector<int>& packIndices,
                   const int sendProc,
                   const int recvProc) {
-  return (packIndicies.size() * 
+  return (packIndices.size() * 
           DataTypeTraits<DataType>::numElements(DataType()) * 
           sizeof(typename DataTypeTraits<DataType>::ElementType));
 }
@@ -460,7 +462,7 @@ template<typename Dimension, typename DataType>
 inline
 int
 computeBufferSize(const Field<Dimension, std::vector<DataType> >& field,
-                  const std::vector<int>& packIndicies,
+                  const std::vector<int>& packIndices,
                   const int sendProc,
                   const int recvProc) {
 
@@ -478,8 +480,8 @@ computeBufferSize(const Field<Dimension, std::vector<DataType> >& field,
   // The send proc can compute the necessary size.
   int bufSize;
   if (rank == sendProc) {
-    for (std::vector<int>::const_iterator itr = packIndicies.begin();
-         itr != packIndicies.end();
+    for (std::vector<int>::const_iterator itr = packIndices.begin();
+         itr != packIndices.end();
          ++itr) {
       bufSize += field(*itr).size();
     }
@@ -505,15 +507,15 @@ template<typename Dimension, typename DataType>
 inline
 std::vector<char>
 packFieldValues(const Field<Dimension, DataType>& field,
-                const std::vector<int>& packIndicies) {
+                const std::vector<int>& packIndices) {
 
   // Prepare the return vector.
   std::vector<char> result;
 
   // Loop over the elements of the Field we are packing, and push the 
   // packed elements onto the result.
-  for (std::vector<int>::const_iterator elementItr = packIndicies.begin();
-       elementItr != packIndicies.end();
+  for (std::vector<int>::const_iterator elementItr = packIndices.begin();
+       elementItr != packIndices.end();
        ++elementItr) {
     CHECK(*elementItr >= 0 && *elementItr < field.numElements());
     packElement(field(*elementItr), result);
@@ -524,19 +526,19 @@ packFieldValues(const Field<Dimension, DataType>& field,
 
 //------------------------------------------------------------------------------
 // Unpack encoded values from the given vector to the Field at the indicated
-// indicies.
+// indices.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
 void
 unpackFieldValues(Field<Dimension, DataType>& field,
-                  const std::vector<int>& packIndicies,
+                  const std::vector<int>& packIndices,
                   const std::vector<char>& packedValues) {
 
   // Loop over the elements of the Field we are unpacking.
   typename std::vector<char>::const_iterator bufItr = packedValues.begin();
-  for (std::vector<int>::const_iterator elementItr = packIndicies.begin();
-       elementItr != packIndicies.end();
+  for (std::vector<int>::const_iterator elementItr = packIndices.begin();
+       elementItr != packIndices.end();
        ++elementItr) {
     CHECK(*elementItr >= 0 && *elementItr < field.numElements());
     CHECK(bufItr < packedValues.end());
@@ -694,6 +696,7 @@ unpackElement<PolyClipper::Vertex2d>(PolyClipper::Vertex2d& value,
   ENSURE(itr <= endPackedVector);
 }
 
+//..............................................................................
 // PolyClipper::Vertex3d
 template<>
 inline
@@ -716,6 +719,145 @@ unpackElement<PolyClipper::Vertex3d>(PolyClipper::Vertex3d& value,
   unpackElement(value.neighbors, itr, endPackedVector);
   unpackElement(value.comp, itr, endPackedVector);
   unpackElement(value.ID, itr, endPackedVector);
+  ENSURE(itr <= endPackedVector);
+}
+
+//..............................................................................
+// PolyClipper::Plane2d
+template<>
+inline
+void
+packElement<PolyClipper::Plane2d>(const PolyClipper::Plane2d& value, 
+                                  std::vector<char>& buffer) {
+  packElement(value.normal, buffer);
+  packElement(value.dist, buffer);
+  packElement(value.ID, buffer);
+}
+
+template<>
+inline
+void
+unpackElement<PolyClipper::Plane2d>(PolyClipper::Plane2d& value, 
+                                    std::vector<char>::const_iterator& itr,
+                                    const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.normal, itr, endPackedVector);
+  unpackElement(value.dist, itr, endPackedVector);
+  unpackElement(value.ID, itr, endPackedVector);
+  ENSURE(itr <= endPackedVector);
+}
+
+//..............................................................................
+// PolyClipper::Plane3d
+template<>
+inline
+void
+packElement<PolyClipper::Plane3d>(const PolyClipper::Plane3d& value, 
+                                  std::vector<char>& buffer) {
+  packElement(value.normal, buffer);
+  packElement(value.dist, buffer);
+  packElement(value.ID, buffer);
+}
+
+template<>
+inline
+void
+unpackElement<PolyClipper::Plane3d>(PolyClipper::Plane3d& value, 
+                                    std::vector<char>::const_iterator& itr,
+                                    const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.normal, itr, endPackedVector);
+  unpackElement(value.dist, itr, endPackedVector);
+  unpackElement(value.ID, itr, endPackedVector);
+  ENSURE(itr <= endPackedVector);
+}
+
+//------------------------------------------------------------------------------
+// DomainNode
+//------------------------------------------------------------------------------
+template<>
+inline
+void
+packElement<DomainNode<Dim<1>>>(const DomainNode<Dim<1>>& value, 
+                                std::vector<char>& buffer) {
+  packElement(value.localNodeID, buffer);
+  packElement(value.uniqueLocalNodeID, buffer);
+  packElement(value.globalNodeID, buffer);
+  packElement(value.nodeListID, buffer);
+  packElement(value.domainID, buffer);
+  packElement(value.work, buffer);
+  packElement(value.position, buffer);
+}
+
+template<>
+inline
+void
+packElement<DomainNode<Dim<2>>>(const DomainNode<Dim<2>>& value, 
+                                std::vector<char>& buffer) {
+  packElement(value.localNodeID, buffer);
+  packElement(value.uniqueLocalNodeID, buffer);
+  packElement(value.globalNodeID, buffer);
+  packElement(value.nodeListID, buffer);
+  packElement(value.domainID, buffer);
+  packElement(value.work, buffer);
+  packElement(value.position, buffer);
+}
+
+template<>
+inline
+void
+packElement<DomainNode<Dim<3>>>(const DomainNode<Dim<3>>& value, 
+                                std::vector<char>& buffer) {
+  packElement(value.localNodeID, buffer);
+  packElement(value.uniqueLocalNodeID, buffer);
+  packElement(value.globalNodeID, buffer);
+  packElement(value.nodeListID, buffer);
+  packElement(value.domainID, buffer);
+  packElement(value.work, buffer);
+  packElement(value.position, buffer);
+}
+
+template<>
+inline
+void
+unpackElement<DomainNode<Dim<1>>>(DomainNode<Dim<1>>& value, 
+                                  std::vector<char>::const_iterator& itr,
+                                  const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.localNodeID, itr, endPackedVector);
+  unpackElement(value.uniqueLocalNodeID, itr, endPackedVector);
+  unpackElement(value.globalNodeID, itr, endPackedVector);
+  unpackElement(value.nodeListID, itr, endPackedVector);
+  unpackElement(value.domainID, itr, endPackedVector);
+  unpackElement(value.work, itr, endPackedVector);
+  unpackElement(value.position, itr, endPackedVector);
+  ENSURE(itr <= endPackedVector);
+}
+template<>
+inline
+void
+unpackElement<DomainNode<Dim<2>>>(DomainNode<Dim<2>>& value, 
+                                  std::vector<char>::const_iterator& itr,
+                                  const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.localNodeID, itr, endPackedVector);
+  unpackElement(value.uniqueLocalNodeID, itr, endPackedVector);
+  unpackElement(value.globalNodeID, itr, endPackedVector);
+  unpackElement(value.nodeListID, itr, endPackedVector);
+  unpackElement(value.domainID, itr, endPackedVector);
+  unpackElement(value.work, itr, endPackedVector);
+  unpackElement(value.position, itr, endPackedVector);
+  ENSURE(itr <= endPackedVector);
+}
+template<>
+inline
+void
+unpackElement<DomainNode<Dim<3>>>(DomainNode<Dim<3>>& value, 
+                                  std::vector<char>::const_iterator& itr,
+                                  const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.localNodeID, itr, endPackedVector);
+  unpackElement(value.uniqueLocalNodeID, itr, endPackedVector);
+  unpackElement(value.globalNodeID, itr, endPackedVector);
+  unpackElement(value.nodeListID, itr, endPackedVector);
+  unpackElement(value.domainID, itr, endPackedVector);
+  unpackElement(value.work, itr, endPackedVector);
+  unpackElement(value.position, itr, endPackedVector);
   ENSURE(itr <= endPackedVector);
 }
 

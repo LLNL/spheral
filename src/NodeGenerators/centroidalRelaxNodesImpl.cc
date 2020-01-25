@@ -2,7 +2,7 @@
 // Implement Lloyd's algorithm for centroidal relaxation of fluid points.
 //------------------------------------------------------------------------------
 #include "centroidalRelaxNodesImpl.hh"
-#include "CRKSPH/computeVoronoiVolume.hh"
+#include "RK/computeVoronoiVolume.hh"
 #include "CRKSPH/computeCRKSPHMoments.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
@@ -11,6 +11,7 @@
 
 #include <ctime>
 using std::vector;
+using std::tuple;
 using std::string;
 using std::pair;
 using std::make_pair;
@@ -36,7 +37,7 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
                          std::vector<Boundary<Dimension>*>& boundaries,
                          const unsigned maxIterations,
                          const double fracTol,
-                         const CRKOrder correctionOrder,
+                         const RKOrder correctionOrder,
                          const double centroidFrac,
                          FieldList<Dimension, double>& vol,
                          FieldList<Dimension, int>& surfacePoint,
@@ -81,11 +82,11 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
   auto gradm4 = db.newFluidFieldList(FifthRankTensor::zero, "gradm4");
 
   // Temporary until we decide to propagate void info to this method.
-  auto voidPoint = db.newFluidFieldList(int(0), "void point");
   auto etaVoidPoints = db.newFluidFieldList(vector<Vector>(), "eta void points");
 
   // Make a dummy set of cells so we don't ask computeVoronoiVolume to compute the return FacetedVolumes every step.
   FieldList<Dimension, FacetedVolume> dummyCells;
+  FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
 
   // Make sure the density starts out consistently, and kick-start the volume using m/rho.
   for (auto nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {
@@ -144,10 +145,9 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
     // Compute the new volumes and centroids (note this uses the old rho gradient, not quite right,
     // but expedient/efficient).
     std::clock_t tvoro = std::clock();
-    computeVoronoiVolume(pos, H, rhof, gradRhof, cm, D, volumeBoundaries, holes, boundaries,
-                                      FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
-                                      voidPoint,
-                                      surfacePoint, vol, deltaCentroid, etaVoidPoints, dummyCells);
+    computeVoronoiVolume(pos, H, cm, D, volumeBoundaries, holes, boundaries,
+                         FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
+                         surfacePoint, vol, deltaCentroid, etaVoidPoints, dummyCells, cellFaceFlags);
     tvoro = std::clock() - tvoro;
      
     // Apply boundary conditions.
@@ -173,9 +173,9 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
       } else {
         // Use RK to numerically compute the new mass density gradient.
         computeCRKSPHMoments(cm, W, vol, pos, H, correctionOrder, NodeCoupling(),
-                                          m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
-        computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder,
-                                              A, B, C, gradA, gradB, gradC);
+                             m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
+        computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, surfacePoint, correctionOrder,
+                                 A, B, C, gradA, gradB, gradC);
         gradRhof.assignFields(gradientCRKSPH(rhof, pos, vol, H, A, B, C, gradA, gradB, gradC, cm, correctionOrder, W));
       }
     }
@@ -218,10 +218,9 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
   // If requested to return the FacetedVolumes, make one last call to fill 'em in.
   if (cells.size() > 0) {
     const auto& cm = db.connectivityMap();
-    computeVoronoiVolume(pos, H, rhof, gradRhof, cm, D, volumeBoundaries, holes, boundaries,
-                                      FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
-                                      voidPoint,
-                                      surfacePoint, vol, deltaCentroid, etaVoidPoints, cells);
+    computeVoronoiVolume(pos, H, cm, D, volumeBoundaries, holes, boundaries,
+                         FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
+                         surfacePoint, vol, deltaCentroid, etaVoidPoints, cells, cellFaceFlags);
   }
 
   // Return how many iterations we actually took.

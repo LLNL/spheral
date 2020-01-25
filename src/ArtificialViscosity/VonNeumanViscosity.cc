@@ -91,7 +91,7 @@ initialize(const DataBase<Dimension>& dataBase,
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> vol = mass/massDensity;
 
-  const CRKOrder correctionOrder = this->QcorrectionOrder();
+  const RKOrder correctionOrder = this->QcorrectionOrder();
 
   // We'll compute the higher-accuracy RK gradient.
   FieldList<Dimension, Scalar> m0 = dataBase.newFluidFieldList(0.0, HydroFieldNames::m0_CRKSPH);
@@ -110,11 +110,12 @@ initialize(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Vector> gradA = dataBase.newFluidFieldList(Vector::zero, "Q grad A");
   FieldList<Dimension, Tensor> gradB;
   FieldList<Dimension, ThirdRankTensor> gradC;
-  if (correctionOrder == CRKOrder::LinearOrder or correctionOrder == CRKOrder::QuadraticOrder) {
+  FieldList<Dimension, int> surfacePoint;
+  if (correctionOrder == RKOrder::LinearOrder or correctionOrder == RKOrder::QuadraticOrder) {
     B = dataBase.newFluidFieldList(Vector::zero, "Q B");
     gradB = dataBase.newFluidFieldList(Tensor::zero, "Q grad B");
   }
-  if (correctionOrder == CRKOrder::QuadraticOrder) {
+  if (correctionOrder == RKOrder::QuadraticOrder) {
     m3 = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::m3_CRKSPH);
     m4 = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::m4_CRKSPH);
     gradm3 = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::gradM3_CRKSPH);
@@ -122,9 +123,9 @@ initialize(const DataBase<Dimension>& dataBase,
     C = dataBase.newFluidFieldList(Tensor::zero, "Q C");
     gradC = dataBase.newFluidFieldList(ThirdRankTensor::zero, "Q grad C");
   }
-  computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder, NodeCoupling(), 
+  computeCRKSPHMoments(connectivityMap, W, vol, position, H,correctionOrder, NodeCoupling(), 
                        m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
-  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H,
+  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, surfacePoint,
                            correctionOrder, A, B, C, gradA, gradB, gradC);
   const FieldList<Dimension, Tensor> velocityGradient = gradientCRKSPH(velocity,
                                                                        position,

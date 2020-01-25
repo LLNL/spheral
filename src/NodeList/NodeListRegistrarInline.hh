@@ -117,33 +117,47 @@ IteratorType
 NodeListRegistrar<Dimension>::
 findInsertionPoint(const ThingyType& thingy,
                    const IteratorType begin,
-                   const IteratorType end) const {
+                   const IteratorType end) {
 
   // If the input iterator sequence is empty, then the answer is easy!
-  const int containerSize = std::distance(begin, end);
+  const auto containerSize = std::distance(begin, end);
   if (containerSize == 0) return end;
 
   // Get the sequence of NodeLists represented by the input.
   std::vector<NodeList<Dimension>*> nodeListPtrs;
   nodeListPtrs.reserve(containerSize);
-  for (IteratorType itr = begin; itr != end; ++itr) {
-    NodeList<Dimension>* nodeListPtr = getNodeListPtr(*itr);
+  for (auto itr = begin; itr != end; ++itr) {
+    auto nodeListPtr = getNodeListPtr(*itr);
     CHECK(itr == begin or (nodeListPtr->name() > getNodeListPtr(*(itr - 1))->name()));
     nodeListPtrs.push_back(nodeListPtr);
   }
   CHECK(nodeListPtrs.size() == containerSize);
 
   // Now we can find where the specified thingy should go.
-  NodeList<Dimension>* nodeListPtr = getNodeListPtr(thingy);
-  typename std::vector<NodeList<Dimension>*>::iterator orderItr = std::upper_bound(nodeListPtrs.begin(),
-                                                                                              nodeListPtrs.end(),
-                                                                                              nodeListPtr,
-                                                                                              NodeListComparator());
-  const int displacement = std::distance(nodeListPtrs.begin(), orderItr);
+  auto nodeListPtr = getNodeListPtr(thingy);
+  auto orderItr = std::upper_bound(nodeListPtrs.begin(),
+                                   nodeListPtrs.end(),
+                                   nodeListPtr,
+                                   NodeListComparator());
+  const auto displacement = std::distance(nodeListPtrs.begin(), orderItr);
   CHECK(displacement >= 0 && displacement <= containerSize);
-  IteratorType result = begin + displacement;
+  auto result = begin + displacement;
   ENSURE(result >= begin && result <= end);
+  ENSURE((result > begin and getNodeListPtr(thingy)->name() > getNodeListPtr(*(result - 1))->name()) or
+                             getNodeListPtr(thingy)->name() < getNodeListPtr(*begin)->name());
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Similar method to directly sort a set of stuff into NodeList ordering.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename IteratorType>
+void
+NodeListRegistrar<Dimension>::
+sortInNodeListOrder(IteratorType begin, IteratorType end) {
+  std::sort(begin, end, NodeListRegistrar<Dimension>::NodeListComparator());
+  // std::sort(begin, end, [](const IteratorType a, const IteratorType b, NodeListRegistrar<Dimension>::NodeListComparator())
 }
 
 }

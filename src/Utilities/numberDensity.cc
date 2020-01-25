@@ -37,60 +37,67 @@ numberDensity(const DataBase<Dimension>& dataBase,
   typedef typename Dimension::SymTensor SymTensor;
 
   // Get the state.
-  const FieldList<Dimension, Vector> position = dataBase.globalPosition();
-  const FieldList<Dimension, SymTensor> Hfield = dataBase.globalHfield();
-  const ConnectivityMap<Dimension>& cm = dataBase.connectivityMap();
-  const vector<const NodeList<Dimension>*>& nodeLists = cm.nodeLists();
-  const size_t numNodeLists = dataBase.numNodeLists();
+  const auto  position = dataBase.globalPosition();
+  const auto  H = dataBase.globalHfield();
+  const auto& cm = dataBase.connectivityMap();
+  const auto& nodeLists = cm.nodeLists();
+  const auto  numNodeLists = dataBase.numNodeLists();
 
   // Prepare the result.
   FieldList<Dimension, Scalar> result = dataBase.newGlobalFieldList(0.0, "number density");
 
-  // Iterate over the NodeLists.
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  // Some useful variables.
+  const auto W0 = W.kernelValue(0.0, 1.0);
 
-    // Walk the nodes in this NodeList.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = cm.begin(nodeListi);
-         iItr != cm.end(nodeListi); 
-         ++iItr) {
-      const int i = *iItr;
-      const Vector& ri = position(nodeListi, i);
-      const SymTensor& Hi = Hfield(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
-      const vector<vector<int> >& fullConnectivity = cm.connectivityForNode(nodeListi, i);
-      CHECK(fullConnectivity.size() == numNodeLists);
+  // The set of interacting node pairs.
+  const auto& pairs = cm.nodePairList();
+  const auto  npairs = pairs.size();
 
-      // Self-contribution.
-      result(nodeListi, i) += W.kernelValue(0.0, Hdeti);
+  // First the self contribution.
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto n = result[nodeListi]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0; i < n; ++i) {
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      result(nodeListi, i) += Hdeti*W0;
+    }
+  }
 
-      // Walk the neighboring NodeLists.
-      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
-        const vector<int>& connectivity = fullConnectivity[nodeListj];
+  // Now the pair contributions.
+#pragma omp parallel
+  {
+    int i, j, nodeListi, nodeListj;
+    auto result_thread = result.threadCopy();
 
-        // Walk the neighbor in this NodeList.
-        for (vector<int>::const_iterator jItr = connectivity.begin();
-             jItr != connectivity.end();
-             ++jItr) {
-          const int j = *jItr;
-          if (cm.calculatePairInteraction(nodeListi, i,
-                                          nodeListj, j,
-                                          firstGhostNodej)) {
-            const Vector& rj = position(nodeListj, j);
-            const SymTensor& Hj = Hfield(nodeListj, j);
-            const Scalar Hdetj = Hj.Determinant();
+#pragma omp for
+    for (auto k = 0; k < npairs; ++k) {
+      i = pairs[k].i_node;
+      j = pairs[k].j_node;
+      nodeListi = pairs[k].i_list;
+      nodeListj = pairs[k].j_list;
 
-            const Vector rij = ri - rj;
-            const Scalar etai = (Hi*rij).magnitude();
-            const Scalar etaj = (Hj*rij).magnitude();
-            const Scalar Wi = W.kernelValue(etai, Hdeti);
-            const Scalar Wj = W.kernelValue(etaj, Hdetj);
+      const auto& ri = position(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
 
-            result(nodeListi, i) += Wi;
-            result(nodeListj, j) += Wj;
-          }
-        }
-      }
+      const auto& rj = position(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto  Hdetj = Hj.Determinant();
+
+      const auto rij = ri - rj;
+      const auto etai = (Hi*rij).magnitude();
+      const auto etaj = (Hj*rij).magnitude();
+      const auto Wi = W.kernelValue(etai, Hdeti);
+      const auto Wj = W.kernelValue(etaj, Hdetj);
+
+      result(nodeListi, i) += Wi;
+      result(nodeListj, j) += Wj;
+    }
+
+#pragma omp critical
+    {
+      result_thread.threadReduce();
     }
   }
 

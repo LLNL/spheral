@@ -56,22 +56,28 @@ public:
                     const bool XSPH,
                     const MassDensityType densityUpdate,
                     const HEvolutionType HUpdate,
-                    const CRKOrder correctionOrder,
-                    const CRKVolumeType volumeType,
+                    const RKOrder correctionOrder,
+                    const RKVolumeType volumeType,
                     const double epsTensile,
-                    const double nTensile);
+                    const double nTensile,
+                    const bool limitMultimaterialTopology);
 
   // Destructor.
   virtual ~CRKSPHHydroBaseRZ();
 
   // Tasks we do once on problem startup.
   virtual
-  void initializeProblemStartup(DataBase<Dimension>& dataBase);
+  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
   void registerState(DataBase<Dimension>& dataBase,
-                     State<Dimension>& state);
+                     State<Dimension>& state) override;
+
+  // This method is called once at the beginning of a timestep, after all state registration.
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;
 
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
@@ -80,29 +86,21 @@ public:
                            const Scalar dt,
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const;
-
-  // Finalize the hydro at the completion of an integration step.
-  virtual
-  void finalize(const Scalar time,
-                const Scalar dt,
-                DataBase<Dimension>& dataBase,
-                State<Dimension>& state,
-                StateDerivatives<Dimension>& derivs);
+                           StateDerivatives<Dimension>& derivatives) const override;
                   
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivs);
+                            StateDerivatives<Dimension>& derivs) override;
 
   // Enforce boundary conditions for the physics specific fields.
   virtual
   void enforceBoundaries(State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs);
+                         StateDerivatives<Dimension>& derivs) override;
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const { return "CRKSPHHydroBaseRZ"; }
+  virtual std::string label() const override { return "CRKSPHHydroBaseRZ"; }
   //****************************************************************************
 
 private:

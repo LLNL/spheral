@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <limits>
 
 namespace PolyClipper {
 
@@ -31,11 +32,16 @@ struct Plane2d {
   typedef Spheral::Dim<2>::Vector Vector;
   double dist;                       // Signed distance to the origin
   Vector normal;                     // Unit normal
-  Plane2d(): dist(0.0), normal(1,0) {}
-  Plane2d(const double d, const Vector& nhat): dist(d), normal(nhat) {}
-  Plane2d(const Vector& p, const Vector& nhat): dist(-p.dot(nhat)), normal(nhat) {}
-  Plane2d& operator=(const Plane2d& rhs) { dist = rhs.dist; normal = rhs.normal; return *this; }
-  bool operator==(const Plane2d& rhs) { return (dist == rhs.dist and normal == rhs.normal); }
+  int ID;                            // ID for the plane, used to label vertices
+  Plane2d()                                                  : dist(0.0), normal(1,0), ID(std::numeric_limits<int>::min()) {}
+  Plane2d(const double d, const Vector& nhat)                : dist(d), normal(nhat), ID(std::numeric_limits<int>::min()) {}
+  Plane2d(const Vector& p, const Vector& nhat)               : dist(-p.dot(nhat)), normal(nhat), ID(std::numeric_limits<int>::min()) {}
+  Plane2d(const Vector& p, const Vector& nhat, const int id) : dist(-p.dot(nhat)), normal(nhat), ID(id) {}
+  Plane2d& operator=(const Plane2d& rhs)                     { dist = rhs.dist; normal = rhs.normal; ID = rhs.ID; return *this; }
+  bool operator==(const Plane2d& rhs) const                  { return (dist == rhs.dist and normal == rhs.normal); }
+  bool operator!=(const Plane2d& rhs) const                  { return not (*this == rhs); }
+  bool operator< (const Plane2d& rhs) const                  { return (dist < rhs.dist); }
+  bool operator> (const Plane2d& rhs) const                  { return (dist > rhs.dist); }
 };
 
 //------------------------------------------------------------------------------
@@ -45,11 +51,16 @@ struct Plane3d {
   typedef Spheral::Dim<3>::Vector Vector;
   Vector normal;                     // Unit normal
   double dist;                       // Signed distance to the origin
-  Plane3d(): dist(0.0), normal(1,0,0) {}
-  Plane3d(const double d, const Vector& nhat): dist(d), normal(nhat) {}
-  Plane3d(const Vector& p, const Vector& nhat): dist(-p.dot(nhat)), normal(nhat) {}
-  Plane3d& operator=(const Plane3d& rhs) { dist = rhs.dist; normal = rhs.normal; return *this; }
-  bool operator==(const Plane3d& rhs) { return (dist == rhs.dist and normal == rhs.normal); }
+  int ID;                            // ID for the plane, used to label vertices
+  Plane3d()                                                  : dist(0.0), normal(1,0,0), ID(std::numeric_limits<int>::min()) {}
+  Plane3d(const double d, const Vector& nhat)                : dist(d), normal(nhat), ID(std::numeric_limits<int>::min()) {}
+  Plane3d(const Vector& p, const Vector& nhat)               : dist(-p.dot(nhat)), normal(nhat), ID(std::numeric_limits<int>::min()) {}
+  Plane3d(const Vector& p, const Vector& nhat, const int id) : dist(-p.dot(nhat)), normal(nhat), ID(id) {}
+  Plane3d& operator=(const Plane3d& rhs)                     { dist = rhs.dist; normal = rhs.normal; ID = rhs.ID; return *this; }
+  bool operator==(const Plane3d& rhs) const                  { return (dist == rhs.dist and normal == rhs.normal); }
+  bool operator!=(const Plane3d& rhs) const                  { return not (*this == rhs); }
+  bool operator< (const Plane3d& rhs) const                  { return (dist < rhs.dist); }
+  bool operator> (const Plane3d& rhs) const                  { return (dist > rhs.dist); }
 };
 
 //------------------------------------------------------------------------------
@@ -60,10 +71,11 @@ struct Vertex2d {
   Vector position;
   std::pair<int, int> neighbors;
   int comp;
-  mutable int ID;    // convenient, but sneaky
-  Vertex2d():                               position(),    neighbors(), comp(1), ID(-1) {}
-  Vertex2d(const Vector& pos):              position(pos), neighbors(), comp(1), ID(-1) {}
-  Vertex2d(const Vector& pos, const int c): position(pos), neighbors(), comp(c), ID(-1) {}
+  mutable int ID;              // convenient, but sneaky
+  mutable std::set<int> clips; // the planes (if any) that created this point
+  Vertex2d():                               position(),    neighbors(), comp(1), ID(-1), clips() {}
+  Vertex2d(const Vector& pos):              position(pos), neighbors(), comp(1), ID(-1), clips() {}
+  Vertex2d(const Vector& pos, const int c): position(pos), neighbors(), comp(c), ID(-1), clips() {}
   bool operator==(const Vertex2d& rhs) const {
     return (position  == rhs.position and
             neighbors == rhs.neighbors and
@@ -80,10 +92,11 @@ struct Vertex3d {
   Vector position;
   std::vector<int> neighbors;
   int comp;
-  mutable int ID;    // convenient, but sneaky
-  Vertex3d():                               position(),    neighbors(), comp(1), ID(-1) {}
-  Vertex3d(const Vector& pos):              position(pos), neighbors(), comp(1), ID(-1) {}
-  Vertex3d(const Vector& pos, const int c): position(pos), neighbors(), comp(c), ID(-1) {}
+  mutable int ID;              // convenient, but sneaky
+  mutable std::set<int> clips; // the planes (if any) that created this point
+  Vertex3d():                               position(),    neighbors(), comp(1), ID(-1), clips() {}
+  Vertex3d(const Vector& pos):              position(pos), neighbors(), comp(1), ID(-1), clips() {}
+  Vertex3d(const Vector& pos, const int c): position(pos), neighbors(), comp(c), ID(-1), clips() {}
   bool operator==(const Vertex3d& rhs) const {
     return (position  == rhs.position and
             neighbors == rhs.neighbors and
@@ -106,8 +119,8 @@ std::string polygon2string(const Polygon& poly);
 void convertToPolygon(Polygon& polygon,
                       const Spheral::Dim<2>::FacetedVolume& Spheral_polygon);
 
-void convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_polygon,
-                        const Polygon& polygon);
+std::vector<std::set<int>> convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_polygon,
+                                              const Polygon& polygon);
 
 void moments(double& zerothMoment, Spheral::Dim<2>::Vector& firstMoment,
              const Polygon& polygon);
@@ -137,8 +150,8 @@ std::string polyhedron2string(const Polyhedron& poly);
 void convertToPolyhedron(Polyhedron& polyhedron,
                          const Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron);
 
-void convertFromPolyhedron(Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron,
-                           const Polyhedron& polyhedron);
+std::vector<std::set<int>>  convertFromPolyhedron(Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron,
+                                                  const Polyhedron& polyhedron);
 
 void moments(double& zerothMoment, Spheral::Dim<3>::Vector& firstMoment,
              const Polyhedron& polyhedron);

@@ -107,7 +107,7 @@ import SpheralPolyClipper as PolyClipper
 # See if we can import the polytope bindings.
 # ------------------------------------------------------------------------------
 try:
-    from PolytopeModules import polytope
+    import polytope
 except:
     print "WARNING: unable to import polytope python bindings."
 

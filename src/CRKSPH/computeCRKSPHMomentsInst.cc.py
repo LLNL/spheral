@@ -3,12 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-
-#ifdef _OPENMP
-#include "CRKSPH/computeCRKSPHMoments_OpenMP.cc"
-#else
 #include "CRKSPH/computeCRKSPHMoments.cc"
-#endif
 
 namespace Spheral {
 
@@ -17,7 +12,7 @@ template void computeCRKSPHMoments(const ConnectivityMap< Dim< %(ndim)s > >& con
                                    const FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Scalar>& weight,
                                    const FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Vector>& position,
                                    const FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::SymTensor>& H,
-                                   const CRKOrder correctionOrder,
+                                   const RKOrder correctionOrder,
                                    const NodeCoupling& nodeCoupling,
                                    FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Scalar>& m0,
                                    FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Vector>& m1,

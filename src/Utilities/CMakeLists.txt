@@ -2,13 +2,9 @@ set(Utilities_inst
     boundingBox
     computeShepardsInterpolation
     globalBoundingVolumes
-    integrateThroughMeshAlongSegment
     iterateIdealH
-    medianPosition
     mortonOrderIndices
     nodeBoundingBoxes
-    nodeOrdering
-    numberDensity
     peanoHilbertOrderIndices
    )
 
@@ -26,7 +22,6 @@ set(Utilities_sources
     pointInPolygon.cc
     pointOnPolyhedron.cc
     pointInPolyhedron.cc
-    refinePolyhedron.cc
     coarsenBinnedValuesInst.cc
     SpheralTimers.cc
     SpheralTimersAlternate.cc
@@ -40,12 +35,15 @@ set(Utilities_headers
     CounterClockwiseComparator.hh
     DBC.hh
     DataTypeTraits.hh
+    DomainNode.hh
+    DomainNodeInline.hh
     FastMath.hh
     FieldDataTypeTraits.hh
     Functors.hh
     GeometricUtilities.hh
     KeyTraits.hh
     NodeListHashMap.hh
+    OpenMP_wrapper.hh
     PairComparisons.hh
     PeanoHilbertTransform.hh
     Process.hh
@@ -75,19 +73,15 @@ set(Utilities_headers
     globalNodeIDsInline.hh
     hashes.hh
     initializeTau.hh
-    integrateThroughMeshAlongSegment.hh
     intpow2.hh
     iterateIdealH.hh
     lineSegmentIntersections.hh
     log2.hh
-    medianPosition.hh
     mortonOrderIndices.hh
     mpiUtilities.hh
     newtonRaphson.hh
     nodeBoundingBoxes.hh
     nodeBoundingBoxesInline.hh
-    nodeOrdering.hh
-    numberDensity.hh
     overlayRemapFields.hh
     packElement.hh
     peanoHilbertOrderIndices.hh
@@ -97,7 +91,6 @@ set(Utilities_headers
     pointInPolyhedron.hh
     pointOnPolygon.hh
     pointOnPolyhedron.hh
-    refinePolyhedron.hh
     registerWithRedistribution.hh
     removeElements.hh
     rotationMatrix.hh

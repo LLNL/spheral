@@ -62,11 +62,11 @@ commandLine(
 
 # Reference values for tests
 if timeStepChoice == AccelerationRatio:
-    coefsRef = np.array([ 8.33169105e+00,  1.24358171e-12, -2.83895427e-23])
-    sigmaPhiRef = 9.25789817527
+    coefsRef = np.array([ 8.33175998e+00,  1.24358171e-12, -2.83895427e-23])
+    sigmaPhiRef = 9.25853628363647
 elif timeStepChoice == DynamicalTime:
-    coefsRef = np.array([ 8.29005915e+00,  1.20195868e-12, -2.60750402e-23])
-    sigmaPhiRef = 8.96752745023
+    coefsRef = np.array([ 8.29012807e+00,  1.20195868e-12, -2.60750402e-23])
+    sigmaPhiRef = 8.968145544554178
 
 # Convert to MKS units.
 AU = 149597870700.0  # m
@@ -276,6 +276,8 @@ if outputFile != "None" and mpi.rank == 0:
 # Check the answer againt references
 #-------------------------------------------------------------------------------
 if checkRef:
+    print(coefs, coefsRef)
+    print(sigphi, sigmaPhiRef)
     assert np.absolute(coefs - coefsRef).max() < tol
     assert abs(sigphi - sigmaPhiRef)/sigmaPhiRef < tol
     print "Pass"

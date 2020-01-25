@@ -69,6 +69,14 @@ class Box1d:
         "Find the point in the box closest to the given point."
         return "Vector"
 
+    @PYB11const
+    def facetArea(self, facetID="const unsigned"):
+        return "double"
+
+    @PYB11const
+    def facetAreaNormal(self, facetID="const unsigned"):
+        return "Vector"
+
     #...........................................................................
     # Operators
     def __iadd__(self, rhs="Vector()"):

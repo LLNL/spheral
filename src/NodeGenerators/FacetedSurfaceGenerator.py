@@ -32,8 +32,8 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         box = xmax - xmin
         assert box.minElement > 0.0
         dx = box.x/nx
-        ny = int(box.y/dx + 0.5)
-        nz = int(box.z/dx + 0.5)
+        ny = max(1, int(box.y/dx + 0.5))
+        nz = max(1, int(box.z/dx + 0.5))
 
         # Some local geometry.
         ntot0 = nx*ny*nz
@@ -160,10 +160,10 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
                  nNodePerh = 2.01,
                  SPH = False):
         self.surface = surface
-        surfaceFacets = surface.facets()
-        surfaceVertices = surface.vertices()
-        vertexNorms = surface.vertexUnitNorms()
-        facetNeighbors = surface.facetFacetConnectivity()
+        surfaceFacets = surface.facets
+        surfaceVertices = surface.vertices
+        vertexNorms = surface.vertexUnitNorms
+        facetNeighbors = surface.facetFacetConnectivity
 
         assert lconstant <= lextrude
 

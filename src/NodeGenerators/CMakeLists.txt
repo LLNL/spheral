@@ -1,26 +1,16 @@
 set(NodeGenerators_inst
-    centroidalRelaxNodesImpl
-    chooseRandomNonoverlappingCenter
-    compactFacetedVolumes
-    relaxNodeDistribution
    )
 
 set(NodeGenerators_sources
-    generateCylDistributionFromRZ.cc
     fillFacetedVolume.cc
-    readSiloPolyMesh.cc
+    generateCylDistributionFromRZ.cc
     )
 
 instantiate(NodeGenerators_inst NodeGenerators_sources)
 
 set(NodeGenerators_headers
-    centroidalRelaxNodesImpl.hh
-    chooseRandomNonoverlappingCenter.hh
-    compactFacetedVolumes.hh
     fillFacetedVolume.hh
     generateCylDistributionFromRZ.hh
-    readSiloPolyMesh.hh
-    relaxNodeDistribution.hh
     )
 
 blt_add_library(NAME        Spheral_NodeGenerators

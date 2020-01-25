@@ -48,7 +48,8 @@ weibullFlawDistributionBenzAsphaug(double volume,
                                    const double mWeibull,
                                    const FluidNodeList<Dimension>& nodeList,
                                    const int minFlawsPerNode,
-                                   const int minTotalFlaws) {
+                                   const int minTotalFlaws,
+                                   const Field<Dimension, int>& mask) {
 
   // Pre-conditions.
   REQUIRE(volume >= 0.0);
@@ -57,6 +58,7 @@ weibullFlawDistributionBenzAsphaug(double volume,
   REQUIRE(mWeibull > 0.0);
   REQUIRE(minFlawsPerNode > 0);
   REQUIRE(minTotalFlaws > 0);
+  REQUIRE(mask.nodeListPtr() == &nodeList);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -132,12 +134,14 @@ weibullFlawDistributionBenzAsphaug(double volume,
 
         const unsigned i = itr->second;
         CHECK(i < nodeList.numInternalNodes());
+        if (mask(i) == 1) {
 
-        // The activation energy.
-        const double epsij = epsMin * pow(ienergy*volumeStretchFactor, mInv);
+          // The activation energy.
+          const double epsij = epsMin * pow(ienergy*volumeStretchFactor, mInv);
 
-        // Add a flaw with this activation energy to this node.
-        flaws(i).push_back(epsij);
+          // Add a flaw with this activation energy to this node.
+          flaws(i).push_back(epsij);
+        }
       }
 
       // Increment the energy multiplier.
@@ -151,15 +155,18 @@ weibullFlawDistributionBenzAsphaug(double volume,
     double epsMax = 0.0;
     double sumFlaws = 0.0;
     for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
-      sort(flaws(i).begin(), flaws(i).end());
       minNumFlaws = min(minNumFlaws, unsigned(flaws(i).size()));
       maxNumFlaws = max(maxNumFlaws, unsigned(flaws(i).size()));
       totalNumFlaws += flaws(i).size();
-      epsMax = max(epsMax, flaws(i).back());
-      for (int j = 0; j != flaws(i).size(); ++j) sumFlaws += flaws(i)[j];
+      if (mask(i) == 1) {
+        sort(flaws(i).begin(), flaws(i).end());
+        epsMax = max(epsMax, flaws(i).back());
+        for (int j = 0; j != flaws(i).size(); ++j) sumFlaws += flaws(i)[j];
+      }
     }
 
     // Prepare some diagnostic output.
+    const auto nused = mask.sumElements();
     minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
     maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
     totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());
@@ -169,10 +176,10 @@ weibullFlawDistributionBenzAsphaug(double volume,
       cerr << "weibullFlawDistributionBenzAsphaug: Min num flaws per node: " << minNumFlaws << endl
            << "                                    Max num flaws per node: " << maxNumFlaws << endl
            << "                                    Total num flaws       : " << totalNumFlaws << endl
-           << "                                    Avg flaws per node    : " << totalNumFlaws / n << endl
+           << "                                    Avg flaws per node    : " << totalNumFlaws / nused << endl
            << "                                    Min flaw strain       : " << epsMin << endl
            << "                                    Max flaw strain       : " << epsMax << endl
-           << "                                    Avg node failure      : " << sumFlaws / n << endl;
+           << "                                    Avg node failure      : " << sumFlaws / nused << endl;
     }
   }
 
@@ -180,10 +187,12 @@ weibullFlawDistributionBenzAsphaug(double volume,
   BEGIN_CONTRACT_SCOPE
   {
     for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
-      ENSURE(flaws(i).size() >= minFlawsPerNode);
-      for (vector<double>::const_iterator itr = flaws(i).begin() + 1;
-           itr != flaws(i).end();
-           ++itr) ENSURE(*itr >= *(itr - 1));
+      if (mask(i) == 1) {
+        ENSURE(flaws(i).size() >= minFlawsPerNode);
+        for (vector<double>::const_iterator itr = flaws(i).begin() + 1;
+             itr != flaws(i).end();
+             ++itr) ENSURE(*itr >= *(itr - 1));
+      }
     }
   }
   END_CONTRACT_SCOPE
@@ -202,12 +211,14 @@ weibullFlawDistributionOwen(const unsigned seed,
                             const double mWeibull,
                             const FluidNodeList<Dimension>& nodeList,
                             const int minFlawsPerNode,
-                            const double volumeMultiplier) {
+                            const double volumeMultiplier,
+                            const Field<Dimension, int>& mask) {
 
   // Pre-conditions.
   REQUIRE(kWeibull >= 0.0);
   REQUIRE(mWeibull > 0.0);
   REQUIRE(minFlawsPerNode > 0);
+  REQUIRE(mask.nodeListPtr() == &nodeList);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -286,13 +297,23 @@ weibullFlawDistributionOwen(const unsigned seed,
         const double Ai = numFlawsi/(kWeibull*Vi);
         CHECK(Ai > 0.0);
 
-        // Seed flaws on the node.
-        for (int j = 0; j != numFlawsi; ++j) {
-          flaws(i).push_back(pow(Ai * generator(), mInv));
-        }
+        // Are we actually doing this node?
+        if (mask(i) == 1) {
 
-        // Spin the random number generator to keep in sync with other processors.
-        for (int j = numFlawsi; j != maxFlawsPerNode; ++j) double tmp = generator();
+          // Seed flaws on the node.
+          for (int j = 0; j != numFlawsi; ++j) {
+            flaws(i).push_back(pow(Ai * generator(), mInv));
+          }
+
+          // Spin the random number generator to keep in sync with other processors.
+          for (int j = numFlawsi; j != maxFlawsPerNode; ++j) double tmp = generator();
+
+        } else{
+
+          // Spin the random number generator to keep in sync with other processors.
+          for (int j = 0; j != maxFlawsPerNode; ++j) double tmp = generator();
+
+        }
 
       } else {
 
@@ -311,16 +332,19 @@ weibullFlawDistributionOwen(const unsigned seed,
     double epsMax = std::numeric_limits<double>::min();
     double sumFlaws = 0.0;
     for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
-      sort(flaws(i).begin(), flaws(i).end());
       minNumFlaws = min(minNumFlaws, unsigned(flaws(i).size()));
       maxNumFlaws = max(maxNumFlaws, unsigned(flaws(i).size()));
       totalNumFlaws += flaws(i).size();
-      epsMin = min(epsMin, flaws(i).front());
-      epsMax = max(epsMax, flaws(i).back());
-      for (int j = 0; j != flaws(i).size(); ++j) sumFlaws += flaws(i)[j];
+      if (mask(i) == 1) {
+        sort(flaws(i).begin(), flaws(i).end());
+        epsMin = min(epsMin, flaws(i).front());
+        epsMax = max(epsMax, flaws(i).back());
+        for (int j = 0; j != flaws(i).size(); ++j) sumFlaws += flaws(i)[j];
+      }
     }
 
     // Prepare some diagnostic output.
+    const auto nused = mask.sumElements();
     if (n > 0) {
       minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
       maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
@@ -333,19 +357,21 @@ weibullFlawDistributionOwen(const unsigned seed,
       cerr << "weibullFlawDistributionOwen: Min num flaws per node: " << minNumFlaws << endl
            << "                             Max num flaws per node: " << maxNumFlaws << endl
            << "                             Total num flaws       : " << totalNumFlaws << endl
-           << "                             Avg flaws per node    : " << totalNumFlaws / n << endl
+           << "                             Avg flaws per node    : " << totalNumFlaws / nused << endl
            << "                             Min flaw strain       : " << epsMin << endl
            << "                             Max flaw strain       : " << epsMax << endl
-           << "                             Avg node failure      : " << sumFlaws / n << endl;
+           << "                             Avg node failure      : " << sumFlaws / nused << endl;
     }
 
     // That's it.
     BEGIN_CONTRACT_SCOPE
     {
       for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
-        for (vector<double>::const_iterator itr = flaws(i).begin() + 1;
-             itr != flaws(i).end();
-             ++itr) ENSURE(*itr >= *(itr - 1));
+        if (mask(i) == 1) {
+          for (vector<double>::const_iterator itr = flaws(i).begin() + 1;
+               itr != flaws(i).end();
+               ++itr) ENSURE(*itr >= *(itr - 1));
+        }
       }
     }
     END_CONTRACT_SCOPE

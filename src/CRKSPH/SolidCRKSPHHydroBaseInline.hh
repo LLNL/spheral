@@ -20,6 +20,25 @@ damageRelieveRubble(bool x) {
 }
 
 //------------------------------------------------------------------------------
+// Do we allow damaged material to have negative pressure?
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+SolidCRKSPHHydroBase<Dimension>::
+negativePressureInDamage() const {
+  return mNegativePressureInDamage;
+}
+
+template<typename Dimension>
+inline
+void
+SolidCRKSPHHydroBase<Dimension>::
+negativePressureInDamage(bool x) {
+  mNegativePressureInDamage = x;
+}
+
+//------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
 template<typename Dimension>

@@ -33,35 +33,35 @@ public:
   // We require any equation of state to define the following properties.
   virtual void setPressure(Field<Dimension, Scalar>& Pressure,
                            const Field<Dimension, Scalar>& massDensity,
-                           const Field<Dimension, Scalar>& specificThermalEnergy) const;
+                           const Field<Dimension, Scalar>& specificThermalEnergy) const override;
 
   virtual void setTemperature(Field<Dimension, Scalar>& temperature,
                               const Field<Dimension, Scalar>& massDensity,
-                              const Field<Dimension, Scalar>& specificThermalEnergy) const;
+                              const Field<Dimension, Scalar>& specificThermalEnergy) const override;
 
   virtual void setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                                         const Field<Dimension, Scalar>& massDensity,
-                                        const Field<Dimension, Scalar>& temperature) const;
+                                        const Field<Dimension, Scalar>& temperature) const override;
 
   virtual void setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                                const Field<Dimension, Scalar>& massDensity,
-                               const Field<Dimension, Scalar>& temperature) const;
+                               const Field<Dimension, Scalar>& temperature) const override;
 
   virtual void setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
                              const Field<Dimension, Scalar>& massDensity,
-                             const Field<Dimension, Scalar>& specificThermalEnergy) const;
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const override;
 
   virtual void setGammaField(Field<Dimension, Scalar>& gamma,
                              const Field<Dimension, Scalar>& massDensity,
-                             const Field<Dimension, Scalar>& specificThermalEnergy) const;
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const override;
 
   virtual void setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                              const Field<Dimension, Scalar>& massDensity,
-                             const Field<Dimension, Scalar>& specificThermalEnergy) const;
+                             const Field<Dimension, Scalar>& specificThermalEnergy) const override;
 
   virtual void setEntropy(Field<Dimension, Scalar>& entropy,
                           const Field<Dimension, Scalar>& massDensity,
-                          const Field<Dimension, Scalar>& specificThermalEnergy) const;
+                          const Field<Dimension, Scalar>& specificThermalEnergy) const override;
 
   // We also want the equivalent functions for individual calculations.
   Scalar pressure(const Scalar massDensity,
@@ -89,13 +89,13 @@ public:
                  const Scalar specificThermalEnergy) const;
 
   // Access the member data.
-  double getGamma() const;
-  void setGamma(double gamma);
+  Scalar gamma() const;
+  void gamma(Scalar gamma);
 
-  double getMolecularWeight() const;
-  void setMolecularWeight(double molecularWeight);
+  virtual Scalar molecularWeight() const override;
+  void molecularWeight(Scalar molecularWeight);
   
-  virtual bool valid() const;
+  virtual bool valid() const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//

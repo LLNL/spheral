@@ -47,6 +47,14 @@ class SPHHydroBaseGSRZ(SPHHydroBase):
         return "void"
 
     @PYB11virtual
+    def preStepInitialize(self,
+                          dataBase = "const DataBase<%(Dimension)s>&", 
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Optional hook to be called at the beginning of a time step."
+        return "void"
+
+    @PYB11virtual
     @PYB11const
     def evaluateDerivatives(time = "const Scalar",
                             dt = "const Scalar",
@@ -57,15 +65,6 @@ class SPHHydroBaseGSRZ(SPHHydroBase):
 mass density, velocity, and specific thermal energy."""
         return "void"
 
-    @PYB11virtual
-    def finalize(time = "const Scalar",
-                 dt = "const Scalar",
-                 dataBase = "DataBase<%(Dimension)s>&",
-                 state = "State<%(Dimension)s>&",
-                 derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Finalize the hydro at the completion of an integration step."
-        return "void"
-               
     @PYB11virtual
     def applyGhostBoundaries(state = "State<%(Dimension)s>&",
                              derivs = "StateDerivatives<%(Dimension)s>&"):

@@ -12,70 +12,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\SolidMaterial\GruneisenEquationOfStateInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\GruneisenEquationOfStateInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\SolidMaterial\LinearPolynomialEquationOfStateInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\SolidMaterial\LinearPolynomialEquationOfStateInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\MurnahanEquationOfStateInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\MurnahanEquationOfStateInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\PhysicsEvolvingMaterialLibraryInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\PhysicsEvolvingMaterialLibraryInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\PorousEquationOfStateInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\PorousEquationOfStateInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\PorousStrengthModelInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\PorousStrengthModelInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\SteinbergGuinanStrengthInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\SteinbergGuinanStrengthInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\StrainPorosityInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\StrainPorosityInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\TillotsonEquationOfStateInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\TillotsonEquationOfStateInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\OsborneEquationOfStateInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\OsborneEquationOfStateInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\CollinsStrengthInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\SolidMaterial\CollinsStrengthInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\SolidMaterial\StrengthModelInst.cc.2.cc">
@@ -86,46 +26,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\SolidMaterial\ANEOS.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\SolidMaterial\ConstantStrength.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\SolidMaterial\GruneisenEquationOfState.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\SolidMaterial\GruneisenEquationOfStateInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\SolidMaterial\LinearPolynomialEquationOfState.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\SolidMaterial\LinearPolynomialEquationOfStateInline.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\SolidMaterial\MurnahanEquationOfState.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\SolidMaterial\MurnahanEquationOfStateInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\SolidMaterial\NullStrength.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\SolidMaterial\PhysicsEvolvingMaterialLibrary.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\SolidMaterial\PolynomialFit.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\SolidMaterial\PolynomialFitInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\SolidMaterial\PorousEquationOfState.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\SolidMaterial\PorousStrengthModel.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\SolidMaterial\SolidEquationOfState.hh">
@@ -134,62 +41,16 @@
     <None Include="..\..\src\SolidMaterial\SolidEquationOfStateInline.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\SolidMaterial\SteinbergGuinanLundStrength.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\SolidMaterial\SteinbergGuinanStrength.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\SolidMaterial\StrainPorosity.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\SolidMaterial\StrainPorosityInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\SolidMaterial\StrengthModel.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\SolidMaterial\TillotsonEquationOfState.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\SolidMaterial\TillotsonEquationOfStateInline.hh">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\src\SolidMaterial\GruneisenEquationOfStateInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\SolidMaterial\LinearPolynomialEquationOfStateInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\SolidMaterial\MurnahanEquationOfStateInst.cc.py">
+    <CustomBuild Include="..\..\src\SolidMaterial\StrengthModelInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\SolidMaterial\OsborneEquationOfStateInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\SolidMaterial\PhysicsEvolvingMaterialLibraryInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\SolidMaterial\PorousEquationOfStateInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\SolidMaterial\PorousStrengthModelInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\SolidMaterial\SteinbergGuinanStrengthInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\SolidMaterial\StrainPorosityInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\SolidMaterial\TillotsonEquationOfStateInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\SolidMaterial\CollinsStrengthInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\SolidMaterial\StrengthModelInst.cc.py" />
   </ItemGroup>
 </Project>

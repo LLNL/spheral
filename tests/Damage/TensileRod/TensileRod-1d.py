@@ -100,6 +100,7 @@ commandLine(length = 3.0,
             cullToWeakestFlaws = False,
             effectiveFlawAlgorithm = SampledFlaws,
             damageInCompression = False,
+            negativePressureInDamage = False,
 
             # Johnson-Cook choices
             D1 = 0.0,
@@ -133,7 +134,7 @@ commandLine(length = 3.0,
             nTensile = 4,
             hybridMassDensityThreshold = 0.01,
             filter = 0.0,
-            volumeType = CRKSumVolume,
+            volumeType = RKSumVolume,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 50.0,
@@ -161,7 +162,7 @@ commandLine(length = 3.0,
 
             testtol = 1.0e-4,
             clearDirectories = False,
-            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20180814.txt",
+            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20191206.txt",
             dataDirBase = "dumps-TensileRod-1d",
             outputFile = "None",
             comparisonFile = "None",
@@ -433,7 +434,8 @@ else:
                 HUpdate = HUpdate,
                 XSPH = XSPH,
                 epsTensile = epsilonTensile,
-                nTensile = nTensile)
+                nTensile = nTensile,
+                negativePressureInDamage = negativePressureInDamage)
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
@@ -442,6 +444,7 @@ output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.kernel")
 output("hydro.PiKernel")
+output("hydro.negativePressureInDamage")
 
 #-------------------------------------------------------------------------------
 # Construct a damage model.

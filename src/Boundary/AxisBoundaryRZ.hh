@@ -30,8 +30,8 @@ public:
   virtual ~AxisBoundaryRZ();
 
   // Find the set of nodes in violation of this boundary in the given NodeList.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList);
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
 
   // Access the fuzz from the axis we're using to enforce the BC.
   const double etamin() const;
@@ -39,7 +39,7 @@ public:
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const { return "AxisBoundaryRZ"; }
+  virtual std::string label() const override { return "AxisBoundaryRZ"; }
   //****************************************************************************
 
 private:

@@ -19,7 +19,8 @@ PYB11includes += ['"Geometry/GeomPlane.hh"',
                   '"Neighbor/Neighbor.hh"',
                   '"Neighbor/NestedGridNeighbor.hh"',
                   '"Neighbor/TreeNeighbor.hh"',
-                  '"Neighbor/ConnectivityMap.hh"']
+                  '"Neighbor/ConnectivityMap.hh"',
+                  '"Neighbor/NodePairList.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -41,6 +42,7 @@ from Neighbor import *
 from NestedGridNeighbor import *
 from TreeNeighbor import *
 from ConnectivityMap import *
+from NodePairList import *
 
 for ndim in dims:
     exec('''

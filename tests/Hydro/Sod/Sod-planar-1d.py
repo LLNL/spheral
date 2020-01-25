@@ -32,7 +32,7 @@ commandLine(nx1 = 400,
             x1 = 0.0,
             x2 = 0.5,
 
-            hsmooth = 0.5,             # Optionally smooth initial discontinuity, expressed as particle spacings
+            hsmooth = 0.0,             # Optionally smooth initial discontinuity, expressed as particle spacings
             sumInitialDensity = False, # Optionally sum the initial density before setting the pressure and such
 
             nPerh = 1.35,
@@ -96,7 +96,8 @@ commandLine(nx1 = 400,
             statsStep = 10,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
-            volumeType = CRKSumVolume,
+            volumeType = RKSumVolume,
+            limitMultimaterialTopology = True,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             correctVelocityGradient = True,
@@ -225,16 +226,28 @@ if numNodeLists == 1:
                                 nNodePerh = nPerh)
     distributeNodes1d((nodes1, gen))
 else:
-    gen1 = GenerateNodeProfile1d(nx = nx1,
-                                 rho = rho_initial,
-                                 xmin = x0,
-                                 xmax = x1,
-                                 nNodePerh = nPerh)
-    gen2 = GenerateNodeProfile1d(nx = nx2,
-                                 rho = rho_initial,
-                                 xmin = x1,
-                                 xmax = x2,
-                                 nNodePerh = nPerh)
+    if hsmooth > 0:
+        gen1 = GenerateNodeProfile1d(nx = nx1,
+                                     rho = rho_initial,
+                                     xmin = x0,
+                                     xmax = x1,
+                                     nNodePerh = nPerh)
+        gen2 = GenerateNodeProfile1d(nx = nx2,
+                                     rho = rho_initial,
+                                     xmin = x1,
+                                     xmax = x2,
+                                     nNodePerh = nPerh)
+    else:
+        gen1 = GenerateNodeProfile1d(nx = nx1,
+                                     rho = rho1,
+                                     xmin = x0,
+                                     xmax = x1,
+                                     nNodePerh = nPerh)
+        gen2 = GenerateNodeProfile1d(nx = nx2,
+                                     rho = rho2,
+                                     xmin = x1,
+                                     xmax = x2,
+                                     nNodePerh = nPerh)
     distributeNodes1d((nodes1, gen1),
                       (nodes2, gen2))
 output("nodes1.numNodes")
@@ -284,7 +297,8 @@ elif crksph:
                    evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
-                   HUpdate = HUpdate)
+                   HUpdate = HUpdate,
+                   limitMultimaterialTopology = limitMultimaterialTopology)
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
@@ -310,28 +324,28 @@ else:
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
 output("hydro")
-
+output("hydro.compatibleEnergyEvolution")
 packages = [hydro]
 
 #-------------------------------------------------------------------------------
 # Tweak the artificial viscosity.
 #-------------------------------------------------------------------------------
 q = hydro.Q
-if Cl:
-    q.Clinear = Cl
-if Cq:
-    q.Cquadratic = Cq
-if linearInExpansion:
+if not Cl is None:
+    q.Cl = Cl
+if not Cq is None:
+    q.Cq = Cq
+if not linearInExpansion is None:
     q.linearInExpansion = linearInExpansion
-if quadraticInExpansion:
+if not quadraticInExpansion is None:
     q.quadraticInExpansion = quadraticInExpansion
-if Qlimiter:
+if not Qlimiter is None:
     q.limiter = Qlimiter
-if epsilon2:
+if not epsilon2 is None:
     q.epsilon2 = epsilon2
-if etaCritFrac:
+if not etaCritFrac is None:
     q.etaCritFrac = etaCritFrac
-if etaFoldFrac:
+if not etaFoldFrac is None:
     q.etaFoldFrac = etaFoldFrac
 output("q")
 output("q.Cl")
@@ -537,31 +551,25 @@ Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
 csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 if graphics:
-    import Gnuplot
-    from SpheralGnuPlotUtilities import *
+    from SpheralMatplotlib import *
 
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="lines")
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
     plotAnswer(answer, control.time(),
-               rhoPlot, velPlot, epsPlot, PPlot, HPlot)
+               rhoPlot = rhoPlot,
+               velPlot = velPlot,
+               epsPlot = epsPlot,
+               PPlot = PPlot,
+               HPlot = HPlot)
     pE = plotEHistory(control.conserve)
 
     csPlot = plotFieldList(cs, winTitle="Sound speed")
-    csAnsData = Gnuplot.Data(xans, csAns, 
-                             with_ = "lines",
-                             title = "Analytic")
-    csPlot.replot(csAnsData)
+    csPlot.plot(xans, csAns, "k-",
+                label = "Analytic")
 
-    Aplot = generateNewGnuPlot()
-    Adata = Gnuplot.Data(xprof, A,
-                         with_ = "lines",
-                         title = "P/rho^\gamma",
-                         inline = True)
-    AansData = Gnuplot.Data(xprof, Aans,
-                         with_ = "lines",
-                         title = "Solution",
-                         inline = True)
-    Aplot.replot(Adata)
-    Aplot.replot(AansData)
+    APlot = newFigure()
+    APlot.plot(xprof, A, "ro", label="Simulation")
+    APlot.plot(xans, Aans, "k-", label="Analytic")
+    plt.title("A entropy")
 
     plots = [(rhoPlot, "Sod-planar-rho.png"),
              (velPlot, "Sod-planar-vel.png"),
@@ -569,7 +577,7 @@ if graphics:
              (PPlot, "Sod-planar-P.png"),
              (HPlot, "Sod-planar-h.png"),
              (csPlot, "Sod-planar-cs.png"),
-             (Aplot, "Sod-planar-entropy.png")]
+             (APlot, "Sod-planar-entropy.png")]
     
     if crksph:
         volPlot = plotFieldList(hydro.volume, 
@@ -585,19 +593,13 @@ if graphics:
         splot = plotFieldList(hydro.surfacePoint,
                               winTitle = "surface point",
                               colorNodeLists = False)
-        voidplot = plotFieldList(hydro.voidPoint,
-                                 winTitle = "void point",
-                                 plotStyle = "points",
-                                 plotGhosts = True,
-                                 colorNodeLists = False)
         plots += [(volPlot, "Sod-planar-vol.png"),
                    (aplot, "Sod-planar-ACRK.png"),
                    (bplot, "Sod-planar-BCRK.png"),
-                   (splot, "Sod-planar-surfacePoint.png"),
-                   (voidplot, "Sod-planar-voidPoint.png")]
+                   (splot, "Sod-planar-surfacePoint.png")]
     
     viscPlot = plotFieldList(hydro.maxViscousPressure,
-                             winTitle = "max(rho^2 Piij)",
+                             winTitle = "max($\\rho^2 \pi_{ij}$)",
                              colorNodeLists = False)
     plots.append((viscPlot, "Sod-planar-viscosity.png"))
     
@@ -616,7 +618,7 @@ if graphics:
 
     # Make hardcopies of the plots.
     for p, filename in plots:
-        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
+        savefig(p, os.path.join(dataDir, filename))
 
 print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],

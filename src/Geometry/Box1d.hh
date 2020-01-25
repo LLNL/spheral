@@ -66,6 +66,10 @@ public:
   const std::vector<Vector>& vertices() const;
   std::vector<std::vector<unsigned> > facetVertices() const;
 
+  // Useful facet properties.
+  double facetArea(const unsigned facetID) const;
+  Vector facetAreaNormal(const unsigned facetID) const;
+
   // Compute the minimum distance to a point.
   double distance(const Vector& p) const;
 

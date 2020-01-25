@@ -39,6 +39,7 @@ public:
 
   // Require descendent fields be able to test equivalence.
   virtual bool operator==(const FieldBase& rhs) const = 0;
+  bool operator!=(const FieldBase& rhs) const;
 
   // Access the name.
   FieldName name() const;
@@ -59,8 +60,7 @@ public:
   virtual void deleteElement(int nodeID) = 0;
   virtual void deleteElements(const std::vector<int>& nodeIDs) = 0;
   virtual std::vector<char> packValues(const std::vector<int>& nodeIDs) const = 0;
-  virtual void unpackValues(const int numElements,
-                            const int beginInsertionIndex,
+  virtual void unpackValues(const std::vector<int>& nodeIDs,
                             const std::vector<char>& buffer) = 0;
 
 //   // Methods to support cacheing of coarse and refine neighbor values.

@@ -18,6 +18,7 @@ class CRKSPHHydroBase(GenericHydro):
     typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
     typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
     typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
+    typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
@@ -34,10 +35,11 @@ class CRKSPHHydroBase(GenericHydro):
                XSPH = "const bool",
                densityUpdate = "const MassDensityType",
                HUpdate = "const HEvolutionType",
-               correctionOrder = "const CRKOrder",
-               volumeType = "const CRKVolumeType",
+               correctionOrder = "const RKOrder",
+               volumeType = "const RKVolumeType",
                epsTensile = "const double",
-               nTensile = "const double"):
+               nTensile = "const double",
+               limitMultimaterialTopology = "const bool"):
         "Constructor"
 
     #...........................................................................
@@ -59,6 +61,14 @@ class CRKSPHHydroBase(GenericHydro):
                             dataBase = "DataBase<%(Dimension)s>&",
                             derivs = "StateDerivatives<%(Dimension)s>&"):
         "Register the derivatives/change fields for updating state."
+        return "void"
+
+    @PYB11virtual
+    def preStepInitialize(self,
+                          dataBase = "const DataBase<%(Dimension)s>&", 
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Optional hook to be called at the beginning of a time step."
         return "void"
 
     @PYB11virtual
@@ -95,13 +105,13 @@ mass density, velocity, and specific thermal energy."""
         return "void"
 
     @PYB11virtual
-    def finalize(self,
-                 time = "const Scalar",
-                 dt = "const Scalar",
-                 dataBase = "DataBase<%(Dimension)s>&",
-                 state = "State<%(Dimension)s>&",
-                 derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Finalize the hydro at the completion of an integration step."
+    def postStateUpdate(self,
+                        time = "const Scalar",
+                        dt = "const Scalar",
+                        dataBase = "const DataBase<%(Dimension)s>&",
+                        state = "State<%(Dimension)s>&",
+                        derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Provide a hook to be called after the state has been updated and boundary conditions have been enforced."
         return "void"
                   
     @PYB11virtual
@@ -124,9 +134,9 @@ mass density, velocity, and specific thermal energy."""
                                   doc="Flag to choose whether we want to sum for density, or integrate the continuity equation.")
     HEvolution = PYB11property("HEvolutionType", "HEvolution", "HEvolution",
                                doc="Flag to select how we want to evolve the H tensor.")
-    correctionOrder = PYB11property("CRKOrder", "correctionOrder", "correctionOrder",
+    correctionOrder = PYB11property("RKOrder", "correctionOrder", "correctionOrder",
                                     doc="Flag to choose CRK Correction Order")
-    volumeType = PYB11property("CRKVolumeType", "volumeType", "volumeType",
+    volumeType = PYB11property("RKVolumeType", "volumeType", "volumeType",
                                doc="Flag for the CRK volume weighting definition")
     compatibleEnergyEvolution = PYB11property("bool", "compatibleEnergyEvolution", "compatibleEnergyEvolution",
                                               doc="Flag to determine if we're using the total energy conserving compatible energy evolution scheme.")
@@ -134,6 +144,8 @@ mass density, velocity, and specific thermal energy."""
                                       doc="Flag controlling if we evolve total or specific energy.")
     XSPH = PYB11property("bool", "XSPH", "XSPH",
                          doc="Flag to determine if we're using the XSPH algorithm.")
+    limitMultimaterialTopology = PYB11property("bool", "limitMultimaterialTopology", "limitMultimaterialTopology",
+                                               doc="Flag to determine if we're using the cutting/reducing multimaterial topology.")
     smoothingScaleMethod = PYB11property("SmoothingScaleBase<%(Dimension)s>&", "smoothingScaleMethod", returnpolicy="reference_internal",
                                          doc="The object defining how we evolve smoothing scales.")
     filter = PYB11property("double", "filter", "filter",
@@ -142,10 +154,6 @@ mass density, velocity, and specific thermal energy."""
                                    doc="Parameters for the tensile correction force at small scales.")
     nTensile = PYB11property("Scalar", "nTensile", "nTensile",
                                    doc="Parameters for the tensile correction force at small scales.")
-    correctionMin = PYB11property("double", "correctionMin", "correctionMin",
-                                  doc="Limits to impose on node by node corrections.")
-    correctionMax = PYB11property("double", "correctionMax", "correctionMax",
-                                  doc="Limits to impose on node by node corrections.")
     voidBoundary = PYB11property("const CRKSPHVoidBoundary<%(Dimension)s>&", "voidBoundary", returnpolicy="reference_internal",
                                  doc="We maintain a special boundary condition to handle void points.")
 
@@ -161,7 +169,6 @@ mass density, velocity, and specific thermal energy."""
     weightedNeighborSum = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "weightedNeighborSum", returnpolicy="reference_internal")
     massSecondMoment = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "massSecondMoment", returnpolicy="reference_internal")
     volume = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "volume", returnpolicy="reference_internal")
-    massDensityGradient = PYB11property("const FieldList<%(Dimension)s, Vector>&", "massDensityGradient", returnpolicy="reference_internal")
     XSPHDeltaV = PYB11property("const FieldList<%(Dimension)s, Vector>&", "XSPHDeltaV", returnpolicy="reference_internal")
     DxDt = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DxDt", returnpolicy="reference_internal")
 
@@ -171,7 +178,7 @@ mass density, velocity, and specific thermal energy."""
     DHDt = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "DHDt", returnpolicy="reference_internal")
     DvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "DvDx", returnpolicy="reference_internal")
     internalDvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "internalDvDx", returnpolicy="reference_internal")
-    pairAccelerations = PYB11property("const FieldList<%(Dimension)s, std::vector<Vector> >&", "pairAccelerations", returnpolicy="reference_internal")
+    pairAccelerations = PYB11property("const std::vector<Vector>&", "pairAccelerations", returnpolicy="reference_internal")
     deltaCentroid = PYB11property("const FieldList<%(Dimension)s, Vector>&", "deltaCentroid", returnpolicy="reference_internal")
 
     A = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "A", returnpolicy="reference_internal")
@@ -192,8 +199,9 @@ mass density, velocity, and specific thermal energy."""
     gradm3 = PYB11property("const FieldList<%(Dimension)s, FourthRankTensor>&", "gradm3", returnpolicy="reference_internal")
     gradm4 = PYB11property("const FieldList<%(Dimension)s, FifthRankTensor>&", "gradm4", returnpolicy="reference_internal")
 
+    cells = PYB11property("const FieldList<%(Dimension)s, FacetedVolume>&", "cells", returnpolicy="reference_internal")
+    cellFaceFlags = PYB11property("const FieldList<%(Dimension)s, std::vector<CellFaceFlag>>&", "cellFaceFlags", returnpolicy="reference_internal")
     surfacePoint = PYB11property("const FieldList<%(Dimension)s, int>&", "surfacePoint", returnpolicy="reference_internal")
-    voidPoint = PYB11property("const FieldList<%(Dimension)s, int>&", "voidPoint", returnpolicy="reference_internal")
     etaVoidPoints = PYB11property("const FieldList<%(Dimension)s, std::vector<Vector>>&", "etaVoidPoints", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------

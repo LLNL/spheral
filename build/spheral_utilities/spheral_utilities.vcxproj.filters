@@ -45,12 +45,6 @@
     <ClCompile Include="..\..\src\Utilities\globalBoundingVolumesInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\integrateThroughMeshAlongSegmentInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\integrateThroughMeshAlongSegmentInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Utilities\iterateIdealHInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,12 +57,6 @@
     <ClCompile Include="..\..\src\Utilities\lineSegmentIntersections.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\medianPositionInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\medianPositionInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Utilities\mortonOrderIndicesInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -79,18 +67,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Utilities\nodeBoundingBoxesInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\nodeOrderingInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\nodeOrderingInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\numberDensityInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\numberDensityInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Utilities\peanoHilbertOrderIndicesInst.cc.2.cc">
@@ -118,9 +94,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Utilities\RedistributionRegistrar.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\refinePolyhedron.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Utilities\RegisterMPIDataTypes.cc">
@@ -203,9 +176,6 @@
     <None Include="..\..\src\Utilities\initializeTau.hh">
       <Filter>Header Files\Utilities</Filter>
     </None>
-    <None Include="..\..\src\Utilities\integrateThroughMeshAlongSegment.hh">
-      <Filter>Header Files\Utilities</Filter>
-    </None>
     <None Include="..\..\src\Utilities\intpow2.hh">
       <Filter>Header Files\Utilities</Filter>
     </None>
@@ -219,9 +189,6 @@
       <Filter>Header Files\Utilities</Filter>
     </None>
     <None Include="..\..\src\Utilities\log2.hh">
-      <Filter>Header Files\Utilities</Filter>
-    </None>
-    <None Include="..\..\src\Utilities\medianPosition.hh">
       <Filter>Header Files\Utilities</Filter>
     </None>
     <None Include="..\..\src\Utilities\mortonOrderIndices.hh">
@@ -240,12 +207,6 @@
       <Filter>Header Files\Utilities</Filter>
     </None>
     <None Include="..\..\src\Utilities\NodeListHashMap.hh">
-      <Filter>Header Files\Utilities</Filter>
-    </None>
-    <None Include="..\..\src\Utilities\nodeOrdering.hh">
-      <Filter>Header Files\Utilities</Filter>
-    </None>
-    <None Include="..\..\src\Utilities\numberDensity.hh">
       <Filter>Header Files\Utilities</Filter>
     </None>
     <None Include="..\..\src\Utilities\packElement.hh">
@@ -291,9 +252,6 @@
       <Filter>Header Files\Utilities</Filter>
     </None>
     <None Include="..\..\src\Utilities\RedistributionRegistrarInline.hh">
-      <Filter>Header Files\Utilities</Filter>
-    </None>
-    <None Include="..\..\src\Utilities\refinePolyhedron.hh">
       <Filter>Header Files\Utilities</Filter>
     </None>
     <None Include="..\..\src\Utilities\RegisterMPIDataTypes.hh">
@@ -349,13 +307,7 @@
     <CustomBuild Include="..\..\src\Utilities\globalBoundingVolumesInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\Utilities\integrateThroughMeshAlongSegmentInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\Utilities\iterateIdealHInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Utilities\medianPositionInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Utilities\mortonOrderIndicesInst.cc.py">
@@ -364,14 +316,19 @@
     <CustomBuild Include="..\..\src\Utilities\nodeBoundingBoxesInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\Utilities\nodeOrderingInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Utilities\numberDensityInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\Utilities\peanoHilbertOrderIndicesInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\Utilities\DomainNode.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Utilities\DomainNodeInline.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Utilities\OpenMP_wrapper.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -149,9 +149,9 @@ case $COMPILERS in
       CXX=clang++
       FORT=gfortran
       MPICC=mpicc
-      MPICXX=mpiCC
-      MPICCFLAGS="-cc=clang"
-      MPICXXFLAGS="-cc=clang++"
+      MPICXX=mpicxx
+      MPICCFLAGS=
+      MPICXXFLAGS=
       CMAKECC=clang
       CMAKECXX=clang++
       GCCXMLCC=$CMAKECC
@@ -776,11 +776,15 @@ AC_MSG_RESULT($JAMTOOLSET)
 # =======================================================================
 # openmp or not
 # =======================================================================
-AC_MSG_CHECKING(for openmp)
+AC_MSG_CHECKING(for --without-openmp)
 AC_ARG_WITH(openmp,
-[  --with-openmp ............................ enable OpenMP],
+[  --without-openmp ......................... build without OpenMP],
 [
    AC_MSG_RESULT(yes)
+   PYTHONPKGS+=" OpenMP"
+],
+[
+   AC_MSG_RESULT(no)
    PYTHONPKGS+=" OpenMP"
    FFTWFLAGS+=" --enable-openmp"
    if test $CXXCOMPILERTYPE = "VACPP"; then
@@ -791,10 +795,6 @@ AC_ARG_WITH(openmp,
     #  CXXFLAGS+=" "
     #  EXTRAFLAGS+=" -qsmp=omp -qoffload -I/usr/tcetmp/packages/cuda-9.0.176/include    "
    fi
-],
-[
-   AC_MSG_RESULT(no)
-   PYTHONPKGS+=" OpenMP"
 ]
 )
 

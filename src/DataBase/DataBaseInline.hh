@@ -441,4 +441,142 @@ resizeSolidFieldList(FieldList<Dimension, DataType>& fieldList,
   ENSURE(fieldList.numFields() == numSolidNodeLists());
 }
 
+//------------------------------------------------------------------------------
+// Construct a new array<array> with an array for every NodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+std::vector<std::vector<DataType>>
+DataBase<Dimension>::
+newGlobalArray(const DataType value) const {
+  std::vector<std::vector<DataType>> result;
+  for (auto nodeListItr = nodeListBegin();
+       nodeListItr != nodeListEnd();
+       ++nodeListItr) {
+    result.push_back(std::vector<DataType>((*nodeListItr)->numNodes(), value));
+  }
+
+  ENSURE(result.size() == numNodeLists());
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Construct a new array<array> with an array for every FluidNodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+std::vector<std::vector<DataType>>
+DataBase<Dimension>::
+newFluidArray(const DataType value) const {
+  std::vector<std::vector<DataType>> result;
+  for (auto nodeListItr = fluidNodeListBegin();
+       nodeListItr != fluidNodeListEnd();
+       ++nodeListItr) {
+    result.push_back(std::vector<DataType>((*nodeListItr)->numNodes(), value));
+  }
+
+  ENSURE(result.size() == numNodeLists());
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Construct a new array<array> with an array for every SolidNodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+std::vector<std::vector<DataType>>
+DataBase<Dimension>::
+newSolidArray(const DataType value) const {
+  std::vector<std::vector<DataType>> result;
+  for (auto nodeListItr = solidNodeListBegin();
+       nodeListItr != solidNodeListEnd();
+       ++nodeListItr) {
+    result.push_back(std::vector<DataType>((*nodeListItr)->numNodes(), value));
+  }
+
+  ENSURE(result.size() == numNodeLists());
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Resize an array<array> for every NodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+void
+DataBase<Dimension>::
+resizeGlobalArray(std::vector<std::vector<DataType>>& array,
+                  const DataType value,
+                  const bool resetValues) const {
+  array.resize(this->numNodeLists());
+  auto k = 0;
+  for (auto nodeListItr = nodeListBegin();
+       nodeListItr != nodeListEnd();
+       ++nodeListItr, ++k) {
+    if (resetValues) {
+      array[k] = std::vector<DataType>((*nodeListItr)->numNodes(), value);
+    } else {
+      array[k].resize((*nodeListItr)->numNodes(), value);
+    }
+  }
+
+  ENSURE(array.size() == numNodeLists());
+}
+
+//------------------------------------------------------------------------------
+// Resize an array<array> for every FluidNodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+void
+DataBase<Dimension>::
+resizeFluidArray(std::vector<std::vector<DataType>>& array,
+                 const DataType value,
+                 const bool resetValues) const {
+  array.resize(this->numFluidNodeLists());
+  auto k = 0;
+  for (auto nodeListItr = fluidNodeListBegin();
+       nodeListItr != fluidNodeListEnd();
+       ++nodeListItr, ++k) {
+    if (resetValues) {
+      array[k] = std::vector<DataType>((*nodeListItr)->numNodes(), value);
+    } else {
+      array[k].resize((*nodeListItr)->numNodes(), value);
+    }
+  }
+
+  ENSURE(array.size() == numNodeLists());
+}
+
+//------------------------------------------------------------------------------
+// Resize an array<array> for every SolidNodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+void
+DataBase<Dimension>::
+resizeSolidArray(std::vector<std::vector<DataType>>& array,
+                 const DataType value,
+                 const bool resetValues) const {
+  array.resize(this->numSolidNodeLists());
+  auto k = 0;
+  for (auto nodeListItr = solidNodeListBegin();
+       nodeListItr != solidNodeListEnd();
+       ++nodeListItr, ++k) {
+    if (resetValues) {
+      array[k] = std::vector<DataType>((*nodeListItr)->numNodes(), value);
+    } else {
+      array[k].resize((*nodeListItr)->numNodes(), value);
+    }
+  }
+
+  ENSURE(array.size() == numNodeLists());
+}
+
 }

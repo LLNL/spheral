@@ -47,27 +47,9 @@ NodeType = PYB11enum(("InternalNode", "GhostNode"), export_values=True,
                      doc="The classifications of Spheral nodes.")
 
 #-------------------------------------------------------------------------------
-# NodeListRegistrar
-#-------------------------------------------------------------------------------
-@PYB11template("Dimension")
-@PYB11singleton
-class NodeListRegistrar:
-
-    @PYB11const
-    def valid(self):
-        return "bool"
-
-    # The instance attribute.  We expose this as a property of the class.
-    @PYB11static
-    @PYB11cppname("instance")
-    @PYB11ignore
-    def getinstance(self):
-        return "NodeListRegistrar<%(Dimension)s>&"
-    instance = property(getinstance, doc="The static NodeListRegistrar<%(Dimension)s> instance.")
-
-#-------------------------------------------------------------------------------
 # Do our dimension dependent instantiations.
 #-------------------------------------------------------------------------------
+from NodeListRegistrar import NodeListRegistrar
 from NodeList import NodeList
 from FluidNodeList import FluidNodeList
 from SolidNodeList import SolidNodeList

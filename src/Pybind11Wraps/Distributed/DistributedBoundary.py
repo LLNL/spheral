@@ -18,6 +18,9 @@ conditions, connecting NodeLists across parallel domains."""
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
+    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
+    typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
 
     typedef typename DistributedBoundary<%(Dimension)s>::DomainBoundaryNodes DomainBoundaryNodes;
     typedef std::map<int, DomainBoundaryNodes> DomainBoundaryNodeMap;
@@ -103,6 +106,8 @@ conditions, connecting NodeLists across parallel domains."""
     beginExchangeFieldTensor          = PYB11TemplateMethod(beginExchangeField, template_parameters="Tensor", pyname="beginExchangeField")
     beginExchangeFieldSymTensor       = PYB11TemplateMethod(beginExchangeField, template_parameters="SymTensor", pyname="beginExchangeField")
     beginExchangeFieldThirdRankTensor = PYB11TemplateMethod(beginExchangeField, template_parameters="ThirdRankTensor", pyname="beginExchangeField")
+    beginExchangeFieldFourthRankTensor = PYB11TemplateMethod(beginExchangeField, template_parameters="FourthRankTensor", pyname="beginExchangeField")
+    beginExchangeFieldFifthRankTensor = PYB11TemplateMethod(beginExchangeField, template_parameters="FifthRankTensor", pyname="beginExchangeField")
 
     beginExchangeFieldVS1             = PYB11TemplateMethod(beginExchangeFieldVariableSize, template_parameters="std::vector<Scalar>", pyname="beginExchangeFieldVariableSize")
     beginExchangeFieldVS2             = PYB11TemplateMethod(beginExchangeFieldVariableSize, template_parameters="std::vector<Vector>", pyname="beginExchangeFieldVariableSize")

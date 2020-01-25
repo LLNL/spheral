@@ -26,7 +26,34 @@ double
 PhysicalConstants::unitTimeSec() const {
   return mUnitTsec;
 }
-    
+
+//------------------------------------------------------------------------------
+// Unit temperature in kelvin.
+//------------------------------------------------------------------------------
+inline
+double
+PhysicalConstants::unitTemperatureKelvin() const {
+  return mUnitTeK;
+}
+
+//------------------------------------------------------------------------------
+// Unit charge in coulomb.
+//------------------------------------------------------------------------------
+inline
+double
+PhysicalConstants::unitChargeCoulomb() const {
+  return mUnitCcou;
+}
+
+//------------------------------------------------------------------------------
+// Unit energy in J.
+//------------------------------------------------------------------------------
+inline
+double
+PhysicalConstants::unitEnergyJ() const {
+  return UnitEnergyJ;
+}
+
 //------------------------------------------------------------------------------
 // Unit mass density in kg/m^3
 //------------------------------------------------------------------------------
@@ -124,6 +151,15 @@ inline
 double
 PhysicalConstants::stefanBoltzmannConstant() const {
     return Sigma;
+}
+
+//------------------------------------------------------------------------------
+// Black body constant
+//------------------------------------------------------------------------------
+inline
+double
+PhysicalConstants::blackBodyConstant() const {
+    return BlackBody;
 }
 
 }

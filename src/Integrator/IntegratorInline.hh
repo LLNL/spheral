@@ -1,5 +1,4 @@
 #include "Utilities/DBC.hh"
-#include "NodeList/NodeListRegistrar.hh"
 
 namespace Spheral {
 
@@ -109,6 +108,24 @@ void
 Integrator<Dimension>::
 dtGrowth(typename Dimension::Scalar fraction) {
   mDtGrowth = fraction;
+}
+
+//------------------------------------------------------------------------------
+// The fraction of the timestep we consider when checking for stable behavior.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+Integrator<Dimension>::dtCheckFrac() const {
+  return mDtCheckFrac;
+}
+
+template<typename Dimension>
+inline
+void
+Integrator<Dimension>::
+dtCheckFrac(typename Dimension::Scalar fraction) {
+  mDtCheckFrac = fraction;
 }
 
 //------------------------------------------------------------------------------
@@ -222,6 +239,24 @@ void
 Integrator<Dimension>::
 verbose(bool value) {
   mVerbose = value;
+}
+
+//------------------------------------------------------------------------------
+// Should the integrator check interim timestep votes and abort steps?
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+Integrator<Dimension>::allowDtCheck() const {
+  return mAllowDtCheck;
+}
+
+template<typename Dimension>
+inline
+void
+Integrator<Dimension>::
+allowDtCheck(bool value) {
+  mAllowDtCheck = value;
 }
 
 //------------------------------------------------------------------------------

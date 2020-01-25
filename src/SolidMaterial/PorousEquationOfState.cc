@@ -131,7 +131,7 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
   REQUIRE(massDensity.nodeListPtr() == soundSpeed.nodeListPtr());
   REQUIRE(specificThermalEnergy.nodeListPtr() == soundSpeed.nodeListPtr());
   REQUIRE(mAlphaPtr->nodeListPtr() == soundSpeed.nodeListPtr());
-  REQUIRE(mAlpha0 > 1.0 and mC0 > 0.0);
+  REQUIRE2(mAlpha0 >= 1.0 and mC0 > 0.0, mAlpha0 << " " << mC0);
   const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
   mSolidEOS.setSoundSpeed(soundSpeed, rhoS, specificThermalEnergy);
   

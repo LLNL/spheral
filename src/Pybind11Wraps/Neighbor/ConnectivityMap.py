@@ -27,6 +27,13 @@ class ConnectivityMap:
         "Patch the connectivity information"
         return "void"
 
+    def removeConnectivity(self,
+                           neighborsToCut = "const FieldList<%(Dimension)s, std::vector<std::vector<int>>>&"):
+        """Remove connectivity between neighbors.
+Note this method assumes neighbor info is symmetric, and removes the pair connectivity for each
+member of a pair (maintaining symmetry)."""
+        return "void"
+
     @PYB11returnpolicy("reference_internal")
     @PYB11const
     def connectivityForNode(self,
@@ -142,4 +149,8 @@ class ConnectivityMap:
     # Properties
     buildGhostConnectivity = PYB11property(doc="Are we building connectivity for ghost nodes?")
     buildOverlapConnectivity = PYB11property(doc="Are we building connectivity for nodes that overlap?")
-    nodeLists = PYB11property("const std::vector<NodeListType*>", "nodeLists", doc="The set of NodeLists we have connectivity for")
+    nodeLists = PYB11property("const std::vector<NodeListType*>&", "nodeLists",
+                              returnpolicy="reference",
+                              doc="The set of NodeLists we have connectivity for")
+    nodePairList = PYB11property(returnpolicy="reference",
+                                 doc="The connectivity as a set of (nodeListi, i, nodeListj, j)")

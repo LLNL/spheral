@@ -55,9 +55,11 @@ public:
   bool convexIntersect(const GeomPolygon& rhs) const;
   bool intersect(const std::pair<Vector, Vector>& rhs) const;  // Another way of representing a box.
 
-  // Return the intersections of this polygon with a line segment 
-  // denoted by it's end points.
-  std::vector<Vector> intersect(const Vector& x0, const Vector& x1) const;
+  // Find intersections of this polygon with a line segment (s0, s1).  Returns
+  // both the intersection points and facet IDs.
+  void intersect(const Vector& s0, const Vector& s1,
+                 std::vector<unsigned>& facetIDs,
+                 std::vector<Vector>& intersections) const;
 
   // Return the centroid of the vertices.
   Vector centroid() const;
@@ -76,6 +78,10 @@ public:
 
   // Spit out a vector<vector<unsigned> > that encodes the facets.
   std::vector<std::vector<unsigned> > facetVertices() const;
+
+  // Useful facet properties.
+  double facetArea(const unsigned facetID) const;
+  Vector facetAreaNormal(const unsigned facetID) const;
 
   // Reconstruct the internal data given a set of vertices and the vertex
   // indicies that define the facets.
@@ -105,6 +111,7 @@ public:
   GeomPolygon& operator/=(const double rhs);
   GeomPolygon operator*(const double rhs) const;
   GeomPolygon operator/(const double rhs) const;
+
   // Comparisons.
   bool operator==(const GeomPolygon& rhs) const;
   bool operator!=(const GeomPolygon& rhs) const;
@@ -114,6 +121,9 @@ public:
 
   // Set the bounding box.
   void setBoundingBox();
+
+  // Decompose the polygon into triangles for each facet.
+  GeomPolygon facetSubVolume(const unsigned facetID) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//

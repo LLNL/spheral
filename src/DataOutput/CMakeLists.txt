@@ -8,7 +8,6 @@ set(DataOutput_headers
     RestartInline.hh
     RestartRegistrar.hh
     RestartRegistrarInline.hh
-    RestartableObject.hh
     registerWithRestart.hh
     )
 

@@ -10,10 +10,11 @@
 #include <stdint.h>
 #include <vector>
 #include <string>
-#include "boost/tuple/tuple.hpp"
+#include <tuple>
 #include "Geometry/Dimension.hh"
 #include "Geometry/polyclipper.hh"
 #include "RegisterMPIDataTypes.hh"
+#include "Utilities/DomainNode.hh"
 
 #ifdef USE_MPI
 extern "C" {
@@ -24,6 +25,18 @@ extern "C" {
 namespace Spheral {
 
 template<typename DataType> struct DataTypeTraits;
+
+//------------------------------------------------------------------------------
+template<>
+struct DataTypeTraits<bool> {
+  typedef bool ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const ElementType& x) { return 1; }
+  static bool zero() { return false; }
+#ifdef USE_MPI
+  static MPI_Datatype MpiDataType() { return MPI_C_BOOL; }
+#endif
+};
 
 //------------------------------------------------------------------------------
 template<>
@@ -137,11 +150,11 @@ struct DataTypeTraits<std::vector<Value> > {
 
 //------------------------------------------------------------------------------
 template<typename Value>
-struct DataTypeTraits<boost::tuple<Value, Value, Value> > {
+struct DataTypeTraits<std::tuple<Value, Value, Value> > {
   typedef Value ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const boost::tuple<Value, Value, Value>& x) { return 3; }
-  static boost::tuple<Value, Value, Value> zero() { return boost::make_tuple(Value(), Value(), Value()); }
+  static int numElements(const std::tuple<Value, Value, Value>& x) { return 3; }
+  static std::tuple<Value, Value, Value> zero() { return std::make_tuple(Value(), Value(), Value()); }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }
 #endif
@@ -149,11 +162,11 @@ struct DataTypeTraits<boost::tuple<Value, Value, Value> > {
 
 //------------------------------------------------------------------------------
 template<typename Value>
-struct DataTypeTraits<boost::tuple<Value, Value, Value, Value> > {
-  typedef boost::tuple<Value, Value, Value, Value> ElementType;
+struct DataTypeTraits<std::tuple<Value, Value, Value, Value> > {
+  typedef std::tuple<Value, Value, Value, Value> ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const boost::tuple<Value, Value, Value, Value>& x) { return 4; }
-  static boost::tuple<Value, Value, Value, Value> zero() { return boost::make_tuple(Value(), Value(), Value(), Value()); }
+  static int numElements(const std::tuple<Value, Value, Value, Value>& x) { return 4; }
+  static std::tuple<Value, Value, Value, Value> zero() { return std::make_tuple(Value(), Value(), Value(), Value()); }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }
 #endif
@@ -161,11 +174,11 @@ struct DataTypeTraits<boost::tuple<Value, Value, Value, Value> > {
 
 //------------------------------------------------------------------------------
 template<typename Value>
-struct DataTypeTraits<boost::tuple<Value, Value, Value, Value, Value> > {
-  typedef boost::tuple<Value, Value, Value, Value, Value> ElementType;
+struct DataTypeTraits<std::tuple<Value, Value, Value, Value, Value> > {
+  typedef std::tuple<Value, Value, Value, Value, Value> ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const boost::tuple<Value, Value, Value, Value, Value>& x) { return 5; }
-  static boost::tuple<Value, Value, Value, Value, Value> zero() { return boost::make_tuple(Value(), Value(), Value(), Value(), Value()); }
+  static int numElements(const std::tuple<Value, Value, Value, Value, Value>& x) { return 5; }
+  static std::tuple<Value, Value, Value, Value, Value> zero() { return std::make_tuple(Value(), Value(), Value(), Value(), Value()); }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }
 #endif
@@ -260,6 +273,7 @@ struct DataTypeTraits<Dim<1>::FifthRankTensor> {
 
 template<>
 struct DataTypeTraits<Dim<1>::FacetedVolume> {
+  static bool fixedSize() { return false; }
   static Dim<1>::FacetedVolume zero() { return Dim<1>::FacetedVolume(); }
 };
 
@@ -332,6 +346,7 @@ struct DataTypeTraits<Dim<2>::FifthRankTensor> {
 
 template<>
 struct DataTypeTraits<Dim<2>::FacetedVolume> {
+  static bool fixedSize() { return false; }
   static Dim<2>::FacetedVolume zero() { return Dim<2>::FacetedVolume(); }
 };
 
@@ -404,6 +419,7 @@ struct DataTypeTraits<Dim<3>::FifthRankTensor> {
 
 template<>
 struct DataTypeTraits<Dim<3>::FacetedVolume> {
+  static bool fixedSize() { return false; }
   static Dim<3>::FacetedVolume zero() { return Dim<3>::FacetedVolume(); }
 };
 
@@ -424,6 +440,15 @@ struct DataTypeTraits<PolyClipper::Vertex3d> {
                                                          x.neighbors.size() +
                                                          2); }
   static ElementType zero() { return PolyClipper::Vertex3d(); }
+};
+
+//------------------------------------------------------------------------------
+template<int ndim>
+struct DataTypeTraits<DomainNode<Dim<ndim>>> {
+  typedef double ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const DomainNode<Dim<ndim>>& x) { return DomainNode<Dim<2>>::packSize(); }
+  static DomainNode<Dim<ndim>> zero() { return DomainNode<Dim<ndim>>({0, 0, 0, 0, 0, 0.0, Dim<ndim>::Vector::zero}); }
 };
 
 }

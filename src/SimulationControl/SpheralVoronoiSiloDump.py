@@ -7,11 +7,12 @@
 # Format version:
 # 1.0 -- original release
 #-------------------------------------------------------------------------------
-import os, time, gc, mpi
+import os, gc, mpi
+import time as TIME
 
 from SpheralCompiledPackages import *
 
-from PolytopeModules import polytope
+import polytope
 from siloMeshDump import *
 
 class SpheralVoronoiSiloDump:
@@ -107,6 +108,7 @@ class SpheralVoronoiSiloDump:
 ##             raise ValueError, "File %s already exists!  Aborting." % filename
 
         # Did the user provide a FieldList of cell geometries already?
+        # start = TIME.clock()
         if self.cells:
 
             # Yep, so we build a disjoint set of cells as a polytope tessellation.
@@ -182,33 +184,35 @@ class SpheralVoronoiSiloDump:
 
             else:
                 index2zone = None
-                for nodeListi in xrange(len(self.cells)):
-                    n = self.cells[nodeListi].numInternalElements
-                    noldcells = len(mesh.cells)
-                    mesh.cells.resize(noldcells + n)
-                    for i in xrange(n):
-                        celli = self.cells(nodeListi, i)
-                        verts = celli.vertices
-                        facets = celli.facets
-                        noldnodes = len(mesh.nodes)/nDim
-                        noldfaces = len(mesh.faces)
-                        mesh.faces.resize(noldfaces + len(facets))
-                        for j in xrange(len(verts)):
-                            for k in xrange(nDim):
-                                mesh.nodes.append(verts[j][k])
-                        for j in xrange(len(facets)):
-                            mesh.cells[noldcells + i].append(noldfaces + j)
-                            ipoints = facets[j].ipoints
-                            for k in ipoints:
-                                mesh.faces[noldfaces + j].append(noldnodes + k)
+                copy2polytope(self.cells, mesh)
+                # for nodeListi in xrange(len(self.cells)):
+                #     n = self.cells[nodeListi].numInternalElements
+                #     noldcells = len(mesh.cells)
+                #     mesh.cells.resize(noldcells + n)
+                #     for i in xrange(n):
+                #         celli = self.cells(nodeListi, i)
+                #         verts = celli.vertices
+                #         facets = celli.facets
+                #         noldnodes = len(mesh.nodes)/nDim
+                #         noldfaces = len(mesh.faces)
+                #         mesh.faces.resize(noldfaces + len(facets))
+                #         for j in xrange(len(verts)):
+                #             for k in xrange(nDim):
+                #                 mesh.nodes.append(verts[j][k])
+                #         for j in xrange(len(facets)):
+                #             mesh.cells[noldcells + i].append(noldfaces + j)
+                #             ipoints = facets[j].ipoints
+                #             for k in ipoints:
+                #                 mesh.faces[noldfaces + j].append(noldnodes + k)
 
         else:
+
             # We need to do the full up polytope tessellation.
             # Build the set of generators from our points.
             gens = vector_of_double()
             nDim = eval("Vector%s.nDimensions" % self.dimension)
-            xmin = vector_of_double(nDim,  1e100)
-            xmax = vector_of_double(nDim, -1e100)
+            xmin = vector_of_double([1e100]*nDim)
+            xmax = vector_of_double([-1e100]*nDim)
             for nodes in self._nodeLists:
                 pos = nodes.positions()
                 for i in xrange(nodes.numInternalNodes):
@@ -281,6 +285,9 @@ class SpheralVoronoiSiloDump:
                 tessellator = serial_tessellator
             index2zone = tessellator.tessellateDegenerate(gens, plccoords, plc, 1.0e-8, mesh)
 
+        # print "Took %g sec to generate cells" % (TIME.clock() - start)
+        # start = TIME.clock()
+
         # Figure out how many of each type of field we're dumping.
         intFields = [x for x in self._fields if isinstance(x, eval("IntField%s" % self.dimension))]
         scalarFields = [x for x in self._fields if isinstance(x, eval("ScalarField%s" % self.dimension))]
@@ -295,13 +302,16 @@ class SpheralVoronoiSiloDump:
             det = eval("ScalarField%s('%s_determinant', n)" % (self.dimension, f.name))
             mineigen = eval("ScalarField%s('%s_eigen_min', n)" % (self.dimension, f.name))
             maxeigen = eval("ScalarField%s('%s_eigen_max', n)" % (self.dimension, f.name))
+            fvals = f.internalValues()
             for i in xrange(n.numInternalNodes):
-                tr[i] = f[i].Trace()
-                det[i] = f[i].Determinant()
-                eigen = f[i].eigenValues()
+                tr[i] = fvals[i].Trace()
+                det[i] = fvals[i].Determinant()
+                eigen = fvals[i].eigenValues()
                 mineigen[i] = eigen.minElement()
                 maxeigen[i] = eigen.maxElement()
             scalarFields += [tr, det, mineigen, maxeigen]
+        # print "Took %g sec to build output fields" % (TIME.clock() - start)
+        # start = TIME.clock()
 
         # Write the output.
         timeslice = siloMeshDump(filename, mesh,
@@ -314,6 +324,9 @@ class SpheralVoronoiSiloDump:
                                  vectorFields = vectorFields,
                                  tensorFields = tensorFields,
                                  symTensorFields = symTensorFields)
+
+        # print "Took %g sec to calls siloMeshDump" % (TIME.clock() - start)
+        # start = TIME.clock()
 
         # Write the master file listing all the time slices.
         if mpi.rank == 0:
@@ -412,10 +425,11 @@ def dumpPhysicsState(stateThingy,
             assert isinstance(stateThingy, State3d)
             ndim = 3
         dataBase = eval("DataBase%id()" % ndim)
-        assert state.fieldNameRegistered(HydroFieldName.mass)
+        assert state.fieldNameRegistered(HydroFieldNames.mass)
         mass = state.scalarFields(HydroFieldNames.mass)
         for nodes in mass.nodeListPtrs():
             dataBase.appendNodeList(nodes)
+        dataBase.updateConnectivityMap(False, False)
 
     assert state is not None and dataBase is not None
 
@@ -491,41 +505,43 @@ def dumpPhysicsState(stateThingy,
         pass
 
     # Build the Voronoi-like cells.
-    weight = eval("ScalarFieldList%id()" % dataBase.nDim)                         # No weights
-    gradRho = dataBase.newFluidVectorFieldList(eval("Vector%id.zero" % dataBase.nDim), "grad rho")
-    bounds = eval("vector_of_FacetedVolume%id()" % dataBase.nDim)
-    holes = eval("vector_of_vector_of_FacetedVolume%id()" % dataBase.nDim)
-    if state.fieldNameRegistered(HydroFieldNames.surfacePoint):
-        surfacePoint = state.intFields(HydroFieldNames.surfacePoint)
-        voidPoint = state.intFields(HydroFieldNames.voidPoint)
-    else:
-        surfacePoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.surfacePoint)
-        voidPoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.voidPoint)
-    if state.fieldNameRegistered(HydroFieldNames.volume):
-        vol = state.scalarFields(HydroFieldNames.volume)
-    else:
-        vol = dataBase.newFluidScalarFieldList(0.0, HydroFieldNames.volume)
-    deltaMedian = dataBase.newFluidVectorFieldList(eval("Vector%id.zero" % dataBase.nDim), "centroidal delta")
-    etaVoidPoints = dataBase.newFluidvector_of_VectorFieldList(eval("vector_of_Vector%id()" % dataBase.nDim), "eta void points")
     FacetedVolume = {2 : Polygon,
                      3 : Polyhedron}[dataBase.nDim]
-    cells = dataBase.newFluidFacetedVolumeFieldList(FacetedVolume(), "cells")
-    computeVoronoiVolume(dataBase.fluidPosition, 
-                         dataBase.fluidHfield,
-                         dataBase.fluidMassDensity,
-                         gradRho,
-                         dataBase.connectivityMap(),
-                         dataBase.solidEffectiveDamage,
-                         bounds,
-                         holes,
-                         boundaries,
-                         weight,
-                         voidPoint,
-                         surfacePoint,
-                         vol,
-                         deltaMedian,
-                         etaVoidPoints,
-                         cells)
+    if state.fieldNameRegistered(HydroFieldNames.cells):
+        assert state.fieldNameRegistered(HydroFieldNames.cellFaceFlags)
+        cells = state.facetedVolumeFields(HydroFieldNames.cells)
+        cellFaceFlags = state.vector_of_CellFaceFlagFields(HydroFieldNames.cellFaceFlags)
+    else:
+        bounds = eval("vector_of_FacetedVolume%id()" % dataBase.nDim)
+        holes = eval("vector_of_vector_of_FacetedVolume%id()" % dataBase.nDim)
+        weight = eval("ScalarFieldList%id()" % dataBase.nDim)                         # No weights
+        surfacePoint = dataBase.newGlobalIntFieldList(0, HydroFieldNames.surfacePoint)
+        vol = dataBase.newGlobalScalarFieldList(0.0, HydroFieldNames.volume)
+        deltaMedian = dataBase.newGlobalVectorFieldList(eval("Vector%id.zero" % dataBase.nDim), "centroidal delta")
+        etaVoidPoints = dataBase.newGlobalvector_of_VectorFieldList(eval("vector_of_Vector%id()" % dataBase.nDim), "eta void points")
+        cells = dataBase.newGlobalFacetedVolumeFieldList(FacetedVolume(), "cells")
+        cellFaceFlags = dataBase.newGlobalvector_of_CellFaceFlagFieldList(vector_of_CellFaceFlag(), "face flags")
+        computeVoronoiVolume(dataBase.globalPosition, 
+                             dataBase.globalHfield,
+                             dataBase.connectivityMap(),
+                             dataBase.solidEffectiveDamage,
+                             bounds,
+                             holes,
+                             boundaries,
+                             weight,
+                             surfacePoint,
+                             vol,
+                             deltaMedian,
+                             etaVoidPoints,
+                             cells,
+                             cellFaceFlags)
+
+    # Amalgamate the cell face flags into a single value per cell.  Not the best visualization yet...
+    # cellFaceFlagsSum = dataBase.newGlobalIntFieldList(0, HydroFieldNames.cellFaceFlags + "_sum")
+    # for k in xrange(len(cellFaceFlagsSum)):
+    #     for i in xrange(len(cellFaceFlagsSum[k])):
+    #         cellFaceFlagsSum[k][i] = sum([x.nodeListj for x in cellFaceFlags[k][i]] + [0])
+    # fieldLists += [surfacePoint, cellFaceFlagsSum]
 
     # Now build the visit dumper.
     dumper = SpheralVoronoiSiloDump(baseFileName,

@@ -69,7 +69,7 @@ commandLine(problemName = "KidderIsentropicCapsule",
             cfl = 0.5,
             filter = 0.0,
             correctionOrder = LinearOrder,
-            volumeType = CRKSumVolume,
+            volumeType = RKSumVolume,
             compatibleEnergy = True,
             evolveTotalEnergy = False,
             gradhCorrection = True,
@@ -364,7 +364,7 @@ from SpheralGnuPlotUtilities import *
 # Simulation results.
 r = mpi.allreduce([x.x for x in nodes.positions().internalValues()], mpi.SUM)
 rho = mpi.allreduce(nodes.massDensity().internalValues(), mpi.SUM)
-Pfl = hydro.pressure()
+Pfl = hydro.pressure
 P = mpi.allreduce(Pfl[0].internalValues(), mpi.SUM)
 v = mpi.allreduce([v.x for v in nodes.velocity().internalValues()], mpi.SUM)
 eps = mpi.allreduce(nodes.specificThermalEnergy().internalValues(), mpi.SUM)
@@ -425,37 +425,37 @@ if mpi.rank == 0:
     alphaPlot.plot(alphaData)
     alphaPlot.replot(alphaAnsData)
 
-    DepsDtfl = hydro.DspecificThermalEnergyDt()
+    DepsDtfl = hydro.DspecificThermalEnergyDt
     DepsDt = mpi.allreduce(DepsDtfl[0].internalValues(), mpi.SUM)
     DepsData = Gnuplot.Data(r, DepsDt, title="DepsDt", inline=True)
     DepsPlot = generateNewGnuPlot()
     DepsPlot.plot(DepsData)
 
-    DxDtfl = hydro.DxDt()
+    DxDtfl = hydro.DxDt
     DxDt = mpi.allreduce([x.x for x in DxDtfl[0].internalValues()], mpi.SUM)
     DxData = Gnuplot.Data(r, DxDt, title="DxDt", inline=True)
     DxPlot = generateNewGnuPlot()
     DxPlot.plot(DxData)
 
-    DvDtfl = hydro.DvDt()
+    DvDtfl = hydro.DvDt
     DvDt = mpi.allreduce([x.x for x in DvDtfl[0].internalValues()], mpi.SUM)
     DvData = Gnuplot.Data(r, DvDt, title="DvDt", inline=True)
     DvPlot = generateNewGnuPlot()
     DvPlot.plot(DvData)
 
-    DvDxfl = hydro.DvDx()
+    DvDxfl = hydro.DvDx
     DvDx = mpi.allreduce([x.xx for x in DvDxfl[0].internalValues()], mpi.SUM)
     DvData = Gnuplot.Data(r, DvDx, title="DvDx", inline=True)
     DvPlot = generateNewGnuPlot()
     DvPlot.plot(DvData)
 
-    DHDtfl = hydro.DHDt()
+    DHDtfl = hydro.DHDt
     DHDt = mpi.allreduce([x.xx for x in DHDtfl[0].internalValues()], mpi.SUM)
     DHData = Gnuplot.Data(r, DHDt, title="DHDt", inline=True)
     DHPlot = generateNewGnuPlot()
     DHPlot.plot(DHData)
 
-    DrhoDtfl = hydro.DmassDensityDt()
+    DrhoDtfl = hydro.DmassDensityDt
     DrhoDt = mpi.allreduce(DrhoDtfl[0].internalValues(), mpi.SUM)
     DrhoData = Gnuplot.Data(r, DrhoDt, title="DrhoDt", inline=True)
     DrhoPlot = generateNewGnuPlot()

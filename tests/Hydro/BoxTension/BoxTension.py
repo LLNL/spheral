@@ -82,16 +82,15 @@ commandLine(
     nx2 = 50,
     ny2 = 50,
 
-    nPerh = 1.51,
-    KernelConstructor = BSplineKernel,
+    nPerh = 1.35,
+    KernelConstructor = NBSplineKernel,
     order = 5,
 
-    SVPH = False,
-    CRKSPH = False,
-    PSPH = False,
-    ASPH = False,
+    svph = False,
+    crksph = False,
+    psph = False,
+    asph = False,
     filter = 0.0,  # For CRKSPH
-    Qconstructor = MonaghanGingoldViscosity,
     boolReduceViscosity = False,
     nh = 5.0,
     aMin = 0.1,
@@ -110,11 +109,11 @@ commandLine(
     linearConsistent = False,
     fcentroidal = 0.0,
     fcellPressure = 0.0,
-    Cl = 1.0, 
-    Cq = 0.75,
-    Qlimiter = False,
-    balsaraCorrection = False,
-    epsilon2 = 1e-2,
+    Cl = None,
+    Cq = None,
+    Qlimiter = None,
+    balsaraCorrection = None,
+    epsilon2 = None,
     hmin = 1e-5,
     hmax = 0.5,
     hminratio = 0.1,
@@ -141,14 +140,13 @@ commandLine(
     redistributeStep = 1000,
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-    volumeType = CRKSumVolume,
+    volumeType = RKSumVolume,
     correctionOrder = LinearOrder,
     compatibleEnergy = True,
     gradhCorrection = True,
     correctVelocityGradient = True,
     serialDump = False,
 
-    useVoronoiOutput = False,
     clearDirectories = False,
     restoreCycle = -1,
     restartStep = 200,
@@ -158,44 +156,29 @@ commandLine(
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert problem.lower() in ("box", "ellipse")
 
-# Decide on our hydro algorithm.
-if SVPH:
-    if ASPH:
-        HydroConstructor = ASVPHFacetedHydro
-    else:
-        HydroConstructor = SVPHFacetedHydro
-elif CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
-    if ASPH:
-        HydroConstructor = ACRKSPHHydro
-    else:
-        HydroConstructor = CRKSPHHydro
-elif PSPH:
-    if ASPH:
-        HydroConstructor = APSPHHydro
-    else:
-        HydroConstructor = PSPHHydro
-else:
-    if ASPH:
-        HydroConstructor = ASPHHydro
-    else:
-        HydroConstructor = SPHHydro
-
 # Build our directory paths.
+if svph:
+    hydroname = "SVPH"
+elif crksph:
+    hydroname = "CRKSPH"
+elif psph:
+    hydroname = "PSPH"
+else:
+    hydroname = "SPH"
 densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
                       SumDensity : "SumDensity",
                       RigorousSumDensity : "RigorousSumDensity",
                       SumVoronoiCellDensity : "SumVoronoiCellDensity"}
 baseDir = os.path.join(dataDir,
                        problem,
-                       HydroConstructor.__name__,
-                       Qconstructor.__name__,
+                       hydroname,
+                       "volumeType=%s" % volumeType,
                        densityUpdateLabel[densityUpdate],
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "XSPH=%s" % XSPH,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%1.3f" % fcentroidal,
-                       "fcellPressure = %1.3f" % fcellPressure,
+                       "fcellPressure=%1.3f" % fcellPressure,
                        "%ix%i" % (nx1 + nx2, ny1 + ny2))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "boxtension-xy-%ix%i" % (nx1 + nx2, ny1 + ny2))
@@ -336,83 +319,89 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-output("q.balsaraShearCorrection")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if SVPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             densityUpdate = densityUpdate,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             generateVoid = False,
-                             HUpdate = HUpdate,
-                             fcentroidal = fcentroidal,
-                             fcellPressure = fcellPressure,
-                             xmin = Vector(x0 - (x3 - x0), y0 - (y3 - y0)),
-                             xmax = Vector(x3 + (x3 - x0), y3 + (y3 - y0)))
+if svph:
+    hydro = SVPH(dataBase = db,
+                 W = WT, 
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 densityUpdate = densityUpdate,
+                 XSVPH = XSPH,
+                 linearConsistent = linearConsistent,
+                 generateVoid = False,
+                 HUpdate = HUpdate,
+                 fcentroidal = fcentroidal,
+                 fcellPressure = fcellPressure,
+                 xmin = Vector(x0 - (x3 - x0), y0 - (y3 - y0)),
+                 xmax = Vector(x3 + (x3 - x0), y3 + (y3 - y0)))
 elif CRKSPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             filter = filter,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             correctionOrder = correctionOrder,
-                             densityUpdate = densityUpdate,
-                             volumeType = volumeType,
-                             HUpdate = HUpdate)
+    hydro = CRKSPH(dataBase = db,
+                   W = WT, 
+                   filter = filter,
+                   epsTensile = epsilonTensile,
+                   nTensile = nTensile,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   correctionOrder = correctionOrder,
+                   densityUpdate = densityUpdate,
+                   volumeType = volumeType,
+                   HUpdate = HUpdate)
 elif PSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             HopkinsConductivity = HopkinsConductivity,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH)
+    hydro = PSPH(dataBase = db,
+                 W = WT,
+                 filter = filter,
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 evolveTotalEnergy = evolveTotalEnergy,
+                 HopkinsConductivity = HopkinsConductivity,
+                 correctVelocityGradient = correctVelocityGradient,
+                 densityUpdate = densityUpdate,
+                 HUpdate = HUpdate,
+                 XSPH = XSPH)
 
 else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                XSPH = XSPH,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
+output("hydro.kernel")
+output("hydro.PiKernel")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
 packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Tweak the artificial viscosity.
+#-------------------------------------------------------------------------------
+q = hydro.Q
+if not Cl is None:
+    q.Cl = Cl
+if not Cq is None:
+    q.Cq = Cq
+if not Qlimiter is None:
+    q.limiter = Qlimiter
+if not epsilon2 is None:
+    q.epsilon2 = epsilon2
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.limiter")
+output("q.epsilon2")
+output("q.linearInExpansion")
+output("q.quadraticInExpansion")
 
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
@@ -474,12 +463,6 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-if useVoronoiOutput:
-    import SpheralVoronoiSiloDump
-    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
-else:
-    import SpheralVisitDump
-    vizMethod = SpheralVisitDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
                             initializeDerivatives = True,
                             statsStep = statsStep,
@@ -487,7 +470,6 @@ control = SpheralController(integrator, WT,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             redistributeStep = redistributeStep,
-                            vizMethod = vizMethod,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,

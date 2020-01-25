@@ -5,11 +5,13 @@
 #include "Utilities/packElement.hh"
 #include "Utilities/removeElements.hh"
 #include "Utilities/safeInv.hh"
+#include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
 
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include <numeric>
 #include <sstream>
 #include <limits>
 
@@ -144,7 +146,7 @@ Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::Field(const Field& field):
-  FieldBase<Dimension>(const_cast<Field<Dimension, DataType>&>(field)),
+  FieldBase<Dimension>(field),
   mDataArray(field.mDataArray),
   mValid(field.valid()) {
 }
@@ -157,7 +159,7 @@ template<typename Dimension, typename DataType>
 inline
 std::shared_ptr<FieldBase<Dimension> >
 Field<Dimension, DataType>::clone() const {
-  return std::shared_ptr<FieldBase<Dimension> >(new Field<Dimension, DataType>(*this));
+  return std::shared_ptr<FieldBase<Dimension>>(new Field<Dimension, DataType>(*this));
 }
 
 //------------------------------------------------------------------------------
@@ -392,6 +394,13 @@ inline
 unsigned 
 Field<Dimension, DataType>::numInternalElements() const {
   return this->nodeList().numInternalNodes();
+}
+
+template<typename Dimension, typename DataType>
+inline
+unsigned 
+Field<Dimension, DataType>::numGhostElements() const {
+  return this->nodeList().numGhostNodes();
 }
 
 template<typename Dimension, typename DataType>
@@ -680,16 +689,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 sumElements() const {
-  DataType result = localSumElements();
-#ifdef USE_MPI
-  {
-    // In parallel, do the reduction.
-    // Note this will fail to compile for types that do not have corresponding MPI type!
-    DataType tmp = result;
-    MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<DataType>::MpiDataType(), MPI_SUM, Communicator::communicator());
-  }
-#endif
-  return result;
+  return allReduce(this->localSumElements(), MPI_SUM, Communicator::communicator());
 }
 
 //------------------------------------------------------------------------------
@@ -700,16 +700,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 min() const {
-  DataType result = localMin();
-#ifdef USE_MPI
-  {
-    // In parallel, do the reduction.
-    // Note this will fail to compile for types that do not have corresponding MPI type!
-    DataType tmp = result;
-    MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<DataType>::MpiDataType(), MPI_MIN, Communicator::communicator());
-  }
-#endif
-  return result;
+  return allReduce(this->localMin(), MPI_MIN, Communicator::communicator());
 }
 
 //------------------------------------------------------------------------------
@@ -720,16 +711,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 max() const {
-  DataType result = localMax();
-#ifdef USE_MPI
-  {
-    // In parallel, do the reduction.
-    // Note this will fail to compile for types that do not have corresponding MPI type!
-    DataType tmp = result;
-    MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<DataType>::MpiDataType(), MPI_MAX, Communicator::communicator());
-  }
-#endif
-  return result;
+  return allReduce(this->localMax(), MPI_MAX, Communicator::communicator());
 }
 
 //------------------------------------------------------------------------------
@@ -742,11 +724,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 localSumElements() const {
-  DataType result = DataTypeTraits<DataType>::zero();
-  for (const_iterator elementItr = begin(); elementItr < begin() + numInternalElements(); ++elementItr) {
-    result += *elementItr;
-  }
-  return result;
+  return std::accumulate(begin(), begin() + numInternalElements(), DataTypeTraits<DataType>::zero());
 }
 
 //------------------------------------------------------------------------------
@@ -1223,23 +1201,9 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::
-unpackValues(const int numElements,
-             const int beginInsertionIndex,
+unpackValues(const std::vector<int>& nodeIDs,
              const std::vector<char>& buffer) {
-
-  REQUIRE(numElements >= 0);
-  REQUIRE(beginInsertionIndex >= 0 &&
-          beginInsertionIndex < this->size());
-  const int endIndex = beginInsertionIndex + numElements;
-  REQUIRE(endIndex <= this->size());
-
-  // The unpackFieldValues method requires the insertion indices explicitly.
-  std::vector<int> indices;
-  indices.reserve(numElements);
-  for (int i = 0; i != numElements; ++i) indices.push_back(beginInsertionIndex + i);
-
-  // Now we're ready to do the deed...
-  unpackFieldValues(*this, indices, buffer);
+  unpackFieldValues(*this, nodeIDs, buffer);
 }
 
 //------------------------------------------------------------------------------

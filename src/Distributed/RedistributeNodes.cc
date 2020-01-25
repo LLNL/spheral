@@ -5,7 +5,7 @@
 // Created by JMO, Tue Feb  4 14:23:11 PST 2003
 //----------------------------------------------------------------------------//
 #include "RedistributeNodes.hh"
-#include "DomainNode.hh"
+#include "Utilities/DomainNode.hh"
 #include "DataBase/DataBase.hh"
 #include "NodeList/NodeList.hh"
 #include "Field/Field.hh"

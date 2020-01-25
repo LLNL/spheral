@@ -41,6 +41,7 @@ class SpheralController:
                  vizDerivs = False,
                  initialTime = 0.0,
                  SPH = False,
+                 periodicWork = [],
                  skipInitialPeriodicWork = False,
                  iterateInitialH = True,
                  numHIterationsBetweenCycles = 0,
@@ -92,8 +93,9 @@ class SpheralController:
                                  vizTime = vizTime,
                                  vizFields = vizFields,
                                  vizFieldLists = vizFieldLists,
+                                 periodicWork = periodicWork,
                                  skipInitialPeriodicWork = skipInitialPeriodicWork,
-                                 iterateInitialH = True,
+                                 iterateInitialH = iterateInitialH,
                                  reinitializeNeighborsStep = 10)
 
         # Read the restart information if requested.
@@ -122,6 +124,7 @@ class SpheralController:
                             vizTime = None,
                             vizFields = [],
                             vizFieldLists = [],
+                            periodicWork = [],
                             skipInitialPeriodicWork = False,
                             iterateInitialH = True,
                             reinitializeNeighborsStep = 10):
@@ -142,29 +145,18 @@ class SpheralController:
         # Set the simulation time.
         self.integrator.currentTime = initialTime
 
-        # Prepare the neighbor objects.
-        db = self.integrator.dataBase
-        db.reinitializeNeighbors()
-        db.updateConnectivityMap(False)
+        # Check if we have any boundary conditions that need to copy initial state
+        uniquebcs = self.integrator.uniqueBoundaryConditions()
+        stateBCs = [eval("InflowOutflowBoundary%id" % i) for i in dims] + [eval("ConstantBoundary%id" % i) for i in dims]
+        stateBCactive = max([False] + [isinstance(x, y) for y in stateBCs for x in uniquebcs])
+        for bc in uniquebcs:
+            bc.initializeProblemStartup()
 
         # Create ghost nodes for the physics packages to initialize with.
+        db = self.integrator.dataBase
+        db.reinitializeNeighbors()
         self.integrator.setGhostNodes()
         db.updateConnectivityMap(False)
-
-        # Initialize the integrator and packages.
-        packages = self.integrator.physicsPackages()
-        for package in packages:
-            package.initializeProblemStartup(db)
-            for bc in package.boundaryConditions():
-                bc.initializeProblemStartup()
-        state = eval("State%s(db, packages)" % (self.dim))
-        derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
-        self.integrator.preStepInitialize(state, derivs)
-        self.integrator.initializeDerivatives(initialTime, 0.0, state, derivs)
-
-        # If requested, initialize the derivatives.
-        if initializeDerivatives:
-            self.integrator.evaluateDerivatives(initialTime, 0.0, db, state, derivs)
 
         # If we're starting from scratch, initialize the H tensors.
         if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
@@ -172,12 +164,34 @@ class SpheralController:
             db.reinitializeNeighbors()
             db.updateConnectivityMap(False)
 
+        # Initialize the integrator and packages.
+        packages = self.integrator.physicsPackages()
+        for package in packages:
+            package.initializeProblemStartup(db)
+        state = eval("State%s(db, packages)" % (self.dim))
+        derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
+        self.integrator.setGhostNodes()
+        db.updateConnectivityMap(False)
+
+        # If requested, initialize the derivatives.
+        if initializeDerivatives or stateBCactive:
+            self.integrator.preStepInitialize(state, derivs)
+            dt = self.integrator.selectDt(self.integrator.dtMin, self.integrator.dtMax, state, derivs)
+            self.integrator.initializeDerivatives(initialTime, dt, state, derivs)
+            self.integrator.evaluateDerivatives(initialTime, dt, db, state, derivs)
+
+        # If there are stateful boundaries present, give them one more crack at copying inital state
+        for bc in uniquebcs:
+            bc.initializeProblemStartup()
+
         # Set up the default periodic work.
         self.appendPeriodicWork(self.printCycleStatus, printStep)
         self.appendPeriodicWork(self.garbageCollection, garbageCollectionStep)
         self.appendPeriodicWork(self.updateConservation, statsStep)
         self.appendPeriodicWork(self.updateRestart, restartStep)
         self.appendPeriodicWork(self.reinitializeNeighbors, reinitializeNeighborsStep)
+        for x, freq in periodicWork:
+            self.appendPeriodicWork(x, freq)
 
         # Add the dynamic redistribution object to the controller.
         self.addRedistributeNodes(self.kernel)
@@ -586,13 +600,17 @@ class SpheralController:
         # This is the list of boundary types that need to precede the distributed
         # boundary, since their ghost nodes need to be communicated.
         precedeDistributed = []
+        if 2 in dims:
+            precedeDistributed += [FacetedVolumeBoundary2d]            
         if 3 in dims:
-            precedeDistributed += [CylindricalBoundary,
+            precedeDistributed += [FacetedVolumeBoundary3d,
+                                   CylindricalBoundary,
                                    SphericalBoundary]
         for dim in dims:
             exec("""
 precedeDistributed += [PeriodicBoundary%(dim)sd,
-                       ConstantBoundary%(dim)sd]
+                       ConstantBoundary%(dim)sd,
+                       InflowOutflowBoundary%(dim)sd]
 """ % {"dim" : dim})
 
         # Check if this is a parallel process or not.
@@ -666,8 +684,8 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
             try:
                 #self.redistribute = eval("ParmetisRedistributeNodes%s(W.kernelExtent)" % self.dim)
                 #self.redistribute = eval("SortAndDivideRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                #self.redistribute = eval("PeanoHilbertOrderRedistributeNodes%s(W.kernelExtent)" % self.dim)
-                self.redistribute = eval("VoronoiRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                self.redistribute = eval("PeanoHilbertOrderRedistributeNodes%s(W.kernelExtent)" % self.dim)
+                #self.redistribute = eval("VoronoiRedistributeNodes%s(W.kernelExtent)" % self.dim)
             except:
                 print "Warning: this appears to be a parallel run, but Controller cannot construct"
                 print "         dynamic redistributer."
@@ -706,9 +724,12 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
                 Time = None,
                 dt = None):
         mpi.barrier()
+        import time
+        start = time.clock()
         db = self.integrator.dataBase
         db.updateConnectivityMap(False)
         bcs = self.integrator.uniqueBoundaryConditions()
+        self.integrator.setGhostNodes()
         self.vizMethod(self.integrator,
                        baseFileName = self.vizBaseName,
                        baseDirectory = self.vizDir,
@@ -719,6 +740,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
                        dumpGhosts = self.vizGhosts,
                        dumpDerivatives = self.vizDerivs,
                        boundaries = bcs)
+        print "Wrote viz file in %0.2f seconds" % (time.clock() - start)
         return
 
     #--------------------------------------------------------------------------

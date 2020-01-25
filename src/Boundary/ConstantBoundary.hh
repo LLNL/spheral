@@ -12,6 +12,7 @@
 #include "Boundary.hh"
 #include "Geometry/GeomPlane.hh"
 #include "NodeList/NodeList.hh"
+#include "Utilities/registerWithRedistribution.hh"
 #include "DataBase/StateBase.hh" // For constructing Field keys.
 
 namespace Spheral {
@@ -33,6 +34,9 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+  typedef typename Dimension::FifthRankTensor FifthRankTensor;
+  typedef typename Dimension::FacetedVolume FacetedVolume;
   typedef typename StateBase<Dimension>::KeyType KeyType;
 
   // Constructors and destructors.
@@ -44,40 +48,46 @@ public:
   //**********************************************************************
   // All Boundary conditions must provide the following methods:
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void setGhostNodes(NodeList<Dimension>& nodeList);
+  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override;
 
   // For the computed set of ghost nodes, set the positions and H's.
-  virtual void updateGhostNodes(NodeList<Dimension>& nodeList);
+  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the ghost node values in the given Field.
-  virtual void applyGhostBoundary(Field<Dimension, int>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, int>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Find any internal nodes that are in violation of this Boundary.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList);
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
 
   // For the computed set of nodes in violation of the boundary, bring them
   // back into compliance (for the positions and H's.)
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the violation node values in the given Field.
-  virtual void enforceBoundary(Field<Dimension, int>& field) const;
-  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const;
-  virtual void enforceBoundary(Field<Dimension, Vector>& field) const;
-  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const;
-  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const;
-  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, int>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, Vector>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
+  virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
   //**********************************************************************
 
-  virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, std::vector<Vector>>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const override;
+  virtual void applyGhostBoundary(Field<Dimension, std::vector<Vector>>& field) const override;
 
   // After physics have been initialized we take a snapshot of the node state.
-  virtual void initializeProblemStartup();
+  virtual void initializeProblemStartup() override;
 
   // Minimal valid test.
   virtual bool valid() const;
@@ -93,6 +103,10 @@ public:
   virtual std::string label() const;
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
+
+  // Redistribution methods.
+  virtual void notifyBeforeRedistribution();
+  virtual void notifyAfterRedistribution();
   //****************************************************************************
 
 private:
@@ -111,6 +125,9 @@ private:
   typedef std::map<KeyType, std::vector<Tensor> > TensorStorageType;
   typedef std::map<KeyType, std::vector<SymTensor> > SymTensorStorageType;
   typedef std::map<KeyType, std::vector<ThirdRankTensor> > ThirdRankTensorStorageType;
+  typedef std::map<KeyType, std::vector<FourthRankTensor> > FourthRankTensorStorageType;
+  typedef std::map<KeyType, std::vector<FifthRankTensor> > FifthRankTensorStorageType;
+  typedef std::map<KeyType, std::vector<FacetedVolume> > FacetedVolumeStorageType;
   typedef std::map<KeyType, std::vector<std::vector<Scalar> > > VectorScalarStorageType;
   typedef std::map<KeyType, std::vector<std::vector<Vector> > > VectorVectorStorageType;
 
@@ -120,11 +137,15 @@ private:
   TensorStorageType mTensorValues;
   SymTensorStorageType mSymTensorValues;
   ThirdRankTensorStorageType mThirdRankTensorValues;
+  FourthRankTensorStorageType mFourthRankTensorValues;
+  FifthRankTensorStorageType mFifthRankTensorValues;
+  FacetedVolumeStorageType mFacetedVolumeValues;
   VectorScalarStorageType mVectorScalarValues;
   VectorVectorStorageType mVectorVectorValues;
 
-  // The restart registration.
+  // The restart and redistribution registration.
   RestartRegistrationType mRestart;
+  RedistributionRegistrationType mRedistribution;
 
   // No default or copy constructors.
   ConstantBoundary();

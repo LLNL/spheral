@@ -103,6 +103,7 @@ commandLine(seed = "lattice",
             cullToWeakestFlaws = False,
             effectiveFlawAlgorithm = FullSpectrumFlaws,
             damageInCompression = False,
+            negativePressureInDamage = False,
 
             # Johnson-Cook choices
             D1 = 0.0,
@@ -136,7 +137,7 @@ commandLine(seed = "lattice",
             nTensile = 4,
             hybridMassDensityThreshold = 0.01,
             filter = 0.0,
-            volumeType = CRKSumVolume,
+            volumeType = RKSumVolume,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 200.0,
@@ -174,11 +175,7 @@ dx = xlength/nx
 dy = ylength/ny
 
 if crksph:
-    hydroname = os.path.join("CRKSPH", {0 : "CRKMassOverDensity",
-                                        1 : "CRKSumVolume",
-                                        2 : "CRKVoronoiVolume",
-                                        3 : "CRKHullVolume",
-                                        4 : "HVolume"}[volumeType])
+    hydroname = os.path.join("CRKSPH", str(volumeType))
     nPerh = 1.51
     order = 5
 else:
@@ -285,7 +282,7 @@ if mpi.rank == 0:
         os.makedirs(restartDir)
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
-    if not os.path.exists(vizDir) and crksph and volumeType == CRKVoronoiVolume:
+    if not os.path.exists(vizDir) and crksph and volumeType == RKVoronoiVolume:
         os.makedirs(vizDirCRK)
 mpi.barrier()
 
@@ -456,7 +453,8 @@ else:
                 XSPH = XSPH,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile,
-                ASPH = ASPH)
+                ASPH = ASPH,
+                negativePressureInDamage = negativePressureInDamage)
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
@@ -465,6 +463,7 @@ output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.kernel")
 output("hydro.PiKernel")
+output("hydro.negativePressureInDamage")
 
 #-------------------------------------------------------------------------------
 # Construct a damage model.

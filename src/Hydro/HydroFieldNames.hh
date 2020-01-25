@@ -65,6 +65,8 @@ struct HydroFieldNames {
   static const std::string surfacePoint;
   static const std::string voidPoint;
   static const std::string etaVoidPoints;
+  static const std::string cells;
+  static const std::string cellFaceFlags;
   static const std::string M_SPHCorrection;
   static const std::string volume;
   static const std::string linearMomentum;
@@ -78,6 +80,11 @@ struct HydroFieldNames {
   static const std::string massDensityGradient;
   static const std::string ArtificialViscousClMultiplier;
   static const std::string ArtificialViscousCqMultiplier;
+  static const std::string specificHeat;
+  static const std::string rkCorrections;
+  static const std::string rkZerothCorrections;
+  static const std::string normal;
+  static const std::string surfaceArea;
 };
 
 }

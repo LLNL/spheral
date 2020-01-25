@@ -13,7 +13,6 @@ from DistributedBoundary import *
 from NestedGridDistributedBoundary import *
 from TreeDistributedBoundary import *
 from BoundingVolumeDistributedBoundary import *
-from DomainNode import *
 from RedistributeNodes import *
 from SpaceFillingCurveRedistributeNodes import *
 from MortonOrderRedistributeNodes import *
@@ -31,7 +30,6 @@ PYB11includes += ['"Boundary/Boundary.hh"',
                   '"Distributed/NestedGridDistributedBoundary.hh"',
                   '"Distributed/BoundingVolumeDistributedBoundary.hh"',
                   '"Distributed/TreeDistributedBoundary.hh"',
-                  '"Distributed/DomainNode.hh"',
                   '"Distributed/RedistributeNodes.hh"',
                   '"Distributed/DistributeByXPosition.hh"',
                   '"Distributed/SpaceFillingCurveRedistributeNodes.hh"',
@@ -60,15 +58,12 @@ DistributedBoundary%(ndim)id = PYB11TemplateClass(DistributedBoundary, template_
 NestedGridDistributedBoundary%(ndim)id = PYB11TemplateClass(NestedGridDistributedBoundary, template_parameters="%(Dimension)s")
 TreeDistributedBoundary%(ndim)id = PYB11TemplateClass(TreeDistributedBoundary, template_parameters="%(Dimension)s")
 BoundingVolumeDistributedBoundary%(ndim)id = PYB11TemplateClass(BoundingVolumeDistributedBoundary, template_parameters="%(Dimension)s")
-DomainNode%(ndim)id = PYB11TemplateClass(DomainNode, template_parameters="%(Dimension)s")
 RedistributeNodes%(ndim)id = PYB11TemplateClass(RedistributeNodes, template_parameters="%(Dimension)s")
 SortAndDivideRedistributeNodesBase%(ndim)id = PYB11TemplateClass(SortAndDivideRedistributeNodes, template_parameters="%(Dimension)s")
 SpaceFillngCurveRedistributeNodes%(ndim)id = PYB11TemplateClass(SpaceFillingCurveRedistributeNodes, template_parameters="%(Dimension)s")
 MortonOrderRedistributeNodes%(ndim)id = PYB11TemplateClass(MortonOrderRedistributeNodes, template_parameters="%(Dimension)s")
 PeanoHilbertOrderRedistributeNodes%(ndim)id = PYB11TemplateClass(PeanoHilbertOrderRedistributeNodes, template_parameters="%(Dimension)s")
 VoronoiRedistributeNodes%(ndim)id = PYB11TemplateClass(VoronoiRedistributeNodes, template_parameters="%(Dimension)s")
-
-vector_of_DomainNode%(ndim)id = PYB11_bind_vector("DomainNode<%(Dimension)s>", opaque=True, local=False)
 ''' % {"ndim"      : ndim,
        "Dimension" : ("Dim<" + str(ndim) +">")})
 

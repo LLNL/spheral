@@ -220,7 +220,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   Timing::Time t0 = Timing::currentTime();
   polytope::Tessellation<2, double> tessellation;
   {
-#ifdef USE_MPI
+#if 0     //#ifdef USE_MPI                                // FIXME when parallel polytope working again!
     polytope::DistributedTessellator<2, double> tessellator
 #if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
       (new polytope::TriangleTessellator<double>(),
@@ -343,7 +343,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   Timing::Time t0 = Timing::currentTime();
   polytope::Tessellation<2, double> tessellation;
   {
-#ifdef USE_MPI
+#if 0   //  #ifdef USE_MPI                                    // FIXME when polytope Distributed fixed
     polytope::DistributedTessellator<2, double> tessellator
 #if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
       (new polytope::TriangleTessellator<double>(),

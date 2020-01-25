@@ -40,6 +40,7 @@ void spheral_initialize(const int      ndims,
                         const int      piKernelType,
                         const int      gradKernelType,
                         const int      nbspline,
+                        const int      crkorder,
                         const int      damage,
                         const unsigned nmats,
                         const double   CFL,
@@ -71,6 +72,7 @@ void spheral_initialize(const int      ndims,
                                                         piKernelType,
                                                         gradKernelType,
                                                         nbspline,
+                                                        crkorder,
                                                         damage,
                                                         nmats,
                                                         CFL,
@@ -102,6 +104,7 @@ void spheral_initialize(const int      ndims,
                                                         piKernelType,
                                                         gradKernelType,
                                                         nbspline,
+                                                        crkorder,
                                                         damage,
                                                         nmats,
                                                         CFL,
@@ -314,6 +317,29 @@ void spheral_add_boundary(const int     ndims,
 }
 
 //------------------------------------------------------------------------------
+// spheral_periodic_boundary
+//------------------------------------------------------------------------------
+void spheral_periodic_boundary(const int     ndims,
+                               const double* pcoords1,
+                               const double* ncoords1,
+                               const double* pcoords2,
+                               const double* ncoords2) {
+  if (ndims == 3) {
+    Spheral::SpheralPseudoScript<Spheral::Dim<3> >::addPeriodicBoundary(Spheral::Dim<3>::Vector(pcoords1[0], pcoords1[1], pcoords1[2]), 
+                                                                        Spheral::Dim<3>::Vector(ncoords1[0], ncoords1[1], ncoords1[2]),
+                                                                        Spheral::Dim<3>::Vector(pcoords2[0], pcoords2[1], pcoords2[2]),
+                                                                        Spheral::Dim<3>::Vector(ncoords2[0], ncoords2[1], ncoords2[2]));
+  } else if (ndims == 2) {
+    Spheral::SpheralPseudoScript<Spheral::Dim<2> >::addPeriodicBoundary(Spheral::Dim<2>::Vector(pcoords1[0], pcoords1[1]), 
+                                                                        Spheral::Dim<2>::Vector(ncoords1[0], ncoords1[1]),
+                                                                        Spheral::Dim<2>::Vector(pcoords2[0], pcoords2[1]),
+                                                                        Spheral::Dim<2>::Vector(ncoords2[0], ncoords2[1]));
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+//------------------------------------------------------------------------------
 // spheral_iterate_Hfield
 //------------------------------------------------------------------------------
 void spheral_iterate_Hfield(const int    ndims,
@@ -385,28 +411,72 @@ void spheral_sample_mesh(const int      ndims,
 }
 
 //------------------------------------------------------------------------------
+// spheral_polyhedral_mesh
+//------------------------------------------------------------------------------
+void spheral_polyhedral_mesh(const int      ndims,
+                             int*           nnodes,
+                             int*           nfaces,
+                             int*           ncells,
+                             double**       coords,
+                             int**          facetonodes,
+                             int**          celltofaces) {
+  if (ndims == 3) {
+    typedef Spheral::Dim<3> Dimension;
+    Spheral::SpheralPseudoScript<Dimension>::polyhedralMesh(nnodes,
+                                                            nfaces,
+                                                            ncells,
+                                                            coords,
+                                                            facetonodes,
+                                                            celltofaces);
+  } else if (ndims == 2) {
+    typedef Spheral::Dim<2> Dimension;
+    Spheral::SpheralPseudoScript<Dimension>::polyhedralMesh(nnodes,
+                                                            nfaces,
+                                                            ncells,
+                                                            coords,
+                                                            facetonodes,
+                                                            celltofaces);
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+
+//------------------------------------------------------------------------------
 // spheral_fill_volume
 //------------------------------------------------------------------------------
 void spheral_fill_volume(const int      ndims,
                          const int*     nnodes,
+                         const int*     nfaces,
                          const double** coords,
+                         const int*     conn,
                          const double   spacing,
+                         const int      domain,
+                         const int      ndomains,
                          double*        volume,
                          int*           nparticles,
                          double**       sphcoords) {
   if (ndims == 3) {
     typedef Spheral::Dim<3> Dimension;
     Spheral::SpheralPseudoScript<Dimension>::fillVolume(nnodes,
+                                                        nfaces,
                                                         coords,
+                                                        conn,
                                                         spacing,
+                                                        domain,
+                                                        ndomains,
                                                         volume,
                                                         nparticles,
                                                         sphcoords);
   } else if (ndims == 2) {
     typedef Spheral::Dim<2> Dimension;
     Spheral::SpheralPseudoScript<Dimension>::fillVolume(nnodes,
+                                                        nfaces,
                                                         coords,
+                                                        conn,
                                                         spacing,
+                                                        domain,
+                                                        ndomains,
                                                         volume,
                                                         nparticles,
                                                         sphcoords);

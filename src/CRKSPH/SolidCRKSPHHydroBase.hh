@@ -52,11 +52,13 @@ public:
                        const bool XSPH,
                        const MassDensityType densityUpdate,
                        const HEvolutionType HUpdate,
-                       const CRKOrder correctionOrder,
-                       const CRKVolumeType volumeType,
+                       const RKOrder correctionOrder,
+                       const RKVolumeType volumeType,
                        const double epsTensile,
                        const double nTensile,
-                       const bool damageRelieveRubble);
+                       const bool limitMultimaterialTopology,
+                       const bool damageRelieveRubble,
+                       const bool negativePressureInDamage);
 
   // Destructor.
   virtual ~SolidCRKSPHHydroBase();
@@ -106,16 +108,23 @@ public:
   bool damageRelieveRubble() const;
   void damageRelieveRubble(bool x);
 
+  // Do we allow damaged material to have negative pressure?
+  bool negativePressureInDamage() const;
+  void negativePressureInDamage(bool x);
+
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const { return "SolidCRKSPHHydroBase"; }
-  virtual void dumpState(FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIO& file, const std::string& pathName);
+  virtual std::string label() const override { return "SolidCRKSPHHydroBase"; }
+  virtual void dumpState(FileIO& file, const std::string& pathName) const override;
+  virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************
+
+protected:
+  //--------------------------- Protected Interface ---------------------------//
+  bool mDamageRelieveRubble, mNegativePressureInDamage;
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  bool mDamageRelieveRubble;
 
   // Some internal scratch fields.
   FieldList<Dimension, SymTensor> mDdeviatoricStressDt;

@@ -32,6 +32,7 @@ using std::abs;
 
 // Declare the timers.
 extern Timer TIME_ConnectivityMap_patch;
+extern Timer TIME_ConnectivityMap_cutConnectivity;
 extern Timer TIME_ConnectivityMap_valid;
 extern Timer TIME_ConnectivityMap_computeConnectivity;
 extern Timer TIME_ConnectivityMap_computeOverlapConnectivity;
@@ -71,6 +72,40 @@ insertUnique(const std::vector<int>& offsets,
   }
   return false;
 }
+
+//------------------------------------------------------------------------------
+// How should we compare pairs for sorting?
+//------------------------------------------------------------------------------
+inline
+KeyTraits::Key
+hashKeys(const KeyTraits::Key& a, const KeyTraits::Key& b) {
+  // Szudzik's function
+  // return (a >= b ?
+  //         a * a + a + b :
+  //         a + b * b);          // where a, b >= 0
+  return a + b;
+}
+
+//------------------------------------------------------------------------------
+// Sort node pairs for domain independent ordering.
+//------------------------------------------------------------------------------
+template<typename KeyContainer>
+inline
+void
+sortPairs(NodePairList& pairs,
+          const KeyContainer& keys) {
+  // Start by making sure the pairs themselves are deterministically arranged.
+  for (auto& p: pairs) {
+    if (keys(p.i_list, p.i_node) > keys(p.j_list, p.j_node)) {
+      std::swap(p.i_list, p.j_list);
+      std::swap(p.i_node, p.j_node);
+    }
+  }
+
+  // Now sort the list as a whole.
+  std::sort(pairs.begin(), pairs.end(), [&](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(keys(a.i_list, a.i_node), keys(a.j_list, a.j_node)) < hashKeys(keys(b.i_list, b.i_node), keys(b.j_list, b.j_node)); });
+}
+
 }
 
 //------------------------------------------------------------------------------
@@ -208,6 +243,37 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
     }
   }
   
+  // We also need to patch the node pair structure
+  NodePairList culledPairs;
+#pragma omp parallel
+  {
+    NodePairList culledPairs_thread;
+    const auto npairs = mNodePairList.size();
+#pragma omp for
+    for (auto k = 0; k < npairs; ++k) {
+      const auto iNodeList = mNodePairList[k].i_list;
+      const auto jNodeList = mNodePairList[k].j_list;
+      const auto i = mNodePairList[k].i_node;
+      const auto j = mNodePairList[k].j_node;
+      if (flags(iNodeList, i) != 0 and flags(jNodeList, j) != 0) {
+        culledPairs_thread.push_back(NodePairIdxType(old2new(iNodeList, i), iNodeList,
+                                                     old2new(jNodeList, j), jNodeList));
+      }
+    }
+#pragma omp critical
+    {
+      culledPairs.insert(culledPairs.end(), culledPairs_thread.begin(), culledPairs_thread.end());
+    }
+  }
+  mNodePairList = culledPairs;
+
+  // Sort the NodePairList in order to enforce domain decomposition independence.
+  if (domainDecompIndependent) {
+    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
+    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
+    sortPairs(mNodePairList, mKeys);
+  }
+
   // You can't check valid yet 'cause the NodeLists have not been resized
   // when we call patch!  The valid method should be checked by whoever called
   // this method after that point.
@@ -259,6 +325,35 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
 
   // That's it.
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Remove connectivity between neighbors.
+// NOTE: this method assumes you are passing the indices of the neighbors to
+//       remove!
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ConnectivityMap<Dimension>::
+removeConnectivity(const FieldList<Dimension, vector<vector<int>>>& neighborsToCut) {
+  TIME_ConnectivityMap_cutConnectivity.start();
+
+  const auto numNodeLists = mNodeLists.size();
+  REQUIRE(neighborsToCut.numFields() == numNodeLists);
+
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto n = mNodeLists[nodeListi]->numNodes();
+    for (auto i = 0; i < n; ++i) {
+      const auto& allneighbors = neighborsToCut(nodeListi, i);
+      CHECK(allneighbors.size() == 0 or allneighbors.size() == numNodeLists);
+      for (auto nodeListj = 0; nodeListj < allneighbors.size(); ++nodeListj) {
+        auto& neighborsi = mConnectivity[mOffsets[nodeListi] + i][nodeListj];
+        removeElements(neighborsi, allneighbors[nodeListj]);
+      }
+    }
+  }
+
+  TIME_ConnectivityMap_cutConnectivity.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -548,30 +643,30 @@ valid() const {
     }
   }
 
-  // Check that the node traversal is ordered correctly.
-  for (int nodeList = 0; nodeList != numNodeLists; ++nodeList) {
-    if ((domainDecompIndependent and mNodeLists[nodeList]->numNodes() > 0) or
-        (not domainDecompIndependent and mNodeLists[nodeList]->numInternalNodes() > 0)) {
-      const int firstGhostNode = mNodeLists[nodeList]->firstGhostNode();
-      for (const_iterator itr = begin(nodeList); itr < end(nodeList) - 1; ++itr) {
-        if (not calculatePairInteraction(nodeList, *itr,
-                                         nodeList, *(itr + 1), 
-                                         firstGhostNode)) {
-          cerr << "ConnectivityMap::valid: mNodeTraversalIndices ordered incorrectly." << endl;
-          cerr << *itr << " "
-               << *(itr + 1) << " "
-               << mKeys(nodeList, *itr) << " "
-               << mKeys(nodeList, *(itr + 1)) << " "
-               << mNodeLists[nodeList]->positions()(*itr) << " "
-               << mNodeLists[nodeList]->positions()(*(itr + 1)) << " "
-               << endl;
-          for (int i = 0; i != 100; ++i) cerr << mKeys(nodeList, i) << " " << mNodeLists[nodeList]->positions()(i) << " ";
-          cerr << endl;
-          return false;
-        }
-      }
-    }
-  }
+  // // Check that the node traversal is ordered correctly.
+  // for (int nodeList = 0; nodeList != numNodeLists; ++nodeList) {
+  //   if ((domainDecompIndependent and mNodeLists[nodeList]->numNodes() > 0) or
+  //       (not domainDecompIndependent and mNodeLists[nodeList]->numInternalNodes() > 0)) {
+  //     const int firstGhostNode = mNodeLists[nodeList]->firstGhostNode();
+  //     for (const_iterator itr = begin(nodeList); itr < end(nodeList) - 1; ++itr) {
+  //       if (not calculatePairInteraction(nodeList, *itr,
+  //                                        nodeList, *(itr + 1), 
+  //                                        firstGhostNode)) {
+  //         cerr << "ConnectivityMap::valid: mNodeTraversalIndices ordered incorrectly." << endl;
+  //         cerr << *itr << " "
+  //              << *(itr + 1) << " "
+  //              << mKeys(nodeList, *itr) << " "
+  //              << mKeys(nodeList, *(itr + 1)) << " "
+  //              << mNodeLists[nodeList]->positions()(*itr) << " "
+  //              << mNodeLists[nodeList]->positions()(*(itr + 1)) << " "
+  //              << endl;
+  //         for (int i = 0; i != 100; ++i) cerr << mKeys(nodeList, i) << " " << mNodeLists[nodeList]->positions()(i) << " ";
+  //         cerr << endl;
+  //         return false;
+  //       }
+  //     }
+  //   }
+  // }
 
   // Everything must be OK.
   TIME_ConnectivityMap_valid.stop();
@@ -639,6 +734,7 @@ computeConnectivity() {
     mConnectivity = ConnectivityStorageType(connectivitySize, vector<vector<int> >(numNodeLists));
     mNodeTraversalIndices = vector<vector<int> >(numNodeLists);
   }
+  mNodePairList.clear();
 
   // If we're trying to be domain decomposition independent, we need a key to sort
   // by that will give us a unique ordering regardless of position.  The Morton ordered
@@ -708,72 +804,84 @@ computeConnectivity() {
         // Iterate over the full of NodeLists again to work on the master nodes.
         for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
           const auto nmaster = masterLists[iNodeList].size();
-#pragma omp parallel for schedule(dynamic)
-          for (auto k = 0; k < nmaster; ++k) {
-            const auto i = masterLists[iNodeList][k];
-            CHECK2(flagNodeDone(iNodeList, i) == 0, "(" << iNodeList << " " << i << ") (" << iNodeList << " " << i << ")");
+#pragma omp parallel 
+          {
+            NodePairList nodePairs_private;
+#pragma omp for schedule(dynamic)
+            for (auto k = 0; k < nmaster; ++k) {
+              const auto i = masterLists[iNodeList][k];
+              CHECK2(flagNodeDone(iNodeList, i) == 0, "(" << iNodeList << " " << i << ") (" << iNodeList << " " << i << ")");
 
-            // Get the state for this node.
-            const auto& ri = position(iNodeList, i);
-            const auto& Hi = H(iNodeList, i);
-            auto&       worki = mNodeLists[iNodeList]->work();
-            CHECK(mOffsets[iNodeList] + i < mConnectivity.size());
-            const auto start = Timing::currentTime();
+              // Get the state for this node.
+              const auto& ri = position(iNodeList, i);
+              const auto& Hi = H(iNodeList, i);
+              auto&       worki = mNodeLists[iNodeList]->work();
+              CHECK(mOffsets[iNodeList] + i < mConnectivity.size());
+              const auto start = Timing::currentTime();
 
-            // Get the neighbor set we're building for this node.
-            auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
-            CHECK2(neighbors.size() == numNodeLists, neighbors.size() << " " << numNodeLists << " " << i);
+              // Get the neighbor set we're building for this node.
+              auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
+              CHECK2(neighbors.size() == numNodeLists, neighbors.size() << " " << numNodeLists << " " << i);
 
-            // We keep track of the Morton indices.
-            vector<vector<pair<int, Key>>> keys(numNodeLists);
+              // We keep track of the Morton indices.
+              vector<vector<pair<int, Key>>> keys(numNodeLists);
 
-            // Iterate over the neighbor NodeLists.
-            for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
+              // Iterate over the neighbor NodeLists.
+              for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
+                const auto firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
 
-              // Iterate over the coarse neighbors in this NodeList.
-              // t0 = std::clock();
-              for (const auto j:  coarseNeighbors[jNodeList]) {
-                const auto& rj = position(jNodeList, j);
-                const auto& Hj = H(jNodeList, j);
+                // Iterate over the coarse neighbors in this NodeList.
+                // t0 = std::clock();
+                for (const auto j:  coarseNeighbors[jNodeList]) {
+                  const auto& rj = position(jNodeList, j);
+                  const auto& Hj = H(jNodeList, j);
 
-                // Compute the normalized distance between this pair.
-                const auto rij = ri - rj;
-                const auto eta2i = (Hi*rij).magnitude2();
-                const auto eta2j = (Hj*rij).magnitude2();
+                  // Compute the normalized distance between this pair.
+                  const auto rij = ri - rj;
+                  const auto eta2i = (Hi*rij).magnitude2();
+                  const auto eta2j = (Hj*rij).magnitude2();
 
-                // If this pair is significant, add it to the list.
-                if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
+                  // If this pair is significant, add it to the list.
+                  if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
 
-                  // We don't include self-interactions.
-                  if ((iNodeList != jNodeList) or (i != j)) {
-                    neighbors[jNodeList].push_back(j);
-                    if (domainDecompIndependent) keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+                    // We don't include self-interactions.
+                    if ((iNodeList != jNodeList) or (i != j)) {
+                      neighbors[jNodeList].push_back(j);
+                      if (calculatePairInteraction(iNodeList, i, jNodeList, j, firstGhostNodej)) 
+                        nodePairs_private.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
+                      if (domainDecompIndependent) 
+                        keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+                    }
                   }
                 }
+                // twalk += std::clock() - t0;
               }
-              // twalk += std::clock() - t0;
-            }
-            CHECK(neighbors.size() == numNodeLists);
-            CHECK(keys.size() == numNodeLists);
+              CHECK(neighbors.size() == numNodeLists);
+              CHECK(keys.size() == numNodeLists);
         
-            // We have a few options for how to order the neighbors for this node.
-            for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
+              // We have a few options for how to order the neighbors for this node.
+              for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
 
-              if (domainDecompIndependent) {
-                // Sort in a domain independent manner.
-                CHECK(keys[jNodeList].size() == neighbors[jNodeList].size());
-                sort(keys[jNodeList].begin(), keys[jNodeList].end(), ComparePairsBySecondElement<pair<int, Key>>());
-                for (auto j = 0; j != neighbors[jNodeList].size(); ++j) neighbors[jNodeList][j] = keys[jNodeList][j].first;
-              } else {
-                // Sort in an attempt to be cache friendly.
-                sort(neighbors[jNodeList].begin(), neighbors[jNodeList].end());
+                if (domainDecompIndependent) {
+                  // Sort in a domain independent manner.
+                  CHECK(keys[jNodeList].size() == neighbors[jNodeList].size());
+                  sort(keys[jNodeList].begin(), keys[jNodeList].end(), ComparePairsBySecondElement<pair<int, Key>>());
+                  for (auto j = 0; j != neighbors[jNodeList].size(); ++j) neighbors[jNodeList][j] = keys[jNodeList][j].first;
+                } else {
+                  // Sort in an attempt to be cache friendly.
+                  sort(neighbors[jNodeList].begin(), neighbors[jNodeList].end());
+                }
               }
-            }
 
-            // Flag this master node as done.
-            flagNodeDone(iNodeList, i) = 1;
-            worki(i) += Timing::difference(start, Timing::currentTime());
-          }
+              // Flag this master node as done.
+              flagNodeDone(iNodeList, i) = 1;
+              worki(i) += Timing::difference(start, Timing::currentTime());
+            }
+            
+            // Merge the NodePairList
+#pragma omp critical
+            mNodePairList.insert(mNodePairList.end(), nodePairs_private.begin(), nodePairs_private.end());
+          } // end OMP parallel
         }
       }
     }
@@ -793,8 +901,19 @@ computeConnectivity() {
               auto& neighborsj = mConnectivity[mOffsets[jNodeList] + j];
               CHECK(neighborsj.size() == numNodeLists);
               neighborsj[iNodeList].push_back(i);
+              // mNodePairList.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
             }
           }
+        }
+      }
+    }
+
+    // Flag ghost nodes as done if at least one neighbor was found
+    for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
+      for (auto i = mNodeLists[iNodeList]->numInternalNodes(); i < mNodeLists[iNodeList]->numNodes(); ++i) {
+        const auto& neighborsi = mConnectivity[mOffsets[iNodeList] + i];
+        if (neighborsi.size() > 0) {
+          flagNodeDone(iNodeList, i) = 1;
         }
       }
     }
@@ -824,8 +943,16 @@ computeConnectivity() {
     }
   }
 
+  // Sort the NodePairList in order to enforce domain decomposition independence.
+  if (domainDecompIndependent) {
+    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
+    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
+    sortPairs(mNodePairList, mKeys);
+  }
+
   // Do we need overlap connectivity?
   if (mBuildOverlapConnectivity) {
+    // VERIFY2(mBuildGhostConnectivity, "ghost connectivity is required for overlap connectivity");
     TIME_ConnectivityMap_computeOverlapConnectivity.start();
 
     // To start out, *all* neighbors of a node (gather and scatter) are overlap neighbors.  Therefore we

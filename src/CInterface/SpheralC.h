@@ -79,6 +79,7 @@ SPHERALDLL_API   void spheral_set_communicator(MPI_Comm* comm);
     piKernelType          : select the artificial viscosity interpolation kernel (0=BSpline, 1=Gaussian, 2=PiGaussian)
     gradKernelType        : select the velocity gradient interpolation kernel (0=BSpline, 1=Gaussian, 2=PiGaussian)
     nbspline              : order of kernel (if using B splines)
+    crkorder              : order of CRK correction
     damage                : flag to feed back damage to Spheral
     nmats                 : number of materials (NodeLists) to build
     CFL                   : CFL timestep multiplier
@@ -113,6 +114,7 @@ SPHERALDLL_API
                           const int      piKernelType,
                           const int      gradKernelType,
                           const int      nbspline,
+                          const int      crkorder,
                           const int      damage,
                           const unsigned nmats,
                           const double   CFL,
@@ -268,6 +270,24 @@ void spheral_add_boundary(const int     ndims,
                           const double* ncoords);
 
 /*------------------------------------------------------------------------------
+  spheral_periodic_boundary
+
+  Takes as input the dimension of the problem, the normal direction, and a
+  point in the plane on which the boundary condition will be applied
+
+  Returns:  void
+  Arguments:  ndims       : number of dimensions in the problem
+              (p0,p1,p2)  : point in the plane
+              (n0,n1,n2)  : normal direction at point
+  ----------------------------------------------------------------------------*/
+SPHERALDLL_API 
+void spheral_periodic_boundary(const int     ndims,
+                               const double* pcoords1,
+                               const double* ncoords1,
+                               const double* pcoords2,
+                               const double* ncoords2);
+
+/*------------------------------------------------------------------------------
   spheral_iterate_Hfield
 
   Takes as input a guess for the H tensor field, and optimizes it based on the
@@ -325,6 +345,23 @@ void spheral_sample_mesh(const int      ndims,
                          double*        latticeDensity);
 
 /*------------------------------------------------------------------------------
+  spheral_polyhedral_mesh
+
+  Takes as input a set of SPH particles and returns the polyhedral cells
+
+  Returns:  void
+  Arguments:
+  ----------------------------------------------------------------------------*/
+SPHERALDLL_API
+void spheral_polyhedral_mesh(const int      ndims,
+                             int*           nnodes,
+                             int*           nfaces,
+                             int*           ncells,
+                             double**       coords,
+                             int**          facetonodes,
+                             int**          celltofaces);
+
+/*------------------------------------------------------------------------------
   spheral_fill_volume
 
   Takes as input a set of coordinates for a hex or tet mesh and
@@ -336,8 +373,12 @@ void spheral_sample_mesh(const int      ndims,
 SPHERALDLL_API
 void spheral_fill_volume(const int      ndims,
                          const int*     nnodes,
+                         const int*     nfaces,
                          const double** coords,
+                         const int*     conn,
                          const double   spacing,
+                         const int      domain,
+                         const int      ndomains,
                          double*        volume,
                          int*           nparticles,
                          double**       sphcoords);

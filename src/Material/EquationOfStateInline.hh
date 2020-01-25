@@ -1,6 +1,17 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// Optional molecular weight.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+EquationOfState<Dimension>::molecularWeight() const {
+  VERIFY2(false, "EquationOfState " << this << " does not provide molecularWeight.");
+  return 0.0;
+}
+
+//------------------------------------------------------------------------------
 // Units.
 //------------------------------------------------------------------------------
 template<typename Dimension>

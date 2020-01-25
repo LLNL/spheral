@@ -35,6 +35,7 @@ using std::make_pair;
 using std::min;
 using std::max;
 using std::abs;
+using std::ostream_iterator;
 
 // Declare the timers.
 extern Timer TIME_PC3d_convertto;
@@ -254,7 +255,9 @@ polyhedron2string(const Polyhedron& poly) {
   for (auto i = 0; i < nverts; ++i) {
     s << i << " ID=" << poly[i].ID << " comp=" << poly[i].comp << " @ " << poly[i].position
       << " neighbors=[";
-    for (const auto ni: poly[i].neighbors) s << " " << ni;
+    copy(poly[i].neighbors.begin(), poly[i].neighbors.end(), ostream_iterator<int>(s, " "));
+    s << "] clips[";
+    copy(poly[i].clips.begin(), poly[i].clips.end(), ostream_iterator<int>(s, " "));
     s << "]\n";
   }
 
@@ -341,13 +344,15 @@ void convertToPolyhedron(Polyhedron& polyhedron,
 //------------------------------------------------------------------------------
 // Convert PolyClipper::Polyhedron -> Spheral::GeomPolyhedron.
 //------------------------------------------------------------------------------
-void convertFromPolyhedron(Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron,
-                           const Polyhedron& polyhedron) {
+vector<set<int>> convertFromPolyhedron(Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron,
+                                       const Polyhedron& polyhedron) {
   TIME_PC3d_convertfrom.start();
 
   // Useful types.
   typedef Spheral::Dim<3>::FacetedVolume FacetedVolume;
   typedef Spheral::Dim<3>::Vector Vector;
+
+  vector<set<int>> vertexPlanes;
 
   if (polyhedron.empty()) {
 
@@ -365,6 +370,7 @@ void convertFromPolyhedron(Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron,
       for (auto itr = polyhedron.begin(); itr != polyhedron.end(); ++itr) {
         if (itr->comp >= 0) {
           coords.push_back(itr->position);
+          vertexPlanes.push_back(itr->clips);
           itr->ID = i++;
         }
       }
@@ -384,6 +390,11 @@ void convertFromPolyhedron(Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron,
     Spheral_polyhedron = FacetedVolume(coords, facets);
 
   }
+
+  // Return the set of planes responsible for each vertex.
+  ENSURE(vertexPlanes.size() == Spheral_polyhedron.vertices().size());
+  return vertexPlanes;
+
   TIME_PC3d_convertfrom.stop();
 }
 
@@ -513,6 +524,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
                                             2));         // 2 indicates new vertex
               CHECK(polyhedron.size() == inew + 1);
               polyhedron[inew].neighbors = vector<int>({jn, i});
+              polyhedron[inew].clips.insert(plane.ID);
               nitr = find(polyhedron[jn].neighbors.begin(), polyhedron[jn].neighbors.end(), i);
               CHECK(nitr != polyhedron[jn].neighbors.end());
               *nitr = inew;
@@ -521,6 +533,9 @@ void clipPolyhedron(Polyhedron& polyhedron,
 
             }
           }
+        } else if (polyhedron[i].comp == 0) {
+          // This vertex is exactly in plane, so just add this plane as a clip.
+          polyhedron[i].clips.insert(plane.ID);
         }
       }
       nverts = polyhedron.size();
@@ -531,6 +546,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
       // TIME_PC3d_planeverts.start();
       // for (auto vptr: planeVertices) {
       //   CHECK(vptr->comp == 0);
+      //   vptr->clips.insert(plane.ID);
       //   const auto nneigh = vptr->neighbors.size();
       //   CHECK(nneigh >= 3);
       //   for (auto j = 0; j < nneigh; ++j) {
@@ -552,8 +568,8 @@ void clipPolyhedron(Polyhedron& polyhedron,
       //       CHECK(vnext != vptr);
       //       vptr->neighbors[j] = vnext;
 
-      //       const auto barf = ((vnext->position - Vector( 3.46945e-18, 0.0657523, -0.0728318 )).magnitude() < 1.0e-3);
-      //       if (barf) cerr << "Deg: " << vptr->position << " " << nneigh << endl;
+      //       // const auto barf = ((vnext->position - Vector( 3.46945e-18, 0.0657523, -0.0728318 )).magnitude() < 1.0e-3);
+      //       // if (barf) cerr << "Deg: " << vptr->position << " " << nneigh << endl;
 
       //       // Figure out which pointer on the new neighbor should point back at vptr.
       //       auto itr = find(vnext->neighbors.begin(), vnext->neighbors.end(), vprev);
@@ -687,6 +703,7 @@ void collapseDegenerates(Polyhedron& polyhedron,
               active = true;
               idone = false;
               polyhedron[j].ID = -1;
+              polyhedron[i].clips.insert(polyhedron[j].clips.begin(), polyhedron[j].clips.end());
 
               // Merge the neighbors of j->i.
               auto kitr = find(polyhedron[j].neighbors.begin(), polyhedron[j].neighbors.end(), i);
