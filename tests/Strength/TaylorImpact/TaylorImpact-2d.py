@@ -8,8 +8,13 @@
 #
 # The following ATS setup is to generate reference data for the SpheralC tests.
 #
-#ATS:test(SELF, "--steps 100 --compatibleEnergy False --clearDirectories True --baseDir 2D_1proc_ref --siloSnapShotFile Spheral_state_snapshot_1proc", np=1, label="Generate 1 proc reference data")
-#ATS:test(SELF, "--steps 100 --compatibleEnergy False --clearDirectories True --baseDir 2D_8proc_ref --siloSnapShotFile Spheral_state_snapshot_8proc", np=8, label="Generate 8 proc reference data")
+# SPH
+#ATS:test(SELF, "--crksph False --steps 100 --compatibleEnergy False --clearDirectories True --baseDir 2D_1proc_ref --siloSnapShotFile Spheral_sph_state_snapshot_1proc", np=1, label="Generate 1 proc SPH reference data")
+#ATS:test(SELF, "--crksph False --steps 100 --compatibleEnergy False --clearDirectories True --baseDir 2D_8proc_ref --siloSnapShotFile Spheral_sph_state_snapshot_8proc", np=8, label="Generate 8 proc SPH reference data")
+#
+# CRK
+#ATS:test(SELF, "--crksph True  --steps 100 --compatibleEnergy False --clearDirectories True --baseDir 2D_1proc_ref --siloSnapShotFile Spheral_crk_state_snapshot_1proc", np=1, label="Generate 1 proc CRK reference data")
+#ATS:test(SELF, "--crksph True  --steps 100 --compatibleEnergy False --clearDirectories True --baseDir 2D_1proc_ref --siloSnapShotFile Spheral_crk_state_snapshot_8proc", np=8, label="Generate 8 proc CRK reference data")
 
 import os, shutil
 from math import *
@@ -49,8 +54,8 @@ commandLine(seed = "lattice",
             etamax = 4.0,
 
             # Artificial viscosity (and other numerical crap).
-            CRKSPH = False,
-            ASPH = True,     # Only for H evolution, not hydro algorithm
+            crksph = False,
+            asph = True,     # Only for H evolution, not hydro algorithm
             Qconstructor = MonaghanGingoldViscosity,       # Artificial viscosity algorithm
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
@@ -75,6 +80,8 @@ commandLine(seed = "lattice",
             rigorousBoundaries = False,
             gradhCorrection = True,
             correctVelocityGradient = True,
+            correctionOrder = LinearOrder,                # CRKSPH
+            volumeType = RKVoronoiVolume,                 # CRKSPH
 
             # Simulation control
             goalTime = 150.0,
@@ -98,25 +105,21 @@ commandLine(seed = "lattice",
             siloSnapShotFile = "",
             )
 
-if CRKSPH:
-    if ASPH:
-        HydroConstructor = SolidACRKSPHHydro
-    else:
-        HydroConstructor = SolidCRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+if crksph:
+    hydroname = os.path.join("CRKSPH",
+                             str(correctionOrder),
+                             str(volumeType))
 else:
-    if ASPH:
-        HydroConstructor = SolidASPHHydro
-    else:
-        HydroConstructor = SolidSPHHydro
+    hydroname = "SPH"
+if asph:
+    hydroname = "A" + hydroname
 
 # Restart and output files.
 dataDir = os.path.join(baseDir,
                        "reflect=%s" % reflect,
                        "%ix%i" % (nr, nz),
                        "XSPH=%s" % XSPH,
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1])
+                       hydroname)
 restartDir = os.path.join(dataDir, "restarts", "proc-%04i" % mpi.rank)
 vizDir = os.path.join(dataDir, "viz")
 restartBaseName = os.path.join(restartDir, "TaylorImpact-%i-%i" % (nr, nz))
@@ -241,7 +244,8 @@ generator1 = GenerateNodeDistribution2d(2*nr, nz,
                                         distributionType = seed,
                                         xmin = (-rlength, 0.0),
                                         xmax = ( rlength, zlength),
-                                        nNodePerh = nPerh)
+                                        nNodePerh = nPerh,
+                                        SPH = not asph)
 stuff2distribute = [(nodes1, generator1)]
 if not reflect:
     generator2 = GenerateNodeDistribution2d(2*nr, nz,
@@ -249,7 +253,8 @@ if not reflect:
                                             distributionType = seed,
                                             xmin = (-rlength, -zlength),
                                             xmax = ( rlength,  0.0),
-                                            nNodePerh = nPerh)
+                                            nNodePerh = nPerh,
+                                            SPH = not asph)
     stuff2distribute.append((nodes2, generator2))
 distributeNodes2d(*tuple(stuff2distribute))
 for n in nodeSet:
@@ -285,48 +290,34 @@ output('db.numNodeLists')
 output('db.numFluidNodeLists')
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-q.epsilon2 = epsilon2
-q.negligibleSoundSpeed = negligibleSoundSpeed
-q.csMultiplier = csMultiplier
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.limiter")
-output("q.epsilon2")
-output("q.negligibleSoundSpeed")
-output("q.csMultiplier")
-output("q.balsaraShearCorrection")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
+if crksph:
+    hydro = CRKSPH(dataBase = db,
+                   order = correctionOrder,
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate,
+                   ASPH = asph)
 else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                filter = filter,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile,
+                ASPH = asph)
+
 for bc in bcs:
     hydro.appendBoundary(bc)
 output("hydro")
@@ -335,8 +326,32 @@ output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
+
+#-------------------------------------------------------------------------------
+# Set the artificial viscosity parameters.
+#-------------------------------------------------------------------------------
+q = hydro.Q
+if Cl:
+    q.Cl = Cl
+if Cq:
+    q.Cq = Cq
+if epsilon2:
+    q.epsilon2 = epsilon2
+if Qlimiter:
+    q.limiter = Qlimiter
+if balsaraCorrection:
+    q.balsaraShearCorrection = balsaraCorrection
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.epsilon2")
+output("q.limiter")
+output("q.balsaraShearCorrection")
+try:
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
+except:
+    pass
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
@@ -364,6 +379,7 @@ output("integrator.verbose")
 # Build the controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             redistributeStep = redistributeStep,
