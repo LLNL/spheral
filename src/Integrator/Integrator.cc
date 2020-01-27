@@ -636,28 +636,20 @@ Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
 
     // If we didn't call setGhostNodes, then make each boundary update it's 
     // ghost node info (position and H).
-    for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
-         boundaryItr != boundaries.end();
-         ++boundaryItr) {
-      for (typename DataBase<Dimension>::NodeListIterator nodeListItr = db.nodeListBegin();
-           nodeListItr != db.nodeListEnd(); 
-           ++nodeListItr) {
+    for (auto boundaryItr = boundaries.begin(); boundaryItr != boundaries.end(); ++boundaryItr) {
+      for (auto nodeListItr = db.nodeListBegin(); nodeListItr != db.nodeListEnd(); ++nodeListItr) {
         (*boundaryItr)->updateGhostNodes(**nodeListItr);
       }
       (*boundaryItr)->finalizeGhostBoundary();
     }
-    for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
-         nodeListItr != db.fluidNodeListEnd(); 
-         ++nodeListItr) {
+    for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr != db.fluidNodeListEnd(); ++nodeListItr) {
       (*nodeListItr)->neighbor().updateNodes();
     }
   }
 
   // Iterate over the physics packages, and have them apply ghost boundaries
   // for their state.
-  for (ConstPackageIterator physicsItr = physicsPackagesBegin();
-       physicsItr != physicsPackagesEnd();
-       ++physicsItr) {
+  for (auto physicsItr = physicsPackagesBegin(); physicsItr != physicsPackagesEnd(); ++physicsItr) {
     (*physicsItr)->applyGhostBoundaries(state, derivs);
   }
 

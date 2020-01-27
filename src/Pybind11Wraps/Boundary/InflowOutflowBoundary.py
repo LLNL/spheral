@@ -36,6 +36,13 @@ as they cross the specified boundary plane."""
 
     #...........................................................................
     # Methods
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11const
+    def applyGhostBoundary0(self,
+                            fieldBase = "FieldBase<%(Dimension)s>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
     @PYB11virtual
     def cullGhostNodes(self,
                        flagSet = "const FieldList<%(Dimension)s, int>&",
@@ -82,7 +89,7 @@ Really we should rename this post-step finalize."""
                      key = "const std::string",
                      dummy = ("const %(DataType)s&", "%(DataType)s()")):
         "Get the stored data for generating ghost nodes."
-        return "std::vector<%(DataType)s>&"
+        return "std::vector<%(DataType)s>"
 
     storedValues_int =             PYB11TemplateMethod(storedValues, "int")
     storedValues_Scalar =          PYB11TemplateMethod(storedValues, "Scalar")
@@ -103,7 +110,7 @@ Really we should rename this post-step finalize."""
     def storedValuesF(self,
                       field = "const Field<%(Dimension)s, %(DataType)s>&"):
         "Get the stored data for generating ghost nodes."
-        return "std::vector<%(DataType)s>&"
+        return "std::vector<%(DataType)s>"
 
     storedValuesF_int =             PYB11TemplateMethod(storedValuesF, "int", pyname="storedValues")
     storedValuesF_Scalar =          PYB11TemplateMethod(storedValuesF, "Scalar", pyname="storedValues")

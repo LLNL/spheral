@@ -132,6 +132,13 @@ class Field(FieldBase):
         "Deserialize values from the given buffer"
         return "void"
 
+    @PYB11virtual
+    def copyElements(self,
+                     fromIndices="const std::vector<int>&",
+                     toIndices="const std::vector<int>&"):
+        "Copy a range of values from/to elements of the Field"
+        return "void"
+
     #...........................................................................
     # Methods
     @PYB11const
