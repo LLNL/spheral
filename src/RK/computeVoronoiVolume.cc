@@ -404,7 +404,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       // First pass: clip by any faceted boundaries/holes.
       // cerr << "FIRST pass after polyhedral boundary clipping" << endl;
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-        const auto ni = polycells[nodeListi]->numInternalElements();
+        const auto ni = position[nodeListi]->numInternalElements();
 #pragma omp for
         for (auto i = 0; i < ni; ++i) {
 
@@ -531,7 +531,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       auto etaVoidPoints_thread = etaVoidPoints.threadCopy();
       PolyVolume celli;
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-        const auto ni = etaVoidPoints_thread[nodeListi]->numInternalElements();
+        const auto ni = position[nodeListi]->numInternalElements();
 // #pragma omp parallel for
         for (auto i = 0; i < ni; ++i) {
           const auto& Hi = H(nodeListi, i);
