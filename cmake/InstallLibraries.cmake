@@ -127,7 +127,14 @@ if(PYTHON_DIR)
     execute_process(COMMAND ${PYTHON_EXE} get-pip.py)
     execute_process(COMMAND ${PIP_EXE} install PYB11Generator -t ${PYTHON_SITE_PACKAGE_DIR})
     execute_process(COMMAND ${PIP_EXE} install mpi4py -t ${PYTHON_SITE_PACKAGE_DIR})
-    execute_process(COMMAND ${PIP_EXE} install numpy -t ${PYTHON_SITE_PACKAGE_DIR})
+    execute_process(COMMAND ${PIP_EXE} install numpy-stl -t ${PYTHON_SITE_PACKAGE_DIR})
+    execute_process(COMMAND ${PIP_EXE} install matplotlib -t ${PYTHON_SITE_PACKAGE_DIR})
+
+    execute_process(COMMAND wget http://downloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz)
+    execute_process(COMMAND gunzip -f gnuplot-py-1.8.tar.gz)
+    execute_process(COMMAND tar -xvf gnuplot-py-1.8.tar)
+    execute_process(COMMAND ${PYTHON_EXE} setup.py install
+                    WORKING_DIRECTORY gnuplot-py-1.8)
   endif()
 endif()
 
