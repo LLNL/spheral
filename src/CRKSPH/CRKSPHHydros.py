@@ -62,8 +62,6 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                  damageRelieveRubble,
                  negativePressureInDamage):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
-        if WPi is None:
-            WPi = W
         SolidCRKSPHHydroBase%(dim)s.__init__(self,
                                              self._smoothingScaleMethod,
                                              Q,
@@ -104,8 +102,6 @@ class %(classname)s(CRKSPHHydroBaseRZ):
                  nTensile,
                  etaMinAxis):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
-        if WPi is None:
-            WPi = W
         CRKSPHHydroBaseRZ.__init__(self,
                                    self._smoothingScaleMethod,
                                    Q,
@@ -148,8 +144,6 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
                  negativePressureInDamage,
                  etaMinAxis):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
-        if WPi is None:
-            WPi = W
         SolidCRKSPHHydroBaseRZ.__init__(self,
                                         self._smoothingScaleMethod,
                                         Q,
