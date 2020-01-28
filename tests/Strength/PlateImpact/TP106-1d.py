@@ -4,7 +4,7 @@
 #
 # See Weseloh & Najjar, LLNL-TR-484921
 #-------------------------------------------------------------------------------
-from SolidSpheral1d import *
+from Spheral1d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
 from NodeHistory import NodeHistory
@@ -51,7 +51,9 @@ commandLine(nxAl = 100,
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
             compatibleEnergy = True,
-            gradhCorrection = False,
+            evolveTotalEnergy = False,
+            correctionOrder = LinearOrder,                # CRKSPH
+            volumeType = RKVoronoiVolume,                 # CRKSPH
 
             # Time integration
             IntegratorConstructor = CheapSynchronousRK2Integrator,
@@ -86,7 +88,9 @@ if nxTa == 0:
 
 # Hydro constructor.
 if crksph:
-    hydroname = "CRKSPH"
+    hydroname = os.path.join("CRKSPH",
+                             str(correctionOrder),
+                             str(volumeType))
     kernelOrder = 7
     nPerh = 1.01
 else:
@@ -271,10 +275,11 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 if crksph:
     hydro = CRKSPH(dataBase = db,
-                   W = WT,
+                   order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate)
@@ -284,7 +289,7 @@ else:
                 filter = filter,
                 cfl = cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
-                gradhCorrection = gradhCorrection,
+                evolveTotalEnergy = evolveTotalEnergy,
                 densityUpdate = densityUpdate,
                 HUpdate = HUpdate,
                 XSPH = XSPH,
@@ -296,8 +301,7 @@ output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
+output("hydro.evolveTotalEnergy")
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
@@ -364,6 +368,7 @@ for nodes, samplePositions in ((nodesAl, (-0.0375, -0.0625, -0.9875)),
 # Build the controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
