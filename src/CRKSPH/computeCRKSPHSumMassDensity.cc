@@ -72,36 +72,38 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       j = pairs[k].j_node;
       nodeListi = pairs[k].i_list;
       nodeListj = pairs[k].j_list;
+      if (nodeListi == nodeListj) {
 
-      // Get the state for node i.
-      const auto& ri = position(nodeListi, i);
-      const auto  mi = mass(nodeListi, i);
-      const auto  Vi = vol(nodeListi, i);
-      const auto& Hi = H(nodeListi, i);
-      const auto  Hdeti = Hi.Determinant();
+        // Get the state for node i.
+        const auto& ri = position(nodeListi, i);
+        const auto  mi = mass(nodeListi, i);
+        const auto  Vi = vol(nodeListi, i);
+        const auto& Hi = H(nodeListi, i);
+        const auto  Hdeti = Hi.Determinant();
 
-      // State for node j.
-      const auto& rj = position(nodeListi, j);
-      const auto  mj = mass(nodeListi, j);
-      const auto  Vj = vol(nodeListi, j);
-      const auto  rhoj = massDensity(nodeListi, j);
-      const auto& Hj = H(nodeListi, j);
-      const auto  Hdetj = Hj.Determinant();
+        // State for node j.
+        const auto& rj = position(nodeListj, j);
+        const auto  mj = mass(nodeListj, j);
+        const auto  Vj = vol(nodeListj, j);
+        const auto  rhoj = massDensity(nodeListj, j);
+        const auto& Hj = H(nodeListj, j);
+        const auto  Hdetj = Hj.Determinant();
 
-      // Kernel weighting and gradient.
-      rij = ri - rj;
-      etai = Hi*rij;
-      etaj = Hj*rij;
-      Wi = W.kernelValue(etai.magnitude(), Hdeti);
-      Wj = W.kernelValue(etaj.magnitude(), Hdetj);
+        // Kernel weighting and gradient.
+        rij = ri - rj;
+        etai = Hi*rij;
+        etaj = Hj*rij;
+        Wi = W.kernelValue(etai.magnitude(), Hdeti);
+        Wj = W.kernelValue(etaj.magnitude(), Hdetj);
 
-      // Sum the pair-wise contributions.
-      wsum_thread(nodeListi, i) += Vj*Wj;
-      wsum_thread(nodeListi, j) += Vi*Wi;
-      massDensity_thread(nodeListi, i) += mj * Vj*Wj;
-      massDensity_thread(nodeListi, j) += mi * Vi*Wi;
-      vol1_thread(nodeListi, i) += Vj * Vj*Wj;
-      vol1_thread(nodeListi, j) += Vi * Vi*Wi;
+        // Sum the pair-wise contributions.
+        wsum_thread(nodeListi, i) += Vj*Wj;
+        wsum_thread(nodeListj, j) += Vi*Wi;
+        massDensity_thread(nodeListi, i) += mj * Vj*Wj;
+        massDensity_thread(nodeListj, j) += mi * Vi*Wi;
+        vol1_thread(nodeListi, i) += Vj * Vj*Wj;
+        vol1_thread(nodeListj, j) += Vi * Vi*Wi;
+      }
     }
 
     // Reduce the thread values to the master.
