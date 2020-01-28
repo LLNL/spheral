@@ -60,8 +60,6 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
     int i, j, nodeListi, nodeListj;
     Scalar Wi, Wj;
     Vector rij, etai, etaj;
-    Vector Bi = Vector::zero, Bj = Vector::zero;
-    Tensor Ci = Tensor::zero, Cj = Tensor::zero;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto massDensity_thread = massDensity.threadCopy(threadStack);
