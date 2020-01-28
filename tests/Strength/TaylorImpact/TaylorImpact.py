@@ -265,7 +265,7 @@ print "Generating node distribution."
 if geometry == "2d":
     from GenerateNodeDistribution2d import *
     from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
-    generator1 = GenerateNodeDistribution2d(2*nr, nz, 
+    generator1 = GenerateNodeDistribution2d(nz, 2*nr, 
                                             rho = rho0,
                                             distributionType = "lattice",
                                             xmin = (0.0,    -rlength),
@@ -274,7 +274,7 @@ if geometry == "2d":
                                             SPH = not asph)
     stuff2distribute = [(nodes1, generator1)]
     if not reflect:
-        generator2 = GenerateNodeDistribution2d(2*nr, nz,
+        generator2 = GenerateNodeDistribution2d(nz, 2*nr,
                                                 rho = rho0,
                                                 distributionType = "lattice",
                                                 xmin = (-zlength, -rlength),
