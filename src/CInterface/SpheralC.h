@@ -71,6 +71,9 @@ SPHERALDLL_API   void spheral_set_communicator(MPI_Comm* comm);
     totalEnergy           : flag for using the total energy derivative (0=false/1=true)
     vGradCorrection       : flag to select linear velocity gradient correction (0=false/1=true)
     hGradCorrection       : flag to select the gradh corection term (0=false/1=true)
+    densityUpdate         : flag to select mass density definition (0=SumDensity, 1=RigorousSumDensity, 2=HybridSumDensity,
+                                                                    3=IntegrateDensity, 4=VoronoiCellDensity, 5=SumVoronoiCellDensity,
+                                                                    6=CorrectedSumDensity)
     sumMassDensity        : sum mass density over all NodeLists (0=false/1=true)
     useVelocityDt         : use the velocity magnitude to control time step (0=false/1=true)
     ScalarQ               : flag selecting scalar or tensor viscosity (0=false/1=true)
@@ -79,7 +82,8 @@ SPHERALDLL_API   void spheral_set_communicator(MPI_Comm* comm);
     piKernelType          : select the artificial viscosity interpolation kernel (0=BSpline, 1=Gaussian, 2=PiGaussian)
     gradKernelType        : select the velocity gradient interpolation kernel (0=BSpline, 1=Gaussian, 2=PiGaussian)
     nbspline              : order of kernel (if using B splines)
-    crkorder              : order of CRK correction
+    rkorder               : order of CRK correction
+    rkvolume              : RK volume definition (0=MassOverDensity, 1=SumVolume, 2=VoronoiVolume, 3=HullVolume, 4=HVolume)
     damage                : flag to feed back damage to Spheral
     nmats                 : number of materials (NodeLists) to build
     CFL                   : CFL timestep multiplier
@@ -106,6 +110,7 @@ SPHERALDLL_API
                           const int      totalEnergy,
                           const int      vGradCorrection,
                           const int      hGradCorrection,
+                          const int      densityUpdate,
                           const int      sumMassDensity,
                           const int      useVelocityDt,
                           const int      ScalarQ,
@@ -114,7 +119,8 @@ SPHERALDLL_API
                           const int      piKernelType,
                           const int      gradKernelType,
                           const int      nbspline,
-                          const int      crkorder,
+                          const int      rkorder,
+                          const int      rkvolume,
                           const int      damage,
                           const unsigned nmats,
                           const double   CFL,
@@ -149,9 +155,6 @@ SPHERALDLL_API
     deviatoricStress_{xx,xy,xz, : Components of the deviatoric stress per node.
                          yy,yz,
                             zz}
-    deviatoricStressTT          : Theta-Theta component of the deviatoric stress
-                                  in RZ symmetry.  Can be NULL for other geometries.
-                      
     soundSpeed                  : sound speed per node
     bulkModulus                 : bulkModulus per node
     shearModulus                : shearModulus per node
@@ -171,7 +174,6 @@ SPHERALDLL_API
                                  const double**  Hfield,
                                  const double*   pressure,
                                  const double**  deviatoricStress,
-                                 const double*   deviatoricStressTT,
                                  const double*   soundSpeed,
                                  const double*   bulkModulus,
                                  const double*   shearModulus,
@@ -200,7 +202,6 @@ SPHERALDLL_API
                             const double** Hfield,
                             const double*  pressure,
                             const double** deviatoricStress,
-                            const double*  deviatoricStressTT,
                             const double*  soundSpeed,
                             const double*  bulkModulus,
                             const double*  shearModulus,
@@ -234,9 +235,6 @@ SPHERALDLL_API
     DdeviatoricStressDt_{xx,xy,xz, : Components of the time derivative of the 
                             yy,yz,   deviatoric stress per node
                                zz}
-    DdeviatoricStressDtTT          : Theta-Theta component of the deviatoric stress
-                                     time derivative in RZ symmetry.
-                                     Can be NULL for other geometries.
   ----------------------------------------------------------------------------*/
 SPHERALDLL_API 
   void spheral_evaluate_derivatives(const int ndims,
@@ -249,7 +247,6 @@ SPHERALDLL_API
                                     double**  DHfieldDt,
                                     double**  HfieldIdeal,
                                     double**  DdeviatoricStressDt,
-                                    double*   DdeviatoricStressDtTT,
                                     double*   qpressure,
                                     double*   qwork);
 

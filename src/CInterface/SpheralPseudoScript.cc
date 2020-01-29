@@ -360,14 +360,12 @@ template<> struct HydroConstructor<Dim<3>> {
                                                       const bool gradhCorrection,
                                                       const bool XSPH,
                                                       const bool correctVelocityGradient,
-                                                      const bool sumMassDensityOverAllNodeLists,
                                                       const MassDensityType densityUpdate,
+                                                      const bool sumMassDensityOverAllNodeLists,
                                                       const HEvolutionType HUpdate,
                                                       const RKOrder correctionOrder,
-                                                      const RKVolumeType volumeType,
                                                       const double epsTensile,
                                                       const double nTensile,
-                                                      const bool limitMultimaterialTopology,
                                                       const bool damageRelieveRubble,
                                                       const bool negativePressureInDamage,
                                                       const Dim<3>::Vector& xmin,
@@ -436,14 +434,12 @@ template<> struct HydroConstructor<Dim<2>> {
                                                       const bool gradhCorrection,
                                                       const bool XSPH,
                                                       const bool correctVelocityGradient,
-                                                      const bool sumMassDensityOverAllNodeLists,
                                                       const MassDensityType densityUpdate,
+                                                      const bool sumMassDensityOverAllNodeLists,
                                                       const HEvolutionType HUpdate,
                                                       const RKOrder correctionOrder,
-                                                      const RKVolumeType volumeType,
                                                       const double epsTensile,
                                                       const double nTensile,
-                                                      const bool limitMultimaterialTopology,
                                                       const bool damageRelieveRubble,
                                                       const bool negativePressureInDamage,
                                                       const Dim<2>::Vector& xmin,
@@ -554,8 +550,8 @@ template<typename Dimension>
 SpheralPseudoScript<Dimension>&
 SpheralPseudoScript<Dimension>::
 instance() {
-  if (mInstancePtr == 0) mInstancePtr = new SpheralPseudoScript<Dimension>();
-  CHECK(mInstancePtr != 0);
+  if (mInstancePtr == nullptr) mInstancePtr = new SpheralPseudoScript<Dimension>();
+  CHECK(mInstancePtr != nullptr);
   return *mInstancePtr;
 }
 
@@ -573,6 +569,7 @@ initialize(const bool     RZ,
            const bool     totalEnergy,
            const bool     vGradCorrection,
            const bool     hGradCorrection,
+           const int      densityUpdate,
            const bool     sumMassDensity,
            const bool     useVelocityDt,
            const bool     ScalarQ,
@@ -581,7 +578,8 @@ initialize(const bool     RZ,
            const int      piKernelType,
            const int      gradKernelType,
            const int      nbspline,
-           const int      crkorder,
+           const int      rkorder,
+           const int      rkvolume,
            const int      damage,
            const unsigned nmats,
            const double   CFL,
@@ -601,14 +599,15 @@ initialize(const bool     RZ,
   VERIFY2(distributedBoundary >= 0 && distributedBoundary < 3,
           "SpheralPseudoScript::initialize: Distributed boundary option must be 0 (None), 1 (Nested Grid), or 2 (Tree).");
 
-  VERIFY2(crkorder >= 0 && crkorder < 3,
-          "SpheralPseudoScript::initialize: CRK correction order must be 0 (Constant), 1 (Linear), or 2 (Quadratic).");
-
+  VERIFY2(rkorder >= 0 && rkorder < 8,
+          "SpheralPseudoScript::initialize: RK correction order must be in the range [0,7].");
+  VERIFY2(rkvolume >= 0 and rkvolume < 5,
+          "SpheralPseudoScript::initialize: RK volume must be in the range [0,4].");
   VERIFY2(kernelType >= 0 && kernelType < 3 && piKernelType >= 0 && piKernelType < 3 && gradKernelType >= 0 && gradKernelType < 3,
           "SpheralPseudoScript::initialize: SPH kernel type must be 0 (NBSpline), 1 (Gaussian), or 2 (PiGaussian).");
 
   // Get our instance.
-  SpheralPseudoScript<Dimension>& me = SpheralPseudoScript<Dimension>::instance();
+  auto& me = SpheralPseudoScript<Dimension>::instance();
 
   // Create internal units (cm, gm, usec).
   me.mUnitsPtr.reset(new PhysicalConstants(0.01,     // unit length (m)
@@ -627,99 +626,103 @@ initialize(const bool     RZ,
   me.mStrengthModelPtr.reset(new NullStrength<Dimension>());
 
   // Build the general interpolation kernel.
-  if(kernelType == 0) {
+  switch(kernelType) {
+  case 0:
     me.mKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
-  }
-  else if(kernelType == 1) {
+    break;
+  case 1:
     me.mKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
-  }
-  else if(kernelType == 2) {
+    break;
+  case 2:
     me.mKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
+    break;
+  default:
+    VERIFY2(false, "SpheralPsuedoScript::initialize: invalid kernelType " << kernelType);
   }
 
   // Build the interpolation kernel for artificial viscosity.
-  if(piKernelType == 0) {
+  switch(piKernelType) {
+  case 0:
     me.mPiKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
-  }
-  else if(piKernelType == 1) {
+    break;
+  case 1:
     me.mPiKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
-  }
-  else if(piKernelType == 2) {
+    break;
+  case 2:
     me.mPiKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
+    break;
+  default:
+    VERIFY2(false, "SpheralPseudoScript::initialize: invalid piKerneltype " << piKernelType);
   }
 
   // Build the interpolation kernel for the velocity gradient.
-  if(gradKernelType == 0) {
+  switch(gradKernelType) {
+  case 0:
     me.mGradKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 1000));
-  }
-  else if(gradKernelType == 1) {
+    break;
+  case 1:
     me.mGradKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 1000));
-  }
-  else if(gradKernelType == 2) {
+    break;
+  case 2:
     me.mGradKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 1000));
+    break;
+  default:
+    VERIFY2(false, "SpheralPseudoScript::initialize: invalid gradKerneltype " << gradKernelType);
   }
 
   // Construct the NodeLists for our materials.
-  // me.mNodeLists.reserve(nmats);
-  // me.mNeighbors.reserve(nmats);
-  me.mNodeLists.clear();
-  me.mNeighbors.clear();
-  me.mHostCodeBoundaries.clear();
-  for (unsigned imat = 0; imat != nmats; ++imat) {
+  for (auto imat = 0; imat < nmats; ++imat) {
     const string name = "NodeList " + std::to_string(imat);
-    me.mNodeLists.push_back(std::shared_ptr< SolidNodeList<Dimension>>(new SolidNodeList<Dimension>(name,
-                                                                                                    *me.mEOSptr,
-                                                                                                    *me.mStrengthModelPtr,
-                                                                                                    0,
-                                                                                                    0,
-                                                                                                    hmin,
-                                                                                                    hmax,
-                                                                                                    hminmaxratio,
-                                                                                                    nPerh,
-                                                                                                    500,      // maxNumNeighbors -- not currently used
-                                                                                                    0.0,      // rhoMin -- we depend on the host code
-                                                                                                    1e100))); // rhoMax -- we depend on the host code
-    if (distributedBoundary == 2) {
-      me.mNeighbors.push_back(std::shared_ptr< TreeNeighbor<Dimension>>(new TreeNeighbor<Dimension>(*me.mNodeLists.back(),
-                                                                                                    NeighborSearchType::GatherScatter,
-                                                                                                    me.mKernelPtr->kernelExtent(),
-                                                                                                    xmin,
-                                                                                                    xmax)));
-    }
-    else if (distributedBoundary == 1) {
-      me.mNeighbors.push_back(std::shared_ptr< NestedGridNeighbor<Dimension>>(new NestedGridNeighbor<Dimension>(*me.mNodeLists.back(),
-                                                                                                                NeighborSearchType::GatherScatter,
-                                                                                                                31,
-                                                                                                                (xmax - xmin).maxElement(),
-                                                                                                                Vector::zero,
-                                                                                                                me.mKernelPtr->kernelExtent(),
-                                                                                                                1)));
+    me.mNodeLists.emplace_back(new SolidNodeList<Dimension>(name,
+                                                            *me.mEOSptr,
+                                                            *me.mStrengthModelPtr,
+                                                            0,
+                                                            0,
+                                                            hmin,
+                                                            hmax,
+                                                            hminmaxratio,
+                                                            nPerh,
+                                                            500,      // maxNumNeighbors -- not currently used
+                                                            0.0,      // rhoMin -- we depend on the host code
+                                                            1e100)); // rhoMax -- we depend on the host code
+    switch(distributedBoundary) {
+    case 2:
+      me.mNeighbors.emplace_back(new TreeNeighbor<Dimension>(*me.mNodeLists.back(),
+                                                             NeighborSearchType::GatherScatter,
+                                                             me.mKernelPtr->kernelExtent(),
+                                                             xmin,
+                                                             xmax));
+      break;
+    case 1:
+      me.mNeighbors.emplace_back(new NestedGridNeighbor<Dimension>(*me.mNodeLists.back(),
+                                                                   NeighborSearchType::GatherScatter,
+                                                                   31,
+                                                                   (xmax - xmin).maxElement(),
+                                                                   Vector::zero,
+                                                                   me.mKernelPtr->kernelExtent(),
+                                                                   1));
+      break;
+    default:
+      VERIFY2(false, "SpheralPseudoScript::initialize: invalid distributedBoundary " << distributedBoundary);
     }
     me.mNodeLists.back()->registerNeighbor(*me.mNeighbors.back());
   }
 
   // Build the database and add our NodeLists.
   me.mDataBasePtr.reset(new DataBase<Dimension>());
-  for (unsigned imat = 0; imat != nmats; ++imat) {
+  for (auto imat = 0; imat < nmats; ++imat) {
     me.mDataBasePtr->appendNodeList(*me.mNodeLists[imat]);
   }
 
-  RKOrder correctionOrder;
-  std::set<RKOrder> orderSet;
-  if (crkorder == 0) {
-    correctionOrder = RKOrder::ZerothOrder;
-    orderSet.insert(RKOrder::ZerothOrder);
-  }
-  else if (crkorder == 1) {
-    correctionOrder = RKOrder::LinearOrder;
-    orderSet.insert(RKOrder::ZerothOrder);
-    orderSet.insert(RKOrder::LinearOrder);
-  }
-  else if (crkorder == 2) {
-    correctionOrder = RKOrder::QuadraticOrder;
-    orderSet.insert(RKOrder::ZerothOrder);
-    orderSet.insert(RKOrder::LinearOrder);
-    orderSet.insert(RKOrder::QuadraticOrder);
+  // Build the RK object if needed
+  auto correctionOrder = static_cast<RKOrder>(rkorder);
+  auto rkVolumeType = static_cast<RKVolumeType>(rkvolume);
+  if (CRK) {
+    me.mRKptr.reset(new RKCorrections<Dimension>(std::set<RKOrder>({correctionOrder}),
+                                                 *me.mDataBasePtr,
+                                                 *me.mKernelPtr,
+                                                 rkVolumeType,
+                                                 false));          // hardwire for no hessian
   }
 
   // Build the hydro physics objects.
@@ -738,7 +741,7 @@ initialize(const bool     RZ,
     }
   }
   me.mQptr->epsilon2(0.01);
-  me.mHydroPtr.reset();
+  auto densityUpdateVal = static_cast<MassDensityType>(densityUpdate);
   me.mHydroPtr = HydroConstructor<Dimension>::newinstance(CRK,
                                                           *me.mSmoothingScaleMethodPtr,
                                                           *me.mQptr,
@@ -753,44 +756,65 @@ initialize(const bool     RZ,
                                                           hGradCorrection,                      // gradhCorrection
                                                           XSPH,                                 // XSPH
                                                           vGradCorrection,                      // correctVelocityGradient
+                                                          densityUpdateVal,                     // densityUpdate
                                                           sumMassDensity,                       // sumMassDensityOverAllNodeLists
-                                                          MassDensityType::RigorousSumDensity,  // densityUpdate
                                                           HEvolutionType::IdealH,               // HUpdate
                                                           correctionOrder,                      // RK order
-                                                          RKVolumeType::RKVoronoiVolume,        // RK volume type
                                                           0.0,                                  // epsTensile
                                                           4.0,                                  // nTensile
-                                                          false,                                // limitMultimaterialTopology
                                                           false,                                // damageRelieve
                                                           false,                                // negativePressureInDamage
                                                           xmin,                                 // xmin
                                                           xmax,                                 // xmax
                                                           RZ);
 
+  // Add the axis reflecting boundary in RZ.
+  HydroConstructor<Dimension>::addBoundaries(RZ, me.mHostCodeBoundaries);
+
   // Build a time integrator.  We're not going to use this to advance state,
   // but the other methods are useful.
   me.mIntegratorPtr.reset(new CheapSynchronousRK2<Dimension>(*me.mDataBasePtr));
-  if (CRK) {
-    me.mCorrectionsPtr.reset(new RKCorrections<Dimension>(orderSet,
-                                                          *me.mDataBasePtr,
-                                                          *me.mKernelPtr,
-                                                          RKVolumeType::RKVoronoiVolume,
-                                                          false));
-    me.mIntegratorPtr->appendPhysicsPackage(*me.mCorrectionsPtr);
-  }
+
+  // Add the physics packages to the integrator.
+  if (CRK) me.mIntegratorPtr->appendPhysicsPackage(*me.mRKptr);
   me.mIntegratorPtr->appendPhysicsPackage(*me.mHydroPtr);
+
+  // Add the boundary conditions to the physics packages
+  auto& pkgs = me.mIntegratorPtr->physicsPackages();
+  for (auto p: pkgs) {
+    for (auto& bc: me.mHostCodeBoundaries) {
+      p->appendBoundary(*bc);
+    }
+
+#ifdef USE_MPI
+  // Add the distributed boundary, as appropriate.
+    if (Process::getTotalNumberOfProcesses() > 1) {
+      switch(distributedBoundary) {
+      case 2:
+        p->appendBoundary(TreeDistributedBoundary<Dimension>::instance());
+        break;
+      case 1:
+        p->appendBoundary(NestedGridDistributedBoundary<Dimension>::instance());
+        break;
+      default:
+        VERIFY2(false, "SpheralPseudoScript::initialize: invalid distributedBoundary " << distributedBoundary);
+      }
+    }
+#endif
+  }
+
+  // Lock any further boundary changes.
+  me.mLockBoundaries = true;
+
+  // Do the one-time initialization work for our packages.
+  if (CRK) me.mRKptr->initializeProblemStartup(*me.mDataBasePtr);
+  me.mHydroPtr->initializeProblemStartup(*me.mDataBasePtr);
 
   // Remember if we're feeding damage in
   me.mDamage = damage;
 
   // Remember the distributed boundary type.
   me.mDistributedBoundary = distributedBoundary;
-
-  // Do the one-time initialization work for our packages.
-  me.mHydroPtr->initializeProblemStartup(*me.mDataBasePtr);
-
-  // Add the axis reflecting boundary in RZ.
-  HydroConstructor<Dimension>::addBoundaries(RZ, me.mHostCodeBoundaries);
 }
 
 //------------------------------------------------------------------------------
@@ -812,7 +836,6 @@ initializeStep(const unsigned* nintpermat,
                const double**  Hfield,
                const double*   pressure,
                const double**  deviatoricStress,
-               const double*   deviatoricStressTT,
                const double*   soundSpeed,
                const double*   bulkModulus,
                const double*   shearModulus,
@@ -822,13 +845,13 @@ initializeStep(const unsigned* nintpermat,
                const int*      particleType) {
 
   // Get our instance.
-  SpheralPseudoScript<Dimension>& me = SpheralPseudoScript<Dimension>::instance();
+  auto& me = SpheralPseudoScript<Dimension>::instance();
 
   // Check the input and set numbers of nodes.
-  const unsigned nmats = me.mNodeLists.size();
-  me.mNumInternalNodes = vector<unsigned>(nmats);
-  me.mNumHostGhostNodes = vector<unsigned>(nmats);
-  for (unsigned imat = 0; imat != nmats; ++imat) {
+  const auto nmats = me.mNodeLists.size();
+  me.mNumInternalNodes.resize(nmats);
+  me.mNumHostGhostNodes.resize(nmats);
+  for (auto imat = 0; imat < nmats; ++imat) {
     VERIFY(nintpermat[imat] <= npermat[imat]);
     me.mNumInternalNodes[imat] = nintpermat[imat];
     me.mNumHostGhostNodes[imat] = npermat[imat] - nintpermat[imat];
@@ -853,7 +876,6 @@ initializeStep(const unsigned* nintpermat,
                                    Hfield,
                                    pressure, 
                                    deviatoricStress,
-                                   deviatoricStressTT,
                                    soundSpeed, 
                                    bulkModulus, 
                                    shearModulus, 
@@ -883,7 +905,6 @@ updateState(const double*  mass,
             const double** Hfield,
             const double*  pressure,
             const double** deviatoricStress,
-            const double*  deviatoricStressTT,
             const double*  soundSpeed,
             const double*  bulkModulus,
             const double*  shearModulus,
@@ -894,10 +915,10 @@ updateState(const double*  mass,
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
-  const unsigned nmats = me.mNodeLists.size();
+  const auto nmats = me.mNodeLists.size();
 
   // Size the NodeLists.
-  for (unsigned imat = 0; imat != nmats; ++imat) {
+  for (auto imat = 0; imat < nmats; ++imat) {
     me.mNodeLists[imat]->numInternalNodes(me.mNumInternalNodes[imat]);
     me.mNodeLists[imat]->numGhostNodes(me.mNumHostGhostNodes[imat]);
   }
@@ -912,7 +933,6 @@ updateState(const double*  mass,
   auto P = me.mStatePtr->fields(HydroFieldNames::pressure, 0.0);
   auto cs = me.mStatePtr->fields(HydroFieldNames::soundSpeed, 0.0);
   auto S = me.mStatePtr->fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  auto STT = me.mStatePtr->fields(SolidFieldNames::deviatoricStressTT, 0.0);
   auto ps = me.mStatePtr->fields(SolidFieldNames::plasticStrain, 0.0);
   auto pType = me.mStatePtr->fields(SolidFieldNames::particleTypes, 0);
   auto K = me.mStatePtr->fields(SolidFieldNames::bulkModulus, 0.0);
@@ -929,7 +949,6 @@ updateState(const double*  mass,
   if (Hfield[0] != NULL)             copyArrayToSymTensorFieldList(Hfield, H);
   if (pressure != NULL)              copyArrayToScalarFieldList(pressure, P);
   if (deviatoricStress[0] != NULL)   copyArrayToSymTensorFieldList(deviatoricStress, S);
-  if (deviatoricStressTT != NULL)    copyArrayToScalarFieldList(deviatoricStressTT, STT);
   if (soundSpeed != NULL)            copyArrayToScalarFieldList(soundSpeed, cs);
   if (bulkModulus != NULL)           copyArrayToScalarFieldList(bulkModulus, K);
   if (shearModulus != NULL)          copyArrayToScalarFieldList(shearModulus, mu);
@@ -939,23 +958,6 @@ updateState(const double*  mass,
   if (me.mDamage) {
     if (scalarDamage != NULL)        copyArrayToSymTensorFieldList(scalarDamage, D);
   }
-
-  // Add host code boundaries
-  me.mHydroPtr->clearBoundaries();
-  for (unsigned i = 0; i<me.mHostCodeBoundaries.size(); ++i) {
-    me.mHydroPtr->appendBoundary(*me.mHostCodeBoundaries[i]);
-  }
-
-  // If requested, add the appropriate DistributedBoundary for Spheral to handle
-  // distributed ghost nodes.
-#if USE_MPI
-  if (me.mDistributedBoundary == 2) {
-    me.mHydroPtr->appendBoundary(TreeDistributedBoundary<Dimension>::instance());
-  }
-  else if (me.mDistributedBoundary == 1) {
-    me.mHydroPtr->appendBoundary(NestedGridDistributedBoundary<Dimension>::instance());
-  }
-#endif
 
   // pre-step initialize
   me.mIntegratorPtr->preStepInitialize(*me.mStatePtr, *me.mDerivsPtr);
@@ -976,7 +978,6 @@ evaluateDerivatives(double*  massDensitySum,
                     double** DHfieldDt,
                     double** HfieldIdeal,
                     double** DdeviatoricStressDt,
-                    double*  DdeviatoricStressDtTT,
                     double*  qpressure,
                     double*  qwork) {
 
@@ -984,10 +985,10 @@ evaluateDerivatives(double*  massDensitySum,
   auto& me = SpheralPseudoScript<Dimension>::instance();
 
   // Zero out the stored derivatives.
+  me.mIntegratorPtr->initializeDerivatives(0.0, 1.0, *me.mStatePtr, *me.mDerivsPtr);
   me.mDerivsPtr->Zero();
 
   // Have Spheral evaluate the fluid derivatives.
-  me.mIntegratorPtr->initializeDerivatives(0.0, 1.0, *me.mStatePtr, *me.mDerivsPtr);
   me.mIntegratorPtr->evaluateDerivatives(0.0, 1.0, *me.mDataBasePtr, *me.mStatePtr, *me.mDerivsPtr);
   me.mIntegratorPtr->finalizeDerivatives(0.0, 1.0, *me.mDataBasePtr, *me.mStatePtr, *me.mDerivsPtr);
 
@@ -1001,7 +1002,6 @@ evaluateDerivatives(double*  massDensitySum,
   auto DHDt = me.mDerivsPtr->fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto Hideal = me.mDerivsPtr->fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto DSDt = me.mDerivsPtr->fields(IncrementFieldList<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
-  auto DSDtTT = me.mDerivsPtr->fields(IncrementFieldList<Dim<2>, Scalar>::prefix() + SolidFieldNames::deviatoricStressTT, 0.0);
   auto effViscousPressure = me.mDerivsPtr->fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto viscousWork = me.mDerivsPtr->fields(HydroFieldNames::viscousWork, 0.0);
 
@@ -1015,7 +1015,6 @@ evaluateDerivatives(double*  massDensitySum,
   copySymTensorFieldListToArray(DHDt, DHfieldDt);
   copySymTensorFieldListToArray(Hideal, HfieldIdeal);
   copySymTensorFieldListToArray(DSDt, DdeviatoricStressDt);
-  if (DdeviatoricStressDtTT != NULL) copyScalarFieldListToArray(DSDtTT, DdeviatoricStressDtTT);
   copyScalarFieldListToArray(effViscousPressure, qpressure);
   copyScalarFieldListToArray(viscousWork, qwork);
 }
@@ -1031,9 +1030,10 @@ addBoundary(const Vector& point,
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
+  VERIFY2(me.mLockBoundaries == false, "SpheralPsuedoScript::addBoundary ERROR: attempt to add boundary after initialize");
 
   // Add reflecting boundary
-  me.mHostCodeBoundaries.push_back(std::shared_ptr<ReflectingBoundary<Dimension>>(new ReflectingBoundary<Dimension>( (GeomPlane<Dimension>(point,normal)))));
+  me.mHostCodeBoundaries.emplace_back(new ReflectingBoundary<Dimension>(GeomPlane<Dimension>(point,normal)));
 }
 
 //------------------------------------------------------------------------------
@@ -1049,10 +1049,11 @@ addPeriodicBoundary(const Vector& point1,
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
+  VERIFY2(me.mLockBoundaries == false, "SpheralPsuedoScript::addBoundary ERROR: attempt to add boundary after initialize");
 
   // Add reflecting boundary
-  me.mHostCodeBoundaries.push_back(std::shared_ptr<PeriodicBoundary<Dimension>>(new PeriodicBoundary<Dimension>(GeomPlane<Dimension>(point1,normal1),
-                                                                                                                GeomPlane<Dimension>(point2,normal2))));
+  me.mHostCodeBoundaries.emplace_back(new PeriodicBoundary<Dimension>(GeomPlane<Dimension>(point1,normal1),
+                                                                      GeomPlane<Dimension>(point2,normal2)));
 }
 
 //------------------------------------------------------------------------------
@@ -1095,7 +1096,7 @@ computeFragmentID(double* damage,
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
-  const unsigned nmats = me.mNodeLists.size();
+  const auto nmats = me.mNodeLists.size();
 
   // Size the NodeLists.
   for (unsigned imat = 0; imat != nmats; ++imat) {
@@ -1138,7 +1139,7 @@ sampleLatticeMesh(const Vector&  xmin,
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
-  const unsigned nmats = me.mNodeLists.size();
+  const auto nmats = me.mNodeLists.size();
 
   // Pull the state fields.
   auto m = me.mStatePtr->fields(HydroFieldNames::mass, 0.0);
@@ -1184,7 +1185,7 @@ polyhedralMesh(int*           nnodes,
                int**          celltofaces) {
 
   // Get our instance.
-  SpheralPseudoScript<Dimension>& me = SpheralPseudoScript<Dimension>::instance();
+  auto& me = SpheralPseudoScript<Dimension>::instance();
 
   auto mass = me.mStatePtr->fields(HydroFieldNames::mass, 0.0);
   auto massDensity = me.mStatePtr->fields(HydroFieldNames::massDensity, 0.0);
@@ -1199,6 +1200,7 @@ polyhedralMesh(int*           nnodes,
   auto cells = me.mDataBasePtr->newFluidFieldList(typename Dimension::FacetedVolume(), HydroFieldNames::cells);
   auto cellFaceFlags = me.mDataBasePtr->newFluidFieldList(vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
   vol.assignFields(mass/massDensity);
+  /*
   computeVoronoiVolume(position, H, connectivityMap, damage,
                        vector<typename Dimension::FacetedVolume>(),                // no boundaries
                        vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
@@ -1208,7 +1210,7 @@ polyhedralMesh(int*           nnodes,
                        surfacePoint, vol, deltaCentroid, etaVoidPoints,            // return values
                        cells,                                                      // return cells
                        cellFaceFlags);                                             // node cell multimaterial faces
-
+  */
   int numNodes = 0;
   const unsigned nmats = me.mNodeLists.size();
   for (unsigned imat = 0; imat != nmats; ++imat) {
@@ -1434,11 +1436,12 @@ getNumNodes() {
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
 
-  const unsigned nmats = me.mNodeLists.size();
+  const auto nmats = me.mNodeLists.size();
   int* result = new int[nmats];
   for (unsigned i = 0; i != nmats; ++i) {
     result[i] = me.mNodeLists[i]->numNodes();
   }
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -1452,11 +1455,12 @@ getNumInternalNodes() {
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
 
-  const unsigned nmats = me.mNodeLists.size();
+  const auto nmats = me.mNodeLists.size();
   int* result = new int[nmats];
   for (unsigned i = 0; i != nmats; ++i) {
     result[i] = me.mNodeLists[i]->numInternalNodes();
   }
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -1470,11 +1474,12 @@ getNumGhostNodes() {
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
 
-  const unsigned nmats = me.mNodeLists.size();
+  const auto nmats = me.mNodeLists.size();
   int* result = new int[nmats];
   for (unsigned i = 0; i != nmats; ++i) {
     result[i] = me.mNodeLists[i]->numGhostNodes();
   }
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -1482,7 +1487,29 @@ getNumGhostNodes() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 SpheralPseudoScript<Dimension>::
-SpheralPseudoScript() {
+SpheralPseudoScript():
+  mNumInternalNodes(0),
+  mNumHostGhostNodes(0),
+  mDamage(false),
+  mDistributedBoundary(0),
+  mUnitsPtr(),
+  mEOSptr(),
+  mStrengthModelPtr(),
+  mNeighbors(),
+  mNodeLists(),
+  mKernelPtr(),
+  mPiKernelPtr(),
+  mGradKernelPtr(),
+  mSmoothingScaleMethodPtr(),
+  mQptr(),
+  mRKptr(),
+  mHydroPtr(),
+  mIntegratorPtr(),
+  mDataBasePtr(),
+  mStatePtr(),
+  mDerivsPtr(),
+  mHostCodeBoundaries(),
+  mLockBoundaries(false) {
 }
 
 //------------------------------------------------------------------------------

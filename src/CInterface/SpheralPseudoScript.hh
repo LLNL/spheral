@@ -56,6 +56,7 @@ public:
                          const bool     totalEnergy,
                          const bool     vGradCorrection,
                          const bool     hGradCorrection,
+                         const int      densityUpdate,
                          const bool     sumMassDensity,
                          const bool     useVelocityDt,
                          const bool     ScalarQ,
@@ -64,7 +65,8 @@ public:
                          const int      piKernelType,
                          const int      gradKernelType,
                          const int      nbspline,
-                         const int      crkorder,
+                         const int      rkorder,
+                         const int      rkvolume,
                          const int      damage,
                          const unsigned nmats,
                          const double   CFL,
@@ -88,7 +90,6 @@ public:
                                const double**  Hfield,
                                const double*   pressure,
                                const double**  deviatoricStress,
-                               const double*   deviatoricStressTT,
                                const double*   soundSpeed,
                                const double*   bulkModulus,
                                const double*   shearModulus,
@@ -106,7 +107,6 @@ public:
                           const double** Hfield,
                           const double*  pressure,
                           const double** deviatoricStress,
-                          const double*  deviatoricStressTT,
                           const double*  soundSpeed,
                           const double*  bulkModulus,
                           const double*  shearModulus,
@@ -125,7 +125,6 @@ public:
                                   double** DHfieldDt,
                                   double** HfieldIdeal,
                                   double** DdeviatoricStressDt,
-                                  double*  DdeviatoricStressDtTT,
                                   double*  qpressure,
                                   double*  qwork);
 
@@ -217,30 +216,31 @@ private:
 
   // The material data.
   std::shared_ptr<PhysicalConstants> mUnitsPtr;
-  std::shared_ptr<SolidEquationOfState<Dimension> > mEOSptr;
-  std::shared_ptr<StrengthModel<Dimension> > mStrengthModelPtr;
+  std::shared_ptr<SolidEquationOfState<Dimension>> mEOSptr;
+  std::shared_ptr<StrengthModel<Dimension>> mStrengthModelPtr;
 
   // The NodeList data.
-  std::vector<std::shared_ptr<Neighbor<Dimension> > > mNeighbors;
-  std::vector<std::shared_ptr<SolidNodeList<Dimension> > > mNodeLists;
+  std::vector<std::shared_ptr<Neighbor<Dimension>> > mNeighbors;
+  std::vector<std::shared_ptr<SolidNodeList<Dimension>> > mNodeLists;
 
   // Hydro bits.
-  std::shared_ptr<TableKernel<Dimension> > mKernelPtr;
-  std::shared_ptr<TableKernel<Dimension> > mPiKernelPtr;
-  std::shared_ptr<TableKernel<Dimension> > mGradKernelPtr;
-  std::shared_ptr<SmoothingScaleBase<Dimension> > mSmoothingScaleMethodPtr;
-  std::shared_ptr<ArtificialViscosity<Dimension> > mQptr;
-  std::shared_ptr<Physics<Dimension> > mCorrectionsPtr;
-  std::shared_ptr<Physics<Dimension> > mHydroPtr;
+  std::shared_ptr<TableKernel<Dimension>> mKernelPtr;
+  std::shared_ptr<TableKernel<Dimension>> mPiKernelPtr;
+  std::shared_ptr<TableKernel<Dimension>> mGradKernelPtr;
+  std::shared_ptr<SmoothingScaleBase<Dimension>> mSmoothingScaleMethodPtr;
+  std::shared_ptr<ArtificialViscosity<Dimension>> mQptr;
+  std::shared_ptr<Physics<Dimension>> mRKptr;
+  std::shared_ptr<Physics<Dimension>> mHydroPtr;
 
   // Integrator and state.
-  std::shared_ptr<CheapSynchronousRK2<Dimension> > mIntegratorPtr;
-  std::shared_ptr<DataBase<Dimension> > mDataBasePtr;
+  std::shared_ptr<CheapSynchronousRK2<Dimension>> mIntegratorPtr;
+  std::shared_ptr<DataBase<Dimension>> mDataBasePtr;
   std::shared_ptr<State<Dimension>> mStatePtr;
   std::shared_ptr<StateDerivatives<Dimension>> mDerivsPtr;
 
-  // A boundary to hold the host code values.
-  std::vector<std::shared_ptr<Boundary<Dimension> > > mHostCodeBoundaries;
+  // A container to hold the host code values.
+  std::vector<std::shared_ptr<Boundary<Dimension>>> mHostCodeBoundaries;
+  bool mLockBoundaries;                // Flag to prevent adding new boundaries
 
   // No public constructors, destructor, or assignment.
   SpheralPseudoScript();
