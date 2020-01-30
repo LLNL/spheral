@@ -24,7 +24,7 @@
 
 #ifdef USE_MPI
 #include "mpi.h"
-#include "Distributed/NestedGridDistributedBoundary.hh"
+#include "Distributed/TreeDistributedBoundary.hh"
 #include "Distributed/Communicator.hh"
 #endif
 
@@ -368,7 +368,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
 
   // We need to exclude any nodes that come from the Distributed boundary condition.
 #ifdef USE_MPI
-  NestedGridDistributedBoundary<Dimension>& distributedBoundary = NestedGridDistributedBoundary<Dimension>::instance();
+  TreeDistributedBoundary<Dimension>& distributedBoundary = TreeDistributedBoundary<Dimension>::instance();
 #endif
 
   // Compute the total number of sample points.
