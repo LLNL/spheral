@@ -44,6 +44,7 @@ public:
 
   // Constructors.
   CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                  DataBase<Dimension>& dataBase,
                   ArtificialViscosity<Dimension>& Q,
                   const RKOrder order,
                   const double filter,

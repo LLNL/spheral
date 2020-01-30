@@ -106,6 +106,7 @@ tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
 //------------------------------------------------------------------------------
 SolidCRKSPHHydroBaseRZ::
 SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                       DataBase<Dimension>& dataBase,
                        ArtificialViscosity<Dimension>& Q,
                        const RKOrder order,
                        const double filter,
@@ -121,6 +122,7 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                        const bool damageRelieveRubble,
                        const bool negativePressureInDamage):
   SolidCRKSPHHydroBase<Dimension>(smoothingScaleMethod, 
+                                  dataBase,
                                   Q,
                                   order,
                                   filter,

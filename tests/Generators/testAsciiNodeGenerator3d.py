@@ -74,7 +74,6 @@ commandLine(star1 = "AsciiTest.ascii",
             muc = 1.3,
             
             #Artificial Viscosity and things
-            HydroConstructor    = SPHHydro,
             momentumConserving  = True,  #for CSPH
             Qconstructor        = MonaghanGingoldViscosity,
             Cl      = 1.0,
@@ -231,17 +230,18 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(Q=q,
-                         W=WT,
-                         WPi=WTPi,
-                         cfl = cfl,
-                         compatibleEnergyEvolution = compatibleEnergyEvolution,
-                         #gradhCorrection = gradhCorrection,
+hydro = SPH(dataBase=db,
+            Q=q,
+            W=WT,
+            WPi=WTPi,
+            cfl = cfl,
+            compatibleEnergyEvolution = compatibleEnergyEvolution,
+            #gradhCorrection = gradhCorrection,
                          XSPH = XSPH,
-                         densityUpdate = densityUpdate,
-                         HUpdate = HEvolution,
-                         #epsTensile = epsilonTensile,
-                         #nTensile = nTensile
+            densityUpdate = densityUpdate,
+            HUpdate = HEvolution,
+            #epsTensile = epsilonTensile,
+            #nTensile = nTensile
                          )
 output("hydro")
 output("hydro.kernel()")

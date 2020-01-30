@@ -89,6 +89,7 @@ double fluxlimiterVL(const double x) {
 template<typename Dimension>
 CRKSPHHydroBase<Dimension>::
 CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                DataBase<Dimension>& dataBase,
                 ArtificialViscosity<Dimension>& Q,
                 const RKOrder order,
                 const double filter,
@@ -133,23 +134,6 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mInternalDvDx(FieldStorageType::CopyFields),
   mPairAccelerations(),
   mRestart(registerWithRestart(*this)) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-CRKSPHHydroBase<Dimension>::
-~CRKSPHHydroBase() {
-}
-
-//------------------------------------------------------------------------------
-// On problem start up, we need to initialize our internal data.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-CRKSPHHydroBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // Create storage for our internal state.
   mTimeStepMask = dataBase.newFluidFieldList(int(0), HydroFieldNames::timeStepMask);
@@ -172,6 +156,23 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
   mPairAccelerations.clear();
+}
+
+//------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
+template<typename Dimension>
+CRKSPHHydroBase<Dimension>::
+~CRKSPHHydroBase() {
+}
+
+//------------------------------------------------------------------------------
+// On problem start up, we need to initialize our internal data.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+CRKSPHHydroBase<Dimension>::
+initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // Initialize the pressure, sound speed, and entropy.
   dataBase.fluidPressure(mPressure);

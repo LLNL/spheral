@@ -234,11 +234,13 @@ db.updateConnectivityMap(True)
 cm = db.connectivityMap()
 q = MonaghanGingoldViscosity(1.0, 1.0)
 if "PSPH" in HydroChoice:
-    hydro = HydroConstructor(Q = q,
+    hydro = HydroConstructor(dataBase = db,
+                             Q = q,
                              W = WT,
                              correctVelocityGradient = False)
 else:
-    hydro = HydroConstructor(Q = q,
+    hydro = HydroConstructor(dataBase = db,
+                             Q = q,
                              W = WT,
                              gradhCorrection = gradhCorrection,
                              correctVelocityGradient = False)
