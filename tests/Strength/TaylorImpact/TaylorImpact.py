@@ -17,7 +17,6 @@
 #ATS:test(SELF, "--geometry RZ --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_rz_state_snapshot_8proc", np=8, label="Generate 8 proc SPH RZ reference data")
 #
 # SPH 3D
-#ATS:test(SELF, "--geometry 3d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_3d_state_snapshot_1proc", np=1, label="Generate 1 proc SPH 3D reference data")
 #ATS:test(SELF, "--geometry 3d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_3d_state_snapshot_8proc", np=8, label="Generate 8 proc SPH 3D reference data")
 #
 # CRK 2D
@@ -29,7 +28,6 @@
 #ATS:test(SELF, "--geometry RZ --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_rz_state_snapshot_8proc", np=8, label="Generate 8 proc CRK RZ reference data")
 #
 # CRK 3D
-#ATS:test(SELF, "--geometry 3d --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_3d_state_snapshot_1proc", np=1, label="Generate 1 proc CRK 3D reference data")
 #ATS:test(SELF, "--geometry 3d --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_3d_state_snapshot_8proc", np=8, label="Generate 8 proc CRK 3D reference data")
 
 import os, shutil
