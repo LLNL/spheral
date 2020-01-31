@@ -123,6 +123,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     }
   }
 
+  // Boundaries may need to be reinitialized.
+  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) (*boundItr)->initializeProblemStartup();
+
   // Apply boundaries to corrections before computing normal
   for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {
     for (auto order: mOrders) {
