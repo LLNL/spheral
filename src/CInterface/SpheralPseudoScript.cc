@@ -348,6 +348,7 @@ template<typename Dimension> struct HydroConstructor;
 template<> struct HydroConstructor<Dim<3>> {
   static std::shared_ptr<Physics<Dim<3>>> newinstance(const bool CRK,
                                                       const SmoothingScaleBase<Dim<3>>& smoothingScaleMethod,
+                                                      DataBase<Dim<3>>& db,
                                                       ArtificialViscosity<Dim<3>>& Q,
                                                       const TableKernel<Dim<3>>& W,
                                                       const TableKernel<Dim<3>>& WPi,
@@ -373,6 +374,7 @@ template<> struct HydroConstructor<Dim<3>> {
                                                       const bool RZ) {
     if (CRK) {
       return std::shared_ptr<Physics<Dim<3>>>(new SolidCRKSPHHydroBase<Dim<3>>(smoothingScaleMethod,
+                                                                               db,
                                                                                Q,
                                                                                correctionOrder,
                                                                                filter,
@@ -390,6 +392,7 @@ template<> struct HydroConstructor<Dim<3>> {
     }
     else {
       return std::shared_ptr<Physics<Dim<3>>>(new SolidSPHHydroBase<Dim<3>>(smoothingScaleMethod,
+                                                                            db,
                                                                             Q,
                                                                             W,
                                                                             WPi,
@@ -422,6 +425,7 @@ template<> struct HydroConstructor<Dim<3>> {
 template<> struct HydroConstructor<Dim<2>> {
   static std::shared_ptr<Physics<Dim<2>>> newinstance(const bool CRK,
                                                       const SmoothingScaleBase<Dim<2>>& smoothingScaleMethod,
+                                                      DataBase<Dim<2>>& db,
                                                       ArtificialViscosity<Dim<2>>& Q,
                                                       const TableKernel<Dim<2>>& W,
                                                       const TableKernel<Dim<2>>& WPi,
@@ -448,6 +452,7 @@ template<> struct HydroConstructor<Dim<2>> {
     if (RZ) {
       if (CRK) {
         return std::shared_ptr<Physics<Dim<2>>>(new SolidCRKSPHHydroBaseRZ(smoothingScaleMethod,
+                                                                           db,
                                                                            Q,
                                                                            correctionOrder,
                                                                            filter,
@@ -465,6 +470,7 @@ template<> struct HydroConstructor<Dim<2>> {
       }
       else {
         return std::shared_ptr<Physics<Dim<2>>>(new SolidSPHHydroBaseRZ(smoothingScaleMethod,
+                                                                        db,
                                                                         Q,
                                                                         W,
                                                                         WPi,
@@ -490,6 +496,7 @@ template<> struct HydroConstructor<Dim<2>> {
     } else {
       if (CRK) {
         return std::shared_ptr<Physics<Dim<2>>>(new SolidCRKSPHHydroBase<Dim<2>>(smoothingScaleMethod,
+                                                                                 db,
                                                                                  Q,
                                                                                  correctionOrder,
                                                                                  filter,
@@ -507,6 +514,7 @@ template<> struct HydroConstructor<Dim<2>> {
       }
       else {
         return std::shared_ptr<Physics<Dim<2>>>(new SolidSPHHydroBase<Dim<2>>(smoothingScaleMethod,
+                                                                              db,
                                                                               Q,
                                                                               W,
                                                                               WPi,
@@ -744,6 +752,7 @@ initialize(const bool     RZ,
   auto densityUpdateVal = static_cast<MassDensityType>(densityUpdate);
   me.mHydroPtr = HydroConstructor<Dimension>::newinstance(CRK,
                                                           *me.mSmoothingScaleMethodPtr,
+                                                          *me.mDataBasePtr,
                                                           *me.mQptr,
                                                           *me.mKernelPtr,
                                                           *me.mPiKernelPtr,
@@ -768,9 +777,6 @@ initialize(const bool     RZ,
                                                           xmax,                                 // xmax
                                                           RZ);
 
-  // Add the axis reflecting boundary in RZ.
-  HydroConstructor<Dimension>::addBoundaries(RZ, me.mHostCodeBoundaries);
-
   // Build a time integrator.  We're not going to use this to advance state,
   // but the other methods are useful.
   me.mIntegratorPtr.reset(new CheapSynchronousRK2<Dimension>(*me.mDataBasePtr));
@@ -778,6 +784,13 @@ initialize(const bool     RZ,
   // Add the physics packages to the integrator.
   if (CRK) me.mIntegratorPtr->appendPhysicsPackage(*me.mRKptr);
   me.mIntegratorPtr->appendPhysicsPackage(*me.mHydroPtr);
+
+  // // First whack physics initialization.
+  // auto& pkgs = me.mIntegratorPtr->physicsPackages();
+  // for (auto p: pkgs) p->initializeProblemStartup(*me.mDataBasePtr);
+
+  // Add the axis reflecting boundary in RZ.
+  HydroConstructor<Dimension>::addBoundaries(RZ, me.mHostCodeBoundaries);
 
   // Add the boundary conditions to the physics packages
   auto& pkgs = me.mIntegratorPtr->physicsPackages();
@@ -787,7 +800,7 @@ initialize(const bool     RZ,
     }
 
 #ifdef USE_MPI
-  // Add the distributed boundary, as appropriate.
+    // Add the distributed boundary, as appropriate.
     if (Process::getTotalNumberOfProcesses() > 1) {
       switch(distributedBoundary) {
       case 2:
@@ -806,98 +819,25 @@ initialize(const bool     RZ,
   // Lock any further boundary changes.
   me.mLockBoundaries = true;
 
-  // Do the one-time initialization work for our packages.
-  if (CRK) me.mRKptr->initializeProblemStartup(*me.mDataBasePtr);
-  me.mHydroPtr->initializeProblemStartup(*me.mDataBasePtr);
-
   // Remember if we're feeding damage in
   me.mDamage = damage;
+
+  // Are we doing CRK
+  me.mCRK = CRK;
 
   // Remember the distributed boundary type.
   me.mDistributedBoundary = distributedBoundary;
 }
 
 //------------------------------------------------------------------------------
-// initializeStep -- to be called once at the beginning of a cycle.
-// Returns:    the time step vote
-// Arguments:  nintpermat : array indicating the number of internal nodes per material
-//             npermat : array indicating the total number of nodes per material
-//------------------------------------------------------------------------------
-template<typename Dimension>
-double
-SpheralPseudoScript<Dimension>::
-initializeStep(const unsigned* nintpermat,
-               const unsigned* npermat,
-               const double*   mass,
-               const double*   massDensity,
-               const double**  position,
-               const double*   specificThermalEnergy,
-               const double**  velocity,
-               const double**  Hfield,
-               const double*   pressure,
-               const double**  deviatoricStress,
-               const double*   soundSpeed,
-               const double*   bulkModulus,
-               const double*   shearModulus,
-               const double*   yieldStrength,
-               const double*   plasticStrain,
-               const double*   scalarDamage,
-               const int*      particleType) {
-
-  // Get our instance.
-  auto& me = SpheralPseudoScript<Dimension>::instance();
-
-  // Check the input and set numbers of nodes.
-  const auto nmats = me.mNodeLists.size();
-  me.mNumInternalNodes.resize(nmats);
-  me.mNumHostGhostNodes.resize(nmats);
-  for (auto imat = 0; imat < nmats; ++imat) {
-    VERIFY(nintpermat[imat] <= npermat[imat]);
-    me.mNumInternalNodes[imat] = nintpermat[imat];
-    me.mNumHostGhostNodes[imat] = npermat[imat] - nintpermat[imat];
-    me.mNodeLists[imat]->numInternalNodes(me.mNumInternalNodes[imat]);
-    me.mNodeLists[imat]->numGhostNodes(me.mNumHostGhostNodes[imat]);
-  }
-
-  // Prepare the state and such.
-  me.mStatePtr.reset(new State<Dimension>(*me.mDataBasePtr,
-                                          me.mIntegratorPtr->physicsPackagesBegin(), 
-                                          me.mIntegratorPtr->physicsPackagesEnd()));
-  me.mDerivsPtr.reset(new StateDerivatives<Dimension>(*me.mDataBasePtr,
-                                                      me.mIntegratorPtr->physicsPackagesBegin(), 
-                                                      me.mIntegratorPtr->physicsPackagesEnd()));
-
-  // Copy the given state into Spheral's structures.
-  SpheralPseudoScript::updateState(mass, 
-                                   massDensity,
-                                   position,
-                                   specificThermalEnergy,
-                                   velocity,
-                                   Hfield,
-                                   pressure, 
-                                   deviatoricStress,
-                                   soundSpeed, 
-                                   bulkModulus, 
-                                   shearModulus, 
-                                   yieldStrength,
-                                   plasticStrain,
-                                   scalarDamage,
-                                   particleType);
-
-  // Vote on a time step and return it.
-  me.mIntegratorPtr->lastDt(1e10);
-  const double dt = me.mIntegratorPtr->selectDt(1e-100, 1e100, *me.mStatePtr, *me.mDerivsPtr);
-  return dt;
-}
-
-//------------------------------------------------------------------------------
-// Just update the state without reinitializing everything for intermediate
-// step estimates of the derivatives.
+// Update the internal Spheral state fields
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 SpheralPseudoScript<Dimension>::
-updateState(const double*  mass,
+updateState(const unsigned* nintpermat,
+            const unsigned* npermat,
+            const double*  mass,
             const double*  massDensity,
             const double** position,
             const double*  specificThermalEnergy,
@@ -915,13 +855,23 @@ updateState(const double*  mass,
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
-  const auto nmats = me.mNodeLists.size();
 
-  // Size the NodeLists.
+  // Check the input and set numbers of nodes.
+  const auto nmats = me.mNodeLists.size();
+  me.mNumInternalNodes.resize(nmats);
+  me.mNumHostGhostNodes.resize(nmats);
   for (auto imat = 0; imat < nmats; ++imat) {
+    VERIFY(nintpermat[imat] <= npermat[imat]);
+    me.mNumInternalNodes[imat] = nintpermat[imat];
+    me.mNumHostGhostNodes[imat] = npermat[imat] - nintpermat[imat];
     me.mNodeLists[imat]->numInternalNodes(me.mNumInternalNodes[imat]);
     me.mNodeLists[imat]->numGhostNodes(me.mNumHostGhostNodes[imat]);
   }
+
+  // If necesary allocate a new State object
+  if (me.mStatePtr.get() == nullptr) me.mStatePtr.reset(new State<Dimension>(*me.mDataBasePtr,
+                                                                             me.mIntegratorPtr->physicsPackagesBegin(), 
+                                                                             me.mIntegratorPtr->physicsPackagesEnd()));
 
   // Pull the state fields.
   auto m = me.mStatePtr->fields(HydroFieldNames::mass, 0.0);
@@ -959,8 +909,100 @@ updateState(const double*  mass,
     if (scalarDamage != NULL)        copyArrayToSymTensorFieldList(scalarDamage, D);
   }
 
+  // Prepare connectivity
+  me.updateConnectivity();
+}
+
+//------------------------------------------------------------------------------
+// initializeBoundariesAndPhysics
+// Called once at problem startup, but after:
+//   - initialize
+//   - updateState with initial state conditions
+//
+// This method reproduces the necessary bits from SpheralController.reinitializeProblem.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SpheralPseudoScript<Dimension>::
+initializeBoundariesAndPhysics() {
+  auto& me = SpheralPseudoScript<Dimension>::instance();
+
+  // Copy the state
+  State<Dimension> state0(*me.mStatePtr);
+  state0.copyState();
+
+  // Initialize boundaries
+  for (auto& bc: me.mHostCodeBoundaries) bc->initializeProblemStartup();
+
+  // Create initial ghost nodes
+  me.mDataBasePtr->reinitializeNeighbors();
+  me.mIntegratorPtr->setGhostNodes();
+  me.mDataBasePtr->updateConnectivityMap(false, false);
+
+  // Inititalize physics packages
+  if (me.mCRK) me.mRKptr->initializeProblemStartup(*me.mDataBasePtr);
+  me.mHydroPtr->initializeProblemStartup(*me.mDataBasePtr);
+
+  // One more whack at reinitializing boundaries, in case they needed initial
+  // physics package state
+  me.mIntegratorPtr->setGhostNodes();
+  me.mDataBasePtr->updateConnectivityMap(false, false);
+  for (auto& bc: me.mHostCodeBoundaries) bc->initializeProblemStartup();
+
+  // Reset the state object
+  me.mStatePtr.reset(new State<Dimension>(*me.mDataBasePtr,
+                                          me.mIntegratorPtr->physicsPackagesBegin(), 
+                                          me.mIntegratorPtr->physicsPackagesEnd()));
+
+  // Copy the pertinent fields from the old->new state.
+  // me.mStatePtr->assign(state0);
+  me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, HydroFieldNames::mass);
+  me.mStatePtr->template assignFields<typename Dimension::Vector>(state0, HydroFieldNames::position);
+  me.mStatePtr->template assignFields<typename Dimension::Vector>(state0, HydroFieldNames::velocity);
+  me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, HydroFieldNames::massDensity);
+  me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, HydroFieldNames::specificThermalEnergy);
+  me.mStatePtr->template assignFields<typename Dimension::SymTensor>(state0, HydroFieldNames::H);
+  me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, HydroFieldNames::pressure);
+  me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, HydroFieldNames::soundSpeed);
+  me.mStatePtr->template assignFields<typename Dimension::SymTensor>(state0, SolidFieldNames::deviatoricStress);
+  me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, SolidFieldNames::plasticStrain);
+  me.mStatePtr->template assignFields<int>(state0, SolidFieldNames::particleTypes);
+  me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, SolidFieldNames::bulkModulus);
+  me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, SolidFieldNames::shearModulus);
+  me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, SolidFieldNames::yieldStrength);
+  me.mStatePtr->template assignFields<typename Dimension::SymTensor>(state0, SolidFieldNames::effectiveTensorDamage);
+}
+
+//------------------------------------------------------------------------------
+// initializeStep -- to be called once at the beginning of a cycle.
+// Returns:    the time step vote
+// Arguments:  nintpermat : array indicating the number of internal nodes per material
+//             npermat : array indicating the total number of nodes per material
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+SpheralPseudoScript<Dimension>::
+initializeStep() {
+
+  // Get our instance.
+  auto& me = SpheralPseudoScript<Dimension>::instance();
+
+  // Gotta have a valid State
+  VERIFY2(me.mStatePtr.get() != nullptr,
+          "SpheralPseudoScript::initializeStep ERROR: must call updateState first!");
+
+  // Allocate new derivatives
+  me.mDerivsPtr.reset(new StateDerivatives<Dimension>(*me.mDataBasePtr,
+                                                      me.mIntegratorPtr->physicsPackagesBegin(), 
+                                                      me.mIntegratorPtr->physicsPackagesEnd()));
+
   // pre-step initialize
   me.mIntegratorPtr->preStepInitialize(*me.mStatePtr, *me.mDerivsPtr);
+
+  // Vote on a time step and return it.
+  me.mIntegratorPtr->lastDt(1e10);
+  const double dt = me.mIntegratorPtr->selectDt(1e-100, 1e100, *me.mStatePtr, *me.mDerivsPtr);
+  return dt;
 }
 
 //------------------------------------------------------------------------------
@@ -1491,6 +1533,7 @@ SpheralPseudoScript():
   mNumInternalNodes(0),
   mNumHostGhostNodes(0),
   mDamage(false),
+  mCRK(false),
   mDistributedBoundary(0),
   mUnitsPtr(),
   mEOSptr(),

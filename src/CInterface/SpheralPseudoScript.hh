@@ -79,27 +79,10 @@ public:
                          const Vector&  xmin,
                          const Vector&  xmax);
 
-  // initializeStep -- should be called once at the beginning of a cycle.
-  static double initializeStep(const unsigned* nintpermat,
-                               const unsigned* npermat,
-                               const double*   mass,
-                               const double*   massDensity,
-                               const double**  position,
-                               const double*   specificThermalEnergy,
-                               const double**  velocity,
-                               const double**  Hfield,
-                               const double*   pressure,
-                               const double**  deviatoricStress,
-                               const double*   soundSpeed,
-                               const double*   bulkModulus,
-                               const double*   shearModulus,
-                               const double*   yieldStrength,
-                               const double*   plasticStrain,
-                               const double*   scalarDamage,
-                               const int*      particleType);
-
-  // updateState -- updates values of state fields without resizing.
-  static void updateState(const double*  mass,
+  // updateState -- updates Spheral's values of state fields.
+  static void updateState(const unsigned* nintpermat,
+                          const unsigned* npermat,
+                          const double*  mass,
                           const double*  massDensity,
                           const double** positionx,
                           const double*  specificThermalEnergy,
@@ -114,6 +97,15 @@ public:
                           const double*  plasticStrain,
                           const double*  scalarDamage,
                           const int*     particleType);
+
+  // initializeBoundariesAndPhysics
+  // Called once at problem startup, but after:
+  //   - initialize
+  //   - updateState with initial state conditions
+  static void initializeBoundariesAndPhysics();
+
+  // initializeStep -- should be called once at the beginning of a cycle.
+  static double initializeStep();
 
   // evaluateDerivatives -- computes the fluid time derivatives.
   static void evaluateDerivatives(double*  massDensitySum,
@@ -210,6 +202,9 @@ private:
 
   // Damage flag
   bool mDamage;
+
+  // CRK flag
+  bool mCRK;
 
   // Flag as to whether we're doing the DistributedBoundary or not.
   int mDistributedBoundary;
