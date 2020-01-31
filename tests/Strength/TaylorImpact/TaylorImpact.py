@@ -2,22 +2,39 @@
 # The Taylor anvil impact problem -- impact of a solid cylinder on an unyielding
 # surface.
 #
-# RZ symmetry version
-#
 # This scenario is based on the v=205 m/sec example in
 # Eakins & Thadhani, Journal of Applied Physics, 100, 073503 (2006)
 #-------------------------------------------------------------------------------
 #
 # The following ATS setup is to generate reference data for the SpheralC tests.
 #
-#ATS:test(SELF, "--steps 100 --compatibleEnergy False --clearDirectories True --baseDir RZ_1proc_ref --siloSnapShotFile Spheral_state_snapshot_1proc", np=1, label="Generate 1 proc reference data")
-#ATS:test(SELF, "--steps 100 --compatibleEnergy False --clearDirectories True --baseDir RZ_8proc_ref --siloSnapShotFile Spheral_state_snapshot_8proc", np=8, label="Generate 8 proc reference data")
+# SPH 2D
+#ATS:test(SELF, "--geometry 2d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_2d_state_snapshot_1proc", np=1, label="Generate 1 proc SPH 2D reference data")
+#ATS:test(SELF, "--geometry 2d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_2d_state_snapshot_8proc", np=8, label="Generate 8 proc SPH 2D reference data")
+#
+# SPH RZ
+#ATS:test(SELF, "--geometry RZ --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_rz_state_snapshot_1proc", np=1, label="Generate 1 proc SPH RZ reference data")
+#ATS:test(SELF, "--geometry RZ --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_rz_state_snapshot_8proc", np=8, label="Generate 8 proc SPH RZ reference data")
+#
+# SPH 3D
+#ATS:test(SELF, "--geometry 3d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_3d_state_snapshot_8proc", np=8, label="Generate 8 proc SPH 3D reference data")
+#
+# CRK 2D
+#ATS:test(SELF, "--geometry 2d --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_2d_state_snapshot_1proc", np=1, label="Generate 1 proc CRK 2D reference data")
+#ATS:test(SELF, "--geometry 2d --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_2d_state_snapshot_8proc", np=8, label="Generate 8 proc CRK 2D reference data")
+#
+# CRK RZ
+#ATS:test(SELF, "--geometry RZ --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_rz_state_snapshot_1proc", np=1, label="Generate 1 proc CRK RZ reference data")
+#ATS:test(SELF, "--geometry RZ --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_rz_state_snapshot_8proc", np=8, label="Generate 8 proc CRK RZ reference data")
+#
+# CRK 3D
+#ATS:test(SELF, "--geometry 3d --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_3d_state_snapshot_8proc", np=8, label="Generate 8 proc CRK 3D reference data")
 
 import os, shutil
 from math import *
 import mpi
 
-from SolidSpheralRZ import *
+from Spheral import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from SpheralController import *
@@ -25,13 +42,13 @@ from SpheralController import *
 #-------------------------------------------------------------------------------
 # Identify ourselves!
 #-------------------------------------------------------------------------------
-title("RZ Cu taylor anvil impact strength test")
+title("Cu taylor anvil impact strength test")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 # All (cm, gm, usec) units.
 #-------------------------------------------------------------------------------
-commandLine(seed = "lattice",
+commandLine(geometry = "2d",         # one of (2d, 3d, RZ)
 
             # Geometry
             rlength = 0.945,
@@ -51,12 +68,12 @@ commandLine(seed = "lattice",
             etamax = 4.0,
 
             # Artificial viscosity (and other numerical crap).
-            CRKSPH = False,
-            ASPH = True,     # Only for H evolution, not hydro algorithm
-            Qconstructor = MonaghanGingoldViscosity,       # Artificial viscosity algorithm
+            crksph = False,
+            asph = True,     # Only for H evolution, not hydro algorithm
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
             compatibleEnergy = True,
+            evolveTotalEnergy = False,
             filter = 0.0,
             Cl = 1.0,                                      # Linear Q coefficient
             Cq = 1.0,                                      # Quadratic Q coefficient
@@ -77,6 +94,8 @@ commandLine(seed = "lattice",
             rigorousBoundaries = False,
             gradhCorrection = True,
             correctVelocityGradient = True,
+            correctionOrder = LinearOrder,                # CRKSPH
+            volumeType = RKVoronoiVolume,                 # CRKSPH
 
             # Simulation control
             goalTime = 150.0,
@@ -92,7 +111,7 @@ commandLine(seed = "lattice",
             redistributeStep = 2000,
             vizCycle = 50,
             vizTime = 1.0,
-            baseDir = "dumps-TaylorImpact-2d",
+            baseDir = "dumps-TaylorImpact",
             verbosedt = False,
             clearDirectories = False,
 
@@ -100,25 +119,28 @@ commandLine(seed = "lattice",
             siloSnapShotFile = "",
             )
 
-if CRKSPH:
-    if ASPH:
-        HydroConstructor = SolidACRKSPHHydro
-    else:
-        HydroConstructor = SolidCRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+assert geometry in ("2d", "3d", "RZ")
+assert not (compatibleEnergy and evolveTotalEnergy)
+
+exec("from Spheral%s import *" % geometry)
+
+if crksph:
+    hydroname = os.path.join("CRKSPH",
+                             str(correctionOrder),
+                             str(volumeType))
 else:
-    if ASPH:
-        HydroConstructor = SolidASPHHydro
-    else:
-        HydroConstructor = SolidSPHHydro
+    hydroname = "SPH"
+if asph:
+    hydroname = "A" + hydroname
 
 # Restart and output files.
 dataDir = os.path.join(baseDir,
+                       geometry,
+                       hydroname,
+                       "XSPH=%s" % XSPH,
                        "reflect=%s" % reflect,
                        "%ix%i" % (nr, nz),
-                       "XSPH=%s" % XSPH,
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1])
+                       "procs=%i" % mpi.procs)
 restartDir = os.path.join(dataDir, "restarts", "proc-%04i" % mpi.rank)
 vizDir = os.path.join(dataDir, "viz")
 restartBaseName = os.path.join(restartDir, "TaylorImpact-%i-%i" % (nr, nz))
@@ -235,25 +257,90 @@ output('WT')
 #-------------------------------------------------------------------------------
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
-from GenerateNodeDistribution2d import *
-from VoronoiDistributeNodes import distributeNodes2d
 print "Generating node distribution."
-generator1 = RZGenerator(GenerateNodeDistribution2d(nz, nr,
-                                                    rho = rho0,
-                                                    distributionType = seed,
-                                                    xmin = (0.0,     0.0),
-                                                    xmax = (zlength, rlength),
-                                                    nNodePerh = nPerh))
-stuff2distribute = [(nodes1, generator1)]
-if not reflect:
-    generator2 = RZGenerator(GenerateNodeDistribution2d(nz, nr,
+#...............................................................................
+# 2D
+if geometry == "2d":
+    from GenerateNodeDistribution2d import *
+    from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
+    generator1 = GenerateNodeDistribution2d(nz, 2*nr, 
+                                            rho = rho0,
+                                            distributionType = "lattice",
+                                            xmin = (0.0,    -rlength),
+                                            xmax = (zlength, rlength),
+                                            nNodePerh = nPerh,
+                                            SPH = not asph)
+    stuff2distribute = [(nodes1, generator1)]
+    if not reflect:
+        generator2 = GenerateNodeDistribution2d(nz, 2*nr,
+                                                rho = rho0,
+                                                distributionType = "lattice",
+                                                xmin = (-zlength, -rlength),
+                                                xmax = ( 0.0,      rlength),
+                                                nNodePerh = nPerh,
+                                                SPH = not asph)
+        stuff2distribute.append((nodes2, generator2))
+
+#...............................................................................
+# RZ
+elif geometry == "RZ":
+    from GenerateNodeDistribution2d import *
+    from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
+    generator1 = RZGenerator(GenerateNodeDistribution2d(nz, nr,
                                                         rho = rho0,
-                                                        distributionType = seed,
-                                                        xmin = (-zlength, 0.0),
-                                                        xmax = ( 0.0,     rlength),
-                                                        nNodePerh = nPerh))
-    stuff2distribute.append((nodes2, generator2))
-distributeNodes2d(*tuple(stuff2distribute))
+                                                        distributionType = "lattice",
+                                                        xmin = (0.0,     0.0),
+                                                        xmax = (zlength, rlength),
+                                                        nNodePerh = nPerh,
+                                                        SPH = not asph))
+    stuff2distribute = [(nodes1, generator1)]
+    if not reflect:
+        generator2 = RZGenerator(GenerateNodeDistribution2d(nz, nr,
+                                                            rho = rho0,
+                                                            distributionType = "lattice",
+                                                            xmin = (-zlength, 0.0),
+                                                            xmax = ( 0.0,     rlength),
+                                                            nNodePerh = nPerh,
+                                                            SPH = not asph))
+        stuff2distribute.append((nodes2, generator2))
+
+#...............................................................................
+# 3D
+else:
+    from GenerateNodeDistribution3d import *
+    from VoronoiDistributeNodes import distributeNodes3d as distributeNodes
+    rmin = 0.0
+    rmax = rlength
+    zmin = 0.0
+    zmax = zlength
+    generator1 = GenerateNodeDistribution3d(nr, nz, 0,
+                                            rho = rho0,
+                                            distributionType = "cylindrical",
+                                            rmin = rmin,
+                                            rmax = rmax,
+                                            thetamin = 0.0,
+                                            thetamax = 2.0*pi,
+                                            zmin = zmin,
+                                            zmax = zmax,
+                                            nNodePerh = nPerh,
+                                            SPH = not asph)
+    stuff2distribute = [(nodes1, generator1)]
+    if not reflect:
+        generator2 = GenerateNodeDistribution3d(nr, nz, 0,
+                                                rho = rho0,
+                                                distributionType = "cylindrical",
+                                                rmin = rmin,
+                                                rmax = rmax,
+                                                thetamin = 0.0,
+                                                thetamax = 2.0*pi,
+                                                zmin = -zmax,
+                                                zmax = -zmin,
+                                                nNodePerh = nPerh,
+                                                SPH = not asph)
+        stuff2distribute.append((nodes2, generator2))
+
+#...............................................................................
+distributeNodes(*tuple(stuff2distribute))
 for n in nodeSet:
     output('n.name')
     output('   mpi.reduce(n.numInternalNodes, mpi.MIN)')
@@ -261,20 +348,32 @@ for n in nodeSet:
     output('   mpi.reduce(n.numInternalNodes, mpi.SUM)')
 del n
 
+#-------------------------------------------------------------------------------
+# Set initial conditions
+#-------------------------------------------------------------------------------
+if geometry in ("2d", "RZ"):
+    v0 = Vector(-vz0, 0.0)
+else:
+    v0 = Vector(0.0, 0.0, -vz0)
 nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
-nodes1.velocity(VectorField("tmp", nodes1, Vector(-vz0, 0.0)))
+nodes1.velocity(VectorField("tmp", nodes1, v0))
 if not reflect:
     nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps0))
-    nodes2.velocity(VectorField("tmp", nodes2, Vector(vz0, 0.0)))
+    nodes2.velocity(VectorField("tmp", nodes2, -v0))
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
 bcs = []
 if reflect:
-    yplane = Plane(Vector(0.0, 0.0), Vector(1.0, 0.0))
-    bc = ReflectingBoundary(yplane)
-    bcs.append(bc)
+    if geometry == "3d":
+        zplane = Plane(Vector(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0))
+        bc = ReflectingBoundary(zplane)
+        bcs = [bc]
+    else:
+        xplane = Plane(Vector(0.0, 0.0), Vector(1.0, 0.0))
+        bc = ReflectingBoundary(xplane)
+        bcs = [bc]
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -287,48 +386,37 @@ output('db.numNodeLists')
 output('db.numFluidNodeLists')
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-q.epsilon2 = epsilon2
-q.negligibleSoundSpeed = negligibleSoundSpeed
-q.csMultiplier = csMultiplier
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.limiter")
-output("q.epsilon2")
-output("q.negligibleSoundSpeed")
-output("q.csMultiplier")
-output("q.balsaraShearCorrection")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
+if crksph:
+    hydro = CRKSPH(dataBase = db,
+                   order = correctionOrder,
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   XSPH = XSPH,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate,
+                   ASPH = asph,
+                   RZ = (geometry == "RZ"))
 else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                filter = filter,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile,
+                ASPH = asph,
+                RZ = (geometry == "RZ"))
+
 for bc in bcs:
     hydro.appendBoundary(bc)
 output("hydro")
@@ -337,8 +425,32 @@ output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
+
+#-------------------------------------------------------------------------------
+# Set the artificial viscosity parameters.
+#-------------------------------------------------------------------------------
+q = hydro.Q
+if Cl:
+    q.Cl = Cl
+if Cq:
+    q.Cq = Cq
+if epsilon2:
+    q.epsilon2 = epsilon2
+if Qlimiter:
+    q.limiter = Qlimiter
+if balsaraCorrection:
+    q.balsaraShearCorrection = balsaraCorrection
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.epsilon2")
+output("q.limiter")
+output("q.balsaraShearCorrection")
+try:
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
+except:
+    pass
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
@@ -366,12 +478,13 @@ output("integrator.verbose")
 # Build the controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             redistributeStep = redistributeStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
-                            vizBaseName = "TaylorImpact-2d",
+                            vizBaseName = "TaylorImpact",
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime)
@@ -428,7 +541,6 @@ if siloSnapShotFile:
     H = state.symTensorFields(HydroFieldNames.H)
     P = state.scalarFields(HydroFieldNames.pressure)
     S = state.symTensorFields(SolidFieldNames.deviatoricStress)
-    STT = state.scalarFields(SolidFieldNames.deviatoricStressTT)
     cs = state.scalarFields(HydroFieldNames.soundSpeed)
     K = state.scalarFields(SolidFieldNames.bulkModulus)
     mu = state.scalarFields(SolidFieldNames.shearModulus)
@@ -442,12 +554,11 @@ if siloSnapShotFile:
     DHDt = derivs.symTensorFields("delta " + HydroFieldNames.H)
     Hideal = derivs.symTensorFields("new " + HydroFieldNames.H)
     DSDt = derivs.symTensorFields("delta " + SolidFieldNames.deviatoricStress)
-    DSTTDt = derivs.scalarFields("delta " + SolidFieldNames.deviatoricStressTT)
 
     # Write the sucker.
     siloPointmeshDump(siloSnapShotFile, 
-                      fieldLists = [mass, rho, pos, eps, vel, H, P, S, STT, cs, K, mu, Y, ps,
-                                    massSum, DrhoDt, DvelDt, DepsDt, DvelDx, DHDt, Hideal, DSDt, DSTTDt],
+                      fieldLists = [mass, rho, pos, eps, vel, H, P, S, cs, K, mu, Y, ps,
+                                    massSum, DrhoDt, DvelDt, DepsDt, DvelDx, DHDt, Hideal, DSDt],
                       baseDirectory = dataDir,
                       label = "Spheral++ snapshot of state and derivatives.",
                       time = control.time(),

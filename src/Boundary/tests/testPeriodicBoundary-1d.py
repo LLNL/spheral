@@ -97,11 +97,12 @@ q = MonaghanGingoldViscosity(0.0, 0.0)
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = SPHHydro(W = WT, 
-                 Q = q,
-                 cfl = cfl,
-                 densityUpdate = densityUpdate,
-                 HUpdate = HEvolution)
+hydro = SPH(dataBase = db,
+            W = WT, 
+            Q = q,
+            cfl = cfl,
+            densityUpdate = densityUpdate,
+            HUpdate = HEvolution)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.

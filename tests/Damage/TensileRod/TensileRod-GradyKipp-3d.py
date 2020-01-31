@@ -108,8 +108,8 @@ commandLine(# How much of the 2 Pi geometry are we doing?
             # Optionally we can initialize a break near the origin.
             initialBreakRadius = 0.0,
             
-            CRKSPH = False,
-            ASPH = True,     # Only for H evolution, not hydro algorithm
+            crksph = False,
+            asph = True,     # Only for H evolution, not hydro algorithm
             Qconstructor = MonaghanGingoldViscosity,
             Cl = 1.0,
             Cq = 1.0,
@@ -162,26 +162,20 @@ commandLine(# How much of the 2 Pi geometry are we doing?
 
 phi = pi * phiFactor
 
-if CRKSPH:
-    if ASPH:
-        HydroConstructor = SolidACRKSPHHydro
-    else:
-        HydroConstructor = SolidCRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+if crksph:
+    hydroname = "CRKSPH"
 else:
-    if ASPH:
-        HydroConstructor = SolidASPHHydro
-    else:
-        HydroConstructor = SolidSPHHydro
+    hydroname = "SPH"
+if asph:
+    hydroname = "A" + hydroname
 
 #kWeibull = 8.8e4 * kWeibullFactor
 kWeibull = 6.52e5 * kWeibullFactor
 mWeibull = 2.63  * mWeibullFactor
 
 dataDir = os.path.join(dataDirBase,
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1],
-                       str(DamageModelConstructor).split("'")[1],
+                       hydroname,
+                       str(DamageModelConstructor),
                        "nx=%i" % nx,
                        "k=%4.2f_m=%4.2f" % (kWeibull, mWeibull))
 restartDir = os.path.join(dataDir, "restarts")
@@ -297,7 +291,7 @@ generator = GenerateNodeDistribution3d(ny,
                                        zmin = -0.5*length,
                                        zmax = 0.5*length,
                                        nNodePerh = nPerh,
-                                       SPH = (HydroConstructor is SolidSPHHydro),
+                                       SPH = not asph,
                                        )
 
 # For consistency with our 2-D case, we spin the coordinates so
@@ -372,56 +366,36 @@ xbc1 = ConstantVelocityBoundary(nodes, x1Nodes)
 bcs = [xbc0, xbc1]
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosities for the problem.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion)
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-q.epsilon2 = epsilon2
-q.negligibleSoundSpeed = negligibleSoundSpeed
-q.csMultiplier = csMultiplier
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.linearInExpansion")
-output("q.limiter")
-output("q.epsilon2")
-output("q.negligibleSoundSpeed")
-output("q.csMultiplier")
-output("q.balsaraShearCorrection")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if CRKSPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
+if crksph:
+    hydro = CRKSPH(dataBase = db,
+                   Q = q,
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT, 
+                Q = q,
+                filter = filter,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                gradhCorrection = gradhCorrection,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
 
 #-------------------------------------------------------------------------------
 # Construct a damage model.

@@ -18,6 +18,7 @@ class PSPHHydroBase(SPHHydroBase):
 """
     
     def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
+               dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                WPi = "const TableKernel<%(Dimension)s>&",
@@ -38,11 +39,6 @@ class PSPHHydroBase(SPHHydroBase):
 
     #...........................................................................
     # Virtual methods
-    @PYB11virtual
-    def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
-        "Tasks we do once on problem startup."
-        return "void"
-
     @PYB11virtual 
     def registerState(dataBase = "DataBase<%(Dimension)s>&",
                       state = "State<%(Dimension)s>&"):

@@ -10,6 +10,7 @@ PSPHHydroFactoryString = """
 class %(classname)s%(dim)s(PSPHHydroBase%(dim)s):
 
     def __init__(self,
+                 dataBase,
                  Q,
                  W,
                  WPi = None,
@@ -31,6 +32,7 @@ class %(classname)s%(dim)s(PSPHHydroBase%(dim)s):
             WPi = W
         PSPHHydroBase%(dim)s.__init__(self,
                                       self._smoothingScaleMethod,
+                                      dataBase,
                                       Q,
                                       W,
                                       WPi,
@@ -106,7 +108,8 @@ def PSPH(dataBase,
     # Build and return the thing.
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
-    result =  Constructor(Q = Q,
+    result =  Constructor(dataBase = dataBase,
+                          Q = Q,
                           W = W,
                           WPi = WPi,
                           filter = filter,

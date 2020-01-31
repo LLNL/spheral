@@ -36,6 +36,7 @@ public:
 
   // Constructors.
   PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                DataBase<Dimension>& dataBase,
                 ArtificialViscosity<Dimension>& Q,
                 const TableKernel<Dimension>& W,
                 const TableKernel<Dimension>& WPi,
@@ -55,10 +56,6 @@ public:
 
   // Destructor.
   virtual ~PSPHHydroBase();
-
-  // Tasks we do once on problem startup.
-  virtual
-  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 

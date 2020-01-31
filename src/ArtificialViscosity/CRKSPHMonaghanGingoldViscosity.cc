@@ -264,20 +264,20 @@ Piij(const unsigned nodeListi, const unsigned i,
 
   // Compute the corrected velocity difference.
   // Vector vij = vi - vj;
-  const Vector xij = 0.5*(xi - xj);
-  // const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
-  // const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
-  // const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
-  // const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
-  // CHECK(min(ri, rj) <= 1.0);
-  //const Scalar phi = limiterMM(min(ri, rj));
-  // Scalar phi = limiterVL(min(ri, rj));
+  const auto xij = 0.5*(xi - xj);
+  const auto gradi = (DvDxi.dot(xij)).dot(xij);
+  const auto gradj = (DvDxj.dot(xij)).dot(xij);
+  const auto ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
+  const auto rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
+  CHECK(min(ri, rj) <= 1.0);
+  // const Scalar phi = limiterMM(min(ri, rj));
+  auto phi = limiterVL(min(ri, rj));
   
-  const Vector xjihat = -xij.unitVector();
-  auto phi = limiterConservative((vj - vi).dot(xjihat), (DvDxi*xjihat).dot(xjihat), (DvDxj*xjihat).dot(xjihat));
+  // const auto xjihat = -xij.unitVector();
+  // auto phi = limiterConservative((vj - vi).dot(xjihat), (DvDxi*xjihat).dot(xjihat), (DvDxj*xjihat).dot(xjihat));
 
   // If the points are getting too close, we let the Q come back full force.
-  const Scalar etaij = min(etai.magnitude(), etaj.magnitude());
+  const auto etaij = min(etai.magnitude(), etaj.magnitude());
   // phi *= (etaij2 < etaCrit2 ? 0.0 : 1.0);
   // phi *= min(1.0, etaij2*etaij2/(etaCrit2etaCrit2));
   if (etaij < mEtaCrit) {

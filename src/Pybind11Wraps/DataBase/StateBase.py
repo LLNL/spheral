@@ -241,3 +241,16 @@ class StateBase:
     enrollVectorVector = PYB11TemplateMethod(enrollAny, "std::vector<Vector>", pyname="enrollAny")
     getVectorVector = PYB11TemplateMethod(getAny, "std::vector<Vector>", pyname="getAny")
 
+    #...........................................................................
+    # assignFields
+    @PYB11template("Value")
+    def assignFields(self,
+                     rhs = "const StateBase<%(Dimension)s>&",
+                     name = "const std::string"):
+        "Assign just the fields with the given name to those in another State object."
+        return "void"
+
+    assignFieldsScalar = PYB11TemplateMethod(assignFields, "double", pyname="assignFields")
+    assignFieldsVector = PYB11TemplateMethod(assignFields, "Vector", pyname="assignFields")
+    assignFieldsTensor = PYB11TemplateMethod(assignFields, "Tensor", pyname="assignFields")
+    assignFieldsSymTensor = PYB11TemplateMethod(assignFields, "SymTensor", pyname="assignFields")

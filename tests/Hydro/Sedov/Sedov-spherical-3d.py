@@ -40,9 +40,9 @@ commandLine(seed = "lattice",
             balsaraCorrection = False,
             linearInExpansion = False,
 
-            CRKSPH = False,
-            PSPH = False,
-            ASPH = False,     # Only for H evolution, not hydro algorithm
+            crksph = False,
+            psph = False,
+            asph = False,     # Only for H evolution, not hydro algorithm
             Qconstructor = MonaghanGingoldViscosity,
             correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
@@ -123,31 +123,22 @@ vs, r2, v2, rho2, P2 = answer.shockState(goalTime)
 print "Predicted shock position %g at goal time %g." % (r2, goalTime)
 
 #-------------------------------------------------------------------------------
-# Set the hydro choice.
-#-------------------------------------------------------------------------------
-if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
-    if ASPH:
-        HydroConstructor = ACRKSPHHydro
-    else:
-        HydroConstructor = CRKSPHHydro
-elif PSPH:
-    if ASPH:
-        HydroConstructor = APSPHHydro
-    else:
-        HydroConstructor = PSPHHydro
-else:
-    if ASPH:
-        HydroConstructor = ASPHHydro
-    else:
-        HydroConstructor = SPHHydro
-
-#-------------------------------------------------------------------------------
 # Path names.
 #-------------------------------------------------------------------------------
+hydroname = ""
+if solid:
+    hydroname += "Solid"
+if asph:
+    hydroname += "A"
+if crksph:
+    hydroname += "CRKSPH"
+elif psph:
+    hydroname += "PSPH"
+else:
+    hydroname += "SPH"
+
 dataDir = os.path.join(dataRoot,
-                       HydroConstructor.__name__,
-                       Qconstructor.__name__,
+                       hydroname,
                        "nperh=%4.2f" % nPerh,
                        "XSPH=%s" % XSPH,
                        "densityUpdate=%s" % densityUpdate,
@@ -215,7 +206,7 @@ else:
                                            rmin = 0.0,
                                            rmax = 1.0,
                                            nNodePerh = nPerh,
-                                           SPH = (not ASPH))
+                                           SPH = (not asph))
 
 if mpi.procs > 1:
     from VoronoiDistributeNodes import distributeNodes3d
@@ -304,44 +295,43 @@ output("q.quadraticInExpansion")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             correctionOrder = correctionOrder,
-                             densityUpdate = densityUpdate,
-                             volumeType = volumeType,
-                             HUpdate = HUpdate)
-elif PSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             HopkinsConductivity = HopkinsConductivity,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH)
+if crksph:
+    hydro = CRKSPH(dataBase = db,
+                   Q = q,
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   correctionOrder = correctionOrder,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate)
+elif psph:
+    hydro = PSPH(dataBase = db,
+                 W = WT,
+                 Q = q,
+                 filter = filter,
+                 cfl = cfl,
+                 useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 evolveTotalEnergy = evolveTotalEnergy,
+                 HopkinsConductivity = HopkinsConductivity,
+                 correctVelocityGradient = correctVelocityGradient,
+                 densityUpdate = densityUpdate,
+                 HUpdate = HUpdate,
+                 XSPH = XSPH)
 else:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             XSPH = XSPH,
-                             HUpdate = HEvolution)
+    hydro = SPH(dataBase = db,
+                W = WT, 
+                Q = q,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                densityUpdate = densityUpdate,
+                XSPH = XSPH,
+                HUpdate = HEvolution)
 output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.XSPH")
@@ -398,6 +388,7 @@ output("integrator.dtMax")
 # Build the controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,

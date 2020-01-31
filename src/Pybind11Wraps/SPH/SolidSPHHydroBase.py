@@ -19,6 +19,7 @@ class SolidSPHHydroBase(SPHHydroBase):
 """
     
     def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
+               dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                WPi = "const TableKernel<%(Dimension)s>&",

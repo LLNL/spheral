@@ -75,6 +75,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 SPHHydroBaseRZ::
 SPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
+               DataBase<Dimension>& dataBase,
                ArtificialViscosity<Dim<2> >& Q,
                const TableKernel<Dim<2> >& W,
                const TableKernel<Dim<2> >& WPi,
@@ -94,6 +95,7 @@ SPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                const Vector& xmin,
                const Vector& xmax):
   SPHHydroBase<Dim<2> >(smoothingScaleMethod,
+                        dataBase,
                         Q,
                         W,
                         WPi,

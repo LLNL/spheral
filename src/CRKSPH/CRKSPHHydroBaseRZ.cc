@@ -66,6 +66,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 CRKSPHHydroBaseRZ::
 CRKSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
+                  DataBase<Dimension>& dataBase,
                   ArtificialViscosity<Dimension>& Q,
                   const RKOrder order,
                   const double filter,
@@ -78,19 +79,20 @@ CRKSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                   const HEvolutionType HUpdate,
                   const double epsTensile,
                   const double nTensile):
-  CRKSPHHydroBase<Dim<2> >(smoothingScaleMethod,
-                           Q,
-                           order,
-                           filter,
-                           cfl,
-                           useVelocityMagnitudeForDt,
-                           compatibleEnergyEvolution,
-                           evolveTotalEnergy,
-                           XSPH,
-                           densityUpdate,
-                           HUpdate,
-                           epsTensile,
-                           nTensile) {
+  CRKSPHHydroBase<Dim<2>>(smoothingScaleMethod,
+                          dataBase,
+                          Q,
+                          order,
+                          filter,
+                          cfl,
+                          useVelocityMagnitudeForDt,
+                          compatibleEnergyEvolution,
+                          evolveTotalEnergy,
+                          XSPH,
+                          densityUpdate,
+                          HUpdate,
+                          epsTensile,
+                          nTensile) {
 }
 
 //------------------------------------------------------------------------------
