@@ -96,7 +96,8 @@ public:
                           const double*  yieldStrength,
                           const double*  plasticStrain,
                           const double*  scalarDamage,
-                          const int*     particleType);
+                          const int*     particleType,
+                          const bool     updateConnectivity);
 
   // initializeBoundariesAndPhysics
   // Called once at problem startup, but after:

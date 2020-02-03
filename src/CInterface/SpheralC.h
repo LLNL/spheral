@@ -180,7 +180,8 @@ SPHERALDLL_API
                             const double*   yieldStrength,
                             const double*   plasticStrain,
                             const double*   scalarDamage,
-                            const int*      particleType);
+                            const int*      particleType,
+                            const bool      updateConnectivity);
 
 /*------------------------------------------------------------------------------
   spheral_initialize_boundaries_and_physics

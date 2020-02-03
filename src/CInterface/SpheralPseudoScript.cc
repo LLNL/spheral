@@ -851,7 +851,8 @@ updateState(const unsigned* nintpermat,
             const double*  yieldStrength,
             const double*  plasticStrain,
             const double*  scalarDamage,
-            const int*     particleType) {
+            const int*     particleType,
+            const bool     updateConnectivity) {
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -910,7 +911,9 @@ updateState(const unsigned* nintpermat,
   }
 
   // Prepare connectivity
-  me.updateConnectivity();
+  if (updateConnectivity) {
+    me.updateConnectivity();
+  }
 }
 
 //------------------------------------------------------------------------------
