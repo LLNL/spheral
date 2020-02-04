@@ -3,7 +3,6 @@
 //------------------------------------------------------------------------------
 #include "computeRKVolumes.hh"
 
-#include <vector>
 #include "computeVoronoiVolume.hh"
 #include "computeHullVolumes.hh"
 #include "computeRKSumVolume.hh"
@@ -13,6 +12,9 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
+
+#include <vector>
+#include <iostream>
 
 namespace Spheral {
 
