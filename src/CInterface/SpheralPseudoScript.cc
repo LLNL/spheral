@@ -851,8 +851,7 @@ updateState(const unsigned* nintpermat,
             const double*  yieldStrength,
             const double*  plasticStrain,
             const double*  scalarDamage,
-            const int*     particleType,
-            const bool     updateConnectivity) {
+            const int*     particleType) {
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -908,11 +907,6 @@ updateState(const unsigned* nintpermat,
   if (particleType != NULL)          copyArrayToIntFieldList(particleType, pType);
   if (me.mDamage) {
     if (scalarDamage != NULL)        copyArrayToSymTensorFieldList(scalarDamage, D);
-  }
-
-  // Prepare connectivity
-  if (updateConnectivity) {
-    me.updateConnectivity();
   }
 }
 

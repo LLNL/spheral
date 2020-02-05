@@ -156,8 +156,7 @@ void spheral_update_state(const int       ndims,
                           const double*   yieldStrength,
                           const double*   plasticStrain,
                           const double*   scalarDamage,
-                          const int*      particleType,
-                          const bool      updateConnectivity) {
+                          const int*      particleType) {
   switch(ndims) {
   case 3:
     Spheral::SpheralPseudoScript<Spheral::Dim<3>>::updateState(nintpermat,
@@ -176,8 +175,7 @@ void spheral_update_state(const int       ndims,
                                                                yieldStrength,
                                                                plasticStrain,
                                                                scalarDamage,
-                                                               particleType,
-                                                               updateConnectivity);
+                                                               particleType);
     break;
 
   case 2:
@@ -197,8 +195,7 @@ void spheral_update_state(const int       ndims,
                                                                yieldStrength,
                                                                plasticStrain,
                                                                scalarDamage,
-                                                               particleType,
-                                                               updateConnectivity);
+                                                               particleType);
     break;
 
   default:
