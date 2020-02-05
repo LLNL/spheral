@@ -549,6 +549,14 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
             Vector cent;
             ClippingType<Dimension>::moments(vol0, cent, celli);
             for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
+
+              // First clear any existing clip planes history from the cell
+              for (auto& vertex: celli) {
+                std::set<int> newclips;
+                std::copy_if(vertex.clips.begin(), vertex.clips.end(), std::inserter(newclips, newclips.end()), [](int x) { return x < 0; });
+                vertex.clips = newclips;
+              }
+
               std::sort(pairPlanesi[nodeListj].begin(), pairPlanesi[nodeListj].end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
               ClippingType<Dimension>::clip(celli, pairPlanesi[nodeListj]);
               ClippingType<Dimension>::moments(vol1, cent, celli);
@@ -562,7 +570,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
                       if (iplane == boundingSurfaceClipFlag) {
                         newclips.insert(boundingSurfaceClipFlag);
                       } else {
-                        CHECK(iplane < pairPlanesi[nodeListj].size());
+                        // CHECK(iplane < pairPlanesi[nodeListj].size());  // not true!  It's the plane.ID
                         newclips.insert(~nodeListj);
                       }
                     }

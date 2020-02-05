@@ -3,7 +3,6 @@
 //------------------------------------------------------------------------------
 #include "computeRKVolumes.hh"
 
-#include <vector>
 #include "computeVoronoiVolume.hh"
 #include "computeHullVolumes.hh"
 #include "computeRKSumVolume.hh"
@@ -13,6 +12,9 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
+
+#include <vector>
+#include <iostream>
 
 namespace Spheral {
 
@@ -39,30 +41,40 @@ computeRKVolumes(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::FacetedVolume FacetedVolume;
   
-  if (volumeType == RKVolumeType::RKMassOverDensity) {
+  switch(volumeType) {
+  case RKVolumeType::RKMassOverDensity:
     volume.assignFields(mass/massDensity);
-  }
-  else if (volumeType == RKVolumeType::RKSumVolume) {
+    break;
+    
+  case RKVolumeType::RKSumVolume:
     computeRKSumVolume(connectivityMap, W, position, mass, H, volume);
-  }
-  else if (volumeType == RKVolumeType::RKVoronoiVolume) {
-    std::vector<std::vector<FacetedVolume>> holes;
-    std::vector<FacetedVolume> facetedBoundaries;
-    FieldList<Dimension, typename Dimension::Scalar> weights;
-    volume.assignFields(mass/massDensity);
-    computeVoronoiVolume(position, H, connectivityMap, damage,
-                         facetedBoundaries, holes, boundaryConditions, weights,
-                         surfacePoint, volume, deltaCentroid, etaVoidPoints,
-                         cells, cellFaceFlags); 
-  }
-  else if (volumeType == RKVolumeType::RKHullVolume) {
+    break;
+
+  case RKVolumeType::RKVoronoiVolume:
+    {
+      std::vector<std::vector<FacetedVolume>> holes;
+      std::vector<FacetedVolume> facetedBoundaries;
+      FieldList<Dimension, typename Dimension::Scalar> weights;
+      volume.assignFields(mass/massDensity);
+      computeVoronoiVolume(position, H, connectivityMap, damage,
+                           facetedBoundaries, holes, boundaryConditions, weights,
+                           surfacePoint, volume, deltaCentroid, etaVoidPoints,
+                           cells, cellFaceFlags); 
+    }
+    break;
+
+  case RKVolumeType::RKHullVolume:
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, volume);
-  }
-  else if (volumeType == RKVolumeType::HVolume) {
-    const Scalar nPerh = volume.nodeListPtrs()[0]->nodesPerSmoothingScale();
-    computeHVolumes(nPerh, H, volume);
-  }
-  else {
+    break;
+
+  case RKVolumeType::HVolume:
+    {
+      const Scalar nPerh = volume.nodeListPtrs()[0]->nodesPerSmoothingScale();
+      computeHVolumes(nPerh, H, volume);
+    }
+    break;
+
+  default:
     VERIFY2(false, "Unknown RK volume weighting.");
   }
 }

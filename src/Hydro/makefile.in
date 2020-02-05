@@ -11,7 +11,8 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 
 SRCTARGETS = \
-	$(srcdir)/HydroFieldNames.cc
+	$(srcdir)/HydroFieldNames.cc \
+	$(srcdir)/RZNonSymmetricSpecificThermalEnergyPolicy.cc
 
 INSTSRCTARGETS = \
 	$(srcdir)/PressurePolicyInst.cc.py \
