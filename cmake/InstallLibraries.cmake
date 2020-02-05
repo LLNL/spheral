@@ -1,5 +1,21 @@
 set(PATCH_DIR ${PROJECT_SOURCE_DIR}/thirdPartyLibs)
-set(SPHERAL_TPL_DIR ${PROJECT_SOURCE_DIR}/../tpl)
+
+set(SPHERAL_TPL_DIR ${SPHERAL_INSTALL_DIR})
+if(SPHERAL_TPL_DIR)
+  if(NOT EXISTS SPHERAL_TPL_DIR)
+    get_filename_component(SPHERAL_TPL_DIR_PARENT ${SPHERAL_TPL_DIR} DIRECTORY)
+    if(NOT EXISTS "${SPHERAL_TPL_DIR_PARENT}/")
+      set(SPHERAL_TPL_DIR ${PROJECT_SOURCE_DIR}/..)
+      message(FATAL_ERROR "No Directory ${SPHERAL_TPL_DIR_PARENT}/")
+    endif()
+  endif()
+else()
+  set(SPHERAL_TPL_DIR ${PROJECT_SOURCE_DIR}/..)
+endif()
+set(SPHERAL_TPL_DIR ${SPHERAL_TPL_DIR}/tpl)
+message(STATUS "TPL Install Dir at: ${SPHERAL_TPL_DIR}")
+
+
 
 function(DownloadAndBuildLib TARGET_NAME)
   if(NOT EXISTS ${${TARGET_NAME}_EXISTS_FILE})
@@ -89,7 +105,8 @@ endif()
 ################################
 if(INSTALL_TPLS AND NOT PYTHON_DIR)
   message("\n---------- BUILDING PYTHON ----------")
-  set(PYTHON_PREFIX ${PROJECT_SOURCE_DIR}/..)
+  get_filename_component(PYTHON_PREFIX ${SPHERAL_TPL_DIR} DIRECTORY)
+  set(PYTHON_PREFIX "${PYTHON_PREFIX}/")
   set(PYTHON_TARGET python)
   set(PYTHON_DIR ${PYTHON_PREFIX}/python)
   set(PYTHON_EXISTS_FILE "${PYTHON_DIR}/include/python2.7/Python.h")

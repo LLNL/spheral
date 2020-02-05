@@ -30,6 +30,7 @@ include(${PROJECT_SOURCE_DIR}/../cmake/blt/SetupBLT.cmake)
 ################################
 # Install / Locate third party libraries
 ################################
+set(SPHERAL_INSTALL_DIR)
 option(INSTALL_TPLS "download and install third party libs" ON)
 include(../cmake/InstallLibraries.cmake)
 set(spheral_depends BOOST Eigen qhull silo polytope pybind11)
@@ -50,6 +51,9 @@ endif()
 
 if(ENABLE_CXXONLY)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/Spheral)
+  if(SPHERAL_INSTALL_DIR)
+    set(CMAKE_INSTALL_PREFIX ${SPHERAL_INSTALL_DIR})
+  endif()
 else()
   set(CMAKE_INSTALL_PREFIX ${PYTHON_SITE_PACKAGE_DIR}/Spheral)
 endif()
