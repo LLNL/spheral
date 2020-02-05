@@ -153,8 +153,10 @@ public:
                              int*           nfaces,
                              int*           ncells,
                              double**       coords,
-                             int**          facetonodes,
-                             int**          celltofaces);
+                             int*           facetonodes,
+                             int*           facetonodeoffset,
+                             int*           celltofaces,
+                             int*           celltofaceoffset);
 
   static void fillVolume(const int*     nnodes,
                          const int*     nfaces,

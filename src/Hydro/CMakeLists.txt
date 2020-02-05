@@ -14,7 +14,8 @@ set(Hydro_inst
 
 set(Hydro_sources
     HydroFieldNames.cc
-    )
+    RZNonSymmetricSpecificThermalEnergyPolicy.cc
+   )
 
 instantiate(Hydro_inst Hydro_sources)
 
@@ -28,6 +29,7 @@ set(Hydro_headers
     NonSymmetricSpecificThermalEnergyPolicy.hh
     PositionPolicy.hh
     PressurePolicy.hh
+    RZNonSymmetricSpecificThermalEnergyPolicy.hh
     SoundSpeedPolicy.hh
     SpecificFromTotalThermalEnergyPolicy.hh
     SpecificThermalEnergyPolicy.hh

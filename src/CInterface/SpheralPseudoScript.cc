@@ -958,7 +958,6 @@ initializeBoundariesAndPhysics() {
                                           me.mIntegratorPtr->physicsPackagesEnd()));
 
   // Copy the pertinent fields from the old->new state.
-  // me.mStatePtr->assign(state0);
   me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, HydroFieldNames::mass);
   me.mStatePtr->template assignFields<typename Dimension::Vector>(state0, HydroFieldNames::position);
   me.mStatePtr->template assignFields<typename Dimension::Vector>(state0, HydroFieldNames::velocity);
@@ -974,6 +973,7 @@ initializeBoundariesAndPhysics() {
   me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, SolidFieldNames::shearModulus);
   me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, SolidFieldNames::yieldStrength);
   me.mStatePtr->template assignFields<typename Dimension::SymTensor>(state0, SolidFieldNames::effectiveTensorDamage);
+  if (me.mCRK) me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, HydroFieldNames::volume);
 }
 
 //------------------------------------------------------------------------------
@@ -1226,8 +1226,10 @@ polyhedralMesh(int*           nnodes,
                int*           nfaces,
                int*           ncells,
                double**       coords,
-               int**          facetonodes,
-               int**          celltofaces) {
+               int*           facetonodes,
+               int*           facetonodeoffset,
+               int*           celltofaces,
+               int*           celltofaceoffset) {
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -1245,7 +1247,6 @@ polyhedralMesh(int*           nnodes,
   auto cells = me.mDataBasePtr->newFluidFieldList(typename Dimension::FacetedVolume(), HydroFieldNames::cells);
   auto cellFaceFlags = me.mDataBasePtr->newFluidFieldList(vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
   vol.assignFields(mass/massDensity);
-  /*
   computeVoronoiVolume(position, H, connectivityMap, damage,
                        vector<typename Dimension::FacetedVolume>(),                // no boundaries
                        vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
@@ -1255,23 +1256,79 @@ polyhedralMesh(int*           nnodes,
                        surfacePoint, vol, deltaCentroid, etaVoidPoints,            // return values
                        cells,                                                      // return cells
                        cellFaceFlags);                                             // node cell multimaterial faces
-  */
-  int numNodes = 0;
+
+  // Number of polyhedral cells = number of SPH nodes
+  int numCells = 0;
+  int numVerts = 0;
+  int numFaces = 0;
+  int numFaceToVerts = 0;
+  int numCellToFaces = 0;
   const unsigned nmats = me.mNodeLists.size();
   for (unsigned imat = 0; imat != nmats; ++imat) {
-    numNodes += me.mNodeLists[imat]->numInternalNodes();
+    const unsigned n = me.mNodeLists[imat]->numInternalNodes();
+    numCells += n;
+    for (unsigned i = 0; i != n; ++i) {
+      auto celli = cells(imat, i);
+      auto vertices = celli.vertices();
+      auto facets = celli.facets();
+      auto facetVertices = celli.facetVertices();
+      numVerts += vertices.size();
+      numFaces += facets.size();
+      numCellToFaces += facets.size();
+      for (unsigned j = 0; j != facetVertices.size(); ++j) {
+         numFaceToVerts += facetVertices[j].size();
+      }
+    }
   }
+  ncells[0] = numCells;
+  nnodes[0] = numVerts;
+  nfaces[0] = numFaces;
 
+  double * xcoord = new double[numVerts];
+  double * ycoord = new double[numVerts];
+  double * zcoord = new double[numVerts];
+  facetonodes = new int[numFaceToVerts];
+  celltofaces = new int[numCellToFaces];
+  facetonodeoffset = new int[numFaces+1];
+  celltofaceoffset = new int[numCells+1];
+
+  facetonodes[0] = 0;
+  celltofaces[0] = 0;
+  facetonodeoffset[0] = 0;
+  celltofaceoffset[0] = 0;
+  int vertcounter = 0;
+  int facecounter = 0;
+  int cellcounter = 0;
+  int nodecounter = 0;
   for (unsigned imat = 0; imat != nmats; ++imat) {
     const unsigned n = me.mNodeLists[imat]->numInternalNodes();
     for (unsigned i = 0; i != n; ++i) {
       auto celli = cells(imat, i);
       auto vertices = celli.vertices();
       auto facets = celli.facets();
-      auto vertConn = celli.vertexFacetConnectivity();
-      auto faceConn = celli.facetFacetConnectivity();
+      auto facetVertices = celli.facetVertices();
+      for (unsigned j = 0; j != vertices.size(); ++j) {
+        xcoord[vertcounter] = vertices[j].x();
+        ycoord[vertcounter] = vertices[j].y();
+        zcoord[vertcounter] = vertices[j].z();
+        ++vertcounter;
+      }
+      for (unsigned j = 0; j != facetVertices.size(); ++j) {
+        for (unsigned k = 0; k != facetVertices[j].size(); ++k) {
+          facetonodes[nodecounter] = facetVertices[j][k];
+          ++nodecounter;
+        }
+        celltofaces[facecounter] = facecounter;
+        facetonodeoffset[facecounter+1] = facetonodeoffset[facecounter] + facetVertices[j].size();
+        ++facecounter;
+      }
+      celltofaceoffset[cellcounter+1] = celltofaceoffset[cellcounter] + facets.size();
+      ++cellcounter;
     }
   }
+  coords[0] = xcoord;
+  coords[1] = ycoord;
+  coords[2] = zcoord;
 }
 
 //------------------------------------------------------------------------------
