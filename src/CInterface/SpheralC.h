@@ -40,6 +40,40 @@ extern "C" {
   for each of these materials, the mass array would be a single C array of
   doubles layed out in memory like:
   [m(1,1), m(1,2), ..., m(1,n1), m(2,0), ..., m(2,n2), ..., m(3,0), ..., m(3,n3)]
+
+  Using Spheral C involves a couple of different stages:
+
+  1. Initialization at startup
+  SpheralC calls should be performed once at the beginning of a simulation in
+  the order:
+
+    spheral_add_boundary(...)
+      optionally called any number of times to establish boundaries
+
+    spheral_initialize(...)
+      sets various option run time options and switches
+      - note, boundaries cannot be added after this call
+
+    spheral_update_state(...)
+      set the initial particle values 
+
+    spheral_initialize_boundaries_and_physics(...)
+      one-time initializations after intial particle data is provided
+
+  2. Call order each physics steps
+  After the above one-time program startup methods have been called, the
+  time derivatives for the state variables can be queried at any step with the
+  following sequence of calls:
+
+    spheral_update_state(...)
+      set the input particle state for this step
+
+    spheral_initialize_step(...)
+      performs physics and boundary preparation
+      - also returns a vote for an appropriate time step
+
+    spheral_evaluate_derivatives(...)
+      computes the time derivatives per free particle
   ----------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------------
@@ -136,10 +170,11 @@ SPHERALDLL_API
 /*------------------------------------------------------------------------------
   spheral_update_state
 
-  Updates Spheral's versions ofthe fluid state variables
+  Updates Spheral's versions of the fluid state variables
 
   Returns:  void
   Arguments:
+    ndims                       : number of dimensions
     nintpermat                  : number of internal nodes per material (NodeList)
     npermat                     : total number nodes per material (NodeList)
     mass                        : mass per node
@@ -201,6 +236,11 @@ SPHERALDLL_API
   This method should be called at the beginning of a time step to establish the 
   set of meshless point data that Spheral will be looking at, but after
   spheral_update_state.
+
+  The order of methods to be called for each derivative evaluation should be
+  spheral_update_state(...)
+  spheral_initialize_step(...)
+  spheral_evaluate_derivatives(...)
 
   Returns: a vote for the timestep given the specified state data.
   ----------------------------------------------------------------------------*/
