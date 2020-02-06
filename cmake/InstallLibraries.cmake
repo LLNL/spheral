@@ -62,8 +62,10 @@ if(INSTALL_TPLS AND NOT BOOST_DIR)
   set(BOOST_DIR "${BOOST_PREFIX}/boost")
   set(BOOST_EXISTS_FILE "${BOOST_PREFIX}/boost/lib/libboost_system.a")
 
-  #set(BOOST_URL "https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.bz2")
-  set(BOOST_URL "https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.bz2")
+  if (NOT BOOST_URL)
+    set(BOOST_URL "https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.bz2")
+  endif()
+
   set(BOOST_SRC_DIR "${BOOST_PREFIX}/boost/src/boost")
   set(BOOST_EXTERNAL_PROJECT_FUNCTION "
     ExternalProject_add(${BOOST_TARGET}
@@ -111,7 +113,10 @@ if(INSTALL_TPLS AND NOT PYTHON_DIR)
   set(PYTHON_DIR ${PYTHON_PREFIX}/python)
   set(PYTHON_EXISTS_FILE "${PYTHON_DIR}/include/python2.7/Python.h")
 
-  set(PYTHON_URL "http://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz")
+  if(NOT PYTHON_URL)
+    set(PYTHON_URL "http://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz")
+  endif()
+
   set(PYTHON_SRC_DIR "${PYTHON_PREFIX}/python/src/python")
   set(PYTHON_EXTERNAL_PROJECT_FUNCTION "
     ExternalProject_add(${PYTHON_TARGET}
@@ -170,12 +175,15 @@ if(INSTALL_TPLS AND NOT PYBIND11_DIR)
   set(PYBIND11_DIR ${PYBIND11_PREFIX})
   set(PYBIND11_EXISTS_FILE "${PYBIND11_PREFIX}/include/pybind11/pybind11.h")
 
-  set(PYBIND11_GIT "https://github.com/pybind/pybind11")
+  if (NOT PYBIND11_URL)
+    set(PYBIND11_URL "https://github.com/pybind/pybind11/archive/v2.4.3.tar.gz")
+  endif()
+
   set(PYBIND11_CMAKE_ARGS "-DPYBIND11_TEST=Off -DCMAKE_INSTALL_PREFIX=${PYBIND11_PREFIX}")
   set(PYBIND11_EXTERNAL_PROJECT_FUNCTION "
     ExternalProject_add(${PYBIND11_TARGET}
       PREFIX ${PYBIND11_PREFIX}/${PYBIND11_TARGET}
-      GIT_REPOSITORY ${PYBIND11_GIT}
+      URL ${PYBIND11_URL}
       CMAKE_ARGS ${PYBIND11_CMAKE_ARGS}
     )
   ")
@@ -210,7 +218,10 @@ if(INSTALL_TPLS AND NOT POLYTOPE_DIR)
   set(POLYTOPE_DIR ${POLYTOPE_PREFIX})
   set(POLYTOPE_EXISTS_FILE "${POLYTOPE_PREFIX}/include/polytope/polytope.hh")
 
-  set(POLYTOPE_GIT "https://github.com/pbtoast/polytope")
+  if (NOT POLYTOPE_URL)
+    set(POLYTOPE_URL "https://github.com/pbtoast/polytope/archive/0.6.2.tar.gz")
+  endif()
+
   set(POLYTOPE_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${POLYTOPE_PREFIX} 
                            -DPYBIND11_INCLUDE_DIRS=${PYBIND11_INCLUDE_DIRS}
                            -DUSE_PYTHON=On
@@ -223,7 +234,7 @@ if(INSTALL_TPLS AND NOT POLYTOPE_DIR)
       PATCH_COMMAND patch -t ${POLYTOPE_PREFIX}/polytope/src/polytope/CMakeLists.txt            ${PATCH_DIR}/polytope-CMakeLists.patch &&
                     patch -t ${POLYTOPE_PREFIX}/polytope/src/polytope/src/PYB11/CMakeLists.txt  ${PATCH_DIR}/polytope-PYB11-CMakeLists.patch
 
-      GIT_REPOSITORY ${POLYTOPE_GIT}
+      URL ${POLYTOPE_URL}
       CMAKE_ARGS ${POLYTOPE_CMAKE_ARGS}
     )
   ")
@@ -258,12 +269,15 @@ if(INSTALL_TPLS AND NOT EIGEN_DIR)
   set(EIGEN_DIR ${EIGEN_PREFIX})
   set(EIGEN_EXISTS_FILE "${EIGEN_PREFIX}/include/eigen3/Eigen/Eigen")
 
-  set(EIGEN_GIT "https://github.com/eigenteam/eigen-git-mirror")
+  if (NOT EIGEN_URL)
+    set(EIGEN_URL "https://github.com/eigenteam/eigen-git-mirror/archive/3.3.7.tar.gz")
+  endif()
+
   set(EIGEN_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${EIGEN_PREFIX}")
   set(EIGEN_EXTERNAL_PROJECT_FUNCTION "
     ExternalProject_add(${EIGEN_TARGET}
       PREFIX ${EIGEN_PREFIX}/${EIGEN_TARGET}
-      GIT_REPOSITORY ${EIGEN_GIT}
+      URL ${EIGEN_URL}
       CMAKE_ARGS ${EIGEN_CMAKE_ARGS}
     )
   ")
@@ -297,7 +311,10 @@ if(INSTALL_TPLS AND NOT QHULL_DIR)
   set(QHULL_DIR ${QHULL_PREFIX}/qhull)
   set(QHULL_EXISTS_FILE "${QHULL_DIR}/lib/libqhullstatic.a")
 
-  set(QHULL_GIT "https://github.com/qhull/qhull")
+  if (NOT QHULL_URL)
+    set(QHULL_URL "https://github.com/qhull/qhull/archive/2019.1.tar.gz")
+  endif()
+
   set(QHULL_CMAKE_ARGS "-DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_C_COMPILER=mpicc -DCMAKE_C_FLAGS=-fPIC -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=${QHULL_DIR}")
   set(QHULL_SRC_DIR ${QHULL_DIR}/src/qhull/src)
   set(QHULL_EXTERNAL_PROJECT_FUNCTION "
@@ -305,10 +322,10 @@ if(INSTALL_TPLS AND NOT QHULL_DIR)
       PREFIX ${QHULL_PREFIX}/${QHULL_TARGET}
       PATCH_COMMAND patch -t ${QHULL_SRC_DIR}/libqhull/qhull_a.h ${PATCH_DIR}/qhull-2015.2-qhull_a.h-patch &&
                     patch -t ${QHULL_SRC_DIR}/libqhull_r/qhull_ra.h ${PATCH_DIR}/qhull-2015.2-qhull_ra.h-patch
-      GIT_REPOSITORY ${QHULL_GIT}
+      URL ${QHULL_URL}
       CMAKE_ARGS ${QHULL_CMAKE_ARGS}
-    )
-  ")
+  )
+")
   DownloadAndBuildLib(QHULL)
   message("--------------------------------------\n")
 endif()
@@ -340,7 +357,10 @@ if(INSTALL_TPLS AND NOT HDF5_DIR)
   set(HDF5_DIR "${HDF5_PREFIX}/hdf5")
   set(HDF5_EXISTS_FILE "${HDF5_PREFIX}/hdf5/lib/libhdf5.a")
 
-  set(HDF5_URL "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.4/src/hdf5-1.10.4.tar.bz2")
+  if (NOT HDF5_URL)
+    set(HDF5_URL "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.4/src/hdf5-1.10.4.tar.bz2")
+  endif()
+
   set(HDF5_SRC_DIR "${HDF5_PREFIX}/hdf5/src/hdf5")
   set(HDF5_EXTERNAL_PROJECT_FUNCTION "
     ExternalProject_add(${HDF5_TARGET}
@@ -383,7 +403,10 @@ if(INSTALL_TPLS AND NOT SILO_DIR)
   set(SILO_DIR "${SILO_PREFIX}/silo")
   set(SILO_EXISTS_FILE "${SILO_PREFIX}/silo/lib/libsiloh5.a")
 
-  set(SILO_URL "https://wci.llnl.gov/content/assets/docs/simulation/computer-codes/silo/silo-4.10.2/silo-4.10.2-bsd.tar.gz")
+  if(NOT SILO_URL)
+    set(SILO_URL "https://wci.llnl.gov/content/assets/docs/simulation/computer-codes/silo/silo-4.10.2/silo-4.10.2-bsd.tar.gz")
+  endif()
+
   set(SILO_SRC_DIR "${SILO_PREFIX}/silo/src/silo")
   set(SILO_EXTERNAL_PROJECT_FUNCTION "
     ExternalProject_add(${SILO_TARGET}
