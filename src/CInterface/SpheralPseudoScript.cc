@@ -1228,28 +1228,25 @@ polyhedralMesh(int*           nnodes,
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
 
-  auto mass = me.mStatePtr->fields(HydroFieldNames::mass, 0.0);
-  auto massDensity = me.mStatePtr->fields(HydroFieldNames::massDensity, 0.0);
-  auto vol = me.mStatePtr->fields(HydroFieldNames::volume, 0.0);
   auto position = me.mStatePtr->fields(HydroFieldNames::position, Vector::zero);
   auto H = me.mStatePtr->fields(HydroFieldNames::H, SymTensor::zero);
-  auto damage = me.mStatePtr->fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   const auto& connectivityMap = me.mDataBasePtr->connectivityMap();
+  auto damage = me.mStatePtr->fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   auto surfacePoint = me.mDataBasePtr->newFluidFieldList(0, HydroFieldNames::surfacePoint);
+  auto vol = me.mDataBasePtr->newFluidFieldList(0.0, HydroFieldNames::volume);
   auto deltaCentroid = me.mDataBasePtr->newFluidFieldList(Vector::zero, "delta centroid");
-  auto etaVoidPoints = me.mDataBasePtr->newFluidFieldList(vector<Vector>(), HydroFieldNames::etaVoidPoints);
+  auto etaVoidPoints = me.mDataBasePtr->newFluidFieldList(std::vector<Vector>(), HydroFieldNames::etaVoidPoints);
   auto cells = me.mDataBasePtr->newFluidFieldList(typename Dimension::FacetedVolume(), HydroFieldNames::cells);
-  auto cellFaceFlags = me.mDataBasePtr->newFluidFieldList(vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
-  vol.assignFields(mass/massDensity);
+  auto cellFaceFlags = me.mDataBasePtr->newFluidFieldList(std::vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
   computeVoronoiVolume(position, H, connectivityMap, damage,
-                       vector<typename Dimension::FacetedVolume>(),                // no boundaries
-                       vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
-                       vector<Boundary<Dimension>*>(me.mHydroPtr->boundaryBegin(), // boundaries
-                                                    me.mHydroPtr->boundaryEnd()),
-                       FieldList<Dimension, typename Dimension::Scalar>(),         // no weights
-                       surfacePoint, vol, deltaCentroid, etaVoidPoints,            // return values
-                       cells,                                                      // return cells
-                       cellFaceFlags);                                             // node cell multimaterial faces
+                       std::vector<typename Dimension::FacetedVolume>(),                // no boundaries
+                       std::vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
+                       std::vector<Boundary<Dimension>*>(me.mHydroPtr->boundaryBegin(), // boundaries
+                                                         me.mHydroPtr->boundaryEnd()),
+                       FieldList<Dimension, typename Dimension::Scalar>(),              // no weights
+                       surfacePoint, vol, deltaCentroid, etaVoidPoints,                 // return values
+                       cells,                                                           // return cells
+                       cellFaceFlags);                                                  // node cell multimaterial faces
 
   // Number of polyhedral cells = number of SPH nodes
   int numCells = 0;
