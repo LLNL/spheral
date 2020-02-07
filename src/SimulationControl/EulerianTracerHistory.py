@@ -82,13 +82,14 @@ class EulerianTracerHistory(Spheral.RestartableObject):
 
         # Prepare the Neighbor information for sampling at this pos, and walk the neighbors.
         numNodeLists = self.db.numFluidNodeLists
-        masterLists = vector_of_vector_of_int([vector_of_int()]*numNodeLists)
-        coarseNeighbors = vector_of_vector_of_int([vector_of_int()]*numNodeLists)
+        masterLists = vector_of_vector_of_int()
+        coarseNeighbors = vector_of_vector_of_int()
+        refineNeighbors = vector_of_vector_of_int()
         self.db.setMasterNodeLists(self.position, Hmin, masterLists, coarseNeighbors)
         assert len(coarseNeighbors) == numNodeLists
-        self.db.setRefineNodeLists(self.position, Hmin, masterLists, coarseNeighbors)
+        self.db.setRefineNodeLists(self.position, Hmin, coarseNeighbors, refineNeighbors)
         for nodeListj in xrange(numNodeLists):
-            for j in coarseNeighbors[nodeListj]:
+            for j in refineNeighbors[nodeListj]:
 
                 # Compute the weighting for this position.
                 posj = positions(nodeListj, j)
