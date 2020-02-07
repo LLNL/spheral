@@ -78,12 +78,17 @@ class EulerianTracerHistory(Spheral.RestartableObject):
         # Grab position and H FieldLists.
         positions = self.db.globalPosition
         H = self.db.globalHfield
+        Hmin = 1e60*SymTensor.one       # Since H is in inverse length, need a big number
 
         # Prepare the Neighbor information for sampling at this pos, and walk the neighbors.
-        self.db.setMasterNodeLists(self.position, SymTensor.zero)
-        self.db.setRefineNodeLists(self.position, SymTensor.zero)
-        for nodeListj, nodeList in enumerate(self.db.fluidNodeLists()):
-            for j in nodeList.neighbor().coarseNeighborList:
+        numNodeLists = self.db.numFluidNodeLists
+        masterLists = vector_of_vector_of_int([vector_of_int()]*numNodeLists)
+        coarseNeighbors = vector_of_vector_of_int([vector_of_int()]*numNodeLists)
+        self.db.setMasterNodeLists(self.position, Hmin, masterLists, coarseNeighbors)
+        assert len(coarseNeighbors) == numNodeLists
+        self.db.setRefineNodeLists(self.position, Hmin, masterLists, coarseNeighbors)
+        for nodeListj in xrange(numNodeLists):
+            for j in coarseNeighbors[nodeListj]:
 
                 # Compute the weighting for this position.
                 posj = positions(nodeListj, j)
