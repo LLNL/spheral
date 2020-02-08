@@ -120,6 +120,10 @@ public:
   template<typename DataType> std::vector<DataType> storedValues(const Field<Dimension, DataType>& field);
   std::vector<std::string> storedKeys() const;
 
+  // Set new values for the ghost nodes.
+  template<typename DataType> void setStoredValues(const KeyType key, const std::vector<DataType>& values);
+  template<typename DataType> void setStoredValues(const Field<Dimension, DataType>& field, const std::vector<DataType>& values);
+
   // Set new (constant) values for the ghost nodes.
   template<typename DataType> void setStoredValues(const KeyType key, const DataType& value);
   template<typename DataType> void setStoredValues(const Field<Dimension, DataType>& field, const DataType& value);

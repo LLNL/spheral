@@ -128,7 +128,7 @@ Really we should rename this post-step finalize."""
     @PYB11template("DataType")
     def setStoredValues(self,
                         key = "const std::string",
-                        value = "const %(DataType)s&"):
+                        values = "const std::vector<%(DataType)s>&"):
         "Set the stored data for generating ghost nodes for a given Field key."
         return "void"
 
@@ -147,7 +147,7 @@ Really we should rename this post-step finalize."""
     @PYB11cppname("setStoredValues")
     def setStoredValuesF(self,
                          field = "const Field<%(Dimension)s, %(DataType)s>&",
-                         value = "const %(DataType)s&"):
+                         value = "const std::vector<%(DataType)s>&"):
         "Set the stored data for generating ghost nodes for a given field."
         return "void"
 
@@ -160,6 +160,44 @@ Really we should rename this post-step finalize."""
     setStoredValuesF_FacetedVolume =   PYB11TemplateMethod(setStoredValuesF, "FacetedVolume", pyname="setStoredValues")
     setStoredValuesF_vectorScalar =    PYB11TemplateMethod(setStoredValuesF, "std::vector<Scalar>", pyname="setStoredValues")
     setStoredValuesF_vectorVector =    PYB11TemplateMethod(setStoredValuesF, "std::vector<Vector>", pyname="setStoredValues")
+
+    #...........................................................................
+    @PYB11template("DataType")
+    @PYB11cppname("setStoredValues")
+    def setConstantStoredValues(self,
+                                key = "const std::string",
+                                value = "const %(DataType)s&"):
+        "Set the stored data for generating ghost nodes for a given Field key."
+        return "void"
+
+    setConstantStoredValues_int =             PYB11TemplateMethod(setConstantStoredValues, "int")
+    setConstantStoredValues_Scalar =          PYB11TemplateMethod(setConstantStoredValues, "Scalar")
+    setConstantStoredValues_Vector =          PYB11TemplateMethod(setConstantStoredValues, "Vector")
+    setConstantStoredValues_Tensor =          PYB11TemplateMethod(setConstantStoredValues, "Tensor")
+    setConstantStoredValues_SymTensor =       PYB11TemplateMethod(setConstantStoredValues, "SymTensor")
+    setConstantStoredValues_ThirdRankTensor = PYB11TemplateMethod(setConstantStoredValues, "ThirdRankTensor")
+    setConstantStoredValues_FacetedVolume =   PYB11TemplateMethod(setConstantStoredValues, "FacetedVolume")
+    setConstantStoredValues_vectorScalar =    PYB11TemplateMethod(setConstantStoredValues, "std::vector<Scalar>")
+    setConstantStoredValues_vectorVector =    PYB11TemplateMethod(setConstantStoredValues, "std::vector<Vector>")
+
+    #...........................................................................
+    @PYB11template("DataType")
+    @PYB11cppname("setStoredValues")
+    def setConstantStoredValuesF(self,
+                                 field = "const Field<%(Dimension)s, %(DataType)s>&",
+                                 value = "const %(DataType)s&"):
+        "Set the stored data for generating ghost nodes for a given field."
+        return "void"
+
+    setConstantStoredValuesF_int =             PYB11TemplateMethod(setConstantStoredValuesF, "int", pyname="setConstantStoredValues")
+    setConstantStoredValuesF_Scalar =          PYB11TemplateMethod(setConstantStoredValuesF, "Scalar", pyname="setConstantStoredValues")
+    setConstantStoredValuesF_Vector =          PYB11TemplateMethod(setConstantStoredValuesF, "Vector", pyname="setConstantStoredValues")
+    setConstantStoredValuesF_Tensor =          PYB11TemplateMethod(setConstantStoredValuesF, "Tensor", pyname="setConstantStoredValues")
+    setConstantStoredValuesF_SymTensor =       PYB11TemplateMethod(setConstantStoredValuesF, "SymTensor", pyname="setConstantStoredValues")
+    setConstantStoredValuesF_ThirdRankTensor = PYB11TemplateMethod(setConstantStoredValuesF, "ThirdRankTensor", pyname="setConstantStoredValues")
+    setConstantStoredValuesF_FacetedVolume =   PYB11TemplateMethod(setConstantStoredValuesF, "FacetedVolume", pyname="setConstantStoredValues")
+    setConstantStoredValuesF_vectorScalar =    PYB11TemplateMethod(setConstantStoredValuesF, "std::vector<Scalar>", pyname="setConstantStoredValues")
+    setConstantStoredValuesF_vectorVector =    PYB11TemplateMethod(setConstantStoredValuesF, "std::vector<Vector>", pyname="setConstantStoredValues")
 
     #...........................................................................
     # Properties

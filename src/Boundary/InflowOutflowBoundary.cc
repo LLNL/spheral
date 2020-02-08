@@ -88,7 +88,7 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
     auto& gNodes = boundaryNodes.ghostNodes;
     const auto currentNumGhostNodes = nodeList.numGhostNodes();
     const auto firstNewGhostNode = nodeList.numNodes();
-    cerr << "Allocating new ghost nodes " << firstNewGhostNode << " -- " << (firstNewGhostNode + mNumInflowNodes[nodeList.name()]) << endl;
+    // cerr << "Allocating new ghost nodes " << firstNewGhostNode << " -- " << (firstNewGhostNode + mNumInflowNodes[nodeList.name()]) << endl;
     
     // Use the planar boundary to find the set of points that interact with
     // the entrance plane.  We make these the control nodes.
