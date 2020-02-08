@@ -1221,9 +1221,9 @@ polyhedralMesh(int*           nnodes,
                int*           ncells,
                double**       coords,
                int*           facetonodes,
-               int*           facetonodeoffset,
+               int*           nodecounts,
                int*           celltofaces,
-               int*           celltofaceoffset) {
+               int*           facecounts) {
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -1280,13 +1280,13 @@ polyhedralMesh(int*           nnodes,
   double * zcoord = new double[numVerts];
   facetonodes = new int[numFaceToVerts];
   celltofaces = new int[numCellToFaces];
-  facetonodeoffset = new int[numFaces+1];
-  celltofaceoffset = new int[numCells+1];
+  nodecounts = new int[numFaces];
+  facecounts = new int[numCells];
 
   facetonodes[0] = 0;
   celltofaces[0] = 0;
-  facetonodeoffset[0] = 0;
-  celltofaceoffset[0] = 0;
+  nodecounts[0] = 0;
+  facecounts[0] = 0;
   int vertcounter = 0;
   int facecounter = 0;
   int cellcounter = 0;
@@ -1298,22 +1298,22 @@ polyhedralMesh(int*           nnodes,
       auto vertices = celli.vertices();
       auto facets = celli.facets();
       auto facetVertices = celli.facetVertices();
+      for (unsigned j = 0; j != facetVertices.size(); ++j) {
+        for (unsigned k = 0; k != facetVertices[j].size(); ++k) {
+          facetonodes[nodecounter] = vertcounter + facetVertices[j][k];
+          ++nodecounter;
+        }
+        celltofaces[facecounter] = facecounter;
+        nodecounts[facecounter] = facetVertices[j].size();
+        ++facecounter;
+      }
       for (unsigned j = 0; j != vertices.size(); ++j) {
         xcoord[vertcounter] = vertices[j].x();
         ycoord[vertcounter] = vertices[j].y();
         zcoord[vertcounter] = vertices[j].z();
         ++vertcounter;
       }
-      for (unsigned j = 0; j != facetVertices.size(); ++j) {
-        for (unsigned k = 0; k != facetVertices[j].size(); ++k) {
-          facetonodes[nodecounter] = facetVertices[j][k];
-          ++nodecounter;
-        }
-        celltofaces[facecounter] = facecounter;
-        facetonodeoffset[facecounter+1] = facetonodeoffset[facecounter] + facetVertices[j].size();
-        ++facecounter;
-      }
-      celltofaceoffset[cellcounter+1] = celltofaceoffset[cellcounter] + facets.size();
+      facecounts[cellcounter] = facets.size();
       ++cellcounter;
     }
   }
