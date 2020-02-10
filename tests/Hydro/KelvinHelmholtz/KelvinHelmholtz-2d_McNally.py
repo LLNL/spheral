@@ -50,14 +50,15 @@ commandLine(nx1 = 256,
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            nPerh = 1.01,
+            KernelConstructor = WendlandC4Kernel,
+            nbSplineOrder = 7,
+            nPerh = 4.01,
 
             svph = False,
             crksph = True,
             psph = False,
             asph = False,   # Just for choosing the H algorithm
             filter = 0.0,   # CRKSPH filtering
-            order = 7,
             correctionOrder = LinearOrder,
             volumeType = RKSumVolume,
             linearConsistent = False,
@@ -188,10 +189,11 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(order), 1000)
-WTPi = WT
+if KernelConstructor is NBSplineKernel:
+    WT = TableKernel(KernelConstructor(nbSplineOrder), 1000)
+else:
+    WT = TableKernel(KernelConstructor(), 1000)
 output("WT")
-output("WTPi")
 kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
@@ -427,7 +429,7 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
