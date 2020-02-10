@@ -435,10 +435,10 @@ void spheral_polyhedral_mesh(const int      ndims,
                              int*           nfaces,
                              int*           ncells,
                              double**       coords,
-                             int*           facetonodes,
-                             int*           nodecounts,
-                             int*           celltofaces,
-                             int*           facecounts) {
+                             int**          facetonodes,
+                             int**          nodecounts,
+                             int**          celltofaces,
+                             int**          facecounts) {
   switch (ndims) {
   case 3:
     Spheral::SpheralPseudoScript<Spheral::Dim<3>>::polyhedralMesh(nnodes,

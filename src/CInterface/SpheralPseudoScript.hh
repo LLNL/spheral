@@ -152,10 +152,10 @@ public:
                              int*           nfaces,
                              int*           ncells,
                              double**       coords,
-                             int*           facetonodes,
-                             int*           nodecounts,
-                             int*           celltofaces,
-                             int*           facecounts);
+                             int**          facetonodes,
+                             int**          nodecounts,
+                             int**          celltofaces,
+                             int**          facecounts);
 
   static void fillVolume(const int*     nnodes,
                          const int*     nfaces,

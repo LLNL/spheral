@@ -1220,10 +1220,10 @@ polyhedralMesh(int*           nnodes,
                int*           nfaces,
                int*           ncells,
                double**       coords,
-               int*           facetonodes,
-               int*           nodecounts,
-               int*           celltofaces,
-               int*           facecounts) {
+               int**          facetonodes,
+               int**          nodecounts,
+               int**          celltofaces,
+               int**          facecounts) {
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -1278,15 +1278,15 @@ polyhedralMesh(int*           nnodes,
   double * xcoord = new double[numVerts];
   double * ycoord = new double[numVerts];
   double * zcoord = new double[numVerts];
-  facetonodes = new int[numFaceToVerts];
-  celltofaces = new int[numCellToFaces];
-  nodecounts = new int[numFaces];
-  facecounts = new int[numCells];
+  int * lfacetonodes = new int[numFaceToVerts];
+  int * lcelltofaces = new int[numCellToFaces];
+  int * lnodecounts = new int[numFaces];
+  int * lfacecounts = new int[numCells];
 
-  facetonodes[0] = 0;
-  celltofaces[0] = 0;
-  nodecounts[0] = 0;
-  facecounts[0] = 0;
+  lfacetonodes[0] = 0;
+  lcelltofaces[0] = 0;
+  lnodecounts[0] = 0;
+  lfacecounts[0] = 0;
   int vertcounter = 0;
   int facecounter = 0;
   int cellcounter = 0;
@@ -1300,11 +1300,11 @@ polyhedralMesh(int*           nnodes,
       auto facetVertices = celli.facetVertices();
       for (unsigned j = 0; j != facetVertices.size(); ++j) {
         for (unsigned k = 0; k != facetVertices[j].size(); ++k) {
-          facetonodes[nodecounter] = vertcounter + facetVertices[j][k];
+          lfacetonodes[nodecounter] = vertcounter + facetVertices[j][k];
           ++nodecounter;
         }
-        celltofaces[facecounter] = facecounter;
-        nodecounts[facecounter] = facetVertices[j].size();
+        lcelltofaces[facecounter] = facecounter;
+        lnodecounts[facecounter] = facetVertices[j].size();
         ++facecounter;
       }
       for (unsigned j = 0; j != vertices.size(); ++j) {
@@ -1313,13 +1313,17 @@ polyhedralMesh(int*           nnodes,
         zcoord[vertcounter] = vertices[j].z();
         ++vertcounter;
       }
-      facecounts[cellcounter] = facets.size();
+      lfacecounts[cellcounter] = facets.size();
       ++cellcounter;
     }
   }
   coords[0] = xcoord;
   coords[1] = ycoord;
   coords[2] = zcoord;
+  facetonodes[0] = lfacetonodes;
+  celltofaces[0] = lcelltofaces;
+  nodecounts[0] = lnodecounts;
+  facecounts[0] = lfacecounts;
 }
 
 //------------------------------------------------------------------------------
