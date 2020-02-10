@@ -169,6 +169,9 @@ class SpheralController:
             self.iterateIdealH()
             db.reinitializeNeighbors()
             db.updateConnectivityMap(False)
+            for bc in uniquebcs:
+                bc.initializeProblemStartup()
+            self.integrator.setGhostNodes()
 
         # Initialize the integrator and packages.
         packages = self.integrator.physicsPackages()
@@ -182,6 +185,7 @@ class SpheralController:
         # If requested, initialize the derivatives.
         if initializeDerivatives or stateBCactive:
             self.integrator.preStepInitialize(state, derivs)
+            self.integrator.initializeDerivatives(initialTime, dt, state, derivs)
             dt = self.integrator.selectDt(self.integrator.dtMin, self.integrator.dtMax, state, derivs)
             self.integrator.initializeDerivatives(initialTime, dt, state, derivs)
             self.integrator.evaluateDerivatives(initialTime, dt, db, state, derivs)
