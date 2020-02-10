@@ -5,18 +5,22 @@
 # This is the basic Kelvin-Helmholtz problem as discussed in
 # Springel 2010, MNRAS, 401, 791-851.
 #-------------------------------------------------------------------------------
-import shutil
+import os, sys, shutil
+import mpi
 from math import *
+
 from Spheral2d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from GenerateNodeDistribution2d import *
 from CompositeNodeDistribution import *
 from CentroidalVoronoiRelaxation import *
-import SpheralVoronoiSiloDump
 
-import mpi
 import DistributeNodes
+if mpi.procs > 1:
+    from PeanoHilbertDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
 title("Kelvin-Helmholtz test problem in 2D")
 
@@ -46,14 +50,14 @@ commandLine(nx1 = 256,
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            nPerh = 1.51,
+            nPerh = 1.01,
 
             svph = False,
-            crksph = False,
+            crksph = True,
             psph = False,
             asph = False,   # Just for choosing the H algorithm
             filter = 0.0,   # CRKSPH filtering
-            order = 5,
+            order = 7,
             correctionOrder = LinearOrder,
             volumeType = RKSumVolume,
             linearConsistent = False,
@@ -72,12 +76,12 @@ commandLine(nx1 = 256,
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
-            Cl = 1.0, 
-            Cq = 1.0,
+            Cl = None, 
+            Cq = None,
             linearInExpansion = False,
-            Qlimiter = False,
+            Qlimiter = None,
             balsaraCorrection = False,
-            epsilon2 = 1e-2,
+            epsilon2 = None,
             hmin = 0.0001, 
             hmax = 0.5,
             hminratio = 0.1,
@@ -137,7 +141,9 @@ assert numNodeLists in (1, 2)
 if svph:
     hydroname = "SVPH"
 elif crksph:
-    hydroname = "CRKSPH"
+    hydroname = os.path.join("CRKSPH",
+                             "correctionOrder=%s" % correctionOrder,
+                             "volumeType=%s" % volumeType)
 elif psph:
     hydroname = "PSPH"
 else:
@@ -151,12 +157,10 @@ dataDir = os.path.join(dataDir,
                        "vxboost=%g-vyboost=%g" % (vxboost, vyboost),
                        hydroname,
                        "densityUpdate=%s" % (densityUpdate),
-                       "correctionOrder=%s" % (correctionOrder),
-                       "volumeType=%s" % volumeType,
                        "compatibleEnergy=%s" % (compatibleEnergy),
                        "Cullen=%s" % (boolCullenViscosity),
                        "filter=%g" % filter,
-                       "Cl=%g-Cq=%g" % (Cl, Cq),
+                       "Cl=%s-Cq=%s" % (Cl, Cq),
                        "%ix%i" % (nx1, ny1 + ny2),
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
 restartDir = os.path.join(dataDir, "restarts")
@@ -167,7 +171,6 @@ vizBaseName = "KelvinHelmholtz-2d_McNally"
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
@@ -239,11 +242,6 @@ generator22 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
                                          nNodePerh = nPerh,
                                          SPH = (not ASPH))
 generator2 = CompositeNodeDistribution(generator21, generator22)
-
-if mpi.procs > 1:
-    from VoronoiDistributeNodes import distributeNodes2d
-else:
-    from DistributeNodes import distributeNodes2d
 
 if numNodeLists == 2:
     distributeNodes2d((nodes1, generator1),
@@ -351,15 +349,13 @@ if svph:
     # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 elif crksph:
     hydro = CRKSPH(dataBase = db,
-                   W = WT, 
+                   order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
-                   correctionOrder = correctionOrder,
-                   volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
                    ASPH = asph)
@@ -391,8 +387,6 @@ else:
                 nTensile = nTensile,
                 ASPH = asph)
 output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
@@ -404,11 +398,16 @@ packages = [hydro]
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
 q = hydro.Q
-q.Cl = Cl
-q.Cq = Cq
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
+if not Cl is None:
+    q.Cl = Cl
+if not Cq is None:
+    q.Cq = Cq
+if not epsilon2 is None:
+    q.epsilon2 = epsilon2
+if not Qlimiter is None:
+    q.limiter = Qlimiter
+if not balsaraCorrection is None:
+    q.balsaraShearCorrection = balsaraCorrection
 output("q")
 output("q.Cl")
 output("q.Cq")
@@ -484,6 +483,7 @@ output("integrator.verbose")
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
+                            volumeType = volumeType,
                             initializeDerivatives = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
@@ -548,6 +548,7 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
+
 #    nsteps=int(goalTime/vizTime)
 #    print "NSTEPS=",nsteps," dt=",vizTime
 #    t=0.0
@@ -597,7 +598,6 @@ else:
 #rank = mpi.rank
 #if rank == 0:
 #  numpy.savetxt("mixing.txt",(times,amps))
-
 
 if serialDump:
   procs = mpi.procs
