@@ -42,6 +42,19 @@ class GenerateRatioSlab2d(NodeGeneratorBase):
 
         self.x, self.y, self.m, self.H = [], [], [], []
 
+        # Decide the actual ratios we're going to use to arrive at an integer number of radial bins.
+        def adjustRatio(drStart, drRatio, rmin, rmax):
+            if abs(drRatio - 1.0) > 1e-4:
+                neff = max(1, int(log(1.0 - (rmax - rmin)*(1.0 - drRatio)/drStart)/log(drRatio) + 0.5))
+                drStart = (rmax - rmin)*(1.0 - drRatio)/(1.0 - drRatio**neff)
+            else:
+                neff = max(1, int((rmax - rmin)/drStart + 0.5))
+                drStart = (rmax - rmin)/neff
+            return drStart, neff
+        dxSurface, nxeff = adjustRatio(dxSurface, xratio, xmin[0], xmax[0])
+        dySurface, nyeff = adjustRatio(dySurface, yratio, xmin[1], xmax[1])
+        print "Adjusting initial spacing to (%g, %g) in order to create integer numbers of bins (%i, %i) to edges." % (dxSurface, dySurface, nxeff, nyeff)
+
         # Work our way in from the y surface.
         y1 = xmax[1]
         dy = dySurface
