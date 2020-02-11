@@ -271,7 +271,8 @@ class Boundary:
         return "void"
 
     @PYB11virtual
-    def initializeProblemStartup(self):
+    def initializeProblemStartup(self,
+                                 final = "const bool"):
         "Some boundaries need to know when a problem is starting up and all the physics packages have been initialized."
         return "void"
 

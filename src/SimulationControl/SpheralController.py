@@ -156,7 +156,7 @@ class SpheralController:
         stateBCs = [eval("InflowOutflowBoundary%id" % i) for i in dims] + [eval("ConstantBoundary%id" % i) for i in dims]
         stateBCactive = max([False] + [isinstance(x, y) for y in stateBCs for x in uniquebcs])
         for bc in uniquebcs:
-            bc.initializeProblemStartup()
+            bc.initializeProblemStartup(False)
 
         # Create ghost nodes for the physics packages to initialize with.
         db = self.integrator.dataBase
@@ -188,7 +188,7 @@ class SpheralController:
 
         # If there are stateful boundaries present, give them one more crack at copying inital state
         for bc in uniquebcs:
-            bc.initializeProblemStartup()
+            bc.initializeProblemStartup(True)
 
         # Set up the default periodic work.
         self.appendPeriodicWork(self.printCycleStatus, printStep)

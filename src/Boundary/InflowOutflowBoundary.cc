@@ -241,7 +241,7 @@ InflowOutflowBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
+InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool final) {
 
   // Clear any existing data.
   mBufferedValues.clear();

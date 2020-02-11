@@ -124,7 +124,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   }
 
   // Boundaries may need to be reinitialized.
-  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) (*boundItr)->initializeProblemStartup();
+  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) (*boundItr)->initializeProblemStartup(false);
 
   // Apply boundaries to corrections before computing normal
   for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {

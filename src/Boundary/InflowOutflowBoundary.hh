@@ -70,7 +70,7 @@ public:
                               std::vector<int>& numNodesRemoved) override;
 
   // After physics have been initialized we take a snapshot of the node state.
-  virtual void initializeProblemStartup() override;
+  virtual void initializeProblemStartup(const bool final) override;
 
   // We need to not cull ghost nodes, since they might need to cross the boundary
   // and become new inflow nodes.

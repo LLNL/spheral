@@ -51,7 +51,8 @@ as they cross the specified boundary plane."""
         return "void"
 
     @PYB11virtual
-    def initializeProblemStartup(self):
+    def initializeProblemStartup(self,
+                                 final = "const bool"):
         "After physics have been initialized we take a snapshot of the node state."
         return "void"
 

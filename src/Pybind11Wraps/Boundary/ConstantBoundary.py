@@ -50,7 +50,8 @@ NodeList.
         return "void"
 
     @PYB11virtual
-    def initializeProblemStartup(self):
+    def initializeProblemStartup(self,
+                                 final = "const bool"):
         return "void"
 
     #...........................................................................
