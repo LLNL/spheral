@@ -169,6 +169,9 @@ class SpheralController:
             self.iterateIdealH()
             db.reinitializeNeighbors()
             db.updateConnectivityMap(False)
+            for bc in uniquebcs:
+                bc.initializeProblemStartup()
+            self.integrator.setGhostNodes()
 
         # Initialize the integrator and packages.
         packages = self.integrator.physicsPackages()
@@ -189,6 +192,7 @@ class SpheralController:
         # If there are stateful boundaries present, give them one more crack at copying inital state
         for bc in uniquebcs:
             bc.initializeProblemStartup()
+        self.integrator.setGhostNodes()
 
         # Set up the default periodic work.
         self.appendPeriodicWork(self.printCycleStatus, printStep)
