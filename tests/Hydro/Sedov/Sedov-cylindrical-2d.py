@@ -380,12 +380,14 @@ if dtMin:
 if dtMax:
     integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
+integrator.allowDtCheck = True
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
 output("integrator.dtGrowth")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
+output("integrator.allowDtCheck")
 
 #-------------------------------------------------------------------------------
 # Build the controller.
