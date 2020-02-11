@@ -61,7 +61,7 @@ commandLine(seed = "lattice",
 
             hmin = 1e-15,
             hmax = 1.0,
-            cfl = 0.5,
+            cfl = 0.25,
             useVelocityMagnitudeForDt = True,
             XSPH = False,
             rhomin = 1e-10,
