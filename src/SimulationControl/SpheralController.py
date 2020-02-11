@@ -185,7 +185,6 @@ class SpheralController:
         # If requested, initialize the derivatives.
         if initializeDerivatives or stateBCactive:
             self.integrator.preStepInitialize(state, derivs)
-            self.integrator.initializeDerivatives(initialTime, dt, state, derivs)
             dt = self.integrator.selectDt(self.integrator.dtMin, self.integrator.dtMax, state, derivs)
             self.integrator.initializeDerivatives(initialTime, dt, state, derivs)
             self.integrator.evaluateDerivatives(initialTime, dt, db, state, derivs)
@@ -193,6 +192,7 @@ class SpheralController:
         # If there are stateful boundaries present, give them one more crack at copying inital state
         for bc in uniquebcs:
             bc.initializeProblemStartup()
+        self.integrator.setGhostNodes()
 
         # Set up the default periodic work.
         self.appendPeriodicWork(self.printCycleStatus, printStep)
