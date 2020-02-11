@@ -101,7 +101,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                    mVolume);
   
   // Propagate volume to constant ghost nodes
-  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) (*boundItr)->initializeProblemStartup();
+  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) (*boundItr)->initializeProblemStartup(false);
 
   // Apply boundaries to newly computed terms
   for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {
