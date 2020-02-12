@@ -11,6 +11,13 @@ class RKCoefficients:
   typedef RKCoefficients<%(Dimension)s> SelfType;
 """
 
+    # Constructors
+    def pyinit(self):
+        return
+
+    def pyinit1(self, rhs="const RKCoefficients<%(Dimension)s>&"):
+        "Copy constructor"
+        return
 
     #...........................................................................
     # Comparators
@@ -41,7 +48,8 @@ class RKCoefficients:
 
     @PYB11cppname("operator[]")
     @PYB11returnpolicy("reference_internal")
-    @PYB11implementation('[](SelfType& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }, py::keep_alive<0,1>()')
+    @PYB11implementation('[](SelfType& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }')
+    #@PYB11implementation('[](SelfType& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }, py::keep_alive<0,1>()')
     def __getitem__(self):
         return
 
@@ -49,7 +57,7 @@ class RKCoefficients:
     def __setitem__(self):
         "Set a value"
 
-    @PYB11implementation("[](const SelfType& self) { return py::make_iterator(self.begin(), self.end()); }, py::keep_alive<0,1>()")
+    @PYB11implementation("[](const SelfType& self) { return py::make_iterator(self.begin(), self.end()); }")
     def __iter__(self):
         "Python iteration"
 
