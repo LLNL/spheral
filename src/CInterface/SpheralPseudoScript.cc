@@ -929,7 +929,7 @@ initializeBoundariesAndPhysics() {
   state0.copyState();
 
   // Initialize boundaries
-  for (auto& bc: me.mHostCodeBoundaries) bc->initializeProblemStartup();
+  for (auto& bc: me.mHostCodeBoundaries) bc->initializeProblemStartup(false);
 
   // Create initial ghost nodes
   me.mDataBasePtr->reinitializeNeighbors();
@@ -944,7 +944,7 @@ initializeBoundariesAndPhysics() {
   // physics package state
   me.mIntegratorPtr->setGhostNodes();
   me.mDataBasePtr->updateConnectivityMap(false, false);
-  for (auto& bc: me.mHostCodeBoundaries) bc->initializeProblemStartup();
+  for (auto& bc: me.mHostCodeBoundaries) bc->initializeProblemStartup(true);
 
   // Reset the state object
   me.mStatePtr.reset(new State<Dimension>(*me.mDataBasePtr,
