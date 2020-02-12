@@ -100,6 +100,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                    mSurfacePoint, mDeltaCentroid, mEtaVoidPoints, mCells, mCellFaceFlags,
                    mVolume);
   
+  // Propagate volume to constant ghost nodes
+  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) (*boundItr)->initializeProblemStartup(false);
+
   // Apply boundaries to newly computed terms
   for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(mVolume);
@@ -124,7 +127,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   }
 
   // Boundaries may need to be reinitialized.
-  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) (*boundItr)->initializeProblemStartup();
+  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) (*boundItr)->initializeProblemStartup(false);
 
   // Apply boundaries to corrections before computing normal
   for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {

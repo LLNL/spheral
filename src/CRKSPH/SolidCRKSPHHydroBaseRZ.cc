@@ -14,7 +14,7 @@
 #include "Physics/GenericHydro.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
+#include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "Strength/RZPlasticStrainPolicy.hh"
@@ -208,7 +208,7 @@ registerState(DataBase<Dim<2>>& dataBase,
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
+    PolicyPointer thermalEnergyPolicy(new RZNonSymmetricSpecificThermalEnergyPolicy(dataBase));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
 
     // Get the policy for the position, and add the specific energy as a dependency.

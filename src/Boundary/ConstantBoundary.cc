@@ -183,9 +183,9 @@ enforceBoundary(FieldBase<Dimension>& field) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-ConstantBoundary<Dimension>::initializeProblemStartup() {
+ConstantBoundary<Dimension>::initializeProblemStartup(const bool final) {
 
-  if (not mActive) {
+  if (final and not mActive) {
 
     // Clear any existing data.
     mBufferedValues.clear();

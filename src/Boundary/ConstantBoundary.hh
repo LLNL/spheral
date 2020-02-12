@@ -68,7 +68,7 @@ public:
   //**********************************************************************
 
   // After physics have been initialized we take a snapshot of the node state.
-  virtual void initializeProblemStartup() override;
+  virtual void initializeProblemStartup(const bool final) override;
 
   // Accessor methods.
   std::vector<int> nodeIndices() const;

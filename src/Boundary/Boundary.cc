@@ -96,33 +96,30 @@ Boundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>& flagSet,
                                     FieldList<Dimension, int>& old2newIndexMap,
                                     vector<int>& numNodesRemoved) {
 
-  typedef NodeListRegistrar<Dimension> Registrar;
-  Registrar& registrar = Registrar::instance();
+  auto& registrar = NodeListRegistrar<Dimension>::instance();
   REQUIRE(numNodesRemoved.size() == registrar.numNodeLists());
 
   // Walk the NodeLists.
-  size_t nodeListi = 0;
-  for (typename Registrar::const_iterator itr = registrar.begin();
-       itr != registrar.end();
-       ++itr, ++nodeListi) {
-    const NodeList<Dimension>* nodeListPtr = *itr;
+  auto nodeListi = 0;
+  for (auto itr = registrar.begin(); itr != registrar.end(); ++itr, ++nodeListi) {
+    const auto* nodeListPtr = *itr;
 
     // Does the Boundary have entries for this NodeList?
     if (haveNodeList(*nodeListPtr)) {
-      BoundaryNodes& boundaryNodes = accessBoundaryNodes(const_cast<NodeList<Dimension>&>(*nodeListPtr));
+      auto& boundaryNodes = accessBoundaryNodes(const_cast<NodeList<Dimension>&>(*nodeListPtr));
       CHECK(boundaryNodes.ghostNodes.size() == boundaryNodes.controlNodes.size());
       if (boundaryNodes.ghostNodes.size() > 0) {
-        const size_t myOldFirstGhostNode = boundaryNodes.ghostNodes[0];
-        const size_t myNewFirstGhostNode = myOldFirstGhostNode - numNodesRemoved[nodeListi];
+        const auto myOldFirstGhostNode = boundaryNodes.ghostNodes[0];
+        const auto myNewFirstGhostNode = myOldFirstGhostNode - numNodesRemoved[nodeListi];
 
         // Grab the flags for this NodeList.
         CHECK(flagSet.haveNodeList(*nodeListPtr));
-        const Field<Dimension, int>& flags = *(flagSet[nodeListi]);
+        const auto& flags = *(flagSet[nodeListi]);
 
         // Patch up the ghost and control node indices.
         vector<int> newGhostNodes, newControlNodes;
-        size_t newGhostIndex = myNewFirstGhostNode;
-        for (size_t k = 0; k != boundaryNodes.ghostNodes.size(); ++k) {
+        auto newGhostIndex = myNewFirstGhostNode;
+        for (auto k = 0; k < boundaryNodes.ghostNodes.size(); ++k) {
           if (flags(boundaryNodes.ghostNodes[k]) == 1) {
             newGhostNodes.push_back(newGhostIndex);
             old2newIndexMap(nodeListi, boundaryNodes.ghostNodes[k]) = newGhostIndex;

@@ -543,7 +543,7 @@ valid() const {
           const int maxNeighbor = *max_element(neighbors.begin(), neighbors.end());
 
           if (minNeighbor < 0 or maxNeighbor >= nodeListPtrj->numNodes()) {
-            cerr << "ConnectivityMap::valid: Failed test that neighbors must be valid IDs" << endl;
+            cerr << "ConnectivityMap::valid: Failed test that neighbors must be valid IDs: " << minNeighbor << " " << maxNeighbor << " " << nodeListPtrj->numNodes() << endl;
             return false;
           }
 

@@ -61,7 +61,7 @@ commandLine(seed = "lattice",
 
             hmin = 1e-15,
             hmax = 1.0,
-            cfl = 0.5,
+            cfl = 0.25,
             useVelocityMagnitudeForDt = True,
             XSPH = False,
             rhomin = 1e-10,
@@ -291,12 +291,11 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 if crksph:
     hydro = CRKSPH(dataBase = db,
-                   W = WT, 
+                   order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
-                   correctionOrder = correctionOrder,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
                    ASPH = asph)
@@ -327,8 +326,6 @@ else:
                 HUpdate = HEvolution,
                 ASPH = asph)
 output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.XSPH")
@@ -383,12 +380,14 @@ if dtMin:
 if dtMax:
     integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
+integrator.allowDtCheck = True
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
 output("integrator.dtGrowth")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
+output("integrator.allowDtCheck")
 
 #-------------------------------------------------------------------------------
 # Build the controller.
@@ -398,6 +397,7 @@ if useVoronoiOutput:
     import SpheralVoronoiSiloDump
     vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,

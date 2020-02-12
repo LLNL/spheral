@@ -33,8 +33,27 @@ class GenerateRatioSlab2d(NodeGeneratorBase):
         assert xmin[1] < xmax[1]
         assert nNodePerh > 0.0
         
-        self.rho = rho
+        # If the user provided a constant for rho, then use the constantRho
+        # class to provide this value.
+        if type(rho) == type(1.0):
+            self.rho = ConstantRho(rho)
+        else:
+            self.rho = rho
+
         self.x, self.y, self.m, self.H = [], [], [], []
+
+        # Decide the actual ratios we're going to use to arrive at an integer number of radial bins.
+        def adjustRatio(drStart, drRatio, rmin, rmax):
+            if abs(drRatio - 1.0) > 1e-4:
+                neff = max(1, int(log(1.0 - (rmax - rmin)*(1.0 - drRatio)/drStart)/log(drRatio) + 0.5))
+                drStart = (rmax - rmin)*(1.0 - drRatio)/(1.0 - drRatio**neff)
+            else:
+                neff = max(1, int((rmax - rmin)/drStart + 0.5))
+                drStart = (rmax - rmin)/neff
+            return drStart, neff
+        dxSurface, nxeff = adjustRatio(dxSurface, xratio, xmin[0], xmax[0])
+        dySurface, nyeff = adjustRatio(dySurface, yratio, xmin[1], xmax[1])
+        print "Adjusting initial spacing to (%g, %g) in order to create integer numbers of bins (%i, %i) to edges." % (dxSurface, dySurface, nxeff, nyeff)
 
         # Work our way in from the y surface.
         y1 = xmax[1]
@@ -60,7 +79,7 @@ class GenerateRatioSlab2d(NodeGeneratorBase):
 
                 self.x.append(xi)
                 self.y.append(yi)
-                self.m.append(rho*dx*dy)
+                self.m.append(self.rho(Vector2d(xi, yi))*dx*dy)
                 self.H.append(SymTensor2d(1.0/hx, 0.0, 0.0, 1.0/hy))
                 
                 x1 = x0
@@ -69,17 +88,17 @@ class GenerateRatioSlab2d(NodeGeneratorBase):
             y1 = y0
             dy *= yratio
 
-        # Make sure the total mass is what we intend it to be, by applying
-        # a multiplier to the particle masses.
-        M0 = 0.0
-        for m in self.m:
-            M0 += m
-        assert M0 > 0.0
-        M1 = (xmax[0] - xmin[0]) * (xmax[1] - xmin[1]) * rho
-        massCorrection = M1/M0
-        for i in xrange(len(self.m)):
-            self.m[i] *= massCorrection
-        print "Applied a mass correction of %f to ensure total mass is %f." % (massCorrection, M1)
+        # # Make sure the total mass is what we intend it to be, by applying
+        # # a multiplier to the particle masses.
+        # M0 = 0.0
+        # for m in self.m:
+        #     M0 += m
+        # assert M0 > 0.0
+        # M1 = (xmax[0] - xmin[0]) * (xmax[1] - xmin[1]) * rho
+        # massCorrection = M1/M0
+        # for i in xrange(len(self.m)):
+        #     self.m[i] *= massCorrection
+        # print "Applied a mass correction of %f to ensure total mass is %f." % (massCorrection, M1)
 
         # Have the base class break up the serial node distribution
         # for parallel cases.
@@ -107,7 +126,7 @@ class GenerateRatioSlab2d(NodeGeneratorBase):
     # Get the mass density for the given node index.
     #---------------------------------------------------------------------------
     def localMassDensity(self, i):
-        return self.rho
+        return self.rho(self.localPosition(i))
     
     #---------------------------------------------------------------------------
     # Get the H tensor for the given node index.
