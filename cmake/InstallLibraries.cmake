@@ -1,4 +1,5 @@
 set(PATCH_DIR ${PROJECT_SOURCE_DIR}/thirdPartyLibs)
+set(CACHE_DIR ${PROJECT_SOURCE_DIR}/thirdPartyLibs/cache)
 
 set(SPHERAL_TPL_DIR ${SPHERAL_INSTALL_DIR})
 if(SPHERAL_TPL_DIR)
@@ -108,7 +109,7 @@ endif()
 if(INSTALL_TPLS AND NOT PYTHON_DIR)
   message("\n---------- BUILDING PYTHON ----------")
   get_filename_component(PYTHON_PREFIX ${SPHERAL_TPL_DIR} DIRECTORY)
-  set(PYTHON_PREFIX "${PYTHON_PREFIX}/")
+  set(PYTHON_PREFIX "${PYTHON_PREFIX}")
   set(PYTHON_TARGET python)
   set(PYTHON_DIR ${PYTHON_PREFIX}/python)
   set(PYTHON_EXISTS_FILE "${PYTHON_DIR}/include/python2.7/Python.h")
@@ -135,26 +136,54 @@ if(INSTALL_TPLS AND NOT PYTHON_DIR)
   message("--------------------------------------\n")
 endif()
 
+set(PIPTARGETS 
+  PYB11Generator
+  mpi4py
+  numpy-stl
+  matplotlib
+  )
+
 if(PYTHON_DIR)
   ################################
   # CONFUGURING PIP/PYTHON LIBS
   ################################
   set(PYTHON_EXE ${PYTHON_DIR}/bin/python2.7)
-  set(PIP_EXE    ${PYTHON_DIR}/bin/pip2.7)
   set(PYTHON_SITE_PACKAGE_DIR ${PYTHON_DIR}/lib/python2.7/site-packages)
+  set(PYTHON_EXECUTABLE ${PYTHON_EXE})
+  set(PIP_EXE    ${PYTHON_DIR}/bin/pip2.7)
+  set(PYTHON_VERSION "2.7")
 
+  include(FindPythonModule)
   # install pip and python packages
   if (NOT EXISTS ${PIP_EXE})
-    execute_process(COMMAND curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py)
+    execute_process(COMMAND wget -P ${CACHE_DIR} https://bootstrap.pypa.io/get-pip.py -O get-pip.py)
     execute_process(COMMAND ${PYTHON_EXE} get-pip.py)
-    execute_process(COMMAND ${PIP_EXE} install PYB11Generator -t ${PYTHON_SITE_PACKAGE_DIR})
-    execute_process(COMMAND ${PIP_EXE} install mpi4py -t ${PYTHON_SITE_PACKAGE_DIR})
-    execute_process(COMMAND ${PIP_EXE} install numpy-stl -t ${PYTHON_SITE_PACKAGE_DIR})
-    execute_process(COMMAND ${PIP_EXE} install matplotlib -t ${PYTHON_SITE_PACKAGE_DIR})
+  endif()
 
-    execute_process(COMMAND wget http://downloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz)
-    execute_process(COMMAND gunzip -f gnuplot-py-1.8.tar.gz)
-    execute_process(COMMAND tar -xvf gnuplot-py-1.8.tar)
+  # Download and install PIP modules
+  foreach(_target ${PIPTARGETS})
+    # Case for numpy-stl
+    set(_tmp_target ${_target})
+    if(${_target} STREQUAL "numpy-stl")
+      set(_tmp_target stl)
+    endif()
+
+    string(TOUPPER ${_tmp_target} _target_upper)
+    find_python_module(${_tmp_target} QUIET)
+
+    if (NOT PY_${_target_upper})
+      execute_process(COMMAND ${PIP_EXE} download --no-binary :all -d ${CACHE_DIR} ${_target})
+    endif()
+
+    if (NOT PY_${_target_upper})
+      execute_process(COMMAND ${PIP_EXE} install --upgrade ${_target} --no-index --find-links ${CACHE_DIR})
+    endif()
+  endforeach()
+
+  find_python_module(Gnuplot QUIET)
+  if(NOT PY_GNUPLOT)
+    execute_process(COMMAND wget http://downloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz -O ${CACHE_DIR}/gnuplot-py-1.8.tar.gz)
+    execute_process(COMMAND tar -xvf ${CACHE_DIR}/gnuplot-py-1.8.tar.gz)
     execute_process(COMMAND ${PYTHON_EXE} setup.py install
                     WORKING_DIRECTORY gnuplot-py-1.8)
   endif()

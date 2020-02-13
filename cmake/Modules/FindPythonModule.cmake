@@ -6,10 +6,15 @@
 include(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
 function(find_python_module module)
   string(TOUPPER ${module} module_upper)
-  if(NOT PY_${module_upper})
+  #if(NOT PY_${module_upper})
+  #message("running")
     if(ARGC GREATER 1 AND ARGV1 STREQUAL "REQUIRED")
       set(PY_${module}_FIND_REQUIRED TRUE)
     endif()
+    if(ARGC GREATER 1 AND ARGV1 STREQUAL "QUIET")
+      set(PY_${module}_FIND_QUIETLY TRUE)
+    endif()
+
     # A module's location is usually a directory, but for binary modules it's a .so file.
     if (${PYTHON_VERSION} VERSION_LESS "3.0")
       set (CMDSTRING "import ${module}; print ${module}.__file__.replace('__init__.pyc', '')")
@@ -21,10 +26,11 @@ function(find_python_module module)
                     OUTPUT_VARIABLE _${module}_location
                     ERROR_QUIET 
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
-    if (NOT _${module}_status)
+    #message("${_${module}_location}")
+    #if (NOT ${_${module}_status})
       set(PY_${module_upper} ${_${module}_location} CACHE STRING 
-          "Location of Python module ${module}")
-    endif()
-  endif()
+        "Location of Python module ${module}" FORCE)
+        #endif()
+    #endif()
   find_package_handle_standard_args(PY_${module} DEFAULT_MSG PY_${module_upper})
 endfunction(find_python_module)
