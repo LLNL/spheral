@@ -43,7 +43,7 @@ function(DownloadAndBuildLib TARGET_NAME)
     )
     
     if(NOT EXISTS ${${TARGET_NAME}_EXISTS_FILE})
-      message(ERROR "Failed to build ${TARGET_NAME}")
+      message(FATAL_ERROR "Failed to build ${TARGET_NAME}")
     endif()
 
   else()
@@ -62,9 +62,15 @@ if(INSTALL_TPLS AND NOT BOOST_DIR)
   set(BOOST_TARGET boost)
   set(BOOST_DIR "${BOOST_PREFIX}/boost")
   set(BOOST_EXISTS_FILE "${BOOST_PREFIX}/boost/lib/libboost_system.a")
+  set(BOOST_CACHE "${CACHE_DIR}/boost_1_69_0.tar.bz2")
 
   if (NOT BOOST_URL)
-    set(BOOST_URL "https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.bz2")
+    if (EXISTS ${BOOST_CACHE})
+      set(BOOST_URL ${BOOST_CACHE})
+    else()
+      set(BOOST_URL "https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.bz2")
+    endif()
+
   endif()
 
   set(BOOST_SRC_DIR "${BOOST_PREFIX}/boost/src/boost")
@@ -72,6 +78,7 @@ if(INSTALL_TPLS AND NOT BOOST_DIR)
     ExternalProject_add(${BOOST_TARGET}
       PREFIX ${BOOST_PREFIX}/${BOOST_TARGET}
       URL ${BOOST_URL} 
+      DOWNLOAD_DIR ${CACHE_DIR}
       #PATCH_COMMAND patch -t ${BOOST_SRC_DIR}/config/config.guess ${PATCH_DIR}/config.guess-boost-4.10.2-bsd.patch &&
       #              patch -t ${BOOST_SRC_DIR}/config/config.sub   ${PATCH_DIR}/config.sub-boost-4.10.2-bsd.patch
       CONFIGURE_COMMAND ${BOOST_SRC_DIR}/bootstrap.sh
@@ -113,17 +120,23 @@ if(INSTALL_TPLS AND NOT PYTHON_DIR)
   set(PYTHON_TARGET python)
   set(PYTHON_DIR ${PYTHON_PREFIX}/python)
   set(PYTHON_EXISTS_FILE "${PYTHON_DIR}/include/python2.7/Python.h")
+  set(PYTHON_CACHE "${CACHE_DIR}/Python-2.7.15.tgz")
 
   if(NOT PYTHON_URL)
-    set(PYTHON_URL "http://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz")
+    if (EXISTS ${PYTHON_CACHE})
+      set(PYTHON_URL ${PYTHON_CACHE})
+    else()
+      set(PYTHON_URL "http://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz")
+    endif()
   endif()
 
-  set(PYTHON_SRC_DIR "${PYTHON_PREFIX}/python/src/python")
+  set(_PYTHON_SRC_DIR "${PYTHON_PREFIX}/python/src/python")
   set(PYTHON_EXTERNAL_PROJECT_FUNCTION "
     ExternalProject_add(${PYTHON_TARGET}
       PREFIX ${PYTHON_PREFIX}/${PYTHON_TARGET}
       URL ${PYTHON_URL} 
-      CONFIGURE_COMMAND ${PYTHON_SRC_DIR}/configure
+      DOWNLOAD_DIR ${CACHE_DIR}
+      CONFIGURE_COMMAND ${_PYTHON_SRC_DIR}/configure
                         --with-cxx-main='${CMAKE_CXX_COMPILER}'
                         --disable-ipv6
                         --prefix=${PYTHON_PREFIX}/${PYTHON_TARGET}
@@ -203,9 +216,14 @@ if(INSTALL_TPLS AND NOT PYBIND11_DIR)
   set(PYBIND11_TARGET pybind11)
   set(PYBIND11_DIR ${PYBIND11_PREFIX})
   set(PYBIND11_EXISTS_FILE "${PYBIND11_PREFIX}/include/pybind11/pybind11.h")
+  set(PYBIND11_CACHE "${CACHE_DIR}/v2.4.3.tar.gz")
 
   if (NOT PYBIND11_URL)
-    set(PYBIND11_URL "https://github.com/pybind/pybind11/archive/v2.4.3.tar.gz")
+    if (EXISTS ${PYBIND11_CACHE})
+      set(PYBIND11_URL ${PYBIND11_CACHE})
+    else()
+      set(PYBIND11_URL "https://github.com/pybind/pybind11/archive/v2.4.3.tar.gz")
+    endif()
   endif()
 
   set(PYBIND11_CMAKE_ARGS "-DPYBIND11_TEST=Off -DCMAKE_INSTALL_PREFIX=${PYBIND11_PREFIX}")
@@ -213,6 +231,7 @@ if(INSTALL_TPLS AND NOT PYBIND11_DIR)
     ExternalProject_add(${PYBIND11_TARGET}
       PREFIX ${PYBIND11_PREFIX}/${PYBIND11_TARGET}
       URL ${PYBIND11_URL}
+      DOWNLOAD_DIR ${CACHE_DIR}
       CMAKE_ARGS ${PYBIND11_CMAKE_ARGS}
     )
   ")
@@ -246,9 +265,14 @@ if(INSTALL_TPLS AND NOT POLYTOPE_DIR)
   set(POLYTOPE_TARGET polytope)
   set(POLYTOPE_DIR ${POLYTOPE_PREFIX})
   set(POLYTOPE_EXISTS_FILE "${POLYTOPE_PREFIX}/include/polytope/polytope.hh")
+  set(POLYTOPE_CACHE "${CACHE_DIR}/0.6.2.tar.gz")
 
   if (NOT POLYTOPE_URL)
-    set(POLYTOPE_URL "https://github.com/pbtoast/polytope/archive/0.6.2.tar.gz")
+    if (EXISTS ${POLYTOPE_CACHE})
+      set(POLYTOPE_URL ${POLYTOPE_CACHE})
+    else()
+      set(POLYTOPE_URL "https://github.com/pbtoast/polytope/archive/0.6.2.tar.gz")
+    endif()
   endif()
 
   set(POLYTOPE_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${POLYTOPE_PREFIX} 
@@ -264,6 +288,7 @@ if(INSTALL_TPLS AND NOT POLYTOPE_DIR)
                     patch -t ${POLYTOPE_PREFIX}/polytope/src/polytope/src/PYB11/CMakeLists.txt  ${PATCH_DIR}/polytope-PYB11-CMakeLists.patch
 
       URL ${POLYTOPE_URL}
+      DOWNLOAD_DIR ${CACHE_DIR}
       CMAKE_ARGS ${POLYTOPE_CMAKE_ARGS}
     )
   ")
@@ -297,9 +322,14 @@ if(INSTALL_TPLS AND NOT EIGEN_DIR)
   set(EIGEN_TARGET eigen)
   set(EIGEN_DIR ${EIGEN_PREFIX})
   set(EIGEN_EXISTS_FILE "${EIGEN_PREFIX}/include/eigen3/Eigen/Eigen")
+  set(EIGEN_CACHE "${CACHE_DIR}/3.3.7.tar.gz")
 
   if (NOT EIGEN_URL)
-    set(EIGEN_URL "https://github.com/eigenteam/eigen-git-mirror/archive/3.3.7.tar.gz")
+    if (EXISTS ${EIGEN_CACHE})
+      set(EIGEN_URL ${EIGEN_CACHE})
+    else()
+      set(EIGEN_URL "https://github.com/eigenteam/eigen-git-mirror/archive/3.3.7.tar.gz")
+    endif()
   endif()
 
   set(EIGEN_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${EIGEN_PREFIX}")
@@ -307,6 +337,7 @@ if(INSTALL_TPLS AND NOT EIGEN_DIR)
     ExternalProject_add(${EIGEN_TARGET}
       PREFIX ${EIGEN_PREFIX}/${EIGEN_TARGET}
       URL ${EIGEN_URL}
+      DOWNLOAD_DIR ${CACHE_DIR}
       CMAKE_ARGS ${EIGEN_CMAKE_ARGS}
     )
   ")
@@ -339,9 +370,14 @@ if(INSTALL_TPLS AND NOT QHULL_DIR)
   set(QHULL_TARGET qhull)
   set(QHULL_DIR ${QHULL_PREFIX}/qhull)
   set(QHULL_EXISTS_FILE "${QHULL_DIR}/lib/libqhullstatic.a")
+  set(QHULL_CACHE "${CACHE_DIR}/2019.1.tar.gz")
 
   if (NOT QHULL_URL)
-    set(QHULL_URL "https://github.com/qhull/qhull/archive/2019.1.tar.gz")
+    if (EXISTS ${QHULL_CACHE})
+      set(QHULL_URL ${QHULL_CACHE})
+    else()
+      set(QHULL_URL "https://github.com/qhull/qhull/archive/2019.1.tar.gz")
+    endif()
   endif()
 
   set(QHULL_CMAKE_ARGS "-DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_C_COMPILER=mpicc -DCMAKE_C_FLAGS=-fPIC -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=${QHULL_DIR}")
@@ -352,6 +388,7 @@ if(INSTALL_TPLS AND NOT QHULL_DIR)
       PATCH_COMMAND patch -t ${QHULL_SRC_DIR}/libqhull/qhull_a.h ${PATCH_DIR}/qhull-2015.2-qhull_a.h-patch &&
                     patch -t ${QHULL_SRC_DIR}/libqhull_r/qhull_ra.h ${PATCH_DIR}/qhull-2015.2-qhull_ra.h-patch
       URL ${QHULL_URL}
+      DOWNLOAD_DIR ${CACHE_DIR}
       CMAKE_ARGS ${QHULL_CMAKE_ARGS}
   )
 ")
@@ -385,9 +422,14 @@ if(INSTALL_TPLS AND NOT HDF5_DIR)
   set(HDF5_TARGET hdf5)
   set(HDF5_DIR "${HDF5_PREFIX}/hdf5")
   set(HDF5_EXISTS_FILE "${HDF5_PREFIX}/hdf5/lib/libhdf5.a")
+  set(HDF5_CACHE "${CACHE_DIR}/hdf5-1.10.4.tar.bz2")
 
   if (NOT HDF5_URL)
-    set(HDF5_URL "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.4/src/hdf5-1.10.4.tar.bz2")
+    if (EXISTS ${HDF5_CACHE})
+      set(HDF5_URL ${HDF5_CACHE})
+    else()
+      set(HDF5_URL "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.4/src/hdf5-1.10.4.tar.bz2")
+    endif()
   endif()
 
   set(HDF5_SRC_DIR "${HDF5_PREFIX}/hdf5/src/hdf5")
@@ -395,6 +437,7 @@ if(INSTALL_TPLS AND NOT HDF5_DIR)
     ExternalProject_add(${HDF5_TARGET}
       PREFIX ${HDF5_PREFIX}/${HDF5_TARGET}
       URL ${HDF5_URL} 
+      DOWNLOAD_DIR ${CACHE_DIR}
       CONFIGURE_COMMAND ${HDF5_SRC_DIR}/configure 
                         --prefix=${HDF5_PREFIX}/${HDF5_TARGET}
       BUILD_COMMAND make -j32
@@ -431,9 +474,14 @@ if(INSTALL_TPLS AND NOT SILO_DIR)
   set(SILO_TARGET silo)
   set(SILO_DIR "${SILO_PREFIX}/silo")
   set(SILO_EXISTS_FILE "${SILO_PREFIX}/silo/lib/libsiloh5.a")
+  set(SILO_CACHE "${CACHE_DIR}/silo-4.10.2-bsd.tar.gz")
 
   if(NOT SILO_URL)
-    set(SILO_URL "https://wci.llnl.gov/content/assets/docs/simulation/computer-codes/silo/silo-4.10.2/silo-4.10.2-bsd.tar.gz")
+    if (EXISTS ${SILO_CACHE})
+      set(SILO_URL ${SILO_CACHE})
+    else()
+      set(SILO_URL "https://wci.llnl.gov/content/assets/docs/simulation/computer-codes/silo/silo-4.10.2/silo-4.10.2-bsd.tar.gz")
+    endif()
   endif()
 
   set(SILO_SRC_DIR "${SILO_PREFIX}/silo/src/silo")
@@ -441,6 +489,7 @@ if(INSTALL_TPLS AND NOT SILO_DIR)
     ExternalProject_add(${SILO_TARGET}
       PREFIX ${SILO_PREFIX}/${SILO_TARGET}
       URL ${SILO_URL} 
+      DOWNLOAD_DIR ${CACHE_DIR}
       PATCH_COMMAND patch -t ${SILO_SRC_DIR}/config/config.guess ${PATCH_DIR}/config.guess-silo-4.10.2-bsd.patch &&
                     patch -t ${SILO_SRC_DIR}/config/config.sub   ${PATCH_DIR}/config.sub-silo-4.10.2-bsd.patch
       CONFIGURE_COMMAND ${SILO_SRC_DIR}/configure
