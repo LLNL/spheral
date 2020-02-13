@@ -64,7 +64,7 @@ public:
   virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the violation node values in the given Field.
-  virtual void enforceBoundary(FieldBase<Dimension>& fieldBase) const;
+  virtual void enforceBoundary(FieldBase<Dimension>& fieldBase) const override;
   //**********************************************************************
 
   // After physics have been initialized we take a snapshot of the node state.
