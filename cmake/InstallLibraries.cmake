@@ -81,7 +81,7 @@ if(INSTALL_TPLS AND NOT BOOST_DIR)
       DOWNLOAD_DIR ${CACHE_DIR}
       #PATCH_COMMAND patch -t ${BOOST_SRC_DIR}/config/config.guess ${PATCH_DIR}/config.guess-boost-4.10.2-bsd.patch &&
       #              patch -t ${BOOST_SRC_DIR}/config/config.sub   ${PATCH_DIR}/config.sub-boost-4.10.2-bsd.patch
-      CONFIGURE_COMMAND ${BOOST_SRC_DIR}/bootstrap.sh
+      CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} ${BOOST_SRC_DIR}/bootstrap.sh
       --with-toolset=${CMAKE_C_COMPILER_ID}
       --without-libraries=atomic,container,coroutine,log,chrono,context,date_time,exception,fiber,filesystem,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,system,test,thread,timer,type_erasure,wave
       --prefix=${BOOST_DIR}
@@ -136,7 +136,7 @@ if(INSTALL_TPLS AND NOT PYTHON_DIR)
       PREFIX ${PYTHON_PREFIX}/${PYTHON_TARGET}
       URL ${PYTHON_URL} 
       DOWNLOAD_DIR ${CACHE_DIR}
-      CONFIGURE_COMMAND ${_PYTHON_SRC_DIR}/configure
+      CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} ${_PYTHON_SRC_DIR}/configure
                         --with-cxx-main='${CMAKE_CXX_COMPILER}'
                         --disable-ipv6
                         --prefix=${PYTHON_PREFIX}/${PYTHON_TARGET}
@@ -231,7 +231,7 @@ if(INSTALL_TPLS AND NOT PYBIND11_DIR)
     endif()
   endif()
 
-  set(PYBIND11_CMAKE_ARGS "-DPYBIND11_TEST=Off -DCMAKE_INSTALL_PREFIX=${PYBIND11_PREFIX}")
+  set(PYBIND11_CMAKE_ARGS "-DPYBIND11_TEST=Off -DCMAKE_INSTALL_PREFIX=${PYBIND11_PREFIX} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} ")
   set(PYBIND11_EXTERNAL_PROJECT_FUNCTION "
     ExternalProject_add(${PYBIND11_TARGET}
       PREFIX ${PYBIND11_PREFIX}/${PYBIND11_TARGET}
@@ -280,7 +280,9 @@ if(INSTALL_TPLS AND NOT POLYTOPE_DIR)
     endif()
   endif()
 
-  set(POLYTOPE_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${POLYTOPE_PREFIX} 
+  set(POLYTOPE_CMAKE_ARGS "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                           -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+                           -DCMAKE_INSTALL_PREFIX=${POLYTOPE_PREFIX} 
                            -DPYBIND11_INCLUDE_DIRS=${PYBIND11_INCLUDE_DIRS}
                            -DUSE_PYTHON=On
                            -DPYTHON_EXE=${PYTHON_EXE}
@@ -337,7 +339,7 @@ if(INSTALL_TPLS AND NOT EIGEN_DIR)
     endif()
   endif()
 
-  set(EIGEN_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${EIGEN_PREFIX}")
+  set(EIGEN_CMAKE_ARGS "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_INSTALL_PREFIX=${EIGEN_PREFIX}")
   set(EIGEN_EXTERNAL_PROJECT_FUNCTION "
     ExternalProject_add(${EIGEN_TARGET}
       PREFIX ${EIGEN_PREFIX}/${EIGEN_TARGET}
@@ -385,7 +387,7 @@ if(INSTALL_TPLS AND NOT QHULL_DIR)
     endif()
   endif()
 
-  set(QHULL_CMAKE_ARGS "-DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_C_COMPILER=mpicc -DCMAKE_C_FLAGS=-fPIC -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=${QHULL_DIR}")
+  set(QHULL_CMAKE_ARGS "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_FLAGS=-fPIC -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=${QHULL_DIR}")
   set(QHULL_SRC_DIR ${QHULL_DIR}/src/qhull/src)
   set(QHULL_EXTERNAL_PROJECT_FUNCTION "
     ExternalProject_add(${QHULL_TARGET}
@@ -443,7 +445,7 @@ if(INSTALL_TPLS AND NOT HDF5_DIR)
       PREFIX ${HDF5_PREFIX}/${HDF5_TARGET}
       URL ${HDF5_URL} 
       DOWNLOAD_DIR ${CACHE_DIR}
-      CONFIGURE_COMMAND ${HDF5_SRC_DIR}/configure 
+      CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} ${HDF5_SRC_DIR}/configure 
                         --prefix=${HDF5_PREFIX}/${HDF5_TARGET}
       BUILD_COMMAND make -j32
       INSTALL_COMMAND make install
@@ -497,7 +499,7 @@ if(INSTALL_TPLS AND NOT SILO_DIR)
       DOWNLOAD_DIR ${CACHE_DIR}
       PATCH_COMMAND patch -t ${SILO_SRC_DIR}/config/config.guess ${PATCH_DIR}/config.guess-silo-4.10.2-bsd.patch &&
                     patch -t ${SILO_SRC_DIR}/config/config.sub   ${PATCH_DIR}/config.sub-silo-4.10.2-bsd.patch
-      CONFIGURE_COMMAND ${SILO_SRC_DIR}/configure
+      CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} ${SILO_SRC_DIR}/configure
                         --enable-shared=no
                         --enable-fortran=no
                         --with-hdf5=${HDF5_DIR}/include,${HDF5_DIR}/lib
