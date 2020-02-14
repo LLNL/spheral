@@ -44,6 +44,7 @@ option(ENABLE_2D "enable 2d" ON)
 option(ENABLE_3D "enable 3d" ON)
 option(ENABLE_INSTANTIATIONS "enable instantiations" ON)
 option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
+option(ENABLE_TIMER "enable timer" OFF)
 
 if(ENABLE_STATIC_CXXONLY)
   set(ENABLE_CXXONLY ON)

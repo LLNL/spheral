@@ -150,6 +150,7 @@ if(INSTALL_TPLS AND NOT PYTHON_DIR)
 endif()
 
 set(PIPTARGETS 
+  setuptools
   PYB11Generator
   mpi4py
   numpy-stl
