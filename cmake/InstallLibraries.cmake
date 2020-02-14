@@ -167,10 +167,15 @@ if(PYTHON_DIR)
   set(PYTHON_VERSION "2.7")
 
   include(FindPythonModule)
-  # install pip and python packages
-  if (NOT EXISTS ${PIP_EXE})
-    execute_process(COMMAND wget -P ${CACHE_DIR} https://bootstrap.pypa.io/get-pip.py -O get-pip.py)
-    execute_process(COMMAND ${PYTHON_EXE} get-pip.py)
+
+  find_python_module(pip QUIET)
+  if(NOT PY_PIP)
+    set(PIP_DIST pip-9.0.1-py2.py3-none-any.whl)
+    if (NOT EXISTS ${CACHE_DIR}/${PIP_DIST})
+      execute_process(COMMAND wget https://pypi.python.org/packages/b6/ac/7015eb97dc749283ffdec1c3a88ddb8ae03b8fad0f0e611408f196358da3/pip-9.0.1-py2.py3-none-any.whl#md5=297dbd16ef53bcef0447d245815f5144
+-O ${CACHE_DIR}/${PIP_DIST})
+  endif()
+    execute_process(COMMAND ${PYTHON_EXE} ${CACHE_DIR}/${PIP_DIST}/pip install --no-index ${CACHE_DIR}/${PIP_DIST})
   endif()
 
   # Download and install PIP modules
