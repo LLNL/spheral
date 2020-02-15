@@ -167,11 +167,12 @@ class SpheralController:
         # If we're starting from scratch, initialize the H tensors.
         if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
             self.iterateIdealH()
-            db.reinitializeNeighbors()
-            db.updateConnectivityMap(False)
-            for bc in uniquebcs:
-                bc.initializeProblemStartup(False)
-            self.integrator.setGhostNodes()
+            # db.reinitializeNeighbors()
+            # self.integrator.setGhostNodes()
+            # db.updateConnectivityMap(False)
+            # self.integrator.applyGhostBoundaries(state, derivs)
+            # for bc in uniquebcs:
+            #     bc.initializeProblemStartup(False)
 
         # Initialize the integrator and packages.
         packages = self.integrator.physicsPackages()
@@ -179,8 +180,12 @@ class SpheralController:
             package.initializeProblemStartup(db)
         state = eval("State%s(db, packages)" % (self.dim))
         derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
+        db.reinitializeNeighbors()
         self.integrator.setGhostNodes()
         db.updateConnectivityMap(False)
+        self.integrator.applyGhostBoundaries(state, derivs)
+        for bc in uniquebcs:
+            bc.initializeProblemStartup(False)
 
         # If requested, initialize the derivatives.
         if initializeDerivatives or stateBCactive:
@@ -190,6 +195,10 @@ class SpheralController:
             self.integrator.evaluateDerivatives(initialTime, dt, db, state, derivs)
 
         # If there are stateful boundaries present, give them one more crack at copying inital state
+        db.reinitializeNeighbors()
+        self.integrator.setGhostNodes()
+        db.updateConnectivityMap(False)
+        self.integrator.applyGhostBoundaries(state, derivs)
         for bc in uniquebcs:
             bc.initializeProblemStartup(True)
         self.integrator.setGhostNodes()

@@ -151,8 +151,6 @@ updateViolationNodes(NodeList<Dimension>& nodeList) {
     auto& pos = nodeList.positions();
     auto& vel = nodeList.velocity();
     auto& H = nodeList.Hfield();
-    // this->enforceBoundary(pos);
-    // this->enforceBoundary(H);
 
     // Look for any nodes in violation of the plane and reset their positions
     // and H's.
@@ -185,24 +183,42 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::initializeProblemStartup(const bool final) {
 
-  if (final and not mActive) {
+  // Clear any existing data.
+  mBufferedValues.clear();
 
-    // Clear any existing data.
-    mBufferedValues.clear();
+  // Now take a snapshot of the Fields.
+  const auto nodeIDs = this->nodeIndices();
+  // cerr << "Node IDs: ";
+  // std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
+  // cerr << endl;
+  storeFieldValues(*mNodeListPtr, nodeIDs, mBufferedValues);
 
-    // Now take a snapshot of the Fields.
-    const auto nodeIDs = this->nodeIndices();
-    // cerr << "Node IDs: ";
-    // std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
-    // cerr << endl;
-    storeFieldValues(*mNodeListPtr, nodeIDs, mBufferedValues);
-
-    // Remove the origial internal nodes.
+  // Remove the origial internal nodes.
+  if (not mActive) {
     mNodeListPtr->deleteNodes(nodeIDs);
-
-    // Turn the BC on.
     mActive = true;
   }
+}
+
+//------------------------------------------------------------------------------
+// Return the set of node IDs we're controlling.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+std::vector<int>
+ConstantBoundary<Dimension>::
+nodeIndices() const {
+  std::vector<int> result;
+  if (mActive) {
+    for (const auto& bnitr: this->accessBoundaryNodes()) {
+      const auto& ghosts = bnitr.second.ghostNodes;
+      std::copy(ghosts.begin(), ghosts.end(), std::back_inserter(result));
+    }
+  } else {
+    for (int i = 0; i != mNodeListPtr->numNodes(); ++i) {
+      if (mNodeFlags(i) == 1) result.push_back(i);
+    }
+  }
+  return result;
 }
 
 //------------------------------------------------------------------------------
