@@ -24,13 +24,10 @@ def computeRhoAndMass(p00, p10, p11, p01, pi, rhofunc):
           V2 * (rhoi + rho10 + rho11) +
           V3 * (rhoi + rho11 + rho01) +
           V4 * (rhoi + rho01 + rho00))/6.0
-    mi = Vi * rhoi
     rhoi = mi/Vi
     stuff = (rho00, rho10, rho11, rho01, rhofunc(pi))
     rhomin = min(stuff)
     rhomax = max(stuff)
-    if rhoi < rhomin or rhoi > rhomax:
-        print " --> ", p00, rhoi, mi, 0.5*(V1 + V2 + V3 + V4), stuff, [rhoi/x for x in stuff]
     return rhoi, mi
 
 #-------------------------------------------------------------------------------
@@ -98,8 +95,7 @@ class GenerateRatioSlab2d(NodeGeneratorBase):
             if flipy:
                 yi = flipcoord(yi, xmin[1], xmax[1])
                 yi0 = flipcoord(yi0, xmin[1], xmax[1])
-                y11 = flipcoord(yi1, xmin[1], xmax[1])
-                
+                yi1 = flipcoord(yi1, xmin[1], xmax[1])
 
             # Work our way in from the x surface.
             x1 = xmax[0]
@@ -168,7 +164,7 @@ class GenerateRatioSlab2d(NodeGeneratorBase):
     # Get the mass density for the given node index.
     #---------------------------------------------------------------------------
     def localMassDensity(self, i):
-        return self.rhofunc(self.localPosition(i))
+        return self.rho[i]
     
     #---------------------------------------------------------------------------
     # Get the H tensor for the given node index.
