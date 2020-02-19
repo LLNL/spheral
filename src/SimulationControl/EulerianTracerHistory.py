@@ -30,6 +30,7 @@ class EulerianTracerHistory(Spheral.RestartableObject):
         self.W = W
         self.db = db
         self.filename = filename
+        self.labels = labels
         self.cycleHistory = []
         self.timeHistory = []
         self.sampleHistory = []
