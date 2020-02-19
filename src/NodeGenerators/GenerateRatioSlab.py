@@ -79,7 +79,7 @@ class GenerateRatioSlab1d(NodeGeneratorBase):
         # Work our way in from the x surface.
         x1 = xmax
         dx = dxSurface
-        while x1 > xmin:
+        while x1 > xmin + 0.1*dx:
             x0 = max(xmin, x1 - dx)
             xi = 0.5*(x0 + x1)
             hx = nNodePerh*dx
@@ -192,7 +192,7 @@ class GenerateRatioSlab2d(NodeGeneratorBase):
         # Work our way in from the y surface.
         y1 = xmax[1]
         dy = dySurface
-        while y1 > xmin[1]:
+        while y1 > xmin[1] + 0.1*dy:
             y0 = max(xmin[1], y1 - dy)
             yi = 0.5*(y0 + y1)
             hy = nNodePerh*dy
@@ -207,7 +207,7 @@ class GenerateRatioSlab2d(NodeGeneratorBase):
             # Work our way in from the x surface.
             x1 = xmax[0]
             dx = dxSurface
-            while x1 > xmin[0]:
+            while x1 > xmin[0] + 0.1*dx:
                 x0 = max(xmin[0], x1 - dx)
                 xi = 0.5*(x0 + x1)
                 hx = nNodePerh*dx
