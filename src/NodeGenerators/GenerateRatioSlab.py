@@ -2,8 +2,8 @@ from math import *
 
 from NodeGeneratorBase import *
 
-from Spheral import Vector2d, Vector3d, Tensor2d, SymTensor2d, CylindricalBoundary, \
-     rotationMatrix2d, testPointInBox2d
+from Spheral import Vector1d, Vector2d, Vector3d, Tensor1d, Tensor2d, \
+    SymTensor1d, SymTensor2d, CylindricalBoundary, rotationMatrix2d, testPointInBox2d
 from SpheralTestUtilities import fuzzyEqual
 
 #-------------------------------------------------------------------------------
@@ -29,6 +29,113 @@ def computeRhoAndMass(p00, p10, p11, p01, pi, rhofunc):
     rhomin = min(stuff)
     rhomax = max(stuff)
     return rhoi, mi
+
+#-------------------------------------------------------------------------------
+# Specialized node generator to generate nodes ratioing from a 1D slab surface.
+#-------------------------------------------------------------------------------
+class GenerateRatioSlab1d(NodeGeneratorBase):
+    
+    #---------------------------------------------------------------------------
+    # Constructor
+    #---------------------------------------------------------------------------
+    def __init__(self,
+                 dxSurface, xratio,
+                 rho,
+                 xmin,
+                 xmax,
+                 nNodePerh = 2.01,
+                 SPH = False,
+                 flipx = False):
+        
+        assert dxSurface > 0.0
+        assert xratio > 0.0
+        assert xmin < xmax
+        assert nNodePerh > 0.0
+        
+        # If the user provided a constant for rho, then use the constantRho
+        # class to provide this value.
+        if type(rho) == type(1.0):
+            self.rhofunc = ConstantRho(rho)
+        else:
+            self.rhofunc = rho
+
+        self.x, self.m, self.H, self.rho = [], [], [], []
+
+        # Decide the actual ratios we're going to use to arrive at an integer number of radial bins.
+        def adjustRatio(drStart, drRatio, rmin, rmax):
+            if abs(drRatio - 1.0) > 1e-4:
+                neff = max(1, int(log(1.0 - (rmax - rmin)*(1.0 - drRatio)/drStart)/log(drRatio) + 0.5))
+                drStart = (rmax - rmin)*(1.0 - drRatio)/(1.0 - drRatio**neff)
+            else:
+                neff = max(1, int((rmax - rmin)/drStart + 0.5))
+                drStart = (rmax - rmin)/neff
+            return drStart, neff
+        dxSurface, nxeff = adjustRatio(dxSurface, xratio, xmin, xmax)
+        print "Adjusting initial spacing to (%g) in order to create integer numbers of bins (%i) to edges." % (dxSurface, nxeff)
+
+        def flipcoord(xi, x0, x1):
+            return x0 + x1 - xi
+
+        # Work our way in from the x surface.
+        x1 = xmax
+        dx = dxSurface
+        while x1 > xmin:
+            x0 = max(xmin, x1 - dx)
+            xi = 0.5*(x0 + x1)
+            hx = nNodePerh*dx
+            
+            xi0 = x0
+            xi1 = x1
+            if flipx:
+                xi = flipcoord(xi, xmin, xmax)
+                xi0 = flipcoord(xi0, xmin, xmax)
+                xi1 = flipcoord(xi1, xmin, xmax)
+                
+            self.x.append(xi)
+            self.y.append(yi)
+            rhoi, mi = computeRhoAndMass(Vector1d(xi0, yi0), Vector1d(xi1, yi0),
+                                         Vector1d(xi1, yi1), Vector1d(xi0, yi1),
+                                         Vector1d(xi, yi),
+                                         self.rhofunc)
+            self.m.append(mi)
+            self.rho.append(rhoi)
+            self.H.append(SymTensor1d(1.0/hx, 0.0, 0.0, 1.0/hy))
+            
+            x1 = x0
+            dx *= xratio
+            
+        # Have the base class break up the serial node distribution
+        # for parallel cases.
+        NodeGeneratorBase.__init__(self, True,
+                                   self.x, self.m, self.H, self.rho)
+        return
+
+
+    #---------------------------------------------------------------------------
+    # Get the position for the given node index.
+    #---------------------------------------------------------------------------
+    def localPosition(self, i):
+        assert len(self.x) == len(self.y)
+        return Vector1d(self.x[i], self.y[i])
+    
+    #---------------------------------------------------------------------------
+    # Get the mass for the given node index.
+    #---------------------------------------------------------------------------
+    def localMass(self, i):
+        return self.m[i]
+    
+    #---------------------------------------------------------------------------
+    # Get the mass density for the given node index.
+    #---------------------------------------------------------------------------
+    def localMassDensity(self, i):
+        return self.rho[i]
+    
+    #---------------------------------------------------------------------------
+    # Get the H tensor for the given node index.
+    #---------------------------------------------------------------------------
+    def localHtensor(self, i):
+        assert i >= 0 and i < len(self.H)
+        return self.H[i]
 
 #-------------------------------------------------------------------------------
 # Specialized node generator to generate nodes ratioing from a 1D slab surface.
