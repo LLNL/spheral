@@ -158,4 +158,5 @@ class EulerianTracerHistory(Spheral.RestartableObject):
         self.cycleHistory = file.readObject(path + "/cycleHistory")
         self.timeHistory = file.readObject(path + "/timeHistory")
         self.sampleHistory = file.readObject(path + "/sampleHistory")
+        self.flushHistory()
         return
