@@ -9,7 +9,19 @@ from SpheralTestUtilities import fuzzyEqual
 #-------------------------------------------------------------------------------
 # Estimate the mass of a volume given the bounding coordinates
 #-------------------------------------------------------------------------------
-def computeRhoAndMass(p00, p10, p11, p01, pi, rhofunc):
+def computeRhoAndMass1d(p0, p1, pi, rhofunc):
+    rho0 = rhofunc(p0)
+    rho1 = rhofunc(p1)
+    rhoi = rhofunc(pi)
+    V1 = (p1 - pi).magnitude()
+    V2 = (p0 - pi).magnitude()
+    Vi = V1 + V2
+    mi = 0.5*(V1 * (rhoi + rho0)
+              + V2 * (rhoi + rho1))
+    rhoi = mi / Vi
+    return rhoi, mi
+    
+def computeRhoAndMass2d(p00, p10, p11, p01, pi, rhofunc):
     rho00 = rhofunc(p00)
     rho10 = rhofunc(p10)
     rho11 = rhofunc(p11)
@@ -92,14 +104,12 @@ class GenerateRatioSlab1d(NodeGeneratorBase):
                 xi1 = flipcoord(xi1, xmin, xmax)
                 
             self.x.append(xi)
-            self.y.append(yi)
-            rhoi, mi = computeRhoAndMass(Vector1d(xi0, yi0), Vector1d(xi1, yi0),
-                                         Vector1d(xi1, yi1), Vector1d(xi0, yi1),
-                                         Vector1d(xi, yi),
-                                         self.rhofunc)
+            rhoi, mi = computeRhoAndMass1d(Vector1d(xi0), Vector1d(xi1),
+                                           Vector1d(xi),
+                                           self.rhofunc)
             self.m.append(mi)
             self.rho.append(rhoi)
-            self.H.append(SymTensor1d(1.0/hx, 0.0, 0.0, 1.0/hy))
+            self.H.append(SymTensor1d(1.0/hx))
             
             x1 = x0
             dx *= xratio
@@ -115,8 +125,7 @@ class GenerateRatioSlab1d(NodeGeneratorBase):
     # Get the position for the given node index.
     #---------------------------------------------------------------------------
     def localPosition(self, i):
-        assert len(self.x) == len(self.y)
-        return Vector1d(self.x[i], self.y[i])
+        return Vector1d(self.x[i])
     
     #---------------------------------------------------------------------------
     # Get the mass for the given node index.
@@ -221,10 +230,10 @@ class GenerateRatioSlab2d(NodeGeneratorBase):
 
                 self.x.append(xi)
                 self.y.append(yi)
-                rhoi, mi = computeRhoAndMass(Vector2d(xi0, yi0), Vector2d(xi1, yi0),
-                                             Vector2d(xi1, yi1), Vector2d(xi0, yi1),
-                                             Vector2d(xi, yi),
-                                             self.rhofunc)
+                rhoi, mi = computeRhoAndMass2d(Vector2d(xi0, yi0), Vector2d(xi1, yi0),
+                                               Vector2d(xi1, yi1), Vector2d(xi0, yi1),
+                                               Vector2d(xi, yi),
+                                               self.rhofunc)
                 self.m.append(mi)
                 self.rho.append(rhoi)
                 self.H.append(SymTensor2d(1.0/hx, 0.0, 0.0, 1.0/hy))
