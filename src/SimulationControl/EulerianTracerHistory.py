@@ -130,8 +130,8 @@ class EulerianTracerHistory(Spheral.RestartableObject):
             assert len(self.timeHistory) == n
             assert len(self.sampleHistory) == n
             if mpi.rank == 0:
-                samplestr = ""
                 for i in xrange(n):
+                    samplestr = ""
                     for x in self.sampleHistory[i]:
                         samplestr += str(x) + " "
                     self.file.write("%i \t %g \t %s\n" % (self.cycleHistory[i],
