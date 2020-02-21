@@ -11,6 +11,7 @@
 
 #include "Boundary.hh"
 #include "Geometry/GeomPlane.hh"
+#include "DataBase/DataBase.hh"
 #include "NodeList/NodeList.hh"
 #include "Utilities/registerWithRedistribution.hh"
 #include "DataBase/StateBase.hh" // For constructing Field keys.
@@ -40,7 +41,8 @@ public:
   typedef typename StateBase<Dimension>::KeyType KeyType;
 
   // Constructors and destructors.
-  ConstantBoundary(NodeList<Dimension>& nodeList,
+  ConstantBoundary(DataBase<Dimension>& dataBase,
+                   NodeList<Dimension>& nodeList,
                    const std::vector<int>& nodeIDs,
                    const GeomPlane<Dimension>& denialPlane);
   virtual ~ConstantBoundary();
@@ -89,6 +91,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  DataBase<Dimension>& mDataBase;
   NodeList<Dimension>* mNodeListPtr;
   int mBoundaryCount;
   Field<Dimension, int> mNodeFlags;
