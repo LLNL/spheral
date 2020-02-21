@@ -194,7 +194,8 @@ ConstantBoundary<Dimension>::initializeProblemStartup(const bool final) {
   storeFieldValues(*mNodeListPtr, nodeIDs, mBufferedValues);
 
   // Remove the origial internal nodes.
-  if (not mActive) {
+  if (final) {
+    VERIFY2(not mActive, "ConstantBoundary::initializeProblemStartup ERROR -- called with final=True more than once");
     mNodeListPtr->deleteNodes(nodeIDs);
     mActive = true;
   }
