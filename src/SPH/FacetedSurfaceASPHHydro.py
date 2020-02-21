@@ -88,9 +88,9 @@ class FacetedSurfaceASPHSmoothingScale(ASPHSmoothingScale):
 
             # Find the effective surface normal we want to use.
             fhat = Vector()
-            verts = self.surface.vertices()
-            facets = self.surface.facets()
-            vertNorms = self.surface.vertexUnitNorms()
+            verts = self.surface.vertices
+            facets = self.surface.facets
+            vertNorms = self.surface.vertexUnitNorms
             hashi = hash(tuple(pos))
             assert hashi in self.poshash2facet
             facet = facets[self.poshash2facet[hashi]]
@@ -127,6 +127,7 @@ class FacetedSurfaceASPHHydro(Physics):
     def __init__(self,
                  surface,
                  nodes2facets,
+                 dataBase,
                  W,
                  WPi,
                  Q,
@@ -143,6 +144,8 @@ class FacetedSurfaceASPHHydro(Physics):
                  HUpdate = IdealH,
                  epsTensile = 0.3,
                  nTensile = 4.0,
+                 damageRelieveRubble = False,
+                 negativePressureInDamage = False,
                  xmin = Vector(-1e100, -1e100, -1e100),
                  xmax = Vector( 1e100,  1e100,  1e100)):
         Physics.__init__(self)
@@ -151,6 +154,7 @@ class FacetedSurfaceASPHHydro(Physics):
         if xmin is None:
             xmin = Vector.one
         self.hydro = SolidSPHHydroBase(self._smoothingScaleMethod,
+                                       dataBase = dataBase,
                                        Q = Q,
                                        W = W,
                                        WPi = WPi,
@@ -168,6 +172,8 @@ class FacetedSurfaceASPHHydro(Physics):
                                        HUpdate = HUpdate,
                                        epsTensile = epsTensile,
                                        nTensile = nTensile,
+                                       damageRelieveRubble = damageRelieveRubble,
+                                       negativePressureInDamage = negativePressureInDamage,
                                        xmin = xmin,
                                        xmax = xmax)
         return
@@ -264,9 +270,9 @@ class FacetedSurfaceASPHHydro(Physics):
     #---------------------------------------------------------------------------
     def initialize(self, t, dt, dataBase, state, derivs):
         surface = self._smoothingScaleMethod.surface
-        facets = surface.facets()
+        facets = surface.facets
         nodes2facets = self._smoothingScaleMethod.nodes2facets
-        facets2facets = surface.facetFacetConnectivity()
+        facets2facets = surface.facetFacetConnectivity
         posfl = state.vectorFields(HydroFieldNames.position)
 
         # Figure out which NodeList is the one we're pinning to the facets.
