@@ -19,6 +19,7 @@ class EulerianTracerHistory(Spheral.RestartableObject):
                  header = None,
                  labels = None,
                  initializefunc = None,
+                 weightfunc = None,
                  ):
         self.restart = Spheral.RestartableObject(self)
 
@@ -27,6 +28,7 @@ class EulerianTracerHistory(Spheral.RestartableObject):
         self.position = position
         self.samplefunc = samplefunc
         self.initializefunc = initializefunc
+        self.weightfunc = weightfunc
         self.W = W
         self.db = db
         self.filename = filename
@@ -96,6 +98,8 @@ class EulerianTracerHistory(Spheral.RestartableObject):
                 posj = positions(nodeListj, j)
                 Hj = H(nodeListj, j)
                 Wj = self.W.kernelValue((Hj*(posj - self.position)).magnitude(), 1.0)**2
+                if self.weightfunc:
+                    Wj *= self.weightfunc(posj)
                 Wsum += Wj
 
                 # Use the user supplied method to extract the field values for this (nodeList, index)
