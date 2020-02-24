@@ -167,11 +167,12 @@ class SpheralController:
         # If we're starting from scratch, initialize the H tensors.
         if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
             self.iterateIdealH()
-            db.reinitializeNeighbors()
-            db.updateConnectivityMap(False)
-            for bc in uniquebcs:
-                bc.initializeProblemStartup(False)
-            self.integrator.setGhostNodes()
+            # db.reinitializeNeighbors()
+            # self.integrator.setGhostNodes()
+            # db.updateConnectivityMap(False)
+            # self.integrator.applyGhostBoundaries(state, derivs)
+            # for bc in uniquebcs:
+            #     bc.initializeProblemStartup(False)
 
         # Initialize the integrator and packages.
         packages = self.integrator.physicsPackages()
@@ -179,8 +180,12 @@ class SpheralController:
             package.initializeProblemStartup(db)
         state = eval("State%s(db, packages)" % (self.dim))
         derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
+        db.reinitializeNeighbors()
         self.integrator.setGhostNodes()
         db.updateConnectivityMap(False)
+        self.integrator.applyGhostBoundaries(state, derivs)
+        for bc in uniquebcs:
+            bc.initializeProblemStartup(False)
 
         # If requested, initialize the derivatives.
         if initializeDerivatives or stateBCactive:
@@ -190,6 +195,10 @@ class SpheralController:
             self.integrator.evaluateDerivatives(initialTime, dt, db, state, derivs)
 
         # If there are stateful boundaries present, give them one more crack at copying inital state
+        db.reinitializeNeighbors()
+        self.integrator.setGhostNodes()
+        db.updateConnectivityMap(False)
+        self.integrator.applyGhostBoundaries(state, derivs)
         for bc in uniquebcs:
             bc.initializeProblemStartup(True)
         self.integrator.setGhostNodes()
@@ -643,6 +652,13 @@ class SpheralController:
     #--------------------------------------------------------------------------
     # If necessary create and add a distributed boundary condition to each
     # physics package
+    #
+    # This method also enforces some priority among boundary conditions.
+    # Current prioritization:
+    #   1.  ConstantBoundaries
+    #   2.  InflowOutflowBoundaries
+    #   3.  ...
+    #   4.  DistributedBoundary
     #--------------------------------------------------------------------------
     def insertDistributedBoundary(self, physicsPackages):
 
@@ -679,41 +695,28 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
             exec("from SpheralCompiledPackages import TreeDistributedBoundary%s" % self.dim)
             self.domainbc = eval("TreeDistributedBoundary%s.instance()" % self.dim)
 
-            # Iterate over each of the physics packages.
-            for package in physicsPackages:
+        # Iterate over each of the physics packages, and arrange boundaries by priorities
+        for package in physicsPackages:
 
-                # Make a copy of the current set of boundary conditions for this package,
-                # and clear out the set in the physics package.
-                boundaryConditions = list(package.boundaryConditions())
-                package.clearBoundaries()
+            # Make a copy of the current set of boundary conditions for this package,
+            # and assign priorities to enforce the desired order
+            bcs = list(package.boundaryConditions())
+            priorities = range(len(bcs))
+            for i, bc in enumerate(bcs):
+                if isinstance(bc, eval("ConstantBoundary%s" % self.dim)):
+                    priorities[i] = -2
+                if isinstance(bc, eval("InflowOutflowBoundary%s" % self.dim)):
+                    priorities[i] = -1
+            sortedbcs = [x for _,x in sorted(zip(priorities, bcs))]
 
-                # Sort the boundary conditions into two lists: those that need
-                # to precede the distributed boundary condition, and those that
-                # should follow it.
-                precedeBoundaries = []
-                followBoundaries = []
-                for boundary in boundaryConditions:
-                    precede = False
-                    for btype in precedeDistributed:
-                        if isinstance(boundary, btype):
-                            precede = True
-                    if precede:
-                        precedeBoundaries.append(boundary)
-                    else:
-                        followBoundaries.append(boundary)
+            # Add the domain bc if needed
+            if self.domainbc:
+                sortedbcs.append(self.domainbc)
 
-                assert len(precedeBoundaries) + len(followBoundaries) == len(boundaryConditions)
-                for boundary in boundaryConditions:
-                    assert (boundary in precedeBoundaries) or (boundary in followBoundaries)
-
-                # Now put the boundaries back into the package.
-                # NOTE!  We currently force the parallel boundary condition to the end of the list.
-                # This is required because Boundary conditions are combinatorial -- i.e., ghost nodes
-                # from prior boundary conditions can be used as controls in later.  If we put the parallel
-                # boundary at the beginning of the list it's ghost state is not valid until finalizeBoundary
-                # is called.
-                for bc in precedeBoundaries + followBoundaries + [self.domainbc]:
-                    package.appendBoundary(bc)
+            # Reassign the package boundary conditions
+            package.clearBoundaries()
+            for bc in sortedbcs:
+                package.appendBoundary(bc)
 
         # That's it.
         if not (self.domainbc is None):

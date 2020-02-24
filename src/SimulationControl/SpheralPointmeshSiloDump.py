@@ -107,8 +107,8 @@ def dumpPhysicsState(stateThingy,
             for i in xrange(n):
                 ev = H[i].eigenValues()
                 fmin[i] = 1.0/ev.maxElement()
-                fmax[i] = 1.0/ev.minElement()
-                fratio[i] = ev.minElement()/ev.maxElement()
+                fmax[i] = 1.0/max(1e-30, ev.minElement())
+                fratio[i] = ev.minElement()/max(1e-30, ev.maxElement())
         fieldLists.append(hmin)
         fieldLists.append(hmax)
         fieldLists.append(hminhmax)
