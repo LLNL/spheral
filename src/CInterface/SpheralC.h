@@ -342,7 +342,8 @@ void spheral_sample_mesh(const int      ndims,
                          const double*  xmincoords,
                          const double*  xmaxcoords,
                          const int*     nsamples,
-                         double*        latticeDensity);
+                         double*        latticeDensity,
+                         double**       latticeVelocity);
 
 /*------------------------------------------------------------------------------
   spheral_polyhedral_mesh

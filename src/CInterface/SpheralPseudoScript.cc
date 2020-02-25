@@ -1130,7 +1130,8 @@ SpheralPseudoScript<Dimension>::
 sampleLatticeMesh(const Vector&  xmin,
                   const Vector&  xmax,
                   const int*     nsamples,
-                  double*        latticeDensity) {
+                  double*        latticeDensity,
+                  double**       latticeVelocity) {
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -1140,6 +1141,7 @@ sampleLatticeMesh(const Vector&  xmin,
   auto m = me.mStatePtr->fields(HydroFieldNames::mass, 0.0);
   auto rho = me.mStatePtr->fields(HydroFieldNames::massDensity, 0.0);
   auto pos = me.mStatePtr->fields(HydroFieldNames::position, Vector::zero);
+  auto vel = me.mStatePtr->fields(HydroFieldNames::velocity, Vector::zero);
   auto H = me.mStatePtr->fields(HydroFieldNames::H, SymTensor::zero);
   auto pType = me.mStatePtr->fields(SolidFieldNames::particleTypes, 0);
   auto weight = m/rho;
@@ -1147,6 +1149,7 @@ sampleLatticeMesh(const Vector&  xmin,
 
   FieldListSet<Dimension> sphSet;
   sphSet.ScalarFieldLists.push_back(rho);
+  sphSet.VectorFieldLists.push_back(vel);
 
   std::vector<int> nsample;
   for (int i = 0 ; i < Dimension::nDim ; ++i) {
@@ -1163,6 +1166,12 @@ sampleLatticeMesh(const Vector&  xmin,
 
   for (int i = 0 ; i < scalarValues[0].size() ; ++i) {
     latticeDensity[i] = scalarValues[0][i] ;
+  }
+
+  for (int i = 0 ; i < vectorValues[0].size() ; ++i) {
+    latticeVelocity[0][i] = vectorValues[0][i][0] ;
+    latticeVelocity[1][i] = vectorValues[0][i][1] ;
+    latticeVelocity[2][i] = vectorValues[0][i][2] ;
   }
 }
 
