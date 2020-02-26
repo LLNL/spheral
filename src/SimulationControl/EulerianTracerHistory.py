@@ -19,6 +19,7 @@ class EulerianTracerHistory(Spheral.RestartableObject):
                  header = None,
                  labels = None,
                  initializefunc = None,
+                 weightfunc = None,
                  ):
         self.restart = Spheral.RestartableObject(self)
 
@@ -27,6 +28,7 @@ class EulerianTracerHistory(Spheral.RestartableObject):
         self.position = position
         self.samplefunc = samplefunc
         self.initializefunc = initializefunc
+        self.weightfunc = weightfunc
         self.W = W
         self.db = db
         self.filename = filename
@@ -96,6 +98,8 @@ class EulerianTracerHistory(Spheral.RestartableObject):
                 posj = positions(nodeListj, j)
                 Hj = H(nodeListj, j)
                 Wj = self.W.kernelValue((Hj*(posj - self.position)).magnitude(), 1.0)**2
+                if self.weightfunc:
+                    Wj *= self.weightfunc(posj)
                 Wsum += Wj
 
                 # Use the user supplied method to extract the field values for this (nodeList, index)
@@ -130,8 +134,8 @@ class EulerianTracerHistory(Spheral.RestartableObject):
             assert len(self.timeHistory) == n
             assert len(self.sampleHistory) == n
             if mpi.rank == 0:
-                samplestr = ""
                 for i in xrange(n):
+                    samplestr = ""
                     for x in self.sampleHistory[i]:
                         samplestr += str(x) + " "
                     self.file.write("%i \t %g \t %s\n" % (self.cycleHistory[i],
@@ -158,4 +162,5 @@ class EulerianTracerHistory(Spheral.RestartableObject):
         self.cycleHistory = file.readObject(path + "/cycleHistory")
         self.timeHistory = file.readObject(path + "/timeHistory")
         self.sampleHistory = file.readObject(path + "/sampleHistory")
+        self.flushHistory()
         return

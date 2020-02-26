@@ -30,6 +30,7 @@ NodeList.
     #...........................................................................
     # Constructors
     def pyinit(self,
+               dataBase = "DataBase<%(Dimension)s>&",
                nodeList = "NodeList<%(Dimension)s>&",
                nodeIndices = "const std::vector<int>&",
                denialPlane = "const Plane&"):
