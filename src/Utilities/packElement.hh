@@ -223,7 +223,25 @@ packElement(const std::vector<DataType>& value,
   }
 }
 
+// Specialize for a std::unordered_map<T1, T2, T3>
+// Assumes that we know how to pack T1 and T2
+template<typename T1, typename T2, typename T3>
+inline
+void
+packElement(const std::unordered_map<T1, T2, T3>& value,
+            std::vector<char>& buffer) {
+  // Push the size of the unordered_map onto the buffer.
+  const unsigned size = value.size();
+  packElement(size, buffer);
 
+  // Push each of the elements on
+  for (typename std::unordered_map<T1, T2, T3>::const_iterator itr = value.begin();
+       itr != value.end();
+       ++itr) {
+    packElement(itr->first, buffer);
+    packElement(itr->second, buffer);
+  }
+}
 
 // RKOrder
 template<>
@@ -463,6 +481,31 @@ unpackElement(std::vector<DataType>& value,
     DataType element;
     unpackElement(element, itr, endPackedVector);
     value.push_back(element);
+  }
+
+  ENSURE(itr <= endPackedVector);
+}
+
+// std::unordered_map<T1, T2, T3>, as long as we know how to unpack T1, T2
+template<typename T1, typename T2, typename T3>
+inline
+void
+unpackElement(std::unordered_map<T1, T2, T3>& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  // Read the size of the map
+  unsigned size;
+  unpackElement(size, itr, endPackedVector);
+  CHECK(2 * size <= std::distance(itr, endPackedVector));
+
+  // Iterate over the number of elements to unpack and add them to the map
+  value.clear();
+  for (int i = 0; i < size; ++i) {
+    T1 key;
+    T2 val;
+    unpackElement(key, itr, endPackedVector);
+    unpackElement(val, itr, endPackedVector);
+    value[key] = val;
   }
 
   ENSURE(itr <= endPackedVector);
