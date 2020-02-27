@@ -11,6 +11,7 @@
 #include <vector>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include "Geometry/Dimension.hh"
 #include "Geometry/polyclipper.hh"
 #include "RegisterMPIDataTypes.hh"
@@ -193,6 +194,15 @@ struct DataTypeTraits<std::pair<Value1, Value2> > {
   static bool fixedSize() { return true; }
   static int numElements(const std::pair<Value1, Value2>& x) { return 2; }
   static std::pair<Value1, Value2> zero() { return std::make_pair(Value1(), Value2()); }
+};
+
+//------------------------------------------------------------------------------
+template<typename Value1, typename Value2, typename Hash>
+struct DataTypeTraits<std::unordered_map<Value1, Value2, Hash> > {
+  typedef std::pair<Value1, Value2> ElementType;
+  static bool fixedSize() { return false; }
+  static int numElements(const std::unordered_map<Value1, Value2, Hash>& x) { return x.size(); }
+  static std::unordered_map<Value1, Value2, Hash> zero() { return std::unordered_map<Value1, Value2, Hash>(); }
 };
 
 //------------------------------------------------------------------------------
