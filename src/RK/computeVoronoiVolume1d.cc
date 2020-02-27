@@ -87,7 +87,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
 
   // Prepare some scratch variables.
   unsigned nodeListj1 = 0, nodeListj2 = 0, j1 = 0, j2 = 0;
-  Scalar rin, Hi, H1, H2, x1, x2, xi, etamax, b, xm1, xm2, thpt, weighti, weightj, wij,
+  Scalar rin, Hi, H1, H2, x1, x2, xi, etamax, b, xm1, xm2, thpt, weighti, weightj, wij, xmin, xmax,
     xbound0 = -std::numeric_limits<Scalar>::max(),
     xbound1 =  std::numeric_limits<Scalar>::max();
 
@@ -133,6 +133,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         wij = weighti/(weighti + weightj);
         // the direction is here reversed from 2d, so it should weight on the i side
         x1 = wij*(position(nodeListj1, j1).x() - position(nodeListi, i).x());
+        xmin = max(xbound0, x1 + xi);
         if (nodeListj1 != nodeListi) {
           surfacePoint(nodeListi, i) |= (1 << (nodeListj1 + 1));
           if (returnCellFaceFlags) cellFaceFlags(nodeListi, i).push_back(CellFaceFlag(0,           // cell face
@@ -170,6 +171,9 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
           vol(nodeListi, i) = x2 - x1;
           deltaMedian(nodeListi, i).x(0.5*(x2 - x1));
 
+          if (returnCells) {
+            cells(nodeListi, i) = FacetedVolume({Vector(xi + x1), Vector(xi + x2)});
+          }
           // Check if the candidate motion is still in the boundary.  If not, project back.
           if (haveFacetedBoundaries) {
             const Vector ri = Vector(xi);
@@ -196,6 +200,9 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         surfacePoint(nodeListi, i) |= 1;
         if (-Hi*x1 >= rin) etaVoidPoints(nodeListi, i).push_back(Vector(max(Hi*x1, -0.5*rin)));
         if ( Hi*x2 >= rin) etaVoidPoints(nodeListi, i).push_back(Vector(min(Hi*x2,  0.5*rin)));
+        if (returnCells) {
+          cells(nodeListi, i) = FacetedVolume({Vector(xi + max(Hi*x1, -0.5*rin)), Vector(xi + min(Hi*x2, 0.5*rin))});
+        }
         // cerr << "Surface condition 7: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
       }
 
@@ -206,6 +213,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         etaVoidPoints(nodeListi, i).push_back(Vector( 0.5*rin));
         surfacePoint(nodeListi, i) |= 1;
       }
+
     }
     CHECK2(((surfacePoint(nodeListi, i) & 1) == 1 and
             (etaVoidPoints(nodeListi, i).size() == 1 or etaVoidPoints(nodeListi, i).size() == 2)) or
