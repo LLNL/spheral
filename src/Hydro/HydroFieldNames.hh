@@ -72,7 +72,7 @@ struct HydroFieldNames {
 #else
 
 namespace Spheral {
-  string HydroFieldNames;
+  struct HydroFieldNames;
 }
 
 #endif
