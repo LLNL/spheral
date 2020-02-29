@@ -10,6 +10,7 @@
 #include "NodeList/NodeList.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
+#include "Field/NodeIterators.hh"
 #include "Utilities/globalNodeIDs.hh"
 #include "Utilities/packElement.hh"
 #include "Neighbor/ConnectivityMap.hh"
