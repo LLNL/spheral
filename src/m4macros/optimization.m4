@@ -18,28 +18,28 @@ AC_ARG_WITH(opt,
 case $CXXCOMPILERTYPE in
 GNU)
   if test "$withval" = "0";then
-    OPT="-g -D_GLIBCXX_DEBUG"
+    OPT="-g"
   elif test "$withval" = "1";then
-    OPT="-O1 -DNDEBUG"
+    OPT="-O1"
   elif test "$withval" = "10" -o "$withval" = "01";then
-    OPT="-O1 -DNDEBUG -g"
+    OPT="-O1-g"
   elif test "$withval" = "2";then
-    OPT="-O2 -DNDEBUG"
+    OPT="-O2"
   elif test "$withval" = "20" -o "$withval" = "02";then
-    OPT="-O2 -DNDEBUG -g"
+    OPT="-O2-g"
   elif test "$withval" = "3";then
-    OPT="-O3 -DNDEBUG"
+    OPT="-O3"
   elif test "$withval" = "4";then
-    OPT="-O4 -DNDEBUG -march=native"
+    OPT="-O4-march=native"
   elif test "$withval" = "5";then
-    OPT="-O5 -DNDEBUG"
+    OPT="-O5"
   elif test "$withval" = "6";then
-    OPT="-O6 -DNDEBUG"
+    OPT="-O6"
   elif test "$withval" = "03" -o "$withval" = "30"; then
-    OPT="-g -O3 -DNDEBUG"
+    OPT="-g -O3"
   else
     echo "Unknown optimization level, defaulting to -O"
-    OPT="-O -DNDEBUG"
+    OPT="-O"
   fi
   PYFFLE_OPT="-g";;
 KAI)
