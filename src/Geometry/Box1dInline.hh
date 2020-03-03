@@ -12,11 +12,15 @@ Box1d::
 Box1d():
   mCenter(),
   mExtent(0.0),
-  mVertices() {
+  mVertices(),
+  mFacets() {
   mVertices.push_back(Vector());
   mVertices.push_back(Vector());
+  mFacets.push_back(Facet());
+  mFacets.push_back(Facet());
   REQUIRE(mExtent >= 0.0);
   REQUIRE(mVertices.size() == 2);
+  REQUIRE(mFacets.size() == 2);
 }
 
 inline
@@ -38,6 +42,8 @@ Box1d(const std::vector<Box1d::Vector>& points):
   }
   mVertices.push_back(mCenter - Vector(mExtent));
   mVertices.push_back(mCenter + Vector(mExtent));
+  mFacets.emplace_back(mCenter - Vector(mExtent), Vector(-1));
+  mFacets.emplace_back(mCenter + Vector(mExtent), Vector(1));
 }
 
 inline
@@ -61,6 +67,8 @@ Box1d(const std::vector<Box1d::Vector>& points,
   mExtent = 0.5*(xmax - xmin);
   mVertices.push_back(mCenter - Vector(mExtent));
   mVertices.push_back(mCenter + Vector(mExtent));
+  mFacets.emplace_back(Vector(xmin), Vector(-1));
+  mFacets.emplace_back(Vector(xmax), Vector(1));
 }
 
 inline
@@ -72,6 +80,8 @@ Box1d(const GeomVector<1>& center,
   REQUIRE(mExtent >= 0.0);
   mVertices.push_back(mCenter - Vector(mExtent));
   mVertices.push_back(mCenter + Vector(mExtent));
+  mFacets.emplace_back(mCenter - Vector(mExtent), Vector(-1));
+  mFacets.emplace_back(mCenter + Vector(mExtent), Vector(1));
 }
 
 inline
@@ -79,9 +89,11 @@ Box1d::
 Box1d(const Box1d& rhs):
   mCenter(rhs.mCenter),
   mExtent(rhs.mExtent),
-  mVertices(rhs.mVertices) {
+  mVertices(rhs.mVertices),
+  mFacets(rhs.mFacets) {
   REQUIRE(mExtent >= 0.0);
   REQUIRE(mVertices.size() == 2);
+  REQUIRE(mFacets.size() == 2);
 }
 
 inline
@@ -92,6 +104,7 @@ operator=(const Box1d& rhs) {
     mCenter = rhs.mCenter;
     mExtent = rhs.mExtent;
     mVertices = rhs.mVertices;
+    mFacets = rhs.mFacets;
   }
   REQUIRE(mExtent >= 0.0);
   return *this;
@@ -247,6 +260,16 @@ const std::vector<GeomVector<1> >&
 Box1d::
 vertices() const {
   return mVertices;
+}
+
+//------------------------------------------------------------------------------
+// The facets.
+//------------------------------------------------------------------------------
+inline
+const std::vector<GeomFacet1d>&
+Box1d::
+facets() const {
+  return mFacets;
 }
 
 //------------------------------------------------------------------------------

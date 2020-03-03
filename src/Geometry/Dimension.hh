@@ -48,7 +48,7 @@ public:
   typedef Box1d Box;
   typedef Box1d ConvexHull;
   typedef Box1d FacetedVolume;
-  typedef GeomVector<1> Facet;
+  typedef GeomFacet1d Facet;
   static const int nDim = 1;
 
   static double rootnu(const double& x) { return x; }

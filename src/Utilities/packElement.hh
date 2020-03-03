@@ -510,7 +510,6 @@ unpackElement(std::array<DataType, size>& value,
               const std::vector<char>::const_iterator& endPackedVector) {
   // Unlike std::vector, we don't need the size data
   // Unpack the elements
-  value.clear();
   for (int i = 0; i != size; ++i) {
     DataType element;
     unpackElement(element, itr, endPackedVector);
