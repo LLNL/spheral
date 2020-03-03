@@ -1,3 +1,4 @@
+include_directories(.)
 set(Strength_inst
     BulkModulusPolicy
     DeviatoricStressPolicy
@@ -14,6 +15,7 @@ set(Strength_sources
 
 if(ENABLE_2D)
   list(APPEND Strength_sources
+       #RZDeviatoricStressPolicy.cc
        RZPlasticStrainPolicy.cc
       )
 endif()
@@ -25,6 +27,7 @@ set(Strength_headers
     DeviatoricStressPolicy.hh
     MeltEnergyPolicy.hh
     PlasticStrainPolicy.hh
+    #RZDeviatoricStressPolicy.hh
     RZPlasticStrainPolicy.hh
     ShearModulusPolicy.hh
     SolidFieldNames.hh
@@ -33,11 +36,7 @@ set(Strength_headers
     effectiveKernelVolume.hh
     )
 
-blt_add_library(NAME        Spheral_Strength
-                SOURCES     ${Strength_sources}
-                HEADERS     ${Strength_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+spheral_add_cxx_library(Strength)
 
 install(TARGETS              Spheral_Strength
         EXPORT               ${PROJECT_NAME}-targets
@@ -48,3 +47,6 @@ install(TARGETS              Spheral_Strength
 install(FILES       ${Strength_headers}
         DESTINATION include/Strength
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Strength)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

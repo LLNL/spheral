@@ -1,3 +1,4 @@
+include_directories(.)
 set(NodeList_inst
     ASPHSmoothingScale
     FluidNodeList
@@ -7,6 +8,8 @@ set(NodeList_inst
     SmoothingScaleBase
     SolidNodeList
     generateVoidNodes
+    FixedSmoothingScale
+    nthNodalMoment
    )
 
 set(NodeList_sources )
@@ -30,11 +33,13 @@ set(NodeList_headers
     secondMomentUtilities.hh
     )
 
-blt_add_library(NAME        Spheral_NodeList
-                SOURCES     ${NodeList_sources}
-                HEADERS     ${NodeList_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+set(NodeList_python_targets
+    FluidNodeLists.py
+    SolidNodeLists.py
+    VoidNodeLists.py
+    )
+
+spheral_add_cxx_library(NodeList)
 
 install(TARGETS              Spheral_NodeList
         EXPORT               ${PROJECT_NAME}-targets
@@ -45,3 +50,12 @@ install(TARGETS              Spheral_NodeList
 install(FILES       ${NodeList_headers}
         DESTINATION include/NodeList
         )
+
+if(NOT ENABLE_CXXONLY)
+  install(FILES       ${NodeList_python_targets}
+          DESTINATION .
+          )
+endif()
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_NodeList)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

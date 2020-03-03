@@ -1,32 +1,17 @@
+include_directories(.)
 set(CRKSPH_inst
-    CRKSPHHydroBase
-    ContinuityVolumePolicy
-    SolidCRKSPHHydroBase
-    computeCRKSPHCorrections
-    computeCRKSPHEvaluation
-    computeCRKSPHIntegral
-    computeCRKSPHMoments
     computeCRKSPHSumMassDensity
-    computeCRKSPHSumVolume
-    computeHVolumes
-    computeHullVolumes
-    computeRKVolumes
     computeSolidCRKSPHSumMassDensity
+    CRKSPHHydroBase
     detectSurface
+    SolidCRKSPHHydroBase
     editMultimaterialSurfaceTopology
-    gradientCRKSPH
-    interpolateCRKSPH
     zerothOrderSurfaceCorrections
-    RKCorrections
-    RKUtilities
    )
 
 
 set(CRKSPH_sources
     centerOfMass.cc
-    ContinuityVolumePolicyRZ.cc
-    computeVoronoiVolume.cc
-    computeVoronoiVolume1d.cc
    )
 
 if(ENABLE_2D)
@@ -36,52 +21,37 @@ if(ENABLE_2D)
       )
 endif()
 
+if(ENABLE_3D)
+  list(APPEND CRKSPH_sources
+      )
+endif()
+
 instantiate(CRKSPH_inst CRKSPH_sources)
 
 set(CRKSPH_headers
-    CRKSPHCorrectionParams.hh
     CRKSPHHydroBase.hh
     CRKSPHHydroBaseInline.hh
     CRKSPHHydroBaseRZ.hh
-    CRKSPHUtilities.hh
-    CRKSPHUtilitiesInline.hh
-    ContinuityVolumePolicy.hh
-    ContinuityVolumePolicyRZ.hh
-    HullVolumePolicy.hh
     SolidCRKSPHHydroBase.hh
     SolidCRKSPHHydroBaseInline.hh
     SolidCRKSPHHydroBaseRZ.hh
-    SurfaceNodeCoupling.hh
     centerOfMass.hh
-    computeCRKSPHCorrections.hh
     computeCRKSPHEvaluation.hh
     computeCRKSPHIntegral.hh
-    computeCRKSPHMoments.hh
     computeCRKSPHSumMassDensity.hh
-    computeCRKSPHSumVolume.hh
-    computeHVolumes.hh
     computeHullSumMassDensity.hh
-    computeHullVolumes.hh
-    computeRKVolumes.hh
     computeSolidCRKSPHSumMassDensity.hh
     computeVoronoiCentroids.hh
-    computeVoronoiVolume.hh
     detectSurface.hh
-    editMultimaterialSurfaceTopology.hh
-    gradientCRKSPH.hh
-    interpolateCRKSPH.hh
     volumeSpacing.hh
     zerothOrderSurfaceCorrections.hh
-    RKCorrections.hh
-    RKUtilities.hh
-    RKUtilitiesInline.hh
     )
 
-blt_add_library(NAME        Spheral_CRKSPH
-                SOURCES     ${CRKSPH_sources}
-                HEADERS     ${CRKSPH_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+set(CRKSPH_python_targets
+  CRKSPHHydros.py
+  )
+
+spheral_add_cxx_library(CRKSPH)
 
 install(TARGETS              Spheral_CRKSPH
         EXPORT               ${PROJECT_NAME}-targets
@@ -92,3 +62,12 @@ install(TARGETS              Spheral_CRKSPH
 install(FILES       ${CRKSPH_headers}
         DESTINATION include/CRKSPH
         )
+
+if(NOT ENABLE_CXXONLY)
+  install(FILES       ${CRKSPH_python_targets}
+          DESTINATION .
+          )
+endif()
+    
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_CRKSPH)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

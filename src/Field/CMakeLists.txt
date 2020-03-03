@@ -1,3 +1,4 @@
+include_directories(.)
 set(Field_inst
     AllNodeIterator
     CoarseNodeIterator
@@ -29,7 +30,6 @@ set(Field_headers
     FieldListInline.hh
     FieldListSet.hh
     FieldListSetInline.hh
-    FieldListThreadWrapper.hh
     GhostNodeIterator.hh
     GhostNodeIteratorInline.hh
     InternalNodeIterator.hh
@@ -44,11 +44,7 @@ set(Field_headers
     uvm_allocator.hh
     )
 
-blt_add_library(NAME        Spheral_Field
-                SOURCES     ${Field_sources}
-                HEADERS     ${Field_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+spheral_add_cxx_library(Field)
 
 install(TARGETS              Spheral_Field
         EXPORT               ${PROJECT_NAME}-targets
@@ -59,3 +55,6 @@ install(TARGETS              Spheral_Field
 install(FILES       ${Field_headers}
         DESTINATION include/Field
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Field)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

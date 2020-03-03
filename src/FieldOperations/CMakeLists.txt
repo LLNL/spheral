@@ -1,6 +1,27 @@
+include_directories(.)
 set(FieldOperations_inst
+    smoothFields
+    gradient
+    divergence
+    smoothFieldsMash
+    smoothFieldsMash2
+    sampleFieldsMash
+    splatFieldsMash
+    gradientMash
+    divergenceMash
+    gradientPairWise
+    divergencePairWise
+    sampleMultipleFieldsMash
+    splatMultipleFieldsMash
+    gradDivVectorFieldList
+    gradDivVectorFieldListSimple
+    gradDivVectorFieldListGolden
+    gradDivVectorFieldListGolden2
+    gradDivVectorFieldListMash
+    gradDivVectorFieldListPairWise
     sampleMultipleFields2Lattice
     sampleMultipleFields2LatticeMash
+    binFieldList2Lattice
    )
 
 
@@ -12,11 +33,7 @@ set(FieldOperations_headers
     sampleMultipleFields2Lattice.hh
     )
 
-blt_add_library(NAME        Spheral_FieldOperations
-                SOURCES     ${FieldOperations_sources}
-                HEADERS     ${FieldOperations_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+spheral_add_cxx_library(FieldOperations)
 
 install(TARGETS              Spheral_FieldOperations
         EXPORT               ${PROJECT_NAME}-targets
@@ -27,3 +44,6 @@ install(TARGETS              Spheral_FieldOperations
 install(FILES       ${FieldOperations_headers}
         DESTINATION include/FieldOperations
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_FieldOperations)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)
