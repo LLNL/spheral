@@ -223,6 +223,21 @@ packElement(const std::vector<DataType>& value,
   }
 }
 
+// Specialize for std::array<DataType, size>
+template<typename DataType, std::size_t size>
+inline
+void
+packElement(const std::array<DataType, size>& value, 
+            std::vector<char>& buffer) {
+  // We don't need to store size information like a vector
+  // Push the elements on
+  for (typename std::array<DataType, size>::const_iterator itr = value.begin();
+       itr != value.end();
+       ++itr) {
+    packElement(*itr, buffer);
+  }
+}
+
 // Specialize for a std::unordered_map<T1, T2, T3>
 // Assumes that we know how to pack T1 and T2
 template<typename T1, typename T2, typename T3>
@@ -484,6 +499,23 @@ unpackElement(std::vector<DataType>& value,
   }
 
   ENSURE(itr <= endPackedVector);
+}
+
+// std::array<DataType, size>
+template<typename DataType, std::size_t size>
+inline
+void
+unpackElement(std::array<DataType, size>& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  // Unlike std::vector, we don't need the size data
+  // Unpack the elements
+  value.clear();
+  for (int i = 0; i != size; ++i) {
+    DataType element;
+    unpackElement(element, itr, endPackedVector);
+    value[i] = element;
+  }
 }
 
 // std::unordered_map<T1, T2, T3>, as long as we know how to unpack T1, T2

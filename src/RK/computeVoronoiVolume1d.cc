@@ -130,6 +130,9 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         }
         surfacePoint(nodeListi, i) |= 1;
         etaVoidPoints(nodeListi, i).push_back(Vector(-0.5*rin));
+        if (returnCellFaceFlags) cellFaceFlags(nodeListi, i).push_back(CellFaceFlag(0, // cell face
+                                                                                    -1, // void/bound
+                                                                                    -1)); // void/bound
         // cerr << "Surface condition 1: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
       } else {
         nodeListj1 = coords[k-1].second.first;
@@ -160,6 +163,9 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         }
         surfacePoint(nodeListi, i) |= 1;
         etaVoidPoints(nodeListi, i).push_back(Vector(0.5*rin));
+        if (returnCellFaceFlags) cellFaceFlags(nodeListi, i).push_back(CellFaceFlag(1, // cell face
+                                                                                    -1, // void/bound
+                                                                                    -1)); // void/bound
         // cerr << "Surface condition 4: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
       } else {
         nodeListj2 = coords[k+1].second.first;
