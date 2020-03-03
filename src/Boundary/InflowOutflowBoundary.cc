@@ -88,7 +88,7 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
     auto& gNodes = boundaryNodes.ghostNodes;
     const auto currentNumGhostNodes = nodeList.numGhostNodes();
     const auto firstNewGhostNode = nodeList.numNodes();
-    // cerr << "Allocating new ghost nodes " << firstNewGhostNode << " -- " << (firstNewGhostNode + mNumInflowNodes[nodeList]) << endl;
+    // cerr << "Allocating new ghost nodes " << firstNewGhostNode << " -- " << (firstNewGhostNode + mNumInflowNodes[nodeList.name()]) << endl;
     
     // Use the planar boundary to find the set of points that interact with
     // the entrance plane.  We make these the control nodes.
@@ -183,12 +183,65 @@ updateViolationNodes(NodeList<Dimension>& nodeList) {
 }
 
 //------------------------------------------------------------------------------
+// Cull out inactive ghost nodes based on a FieldList of flags.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+InflowOutflowBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>& flagSet,
+                                                 FieldList<Dimension, int>& old2newIndexMap,
+                                                 vector<int>& numNodesRemoved) {
+
+  auto& registrar = NodeListRegistrar<Dimension>::instance();
+  REQUIRE(numNodesRemoved.size() == registrar.numNodeLists());
+
+  // Walk the NodeLists.
+  auto nodeListi = 0;
+  for (auto itr = registrar.begin(); itr < registrar.end(); ++itr, ++nodeListi) {
+    const auto* nodeListPtr = *itr;
+
+    // Does the Boundary have entries for this NodeList?
+    if (this->haveNodeList(*nodeListPtr)) {
+      auto& boundaryNodes = this->accessBoundaryNodes(const_cast<NodeList<Dimension>&>(*nodeListPtr));
+      if (boundaryNodes.ghostNodes.size() > 0) {
+        const auto myOldFirstGhostNode = boundaryNodes.ghostNodes[0];
+        const auto myNewFirstGhostNode = myOldFirstGhostNode - numNodesRemoved[nodeListi];
+
+        // Grab the flags for this NodeList.
+        CHECK(flagSet.haveNodeList(*nodeListPtr));
+        const auto& flags = *(flagSet[nodeListi]);
+
+        // Patch up the ghost and control node indices.
+        vector<int> newGhostNodes, newControlNodes;
+        auto newGhostIndex = myNewFirstGhostNode;
+        for (auto k = 0; k < boundaryNodes.ghostNodes.size(); ++k) {
+          CHECK(flags(boundaryNodes.ghostNodes[k]) == 1);
+          newGhostNodes.push_back(newGhostIndex);
+          old2newIndexMap(nodeListi, boundaryNodes.ghostNodes[k]) = newGhostIndex;
+          ++newGhostIndex;
+        }
+
+        for (auto k = 0; k < boundaryNodes.controlNodes.size(); ++k) {
+          if (flags(boundaryNodes.controlNodes[k]) == 1) {
+            newControlNodes.push_back(old2newIndexMap(nodeListi, boundaryNodes.controlNodes[k]));
+          }
+        }
+
+        // Update the ghost & control nodes, and the result indicating how many of our ghost nodes 
+        // were removed.
+        boundaryNodes.ghostNodes = newGhostNodes;
+        boundaryNodes.controlNodes = newControlNodes;
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
 // On problem startup we take our snapshot of the state of the points that
 // see/interact with the boundary plane.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowOutflowBoundary<Dimension>::initializeProblemStartup() {
+InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool final) {
 
   // Clear any existing data.
   mBufferedValues.clear();

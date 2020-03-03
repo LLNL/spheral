@@ -30,6 +30,7 @@ NodeList.
     #...........................................................................
     # Constructors
     def pyinit(self,
+               dataBase = "DataBase<%(Dimension)s>&",
                nodeList = "NodeList<%(Dimension)s>&",
                nodeIndices = "const std::vector<int>&",
                denialPlane = "const Plane&"):
@@ -50,7 +51,8 @@ NodeList.
         return "void"
 
     @PYB11virtual
-    def initializeProblemStartup(self):
+    def initializeProblemStartup(self,
+                                 final = "const bool"):
         return "void"
 
     #...........................................................................

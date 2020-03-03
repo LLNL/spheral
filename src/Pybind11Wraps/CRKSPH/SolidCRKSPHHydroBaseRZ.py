@@ -24,6 +24,7 @@ class SolidCRKSPHHydroBaseRZ(CRKSPHHydroBase):
 
     def pyinit(self,
                smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
+               dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                order = "const RKOrder",
                filter = "const double",

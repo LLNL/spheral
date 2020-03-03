@@ -10,6 +10,7 @@ CRKSPHHydroFactoryString = """
 class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
 
     def __init__(self,
+                 dataBase,
                  Q,
                  order,
                  filter,
@@ -25,6 +26,7 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
         CRKSPHHydroBase%(dim)s.__init__(self,
                                         self._smoothingScaleMethod,
+                                        dataBase,
                                         Q,
                                         order,
                                         filter,
@@ -47,6 +49,7 @@ SolidCRKSPHHydroFactoryString = """
 class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
 
     def __init__(self,
+                 dataBase,
                  Q,
                  order,
                  filter,
@@ -62,10 +65,9 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                  damageRelieveRubble,
                  negativePressureInDamage):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
-        if WPi is None:
-            WPi = W
         SolidCRKSPHHydroBase%(dim)s.__init__(self,
                                              self._smoothingScaleMethod,
+                                             dataBase,
                                              Q,
                                              order,
                                              filter,
@@ -90,6 +92,7 @@ CRKSPHHydroRZFactoryString = """
 class %(classname)s(CRKSPHHydroBaseRZ):
 
     def __init__(self,
+                 dataBase,
                  Q,
                  order,
                  filter,
@@ -104,10 +107,9 @@ class %(classname)s(CRKSPHHydroBaseRZ):
                  nTensile,
                  etaMinAxis):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
-        if WPi is None:
-            WPi = W
         CRKSPHHydroBaseRZ.__init__(self,
                                    self._smoothingScaleMethod,
+                                   dataBase,
                                    Q,
                                    order,
                                    filter,
@@ -132,6 +134,7 @@ SolidCRKSPHHydroRZFactoryString = """
 class %(classname)s(SolidCRKSPHHydroBaseRZ):
 
     def __init__(self,
+                 dataBase,
                  Q,
                  order,
                  filter,
@@ -148,10 +151,9 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
                  negativePressureInDamage,
                  etaMinAxis):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
-        if WPi is None:
-            WPi = W
         SolidCRKSPHHydroBaseRZ.__init__(self,
                                         self._smoothingScaleMethod,
+                                        dataBase,
                                         Q,
                                         order,
                                         filter,
@@ -279,7 +281,8 @@ def CRKSPH(dataBase,
         Q = eval("CRKSPHMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
     # Build the constructor arguments
-    kwargs = {"Q" : Q,
+    kwargs = {"dataBase" : dataBase,
+              "Q" : Q,
               "order" : order,
               "filter" : filter,
               "cfl" : cfl,

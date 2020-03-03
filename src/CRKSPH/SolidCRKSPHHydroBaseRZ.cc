@@ -14,7 +14,7 @@
 #include "Physics/GenericHydro.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
+#include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "Strength/RZPlasticStrainPolicy.hh"
@@ -106,6 +106,7 @@ tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
 //------------------------------------------------------------------------------
 SolidCRKSPHHydroBaseRZ::
 SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                       DataBase<Dimension>& dataBase,
                        ArtificialViscosity<Dimension>& Q,
                        const RKOrder order,
                        const double filter,
@@ -121,6 +122,7 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                        const bool damageRelieveRubble,
                        const bool negativePressureInDamage):
   SolidCRKSPHHydroBase<Dimension>(smoothingScaleMethod, 
+                                  dataBase,
                                   Q,
                                   order,
                                   filter,
@@ -206,7 +208,7 @@ registerState(DataBase<Dim<2>>& dataBase,
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
+    PolicyPointer thermalEnergyPolicy(new RZNonSymmetricSpecificThermalEnergyPolicy(dataBase));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
 
     // Get the policy for the position, and add the specific energy as a dependency.

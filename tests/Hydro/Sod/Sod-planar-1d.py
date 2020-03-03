@@ -580,22 +580,13 @@ if graphics:
              (APlot, "Sod-planar-entropy.png")]
     
     if crksph:
-        volPlot = plotFieldList(hydro.volume, 
+        volPlot = plotFieldList(control.RKCorrections.volume, 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
-        aplot = plotFieldList(hydro.A,
-                              winTitle = "A",
-                              colorNodeLists = False)
-        bplot = plotFieldList(hydro.B,
-                              yFunction = "%s.x",
-                              winTitle = "B",
-                              colorNodeLists = False)
-        splot = plotFieldList(hydro.surfacePoint,
+        splot = plotFieldList(control.RKCorrections.surfacePoint,
                               winTitle = "surface point",
                               colorNodeLists = False)
         plots += [(volPlot, "Sod-planar-vol.png"),
-                   (aplot, "Sod-planar-ACRK.png"),
-                   (bplot, "Sod-planar-BCRK.png"),
                    (splot, "Sod-planar-surfacePoint.png")]
     
     viscPlot = plotFieldList(hydro.maxViscousPressure,

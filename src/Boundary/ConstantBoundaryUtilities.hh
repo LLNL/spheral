@@ -11,14 +11,16 @@ void
 storeFieldValues(const NodeList<Dimension>& nodeList,
                  const std::vector<int>& nodeIDs,
                  std::map<std::string, std::vector<char>>& values) {
+  // std::cerr << "storeFieldValues starting size: " << values.size() << std::endl;
   for (auto fieldItr = nodeList.registeredFieldsBegin();
        fieldItr != nodeList.registeredFieldsEnd();
        ++fieldItr) {
     const auto buffer = (**fieldItr).packValues(nodeIDs);
     const auto key = StateBase<Dimension>::key(**fieldItr);
-    CHECK2(values.find(key) == values.end(), key);
+    // std::cerr << "Storing key " << key << std::endl;
+    // if (values.find(key) != values.end()) std::cerr << "ConstantBoundaryUtilities::storeFieldValues collision for key " << key << std::endl;
     values[key] = buffer;
-    // cerr << "Stored " << vals.size() << " values for " << key << endl;
+    // std::cerr << "    Stored " << buffer.size() << " values for " << key << std::endl;
   }
 }
   

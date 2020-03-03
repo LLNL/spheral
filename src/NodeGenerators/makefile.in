@@ -47,7 +47,7 @@ PYTHONTARGETS = \
 	$(srcdir)/StretchedLattice3d.py \
 	$(srcdir)/GenerateEqualMassSheets3d.py \
 	$(srcdir)/SiloPolyMeshGenerator.py \
-	$(srcdir)/GenerateRatioSlab2d.py \
+	$(srcdir)/GenerateRatioSlab.py \
 	$(srcdir)/GenerateRatioSphere.py \
 	$(srcdir)/GenerateNodeProfile.py \
 	$(srcdir)/CentroidalGenerator2d.py \

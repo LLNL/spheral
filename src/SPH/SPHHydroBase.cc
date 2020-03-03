@@ -91,6 +91,7 @@ namespace Spheral {
 template<typename Dimension>
 SPHHydroBase<Dimension>::
 SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+             DataBase<Dimension>& dataBase,
              ArtificialViscosity<Dimension>& Q,
              const TableKernel<Dimension>& W,
              const TableKernel<Dimension>& WPi,
@@ -155,24 +156,7 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mLocalM(FieldStorageType::CopyFields),
   mPairAccelerations(),
   mRestart(registerWithRestart(*this)) {
-}
 
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-SPHHydroBase<Dimension>::
-~SPHHydroBase() {
-}
-
-//------------------------------------------------------------------------------
-// On problem start up, we need to initialize our internal data.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-SPHHydroBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
-  TIME_SPHinitializeStartup.start();
   // Create storage for our internal state.
   mTimeStepMask = dataBase.newFluidFieldList(int(0), HydroFieldNames::timeStepMask);
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
@@ -201,7 +185,25 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mPairAccelerations.clear();
   mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
   mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection);
+}
 
+//------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
+template<typename Dimension>
+SPHHydroBase<Dimension>::
+~SPHHydroBase() {
+}
+
+//------------------------------------------------------------------------------
+// On problem start up, we need to initialize our internal data.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SPHHydroBase<Dimension>::
+initializeProblemStartup(DataBase<Dimension>& dataBase) {
+
+  TIME_SPHinitializeStartup.start();
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);

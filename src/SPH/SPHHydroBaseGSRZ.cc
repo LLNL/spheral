@@ -30,7 +30,7 @@
 #include "Hydro/VolumePolicy.hh"
 #include "Hydro/VoronoiMassDensityPolicy.hh"
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
-#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
+#include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
@@ -76,25 +76,27 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 SPHHydroBaseGSRZ::
 SPHHydroBaseGSRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
-               ArtificialViscosity<Dim<2> >& Q,
-               const TableKernel<Dim<2> >& W,
-               const TableKernel<Dim<2> >& WPi,
-               const double filter,
-               const double cfl,
-               const bool useVelocityMagnitudeForDt,
-               const bool compatibleEnergyEvolution,
-               const bool evolveTotalEnergy,
-               const bool gradhCorrection,
-               const bool XSPH,
-               const bool correctVelocityGradient,
-               const bool sumMassDensityOverAllNodeLists,
-               const MassDensityType densityUpdate,
-               const HEvolutionType HUpdate,
-               const double epsTensile,
-               const double nTensile,
-               const Vector& xmin,
-               const Vector& xmax):
+                 DataBase<Dimension>& dataBase,
+                 ArtificialViscosity<Dim<2> >& Q,
+                 const TableKernel<Dim<2> >& W,
+                 const TableKernel<Dim<2> >& WPi,
+                 const double filter,
+                 const double cfl,
+                 const bool useVelocityMagnitudeForDt,
+                 const bool compatibleEnergyEvolution,
+                 const bool evolveTotalEnergy,
+                 const bool gradhCorrection,
+                 const bool XSPH,
+                 const bool correctVelocityGradient,
+                 const bool sumMassDensityOverAllNodeLists,
+                 const MassDensityType densityUpdate,
+                 const HEvolutionType HUpdate,
+                 const double epsTensile,
+                 const double nTensile,
+                 const Vector& xmin,
+                 const Vector& xmax):
   SPHHydroBase<Dim<2> >(smoothingScaleMethod,
+                        dataBase,
                         Q,
                         W,
                         WPi,
@@ -139,7 +141,7 @@ registerState(DataBase<Dim<2> >& dataBase,
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
+    PolicyPointer thermalEnergyPolicy(new RZNonSymmetricSpecificThermalEnergyPolicy(dataBase));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
   }
 }

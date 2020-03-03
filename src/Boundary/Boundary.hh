@@ -150,7 +150,7 @@ public:
 
   // Some boundaries need to know when a problem is starting up and all the physics
   // packages have been initialized.
-  virtual void initializeProblemStartup()                                        {};
+  virtual void initializeProblemStartup(const bool final)                        {};
 
   // Provide an optional hook that is to be called when all ghost boundaries are
   // to have been set.

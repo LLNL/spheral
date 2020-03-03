@@ -67,6 +67,7 @@ namespace Spheral {
 template<typename Dimension>
 PSPHHydroBase<Dimension>::
 PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+              DataBase<Dimension>& dataBase,
               ArtificialViscosity<Dimension>& Q,
               const TableKernel<Dimension>& W,
               const TableKernel<Dimension>& WPi,
@@ -84,6 +85,7 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
               const Vector& xmin,
               const Vector& xmax):
   SPHHydroBase<Dimension>(smoothingScaleMethod,
+                          dataBase,
                           Q,
                           W,
                           WPi,
@@ -105,6 +107,11 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mHopkinsConductivity(HopkinsConductivity),
   mGamma(FieldStorageType::CopyFields),
   mPSPHcorrection(FieldStorageType::CopyFields) {
+
+  // Create storage for our internal state.
+  mGamma = dataBase.newFluidFieldList(0.0, HydroFieldNames::gamma);
+  mPSPHcorrection = dataBase.newFluidFieldList(0.0, HydroFieldNames::PSPHcorrection);
+  dataBase.fluidGamma(mGamma);
 }
 
 //------------------------------------------------------------------------------
@@ -113,23 +120,6 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
 template<typename Dimension>
 PSPHHydroBase<Dimension>::
 ~PSPHHydroBase() {
-}
-
-//------------------------------------------------------------------------------
-// On problem start up, we need to initialize our internal data.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-PSPHHydroBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
-
-  // SPH does most of it.
-  SPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
-
-  // Create storage for our internal state.
-  mGamma = dataBase.newFluidFieldList(0.0, HydroFieldNames::gamma);
-  mPSPHcorrection = dataBase.newFluidFieldList(0.0, HydroFieldNames::PSPHcorrection);
-  dataBase.fluidGamma(mGamma);
 }
 
 //------------------------------------------------------------------------------

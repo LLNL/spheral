@@ -30,9 +30,10 @@ owns the set of vertex positions."""
     #...........................................................................
     # Methods
     @PYB11const
-    def compare(self,
-                point = "const Vector&",
-                tol = ("const double tol", "1.0e-8")):
+    @PYB11pycppname("compare")
+    def compare0(self,
+                 point = "const Vector&",
+                 tol = ("const double tol", "1.0e-8")):
         """Is the given point above, below, or colinear with the facet?
   1 => point above.
   0 => point in plane of facet
@@ -40,9 +41,10 @@ owns the set of vertex positions."""
         return "int"
 
     @PYB11const
-    def compare(self,
-                points = "const std::vector<Vector>&",
-                tol = ("const double tol", "1.0e-8")):
+    @PYB11pycppname("compare")
+    def compare1(self,
+                 points = "const std::vector<Vector>&",
+                 tol = ("const double tol", "1.0e-8")):
         """Compare a set of points:
   1 => all points above.
   0 => points both above and below (or equal).

@@ -271,7 +271,8 @@ class Boundary:
         return "void"
 
     @PYB11virtual
-    def initializeProblemStartup(self):
+    def initializeProblemStartup(self,
+                                 final = "const bool"):
         "Some boundaries need to know when a problem is starting up and all the physics packages have been initialized."
         return "void"
 
@@ -354,11 +355,20 @@ class Boundary:
         "Enforce boundary on all Fields in FieldList"
         return "void"
 
-    for T in ("int", "Scalar", "Vector", "Tensor", "SymTensor", "ThirdRankTensor", "FourthRankTensor", "FifthRankTensor"):
+    for T, L in (("int", "int"),
+                 ("Scalar", "Scalar"),
+                 ("Vector", "Vector"),
+                 ("Tensor", "Tensor"),
+                 ("SymTensor", "SymTensor"),
+                 ("ThirdRankTensor", "ThirdRankTensor"),
+                 ("FourthRankTensor", "FourthRankTensor"),
+                 ("FifthRankTensor", "FifthRankTensor"),
+                 ("RKCoefficients<%(Dimension)s>", "RKCoefficients")):
         exec('''
-aflgb%(T)s = PYB11TemplateMethod(applyFieldListGhostBoundary, template_parameters="%(T)s", pyname="applyFieldListGhostBoundary")
-eflgb%(T)s = PYB11TemplateMethod(enforceFieldListBoundary, template_parameters="%(T)s", pyname="enforceFieldListBoundary")
-''' % {"T" : T})
+aflgb%(L)s = PYB11TemplateMethod(applyFieldListGhostBoundary, template_parameters="%(T)s", pyname="applyFieldListGhostBoundary")
+eflgb%(L)s = PYB11TemplateMethod(enforceFieldListBoundary, template_parameters="%(T)s", pyname="enforceFieldListBoundary")
+''' % {"T" : T,
+       "L" : L})
 
     #...........................................................................
     # Attributes

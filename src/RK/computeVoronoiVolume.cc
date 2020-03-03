@@ -404,7 +404,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       // First pass: clip by any faceted boundaries/holes.
       // cerr << "FIRST pass after polyhedral boundary clipping" << endl;
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-        const auto ni = polycells[nodeListi]->numInternalElements();
+        const auto ni = position[nodeListi]->numInternalElements();
 #pragma omp for
         for (auto i = 0; i < ni; ++i) {
 
@@ -531,7 +531,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       auto etaVoidPoints_thread = etaVoidPoints.threadCopy();
       PolyVolume celli;
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-        const auto ni = etaVoidPoints_thread[nodeListi]->numInternalElements();
+        const auto ni = position[nodeListi]->numInternalElements();
 // #pragma omp parallel for
         for (auto i = 0; i < ni; ++i) {
           const auto& Hi = H(nodeListi, i);
@@ -549,6 +549,14 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
             Vector cent;
             ClippingType<Dimension>::moments(vol0, cent, celli);
             for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
+
+              // First clear any existing clip planes history from the cell
+              for (auto& vertex: celli) {
+                std::set<int> newclips;
+                std::copy_if(vertex.clips.begin(), vertex.clips.end(), std::inserter(newclips, newclips.end()), [](int x) { return x < 0; });
+                vertex.clips = newclips;
+              }
+
               std::sort(pairPlanesi[nodeListj].begin(), pairPlanesi[nodeListj].end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
               ClippingType<Dimension>::clip(celli, pairPlanesi[nodeListj]);
               ClippingType<Dimension>::moments(vol1, cent, celli);
@@ -562,7 +570,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
                       if (iplane == boundingSurfaceClipFlag) {
                         newclips.insert(boundingSurfaceClipFlag);
                       } else {
-                        CHECK(iplane < pairPlanesi[nodeListj].size());
+                        // CHECK(iplane < pairPlanesi[nodeListj].size());  // not true!  It's the plane.ID
                         newclips.insert(~nodeListj);
                       }
                     }

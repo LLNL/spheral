@@ -19,6 +19,7 @@ class EulerianTracerHistory(Spheral.RestartableObject):
                  header = None,
                  labels = None,
                  initializefunc = None,
+                 weightfunc = None,
                  ):
         self.restart = Spheral.RestartableObject(self)
 
@@ -27,9 +28,11 @@ class EulerianTracerHistory(Spheral.RestartableObject):
         self.position = position
         self.samplefunc = samplefunc
         self.initializefunc = initializefunc
+        self.weightfunc = weightfunc
         self.W = W
         self.db = db
         self.filename = filename
+        self.labels = labels
         self.cycleHistory = []
         self.timeHistory = []
         self.sampleHistory = []
@@ -78,17 +81,25 @@ class EulerianTracerHistory(Spheral.RestartableObject):
         # Grab position and H FieldLists.
         positions = self.db.globalPosition
         H = self.db.globalHfield
+        Hmin = 1e60*SymTensor.one       # Since H is in inverse length, need a big number
 
         # Prepare the Neighbor information for sampling at this pos, and walk the neighbors.
-        self.db.setMasterNodeLists(self.position, SymTensor.zero)
-        self.db.setRefineNodeLists(self.position, SymTensor.zero)
-        for nodeListj, nodeList in enumerate(self.db.fluidNodeLists()):
-            for j in nodeList.neighbor().coarseNeighborList:
+        numNodeLists = self.db.numFluidNodeLists
+        masterLists = vector_of_vector_of_int()
+        coarseNeighbors = vector_of_vector_of_int()
+        refineNeighbors = vector_of_vector_of_int()
+        self.db.setMasterNodeLists(self.position, Hmin, masterLists, coarseNeighbors)
+        assert len(coarseNeighbors) == numNodeLists
+        self.db.setRefineNodeLists(self.position, Hmin, coarseNeighbors, refineNeighbors)
+        for nodeListj in xrange(numNodeLists):
+            for j in refineNeighbors[nodeListj]:
 
                 # Compute the weighting for this position.
                 posj = positions(nodeListj, j)
                 Hj = H(nodeListj, j)
                 Wj = self.W.kernelValue((Hj*(posj - self.position)).magnitude(), 1.0)**2
+                if self.weightfunc:
+                    Wj *= self.weightfunc(posj)
                 Wsum += Wj
 
                 # Use the user supplied method to extract the field values for this (nodeList, index)
@@ -123,8 +134,8 @@ class EulerianTracerHistory(Spheral.RestartableObject):
             assert len(self.timeHistory) == n
             assert len(self.sampleHistory) == n
             if mpi.rank == 0:
-                samplestr = ""
                 for i in xrange(n):
+                    samplestr = ""
                     for x in self.sampleHistory[i]:
                         samplestr += str(x) + " "
                     self.file.write("%i \t %g \t %s\n" % (self.cycleHistory[i],
@@ -151,4 +162,5 @@ class EulerianTracerHistory(Spheral.RestartableObject):
         self.cycleHistory = file.readObject(path + "/cycleHistory")
         self.timeHistory = file.readObject(path + "/timeHistory")
         self.sampleHistory = file.readObject(path + "/sampleHistory")
+        self.flushHistory()
         return

@@ -14,7 +14,7 @@
 #include "Utilities/DamagedNodeCouplingWithFrags.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
+#include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "Strength/RZPlasticStrainPolicy.hh"
@@ -76,6 +76,7 @@ tensileStressCorrection(const Dim<2>::SymTensor& sigma) {
 //------------------------------------------------------------------------------
 SolidSPHHydroBaseRZ::
 SolidSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
+                    DataBase<Dimension>& dataBase,
                     ArtificialViscosity<Dim<2> >& Q,
                     const TableKernel<Dim<2> >& W,
                     const TableKernel<Dim<2> >& WPi,
@@ -98,6 +99,7 @@ SolidSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                     const Vector& xmin,
                     const Vector& xmax):
   SolidSPHHydroBase<Dim<2> >(smoothingScaleMethod, 
+                             dataBase,
                              Q,
                              W,
                              WPi,
@@ -137,7 +139,6 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
 
   // Call the ancestor.
   SolidSPHHydroBase<Dim<2> >::initializeProblemStartup(dataBase);
-
   dataBase.isRZ = true;
 }
 
@@ -164,7 +165,7 @@ registerState(DataBase<Dim<2> >& dataBase,
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
+    PolicyPointer thermalEnergyPolicy(new RZNonSymmetricSpecificThermalEnergyPolicy(dataBase));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
 
     // Get the policy for the position, and add the specific energy as a dependency.

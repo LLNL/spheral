@@ -64,13 +64,13 @@ public:
   // back into compliance (for the positions and H's.)
   virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
 
-  // This boundary does not cull ghosts.
+  // This boundary does not cull ghosts, but others might have.
   virtual void cullGhostNodes(const FieldList<Dimension, int>& flagSet,
                               FieldList<Dimension, int>& old2newIndexMap,
-                              std::vector<int>& numNodesRemoved) override {}
+                              std::vector<int>& numNodesRemoved) override;
 
   // After physics have been initialized we take a snapshot of the node state.
-  virtual void initializeProblemStartup() override;
+  virtual void initializeProblemStartup(const bool final) override;
 
   // We need to not cull ghost nodes, since they might need to cross the boundary
   // and become new inflow nodes.
@@ -119,6 +119,10 @@ public:
   template<typename DataType> std::vector<DataType> storedValues(const KeyType key, const DataType& dummy);
   template<typename DataType> std::vector<DataType> storedValues(const Field<Dimension, DataType>& field);
   std::vector<std::string> storedKeys() const;
+
+  // Set new values for the ghost nodes.
+  template<typename DataType> void setStoredValues(const KeyType key, const std::vector<DataType>& values);
+  template<typename DataType> void setStoredValues(const Field<Dimension, DataType>& field, const std::vector<DataType>& values);
 
   // Set new (constant) values for the ghost nodes.
   template<typename DataType> void setStoredValues(const KeyType key, const DataType& value);

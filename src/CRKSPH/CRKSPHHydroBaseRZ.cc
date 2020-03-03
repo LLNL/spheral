@@ -20,7 +20,7 @@
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/CompositeFieldListPolicy.hh"
-#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
+#include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
@@ -66,6 +66,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 CRKSPHHydroBaseRZ::
 CRKSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
+                  DataBase<Dimension>& dataBase,
                   ArtificialViscosity<Dimension>& Q,
                   const RKOrder order,
                   const double filter,
@@ -78,19 +79,20 @@ CRKSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                   const HEvolutionType HUpdate,
                   const double epsTensile,
                   const double nTensile):
-  CRKSPHHydroBase<Dim<2> >(smoothingScaleMethod,
-                           Q,
-                           order,
-                           filter,
-                           cfl,
-                           useVelocityMagnitudeForDt,
-                           compatibleEnergyEvolution,
-                           evolveTotalEnergy,
-                           XSPH,
-                           densityUpdate,
-                           HUpdate,
-                           epsTensile,
-                           nTensile) {
+  CRKSPHHydroBase<Dim<2>>(smoothingScaleMethod,
+                          dataBase,
+                          Q,
+                          order,
+                          filter,
+                          cfl,
+                          useVelocityMagnitudeForDt,
+                          compatibleEnergyEvolution,
+                          evolveTotalEnergy,
+                          XSPH,
+                          densityUpdate,
+                          HUpdate,
+                          epsTensile,
+                          nTensile) {
 }
 
 //------------------------------------------------------------------------------
@@ -155,7 +157,7 @@ registerState(DataBase<Dim<2> >& dataBase,
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
+    PolicyPointer thermalEnergyPolicy(new RZNonSymmetricSpecificThermalEnergyPolicy(dataBase));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
 
     // Get the policy for the position, and add the specific energy as a dependency.

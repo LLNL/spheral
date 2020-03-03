@@ -104,6 +104,7 @@ tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
 template<typename Dimension>
 SolidCRKSPHHydroBase<Dimension>::
 SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                     DataBase<Dimension>& dataBase,
                      ArtificialViscosity<Dimension>& Q,
                      const RKOrder order,
                      const double filter,
@@ -119,6 +120,7 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                      const bool damageRelieveRubble,
                      const bool negativePressureInDamage):
   CRKSPHHydroBase<Dimension>(smoothingScaleMethod, 
+                             dataBase,
                              Q,
                              order,
                              filter,
@@ -139,6 +141,14 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mYieldStrength(FieldStorageType::CopyFields),
   mPlasticStrain0(FieldStorageType::CopyFields),
   mHfield0(FieldStorageType::CopyFields) {
+
+  // Create storage for the state we're holding.
+  mDdeviatoricStressDt = dataBase.newSolidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
+  mBulkModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::bulkModulus);
+  mShearModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::shearModulus);
+  mYieldStrength = dataBase.newSolidFieldList(0.0, SolidFieldNames::yieldStrength);
+  mPlasticStrain0 = dataBase.newSolidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
+  mHfield0 = dataBase.newSolidFieldList(SymTensor::zero, HydroFieldNames::H + "0");
 }
 
 //------------------------------------------------------------------------------
@@ -160,27 +170,18 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Call the ancestor.
   CRKSPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
 
-  // Create storage for the state we're holding.
-  mDdeviatoricStressDt = dataBase.newSolidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
-  mBulkModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::bulkModulus);
-  mShearModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::shearModulus);
-  mYieldStrength = dataBase.newSolidFieldList(0.0, SolidFieldNames::yieldStrength);
-  mPlasticStrain0 = dataBase.newSolidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
-  mHfield0 = dataBase.newSolidFieldList(SymTensor::zero, HydroFieldNames::H + "0");
-
+  // Set the moduli.
   size_t nodeListi = 0;
   for (auto itr = dataBase.solidNodeListBegin();
        itr < dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
-
-    // Set the moduli.
     (*itr)->bulkModulus(*mBulkModulus[nodeListi]);
     (*itr)->shearModulus(*mShearModulus[nodeListi]);
     (*itr)->yieldStrength(*mYieldStrength[nodeListi]);
   }
 
   // Copy the initial H field to apply to nodes as they become damaged.
-  const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
+  const auto H = dataBase.fluidHfield();
   mHfield0.assignFields(H);
 }
 

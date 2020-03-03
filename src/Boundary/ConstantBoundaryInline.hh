@@ -3,21 +3,6 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Return the set of node IDs we're controlling.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-std::vector<int>
-ConstantBoundary<Dimension>::
-nodeIndices() const {
-  std::vector<int> result;
-  for (int i = 0; i != mNodeListPtr->numNodes(); ++i) {
-    if (mNodeFlags(i) == 1) result.push_back(i);
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
 // Return the number of nodes this Boundary is going to create.
 //------------------------------------------------------------------------------
 template<typename Dimension>

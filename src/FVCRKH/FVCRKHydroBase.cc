@@ -76,6 +76,7 @@ namespace Spheral {
 template<typename Dimension>
 FVCRKHydroBase<Dimension>::
 FVCRKHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+               DataBase<Dimension>& dataBase,
                ArtificialViscosity<Dimension>& Q,
                const RKOrder order,
                const double filter,
@@ -89,6 +90,7 @@ FVCRKHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                const double epsTensile,
                const double nTensile):
   CRKSPHHydroBase<Dimension>(smoothingScaleMethod,
+                             dataBase,
                              Q,
                              order,
                              filter,

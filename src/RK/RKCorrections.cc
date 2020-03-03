@@ -47,11 +47,24 @@ RKCorrections(const std::set<RKOrder> orders,
   mCells(FieldStorageType::CopyFields),
   mCellFaceFlags(FieldStorageType::CopyFields),
   mRestart(registerWithRestart(*this)) {
+
   mOrders.insert(RKOrder::ZerothOrder);     // We always at least want ZerothOrder
   for (auto order: mOrders) {
     mWR.emplace(std::make_pair(order, ReproducingKernel<Dimension>(W, order)));   // cause ReproducingKernel is not default constructible
     mCorrections.emplace(std::make_pair(order, FieldList<Dimension, RKCoefficients<Dimension>>(FieldStorageType::CopyFields)));
   }
+
+  mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
+  mSurfaceArea = dataBase.newFluidFieldList(0.0, HydroFieldNames::surfaceArea);
+  mNormal = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::normal);
+  mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
+  mEtaVoidPoints = dataBase.newFluidFieldList(std::vector<Vector>(), HydroFieldNames::etaVoidPoints);
+  if (mVolumeType == RKVolumeType::RKVoronoiVolume) {
+    mCells = dataBase.newFluidFieldList(FacetedVolume(), HydroFieldNames::cells);
+    mCellFaceFlags = dataBase.newFluidFieldList(std::vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
+  }
+  mDeltaCentroid = dataBase.newFluidFieldList(Vector::zero, "delta centroid");
+  
   ENSURE(mWR.size() == mOrders.size());
   ENSURE(mCorrections.size() == mOrders.size());
 }
@@ -71,20 +84,6 @@ template<typename Dimension>
 void
 RKCorrections<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
-  // Initialize state
-  mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
-  mSurfaceArea = dataBase.newFluidFieldList(0.0, HydroFieldNames::surfaceArea);
-  mNormal = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::normal);
-
-  // Initialize the volume stuff
-  mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
-  mEtaVoidPoints = dataBase.newFluidFieldList(std::vector<Vector>(), HydroFieldNames::etaVoidPoints);
-  if (mVolumeType == RKVolumeType::RKVoronoiVolume) {
-    mCells = dataBase.newFluidFieldList(FacetedVolume(), HydroFieldNames::cells);
-    mCellFaceFlags = dataBase.newFluidFieldList(std::vector<CellFaceFlag>(), HydroFieldNames::cellFaceFlags);
-  }
-  mDeltaCentroid = dataBase.newFluidFieldList(Vector::zero, "delta centroid");
-  
   // Get some more data
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& W = mWR.begin()->second.kernel();
@@ -101,6 +100,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                    mSurfacePoint, mDeltaCentroid, mEtaVoidPoints, mCells, mCellFaceFlags,
                    mVolume);
   
+  // Propagate volume to constant ghost nodes
+  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) (*boundItr)->initializeProblemStartup(false);
+
   // Apply boundaries to newly computed terms
   for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(mVolume);
@@ -123,6 +125,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                                     mNeedHessian, mCorrections[RKOrder::ZerothOrder], mCorrections[order]);
     }
   }
+
+  // Boundaries may need to be reinitialized.
+  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) (*boundItr)->initializeProblemStartup(false);
 
   // Apply boundaries to corrections before computing normal
   for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {
