@@ -45,7 +45,7 @@ set(NodeGenerators_python_targets
     StretchedLattice3d.py
     GenerateEqualMassSheets3d.py
     SiloPolyMeshGenerator.py
-    GenerateRatioSlab2d.py
+    GenerateRatioSlab.py
     GenerateRatioSphere.py
     GenerateNodeProfile.py
     CentroidalGenerator2d.py
