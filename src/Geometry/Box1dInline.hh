@@ -16,8 +16,6 @@ Box1d():
   mFacets() {
   mVertices.push_back(Vector());
   mVertices.push_back(Vector());
-  mFacets.push_back(Facet());
-  mFacets.push_back(Facet());
   REQUIRE(mExtent >= 0.0);
   REQUIRE(mVertices.size() == 2);
   REQUIRE(mFacets.size() == 2);
