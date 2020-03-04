@@ -1,3 +1,4 @@
+include_directories(.)
 set(DataBase_inst
     CompositeFieldListPolicy
     CopyFieldList
@@ -53,11 +54,7 @@ set(DataBase_headers
     UpdatePolicyBaseInline.hh
     )
 
-blt_add_library(NAME        Spheral_DataBase
-                SOURCES     ${DataBase_sources}
-                HEADERS     ${DataBase_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+spheral_add_cxx_library(DataBase)
 
 install(TARGETS              Spheral_DataBase
         EXPORT               ${PROJECT_NAME}-targets
@@ -68,3 +65,6 @@ install(TARGETS              Spheral_DataBase
 install(FILES       ${DataBase_headers}
         DESTINATION include/DataBase
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_DataBase)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

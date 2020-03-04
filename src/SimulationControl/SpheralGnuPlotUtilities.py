@@ -1022,7 +1022,7 @@ def plotPolygon(polygon,
                 plotLabels = True):
     px = []
     py = []
-    for v in polygon.vertices():
+    for v in polygon.vertices:
         px.append(v.x)
         py.append(v.y)
     fx = []
@@ -1033,7 +1033,7 @@ def plotPolygon(polygon,
     ny = []
     ndx = []
     ndy = []
-    for f in polygon.facets():
+    for f in polygon.facets:
         dr = f.point2 - f.point1
         hdr = dr/2.0
         fx.append(f.point1.x)
@@ -1072,7 +1072,7 @@ def plotPolygon(polygon,
         plot.replot(dataNormals)
 
     if plotCentroid:
-        c = polygon.centroid()
+        c = polygon.centroid
         dataCentroid = Gnuplot.Data([c.x], [c.y],
                                     with_ = "points pt 2 ps 2",
                                     title = "Centroid",

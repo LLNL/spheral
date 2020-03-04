@@ -1156,7 +1156,7 @@ $(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTAR
 		$(CP) -f $(TETGENDIR)/tetgen.cxx $(POLYTOPEDIR)/src; \
 	fi
 	@$(MKDIR) -p $(POLYTOPEDIR)/build
-	env PATH=$(SAFEPATH) CC='$(CC)' CXX='$(CXX)' $(SHELL) -ec "cd $(POLYTOPEDIR)/build; \
+	env PATH=$(SAFEPATH) CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' $(SHELL) -ec "cd $(POLYTOPEDIR)/build; \
 	$(CMAKEEXE) $(POLYTOPEFLAGS) $(BUILDTOP)/thirdPartyLibs/$(POLYTOPEDIR); \
 	$(MAKE) MAKEFLAGS= install"
 	@if ! test -e $(prefix)/lib/libpolytope.a -a \

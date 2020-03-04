@@ -22,15 +22,15 @@ GNU)
   elif test "$withval" = "1";then
     OPT="-O1"
   elif test "$withval" = "10" -o "$withval" = "01";then
-    OPT="-O1 -g"
+    OPT="-O1-g"
   elif test "$withval" = "2";then
     OPT="-O2"
   elif test "$withval" = "20" -o "$withval" = "02";then
-    OPT="-O2 -g"
+    OPT="-O2-g"
   elif test "$withval" = "3";then
-    OPT="-O3 "
+    OPT="-O3"
   elif test "$withval" = "4";then
-    OPT="-O4 -march=native"
+    OPT="-O4-march=native"
   elif test "$withval" = "5";then
     OPT="-O5"
   elif test "$withval" = "6";then

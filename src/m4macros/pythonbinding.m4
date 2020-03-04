@@ -19,7 +19,7 @@ PYOPT=""
 BOOSTLIBTARGETS="math"
 PIPTARGETS+=" pybindgen==0.17.0"      # if nothing else, polytope currently requires this
 
-AC_MSG_CHECKING(for --without-pybindgen)
+AC_MSG_CHECKING(for --with-pybindgen)
 AC_ARG_WITH(pybindgen,
 [  --with-pybindgen ......................... use pybindgen wrappings],
 [

@@ -1,5 +1,9 @@
+include_directories(.)
 set(Material_inst
     EquationOfState
+    GammaLawGas
+    PolytropicEquationOfState
+    IsothermalEquationOfState
    )
 
 
@@ -16,11 +20,12 @@ set(Material_headers
     PhysicalConstantsInline.hh
     )
 
-blt_add_library(NAME        Spheral_Material
-                SOURCES     ${Material_sources}
-                HEADERS     ${Material_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+set(Material_python_targets
+  MaterialUnits.py
+  MaterialEquationsOfState.py
+  )
+
+spheral_add_cxx_library(Material)
 
 install(TARGETS              Spheral_Material
         EXPORT               ${PROJECT_NAME}-targets
@@ -31,3 +36,12 @@ install(TARGETS              Spheral_Material
 install(FILES       ${Material_headers}
         DESTINATION include/Material
         )
+
+if(NOT ENABLE_CXXONLY)
+  install(FILES       ${Material_python_targets}
+          DESTINATION .
+          )
+endif()
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Material)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

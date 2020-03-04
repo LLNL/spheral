@@ -730,9 +730,13 @@ void collapseDegenerates(Polyhedron& polyhedron,
 
               // Make all the neighbors of j point back at i instead of j.
               for (auto k: polyhedron[j].neighbors) {
-                auto itr = find(polyhedron[k].neighbors.begin(), polyhedron[k].neighbors.end(), j);
-                CHECK(itr != polyhedron[j].neighbors.end());
-                *itr = i;
+                 // i is a neighbor to j, and j has already been removed from list
+                 // also, i can not be a neighbor to itself
+                 if (k != i) {
+                    auto itr = find(polyhedron[k].neighbors.begin(), polyhedron[k].neighbors.end(), j);
+                    CHECK(itr != polyhedron[k].neighbors.end());
+                    *itr = i;
+                 }
               }
               // break;   // break out of the loop over the neighbors of i and start again
             }

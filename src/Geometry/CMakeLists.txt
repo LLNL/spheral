@@ -1,3 +1,4 @@
+include_directories(.)
 set(Geometry_inst
     invertRankNTensor
    )
@@ -99,11 +100,7 @@ set(Geometry_headers
     polyclipper_utilities.hh
     )
 
-blt_add_library(NAME        Spheral_Geometry
-                SOURCES     ${Geometry_sources} ${Geometry_sources2d} ${Geometry_sources3d}
-                HEADERS     ${Geometry_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+spheral_add_cxx_library(Geometry)
 
 install(TARGETS              Spheral_Geometry
         EXPORT               ${PROJECT_NAME}-targets
@@ -114,3 +111,6 @@ install(TARGETS              Spheral_Geometry
 install(FILES       ${Geometry_headers}
         DESTINATION include/Geometry
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Geometry)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)
