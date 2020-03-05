@@ -77,9 +77,9 @@ NodeIteratorBase<Dimension>::
 valid() const {
 
   // We want real NodeList iterators.
-  const bool validNodeListIterators = (mNodeListItr != typename vector<NodeList<Dimension>*>::const_iterator() &&
-                                       mNodeListBegin != typename vector<NodeList<Dimension>*>::const_iterator() &&
-                                       mNodeListEnd != typename vector<NodeList<Dimension>*>::const_iterator());
+  // const bool validNodeListIterators = (mNodeListItr != typename vector<NodeList<Dimension>*>::const_iterator() &&
+  //                                      mNodeListBegin != typename vector<NodeList<Dimension>*>::const_iterator() &&
+  //                                      mNodeListEnd != typename vector<NodeList<Dimension>*>::const_iterator());
 
   // Test if the NodeList iterator is in the appropriate range.
   const bool nodeListRange = (mNodeListItr >= mNodeListBegin &&

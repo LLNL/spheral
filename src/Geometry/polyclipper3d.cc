@@ -738,6 +738,7 @@ void collapseDegenerates(Polyhedron& polyhedron,
                     *itr = i;
                  }
               }
+              // if (jitr == polyhedron[i].neighbors.end()) break;
               // break;   // break out of the loop over the neighbors of i and start again
             }
           }

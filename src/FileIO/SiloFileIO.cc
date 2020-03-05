@@ -175,7 +175,7 @@ struct FieldIO {
       const string varname = setdir(filePtr, pathName + "/values/value");
       VERIFY2(DBReadVar(filePtr, varname.c_str(), static_cast<void*>(&buf.front())) == 0,
               "SiloFileIO ERROR: unable to read Field values " << pathName);
-      for (auto i = 0; i < n; ++i) std::copy(&buf[i*ne], &buf[(i+1)*ne], value(i).begin());
+      for (auto i = 0; i < n; ++i) std::copy(&buf[i*ne], &buf[i*ne] + ne, value(i).begin());
     }
   }
 };
