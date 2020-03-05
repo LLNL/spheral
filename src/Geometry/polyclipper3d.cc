@@ -695,8 +695,8 @@ void collapseDegenerates(Polyhedron& polyhedron,
         auto idone = false;
         while (not idone) {
           idone = true;
-          for (auto jitr = polyhedron[i].neighbors.begin(); jitr < polyhedron[i].neighbors.end(); ++jitr) {
-            const auto j = *jitr;
+          for (auto jneigh = 0; jneigh < polyhedron[i].neighbors.size(); ++jneigh) {
+            const auto j = polyhedron[i].neighbors[jneigh];
             CHECK(polyhedron[j].ID >= 0);
             if ((polyhedron[i].position - polyhedron[j].position).magnitude2() < tol2) {
               // cerr << " --> collapasing " << j << " to " << i;
@@ -706,6 +706,7 @@ void collapseDegenerates(Polyhedron& polyhedron,
               polyhedron[i].clips.insert(polyhedron[j].clips.begin(), polyhedron[j].clips.end());
 
               // Merge the neighbors of j->i.
+              auto jitr = polyhedron[i].neighbors.begin() + jneigh;
               auto kitr = find(polyhedron[j].neighbors.begin(), polyhedron[j].neighbors.end(), i);
               CHECK(kitr != polyhedron[j].neighbors.end());
               jitr = polyhedron[i].neighbors.insert(jitr, polyhedron[j].neighbors.begin(), kitr);
@@ -738,8 +739,6 @@ void collapseDegenerates(Polyhedron& polyhedron,
                     *itr = i;
                  }
               }
-              // if (jitr == polyhedron[i].neighbors.end()) break;
-              // break;   // break out of the loop over the neighbors of i and start again
             }
           }
         }
