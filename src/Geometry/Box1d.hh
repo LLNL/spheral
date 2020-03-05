@@ -105,7 +105,7 @@ private:
   Vector mCenter;
   double mExtent;
   std::vector<Vector> mVertices;
-  std::vector<Facet> mFacets;
+  mutable std::vector<Facet> mFacets; // for now, just create this when we need it
 };
 
 }
