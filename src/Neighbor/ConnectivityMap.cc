@@ -47,8 +47,10 @@ template<typename T>
 inline
 void
 appendSTLvectors(std::vector<T>& v1, std::vector<T>& v2) {
-  v1.reserve(v1.size() + v2.size());
-  v1.insert(v1.end(), v2.begin(), v2.end());
+  if (not v2.empty()) {
+    v1.reserve(v1.size() + v2.size());
+    v1.insert(v1.end(), v2.begin(), v2.end());
+  }
 }
 
 //------------------------------------------------------------------------------

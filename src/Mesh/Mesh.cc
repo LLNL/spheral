@@ -803,16 +803,18 @@ generateDomainInfo() {
   // Ensure consistency in the potential exchange pattern!
   BEGIN_CONTRACT_SCOPE
   {
-    for (int sendProc = 0; sendProc != numDomains; ++sendProc) {
-      unsigned num = potentialNeighborDomains.size();
-      MPI_Bcast(&num, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
-      vector<unsigned> otherNeighbors = potentialNeighborDomains;
-      otherNeighbors.resize(num);
-      MPI_Bcast(&otherNeighbors.front(), num, MPI_UNSIGNED, sendProc, Communicator::communicator());
-      CHECK((binary_search(potentialNeighborDomains.begin(), potentialNeighborDomains.end(), sendProc) == true and
-             binary_search(otherNeighbors.begin(), otherNeighbors.end(), rank) == true) or
-            (binary_search(potentialNeighborDomains.begin(), potentialNeighborDomains.end(), sendProc) == false and
-             binary_search(otherNeighbors.begin(), otherNeighbors.end(), rank) == false));
+    if (numDomains > 1) {
+      for (int sendProc = 0; sendProc != numDomains; ++sendProc) {
+        unsigned num = potentialNeighborDomains.size();
+        MPI_Bcast(&num, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
+        vector<unsigned> otherNeighbors = potentialNeighborDomains;
+        otherNeighbors.resize(num);
+        MPI_Bcast(&otherNeighbors.front(), num, MPI_UNSIGNED, sendProc, Communicator::communicator());
+        CHECK((binary_search(potentialNeighborDomains.begin(), potentialNeighborDomains.end(), sendProc) == true and
+               binary_search(otherNeighbors.begin(), otherNeighbors.end(), rank) == true) or
+              (binary_search(potentialNeighborDomains.begin(), potentialNeighborDomains.end(), sendProc) == false and
+               binary_search(otherNeighbors.begin(), otherNeighbors.end(), rank) == false));
+      }
     }
   }
   END_CONTRACT_SCOPE
@@ -966,8 +968,10 @@ generateDomainInfo() {
     }
 
     // Wait for our sends to complete.
-    vector<MPI_Status> status(sendRequests.size());
-    MPI_Waitall(sendRequests.size(), &sendRequests.front(), &status.front());
+    if (not sendRequests.empty()) {
+      vector<MPI_Status> status(sendRequests.size());
+      MPI_Waitall(sendRequests.size(), &sendRequests.front(), &status.front());
+    }
   }
 
   // That's it.
@@ -1169,8 +1173,10 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
     // }
 
     // Wait until all our sends have been satisfied.
-    vector<MPI_Status> status(sendRequests.size());
-    MPI_Waitall(sendRequests.size(), &sendRequests.front(), &status.front());
+    if (not sendRequests.empty()) {
+      vector<MPI_Status> status(sendRequests.size());
+      MPI_Waitall(sendRequests.size(), &sendRequests.front(), &status.front());
+    }
   }
 #endif
   ENSURE(generators.size() == this->numZones());
@@ -1272,8 +1278,10 @@ globalMeshNodeIDs() const {
     if (recvRequests.size() > 0) {
 
       // Wait 'til we have all our receives.
-      vector<MPI_Status> recvStatus(recvRequests.size());
-      MPI_Waitall(recvRequests.size(), &recvRequests.front(), &recvStatus.front());
+      if (not recvRequests.empty()) {
+        vector<MPI_Status> recvStatus(recvRequests.size());
+        MPI_Waitall(recvRequests.size(), &recvRequests.front(), &recvStatus.front());
+      }
 
       // Walk the neighbor domains.
       list<vector<unsigned> >::const_iterator recvBufferItr = recvBuffers.begin();
@@ -1297,7 +1305,7 @@ globalMeshNodeIDs() const {
     }
 
     // Don't exit until all of our sends are complete.
-    if (sendRequests.size() > 0) {
+    if (not sendRequests.empty()) {
       vector<MPI_Status> sendStatus(sendRequests.size());
       MPI_Waitall(sendRequests.size(), &sendRequests.front(), &sendStatus.front());
     }
@@ -1637,8 +1645,10 @@ validDomainInfo(const typename Dimension::Vector& xmin,
       MPI_Irecv(&numOtherSharedNodes[k], 1, MPI_UNSIGNED, otherProc,
                 (otherProc + 1)*numDomains + rank, Communicator::communicator(), &requests[mNeighborDomains.size() + k]);
     }
-    vector<MPI_Status> status(requests.size());
-    MPI_Waitall(requests.size(), &requests.front(), &status.front());
+    if (not requests.empty()) {
+      vector<MPI_Status> status(requests.size());
+      MPI_Waitall(requests.size(), &requests.front(), &status.front());
+    }
     if (not (numLocalSharedNodes == numOtherSharedNodes)) {
       result = "Processors don't agree about number of shared nodes.";
     }
@@ -1660,8 +1670,10 @@ validDomainInfo(const typename Dimension::Vector& xmin,
       MPI_Irecv(&numOtherSharedFaces[k], 1, MPI_UNSIGNED, otherProc,
                 (otherProc + 1)*numDomains + rank, Communicator::communicator(), &requests[mNeighborDomains.size() + k]);
     }
-    vector<MPI_Status> status(requests.size());
-    MPI_Waitall(requests.size(), &requests.front(), &status.front());
+    if (not requests.empty()) {
+      vector<MPI_Status> status(requests.size());
+      MPI_Waitall(requests.size(), &requests.front(), &status.front());
+    }
     if (not (numLocalSharedFaces == numOtherSharedFaces)) {
       result = "Processors don't agree about number of shared faces.";
     }
