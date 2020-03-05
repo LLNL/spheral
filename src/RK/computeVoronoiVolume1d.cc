@@ -72,6 +72,11 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
     etaVoidPoints = vector<Vector>();
   }
 
+  // Zero out the cell face flags.
+  if (returnCellFaceFlags) {
+    cellFaceFlags = vector<CellFaceFlag>();
+  }
+
   // Copy the input positions to single list, and sort it.
   // Note our logic here relies on ghost nodes already being built, including parallel nodes.
   typedef pair<double, pair<unsigned, unsigned> > PointCoord;
