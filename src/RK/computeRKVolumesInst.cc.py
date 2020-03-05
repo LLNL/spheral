@@ -15,6 +15,8 @@ template void computeRKVolumes<Dim<%(ndim)s>>(const ConnectivityMap<Dim<%(ndim)s
                                               const FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::Scalar>& massDensity,
                                               const FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::SymTensor>& H,
                                               const FieldList<Dim<%(ndim)s>, Dim<%(ndim)s>::SymTensor>& damage,
+                                              const std::vector<Dim<%(ndim)s>::FacetedVolume>& facetedBoundaries,
+                                              const std::vector<std::vector<Dim<%(ndim)s>::FacetedVolume>>& facetedHoles,
                                               const std::vector<Boundary<Dim<%(ndim)s>>*>& boundaryConditions,
                                               const RKVolumeType volumeType,
                                               FieldList<Dim<%(ndim)s>, int>& surfacePoint,

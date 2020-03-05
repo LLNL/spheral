@@ -100,6 +100,10 @@ public:
                         DataBase<Dimension>& dataBase, 
                         State<Dimension>& state,
                         StateDerivatives<Dimension>& derivs) override;
+
+  // Add a faceted boundary
+  virtual void addFacetedBoundary(const FacetedVolume& cell,
+                                  const std::vector<FacetedVolume>& holes);
   
   // We do require the connecitivity
   virtual bool requireConnectivity() const override { return true; }
@@ -151,6 +155,8 @@ private:
   FieldList<Dimension, FacetedVolume> mCells;
   FieldList<Dimension, std::vector<CellFaceFlag>> mCellFaceFlags;
   FieldList<Dimension, Vector> mDeltaCentroid;
+  std::vector<FacetedVolume> mFacetedBoundaries;
+  std::vector<std::vector<FacetedVolume>> mFacetedHoles;
   
   // The restart registration.
   RestartRegistrationType mRestart;

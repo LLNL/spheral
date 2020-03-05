@@ -99,6 +99,13 @@ class RKCorrections(Physics):
         "Finalize the hydro at the completion of an integration step."
         return "void"
                   
+    @PYB11virtual
+    def addFacetedBoundary(self,
+                           cell = "const FacetedVolume&",
+                           holes = ("const std::vector<FacetedVolume>&", "std::vector<FacetedVolume>()")):
+        "Add a faceted boundary for Voronoi volume calculation."
+        return "void"
+        
     @PYB11const
     @PYB11returnpolicy("reference_internal")
     @PYB11keepalive(0,1)

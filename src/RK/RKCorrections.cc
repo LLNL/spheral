@@ -96,7 +96,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Compute the volumes
   computeRKVolumes(connectivityMap, W,
                    position, mass, massDensity, H, damage,
-                   this->boundaryConditions(), mVolumeType,
+                   mFacetedBoundaries, mFacetedHoles, this->boundaryConditions(), mVolumeType,
                    mSurfacePoint, mDeltaCentroid, mEtaVoidPoints, mCells, mCellFaceFlags,
                    mVolume);
   
@@ -297,7 +297,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   // Compute volumes
   computeRKVolumes(connectivityMap, W,
                    position, mass, massDensity, H, damage,
-                   this->boundaryConditions(), mVolumeType,
+                   mFacetedBoundaries, mFacetedHoles, this->boundaryConditions(), mVolumeType,
                    surfacePoint, mDeltaCentroid, mEtaVoidPoints, cells, cellFaceFlags,
                    volume);
   
@@ -385,6 +385,25 @@ finalize(const Scalar time,
          DataBase<Dimension>& dataBase, 
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
+}
+
+//------------------------------------------------------------------------------
+// Add a faceted boundary
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+RKCorrections<Dimension>::
+addFacetedBoundary(const FacetedVolume& cell,
+                   const std::vector<FacetedVolume>& holes) {
+  const auto numExisting = mFacetedBoundaries.size();
+  for (auto i = 0; i < numExisting; ++i) {
+    if (cell == mFacetedBoundaries[i] and holes == mFacetedHoles[i]) {
+      std::cerr << "tried to add same faceted boundary twice" << std::endl;
+      return;
+    }
+  }
+  mFacetedBoundaries.push_back(cell);
+  mFacetedHoles.push_back(holes);
 }
 
 //------------------------------------------------------------------------------
