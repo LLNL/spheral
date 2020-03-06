@@ -218,7 +218,7 @@ include(../cmake/libraries/FindPython.cmake)
 ################################
 # PYBIND11
 ################################
-if(INSTALL_TPLS AND NOT PYBIND11_DIR)
+if(INSTALL_TPLS AND NOT PYBIND11_DIR AND NOT ENABLE_CXXONLY)
   message("\n---------- BUILDING PYBIND11 ----------")
   set(PYBIND11_PREFIX ${SPHERAL_TPL_DIR}/pybind11/)
   set(PYBIND11_TARGET pybind11)
