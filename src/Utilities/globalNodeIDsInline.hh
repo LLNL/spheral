@@ -115,10 +115,12 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
       numGlobalNodes += numRecvNodes;
       std::vector<Key> packedKeys(numRecvNodes);
       std::vector<int> packedLocalIDs(numRecvNodes);
-      MPI_Recv(&(*packedKeys.begin()), numRecvNodes, DataTypeTraits<Key>::MpiDataType(),
-               recvDomain, 11, Communicator::communicator(), &status);
-      MPI_Recv(&(*packedLocalIDs.begin()), numRecvNodes, MPI_INT,
-               recvDomain, 12, Communicator::communicator(), &status);
+      if (numRecvNodes > 0) {
+        MPI_Recv(&(*packedKeys.begin()), numRecvNodes, DataTypeTraits<Key>::MpiDataType(),
+                 recvDomain, 11, Communicator::communicator(), &status);
+        MPI_Recv(&(*packedLocalIDs.begin()), numRecvNodes, MPI_INT,
+                 recvDomain, 12, Communicator::communicator(), &status);
+      }
       for (int i = 0; i != numRecvNodes; ++i) {
         nodeInfo.push_back(std::tuple<Key, int, int>(packedKeys[i], packedLocalIDs[i], recvDomain));
       }
@@ -139,11 +141,12 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
     CHECK(packedLocalIDs.size() == nodeInfo.size());
 
     MPI_Send(&numLocalNodes, 1, MPI_INT, 0, 10, Communicator::communicator());
-    MPI_Send(&(*packedKeys.begin()), numLocalNodes, DataTypeTraits<Key>::MpiDataType(),
-             0, 11, Communicator::communicator());
-    MPI_Send(&(*packedLocalIDs.begin()), numLocalNodes,
-             MPI_INT, 0, 12, Communicator::communicator());
-
+    if (numLocalNodes > 0) {
+      MPI_Send(&(*packedKeys.begin()), numLocalNodes, DataTypeTraits<Key>::MpiDataType(),
+               0, 11, Communicator::communicator());
+      MPI_Send(&(*packedLocalIDs.begin()), numLocalNodes,
+               MPI_INT, 0, 12, Communicator::communicator());
+    }
   }
 #endif
   CHECK(nodeInfo.size() == numGlobalNodes);
@@ -182,8 +185,8 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
     for (int recvProc = 1; recvProc != numProcs; ++recvProc) {
       int numRecvNodes = globalIDs[recvProc].size();
       MPI_Send(&numRecvNodes, 1, MPI_INT, recvProc, 20, Communicator::communicator());
-      MPI_Send(&(*globalIDs[recvProc].begin()), numRecvNodes, MPI_INT,
-               recvProc, 21, Communicator::communicator());
+      if (numRecvNodes > 0) MPI_Send(&(*globalIDs[recvProc].begin()), numRecvNodes, MPI_INT,
+                                     recvProc, 21, Communicator::communicator());
     }
 
   } else {
@@ -193,8 +196,8 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
     int numRecvNodes;
     MPI_Recv(&numRecvNodes, 1, MPI_INT, 0, 20, Communicator::communicator(), &status);
     CHECK(numRecvNodes == numLocalNodes);
-    MPI_Recv(&(*result.begin()), numRecvNodes, MPI_INT, 0, 21, Communicator::communicator(),
-             &status);
+    if (numRecvNodes > 0) MPI_Recv(&(*result.begin()), numRecvNodes, MPI_INT, 0, 21,
+                                   Communicator::communicator(), &status);
 
   }
 #endif

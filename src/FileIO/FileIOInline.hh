@@ -285,7 +285,7 @@ FileIO::readVector(std::vector<Value>& x, const std::string pathName) const {
   const auto ne = Value::numElements;
   const auto n = buf.size()/ne;
   x.resize(n);
-  for (auto i = 0; i < n; ++i) std::copy(&buf[i*ne], &buf[(i+1)*ne], x[i].begin());
+  for (auto i = 0; i < n; ++i) std::copy(&buf[i*ne], &buf[i*ne] + ne, x[i].begin());
 }
 template<> inline void FileIO::read<Dim<1>::Vector>          (std::vector<Dim<1>::Vector>& x,          const std::string pathName) const { this->readVector(x, pathName); }
 template<> inline void FileIO::read<Dim<1>::Tensor>          (std::vector<Dim<1>::Tensor>& x,          const std::string pathName) const { this->readVector(x, pathName); }
