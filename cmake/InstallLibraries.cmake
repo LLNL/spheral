@@ -38,7 +38,7 @@ function(DownloadAndBuildLib TARGET_NAME)
     execute_process(COMMAND ${CMAKE_COMMAND} ..
       WORKING_DIRECTORY ${trigger_build_dir}/build
     )
-  execute_process(COMMAND ${CMAKE_COMMAND} --build . -j32
+  execute_process(COMMAND ${CMAKE_COMMAND} --build . 
       WORKING_DIRECTORY ${trigger_build_dir}/build
     )
     
@@ -140,7 +140,7 @@ if(INSTALL_TPLS AND NOT PYTHON_DIR)
                         --with-cxx-main='${CMAKE_CXX_COMPILER}'
                         --disable-ipv6
                         --prefix=${PYTHON_PREFIX}/${PYTHON_TARGET}
-      BUILD_COMMAND make -j32
+      BUILD_COMMAND make 
       INSTALL_COMMAND make install
     )
   ")
@@ -448,7 +448,7 @@ if(INSTALL_TPLS AND NOT HDF5_DIR)
       DOWNLOAD_DIR ${CACHE_DIR}
       CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} ${HDF5_SRC_DIR}/configure 
                         --prefix=${HDF5_PREFIX}/${HDF5_TARGET}
-      BUILD_COMMAND make -j32
+      BUILD_COMMAND make 
       INSTALL_COMMAND make install
     )
   ")
@@ -507,7 +507,7 @@ if(INSTALL_TPLS AND NOT SILO_DIR)
                         --prefix=${SILO_PREFIX}/${SILO_TARGET}
                         --enable-silex=no
                         --enable-browser=yes
-      BUILD_COMMAND make -j32
+      BUILD_COMMAND make 
       INSTALL_COMMAND make install
     )
   ")
