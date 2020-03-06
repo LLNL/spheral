@@ -38,7 +38,7 @@ function(DownloadAndBuildLib TARGET_NAME)
     execute_process(COMMAND ${CMAKE_COMMAND} ..
       WORKING_DIRECTORY ${trigger_build_dir}/build
     )
-  execute_process(COMMAND ${CMAKE_COMMAND} --build . -j32
+  execute_process(COMMAND ${CMAKE_COMMAND} --build . 
       WORKING_DIRECTORY ${trigger_build_dir}/build
     )
     
@@ -140,7 +140,7 @@ if(INSTALL_TPLS AND NOT PYTHON_DIR)
                         --with-cxx-main='${CMAKE_CXX_COMPILER}'
                         --disable-ipv6
                         --prefix=${PYTHON_PREFIX}/${PYTHON_TARGET}
-      BUILD_COMMAND make -j32
+      BUILD_COMMAND make 
       INSTALL_COMMAND make install
     )
   ")
@@ -167,44 +167,46 @@ if(PYTHON_DIR)
   set(PIP_EXE    ${PYTHON_DIR}/bin/pip2.7)
   set(PYTHON_VERSION "2.7")
 
-  include(FindPythonModule)
+  if(NOT ENABLE_CXXONLY)
+    include(FindPythonModule)
 
-  find_python_module(pip QUIET)
-  if(NOT PY_PIP)
-    set(PIP_DIST pip-9.0.1-py2.py3-none-any.whl)
-    if (NOT EXISTS ${CACHE_DIR}/${PIP_DIST})
-      execute_process(COMMAND wget https://pypi.python.org/packages/b6/ac/7015eb97dc749283ffdec1c3a88ddb8ae03b8fad0f0e611408f196358da3/pip-9.0.1-py2.py3-none-any.whl#md5=297dbd16ef53bcef0447d245815f5144
--O ${CACHE_DIR}/${PIP_DIST})
-  endif()
-    execute_process(COMMAND ${PYTHON_EXE} ${CACHE_DIR}/${PIP_DIST}/pip install --no-index ${CACHE_DIR}/${PIP_DIST})
-  endif()
-
-  # Download and install PIP modules
-  foreach(_target ${PIPTARGETS})
-    # Case for numpy-stl
-    set(_tmp_target ${_target})
-    if(${_target} STREQUAL "numpy-stl")
-      set(_tmp_target stl)
+    find_python_module(pip QUIET)
+    if(NOT PY_PIP)
+      set(PIP_DIST pip-9.0.1-py2.py3-none-any.whl)
+      if (NOT EXISTS ${CACHE_DIR}/${PIP_DIST})
+        execute_process(COMMAND wget https://pypi.python.org/packages/b6/ac/7015eb97dc749283ffdec1c3a88ddb8ae03b8fad0f0e611408f196358da3/pip-9.0.1-py2.py3-none-any.whl#md5=297dbd16ef53bcef0447d245815f5144
+  -O ${CACHE_DIR}/${PIP_DIST})
+    endif()
+      execute_process(COMMAND ${PYTHON_EXE} ${CACHE_DIR}/${PIP_DIST}/pip install --no-index ${CACHE_DIR}/${PIP_DIST})
     endif()
 
-    string(TOUPPER ${_tmp_target} _target_upper)
-    find_python_module(${_tmp_target} QUIET)
+    # Download and install PIP modules
+    foreach(_target ${PIPTARGETS})
+      # Case for numpy-stl
+      set(_tmp_target ${_target})
+      if(${_target} STREQUAL "numpy-stl")
+        set(_tmp_target stl)
+      endif()
 
-    if (NOT PY_${_target_upper})
-      execute_process(COMMAND ${PIP_EXE} download --no-binary :all -d ${CACHE_DIR} ${_target})
+      string(TOUPPER ${_tmp_target} _target_upper)
+      find_python_module(${_tmp_target} QUIET)
+
+      if (NOT PY_${_target_upper})
+        execute_process(COMMAND ${PIP_EXE} download --no-binary :all -d ${CACHE_DIR} ${_target})
+      endif()
+
+      if (NOT PY_${_target_upper})
+        execute_process(COMMAND ${PIP_EXE} install --upgrade ${_target} --no-index --find-links ${CACHE_DIR})
+      endif()
+    endforeach()
+
+    find_python_module(Gnuplot QUIET)
+    if(NOT PY_GNUPLOT)
+      execute_process(COMMAND wget http://downloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz -O ${CACHE_DIR}/gnuplot-py-1.8.tar.gz)
+      execute_process(COMMAND tar -xvf ${CACHE_DIR}/gnuplot-py-1.8.tar.gz)
+      execute_process(COMMAND ${PYTHON_EXE} setup.py install
+                      WORKING_DIRECTORY gnuplot-py-1.8)
     endif()
-
-    if (NOT PY_${_target_upper})
-      execute_process(COMMAND ${PIP_EXE} install --upgrade ${_target} --no-index --find-links ${CACHE_DIR})
-    endif()
-  endforeach()
-
-  find_python_module(Gnuplot QUIET)
-  if(NOT PY_GNUPLOT)
-    execute_process(COMMAND wget http://downloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz -O ${CACHE_DIR}/gnuplot-py-1.8.tar.gz)
-    execute_process(COMMAND tar -xvf ${CACHE_DIR}/gnuplot-py-1.8.tar.gz)
-    execute_process(COMMAND ${PYTHON_EXE} setup.py install
-                    WORKING_DIRECTORY gnuplot-py-1.8)
   endif()
 endif()
 
@@ -448,7 +450,7 @@ if(INSTALL_TPLS AND NOT HDF5_DIR)
       DOWNLOAD_DIR ${CACHE_DIR}
       CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} ${HDF5_SRC_DIR}/configure 
                         --prefix=${HDF5_PREFIX}/${HDF5_TARGET}
-      BUILD_COMMAND make -j32
+      BUILD_COMMAND make 
       INSTALL_COMMAND make install
     )
   ")
@@ -507,7 +509,7 @@ if(INSTALL_TPLS AND NOT SILO_DIR)
                         --prefix=${SILO_PREFIX}/${SILO_TARGET}
                         --enable-silex=no
                         --enable-browser=yes
-      BUILD_COMMAND make -j32
+      BUILD_COMMAND make 
       INSTALL_COMMAND make install
     )
   ")
