@@ -1,10 +1,16 @@
-
+include_directories(.)
 set(ArtificialViscosity_inst
     ArtificialViscosity
     CRKSPHMonaghanGingoldViscosity
+    CullenDehnenViscosity
+    FiniteVolumeViscosity
+    IncrementCullenMultipliers
     MonaghanGingoldViscosity
+    MorrisMonaghanReducingViscosity
+    TensorSVPHViscosity
     TensorCRKSPHViscosity
     TensorMonaghanGingoldViscosity
+    VonNeumanViscosity
    )
 
 
@@ -24,6 +30,8 @@ set(ArtificialViscosity_headers
     ArtificialViscosityList.hh
     CRKSPHMonaghanGingoldViscosity.hh
     CRKSPHMonaghanGingoldViscosityRZ.hh
+    CullenDehnenViscosity.hh
+    FiniteVolumeViscosity.hh
     MonaghanGingoldViscosity.hh
     MonaghanGingoldViscosityGSRZ.hh
     MonaghanGingoldViscosityRZ.hh
@@ -31,11 +39,7 @@ set(ArtificialViscosity_headers
     TensorMonaghanGingoldViscosity.hh
     )
 
-blt_add_library(NAME        Spheral_ArtificialViscosity
-                SOURCES     ${ArtificialViscosity_sources}
-                HEADERS     ${ArtificialViscosity_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+spheral_add_cxx_library(ArtificialViscosity)
 
 install(TARGETS              Spheral_ArtificialViscosity
         EXPORT               ${PROJECT_NAME}-targets
@@ -46,3 +50,6 @@ install(TARGETS              Spheral_ArtificialViscosity
 install(FILES       ${ArtificialViscosity_headers}
         DESTINATION include/ArtificialViscosity
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_ArtificialViscosity)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

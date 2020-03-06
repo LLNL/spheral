@@ -1,8 +1,13 @@
+include_directories(.)
 set(Integrator_inst
-    CheapSynchronousRK2
     Integrator
-   )
-
+    PredictorCorrector 
+    SynchronousRK1
+    SynchronousRK2
+    SynchronousRK4
+    CheapSynchronousRK2
+    Verlet
+    )
 
 set(Integrator_sources )
 
@@ -14,11 +19,7 @@ set(Integrator_headers
     IntegratorInline.hh
     )
 
-blt_add_library(NAME        Spheral_Integrator
-                SOURCES     ${Integrator_sources}
-                HEADERS     ${Integrator_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+spheral_add_cxx_library(Integrator)
 
 install(TARGETS              Spheral_Integrator
         EXPORT               ${PROJECT_NAME}-targets
@@ -29,3 +30,6 @@ install(TARGETS              Spheral_Integrator
 install(FILES       ${Integrator_headers}
         DESTINATION include/Integrator
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Integrator)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

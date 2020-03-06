@@ -837,6 +837,21 @@ DBPutMaterial(DBfile& file,
   // If dims is empty, set it as a 1D list based on matlist.
   if (dims.empty()) dims = std::vector<int>(1, matlist.size());
 
+  // If mix info is empty, we need to be sure and point at valid empty arrays
+  int *mix_next_begin, *mix_mat_begin, *mix_zone_begin;
+  double *mix_vf_begin;
+  if (numMix == 0) {
+    mix_next_begin = nullptr;
+    mix_mat_begin = nullptr;
+    mix_zone_begin = nullptr;
+    mix_vf_begin = nullptr;
+  } else {
+    mix_next_begin = &mix_next.front();
+    mix_mat_begin = &mix_mat.front();
+    mix_zone_begin = &mix_zone.front();
+    mix_vf_begin = &mix_vf.front();
+  }
+
   // Do the deed.
   const int result = DBPutMaterial(&file, 
                                    name.c_str(),
@@ -846,10 +861,10 @@ DBPutMaterial(DBfile& file,
                                    &matlist.front(),
                                    &dims.front(),
                                    dims.size(),
-                                   &mix_next.front(),
-                                   &mix_mat.front(),
-                                   &mix_zone.front(),
-                                   &mix_vf.front(),
+                                   mix_next_begin,
+                                   mix_mat_begin,
+                                   mix_zone_begin,
+                                   mix_vf_begin,
                                    numMix,
                                    SiloTraits<double>::datatype(),
                                    optlist.mOptlistPtr);
@@ -1134,12 +1149,16 @@ DBPutUcdvar1(DBfile& file,
          centering == DB_FACECENT or
          centering == DB_ZONECENT);
 
+  void *values_begin = nullptr, *mix_values_begin = nullptr;
+  if (not values.empty()) values_begin = (void*) &(*values.begin());
+  if (not mixValues.empty()) mix_values_begin = (void*) &(*mixValues.begin());
+
   return DBPutUcdvar1(&file,
                       name.c_str(),
                       meshName.c_str(),
-                      (void*) &(*values.begin()),
+                      values_begin,
                       values.size(),
-                      (void*) &(*mixValues.begin()),
+                      mix_values_begin,
                       mixValues.size(),
                       SiloTraits<T>::datatype(),
                       centering,

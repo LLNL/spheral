@@ -1,3 +1,4 @@
+include_directories(.)
 set(Physics_inst
     GenericBodyForce
     GenericHydro
@@ -16,11 +17,7 @@ set(Physics_headers
     PhysicsInline.hh
     )
 
-blt_add_library(NAME        Spheral_Physics
-                SOURCES     ${Physics_sources}
-                HEADERS     ${Physics_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+spheral_add_cxx_library(Physics)
 
 install(TARGETS              Spheral_Physics
         EXPORT               ${PROJECT_NAME}-targets
@@ -31,3 +28,6 @@ install(TARGETS              Spheral_Physics
 install(FILES       ${Physics_headers}
         DESTINATION include/Physics
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Physics)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

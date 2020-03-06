@@ -1,10 +1,13 @@
+include_directories(.)
 set(SPH_inst
     SPHHydroBase
+    PSPHHydroBase
     SolidSPHHydroBase
     computeSPHOmegaGradhCorrection
     computeSPHSumMassDensity
-    computeSumVoronoiCellMassDensity
     correctSPHSumMassDensity
+    computePSPHCorrections
+    computeSumVoronoiCellMassDensity
    )
 
 
@@ -15,6 +18,12 @@ if(ENABLE_2D)
        SPHHydroBaseGSRZ.cc
        SPHHydroBaseRZ.cc
        SolidSPHHydroBaseRZ.cc
+      )
+endif()
+
+if(ENABLE_3D)
+  list(APPEND SPH_sources
+       computeHydrostaticEquilibriumPressure.cc
       )
 endif()
 
@@ -29,6 +38,7 @@ set(SPH_headers
     SolidSPHHydroBase.hh
     SolidSPHHydroBaseInline.hh
     SolidSPHHydroBaseRZ.hh
+    #SolidSPHHydroBaseRZInline.hh
     computeHydrostaticEquilibriumPressure.hh
     computeSPHOmegaGradhCorrection.hh
     computeSPHSumMassDensity.hh
@@ -36,11 +46,14 @@ set(SPH_headers
     correctSPHSumMassDensity.hh
     )
 
-blt_add_library(NAME        Spheral_SPH
-                SOURCES     ${SPH_sources}
-                HEADERS     ${SPH_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+set(SPH_python_targets
+    SPHHydros.py
+    PSPHHydros.py
+    SPHUtilities.py
+    FacetedSurfaceASPHHydro.py
+    )
+
+spheral_add_cxx_library(SPH)
 
 install(TARGETS              Spheral_SPH
         EXPORT               ${PROJECT_NAME}-targets
@@ -51,3 +64,12 @@ install(TARGETS              Spheral_SPH
 install(FILES       ${SPH_headers}
         DESTINATION include/SPH
         )
+
+if(NOT ENABLE_CXXONLY)
+  install(FILES       ${SPH_python_targets}
+          DESTINATION .
+          )
+endif()
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_SPH)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

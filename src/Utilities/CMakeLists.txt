@@ -1,11 +1,17 @@
+include_directories(.)
 set(Utilities_inst
-    boundingBox
-    computeShepardsInterpolation
-    globalBoundingVolumes
     iterateIdealH
     mortonOrderIndices
-    nodeBoundingBoxes
     peanoHilbertOrderIndices
+    nodeOrdering
+    nodeBoundingBoxes
+    boundingBox
+    globalBoundingVolumes
+    integrateThroughMeshAlongSegment
+    numberDensity
+    medianPosition
+    computeShepardsInterpolation
+    overlayRemapFields
    )
 
 set(Utilities_sources
@@ -22,9 +28,11 @@ set(Utilities_sources
     pointInPolygon.cc
     pointOnPolyhedron.cc
     pointInPolyhedron.cc
+    refinePolyhedron.cc
     coarsenBinnedValuesInst.cc
+    clipFacetedVolume.cc
     SpheralTimers.cc
-    SpheralTimersAlternate.cc
+    #SpheralTimersAlternate.cc
     Timer.cc
     )
 
@@ -33,12 +41,12 @@ instantiate(Utilities_inst Utilities_sources)
 set(Utilities_headers
     Bessel.hh
     CounterClockwiseComparator.hh
-    DBC.hh
-    DataTypeTraits.hh
     DamagedNodeCoupling.hh
     DamagedNodeCouplingWithFrags.hh
+    DBC.hh
     DomainNode.hh
     DomainNodeInline.hh
+    DataTypeTraits.hh
     FastMath.hh
     FieldDataTypeTraits.hh
     Functors.hh
@@ -86,6 +94,7 @@ set(Utilities_headers
     newtonRaphson.hh
     nodeBoundingBoxes.hh
     nodeBoundingBoxesInline.hh
+    NodeCoupling.hh
     overlayRemapFields.hh
     packElement.hh
     peanoHilbertOrderIndices.hh
@@ -102,15 +111,16 @@ set(Utilities_headers
     segmentIntersectEdges.hh
     simpsonsIntegration.hh
     sort_permutation.hh
+    SurfaceNodeCoupling.hh
     testBoxIntersection.hh
     timingUtilities.hh
     )
 
-blt_add_library(NAME        Spheral_Utilities
-                SOURCES     ${Utilities_sources}
-                HEADERS     ${Utilities_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+set(Utilities_python_targets
+    fitspline.py
+    )
+
+spheral_add_cxx_library(Utilities)
 
 install(TARGETS              Spheral_Utilities
         EXPORT               ${PROJECT_NAME}-targets
@@ -121,3 +131,12 @@ install(TARGETS              Spheral_Utilities
 install(FILES       ${Utilities_headers}
         DESTINATION include/Utilities
         )
+
+if(NOT ENABLE_CXXONLY)
+  install(FILES       ${Utilities_python_targets}
+          DESTINATION .
+          )
+endif()
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Utilities)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

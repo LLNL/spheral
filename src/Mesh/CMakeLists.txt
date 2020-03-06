@@ -1,8 +1,10 @@
+include_directories(.)
 set(Mesh_inst
     MeshPolicy
     computeGenerators
     findMatchingVertex
     generateMesh
+    copy2polytope
    )
 
 
@@ -46,11 +48,11 @@ set(Mesh_headers
     generateMesh.hh
     )
 
-blt_add_library(NAME        Spheral_Mesh
-                SOURCES     ${Mesh_sources}
-                HEADERS     ${Mesh_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+set(Mesh_python_targets
+  generateMesh.py
+  siloMeshDump.py)
+
+spheral_add_cxx_library(Mesh)
 
 install(TARGETS              Spheral_Mesh
         EXPORT               ${PROJECT_NAME}-targets
@@ -61,3 +63,12 @@ install(TARGETS              Spheral_Mesh
 install(FILES       ${Mesh_headers}
         DESTINATION include/Mesh
         )
+
+if(NOT ENABLE_CXXONLY)
+  install(FILES       ${Mesh_python_targets}
+          DESTINATION .
+          )
+endif()
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Mesh)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

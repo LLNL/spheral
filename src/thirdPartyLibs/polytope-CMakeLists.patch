@@ -1,0 +1,12 @@
+--- ../../polytope/polytope/src/polytope/CMakeLists-old.txt	2019-12-17 08:51:54.290907000 -0800
++++ ../../polytope/polytope/src/polytope/CMakeLists.txt	2019-12-17 08:41:43.866962000 -0800
+@@ -135,7 +135,7 @@
+     set(PYTHON_EXECUTABLE ${PYTHON_EXE})
+     include(FindPythonVersion)
+     find_python_version()
+-    string(REPLACE "/bin/python" "" PYTHON_ROOT ${PYTHON_EXE})
++    string(REPLACE "/bin/python2.7" "" PYTHON_ROOT ${PYTHON_EXE})
+     set(PYTHON_INCLUDE_DIR "${PYTHON_ROOT}/include/python${PYTHON_VERSION}")
+     set(PYTHON_LIB_DIR "${PYTHON_ROOT}/lib")
+     set(PYTHON_LIBRARY "${PYTHON_LIB_DIR}/libpython.a")
+

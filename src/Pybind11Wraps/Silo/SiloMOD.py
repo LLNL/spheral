@@ -610,8 +610,8 @@ class DBquadvar:
     label = PYB11readwrite(doc="Label (perhaps for editing purposes)")
     cycle = PYB11readwrite(doc="Problem cycle number")
     meshid = PYB11readwrite(doc="Identifier for associated mesh (Deprecated Sep2005)")
-    vals = PYB11property(getterraw = "[](DBquadvar& self) { return copy2py(self.vals, 3, self.nvals, self.datatype); }",
-                         setterraw = "[](DBquadvar& self, py::list vals) { copy2c(self.vals, vals, 3, self.nvals, self.datatype); }",
+    vals = PYB11property(getterraw = "[](DBquadvar& self) { return copy2py(self.vals, self.nvals, self.nels, self.datatype); }",
+                         setterraw = "[](DBquadvar& self, py::list vals) { copy2c(self.vals, vals, self.nvals, self.nels, self.datatype); }",
                          doc="Array of pointers to data arrays")
     datatype = PYB11readwrite(doc="Type of data pointed to by 'val'")
     nels = PYB11readwrite(doc="Number of elements in each array")

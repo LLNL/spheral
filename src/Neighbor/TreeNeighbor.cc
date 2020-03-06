@@ -1204,7 +1204,7 @@ valid() const {
       for (auto iitr = cell.members.begin(); iitr != cell.members.end(); ++iitr) {
         auto itr = nodeCount.find(*iitr);
         if (itr == nodeCount.end()) {
-          itr->second = 1;
+          nodeCount[*iitr] = 1;
         } else {
           ++(itr->second);
         }

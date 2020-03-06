@@ -1,3 +1,4 @@
+include_directories(.)
 set(Hydro_inst
     EntropyPolicy
     NonSymmetricSpecificThermalEnergyPolicy
@@ -9,13 +10,16 @@ set(Hydro_inst
     SumVoronoiMassDensityPolicy
     VolumePolicy
     VoronoiMassDensityPolicy
+    GammaPolicy
+    SecondMomentHourglassControl
+    ThirdMomentHourglassControl
    )
 
 
 set(Hydro_sources
     HydroFieldNames.cc
     RZNonSymmetricSpecificThermalEnergyPolicy.cc
-   )
+    )
 
 instantiate(Hydro_inst Hydro_sources)
 
@@ -39,11 +43,7 @@ set(Hydro_headers
     entropyWeightingFunction.hh
     )
 
-blt_add_library(NAME        Spheral_Hydro
-                SOURCES     ${Hydro_sources}
-                HEADERS     ${Hydro_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+spheral_add_cxx_library(Hydro)
 
 install(TARGETS              Spheral_Hydro
         EXPORT               ${PROJECT_NAME}-targets
@@ -54,3 +54,6 @@ install(TARGETS              Spheral_Hydro
 install(FILES       ${Hydro_headers}
         DESTINATION include/Hydro
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Hydro)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

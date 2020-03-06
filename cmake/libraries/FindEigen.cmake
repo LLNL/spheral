@@ -13,8 +13,8 @@ if(NOT EIGEN_DIR)
 endif()
 
 #find includes
-find_path( EIGEN_INCLUDE_DIRS Eigen
-           PATHS  ${EIGEN_DIR}/include
+find_path( EIGEN_INCLUDE_DIRS Eigen/Eigen
+  PATHS  ${EIGEN_DIR}/include/eigen3/
            NO_DEFAULT_PATH
            NO_CMAKE_ENVIRONMENT_PATH
            NO_CMAKE_PATH
