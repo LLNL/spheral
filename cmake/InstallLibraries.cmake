@@ -153,8 +153,17 @@ set(PIPTARGETS
   setuptools
   PYB11Generator
   mpi4py
+  numpy
   numpy-stl
   matplotlib
+  decorator
+  h5py
+  sphinx
+  sphinx_rtd_theme
+  twine
+  cython
+  sobol
+  scipy
   )
 
 if(PYTHON_DIR)
