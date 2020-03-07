@@ -214,7 +214,7 @@ endif()
 include(../cmake/libraries/FindPython.cmake)
 
 
-
+if (NOT ENABLE_CXXONLY)
 ################################
 # PYBIND11
 ################################
@@ -262,6 +262,7 @@ else()
   set(BLT_PYBIND11_DEFINES "HAVE_PYBIND11=0" CACHE PATH "")
 endif()
 
+endif()
 
 
 ################################

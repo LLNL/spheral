@@ -77,8 +77,6 @@ include(../cmake/CMakeBasics.cmake)
 ################################
 include_directories(.)
 
-add_subdirectory(CInterface)
-
 set(SPHERAL_PYTHON_DEPENDS )
 
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
@@ -87,6 +85,7 @@ set(_packages
   ArtificialViscosity
   ArtificialConduction
   Boundary
+  CInterface
   CRKSPH
   Damage
   DataBase
