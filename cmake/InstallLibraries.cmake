@@ -153,8 +153,17 @@ set(PIPTARGETS
   setuptools
   PYB11Generator
   mpi4py
+  numpy
   numpy-stl
   matplotlib
+  decorator
+  h5py
+  sphinx
+  sphinx_rtd_theme
+  twine
+  cython
+  sobol
+  scipy
   )
 
 if(PYTHON_DIR)
@@ -218,7 +227,7 @@ if (NOT ENABLE_CXXONLY)
 ################################
 # PYBIND11
 ################################
-if(INSTALL_TPLS AND NOT PYBIND11_DIR)
+if(INSTALL_TPLS AND NOT PYBIND11_DIR AND NOT ENABLE_CXXONLY)
   message("\n---------- BUILDING PYBIND11 ----------")
   set(PYBIND11_PREFIX ${SPHERAL_TPL_DIR}/pybind11/)
   set(PYBIND11_TARGET pybind11)
