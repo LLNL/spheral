@@ -33,9 +33,6 @@ target_link_libraries(
   ${ADDITIONAL_DEPENDS}
   )
 
-set_target_properties(${MODULE_NAME} PROPERTIES
-  IMPORTED_LINK_INTERFACE_MULTIPLICITY 5)
-
 install(
   FILES ${CMAKE_BINARY_DIR}/lib/$<TARGET_FILE_NAME:${MODULE_NAME}>
   DESTINATION .

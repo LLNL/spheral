@@ -22,9 +22,6 @@ blt_add_library(
   SHARED       TRUE
   )
 
-set_target_properties(${MODULE_NAME} PROPERTIES
-  IMPORTED_LINK_INTERFACE_MULTIPLICITY 5)
-
 target_link_libraries(
   ${MODULE_NAME}
   -Wl,--start-group
