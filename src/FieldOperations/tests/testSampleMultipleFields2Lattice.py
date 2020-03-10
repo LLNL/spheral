@@ -150,7 +150,6 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
         self.eos = GammaLawGasMKS1d(5.0/3.0, 1.0)
         self.WT = TableKernel1d(BSplineKernel1d())
         self.nodes = makeFluidNodeList1d("nodes", self.eos)
-        self.neighbor = self.nodes.neighbor()
 
         # Distribute the nodes.
         from DistributeNodes import distributeNodesInRange1d
@@ -169,8 +168,7 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
         xbc = PeriodicBoundary1d(p0, p1)
         self.bcs = [xbc]
         try:
-            dbc = TreeDistributedBoundary1d.instance()
-            self.bcs.append(dbc)
+            self.bcs.append(TreeDistributedBoundary1d.instance())
         except:
             if mpi.procs > 1:
                 raise RuntimeError, "Unable to get parallel boundary condition"
@@ -183,7 +181,7 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
         for bc in self.bcs:
             bc.setAllGhostNodes(db)
             bc.finalizeGhostBoundary()
-            self.neighbor.updateNodes()
+            self.nodes.neighbor().updateNodes()
         for bc in self.bcs:
             bc.applyGhostBoundary(self.nodes.mass())
             bc.applyGhostBoundary(self.nodes.massDensity())
@@ -194,6 +192,9 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
 
         self.H0 = self.nodes.Hfield()[0]
         return
+
+    def tearDown(self):
+        del self.nodes
 
 #===============================================================================
 # 2-D tests.
@@ -230,11 +231,10 @@ class TestSampleMultipleFields2Lattice2d(TestSampleMultipleFields2Lattice,
         self.eos = GammaLawGasMKS2d(5.0/3.0, 1.0)
         self.WT = TableKernel2d(BSplineKernel2d())
         self.nodes = makeFluidNodeList2d("nodes", self.eos)
-        self.neighbor = self.nodes.neighbor()
 
         # Distribute the nodes.
         from GenerateNodeDistribution2d import GenerateNodeDistribution2d
-        from DistributeNodes import distributeNodes2d
+        from PeanoHilbertDistributeNodes import distributeNodes2d
         generator = GenerateNodeDistribution2d(nx, ny,
                                                self.rho0,
                                                "lattice",
@@ -259,8 +259,7 @@ class TestSampleMultipleFields2Lattice2d(TestSampleMultipleFields2Lattice,
         ybc = PeriodicBoundary2d(py0, py1)
         self.bcs = [xbc, ybc]
         try:
-            dbc = TreeDistributedBoundary2d.instance()
-            self.bcs.append(dbc)
+            self.bcs.append(TreeDistributedBoundary2d.instance())
         except:
             if mpi.procs > 1:
                 raise RuntimeError, "Unable to get parallel boundary condition"
@@ -273,7 +272,7 @@ class TestSampleMultipleFields2Lattice2d(TestSampleMultipleFields2Lattice,
         for bc in self.bcs:
             bc.setAllGhostNodes(db)
             bc.finalizeGhostBoundary()
-            self.neighbor.updateNodes()
+            self.nodes.neighbor().updateNodes()
         for bc in self.bcs:
             bc.applyGhostBoundary(self.nodes.mass())
             bc.applyGhostBoundary(self.nodes.massDensity())
@@ -284,6 +283,9 @@ class TestSampleMultipleFields2Lattice2d(TestSampleMultipleFields2Lattice,
 
         self.H0 = self.nodes.Hfield()[0]
         return
+
+    def tearDown(self):
+        del self.nodes
 
 #===============================================================================
 # 3-D tests.
@@ -325,7 +327,6 @@ class TestSampleMultipleFields2Lattice2d(TestSampleMultipleFields2Lattice,
 ##         self.eos = GammaLawGasMKS3d(5.0/3.0, 1.0)
 ##         self.WT = TableKernel3d(BSplineKernel3d())
 ##         self.nodes = makeFluidNodeList3d("nodes", self.eos)
-##         self.neighbor = self.nodes.neighbor()
 
 ##         # Distribute the nodes.
 ##         from GenerateNodeDistribution3d import GenerateNodeDistribution3d
