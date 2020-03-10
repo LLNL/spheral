@@ -27,11 +27,19 @@ function(spheral_add_pybind11_library package_name)
   blt_add_library(
     NAME         ${MODULE_NAME}
     SOURCES      ${GENERATED_SOURCE} ${${package_name}_ADDITIONAL_SOURCES}
-    DEPENDS_ON   ${SPHERAL_PYTHON_DEPENDS} ${${package_name}_ADDITIONAL_DEPENDS} ${spheral_depends}
+    #DEPENDS_ON   ${SPHERAL_PYTHON_DEPENDS} ${${package_name}_ADDITIONAL_DEPENDS} ${spheral_depends}
     INCLUDES     ${${package_name}_ADDITIONAL_INCLUDES}
     OUTPUT_NAME  ${MODULE_NAME}
     CLEAR_PREFIX TRUE
     SHARED       TRUE
+    )
+
+  target_link_libraries(
+    ${MODULE_NAME}
+    -Wl,--start-group
+    ${SPHERAL_PYTHON_DEPENDS}
+    -Wl,--end-group
+    ${${package_name}_ADDITIONAL_DEPENDS}
     )
 
   install(

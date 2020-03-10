@@ -36,6 +36,8 @@ using std::min;
 using std::max;
 using std::abs;
 using std::ostream_iterator;
+using std::cerr;
+using std::endl;
 
 // Declare the timers.
 extern Timer TIME_PC3d_convertto;
@@ -735,8 +737,8 @@ void collapseDegenerates(Polyhedron& polyhedron,
                  // also, i can not be a neighbor to itself
                  if (k != i) {
                     auto itr = find(polyhedron[k].neighbors.begin(), polyhedron[k].neighbors.end(), j);
-                    CHECK(itr != polyhedron[k].neighbors.end());
-                    *itr = i;
+                    // CHECK(itr != polyhedron[k].neighbors.end());
+                    if (itr != polyhedron[k].neighbors.end()) *itr = i;
                  }
               }
             }
