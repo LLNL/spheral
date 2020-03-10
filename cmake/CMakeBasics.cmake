@@ -56,6 +56,10 @@ else()
     add_definitions("-DDEBUG=0")
 endif()
 
+if (ENABLE_BOUNDCHECKING)
+  add_definitions(-D_GLIBCXX_DEBUG=1)
+endif()
+
 if(ENABLE_CXXONLY)
   add_definitions(-DCXXONLY=1)
 endif()
