@@ -324,8 +324,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   mExtraEnergy = allReduce(mExtraEnergy, MPI_SUM, Communicator::communicator());
 
   // Wait until all our sends are complete.
-  vector<MPI_Status> sendStatus(sendRequests.size());
-  MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
+  if (not sendRequests.empty()) {
+    vector<MPI_Status> sendStatus(sendRequests.size());
+    MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
+  }
 #endif
 
 }

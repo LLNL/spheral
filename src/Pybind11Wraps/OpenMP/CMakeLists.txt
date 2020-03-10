@@ -15,11 +15,19 @@ set(ADDITIONAL_DEPENDS )
 blt_add_library(
   NAME         ${MODULE_NAME}
   SOURCES      ${GENERATED_SOURCE} ${ADDITIONAL_SOURCES}
-  DEPENDS_ON   ${ADDITIONAL_DEPENDS} ${spheral_depends}
+#  DEPENDS_ON   ${ADDITIONAL_DEPENDS} ${spheral_depends}
   INCLUDES     ${MODULE_INCLUDES}
   OUTPUT_NAME  ${MODULE_NAME}
   CLEAR_PREFIX TRUE
   SHARED       TRUE
+  )
+
+target_link_libraries(
+  ${MODULE_NAME}
+  -Wl,--start-group
+  ${SPHERAL_PYTHON_DEPENDS}
+  -Wl,--end-group
+  ${ADDITIONAL_DEPENDS}
   )
 
 install(

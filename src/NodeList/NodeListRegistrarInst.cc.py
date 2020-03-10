@@ -4,6 +4,6 @@ text = """
 //------------------------------------------------------------------------------
 #include "NodeList/NodeListRegistrar.cc"
 
-template<typename Dimension> Spheral::NodeListRegistrar<Dimension>* Spheral::NodeListRegistrar<Dimension>::mInstancePtr = 0;
-template class Spheral::NodeListRegistrar<Spheral::Dim< %(ndim)s > >;
+template<> Spheral::NodeListRegistrar<Spheral::Dim<%(ndim)s>>* Spheral::NodeListRegistrar<Spheral::Dim<%(ndim)s>>::mInstancePtr = 0;
+template class Spheral::NodeListRegistrar<Spheral::Dim<%(ndim)s>>;
 """
