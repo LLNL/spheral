@@ -36,6 +36,8 @@ using std::min;
 using std::max;
 using std::abs;
 using std::ostream_iterator;
+using std::cerr;
+using std::endl;
 
 // Declare the timers.
 extern Timer TIME_PC3d_convertto;
@@ -695,8 +697,8 @@ void collapseDegenerates(Polyhedron& polyhedron,
         auto idone = false;
         while (not idone) {
           idone = true;
-          for (auto jitr = polyhedron[i].neighbors.begin(); jitr < polyhedron[i].neighbors.end(); ++jitr) {
-            const auto j = *jitr;
+          for (auto jneigh = 0; jneigh < polyhedron[i].neighbors.size(); ++jneigh) {
+            const auto j = polyhedron[i].neighbors[jneigh];
             CHECK(polyhedron[j].ID >= 0);
             if ((polyhedron[i].position - polyhedron[j].position).magnitude2() < tol2) {
               // cerr << " --> collapasing " << j << " to " << i;
@@ -706,6 +708,7 @@ void collapseDegenerates(Polyhedron& polyhedron,
               polyhedron[i].clips.insert(polyhedron[j].clips.begin(), polyhedron[j].clips.end());
 
               // Merge the neighbors of j->i.
+              auto jitr = polyhedron[i].neighbors.begin() + jneigh;
               auto kitr = find(polyhedron[j].neighbors.begin(), polyhedron[j].neighbors.end(), i);
               CHECK(kitr != polyhedron[j].neighbors.end());
               jitr = polyhedron[i].neighbors.insert(jitr, polyhedron[j].neighbors.begin(), kitr);
@@ -734,11 +737,10 @@ void collapseDegenerates(Polyhedron& polyhedron,
                  // also, i can not be a neighbor to itself
                  if (k != i) {
                     auto itr = find(polyhedron[k].neighbors.begin(), polyhedron[k].neighbors.end(), j);
-                    CHECK(itr != polyhedron[k].neighbors.end());
-                    *itr = i;
+                    // CHECK(itr != polyhedron[k].neighbors.end());
+                    if (itr != polyhedron[k].neighbors.end()) *itr = i;
                  }
               }
-              // break;   // break out of the loop over the neighbors of i and start again
             }
           }
         }

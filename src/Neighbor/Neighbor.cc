@@ -46,7 +46,7 @@ Neighbor(NodeList<Dimension>& nodeList,
 template<typename Dimension>
 Neighbor<Dimension>::
 ~Neighbor() {
-  if (mNodeListPtr) mNodeListPtr->unregisterNeighbor();
+  if (mNodeListPtr != nullptr) mNodeListPtr->unregisterNeighbor();
 }
 
 //------------------------------------------------------------------------------
@@ -94,7 +94,7 @@ template<typename Dimension>
 const NodeList<Dimension>&
 Neighbor<Dimension>::
 nodeList() const {
-  CHECK(mNodeListPtr);
+  CHECK(mNodeListPtr != nullptr);
   return *mNodeListPtr;
 }
 
@@ -133,7 +133,7 @@ template<typename Dimension>
 void
 Neighbor<Dimension>::
 unregisterNodeList() {
-  mNodeListPtr = 0;
+  mNodeListPtr = nullptr;
 }
 
 //------------------------------------------------------------------------------

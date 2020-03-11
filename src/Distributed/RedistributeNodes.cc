@@ -245,7 +245,7 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
   }
 
   // Wait until we know who is sending us nodes.
-  {
+  if (not numRecvNodeRequests.empty()) {
     vector<MPI_Status> recvStatus(numRecvNodeRequests.size());
     MPI_Waitall(numRecvNodeRequests.size(), &(*numRecvNodeRequests.begin()), &(*recvStatus.begin()));
   }
@@ -348,7 +348,7 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
   }
 
   // Wait until we know the sizes of the encoded field buffers we're receiving.
-  {
+  if (not recvBufSizeRequests.empty()) {
     vector<MPI_Status> recvStatus(recvBufSizeRequests.size());
     MPI_Waitall(recvBufSizeRequests.size(), &(*recvBufSizeRequests.begin()), &(*recvStatus.begin()));
   }
@@ -417,7 +417,7 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
   CHECK(sendBufferRequests.size() == numSendBuffers);
 
   // Wait until we've received the packed field buffers.
-  {
+  if (not recvBufferRequests.empty()) {
     vector<MPI_Status> recvStatus(recvBufferRequests.size());
     MPI_Waitall(recvBufferRequests.size(), &(*recvBufferRequests.begin()), &(*recvStatus.begin()));
   }
@@ -479,15 +479,15 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
   CHECK(procBufItr == fieldBuffers.end());
 
   // Wait until all our sends are completed.
-  {
+  if (not numSendNodeRequests.empty()) {
     vector<MPI_Status> sendStatus(numSendNodeRequests.size());
     MPI_Waitall(numSendNodeRequests.size(), &(*numSendNodeRequests.begin()), &(*sendStatus.begin()));
   }
-  {
+  if (not sendBufSizeRequests.empty()) {
     vector<MPI_Status> sendStatus(sendBufSizeRequests.size());
     MPI_Waitall(sendBufSizeRequests.size(), &(*sendBufSizeRequests.begin()), &(*sendStatus.begin()));
   }
-  {
+  if (not sendBufferRequests.empty()) {
     vector<MPI_Status> sendStatus(sendBufferRequests.size());
     MPI_Waitall(sendBufferRequests.size(), &(*sendBufferRequests.begin()), &(*sendStatus.begin()));
   }

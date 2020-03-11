@@ -4,9 +4,9 @@
 //
 // Created by JMO, Wed Nov 24 10:51:32 2004
 //----------------------------------------------------------------------------//
-#include "SortAndDivideRedistributeNodes1d.hh"
+#include "Distributed/SortAndDivideRedistributeNodes1d.hh"
+#include "Distributed/TreeDistributedBoundary.hh"
 #include "Utilities/DomainNode.hh"
-#include "BoundingVolumeDistributedBoundary.hh"
 #include "Boundary/Boundary.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -75,7 +75,7 @@ redistributeNodes(DataBase<Dim<1> >& dataBase,
   // boundary for local use.
   // Note that if boundary conditions were passed in, we assume that the Distributed
   // boundary is already in there.
-  BoundingVolumeDistributedBoundary<Dimension>& bound = BoundingVolumeDistributedBoundary<Dimension>::instance();
+  TreeDistributedBoundary<Dimension>& bound = TreeDistributedBoundary<Dimension>::instance();
   if (boundaries.size() == 0) boundaries.push_back(&bound);
 
   // Use the boundaries to create the ghost nodes.  We need this to compute the

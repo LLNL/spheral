@@ -442,7 +442,8 @@ registerNeighbor(Neighbor<Dimension>& neighbor) {
 template<typename Dimension>
 void
 NodeList<Dimension>::unregisterNeighbor() {
-  mNeighborPtr = 0;
+  mNeighborPtr = nullptr;
+  // mNeighborPtr = 0;
 }
 
 //------------------------------------------------------------------------------
