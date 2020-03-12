@@ -256,6 +256,40 @@ assert numCellFaceFlags > 0
 assert numCellsWithVoidFlags == numCellsWithVoidFlagsExpected
 
 #-------------------------------------------------------------------------------
+# Check whether the cells we expect to have void face flags do
+#-------------------------------------------------------------------------------
+if testDim == "1d":
+    surfaceIndices = [0, nx1 - 1]
+elif testDim == "2d":
+    surfaceIndices = []
+    for i in range(nx1):
+        for j in [0, nx1 - 1]:
+            surfaceIndices.append(i + nx1 * j)
+            surfaceIndices.append(j + nx1 * i)
+    surfaceIndices = np.unique(surfaceIndices)
+else:
+    surfaceIndices = []
+    nx1m = nx1 - 1
+    for i in range(nx1):
+        for j in range(nx1):
+            for k in [0, nx1 - 1]:
+                surfaceIndices.append(i + nx1 * (j + nx1 * k))
+                surfaceIndices.append(i + nx1 * (k + nx1 * j))
+                surfaceIndices.append(k + nx1 * (i + nx1 * j))
+    surfaceIndices = np.unique(surfaceIndices)
+
+shouldHaveVoid = [False for i in range(nodes1.numInternalNodes)]
+for i in surfaceIndices:
+    shouldHaveVoid[i] = True
+for i, flags in enumerate(cellFaceFlags[0].internalValues()):
+    flags = cellFaceFlags[0].internalValues()[i]
+    hasVoid = False
+    for flag in flags:
+        if flag.nodeListj == -1:
+            hasVoid = True
+    assert hasVoid == shouldHaveVoid[i]
+
+#-------------------------------------------------------------------------------
 # Check the answer.
 #-------------------------------------------------------------------------------
 if ranfrac == 0.0:
