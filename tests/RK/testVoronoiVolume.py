@@ -7,6 +7,7 @@
 from Spheral import *
 from SpheralTestUtilities import *
 from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
+import numpy as np
 
 title("Voronoi volume tests")
 
@@ -40,6 +41,8 @@ commandLine(
 
     # Parameters for passing the test
     tolerance = 1.0e-8,
+    voidFlagTolerance = 0.2, # Relative difference in number of void points expected/calculated
+    relaxVoidCheck = False, # Do not check the second layer of points from the boundary
 
     graphics = True,
     vizFile = "",
@@ -227,67 +230,72 @@ if vizFile:
 #-------------------------------------------------------------------------------
 # Make sure some face flags exist and the right number of cells have flags
 #-------------------------------------------------------------------------------
-if testDim == "1d":
-    numCellsWithVoidFlagsExpected = 2
-elif testDim == "2d":
-    numCellsWithVoidFlagsExpected = 2 * (nx1 + nx1 - 2)
-else:
-    numCellsWithVoidFlagsExpected = 2 * (nx1 * nx1 + nx1 * (nx1 - 2) + (nx1 - 2) * (nx1 - 2))
-    
+position = db.fluidPosition[0]
+xbmin = x0 + (1.49 - ranfrac) * dx
+xbmax = x1 - (1.49 - ranfrac) * dx
+xbminrelaxed = x0 + (1.51 + ranfrac) * dx if relaxVoidCheck else xbmin
+xbmaxrelaxed = x1 - (1.51 + ranfrac) * dx if relaxVoidCheck else xbmax
+output("xbmin")
+output("xbmax")
+output("xbminrelaxed")
+output("xbmaxrelaxed")
+
+# Return 0 if not on boundary, 1 if definitely on boundary, 2 if one layer in from boundary
+def shouldHaveVoid(i): 
+    x = position[i]
+    questionable = 0
+    for xv in x:
+        if xv < xbmin or xv > xbmax:
+            return 1
+        if xv < xbminrelaxed or xv > xbmaxrelaxed:
+            questionable = 2
+    return questionable
+
 numCellFaceFlags = 0
 numVoidFaceFlags = 0
+numCellsWithVoidFlagsExpected = 0
 numCellsWithVoidFlags = 0
-for i, flags in enumerate(cellFaceFlags[0].internalValues()):
+hasVoidButShouldNot = 0
+doesNotHaveVoidButShould = 0
+position = db.fluidPosition[0]
+print "Void errors, if any, are indented below"
+for i in range(nodes1.numInternalNodes):
+    flags = cellFaceFlags[0][i]
     cellCounted = False
+    hasVoid = False
     for flag in flags:
         numCellFaceFlags += 1
         if flag.nodeListj == -1:
+            hasVoid = True
             numVoidFaceFlags += 1
             if not cellCounted:
                 numCellsWithVoidFlags += 1
                 cellCounted = True
-            
+    expectedVoid = shouldHaveVoid(i)
+    if expectedVoid == 1: # should have void
+        numCellsWithVoidFlagsExpected += 1
+        if not hasVoid:
+            doesNotHaveVoidButShould += 1
+            print "\tPosition: {}  Does not have void but should".format(position[i])
+    elif expectedVoid == 0: # should not have void
+        if hasVoid:
+            hasVoidButShouldNot += 1
+            print "\tPosition: {}  Has void but should not".format(position[i])
+
+voidFlagRelErr = 1.0 * abs(numCellsWithVoidFlags - numCellsWithVoidFlagsExpected) / (1.0 * numCellsWithVoidFlagsExpected)
+unexpectedFlagRelErr = 1.0 * (hasVoidButShouldNot + doesNotHaveVoidButShould) / (1.0 * nodes1.numInternalNodes)
 output("numCellFaceFlags")
 output("numVoidFaceFlags")
 output("numCellsWithVoidFlags")
 output("numCellsWithVoidFlagsExpected")
+output("hasVoidButShouldNot")
+output("doesNotHaveVoidButShould")
+output("unexpectedFlagRelErr")
+output("voidFlagRelErr")
 assert numVoidFaceFlags > 0
 assert numCellFaceFlags > 0
-assert numCellsWithVoidFlags == numCellsWithVoidFlagsExpected
-
-#-------------------------------------------------------------------------------
-# Check whether the cells we expect to have void face flags do
-#-------------------------------------------------------------------------------
-if testDim == "1d":
-    surfaceIndices = [0, nx1 - 1]
-elif testDim == "2d":
-    surfaceIndices = []
-    for i in range(nx1):
-        for j in [0, nx1 - 1]:
-            surfaceIndices.append(i + nx1 * j)
-            surfaceIndices.append(j + nx1 * i)
-    surfaceIndices = np.unique(surfaceIndices)
-else:
-    surfaceIndices = []
-    nx1m = nx1 - 1
-    for i in range(nx1):
-        for j in range(nx1):
-            for k in [0, nx1 - 1]:
-                surfaceIndices.append(i + nx1 * (j + nx1 * k))
-                surfaceIndices.append(i + nx1 * (k + nx1 * j))
-                surfaceIndices.append(k + nx1 * (i + nx1 * j))
-    surfaceIndices = np.unique(surfaceIndices)
-
-shouldHaveVoid = [False for i in range(nodes1.numInternalNodes)]
-for i in surfaceIndices:
-    shouldHaveVoid[i] = True
-for i, flags in enumerate(cellFaceFlags[0].internalValues()):
-    flags = cellFaceFlags[0].internalValues()[i]
-    hasVoid = False
-    for flag in flags:
-        if flag.nodeListj == -1:
-            hasVoid = True
-    assert hasVoid == shouldHaveVoid[i]
+assert voidFlagRelErr < voidFlagTolerance
+assert unexpectedFlagRelErr < voidFlagTolerance
 
 #-------------------------------------------------------------------------------
 # Check the answer.
