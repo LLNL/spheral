@@ -746,11 +746,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
               // If we're returning CellFaceFlags, build them.  Note -- we currently do not store which neighbor node
               // is responsible for each clipped facet.  Just the material or void.
               if (returnCellFaceFlags) {
-                if (surfacePoint(nodeListi, i) == 0) {
-                  cellFaceFlags(nodeListi, i).clear();
-                } else {
-                  cellFaceFlags(nodeListi, i) = extractFaceFlags(cells(nodeListi, i), vertexClips);
-                }
+                cellFaceFlags(nodeListi, i) = extractFaceFlags(cells(nodeListi, i), vertexClips);
               }
             }
           }

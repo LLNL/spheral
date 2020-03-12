@@ -48,6 +48,7 @@ public:
   typedef Box1d Box;
   typedef Box1d ConvexHull;
   typedef Box1d FacetedVolume;
+  typedef GeomFacet1d Facet;
   static const int nDim = 1;
 
   static double rootnu(const double& x) { return x; }
@@ -69,6 +70,7 @@ public:
   typedef GeomFifthRankTensor<2> FifthRankTensor;
   typedef GeomPolygon ConvexHull;
   typedef GeomPolygon FacetedVolume;
+  typedef GeomFacet2d Facet;
   static const int nDim = 2;
 
   static double rootnu(const double& x) { return std::sqrt(x); }
@@ -90,6 +92,7 @@ public:
   typedef GeomFifthRankTensor<3> FifthRankTensor;
   typedef GeomPolyhedron ConvexHull;
   typedef GeomPolyhedron FacetedVolume;
+  typedef GeomFacet3d Facet;
   static const int nDim = 3;
 
   static double rootnu(const double& x) { return FastMath::CubeRootHalley2(x); } // { return pow(x, 1.0/3.0); }

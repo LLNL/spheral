@@ -1,36 +1,3 @@
-set(PYB11_MODULE_NAME DataOutput)
-include(UsePYB11Generator)
-PYB11_GENERATE_BINDINGS()
-
-set(MODULE_INCLUDES
-  ${PROJECT_SOURCE_DIR}/Pybind11Wraps/${PYB11_MODULE_NAME}
-  ${PROJECT_SOURCE_DIR}
-  )
-
-set(MODULE_NAME Spheral${PYB11_MODULE_NAME})
-set(GENERATED_SOURCE Spheral${PYB11_GENERATED_SOURCE})
-set(ADDITIONAL_SOURCES RestartableObject.cc)
-set(ADDITIONAL_DEPENDS )
-
-blt_add_library(
-  NAME         ${MODULE_NAME}
-  SOURCES      ${GENERATED_SOURCE} ${ADDITIONAL_SOURCES}
-#  DEPENDS_ON   ${SPHERAL_PYTHON_DEPENDS} ${ADDITIONAL_DEPENDS} ${spheral_depends}
-  INCLUDES     ${MODULE_INCLUDES}
-  OUTPUT_NAME  ${MODULE_NAME}
-  CLEAR_PREFIX TRUE
-  SHARED       TRUE
-  )
-
-target_link_libraries(
-  ${MODULE_NAME}
-  -Wl,--start-group
-  ${SPHERAL_PYTHON_DEPENDS}
-  -Wl,--end-group
-  ${ADDITIONAL_DEPENDS}
-  )
-
-install(
-  FILES ${CMAKE_BINARY_DIR}/lib/$<TARGET_FILE_NAME:${MODULE_NAME}>
-  DESTINATION .
-  )
+set(DataOutput_ADDITIONAL_SOURCES RestartableObject.cc)
+set(DataOutput_ADDITIONAL_INCLUDES ${PROJECT_SOURCE_DIR}/Pybind11Wraps/DataOutput)
+spheral_add_pybind11_library(DataOutput)

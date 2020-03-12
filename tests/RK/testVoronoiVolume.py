@@ -225,6 +225,21 @@ if vizFile:
     dumper.dump(0.0, 0)
 
 #-------------------------------------------------------------------------------
+# Make sure that some face flags exist
+#-------------------------------------------------------------------------------
+numCellFaceFlags = 0
+numVoidFaceFlags = 0
+for flags in cellFaceFlags[0].internalValues():
+    for flag in flags:
+        numCellFaceFlags += 1
+        if flag.nodeListj == -1:
+            numVoidFaceFlags += 1
+output("numCellFaceFlags")
+output("numVoidFaceFlags")
+assert numVoidFaceFlags > 0
+assert numCellFaceFlags > 0
+
+#-------------------------------------------------------------------------------
 # Check the answer.
 #-------------------------------------------------------------------------------
 if ranfrac == 0.0:

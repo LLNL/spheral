@@ -748,6 +748,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
         CHECK(bufItr == buffer.end());
       }
     }
+    MPI_Barrier(Communicator::communicator());
   }
 #endif
 
@@ -793,6 +794,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
     vector<MPI_Status> sendStatus(sendRequests.size());
     MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
   }
+  MPI_Barrier(Communicator::communicator());
 #endif
 
   // That's it.

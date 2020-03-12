@@ -30,6 +30,8 @@ computeRKVolumes(const ConnectivityMap<Dimension>& connectivityMap,
                  const FieldList<Dimension, typename Dimension::Scalar>& massDensity,
                  const FieldList<Dimension, typename Dimension::SymTensor>& H,
                  const FieldList<Dimension, typename Dimension::SymTensor>& damage,
+                 const std::vector<typename Dimension::FacetedVolume>& facetedBoundaries,
+                 const std::vector<std::vector<typename Dimension::FacetedVolume>>& facetedHoles,
                  const std::vector<Boundary<Dimension>*>& boundaryConditions,
                  const RKVolumeType volumeType,
                  FieldList<Dimension, int>& surfacePoint,
@@ -52,12 +54,10 @@ computeRKVolumes(const ConnectivityMap<Dimension>& connectivityMap,
 
   case RKVolumeType::RKVoronoiVolume:
     {
-      std::vector<std::vector<FacetedVolume>> holes;
-      std::vector<FacetedVolume> facetedBoundaries;
       FieldList<Dimension, typename Dimension::Scalar> weights;
       volume.assignFields(mass/massDensity);
       computeVoronoiVolume(position, H, connectivityMap, damage,
-                           facetedBoundaries, holes, boundaryConditions, weights,
+                           facetedBoundaries, facetedHoles, boundaryConditions, weights,
                            surfacePoint, volume, deltaCentroid, etaVoidPoints,
                            cells, cellFaceFlags); 
     }

@@ -14,6 +14,8 @@
 
 #include <vector>
 
+#include "GeomFacet1d.hh"
+
 template<int nDim> class GeomVector;
 
 namespace Spheral {
@@ -22,6 +24,7 @@ class Box1d {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef GeomVector<1> Vector;
+  typedef GeomFacet1d Facet;
 
   //----------------------------------------------------------------------------
   // Constructors, assignment, destructor.
@@ -64,6 +67,7 @@ public:
   Vector centroid() const { return mCenter; }
 
   const std::vector<Vector>& vertices() const;
+  const std::vector<Facet>& facets() const;
   std::vector<std::vector<unsigned> > facetVertices() const;
 
   // Useful facet properties.
@@ -101,6 +105,7 @@ private:
   Vector mCenter;
   double mExtent;
   std::vector<Vector> mVertices;
+  mutable std::vector<Facet> mFacets; // for now, just create this when we need it
 };
 
 }
