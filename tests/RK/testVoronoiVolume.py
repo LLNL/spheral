@@ -225,19 +225,35 @@ if vizFile:
     dumper.dump(0.0, 0)
 
 #-------------------------------------------------------------------------------
-# Make sure that some face flags exist
+# Make sure some face flags exist and the right number of cells have flags
 #-------------------------------------------------------------------------------
+if testDim == "1d":
+    numCellsWithVoidFlagsExpected = 2
+elif testDim == "2d":
+    numCellsWithVoidFlagsExpected = 2 * (nx1 + nx1 - 2)
+else:
+    numCellsWithVoidFlagsExpected = 2 * (nx1 * nx1 + nx1 * (nx1 - 2) + (nx1 - 2) * (nx1 - 2))
+    
 numCellFaceFlags = 0
 numVoidFaceFlags = 0
-for flags in cellFaceFlags[0].internalValues():
+numCellsWithVoidFlags = 0
+for i, flags in enumerate(cellFaceFlags[0].internalValues()):
+    cellCounted = False
     for flag in flags:
         numCellFaceFlags += 1
         if flag.nodeListj == -1:
             numVoidFaceFlags += 1
+            if not cellCounted:
+                numCellsWithVoidFlags += 1
+                cellCounted = True
+            
 output("numCellFaceFlags")
 output("numVoidFaceFlags")
+output("numCellsWithVoidFlags")
+output("numCellsWithVoidFlagsExpected")
 assert numVoidFaceFlags > 0
 assert numCellFaceFlags > 0
+assert numCellsWithVoidFlags == numCellsWithVoidFlagsExpected
 
 #-------------------------------------------------------------------------------
 # Check the answer.
