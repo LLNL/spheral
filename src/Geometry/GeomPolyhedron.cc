@@ -911,13 +911,13 @@ decompose(std::vector<GeomPolyhedron>& subcells) const {
     else {
       facet.decompose(subfacets);
     }
-
+    
     for (auto& subfacet : subfacets) {
       std::vector<Vector> points = {subfacet[0], subfacet[1],
                                     subfacet[2], originalCentroid};
       std::vector<std::vector<unsigned>> indices = {{0, 1, 2}, {0, 3, 1},
                                                      {1, 3, 2}, {0, 2, 3}};
-      subcells[f] = GeomPolyhedron(points, indices);
+      subcells.emplace_back(points, indices);
     }
   }
 
