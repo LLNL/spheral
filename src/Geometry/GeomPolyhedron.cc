@@ -892,6 +892,50 @@ facetSubVolume(const unsigned facetID) const {
 }
 
 //------------------------------------------------------------------------------
+// Decompose the polyhedron into tetrahedra.
+//------------------------------------------------------------------------------
+void
+GeomPolyhedron::
+decompose(std::vector<GeomPolyhedron>& subcells) const {
+  const auto originalCentroid = this->centroid();
+  const auto numFacets = mFacets.size();
+  subcells.clear();
+  subcells.reserve(numFacets);
+  std::vector<std::array<Vector, 3>> subfacets;
+  for (auto f = 0; f < numFacets; ++f) {
+    const auto& facet = mFacets[f];
+    // We don't want to split the facet if we can help it
+    if (facet.ipoints().size() == 3) {
+      subfacets = {{facet.point(0), facet.point(1), facet.point(2)}};
+    }
+    else {
+      facet.decompose(subfacets);
+    }
+
+    for (auto& subfacet : subfacets) {
+      std::vector<Vector> points = {subfacet[0], subfacet[1],
+                                    subfacet[2], originalCentroid};
+      std::vector<std::vector<unsigned>> indices = {{0, 1, 2}, {0, 3, 1},
+                                                     {1, 3, 2}, {0, 2, 3}};
+      subcells[f] = GeomPolyhedron(points, indices);
+    }
+  }
+
+  BEGIN_CONTRACT_SCOPE
+  {
+    const auto originalVolume = this->volume();
+    auto volumesum = 0.;
+    for (auto& subcell : subcells) {
+      const auto subvolume = subcell.volume();
+      CHECK(0 < subvolume and subvolume < originalVolume);
+      volumesum += subcell.volume();
+    }
+    CHECK(fuzzyEqual(volumesum, originalVolume));
+  }
+  END_CONTRACT_SCOPE
+}
+
+//------------------------------------------------------------------------------
 // ostream operator.
 //------------------------------------------------------------------------------
 std::ostream& operator<<(std::ostream& os, const GeomPolyhedron& polyhedron) {

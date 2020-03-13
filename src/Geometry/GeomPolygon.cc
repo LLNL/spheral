@@ -981,6 +981,36 @@ facetSubVolume(const unsigned facetID) const {
 }
 
 //------------------------------------------------------------------------------
+// Decompose the polygon into triangles for each facet.
+//------------------------------------------------------------------------------
+void
+GeomPolygon::
+decompose(std::vector<GeomPolygon>& subcells) const {
+  const auto originalCentroid = this->centroid();
+  const auto numFacets = mFacets.size();
+  subcells.resize(numFacets);
+  for (auto f = 0; f < numFacets; ++f) {
+    const auto& facet = mFacets[f];
+    std::vector<Vector> points = {facet.point1(), facet.point2(), originalCentroid};
+    std::vector<std::vector<unsigned>> indices = {{0, 1}, {1, 2}, {2, 0}};
+    subcells[f] = GeomPolygon(points, indices);
+  }
+
+  BEGIN_CONTRACT_SCOPE
+  {
+    const auto originalVolume = this->volume();
+    auto volumesum = 0.;
+    for (auto& subcell : subcells) {
+      const auto subvolume = subcell.volume();
+      CHECK(0 < subvolume and subvolume < originalVolume);
+      volumesum += subcell.volume();
+    }
+    CHECK(fuzzyEqual(volumesum, originalVolume));
+  }
+  END_CONTRACT_SCOPE
+}
+
+//------------------------------------------------------------------------------
 // ostream operator.
 //------------------------------------------------------------------------------
 std::ostream& operator<<(std::ostream& os, const GeomPolygon& polygon) {

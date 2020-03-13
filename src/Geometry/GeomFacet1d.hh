@@ -35,6 +35,9 @@ public:
   // Access the normal.
   const Vector& normal() const;
 
+  // For consistency with GeomFacet3d.
+  void decompose(std::vector<std::array<Vector, 1>>& subfacets) const;
+  
 private:
   //--------------------------- Private Interface ---------------------------//
   Vector mPoint;

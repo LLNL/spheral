@@ -125,6 +125,8 @@ public:
   // Decompose the polyhedron into pyramids for each facet.
   GeomPolyhedron facetSubVolume(const unsigned facetID) const;
 
+  // Decompose the polyhedron into tetrahedra.
+  void decompose(std::vector<GeomPolyhedron>& subcells) const;
 private:
   //--------------------------- Private Interface ---------------------------//
   std::vector<Vector> mVertices;

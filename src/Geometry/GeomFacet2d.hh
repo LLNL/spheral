@@ -73,6 +73,9 @@ public:
   bool operator==(const GeomFacet2d& rhs) const;
   bool operator!=(const GeomFacet2d& rhs) const;
 
+  // For consistency with GeomFacet3d.
+  void decompose(std::vector<std::array<Vector, 2>>& subfacets) const;
+  
 private:
   //--------------------------- Private Interface ---------------------------//
   const std::vector<Vector>* mVerticesPtr;

@@ -125,6 +125,9 @@ public:
   // Decompose the polygon into triangles for each facet.
   GeomPolygon facetSubVolume(const unsigned facetID) const;
 
+  // Decompose the polygon into triangles.
+  void decompose(std::vector<GeomPolygon>& subcells) const;
+  
 private:
   //--------------------------- Private Interface ---------------------------//
   std::vector<Vector> mVertices;

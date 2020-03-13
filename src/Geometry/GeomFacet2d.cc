@@ -42,4 +42,13 @@ compare(const std::vector<GeomFacet2d::Vector>& points,
   return result;
 }
 
+//------------------------------------------------------------------------------
+// This facet does not need to be decomposed.
+//------------------------------------------------------------------------------
+void
+GeomFacet2d::
+decompose(std::vector<std::array<Vector, 2>>& subfacets) const {
+  subfacets = {{point1(), point2()}};
+}
+
 }

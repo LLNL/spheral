@@ -187,7 +187,7 @@ void
 Box1d::
 center(const GeomVector<1>& val) {
   mCenter = val;
-  mVertices = std::vector<Vector>();
+  mVertices.clear();
   mVertices.push_back(mCenter - Vector(mExtent));
   mVertices.push_back(mCenter + Vector(mExtent));
 }
@@ -214,7 +214,7 @@ void
 Box1d::
 extent(double val) {
   mExtent = val;
-  mVertices = std::vector<Vector>();
+  mVertices.clear();
   mVertices.push_back(mCenter - Vector(mExtent));
   mVertices.push_back(mCenter + Vector(mExtent));
 }
@@ -330,6 +330,16 @@ closestPoint(const GeomVector<1>& p) const {
   } else {
     return GeomVector<1>(p.x() - mExtent);
   }
+}
+
+//------------------------------------------------------------------------------
+// In 1d, there is no decomposition to be done
+//------------------------------------------------------------------------------
+inline
+void
+Box1d::
+decompose(std::vector<Box1d>& subcells) const {
+  subcells = {*this};
 }
 
 //------------------------------------------------------------------------------
