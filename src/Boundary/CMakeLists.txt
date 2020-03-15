@@ -44,6 +44,8 @@ set(Boundary_headers
     BoundaryInline.hh
     ConstantBoundaryUtilities.hh
     CRKSPHVoidBoundary.hh
+    PeriodicBoundary.hh
+    PeriodicPlanarBoundary.hh
     PlanarBoundary.hh
     PlanarBoundaryInline.hh
     PlanarSymmetryBoundary.hh
