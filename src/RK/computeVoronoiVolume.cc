@@ -411,7 +411,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
 
       //==========================================================================
       // First pass: clip by any faceted boundaries/holes.
-      // cerr << "FIRST pass after polyhedral boundary clipping" << endl;
+      cerr << "FIRST pass after polyhedral boundary clipping" << endl;
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
         const auto ni = position[nodeListi]->numInternalElements();
 #pragma omp for
@@ -473,6 +473,11 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
 #pragma omp critical (computeVoronoiVolume_polycells)
             {
               ClippingType<Dimension>::clip(polycells(nodeListi, i), boundPlanes);
+              // BLAGO
+              if (i == 0)
+              cerr << " **> (" << nodeListi << " " << i << "):" << endl
+                   << ClippingType<Dimension>::toString(polycells(nodeListi, i)) << endl;
+              // BLAGO
             }
           }
         }
@@ -482,11 +487,11 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       // Second pass: clip by neighbor points.  Note we have to keep track of
       // which NodeLists actually clip each polygon in order to detect material
       // surfaces.
-      // cerr << "SECOND pass after node-node clipping" << endl;
+      cerr << "SECOND pass node-node clipping" << endl;
 
       // Thread private scratch variables
       int i, j, nodeListi, nodeListj;
-      auto pairPlanes_thread = pairPlanes.threadCopy(ThreadReduction::SUM, true);  // force copying the original FieldList
+      auto pairPlanes_thread = pairPlanes.threadCopy();
 
 #pragma omp for
       for (auto kk = 0; kk < npairs; ++kk) {
@@ -514,8 +519,8 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         const auto nhat = -rji.unitVector();
         const auto wij = weighti/(weighti + weightj);
         const auto wji = weightj/(weighti + weightj);
-        pairPlanesi.push_back(Plane( wij*rji,  nhat, kk));
-        pairPlanesj.push_back(Plane(-wji*rji, -nhat, kk));
+        pairPlanesi.push_back(Plane( wij*rji,  nhat, int(kk)));
+        pairPlanesj.push_back(Plane(-wji*rji, -nhat, int(kk)));
       }
 
       // Collect the pair planes across threads.
@@ -549,6 +554,17 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           std::sort(pairPlanesi.begin(), pairPlanesi.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
           ClippingType<Dimension>::clip(celli, pairPlanesi);
           CHECK(not celli.empty());
+
+          // BLAGO
+          if (i == 0) {
+            cerr << "planes: ";
+            for (const auto& p: pairPlanesi) cerr << " " << p.ID;
+            cerr << endl;
+            cerr << " ==> (" << nodeListi << " " << i << "):" << endl
+                 << ClippingType<Dimension>::toString(celli) << endl
+                 << ClippingType<Dimension>::toString(polycells(nodeListi, i)) << endl;
+          }
+          // BLAGO
 
           // Check if the final polygon is entirely within our "interior" check radius.  Otherwise,
           // time to make void points.
@@ -609,7 +625,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       //==========================================================================
       // Third pass: clip by any void points.
       // Start by adding any void clip planes from neighbors.
-      // cerr << " --> " << omp_get_thread_num() << " THIRD PASS -- void clipping" << endl;
+      cerr << " --> " << omp_get_thread_num() << " THIRD PASS -- void clipping" << endl;
       int i, j, nodeListi, nodeListj;
       auto voidPlanes_thread = voidPlanes.threadCopy();
 #pragma omp for
@@ -679,6 +695,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           ClippingType<Dimension>::moments(vol1, deltaMedian(nodeListi, i), celli);
 
           // BLAGO
+          if (i == 0)
           cerr << " --> (" << nodeListi << " " << i << "):" << endl
                << ClippingType<Dimension>::toString(celli) << endl;
           // BLAGO

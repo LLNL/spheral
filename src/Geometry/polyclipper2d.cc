@@ -31,6 +31,8 @@ using std::list;
 using std::map;
 using std::set;
 using std::ostream_iterator;
+using std::cerr;
+using std::endl;
 
 // Declare the timers.
 extern Timer TIME_PC2d_convertto;
@@ -358,7 +360,7 @@ void clipPolygon(Polygon& polygon,
   // Useful types.
   typedef Spheral::Dim<2>::Vector Vector;
 
-  // cerr << "Initial polygon: " << polygon2string(polygon) << endl;
+  cerr << "Initial polygon: " << polygon2string(polygon) << endl;
 
   // Find the bounding box of the polygon.
   auto xmin = std::numeric_limits<double>::max(), xmax = std::numeric_limits<double>::lowest();
@@ -442,7 +444,7 @@ void clipPolygon(Polygon& polygon,
       }
       TIME_PC2d_insertverts.stop();
 
-      // cerr << "After insertion: " << polygon2string(polygon) << endl;
+      cerr << "After insertion: " << polygon2string(polygon) << endl;
 
       // For each hanging vertex, link to the neighbors that survive the clipping.
       // If there are more than two hanging vertices, we've clipped a non-convex face and need to check
@@ -529,7 +531,7 @@ void clipPolygon(Polygon& polygon,
       }
       TIME_PC2d_compress.stop();
 
-      // cerr << "After compression: " << polygon2string(polygon) << endl;
+      cerr << "After compression: " << polygon2string(polygon) << endl;
 
       // Is the polygon gone?
       if (polygon.size() < 3) polygon.clear();
