@@ -701,10 +701,6 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
                << ClippingType<Dimension>::toString(celli) << endl;
           // BLAGO
 
-          // We only use the volume result if interior.
-          const bool interior = (vol1 >= vol0);
-          if (interior) vol(nodeListi, i) = vol1;
-
           // Check if the candidate motion is still in the boundary.  If not, project back.
           if (haveFacetedBoundaries) {
             if (not facetedBoundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i), false)) {
@@ -735,10 +731,19 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           }
 
           // Check if this is a surface point (clipped by faceted boundary or void point).
-          if (returnSurface) {
-            for (const auto& v: celli) {
-              if (v.clips.find(-1) != v.clips.end()) surfacePoint(nodeListi, i) |= 1;
+          bool interior = true;
+          for (const auto& v: celli) {
+            if (v.clips.find(-1) != v.clips.end()) {
+              interior = false;
+              break;
             }
+          }
+
+          // We only use the volume result if interior.
+          if (interior) {
+            vol(nodeListi, i) = vol1;
+          } else if (returnSurface) {
+            surfacePoint(nodeListi, i) |= 1;
           }
 
         }

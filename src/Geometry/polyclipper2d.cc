@@ -427,6 +427,11 @@ void clipPolygon(Polygon& polygon,
                                      2));         // 2 indicates new vertex
           polygon[vnew].neighbors = {v, vnext};
           polygon[vnew].clips.insert(plane.ID);
+          if (polygon[v].comp == -1) {
+            polygon[vnew].clips.insert(polygon[v].clips.begin(), polygon[v].clips.end());
+          } else {
+            polygon[vnew].clips.insert(polygon[vnext].clips.begin(), polygon[vnext].clips.end());
+          }
           polygon[v].neighbors.second = vnew;
           polygon[vnext].neighbors.first = vnew;
           hangingVertices.push_back(vnew);
