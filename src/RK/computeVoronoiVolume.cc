@@ -402,7 +402,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
     FieldList<Dimension, vector<Plane>> voidPlanes(FieldStorageType::CopyFields);
     for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       polycells.appendNewField("polycells", vol[nodeListi]->nodeList(), cell0);
-      pairPlanes.appendNewField("pair planes", vol[nodeListi]->nodeList(), vector<Plane>(numNodeLists));
+      pairPlanes.appendNewField("pair planes", vol[nodeListi]->nodeList(), vector<Plane>());
       voidPlanes.appendNewField("void planes", vol[nodeListi]->nodeList(), vector<Plane>());
     }
 
@@ -521,6 +521,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         const auto wji = weightj/(weighti + weightj);
         pairPlanesi.push_back(Plane( wij*rji,  nhat, int(kk)));
         pairPlanesj.push_back(Plane(-wji*rji, -nhat, int(kk)));
+        if (i == 0 or j == 0) cerr << "ID: " << kk << endl;
       }
 
       // Collect the pair planes across threads.
