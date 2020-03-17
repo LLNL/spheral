@@ -527,6 +527,18 @@ void clipPolyhedron(Polyhedron& polyhedron,
               CHECK(polyhedron.size() == inew + 1);
               polyhedron[inew].neighbors = vector<int>({jn, i});
               polyhedron[inew].clips.insert(plane.ID);
+              // Patch up clip info -- gotta scan for common elements in the neighbors of the clipped guy.
+              auto common_clips = polyhedron[jn].clips;
+              for (const auto jjn: polyhedron[jn].neighbors) {
+                if (polyhedron[jjn].comp == 1) {
+                  set<int> new_clips;
+                  std::set_intersection(common_clips.begin(), common_clips.end(),
+                                        polyhedron[jjn].clips.begin(), polyhedron[jjn].clips.end(),
+                                        std::inserter(new_clips, new_clips.begin()));
+                  common_clips = new_clips;
+                }
+              }
+              polyhedron[inew].clips.insert(common_clips.begin(), common_clips.end());
               nitr = find(polyhedron[jn].neighbors.begin(), polyhedron[jn].neighbors.end(), i);
               CHECK(nitr != polyhedron[jn].neighbors.end());
               *nitr = inew;
