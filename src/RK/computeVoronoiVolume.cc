@@ -241,9 +241,9 @@ ClippingType<Dim<3>> {
 //------------------------------------------------------------------------------
 // Return the set of face flags for surface points
 // We come in with the following convention for the clips on the vertices:
-//   1.  Clipped by a bounding Poly* (exterior or interior): numeric_limits<int>::min()
-//   2.  Clipped by a Node in another NodeList             : ~nodeListj
-//   3.  Clipped by a void plane                           : >=0
+//   1.  Clipped by a bounding Poly* (exterior or interior): -1
+//   2.  Clipped by a Node in another NodeList             : pair index
+//   3.  Clipped by a void plane                           : -100
 //------------------------------------------------------------------------------
 // 2D
 std::vector<CellFaceFlag> extractFaceFlags(const GeomPolygon& cell,
@@ -268,23 +268,25 @@ std::vector<CellFaceFlag> extractFaceFlags(const GeomPolygon& cell,
     //   for (auto x: clips2) cerr << " " << x;
     //   cerr << endl;
     // }
-    if (clips1.size() > 0 and clips2.size() > 0) {
-      for (auto iplane1: clips1) {
-        if (clips2.find(iplane1) != clips2.end()) {
-          if (iplane1 == -1) {                                // Boundary clip (faceted boundary or void point)
-            result.push_back(CellFaceFlag({ifacet, -1, -1}));
-          } else {                                            // Neighbor clip, iplane1 is the pair index in pairs
-            CHECK(iplane1 < pairs.size());
-            CHECK((pairs[iplane1].i_list == nodeListi and pairs[iplane1].i_node == i) or
-                  (pairs[iplane1].j_list == nodeListi and pairs[iplane1].j_node == i));
-            if (pairs[iplane1].i_list == nodeListi and pairs[iplane1].i_node == i) {
-              if (pairs[iplane1].j_list != nodeListi) result.push_back(CellFaceFlag({ifacet, pairs[iplane1].j_list, pairs[iplane1].j_node}));
-            } else {
-              if (pairs[iplane1].i_list != nodeListi) result.push_back(CellFaceFlag({ifacet, pairs[iplane1].i_list, pairs[iplane1].i_node}));
-            }
-          }
+
+    // Find the intersection of the clips
+    std::vector<int> common_clips;
+    std::set_intersection(clips1.begin(), clips1.end(), clips2.begin(), clips2.end(),
+                          std::back_inserter(common_clips));
+    if (not common_clips.empty()) {
+      CHECK(common_clips.size() == 1);
+      const auto iclip = common_clips[0];
+      if (iclip < 0) {                                // Boundary clip (faceted boundary or void point)
+        result.push_back(CellFaceFlag({ifacet, -1, -1}));
+      } else {                                        // Neighbor clip, iclip is the pair index in pairs
+        CHECK(iclip < pairs.size());
+        CHECK((pairs[iclip].i_list == nodeListi and pairs[iclip].i_node == i) or
+              (pairs[iclip].j_list == nodeListi and pairs[iclip].j_node == i));
+        if (pairs[iclip].i_list == nodeListi and pairs[iclip].i_node == i) {
+          if (pairs[iclip].j_list != nodeListi) result.push_back(CellFaceFlag({ifacet, pairs[iclip].j_list, pairs[iclip].j_node}));
+        } else {
+          if (pairs[iclip].i_list != nodeListi) result.push_back(CellFaceFlag({ifacet, pairs[iclip].i_list, pairs[iclip].i_node}));
         }
-        break;    // We found a match, and assume only one clip plane could have made this facet
       }
     }
   }
@@ -298,7 +300,6 @@ std::vector<CellFaceFlag> extractFaceFlags(const GeomPolyhedron& cell,
                                            const int i,
                                            const NodePairList& pairs) {
   REQUIRE(vertexClips.size() == cell.vertices().size());
-  const auto boundingSurfaceClipFlag = std::numeric_limits<int>::min();    // Special cellFaceFlag to indicate clipping by a bounding polyhedron/hole.
   const auto& facets = cell.facets();
   const auto  nfacets = facets.size();
   std::vector<CellFaceFlag> result;
@@ -306,24 +307,30 @@ std::vector<CellFaceFlag> extractFaceFlags(const GeomPolyhedron& cell,
     const auto& facet = facets[ifacet];
     const auto& ipoints = facet.ipoints();
     const auto  npoints = ipoints.size();
-    auto intersection = vertexClips[ipoints[0]];
+    auto common_clips = vertexClips[ipoints[0]];
     auto k = 1;
-    while (not intersection.empty() and k < npoints) {
-      std::set<int> newIntersection;
-      std::set_intersection(intersection.begin(), intersection.end(),
+    while (not common_clips.empty() and k < npoints) {
+      std::set<int> new_clips;
+      std::set_intersection(common_clips.begin(), common_clips.end(),
                             vertexClips[ipoints[k]].begin(), vertexClips[ipoints[k]].end(),
-                            std::inserter(newIntersection, newIntersection.begin()));
-      intersection = newIntersection;
+                            std::inserter(new_clips, new_clips.begin()));
+      common_clips = new_clips;
       ++k;
     }
-    if (not intersection.empty()) {
-      CHECK(intersection.size() == 1);
-      const auto iplane1 = *intersection.begin();
-      if (iplane1 == boundingSurfaceClipFlag or
-          iplane1 >= 0) {
-        result.push_back(CellFaceFlag({ifacet, -1, -1}));       // Clipped by a boundary/void
-      } else {
-        result.push_back(CellFaceFlag({ifacet, ~iplane1, -1})); // Clipped by another NodeList
+    if (not common_clips.empty()) {
+      CHECK(common_clips.size() == 1);
+      const auto iclip = *common_clips.begin();
+      if (iclip < 0) {                                // Boundary clip (faceted boundary or void point)
+        result.push_back(CellFaceFlag({ifacet, -1, -1}));
+      } else {                                        // Neighbor clip, iclip is the pair index in pairs
+        CHECK(iclip < pairs.size());
+        CHECK((pairs[iclip].i_list == nodeListi and pairs[iclip].i_node == i) or
+              (pairs[iclip].j_list == nodeListi and pairs[iclip].j_node == i));
+        if (pairs[iclip].i_list == nodeListi and pairs[iclip].i_node == i) {
+          if (pairs[iclip].j_list != nodeListi) result.push_back(CellFaceFlag({ifacet, pairs[iclip].j_list, pairs[iclip].j_node}));
+        } else {
+          if (pairs[iclip].i_list != nodeListi) result.push_back(CellFaceFlag({ifacet, pairs[iclip].i_list, pairs[iclip].i_node}));
+        }
       }
     }
   }
@@ -474,7 +481,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
             {
               ClippingType<Dimension>::clip(polycells(nodeListi, i), boundPlanes);
               // BLAGO
-              if (i == 0)
+              if (i == 229)
               cerr << " **> (" << nodeListi << " " << i << "):" << endl
                    << ClippingType<Dimension>::toString(polycells(nodeListi, i)) << endl;
               // BLAGO
@@ -556,7 +563,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           CHECK(not celli.empty());
 
           // BLAGO
-          if (i == 0) {
+          if (i == 229) {
             cerr << "planes: ";
             for (const auto& p: pairPlanesi) cerr << " " << p.ID;
             cerr << endl;
@@ -652,13 +659,13 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         for (const auto etaVoid: etaVoidPoints(nodeListj, j)) {
           const auto rji = Hinvj*etaVoid + 0.5*(rj - ri);
           const auto nhat = -rji.unitVector();
-          voidPlanesi.push_back(Plane(rji, nhat, -1));
+          voidPlanesi.push_back(Plane(rji, nhat, -100));
         }
 
         for (const auto etaVoid: etaVoidPoints(nodeListi, i)) {
           const auto rij = Hinvi*etaVoid + 0.5*(ri - rj);
           const auto nhat = -rij.unitVector();
-          voidPlanesj.push_back(Plane(rij, nhat, -1));
+          voidPlanesj.push_back(Plane(rij, nhat, -100));
         }
       }
 
@@ -695,7 +702,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           ClippingType<Dimension>::moments(vol1, deltaMedian(nodeListi, i), celli);
 
           // BLAGO
-          if (i == 0)
+          if (i == 229)
           cerr << " --> (" << nodeListi << " " << i << "):" << endl
                << ClippingType<Dimension>::toString(celli) << endl;
           // BLAGO
@@ -719,6 +726,14 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
             {
               auto vertexClips = ClippingType<Dimension>::convertFromPolyVolume(cells(nodeListi, i), celli);
               cells(nodeListi, i) += ri;
+              if (i == 229) {
+                cerr << cells(nodeListi, i) << endl;
+                for (const auto& clips: vertexClips) {
+                  cerr << " clips:";
+                  for (auto x: clips) cerr << " " << x;
+                  cerr << endl;
+                }
+              }
 
               // If we're returning CellFaceFlags, build them.  Note -- we currently do not store which neighbor node
               // is responsible for each clipped facet.  Just the material or void.
