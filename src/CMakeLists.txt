@@ -98,6 +98,7 @@ endif("${isSystemDir}" STREQUAL "-1")
 # Build spheral packages 
 ################################
 include_directories(.)
+
 set(SPHERAL_PYTHON_DEPENDS )
 
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)

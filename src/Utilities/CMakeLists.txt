@@ -52,6 +52,7 @@ set(Utilities_headers
     Functors.hh
     GeometricUtilities.hh
     KeyTraits.hh
+    NodeCoupling.hh
     NodeListHashMap.hh
     OpenMP_wrapper.hh
     PairComparisons.hh
@@ -64,6 +65,7 @@ set(Utilities_headers
     RegisterMPIDataTypes.hh
     SafeIndexMap.hh
     SpheralFunctions.hh
+    SurfaceNodeCoupling.hh
     Timer.hh
     Tree.hh
     TreeInline.hh

@@ -1,7 +1,6 @@
 set(PATCH_DIR ${PROJECT_SOURCE_DIR}/thirdPartyLibs)
 set(CACHE_DIR ${PROJECT_SOURCE_DIR}/thirdPartyLibs/cache)
 
-set(SPHERAL_TPL_DIR ${SPHERAL_INSTALL_DIR})
 if(SPHERAL_TPL_DIR)
   if(NOT EXISTS SPHERAL_TPL_DIR)
     get_filename_component(SPHERAL_TPL_DIR_PARENT ${SPHERAL_TPL_DIR} DIRECTORY)
@@ -223,7 +222,7 @@ endif()
 include(../cmake/libraries/FindPython.cmake)
 
 
-
+if (NOT ENABLE_CXXONLY)
 ################################
 # PYBIND11
 ################################
@@ -271,6 +270,7 @@ else()
   set(BLT_PYBIND11_DEFINES "HAVE_PYBIND11=0" CACHE PATH "")
 endif()
 
+endif()
 
 
 ################################
