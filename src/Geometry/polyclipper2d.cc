@@ -31,6 +31,8 @@ using std::list;
 using std::map;
 using std::set;
 using std::ostream_iterator;
+using std::cerr;
+using std::endl;
 
 // Declare the timers.
 extern Timer TIME_PC2d_convertto;
@@ -425,6 +427,16 @@ void clipPolygon(Polygon& polygon,
                                      2));         // 2 indicates new vertex
           polygon[vnew].neighbors = {v, vnext};
           polygon[vnew].clips.insert(plane.ID);
+          // Patch up clip info for existing clips
+          if (polygon[v].comp == -1) {
+            for (const auto cp: polygon[v].clips) {
+              if (polygon[vnext].clips.find(cp) != polygon[vnext].clips.end()) polygon[vnew].clips.insert(cp);
+            }
+          } else {
+            for (const auto cp: polygon[vnext].clips) {
+              if (polygon[v].clips.find(cp) != polygon[v].clips.end()) polygon[vnew].clips.insert(cp);
+            }
+          }
           polygon[v].neighbors.second = vnew;
           polygon[vnext].neighbors.first = vnew;
           hangingVertices.push_back(vnew);
