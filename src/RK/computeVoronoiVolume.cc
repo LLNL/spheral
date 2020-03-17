@@ -521,7 +521,6 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         const auto wji = weightj/(weighti + weightj);
         pairPlanesi.push_back(Plane( wij*rji,  nhat, int(kk)));
         pairPlanesj.push_back(Plane(-wji*rji, -nhat, int(kk)));
-        if (i == 0 or j == 0) cerr << "ID: " << kk << endl;
       }
 
       // Collect the pair planes across threads.
