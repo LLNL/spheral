@@ -427,10 +427,15 @@ void clipPolygon(Polygon& polygon,
                                      2));         // 2 indicates new vertex
           polygon[vnew].neighbors = {v, vnext};
           polygon[vnew].clips.insert(plane.ID);
+          // Patch up clip info for existing clips
           if (polygon[v].comp == -1) {
-            polygon[vnew].clips.insert(polygon[v].clips.begin(), polygon[v].clips.end());
+            for (const auto cp: polygon[v].clips) {
+              if (polygon[vnext].clips.find(cp) != polygon[vnext].clips.end()) polygon[vnew].clips.insert(cp);
+            }
           } else {
-            polygon[vnew].clips.insert(polygon[vnext].clips.begin(), polygon[vnext].clips.end());
+            for (const auto cp: polygon[vnext].clips) {
+              if (polygon[v].clips.find(cp) != polygon[v].clips.end()) polygon[vnew].clips.insert(cp);
+            }
           }
           polygon[v].neighbors.second = vnew;
           polygon[vnext].neighbors.first = vnew;

@@ -245,6 +245,16 @@ output("numCellFaceFlags")
 output("numVoidFaceFlags")
 assert numVoidFaceFlags > 0
 assert numCellFaceFlags > 0
+if ranfrac == 0.0:
+    if testDim == "1d":
+        assert numVoidFaceFlags == 2
+        assert numCellFaceFlags == 2
+    elif testDim == "2d":
+        assert numVoidFaceFlags == 4*nx1
+        assert numCellFaceFlags == 4*nx1
+    else:
+        assert numVoidFaceFlags == 6*nx1**2
+        assert numCellFaceFlags == 6*nx1**2
 
 #-------------------------------------------------------------------------------
 # Check the answer.
