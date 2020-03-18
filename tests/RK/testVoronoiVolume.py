@@ -1,6 +1,6 @@
-#ATS:test(SELF, "--graphics False --nx1 10 --testDim 1d", label="computeVoronoiVolume test -- 1D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --testDim 2d", label="computeVoronoiVolume test -- 2D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --testDim 3d", label="computeVoronoiVolume test -- 3D (serial)")
+#ATS:test(SELF, "--nx1 10 --testDim 1d", label="computeVoronoiVolume test -- 1D (serial)")
+#ATS:test(SELF, "--nx1 10 --testDim 2d", label="computeVoronoiVolume test -- 2D (serial)")
+#ATS:test(SELF, "--nx1 10 --testDim 3d", label="computeVoronoiVolume test -- 3D (serial)")
 #-------------------------------------------------------------------------------
 # Unit test of the CRKSPH sum density algorithm.
 #-------------------------------------------------------------------------------
@@ -41,7 +41,6 @@ commandLine(
     # Parameters for passing the test
     tolerance = 1.0e-8,
 
-    graphics = True,
     vizFile = "",
     splitCells = False,
 )
@@ -216,10 +215,18 @@ computeVoronoiVolume(db.fluidPosition,
 # Optionally drop a viz file.
 #-------------------------------------------------------------------------------
 if vizFile:
+
+    # Amalgamate the cell face flags into a single value per cell.  Not the best visualization yet...
+    cellFaceFlagsSum = db.newGlobalIntFieldList(0, HydroFieldNames.cellFaceFlags + "_sum")
+    for k in xrange(len(cellFaceFlagsSum)):
+        for i in xrange(len(cellFaceFlagsSum[k])):
+            cellFaceFlagsSum[k][i] = sum([x.nodeListj for x in cellFaceFlags[k][i]] + [0])
+
     dumper = SpheralVoronoiSiloDump(baseFileName = vizFile,
                                     listOfFieldLists = [vol,
                                                         surfacePoint,
-                                                        deltaMedian],
+                                                        deltaMedian,
+                                                        cellFaceFlagsSum],
                                     cells = cells,
                                     splitCells = splitCells)
     dumper.dump(0.0, 0)
@@ -238,6 +245,16 @@ output("numCellFaceFlags")
 output("numVoidFaceFlags")
 assert numVoidFaceFlags > 0
 assert numCellFaceFlags > 0
+if ranfrac == 0.0:
+    if testDim == "1d":
+        assert numVoidFaceFlags == 2
+        assert numCellFaceFlags == 2
+    elif testDim == "2d":
+        assert numVoidFaceFlags == 4*nx1
+        assert numCellFaceFlags == 4*nx1
+    else:
+        assert numVoidFaceFlags == 6*nx1**2
+        assert numCellFaceFlags == 6*nx1**2
 
 #-------------------------------------------------------------------------------
 # Check the answer.
