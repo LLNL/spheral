@@ -356,6 +356,7 @@
     <ClCompile Include="..\..\src\Hydro\PositionPolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Hydro\PressurePolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Hydro\PressurePolicyInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\Hydro\RZNonSymmetricSpecificThermalEnergyPolicy.cc" />
     <ClCompile Include="..\..\src\Hydro\SoundSpeedPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Hydro\SoundSpeedPolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Hydro\SpecificFromTotalThermalEnergyPolicyInst.cc.2.cc" />
@@ -498,6 +499,9 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\Hydro\RZNonSymmetricSpecificThermalEnergyPolicy.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

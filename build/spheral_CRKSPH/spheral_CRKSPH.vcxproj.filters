@@ -15,12 +15,6 @@
     <ClCompile Include="..\..\src\CRKSPH\centerOfMass.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHCorrectionsInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHCorrectionsInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHEvaluationInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -60,18 +54,6 @@
     <ClCompile Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\interpolateCRKSPHInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\interpolateCRKSPHInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -87,12 +69,6 @@
     <ClCompile Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensityInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHMomentsInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHMomentsInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrectionsInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -101,9 +77,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHCorrectionsInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHEvaluationInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
@@ -122,15 +95,6 @@
     <CustomBuild Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\interpolateCRKSPHInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHMomentsInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensityInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
@@ -145,16 +109,10 @@
     <ClInclude Include="..\..\src\CRKSPH\centerOfMass.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\CRKSPH\computeCRKSPHCorrections.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\CRKSPH\computeCRKSPHEvaluation.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\CRKSPH\computeCRKSPHIntegral.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\CRKSPH\computeCRKSPHMoments.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensity.hh">
@@ -178,12 +136,6 @@
     <ClInclude Include="..\..\src\CRKSPH\CRKSPHHydroBaseRZ.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\CRKSPH\CRKSPHUtilities.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\CRKSPH\CRKSPHUtilitiesInline.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\CRKSPH\CRKSPHVariant.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -191,12 +143,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopology.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\CRKSPH\gradientCRKSPH.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\CRKSPH\interpolateCRKSPH.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\CRKSPH\SolidCRKSPHHydroBase.hh">
