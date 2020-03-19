@@ -493,11 +493,6 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
 #pragma omp critical (computeVoronoiVolume_polycells)
             {
               ClippingType<Dimension>::clip(polycells(nodeListi, i), boundPlanes);
-
-              // BLAGO
-              if (i == 0) cerr << "1> " << ClippingType<Dimension>::toString(polycells(nodeListi, i)) << endl;
-              // BLAGO
-
             }
           }
         }
@@ -581,10 +576,6 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           std::sort(pairPlanesi.begin(), pairPlanesi.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
           ClippingType<Dimension>::clip(celli, pairPlanesi);
           CHECK(not celli.empty());
-
-          // BLAGO
-          if (i == 0) cerr << "2> " << ClippingType<Dimension>::toString(celli) << endl;
-          // BLAGO
 
           // Check if the final polygon is entirely within our "interior" check radius.  Otherwise,
           // time to make void points.
@@ -746,10 +737,6 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           CHECK(not celli.empty());
           ClippingType<Dimension>::moments(vol1, deltaMedian(nodeListi, i), celli);
 
-          // BLAGO
-          if (i == 0) cerr << "3> " << ClippingType<Dimension>::toString(celli) << endl;
-          // BLAGO
-
           // Check if the candidate motion is still in the boundary.  If not, project back.
           if (haveFacetedBoundaries) {
             if (not facetedBoundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i), false)) {
@@ -776,15 +763,6 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
                 cellFaceFlags(nodeListi, i) = extractFaceFlags(cells(nodeListi, i), vertexClips,
                                                                nodeListi, i, pairs);
               }
-
-              // BLAGO
-              if (i == 0) {
-                cerr << "4> " << cells(nodeListi, i) << endl;
-                for (auto f: cellFaceFlags(nodeListi, i)) cerr << " " << f;
-                cerr << endl;
-              }
-              // BLAGO
-
             }
           }
 
