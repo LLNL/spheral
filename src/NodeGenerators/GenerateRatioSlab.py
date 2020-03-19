@@ -54,10 +54,10 @@ def computeRhoAndMass3d(p000, p100, p110, p010, p001, p101, p111, p011, pi, rhof
     |       |
     101 -- 001
     '''
-    ps = [p000, p100, p110, p010, p001, p101, p111, p011, pi]
+    p = [p000, p100, p110, p010, p001, p101, p111, p011, pi]
     rhos = []
-    for p in ps:
-        rhos.append(rhofunc(p))
+    for x in p:
+        rhos.append(rhofunc(x))
     base = []
     base.append((p[1]-p[0]).cross(p[3]-p[0]))
     base.append((p[4]-p[0]).cross(p[1]-p[0]))
@@ -67,7 +67,7 @@ def computeRhoAndMass3d(p000, p100, p110, p010, p001, p101, p111, p011, pi, rhof
     base.append((p[4]-p[0]).cross(p[3]-p[0]))
     bm = []
     for b in base:
-        bm.append(abs(b.magnitude()))
+        bm.append(b.magnitude())
     height = []
     height.append(abs((pi-p[0]).dot(base[0]/bm[0])))
     height.append(abs((pi-p[0]).dot(base[1]/bm[1])))
