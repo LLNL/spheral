@@ -214,14 +214,13 @@ computeVoronoiVolume(db.fluidPosition,
 #-------------------------------------------------------------------------------
 # Optionally drop a viz file.
 #-------------------------------------------------------------------------------
+# Amalgamate the cell face flags into a single value per cell.  Not the best visualization yet...
+cellFaceFlagsSum = db.newGlobalIntFieldList(0, HydroFieldNames.cellFaceFlags + "_sum")
+for k in xrange(len(cellFaceFlagsSum)):
+    for i in xrange(len(cellFaceFlagsSum[k])):
+        cellFaceFlagsSum[k][i] = sum([x.nodeListj for x in cellFaceFlags[k][i]] + [0])
+
 if vizFile:
-
-    # Amalgamate the cell face flags into a single value per cell.  Not the best visualization yet...
-    cellFaceFlagsSum = db.newGlobalIntFieldList(0, HydroFieldNames.cellFaceFlags + "_sum")
-    for k in xrange(len(cellFaceFlagsSum)):
-        for i in xrange(len(cellFaceFlagsSum[k])):
-            cellFaceFlagsSum[k][i] = sum([x.nodeListj for x in cellFaceFlags[k][i]] + [0])
-
     dumper = SpheralVoronoiSiloDump(baseFileName = vizFile,
                                     listOfFieldLists = [vol,
                                                         surfacePoint,
@@ -236,6 +235,7 @@ if vizFile:
 #-------------------------------------------------------------------------------
 numCellFaceFlags = 0
 numVoidFaceFlags = 0
+numSurfacePoints = surfacePoint.sumElements()
 for flags in cellFaceFlags[0].internalValues():
     for flag in flags:
         numCellFaceFlags += 1
@@ -243,18 +243,34 @@ for flags in cellFaceFlags[0].internalValues():
             numVoidFaceFlags += 1
 output("numCellFaceFlags")
 output("numVoidFaceFlags")
+output("numSurfacePoints")
 assert numVoidFaceFlags > 0
 assert numCellFaceFlags > 0
 if ranfrac == 0.0:
     if testDim == "1d":
         assert numVoidFaceFlags == 2
         assert numCellFaceFlags == 2
+        assert numSurfacePoints == 2
     elif testDim == "2d":
         assert numVoidFaceFlags == 4*nx1
         assert numCellFaceFlags == 4*nx1
+        assert numSurfacePoints == 4*(nx1 - 1)
     else:
         assert numVoidFaceFlags == 6*nx1**2
         assert numCellFaceFlags == 6*nx1**2
+        assert numSurfacePoints == 6*(nx1 - 2)**2 + 12*(nx1 - 2) + 8
+
+# The cell face flag sum range should be in [-ndim, 0] even with randomization
+if testDim == "1d":
+    assert cellFaceFlagsSum.min() == -1
+    assert cellFaceFlagsSum.max() == 0
+    assert cellFaceFlagsSum.sum() == -2
+elif testDim == "2d":
+    assert cellFaceFlagsSum.min() == -2
+    assert cellFaceFlagsSum.max() == 0
+else:
+    assert cellFaceFlagsSum.min() == -3
+    assert cellFaceFlagsSum.max() == 0
 
 #-------------------------------------------------------------------------------
 # Check the answer.
