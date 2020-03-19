@@ -42,25 +42,54 @@ def computeRhoAndMass2d(p00, p10, p11, p01, pi, rhofunc):
     rhomax = max(stuff)
     return rhoi, mi
 
-def computeRhoAndMass3d(p00, p10, p11, p01, pi, rhofunc):
-    rho00 = rhofunc(p00)
-    rho10 = rhofunc(p10)
-    rho11 = rhofunc(p11)
-    rho01 = rhofunc(p01)
-    rhoi = rhofunc(pi)
-    V1 = (p00 - pi).cross(p10 - pi).magnitude()  # actually 2x
-    V2 = (p10 - pi).cross(p11 - pi).magnitude()
-    V3 = (p11 - pi).cross(p01 - pi).magnitude()
-    V4 = (p01 - pi).cross(p00 - pi).magnitude()
-    Vi = 0.5*(V1 + V2 + V3 + V4)
-    mi = (V1 * (rhoi + rho00 + rho10) +
-          V2 * (rhoi + rho10 + rho11) +
-          V3 * (rhoi + rho11 + rho01) +
-          V4 * (rhoi + rho01 + rho00))/6.0
-    rhoi = mi/Vi
-    stuff = (rho00, rho10, rho11, rho01, rhofunc(pi))
-    rhomin = min(stuff)
-    rhomax = max(stuff)
+def computeRhoAndMass3d(p000, p100, p110, p010, p001, p101, p111, p011, pi, rhofunc):
+    # base square
+    # then roof square
+    '''
+    110 -- 010
+    |       |
+    100 -- 000
+
+    111 -- 011
+    |       |
+    101 -- 001
+    '''
+    ps = [p000, p100, p110, p010, p001, p101, p111, p011, pi]
+    rhos = []
+    for p in ps:
+        rhos.append(rhofunc(p))
+    base = []
+    base.append((p[1]-p[0]).cross(p[3]-p[0]))
+    base.append((p[4]-p[0]).cross(p[1]-p[0]))
+    base.append((p[5]-p[4]).cross(p[7]-p[4]))
+    base.append((p[3]-p[2]).cross(p[6]-p[2]))
+    base.append((p[2]-p[1]).cross(p[6]-p[2]))
+    base.append((p[4]-p[0]).cross(p[3]-p[0]))
+    bm = []
+    for b in base:
+        bm.append(abs(b.magnitude()))
+    height = []
+    height.append(abs((pi-p[0]).dot(base[0]/bm[0])))
+    height.append(abs((pi-p[0]).dot(base[1]/bm[1])))
+    height.append(abs((pi-p[4]).dot(base[2]/bm[2])))
+    height.append(abs((pi-p[3]).dot(base[3]/bm[3])))
+    height.append(abs((pi-p[1]).dot(base[4]/bm[4])))
+    height.append(abs((pi-p[0]).dot(base[5]/bm[5])))
+    vs = []
+    for i in range(len(bm))
+        vs.append(1.0/3.0*bm[i]*height[i])
+    mi = (vs[0]*(rhos[0]+rhos[1]+rhos[2]+rhos[3]+rhos[8])+
+          vs[1]*(rhos[0]+rhos[1]+rhos[4]+rhos[5]+rhos[8])+
+          vs[2]*(rhos[4]+rhos[5]+rhos[6]+rhos[7]+rhos[8])+
+          vs[3]*(rhos[2]+rhos[3]+rhos[6]+rhos[7]+rhos[8])+
+          vs[4]*(rhos[1]+rhos[2]+rhos[5]+rhos[6]+rhos[8])+
+          vs[5]*(rhos[0]+rhos[3]+rhos[4]+rhos[7]+rhos[8]))/5.0
+    vi = 0
+    for v in vs:
+        vi += v
+    rhoi = mi/vi
+    rhomin = min(rhos)
+    rhomax = max(rhos)
     return rhoi, mi
 
 #-------------------------------------------------------------------------------
