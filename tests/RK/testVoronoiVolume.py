@@ -264,7 +264,7 @@ if ranfrac == 0.0:
 if testDim == "1d":
     assert cellFaceFlagsSum.min() == -1
     assert cellFaceFlagsSum.max() == 0
-    assert cellFaceFlagsSum.sum() == -2
+    assert cellFaceFlagsSum.sumElements() == -2
 elif testDim == "2d":
     assert cellFaceFlagsSum.min() == -2
     assert cellFaceFlagsSum.max() == 0
