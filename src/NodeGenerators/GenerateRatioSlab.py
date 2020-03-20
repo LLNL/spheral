@@ -76,7 +76,7 @@ def computeRhoAndMass3d(p000, p100, p110, p010, p001, p101, p111, p011, pi, rhof
     height.append(abs((pi-p[1]).dot(base[4]/bm[4])))
     height.append(abs((pi-p[0]).dot(base[5]/bm[5])))
     vs = []
-    for i in range(len(bm))
+    for i in range(len(bm)):
         vs.append(1.0/3.0*bm[i]*height[i])
     mi = (vs[0]*(rhos[0]+rhos[1]+rhos[2]+rhos[3]+rhos[8])+
           vs[1]*(rhos[0]+rhos[1]+rhos[4]+rhos[5]+rhos[8])+
@@ -379,7 +379,7 @@ class GenerateRatioSlab3d(NodeGeneratorBase):
         else:
             self.rhofunc = rho
 
-        self.x, self.y, self.z, self.m, self.H, self.rho = [], [], [], [], []
+        self.x, self.y, self.z, self.m, self.H, self.rho = [], [], [], [], [], []
 
         # Decide the actual ratios we're going to use to arrive at an integer number of radial bins.
         def adjustRatio(drStart, drRatio, rmin, rmax):
@@ -493,8 +493,8 @@ class GenerateRatioSlab3d(NodeGeneratorBase):
     # Get the position for the given node index.
     #---------------------------------------------------------------------------
     def localPosition(self, i):
-        assert len(self.x) == len(self.y)
-        return Vector2d(self.x[i], self.y[i])
+        assert len(self.x) == len(self.y) == len(self.z)
+        return Vector3d(self.x[i], self.y[i], self.z[i])
     
     #---------------------------------------------------------------------------
     # Get the mass for the given node index.

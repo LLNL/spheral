@@ -1,27 +1,18 @@
 from Spheral3d import *
-from GenerateRatioSphere import *
+from GenerateRatioSlab import *
 from SpheralTestUtilities import *
 from VoronoiDistributeNodes import distributeNodes3d as distributeNodes
 from siloPointmeshDump import *
 
 commandLine(hmin    = 1e-5,
             hmax    = 1e6,
-            rhoscale = 0.5,
-            drCenter = 0.01,
-            drRatio = 1.2,
-            rmin    = 0.0,
-            rmax    = 2.0,
-            thetamin = 0.0,
-            thetamax = 1.0*pi,
-            phi = 0.75*pi,
-            ntheta = 100,
-            xcenter = 0.5,
-            ycenter = 0.5,
-            zcenter = 0.5,
-            distributionType = "constantDTheta",
+            res0 = 1.0,
+            xratio = 1.5,
+            yratio = 1.5,
+            zratio = 1.5,
             nPerh   = 2.01,
-            nr      = 100,
-            SPH     = False)
+            SPH     = False,
+            rho0 = 1.0)
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -43,7 +34,6 @@ nodes = makeFluidNodeList("nodes", eos,
                           hmin = hmin,
                           hmax = hmax,
                           nPerh = nPerh,
-                          topGridCellSize = 100,
                           xmin = Vector.one * -100.0,
                           xmax = Vector.one *  100.0)
 output("nodes")
@@ -57,18 +47,20 @@ output("nodes.nodesPerSmoothingScale")
 def rhoprofile(r):
     return exp(-r*r/(rhoscale*rhoscale))
 
-generator = GenerateRatioSphere3d(drCenter, drRatio,
-                                  rho = rhoprofile,
-                                  rmin = rmin,
-                                  rmax = rmax,
-                                  thetamin = thetamin,
-                                  thetamax = thetamax,
-                                  phi = phi,
-                                  ntheta = ntheta,
-                                  center = (xcenter, ycenter, zcenter),
-                                  distributionType = distributionType,
-                                  nNodePerh = nPerh,
-                                  SPH = SPH)
+generator = GenerateRatioSlab3d(dxSurface = res0, 
+                                xratio = xratio,
+                                dySurface = res0, 
+                                yratio = yratio,
+                                dzSurface = res0, 
+                                zratio = zratio,
+                                rho = rho0,
+                                xmin=(0.0,0.0,0.0),
+                                xmax=(10.0,10.0,10.0),
+                                nNodePerh = nPerh,
+                                SPH = SPH,
+                                flipx=True,
+                                flipy=True,
+                                flipz=True)
 distributeNodes((nodes, generator))
 
 #-------------------------------------------------------------------------------
@@ -78,8 +70,8 @@ Hfield = nodes.Hfield()
 HfieldInv = SymTensorField("H inverse", nodes)
 for i in xrange(nodes.numNodes):
     HfieldInv[i] = SymTensor(Hfield[i].Inverse())
-vizfile = siloPointmeshDump(baseName = "ratio_sphere_test_" + distributionType,
-                            baseDirectory = "ratio_sphere_test_" + distributionType,
+vizfile = siloPointmeshDump(baseName = "ratio_slab3d_test",
+                            baseDirectory = "ratio_slab3d_test",
                             fields = [nodes.massDensity(),
                                       nodes.mass(),
                                       nodes.velocity(),
