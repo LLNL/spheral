@@ -467,7 +467,10 @@ ConnectivityMap<Dimension>::
 valid() const {
   TIME_ConnectivityMap_valid.start();
 
-  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+  const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+  const auto ghostConnectivity = (mBuildGhostConnectivity or
+                                  mBuildOverlapConnectivity or
+                                  domainDecompIndependent);
 
   // Check the offsets.
   const int numNodeLists = mNodeLists.size();
@@ -476,11 +479,11 @@ valid() const {
     return false;
   }
   {
-    const int numNodes = ((domainDecompIndependent or mBuildGhostConnectivity) ? 
+    const int numNodes = (ghostConnectivity ? 
                           mNodeLists.back()->numNodes() : 
                           mNodeLists.back()->numInternalNodes());
     if (mConnectivity.size() != mOffsets.back() + numNodes) {
-      cerr << "ConnectivityMap::valid: Failed offset bounding." << endl;
+      cerr << "ConnectivityMap::valid: Failed offset bounding: " << mConnectivity.size() << " != " << mOffsets.back() << " + " << numNodes << endl;
     }
   }
 
@@ -509,7 +512,7 @@ valid() const {
 
     // Are all internal nodes represented?
     const NodeList<Dimension>* nodeListPtri = mNodeLists[nodeListIDi];
-    const int numNodes = ((domainDecompIndependent or mBuildGhostConnectivity) ? 
+    const int numNodes = (ghostConnectivity ?
                           nodeListPtri->numNodes() : 
                           nodeListPtri->numInternalNodes());
     const int firstGhostNodei = nodeListPtri->firstGhostNode();
@@ -588,7 +591,7 @@ valid() const {
         for (vector<int>::const_iterator jItr = neighbors.begin();
              jItr != neighbors.end();
              ++jItr) {
-          if (domainDecompIndependent or mBuildGhostConnectivity or (*jItr < nodeListPtrj->numInternalNodes())) {
+          if (ghostConnectivity or (*jItr < nodeListPtrj->numInternalNodes())) {
             const vector< vector<int> >& otherNeighbors = connectivityForNode(nodeListPtrj, *jItr);
             if (find(otherNeighbors[nodeListIDi].begin(),
                      otherNeighbors[nodeListIDi].end(),
