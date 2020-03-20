@@ -902,6 +902,8 @@ decompose(std::vector<GeomPolyhedron>& subcells) const {
   subcells.clear();
   subcells.reserve(numFacets);
   std::vector<std::array<Vector, 3>> subfacets;
+  const std::vector<std::vector<unsigned>> indices = {{0, 1, 2}, {0, 3, 1},
+                                                      {1, 3, 2}, {0, 2, 3}};
   for (auto f = 0; f < numFacets; ++f) {
     const auto& facet = mFacets[f];
     // We don't want to split the facet if we can help it
@@ -913,10 +915,9 @@ decompose(std::vector<GeomPolyhedron>& subcells) const {
     }
     
     for (auto& subfacet : subfacets) {
+      CHECK(subfacet.size() == 3);
       std::vector<Vector> points = {subfacet[0], subfacet[1],
                                     subfacet[2], originalCentroid};
-      std::vector<std::vector<unsigned>> indices = {{0, 1, 2}, {0, 3, 1},
-                                                     {1, 3, 2}, {0, 2, 3}};
       subcells.emplace_back(points, indices);
     }
   }
