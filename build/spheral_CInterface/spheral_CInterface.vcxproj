@@ -100,53 +100,53 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Serial.props" />
+    <Import Project="$(WindowsProjectPath)Base Debug Libraries.props" />
+    <Import Project="$(WindowsProjectPath)Properties\Serial.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CUDADebug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Serial.props" />
+    <Import Project="$(WindowsProjectPath)Base Debug Libraries.props" />
+    <Import Project="$(WindowsProjectPath)Properties\Serial.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Parallel.x64.props" />
+    <Import Project="$(WindowsProjectPath)Base Debug Libraries.props" />
+    <Import Project="$(WindowsProjectPath)Properties\Parallel.x64.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Parallel.x64.props" />
+    <Import Project="$(WindowsProjectPath)Base Debug Libraries.props" />
+    <Import Project="$(WindowsProjectPath)Properties\Parallel.x64.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Serial.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\CPUOptimization.props" />
+    <Import Project="$(WindowsProjectPath)Base Debug Libraries.props" />
+    <Import Project="$(WindowsProjectPath)Properties\Serial.props" />
+    <Import Project="$(WindowsProjectPath)Properties\CPUOptimization.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CUDARelease|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Serial.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\CPUOptimization.props" />
+    <Import Project="$(WindowsProjectPath)Base Debug Libraries.props" />
+    <Import Project="$(WindowsProjectPath)Properties\Serial.props" />
+    <Import Project="$(WindowsProjectPath)Properties\CPUOptimization.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebugInfo|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Serial.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\CPUOptimization.props" />
+    <Import Project="$(WindowsProjectPath)Base Debug Libraries.props" />
+    <Import Project="$(WindowsProjectPath)Properties\Serial.props" />
+    <Import Project="$(WindowsProjectPath)Properties\CPUOptimization.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Parallel.x64.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\CPUOptimization.props" />
+    <Import Project="$(WindowsProjectPath)Base Debug Libraries.props" />
+    <Import Project="$(WindowsProjectPath)Properties\Parallel.x64.props" />
+    <Import Project="$(WindowsProjectPath)Properties\CPUOptimization.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParReleaseWithDebugInfo|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Parallel.x64.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\CPUOptimization.props" />
+    <Import Project="$(WindowsProjectPath)Base Debug Libraries.props" />
+    <Import Project="$(WindowsProjectPath)Properties\Parallel.x64.props" />
+    <Import Project="$(WindowsProjectPath)Properties\CPUOptimization.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
@@ -411,9 +411,6 @@
     </ProjectReference>
     <ProjectReference Include="..\spheral_dataoutput\spheral_dataoutput.vcxproj">
       <Project>{0a7c9e40-2802-420d-9867-6deb977b078e}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\spheral_distributed\spheral_distributed.vcxproj">
-      <Project>{46240108-1c29-4f3b-9a88-e6bcfdec7ebe}</Project>
     </ProjectReference>
     <ProjectReference Include="..\spheral_fieldoperations\spheral_fieldoperations.vcxproj">
       <Project>{66d95603-f93e-429e-af51-fd8a93adf044}</Project>
