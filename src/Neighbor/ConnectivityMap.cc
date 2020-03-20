@@ -705,6 +705,11 @@ computeConnectivity() {
   const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
   // std::clock_t tpre = std::clock();
 
+  // Do we need to build the ghost connectivity as well?
+  const auto ghostConnectivity = (mBuildGhostConnectivity or
+                                  mBuildOverlapConnectivity or
+                                  domainDecompIndependent);
+
   // Build ourselves a temporary DataBase with the set of NodeLists.
   // Simultaneously find the maximum kernel extent.
   DataBase<Dimension> dataBase;
@@ -719,9 +724,10 @@ computeConnectivity() {
 
   // Erase any prior information.
   const unsigned numNodeLists = dataBase.numNodeLists(),
-             connectivitySize = mOffsets.back() + 
-                                ((domainDecompIndependent or mBuildGhostConnectivity) ? mNodeLists.back()->numNodes() : mNodeLists.back()->numInternalNodes());
-  bool ok = (connectivitySize > 0 and mConnectivity.size() == connectivitySize);
+             connectivitySize = mOffsets.back() + (ghostConnectivity ?
+                                                   mNodeLists.back()->numNodes() :
+                                                   mNodeLists.back()->numInternalNodes());
+  const bool ok = (connectivitySize > 0 and mConnectivity.size() == connectivitySize);
   if (ok) {
     CHECK(mNodeTraversalIndices.size() == numNodeLists);
     for (typename ConnectivityStorageType::iterator itr = mConnectivity.begin();
@@ -786,7 +792,7 @@ computeConnectivity() {
     const auto etaMax = mNodeLists[iiNodeList]->neighbor().kernelExtent();
 
     // Iterate over the nodes in this NodeList, and look for any that are not done yet.
-    const auto nii = (false ? // domainDecompIndependent or mBuildGhostConnectivity ? 
+    const auto nii = (false ?
                       mNodeLists[iiNodeList]->numNodes() :
                       mNodeLists[iiNodeList]->numInternalNodes());
     for (auto ii = 0; ii < nii; ++ii) {
@@ -890,7 +896,7 @@ computeConnectivity() {
   }
 
   // If necessary add ghost->internal connectivity.
-  if (mBuildGhostConnectivity or domainDecompIndependent) {
+  if (ghostConnectivity) {
     for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
       for (auto i = 0; i < mNodeLists[iNodeList]->numInternalNodes(); ++i) {
         const auto& neighborsi = mConnectivity[mOffsets[iNodeList] + i];
@@ -954,7 +960,7 @@ computeConnectivity() {
 
   // Do we need overlap connectivity?
   if (mBuildOverlapConnectivity) {
-    // VERIFY2(mBuildGhostConnectivity, "ghost connectivity is required for overlap connectivity");
+    // VERIFY2(ghostConnectivity, "ghost connectivity is required for overlap connectivity");
     TIME_ConnectivityMap_computeOverlapConnectivity.start();
 
     // To start out, *all* neighbors of a node (gather and scatter) are overlap neighbors.  Therefore we
@@ -1020,7 +1026,7 @@ computeConnectivity() {
   BEGIN_CONTRACT_SCOPE
   // Make sure that the correct number of nodes have been completed.
   for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
-    const auto n = (mBuildGhostConnectivity ? 
+    const auto n = (ghostConnectivity ? 
                     mNodeLists[iNodeList]->numNodes() :
                     mNodeLists[iNodeList]->numInternalNodes());
     for (auto i = 0; i != n; ++i) {
