@@ -309,9 +309,10 @@ class Boundary:
         return "bool"
 
     @PYB11virtual
+    @PYB11protected
     def addNodeList(self, nodeList="NodeList<%(Dimension)s>&"):
         return "void"
-                    
+
     #...........................................................................
     # Methods
     @PYB11const
