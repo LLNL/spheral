@@ -79,7 +79,7 @@ struct Vertex2d {
   Vertex2d(const Vector& pos):                 position(pos), neighbors(), comp(1), ID(-1), clips() {}
   Vertex2d(const Vector& pos, const int c)   : position(pos), neighbors(), comp(c), ID(-1), clips() {}
   Vertex2d(const Vertex2d& rhs)              : position(rhs.position), neighbors(rhs.neighbors), comp(rhs.comp), ID(rhs.ID), clips(rhs.clips) {}
-  Vertex2d& operator=(const Vertex2d& rhs)   { position = rhs.position; neighbors = rhs.neighbors; comp = rhs.comp; ID = rhs.ID; clips = rhs.clips; }
+  Vertex2d& operator=(const Vertex2d& rhs)   { position = rhs.position; neighbors = rhs.neighbors; comp = rhs.comp; ID = rhs.ID; clips = rhs.clips; return *this; }
   bool operator==(const Vertex2d& rhs) const {
     return (position  == rhs.position and
             neighbors == rhs.neighbors and
@@ -102,7 +102,7 @@ struct Vertex3d {
   Vertex3d(const Vector& pos):                 position(pos), neighbors(), comp(1), ID(-1), clips() {}
   Vertex3d(const Vector& pos, const int c):    position(pos), neighbors(), comp(c), ID(-1), clips() {}
   Vertex3d(const Vertex3d& rhs)              : position(rhs.position), neighbors(rhs.neighbors), comp(rhs.comp), ID(rhs.ID), clips(rhs.clips) {}
-  Vertex3d& operator=(const Vertex3d& rhs)   { position = rhs.position; neighbors = rhs.neighbors; comp = rhs.comp; ID = rhs.ID; clips = rhs.clips; }
+  Vertex3d& operator=(const Vertex3d& rhs)   { position = rhs.position; neighbors = rhs.neighbors; comp = rhs.comp; ID = rhs.ID; clips = rhs.clips; return *this; }
   bool operator==(const Vertex3d& rhs) const {
     return (position  == rhs.position and
             neighbors == rhs.neighbors and
