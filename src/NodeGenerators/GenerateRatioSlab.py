@@ -446,7 +446,16 @@ class GenerateRatioSlab3d(NodeGeneratorBase):
                     self.x.append(xi)
                     self.y.append(yi)
                     self.z.append(zi)
-                    rhoi, mi = computeRhoAndMass3d()
+                    rhoi, mi = computeRhoAndMass3d(Vector3d(xi0,yi0,zi0),
+                                                   Vector3d(xi1,yi0,zi0),
+                                                   Vector3d(xi1,yi1,zi0),
+                                                   Vector3d(xi0,yi1,zi0),
+                                                   Vector3d(xi0,yi0,zi1),
+                                                   Vector3d(xi1,yi0,zi1),
+                                                   Vector3d(xi1,yi1,zi1),
+                                                   Vector3d(xi0,yi1,zi1),
+                                                   Vector3d(xi,yi,zi),
+                                                   self.rhofunc)
                     self.m.append(mi)
                     self.rho.append(rhoi)
                     self.H.append(SymTensor3d(1.0/hx, 0.0, 0.0, 0.0, 1.0/hy, 0.0, 0.0,0.0,1.0/hz))
