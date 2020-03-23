@@ -104,6 +104,12 @@ macro(PYB11_GENERATE_BINDINGS)
     )
   STRING(REPLACE ";" "<->" PYTHON_ENV_STR ${PYTHON_ENV})
 
+  execute_process(COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
+                  ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/helpers/moduleCheck.py 
+                  ${PROJECT_SOURCE_DIR}/Pybind11Wraps/${PYB11_MODULE_NAME}/${PYB11_SOURCE}
+                  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/Pybind11Wraps/${PYB11_MODULE_NAME}
+                  OUTPUT_VARIABLE MODULE_DEPENDS)
+
   add_custom_command(
     OUTPUT Spheral${PYB11_GENERATED_SOURCE} ${PYB11_GENERATED_HEADER}
     COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
@@ -111,6 +117,6 @@ macro(PYB11_GENERATE_BINDINGS)
     'from PYB11Generator import * \; 
     import ${PYB11_MODULE_NAME}MOD \;
     PYB11generateModule(${PYB11_MODULE_NAME}MOD, \"Spheral${PYB11_MODULE_NAME}\") '
-    DEPENDS ${PYB11_SOURCE}
+    DEPENDS ${MODULE_DEPENDS} ${PYB11_SOURCE}
     )
 endmacro()
