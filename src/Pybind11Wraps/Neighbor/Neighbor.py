@@ -101,6 +101,11 @@ class Neighbor:
     #...........................................................................
     # Virtual methods
     @PYB11virtual
+    def reinitialize(self):
+        "Reinitialize in case something changed."
+        return "void"
+
+    @PYB11virtual
     def reinitialize(self,
                      xmin = "const Vector&",
                      xmax = "const Vector&",
