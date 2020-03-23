@@ -1,7 +1,5 @@
 from modulefinder import ModuleFinder
 import sys
-import os
-import imp
 
 finder = ModuleFinder()
 finder.run_script(sys.argv[1])
