@@ -54,28 +54,6 @@ appendSTLvectors(std::vector<T>& v1, std::vector<T>& v2) {
 }
 
 //------------------------------------------------------------------------------
-// Helper to insert into a sorted list of IDs.
-//------------------------------------------------------------------------------
-inline
-bool
-insertUnique(const std::vector<int>& offsets,
-             std::vector<std::vector<std::vector<int>>>& indices,
-             const int jN1, const int j1,
-             const int jN2, const int j2) {
-  if (jN1 != jN2 or j1 != j2) {
-    auto& overlap = indices[offsets[jN1] + j1][jN2];
-    auto itr = std::lower_bound(overlap.begin(), overlap.end(), j2);
-    if (itr == overlap.end() or *itr != j2) {
-      overlap.insert(itr, j2);
-      return true;
-    } else {
-      return false;
-    }
-  }
-  return false;
-}
-
-//------------------------------------------------------------------------------
 // How should we compare pairs for sorting?
 //------------------------------------------------------------------------------
 inline
@@ -85,7 +63,39 @@ hashKeys(const KeyTraits::Key& a, const KeyTraits::Key& b) {
   // return (a >= b ?
   //         a * a + a + b :
   //         a + b * b);          // where a, b >= 0
-  return a + b;
+  // return a + b;
+  return (KeyTraits::Key(a) << 32 & KeyTraits::Key(b));
+}
+
+//------------------------------------------------------------------------------
+// Helper to insert into a sorted list of IDs.
+//------------------------------------------------------------------------------
+template<typename KeyContainer>
+inline
+bool
+insertUnique(const std::vector<int>& offsets,
+             std::vector<std::vector<std::vector<int>>>& indices,
+             const KeyContainer& keys,
+             const bool useKeys,
+             const int jN1, const int j1,
+             const int jN2, const int j2) {
+  if (jN1 != jN2 or j1 != j2) {
+    auto& overlap = indices[offsets[jN1] + j1][jN2];
+    std::vector<int>::iterator itr;
+    if (useKeys) {
+      itr = std::lower_bound(overlap.begin(), overlap.end(), j2,
+                             [&](const int a, const int& b) { return keys(jN2, a) < keys(jN2, b); });
+    } else {
+      itr = std::lower_bound(overlap.begin(), overlap.end(), j2);
+    }
+    if (itr == overlap.end() or *itr != j2) {
+      overlap.insert(itr, j2);
+      return true;
+    } else {
+      return false;
+    }
+  }
+  return false;
 }
 
 //------------------------------------------------------------------------------
@@ -105,7 +115,11 @@ sortPairs(NodePairList& pairs,
   }
 
   // Now sort the list as a whole.
-  std::sort(pairs.begin(), pairs.end(), [&](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(keys(a.i_list, a.i_node), keys(a.j_list, a.j_node)) < hashKeys(keys(b.i_list, b.i_node), keys(b.j_list, b.j_node)); });
+  std::sort(pairs.begin(), pairs.end(),
+            [&](const NodePairIdxType& a, const NodePairIdxType& b) {
+              return hashKeys(keys(a.i_list, a.i_node), keys(a.j_list, a.j_node)) <
+                hashKeys(keys(b.i_list, b.i_node), keys(b.j_list, b.j_node));
+            });
 }
 
 }
@@ -987,9 +1001,9 @@ computeConnectivity() {
 
               // Check if i and j1 have overlap directly.
               if ((Hj1*(rj1 - ri)).magnitude2() <= kernelExtent2) {
-                insertUnique(mOffsets, mOverlapConnectivity,
+                insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
                              iNodeList, i, jN1, j1);
-                insertUnique(mOffsets, mOverlapConnectivity,
+                insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
                              jN1, j1, iNodeList, i);
               }
 
@@ -1000,9 +1014,9 @@ computeConnectivity() {
                   const auto& rj2 = position(jN2, j2);
                   const auto& Hj2 = H(jN2, j2);
                   if ((Hj2*(rj2 - rj1)).magnitude2() <= kernelExtent2) {                   // Is j2 a scatter neighbor of j1?
-                    insertUnique(mOffsets, mOverlapConnectivity,
+                    insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
                                  iNodeList, i, jN2, j2);
-                    insertUnique(mOffsets, mOverlapConnectivity,
+                    insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
                                  jN2, j2, iNodeList, i);
                   }
                 }
