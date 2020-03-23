@@ -12,8 +12,6 @@
 
 namespace Spheral {
 
-class PeriodicPlanarBoundary;
-
 template<typename Dimension>
 class PeriodicBoundary: public PlanarBoundary<Dimension> {
 

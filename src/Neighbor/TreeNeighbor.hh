@@ -85,6 +85,7 @@ public:
   //****************************************************************************
 
   // Reinitialize based on the desired target h and box dimensions.
+  virtual void reinitialize() override;
   virtual void reinitialize(const Vector& xmin, const Vector& xmax, const Scalar htarget) override;
 
   // Checks for internal validity.

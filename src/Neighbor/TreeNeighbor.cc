@@ -1170,13 +1170,23 @@ mapKey(const typename TreeNeighbor<Dimension>::LevelKey& ilevel,
 template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
+reinitialize() {
+  const auto etaMax = this->kernelExtent();
+  mBoxLength = (mXmax - mXmin).maxElement();
+  mGridLevelConst0 = log(mBoxLength/etaMax)/log(2.0);
+  mTree.clear();
+}
+
+template<typename Dimension>
+void
+TreeNeighbor<Dimension>::
 reinitialize(const typename Dimension::Vector& xmin,
              const typename Dimension::Vector& xmax,
              const Scalar htarget) {
   const auto etaMax = this->kernelExtent();
   mXmin = xmin;
   mXmax = xmax;
-  mBoxLength = (xmax - xmin).maxElement();
+  mBoxLength = (mXmax - mXmin).maxElement();
   mGridLevelConst0 = log(mBoxLength/etaMax)/log(2.0);
   mTree.clear();
 
