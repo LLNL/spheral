@@ -20,9 +20,14 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
     #---------------------------------------------------------------------------
     def setUp(self):
 
+        from Spheral1d import (vector_of_int, Vector, Tensor, GammaLawGasMKS,
+                               TableKernel, BSplineKernel, makeFluidNodeList,
+                               ScalarField, VectorField, DataBase, Plane,
+                               PeriodicBoundary)
+
         self.ndim = 1
-        self.xmin = Vector1d(0.0)
-        self.xmax = Vector1d(1.0)
+        self.xmin = Vector(0.0)
+        self.xmax = Vector(1.0)
         self.nsample = vector_of_int()
         self.nsample.append(100)
 
@@ -33,31 +38,31 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
 
         n = 100
         self.rho0 = 10.0
-        self.v0 = Vector1d(1.0)
+        self.v0 = Vector(1.0)
         self.eps0 = -1.0
-        self.gradv0 = Tensor1d(8.0)
+        self.gradv0 = Tensor(8.0)
         x0, x1 = 0.0, 1.0
         
         # Create the nodes and such.
-        self.eos = GammaLawGasMKS1d(5.0/3.0, 1.0)
-        self.WT = TableKernel1d(BSplineKernel1d())
-        self.nodes = makeFluidNodeList1d("nodes", self.eos)
+        self.eos = GammaLawGasMKS(5.0/3.0, 1.0)
+        self.WT = TableKernel(BSplineKernel())
+        self.nodes = makeFluidNodeList("nodes", self.eos)
 
         # Distribute the nodes.
         from DistributeNodes import distributeNodesInRange1d
         distributeNodesInRange1d([(self.nodes, n, self.rho0, (x0, x1))])
 
         # Set the velocities and energies.
-        self.nodes.velocity(VectorField1d("tmp", self.nodes, self.v0))
-        self.nodes.specificThermalEnergy(ScalarField1d("tmp", self.nodes, self.eps0))
+        self.nodes.velocity(VectorField("tmp", self.nodes, self.v0))
+        self.nodes.specificThermalEnergy(ScalarField("tmp", self.nodes, self.eps0))
 
-        self.db = DataBase1d()
+        self.db = DataBase()
         self.db.appendNodeList(self.nodes)
 
         # Create the boundary conditions.
-        p0 = Plane1d(Vector1d(0.0), Vector1d(1.0))
-        p1 = Plane1d(Vector1d(1.0), Vector1d(-1.0))
-        xbc = PeriodicBoundary1d(p0, p1)
+        p0 = Plane(Vector(0.0), Vector(1.0))
+        p1 = Plane(Vector(1.0), Vector(-1.0))
+        xbc = PeriodicBoundary(p0, p1)
         self.bcs = [xbc]
         try:
             self.bcs.append(TreeDistributedBoundary1d.instance())
@@ -68,7 +73,7 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
                 pass
 
         # Enforce boundaries.
-        db = DataBase1d()
+        db = DataBase()
         db.appendNodeList(self.nodes)
         for bc in self.bcs:
             bc.setAllGhostNodes(db)
