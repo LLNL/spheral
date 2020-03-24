@@ -407,14 +407,20 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
     FieldList<Dimension, PolyVolume> polycells(FieldStorageType::CopyFields);
     FieldList<Dimension, vector<Plane>> pairPlanes(FieldStorageType::CopyFields);
     FieldList<Dimension, vector<Plane>> voidPlanes(FieldStorageType::CopyFields);
+    FieldList<Dimension, int> cumNumVoidPoints(FieldStorageType::CopyFields);
     for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       polycells.appendNewField("polycells", vol[nodeListi]->nodeList(), cell0);
       pairPlanes.appendNewField("pair planes", vol[nodeListi]->nodeList(), vector<Plane>());
       voidPlanes.appendNewField("void planes", vol[nodeListi]->nodeList(), vector<Plane>());
+      cumNumVoidPoints.appendNewField("cumulative num void points", vol[nodeListi]->nodeList(), 0);
     }
+
+    // In order label void clip planes uniquely, we need to maintain a running offset.
+    int ivoidoff = 0;
 
 #pragma omp parallel
     {
+      auto ilocaloff = 0;
 
       //==========================================================================
       // First pass: clip by any faceted boundaries/holes.
@@ -434,11 +440,14 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           }
 
           // Clip by any faceted boundaries first.
+          ilocaloff = 0;
           if (haveFacetedBoundaries) {
             vector<Plane> boundPlanes;
             const auto& facets = facetedBoundaries[nodeListi].facets();
+            const auto nfacets = facets.size();
             CHECK(facetedBoundaries[nodeListi].contains(ri, false));
-            for (const auto& facet: facets) {
+            for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
+              const auto& facet = facets[ifacet];
               const auto p = facet.closestPoint(ri);
               auto rji = p - ri;
               if ((Hi*rji).magnitude2() < rin*rin) {
@@ -449,15 +458,18 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
                 } else {
                   nhat = -rji.unitVector();
                 }
-                boundPlanes.push_back(Plane(rji, nhat, -1));
+                boundPlanes.push_back(Plane(rji, nhat, ~ifacet));
               }
+              ilocaloff -= nfacets;
             }
 
             // Same thing with holes.
             for (const auto& hole: holes[nodeListi]) {
               CHECK(not hole.contains(ri, false));
               const auto& facets = hole.facets();
-              for (const auto& facet: facets) {
+              const auto  nfacets = facets.size();
+              for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
+                const auto& facet = facets[ifacet];
                 const auto p = facet.closestPoint(ri);
                 auto rji = p - ri;
                 if ((Hi*rji).magnitude2() < rin*rin) {
@@ -468,9 +480,10 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
                   } else {
                     nhat = -rji.unitVector();
                   }
-                  boundPlanes.push_back(Plane(rji, nhat, -1));
+                  boundPlanes.push_back(Plane(rji, nhat, ~ifacet + ilocaloff));
                 }
               }
+              ilocaloff -= nfacets;
             }
 
             // Sort the planes by distance -- lets us clip more efficiently.
@@ -483,6 +496,12 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
             }
           }
         }
+      }
+
+      // Update the non-threadlocal offset for void clipping labels.
+#pragma omp master
+      {
+        ivoidoff = ilocaloff;
       }
 
       //==========================================================================
@@ -521,8 +540,8 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         const auto nhat = -rji.unitVector();
         const auto wij = weighti/(weighti + weightj);
         const auto wji = weightj/(weighti + weightj);
-        pairPlanesi.push_back(Plane( wij*rji,  nhat, int(kk)));
-        pairPlanesj.push_back(Plane(-wji*rji, -nhat, int(kk)));
+        pairPlanesi.push_back(Plane( wij*rji,  nhat, kk));
+        pairPlanesj.push_back(Plane(-wji*rji, -nhat, kk));
       }
 
       // Collect the pair planes across threads.
@@ -537,6 +556,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
     {
       // Clip by the neighbors, and look for any locally generated void points.
       auto etaVoidPoints_thread = etaVoidPoints.threadCopy();
+      auto cumNumVoidPoints_thread = cumNumVoidPoints.threadCopy();
       PolyVolume celli;
       for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
         const auto ni = position[nodeListi]->numInternalElements();
@@ -589,6 +609,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
               }
             }
           }
+          cumNumVoidPoints_thread(nodeListi, i) = etaVoidPointsi.size();
 
           // Store the clipped cell thus far
 // #pragma omp critical (computeVornoiVolume_polycells)
@@ -602,12 +623,28 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
 // #pragma omp critical (computeVoronoiVolume_pass2_reduce)
       {
         etaVoidPoints_thread.threadReduce();
+        cumNumVoidPoints_thread.threadReduce();
       }     // OMP critical
     }       // OMP parallel
 
+    // Compute the actual cumulative number of void points.
+    {
+      auto tot = 0;
+      for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+        const auto n = vol[nodeListi]->numInternalElements();
+        for (auto i = 0; i < n; ++i) {
+          tot += cumNumVoidPoints(nodeListi, i);
+          cumNumVoidPoints(nodeListi, i) = tot;
+        }
+      }
+    }
+
     // Apply boundary conditions to the void points.
     if (not boundaries.empty()) {
-      for (const auto& bc: boundaries) bc->applyFieldListGhostBoundary(etaVoidPoints);
+      for (const auto& bc: boundaries) {
+        bc->applyFieldListGhostBoundary(etaVoidPoints);
+        bc->applyFieldListGhostBoundary(cumNumVoidPoints);
+      }
       for (const auto& bc: boundaries) bc->finalizeGhostBoundary();
     }
 
@@ -632,6 +669,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         const auto  Hinvi = Hi.Inverse();
         const auto& etaVoidPointsi = etaVoidPoints(nodeListi, i);
         auto&       voidPlanesi = voidPlanes_thread(nodeListi, i);
+        const auto  ioff = ivoidoff - cumNumVoidPoints(nodeListi, i);
 
         // State of node j
         const auto& rj = position(nodeListj, j);
@@ -639,17 +677,20 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         const auto  Hinvj = Hj.Inverse();
         const auto& etaVoidPointsj = etaVoidPoints(nodeListj, j);
         auto&       voidPlanesj = voidPlanes_thread(nodeListj, j);
+        const auto  joff = ivoidoff - cumNumVoidPoints(nodeListj, j);
 
-        for (const auto etaVoid: etaVoidPoints(nodeListj, j)) {
+        for (auto k = 0; k < etaVoidPointsj.size(); ++k) {
+          const auto& etaVoid = etaVoidPointsj[k];
           const auto rji = Hinvj*etaVoid + 0.5*(rj - ri);
           const auto nhat = -rji.unitVector();
-          voidPlanesi.push_back(Plane(rji, nhat, -100));
+          voidPlanesi.push_back(Plane(rji, nhat, ~k + joff));
         }
 
-        for (const auto etaVoid: etaVoidPoints(nodeListi, i)) {
+        for (auto k = 0; k < etaVoidPointsi.size(); ++k) {
+          const auto& etaVoid = etaVoidPointsi[k];
           const auto rij = Hinvi*etaVoid + 0.5*(ri - rj);
           const auto nhat = -rij.unitVector();
-          voidPlanesj.push_back(Plane(rij, nhat, -100));
+          voidPlanesj.push_back(Plane(rij, nhat, ~k + ioff));
         }
       }
 
@@ -669,7 +710,18 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           const auto& ri = position(nodeListi, i);
           const auto& Hi = H(nodeListi, i);
           const auto  Hinvi = Hi.Inverse();
+          const auto& etaVoidPointsi = etaVoidPoints(nodeListi, i);
+          const auto  ioff = ivoidoff - cumNumVoidPoints(nodeListi, i);
           auto        voidPlanesi = voidPlanes(nodeListi, i);  // Deliberate copy for thread safety
+
+          // Add our own void points to the set.
+          for (auto k = 0; k < etaVoidPointsi.size(); ++k) {
+            const auto& etaVoid = etaVoidPointsi[k];
+            const auto rji = Hinvi*etaVoid;
+            const auto nhat = -rji.unitVector();
+            voidPlanesi.push_back(Plane(rji, nhat, ~k + ioff));
+          }
+
           PolyVolume celli;
 #pragma omp critical (computeVoronoiVolume_polycells)
           {
@@ -717,7 +769,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           // Check if this is a surface point (clipped by faceted boundary or void point).
           bool interior = true;
           for (const auto& v: celli) {
-            if (v.clips.find(-1) != v.clips.end()) {
+            if ((not v.clips.empty()) and *v.clips.begin() < 0) {
               interior = false;
               break;
             }

@@ -195,8 +195,6 @@ public:
   std::vector<int>::const_iterator violationBegin(const NodeList<Dimension>& nodeList) const;
   std::vector<int>::const_iterator violationEnd(const NodeList<Dimension>& nodeList) const;
 
-  // protected:
-  //--------------------------- Protected Interface ---------------------------//
   // Descendent classes are allowed to access the BoundaryNodes for the
   // given NodeList.
   std::map<NodeList<Dimension>*, BoundaryNodes>&       accessBoundaryNodes();
@@ -205,6 +203,9 @@ public:
   BoundaryNodes&       accessBoundaryNodes(NodeList<Dimension>& nodeList);
   const BoundaryNodes& accessBoundaryNodes(NodeList<Dimension>& nodeList) const;
 
+protected:
+  //--------------------------- Protected Interface ---------------------------//
+  // Descendent classes need to add NodeLists as they build ghosts.
   virtual void addNodeList(NodeList<Dimension>& nodeList);
 
 private:
