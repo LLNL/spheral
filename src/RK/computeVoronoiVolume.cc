@@ -274,8 +274,8 @@ std::vector<CellFaceFlag> extractFaceFlags(const GeomPolygon& cell,
     std::set_intersection(clips1.begin(), clips1.end(), clips2.begin(), clips2.end(),
                           std::back_inserter(common_clips));
     if (not common_clips.empty()) {
-      CHECK(common_clips.size() == 1);
-      const auto iclip = common_clips[0];
+      // CHECK(common_clips.size() == 1);  // Could be degenerate...
+      const auto iclip = common_clips[0];  // Choose the first clip if there's more than one
       if (iclip < 0) {                                // Boundary clip (faceted boundary or void point)
         result.push_back(CellFaceFlag({ifacet, -1, -1}));
       } else {                                        // Neighbor clip, iclip is the pair index in pairs
@@ -318,8 +318,8 @@ std::vector<CellFaceFlag> extractFaceFlags(const GeomPolyhedron& cell,
       ++k;
     }
     if (not common_clips.empty()) {
-      CHECK(common_clips.size() == 1);
-      const auto iclip = *common_clips.begin();
+      // CHECK(common_clips.size() == 1);        // Could be degnerate...
+      const auto iclip = *common_clips.begin();  // Choose the first clip if there's more than one
       if (iclip < 0) {                                // Boundary clip (faceted boundary or void point)
         result.push_back(CellFaceFlag({ifacet, -1, -1}));
       } else {                                        // Neighbor clip, iclip is the pair index in pairs
