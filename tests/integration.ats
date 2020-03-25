@@ -43,6 +43,7 @@ source("Material/UnitConversion.py")
 # Test the sampling to lattice method.
 source("../src/FieldOperations/tests/testSampleMultipleFields2Lattice1d.py")
 source("../src/FieldOperations/tests/testSampleMultipleFields2Lattice2d.py")
+source("../src/FieldOperations/tests/testSampleMultipleFields2Lattice3d.py")
 
 # FileIO tests
 source("../src/FileIO/tests/testGzipFileIO.py")
