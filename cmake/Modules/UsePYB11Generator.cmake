@@ -103,7 +103,6 @@ macro(PYB11_GENERATE_BINDINGS)
     "${PROJECT_SOURCE_DIR}/SimulationControl:"
     )
   STRING(REPLACE ";" "<->" PYTHON_ENV_STR ${PYTHON_ENV})
-  message("${CMAKE_CURRENT_SOURCE_DIR}")
 
   if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_MODULE_NAME}_stamp.cmake")
     execute_process(COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
