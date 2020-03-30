@@ -640,10 +640,8 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
         numSends[sendProc] = sendIndicesBuffers[sendProc].size();
         CHECK(sendValuesBuffers[sendProc].size() == numSends[sendProc]*sizeOfElement);
         MPI_Isend(&numSends[sendProc], 1, MPI_INT, sendProc, 1, Communicator::communicator(), &sendRequests[bufIndex]);
-        { // if (numSends[sendProc] > 0) {
-          MPI_Isend(&(*sendIndicesBuffers[sendProc].begin()), numSends[sendProc], MPI_INT, sendProc, 2, Communicator::communicator(), &sendRequests[(numProcs - 1) + bufIndex]);
-          MPI_Isend(&(*sendValuesBuffers[sendProc].begin()), numSends[sendProc]*sizeOfElement, MPI_CHAR, sendProc, 3, Communicator::communicator(), &sendRequests[2*(numProcs - 1) + bufIndex]);
-        }
+        MPI_Isend(&(*sendIndicesBuffers[sendProc].begin()), numSends[sendProc], MPI_INT, sendProc, 2, Communicator::communicator(), &sendRequests[(numProcs - 1) + bufIndex]);
+        MPI_Isend(&(*sendValuesBuffers[sendProc].begin()), numSends[sendProc]*sizeOfElement, MPI_CHAR, sendProc, 3, Communicator::communicator(), &sendRequests[2*(numProcs - 1) + bufIndex]);
       }
     }
 
@@ -658,7 +656,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
     }
 
     // Wait until we have the sizes from everyone.
-    { // if (not recvRequests0.empty()) {
+    if (not recvRequests0.empty()) {
       vector<MPI_Status> recvStatus(recvRequests0.size());
       MPI_Waitall(recvRequests0.size(), &(*recvRequests0.begin()), &(*recvStatus.begin()));
     }
@@ -674,7 +672,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
     // Post receives for the nodal data.
     vector<MPI_Request> recvRequests1(2*(numProcs - 1));
     for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
-      if (recvProc != procID ) { // and numReceiveNodes[recvProc] > 0) {
+      if (recvProc != procID) {
         const int bufIndex = recvProc > procID ? recvProc - 1 : recvProc;
         MPI_Irecv(&(*recvIndicesBuffers[recvProc].begin()), numReceiveNodes[recvProc], MPI_INT, recvProc, 2, Communicator::communicator(), &recvRequests1[bufIndex]);
         MPI_Irecv(&(*recvValuesBuffers[recvProc].begin()), numReceiveNodes[recvProc]*sizeOfElement, MPI_CHAR, recvProc, 3, Communicator::communicator(), &recvRequests1[numProcs - 1 + bufIndex]);
@@ -682,7 +680,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
     }
 
     // Wait until we have the full receive data.
-    { // if (not recvRequests1.empty()) {
+    if (not recvRequests1.empty()) {
       vector<MPI_Status> recvStatus(recvRequests1.size());
       MPI_Waitall(recvRequests1.size(), &(*recvRequests1.begin()), &(*recvStatus.begin()));
     }
@@ -790,7 +788,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
 
 #ifdef USE_MPI
   // Wait until all our sends are completed.
-  if (numProcs > 1) { // and not sendRequests.empty()) {
+  if (numProcs > 1 and not sendRequests.empty()) {
     vector<MPI_Status> sendStatus(sendRequests.size());
     MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
   }
