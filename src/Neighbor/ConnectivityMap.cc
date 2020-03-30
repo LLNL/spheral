@@ -992,38 +992,52 @@ computeConnectivity() {
         const auto& ri = position(iNodeList, i);
         const auto& Hi = H(iNodeList, i);
 
-        // Find all the gather neighbors of i.
+        // The points that have i in common are overlap neighbors with one another
         for (auto jN1 = 0; jN1 < numNodeLists; ++jN1) {
-          for (const auto j1: neighborsi[jN1]) {
-            const auto& rj1 = position(jN1, j1);
-            const auto& Hj1 = H(jN1, j1);
-            if ((Hi*(rj1 - ri)).magnitude2() <= kernelExtent2) {                           // Is j1 a gather neighbor of i?
-
-              // Check if i and j1 have overlap directly.
-              if ((Hj1*(rj1 - ri)).magnitude2() <= kernelExtent2) {
-                insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
-                             iNodeList, i, jN1, j1);
-                insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
-                             jN1, j1, iNodeList, i);
-              }
-
-              // Find the gather neighbors of j1, all of which share overlap with i.
-              const auto& neighborsj1 = mConnectivity[mOffsets[jN1] + j1];
-              for (auto jN2 = 0; jN2 < numNodeLists; ++jN2) {
-                for (const auto j2: neighborsj1[jN2]) {
-                  const auto& rj2 = position(jN2, j2);
-                  const auto& Hj2 = H(jN2, j2);
-                  if ((Hj2*(rj2 - rj1)).magnitude2() <= kernelExtent2) {                   // Is j2 a scatter neighbor of j1?
-                    insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
-                                 iNodeList, i, jN2, j2);
-                    insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
-                                 jN2, j2, iNodeList, i);
-                  }
+          for (const auto j1 : neighborsi[jN1]) {
+            for (auto jN2 = 0; jN2 < numNodeLists; ++jN2) {
+              for (const auto j2 : neighborsi[jN2]) {
+                if (!(jN1 == jN2  && j1 == j2)) {
+                  insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
+                               jN1, j1, jN2, j2);
                 }
               }
             }
           }
         }
+        
+        // // Find all the gather neighbors of i.
+        // for (auto jN1 = 0; jN1 < numNodeLists; ++jN1) {
+        //   for (const auto j1: neighborsi[jN1]) {
+        //     const auto& rj1 = position(jN1, j1);
+        //     const auto& Hj1 = H(jN1, j1);
+        //     if ((Hi*(rj1 - ri)).magnitude2() <= kernelExtent2) {                           // Is j1 a gather neighbor of i?
+
+        //       // Check if i and j1 have overlap directly.
+        //       if ((Hj1*(rj1 - ri)).magnitude2() <= kernelExtent2) {
+        //         insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
+        //                      iNodeList, i, jN1, j1);
+        //         insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
+        //                      jN1, j1, iNodeList, i);
+        //       }
+
+        //       // Find the gather neighbors of j1, all of which share overlap with i.
+        //       const auto& neighborsj1 = mConnectivity[mOffsets[jN1] + j1];
+        //       for (auto jN2 = 0; jN2 < numNodeLists; ++jN2) {
+        //         for (const auto j2: neighborsj1[jN2]) {
+        //           const auto& rj2 = position(jN2, j2);
+        //           const auto& Hj2 = H(jN2, j2);
+        //           if ((Hj2*(rj2 - rj1)).magnitude2() <= kernelExtent2) {                   // Is j2 a scatter neighbor of j1?
+        //             insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
+        //                          iNodeList, i, jN2, j2);
+        //             insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
+        //                          jN2, j2, iNodeList, i);
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
       }
     }
     TIME_ConnectivityMap_computeOverlapConnectivity.stop();
