@@ -103,31 +103,34 @@ macro(PYB11_GENERATE_BINDINGS)
     "${PROJECT_SOURCE_DIR}/SimulationControl:"
     )
   STRING(REPLACE ";" "<->" PYTHON_ENV_STR ${PYTHON_ENV})
+  message("${CMAKE_CURRENT_SOURCE_DIR}")
 
+  if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_MODULE_NAME}_stamp.cmake")
+    execute_process(COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
+                    ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/helpers/moduleCheck.py 
+                    ${PYB11_MODULE_NAME}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_SOURCE}
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    )
+  endif()
 
-  add_custom_target(${PYB11_MODULE_NAME}_MODULE ALL
-                      COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
-                      ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/helpers/moduleCheck.py 
-                      ${PROJECT_SOURCE_DIR}/Pybind11Wraps/${PYB11_MODULE_NAME}/${PYB11_SOURCE}
-                      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/Pybind11Wraps/${PYB11_MODULE_NAME}
-                      )
-  #add_custom_command(OUTPUT ${PYB11_MODULE_NAME}_MODULE
-  #  execute_process(
-  #                    COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
-  #                    ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/helpers/moduleCheck.py 
-  #                    ${PROJECT_SOURCE_DIR}/Pybind11Wraps/${PYB11_MODULE_NAME}/${PYB11_SOURCE}
-  #                    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/Pybind11Wraps/${PYB11_MODULE_NAME}
-  #                    OUTPUT_VARIABLE ${PYB11_MODULE_NAME}_MODULE
-  #                    )
-  #
+  include(${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_MODULE_NAME}_stamp.cmake)
+
+  add_custom_target(${PYB11_MODULE_NAME}_STAMP_GENERATION ALL
+                    COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
+                    ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/helpers/moduleCheck.py
+                    ${PYB11_MODULE_NAME}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_SOURCE}
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    )
+
   add_custom_command(
-    OUTPUT Spheral${PYB11_GENERATED_SOURCE} ${PYB11_GENERATED_HEADER}
+    OUTPUT Spheral${PYB11_GENERATED_SOURCE}
     COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
     ${PYTHON_EXECUTABLE} -c
     'from PYB11Generator import * \; 
     import ${PYB11_MODULE_NAME}MOD \;
     PYB11generateModule(${PYB11_MODULE_NAME}MOD, \"Spheral${PYB11_MODULE_NAME}\") '
-    #DEPENDS ${MODULE_DEPENDS} ${PYB11_SOURCE}
-    DEPENDS ${${PYB11_MODULE_NAME}_MODULE} ${PYB11_SOURCE}
+    DEPENDS ${PYB11_MODULE_NAME}_STAMP_GENERATION ${${PYB11_MODULE_NAME}_DEPENDS} ${PYB11_SOURCE}
     )
 endmacro()
