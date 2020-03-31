@@ -163,6 +163,7 @@ set(PIPTARGETS
   cython
   sobol
   scipy
+  pipreqs
   )
 
 if(PYTHON_DIR)
