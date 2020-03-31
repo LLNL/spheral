@@ -16,16 +16,18 @@ include(${CMAKE_MODULE_PATH}/SpheralCMake.cmake)
 set(ENABLE_MPI ON CACHE BOOL "")
 set(ENABLE_OPENMP ON CACHE BOOL "")
 
-set (SPHERAL_BLT_REL_DIR "${PROJECT_SOURCE_DIR}/../cmake/blt" CACHE PATH "")
-get_filename_component(SPHERAL_BLT_DIR "${SPHERAL_BLT_REL_DIR}" ABSOLUTE)
+if(NOT SPHERAL_BLT_DIR) 
+  set (SPHERAL_BLT_REL_DIR "${PROJECT_SOURCE_DIR}/../cmake/blt" CACHE PATH "")
+  get_filename_component(SPHERAL_BLT_DIR "${SPHERAL_BLT_REL_DIR}" ABSOLUTE)
+endif()
 
-if (NOT EXISTS "${PROJECT_SOURCE_DIR}/../cmake/blt/SetupBLT.cmake")
+if (NOT EXISTS "${SPHERAL_BLT_DIR}/SetupBLT.cmake")
     message(FATAL_ERROR 
             "${SPHERAL_BLT_DIR} is not present.\n"
             "call cmake with -DSPHERAL_BLT_DIR=/your/installation/of/blt\n")
 endif()
 
-include(${PROJECT_SOURCE_DIR}/../cmake/blt/SetupBLT.cmake)
+include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
 
 ################################
 # Install / Locate third party libraries

@@ -64,7 +64,7 @@ hashKeys(const KeyTraits::Key& a, const KeyTraits::Key& b) {
   //         a * a + a + b :
   //         a + b * b);          // where a, b >= 0
   // return a + b;
-  return (KeyTraits::Key(a) << 32 & KeyTraits::Key(b));
+  return ((KeyTraits::Key(a) << 16) | KeyTraits::Key(b));
 }
 
 //------------------------------------------------------------------------------
