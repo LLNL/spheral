@@ -104,13 +104,32 @@ macro(PYB11_GENERATE_BINDINGS)
     )
   STRING(REPLACE ";" "<->" PYTHON_ENV_STR ${PYTHON_ENV})
 
+  if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_MODULE_NAME}_stamp.cmake")
+    execute_process(COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
+                    ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/helpers/moduleCheck.py 
+                    ${PYB11_MODULE_NAME}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_SOURCE}
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    )
+  endif()
+
+  include(${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_MODULE_NAME}_stamp.cmake)
+
+  add_custom_target(${PYB11_MODULE_NAME}_stamp ALL
+                    COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
+                    ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/helpers/moduleCheck.py
+                    ${PYB11_MODULE_NAME}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_SOURCE}
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    )
+
   add_custom_command(
-    OUTPUT Spheral${PYB11_GENERATED_SOURCE} ${PYB11_GENERATED_HEADER}
+    OUTPUT Spheral${PYB11_GENERATED_SOURCE}
     COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
     ${PYTHON_EXECUTABLE} -c
     'from PYB11Generator import * \; 
     import ${PYB11_MODULE_NAME}MOD \;
     PYB11generateModule(${PYB11_MODULE_NAME}MOD, \"Spheral${PYB11_MODULE_NAME}\") '
-    DEPENDS ${PYB11_SOURCE}
+    DEPENDS ${PYB11_MODULE_NAME}_stamp ${${PYB11_MODULE_NAME}_DEPENDS} ${PYB11_SOURCE}
     )
 endmacro()

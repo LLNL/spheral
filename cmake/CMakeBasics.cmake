@@ -22,18 +22,21 @@ function(instantiate _inst_var _source_var)
   foreach(_inst ${${_inst_var}})
     if(ENABLE_INSTANTIATIONS)
       foreach(_dim ${_dims})
+        #set(_inst_py ${_inst}Inst.cc.py)
         set(_inst_py ${CMAKE_CURRENT_SOURCE_DIR}/${_inst}Inst.cc.py)
         set(_inst_file ${_inst}Inst${_dim}d.cc)
         add_custom_command(
+          #OUTPUT  ${_inst_file}
           OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${_inst_file}
           COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/helpers/InstantiationGenerator.py ${_inst_py} ${_inst_file} ${_dim}
-          MAIN_DEPENDENCY ${_inst_py}
+          #MAIN_DEPENDENCY ${_inst_py}
           BYPRODUCTS ${_inst_file}
-          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+          #WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
           COMMENT "Generating instantiation ${_inst_file}...")
 
         # Add the instantiation files to the sources.
-        list(APPEND _tmp_source ${CMAKE_CURRENT_BINARY_DIR}/${_inst_file})
+        #list(APPEND _tmp_source ${CMAKE_CURRENT_BINARY_DIR}/${_inst_file})
+        list(APPEND _tmp_source ${_inst_file})
       endforeach()
     else()
       # If the base source file exists, add it to the source files.
