@@ -662,7 +662,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
     }
 
     // Wait until we have the sizes from everyone.
-    { // if (not recvRequests0.empty()) {
+    if (not recvRequests0.empty()) {
       vector<MPI_Status> recvStatus(recvRequests0.size());
       MPI_Waitall(recvRequests0.size(), &(*recvRequests0.begin()), &(*recvStatus.begin()));
     }
@@ -689,7 +689,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
     CHECK(recvRequests1.size() <= 2*(numProcs - 1));
 
     // Wait until we have the full receive data.
-    { // if (not recvRequests1.empty()) {
+    if (not recvRequests1.empty()) {
       vector<MPI_Status> recvStatus(recvRequests1.size());
       MPI_Waitall(recvRequests1.size(), &(*recvRequests1.begin()), &(*recvStatus.begin()));
     }
@@ -797,7 +797,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
 
 #ifdef USE_MPI
   // Wait until all our sends are completed.
-  if (numProcs > 1) { // and not sendRequests.empty()) {
+  if (numProcs > 1 and not sendRequests.empty()) {
     vector<MPI_Status> sendStatus(sendRequests.size());
     MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
   }
