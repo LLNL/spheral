@@ -115,7 +115,7 @@ macro(PYB11_GENERATE_BINDINGS)
 
   include(${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_MODULE_NAME}_stamp.cmake)
 
-  add_custom_target(${PYB11_MODULE_NAME}_STAMP_GENERATION ALL
+  add_custom_target(${PYB11_MODULE_NAME}_stamp ALL
                     COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
                     ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/helpers/moduleCheck.py
                     ${PYB11_MODULE_NAME}
@@ -130,6 +130,6 @@ macro(PYB11_GENERATE_BINDINGS)
     'from PYB11Generator import * \; 
     import ${PYB11_MODULE_NAME}MOD \;
     PYB11generateModule(${PYB11_MODULE_NAME}MOD, \"Spheral${PYB11_MODULE_NAME}\") '
-    DEPENDS ${PYB11_MODULE_NAME}_STAMP_GENERATION ${${PYB11_MODULE_NAME}_DEPENDS} ${PYB11_SOURCE}
+    DEPENDS ${PYB11_MODULE_NAME}_stamp ${${PYB11_MODULE_NAME}_DEPENDS} ${PYB11_SOURCE}
     )
 endmacro()
