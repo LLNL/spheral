@@ -31,21 +31,37 @@ PYB11namespaces = ["Spheral"]
 # Instantiate types and add dimension dependent functions.
 #-------------------------------------------------------------------------------
 if 3 in dims:
-    @PYB11pycppname("fillFacetedVolume")
-    def fillFacetedVolume1(outerBoundary = "const Dim<3>::FacetedVolume&",
-                           n1d = "const unsigned",
-                           domain = "const unsigned",
-                           numDomains = "const unsigned"):
-        "Fill a bounding volume."
+    def fillFacetedVolume(outerBoundary = "const Dim<3>::FacetedVolume&",
+                          n1d = "const unsigned",
+                          domain = "const unsigned",
+                          numDomains = "const unsigned"):
+        "Fill an outer bounding volume (specify x number of points)."
         return "std::vector<Dim<3>::Vector>"
 
     @PYB11pycppname("fillFacetedVolume")
-    def fillFacetedVolume2(innerBoundary = "const Dim<3>::FacetedVolume&",
+    def fillFacetedVolume2(outerBoundary = "const Dim<3>::FacetedVolume&",
+                           dx = "const double",
+                           domain = "const unsigned",
+                           numDomains = "const unsigned"):
+        "Fill an outer bounding volume (dx specified)."
+        return "std::vector<Dim<3>::Vector>"
+
+    @PYB11pyname("fillFacetedVolume")
+    def fillFacetedVolume3(innerBoundary = "const Dim<3>::FacetedVolume&",
                            outerBoundary = "const Dim<3>::FacetedVolume&",
                            n1d = "const unsigned",
                            domain = "const unsigned",
                            numDomains = "const unsigned"):
-        "Fill between inner and outer bounding volumes."
+        "Fill between an inner and outer boundary (specify x number of points)."
+        return "std::vector<Dim<3>::Vector>"
+
+    @PYB11pyname("fillFacetedVolume")
+    def fillFacetedVolume10(outerBoundary = "const Dim<3>::FacetedVolume&",
+                            innerBoundary = "const Dim<3>::FacetedVolume&",
+                            dx = "const double",
+                            domain = "const unsigned",
+                            numDomains = "const unsigned"):
+        "Fill between an inner and outer boundary (dx specified)."
         return "std::vector<Dim<3>::Vector>"
 
     def readSiloPolyMesh(fileName = "const std::string&",
