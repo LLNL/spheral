@@ -75,8 +75,10 @@ copyArrayToScalarFieldList(const double* array,
   unsigned k = 0;
   for (unsigned i = 0; i != nfields; ++i) {
     const unsigned n = fieldList[i]->numInternalElements();
-    std::copy(&array[k], &array[k] + n, &(*fieldList[i]->begin()));
-    k += n;
+    if (n > 0) {
+      std::copy(&array[k], &array[k] + n, &(*fieldList[i]->begin()));
+      k += n;
+    }
   }
 }
 
@@ -89,8 +91,10 @@ copyArrayToIntFieldList(const int* array,
   unsigned k = 0;
   for (unsigned i = 0; i != nfields; ++i) {
     const unsigned n = fieldList[i]->numInternalElements();
-    std::copy(&array[k], &array[k] + n, &(*fieldList[i]->begin()));
-    k += n;
+    if (n > 0) {
+      std::copy(&array[k], &array[k] + n, &(*fieldList[i]->begin()));
+      k += n;
+    }
   }
 }
 
@@ -1215,7 +1219,9 @@ sampleLatticeMesh(const Vector&  xmin,
   for (int i = 0 ; i < vectorValues[0].size() ; ++i) {
     latticeVelocity[0][i] = vectorValues[0][i][0] ;
     latticeVelocity[1][i] = vectorValues[0][i][1] ;
-    latticeVelocity[2][i] = vectorValues[0][i][2] ;
+    if (Dimension::nDim == 3) {
+      latticeVelocity[2][i] = vectorValues[0][i][2] ;
+    }
   }
 }
 
