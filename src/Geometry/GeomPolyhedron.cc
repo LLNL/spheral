@@ -343,7 +343,6 @@ GeomPolyhedron::
 contains(const GeomPolyhedron::Vector& point,
          const bool countBoundary,
          const double tol) const {
-  if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
   if ((point - mCentroid).magnitude2() < mRinterior2 - tol) return true;
   if (mConvex) {
     return this->convexContains(point, countBoundary, tol);

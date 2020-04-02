@@ -18,22 +18,22 @@ namespace {
 // Compute an individual HCP position.
 //------------------------------------------------------------------------------
 inline
-Dim<3>::Vector HCPposition(const unsigned i,
-                           const unsigned nx,
-                           const unsigned ny,
-                           const unsigned nz,
-                           const double dx,
-                           const double dy,
-                           const double dz,
-                           const Dim<3>::Vector& xmin,
-                           const Dim<3>::Vector& xmax) {
-  const unsigned nxy = nx*ny;
-  const unsigned ix = i % nx;
-  const unsigned iy = (i / nx) % ny;
-  const unsigned iz = i / nxy;
-  return Dim<3>::Vector(xmin.x() + (ix + 0.5*((iy % 2) + (iz % 2)))*dx,
-                        xmin.y() + (iy + 0.5*(iz % 2))*dy,
-                        xmin.z() + (iz + 0.5)*dz);
+void HCPposition(const unsigned i,
+                 const unsigned nxy,
+                 const unsigned nx,
+                 const unsigned ny,
+                 const double dx,
+                 const double dy,
+                 const double dz,
+                 const Dim<3>::Vector& xmin,
+                 const Dim<3>::Vector& xmax,
+                 Dim<3>::Vector& result) {
+  const auto ix = i % nx;
+  const auto iy = (i / nx) % ny;
+  const auto iz = i / nxy;
+  result[0] = xmin[0] + (ix + 0.5*((iy % 2) + (iz % 2)))*dx;
+  result[1] = xmin[1] + (iy + 0.5*(iz % 2))*dy;
+  result[2] = xmin[2] + (iz + 0.5)*dz;
 }
 }
 
@@ -53,7 +53,7 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& outerBoundary,
   typedef Dim<3>::FacetedVolume FacetedVolume;
 
   vector<Vector> result;
-  unsigned i, ix, iy, iz;
+  unsigned ix, iy, iz;
   const Vector& xmin = outerBoundary.xmin();
   const Vector& xmax = outerBoundary.xmax();
   const double dx = (xmax - xmin).maxElement()/n1d;
@@ -78,9 +78,20 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& outerBoundary,
   result.reserve(ndomain);
 
   // Use an HCP lattice to do the filling.
-  for (i = imin; i != imax; ++i) {
-    const Vector pos = HCPposition(i, nx, ny, nz, dx, dx, dx, xmin, xmax);    
-    if (outerBoundary.contains(pos)) result.push_back(pos);
+#pragma omp parallel
+  {
+    Vector pos;
+    vector<Vector> result_local;
+    result_local.reserve(ndomain);
+#pragma omp for
+    for (auto i = imin; i < imax; ++i) {
+      HCPposition(i, nxy, nx, ny, dx, dx, dx, xmin, xmax, pos);    
+      if (outerBoundary.contains(pos, false)) result_local.push_back(pos);
+    }
+#pragma omp critical
+    {
+      result.insert(result.end(), result_local.begin(), result_local.end());
+    }
   }
   return result;
 }
@@ -101,7 +112,7 @@ fillFacetedVolume2(const Dim<3>::FacetedVolume& outerBoundary,
   typedef Dim<3>::FacetedVolume FacetedVolume;
 
   vector<Vector> result;
-  unsigned i, ix, iy, iz;
+  unsigned ix, iy, iz;
   const Vector& xmin = outerBoundary.xmin();
   const Vector& xmax = outerBoundary.xmax();
   const unsigned nx = std::max(1U, unsigned((xmax.x() - xmin.x())/dx + 0.5));
@@ -124,9 +135,20 @@ fillFacetedVolume2(const Dim<3>::FacetedVolume& outerBoundary,
   result.reserve(ndomain);
 
   // Use an HCP lattice to do the filling.
-  for (i = imin; i != imax; ++i) {
-    const Vector pos = HCPposition(i, nx, ny, nz, dx, dx, dx, xmin, xmax);    
-    if (outerBoundary.contains(pos)) result.push_back(pos);
+#pragma omp parallel
+  {
+    Vector pos;
+    vector<Vector> result_local;
+    result_local.reserve(ndomain);
+#pragma omp for
+    for (auto i = imin; i < imax; ++i) {
+      HCPposition(i, nxy, nx, ny, dx, dx, dx, xmin, xmax, pos);    
+      if (outerBoundary.contains(pos, false)) result.push_back(pos);
+    }
+#pragma omp critical
+    {
+      result.insert(result.end(), result_local.begin(), result_local.end());
+    }
   }
   return result;
 }
@@ -144,7 +166,7 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& innerBoundary,
   typedef Dim<3>::FacetedVolume FacetedVolume;
 
   vector<Vector> result;
-  unsigned i, ix, iy, iz;
+  unsigned ix, iy, iz;
   const Vector& xmin = outerBoundary.xmin();
   const Vector& xmax = outerBoundary.xmax();
   const double dx = (xmax - xmin).maxElement()/n1d;
@@ -168,13 +190,23 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& innerBoundary,
   CHECK(domain < numDomains - 1 or imax == nxyz);
   result.reserve(ndomain);
 
-  for (i = imin; i != imax; ++i) {
-    const Vector pos = HCPposition(i, nx, ny, nz, dx, dx, dx, xmin, xmax);    
-    if (outerBoundary.contains(pos) and not innerBoundary.contains(pos)) {
+#pragma omp parallel
+  {
+    Vector pos;
+    vector<Vector> result_local;
+    result_local.reserve(ndomain);
+#pragma omp for
+    for (auto i = imin; i < imax; ++i) {
+      HCPposition(i, nxy, nx, ny, dx, dx, dx, xmin, xmax, pos);    
+      if (outerBoundary.contains(pos, false) and not innerBoundary.contains(pos, false)) {
         result.push_back(pos);
+      }
+    }
+#pragma omp critical
+    {
+      result.insert(result.end(), result_local.begin(), result_local.end());
     }
   }
-
   return result;
 }
 
