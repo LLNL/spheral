@@ -9,7 +9,7 @@ from NodeGeneratorBase import NodeGeneratorBase
 from PolyhedronFileUtilities import readPolyhedronOBJ
 from Spheral3d import Vector, Tensor, SymTensor, Polyhedron, \
     vector_of_Vector, vector_of_unsigned, vector_of_vector_of_unsigned, \
-    rotationMatrix, refinePolyhedron, fillFacetedVolume
+    rotationMatrix, refinePolyhedron, fillFacetedVolume2
 
 #-------------------------------------------------------------------------------
 # General case where you hand in the surface polyhedron.
@@ -19,7 +19,7 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
     def __init__(self,
                  surface,
                  rho,
-                 nx,
+                 resolution,
                  nNodePerh = 2.01,
                  SPH = False,
                  rejecter = None):
@@ -31,25 +31,23 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         xmax = surface.xmax
         box = xmax - xmin
         assert box.minElement > 0.0
-        dx = box.x/nx
-        ny = max(1, int(box.y/dx + 0.5))
-        nz = max(1, int(box.z/dx + 0.5))
+        nx = max(1, int(box.x/resolution + 0.5))
+        ny = max(1, int(box.y/resolution + 0.5))
+        nz = max(1, int(box.z/resolution + 0.5))
 
         # Some local geometry.
         ntot0 = nx*ny*nz
-        dy = box.y/ny
-        dz = box.z/nz
         volume = box.x * box.y * box.z
         self.m0 = rho*volume/ntot0
-        hx = 1.0/(nNodePerh*dx)
-        hy = 1.0/(nNodePerh*dy)
-        hz = 1.0/(nNodePerh*dz)
+        hx = 1.0/(nNodePerh*resolution)
+        hy = 1.0/(nNodePerh*resolution)
+        hz = 1.0/(nNodePerh*resolution)
         self.H0 = SymTensor(hx, 0.0, 0.0,
                             0.0, hy, 0.0,
                             0.0, 0.0, hz)
 
         # Build the intial positions.
-        pos0 = fillFacetedVolume(surface, nx, mpi.rank, mpi.procs)
+        pos0 = fillFacetedVolume2(surface, resolution, mpi.rank, mpi.procs)
 
         # Something strange here...
         pos = pos0 # [p for p in pos0 if surface.contains(p)]

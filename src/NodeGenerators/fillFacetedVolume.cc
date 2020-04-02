@@ -109,34 +109,77 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
   const auto nx = std::max(1U, unsigned((xmax.x() - xmin.x())/dx + 0.5));
   const auto ny = std::max(1U, unsigned((xmax.y() - xmin.y())/dx + 0.5));
   const auto nz = std::max(1U, unsigned((xmax.z() - xmin.z())/dx + 0.5));
+  const Vector delta((xmax[0] - xmin[0])/nx,
+                     (xmax[1] - xmin[1])/ny,
+                     (xmax[2] - xmin[2])/nz);
 
-  // Figure out the range of global IDs for this domain.
-  const unsigned nxy = nx*ny;
-  const unsigned nxyz = nx*ny*nz;
-  const unsigned ndomain0 = nxyz/numDomains;
-  const unsigned remainder = nxyz - ndomain0*numDomains;
-  CHECK(remainder < numDomains);
-  const unsigned ndomain = nxyz/numDomains + (domain < remainder ? 1 : 0);
-  const unsigned imin = domain*ndomain0 + min(domain, remainder);
-  const unsigned imax = imin + ndomain;
-  CHECK(domain < numDomains - 1 or imax == nxyz);
-  result.reserve(ndomain);
+  // Pick the longest direction to construct our ray.
+  const auto length = 2.0*(xmax - xmin).magnitude();
+  unsigned stride_index, iindex, jindex, nplanerays1, nplanerays2;
+  Vector ray1, ray2;
+  if (nx >= ny and nx >= nz) {
+    nplanerays1 = ny;
+    nplanerays2 = nz;
+    stride_index = 0;
+    iindex = 1;
+    jindex = 2;
+  } else if (ny >= nx and ny >= nz) {
+    nplanerays1 = nx;
+    nplanerays2 = nz;
+    iindex = 0;
+    stride_index = 1;
+    jindex = 2;
+  } else {
+    nplanerays1 = nx;
+    nplanerays2 = ny;
+    iindex = 0;
+    jindex = 1;
+    stride_index = 2;
+  }
+  ray1[stride_index] = xmin[stride_index] - 0.1*length;
+  ray2[stride_index] = xmax[stride_index] + 0.1*length;
+  const auto nplanerays = nplanerays1*nplanerays2;
 
+  // Walk the projection plane axes.
 #pragma omp parallel
   {
-    Vector pos;
-    vector<Vector> result_local;
-    result_local.reserve(ndomain);
-#pragma omp for
-    for (auto i = imin; i < imax; ++i) {
-      HCPposition(i, nxy, nx, ny, dx, dx, dx, xmin, xmax, pos);    
-      if (outerBoundary.contains(pos, false) and (useInner or (not innerBoundary.contains(pos, false)))) {
-        result.push_back(pos);
+    vector<unsigned> facetIDs;
+    vector<Vector> intersections;
+    vector<Vector> result_thread;
+#pragma omp for firstprivate (ray1, ray2)
+    for (auto nray = 0; nray < nplanerays; ++nray) {
+      auto iray = nray % nplanerays1;
+      auto jray = nray / nplanerays1;
+      ray1[iindex] = xmin[iindex] + (iray + 0.5)*delta[iindex];
+      ray1[jindex] = xmin[jindex] + (jray + 0.5)*delta[jindex];
+      ray2[iindex] = ray1[iindex];
+      ray2[jindex] = ray1[jindex];
+
+      // Project through the volume and find intersection points (should be in pairs).
+      outerBoundary.intersect(ray1, ray2, facetIDs, intersections);
+      const auto nintersect = intersections.size();
+      CHECK(facetIDs.size() == nintersect);
+      // CHECK(nintersect % 2 == 0);
+
+      // Now points between pairs of intersections should be interior to the surface.
+      for (auto i = 0; i < nintersect; i += 2) {
+        if (i + 1 < nintersect) {
+          const auto& x1 = intersections[i];
+          const auto& x2 = intersections[i + 1];
+
+          // Because of degeneracies, it's possible to get isolated intersection points
+          // rather than a pair bracketing interior space.  We have to check...
+          if (outerBoundary.contains(0.5*(x1 + x2), false)) {
+            const auto  ni = max(1, int((x2[stride_index] - x1[stride_index])/dx + 0.5));
+            const auto  dstep = (x2 - x1)/ni;
+            for (auto k = 0; k < ni; ++k) result_thread.push_back(x1 + (k + 0.5)*dstep);
+          }
+        }
       }
     }
 #pragma omp critical
     {
-      result.insert(result.end(), result_local.begin(), result_local.end());
+      result.insert(result.end(), result_thread.begin(), result_thread.end());
     }
   }
   return result;

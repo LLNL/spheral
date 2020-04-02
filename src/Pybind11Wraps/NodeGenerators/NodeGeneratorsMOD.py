@@ -38,7 +38,6 @@ if 3 in dims:
         "Fill an outer bounding volume (specify x number of points)."
         return "std::vector<Dim<3>::Vector>"
 
-    @PYB11pycppname("fillFacetedVolume")
     def fillFacetedVolume2(outerBoundary = "const Dim<3>::FacetedVolume&",
                            dx = "const double",
                            domain = "const unsigned",
@@ -46,7 +45,6 @@ if 3 in dims:
         "Fill an outer bounding volume (dx specified)."
         return "std::vector<Dim<3>::Vector>"
 
-    @PYB11pyname("fillFacetedVolume")
     def fillFacetedVolume3(innerBoundary = "const Dim<3>::FacetedVolume&",
                            outerBoundary = "const Dim<3>::FacetedVolume&",
                            n1d = "const unsigned",
@@ -55,7 +53,6 @@ if 3 in dims:
         "Fill between an inner and outer boundary (specify x number of points)."
         return "std::vector<Dim<3>::Vector>"
 
-    @PYB11pyname("fillFacetedVolume")
     def fillFacetedVolume10(outerBoundary = "const Dim<3>::FacetedVolume&",
                             innerBoundary = "const Dim<3>::FacetedVolume&",
                             dx = "const double",

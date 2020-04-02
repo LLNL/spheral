@@ -526,8 +526,9 @@ intersect(const Vector& s0, const Vector& s1,
   for (auto k = 0; k < nf; ++k) {
     const auto& facet = mFacets[k];
     const auto& ipoints = facet.ipoints();
+    const auto  np = ipoints.size();
     std::vector<Vector> points;
-    for (const auto i: ipoints) points.push_back(facet.point(i));
+    for (auto i = 0; i < np; ++i) points.push_back(facet.point(i));
     const auto code = segmentPlanarSectionIntersection(s0, s1, points, inter);
     CHECK(code != 'd');
 
