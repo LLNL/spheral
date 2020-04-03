@@ -140,6 +140,15 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
   ray2[stride_index] = xmax[stride_index] + 0.1*length;
   const auto nplanerays = nplanerays1*nplanerays2;
 
+  // How should we carve up the ray-casting work between MPI domains?
+  const unsigned ndomain0 = nplanerays/numDomains;
+  const unsigned remainder = nplanerays - ndomain0*numDomains;
+  CHECK(remainder < numDomains);
+  const unsigned ndomain = nplanerays/numDomains + (domain < remainder ? 1 : 0);
+  const unsigned imin = domain*ndomain0 + min(domain, remainder);
+  const unsigned imax = imin + ndomain;
+  CHECK(domain < numDomains - 1 or imax == nplanerays);
+
   // Walk the projection plane axes.
 #pragma omp parallel
   {
@@ -147,7 +156,7 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
     vector<Vector> intersections;
     vector<Vector> result_thread;
 #pragma omp for firstprivate (ray1, ray2)
-    for (auto nray = 0; nray < nplanerays; ++nray) {
+    for (auto nray = imin; nray < imax; ++nray) {
       auto iray = nray % nplanerays1;
       auto jray = nray / nplanerays1;
       ray1[iindex] = xmin[iindex] + (iray + 0.5)*delta[iindex];
