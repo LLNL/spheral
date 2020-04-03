@@ -171,7 +171,7 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
       // CHECK(nintersect % 2 == 0);
 
       // Now points between pairs of intersections should be interior to the surface.
-      for (auto i = 0; i < nintersect; i += 2) {
+      for (auto i = 0; i < nintersect;) {
         if (i + 1 < nintersect) {
           const auto& x1 = intersections[i];
           const auto& x2 = intersections[i + 1];
@@ -183,6 +183,9 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
             const auto  dstep = (x2 - x1)/ni;
             for (auto k = 0; k < ni; ++k) result_thread.push_back(x1 + (k + 0.5)*dstep);
           }
+          i += 2;    // This pair was interior, so skip to the next possible start
+        } else {
+          i += 1;    // Looking for the next pair bounding interior
         }
       }
     }
