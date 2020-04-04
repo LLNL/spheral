@@ -106,6 +106,7 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
   // Find numbers of points
   const auto& xmin = outerBoundary.xmin();
   const auto& xmax = outerBoundary.xmax();
+  // cerr << "Bounding box: " << xmin << " " << xmax << endl;
   const auto nx = std::max(1U, unsigned((xmax.x() - xmin.x())/dx + 0.5));
   const auto ny = std::max(1U, unsigned((xmax.y() - xmin.y())/dx + 0.5));
   const auto nz = std::max(1U, unsigned((xmax.z() - xmin.z())/dx + 0.5));
@@ -123,18 +124,21 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
     stride_index = 0;
     iindex = 1;
     jindex = 2;
+    // cerr << " -- > Picked x-rays" << endl;
   } else if (ny >= nx and ny >= nz) {
     nplanerays1 = nx;
     nplanerays2 = nz;
     iindex = 0;
     stride_index = 1;
     jindex = 2;
+    // cerr << " -- > Picked y-rays" << endl;
   } else {
     nplanerays1 = nx;
     nplanerays2 = ny;
     iindex = 0;
     jindex = 1;
     stride_index = 2;
+    // cerr << " -- > Picked z-rays" << endl;
   }
   ray1[stride_index] = xmin[stride_index] - 0.1*length;
   ray2[stride_index] = xmax[stride_index] + 0.1*length;
@@ -163,12 +167,16 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
       ray1[jindex] = xmin[jindex] + (jray + 0.5)*delta[jindex];
       ray2[iindex] = ray1[iindex];
       ray2[jindex] = ray1[jindex];
+      // cerr << " -- > Ray: " << ray1 << " --> " << ray2 << endl;
 
       // Project through the volume and find intersection points (should be in pairs).
       outerBoundary.intersect(ray1, ray2, facetIDs, intersections);
       const auto nintersect = intersections.size();
       CHECK(facetIDs.size() == nintersect);
       // CHECK(nintersect % 2 == 0);
+      // cerr << "     intersections:";
+      // for (auto x: intersections) cerr << " " << x;
+      // cerr << endl;
 
       // Now points between pairs of intersections should be interior to the surface.
       for (auto i = 0; i < nintersect;) {
@@ -179,13 +187,17 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
           // Because of degeneracies, it's possible to get isolated intersection points
           // rather than a pair bracketing interior space.  We have to check...
           if (outerBoundary.contains(0.5*(x1 + x2), false)) {
+            // cerr << "     interval: " << x1 << " --> " << x2 << endl;
             const auto  ni = max(1, int((x2[stride_index] - x1[stride_index])/dx + 0.5));
             const auto  dstep = (x2 - x1)/ni;
             for (auto k = 0; k < ni; ++k) result_thread.push_back(x1 + (k + 0.5)*dstep);
+            i += 2;    // This pair was interior, so skip to the next possible start
+          } else {
+            // cerr << "     -- > reject  : " << x1 << " --> " << x2 << endl;
+            i += 1;    // Looking for the next pair bounding interior
           }
-          i += 2;    // This pair was interior, so skip to the next possible start
         } else {
-          i += 1;    // Looking for the next pair bounding interior
+          break;
         }
       }
     }

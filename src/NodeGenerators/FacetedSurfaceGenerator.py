@@ -4,12 +4,15 @@
 #-------------------------------------------------------------------------------
 import mpi
 from math import *
+import string, random
 from numpy.polynomial import Polynomial as P
 from NodeGeneratorBase import NodeGeneratorBase
 from PolyhedronFileUtilities import readPolyhedronOBJ
 from Spheral3d import Vector, Tensor, SymTensor, Polyhedron, \
     vector_of_Vector, vector_of_unsigned, vector_of_vector_of_unsigned, \
-    rotationMatrix, refinePolyhedron, fillFacetedVolume2
+    rotationMatrix, refinePolyhedron, fillFacetedVolume2, \
+    LinearOrder, TableKernel, BSplineKernel, GammaLawGasMKS, makeFluidNodeList
+from centroidalRelaxNodes import *
 
 #-------------------------------------------------------------------------------
 # General case where you hand in the surface polyhedron.
@@ -47,10 +50,7 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
                             0.0, 0.0, hz)
 
         # Build the intial positions.
-        pos0 = fillFacetedVolume2(surface, resolution, mpi.rank, mpi.procs)
-
-        # Something strange here...
-        pos = pos0 # [p for p in pos0 if surface.contains(p)]
+        pos = fillFacetedVolume2(surface, resolution, mpi.rank, mpi.procs)
         nsurface = mpi.allreduce(len(pos), mpi.SUM)
 
         # Apply any rejecter.
@@ -118,6 +118,64 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
     def localHtensor(self, i):
         assert i < len(self.H)
         return self.H[i]
+
+#-------------------------------------------------------------------------------
+# This version includes centroidal optimization of the points.
+#-------------------------------------------------------------------------------
+class CentroidalPolyhedralSurfaceGenerator(PolyhedralSurfaceGenerator):
+
+    def __init__(self,
+                 surface,
+                 rho,
+                 resolution,
+                 nNodePerh = 2.01,
+                 SPH = False,
+                 rejecter = None,
+                 boundaries = [],
+                 maxIterations = 100,
+                 fracTol = 1.0e-3,
+                 correctionOrder = LinearOrder,
+                 centroidFrac = 0.25,
+                 tessellationBaseDir = ".",
+                 tessellationFileName = None):
+        PolyhedralSurfaceGenerator.__init__(self,
+                                            surface,
+                                            rho,
+                                            resolution,
+                                            nNodePerh,
+                                            SPH,
+                                            rejecter)
+
+        # Make temporary data structures so we can relax these points.
+        W = TableKernel(BSplineKernel(), 1000)
+        eos = GammaLawGasMKS(2.0, 2.0)
+        n = self.localNumNodes()
+        nodes = makeFluidNodeList("nodes" + "".join([random.choice(string.ascii_letters + string.digits) for n in xrange(32)]),
+                                  eos,
+                                  numInternal = n,
+                                  kernelExtent = W.kernelExtent,
+                                  xmin = surface.xmin,
+                                  xmax = surface.xmax,
+                                  nPerh = nNodePerh)
+        pos = nodes.positions()
+        H = nodes.Hfield()
+        for i in xrange(n):
+            pos[i] = self.localPosition(i)
+            H[i] = self.localHtensor(i)
+        nodes.neighbor().updateNodes()
+
+        # Call the relaxer
+        centroidalRelaxNodes(nodeListsAndBounds = [(nodes, surface)],
+                             W = W,
+                             rho = rho,
+                             boundaries = boundaries,
+                             maxIterations = maxIterations,
+                             fracTol = fracTol,
+                             correctionOrder = correctionOrder,
+                             centroidFrac = centroidFrac,
+                             tessellationBaseDir = tessellationBaseDir,
+                             tessellationFileName = tessellationFileName)
+
 
 #-------------------------------------------------------------------------------
 # Create a FacetedSurfaceGenerator based on a polyhedron in VF format in a file.
