@@ -35,7 +35,8 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
                          const bool useGradRhoFunc,
                          std::vector<Boundary<Dimension>*>& boundaries,
                          const unsigned maxIterations,
-                         const double fracTol,
+                         const double maxFracTol,
+                         const double avgFracTol,
                          const RKOrder correctionOrder,
                          const double centroidFrac,
                          FieldList<Dimension, double>& vol,
@@ -87,9 +88,10 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
   // iterateIdealH(db, boundaries, W, ASPHSmoothingScale<Dimension>(), 5);
 
   // Iterate until we converge or max out.
-  unsigned iter = 0;
-  double maxdelta = 2.0*fracTol;
-  while (iter < 2 or (iter < maxIterations and (maxdelta > fracTol))) { //  or mass.min() == 0.0))) {
+  auto iter = 0;
+  auto avgdelta = 2.0*avgFracTol;
+  auto maxdelta = 2.0*maxFracTol;
+  while (iter < maxIterations and (avgdelta > avgFracTol or maxdelta > maxFracTol)) {
     std::clock_t t0 = std::clock();
     iter += 1;
 
@@ -164,6 +166,7 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
     }
      
     // Displace the points and update point masses.
+    avgdelta = 0.0;
     maxdelta = 0.0;
     for (unsigned nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = rhof[nodeListi]->numInternalElements();
@@ -178,15 +181,21 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
             }
           }
         }
-        maxdelta = std::max(maxdelta, delta.magnitude()/(Dimension::nDim/H(nodeListi, i).Trace()));
-        // H(nodeListi, i) = SymTensor::one / std::min(hmax, 2.0*Dimension::rootnu(vol(nodeListi, i)));  // Not correct, but hopefully good enough for our iterative Voronoi purposes.
+        const auto deltai = delta.magnitude()/(Dimension::nDim/H(nodeListi, i).Trace());
+        avgdelta += deltai;
+        maxdelta = std::max(maxdelta, deltai);
+        if (vol(nodeListi, i) > 0.0) H(nodeListi, i) = SymTensor::one / std::min(hmax, 2.0*Dimension::rootnu(vol(nodeListi, i)));  // Not correct, but hopefully good enough for our iterative Voronoi purposes.
         pos(nodeListi, i) += delta;
         rhof(nodeListi, i) = rhofunc(pos(nodeListi, i));
         mass(nodeListi, i) = rhof(nodeListi,i)*vol(nodeListi,i);
       }
     }
+    avgdelta = (allReduce(avgdelta, MPI_SUM, Communicator::communicator())/
+                allReduce(db.numInternalNodes(), MPI_SUM, Communicator::communicator()));
     maxdelta = allReduce(maxdelta, MPI_MAX, Communicator::communicator());
-    if (Process::getRank() == 0) cerr << "centroidalRelaxNodes iteration " << iter << ", max delta frac " << maxdelta 
+    if (Process::getRank() == 0) cerr << "centroidalRelaxNodes iteration " << iter
+                                      << ", avg delta frac " << avgdelta 
+                                      << ", max delta frac " << maxdelta 
                                       << ", required " << ((std::clock() - t0)/CLOCKS_PER_SEC) 
                                       << " seconds (" << (tvoro/CLOCKS_PER_SEC) << " in computeVoronoiVolume, "
                                       << (tcm/CLOCKS_PER_SEC) << " in ConnectivityMap)." << endl;
