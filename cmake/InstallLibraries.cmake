@@ -56,6 +56,12 @@ endfunction()
 ################################
 # BOOST
 ################################
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  set(TOOLSET "gcc")
+else()
+  set(TOOLSET ${CMAKE_CXX_COMPILER_ID})
+endif()
+
 if(INSTALL_TPLS AND NOT BOOST_DIR)
   message("\n---------- BUILDING BOOST ----------")
   set(BOOST_PREFIX ${SPHERAL_TPL_DIR})
@@ -82,7 +88,7 @@ if(INSTALL_TPLS AND NOT BOOST_DIR)
       #PATCH_COMMAND patch -t ${BOOST_SRC_DIR}/config/config.guess ${PATCH_DIR}/config.guess-boost-4.10.2-bsd.patch &&
       #              patch -t ${BOOST_SRC_DIR}/config/config.sub   ${PATCH_DIR}/config.sub-boost-4.10.2-bsd.patch
       CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} ${BOOST_SRC_DIR}/bootstrap.sh
-      --with-toolset=${CMAKE_C_COMPILER_ID}
+      --with-toolset=${TOOLSET}
       --without-libraries=atomic,container,coroutine,log,chrono,context,date_time,exception,fiber,filesystem,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,system,test,thread,timer,type_erasure,wave
       --prefix=${BOOST_DIR}
       BUILD_IN_SOURCE 1
