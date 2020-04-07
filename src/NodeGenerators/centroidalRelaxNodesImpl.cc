@@ -184,10 +184,11 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
         const auto deltai = delta.magnitude()/(Dimension::nDim/H(nodeListi, i).Trace());
         avgdelta += deltai;
         maxdelta = std::max(maxdelta, deltai);
-        if (vol(nodeListi, i) > 0.0) H(nodeListi, i) = SymTensor::one / std::min(hmax, 2.0*Dimension::rootnu(vol(nodeListi, i)));  // Not correct, but hopefully good enough for our iterative Voronoi purposes.
+        // if (vol(nodeListi, i) > 0.0) H(nodeListi, i) = SymTensor::one / std::min(hmax, 2.0*Dimension::rootnu(vol(nodeListi, i)));  
+// Not correct, but hopefully good enough for our iterative Voronoi purposes.
         pos(nodeListi, i) += delta;
         rhof(nodeListi, i) = rhofunc(pos(nodeListi, i));
-        mass(nodeListi, i) = rhof(nodeListi,i)*vol(nodeListi,i);
+        if (vol(nodeListi, i) > 0.0) mass(nodeListi, i) = rhof(nodeListi,i)*vol(nodeListi,i);
       }
     }
     avgdelta = (allReduce(avgdelta, MPI_SUM, Communicator::communicator())/

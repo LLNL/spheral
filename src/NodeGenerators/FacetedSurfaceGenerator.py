@@ -160,9 +160,13 @@ class CentroidalPolyhedralSurfaceGenerator(PolyhedralSurfaceGenerator):
                                   nPerh = nNodePerh)
         pos = nodes.positions()
         H = nodes.Hfield()
+        mass = nodes.mass()
+        rhof = nodes.massDensity()
         for i in xrange(n):
             pos[i] = self.localPosition(i)
             H[i] = self.localHtensor(i)
+            mass[i] = self.localMass(i)
+            rhof[i] = self.localMassDensity(i)
         nodes.neighbor().updateNodes()
 
         # Call the relaxer
