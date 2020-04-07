@@ -54,8 +54,8 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         nsurface = mpi.allreduce(len(pos), mpi.SUM)
 
         # Apply any rejecter.
-        print "Applying rejection..."
         if rejecter:
+            print "Applying rejection..."
             mask = [rejecter.accept(ri.x, ri.y, ri.z) for ri in pos]
         else:
             mask = [True]*len(pos)
@@ -150,7 +150,7 @@ class CentroidalPolyhedralSurfaceGenerator(PolyhedralSurfaceGenerator):
         W = TableKernel(BSplineKernel(), 1000)
         eos = GammaLawGasMKS(2.0, 2.0)
         n = self.localNumNodes()
-        nodes = makeFluidNodeList("nodes" + "".join([random.choice(string.ascii_letters + string.digits) for n in xrange(32)]),
+        nodes = makeFluidNodeList("nodes" + "".join([random.choice(string.ascii_letters + string.digits) for nnn in xrange(32)]),
                                   eos,
                                   numInternal = n,
                                   kernelExtent = W.kernelExtent,
