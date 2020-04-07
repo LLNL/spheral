@@ -2,6 +2,7 @@ from math import *
 import mpi
 
 import Spheral
+from siloPointmeshDump import *
 try:
     from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
 except:
@@ -168,5 +169,8 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                                         boundaries = boundaries,
                                         cells = cells)
         dumper.dump(0.0, iterations)
+
+        siloPointmeshDump(baseName = tessellationFileName + "_points",
+                          fieldLists = [vol, surfacePoint, db.fluidMass, db.fluidMassDensity])
 
     return vol, surfacePoint
