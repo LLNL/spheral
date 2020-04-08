@@ -68,7 +68,7 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         # Pick a mass per point so we get exactly the correct total mass inside the surface
         # before any rejection.
         M0 = surface.volume * self.rho0
-        self.m0 = M0/nsurface
+        self.m0 = M0/max(1, nsurface)
         self.m = [self.m0]*n
 
         # At this point we have a less than optimal domain decomposition, but this will
