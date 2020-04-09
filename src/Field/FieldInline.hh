@@ -1130,7 +1130,7 @@ void
 Field<Dimension, DataType>::setNodeList(const NodeList<Dimension>& nodeList) {
   unsigned oldSize = this->size();
   this->setFieldBaseNodeList(nodeList);
-  mDataArray.resize(nodeList.numNodes());
+  mDataArray.resize(nodeList.numNodes()+1);
   if (this->size() > oldSize) {
     for (int i = oldSize; i < this->size(); ++i) {
       (*this)(i) = DataTypeTraits<DataType>::zero();
@@ -1149,7 +1149,7 @@ void
 Field<Dimension, DataType>::resizeField(unsigned size) {
   REQUIRE(size == this->nodeList().numNodes());
   unsigned oldSize = this->size();
-  mDataArray.resize(size);
+  mDataArray.resize(size+1);
   if (oldSize < size) {
     std::fill(mDataArray.begin() + oldSize,
               mDataArray.end(),
@@ -1234,7 +1234,7 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
   }
 
   // Resize the field data.
-  mDataArray.resize(newSize);
+  mDataArray.resize(newSize+1);
 
   // Fill in any new internal values.
   if (newSize > currentSize) {
@@ -1272,8 +1272,8 @@ Field<Dimension, DataType>::resizeFieldGhost(const unsigned size) {
   REQUIRE(newSize == this->nodeList().numNodes());
 
   // Resize the field data.
-  mDataArray.resize(newSize);
-  CHECK(this->size() == newSize);
+  mDataArray.resize(newSize+1);
+  CHECK(this->size() == (newSize+1));
 
   // Fill in any new ghost values.
   if (newSize > currentSize) {
