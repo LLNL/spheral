@@ -371,13 +371,22 @@
     <ClCompile Include="..\..\src\RK\ContinuityVolumePolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\RK\ContinuityVolumePolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\RK\ContinuityVolumePolicyRZ.cc" />
+    <ClCompile Include="..\..\src\RK\gradientRKInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\gradientRKInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\hessianRKInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\hessianRKInst.cc.3.cc" />
     <ClCompile Include="..\..\src\RK\HullVolumePolicy.cc" />
     <ClCompile Include="..\..\src\RK\HVolumePolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\RK\HVolumePolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\RK\interpolateRKInst.cc.2.cc" />
     <ClCompile Include="..\..\src\RK\interpolateRKInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\ReproducingKernelInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\ReproducingKernelInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\ReproducingKernelMethodsInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\ReproducingKernelMethodsInst.cc.3.cc" />
     <ClCompile Include="..\..\src\RK\RKCorrectionsInst.cc.2.cc" />
     <ClCompile Include="..\..\src\RK\RKCorrectionsInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\RKFieldNames.cc" />
     <ClCompile Include="..\..\src\RK\RKUtilitiesInst.cc.2.cc" />
     <ClCompile Include="..\..\src\RK\RKUtilitiesInst.cc.3.cc" />
   </ItemGroup>
@@ -430,6 +439,22 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
+	<CustomBuild Include="..\..\src\RK\gradientRKInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+	<CustomBuild Include="..\..\src\RK\hessianRKInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
     <CustomBuild Include="..\..\src\RK\HVolumePolicyInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
@@ -439,6 +464,22 @@
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\src\RK\interpolateRKInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\ReproducingKernelInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+	    <CustomBuild Include="..\..\src\RK\ReproducingKernelMethodsInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -472,11 +513,19 @@
     <ClInclude Include="..\..\src\RK\computeVoronoiVolume.hh" />
     <ClInclude Include="..\..\src\RK\ContinuityVolumePolicy.hh" />
     <ClInclude Include="..\..\src\RK\ContinuityVolumePolicyRZ.hh" />
+    <ClInclude Include="..\..\src\RK\gradientRK.hh" />
+    <ClInclude Include="..\..\src\RK\hessianRK.hh" />
     <ClInclude Include="..\..\src\RK\HullVolumePolicy.hh" />
     <ClInclude Include="..\..\src\RK\HVolumePolicy.hh" />
     <ClInclude Include="..\..\src\RK\interpolateRK.hh" />
+    <ClInclude Include="..\..\src\RK\ReproducingKernel.hh" />
+    <ClInclude Include="..\..\src\RK\ReproducingKernelInline.hh" />
+    <ClInclude Include="..\..\src\RK\ReproducingKernelMethods.hh" />
+    <ClInclude Include="..\..\src\RK\ReproducingKernelMethodsInline.hh" />
+    <ClInclude Include="..\..\src\RK\RKCoefficients.hh" />
     <ClInclude Include="..\..\src\RK\RKCorrectionParams.hh" />
     <ClInclude Include="..\..\src\RK\RKCorrections.hh" />
+    <ClInclude Include="..\..\src\RK\RKFieldNames.hh" />
     <ClInclude Include="..\..\src\RK\RKUtilities.hh" />
     <ClInclude Include="..\..\src\RK\RKUtilitiesInline.hh" />
   </ItemGroup>
