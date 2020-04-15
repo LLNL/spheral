@@ -7,7 +7,7 @@ title("distributed connectivity")
 commandLine(
     # Discretization options
     dimension = 1,
-    nx = 16,
+    nx = 32,
     x0 = 0.0,
     x1 = 1.0,
     nPerh = 4.01,
@@ -15,11 +15,12 @@ commandLine(
     # Optionally randomize the node positions
     randomizeNodes = False,
     ranfrac = 0.2,
-
+    
     # Testing options
     testOverlap = False,
-    printErrors = False,
-    standardGlobalIDs = False,
+    printErrors = False, # Print the differences in the connectivity
+    standardGlobalIDs = False, # This should work in 1D, but probably not otherwise
+    testSuperset = False, # Test if parallel connectivity is superset of serial; otherwise they must be equal
 
     # Base directory for storing connectivity
     baseTestDir = "data-distributed")
@@ -221,24 +222,24 @@ if mpi.procs > 1:
 globalData = dict(zip(globalIndices, globalConnectivity))
 
 #-------------------------------------------------------------------------------
-# Save connectivity if serial, load regardless
+# Save connectivity if serial, load if parallel
 #-------------------------------------------------------------------------------
 import pickle
 dataFilename = os.path.join(dataDir, "connectivity")
 if mpi.procs == 1:
     with open(dataFilename, 'w') as f:
         pickle.dump(globalData, f)
-
-if os.path.exists(dataFilename):
-    with open(dataFilename, 'r') as f:
-        serialData = pickle.load(f)
 else:
-    raise IOError, "need to run in serial first"
+    if os.path.exists(dataFilename):
+        with open(dataFilename, 'r') as f:
+            serialData = pickle.load(f)
+    else:
+        raise IOError, "need to run in serial first"
 
 #-------------------------------------------------------------------------------
 # Check connectivity
 #-------------------------------------------------------------------------------e
-if mpi.rank == 0:
+if mpi.rank == 0 and mpi.procs > 1:
     # Go through serial connectivity and make sure parallel connectivity is the same
     numFailures = 0
     for i, cs in serialData.items():
@@ -247,10 +248,17 @@ if mpi.rank == 0:
             # The parallel connectivity contains more points than the serial
             # (is this expected?), so we check whether the parallel connectivity
             # contains the complete serial connectivity
-            if not cp.issuperset(cs):
-                if printErrors:
-                    diff = cp.difference(cs)
-                    print "diff for point {}: {}".format(i, diff)
+            if testSuperset:
+                if not cp.issuperset(cs):
+                    if printErrors:
+                        diff = cs.difference(cp)
+                        print "missing for point {}: {}".format(i, diff)
+                    numFailures += 1
+            else:
+                if not cp == cs:
+                    if printErrors:
+                        diff = cs.symmetric_difference(cp)
+                        print "diff for point {}: {}".format(i, diff)
                 numFailures += 1
         else:
             numFailures += 1
