@@ -46,7 +46,8 @@ class SpheralController:
                  iterateInitialH = True,
                  numHIterationsBetweenCycles = 0,
                  reinitializeNeighborsStep = 10,
-                 volumeType = RKVolumeType.RKVoronoiVolume):
+                 volumeType = RKVolumeType.RKVoronoiVolume,
+                 facetedBoundaries = None):
         self.restart = RestartableObject(self)
         self.integrator = integrator
         self.kernel = kernel
@@ -71,7 +72,7 @@ class SpheralController:
         self.vizDerivs = vizDerivs
 
         # Organize the physics packages as appropriate
-        self.organizePhysicsPackages(self.kernel, volumeType)
+        self.organizePhysicsPackages(self.kernel, volumeType, facetedBoundaries)
 
         # If this is a parallel run, automatically construct and insert
         # a DistributedBoundaryCondition into each physics package.
@@ -101,7 +102,8 @@ class SpheralController:
                                  skipInitialPeriodicWork = skipInitialPeriodicWork,
                                  iterateInitialH = iterateInitialH,
                                  reinitializeNeighborsStep = reinitializeNeighborsStep,
-                                 volumeType = volumeType)
+                                 volumeType = volumeType,
+                                 facetedBoundaries = facetedBoundaries)
 
         # Read the restart information if requested.
         if not restoreCycle is None:
@@ -133,7 +135,8 @@ class SpheralController:
                             skipInitialPeriodicWork = False,
                             iterateInitialH = True,
                             reinitializeNeighborsStep = 10,
-                            volumeType = RKVolumeType.RKVoronoiVolume):
+                            volumeType = RKVolumeType.RKVoronoiVolume,
+                            facetedBoundaries = None):
 
         # Intialize the cycle count.
         self.totalSteps = 0
@@ -613,7 +616,7 @@ class SpheralController:
     #--------------------------------------------------------------------------
     # Properly arrange the physics packages, including adding any needed ones.
     #--------------------------------------------------------------------------
-    def organizePhysicsPackages(self, W, volumeType):
+    def organizePhysicsPackages(self, W, volumeType, facetedBoundaries):
         packages = self.integrator.physicsPackages()
         db = self.integrator.dataBase
         RKCorrections = eval("RKCorrections%s" % self.dim)
@@ -644,6 +647,9 @@ class SpheralController:
                                                needHessian = needHessian)
             for bc in rkbcs:
                 self.RKCorrections.appendBoundary(bc)
+            if facetedBoundaries is not None:
+                for b in facetedBoundaries:
+                    self.RKCorrections.addFacetedBoundary(b)
             packages.insert(index, self.RKCorrections)
             self.integrator.resetPhysicsPackages(packages)
 
