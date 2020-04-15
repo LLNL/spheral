@@ -75,6 +75,12 @@ class GammaLawGas(EquationOfState):
                 specificThermalEnergy = "const Scalar"):
         return "Scalar"
 
+    @PYB11virtual
+    @PYB11const
+    def molecularWeight(self):
+        "Optionally provide a molecular weight for an equation of state"
+        return "Scalar"
+
     #...........................................................................
     # Properties
     gamma = PYB11property("double", "gamma", "gamma", doc="gamma: ratio of specific heats")
