@@ -474,6 +474,8 @@ if cullToWeakestFlaws:
 # damageModel.excludeNodes = controlNodes
 output("damageModel")
 
+packages.append(damageModel)
+
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
 #-------------------------------------------------------------------------------
