@@ -336,6 +336,7 @@ if crksph:
                    evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
+                   damageRelieveRubble = True,
                    ASPH = asph)
 else:
     hydro = SPH(dataBase = db,
@@ -367,8 +368,8 @@ kWeibullFactor = 1.0
 mWeibullFactor = 1.0
 randomSeed = 548928513
 strainType = PseudoPlasticStrain # BenzAsphaugStrain #
-damageMethod = CopyDamage # SampledDamage # 
-useDamageGradient = True
+damageMethod = MinMaxDamage # SampledDamage # CopyDamage # 
+useDamageGradient = False
 cullToWeakestFlaws = False
 effectiveFlawAlgorithm = FullSpectrumFlaws
 damageInCompression = False
@@ -468,6 +469,7 @@ if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorD
     output("damageModel.useDamageGradient")
     output("damageModel.effectiveDamageAlgorithm")
     output("damageModel.effectiveFlawAlgorithm")
+    output("damageModel.effectiveStrain")
 
 if cullToWeakestFlaws:
     damageModel.cullToWeakestFlaws()

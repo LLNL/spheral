@@ -112,9 +112,8 @@ evaluateDerivatives(const Scalar time,
   const auto& rho = state.field(state.buildFieldKey(HydroFieldNames::massDensity, nodeListPtr->name()), 0.0);
   const auto& H = state.field(state.buildFieldKey(HydroFieldNames::H, nodeListPtr->name()), SymTensor::zero);
   const auto& D = state.field(state.buildFieldKey(SolidFieldNames::tensorDamage, nodeListPtr->name()), SymTensor::zero);
-
-  auto& Deff = derivs.field(state.buildFieldKey(EffectiveTensorDamagePolicy<Dimension>::prefix() + SolidFieldNames::effectiveTensorDamage, nodeListPtr->name()), SymTensor::zero);
-  auto& gradD = derivs.field(state.buildFieldKey(DamageGradientPolicy<Dimension>::prefix() + SolidFieldNames::damageGradient, nodeListPtr->name()), Vector::zero);
+  auto&       Deff = derivs.field(state.buildFieldKey(EffectiveTensorDamagePolicy<Dimension>::prefix() + SolidFieldNames::effectiveTensorDamage, nodeListPtr->name()), SymTensor::zero);
+  auto&       gradD = derivs.field(state.buildFieldKey(DamageGradientPolicy<Dimension>::prefix() + SolidFieldNames::damageGradient, nodeListPtr->name()), Vector::zero);
 
   // Get the kernel.
   const auto& W = this->kernel();
@@ -127,10 +126,11 @@ evaluateDerivatives(const Scalar time,
   CHECK(nodeListi < nodeLists.size());
   const auto firstGhostNodei = nodeListPtr->firstGhostNode();
 
-  // Prepare the effective damage for computation.
+  // Is effective damage just a copy?
+  if (mEffDamageAlgorithm == EffectiveDamageAlgorithm::CopyDamage) Deff = D;
+
+  // Prepare to account for damage statistics.
   Field<Dimension, Scalar> normalization("normalization", *nodeListPtr, 0.0);
-  if (mEffDamageAlgorithm == EffectiveDamageAlgorithm::MaxDamage or
-      mEffDamageAlgorithm == EffectiveDamageAlgorithm::CopyDamage) Deff = D;
 
   // Iterate over the internal nodes in this NodeList.
   const auto ni = connectivityMap.numNodes(nodeListi);
@@ -145,17 +145,18 @@ evaluateDerivatives(const Scalar time,
     const auto& Hi = H(i);
     const auto  Hdeti = Hi.Determinant();
     const auto& Di = D(i);
-    const auto  Dmagi = max(0.0, min(1.0, Di.Trace()/Dimension::nDim));
+    const auto  Dmagi = Di.Trace();
     auto&       normalizationi = normalization(i);
     auto&       Deffi = Deff(i);
     auto&       gradDi = gradD(i);
     CHECK(mi > 0.0);
     CHECK(rhoi > 0.0);
     CHECK(Hdeti > 0.0);
-    CHECK(Dmagi >= 0.0 and Dmagi <= 1.0);
 
     // Scratch variables.
     Scalar Wi, gWi;
+    auto Dmin = SymTensor::one;
+    auto Dmax = SymTensor::zero;
 
     // Get the connectivity info for this node.  We only need to proceed if
     // there are some nodes in this list.
@@ -170,42 +171,43 @@ evaluateDerivatives(const Scalar time,
         const auto& mj = mass(j);
         const auto& rj = position(j);
         const auto& Dj = D(j);
-        const auto  Dmagj = max(0.0, min(1.0, Dj.Trace()/Dimension::nDim));
+        const auto  Dmagj = Dj.Trace();
         CHECK(mj > 0.0);
-        CHECK(Dmagj >= 0.0 and Dmagj <= 1.0);
 
         // Node displacement and weighting.
         const Vector etai = Hi*(ri - rj);
         std::tie(Wi, gWi) = W.kernelAndGradValue(etai.magnitude(), Hdeti);
         const auto gradWi = (Hi*etai.unitVector()) * gWi;
 
-        // Increment the effective damage.
-        switch(mEffDamageAlgorithm) {
-        case EffectiveDamageAlgorithm::MaxDamage:
-          if (Dmagj * Dimension::nDim > Deffi.Trace()) Deffi = Dj;
-          break;
-
-        case EffectiveDamageAlgorithm::SampledDamage:
-          normalizationi += Wi;
-          Deffi += Wi * Dj;
-          break;
-
-        case EffectiveDamageAlgorithm::CopyDamage:
-          // noop
-          break;
-        }
+        // Damage statistics
+        if (Dmagj < Dmin.Trace()) Dmin = Dj;
+        if (Dmagj > Dmax.Trace()) Dmax = Dj;
+        normalizationi += Wi;
+        Deffi += Wi * Dj;
 
         // Increment the gradient.
         gradDi += mj*(Dj - Di)*gradWi;
       }
     }
 
-    // Finish the effective damage by adding in the self-contribution and 
-    // normalizing the sucker.
-    if (mEffDamageAlgorithm == EffectiveDamageAlgorithm::SampledDamage) {
-      CHECK(normalizationi >= 0.0);
-      const auto Wi = W.kernelValue(0.0, Hdeti);
-      Deffi = (Deffi + Dmagi*Wi*Di)/(normalizationi + Dmagi*Wi + tiny);
+    // Finish the effective damage
+    switch(mEffDamageAlgorithm) {
+      case EffectiveDamageAlgorithm::MaxDamage:
+        if (Dmax.Trace() > Dmagi) Deffi = Dmax;
+        break;
+
+      case EffectiveDamageAlgorithm::MinMaxDamage:
+        if (Dmax.Trace() <= Dmagi) {
+          Deffi = Di;
+        } else {
+          Deffi = Dmin;
+        }
+        break;
+
+      case EffectiveDamageAlgorithm::SampledDamage:
+        const auto Wi = W.kernelValue(0.0, Hdeti);
+        Deffi = (Deffi + Wi*Di)*safeInvVar(normalizationi + Wi, tiny);
+        break;
     }
 
     // Finish the gradient.
