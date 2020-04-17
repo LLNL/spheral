@@ -49,7 +49,7 @@ commandLine(
     compatibleEnergy = True,
     evolveTotalEnergy = False,
     correctionOrder = LinearOrder,
-    volumeType = RKSumVolume,
+    volumeType = RKVoronoiVolume,
 
     # Time integration
     goalTime = 200.0,
@@ -332,12 +332,10 @@ if constantBoundary:
 if crksph:
     hydro = CRKSPH(dataBase = db,
                    order = correctionOrder,
-                   W = WT,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
-                   HUpdate = HUpdate,
                    ASPH = asph)
 else:
     hydro = SPH(dataBase = db,
@@ -368,8 +366,8 @@ numFlawsPerNode = 1
 kWeibullFactor = 1.0
 mWeibullFactor = 1.0
 randomSeed = 548928513
-strainType = PseudoPlasticStrain
-damageMethod = CopyDamage
+strainType = PseudoPlasticStrain # BenzAsphaugStrain #
+damageMethod = CopyDamage # SampledDamage # 
 useDamageGradient = True
 cullToWeakestFlaws = False
 effectiveFlawAlgorithm = FullSpectrumFlaws
