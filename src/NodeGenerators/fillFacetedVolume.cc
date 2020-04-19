@@ -170,7 +170,7 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
       // cerr << " -- > Ray: " << ray1 << " --> " << ray2 << endl;
 
       // Project through the volume and find intersection points (should be in pairs).
-      outerBoundary.intersect(ray1, ray2, facetIDs, intersections);
+      outerBoundary.intersections(ray1, ray2, facetIDs, intersections);
       const auto nintersect = intersections.size();
       CHECK(facetIDs.size() == nintersect);
       // CHECK(nintersect % 2 == 0);

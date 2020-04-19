@@ -513,13 +513,46 @@ intersect(const std::pair<Vector, Vector>& rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// Test if we intersect a line segment (interior counts as intersection).
+//------------------------------------------------------------------------------
+bool
+GeomPolyhedron::
+intersect(const Vector& s0, const Vector& s1) const {
+  if (this->contains(s0) or this->contains(s1)) return true;
+
+  const auto shat = (s1 - s0).unitVector();
+  const auto q01 = (s1 - s0).magnitude();
+
+  // Check each facet of the polyhedron.
+  Vector inter;
+  const auto nf = mFacets.size();
+  for (auto k = 0; k < nf; ++k) {
+    const auto& facet = mFacets[k];
+    const auto& ipoints = facet.ipoints();
+    CHECK(ipoints.size() >= 3);
+    const auto& fhat = facet.normal();
+
+    // First does the line segment intersect the facet plane?
+    const auto shat_dot_fhat = shat.dot(fhat);
+    if (abs(shat_dot_fhat) > 1.0e-10) {           // Check for segment parallel to plane
+      const auto q = (mVertices[ipoints[0]] - s0).dot(fhat)/shat_dot_fhat;
+      if (q >= 0.0 and q <= q01) {                // Does the line segment intersect the plane
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+//------------------------------------------------------------------------------
 // Find the Facets and points intersecting a line segment (s0, s1).
 //------------------------------------------------------------------------------
 void
 GeomPolyhedron::
-intersect(const Vector& s0, const Vector& s1,
-          std::vector<unsigned>& facetIDs,
-          std::vector<Vector>& intersections) const {
+intersections(const Vector& s0, const Vector& s1,
+              std::vector<unsigned>& facetIDs,
+              std::vector<Vector>& intersections) const {
   facetIDs.clear();
   intersections.clear();
 
@@ -553,8 +586,6 @@ intersect(const Vector& s0, const Vector& s1,
       }
     }
   }
-
-  // Sort everyone by 
 }
 
 //------------------------------------------------------------------------------
