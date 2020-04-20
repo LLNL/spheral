@@ -32,9 +32,10 @@ commandLine(
 
     # Geometry and initial conditions
     R0 = 1.0,
-    nr = 50,
+    nr = 100,
     vr0 = 1e-2,
-    thetaFactor = 0.5,  # one of (0.5, 1.0, 2.0) -- how much of disk geometry to generate
+    thetaFactor = 0.5,        # one of (0.5, 1.0, 2.0) -- how much of disk geometry to generate
+    constantBoundary = True,  # force constant expansion on outer boundary nodes
 
     # Parameters for the time dependent strain and cracking.
     DamageModelConstructor = GradyKippTensorDamageOwen,
@@ -48,7 +49,7 @@ commandLine(
     compatibleEnergy = True,
     evolveTotalEnergy = False,
     correctionOrder = LinearOrder,
-    volumeType = RKSumVolume,
+    volumeType = RKVoronoiVolume,
 
     # Time integration
     goalTime = 200.0,
@@ -66,7 +67,7 @@ commandLine(
     statsStep = 10,
     redistributeStep = None,
     vizCycle = None,
-    vizTime = 1.0,
+    vizTime = 0.1,
     restartStep = 500,
     plotFlaws = False,
     clearDirectories = False,
@@ -298,24 +299,9 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct constant velocity boundary conditions to be applied to the outer
-# rind of the disk
-#-------------------------------------------------------------------------------
-dr = R0/nr
-constantNodes = vector_of_int([i for i in xrange(nodes.numInternalNodes)
-                               if pos[i].magnitude() > R0 - WT.kernelExtent*nPerh*dr])
-print "Selected %i constant velocity nodes." % mpi.allreduce(len(constantNodes))
-
-# Set the nodes we're going to control to one single radial velocity 
-for i in constantNodes:
-    vel[i] = vr0 * pos[i].unitVector()
-
-rbc = ConstantVelocityBoundary(nodes, constantNodes)
-bcs = [rbc]
-
-#-------------------------------------------------------------------------------
 # Do we need any reflecting boundaries?
 #-------------------------------------------------------------------------------
+bcs = []
 if thetaFactor in (0.5, 1.0):
     xbc = ReflectingBoundary(Plane(Vector(0, 0), Vector(1, 0)))
     bcs.append(xbc)
@@ -324,17 +310,32 @@ if thetaFactor == 0.5:
     bcs.append(ybc)
 
 #-------------------------------------------------------------------------------
+# Construct constant velocity boundary conditions to be applied to the outer
+# rind of the disk
+#-------------------------------------------------------------------------------
+if constantBoundary:
+    dr = R0/nr
+    constantNodes = vector_of_int([i for i in xrange(nodes.numInternalNodes)
+                                   if pos[i].magnitude() > R0 - WT.kernelExtent*nPerh*dr])
+    print "Selected %i constant velocity nodes." % mpi.allreduce(len(constantNodes))
+
+    # Set the nodes we're going to control to one single radial velocity 
+    for i in constantNodes:
+        vel[i] = vr0 * pos[i].unitVector()
+
+    rbc = ConstantVelocityBoundary(nodes, constantNodes)
+    bcs.append(rbc)
+
+#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if crksph:
     hydro = CRKSPH(dataBase = db,
                    order = correctionOrder,
-                   W = WT,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
-                   HUpdate = HUpdate,
                    ASPH = asph)
 else:
     hydro = SPH(dataBase = db,
@@ -365,8 +366,8 @@ numFlawsPerNode = 1
 kWeibullFactor = 1.0
 mWeibullFactor = 1.0
 randomSeed = 548928513
-strainType = PseudoPlasticStrain
-damageMethod = CopyDamage
+strainType = PseudoPlasticStrain # BenzAsphaugStrain #
+damageMethod = CopyDamage # SampledDamage # 
 useDamageGradient = True
 cullToWeakestFlaws = False
 effectiveFlawAlgorithm = FullSpectrumFlaws
@@ -473,6 +474,8 @@ if cullToWeakestFlaws:
 
 # damageModel.excludeNodes = controlNodes
 output("damageModel")
+
+packages.append(damageModel)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.

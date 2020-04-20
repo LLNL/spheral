@@ -229,20 +229,21 @@ dt(const DataBase<Dimension>& dataBase,
    const StateDerivatives<Dimension>& derivs,
    const Scalar currentTime) const {
 
-//   // Look at how quickly we're trying to change the damage.
-//   double dt = DBL_MAX;
-//   const Field<Dimension, SymTensor>& damage = this->nodeList().damage();
-//   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-//   const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
-//   const size_t nodeListi = distance(nodeLists.begin(), find(nodeLists.begin(), nodeLists.end(), &(this->nodeList())));
-//   for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-//        iItr != connectivityMap.end(nodeListi);
-//        ++iItr) {
-//     const int i = *iItr;
-//     const double D0 = damage(i).Trace() / Dimension::nDim;
-//     dt = min(dt, 0.8*max(D0, 1.0 - D0)/
-//              std::sqrt(mDdamageDt(i)*mDdamageDt(i) + 1.0e-20));
-//   }
+  // // Look at how quickly we're trying to change the damage.
+  // double dt = DBL_MAX;
+  // const Field<Dimension, SymTensor>& damage = this->nodeList().damage();
+  // const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  // const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
+  // const size_t nodeListi = distance(nodeLists.begin(), find(nodeLists.begin(), nodeLists.end(), &(this->nodeList())));
+  // for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+  //      iItr != connectivityMap.end(nodeListi);
+  //      ++iItr) {
+  //   const int i = *iItr;
+  //   const double D0 = damage(i).Trace() / Dimension::nDim;
+  //   dt = min(dt, 0.8*max(D0, 1.0 - D0)/
+  //            std::sqrt(mDdamageDt(i)*mDdamageDt(i) + 1.0e-20));
+  // }
+  // return TimeStepType(dt, "Rate of damage change");
 
   return TimeStepType(1.0e100, "Rate of damage change -- NO VOTE.");
 }
@@ -287,21 +288,23 @@ registerState(DataBase<Dimension>& dataBase,
     if (damage(i).Trace() > mCriticalDamageThreshold) mask(i) = 0;
   }
 
-//   // Damage some of the state variables.
-//   typedef typename State<Dimension>::FieldKeyType Key;
-//   const NodeList<Dimension>* nodeListPtr = &(this->nodeList());
-//   const Key KKey(nodeListPtr, SolidFieldNames::bulkModulus);
-//   const Key muKey(nodeListPtr, SolidFieldNames::shearModulus);
-//   const Key DKey(nodeListPtr, SolidFieldNames::tensorDamage);
-//   Field<Dimension, Scalar>& K = state.scalarField(KKey);
-//   Field<Dimension, Scalar>& mu = state.scalarField(muKey);
-//   const Field<Dimension, SymTensor>& D = state.symTensorField(DKey);
-//   for (int i = 0; i != nodeListPtr->numInternalNodes(); ++i) {
-//     const Scalar fDi = std::max(0.0, std::min(1.0, 1.0 - D(i).eigenValues().maxElement() - 1.0e-5));
-//     CHECK(fDi >= 0.0 && fDi <= 1.0);
-//     K(i) *= fDi;
-//     mu(i) *= fDi;
-//   }
+  // // Damage some of the state variables.
+  // const auto* nodeListPtr = &(this->nodeList());
+  // const auto  KKey = State<Dimension>::buildFieldKey(SolidFieldNames::bulkModulus, nodeListPtr->name());
+  // const auto  muKey = State<Dimension>::buildFieldKey(SolidFieldNames::shearModulus, nodeListPtr->name());
+  // const auto  YKey = State<Dimension>::buildFieldKey(SolidFieldNames::yieldStrength, nodeListPtr->name());
+  // const auto  DKey = State<Dimension>::buildFieldKey(SolidFieldNames::tensorDamage, nodeListPtr->name());
+  // auto&       K = state.field(KKey, 0.0);
+  // auto&       mu = state.field(muKey, 0.0);
+  // auto&       Y = state.field(YKey, 0.0);
+  // const auto& D = state.field(DKey, SymTensor::zero);
+  // for (auto i = 0; i < nodeListPtr->numInternalNodes(); ++i) {
+  //   const auto fDi = std::max(0.0, std::min(1.0, 1.0 - D(i).eigenValues().maxElement() - 1.0e-5));
+  //   CHECK(fDi >= 0.0 && fDi <= 1.0);
+  //   K(i) *= fDi;
+  //   mu(i) *= fDi;
+  //   Y(i) *= fDi;
+  // }
 
   // Register the base classes stuff.
   DamageModel<Dimension>::registerState(dataBase, state);
