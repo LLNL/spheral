@@ -7,8 +7,10 @@
 namespace Spheral {
 
 struct NodePairIdxType {
-  NodePairIdxType(int i_n, int i_l, int j_n, int j_l);
+  NodePairIdxType(int i_n, int i_l, int j_n, int j_l,
+                  double f = 1.0);
   int i_node, i_list, j_node, j_list;
+  double f_couple;                       // An arbitrary fraction in [0,1] to hold the effective coupling of the pair
 
   // Comparisons
   bool operator==(const NodePairIdxType& val) const { return (i_list == val.i_list and
