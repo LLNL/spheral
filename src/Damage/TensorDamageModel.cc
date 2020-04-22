@@ -126,9 +126,6 @@ evaluateDerivatives(const Scalar time,
   CHECK(nodeListi < nodeLists.size());
   const auto firstGhostNodei = nodeListPtr->firstGhostNode();
 
-  // Is effective damage just a copy?
-  if (mEffDamageAlgorithm == EffectiveDamageAlgorithm::CopyDamage) Deff = D;
-
   // Prepare to account for damage statistics.
   Field<Dimension, Scalar> normalization("normalization", *nodeListPtr, 0.0);
 
@@ -192,6 +189,10 @@ evaluateDerivatives(const Scalar time,
 
     // Finish the effective damage
     switch(mEffDamageAlgorithm) {
+      case EffectiveDamageAlgorithm::CopyDamage:
+        Deffi = Di;
+        break;
+
       case EffectiveDamageAlgorithm::MaxDamage:
         if (Dmax.Trace() > Dmagi) Deffi = Dmax;
         break;
