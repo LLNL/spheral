@@ -112,4 +112,18 @@ closestPoint(const GeomFacet3d::Vector& p) const {
   return result;
 }
 
+//------------------------------------------------------------------------------
+// Split into triangular sub-facets.
+//------------------------------------------------------------------------------
+std::vector<GeomFacet3d>
+GeomFacet3d::
+triangles() const {
+  std::vector<GeomFacet3d> result;
+  const auto nverts = mPoints.size();
+  for (auto k = 1; k < nverts - 1; ++k) {
+    result.emplace_back(*mVerticesPtr, std::vector<unsigned>({mPoints[0], mPoints[k], mPoints[k+1]}), mNormal);
+  }
+  return result;
+}
+
 }
