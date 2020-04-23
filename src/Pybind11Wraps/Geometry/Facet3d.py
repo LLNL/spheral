@@ -68,6 +68,11 @@ owns the set of vertex positions."""
         "Compute the closest point on the facet to the given point."
         return "Vector"
 
+    @PYB11const
+    def triangles(self):
+        "Split into triangular sub-facets."
+        return "std::vector<GeomFacet3d>"
+
     #...........................................................................
     # Comparisons
     def __eq__(self):

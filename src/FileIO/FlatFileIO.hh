@@ -185,6 +185,10 @@ public:
   // Move the current pointer to the beginning of the file.
   void beginningOfFile() const;
 
+  // Forward hidden base class methods
+  using FileIO::write;
+  using FileIO::read;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   // The precision we will write to the output files with.

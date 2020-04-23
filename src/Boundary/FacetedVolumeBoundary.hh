@@ -86,6 +86,10 @@ public:
   bool useGhosts() const;
   const Tensor& reflectOperator(unsigned facetID) const;
 
+  // Prevent the Boundary virtual methods from being hidden
+  using Boundary<Dimension>::applyGhostBoundary;
+  using Boundary<Dimension>::enforceBoundary;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   const FacetedVolume& mPoly;

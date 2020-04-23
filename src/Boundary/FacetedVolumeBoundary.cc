@@ -613,7 +613,7 @@ FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& node
       // Backtrack to which facet we think the point passed through.
       CHECK((not mInteriorBoundary) xor mPoly.contains(newPos));
       const auto backPos = newPos - chordLength*newVel.unitVector();
-      mPoly.intersect(backPos, newPos, potentialFacets, intersections);
+      mPoly.intersections(backPos, newPos, potentialFacets, intersections);
       CHECK(potentialFacets.size() > 0);
       CHECK(potentialFacets.size() == intersections.size());
       minFacet = potentialFacets[0];

@@ -54,6 +54,10 @@ public:
   // Methods required for restarting.
   virtual std::string label() const override { return "RigidBoundary"; }
   //****************************************************************************
+
+  // Prevent the Boundary virtual methods from being hidden
+  using Boundary<Dimension>::applyGhostBoundary;
+  using Boundary<Dimension>::enforceBoundary;
 };
 
 }

@@ -18,27 +18,27 @@ namespace {
 // Compute an individual HCP position.
 //------------------------------------------------------------------------------
 inline
-Dim<3>::Vector HCPposition(const unsigned i,
-                           const unsigned nx,
-                           const unsigned ny,
-                           const unsigned nz,
-                           const double dx,
-                           const double dy,
-                           const double dz,
-                           const Dim<3>::Vector& xmin,
-                           const Dim<3>::Vector& xmax) {
-  const unsigned nxy = nx*ny;
-  const unsigned ix = i % nx;
-  const unsigned iy = (i / nx) % ny;
-  const unsigned iz = i / nxy;
-  return Dim<3>::Vector(xmin.x() + (ix + 0.5*((iy % 2) + (iz % 2)))*dx,
-                        xmin.y() + (iy + 0.5*(iz % 2))*dy,
-                        xmin.z() + (iz + 0.5)*dz);
+void HCPposition(const unsigned i,
+                 const unsigned nxy,
+                 const unsigned nx,
+                 const unsigned ny,
+                 const double dx,
+                 const double dy,
+                 const double dz,
+                 const Dim<3>::Vector& xmin,
+                 const Dim<3>::Vector& xmax,
+                 Dim<3>::Vector& result) {
+  const auto ix = i % nx;
+  const auto iy = (i / nx) % ny;
+  const auto iz = i / nxy;
+  result[0] = xmin[0] + (ix + 0.5*((iy % 2) + (iz % 2)))*dx;
+  result[1] = xmin[1] + (iy + 0.5*(iz % 2))*dy;
+  result[2] = xmin[2] + (iz + 0.5)*dz;
 }
 }
 
 //------------------------------------------------------------------------------
-// Fill an outer bounding volume.
+// Fill an outer bounding volume (specify x number of points).
 //------------------------------------------------------------------------------
 vector<Dim<3>::Vector>
 fillFacetedVolume(const Dim<3>::FacetedVolume& outerBoundary,
@@ -46,135 +46,166 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& outerBoundary,
                   const unsigned domain,
                   const unsigned numDomains) {
   VERIFY(n1d > 0);
-  VERIFY(numDomains >= 1);
-  VERIFY(domain < numDomains);
-
   typedef Dim<3>::Vector Vector;
   typedef Dim<3>::FacetedVolume FacetedVolume;
-
-  vector<Vector> result;
-  unsigned i, ix, iy, iz;
-  const Vector& xmin = outerBoundary.xmin();
-  const Vector& xmax = outerBoundary.xmax();
-  const double dx = (xmax - xmin).maxElement()/n1d;
-  VERIFY(dx > 0.0);
-  const unsigned nx = std::max(1U, unsigned((xmax.x() - xmin.x())/dx + 0.5));
-  const unsigned ny = std::max(1U, unsigned((xmax.y() - xmin.y())/dx + 0.5));
-  const unsigned nz = std::max(1U, unsigned((xmax.z() - xmin.z())/dx + 0.5));
-  CHECK(nx > 0 and nx <= n1d);
-  CHECK(ny > 0 and ny <= n1d);
-  CHECK(nz > 0 and nz <= n1d);
-
-  // Figure out the range of global IDs for this domain.
-  const unsigned nxy = nx*ny;
-  const unsigned nxyz = nx*ny*nz;
-  const unsigned ndomain0 = nxyz/numDomains;
-  const unsigned remainder = nxyz - ndomain0*numDomains;
-  CHECK(remainder < numDomains);
-  const unsigned ndomain = nxyz/numDomains + (domain < remainder ? 1 : 0);
-  const unsigned imin = domain*ndomain0 + min(domain, remainder);
-  const unsigned imax = imin + ndomain;
-  CHECK(domain < numDomains - 1 or imax == nxyz);
-  result.reserve(ndomain);
-
-  // Use an HCP lattice to do the filling.
-  for (i = imin; i != imax; ++i) {
-    const Vector pos = HCPposition(i, nx, ny, nz, dx, dx, dx, xmin, xmax);    
-    if (outerBoundary.contains(pos)) result.push_back(pos);
-  }
-  return result;
+  const auto& xmin = outerBoundary.xmin();
+  const auto& xmax = outerBoundary.xmax();
+  const auto  dx = (xmax - xmin).maxElement()/n1d;
+  return fillFacetedVolume10(outerBoundary, FacetedVolume(), dx, domain, numDomains);
 }
 
 //------------------------------------------------------------------------------
-// Fill an outer bounding volume where dx is user-defined.
+// Fill an outer bounding volume (dx specified).
 //------------------------------------------------------------------------------
 vector<Dim<3>::Vector>
 fillFacetedVolume2(const Dim<3>::FacetedVolume& outerBoundary,
-                   const double   dx,
+                   const double dx,
                    const unsigned domain,
                    const unsigned numDomains) {
+  VERIFY(dx > 0.0);
+  typedef Dim<3>::Vector Vector;
+  typedef Dim<3>::FacetedVolume FacetedVolume;
+  return fillFacetedVolume10(outerBoundary, FacetedVolume(), dx, domain, numDomains);
+}
+
+//------------------------------------------------------------------------------
+// Fill between an inner and outer boundary (specify x number of points).
+//------------------------------------------------------------------------------
+vector<Dim<3>::Vector>
+fillFacetedVolume3(const Dim<3>::FacetedVolume& innerBoundary,
+                   const Dim<3>::FacetedVolume& outerBoundary,
+                   const unsigned n1d,
+                   const unsigned domain,
+                   const unsigned numDomains) {
+  VERIFY(n1d > 0);
+  typedef Dim<3>::Vector Vector;
+  typedef Dim<3>::FacetedVolume FacetedVolume;
+  const auto& xmin = outerBoundary.xmin();
+  const auto& xmax = outerBoundary.xmax();
+  const auto  dx = (xmax - xmin).maxElement()/n1d;
+  return fillFacetedVolume10(outerBoundary, FacetedVolume(), dx, domain, numDomains);
+}
+
+//------------------------------------------------------------------------------
+// Fill between an inner and outer boundary (dx specified).
+//------------------------------------------------------------------------------
+vector<Dim<3>::Vector>
+fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
+                    const Dim<3>::FacetedVolume& innerBoundary,
+                    const double dx,
+                    const unsigned domain,
+                    const unsigned numDomains) {
+  typedef Dim<3>::Vector Vector;
   VERIFY(dx > 0.0);
   VERIFY(numDomains >= 1);
   VERIFY(domain < numDomains);
 
-  typedef Dim<3>::Vector Vector;
-  typedef Dim<3>::FacetedVolume FacetedVolume;
-
+  const bool useInner = not (innerBoundary.facets().empty());
   vector<Vector> result;
-  unsigned i, ix, iy, iz;
-  const Vector& xmin = outerBoundary.xmin();
-  const Vector& xmax = outerBoundary.xmax();
-  const unsigned nx = std::max(1U, unsigned((xmax.x() - xmin.x())/dx + 0.5));
-  const unsigned ny = std::max(1U, unsigned((xmax.y() - xmin.y())/dx + 0.5));
-  const unsigned nz = std::max(1U, unsigned((xmax.z() - xmin.z())/dx + 0.5));
-  CHECK(nx > 0);
-  CHECK(ny > 0);
-  CHECK(nz > 0);
 
-  // Figure out the range of global IDs for this domain.
-  const unsigned nxy = nx*ny;
-  const unsigned nxyz = nx*ny*nz;
-  const unsigned ndomain0 = nxyz/numDomains;
-  const unsigned remainder = nxyz - ndomain0*numDomains;
-  CHECK(remainder < numDomains);
-  const unsigned ndomain = nxyz/numDomains + (domain < remainder ? 1 : 0);
-  const unsigned imin = domain*ndomain0 + min(domain, remainder);
-  const unsigned imax = imin + ndomain;
-  CHECK(domain < numDomains - 1 or imax == nxyz);
-  result.reserve(ndomain);
+  // Find numbers of points
+  const auto& xmin = outerBoundary.xmin();
+  const auto& xmax = outerBoundary.xmax();
+  // cerr << "Bounding box: " << xmin << " " << xmax << endl;
+  const auto nx = std::max(1U, unsigned((xmax.x() - xmin.x())/dx + 0.5));
+  const auto ny = std::max(1U, unsigned((xmax.y() - xmin.y())/dx + 0.5));
+  const auto nz = std::max(1U, unsigned((xmax.z() - xmin.z())/dx + 0.5));
+  const Vector delta((xmax[0] - xmin[0])/nx,
+                     (xmax[1] - xmin[1])/ny,
+                     (xmax[2] - xmin[2])/nz);
 
-  // Use an HCP lattice to do the filling.
-  for (i = imin; i != imax; ++i) {
-    const Vector pos = HCPposition(i, nx, ny, nz, dx, dx, dx, xmin, xmax);    
-    if (outerBoundary.contains(pos)) result.push_back(pos);
+  // Pick the longest direction to construct our ray.
+  const auto length = 2.0*(xmax - xmin).magnitude();
+  unsigned stride_index, iindex, jindex, nplanerays1, nplanerays2;
+  Vector ray1, ray2;
+  if (nx >= ny and nx >= nz) {
+    nplanerays1 = ny;
+    nplanerays2 = nz;
+    stride_index = 0;
+    iindex = 1;
+    jindex = 2;
+    // cerr << " -- > Picked x-rays" << endl;
+  } else if (ny >= nx and ny >= nz) {
+    nplanerays1 = nx;
+    nplanerays2 = nz;
+    iindex = 0;
+    stride_index = 1;
+    jindex = 2;
+    // cerr << " -- > Picked y-rays" << endl;
+  } else {
+    nplanerays1 = nx;
+    nplanerays2 = ny;
+    iindex = 0;
+    jindex = 1;
+    stride_index = 2;
+    // cerr << " -- > Picked z-rays" << endl;
   }
-  return result;
-}
+  ray1[stride_index] = xmin[stride_index] - 0.1*length;
+  ray2[stride_index] = xmax[stride_index] + 0.1*length;
+  const auto nplanerays = nplanerays1*nplanerays2;
 
-//------------------------------------------------------------------------------
-// Fill between an inner and outer boundary.
-//------------------------------------------------------------------------------
-vector<Dim<3>::Vector>
-fillFacetedVolume(const Dim<3>::FacetedVolume& innerBoundary,
-                  const Dim<3>::FacetedVolume& outerBoundary,
-                  const unsigned n1d,
-                  const unsigned domain,
-                  const unsigned numDomains) {
-  typedef Dim<3>::Vector Vector;
-  typedef Dim<3>::FacetedVolume FacetedVolume;
-
-  vector<Vector> result;
-  unsigned i, ix, iy, iz;
-  const Vector& xmin = outerBoundary.xmin();
-  const Vector& xmax = outerBoundary.xmax();
-  const double dx = (xmax - xmin).maxElement()/n1d;
-  VERIFY(dx > 0.0);
-  const unsigned nx = std::max(1U, unsigned((xmax.x() - xmin.x())/dx + 0.5));
-  const unsigned ny = std::max(1U, unsigned((xmax.y() - xmin.y())/dx + 0.5));
-  const unsigned nz = std::max(1U, unsigned((xmax.z() - xmin.z())/dx + 0.5));
-  CHECK(nx > 0 and nx <= n1d);
-  CHECK(ny > 0 and ny <= n1d);
-  CHECK(nz > 0 and nz <= n1d);
-
-  // Figure out the range of global IDs for this domain.
-  const unsigned nxy = nx*ny;
-  const unsigned nxyz = nx*ny*nz;
-  const unsigned ndomain0 = nxyz/numDomains;
-  const unsigned remainder = nxyz - ndomain0*numDomains;
+  // How should we carve up the ray-casting work between MPI domains?
+  const unsigned ndomain0 = nplanerays/numDomains;
+  const unsigned remainder = nplanerays - ndomain0*numDomains;
   CHECK(remainder < numDomains);
-  const unsigned ndomain = nxyz/numDomains + (domain < remainder ? 1 : 0);
+  const unsigned ndomain = nplanerays/numDomains + (domain < remainder ? 1 : 0);
   const unsigned imin = domain*ndomain0 + min(domain, remainder);
   const unsigned imax = imin + ndomain;
-  CHECK(domain < numDomains - 1 or imax == nxyz);
-  result.reserve(ndomain);
+  CHECK(domain < numDomains - 1 or imax == nplanerays);
 
-  for (i = imin; i != imax; ++i) {
-    const Vector pos = HCPposition(i, nx, ny, nz, dx, dx, dx, xmin, xmax);    
-    if (outerBoundary.contains(pos) and not innerBoundary.contains(pos)) {
-        result.push_back(pos);
+  // Walk the projection plane axes.
+#pragma omp parallel
+  {
+    vector<unsigned> facetIDs;
+    vector<Vector> intersections;
+    vector<Vector> result_thread;
+#pragma omp for firstprivate (ray1, ray2)
+    for (auto nray = imin; nray < imax; ++nray) {
+      auto iray = nray % nplanerays1;
+      auto jray = nray / nplanerays1;
+      ray1[iindex] = xmin[iindex] + (iray + 0.5)*delta[iindex];
+      ray1[jindex] = xmin[jindex] + (jray + 0.5)*delta[jindex];
+      ray2[iindex] = ray1[iindex];
+      ray2[jindex] = ray1[jindex];
+      // cerr << " -- > Ray: " << ray1 << " --> " << ray2 << endl;
+
+      // Project through the volume and find intersection points (should be in pairs).
+      outerBoundary.intersections(ray1, ray2, facetIDs, intersections);
+      const auto nintersect = intersections.size();
+      CHECK(facetIDs.size() == nintersect);
+      // CHECK(nintersect % 2 == 0);
+      // cerr << "     intersections:";
+      // for (auto x: intersections) cerr << " " << x;
+      // cerr << endl;
+
+      // Now points between pairs of intersections should be interior to the surface.
+      for (auto i = 0; i < nintersect;) {
+        if (i + 1 < nintersect) {
+          const auto& x1 = intersections[i];
+          const auto& x2 = intersections[i + 1];
+
+          // Because of degeneracies, it's possible to get isolated intersection points
+          // rather than a pair bracketing interior space.  We have to check...
+          if (outerBoundary.contains(0.5*(x1 + x2), false)) {
+            // cerr << "     interval: " << x1 << " --> " << x2 << endl;
+            const auto  ni = max(1, int((x2[stride_index] - x1[stride_index])/dx + 0.5));
+            const auto  dstep = (x2 - x1)/ni;
+            for (auto k = 0; k < ni; ++k) result_thread.push_back(x1 + (k + 0.5)*dstep);
+            i += 2;    // This pair was interior, so skip to the next possible start
+          } else {
+            // cerr << "     -- > reject  : " << x1 << " --> " << x2 << endl;
+            i += 1;    // Looking for the next pair bounding interior
+          }
+        } else {
+          break;
+        }
+      }
+    }
+#pragma omp critical
+    {
+      result.insert(result.end(), result_thread.begin(), result_thread.end());
     }
   }
-
   return result;
 }
 

@@ -270,76 +270,76 @@ postStateUpdate(const Scalar time,
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivatives) {
 
-  typedef typename SymTensor::EigenStructType EigenStruct;
+//   typedef typename SymTensor::EigenStructType EigenStruct;
 
-  // Connectivity info.
-  const auto& connectivityMap = dataBase.connectivityMap();
-  const auto& nodeLists = connectivityMap.nodeLists();
-  const auto  numNodeLists = nodeLists.size();
-  const auto  nodeListi = distance(nodeLists.begin(), find(nodeLists.begin(), nodeLists.end(), &mNodeList));
-  CHECK(nodeListi < numNodeLists);
+//   // Connectivity info.
+//   const auto& connectivityMap = dataBase.connectivityMap();
+//   const auto& nodeLists = connectivityMap.nodeLists();
+//   const auto  numNodeLists = nodeLists.size();
+//   const auto  nodeListi = distance(nodeLists.begin(), find(nodeLists.begin(), nodeLists.end(), &mNodeList));
+//   CHECK(nodeListi < numNodeLists);
 
-  // Grab the state.
-  typedef typename State<Dimension>::KeyType Key;
-  const auto& x = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::position, mNodeList.name()), Vector::zero);
-  const auto& D = state.field(State<Dimension>::buildFieldKey(SolidFieldNames::tensorDamage, mNodeList.name()), SymTensor::zero);
-  const auto& m = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::mass, mNodeList.name()), 0.0);
-  const auto& rho = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::massDensity, mNodeList.name()), 0.0);
-  auto&       H = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::H, mNodeList.name()), SymTensor::zero);
-  auto&       S = state.field(State<Dimension>::buildFieldKey(SolidFieldNames::deviatoricStress, mNodeList.name()), SymTensor::zero);
+//   // Grab the state.
+//   typedef typename State<Dimension>::KeyType Key;
+//   const auto& x = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::position, mNodeList.name()), Vector::zero);
+//   const auto& D = state.field(State<Dimension>::buildFieldKey(SolidFieldNames::tensorDamage, mNodeList.name()), SymTensor::zero);
+//   const auto& m = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::mass, mNodeList.name()), 0.0);
+//   const auto& rho = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::massDensity, mNodeList.name()), 0.0);
+//   auto&       H = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::H, mNodeList.name()), SymTensor::zero);
+//   auto&       S = state.field(State<Dimension>::buildFieldKey(SolidFieldNames::deviatoricStress, mNodeList.name()), SymTensor::zero);
 
-  // Force the deviatoric stress of the damaged points to limit to the local average.
-  Field<Dimension, SymTensor> Snew("S sampled", mNodeList);
-#pragma omp parallel for
-  for (auto i = 0; i < mNodeList.numInternalNodes(); ++i) {
-    const auto& xi = x(i);
-    const auto& Hi = H(i);
-    const auto  Hdeti = Hi.Determinant();
-    const auto  Dmax = max(0.0, min(1.0, D(i).eigenValues().maxElement()));
-    const auto& connectivity = connectivityMap.connectivityForNode(&mNodeList, i)[nodeListi];
-    if (connectivity.size() > 0 and Dmax > 0.0) {
-      const auto weighti = m(i)*safeInv(rho(i));
-      auto       weightSum = (1.0 - Dmax)*weighti*mW(0.0, Hdeti);
-      Snew(i) = weightSum*S(i);
-      for (auto jItr = connectivity.begin(); jItr < connectivity.end(); ++jItr) {
-        const auto j = *jItr;
-        const auto weightj = m(j)*safeInv(rho(j));
-        const auto xij = xi - x(j);
-        const auto wj = max(0.0, min(1.0, 1.0 - D(j).eigenValues().maxElement())) * weightj * mW(Hi*xij, Hi);
-        weightSum += wj;
-        Snew(i) += wj*S(j);
-      }
-      Snew(i) *= safeInv(weightSum, 1.0e-10);
-      Snew(i) = (1.0 - Dmax)*S(i) + Dmax*Snew(i);
-    } else {
-      Snew(i) = S(i);
-    }
-  }
+//   // Force the deviatoric stress of the damaged points to limit to the local average.
+//   Field<Dimension, SymTensor> Snew("S sampled", mNodeList);
+// #pragma omp parallel for
+//   for (auto i = 0; i < mNodeList.numInternalNodes(); ++i) {
+//     const auto& xi = x(i);
+//     const auto& Hi = H(i);
+//     const auto  Hdeti = Hi.Determinant();
+//     const auto  Dmax = max(0.0, min(1.0, D(i).eigenValues().maxElement()));
+//     const auto& connectivity = connectivityMap.connectivityForNode(&mNodeList, i)[nodeListi];
+//     if (connectivity.size() > 0 and Dmax > 0.0) {
+//       const auto weighti = m(i)*safeInv(rho(i));
+//       auto       weightSum = (1.0 - Dmax)*weighti*mW(0.0, Hdeti);
+//       Snew(i) = weightSum*S(i);
+//       for (auto jItr = connectivity.begin(); jItr < connectivity.end(); ++jItr) {
+//         const auto j = *jItr;
+//         const auto weightj = m(j)*safeInv(rho(j));
+//         const auto xij = xi - x(j);
+//         const auto wj = max(0.0, min(1.0, 1.0 - D(j).eigenValues().maxElement())) * weightj * mW(Hi*xij, Hi);
+//         weightSum += wj;
+//         Snew(i) += wj*S(j);
+//       }
+//       Snew(i) *= safeInv(weightSum, 1.0e-10);
+//       Snew(i) = (1.0 - Dmax)*S(i) + Dmax*Snew(i);
+//     } else {
+//       Snew(i) = S(i);
+//     }
+//   }
 
-  // We require the H tensors of nodes approach unit aspect ratio as the damage
-  // is increased.
-  // Iterate over our nodes and limit H's as need be.
-#pragma omp parallel for
-  for (auto i = 0; i < mNodeList.numInternalNodes(); ++i) {
-    const auto& Di = D(i);
-    auto&       Hi = H(i);
-    const auto  Dmax = max(0.0, min(1.0, Di.eigenValues().maxElement()));
-    if (Dmax > mNodeList.hminratio()) {
-      const auto Heigen = Hi.Inverse().eigenVectors();
-      const auto hmineff = Dmax*Heigen.eigenValues.maxElement();
-      auto       HnewInv = constructSymTensorWithMaxDiagonal(Heigen.eigenValues, hmineff);
-      HnewInv.rotationalTransform(Heigen.eigenVectors);
-      Hi = HnewInv.Inverse();
-    }
-  }
+//   // We require the H tensors of nodes approach unit aspect ratio as the damage
+//   // is increased.
+//   // Iterate over our nodes and limit H's as need be.
+// #pragma omp parallel for
+//   for (auto i = 0; i < mNodeList.numInternalNodes(); ++i) {
+//     const auto& Di = D(i);
+//     auto&       Hi = H(i);
+//     const auto  Dmax = max(0.0, min(1.0, Di.eigenValues().maxElement()));
+//     if (Dmax > mNodeList.hminratio()) {
+//       const auto Heigen = Hi.Inverse().eigenVectors();
+//       const auto hmineff = Dmax*Heigen.eigenValues.maxElement();
+//       auto       HnewInv = constructSymTensorWithMaxDiagonal(Heigen.eigenValues, hmineff);
+//       HnewInv.rotationalTransform(Heigen.eigenVectors);
+//       Hi = HnewInv.Inverse();
+//     }
+//   }
 
-  // Apply boundary conditions since we've changed the state.
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) {
-    (*boundaryItr)->applyGhostBoundary(S);
-    (*boundaryItr)->applyGhostBoundary(H);
-  }
+//   // Apply boundary conditions since we've changed the state.
+//   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+//        boundaryItr != this->boundaryEnd();
+//        ++boundaryItr) {
+//     (*boundaryItr)->applyGhostBoundary(S);
+//     (*boundaryItr)->applyGhostBoundary(H);
+//   }
 
 }
 

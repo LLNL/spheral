@@ -218,7 +218,7 @@ selectDt(const typename Dimension::Scalar dtMin,
   dt.first = std::min(dt.first, dtGrowth()*lastDt());
 
   // Enforce the timestep boundaries.
-  dt.first = std::min(dtMax, max(dtMin, dt.first));
+  dt.first = std::min(dtMax, std::max(dtMin, dt.first));
 
   CHECK(dt.first >= 0.0 and
         dt.first >= dtMin and dt.first <= dtMax);
