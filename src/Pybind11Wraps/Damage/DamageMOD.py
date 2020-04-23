@@ -40,6 +40,7 @@ TensorStrainAlgorithm = PYB11enum(("BenzAsphaugStrain",
                                    "PseudoPlasticStrain"), export_values=True)
 EffectiveDamageAlgorithm = PYB11enum(("CopyDamage",
                                       "MaxDamage",
+                                      "MinMaxDamage",
                                       "SampledDamage"), export_values=True)
 EffectiveFlawAlgorithm = PYB11enum(("FullSpectrumFlaws",
                                     "MinFlaw",

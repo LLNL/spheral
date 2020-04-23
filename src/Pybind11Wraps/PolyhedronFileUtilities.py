@@ -206,13 +206,15 @@ def writePolyhedraSTL(polys,
         facets = poly.facets
         f.write("solid %s\n" % name)
         for facet in facets:
-            ipoints = facet.ipoints
-            f.write("  facet normal %e %e %e\n" % tuple(facet.normal))
-            f.write("    outer loop\n")
-            for i in ipoints:
-                f.write("      vertex %e %e %e\n" % tuple(verts[i]))
-            f.write("    endloop\n")
-            f.write("  endfacet\n")
+            tris = facet.triangles()
+            for subfacet in tris:
+                ipoints = subfacet.ipoints
+                f.write("  facet normal %e %e %e\n" % tuple(subfacet.normal))
+                f.write("    outer loop\n")
+                for i in ipoints:
+                    f.write("      vertex %e %e %e\n" % tuple(verts[i]))
+                f.write("    endloop\n")
+                f.write("  endfacet\n")
         f.write("endsolid\n")
     f.close()
     return

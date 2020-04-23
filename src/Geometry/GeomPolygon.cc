@@ -651,13 +651,35 @@ intersect(const std::pair<Vector, Vector>& rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// Test if we intersect a line segment (interior counts as intersection).
+//------------------------------------------------------------------------------
+bool
+GeomPolygon::
+intersect(const Vector& s0, const Vector& s1) const {
+  if (this->contains(s0) or this->contains(s1)) return true;
+
+  // Check each segment of the polygon
+  Vector inter1, inter2;
+  const auto n = mVertices.size();
+  for (auto i = 0; i < n; ++i) {
+    const auto& e0 = mVertices[i];
+    const auto& e1 = mVertices[(i + 1) % n];
+    const auto code = segmentSegmentIntersection(s0, s1, e0, e1, inter1, inter2);
+    if (code == '1' or
+        code == 'v' or
+        code == 'e') return true;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
 // Find the Facets and points intersecting a line segment (s0, s1).
 //------------------------------------------------------------------------------
 void
 GeomPolygon::
-intersect(const Vector& s0, const Vector& s1,
-          std::vector<unsigned>& facetIDs,
-          std::vector<Vector>& intersections) const {
+intersections(const Vector& s0, const Vector& s1,
+              std::vector<unsigned>& facetIDs,
+              std::vector<Vector>& intersections) const {
   facetIDs.clear();
   intersections.clear();
 

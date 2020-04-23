@@ -44,7 +44,8 @@ enum class TensorStrainAlgorithm {
 enum class EffectiveDamageAlgorithm {
   CopyDamage = 0,
   MaxDamage = 1,
-  SampledDamage = 2,
+  MinMaxDamage = 2,
+  SampledDamage = 3,
 };
 
 template<typename Dimension>
