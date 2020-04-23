@@ -163,7 +163,11 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
     const unsigned n = mass[nodeListi]->numElements();
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+#ifdef WIN32
       if (circi > 0.0) mass(nodeListi, i) /= circi;
+#else
+      mass(nodeListi, i) /= circi;
+#endif
     }
   }
 
@@ -175,7 +179,11 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
     const unsigned n = mass[nodeListi]->numElements();
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+#ifdef WIN32
       if (circi > 0.0) mass(nodeListi, i) *= circi;
+#else
+      mass(nodeListi, i) *= circi;
+#endif
     }
   }
 }
@@ -234,7 +242,11 @@ preStepInitialize(const DataBase<Dim<2>>& dataBase,
     const unsigned n = mass[nodeListi]->numElements();
     for (unsigned i = 0; i != n; ++i) {
       const auto circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+#ifdef WIN32
       if (circi > 0.0) mass(nodeListi, i) /= circi;
+#else
+      mass(nodeListi, i) /= circi;
+#endif
     }
   }
 
@@ -247,7 +259,11 @@ preStepInitialize(const DataBase<Dim<2>>& dataBase,
     for (unsigned i = 0; i != n; ++i) {
       const auto& xi = pos(nodeListi, i);
       const auto circi = 2.0*M_PI*abs(xi.y());
+#ifdef WIN32
       if (circi > 0.0) mass(nodeListi, i) *= circi;
+#else
+      mass(nodeListi, i) *= circi;
+#endif
     }
   }
 }
@@ -718,7 +734,11 @@ applyGhostBoundaries(State<Dim<2>>& state,
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
       CHECK(circi > 0.0);
+#ifdef WIN32
       if (circi > 0.0) mass(nodeListi, i) /= circi;
+#else
+      mass(nodeListi, i) /= circi;
+#endif
     }
   }
 
@@ -734,7 +754,11 @@ applyGhostBoundaries(State<Dim<2>>& state,
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
       CHECK(circi > 0.0);
+#ifdef WIN32
       if (circi > 0.0) mass(nodeListi, i) *= circi;
+#else
+      mass(nodeListi, i) *= circi;
+#endif
     }
   }
 }
@@ -756,7 +780,11 @@ enforceBoundaries(State<Dim<2>>& state,
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
       CHECK(circi > 0.0);
+#ifdef WIN32
       if (circi > 0.0) mass(nodeListi, i) /= circi;
+#else
+      mass(nodeListi, i) /= circi;
+#endif
     }
   }
 
@@ -772,7 +800,11 @@ enforceBoundaries(State<Dim<2>>& state,
     for (unsigned i = 0; i != n; ++i) {
       Vector& posi = pos(nodeListi, i);
       const Scalar circi = 2.0*M_PI*abs(posi.y());
+#ifdef WIN32
       if (circi > 0.0) mass(nodeListi, i) *= circi;
+#else
+      mass(nodeListi, i) *= circi;
+#endif
     }
   }
 }
