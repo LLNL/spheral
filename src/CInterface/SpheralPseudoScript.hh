@@ -155,7 +155,8 @@ public:
   static void sampleLatticeMesh(const Vector&  xmin,
                                 const Vector&  xmax,
                                 const int*     nsamples,
-                                double*        latticeDensity);
+                                double*        latticeDensity,
+                                double**       latticeVelocity);
 
   static void polyhedralMesh(int*           nnodes,
                              int*           nfaces,
