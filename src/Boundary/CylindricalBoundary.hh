@@ -78,6 +78,10 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
+  // Prevent the Boundary virtual methods from being hidden
+  using Boundary<Dimension>::applyGhostBoundary;
+  using Boundary<Dimension>::enforceBoundary;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   FieldList<Dim<3>, Scalar> mDeltaPhi;

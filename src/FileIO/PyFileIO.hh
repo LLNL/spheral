@@ -250,6 +250,10 @@ public:
   template<typename Value> void  read(std::vector<Value>& x, const std::string pathName) const { FileIO::read(x, pathName); }
   //------------------------------------------------------------------------------
 
+  // Forward hidden base class methods
+  using FileIO::write;
+  using FileIO::read;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   // Don't allow assignment.
