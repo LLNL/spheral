@@ -121,6 +121,10 @@ public:
                          std::vector<int>& masterList,
                          std::vector<int>& coarseNeighbors) const;
 
+  // Expose hidden Neighbor methods
+  using Neighbor<Dimension>::setMasterList;
+  using Neighbor<Dimension>::setRefineNeighborList;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   static const unsigned num1dbits;                   // The number of bits we quantize 1D coordinates to.  We have to fit three of these in 64 bits.

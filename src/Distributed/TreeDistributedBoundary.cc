@@ -190,7 +190,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase,
                                        xmaxSampleLocal);
   packElement(centroidLocal, localBuffer);
   packElement(radiusNodesLocal, localBuffer);
-  packElement(radiusNodesLocal, localBuffer);
+  packElement(radiusSampleLocal, localBuffer);
   packElement(xminNodesLocal, localBuffer);
   packElement(xmaxNodesLocal, localBuffer);
   packElement(xminSampleLocal, localBuffer);
@@ -232,7 +232,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase,
       unpackElement(otherTree, bufItr, buffer.end());
       unpackElement(centroidOther, bufItr, buffer.end());
       unpackElement(radiusNodesOther, bufItr, buffer.end());
-      unpackElement(radiusNodesOther, bufItr, buffer.end());
+      unpackElement(radiusSampleOther, bufItr, buffer.end());
       unpackElement(xminNodesOther, bufItr, buffer.end());
       unpackElement(xmaxNodesOther, bufItr, buffer.end());
       unpackElement(xminSampleOther, bufItr, buffer.end());

@@ -81,8 +81,8 @@ class PeriodicBoundary(PlanarBoundary):
 
     #...........................................................................
     # Properties
-    enterPlane = PYB11property("const Plane&", "enterPlane", "setEnterPlane", doc="The first plane for periodic wrapping")
-    exitPlane = PYB11property("const Plane&", "exitPlane", "setExitPlane", doc="The second plane for periodic wrapping")
+    enter = PYB11property("const Plane&", "enterPlane", "setEnterPlane", doc="The first plane for periodic wrapping")
+    exit = PYB11property("const Plane&", "exitPlane", "setExitPlane", doc="The second plane for periodic wrapping")
 
 #-------------------------------------------------------------------------------
 # Inject methods

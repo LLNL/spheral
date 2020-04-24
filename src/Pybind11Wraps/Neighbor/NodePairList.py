@@ -8,7 +8,8 @@ class NodePairIdxType:
                i_n = "int",
                i_l = "int",
                j_n = "int",
-               j_l = "int"):
+               j_l = "int",
+               f = ("double", "1.0")):
       "Constructor"
       return
 
@@ -36,6 +37,7 @@ class NodePairIdxType:
     j_node = PYB11readwrite()
     i_list = PYB11readwrite()
     j_list = PYB11readwrite()
+    f_couple = PYB11readwrite()
 
 #-------------------------------------------------------------------------------
 # NodePairList

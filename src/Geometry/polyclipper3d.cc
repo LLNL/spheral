@@ -291,7 +291,7 @@ polyhedron2string(const Polyhedron& poly) {
 // Convert Spheral::GeomPolyhedron -> PolyClipper::Polyhedron.
 //------------------------------------------------------------------------------
 void convertToPolyhedron(Polyhedron& polyhedron,
-                      const Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron) {
+                         const Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron) {
   TIME_PC3d_convertto.start();
 
   const auto& vertPositions = Spheral_polyhedron.vertices();

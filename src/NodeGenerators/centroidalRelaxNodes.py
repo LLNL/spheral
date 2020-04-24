@@ -2,6 +2,7 @@ from math import *
 import mpi
 
 import Spheral
+from siloPointmeshDump import *
 try:
     from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
 except:
@@ -17,7 +18,8 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                          gradrho = None,
                          boundaries = [],
                          maxIterations = 100,
-                         fracTol = 1.0e-3,
+                         maxFracTol = 1.0e-2,
+                         avgFracTol = 1.0e-3,
                          correctionOrder = Spheral.LinearOrder,
                          centroidFrac = 0.25,
                          tessellationBaseDir = ".",
@@ -122,6 +124,17 @@ def centroidalRelaxNodes(nodeListsAndBounds,
     cellFaceFlags = db.newGlobalvector_of_CellFaceFlagFieldList(sph.vector_of_CellFaceFlag(), "face flags")
     etaVoidPoints = db.newGlobalvector_of_VectorFieldList(eval("sph.vector_of_Vector%id()" % db.nDim), "eta void points")
 
+    # Initialize volume
+    massf = db.fluidMass
+    rhof = db.fluidMassDensity
+    numNodeLists = db.numFluidNodeLists
+    for k in xrange(numNodeLists):
+        n = massf[k].numInternalElements
+        for i in xrange(n):
+            assert massf(k,i) > 0.0, "Bad mass (%i,%i), %g" % (k, i, massf(k,i))
+            assert rhof(k,i) > 0.0, "Bad density (%i,%i), %g" % (k, i, rhof(k,i))
+            vol[k][i] = massf(k,i)/rhof(k,i)
+
     # We let the C++ method do the heavy lifting.
     iterations = sph.centroidalRelaxNodesImpl(db,
                                               bounds,
@@ -133,7 +146,8 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                                               useGradRhoFunc,
                                               bound_vec,
                                               maxIterations,
-                                              fracTol,
+                                              maxFracTol,
+                                              avgFracTol,
                                               correctionOrder,
                                               centroidFrac,
                                               vol,
@@ -160,6 +174,15 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                              cells,
                              cellFaceFlags)
 
+    # Update the masses using rho and volume.
+    rho = db.fluidMassDensity
+    for k, nodes in enumerate(db.fluidNodeLists()):
+        n = nodes.numInternalNodes
+        mass = nodes.mass()
+        for i in xrange(n):
+            assert vol(k,i) > 0.0
+            mass[k] = vol(k,i)*rho(k,i)
+
     # If requested, dump the final info to a diagnostic viz file.
     if tessellationFileName and SpheralVoronoiSiloDump:
         dumper = SpheralVoronoiSiloDump(baseFileName = tessellationFileName,
@@ -168,5 +191,8 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                                         boundaries = boundaries,
                                         cells = cells)
         dumper.dump(0.0, iterations)
+
+        siloPointmeshDump(baseName = tessellationFileName + "_points",
+                          fieldLists = [vol, surfacePoint, db.fluidMass, db.fluidMassDensity])
 
     return vol, surfacePoint

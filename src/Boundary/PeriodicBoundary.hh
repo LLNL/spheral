@@ -67,6 +67,10 @@ public:
 
   virtual std::string label() const override { return "PeriodicBoundary"; }
 
+  // Prevent the Boundary virtual methods from being hidden
+  using Boundary<Dimension>::applyGhostBoundary;
+  using Boundary<Dimension>::enforceBoundary;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   // The PeriodicBounary actually is made up of two nested class boundary 
