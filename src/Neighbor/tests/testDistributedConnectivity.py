@@ -167,7 +167,7 @@ iterateIdealH(dataBase,
               method,
               100, # max h iterations
               1.e-4) # h tolerance
-dataBase.updateConnectivityMap(testOverlap, testOverlap)
+dataBase.updateConnectivityMap(True, testOverlap)
 
 #-------------------------------------------------------------------------------
 # Create the distributed boundary and compute the connectivity
@@ -179,8 +179,8 @@ for fl in fieldLists:
 domainbc.finalizeGhostBoundary()
 for NN in dataBase.nodeLists():
     NN.neighbor().updateNodes()
-dataBase.updateConnectivityMap(testOverlap, testOverlap)
-connectivity = dataBase.connectivityMap(testOverlap, testOverlap)
+dataBase.updateConnectivityMap(True, testOverlap)
+connectivity = dataBase.connectivityMap(True, testOverlap)
 output("connectivity")
 output("dataBase.numNodes")
 output("dataBase.numInternalNodes")
@@ -205,9 +205,10 @@ output("globalIndicesFL")
 #-------------------------------------------------------------------------------
 globalIndices = []
 globalConnectivity = []
-for ni in range(dataBase.numNodeLists):
-    for i in range(connectivity.numNodes(ni)):
+for ni, nodeList in enumerate(dataBase.nodeLists()):
+    for i in range(nodeList.numNodes):
         globali = globalIndicesFL(ni, i)
+        print globali
         globalConnectivityi = []
         connectivityi = connectivity.overlapConnectivityForNode(ni, i) if testOverlap else connectivity.connectivityForNode(ni, i)
         for nj in range(dataBase.numNodeLists):
@@ -216,9 +217,9 @@ for ni in range(dataBase.numNodeLists):
                 globalConnectivityi.append(globalj)
         globalIndices.append(globali)
         globalConnectivity.append(set(globalConnectivityi))
-if mpi.procs > 1:
-    globalIndices = mpi.allreduce(globalIndices)
-    globalConnectivity = mpi.allreduce(globalConnectivity)
+# if mpi.procs > 1:
+#     globalIndices = mpi.allreduce(globalIndices)
+#     globalConnectivity = mpi.allreduce(globalConnectivity)
 globalData = dict(zip(globalIndices, globalConnectivity))
 
 #-------------------------------------------------------------------------------
@@ -239,12 +240,14 @@ else:
 #-------------------------------------------------------------------------------
 # Check connectivity
 #-------------------------------------------------------------------------------e
-if mpi.rank == 0 and mpi.procs > 1:
+if mpi.procs > 1:
     # Go through serial connectivity and make sure parallel connectivity is the same
+    # Note that we do this on every processor so that we are checking the ghost nodes
+    # for connectivity as well
     numFailures = 0
-    for i, cs in serialData.items():
-        if i in globalData:
-            cp = globalData[i]
+    for i, cp in globalData.items():
+        if i in serialData:
+            cs = serialData[i]
             # The parallel connectivity contains more points than the serial
             # (is this expected?), so we check whether the parallel connectivity
             # contains the complete serial connectivity
@@ -262,7 +265,7 @@ if mpi.rank == 0 and mpi.procs > 1:
                 numFailures += 1
         else:
             numFailures += 1
-            print "point {} not found".format(i)
+            print "point {} not found in serial data".format(i)
     if numFailures > 0:
         raise ValueError, "num points with connectivity differences: {}".format(numFailures)
     else:
