@@ -17,7 +17,8 @@ commandLine(
     ranfrac = 0.2,
     
     # Testing options
-    testOverlap = False,
+    testGhosts = True, # Check all the nodes, not just internal
+    testOverlap = False, # Check the overlap connectivity
     printErrors = False, # Print the differences in the connectivity
     standardGlobalIDs = False, # This should work in 1D, but probably not otherwise
     testSuperset = False, # Test if parallel connectivity is superset of serial; otherwise they must be equal
@@ -167,7 +168,7 @@ iterateIdealH(dataBase,
               method,
               100, # max h iterations
               1.e-4) # h tolerance
-dataBase.updateConnectivityMap(True, testOverlap)
+dataBase.updateConnectivityMap(testGhosts, testOverlap)
 
 #-------------------------------------------------------------------------------
 # Create the distributed boundary and compute the connectivity
@@ -179,8 +180,8 @@ for fl in fieldLists:
 domainbc.finalizeGhostBoundary()
 for NN in dataBase.nodeLists():
     NN.neighbor().updateNodes()
-dataBase.updateConnectivityMap(True, testOverlap)
-connectivity = dataBase.connectivityMap(True, testOverlap)
+dataBase.updateConnectivityMap(testGhosts, testOverlap)
+connectivity = dataBase.connectivityMap(testGhosts, testOverlap)
 output("connectivity")
 output("dataBase.numNodes")
 output("dataBase.numInternalNodes")
@@ -206,9 +207,8 @@ output("globalIndicesFL")
 globalIndices = []
 globalConnectivity = []
 for ni, nodeList in enumerate(dataBase.nodeLists()):
-    for i in range(nodeList.numNodes):
+    for i in range(nodeList.numNodes if testGhosts else nodeList.numInternalNodes):
         globali = globalIndicesFL(ni, i)
-        print globali
         globalConnectivityi = []
         connectivityi = connectivity.overlapConnectivityForNode(ni, i) if testOverlap else connectivity.connectivityForNode(ni, i)
         for nj in range(dataBase.numNodeLists):
