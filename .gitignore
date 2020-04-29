@@ -11,6 +11,7 @@ syntax: glob
 *.C
 *.log
 *.silo
+*_stamp.cmake
 *.job
 *.job.out
 job.out*

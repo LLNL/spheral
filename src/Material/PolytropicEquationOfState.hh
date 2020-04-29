@@ -89,27 +89,26 @@ public:
                  const Scalar specificThermalEnergy) const;
 
   // Access the member data.
-  double polytropicConstant() const;
-  double polytropicIndex() const;
-  double gamma() const;
-  double molecularWeight() const;
+  Scalar polytropicConstant() const;
+  Scalar polytropicIndex() const;
+  Scalar gamma() const;
+  virtual Scalar molecularWeight() const;
   
   // If requested, the user can specify an external pressure to be applied
   // in the pressure calculation.
-  double externalPressure() const;
-  void setExternalPressure(double P);
+  Scalar externalPressure() const;
+  void setExternalPressure(Scalar P);
 
   virtual bool valid() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  double mPolytropicConstant;
-  double mPolytropicIndex;
-  double mGamma;
-  double mGamma1;
-  double mMolecularWeight;
-
-  double mExternalPressure;
+  Scalar mPolytropicConstant;
+  Scalar mPolytropicIndex;
+  Scalar mGamma;
+  Scalar mGamma1;
+  Scalar mMolecularWeight;
+  Scalar mExternalPressure;
 
   // No default constructor, copying, or assignment.
   PolytropicEquationOfState();

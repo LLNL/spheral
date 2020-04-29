@@ -42,8 +42,9 @@ class Box1d:
         return "bool"
 
     @PYB11const
-    def intersect(self,
-                  rhs = "const Box1d&"):
+    @PYB11pycppname("intersect")
+    def intersect1(self,
+                   rhs = "const Box1d&"):
         "Test if we intersect another box."
         return "bool"
 
@@ -54,9 +55,18 @@ class Box1d:
         return "bool"
 
     @PYB11const
-    def intersect(self,
-                  rhs = "const std::pair<Vector, Vector>&"):
+    @PYB11pycppname("intersect")
+    def intersect2(self,
+                   rhs = "const std::pair<Vector, Vector>&"):
         "Test if we intersect another box represented by a min/max pair of coordinates."
+        return "bool"
+
+    @PYB11const
+    @PYB11pycppname("intersect")
+    def intersect3(self,
+                   s0 = "const Vector&",
+                   s1 = "const Vector&"):
+        "Test if we intersect a line segment (interior counts as intersection)."
         return "bool"
 
     @PYB11const

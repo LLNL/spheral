@@ -112,9 +112,8 @@ evaluateDerivatives(const Scalar time,
   const auto& rho = state.field(state.buildFieldKey(HydroFieldNames::massDensity, nodeListPtr->name()), 0.0);
   const auto& H = state.field(state.buildFieldKey(HydroFieldNames::H, nodeListPtr->name()), SymTensor::zero);
   const auto& D = state.field(state.buildFieldKey(SolidFieldNames::tensorDamage, nodeListPtr->name()), SymTensor::zero);
-
-  auto& Deff = derivs.field(state.buildFieldKey(EffectiveTensorDamagePolicy<Dimension>::prefix() + SolidFieldNames::effectiveTensorDamage, nodeListPtr->name()), SymTensor::zero);
-  auto& gradD = derivs.field(state.buildFieldKey(DamageGradientPolicy<Dimension>::prefix() + SolidFieldNames::damageGradient, nodeListPtr->name()), Vector::zero);
+  auto&       Deff = derivs.field(state.buildFieldKey(EffectiveTensorDamagePolicy<Dimension>::prefix() + SolidFieldNames::effectiveTensorDamage, nodeListPtr->name()), SymTensor::zero);
+  auto&       gradD = derivs.field(state.buildFieldKey(DamageGradientPolicy<Dimension>::prefix() + SolidFieldNames::damageGradient, nodeListPtr->name()), Vector::zero);
 
   // Get the kernel.
   const auto& W = this->kernel();
@@ -127,10 +126,8 @@ evaluateDerivatives(const Scalar time,
   CHECK(nodeListi < nodeLists.size());
   const auto firstGhostNodei = nodeListPtr->firstGhostNode();
 
-  // Prepare the effective damage for computation.
+  // Prepare to account for damage statistics.
   Field<Dimension, Scalar> normalization("normalization", *nodeListPtr, 0.0);
-  if (mEffDamageAlgorithm == EffectiveDamageAlgorithm::MaxDamage or
-      mEffDamageAlgorithm == EffectiveDamageAlgorithm::CopyDamage) Deff = D;
 
   // Iterate over the internal nodes in this NodeList.
   const auto ni = connectivityMap.numNodes(nodeListi);
@@ -145,17 +142,18 @@ evaluateDerivatives(const Scalar time,
     const auto& Hi = H(i);
     const auto  Hdeti = Hi.Determinant();
     const auto& Di = D(i);
-    const auto  Dmagi = max(0.0, min(1.0, Di.Trace()/Dimension::nDim));
+    const auto  Dmagi = Di.Trace();
     auto&       normalizationi = normalization(i);
     auto&       Deffi = Deff(i);
     auto&       gradDi = gradD(i);
     CHECK(mi > 0.0);
     CHECK(rhoi > 0.0);
     CHECK(Hdeti > 0.0);
-    CHECK(Dmagi >= 0.0 and Dmagi <= 1.0);
 
     // Scratch variables.
     Scalar Wi, gWi;
+    auto Dmin = SymTensor::one;
+    auto Dmax = SymTensor::zero;
 
     // Get the connectivity info for this node.  We only need to proceed if
     // there are some nodes in this list.
@@ -170,42 +168,47 @@ evaluateDerivatives(const Scalar time,
         const auto& mj = mass(j);
         const auto& rj = position(j);
         const auto& Dj = D(j);
-        const auto  Dmagj = max(0.0, min(1.0, Dj.Trace()/Dimension::nDim));
+        const auto  Dmagj = Dj.Trace();
         CHECK(mj > 0.0);
-        CHECK(Dmagj >= 0.0 and Dmagj <= 1.0);
 
         // Node displacement and weighting.
         const Vector etai = Hi*(ri - rj);
         std::tie(Wi, gWi) = W.kernelAndGradValue(etai.magnitude(), Hdeti);
         const auto gradWi = (Hi*etai.unitVector()) * gWi;
 
-        // Increment the effective damage.
-        switch(mEffDamageAlgorithm) {
-        case EffectiveDamageAlgorithm::MaxDamage:
-          if (Dmagj * Dimension::nDim > Deffi.Trace()) Deffi = Dj;
-          break;
-
-        case EffectiveDamageAlgorithm::SampledDamage:
-          normalizationi += Wi;
-          Deffi += Wi * Dj;
-          break;
-
-        case EffectiveDamageAlgorithm::CopyDamage:
-          // noop
-          break;
-        }
+        // Damage statistics
+        if (Dmagj < Dmin.Trace()) Dmin = Dj;
+        if (Dmagj > Dmax.Trace()) Dmax = Dj;
+        normalizationi += Wi;
+        Deffi += Wi * Dj;
 
         // Increment the gradient.
         gradDi += mj*(Dj - Di)*gradWi;
       }
     }
 
-    // Finish the effective damage by adding in the self-contribution and 
-    // normalizing the sucker.
-    if (mEffDamageAlgorithm == EffectiveDamageAlgorithm::SampledDamage) {
-      CHECK(normalizationi >= 0.0);
-      const auto Wi = W.kernelValue(0.0, Hdeti);
-      Deffi = (Deffi + Dmagi*Wi*Di)/(normalizationi + Dmagi*Wi + tiny);
+    // Finish the effective damage
+    switch(mEffDamageAlgorithm) {
+      case EffectiveDamageAlgorithm::CopyDamage:
+        Deffi = Di;
+        break;
+
+      case EffectiveDamageAlgorithm::MaxDamage:
+        if (Dmax.Trace() > Dmagi) Deffi = Dmax;
+        break;
+
+      case EffectiveDamageAlgorithm::MinMaxDamage:
+        if (Dmax.Trace() <= Dmagi) {
+          Deffi = Di;
+        } else {
+          Deffi = Dmin;
+        }
+        break;
+
+      case EffectiveDamageAlgorithm::SampledDamage:
+        const auto Wi = W.kernelValue(0.0, Hdeti);
+        Deffi = (Deffi + Wi*Di)*safeInvVar(normalizationi + Wi, tiny);
+        break;
     }
 
     // Finish the gradient.
@@ -229,20 +232,21 @@ dt(const DataBase<Dimension>& dataBase,
    const StateDerivatives<Dimension>& derivs,
    const Scalar currentTime) const {
 
-//   // Look at how quickly we're trying to change the damage.
-//   double dt = DBL_MAX;
-//   const Field<Dimension, SymTensor>& damage = this->nodeList().damage();
-//   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-//   const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
-//   const size_t nodeListi = distance(nodeLists.begin(), find(nodeLists.begin(), nodeLists.end(), &(this->nodeList())));
-//   for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-//        iItr != connectivityMap.end(nodeListi);
-//        ++iItr) {
-//     const int i = *iItr;
-//     const double D0 = damage(i).Trace() / Dimension::nDim;
-//     dt = min(dt, 0.8*max(D0, 1.0 - D0)/
-//              std::sqrt(mDdamageDt(i)*mDdamageDt(i) + 1.0e-20));
-//   }
+  // // Look at how quickly we're trying to change the damage.
+  // double dt = DBL_MAX;
+  // const Field<Dimension, SymTensor>& damage = this->nodeList().damage();
+  // const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  // const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
+  // const size_t nodeListi = distance(nodeLists.begin(), find(nodeLists.begin(), nodeLists.end(), &(this->nodeList())));
+  // for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+  //      iItr != connectivityMap.end(nodeListi);
+  //      ++iItr) {
+  //   const int i = *iItr;
+  //   const double D0 = damage(i).Trace() / Dimension::nDim;
+  //   dt = min(dt, 0.8*max(D0, 1.0 - D0)/
+  //            std::sqrt(mDdamageDt(i)*mDdamageDt(i) + 1.0e-20));
+  // }
+  // return TimeStepType(dt, "Rate of damage change");
 
   return TimeStepType(1.0e100, "Rate of damage change -- NO VOTE.");
 }
@@ -287,21 +291,23 @@ registerState(DataBase<Dimension>& dataBase,
     if (damage(i).Trace() > mCriticalDamageThreshold) mask(i) = 0;
   }
 
-//   // Damage some of the state variables.
-//   typedef typename State<Dimension>::FieldKeyType Key;
-//   const NodeList<Dimension>* nodeListPtr = &(this->nodeList());
-//   const Key KKey(nodeListPtr, SolidFieldNames::bulkModulus);
-//   const Key muKey(nodeListPtr, SolidFieldNames::shearModulus);
-//   const Key DKey(nodeListPtr, SolidFieldNames::tensorDamage);
-//   Field<Dimension, Scalar>& K = state.scalarField(KKey);
-//   Field<Dimension, Scalar>& mu = state.scalarField(muKey);
-//   const Field<Dimension, SymTensor>& D = state.symTensorField(DKey);
-//   for (int i = 0; i != nodeListPtr->numInternalNodes(); ++i) {
-//     const Scalar fDi = std::max(0.0, std::min(1.0, 1.0 - D(i).eigenValues().maxElement() - 1.0e-5));
-//     CHECK(fDi >= 0.0 && fDi <= 1.0);
-//     K(i) *= fDi;
-//     mu(i) *= fDi;
-//   }
+  // // Damage some of the state variables.
+  // const auto* nodeListPtr = &(this->nodeList());
+  // const auto  KKey = State<Dimension>::buildFieldKey(SolidFieldNames::bulkModulus, nodeListPtr->name());
+  // const auto  muKey = State<Dimension>::buildFieldKey(SolidFieldNames::shearModulus, nodeListPtr->name());
+  // const auto  YKey = State<Dimension>::buildFieldKey(SolidFieldNames::yieldStrength, nodeListPtr->name());
+  // const auto  DKey = State<Dimension>::buildFieldKey(SolidFieldNames::tensorDamage, nodeListPtr->name());
+  // auto&       K = state.field(KKey, 0.0);
+  // auto&       mu = state.field(muKey, 0.0);
+  // auto&       Y = state.field(YKey, 0.0);
+  // const auto& D = state.field(DKey, SymTensor::zero);
+  // for (auto i = 0; i < nodeListPtr->numInternalNodes(); ++i) {
+  //   const auto fDi = std::max(0.0, std::min(1.0, 1.0 - D(i).eigenValues().maxElement() - 1.0e-5));
+  //   CHECK(fDi >= 0.0 && fDi <= 1.0);
+  //   K(i) *= fDi;
+  //   mu(i) *= fDi;
+  //   Y(i) *= fDi;
+  // }
 
   // Register the base classes stuff.
   DamageModel<Dimension>::registerState(dataBase, state);

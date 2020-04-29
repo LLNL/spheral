@@ -16,12 +16,28 @@ def distributeNodesGeneric(listOfNodeTuples,
     kernelExtent = 0.0
     numNodesPerProcess = [0]
     totalNumGlobalNodes = 0
-    for (nodes, generator) in listOfNodeTuples:
+    extrafields = {}
+    for tup in listOfNodeTuples:
+        # We assume any extra args are list of values per node we want preserved through
+        # the node generation
+        assert len(tup) >= 2
+        nodes, generator, extralists = tup[0], tup[1], tup[2:]
         nglobal = generator.globalNumNodes()
         nlocal = generator.localNumNodes()
         print "distributeNodesGeneric: working on %s, (local, global) number nodes %i %i" % (nodes.name, nlocal, nglobal)
         numNodesPerProcess[0] += nlocal
         totalNumGlobalNodes += nglobal
+        nodes.numGhostNodes = 0
+        nodes.numInternalNodes = nlocal
+
+        # Prepare to preserve any extra per point values
+        extrafields[nodes.name] = []
+        ScalarField = eval("Spheral.ScalarField%id" % db.nDim)
+        for iextra, vals in enumerate(extralists):
+            assert len(vals) == nlocal
+            extrafields[nodes.name].append(ScalarField("extra%i" % iextra, nodes))
+            for i in xrange(nlocal):
+                extrafields[nodes.name][iextra][i] = vals[i]
 
         # Find the maximum kernel extent for all NodeLists.
         kernelExtent = max(kernelExtent, nodes.neighbor().kernelExtent)
@@ -30,8 +46,6 @@ def distributeNodesGeneric(listOfNodeTuples,
         hmaxInv = 1.0/nodes.hmax
 
         # We start with the initial crappy distribution used in the generator.
-        nodes.numGhostNodes = 0
-        nodes.numInternalNodes = nlocal
         assert mpi.allreduce(nodes.numInternalNodes, mpi.SUM) == nglobal
         print "  distributeNodesGeneric: performing initial crappy distribution."
         r = nodes.positions()
@@ -82,3 +96,14 @@ def distributeNodesGeneric(listOfNodeTuples,
     # Make sure we finished with the correct numbers of nodes!
     totalCheck = mpi.allreduce(sum([nodes.numInternalNodes for nodes in db.nodeLists()]), mpi.SUM)
     assert totalCheck == totalNumGlobalNodes
+
+    # Stuff any extra field values back in the initial lists.
+    for tup in listOfNodeTuples:
+        assert len(tup) >= 2
+        nodes, generator, extralists = tup[0], tup[1], tup[2:]
+        if extralists:
+            assert len(extrafields[nodes.name]) == len(extralists)
+            for vals, field in zip(extralists, extrafields[nodes.name]):
+                vals[:] = list(field.internalValues())
+
+    return

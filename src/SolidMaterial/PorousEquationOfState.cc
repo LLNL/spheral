@@ -19,13 +19,13 @@ template<typename Dimension>
 PorousEquationOfState<Dimension>::
 PorousEquationOfState(const EquationOfState<Dimension>& solidEOS):
   EquationOfState<Dimension>(solidEOS.constants(),
-                                       solidEOS.minimumPressure(),
-                                       solidEOS.maximumPressure(),
-                                       solidEOS.minimumPressureType()),
+                             solidEOS.minimumPressure(),
+                             solidEOS.maximumPressure(),
+                             solidEOS.minimumPressureType()),
   mSolidEOS(solidEOS),
-  mAlphaPtr(0),
-  mAlpha0(0.0),
-  mC0(0.0) {
+  mAlphaPtr(nullptr),
+  mAlpha0Ptr(nullptr),
+  mC0Ptr(nullptr) {
 }
 
 //------------------------------------------------------------------------------
@@ -98,7 +98,7 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
 }
 
 //------------------------------------------------------------------------------
-// Set the specific heat.
+// Set the specific HEAT.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -131,14 +131,21 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
   REQUIRE(massDensity.nodeListPtr() == soundSpeed.nodeListPtr());
   REQUIRE(specificThermalEnergy.nodeListPtr() == soundSpeed.nodeListPtr());
   REQUIRE(mAlphaPtr->nodeListPtr() == soundSpeed.nodeListPtr());
-  REQUIRE2(mAlpha0 >= 1.0 and mC0 > 0.0, mAlpha0 << " " << mC0);
-  const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
+  REQUIRE(mAlpha0Ptr->nodeListPtr() == soundSpeed.nodeListPtr());
+  REQUIRE(mC0Ptr->nodeListPtr() == soundSpeed.nodeListPtr());
+
+  const auto rhoS = (*mAlphaPtr)*massDensity;
   mSolidEOS.setSoundSpeed(soundSpeed, rhoS, specificThermalEnergy);
   
   // Now apply the porosity modifier.
-  const unsigned n = soundSpeed.numInternalElements();
-  for (unsigned i = 0; i != n; ++i) {
-    soundSpeed(i) += ((*mAlphaPtr)(i) - 1.0)*safeInv(mAlpha0 - 1.0)*(mC0 - soundSpeed(i));
+  const auto n = soundSpeed.numInternalElements();
+  for (auto i = 0; i != n; ++i) {
+    const auto alpha0i = (*mAlpha0Ptr)(i);
+    const auto alphai = (*mAlphaPtr)(i);
+    const auto c0i = (*mC0Ptr)(i);
+    CHECK(alpha0i >= 1.0 and alphai >= 1.0);
+    CHECK(c0i > 0.0);
+    soundSpeed(i) += (alphai - 1.0)*safeInv(alpha0i - 1.0)*(c0i - soundSpeed(i));
   }
 }
 
@@ -220,7 +227,7 @@ solidEOS() const {
 }
 
 //------------------------------------------------------------------------------
-// Access the alpha field.
+// alpha
 //------------------------------------------------------------------------------
 template<typename Dimension>
 const Field<Dimension, typename Dimension::Scalar>&
@@ -240,34 +247,34 @@ alpha(const Field<Dimension, typename Dimension::Scalar>& x) {
 // alpha0
 //------------------------------------------------------------------------------
 template<typename Dimension>
-typename Dimension::Scalar
+const Field<Dimension, typename Dimension::Scalar>&
 PorousEquationOfState<Dimension>::
 alpha0() const {
-  return mAlpha0;
+  return *mAlpha0Ptr;
 }
 
 template<typename Dimension>
 void
 PorousEquationOfState<Dimension>::
-alpha0(typename Dimension::Scalar x) {
-  mAlpha0 = x;
+alpha0(const Field<Dimension, typename Dimension::Scalar>& x) {
+  mAlpha0Ptr = &x;
 }
 
 //------------------------------------------------------------------------------
-// c0
+// C0
 //------------------------------------------------------------------------------
 template<typename Dimension>
-typename Dimension::Scalar
+const Field<Dimension, typename Dimension::Scalar>&
 PorousEquationOfState<Dimension>::
 c0() const {
-  return mC0;
+  return *mC0Ptr;
 }
 
 template<typename Dimension>
 void
 PorousEquationOfState<Dimension>::
-c0(typename Dimension::Scalar x) {
-  mC0 = x;
+c0(const Field<Dimension, typename Dimension::Scalar>& x) {
+  mC0Ptr = &x;
 }
 
 }

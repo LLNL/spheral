@@ -218,7 +218,7 @@ selectDt(const typename Dimension::Scalar dtMin,
   dt.first = std::min(dt.first, dtGrowth()*lastDt());
 
   // Enforce the timestep boundaries.
-  dt.first = std::min(dtMax, max(dtMin, dt.first));
+  dt.first = std::min(dtMax, std::max(dtMin, dt.first));
 
   CHECK(dt.first >= 0.0 and
         dt.first >= dtMin and dt.first <= dtMax);
@@ -491,14 +491,29 @@ Integrator<Dimension>::setGhostNodes() {
   // Get that DataBase.
   auto& db = accessDataBase();
 
+  // Get the complete set of unique boundary conditions.
+  const auto boundaries = uniqueBoundaryConditions();
+
   // Remove any old ghost node information from the NodeLists.
   for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd(); ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
-    (*nodeListItr)->neighbor().updateNodes();
   }
 
-  // Get the complete set of unique boundary conditions.
-  const auto boundaries = uniqueBoundaryConditions();
+
+  // If we're need overlap connectivity, we need to double the kernel extent before setting ghost nodes.
+  if (mRequireOverlapConnectivity) {
+    for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd();  ++nodeListItr) {
+      auto& neighbor = (*nodeListItr)->neighbor();
+      auto maxeta = 2.0*neighbor.kernelExtent();
+      neighbor.kernelExtent(maxeta);
+    }
+  }
+
+  // Update neighboring
+  for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd();  ++nodeListItr) {
+    auto& neighbor = (*nodeListItr)->neighbor();
+    neighbor.updateNodes();
+  }
 
   // Iterate over the boundaries and set their ghost node info.
   for (auto boundaryItr = boundaries.begin(); boundaryItr != boundaries.end(); ++boundaryItr) {
@@ -506,6 +521,16 @@ Integrator<Dimension>::setGhostNodes() {
     (*boundaryItr)->finalizeGhostBoundary();
     for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd();  ++nodeListItr) {
       (*nodeListItr)->neighbor().updateNodes();
+    }
+  }
+
+  // If we doubled the kernel extents for overlap connectivity, put 'em back.
+  if (mRequireOverlapConnectivity) {
+    for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd();  ++nodeListItr) {
+      auto& neighbor = (*nodeListItr)->neighbor();
+      auto maxeta = 0.5*neighbor.kernelExtent();
+      neighbor.kernelExtent(maxeta);
+      neighbor.updateNodes();
     }
   }
 

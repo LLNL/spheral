@@ -12,8 +12,6 @@
 
 namespace Spheral {
 
-class PeriodicPlanarBoundary;
-
 template<typename Dimension>
 class PeriodicBoundary: public PlanarBoundary<Dimension> {
 
@@ -68,6 +66,10 @@ public:
   virtual int numGhostNodes() const override;
 
   virtual std::string label() const override { return "PeriodicBoundary"; }
+
+  // Prevent the Boundary virtual methods from being hidden
+  using Boundary<Dimension>::applyGhostBoundary;
+  using Boundary<Dimension>::enforceBoundary;
 
 private:
   //--------------------------- Private Interface ---------------------------//

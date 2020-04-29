@@ -66,6 +66,10 @@ public:
   virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
   //**********************************************************************
 
+  // Prevent the Boundary virtual methods from being hidden
+  using Boundary<Dimension>::applyGhostBoundary;
+  using Boundary<Dimension>::enforceBoundary;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   const FieldList<Dimension, int>& mSurfacePoint;

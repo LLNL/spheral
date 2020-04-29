@@ -74,10 +74,16 @@ class IsothermalEquationOfState(EquationOfState):
                 specificThermalEnergy = "const Scalar"):
         return "Scalar"
 
+    @PYB11virtual
+    @PYB11const
+    def molecularWeight(self):
+        "Optionally provide a molecular weight for an equation of state"
+        return "Scalar"
+
     #...........................................................................
     # Properties
     K = PYB11property("double", "K", doc="K: the pressure constant, K=cs^2")
-    molecularWeight = PYB11property("double", "molecularWeight", doc="mean molecular weight")
+    mu = PYB11property("double", "molecularWeight", doc="mean molecular weight")
     externalPressure = PYB11property("double", "externalPressure", "setExternalPressure", doc="Any external pressure (subtracted from the pressure calculation")
     
 #-------------------------------------------------------------------------------

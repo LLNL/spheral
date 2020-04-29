@@ -76,12 +76,18 @@ class PolytropicEquationOfState(EquationOfState):
                 specificThermalEnergy = "const Scalar"):
         return "Scalar"
 
+    @PYB11virtual
+    @PYB11const
+    def molecularWeight(self):
+        "Optionally provide a molecular weight for an equation of state"
+        return "Scalar"
+
     #...........................................................................
     # Properties
     polytropicConstant = PYB11property("double", "polytropicConstant", doc="K: the polytropic constant in front")
     polytropicIndex = PYB11property("double", "polytropicIndex", doc="polytropic index: gamma = (index + 1)/index")
     gamma = PYB11property("double", "gamma", doc="gamma: ratio of specific heats")
-    molecularWeight = PYB11property("double", "molecularWeight", doc="mean molecular weight")
+    mu = PYB11property("double", "molecularWeight", doc="mean molecular weight")
     externalPressure = PYB11property("double", "externalPressure", "setExternalPressure", doc="Any external pressure (subtracted from the pressure calculation")
     
 #-------------------------------------------------------------------------------

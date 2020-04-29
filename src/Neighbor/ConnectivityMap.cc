@@ -54,28 +54,6 @@ appendSTLvectors(std::vector<T>& v1, std::vector<T>& v2) {
 }
 
 //------------------------------------------------------------------------------
-// Helper to insert into a sorted list of IDs.
-//------------------------------------------------------------------------------
-inline
-bool
-insertUnique(const std::vector<int>& offsets,
-             std::vector<std::vector<std::vector<int>>>& indices,
-             const int jN1, const int j1,
-             const int jN2, const int j2) {
-  if (jN1 != jN2 or j1 != j2) {
-    auto& overlap = indices[offsets[jN1] + j1][jN2];
-    auto itr = std::lower_bound(overlap.begin(), overlap.end(), j2);
-    if (itr == overlap.end() or *itr != j2) {
-      overlap.insert(itr, j2);
-      return true;
-    } else {
-      return false;
-    }
-  }
-  return false;
-}
-
-//------------------------------------------------------------------------------
 // How should we compare pairs for sorting?
 //------------------------------------------------------------------------------
 inline
@@ -85,7 +63,39 @@ hashKeys(const KeyTraits::Key& a, const KeyTraits::Key& b) {
   // return (a >= b ?
   //         a * a + a + b :
   //         a + b * b);          // where a, b >= 0
-  return a + b;
+  // return a + b;
+  return ((KeyTraits::Key(a) << 16) | KeyTraits::Key(b));
+}
+
+//------------------------------------------------------------------------------
+// Helper to insert into a sorted list of IDs.
+//------------------------------------------------------------------------------
+template<typename KeyContainer>
+inline
+bool
+insertUnique(const std::vector<int>& offsets,
+             std::vector<std::vector<std::vector<int>>>& indices,
+             const KeyContainer& keys,
+             const bool useKeys,
+             const int jN1, const int j1,
+             const int jN2, const int j2) {
+  if (jN1 != jN2 or j1 != j2) {
+    auto& overlap = indices[offsets[jN1] + j1][jN2];
+    std::vector<int>::iterator itr;
+    if (useKeys) {
+      itr = std::lower_bound(overlap.begin(), overlap.end(), j2,
+                             [&](const int a, const int& b) { return keys(jN2, a) < keys(jN2, b); });
+    } else {
+      itr = std::lower_bound(overlap.begin(), overlap.end(), j2);
+    }
+    if (itr == overlap.end() or *itr != j2) {
+      overlap.insert(itr, j2);
+      return true;
+    } else {
+      return false;
+    }
+  }
+  return false;
 }
 
 //------------------------------------------------------------------------------
@@ -105,7 +115,11 @@ sortPairs(NodePairList& pairs,
   }
 
   // Now sort the list as a whole.
-  std::sort(pairs.begin(), pairs.end(), [&](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(keys(a.i_list, a.i_node), keys(a.j_list, a.j_node)) < hashKeys(keys(b.i_list, b.i_node), keys(b.j_list, b.j_node)); });
+  std::sort(pairs.begin(), pairs.end(),
+            [&](const NodePairIdxType& a, const NodePairIdxType& b) {
+              return hashKeys(keys(a.i_list, a.i_node), keys(a.j_list, a.j_node)) <
+                hashKeys(keys(b.i_list, b.i_node), keys(b.j_list, b.j_node));
+            });
 }
 
 }
@@ -467,7 +481,10 @@ ConnectivityMap<Dimension>::
 valid() const {
   TIME_ConnectivityMap_valid.start();
 
-  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+  const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+  const auto ghostConnectivity = (mBuildGhostConnectivity or
+                                  mBuildOverlapConnectivity or
+                                  domainDecompIndependent);
 
   // Check the offsets.
   const int numNodeLists = mNodeLists.size();
@@ -476,11 +493,11 @@ valid() const {
     return false;
   }
   {
-    const int numNodes = ((domainDecompIndependent or mBuildGhostConnectivity) ? 
+    const int numNodes = (ghostConnectivity ? 
                           mNodeLists.back()->numNodes() : 
                           mNodeLists.back()->numInternalNodes());
     if (mConnectivity.size() != mOffsets.back() + numNodes) {
-      cerr << "ConnectivityMap::valid: Failed offset bounding." << endl;
+      cerr << "ConnectivityMap::valid: Failed offset bounding: " << mConnectivity.size() << " != " << mOffsets.back() << " + " << numNodes << endl;
     }
   }
 
@@ -509,7 +526,7 @@ valid() const {
 
     // Are all internal nodes represented?
     const NodeList<Dimension>* nodeListPtri = mNodeLists[nodeListIDi];
-    const int numNodes = ((domainDecompIndependent or mBuildGhostConnectivity) ? 
+    const int numNodes = (ghostConnectivity ?
                           nodeListPtri->numNodes() : 
                           nodeListPtri->numInternalNodes());
     const int firstGhostNodei = nodeListPtri->firstGhostNode();
@@ -588,7 +605,7 @@ valid() const {
         for (vector<int>::const_iterator jItr = neighbors.begin();
              jItr != neighbors.end();
              ++jItr) {
-          if (domainDecompIndependent or mBuildGhostConnectivity or (*jItr < nodeListPtrj->numInternalNodes())) {
+          if (ghostConnectivity or (*jItr < nodeListPtrj->numInternalNodes())) {
             const vector< vector<int> >& otherNeighbors = connectivityForNode(nodeListPtrj, *jItr);
             if (find(otherNeighbors[nodeListIDi].begin(),
                      otherNeighbors[nodeListIDi].end(),
@@ -705,6 +722,11 @@ computeConnectivity() {
   const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
   // std::clock_t tpre = std::clock();
 
+  // Do we need to build the ghost connectivity as well?
+  const auto ghostConnectivity = (mBuildGhostConnectivity or
+                                  mBuildOverlapConnectivity or
+                                  domainDecompIndependent);
+
   // Build ourselves a temporary DataBase with the set of NodeLists.
   // Simultaneously find the maximum kernel extent.
   DataBase<Dimension> dataBase;
@@ -719,9 +741,10 @@ computeConnectivity() {
 
   // Erase any prior information.
   const unsigned numNodeLists = dataBase.numNodeLists(),
-             connectivitySize = mOffsets.back() + 
-                                ((domainDecompIndependent or mBuildGhostConnectivity) ? mNodeLists.back()->numNodes() : mNodeLists.back()->numInternalNodes());
-  bool ok = (connectivitySize > 0 and mConnectivity.size() == connectivitySize);
+             connectivitySize = mOffsets.back() + (ghostConnectivity ?
+                                                   mNodeLists.back()->numNodes() :
+                                                   mNodeLists.back()->numInternalNodes());
+  const bool ok = (connectivitySize > 0 and mConnectivity.size() == connectivitySize);
   if (ok) {
     CHECK(mNodeTraversalIndices.size() == numNodeLists);
     for (typename ConnectivityStorageType::iterator itr = mConnectivity.begin();
@@ -786,7 +809,7 @@ computeConnectivity() {
     const auto etaMax = mNodeLists[iiNodeList]->neighbor().kernelExtent();
 
     // Iterate over the nodes in this NodeList, and look for any that are not done yet.
-    const auto nii = (false ? // domainDecompIndependent or mBuildGhostConnectivity ? 
+    const auto nii = (false ?
                       mNodeLists[iiNodeList]->numNodes() :
                       mNodeLists[iiNodeList]->numInternalNodes());
     for (auto ii = 0; ii < nii; ++ii) {
@@ -890,7 +913,7 @@ computeConnectivity() {
   }
 
   // If necessary add ghost->internal connectivity.
-  if (mBuildGhostConnectivity or domainDecompIndependent) {
+  if (ghostConnectivity) {
     for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
       for (auto i = 0; i < mNodeLists[iNodeList]->numInternalNodes(); ++i) {
         const auto& neighborsi = mConnectivity[mOffsets[iNodeList] + i];
@@ -954,7 +977,7 @@ computeConnectivity() {
 
   // Do we need overlap connectivity?
   if (mBuildOverlapConnectivity) {
-    // VERIFY2(mBuildGhostConnectivity, "ghost connectivity is required for overlap connectivity");
+    // VERIFY2(ghostConnectivity, "ghost connectivity is required for overlap connectivity");
     TIME_ConnectivityMap_computeOverlapConnectivity.start();
 
     // To start out, *all* neighbors of a node (gather and scatter) are overlap neighbors.  Therefore we
@@ -978,9 +1001,9 @@ computeConnectivity() {
 
               // Check if i and j1 have overlap directly.
               if ((Hj1*(rj1 - ri)).magnitude2() <= kernelExtent2) {
-                insertUnique(mOffsets, mOverlapConnectivity,
+                insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
                              iNodeList, i, jN1, j1);
-                insertUnique(mOffsets, mOverlapConnectivity,
+                insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
                              jN1, j1, iNodeList, i);
               }
 
@@ -991,9 +1014,9 @@ computeConnectivity() {
                   const auto& rj2 = position(jN2, j2);
                   const auto& Hj2 = H(jN2, j2);
                   if ((Hj2*(rj2 - rj1)).magnitude2() <= kernelExtent2) {                   // Is j2 a scatter neighbor of j1?
-                    insertUnique(mOffsets, mOverlapConnectivity,
+                    insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
                                  iNodeList, i, jN2, j2);
-                    insertUnique(mOffsets, mOverlapConnectivity,
+                    insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
                                  jN2, j2, iNodeList, i);
                   }
                 }
@@ -1020,7 +1043,7 @@ computeConnectivity() {
   BEGIN_CONTRACT_SCOPE
   // Make sure that the correct number of nodes have been completed.
   for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
-    const auto n = (mBuildGhostConnectivity ? 
+    const auto n = (ghostConnectivity ? 
                     mNodeLists[iNodeList]->numNodes() :
                     mNodeLists[iNodeList]->numInternalNodes());
     for (auto i = 0; i != n; ++i) {

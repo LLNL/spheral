@@ -138,6 +138,11 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
+  // Prevent the Boundary virtual methods from being hidden
+  using Boundary<Dimension>::applyGhostBoundary;
+  using Boundary<Dimension>::enforceBoundary;
+  using Physics<Dimension>::initializeProblemStartup;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   DataBase<Dimension>& mDataBase;

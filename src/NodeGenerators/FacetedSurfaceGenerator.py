@@ -4,12 +4,15 @@
 #-------------------------------------------------------------------------------
 import mpi
 from math import *
+import string, random
 from numpy.polynomial import Polynomial as P
 from NodeGeneratorBase import NodeGeneratorBase
 from PolyhedronFileUtilities import readPolyhedronOBJ
 from Spheral3d import Vector, Tensor, SymTensor, Polyhedron, \
     vector_of_Vector, vector_of_unsigned, vector_of_vector_of_unsigned, \
-    rotationMatrix, refinePolyhedron, fillFacetedVolume
+    rotationMatrix, refinePolyhedron, fillFacetedVolume2, \
+    LinearOrder, TableKernel, BSplineKernel, GammaLawGasMKS, makeFluidNodeList
+from centroidalRelaxNodes import *
 
 #-------------------------------------------------------------------------------
 # General case where you hand in the surface polyhedron.
@@ -19,7 +22,7 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
     def __init__(self,
                  surface,
                  rho,
-                 nx,
+                 resolution,
                  nNodePerh = 2.01,
                  SPH = False,
                  rejecter = None):
@@ -31,33 +34,28 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         xmax = surface.xmax
         box = xmax - xmin
         assert box.minElement > 0.0
-        dx = box.x/nx
-        ny = max(1, int(box.y/dx + 0.5))
-        nz = max(1, int(box.z/dx + 0.5))
+        nx = max(1, int(box.x/resolution + 0.5))
+        ny = max(1, int(box.y/resolution + 0.5))
+        nz = max(1, int(box.z/resolution + 0.5))
 
         # Some local geometry.
         ntot0 = nx*ny*nz
-        dy = box.y/ny
-        dz = box.z/nz
         volume = box.x * box.y * box.z
         self.m0 = rho*volume/ntot0
-        hx = 1.0/(nNodePerh*dx)
-        hy = 1.0/(nNodePerh*dy)
-        hz = 1.0/(nNodePerh*dz)
+        hx = 1.0/(nNodePerh*resolution)
+        hy = 1.0/(nNodePerh*resolution)
+        hz = 1.0/(nNodePerh*resolution)
         self.H0 = SymTensor(hx, 0.0, 0.0,
                             0.0, hy, 0.0,
                             0.0, 0.0, hz)
 
         # Build the intial positions.
-        pos0 = fillFacetedVolume(surface, nx, mpi.rank, mpi.procs)
-
-        # Something strange here...
-        pos = pos0 # [p for p in pos0 if surface.contains(p)]
+        pos = fillFacetedVolume2(surface, resolution, mpi.rank, mpi.procs)
         nsurface = mpi.allreduce(len(pos), mpi.SUM)
 
         # Apply any rejecter.
-        print "Applying rejection..."
         if rejecter:
+            print "Applying rejection..."
             mask = [rejecter.accept(ri.x, ri.y, ri.z) for ri in pos]
         else:
             mask = [True]*len(pos)
@@ -70,7 +68,7 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         # Pick a mass per point so we get exactly the correct total mass inside the surface
         # before any rejection.
         M0 = surface.volume * self.rho0
-        self.m0 = M0/nsurface
+        self.m0 = M0/max(1, nsurface)
         self.m = [self.m0]*n
 
         # At this point we have a less than optimal domain decomposition, but this will
@@ -120,6 +118,70 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
     def localHtensor(self, i):
         assert i < len(self.H)
         return self.H[i]
+
+#-------------------------------------------------------------------------------
+# This version includes centroidal optimization of the points.
+#-------------------------------------------------------------------------------
+class CentroidalPolyhedralSurfaceGenerator(PolyhedralSurfaceGenerator):
+
+    def __init__(self,
+                 surface,
+                 rho,
+                 resolution,
+                 nNodePerh = 2.01,
+                 SPH = False,
+                 rejecter = None,
+                 boundaries = [],
+                 maxIterations = 100,
+                 maxFracTol = 1.0e-2,
+                 avgFracTol = 1.0e-3,
+                 correctionOrder = LinearOrder,
+                 centroidFrac = 0.25,
+                 tessellationBaseDir = ".",
+                 tessellationFileName = None):
+        PolyhedralSurfaceGenerator.__init__(self,
+                                            surface,
+                                            rho,
+                                            resolution,
+                                            nNodePerh,
+                                            SPH,
+                                            rejecter)
+
+        # Make temporary data structures so we can relax these points.
+        W = TableKernel(BSplineKernel(), 1000)
+        eos = GammaLawGasMKS(2.0, 2.0)
+        n = self.localNumNodes()
+        nodes = makeFluidNodeList("nodes" + "".join([random.choice(string.ascii_letters + string.digits) for nnn in xrange(32)]),
+                                  eos,
+                                  numInternal = n,
+                                  kernelExtent = W.kernelExtent,
+                                  xmin = surface.xmin,
+                                  xmax = surface.xmax,
+                                  nPerh = nNodePerh)
+        pos = nodes.positions()
+        H = nodes.Hfield()
+        mass = nodes.mass()
+        rhof = nodes.massDensity()
+        for i in xrange(n):
+            pos[i] = self.localPosition(i)
+            H[i] = self.localHtensor(i)
+            mass[i] = self.localMass(i)
+            rhof[i] = self.localMassDensity(i)
+        nodes.neighbor().updateNodes()
+
+        # Call the relaxer
+        centroidalRelaxNodes(nodeListsAndBounds = [(nodes, surface)],
+                             W = W,
+                             rho = rho,
+                             boundaries = boundaries,
+                             maxIterations = maxIterations,
+                             maxFracTol = maxFracTol,
+                             avgFracTol = avgFracTol,
+                             correctionOrder = correctionOrder,
+                             centroidFrac = centroidFrac,
+                             tessellationBaseDir = tessellationBaseDir,
+                             tessellationFileName = tessellationFileName)
+
 
 #-------------------------------------------------------------------------------
 # Create a FacetedSurfaceGenerator based on a polyhedron in VF format in a file.

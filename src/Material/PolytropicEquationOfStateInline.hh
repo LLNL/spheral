@@ -5,7 +5,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-double
+typename Dimension::Scalar
 PolytropicEquationOfState<Dimension>::
 polytropicConstant() const {
   return mPolytropicConstant;
@@ -16,7 +16,7 @@ polytropicConstant() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-double
+typename Dimension::Scalar
 PolytropicEquationOfState<Dimension>::
 polytropicIndex() const {
   return mPolytropicIndex;
@@ -27,7 +27,7 @@ polytropicIndex() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-double
+typename Dimension::Scalar
 PolytropicEquationOfState<Dimension>::
 gamma() const {
   return mGamma;
@@ -38,7 +38,7 @@ gamma() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-double
+typename Dimension::Scalar
 PolytropicEquationOfState<Dimension>::
 molecularWeight() const {
   return mMolecularWeight;
@@ -49,7 +49,7 @@ molecularWeight() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-double
+typename Dimension::Scalar
 PolytropicEquationOfState<Dimension>::
 externalPressure() const {
   return mExternalPressure;
@@ -59,7 +59,7 @@ template<typename Dimension>
 inline
 void
 PolytropicEquationOfState<Dimension>::
-setExternalPressure(double P) {
+setExternalPressure(typename Dimension::Scalar P) {
   mExternalPressure = P;
 }
 
