@@ -47,6 +47,8 @@ class SolidFieldNames:
     effectiveFlaws = PYB11readonly(static=True)
     porosityAlpha = PYB11readonly(static=True)
     porosityStrain = PYB11readonly(static=True)
+    porosityAlpha0 = PYB11readonly(static=True)
+    porosityc0 = PYB11readonly(static=True)
     fragmentIDs = PYB11readonly(static=True)
     particleTypes = PYB11readonly(static=True)
     meltSpecificEnergy = PYB11readonly(static=True)

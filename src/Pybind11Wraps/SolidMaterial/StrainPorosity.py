@@ -59,7 +59,30 @@ parameter (alpha) and gives it to the PorousEquationOfState."""
         porousEOS:       Porous EOS we're going to modify
         porousStrength:  Porous strength model we're going to modify
         nodeList:        The NodeList we're going apply to
-        phi0:            Initial porosity
+        phi0:            Initial porosity (single value)
+        epsE:            Elastic-plastic transition strain
+        epsX:            Threshold strain between compaction regimes
+        kappa:           Compaction rate
+        gammaS0:         Reference gamma at full density
+        cS0:             Reference sound speed at full density
+        c0:              Reference sound speed at initial porosity"""
+
+    def pyinit1(self,
+                porousEOS = "PorousEquationOfState<%(Dimension)s>&",
+                porousStrength = "PorousStrengthModel<%(Dimension)s>&",
+                nodeList = "const NodeList<%(Dimension)s>&",
+                phi0 = "const Field<%(Dimension)s, %(Dimension)s::Scalar>&",
+                epsE = "const double",
+                epsX = "const double",
+                kappa = "const double",
+                gammaS0 = "const double",
+                cS0 = "const double",
+                c0 = "const Field<%(Dimension)s, %(Dimension)s::Scalar>&"):
+        """Constructor parameters:
+        porousEOS:       Porous EOS we're going to modify
+        porousStrength:  Porous strength model we're going to modify
+        nodeList:        The NodeList we're going apply to
+        phi0:            Initial porosity (field of values)
         epsE:            Elastic-plastic transition strain
         epsX:            Threshold strain between compaction regimes
         kappa:           Compaction rate
@@ -77,18 +100,16 @@ parameter (alpha) and gives it to the PorousEquationOfState."""
 
     #...........................................................................
     # Properties
-    phi0 = PYB11property("double", doc="Initial porosity")
-    alpha0 = PYB11property("double", doc="Initial alpha (1/(1 - phi))")
-    epsE = PYB11property("double", doc="Elastic-plastic transition strain")
-    epsX = PYB11property("double", doc="Threshold strain between compaction regimes")
-    epsC = PYB11property("double")
-    kappa = PYB11property("double", doc="Compaction rate")
-    gammaS0 = PYB11property("double", doc="Reference gamma at full density")
-    cS0 = PYB11property("double", doc="Reference sound speed at full density")
-    c0 = PYB11property("double", doc="Reference sound speed at initial porosity")
+    epsE = PYB11property(doc="Elastic-plastic transition strain")
+    epsX = PYB11property(doc="Threshold strain between compaction regimes")
+    kappa = PYB11property(doc="Compaction rate")
+    gammaS0 = PYB11property(doc="Reference gamma at full density")
+    cS0 = PYB11property(doc="Reference sound speed at full density")
     porousEOS = PYB11property("const PorousEquationOfState<%(Dimension)s>&", returnpolicy="reference_internal")
     porousStrength = PYB11property("PorousStrengthModel<%(Dimension)s>&", returnpolicy="reference_internal")
     nodeList = PYB11property("const NodeList<%(Dimension)s>&", returnpolicy="reference_internal")
+    c0 = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
+    alpha0 = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     alpha = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     DalphaDt = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     strain = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
