@@ -88,17 +88,16 @@ public:
   const Field<Dimension, Scalar>& alpha() const;
   void alpha(const Field<Dimension, Scalar>& x);
 
-  Scalar alpha0() const;
-  void alpha0(Scalar x);
+  const Field<Dimension, Scalar>& alpha0() const;
+  void alpha0(const Field<Dimension, Scalar>& x);
 
-  Scalar c0() const;
-  void c0(Scalar x);
+  const Field<Dimension, Scalar>& c0() const;
+  void c0(const Field<Dimension, Scalar>& x);
 
 private:
   //--------------------------- Private Interface ---------------------------//
   const EquationOfState<Dimension>& mSolidEOS;
-  const Field<Dimension, Scalar>* mAlphaPtr;
-  Scalar mAlpha0, mC0;   // Set by the porous physics package.
+  const Field<Dimension, Scalar> *mAlphaPtr, *mAlpha0Ptr, *mC0Ptr;
 
   // Disallow default constructor
   PorousEquationOfState();

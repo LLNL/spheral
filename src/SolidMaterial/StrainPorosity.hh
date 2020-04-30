@@ -55,7 +55,7 @@ public:
   // Constructors, destructors.
   StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,     // Porous EOS we're going to modify
                  PorousStrengthModel<Dimension>& porousStrength,  // Porous strength model we're going to modify
-                 const NodeList<Dimension>& nodeList,  // The NodeList we're going apply to
+                 const NodeList<Dimension>& nodeList,             // The NodeList we're going apply to
                  const double phi0,                               // Initial porosity
                  const double epsE,                               // Elastic-plastic transition strain
                  const double epsX,                               // Threshold strain between compaction regimes
@@ -63,6 +63,18 @@ public:
                  const double gammaS0,                            // Reference gamma at full density
                  const double cS0,                                // Reference sound speed at full density
                  const double c0);                                // Reference sound speed at initial porosity
+
+  StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,     // Porous EOS we're going to modify
+                 PorousStrengthModel<Dimension>& porousStrength,  // Porous strength model we're going to modify
+                 const NodeList<Dimension>& nodeList,             // The NodeList we're going apply to
+                 const Field<Dimension, Scalar>& phi0,            // Initial porosity
+                 const double epsE,                               // Elastic-plastic transition strain
+                 const double epsX,                               // Threshold strain between compaction regimes
+                 const double kappa,                              // Compaction rate
+                 const double gammaS0,                            // Reference gamma at full density
+                 const double cS0,                                // Reference sound speed at full density
+                 const Field<Dimension, Scalar>& c0);             // Reference sound speed at initial porosity
+
   virtual ~StrainPorosity();
 
   //............................................................................
@@ -101,18 +113,16 @@ public:
   //............................................................................
 
   // Access the material parameters.
-  double phi0() const;
-  double alpha0() const;
   double epsE() const;
   double epsX() const;
-  double epsC() const;
   double kappa() const;
   double gammaS0() const;
   double cS0() const;
-  double c0() const;
   const PorousEquationOfState<Dimension>& porousEOS() const;
   const PorousStrengthModel<Dimension>& porousStrength() const;
   const NodeList<Dimension>& nodeList() const;
+  const Field<Dimension, Scalar>& c0() const;
+  const Field<Dimension, Scalar>& alpha0() const;
   const Field<Dimension, Scalar>& alpha() const;
   const Field<Dimension, Scalar>& DalphaDt() const;
   const Field<Dimension, Scalar>& strain() const;
@@ -120,11 +130,11 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  double mAlpha0, mEpsE, mEpsX, mKappa, mEpsC, mGammaS0, mcS0, mc0;
+  double mEpsE, mEpsX, mKappa, mGammaS0, mcS0;
   PorousEquationOfState<Dimension>& mPorousEOS;
   PorousStrengthModel<Dimension>& mPorousStrength;
   const NodeList<Dimension>& mNodeList;
-  Field<Dimension, Scalar> mAlpha,  mDalphaDt, mStrain, mDstrainDt;
+  Field<Dimension, Scalar> mc0, mAlpha0, mAlpha, mDalphaDt, mStrain, mDstrainDt;
 
   // The restart registration.
   RestartRegistrationType mRestart;
