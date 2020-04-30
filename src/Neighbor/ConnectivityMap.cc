@@ -992,6 +992,20 @@ computeConnectivity() {
         const auto& ri = position(iNodeList, i);
         const auto& Hi = H(iNodeList, i);
 
+        // The points that have i in common are overlap neighbors with one another
+        // for (auto jN1 = 0; jN1 < numNodeLists; ++jN1) {
+        //   for (const auto j1 : neighborsi[jN1]) {
+        //     for (auto jN2 = 0; jN2 < numNodeLists; ++jN2) {
+        //       for (const auto j2 : neighborsi[jN2]) {
+        //         if (!(jN1 == jN2  && j1 == j2)) {
+        //           insertUnique(mOffsets, mOverlapConnectivity, mKeys, domainDecompIndependent,
+        //                        jN1, j1, jN2, j2);
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
+        
         // Find all the gather neighbors of i.
         for (auto jN1 = 0; jN1 < numNodeLists; ++jN1) {
           for (const auto j1: neighborsi[jN1]) {
