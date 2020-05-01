@@ -3,17 +3,19 @@ function(spheral_add_cxx_library package_name)
     blt_add_library(NAME        Spheral_${package_name}
                     HEADERS     ${${package_name}_headers}
                     SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  -Wl,--start-group ${spheral_depends} -Wl,--end-group
+                    DEPENDS_ON  -Wl,--start-group ${spheral_depends} ${spheral_blt_depends} -Wl,--end-group
                     SHARED      FALSE
                     )
   else()
     blt_add_library(NAME        Spheral_${package_name}
                     HEADERS     ${${package_name}_headers}
                     SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  -Wl,--start-group ${spheral_depends} -Wl,--end-group
+                    DEPENDS_ON  -Wl,--start-group ${spheral_depends} ${spheral_blt_depends} -Wl,--end-group
                     SHARED      TRUE
                     )
   endif()
+  add_dependencies(Spheral_${package_name} ${spheral_depends})
+
 endfunction()
 
 function(spheral_add_pybind11_library package_name)
@@ -33,6 +35,7 @@ function(spheral_add_pybind11_library package_name)
     CLEAR_PREFIX TRUE
     SHARED       TRUE
     )
+  add_dependencies(${MODULE_NAME} ${spheral_py_depends})
 
   # target_link_libraries(
   #   ${MODULE_NAME}

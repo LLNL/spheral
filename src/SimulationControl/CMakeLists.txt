@@ -20,7 +20,7 @@ execute_process(
 set(SPHERAL_VERSION_LIST ${abbref} ${short} ${oneline})
 string(REPLACE ";" " " spheralversion "${SPHERAL_VERSION_LIST}")
 configure_file(
-  Spheral.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/Spheral.py
   ${CMAKE_INSTALL_PREFIX}/Spheral.py)
 
 set(_dims 1)

@@ -100,16 +100,17 @@ macro(PYB11_GENERATE_BINDINGS)
     "${PROJECT_SOURCE_DIR}/Pybind11Wraps/SolidMaterial:"
     "${PROJECT_SOURCE_DIR}/Pybind11Wraps/Strength:"
     "${PROJECT_SOURCE_DIR}/Pybind11Wraps/ArtificialConduction:"
-    "${PROJECT_SOURCE_DIR}/SimulationControl:"
+    "${PROJECT_SOURCE_DIR}/SimulationControl"
     )
   STRING(REPLACE ";" "<->" PYTHON_ENV_STR ${PYTHON_ENV})
 
   if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_MODULE_NAME}_stamp.cmake")
     execute_process(COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
-                    ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/helpers/moduleCheck.py 
+                    ${PYTHON_EXE} ${PROJECT_SOURCE_DIR}/helpers/moduleCheck.py 
                     ${PYB11_MODULE_NAME}
                     ${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_SOURCE}
                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    DEPENDS python-install
                     )
   endif()
 
@@ -117,16 +118,17 @@ macro(PYB11_GENERATE_BINDINGS)
 
   add_custom_target(${PYB11_MODULE_NAME}_stamp ALL
                     COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
-                    ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/helpers/moduleCheck.py
+                    ${PYTHON_EXE} ${PROJECT_SOURCE_DIR}/helpers/moduleCheck.py
                     ${PYB11_MODULE_NAME}
                     ${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_SOURCE}
                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    DEPENDS python-install
                     )
 
   add_custom_command(
     OUTPUT Spheral${PYB11_GENERATED_SOURCE}
     COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
-    ${PYTHON_EXECUTABLE} -c
+    ${PYTHON_EXE} -c
     'from PYB11Generator import * \; 
     import ${PYB11_MODULE_NAME}MOD \;
     PYB11generateModule(${PYB11_MODULE_NAME}MOD, \"Spheral${PYB11_MODULE_NAME}\") '

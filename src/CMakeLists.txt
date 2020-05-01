@@ -1,6 +1,8 @@
 # CMakeLists to build the Spheral library.
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.14)
 project(spheral LANGUAGES CXX)
+
+INCLUDE(ExternalProject)
 
 ################################
 # Configure CMake
@@ -34,8 +36,9 @@ include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
 ################################
 set(SPHERAL_INSTALL_DIR)
 option(INSTALL_TPLS "download and install third party libs" ON)
-include(../cmake/InstallLibraries.cmake)
-set(spheral_depends BOOST Eigen qhull silo polytope pybind11)
+include(../cmake/tpl.cmake)
+#include(../cmake/InstallLibraries.cmake)
+#set(spheral_depends BOOST Eigen qhull silo polytope pybind11)
 
 
 ################################
@@ -63,11 +66,11 @@ endif()
 
 if(ENABLE_MPI)
   set(BLT_MPI_COMPILE_FLAGS -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX)
-  list(APPEND spheral_depends mpi)
+  list(APPEND spheral_blt_depends mpi)
 endif()
 
 if(ENABLE_OPENMP)
-  list(APPEND spheral_depends openmp)
+  list(APPEND spheral_blt_depends openmp)
 endif()
 
 
