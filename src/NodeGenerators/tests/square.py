@@ -2,9 +2,6 @@ from math import *
 import matplotlib.pyplot as plt
 from vectormath import *
 
-def interpVector(v1,v2,t):
-    return v2*t+v1*(1.0-t)
-
 class SquareCurve:
     def __init__(self,sideLength):
         self.sideLength = sideLength
@@ -81,13 +78,12 @@ for j in range(radcount):
     cir = CircleCurve(r)
     ntot = nx0*4
     thcount = int(ntot*(r/radcount)*profileMethod(r,radcount))
-    print(r,radcount,thcount,profileMethod(r,radcount))
     ti = interpT(r,8.0,radcount-3) # linear interp from square to circle
     for i in range(thcount):
         th = 1.0/thcount*i
         rs = sq(th)
         rc = cir(th)
-        v = interpVector(rs,rc,ti)
+        v = rs.lerp(rc,ti)
         x.append(v[0])
         y.append(v[1])
 

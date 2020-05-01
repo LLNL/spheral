@@ -14,7 +14,39 @@ class constantDensity:
     def __call__(self,pos):
         return self.d
 
+class SquareCurve:
+    def __init__(self,sideLength):
+        self.sideLength = sideLength
+    def __call__(self,t):
+        a = t*4.0
+        b = a
+        if a < 1.0:
+            Q = Vector2d(-1.0,1.0)
+            P = Vector2d(1.0,1.0)
+        elif a < 2.0 and a >= 1.0:
+            b = a-1.0
+            Q = Vector2d(1.0,1.0)
+            P = Vector2d(1.0,-1.0)
+        elif a < 3.0 and a >= 2.0:
+            b = a-2.0
+            Q = Vector2d(1.0,-1.0)
+            P = Vector2d(-1.0,-1.0)
+        else:
+            b = a-3.0
+            Q = Vector2d(-1.0,-1.0)
+            P = Vector2d(-1.0,1.0)
+        P = P*self.sideLength
+        Q = Q*self.sideLength
+        return P*b+Q*(1.0-b)
 
+class CircleCurve:
+    def __init__(self,radius):
+        self.radius = radius
+    def __call__(self,t):
+        t = 1.0-t
+        t = t*2*3.14159
+        t = t - 3.14159 - 3.14159/4.0
+        return Vector2d(cos(t),sin(t))*self.radius
 
 def latticeDistribution(nr, rho0,
                             xmin,
@@ -44,11 +76,10 @@ def latticeDistribution(nr, rho0,
     
     return x, y, m
 
-
-def profileMethod(r):
-    if r == 0.0:
-        r = 1e-5
-    return r**(-1.5)
+def profileMethod(rad,maxrad):
+    ri = rad/maxrad
+    ri = 1.0+(1.0-ri)
+    return ri
 
 nx = ny = 50
 centroid = (0.25,0.5)
@@ -71,7 +102,7 @@ rmax = 1.0
 
 centroid = vectorfromtuple(centroid)
 
-# first fill the lattice positions  ------------------------
+# first fill the regular lattice positions  ------------------------
 nr = int(nx*0.5)
 xl,yl,ml = latticeDistribution(nr,rho0,xmin,xmax,nNodePerh)
 
@@ -82,7 +113,11 @@ for i in range(len(xl)):
         x.append(xx)
         y.append(yy)
 
-# now fill the stretched positions -----------------------
+# now fill the transfinite positions  -------------------------------
+thcount = 100
+radcount = 20
+sq = SquareCurve(8.0)
+cir = CircleCurve(8.0)
 xxmin0 = max(centroid[0]-rmax,xmin[0])
 xxmin1 = max(centroid[1]-rmax,xmin[1])
 xxmin = (xxmin0,xxmin1)
@@ -90,63 +125,50 @@ xxmax0 = min(centroid[0]+rmax,xmax[0])
 xxmax1 = min(centroid[1]+rmax,xmax[1])
 xxmax = (xxmax0,xxmax1)
 
-nr = int(nr*((xxmax[0]-xxmin[0])/(xmax[0]-xmin[0])))
+def interpT(rad,minrad,maxrad):
+    if rad > minrad and rad < maxrad:
+        return 1.0-(rad-minrad)/(maxrad-minrad)
+    elif rad >= maxrad:
+        return 0.0
+    else:
+        return 1.0
 
-xc,yc,mc = latticeDistribution(nr,rho0,xxmin,xxmax,nNodePerh)
-rc = []
-for i in range(len(xc)):
-    rc.append(sqrt((xc[i]-centroid[0])**2+(yc[i]-centroid[0])**2))
+dx = (xmax[0] - xmin[0])/nx
+xxmin = (xxmin[0]-dx*0.5,xxmin[1])
 
-zipped = zip(rc,xc,yc,mc)
-zipped = sorted(zipped)
-rc,xc,yc,mc = zip(*zipped)
-
-nxx  = 2*nr+1
-eta = (xxmax[0] - xxmin[0])/nxx
-        
-print("Stretching lattice...")
-
-dr  = eta * 0.01    # this will essentially be the error in the new dumb way
-r0p = 0
-rp  = 0
-rn  = 0
-for i in range(1,len(rc)):
-    #print "%d / %d" % (i,len(self.rl))
-    r0 = rc[i]
-    if (abs(r0-r0p)/r0>1e-10):
-        sol     = r0**2*rho0/2.0
-        iter    = int(10*rmax // dr)
-        fn      = 0
-        for j in range(iter+1):
-            rj  = dr*j
-            rjj = dr*(j+1)
-            fj  = rj * profileMethod(rj)
-            fjj = rjj * profileMethod(rjj)
-            fn  = fn + 0.5*(fj+fjj)*dr
-            if (fn>=sol):
-                rn = rj
-                break
-    r0p = r0
-    if (rn <= rmax):
-        x.append(xc[i] * rn/r0)
-        y.append(yc[i] * rn/r0)
-        m.append(mc[i])
-
-#seededMass = sum(m)
-
-#mAdj = targetMass / seededMass
-#for i in xrange(len(m)):
-#    m[i] = m[i] * mAdj
+nx0 = int(nx*(2.0*rmax)/(xmax[0]-xmin[0]))
+dx = (xmax[0] - xmin[0])/nx
+dr = dx
+r = rmax
+print("transfinite...")
+thcount = 1e5
+while thcount > 1:
+    prevv = Vector2d(0,0)
+    dist = 0.0
+    sq = SquareCurve(r)
+    cir = CircleCurve(r)
+    ntot = nx0*4
+    thcount = max(int(ntot*(r/rmax)*profileMethod(r,rmax)),1)
+    ti = interpT(r,rmax*0.4,rmax*0.9) # linear interp from square to circle
+    print(r,thcount,dist,dr,thcount)
+    for i in range(thcount):
+        th = 1.0/thcount*i
+        rs = sq(th)
+        rc = cir(th)
+        v = rs.lerp(rc,ti)+centroid
+        if prevv.magnitude() > 0.0:
+            dist += (v-prevv).magnitude()
+        xx = v[0]
+        yy = v[1]
+        if xx < xxmax[0] and yy < xxmax[1] and xx > xxmin[0] and yy > xxmin[1]:
+            x.append(xx)
+            y.append(yy)
+        prevv = v
+    dist = dist / float(thcount)
+    dr = dist
+    r = r-dr
 
 #plt.plot(xl,yl,".",color="k")
 #plt.plot(xc,yc,".",color="red")
-plt.plot(x,y,"+",color="blue")   
+plt.plot(x,y,".",color="k")   
 plt.show()
-
-
-
-
-
-
-#x,y,m = create(50,50,rho=1.0,xmin=(-1.0,-1.0),xmax=(1.0,1.0),centroid=(0.5,0.5))
-

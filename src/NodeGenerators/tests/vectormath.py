@@ -24,6 +24,11 @@ class Vector2d:
     def norm(self):
         mag = self.magnitude()
         return Vector2d(self.x/mag,self.y/mag)
+    def lerp(self,v2,t):
+        return v2*t+self*(1.0-t)
 
 def vectorfromtuple(tup):
     return Vector2d(tup[0],tup[1])
+
+def interpVector(v1,v2,t):
+    return v2*t+v1*(1.0-t)
