@@ -86,6 +86,9 @@ public:
   // Compute the volume.
   double volume() const;
 
+  // For compatibility with polygon and polyhedron
+  void decompose(std::vector<Box1d>& subcells) const;
+
   // Shift by a Vector delta.
   Box1d& operator+=(const Vector& rhs);
   Box1d& operator-=(const Vector& rhs);
