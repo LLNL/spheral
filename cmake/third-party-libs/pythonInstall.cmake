@@ -32,8 +32,6 @@ if(${lib_name}_BUILD)
   )
   set(${lib_name}-install-dep ${lib_name})
 
-else()
-  set(${lib_name}_ADD_BLT_TARGET OFF)
 endif()
 
 add_custom_target(

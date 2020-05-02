@@ -95,15 +95,20 @@ function(Demo_Handle_TPL lib_name dep_list)
   endforeach()
 
   blt_register_library(
-    NAME ${lib_name}
+    NAME blt_${lib_name}
     INCLUDES ${${lib_name}_INCLUDES}
     LIBRARIES ${${lib_name}_LIBRARIES}
     )
 
   if (${lib_name}_ADD_BLT_TARGET)
-    list(APPEND ${dep_list} ${lib_name})
+    list(APPEND spheral_blt_depends blt_${lib_name})
+    if (${lib_name}_BUILD)
+      list(APPEND ${dep_list} ${lib_name})
+    endif()
   endif()
+
   set(${dep_list} ${${dep_list}} PARENT_SCOPE)
+  set(spheral_blt_depends ${spheral_blt_depends} PARENT_SCOPE)
 
   message("")
 
