@@ -196,8 +196,7 @@ if standardGlobalIDs:
 else:
     globalIndicesFL = mortonOrderIndices(dataBase)
     # globalIndicesFL = peanoHilbertOrderIndices(dataBase) # not working
-for f in globalIndicesFL:
-    domainbc.applyGhostBoundary(f)
+domainbc.applyFieldListGhostBoundary(globalIndicesFL)
 domainbc.finalizeGhostBoundary()
 output("globalIndicesFL")
 
