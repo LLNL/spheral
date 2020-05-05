@@ -4,9 +4,9 @@ include(${PROJECT_SOURCE_DIR}/../cmake/DemoCMake.cmake)
 set(PYTHON_MODULES
   setuptools
   wheel
+  numpy-stl
   PYB11Generator
   mpi4py
-  numpy-stl
   matplotlib
   decorator
   h5py
