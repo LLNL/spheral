@@ -34,3 +34,10 @@ if(${lib_name}_BUILD)
   )
 
 endif()
+
+if(NOT ENABLE_CXXONLY AND NOT ENABLE_STATIC_CXXONLY)
+  install(
+    FILES ${${lib_name}_DIR}/lib/python2.7/site-packages/polytope/polytope.so
+    DESTINATION ${PYTHON_SITE_PACKAGE_DIR}
+    )
+endif()
