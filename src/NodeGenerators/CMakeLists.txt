@@ -54,6 +54,7 @@ set(NodeGenerators_python_targets
     MultiScaleMedialGenerator.py
     RecursivePrimitiveRefinementGenerator.py
     SEAGenerator.py
+    FacetedVolumeRejecters.py
     )
 
 spheral_add_cxx_library(NodeGenerators)

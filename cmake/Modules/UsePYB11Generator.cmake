@@ -104,17 +104,18 @@ macro(PYB11_GENERATE_BINDINGS)
     )
   STRING(REPLACE ";" "<->" PYTHON_ENV_STR ${PYTHON_ENV})
 
-  if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_MODULE_NAME}_stamp.cmake")
-    execute_process(COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
-                    ${PYTHON_EXE} ${PROJECT_SOURCE_DIR}/helpers/moduleCheck.py 
-                    ${PYB11_MODULE_NAME}
-                    ${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_SOURCE}
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                    DEPENDS python-install
-                    )
-  endif()
+  if (EXISTS ${PYTHON_EXE})
+    if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_MODULE_NAME}_stamp.cmake")
+      execute_process(COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
+                      ${PYTHON_EXE} ${PROJECT_SOURCE_DIR}/helpers/moduleCheck.py 
+                      ${PYB11_MODULE_NAME}
+                      ${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_SOURCE}
+                      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                      )
+    endif()
 
-  include(${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_MODULE_NAME}_stamp.cmake)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_MODULE_NAME}_stamp.cmake)
+  endif()
 
   add_custom_target(${PYB11_MODULE_NAME}_stamp ALL
                     COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
