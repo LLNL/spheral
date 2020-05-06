@@ -174,7 +174,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
   // Iterate over the Connectivity (NodeList).
   for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
     const auto ioff = mOffsets[iNodeList];
-    const auto numNodes = ((domainDecompIndependent or mBuildGhostConnectivity) ? 
+    const auto numNodes = ((domainDecompIndependent or mBuildGhostConnectivity or mBuildOverlapConnectivity) ? 
                            mNodeLists[iNodeList]->numNodes() :
                            mNodeLists[iNodeList]->numInternalNodes());
 
@@ -841,7 +841,8 @@ computeConnectivity() {
               const auto& ri = position(iNodeList, i);
               const auto& Hi = H(iNodeList, i);
               auto&       worki = mNodeLists[iNodeList]->work();
-              CHECK(mOffsets[iNodeList] + i < mConnectivity.size());
+              CHECK2(mOffsets[iNodeList] + i < mConnectivity.size(),
+                     iNodeList << " " << i << " " << mOffsets[iNodeList] << " " << mConnectivity.size());
               const auto start = Timing::currentTime();
 
               // Get the neighbor set we're building for this node.
