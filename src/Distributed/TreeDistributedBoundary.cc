@@ -248,7 +248,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase,
 
             // Find the master/coarse neighbor info for this tree level/cell.
             vector<int> masterList, coarseNeighbors;
-            neighborPtr->setTreeMasterList(klevel, otherTree[klevel][kcell], masterList, coarseNeighbors);
+            neighborPtr->setTreeMasterList(klevel, otherTree[klevel][kcell], masterList, coarseNeighbors, false);
 
             // Copy the coarse neighbor set as our send nodes.
             if (coarseNeighbors.size() > 0) {
