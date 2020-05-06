@@ -20,5 +20,5 @@ add_custom_target(${lib_name}
   COMMAND ${PYTHON_EXE} setup.py install
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/gnuplot-py-1.8
   COMMENT "Installing gnuplot"
-  DEPENDS python-install numpy-stl ${lib_name}-unpack
+  DEPENDS python-install pip-modules ${lib_name}-unpack
 )

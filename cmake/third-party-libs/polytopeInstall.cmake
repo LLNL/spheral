@@ -25,7 +25,7 @@ if(${lib_name}_BUILD)
                -DPYTHON_EXE=${PYTHON_EXE}
                -DBoost_INCLUDE_DIR=${BOOST_INSTALL_DIR}/include
                -DTESTING=Off
-    DEPENDS boost python-install PYB11Generator
+    DEPENDS boost python-install pip-modules
 
     LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
     LOG_CONFIGURE ${OUT_PROTOCOL_EP}
