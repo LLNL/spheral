@@ -119,6 +119,10 @@ public:
   // Update the control and ghost nodes of the base class.
   void setControlAndGhostNodes();
 
+  // Prevent the Boundary virtual methods from being hidden
+  using Boundary<Dimension>::applyGhostBoundary;
+  using Boundary<Dimension>::enforceBoundary;
+
 protected:
   //--------------------------- Protected Interface ---------------------------//
   // Descendent classes get read/write access to the communication maps.

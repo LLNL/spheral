@@ -75,7 +75,8 @@ class TreeNeighbor(Neighbor):
                           levelID = "const LevelKey",
                           cellID = "const CellKey",
                           masterList = "std::vector<int>&",
-                          coarseNeighbors = "std::vector<int>&"):
+                          coarseNeighbors = "std::vector<int>&",
+                          ghostConnectivity = "const bool"):
         "For our parallel algorithm it is useful to be able to set the master/coarse information based on the given (level, cell)."
         return "void"
 

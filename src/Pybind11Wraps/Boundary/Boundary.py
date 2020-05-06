@@ -357,6 +357,7 @@ class Boundary:
         return "void"
 
     for T, L in (("int", "int"),
+                 ("uint64_t", "ULL"),
                  ("Scalar", "Scalar"),
                  ("Vector", "Vector"),
                  ("Tensor", "Tensor"),

@@ -97,8 +97,9 @@ NestedGridNeighbor<Dimension>::
 setMasterList(const typename Dimension::Vector& position,
               const typename Dimension::Scalar& H,
               std::vector<int>& masterList,
-              std::vector<int>& coarseNeighbors) const {
-  setNestedMasterList(position, H, masterList, coarseNeighbors);
+              std::vector<int>& coarseNeighbors,
+              const bool ghostConnectivity) const {
+  setNestedMasterList(position, H, masterList, coarseNeighbors, ghostConnectivity);
 }
 
 template<typename Dimension>
@@ -107,8 +108,9 @@ NestedGridNeighbor<Dimension>::
 setMasterList(const typename Dimension::Vector& position,
               const typename Dimension::SymTensor& H,
               std::vector<int>& masterList,
-              std::vector<int>& coarseNeighbors) const {
-  setNestedMasterList(position, H, masterList, coarseNeighbors);
+              std::vector<int>& coarseNeighbors,
+              const bool ghostConnectivity) const {
+  setNestedMasterList(position, H, masterList, coarseNeighbors, ghostConnectivity);
 }
 
 template<typename Dimension>
@@ -116,11 +118,12 @@ void
 NestedGridNeighbor<Dimension>::
 setMasterList(const typename Dimension::Vector& position,
               std::vector<int>& masterList,
-              std::vector<int>& coarseNeighbors) const {
+              std::vector<int>& coarseNeighbors,
+              const bool ghostConnectivity) const {
   SymTensor fakeH;
   fakeH.Identity();
   fakeH *= 1.0e30;
-  setNestedMasterList(position, fakeH, masterList, coarseNeighbors);
+  setNestedMasterList(position, fakeH, masterList, coarseNeighbors, ghostConnectivity);
 }
 
 //------------------------------------------------------------------------------
@@ -166,7 +169,8 @@ void
 NestedGridNeighbor<Dimension>::
 setMasterList(const int nodeID,
               std::vector<int>& masterList,
-              std::vector<int>& coarseNeighbors) const {
+              std::vector<int>& coarseNeighbors,
+              const bool ghostConnectivity) const {
   REQUIRE(valid());
   REQUIRE(nodeID >= 0 and nodeID < this->nodeList().numInternalNodes());
   masterList.clear();
@@ -180,7 +184,7 @@ setMasterList(const int nodeID,
     CHECK(gridCellIndex(positions(nodeID), gridLevel(nodeID)) == gridCellCheck);
   }
   END_CONTRACT_SCOPE
-  setMasterList(positions(nodeID), Hfield(nodeID), masterList, coarseNeighbors);
+  setMasterList(positions(nodeID), Hfield(nodeID), masterList, coarseNeighbors, ghostConnectivity);
 }
 
 //------------------------------------------------------------------------------
@@ -211,10 +215,11 @@ NestedGridNeighbor<Dimension>::
 setNestedMasterList(const typename Dimension::Vector& position,
                     const OtherHType& H,
                     std::vector<int>& masterList,
-                    std::vector<int>& coarseNeighbors) const {
+                    std::vector<int>& coarseNeighbors,
+                    const bool ghostConnectivity) const {
   const auto gl = gridLevel(H);
   const auto gc = gridCellIndex(position, gl);
-  setNestedMasterList(gc, gl, masterList, coarseNeighbors);
+  setNestedMasterList(gc, gl, masterList, coarseNeighbors, ghostConnectivity);
 }
 
 //------------------------------------------------------------------------------
@@ -228,10 +233,13 @@ NestedGridNeighbor<Dimension>::
 setNestedMasterList(const GridCellIndex<Dimension>& gridCell,
                     const int gridLevel,
                     std::vector<int>& masterList,
-                    std::vector<int>& coarseNeighbors) const {
+                    std::vector<int>& coarseNeighbors,
+                    const bool ghostConnectivity) const {
 
   REQUIRE(valid());
   REQUIRE(gridLevel >= 0 and gridLevel < mMaxGridLevels);
+  REQUIRE2(ghostConnectivity == false,
+           "ERROR: NestedGridNeighbor currently does not support ghost connectivity");
 
   // Set the master list to all (internal) nodes in this gridcell (on this gridlevel).
   masterList = internalNodesInCell(gridCell, gridLevel);

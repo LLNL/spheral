@@ -178,11 +178,13 @@ public:
   void setMasterNodeLists(const Vector& position,
                           const SymTensor& H,
                           std::vector<std::vector<int>>& masterLists,
-                          std::vector<std::vector<int>>& coarseNeighbors) const;
+                          std::vector<std::vector<int>>& coarseNeighbors,
+                          const bool computeGhostConnectivity) const;
   void setMasterFluidNodeLists(const Vector& position,
                                const SymTensor& H,
-                          std::vector<std::vector<int>>& masterLists,
-                          std::vector<std::vector<int>>& coarseNeighbors) const;
+                               std::vector<std::vector<int>>& masterLists,
+                               std::vector<std::vector<int>>& coarseNeighbors,
+                               const bool computeGhostConnectivity) const;
 
   void setRefineNodeLists(const Vector& position,
                           const SymTensor& H,

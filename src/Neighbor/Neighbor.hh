@@ -74,7 +74,8 @@ public:
   // Set or refine the neighbor lists for a given node ID.
   virtual void setMasterList(int nodeID,
                              std::vector<int>& masterList,
-                             std::vector<int>& coarseNeighbors) const;
+                             std::vector<int>& coarseNeighbors,
+                             const bool ghostConnectivity = false) const = 0;
   virtual void setRefineNeighborList(int nodeID,
                                      const std::vector<int>& coarseNeighbors,
                                      std::vector<int>& refineNeighbors) const;
@@ -92,11 +93,13 @@ public:
   virtual void setMasterList(const Vector& position,
                              const Scalar& H,
                              std::vector<int>& masterList,
-                             std::vector<int>& coarseNeighbors) const = 0;
+                             std::vector<int>& coarseNeighbors,
+                             const bool ghostConnectivity = false) const = 0;
   virtual void setMasterList(const Vector& position,
                              const SymTensor& H,
                              std::vector<int>& masterList,
-                             std::vector<int>& coarseNeighbors) const = 0;
+                             std::vector<int>& coarseNeighbors,
+                             const bool ghostConnectivity = false) const = 0;
 
   virtual void setRefineNeighborList(const Vector& position,
                                      const Scalar& H,
@@ -110,7 +113,8 @@ public:
   // Set Neighbors for the given position.
   virtual void setMasterList(const Vector& position,
                              std::vector<int>& masterList,
-                             std::vector<int>& coarseNeighbors) const = 0;
+                             std::vector<int>& coarseNeighbors,
+                             const bool ghostConnectivity = false) const = 0;
   virtual void setRefineNeighborList(const Vector& position,
                                      const std::vector<int>& coarseNeighbors,
                                      std::vector<int>& refineNeighbors) const = 0;
@@ -144,7 +148,8 @@ public:
                                      const NodeListIteratorType& nodeListEnd,
                                      const double kernelExtent,
                                      std::vector<std::vector<int>>& masterLists,
-                                     std::vector<std::vector<int>>& coarseNeighbors);
+                                     std::vector<std::vector<int>>& coarseNeighbors,
+                                     const bool ghostConnectivity = false);
 
   // Determine the maximum extent of a given H smoothing scale along the
   // Cartesian axes.

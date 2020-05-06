@@ -62,7 +62,7 @@ rebuild(const NodeListIterator& begin,
     const unsigned i = std::distance(mNodeLists.begin(), posItr);
     CHECK(i < numNodeLists);
     mNodeLists.insert(posItr, *itr);
-    numNodes[i] = ((domainDecompIndependent or mBuildGhostConnectivity) ?
+    numNodes[i] = ((domainDecompIndependent or mBuildGhostConnectivity or mBuildOverlapConnectivity) ?
                    (*itr)->numNodes() :
                    (*itr)->numInternalNodes());
   }
