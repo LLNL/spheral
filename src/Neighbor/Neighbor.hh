@@ -148,7 +148,8 @@ public:
                                      const NodeListIteratorType& nodeListEnd,
                                      const double kernelExtent,
                                      std::vector<std::vector<int>>& masterLists,
-                                     std::vector<std::vector<int>>& coarseNeighbors);
+                                     std::vector<std::vector<int>>& coarseNeighbors,
+                                     const bool ghostConnectivity = false);
 
   // Determine the maximum extent of a given H smoothing scale along the
   // Cartesian axes.

@@ -824,7 +824,8 @@ computeConnectivity() {
                                                     mNodeLists.end(),
                                                     etaMax,
                                                     masterLists,
-                                                    coarseNeighbors);
+                                                    coarseNeighbors,
+                                                    ghostConnectivity);
 
         // Iterate over the full of NodeLists again to work on the master nodes.
         for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
