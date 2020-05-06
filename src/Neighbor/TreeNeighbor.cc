@@ -807,14 +807,14 @@ setTreeMasterList(const typename TreeNeighbor<Dimension>::LevelKey levelID,
     coarseNeighbors = this->findTreeNeighbors(levelID, ix_master, iy_master, iz_master);
   }
 
-  // Remove all ghost nodes from the master list.
-  const unsigned firstGhostNode = this->nodeList().firstGhostNode();
-  sort(masterList.begin(), masterList.end());
-  masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
+  // // Remove all ghost nodes from the master list.
+  // const unsigned firstGhostNode = this->nodeList().firstGhostNode();
+  // sort(masterList.begin(), masterList.end());
+  // masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
 
   // Post conditions.
   ENSURE2(coarseNeighbors.size() >= masterList.size(), coarseNeighbors.size() << " " << masterList.size());
-  ENSURE(masterList.size() == 0 or *max_element(masterList.begin(), masterList.end()) < firstGhostNode);
+  // ENSURE(masterList.size() == 0 or *max_element(masterList.begin(), masterList.end()) < firstGhostNode);
 }
 
 //------------------------------------------------------------------------------

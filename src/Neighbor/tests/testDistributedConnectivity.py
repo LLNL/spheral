@@ -1,4 +1,4 @@
-from LLNLSpheral import *
+from Spheral import *
 from SpheralTestUtilities import *
 import os, shutil, time
 
@@ -10,7 +10,7 @@ commandLine(
     nx = 32,
     x0 = 0.0,
     x1 = 1.0,
-    nPerh = 4.01,
+    nPerh = 2.01,
 
     # Optionally randomize the node positions
     randomizeNodes = False,
@@ -27,11 +27,11 @@ commandLine(
     baseTestDir = "data-distributed")
 
 if dimension == 1:
-    from LLNLSpheral1d import *
+    from Spheral1d import *
 elif dimension == 2:
-    from LLNLSpheral2d import *
+    from Spheral2d import *
 else:
-    from LLNLSpheral3d import *
+    from Spheral3d import *
 
 #-------------------------------------------------------------------------------
 # Set up the output directories
@@ -162,12 +162,12 @@ fieldLists = [mass, position, h]
 #-------------------------------------------------------------------------------
 bounds = vector_of_Boundary()
 method = SPHSmoothingScale()
-iterateIdealH(dataBase,
-              bounds,
-              WT,
-              method,
-              100, # max h iterations
-              1.e-4) # h tolerance
+# iterateIdealH(dataBase,
+#               bounds,
+#               WT,
+#               method,
+#               100, # max h iterations
+#               1.e-4) # h tolerance
 dataBase.updateConnectivityMap(testGhosts, testOverlap)
 
 #-------------------------------------------------------------------------------
@@ -220,6 +220,9 @@ for ni, nodeList in enumerate(dataBase.nodeLists()):
 #     globalIndices = mpi.allreduce(globalIndices)
 #     globalConnectivity = mpi.allreduce(globalConnectivity)
 globalData = dict(zip(globalIndices, globalConnectivity))
+
+for key, vals in globalData.items():
+    print key, " : ", vals
 
 #-------------------------------------------------------------------------------
 # Save connectivity if serial, load if parallel
