@@ -4,7 +4,7 @@ set(GNUPLOT_URL http://downloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.g
 set(GNUPLOT_HASH )
 set(GNUPLOT_CACHE ${CACHE_DIR}/${GNUPLOT_DIST})
 
-set(GNUPLOT_DOWNLOAD_CMD wget ${GNUPLOT_URL} -O ${CACHE_DIR}/gnuplot-py-1.8.tar.gz)
+set(GNUPLOT_DOWNLOAD_CMD wget ${GNUPLOT_URL} --no-check-certificate -O ${CACHE_DIR}/gnuplot-py-1.8.tar.gz)
 
 if(EXISTS ${GNUPLOT_CACHE})
   set(GNUPLOT_DOWNLOAD_CMD sleep 1)
