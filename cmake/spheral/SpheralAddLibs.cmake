@@ -20,17 +20,16 @@ function(spheral_add_cxx_library package_name)
   endif()
 
   install(TARGETS             Spheral_${package_name}
+          DESTINATION         Spheral/lib
           EXPORT              ${PROJECT_NAME}-targets
-          DESTINATION         lib
-          INCLUDES DESTINATION include
           )
 
   install(FILES       ${${package_name}_headers}
           DESTINATION include/${package_name}
           )
 
-#  set_target_properties(Spheral_${package_name} PROPERTIES
-#    INSTALL_RPATH_USE_LINK_PATH TRUE)
+  set_target_properties(Spheral_${package_name} PROPERTIES
+    INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/Spheral/lib)
 
 endfunction()
 
@@ -38,6 +37,7 @@ endfunction()
 
 function(spheral_add_pybind11_library package_name)
   include(${CMAKE_MODULE_PATH}/spheral/PYB11Generator.cmake)
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}")
 
   set(PYB11_MODULE_NAME ${package_name})
   PYB11_GENERATE_BINDINGS()
@@ -56,13 +56,11 @@ function(spheral_add_pybind11_library package_name)
     )
   add_dependencies(${MODULE_NAME} ${spheral_py_depends} ${spheral_depends})
 
-  install(
-    FILES ${CMAKE_BINARY_DIR}/lib/$<TARGET_FILE_NAME:${MODULE_NAME}>
-    DESTINATION .
+  install(TARGETS ${MODULE_NAME}
+    DESTINATION Spheral
     )
 
-  #  set_target_properties(${MODULE_NAME} PROPERTIES
-  #    INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}
-  #    INSTALL_RPATH_USE_LINK_PATH TRUE)
+  set_target_properties(${MODULE_NAME} PROPERTIES
+    INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/Spheral/lib)
 
 endfunction()

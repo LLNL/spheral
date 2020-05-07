@@ -59,4 +59,4 @@ foreach(_package ${_packages})
    add_subdirectory(${_package})
 endforeach()
 
-install(EXPORT ${PROJECT_NAME}-targets DESTINATION lib/cmake)
+#install(EXPORT ${PROJECT_NAME}-targets DESTINATION lib/cmake)
