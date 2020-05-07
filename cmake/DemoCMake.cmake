@@ -1,7 +1,7 @@
-set(CACHE_DIR ${PROJECT_SOURCE_DIR}/tpl/cache)
-set(PATCH_DIR ${PROJECT_SOURCE_DIR}/tpl/patch)
-set(TPL_CMAKE_DIR ${PROJECT_SOURCE_DIR}/../cmake/third-party-libs)
-set(MODULE_CMAKE_DIR ${PROJECT_SOURCE_DIR}/../cmake/Modules)
+set(CACHE_DIR ${PROJECT_SOURCE_DIR}/src/tpl/cache)
+set(PATCH_DIR ${PROJECT_SOURCE_DIR}/src/tpl/patch)
+set(TPL_CMAKE_DIR ${PROJECT_SOURCE_DIR}/cmake/third-party-libs)
+set(MODULE_CMAKE_DIR ${PROJECT_SOURCE_DIR}/cmake/Modules)
 
 if (NOT TPL_PARALLEL_BUILD)
   set (TPL_PARALLEL_BUILD "1")
@@ -14,8 +14,8 @@ else()
   set(OUT_PROTOCOL_PIP "-q")
 endif()
 
-if (NOT DEMO_INSTALL_DIR)
-  get_filename_component(DEFAULT_TPL_LOCATION ${PROJECT_SOURCE_DIR}/../Spheral-tpl/ ABSOLUTE)
+if (NOT SPHERAL_INSTALL_DIR)
+  get_filename_component(DEFAULT_TPL_LOCATION ${CMAKE_BINARY_DIR}/Spheral-tpl/ ABSOLUTE)
 else()
   set(DEFAULT_TPL_LOCATION ${SPHERAL_INSTALL_DIR})
 endif()
@@ -76,13 +76,13 @@ function(Demo_Handle_TPL lib_name dep_list)
   set(${lib_name}_ADD_BLT_TARGET ON)
   include(${TPL_CMAKE_DIR}/${lib_name}Install.cmake)
 
-  list(APPEND ${lib_name}_INCLUDES ${${lib_name}_DIR}/include)
+  list(APPEND ${lib_name}_INCLUDES $<BUILD_INTERFACE:${${lib_name}_DIR}/include>)
 
   # Generate full path to lib file for output list.
   set(${lib_name}_LIBRARIES )
   foreach(lib ${${lib_name}_libs})
     set(lib_abs "${${lib_name}_DIR}/lib/${lib}")
-    list(APPEND ${lib_name}_LIBRARIES ${lib_abs})
+    list(APPEND ${lib_name}_LIBRARIES $<BUILD_INTERFACE:${lib_abs}>)
 
     # Check all necessary files exist during build time when not installing TPL
     if (NOT BUILD_TPL OR NOT ${lib_name}_BUILD)

@@ -1,4 +1,4 @@
-set(MODULE_CMAKE_DIR ${PROJECT_SOURCE_DIR}/../cmake/Modules)
+set(MODULE_CMAKE_DIR ${PROJECT_SOURCE_DIR}/cmake/Modules)
 
 macro(Install_PipModules lib_name)
   add_custom_target(

@@ -28,7 +28,7 @@ function(instantiate _inst_var _source_var)
         add_custom_command(
           #OUTPUT  ${_inst_file}
           OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${_inst_file}
-          COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/helpers/InstantiationGenerator.py ${_inst_py} ${_inst_file} ${_dim}
+          COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/src/helpers/InstantiationGenerator.py ${_inst_py} ${_inst_file} ${_dim}
           #MAIN_DEPENDENCY ${_inst_py}
           BYPRODUCTS ${_inst_file}
           #WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

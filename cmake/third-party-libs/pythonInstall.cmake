@@ -6,7 +6,7 @@ set(PYTHON_EXE ${PYTHON_INSTALL_DIR}/bin/python)
 set(PYTHON_URL "http://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz")
 set(PYTHON_SITE_PACKAGE_DIR ${PYTHON_INSTALL_DIR}/lib/python2.7/site-packages)
 
-set(${lib_name}_INCLUDES ${PYTHON_INSTALL_DIR}/include/python2.7/)
+set(${lib_name}_INCLUDES $<BUILD_INTERFACE:${PYTHON_INSTALL_DIR}/include/python2.7/>)
 
 if(${lib_name}_BUILD)
 

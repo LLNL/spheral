@@ -1,5 +1,5 @@
 set_directory_properties(PROPERTIES CLEAN_NO_CUSTOM 1)
-include(${PROJECT_SOURCE_DIR}/../cmake/DemoCMake.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/DemoCMake.cmake)
 
 set(BUILD_TPL ON CACHE BOOL "")
 set(ENABLE_CXXONLY OFF CACHE BOOL "")
@@ -24,14 +24,8 @@ Demo_Handle_TPL(silo spheral_depends)
 Demo_Handle_TPL(python spheral_depends)
 
 Demo_Handle_TPL(pip spheral_py_depends)
-#foreach(module ${PYTHON_MODULES})
-#  Demo_python_lib(${module} spheral_py_depends)
-#endforeach()
 
-include(${PROJECT_SOURCE_DIR}/../cmake/third-party-libs/pythonModuleInstall.cmake)
-#Demo_python_lib(pip-setup-modules spheral_py_depends)
-#Demo_python_lib(pip-modules spheral_py_depends)
-
+include(${PROJECT_SOURCE_DIR}/cmake/third-party-libs/pythonModuleInstall.cmake)
 
 Demo_Handle_TPL(polytope spheral_depends)
 
