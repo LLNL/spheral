@@ -69,7 +69,7 @@ function(Spheral_Handle_TPL lib_name dep_list)
   endif()
 
   set(${lib_name}_ADD_BLT_TARGET ON)
-  include(${TPL_CMAKE_DIR}/${lib_name}Install.cmake)
+  include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
 
   list(APPEND ${lib_name}_INCLUDES $<BUILD_INTERFACE:${${lib_name}_DIR}/include>)
 
