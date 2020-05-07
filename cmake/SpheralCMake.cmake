@@ -22,7 +22,7 @@ endfunction()
 
 function(spheral_add_pybind11_library package_name)
   set(PYB11_MODULE_NAME ${package_name})
-  include(UsePYB11Generator)
+  include(Modules/UsePYB11Generator)
     PYB11_GENERATE_BINDINGS()
 
   set(MODULE_NAME Spheral${PYB11_MODULE_NAME})
