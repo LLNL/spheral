@@ -45,7 +45,8 @@ public:
   // Set or refine the neighbor lists for a given node ID.
   virtual void setMasterList(const int nodeID,
                              std::vector<int>& masterList,
-                             std::vector<int>& coarseNeighbors) const override;
+                             std::vector<int>& coarseNeighbors,
+                             const bool ghostConnectivity = false) const override;
   virtual void setRefineNeighborList(const int nodeID,
                                      const std::vector<int>& coarseNeighbors,
                                      std::vector<int>& refineNeighbors) const override;
@@ -54,15 +55,18 @@ public:
   virtual void setMasterList(const Vector& position,
                              const Scalar& H,
                              std::vector<int>& masterList,
-                             std::vector<int>& coarseNeighbors) const override;
+                             std::vector<int>& coarseNeighbors,
+                             const bool ghostConnectivity = false) const override;
   virtual void setMasterList(const Vector& position,
                              const SymTensor& H,
                              std::vector<int>& masterList,
-                             std::vector<int>& coarseNeighbors) const override;
+                             std::vector<int>& coarseNeighbors,
+                             const bool ghostConnectivity = false) const override;
 
   virtual void setMasterList(const Vector& position,
                              std::vector<int>& masterList,
-                             std::vector<int>& coarseNeighbors) const override;
+                             std::vector<int>& coarseNeighbors,
+                             const bool ghostConnectivity = false) const override;
   virtual void setRefineNeighborList(const Vector& position,
                                      const std::vector<int>& coarseNeighbors,
                                      std::vector<int>& refineNeighbors) const override;
@@ -184,7 +188,8 @@ public:
   void setNestedMasterList(const GC& gridCell,
                            const int gridLevel,
                            std::vector<int>& masterList,
-                           std::vector<int>& coarseNeighbors) const;
+                           std::vector<int>& coarseNeighbors,
+                           const bool ghostConnectivity) const;
 
   // Find the nodes that affect the given grid cell.
   std::vector<int> findNestedNeighbors(const GC& gridCell,
@@ -208,7 +213,8 @@ private:
   void setNestedMasterList(const Vector& position,
                            const OtherHType& H,
                            std::vector<int>& masterList,
-                           std::vector<int>& coarseNeighbors) const;
+                           std::vector<int>& coarseNeighbors,
+                           const bool ghostConnectivity) const;
 
   template<typename OtherHType>
   void setNestedRefineNeighborList(const Vector& position,

@@ -109,7 +109,8 @@ class NestedGridNeighbor(Neighbor):
                             gridCell = "const GridCellIndexType&",
                             gridLevel = "const int",
                             masterList = "std::vector<int>&",
-                            coarseNeighbors = "std::vector<int>&"):
+                            coarseNeighbors = "std::vector<int>&",
+                            ghostConnectivity = "const bool"):
         "Worker method used to set master/coarse information"
         return "void"
 
