@@ -1,6 +1,9 @@
 ################################
 # Build spheral packages 
 ################################
+include(${CMAKE_MODULE_PATH}/spheral/InstantiateCXX.cmake)
+include(${CMAKE_MODULE_PATH}/spheral/SpheralAddLibs.cmake)
+
 include_directories(.)
 set(SPHERAL_PYTHON_DEPENDS )
 

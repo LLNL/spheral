@@ -11,7 +11,6 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -w")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
-include(${CMAKE_MODULE_PATH}/SpheralCMake.cmake)
 
 ################################
 # Configure and Include blt
@@ -37,7 +36,7 @@ include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
 ################################
 set(SPHERAL_INSTALL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Spheral libs.")
 #option(INSTALL_TPLS "download and install third party libs" ON)
-include(cmake/tpl.cmake)
+include(cmake/InstallTPLs.cmake)
 
 
 ################################
@@ -73,7 +72,7 @@ if(ENABLE_OPENMP)
 endif()
 
 
-include(cmake/CMakeBasics.cmake)
+include(cmake/CMakeDefinitions.cmake)
 
 
 ################################

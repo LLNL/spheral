@@ -3,7 +3,7 @@ set(CACHE_DIR ${PROJECT_SOURCE_DIR}/src/tpl/cache)
 set(PATCH_DIR ${PROJECT_SOURCE_DIR}/src/tpl/patch)
 set(TPL_CMAKE_DIR ${CMAKE_MODULE_PATH}/tpl)
 
-include(DemoCMake)
+include(spheral/SpheralHandleTPL)
 
 set(BUILD_TPL ON CACHE BOOL "")
 set(ENABLE_CXXONLY OFF CACHE BOOL "")
