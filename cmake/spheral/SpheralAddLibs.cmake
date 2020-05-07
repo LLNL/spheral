@@ -17,13 +17,14 @@ function(spheral_add_cxx_library package_name)
   if(spheral_depends)
     add_dependencies(Spheral_${package_name} ${spheral_depends})
   endif()
-
 endfunction()
+
+
 
 function(spheral_add_pybind11_library package_name)
   set(PYB11_MODULE_NAME ${package_name})
-  include(Modules/UsePYB11Generator)
-    PYB11_GENERATE_BINDINGS()
+  include(UsePYB11Generator)
+  PYB11_GENERATE_BINDINGS()
 
   set(MODULE_NAME Spheral${PYB11_MODULE_NAME})
   set(GENERATED_SOURCE Spheral${PYB11_GENERATED_SOURCE})
@@ -38,14 +39,6 @@ function(spheral_add_pybind11_library package_name)
     SHARED       TRUE
     )
   add_dependencies(${MODULE_NAME} ${spheral_py_depends} ${spheral_depends})
-
-  # target_link_libraries(
-  #   ${MODULE_NAME}
-  #   -Wl,--start-group
-  #   ${SPHERAL_PYTHON_DEPENDS}
-  #   -Wl,--end-group
-  #   ${${package_name}_ADDITIONAL_DEPENDS}
-  #   )
 
   install(
     FILES ${CMAKE_BINARY_DIR}/lib/$<TARGET_FILE_NAME:${MODULE_NAME}>

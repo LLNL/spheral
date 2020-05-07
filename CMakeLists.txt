@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.14)
 project(spheral LANGUAGES CXX)
 
-INCLUDE(ExternalProject)
+include(ExternalProject)
 
 ################################
 # Configure CMake
@@ -10,6 +10,7 @@ INCLUDE(ExternalProject)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -w")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 include(${CMAKE_MODULE_PATH}/SpheralCMake.cmake)
 
 ################################

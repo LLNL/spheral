@@ -1,8 +1,3 @@
-set(CACHE_DIR ${PROJECT_SOURCE_DIR}/src/tpl/cache)
-set(PATCH_DIR ${PROJECT_SOURCE_DIR}/src/tpl/patch)
-set(TPL_CMAKE_DIR ${PROJECT_SOURCE_DIR}/cmake/tpl)
-set(MODULE_CMAKE_DIR ${PROJECT_SOURCE_DIR}/cmake/Modules)
-
 if (NOT TPL_PARALLEL_BUILD)
   set (TPL_PARALLEL_BUILD "1")
 endif()
@@ -22,7 +17,7 @@ endif()
 message("Default TPL location : ${DEFAULT_TPL_LOCATION}\n")
 
 #----------------------------------------------------------------------------------------
-#                                   Demo_Handle_TPL
+#                                   Spheral_Handle_TPL
 #----------------------------------------------------------------------------------------
 
 # -------------------------------------------
@@ -44,7 +39,7 @@ message("Default TPL location : ${DEFAULT_TPL_LOCATION}\n")
 # -----------------------
 # <lib_name>_libs : list of full paths to tpl lib files to be linked to.
 
-function(Demo_Handle_TPL lib_name dep_list)
+function(Spheral_Handle_TPL lib_name dep_list)
                                                        
   if(NOT BUILD_TPL OR NOT ${lib_name}_BUILD)
 
@@ -113,19 +108,3 @@ function(Demo_Handle_TPL lib_name dep_list)
   message("")
 
 endfunction()
-
-
-#function(Demo_python_lib lib_name dep_list)
-#  if(BUILD_TPL)
-#    set(PY_MODULE_CMAKE ${MODULE_CMAKE_DIR}/${lib_name}Install.cmake)
-#    if (EXISTS ${PY_MODULE_CMAKE})
-#      include(${PY_MODULE_CMAKE})
-#    else()
-#      include(${MODULE_CMAKE_DIR}/BasicModuleInstall.cmake)
-#    endif()
-#  else()
-#    add_custom_target(${lib_name} COMMAND sleep 1)
-#  endif()
-#  list(APPEND ${dep_list} ${lib_name})
-#  set(${dep_list} ${${dep_list}} PARENT_SCOPE)
-#endfunction()
