@@ -27,16 +27,6 @@ set(Material_python_targets
 
 spheral_add_cxx_library(Material)
 
-install(TARGETS              Spheral_Material
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Material_headers}
-        DESTINATION include/Material
-        )
-
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${Material_python_targets}
           DESTINATION .

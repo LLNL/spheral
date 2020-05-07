@@ -59,16 +59,6 @@ set(NodeGenerators_python_targets
 
 spheral_add_cxx_library(NodeGenerators)
 
-install(TARGETS              Spheral_NodeGenerators
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${NodeGenerators_headers}
-        DESTINATION include/NodeGenerators
-        )
-
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${NodeGenerators_python_targets}
           DESTINATION .

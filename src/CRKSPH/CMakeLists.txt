@@ -53,16 +53,6 @@ set(CRKSPH_python_targets
 
 spheral_add_cxx_library(CRKSPH)
 
-install(TARGETS              Spheral_CRKSPH
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${CRKSPH_headers}
-        DESTINATION include/CRKSPH
-        )
-
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${CRKSPH_python_targets}
           DESTINATION .

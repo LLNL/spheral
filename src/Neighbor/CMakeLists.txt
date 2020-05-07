@@ -32,15 +32,5 @@ set(Neighbor_headers
 
 spheral_add_cxx_library(Neighbor)
 
-install(TARGETS              Spheral_Neighbor
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Neighbor_headers}
-        DESTINATION include/Neighbor
-        )
-
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Neighbor)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

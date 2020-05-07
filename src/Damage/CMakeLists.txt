@@ -53,16 +53,6 @@ set(Damage_python_targets
 
 spheral_add_cxx_library(Damage)
 
-install(TARGETS              Spheral_Damage
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Damage_headers}
-        DESTINATION include/Damage
-        )
-
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${Damage_python_targets}
           DESTINATION .

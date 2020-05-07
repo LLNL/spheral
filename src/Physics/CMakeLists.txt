@@ -19,15 +19,5 @@ set(Physics_headers
 
 spheral_add_cxx_library(Physics)
 
-install(TARGETS              Spheral_Physics
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Physics_headers}
-        DESTINATION include/Physics
-        )
-
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Physics)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

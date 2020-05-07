@@ -14,9 +14,24 @@ function(spheral_add_cxx_library package_name)
                     SHARED      TRUE
                     )
   endif()
+
   if(spheral_depends)
     add_dependencies(Spheral_${package_name} ${spheral_depends})
   endif()
+
+  install(TARGETS             Spheral_${package_name}
+          EXPORT              ${PROJECT_NAME}-targets
+          DESTINATION         lib
+          INCLUDES DESTINATION include
+          )
+
+  install(FILES       ${${package_name}_headers}
+          DESTINATION include/${package_name}
+          )
+
+#  set_target_properties(Spheral_${package_name} PROPERTIES
+#    INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 endfunction()
 
 
@@ -45,4 +60,9 @@ function(spheral_add_pybind11_library package_name)
     FILES ${CMAKE_BINARY_DIR}/lib/$<TARGET_FILE_NAME:${MODULE_NAME}>
     DESTINATION .
     )
+
+  #  set_target_properties(${MODULE_NAME} PROPERTIES
+  #    INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}
+  #    INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 endfunction()
