@@ -11,13 +11,13 @@ if(EXISTS ${GNUPLOT_CACHE})
 endif()
 
 add_custom_target(${lib_name}-unpack
-  COMMAND ${GNUPLOT_DOWNLOAD_CMD}
-  COMMAND tar -xvf ${CACHE_DIR}/gnuplot-py-1.8.tar.gz
+  COMMAND ${GNUPLOT_DOWNLOAD_CMD} > gnuplot-download.log
+  COMMAND tar -xvf ${CACHE_DIR}/gnuplot-py-1.8.tar.gz > gnuplot-unpack.log
   COMMENT "Upacking gnuplot"
 )
 
 add_custom_target(${lib_name}
-  COMMAND ${PYTHON_EXE} setup.py install
+  COMMAND ${PYTHON_EXE} setup.py install > gnuplot-install.log
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/gnuplot-py-1.8
   COMMENT "Installing gnuplot"
   DEPENDS python-install pip-modules ${lib_name}-unpack
