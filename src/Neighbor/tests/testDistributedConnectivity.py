@@ -1,4 +1,8 @@
-from LLNLSpheral import *
+#ATS:t0 = test(      SELF,       label="test distributed connectivity (1 proc)")
+#ATS:t2 = testif(t0, SELF, np=2, label="test distributed connectivity (2 proc)")
+#ATS:t4 = testif(t0, SELF, np=4, label="test distributed connectivity (4 proc)")
+
+from Spheral import *
 from SpheralTestUtilities import *
 import os, shutil, time
 
@@ -10,28 +14,28 @@ commandLine(
     nx = 32,
     x0 = 0.0,
     x1 = 1.0,
-    nPerh = 4.01,
+    nPerh = 2.01,
 
     # Optionally randomize the node positions
     randomizeNodes = False,
     ranfrac = 0.2,
     
     # Testing options
-    testGhosts = True, # Check all the nodes, not just internal
-    testOverlap = False, # Check the overlap connectivity
-    printErrors = False, # Print the differences in the connectivity
+    testGhosts = True,         # Check all the nodes, not just internal
+    testOverlap = False,       # Check the overlap connectivity
+    printErrors = True,        # Print the differences in the connectivity
     standardGlobalIDs = False, # This should work in 1D, but probably not otherwise
-    testSuperset = False, # Test if parallel connectivity is superset of serial; otherwise they must be equal
+    testSuperset = False,      # Test if parallel connectivity is superset of serial; otherwise they must be equal
 
     # Base directory for storing connectivity
     baseTestDir = "data-distributed")
 
 if dimension == 1:
-    from LLNLSpheral1d import *
+    from Spheral1d import *
 elif dimension == 2:
-    from LLNLSpheral2d import *
+    from Spheral2d import *
 else:
-    from LLNLSpheral3d import *
+    from Spheral3d import *
 
 #-------------------------------------------------------------------------------
 # Set up the output directories
@@ -160,21 +164,25 @@ fieldLists = [mass, position, h]
 #-------------------------------------------------------------------------------
 # Iterate h
 #-------------------------------------------------------------------------------
-bounds = vector_of_Boundary()
+domainbc = TreeDistributedBoundary.instance()
+bounds = vector_of_Boundary([domainbc])
 method = SPHSmoothingScale()
 iterateIdealH(dataBase,
               bounds,
               WT,
               method,
               100, # max h iterations
-              1.e-4) # h tolerance
+              1.e-8) # h tolerance
 dataBase.updateConnectivityMap(testGhosts, testOverlap)
 
 #-------------------------------------------------------------------------------
 # Create the distributed boundary and compute the connectivity
 #-------------------------------------------------------------------------------
-domainbc = TreeDistributedBoundary.instance()
+for NN in dataBase.nodeLists():
+    NN.numGhostNodes = 0
+    NN.neighbor().updateNodes()
 domainbc.setAllGhostNodes(dataBase)
+domainbc.finalizeGhostBoundary()
 for fl in fieldLists:
     domainbc.applyFieldListGhostBoundary(fl)
 domainbc.finalizeGhostBoundary()
@@ -196,8 +204,7 @@ if standardGlobalIDs:
 else:
     globalIndicesFL = mortonOrderIndices(dataBase)
     # globalIndicesFL = peanoHilbertOrderIndices(dataBase) # not working
-for f in globalIndicesFL:
-    domainbc.applyGhostBoundary(f)
+domainbc.applyFieldListGhostBoundary(globalIndicesFL)
 domainbc.finalizeGhostBoundary()
 output("globalIndicesFL")
 
@@ -222,6 +229,9 @@ for ni, nodeList in enumerate(dataBase.nodeLists()):
 #     globalConnectivity = mpi.allreduce(globalConnectivity)
 globalData = dict(zip(globalIndices, globalConnectivity))
 
+for key, vals in globalData.items():
+    print key, " : ", vals
+
 #-------------------------------------------------------------------------------
 # Save connectivity if serial, load if parallel
 #-------------------------------------------------------------------------------
@@ -245,9 +255,15 @@ if mpi.procs > 1:
     # Note that we do this on every processor so that we are checking the ghost nodes
     # for connectivity as well
     numFailures = 0
+    localKeys = set(globalData.keys())
     for i, cp in globalData.items():
         if i in serialData:
             cs = serialData[i]
+
+            # We only expect to find the nodes that are on this process, so reduce
+            # to that set
+            answer = cs.intersection(localKeys)
+
             # The parallel connectivity contains more points than the serial
             # (is this expected?), so we check whether the parallel connectivity
             # contains the complete serial connectivity
@@ -258,11 +274,11 @@ if mpi.procs > 1:
                         print "missing for point {}: {}".format(i, diff)
                     numFailures += 1
             else:
-                if not cp == cs:
+                diff = answer.symmetric_difference(cp)
+                if diff:
                     if printErrors:
-                        diff = cs.symmetric_difference(cp)
                         print "diff for point {}: {}".format(i, diff)
-                numFailures += 1
+                    numFailures += 1
         else:
             numFailures += 1
             print "point {} not found in serial data".format(i)

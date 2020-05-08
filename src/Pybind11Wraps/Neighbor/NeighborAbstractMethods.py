@@ -13,7 +13,8 @@ class NeighborAbstractMethods:
                        position = "const Vector&",
                        H = "const Scalar&",
                        masterList = "std::vector<int>&",
-                       coarseNeighbors = "std::vector<int>&"):
+                       coarseNeighbors = "std::vector<int>&",
+                       ghostConnectivity = ("const bool", "false")):
         "Fill the given arrays with (master, coarse) neighbor info for the given (position, H)"
         return "void"
 
@@ -23,7 +24,8 @@ class NeighborAbstractMethods:
                        position = "const Vector&",
                        H = "const SymTensor&",
                        masterList = "std::vector<int>&",
-                       coarseNeighbors = "std::vector<int>&"):
+                       coarseNeighbors = "std::vector<int>&",
+                       ghostConnectivity = ("const bool", "false")):
         "Fill the given arrays with (master, coarse) neighbor info for the given (position, H)"
         return "void"
 
@@ -52,7 +54,8 @@ class NeighborAbstractMethods:
     def setMasterList3(self,
                        position = "const Vector&",
                        masterList = "std::vector<int>&",
-                       coarseNeighbors = "std::vector<int>&"):
+                       coarseNeighbors = "std::vector<int>&",
+                       ghostConnectivity = ("const bool", "false")):
         "Fill the given arrays with (master, coarse) neighbor info for the given position"
         return "void"
 

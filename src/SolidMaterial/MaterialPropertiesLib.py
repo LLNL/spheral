@@ -4,6 +4,22 @@
 SpheralMaterialPropertiesLib = {
 
 #-------------------------------------------------------------------------------
+    "steel" : {
+        "rho0" : 7.9,             # gm/cm^3
+        "atomicWeight" : 55.350,  # gm/mol
+        "Gruneisen" : {
+            "C0"     : 0.457*1e6, # cm/sec
+            "S1"     : 1.49,      # dimensionless
+            "S2"     : 0.0,       # dimensionless
+            "S3"     : 0.0,       # dimensionless
+            "gamma0" : 1.93,      # dimensionless
+            "b"      : 0.5,       # dimensionless (beta)
+        },
+        "kWeibull" : 6.52e5,      # cm^-3
+        "mWeibull" : 2.63,        # dimensionless
+    },
+
+#-------------------------------------------------------------------------------
     "pumice" : {
         "rho0" : 2.327,         # gm/cm^3
         "atomicWeight" : 24.82, # gm/mol
