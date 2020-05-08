@@ -57,7 +57,7 @@ spheral_add_cxx_library(SPH)
 
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${SPH_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 

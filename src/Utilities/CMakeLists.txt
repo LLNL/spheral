@@ -122,7 +122,7 @@ spheral_add_cxx_library(Utilities)
 
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${Utilities_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 

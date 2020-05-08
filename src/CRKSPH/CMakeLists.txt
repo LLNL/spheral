@@ -55,7 +55,7 @@ spheral_add_cxx_library(CRKSPH)
 
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${CRKSPH_python_targets}
-          DESTINATION .
+    DESTINATION Spheral
           )
 endif()
     

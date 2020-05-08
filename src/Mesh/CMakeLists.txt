@@ -56,7 +56,7 @@ spheral_add_cxx_library(Mesh)
 
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${Mesh_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 

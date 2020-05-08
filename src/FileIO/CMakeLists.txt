@@ -25,7 +25,7 @@ spheral_add_cxx_library(FileIO)
 
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${FileIO_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 

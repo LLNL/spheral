@@ -47,7 +47,7 @@ spheral_add_cxx_library(SVPH)
 
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${SVPH_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 

@@ -61,7 +61,7 @@ spheral_add_cxx_library(NodeGenerators)
 
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${NodeGenerators_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_NodeGenerators)

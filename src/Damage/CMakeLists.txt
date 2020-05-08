@@ -55,7 +55,7 @@ spheral_add_cxx_library(Damage)
 
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${Damage_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 

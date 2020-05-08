@@ -29,7 +29,7 @@ spheral_add_cxx_library(Material)
 
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${Material_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 

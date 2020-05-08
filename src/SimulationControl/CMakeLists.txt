@@ -21,7 +21,7 @@ set(SPHERAL_VERSION_LIST ${abbref} ${short} ${oneline})
 string(REPLACE ";" " " spheralversion "${SPHERAL_VERSION_LIST}")
 configure_file(
   Spheral.py
-  ${CMAKE_INSTALL_PREFIX}/Spheral.py)
+  ${CMAKE_INSTALL_PREFIX}/Spheral/Spheral.py)
 
 set(_dims 1)
 if(ENABLE_2D)
@@ -76,5 +76,5 @@ set(SimulationControl_python_targets
     )
 
 install(FILES       ${SimulationControl_python_targets}
-        DESTINATION .
+        DESTINATION Spheral
         )
