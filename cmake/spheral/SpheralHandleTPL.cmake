@@ -1,3 +1,8 @@
+# Initialize commonly used paths during TPL installs
+set(CACHE_DIR ${PROJECT_SOURCE_DIR}/src/tpl/cache)
+set(PATCH_DIR ${PROJECT_SOURCE_DIR}/src/tpl/patch)
+set(TPL_CMAKE_DIR ${CMAKE_MODULE_PATH}/tpl)
+
 # If a TPL takes a -j set this to launch a parallel build 
 if (NOT TPL_PARALLEL_BUILD)
   set (TPL_PARALLEL_BUILD "1")

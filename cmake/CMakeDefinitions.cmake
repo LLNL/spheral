@@ -1,6 +1,6 @@
-####################
-# Other config defaults
-####################
+#-----------------------------------------------------------------------------------
+# Defeinitions to be added as compile flags for spheral 
+#-----------------------------------------------------------------------------------
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions("-DDEBUG=1")
