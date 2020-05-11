@@ -1004,11 +1004,11 @@ setMasterNodeLists(const typename Dimension::Vector& r,
        nodeListItr != mNodeListPtrs.end();
        ++nodeListItr) etaMax = std::max(etaMax, (**nodeListItr).neighbor().kernelExtent());
   Neighbor<Dimension>::setMasterNeighborGroup(r, H,
-                                                             mNodeListPtrs.begin(),
-                                                             mNodeListPtrs.end(),
-                                                             etaMax,
-                                                             masterLists,
-                                                             coarseNeighbors);
+                                              mNodeListPtrs.begin(),
+                                              mNodeListPtrs.end(),
+                                              etaMax,
+                                              masterLists,
+                                              coarseNeighbors);
 }
 
 template<typename Dimension, typename DataType>

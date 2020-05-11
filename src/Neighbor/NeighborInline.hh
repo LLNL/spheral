@@ -95,7 +95,8 @@ setMasterNeighborGroup(const typename Dimension::Vector& position,
                        const NodeListIteratorType& nodeListEnd,
                        double kernelExtent,
                        std::vector<std::vector<int>>& masterLists,
-                       std::vector<std::vector<int>>& coarseNeighbors) {
+                       std::vector<std::vector<int>>& coarseNeighbors,
+                       const bool ghostConnectivity) {
 
   typedef typename Dimension::Vector Vector;
   Vector minMasterPosition(FLT_MAX);
@@ -114,7 +115,7 @@ setMasterNeighborGroup(const typename Dimension::Vector& position,
 
     // Begin by setting the basic master/coarse neighbor info for each individual
     // NodeList.
-    neighbor.setMasterList(position, H, masterLists[nodeListi], coarseNeighbors[nodeListi]);
+    neighbor.setMasterList(position, H, masterLists[nodeListi], coarseNeighbors[nodeListi], ghostConnectivity);
 
     // Accumulate the min/max master node positions and extents.
     const auto& positions = nodeList.positions();
