@@ -72,11 +72,11 @@ macro(PYB11_GENERATE_BINDINGS)
     if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/${PYB11_MODULE_NAME}_stamp.cmake")
       # Generate stamp files at config time
       execute_process(COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
-        ${PYTHON_EXE} ${PROJECT_SOURCE_DIR}/src/helpers/moduleCheck.py 
-        ${PYB11_MODULE_NAME}
-        ${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_SOURCE}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-      )
+                      ${PYTHON_EXE} ${PROJECT_SOURCE_DIR}/src/helpers/moduleCheck.py 
+                      ${PYB11_MODULE_NAME}
+                      ${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_SOURCE}
+                      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                      )
     endif()
 
     # Include list of dependent python files
@@ -86,24 +86,22 @@ macro(PYB11_GENERATE_BINDINGS)
   # Always regenerate the stamp files at build time. Any change in the stamp file
   # will trigger a rebuild of the target pyb11 module
   add_custom_target(${PYB11_MODULE_NAME}_stamp ALL
-    COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
-      ${PYTHON_EXE} ${PROJECT_SOURCE_DIR}/src/helpers/moduleCheck.py
-      ${PYB11_MODULE_NAME}
-      ${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_SOURCE}
-      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-      DEPENDS python-install
-    )
-
+                    COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
+                    ${PYTHON_EXE} ${PROJECT_SOURCE_DIR}/src/helpers/moduleCheck.py
+                    ${PYB11_MODULE_NAME}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_SOURCE}
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                    DEPENDS python-install
+                    )
 
   # Generate the actual pyb11 module cpp source file
-  add_custom_command(
-    OUTPUT Spheral${PYB11_GENERATED_SOURCE}
-    COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
-    ${PYTHON_EXE} -c
-    'from PYB11Generator import * \; 
-    import ${PYB11_MODULE_NAME}MOD \;
-    PYB11generateModule(${PYB11_MODULE_NAME}MOD, \"Spheral${PYB11_MODULE_NAME}\") '
-    DEPENDS ${PYB11_MODULE_NAME}_stamp ${${PYB11_MODULE_NAME}_DEPENDS} ${PYB11_SOURCE}
-    )
+  add_custom_command(OUTPUT Spheral${PYB11_GENERATED_SOURCE}
+                     COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
+                     ${PYTHON_EXE} -c
+                     'from PYB11Generator import * \; 
+                     import ${PYB11_MODULE_NAME}MOD \;
+                     PYB11generateModule(${PYB11_MODULE_NAME}MOD, \"Spheral${PYB11_MODULE_NAME}\") '
+                     DEPENDS ${PYB11_MODULE_NAME}_stamp ${${PYB11_MODULE_NAME}_DEPENDS} ${PYB11_SOURCE}
+                     )
 
 endmacro()
