@@ -16,9 +16,9 @@
 # use: ${PYB11_GENERATED_SOURCE}
 #-----------------------------------------------------------------------------------
 
-macro(PYB11_GENERATE_BINDINGS)
+macro(PYB11_GENERATE_BINDINGS PYB11_MODULE_NAME)
   set(PYB11_SOURCE "${PYB11_MODULE_NAME}MOD.py")
-  set(PYB11_GENERATED_SOURCE "${PYB11_MODULE_NAME}.cc")
+  set(PYB11_GENERATED_SOURCE "Spheral${PYB11_MODULE_NAME}.cc")
 
   # List directories in which spheral .py files can be found.
   set(PYTHON_ENV 
@@ -95,7 +95,7 @@ macro(PYB11_GENERATE_BINDINGS)
                     )
 
   # Generate the actual pyb11 module cpp source file
-  add_custom_command(OUTPUT Spheral${PYB11_GENERATED_SOURCE}
+  add_custom_command(OUTPUT ${PYB11_GENERATED_SOURCE}
                      COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
                      ${PYTHON_EXE} -c
                      'from PYB11Generator import * \; 
