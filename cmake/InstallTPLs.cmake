@@ -38,6 +38,7 @@ if(NOT ENABLE_CXXONLY)
   Spheral_Handle_TPL(pip spheral_py_depends)
   include(tpl/pythonModule)
 
-  Spheral_Handle_TPL(polytope spheral_depends)
   Spheral_Handle_TPL(pybind11 spheral_depends)
 endif()
+
+Spheral_Handle_TPL(polytope spheral_depends)

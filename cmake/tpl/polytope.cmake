@@ -5,6 +5,15 @@ set(POLTOPE_SRC_DIR ${POLYTOPE_PREFIX}/src/boost)
 
 set(${lib_name}_libs libpolytope.a)
 
+set(POLYTOPE_DEPENDS boost)
+set(POLYTOPE_USE_PYTHON On)
+
+if(ENABLE_CXXONLY)
+  set(POLYTOPE_USE_PYTHON Off)
+else()
+  list(APPEND POLYTOPE_DEPENDS python-install pip-modules)
+endif()
+
 if(${lib_name}_BUILD)
 
   if (EXISTS ${POLYTOPE_CACHE})
@@ -21,11 +30,11 @@ if(${lib_name}_BUILD)
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR} 
                -DPYBIND11_INCLUDE_DIRS=${PYBIND11_INSTALL_DIR}/include
-               -DUSE_PYTHON=On
+               -DUSE_PYTHON=${POLYTOPE_USE_PYTHON}
                -DPYTHON_EXE=${PYTHON_EXE}
                -DBoost_INCLUDE_DIR=${BOOST_INSTALL_DIR}/include
                -DTESTING=Off
-    DEPENDS boost python-install pip-modules
+               DEPENDS ${POLYTOPE_DEPENDS}
 
     LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
     LOG_CONFIGURE ${OUT_PROTOCOL_EP}
