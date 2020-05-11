@@ -12,7 +12,6 @@ include(spheral/SpheralHandleTPL)
 # it is expected that the user provide locations for each one
 # else the default install location will be searched for TPLs
 set(BUILD_TPL ON CACHE BOOL "Define if any TPLs will be built or not.")
-set(ENABLE_CXXONLY OFF CACHE BOOL "Only build C++ Spheral. Ignore all python/pybind related")
 
 # Default build flags for each TPL
 set(boost_BUILD ON CACHE BOOL "Option to build boost")

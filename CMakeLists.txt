@@ -35,19 +35,17 @@ include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
 # Install / Locate third party libraries
 ################################
 set(SPHERAL_INSTALL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Spheral libs.")
-#option(INSTALL_TPLS "download and install third party libs" ON)
 include(cmake/InstallTPLs.cmake)
-
 
 ################################
 # Include standard build system logic and options / definitions
 ################################
-option(ENABLE_CXXONLY "enable C++ only build without python bindings" OFF)
-option(ENABLE_2D "enable 2d" ON)
-option(ENABLE_3D "enable 3d" ON)
-option(ENABLE_INSTANTIATIONS "enable instantiations" ON)
-option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
-option(ENABLE_TIMER "enable timer" OFF)
+set(ENABLE_CXXONLY OFF CACHE BOOL "enable C++ only build without python bindings")
+set(ENABLE_2D ON CACHE BOOL "enable 2d")
+set(ENABLE_3D ON CACHE BOOL "enable 3d")
+set(ENABLE_INSTANTIATIONS ON CACHE BOOL "enable instantiations")
+set(ENABLE_STATIC_CXXONLY OFF CACHE BOOL "build only static libs")
+set(ENABLE_TIMER OFF CACHE BOOL "enable timer")
 
 if(ENABLE_STATIC_CXXONLY)
   set(ENABLE_CXXONLY ON)
