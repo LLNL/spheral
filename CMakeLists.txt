@@ -32,32 +32,17 @@ endif()
 include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
 
 ################################
-# Install / Locate third party libraries
-################################
-set(SPHERAL_INSTALL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Spheral libs.")
-include(cmake/InstallTPLs.cmake)
-
-################################
 # Include standard build system logic and options / definitions
 ################################
 set(ENABLE_CXXONLY OFF CACHE BOOL "enable C++ only build without python bindings")
 set(ENABLE_2D ON CACHE BOOL "enable 2d")
 set(ENABLE_3D ON CACHE BOOL "enable 3d")
 set(ENABLE_INSTANTIATIONS ON CACHE BOOL "enable instantiations")
-set(ENABLE_STATIC_CXXONLY OFF CACHE BOOL "build only static libs")
 set(ENABLE_TIMER OFF CACHE BOOL "enable timer")
 
+option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
 if(ENABLE_STATIC_CXXONLY)
   set(ENABLE_CXXONLY ON)
-endif()
-
-if(ENABLE_CXXONLY)
-  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/Spheral)
-  if(SPHERAL_INSTALL_DIR)
-    set(CMAKE_INSTALL_PREFIX ${SPHERAL_INSTALL_DIR})
-  endif()
-else()
-  set(CMAKE_INSTALL_PREFIX ${PYTHON_SITE_PACKAGE_DIR})
 endif()
 
 if(ENABLE_MPI)
@@ -67,6 +52,22 @@ endif()
 
 if(ENABLE_OPENMP)
   list(APPEND spheral_blt_depends openmp)
+endif()
+
+
+################################
+# Install / Locate third party libraries
+################################
+set(SPHERAL_INSTALL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Spheral libs.")
+include(cmake/InstallTPLs.cmake)
+
+if(ENABLE_CXXONLY)
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/Spheral)
+  if(SPHERAL_INSTALL_DIR)
+    set(CMAKE_INSTALL_PREFIX ${SPHERAL_INSTALL_DIR})
+  endif()
+else()
+  set(CMAKE_INSTALL_PREFIX ${PYTHON_SITE_PACKAGE_DIR})
 endif()
 
 
