@@ -41,19 +41,9 @@ set(NodeList_python_targets
 
 spheral_add_cxx_library(NodeList)
 
-install(TARGETS              Spheral_NodeList
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${NodeList_headers}
-        DESTINATION include/NodeList
-        )
-
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${NodeList_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 

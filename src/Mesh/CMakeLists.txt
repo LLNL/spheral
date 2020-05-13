@@ -54,19 +54,9 @@ set(Mesh_python_targets
 
 spheral_add_cxx_library(Mesh)
 
-install(TARGETS              Spheral_Mesh
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Mesh_headers}
-        DESTINATION include/Mesh
-        )
-
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${Mesh_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 
