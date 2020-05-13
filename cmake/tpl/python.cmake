@@ -8,6 +8,24 @@ set(PYTHON_SITE_PACKAGE_DIR ${PYTHON_INSTALL_DIR}/lib/python2.7/site-packages)
 
 set(${lib_name}_INCLUDES $<BUILD_INTERFACE:${PYTHON_INSTALL_DIR}/include/python2.7/>)
 
+set(PYTHON_C_COMPILER ${CMAKE_C_COMPILER})
+set(PYTHON_CXX_COMPILER ${CMAKE_CXX_COMPILER})
+
+if(PYTHON_C_COMPILER MATCHES "mpicc$")
+  execute_process(COMMAND ${CMAKE_C_COMPILER} -show
+                  OUTPUT_VARIABLE MPICC_SHOW )
+  string (REPLACE " " ";" MPICC_SHOW_LIST "${MPICC_SHOW}")
+  list(GET MPICC_SHOW_LIST 0 PYTHON_C_COMPILER)
+  message("${PYTHON_C_COMPILER}")
+endif()
+if(PYTHON_CXX_COMPILER MATCHES "mpicxx$")
+  execute_process(COMMAND ${CMAKE_CXX_COMPILER} -show
+                  OUTPUT_VARIABLE MPICXX_SHOW )
+  string (REPLACE " " ";" MPICXX_SHOW_LIST "${MPICXX_SHOW}")
+  list(GET MPICXX_SHOW_LIST 0 PYTHON_CXX_COMPILER)
+  message("${PYTHON_CXX_COMPILER}")
+endif()
+
 if(${lib_name}_BUILD)
 
   if (EXISTS ${PYTHON_CACHE})
@@ -18,11 +36,11 @@ if(${lib_name}_BUILD)
     PREFIX ${PYTHON_PREFIX}
     URL ${PYTHON_URL} 
     DOWNLOAD_DIR ${CACHE_DIR}
-    CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} ${PYTHON_SRC_DIR}/configure
-                      --with-cxx-main='${CMAKE_CXX_COMPILER}'
+    CONFIGURE_COMMAND env CC=${PYTHON_C_COMPILER} CXX=${PYTHON_CXX_COMPILER} ${PYTHON_SRC_DIR}/configure
+                      --with-cxx-main='${PYTHON_CXX_COMPILER}'
                       --disable-ipv6
                       --prefix=${PYTHON_INSTALL_DIR}
-    BUILD_COMMAND make -j${TPL_PARALLEL_BUILD}
+    BUILD_COMMAND make 
     INSTALL_COMMAND make install
 
     LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
