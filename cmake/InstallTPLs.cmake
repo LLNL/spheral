@@ -20,10 +20,12 @@ set(qhull_BUILD ON CACHE BOOL "Option to build qhull")
 set(polytope_BUILD ON CACHE BOOL "Option to build polytope")
 set(hdf5_BUILD ON CACHE BOOL "Option to build hdf5")
 set(silo_BUILD ON CACHE BOOL "Option to build silo")
+set(maneos_BUILD ON CACHE BOOL "Option to build ANEOS")
 
 set(pybind11_BUILD ON CACHE BOOL "Option to build pybind11")
 set(python_BUILD ON CACHE BOOL "Option to build python")
 set(pip_BUILD ON CACHE BOOL "Option to build pip")
+set(ats_BUILD ON CACHE BOOL "Option to build ats")
 
 # These libs are always needed
 Spheral_Handle_TPL(boost spheral_depends)
@@ -31,6 +33,7 @@ Spheral_Handle_TPL(eigen spheral_depends)
 Spheral_Handle_TPL(qhull spheral_depends)
 Spheral_Handle_TPL(hdf5 spheral_depends)
 Spheral_Handle_TPL(silo spheral_depends)
+Spheral_Handle_TPL(maneos spheral_depends)
 
 # Only needed when building the python interface of spheral
 if(NOT ENABLE_CXXONLY)
