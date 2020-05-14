@@ -61,16 +61,6 @@ set(SolidMaterial_python_targets
 
 spheral_add_cxx_library(SolidMaterial)
 
-install(TARGETS              Spheral_SolidMaterial
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${SolidMaterial_headers}
-        DESTINATION include/SolidMaterial
-        )
-
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${SolidMaterial_python_targets}
           DESTINATION .
