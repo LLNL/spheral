@@ -68,6 +68,12 @@ public:
   bool operator==(const GeomFacet3d& rhs) const;
   bool operator!=(const GeomFacet3d& rhs) const;
 
+  // Decompose the facet into triangles.
+  void decompose(std::vector<std::array<Vector, 3>>& subfacets) const;
+  
+  // Split into triangular sub-facets.
+  std::vector<GeomFacet3d> triangles() const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   const std::vector<Vector>* mVerticesPtr;

@@ -14,7 +14,7 @@ endif()
 
 #find includes
 find_path( EIGEN_INCLUDE_DIRS Eigen
-           PATHS  ${EIGEN_DIR}/include
+  PATHS  ${EIGEN_DIR}/include
            NO_DEFAULT_PATH
            NO_CMAKE_ENVIRONMENT_PATH
            NO_CMAKE_PATH

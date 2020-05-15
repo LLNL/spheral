@@ -10,6 +10,7 @@ PSPHHydroFactoryString = """
 class %(classname)s%(dim)s(PSPHHydroBase%(dim)s):
 
     def __init__(self,
+                 dataBase,
                  Q,
                  W,
                  WPi = None,
@@ -31,6 +32,7 @@ class %(classname)s%(dim)s(PSPHHydroBase%(dim)s):
             WPi = W
         PSPHHydroBase%(dim)s.__init__(self,
                                       self._smoothingScaleMethod,
+                                      dataBase,
                                       Q,
                                       W,
                                       WPi,
@@ -99,14 +101,15 @@ def PSPH(dataBase,
 
     # Artificial viscosity.
     if not Q:
-        Cl = 1.0*(W.kernelExtent/2.0)
-        Cq = 1.0*(W.kernelExtent/2.0)**2
+        Cl = 1.0*(dataBase.maxKernelExtent/2.0)
+        Cq = 1.0*(dataBase.maxKernelExtent/2.0)**2
         Q = eval("MonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
     # Build and return the thing.
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
-    result =  Constructor(Q = Q,
+    result =  Constructor(dataBase = dataBase,
+                          Q = Q,
                           W = W,
                           WPi = WPi,
                           filter = filter,

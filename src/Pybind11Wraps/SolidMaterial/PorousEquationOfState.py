@@ -39,8 +39,10 @@ pressure (forbidding the single value P lookup the EOS usually allows)."""
     solidEOS = PYB11property("const EquationOfState<%(Dimension)s>&", returnpolicy="reference_internal")
     alpha = PYB11property("const Field<%(Dimension)s, Scalar>&", "alpha", "alpha",
                           returnpolicy="reference_internal")
-    alpha0 = PYB11property("Scalar", "alpha0", "alpha0")
-    c0 = PYB11property("Scalar", "c0", "c0")
+    alpha0 = PYB11property("const Field<%(Dimension)s, Scalar>&", "alpha0", "alpha0",
+                           returnpolicy="reference_internal")
+    c0 = PYB11property("const Field<%(Dimension)s, Scalar>&", "c0", "c0",
+                       returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject the EOS interface

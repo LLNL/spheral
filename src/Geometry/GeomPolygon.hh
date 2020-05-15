@@ -55,11 +55,14 @@ public:
   bool convexIntersect(const GeomPolygon& rhs) const;
   bool intersect(const std::pair<Vector, Vector>& rhs) const;  // Another way of representing a box.
 
+  // Test if we intersect a line segment (interior counts as intersection).
+  bool intersect(const Vector& s0, const Vector& s1) const;
+
   // Find intersections of this polygon with a line segment (s0, s1).  Returns
   // both the intersection points and facet IDs.
-  void intersect(const Vector& s0, const Vector& s1,
-                 std::vector<unsigned>& facetIDs,
-                 std::vector<Vector>& intersections) const;
+  void intersections(const Vector& s0, const Vector& s1,
+                     std::vector<unsigned>& facetIDs,
+                     std::vector<Vector>& intersections) const;
 
   // Return the centroid of the vertices.
   Vector centroid() const;
@@ -125,6 +128,9 @@ public:
   // Decompose the polygon into triangles for each facet.
   GeomPolygon facetSubVolume(const unsigned facetID) const;
 
+  // Decompose the polygon into triangles.
+  void decompose(std::vector<GeomPolygon>& subcells) const;
+  
 private:
   //--------------------------- Private Interface ---------------------------//
   std::vector<Vector> mVertices;

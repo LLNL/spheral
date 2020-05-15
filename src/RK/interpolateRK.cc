@@ -8,7 +8,6 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
-#include "SPH/NodeCoupling.hh"
 #include "Utilities/Timer.hh"
 
 extern Timer TIME_interpolateRK;
@@ -170,9 +169,8 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
                   const FieldList<Dimension, typename Dimension::Scalar>& weight,
                   const FieldList<Dimension, typename Dimension::SymTensor>& H,
                   const ConnectivityMap<Dimension>& connectivityMap,
-                  const TableKernel<Dimension>& W,
-                  const RKOrder correctionOrder,
-                  const FieldList<Dimension, std::vector<double>>& corrections,
+                  const ReproducingKernel<Dimension>& WR,
+                  const FieldList<Dimension, RKCoefficients<Dimension>>& corrections,
                   const NodeCoupling& nodeCoupling) {
 
   TIME_interpolateRK.start();
@@ -251,8 +249,8 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
 
         // Kernel weight.
         const auto rij = ri - rj;
-        const auto Wj = RKKernel(W,  rij, Hj, correctionsi, correctionOrder);
-        const auto Wi = RKKernel(W, -rij, Hi, correctionsj, correctionOrder);
+        const auto Wj = WR.evaluateKernel( rij, Hj, correctionsi);
+        const auto Wi = WR.evaluateKernel(-rij, Hi, correctionsj);
 
         // Increment the pair-wise values.
         for (auto k = 0; k < numFieldLists; ++k) {
@@ -280,7 +278,7 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
       // Get the state for node i.
       const auto& Hi = H(nodeListi, i);
       const auto& correctionsi = corrections(nodeListi, i);
-      const auto  Wj = RKKernel(W, Vector::zero, Hi, correctionsi, correctionOrder);
+      const auto  Wj = WR.evaluateKernel(Vector::zero, Hi, correctionsi);
 
       // Add the self-contribution to each FieldList.
       for (auto k = 0; k < numFieldLists; ++k) {

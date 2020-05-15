@@ -41,9 +41,9 @@ public:
 
   // Constructors.
   SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                       DataBase<Dimension>& dataBase,
                        ArtificialViscosity<Dimension>& Q,
-                       const TableKernel<Dimension>& W,
-                       const TableKernel<Dimension>& WPi,
+                       const RKOrder order,
                        const double filter,
                        const double cfl,
                        const bool useVelocityMagnitudeForDt,
@@ -52,11 +52,8 @@ public:
                        const bool XSPH,
                        const MassDensityType densityUpdate,
                        const HEvolutionType HUpdate,
-                       const RKOrder correctionOrder,
-                       const RKVolumeType volumeType,
                        const double epsTensile,
                        const double nTensile,
-                       const bool limitMultimaterialTopology,
                        const bool damageRelieveRubble,
                        const bool negativePressureInDamage);
 
@@ -98,10 +95,10 @@ public:
 
   // The state field lists we're maintaining.
   const FieldList<Dimension, SymTensor>& DdeviatoricStressDt() const;
-  const FieldList<Dimension, Scalar>& bulkModulus() const;
-  const FieldList<Dimension, Scalar>& shearModulus() const;
-  const FieldList<Dimension, Scalar>& yieldStrength() const;
-  const FieldList<Dimension, Scalar>& plasticStrain0() const;
+  const FieldList<Dimension, Scalar>&    bulkModulus() const;
+  const FieldList<Dimension, Scalar>&    shearModulus() const;
+  const FieldList<Dimension, Scalar>&    yieldStrength() const;
+  const FieldList<Dimension, Scalar>&    plasticStrain0() const;
   const FieldList<Dimension, SymTensor>& Hfield0() const;
 
   // Control whether allow damaged material to have stress relieved.
@@ -125,7 +122,6 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-
   // Some internal scratch fields.
   FieldList<Dimension, SymTensor> mDdeviatoricStressDt;
   FieldList<Dimension, Scalar> mBulkModulus;

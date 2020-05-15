@@ -11,10 +11,10 @@
 // Created by JMO, Mon May  9 11:01:51 PDT 2016
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "DamagedNodeCouplingWithFrags.hh"
+#include "Utilities/DamagedNodeCouplingWithFrags.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
+#include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "Strength/RZPlasticStrainPolicy.hh"
@@ -76,6 +76,7 @@ tensileStressCorrection(const Dim<2>::SymTensor& sigma) {
 //------------------------------------------------------------------------------
 SolidSPHHydroBaseRZ::
 SolidSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
+                    DataBase<Dimension>& dataBase,
                     ArtificialViscosity<Dim<2> >& Q,
                     const TableKernel<Dim<2> >& W,
                     const TableKernel<Dim<2> >& WPi,
@@ -98,6 +99,7 @@ SolidSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                     const Vector& xmin,
                     const Vector& xmax):
   SolidSPHHydroBase<Dim<2> >(smoothingScaleMethod, 
+                             dataBase,
                              Q,
                              W,
                              WPi,
@@ -137,7 +139,6 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
 
   // Call the ancestor.
   SolidSPHHydroBase<Dim<2> >::initializeProblemStartup(dataBase);
-
   dataBase.isRZ = true;
 }
 
@@ -164,7 +165,7 @@ registerState(DataBase<Dim<2> >& dataBase,
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
+    PolicyPointer thermalEnergyPolicy(new RZNonSymmetricSpecificThermalEnergyPolicy(dataBase));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
 
     // Get the policy for the position, and add the specific energy as a dependency.
@@ -193,7 +194,11 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       const auto n = mass[nodeListi]->numElements();
       for (auto i = 0; i < n; ++i) {
         const auto circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+#ifdef WIN32
+        if (circi > 0.0) mass(nodeListi, i) /= circi;
+#else
         mass(nodeListi, i) /= circi;
+#endif
       }
     }
   }
@@ -216,7 +221,11 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       for (auto i = 0; i != n; ++i) {
         const auto& xi = position(nodeListi, i);
         const auto  circi = 2.0*M_PI*abs(xi.y());
+#ifdef WIN32
+        if (circi > 0.0) mass(nodeListi, i) *= circi;
+#else
         mass(nodeListi, i) *= circi;
+#endif
       }
     }
   }
@@ -520,8 +529,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                      ri, etai, vi, rhoi, ci, Hi,
-                                      rj, etaj, vj, rhoj, cj, Hj);
+                                      posi, etai, vi, rhoi, ci, Hi,
+                                      posj, etaj, vj, rhoj, cj, Hj);
       const auto Qacci = 0.5*(QPiij*gradWQi);
       const auto Qaccj = 0.5*(QPiji*gradWQj);
       const auto workQi = vij.dot(Qacci);
@@ -805,7 +814,11 @@ applyGhostBoundaries(State<Dim<2> >& state,
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
       CHECK(circi > 0.0);
+#ifdef WIN32
+      if (circi > 0.0) mass(nodeListi, i) /= circi;
+#else
       mass(nodeListi, i) /= circi;
+#endif
     }
   }
 
@@ -821,7 +834,11 @@ applyGhostBoundaries(State<Dim<2> >& state,
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
       CHECK(circi > 0.0);
+#ifdef WIN32
+      if (circi > 0.0) mass(nodeListi, i) *= circi;
+#else
       mass(nodeListi, i) *= circi;
+#endif
     }
   }
 }
@@ -843,7 +860,11 @@ enforceBoundaries(State<Dim<2> >& state,
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
       CHECK(circi > 0.0);
+#ifdef WIN32
+      if (circi > 0.0) mass(nodeListi, i) /= circi;
+#else
       mass(nodeListi, i) /= circi;
+#endif
     }
   }
 
@@ -859,7 +880,11 @@ enforceBoundaries(State<Dim<2> >& state,
     for (unsigned i = 0; i != n; ++i) {
       Vector& posi = pos(nodeListi, i);
       const Scalar circi = 2.0*M_PI*abs(posi.y());
+#ifdef WIN32
+      if (circi > 0.0) mass(nodeListi, i) *= circi;
+#else
       mass(nodeListi, i) *= circi;
+#endif
     }
   }
 }

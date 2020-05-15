@@ -18,6 +18,7 @@ class SPHHydroBase(GenericHydro):
 """
     
     def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
+               dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                WPi = "const TableKernel<%(Dimension)s>&",
@@ -118,6 +119,8 @@ boundary conditions."""
 
     #...........................................................................
     # Properties
+    kernel = PYB11property("const TableKernel<%(Dimension)s>&", "kernel", doc="The interpolation kernel")
+    PiKernel = PYB11property("const TableKernel<%(Dimension)s>&", "PiKernel", doc="The interpolation kernel for the artificial viscosity")
     densityUpdate = PYB11property("MassDensityType", "densityUpdate", "densityUpdate",
                                   doc="Flag to choose whether we want to sum for density, or integrate the continuity equation.")
     HEvolution = PYB11property("HEvolutionType", "HEvolution", "HEvolution",

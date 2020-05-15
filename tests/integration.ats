@@ -21,10 +21,6 @@ source("../src/Boundary/tests/testPeriodicBoundary-2d.py")
 # SPH unit tests
 source("../src/SPH/tests/testLinearVelocityGradient.py")
 
-# CRKSPH unit tests
-source("../src/CRKSPH/tests/testInterpolation.py")
-source("../src/CRKSPH/tests/testVoronoiVolume.py")
-
 # SVPH unit tests
 source("../src/SVPH/tests/testSVPHInterpolation-1d.py")
 # source("../src/SVPH/tests/testSVPHInterpolation-2d.py")
@@ -45,7 +41,9 @@ source("../src/SolidMaterial/tests/testTillotsonEquationOfState.py")
 source("Material/UnitConversion.py")
 
 # Test the sampling to lattice method.
-source("../src/FieldOperations/tests/testSampleMultipleFields2Lattice.py")
+source("../src/FieldOperations/tests/testSampleMultipleFields2Lattice1d.py")
+source("../src/FieldOperations/tests/testSampleMultipleFields2Lattice2d.py")
+source("../src/FieldOperations/tests/testSampleMultipleFields2Lattice3d.py")
 
 # FileIO tests
 source("../src/FileIO/tests/testGzipFileIO.py")
@@ -88,3 +86,4 @@ source("Damage/TensileRod/TensileRod-1d.py")
 
 # RK tests
 source("RK/RKInterpolation.py")
+source("RK/testVoronoiVolume.py")

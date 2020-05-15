@@ -36,8 +36,8 @@ Box1d(const std::vector<Box1d::Vector>& points):
     mCenter = 0.5*(xmin + xmax);
     mExtent = 0.5*(xmax - xmin);
   }
-  mVertices.push_back(mCenter - mExtent);
-  mVertices.push_back(mCenter + mExtent);
+  mVertices.push_back(mCenter - Vector(mExtent));
+  mVertices.push_back(mCenter + Vector(mExtent));
 }
 
 inline
@@ -59,8 +59,8 @@ Box1d(const std::vector<Box1d::Vector>& points,
                xmax = std::max(points[i].x(), points[j].x());
   mCenter = 0.5*(xmin + xmax);
   mExtent = 0.5*(xmax - xmin);
-  mVertices.push_back(mCenter - mExtent);
-  mVertices.push_back(mCenter + mExtent);
+  mVertices.push_back(mCenter - Vector(mExtent));
+  mVertices.push_back(mCenter + Vector(mExtent));
 }
 
 inline
@@ -70,8 +70,8 @@ Box1d(const GeomVector<1>& center,
   mCenter(center),
   mExtent(extent) {
   REQUIRE(mExtent >= 0.0);
-  mVertices.push_back(mCenter - mExtent);
-  mVertices.push_back(mCenter + mExtent);
+  mVertices.push_back(mCenter - Vector(mExtent));
+  mVertices.push_back(mCenter + Vector(mExtent));
 }
 
 inline
@@ -166,6 +166,20 @@ intersect(const std::pair<Vector, Vector>& rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// Test if we intersect a line segment (interior counts as intersection).
+//------------------------------------------------------------------------------
+inline
+bool
+Box1d::
+intersect(const Vector& s0, const Vector& s1) const {
+  const auto smin = std::min(s0.x(), s1.x());
+  const auto smax = std::max(s0.x(), s1.x());
+  if ((smin > mCenter.x() + mExtent) or
+      (smax < mCenter.x() - mExtent)) return false;
+  return true;
+}
+
+//------------------------------------------------------------------------------
 // Center attribute.
 //------------------------------------------------------------------------------
 inline
@@ -187,9 +201,9 @@ void
 Box1d::
 center(const GeomVector<1>& val) {
   mCenter = val;
-  mVertices = std::vector<Vector>();
-  mVertices.push_back(mCenter - mExtent);
-  mVertices.push_back(mCenter + mExtent);
+  mVertices.clear();
+  mVertices.push_back(mCenter - Vector(mExtent));
+  mVertices.push_back(mCenter + Vector(mExtent));
 }
 
 //------------------------------------------------------------------------------
@@ -214,9 +228,9 @@ void
 Box1d::
 extent(double val) {
   mExtent = val;
-  mVertices = std::vector<Vector>();
-  mVertices.push_back(mCenter - mExtent);
-  mVertices.push_back(mCenter + mExtent);
+  mVertices.clear();
+  mVertices.push_back(mCenter - Vector(mExtent));
+  mVertices.push_back(mCenter + Vector(mExtent));
 }
 
 //------------------------------------------------------------------------------
@@ -247,6 +261,18 @@ const std::vector<GeomVector<1> >&
 Box1d::
 vertices() const {
   return mVertices;
+}
+
+//------------------------------------------------------------------------------
+// The facets.
+//------------------------------------------------------------------------------
+inline
+const std::vector<GeomFacet1d>&
+Box1d::
+facets() const {
+  mFacets = {Facet(mVertices[0], Vector(-1.0)),
+             Facet(mVertices[1], Vector(1.0))};
+  return mFacets;
 }
 
 //------------------------------------------------------------------------------
@@ -318,6 +344,16 @@ closestPoint(const GeomVector<1>& p) const {
   } else {
     return GeomVector<1>(p.x() - mExtent);
   }
+}
+
+//------------------------------------------------------------------------------
+// In 1d, there is no decomposition to be done
+//------------------------------------------------------------------------------
+inline
+void
+Box1d::
+decompose(std::vector<Box1d>& subcells) const {
+  subcells = {*this};
 }
 
 //------------------------------------------------------------------------------

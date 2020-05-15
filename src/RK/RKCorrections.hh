@@ -6,11 +6,15 @@
 #ifndef __LLNLSpheral_RKCorrections__
 #define __LLNLSpheral_RKCorrections__
 
-#include "RKCorrectionParams.hh"
+#include "RK/RKCorrectionParams.hh"
+#include "RK/ReproducingKernel.hh"
 #include "DataOutput/registerWithRestart.hh"
 #include "Field/FieldList.hh"
 #include "Geometry/CellFaceFlag.hh"
 #include "Physics/Physics.hh"
+
+#include <set>
+#include <unordered_map>
 
 namespace Spheral {
 
@@ -19,9 +23,10 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
 template<typename Dimension> class Boundary;
 
-template<typename Dimension, RKOrder correctionOrder>
+template<typename Dimension>
 class RKCorrections : public Physics<Dimension> {
 public:
+  //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
@@ -33,10 +38,11 @@ public:
   typedef typename std::pair<double, std::string> TimeStepType;
 
   // Constructor
-  RKCorrections(const DataBase<Dimension>& dataBase,
-                        const TableKernel<Dimension>& W,
-                        const RKVolumeType volumeType,
-                        const bool needHessian);
+  RKCorrections(const std::set<RKOrder> orders,
+                const DataBase<Dimension>& dataBase,
+                const TableKernel<Dimension>& W,
+                const RKVolumeType volumeType,
+                const bool needHessian);
 
   // Destructor.
   virtual ~RKCorrections();
@@ -76,7 +82,7 @@ public:
   // Initialize field lists and calculate initial RK corrections
   virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
   
-  // Compute the Voronoi volumes
+  // Compute the volumes
   virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
                                  State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) override;
@@ -94,6 +100,10 @@ public:
                         DataBase<Dimension>& dataBase, 
                         State<Dimension>& state,
                         StateDerivatives<Dimension>& derivs) override;
+
+  // Add a faceted boundary
+  virtual void addFacetedBoundary(const FacetedVolume& cell,
+                                  const std::vector<FacetedVolume>& holes);
   
   // We do require the connecitivity
   virtual bool requireConnectivity() const override { return true; }
@@ -102,25 +112,34 @@ public:
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
 
-  // Return data
-  RKVolumeType volumeType() const { return mVolumeType; }
-  bool needHessian() const { return mNeedHessian; }
-  const FieldList<Dimension, Scalar>& volume() const { return mVolume; }
+  // Parameters
+  std::set<RKOrder> correctionOrders() const { return mOrders; }
+  RKVolumeType      volumeType()       const { return mVolumeType; }
+  bool              needHessian()      const { return mNeedHessian; }
 
-  const FieldList<Dimension, std::vector<double>>& corrections() const { return mCorrections; }
-
-  const FieldList<Dimension, int>& surfacePoint() const { return mSurfacePoint; }
-  const FieldList<Dimension, std::vector<Vector>>& etaVoidPoints() const { return mEtaVoidPoints; }
-  const FieldList<Dimension, FacetedVolume>& cells() const { return mCells; }
+  // The state field lists we're maintaining.
+  const FieldList<Dimension, Scalar>&                    volume()        const { return mVolume; }
+  const FieldList<Dimension, Scalar>&                    surfaceArea()   const { return mSurfaceArea; }
+  const FieldList<Dimension, Vector>&                    normal()        const { return mNormal; }
+  const FieldList<Dimension, int>&                       surfacePoint()  const { return mSurfacePoint; }
+  const FieldList<Dimension, std::vector<Vector>>&       etaVoidPoints() const { return mEtaVoidPoints; }
+  const FieldList<Dimension, FacetedVolume>&             cells()         const { return mCells; }        
   const FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags() const { return mCellFaceFlags; }
+  const FieldList<Dimension, Vector>&                    deltaCentroid() const { return mDeltaCentroid; }
+
+  // RKOrder dependent state
+  const ReproducingKernel<Dimension>&                    WR(const RKOrder order)          const;
+  const FieldList<Dimension, RKCoefficients<Dimension>>& corrections(const RKOrder order) const;
 
 private:
+  //--------------------------- Private Interface ---------------------------//
 
   // Data
+  std::set<RKOrder> mOrders;
   const DataBase<Dimension>& mDataBase;
-  const TableKernel<Dimension>& mW;
   const RKVolumeType mVolumeType;
   const bool mNeedHessian;
+  std::unordered_map<RKOrder, ReproducingKernel<Dimension>> mWR;
 
   // State
   FieldList<Dimension, Scalar> mVolume;
@@ -128,8 +147,7 @@ private:
   // Corrections
   FieldList<Dimension, Scalar> mSurfaceArea;
   FieldList<Dimension, Vector> mNormal;
-  FieldList<Dimension, std::vector<double>> mZerothCorrections;
-  FieldList<Dimension, std::vector<double>> mCorrections;
+  std::unordered_map<RKOrder, FieldList<Dimension, RKCoefficients<Dimension>>> mCorrections;
   
   // Voronoi stuff
   FieldList<Dimension, int> mSurfacePoint;
@@ -137,6 +155,8 @@ private:
   FieldList<Dimension, FacetedVolume> mCells;
   FieldList<Dimension, std::vector<CellFaceFlag>> mCellFaceFlags;
   FieldList<Dimension, Vector> mDeltaCentroid;
+  std::vector<FacetedVolume> mFacetedBoundaries;
+  std::vector<std::vector<FacetedVolume>> mFacetedHoles;
   
   // The restart registration.
   RestartRegistrationType mRestart;

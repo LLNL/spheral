@@ -45,6 +45,7 @@ public:
 
   // Constructors.
   SolidSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                      DataBase<Dimension>& dataBase,
                       ArtificialViscosity<Dimension>& Q,
                       const TableKernel<Dimension>& W,
                       const TableKernel<Dimension>& WPi,

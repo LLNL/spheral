@@ -27,6 +27,183 @@ class Boundary:
 
     #...........................................................................
     # Virtual methods
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11const
+    def applyGhostBoundary0(self,
+                            fieldBase = "FieldBase<%(Dimension)s>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary1(self,
+                            field = "Field<%(Dimension)s, int>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary2(self,
+                            field = "Field<%(Dimension)s, Scalar>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary3(self,
+                            field = "Field<%(Dimension)s, Vector>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary4(self,
+                            field = "Field<%(Dimension)s, Tensor>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary5(self,
+                            field = "Field<%(Dimension)s, SymTensor>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary6(self,
+                            field = "Field<%(Dimension)s, ThirdRankTensor>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary7(self,
+                            field = "Field<%(Dimension)s, FourthRankTensor>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary8(self,
+                            field = "Field<%(Dimension)s, FifthRankTensor>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+    
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary9(self,
+                            field = "Field<%(Dimension)s, FacetedVolume>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary10(self,
+                             field = "Field<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    #............................................................................
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary0(self,
+                         fieldBase = "FieldBase<%(Dimension)s>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary1(self,
+                         field = "Field<%(Dimension)s, int>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary2(self,
+                         field = "Field<%(Dimension)s, Scalar>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary3(self,
+                         field = "Field<%(Dimension)s, Vector>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary4(self,
+                         field = "Field<%(Dimension)s, Tensor>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary5(self,
+                         field = "Field<%(Dimension)s, SymTensor>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary6(self,
+                         field = "Field<%(Dimension)s, ThirdRankTensor>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary7(self,
+                         field = "Field<%(Dimension)s, FourthRankTensor>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary8(self,
+                         field = "Field<%(Dimension)s, FifthRankTensor>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+    
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary9(self,
+                         field = "Field<%(Dimension)s, FacetedVolume>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary10(self,
+                          field = "Field<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    #............................................................................
     @PYB11virtual
     def setAllGhostNodes(self,
                          dataBase = "DataBase<%(Dimension)s>&"):
@@ -63,8 +240,39 @@ class Boundary:
         "We provide default copies for arrays of values, but descendants can override these."
         return "void"
 
+    @PYB11pycppname("enforceBoundary")
     @PYB11virtual
-    def initializeProblemStartup(self):
+    @PYB11const
+    def enforceBoundary20(self,
+                          field = "Field<%(Dimension)s, std::vector<Scalar>>&"):
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary21(self,
+                          field = "Field<%(Dimension)s, std::vector<Vector>>&"):
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary22(self,
+                             field = "Field<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"):
+        "We provide default copies for RKCoefficients, but descendants can override these."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary22(self,
+                          field = "Field<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"):
+        "Default noop for RKCoefficients"
+        return "void"
+
+    @PYB11virtual
+    def initializeProblemStartup(self,
+                                 final = "const bool"):
         "Some boundaries need to know when a problem is starting up and all the physics packages have been initialized."
         return "void"
 
@@ -101,9 +309,10 @@ class Boundary:
         return "bool"
 
     @PYB11virtual
+    @PYB11protected
     def addNodeList(self, nodeList="NodeList<%(Dimension)s>&"):
         return "void"
-                    
+
     #...........................................................................
     # Methods
     @PYB11const
@@ -147,11 +356,20 @@ class Boundary:
         "Enforce boundary on all Fields in FieldList"
         return "void"
 
-    for T in ("int", "Scalar", "Vector", "Tensor", "SymTensor", "ThirdRankTensor", "FourthRankTensor", "FifthRankTensor"):
+    for T, L in (("int", "int"),
+                 ("Scalar", "Scalar"),
+                 ("Vector", "Vector"),
+                 ("Tensor", "Tensor"),
+                 ("SymTensor", "SymTensor"),
+                 ("ThirdRankTensor", "ThirdRankTensor"),
+                 ("FourthRankTensor", "FourthRankTensor"),
+                 ("FifthRankTensor", "FifthRankTensor"),
+                 ("RKCoefficients<%(Dimension)s>", "RKCoefficients")):
         exec('''
-aflgb%(T)s = PYB11TemplateMethod(applyFieldListGhostBoundary, template_parameters="%(T)s", pyname="applyFieldListGhostBoundary")
-eflgb%(T)s = PYB11TemplateMethod(enforceFieldListBoundary, template_parameters="%(T)s", pyname="enforceFieldListBoundary")
-''' % {"T" : T})
+aflgb%(L)s = PYB11TemplateMethod(applyFieldListGhostBoundary, template_parameters="%(T)s", pyname="applyFieldListGhostBoundary")
+eflgb%(L)s = PYB11TemplateMethod(enforceFieldListBoundary, template_parameters="%(T)s", pyname="enforceFieldListBoundary")
+''' % {"T" : T,
+       "L" : L})
 
     #...........................................................................
     # Attributes

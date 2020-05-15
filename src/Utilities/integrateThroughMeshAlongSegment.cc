@@ -83,7 +83,7 @@ findIntersections(const Dim<1>::Vector& xmin,
   vector<Vector> result;
   const double xstep = (xmax.x() - xmin.x())/ncells[0];
   for (unsigned iplane = ixmin; iplane < ixmax; ++iplane) {
-    result.push_back(Dim<1>::Vector(xmin + iplane*xstep));
+    result.push_back(xmin + Dim<1>::Vector(iplane*xstep));
   }
 
   // Post-conditions.

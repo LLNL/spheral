@@ -3,11 +3,12 @@
 //
 // Computes and evaluates RK corrections
 //----------------------------------------------------------------------------//
-
 #include "RKUtilities.hh"
 #include "Eigen/Dense"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/safeInv.hh"
+
+#include <iostream>
 
 namespace Spheral {
 
@@ -88,9 +89,9 @@ RKUtilities<Dimension, correctionOrder>::
 evaluateKernel(const TableKernel<Dimension>& kernel,
                const Vector& x,
                const SymTensor& H,
-               const std::vector<double>& corrections) {
-  CHECK(corrections.size() == correctionsSize(false)
-        || corrections.size() == correctionsSize(true));
+               const RKCoefficients<Dimension>& corrections) {
+  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+         corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
   const auto w = evaluateBaseKernel(kernel, x, H);
@@ -108,9 +109,9 @@ RKUtilities<Dimension, correctionOrder>::
 evaluateGradient(const TableKernel<Dimension>& kernel,
                  const Vector& x,
                  const SymTensor& H,
-                 const std::vector<double>& corrections) {
-  CHECK(corrections.size() == correctionsSize(false)
-        || corrections.size() == correctionsSize(true));
+                 const RKCoefficients<Dimension>& corrections) {
+  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+         corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
   const auto wdw = evaluateBaseKernelAndGradient(kernel, x, H);
@@ -138,9 +139,9 @@ RKUtilities<Dimension, correctionOrder>::
 evaluateHessian(const TableKernel<Dimension>& kernel,
                 const Vector& x,
                 const SymTensor& H,
-                const std::vector<double>& corrections) {
-  CHECK(corrections.size() == correctionsSize(false)
-        || corrections.size() == correctionsSize(true));
+                const RKCoefficients<Dimension>& corrections) {
+  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+         corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
   const auto wdw = evaluateBaseKernelAndGradient(kernel, x, H);
@@ -181,9 +182,9 @@ RKUtilities<Dimension, correctionOrder>::
 evaluateKernelAndGradient(const TableKernel<Dimension>& kernel,
                           const Vector& x,
                           const SymTensor& H,
-                          const std::vector<double>& corrections) {
-  CHECK(corrections.size() == correctionsSize(false)
-        || corrections.size() == correctionsSize(true));
+                          const RKCoefficients<Dimension>& corrections) {
+  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+         corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
   const auto wdw = evaluateBaseKernelAndGradient(kernel, x, H);
@@ -205,6 +206,43 @@ evaluateKernelAndGradient(const TableKernel<Dimension>& kernel,
   return std::make_pair(CP * w, result);
 }
 
+template<typename Dimension, RKOrder correctionOrder>
+std::tuple<typename Dimension::Scalar, typename Dimension::Vector, typename Dimension::Scalar>
+RKUtilities<Dimension, correctionOrder>::
+evaluateKernelAndGradients(const TableKernel<Dimension>& kernel,
+                           const Vector& x,
+                           const SymTensor& H,
+                           const RKCoefficients<Dimension>& corrections) {
+  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+         corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
+  
+  // Uncorrected base kernel
+  const auto eta = H * x;
+  const auto etaMag = eta.magnitude();
+  const auto etaUnit = eta.unitVector();
+  const auto Hdet = H.Determinant();
+  const auto k = kernel.kernelValue(etaMag, Hdet);
+  const auto dk = kernel.gradValue(etaMag, Hdet);
+  const auto HetaUnit = H * etaUnit;
+  const auto dw = HetaUnit*dk;
+
+  // Get kernel and polynomials
+  PolyArray P;
+  GradPolyArray dP;
+  getPolynomials(x, P);
+  getGradPolynomials(x, dP);
+  
+  // Perform inner products and return result
+  const auto CP = innerProductRK(corrections, P, 0, 0);
+  Vector result = Vector::zero;
+  for (auto d = 0; d < Dimension::nDim; ++ d) {
+    const auto CdP = innerProductRK(corrections, dP, 0, offsetGradP(d));
+    const auto dCP = innerProductRK(corrections, P, offsetGradC(d), 0);
+    result(d) = (CdP + dCP) * k + CP * dw(d);
+  }
+  return std::make_tuple(CP * k, result, dk);
+}
+
 //------------------------------------------------------------------------------
 // Compute the corrections
 //------------------------------------------------------------------------------
@@ -217,8 +255,8 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                    const FieldList<Dimension, Vector>& position,
                    const FieldList<Dimension, SymTensor>& H,
                    const bool needHessian,
-                   FieldList<Dimension, std::vector<double>>& zerothCorrections, 
-                   FieldList<Dimension, std::vector<double>>& corrections) {
+                   FieldList<Dimension, RKCoefficients<Dimension>>& zerothCorrections, 
+                   FieldList<Dimension, RKCoefficients<Dimension>>& corrections) {
   // Typedefs: Eigen requires aligned allocator for stl containers before c++17
   typedef Eigen::Matrix<double, polynomialSize, 1> VectorType;
   typedef Eigen::Matrix<double, polynomialSize, polynomialSize> MatrixType;
@@ -227,7 +265,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   
   // Size info
   const auto numNodeLists = volume.size();
-  const auto hessSize = needHessian ? hessBaseSize : 0;
+  const auto hessSize = needHessian ? symmetricMatrixSize(Dimension::nDim) : 0;
   const auto zerothCorrSize = zerothCorrectionsSize(needHessian);
   const auto corrSize = correctionsSize(needHessian);
 
@@ -391,6 +429,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Initialize corrections vector
       auto& corr = corrections(nodeListi, nodei);
+      corr.correctionOrder = correctionOrder;
       corr.resize(corrSize);
       
       // Put corrections into vector
@@ -451,6 +490,58 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   } // nodeListi
 } // computeCorrections
 
+// //------------------------------------------------------------------------------
+// // Apply a transformation operator to a corrections vector
+// //------------------------------------------------------------------------------
+// template<typename Dimension, RKOrder correctionOrder>
+// void
+// RKUtilities<Dimension, correctionOrder>::
+// applyTransformation(const typename Dimension::Tensor& T,
+//                     RKCoefficients<Dimension>& corrections) {
+
+//   typedef Eigen::Matrix<double, Dimension::nDim, 1> EVector;
+//   typedef Eigen::Matrix<double, Dimension::nDim, Dimension::nDim, Eigen::RowMajor> ETensor2;
+//   typedef Eigen::Map<Eigen::Matrix<double, Dimension::nDim, 1>> MVector;
+//   typedef Eigen::Map<Eigen::Matrix<double, Dimension::nDim, Dimension::nDim, Eigen::RowMajor>> MTensor2;
+
+//   // Map the transformation operator as an Eigen matrix
+//   const MTensor2 TT(const_cast<double*>(&(*T.begin())));
+     
+//   //............................................................................
+//   // ZerothOrder and up
+//   // Note the copied scalar A correction is already OK.
+//   {
+//     EVector gradA;
+//     for (auto d = 0; d < Dimension::nDim; ++d) gradA[d] = corrections[offsetGradC(d)];
+//     auto gradA1 = TT*gradA;
+//     for (auto d = 0; d < Dimension::nDim; ++d) corrections[offsetGradC(d)] = gradA1(d,0);
+//   }
+//   if (correctionOrder == RKOrder::ZerothOrder) return;
+
+//   //............................................................................
+//   // LinearOrder and up
+//   {
+//     MVector B(&corrections[1]);
+//     ETensor2 gradB;
+//     for (auto d = 0; d < Dimension::nDim; ++d) {
+//       const auto doff = offsetGradC(d);
+//       for (auto k = 0; k < Dimension::nDim; ++k) {
+//         gradB(d,k) = corrections[doff+k];
+//       }
+//     }
+//     const auto B1 = TT*B;
+//     const auto gradB1 = TT*gradB*TT;
+//     for (auto d = 0; d < Dimension::nDim; ++d) {
+//       corrections[1+d] = B1(d);
+//       const auto doff = offsetGradC(d);
+//       for (auto k = 0; k < Dimension::nDim; ++k) {
+//         corrections[doff+k] = gradB1(d,k);
+//       }
+//     }
+//   }
+//   if (correctionOrder == RKOrder::LinearOrder) return;
+// }
+
 //------------------------------------------------------------------------------
 // Compute a guess for the normal direction
 // S_{i}n_{i}^{\alpha}=V_{i}\dfrac{\sum_{j}V_{j}\left[\partial_{x_{j}}^{\alpha}\psi_{i}\left(x_{j}\right)+\partial_{x_{i}}^{\alpha}\psi_{j}\left(x_{i}\right)\right]}{\sum_{j}V_{j}\psi_{j}\left(x_{i}\right)}
@@ -463,7 +554,7 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
               const FieldList<Dimension, Scalar>& volume,
               const FieldList<Dimension, Vector>& position,
               const FieldList<Dimension, SymTensor>& H,
-              const FieldList<Dimension, std::vector<double>>& corrections,
+              const FieldList<Dimension, RKCoefficients<Dimension>>& corrections,
               FieldList<Dimension, Scalar>& surfaceArea,
               FieldList<Dimension, Vector>& normal) {
   // Size info
@@ -537,4 +628,90 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
   }
 }
   
+//------------------------------------------------------------------------------
+// Get a matrix that transforms the corrections vector appropriately
+//------------------------------------------------------------------------------
+template<typename Dimension, RKOrder correctionOrder>
+void
+RKUtilities<Dimension, correctionOrder>::
+getTransformationMatrix(const Tensor& T,
+                        const bool needHessian,
+                        TransformationMatrix& matrix) {
+  // Get the transformation between one set of indices to another
+  // For example, {0,2,1} -> {1,2,0} would be T(0,1) * T(2,2) * T(1,0)
+  auto getT = [&T](const std::vector<int>& g1,
+                   const std::vector<int>& g2) {
+    const auto size = g1.size();
+    CHECK(size == g2.size());
+    auto val = 1.;
+    for (auto k = 0; k < size; ++k) {
+      val *= T(g1[k], g2[k]);
+    }
+    return val;
+  };
+
+  // Resize the matrix
+  const auto matrixSize = needHessian ? hessCorrectionsSize : gradCorrectionsSize;
+  matrix.resize(matrixSize, matrixSize);
+
+  // Get geometry data
+  GeometryDataType geometryData;
+  getGeometryData(geometryData);
+  
+  // Get triplets of ind1, ind2, value
+  std::vector<Eigen::Triplet<double>> triplets;
+  triplets.reserve(matrixSize * matrixSize);
+  for (auto i = 0; i < polynomialSize; ++i) {
+    for (auto j = 0; j < polynomialSize; ++j) {
+      if (geometryData[i].size() == geometryData[j].size()) {
+        // Corrections
+        triplets.emplace_back(i, j, getT(geometryData[i], geometryData[j]));
+
+        // Gradient corrections
+        for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
+          for (auto d2 = 0; d2 < Dimension::nDim; ++d2) {
+            auto id1 = i + offsetGradC(d1);
+            auto jd2 = j + offsetGradC(d2);
+            triplets.emplace_back(id1, jd2, getT(geometryData[id1], geometryData[jd2]));
+          }
+        }
+        
+        // Hessian corrections
+        if (needHessian) {
+          for (auto d1 = 0; d1 < Dimension::nDim; ++d1) {
+            for (auto d2 = 0; d2 < Dimension::nDim; ++d2) {
+              for (auto d3 = 0; d3 < Dimension::nDim; ++d3) {
+                for (auto d4 = 0; d4 < Dimension::nDim; ++d4) {
+                  auto id12 = i + offsetHessC(d1, d2);
+                  auto jd34 = j + offsetHessC(d3, d4);
+                  triplets.emplace_back(id12, jd34, getT(geometryData[id12], geometryData[jd34]));
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Create matrix from triplets, which automatically sums duplicates
+  matrix.setFromTriplets(triplets.begin(), triplets.end());
+  matrix.makeCompressed();
+  return;
+}
+
+//------------------------------------------------------------------------------
+// Apply the transformation matrix to the corrections
+//------------------------------------------------------------------------------
+template<typename Dimension, RKOrder correctionOrder>
+void
+RKUtilities<Dimension, correctionOrder>::
+applyTransformation(const TransformationMatrix& T,
+                    RKCoefficients<Dimension>& corrections) {
+  auto size = T.cols();
+  CHECK(size == corrections.size());
+  Eigen::Map<Eigen::VectorXd, Eigen::AlignmentType::Aligned> V(&corrections[0], size);
+  V = T * V;
+}
+
 } // end namespace Spheral

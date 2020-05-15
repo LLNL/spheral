@@ -45,6 +45,10 @@ public:
 
   // Restart methods.
   virtual std::string label() const override { return "ConstantXVelocityBoundary"; }
+
+  // Prevent the Boundary virtual methods from being hidden
+  using Boundary<Dimension>::applyGhostBoundary;
+  using Boundary<Dimension>::enforceBoundary;
 };
 
 }

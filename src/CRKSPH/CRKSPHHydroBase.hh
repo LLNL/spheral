@@ -7,7 +7,6 @@
 #define __Spheral_CRKSPHHydroBase_hh__
 
 #include "Physics/GenericHydro.hh"
-#include "Boundary/CRKSPHVoidBoundary.hh"
 #include "Geometry/CellFaceFlag.hh"
 #include "RK/RKCorrectionParams.hh"
 
@@ -45,9 +44,9 @@ public:
 
   // Constructors.
   CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                  DataBase<Dimension>& dataBase,
                   ArtificialViscosity<Dimension>& Q,
-                  const TableKernel<Dimension>& W,
-                  const TableKernel<Dimension>& WPi,
+                  const RKOrder order,
                   const double filter,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
@@ -56,11 +55,8 @@ public:
                   const bool XSPH,
                   const MassDensityType densityUpdate,
                   const HEvolutionType HUpdate,
-                  const RKOrder correctionOrder,
-                  const RKVolumeType volumeType,
                   const double epsTensile,
-                  const double nTensile,
-                  const bool limitMultimaterialTopology);
+                  const double nTensile);
 
   // Destructor.
   virtual ~CRKSPHHydroBase();
@@ -109,15 +105,6 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const override;
 
-  // Provide a hook to be called after the state has been updated and 
-  // boundary conditions have been enforced.
-  virtual 
-  void postStateUpdate(const Scalar time, 
-                       const Scalar dt,
-                       const DataBase<Dimension>& dataBase, 
-                       State<Dimension>& state,
-                       StateDerivatives<Dimension>& derivatives) override;
-
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
@@ -128,8 +115,12 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
 
-  // // We need ghost connectivity to be computed.
-  // virtual bool requireGhostConnectivity() const override { return true; }
+  // We require RK corrections
+  virtual std::set<RKOrder> requireReproducingKernels() const override;
+
+  // The spatial order
+  RKOrder correctionOrder() const;
+  void correctionOrder(RKOrder val);
 
   // Flag to choose whether we want to sum for density, or integrate
   // the continuity equation.
@@ -139,14 +130,6 @@ public:
   // Flag to select how we want to evolve the H tensor.
   HEvolutionType HEvolution() const;
   void HEvolution(HEvolutionType type);
-
-  // Flag to choose CRK Correction Order
-  RKOrder correctionOrder() const;
-  void correctionOrder(RKOrder order);
-
-  // Flag for the CRK volume weighting definition
-  RKVolumeType volumeType() const;
-  void volumeType(RKVolumeType x);
 
   // Flag to determine if we're using the total energy conserving compatible energy
   // evolution scheme.
@@ -160,10 +143,6 @@ public:
   // Flag to determine if we're using the XSPH algorithm.
   bool XSPH() const;
   void XSPH(bool val);
-
-  // Flag to determine if we cut multimaterial topology.
-  bool limitMultimaterialTopology() const;
-  void limitMultimaterialTopology(bool val);
 
   // The object defining how we evolve smoothing scales.
   const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
@@ -179,9 +158,6 @@ public:
   Scalar nTensile() const;
   void nTensile(Scalar val);
     
-  // We maintain a special boundary condition to handle void points.
-  const CRKSPHVoidBoundary<Dimension>& voidBoundary() const;
-
   // The state field lists we're maintaining.
   const FieldList<Dimension, int>&       timeStepMask() const;
   const FieldList<Dimension, Scalar>&    pressure() const;
@@ -194,10 +170,9 @@ public:
   const FieldList<Dimension, Scalar>&    viscousWork() const;
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldList<Dimension, SymTensor>& massSecondMoment() const;
-  const FieldList<Dimension, Scalar>&    volume() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
-  const FieldList<Dimension, Vector>&    DxDt() const;
 
+  const FieldList<Dimension, Vector>&    DxDt() const;
   const FieldList<Dimension, Vector>&    DvDt() const;
   const FieldList<Dimension, Scalar>&    DmassDensityDt() const;
   const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
@@ -205,30 +180,6 @@ public:
   const FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldList<Dimension, Tensor>&    internalDvDx() const;
   const std::vector<Vector>&             pairAccelerations() const;
-  const FieldList<Dimension, Vector>&    deltaCentroid() const;
-
-  const FieldList<Dimension, Scalar>&    A() const;
-  const FieldList<Dimension, Vector>&    B() const;
-  const FieldList<Dimension, Tensor>&    C() const;
-  const FieldList<Dimension, Vector>&    gradA() const;
-  const FieldList<Dimension, Tensor>&    gradB() const;
-  const FieldList<Dimension, ThirdRankTensor>&    gradC() const;
-    
-  const FieldList<Dimension, Scalar>&                m0() const;
-  const FieldList<Dimension, Vector>&                m1() const;
-  const FieldList<Dimension, SymTensor>&             m2() const;
-  const FieldList<Dimension, ThirdRankTensor>&       m3() const;
-  const FieldList<Dimension, FourthRankTensor>&      m4() const;
-  const FieldList<Dimension, Vector>&                gradm0() const;
-  const FieldList<Dimension, Tensor>&                gradm1() const;
-  const FieldList<Dimension, ThirdRankTensor> &      gradm2() const;
-  const FieldList<Dimension, FourthRankTensor>&      gradm3() const;
-  const FieldList<Dimension, FifthRankTensor>&       gradm4() const;
-
-  const FieldList<Dimension, int>&       surfacePoint() const;
-  const FieldList<Dimension, std::vector<Vector>>& etaVoidPoints() const;
-  const FieldList<Dimension, FacetedVolume>& cells() const;
-  const FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -243,15 +194,12 @@ protected:
   const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
 
   // A bunch of switches.
+  RKOrder mOrder;
   MassDensityType mDensityUpdate;
   HEvolutionType mHEvolution;
-  RKOrder mCorrectionOrder;
-  RKVolumeType mVolumeType;
-  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mXSPH, mLimitMultimaterialTopology;
+  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mXSPH;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
-  bool mDetectSurfaces;
-  double mDetectThreshold, mSweepAngle, mDetectRange;
 
   // Some internal scratch fields.
   FieldList<Dimension, int>       mTimeStepMask;
@@ -268,8 +216,6 @@ protected:
   FieldList<Dimension, Scalar>    mWeightedNeighborSum;
   FieldList<Dimension, SymTensor> mMassSecondMoment;
 
-  FieldList<Dimension, Scalar>    mVolume;
-
   FieldList<Dimension, Vector>    mXSPHDeltaV;
   FieldList<Dimension, Vector>    mDxDt;
 
@@ -279,34 +225,8 @@ protected:
   FieldList<Dimension, SymTensor> mDHDt;
   FieldList<Dimension, Tensor>    mDvDx;
   FieldList<Dimension, Tensor>    mInternalDvDx;
-  FieldList<Dimension, Vector>    mDeltaCentroid;
 
   std::vector<Vector>             mPairAccelerations;
-
-  FieldList<Dimension, Scalar>    mA;
-  FieldList<Dimension, Vector>    mB;
-  FieldList<Dimension, Tensor>    mC;
-  FieldList<Dimension, Vector>    mGradA;
-  FieldList<Dimension, Tensor>    mGradB;
-  FieldList<Dimension, ThirdRankTensor>    mGradC;
-    
-  FieldList<Dimension, Scalar>                mM0;
-  FieldList<Dimension, Vector>                mM1;
-  FieldList<Dimension, SymTensor>             mM2;
-  FieldList<Dimension, ThirdRankTensor>       mM3;
-  FieldList<Dimension, FourthRankTensor>      mM4;
-  FieldList<Dimension, Vector>                mGradm0;
-  FieldList<Dimension, Tensor>                mGradm1;
-  FieldList<Dimension, ThirdRankTensor>       mGradm2;
-  FieldList<Dimension, FourthRankTensor>      mGradm3;
-  FieldList<Dimension, FifthRankTensor>       mGradm4;
-
-  FieldList<Dimension, int>       mSurfacePoint;
-  FieldList<Dimension, std::vector<Vector>> mEtaVoidPoints;
-  FieldList<Dimension, FacetedVolume> mCells;
-  FieldList<Dimension, std::vector<CellFaceFlag>> mCellFaceFlags;
-
-  CRKSPHVoidBoundary<Dimension> mVoidBoundary;
 
 private:
   //--------------------------- Private Interface ---------------------------//

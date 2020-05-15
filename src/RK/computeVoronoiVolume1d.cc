@@ -72,6 +72,11 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
     etaVoidPoints = vector<Vector>();
   }
 
+  // Zero out the cell face flags.
+  if (returnCellFaceFlags) {
+    cellFaceFlags = vector<CellFaceFlag>();
+  }
+
   // Copy the input positions to single list, and sort it.
   // Note our logic here relies on ghost nodes already being built, including parallel nodes.
   typedef pair<double, pair<unsigned, unsigned> > PointCoord;
@@ -87,7 +92,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
 
   // Prepare some scratch variables.
   unsigned nodeListj1 = 0, nodeListj2 = 0, j1 = 0, j2 = 0;
-  Scalar rin, Hi, H1, H2, x1, x2, xi, etamax, b, xm1, xm2, thpt, weighti, weightj, wij,
+  Scalar rin, Hi, H1, H2, x1, x2, xi, etamax, b, xm1, xm2, thpt, weighti, weightj, wij, xmin, xmax,
     xbound0 = -std::numeric_limits<Scalar>::max(),
     xbound1 =  std::numeric_limits<Scalar>::max();
 
@@ -122,8 +127,17 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
       if (k == 0) {
         x1 = xbound0 - xi;
         H1 = Hi;
+        if (haveFacetedBoundaries > 0) {
+          xmin = xbound0;
+        }
+        else {
+          xmin = xi - 0.5 * vol(nodeListi, i);
+        }
         surfacePoint(nodeListi, i) |= 1;
-        etaVoidPoints(nodeListi, i).push_back(-0.5*rin);
+        etaVoidPoints(nodeListi, i).push_back(Vector(-0.5*rin));
+        if (returnCellFaceFlags) cellFaceFlags(nodeListi, i).push_back(CellFaceFlag(0, // cell face
+                                                                                    -1, // void/bound
+                                                                                    -1)); // void/bound
         // cerr << "Surface condition 1: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
       } else {
         nodeListj1 = coords[k-1].second.first;
@@ -133,6 +147,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         wij = weighti/(weighti + weightj);
         // the direction is here reversed from 2d, so it should weight on the i side
         x1 = wij*(position(nodeListj1, j1).x() - position(nodeListi, i).x());
+        xmin = max(xbound0, x1 + xi);
         if (nodeListj1 != nodeListi) {
           surfacePoint(nodeListi, i) |= (1 << (nodeListj1 + 1));
           if (returnCellFaceFlags) cellFaceFlags(nodeListi, i).push_back(CellFaceFlag(0,           // cell face
@@ -145,14 +160,24 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
       if (k == ntot - 1) {
         x2 = xbound1 - xi;
         H2 = Hi;
+        if (haveFacetedBoundaries > 0) {
+          xmax = xbound1;
+        }
+        else {
+          xmax = xi + 0.5 * vol(nodeListi, i);
+        }
         surfacePoint(nodeListi, i) |= 1;
-        etaVoidPoints(nodeListi, i).push_back(0.5*rin);
+        etaVoidPoints(nodeListi, i).push_back(Vector(0.5*rin));
+        if (returnCellFaceFlags) cellFaceFlags(nodeListi, i).push_back(CellFaceFlag(1, // cell face
+                                                                                    -1, // void/bound
+                                                                                    -1)); // void/bound
         // cerr << "Surface condition 4: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
       } else {
         nodeListj2 = coords[k+1].second.first;
         j2 = coords[k+1].second.second;
         H2 = H(nodeListj2, j2).xx();
         x2 = 0.5*(position(nodeListj2, j2).x() - position(nodeListi, i).x());
+        xmax = xi + x2;
         if (nodeListj2 != nodeListi) {
           surfacePoint(nodeListi, i) |= (1 << (nodeListj2 + 1));
           if (returnCellFaceFlags) cellFaceFlags(nodeListi, i).push_back(CellFaceFlag(1,           // cell face
@@ -169,7 +194,6 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         if (surfacePoint(nodeListi, i) == 0) {
           vol(nodeListi, i) = x2 - x1;
           deltaMedian(nodeListi, i).x(0.5*(x2 - x1));
-
           // Check if the candidate motion is still in the boundary.  If not, project back.
           if (haveFacetedBoundaries) {
             const Vector ri = Vector(xi);
@@ -194,17 +218,21 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         }
       } else {
         surfacePoint(nodeListi, i) |= 1;
-        if (-Hi*x1 >= rin) etaVoidPoints(nodeListi, i).push_back(max(Hi*x1, -0.5*rin));
-        if ( Hi*x2 >= rin) etaVoidPoints(nodeListi, i).push_back(min(Hi*x2,  0.5*rin));
+        if (-Hi*x1 >= rin) etaVoidPoints(nodeListi, i).push_back(Vector(max(Hi*x1, -0.5*rin)));
+        if ( Hi*x2 >= rin) etaVoidPoints(nodeListi, i).push_back(Vector(min(Hi*x2,  0.5*rin)));
         // cerr << "Surface condition 7: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
       }
 
       // If this point is fully damaged, we force creation of void points.
       if (haveDamage and damage(nodeListi, i).xx() > 1.0 - 1.0e-5) {
         etaVoidPoints(nodeListi, i).clear();
-        etaVoidPoints(nodeListi, i).push_back(-0.5*rin);
-        etaVoidPoints(nodeListi, i).push_back( 0.5*rin);
+        etaVoidPoints(nodeListi, i).push_back(Vector(-0.5*rin));
+        etaVoidPoints(nodeListi, i).push_back(Vector( 0.5*rin));
         surfacePoint(nodeListi, i) |= 1;
+      }
+
+      if (returnCells) {
+        cells(nodeListi, i) = FacetedVolume({Vector(xmin), Vector(xmax)});
       }
     }
     CHECK2(((surfacePoint(nodeListi, i) & 1) == 1 and
@@ -217,7 +245,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
     //      << endl;
 
   }
-
+    
 //   // Flag any points that overlap other NodeLists as multi-material.
 //   if (returnSurface) {
 //     for (auto nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {

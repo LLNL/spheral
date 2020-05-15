@@ -2,7 +2,7 @@
 # The Sedov test case run in RZ symmetry.
 #-------------------------------------------------------------------------------
 import os, shutil, mpi
-from SolidSpheralRZ import *
+from SpheralRZ import *
 from SpheralTestUtilities import *
 
 from GenerateNodeDistribution2d import *
@@ -31,33 +31,15 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             rho0 = 1.0,
             eps0 = 0.0,
             Espike = 1.0,
+            smoothSpikeScale = 0.25,   # How much to smooth the spike in eta space
 
-            solid = False,    # If true, use the fluid limit of the solid hydro option
+            solid = False,             # If true, use the fluid limit of the solid hydro option
 
-            CRKSPH = False,
-            PSPH = False,
-            SPH = True,       # Choose the H advancement
-            evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
-            Qconstructor = MonaghanGingoldViscosity,
-            boolReduceViscosity = False,
-            HopkinsConductivity = False,     # For PSPH
-            nhQ = 5.0,
-            nhL = 10.0,
-            aMin = 0.1,
-            aMax = 2.0,
-            boolCullenViscosity = False,
-            cullenUseHydroDerivatives = True,  # Reuse the hydro calculation of DvDx.
-            alphMax = 2.0,
-            alphMin = 0.02,
-            betaC = 0.7,
-            betaD = 0.05,
-            betaE = 1.0,
-            fKern = 1.0/3.0,
-            boolHopkinsCorrection = True,
-            linearConsistent = False,
-            fcentroidal = 0.0,
-            fcellPressure = 0.0,
-            Qhmult = 1.0,
+            crksph = False,
+            psph = False,
+            asph = False,              # Choose the H advancement
+            compatibleEnergy = False,
+            evolveTotalEnergy = True,  # Only for SPH variants -- evolve total rather than specific energy
             Cl = 1.0, 
             Cq = 1.0,
             etaCritFrac = 1.0,
@@ -65,28 +47,22 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             Qlimiter = False,
             balsaraCorrection = False,
             epsilon2 = 1e-2,
-            hmin = 0.0001, 
-            hmax = 0.1,
+            hmin = 1e-10,
+            hmax = 1e10,
             hminratio = 0.02,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
-            XSPH = True,
-            epsilonTensile = 0.0,
-            nTensile = 4.0,
-            hourglass = None,
-            hourglassOrder = 0,
-            hourglassLimiter = 0,
-            hourglassFraction = 0.5,
-            filter = 0.0,
+            xsph = False,
+            etaMinAxis = 0.01,        # r at which we start to modify hydro significantly
 
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
+            IntegratorConstructor = VerletIntegrator,
             goalTime = None,
             goalRadius = 0.8,
             steps = None,
-            dt = 0.0001,
-            dtMin = 1.0e-5, 
+            dt = 1e-8,
+            dtMin = 1.0e-8,
             dtMax = 0.1,
-            dtGrowth = 2.0,
+            dtGrowth = 1.1,
             dtverbose = False,
             rigorousBoundaries = False,
             maxSteps = None,
@@ -99,7 +75,6 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             QcorrectionOrder = LinearOrder,
             volumeType = RKSumVolume,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-            compatibleEnergy = True,
             gradhCorrection = False,
             correctVelocityGradient = True,
             domainIndependent = False,
@@ -123,42 +98,28 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
 
 outputFile = "Sedov-%s-RZ.gnu" % problem
 
-assert not(boolReduceViscosity and boolCullenViscosity)
-   
 assert problem in ("planar", "cylindrical", "spherical")
+assert not (compatibleEnergy and evolveTotalEnergy)
 
-if CRKSPH:
-    if solid:
-        if SPH:
-            HydroConstructor = SolidCRKSPHHydro
-        else:
-            HydroConstructor = SolidACRKSPHHydro
-    else:
-        if SPH:
-            HydroConstructor = CRKSPHHydro
-        else:
-            HydroConstructor = ACRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
-    gradhCorrection = False
+hydroname = ""
+if solid:
+    hydroname += "Solid"
+if asph:
+    hydroname += "A"
+if crksph:
+    hydroname += "CRKSPH"
 else:
-   if solid:
-      if SPH:
-         HydroConstructor = SolidSPHHydro
-      else:
-         HydroConstructor = SolidASPHHydro
-   else:
-      if SPH:
-         HydroConstructor = SPHHydro
-      else:
-         HydroConstructor = ASPHHydro
+    hydroname += "SPH"
 
 dataDir = os.path.join("dumps-%s-Sedov-RZ" % problem,
-                       HydroConstructor.__name__,
-                       Qconstructor.__name__,
-                       "nPerh=%f" % nPerh,
-                       "compatibleEnergy=%s" % compatibleEnergy,
-                       "Cullen=%s" % boolCullenViscosity,
-                       "filter=%f" % filter)
+                       hydroname,
+                       "nPerh=%f" % nPerh)
+if compatibleEnergy:
+    dataDir = os.path.join(dataDir, "compatibleEnergy")
+elif evolveTotalEnergy:
+    dataDir = os.path.join(dataDir, "evolveTotalEnergy")
+else:
+    dataDir = os.path.join(dataDir, "nonconservative")
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Sedov-%s-RZ" % problem)
 
@@ -229,8 +190,8 @@ if solid:
                                hmax = hmax,
                                hminratio = hminratio,
                                nPerh = nPerh,
-                               xmin = (-10.0, -10.0),
-                               xmax = ( 10.0,  10.0),
+                               xmin = Vector(-10.0, -10.0),
+                               xmax = Vector( 10.0,  10.0),
                                kernelExtent = kernelExtent)
 else:
     nodes1 = makeFluidNodeList("nodes1", eos, 
@@ -238,8 +199,8 @@ else:
                                hmax = hmax,
                                hminratio = hminratio,
                                nPerh = nPerh,
-                               xmin = (-10.0, -10.0),
-                               xmax = ( 10.0,  10.0),
+                               xmin = Vector(-10.0, -10.0),
+                               xmax = Vector( 10.0,  10.0),
                                kernelExtent = kernelExtent)
     
 output("nodes1")
@@ -276,7 +237,7 @@ generator = RZGenerator(GenerateNodeDistribution2d(nz, nr, rho0, "lattice",
                                                    rmin = rmin,
                                                    rmax = rmax,
                                                    nNodePerh = nPerh,
-                                                   SPH = SPH))
+                                                   SPH = not asph))
 
 distributeNodes2d((nodes1, generator))
 output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
@@ -308,18 +269,27 @@ elif problem == "cylindrical":
             eps[i] += epsi
             Esum += mass[i]*epsi
 else:
-    epsi = 0.5*Espike/(rho0*pi*dr*dr*dz)
+    Wsum = 0.0
     for i in xrange(nodes1.numInternalNodes):
-        if pos[i].magnitude() < sqrt(dr*dr + dz*dz):
-            eps[i] += epsi
-            Esum += mass[i]*epsi
+        Hi = H[i]
+        etaij = (Hi*pos[i]).magnitude()
+        Wi = WT.kernelValue(etaij/smoothSpikeScale, 1.0) * pos[i].y
+        Ei = Wi*0.25*Espike
+        eps[i] = Ei
+        Wsum += Wi
+    Wsum = mpi.allreduce(Wsum, mpi.SUM)
+    assert Wsum > 0.0
+    for i in xrange(nodes1.numInternalNodes):
+        eps[i] = eps[i]/(Wsum*mass[i])
+        Esum += eps[i]*mass[i]
+        eps[i] += eps0
 Eglobal = mpi.allreduce(Esum, mpi.SUM)
 if problem == "planar":
     Eexpect = 0.5*Espike*pi*(r1*r1 - r0*r0)
 elif problem == "cylindrical":
     Eexpect = Espike*(z1 - z0)
 else:
-    Eexpect = 0.5*Espike
+    Eexpect = 0.25*Espike
 print "Initialized a total energy of", Eglobal, Eexpect, Eglobal/Eexpect
 assert fuzzyEqual(Eglobal, Eexpect)
 
@@ -333,9 +303,48 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
+# Construct the hydro physics object.
+#-------------------------------------------------------------------------------
+if crksph:
+    hydro = CRKSPHRZ(dataBase = db,
+                     cfl = cfl,
+                     useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                     compatibleEnergyEvolution = compatibleEnergy,
+                     evolveTotalEnergy = evolveTotalEnergy,
+                     XSPH = xsph,
+                     correctionOrder = correctionOrder,
+                     densityUpdate = densityUpdate,
+                     HUpdate = HUpdate,
+                     etaMinAxis = etaMinAxis)
+    hydro.Q.etaCritFrac = etaCritFrac
+    hydro.Q.etaFoldFrac = etaFoldFrac
+else:
+    hydro = SPHRZ(dataBase = db,
+                  W = WT,
+                  cfl = cfl,
+                  useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                  compatibleEnergyEvolution = compatibleEnergy,
+                  evolveTotalEnergy = evolveTotalEnergy,
+                  gradhCorrection = gradhCorrection,
+                  correctVelocityGradient = correctVelocityGradient,
+                  densityUpdate = densityUpdate,
+                  HUpdate = HUpdate,
+                  XSPH = xsph,
+                  etaMinAxis = etaMinAxis)
+output("hydro")
+output("hydro.cfl")
+output("hydro.compatibleEnergyEvolution")
+output("hydro.densityUpdate")
+output("hydro.HEvolution")
+
+packages = [hydro]
+
+#-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+q = hydro.Q
+q.Cl = Cl
+q.Cq = Cq
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -346,60 +355,6 @@ output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
-
-#-------------------------------------------------------------------------------
-# Construct the hydro physics object.
-#-------------------------------------------------------------------------------
-if CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             XSPH = XSPH,
-                             correctionOrder = correctionOrder,
-                             volumeType = volumeType,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
-    q.etaCritFrac = etaCritFrac
-    q.etaFoldFrac = etaFoldFrac
-else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile,
-                             etaMinAxis = 1.0)
-output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
-output("hydro.cfl")
-output("hydro.compatibleEnergyEvolution")
-output("hydro.densityUpdate")
-output("hydro.HEvolution")
-
-packages = [hydro]
-
-#-------------------------------------------------------------------------------
-# Construct the MMRV physics object.
-#-------------------------------------------------------------------------------
-if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
-    packages.append(evolveReducingViscosityMultiplier)
-elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenUseHydroDerivatives)
-    packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
@@ -443,6 +398,7 @@ integrator.dtGrowth = dtGrowth
 integrator.rigorousBoundaries = rigorousBoundaries
 integrator.domainDecompositionIndependent = domainIndependent
 integrator.verbose = dtverbose
+integrator.allowDtCheck = True
 output("integrator")
 output("integrator.lastDt")
 output("integrator.dtMin")
@@ -451,11 +407,13 @@ output("integrator.dtGrowth")
 output("integrator.rigorousBoundaries")
 output("integrator.domainDecompositionIndependent")
 output("integrator.verbose")
+output("integrator.allowDtCheck")
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
@@ -465,7 +423,7 @@ control = SpheralController(integrator, WT,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             vizDerivs = vizDerivs,
-                            SPH = SPH)
+                            SPH = not asph)
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -543,27 +501,11 @@ if graphics:
     Aplot.refresh()
     plots.append((Aplot, "Sedov-planar-A.png"))
     
-    if CRKSPH:
-        volPlot = plotFieldList(hydro.volume(), 
+    if crksph:
+        volPlot = plotFieldList(hydro.volume, 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
         plots.append((volPlot, "Sedov-%s-vol.png" % problem))
-
-    if boolCullenViscosity:
-        cullAlphaPlot = plotFieldList(q.ClMultiplier(),
-                                      winTitle = "Cullen alpha")
-        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
-                                       winTitle = "Cullen DalphaDt")
-        plots += [(cullAlphaPlot, "Sedov-%s-Cullen-alpha.png" % problem),
-                  (cullDalphaPlot, "Sedov-%s-Cullen-DalphaDt.png" % problem)]
-
-    if boolReduceViscosity:
-        alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),
-                                  winTitle = "rvAlphaQ",
-                                  colorNodeLists = False, plotGhosts = False)
-        alphaPlotL = plotFieldList(q.reducingViscosityMultiplierL(),
-                                   winTitle = "rvAlphaL",
-                                   colorNodeLists = False, plotGhosts = False)
 
     # Make hardcopies of the plots.
     for p, filename in plots:

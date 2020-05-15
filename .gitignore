@@ -11,6 +11,7 @@ syntax: glob
 *.C
 *.log
 *.silo
+*_stamp.cmake
 *.job
 *.job.out
 job.out*
@@ -26,8 +27,13 @@ err.job
 runit
 dumps*
 src/BUILD
+src/build
 src/BUILD/**
+src/build/**
 dumps-*
+tpl
+tpl/**
+python
 
 # These are files automatically generated in our configure process.
 src/aclocal.m4

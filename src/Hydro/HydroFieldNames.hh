@@ -44,24 +44,6 @@ struct HydroFieldNames {
   static const std::string omegaGradh;
   static const std::string numberDensitySum;
   static const std::string timeStepMask;
-  static const std::string m0_CRKSPH;
-  static const std::string m1_CRKSPH;
-  static const std::string m2_CRKSPH;
-  static const std::string m3_CRKSPH;
-  static const std::string m4_CRKSPH;
-  static const std::string gradM0_CRKSPH;
-  static const std::string gradM1_CRKSPH;
-  static const std::string gradM2_CRKSPH;
-  static const std::string gradM3_CRKSPH;
-  static const std::string gradM4_CRKSPH;
-  static const std::string A0_CRKSPH;
-  static const std::string A_CRKSPH;
-  static const std::string B_CRKSPH;
-  static const std::string C_CRKSPH;
-  static const std::string gradA0_CRKSPH;
-  static const std::string gradA_CRKSPH;
-  static const std::string gradB_CRKSPH;
-  static const std::string gradC_CRKSPH;
   static const std::string surfacePoint;
   static const std::string voidPoint;
   static const std::string etaVoidPoints;
@@ -81,8 +63,6 @@ struct HydroFieldNames {
   static const std::string ArtificialViscousClMultiplier;
   static const std::string ArtificialViscousCqMultiplier;
   static const std::string specificHeat;
-  static const std::string rkCorrections;
-  static const std::string rkZerothCorrections;
   static const std::string normal;
   static const std::string surfaceArea;
 };
@@ -92,7 +72,7 @@ struct HydroFieldNames {
 #else
 
 namespace Spheral {
-  string HydroFieldNames;
+  struct HydroFieldNames;
 }
 
 #endif

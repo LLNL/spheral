@@ -88,22 +88,22 @@ public:
                  const Scalar specificThermalEnergy) const;
 
   // Access the member data.
-  double K() const;
-  double molecularWeight() const;
+  Scalar K() const;
+  virtual Scalar molecularWeight() const;
   
   // If requested, the user can specify an external pressure to be applied
   // in the pressure calculation.
-  double externalPressure() const;
-  void setExternalPressure(double P);
+  Scalar externalPressure() const;
+  void setExternalPressure(Scalar P);
 
   virtual bool valid() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  double mK;
-  double mCs;
-  double mMolecularWeight;
-  double mExternalPressure;
+  Scalar mK;
+  Scalar mCs;
+  Scalar mMolecularWeight;
+  Scalar mExternalPressure;
 
   // No default constructor, copying, or assignment.
   IsothermalEquationOfState();

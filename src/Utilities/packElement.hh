@@ -8,14 +8,19 @@
 #ifndef __Spheral_packElement__
 #define __Spheral_packElement__
 
+#include "Geometry/Dimension.hh"
+#include "Geometry/polyclipper.hh"
+#include "Utilities/DataTypeTraits.hh"
+#include "Utilities/DomainNode.hh"
+#include "RK/RKCorrectionParams.hh"
+#include "RK/RKCoefficients.hh"
+
 #include <stdint.h>
 #include <vector>
 #include <map>
 #include <iterator>
 #include <string>
 #include <tuple>
-#include "DataTypeTraits.hh"
-#include "Utilities/DomainNode.hh"
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -216,6 +221,60 @@ packElement(const std::vector<DataType>& value,
        ++itr) {
     packElement(*itr, buffer);
   }
+}
+
+// Specialize for std::array<DataType, size>
+template<typename DataType, std::size_t size>
+inline
+void
+packElement(const std::array<DataType, size>& value, 
+            std::vector<char>& buffer) {
+  // We don't need to store size information like a vector
+  // Push the elements on
+  for (typename std::array<DataType, size>::const_iterator itr = value.begin();
+       itr != value.end();
+       ++itr) {
+    packElement(*itr, buffer);
+  }
+}
+
+// Specialize for a std::unordered_map<T1, T2, T3>
+// Assumes that we know how to pack T1 and T2
+template<typename T1, typename T2, typename T3>
+inline
+void
+packElement(const std::unordered_map<T1, T2, T3>& value,
+            std::vector<char>& buffer) {
+  // Push the size of the unordered_map onto the buffer.
+  const unsigned size = value.size();
+  packElement(size, buffer);
+
+  // Push each of the elements on
+  for (typename std::unordered_map<T1, T2, T3>::const_iterator itr = value.begin();
+       itr != value.end();
+       ++itr) {
+    packElement(itr->first, buffer);
+    packElement(itr->second, buffer);
+  }
+}
+
+// RKOrder
+template<>
+inline
+void
+packElement(const RKOrder& value,
+            std::vector<char>& buffer) {
+  packElement(static_cast<int>(value), buffer);
+}
+
+// RKCoefficients<Dimension>
+template<typename Dimension>
+inline
+void
+packElement(const RKCoefficients<Dimension>& value,
+            std::vector<char>& buffer) {
+  packElement(value.correctionOrder, buffer);
+  packElement(value.coeffs, buffer);
 }
 
 //------------------------------------------------------------------------------
@@ -439,6 +498,72 @@ unpackElement(std::vector<DataType>& value,
     value.push_back(element);
   }
 
+  ENSURE(itr <= endPackedVector);
+}
+
+// std::array<DataType, size>
+template<typename DataType, std::size_t size>
+inline
+void
+unpackElement(std::array<DataType, size>& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  // Unlike std::vector, we don't need the size data
+  // Unpack the elements
+  for (int i = 0; i != size; ++i) {
+    DataType element;
+    unpackElement(element, itr, endPackedVector);
+    value[i] = element;
+  }
+}
+
+// std::unordered_map<T1, T2, T3>, as long as we know how to unpack T1, T2
+template<typename T1, typename T2, typename T3>
+inline
+void
+unpackElement(std::unordered_map<T1, T2, T3>& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  // Read the size of the map
+  unsigned size;
+  unpackElement(size, itr, endPackedVector);
+  CHECK(2 * size <= std::distance(itr, endPackedVector));
+
+  // Iterate over the number of elements to unpack and add them to the map
+  value.clear();
+  for (int i = 0; i < size; ++i) {
+    T1 key;
+    T2 val;
+    unpackElement(key, itr, endPackedVector);
+    unpackElement(val, itr, endPackedVector);
+    value[key] = val;
+  }
+
+  ENSURE(itr <= endPackedVector);
+}
+
+// RKOrder
+template<>
+inline
+void
+unpackElement(RKOrder& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  int iorder;
+  unpackElement(iorder, itr, endPackedVector);
+  value = static_cast<RKOrder>(iorder);
+  ENSURE(itr <= endPackedVector);
+}
+
+// RKCoeffients
+template<typename Dimension>
+inline
+void
+unpackElement(RKCoefficients<Dimension>& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.correctionOrder, itr, endPackedVector);
+  unpackElement(value.coeffs, itr, endPackedVector);
   ENSURE(itr <= endPackedVector);
 }
 

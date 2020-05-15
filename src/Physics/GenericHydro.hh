@@ -8,13 +8,11 @@
 
 #include "Physics.hh"
 #include "Geometry/Dimension.hh"
-#include "Kernel/TableKernel.hh"
 
 namespace Spheral {
 
 template<typename Dimension> class ArtificialViscosity;
 template<typename Dimension> class DataBase;
-template<typename Dimension> class TableKernel;
 
 // Many hydro algorithms have these sorts of choices for the mass density and H.
 enum class MassDensityType {
@@ -44,9 +42,7 @@ public:
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   // Constructors.
-  GenericHydro(const TableKernel<Dimension>& W,
-               const TableKernel<Dimension>& WPi,
-               ArtificialViscosity<Dimension>& Q,
+  GenericHydro(ArtificialViscosity<Dimension>& Q,
                const double cfl,
                const bool useVelocityMagnitudeForDt);
 
@@ -62,10 +58,6 @@ public:
 
   // Allow access to the artificial viscosity.
   ArtificialViscosity<Dimension>& artificialViscosity() const;
-
-  // Access the stored interpolation kernels.
-  const TableKernel<Dimension>& kernel() const;
-  const TableKernel<Dimension>& PiKernel() const;
 
   // Also allow access to the CFL timestep safety criteria.
   Scalar cfl() const;
@@ -103,8 +95,6 @@ protected:
 private:
   //--------------------------- Private Interface ---------------------------//
   ArtificialViscosity<Dimension>& mArtificialViscosity;
-  const TableKernel<Dimension>& mKernel;
-  const TableKernel<Dimension>& mPiKernel;
   Scalar mCfl;
   bool mUseVelocityMagnitudeForDt;
 

@@ -18,6 +18,7 @@ AC_DEFUN([SETUP_DBC],
   ],
   [
     AC_MSG_RESULT(none, defaulting to no contracts)
+    CXXFLAGS+=" -DNDEBUG"
   ])
 ])
 

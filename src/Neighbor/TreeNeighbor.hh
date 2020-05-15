@@ -85,6 +85,7 @@ public:
   //****************************************************************************
 
   // Reinitialize based on the desired target h and box dimensions.
+  virtual void reinitialize() override;
   virtual void reinitialize(const Vector& xmin, const Vector& xmax, const Scalar htarget) override;
 
   // Checks for internal validity.
@@ -119,6 +120,10 @@ public:
                          const CellKey cellID,
                          std::vector<int>& masterList,
                          std::vector<int>& coarseNeighbors) const;
+
+  // Expose hidden Neighbor methods
+  using Neighbor<Dimension>::setMasterList;
+  using Neighbor<Dimension>::setRefineNeighborList;
 
 private:
   //--------------------------- Private Interface ---------------------------//

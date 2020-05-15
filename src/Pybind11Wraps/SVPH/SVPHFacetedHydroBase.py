@@ -136,6 +136,7 @@ mass density, velocity, and specific thermal energy."""
 
     #...........................................................................
     # Properties
+    kernel = PYB11property(doc="The interpolation kernel")
     densityUpdate = PYB11property("MassDensityType", "densityUpdate", "densityUpdate",
                                   doc="Flag to choose whether we want to sum for density, or integrate the continuity equation.")
     HEvolution = PYB11property("HEvolutionType", "HEvolution", "HEvolution",

@@ -7,22 +7,6 @@ template<typename Dimension>
 inline
 double
 StrainPorosity<Dimension>::
-phi0() const {
-  return 1.0 - 1.0/mAlpha0;
-}
-
-template<typename Dimension>
-inline
-double
-StrainPorosity<Dimension>::
-alpha0() const {
-  return mAlpha0;
-}
-
-template<typename Dimension>
-inline
-double
-StrainPorosity<Dimension>::
 epsE() const {
   return mEpsE;
 }
@@ -33,14 +17,6 @@ double
 StrainPorosity<Dimension>::
 epsX() const {
   return mEpsX;
-}
-
-template<typename Dimension>
-inline
-double
-StrainPorosity<Dimension>::
-epsC() const {
-  return mEpsC;
 }
 
 template<typename Dimension>
@@ -69,14 +45,6 @@ cS0() const {
 
 template<typename Dimension>
 inline
-double
-StrainPorosity<Dimension>::
-c0() const {
-  return mc0;
-}
-
-template<typename Dimension>
-inline
 const PorousEquationOfState<Dimension>&
 StrainPorosity<Dimension>::
 porousEOS() const {
@@ -97,6 +65,22 @@ const NodeList<Dimension>&
 StrainPorosity<Dimension>::
 nodeList() const {
   return mNodeList;
+}
+
+template<typename Dimension>
+inline
+const Field<Dimension, typename Dimension::Scalar>&
+StrainPorosity<Dimension>::
+c0() const {
+  return mc0;
+}
+
+template<typename Dimension>
+inline
+const Field<Dimension, typename Dimension::Scalar>&
+StrainPorosity<Dimension>::
+alpha0() const {
+  return mAlpha0;
 }
 
 template<typename Dimension>

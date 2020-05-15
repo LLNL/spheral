@@ -339,39 +339,41 @@ exchangeTuples(const std::vector<std::tuple<T, T, T> >& localKeys,
 
   // Exchange the sizes of the hashed keys.
   const unsigned numNeighborDomains = neighborDomains.size();
-  std::vector<unsigned> neighborBufferSizes(numNeighborDomains);
-  {
-    std::vector<MPI_Request> requests(2*numNeighborDomains);
-    for (unsigned k = 0; k != numNeighborDomains; ++k) {
-      const unsigned otherProc = neighborDomains[k];
-      MPI_Isend(&localBufferSize, 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &requests[k]);
-      MPI_Irecv(&neighborBufferSizes[k], 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &requests[numNeighborDomains + k]);
+  if (numNeighborDomains > 0) {
+    std::vector<unsigned> neighborBufferSizes(numNeighborDomains);
+    {
+      std::vector<MPI_Request> requests(2*numNeighborDomains);
+      for (unsigned k = 0; k != numNeighborDomains; ++k) {
+        const unsigned otherProc = neighborDomains[k];
+        MPI_Isend(&localBufferSize, 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &requests[k]);
+        MPI_Irecv(&neighborBufferSizes[k], 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &requests[numNeighborDomains + k]);
+      }
+      std::vector<MPI_Status> status(requests.size());
+      MPI_Waitall(2*numNeighborDomains, &requests.front(), &status.front());
     }
-    std::vector<MPI_Status> status(requests.size());
-    MPI_Waitall(2*numNeighborDomains, &requests.front(), &status.front());
-  }
 
-  // Now exchange the hashed keys themselves.
-  std::vector<vector<char> > buffers;
-  for (unsigned k = 0; k != numNeighborDomains; ++k) buffers.push_back(std::vector<char>(neighborBufferSizes[k]));
-  {
-    std::vector<MPI_Request> requests(2*numNeighborDomains);
-    for (unsigned k = 0; k != numNeighborDomains; ++k) {
-      const unsigned otherProc = neighborDomains[k];
-      MPI_Isend(&localPacked.front(), localBufferSize, MPI_CHAR, otherProc, 2, Communicator::communicator(), &requests[k]);
-      CHECK(buffers[k].size() == neighborBufferSizes[k]);
-      MPI_Irecv(&buffers[k].front(), neighborBufferSizes[k], MPI_CHAR, otherProc, 2, Communicator::communicator(), &requests[numNeighborDomains + k]);
+    // Now exchange the hashed keys themselves.
+    std::vector<vector<char> > buffers;
+    for (unsigned k = 0; k != numNeighborDomains; ++k) buffers.push_back(std::vector<char>(neighborBufferSizes[k]));
+    {
+      std::vector<MPI_Request> requests(2*numNeighborDomains);
+      for (unsigned k = 0; k != numNeighborDomains; ++k) {
+        const unsigned otherProc = neighborDomains[k];
+        MPI_Isend(&localPacked.front(), localBufferSize, MPI_CHAR, otherProc, 2, Communicator::communicator(), &requests[k]);
+        CHECK(buffers[k].size() == neighborBufferSizes[k]);
+        MPI_Irecv(&buffers[k].front(), neighborBufferSizes[k], MPI_CHAR, otherProc, 2, Communicator::communicator(), &requests[numNeighborDomains + k]);
+      }
+      std::vector<MPI_Status> status(requests.size());
+      MPI_Waitall(2*numNeighborDomains, &requests.front(), &status.front());
     }
-    std::vector<MPI_Status> status(requests.size());
-    MPI_Waitall(2*numNeighborDomains, &requests.front(), &status.front());
-  }
 
-  // Unpack the neighbor hashes.
-  neighborKeys = std::vector<std::vector<Key> >(numNeighborDomains);
-  for (unsigned k = 0; k != numNeighborDomains; ++k) {
-    std::vector<char>::const_iterator bufItr = buffers[k].begin();
-    unpackElement(neighborKeys[k], bufItr, buffers[k].end());
-    CHECK(bufItr == buffers[k].end());
+    // Unpack the neighbor hashes.
+    neighborKeys = std::vector<std::vector<Key> >(numNeighborDomains);
+    for (unsigned k = 0; k != numNeighborDomains; ++k) {
+      std::vector<char>::const_iterator bufItr = buffers[k].begin();
+      unpackElement(neighborKeys[k], bufItr, buffers[k].end());
+      CHECK(bufItr == buffers[k].end());
+    }
   }
 #endif
 }
@@ -392,55 +394,57 @@ exchangeTuples(const std::vector<std::tuple<T, T, T> >& localKeys,
 
   const unsigned numNeighborDomains = neighborDomains.size();
   REQUIRE(sendIndices.size() == numNeighborDomains);
+  if (numNeighborDomains > 0) {
 
-  const unsigned rank = Process::getRank();
+    const unsigned rank = Process::getRank();
 
-  // Pack up our local keys.
-  std::vector<std::vector<char> > localPacked(numNeighborDomains);
-  std::vector<unsigned> localBufferSizes;
-  for (unsigned k = 0; k != numNeighborDomains; ++k) {
-    std::vector<Key> thpt;
-    for (unsigned i = 0; i != sendIndices[k].size(); ++i) thpt.push_back(localKeys[sendIndices[k][i]]);
-    packElement(thpt, localPacked[k]);
-    localBufferSizes.push_back(localPacked[k].size());
-  }
-  CHECK(localPacked.size() == numNeighborDomains);
-  CHECK(localBufferSizes.size() == numNeighborDomains);
-
-  // Exchange the sizes of the hashed keys.
-  std::vector<unsigned> neighborBufferSizes(numNeighborDomains);
-  {
-    std::vector<MPI_Request> requests(2*numNeighborDomains);
+    // Pack up our local keys.
+    std::vector<std::vector<char> > localPacked(numNeighborDomains);
+    std::vector<unsigned> localBufferSizes;
     for (unsigned k = 0; k != numNeighborDomains; ++k) {
-      const unsigned otherProc = neighborDomains[k];
-      MPI_Isend(&localBufferSizes[k], 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &requests[k]);
-      MPI_Irecv(&neighborBufferSizes[k], 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &requests[numNeighborDomains + k]);
+      std::vector<Key> thpt;
+      for (unsigned i = 0; i != sendIndices[k].size(); ++i) thpt.push_back(localKeys[sendIndices[k][i]]);
+      packElement(thpt, localPacked[k]);
+      localBufferSizes.push_back(localPacked[k].size());
     }
-    std::vector<MPI_Status> status(requests.size());
-    MPI_Waitall(2*numNeighborDomains, &requests.front(), &status.front());
-  }
+    CHECK(localPacked.size() == numNeighborDomains);
+    CHECK(localBufferSizes.size() == numNeighborDomains);
 
-  // Now exchange the hashed keys themselves.
-  std::vector<std::vector<char> > buffers;
-  for (unsigned k = 0; k != numNeighborDomains; ++k) buffers.push_back(std::vector<char>(neighborBufferSizes[k]));
-  {
-    std::vector<MPI_Request> requests(2*numNeighborDomains);
+    // Exchange the sizes of the hashed keys.
+    std::vector<unsigned> neighborBufferSizes(numNeighborDomains);
+    {
+      std::vector<MPI_Request> requests(2*numNeighborDomains);
+      for (unsigned k = 0; k != numNeighborDomains; ++k) {
+        const unsigned otherProc = neighborDomains[k];
+        MPI_Isend(&localBufferSizes[k], 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &requests[k]);
+        MPI_Irecv(&neighborBufferSizes[k], 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &requests[numNeighborDomains + k]);
+      }
+      std::vector<MPI_Status> status(requests.size());
+      MPI_Waitall(2*numNeighborDomains, &requests.front(), &status.front());
+    }
+
+    // Now exchange the hashed keys themselves.
+    std::vector<std::vector<char> > buffers;
+    for (unsigned k = 0; k != numNeighborDomains; ++k) buffers.push_back(std::vector<char>(neighborBufferSizes[k]));
+    {
+      std::vector<MPI_Request> requests(2*numNeighborDomains);
+      for (unsigned k = 0; k != numNeighborDomains; ++k) {
+        const unsigned otherProc = neighborDomains[k];
+        MPI_Isend(&localPacked[k].front(), localBufferSizes[k], MPI_CHAR, otherProc, 2, Communicator::communicator(), &requests[k]);
+        CHECK(buffers[k].size() == neighborBufferSizes[k]);
+        MPI_Irecv(&buffers[k].front(), neighborBufferSizes[k], MPI_CHAR, otherProc, 2, Communicator::communicator(), &requests[numNeighborDomains + k]);
+      }
+      std::vector<MPI_Status> status(requests.size());
+      MPI_Waitall(2*numNeighborDomains, &requests.front(), &status.front());
+    }
+
+    // Unpack the neighbor hashes.
+    neighborKeys = std::vector<std::vector<Key> >(numNeighborDomains);
     for (unsigned k = 0; k != numNeighborDomains; ++k) {
-      const unsigned otherProc = neighborDomains[k];
-      MPI_Isend(&localPacked[k].front(), localBufferSizes[k], MPI_CHAR, otherProc, 2, Communicator::communicator(), &requests[k]);
-      CHECK(buffers[k].size() == neighborBufferSizes[k]);
-      MPI_Irecv(&buffers[k].front(), neighborBufferSizes[k], MPI_CHAR, otherProc, 2, Communicator::communicator(), &requests[numNeighborDomains + k]);
+      std::vector<char>::const_iterator bufItr = buffers[k].begin();
+      unpackElement(neighborKeys[k], bufItr, buffers[k].end());
+      CHECK(bufItr == buffers[k].end());
     }
-    std::vector<MPI_Status> status(requests.size());
-    MPI_Waitall(2*numNeighborDomains, &requests.front(), &status.front());
-  }
-
-  // Unpack the neighbor hashes.
-  neighborKeys = std::vector<std::vector<Key> >(numNeighborDomains);
-  for (unsigned k = 0; k != numNeighborDomains; ++k) {
-    std::vector<char>::const_iterator bufItr = buffers[k].begin();
-    unpackElement(neighborKeys[k], bufItr, buffers[k].end());
-    CHECK(bufItr == buffers[k].end());
   }
 #endif
 }

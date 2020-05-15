@@ -24,7 +24,7 @@
 
 #ifdef USE_MPI
 #include "mpi.h"
-#include "Distributed/NestedGridDistributedBoundary.hh"
+#include "Distributed/TreeDistributedBoundary.hh"
 #include "Distributed/Communicator.hh"
 #endif
 
@@ -68,6 +68,7 @@ makeIndex(const int ix,
           const int iy,
           const int iz) {
   REQUIRE(false);
+  return vector<int>();
 }
 
 template<>
@@ -107,7 +108,7 @@ makeIndex<Dim<3> >(const int ix,
 }
 
 //------------------------------------------------------------------------------
-// Compute the indicies of the lattice overlapping the given point.
+// Compute the indices of the lattice overlapping the given point.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
@@ -124,7 +125,7 @@ latticePoints(const typename Dimension::Vector& ri,
   REQUIRE(nsample.size() == Dimension::nDim);
   for (int i = 0; i != Dimension::nDim; ++i) REQUIRE(nsample[i] > 0);
 
-  // Find the min & max indicies in each dimension.
+  // Find the min & max indices in each dimension.
   vector<int> imin(size_t(3), 0);
   vector<int> imax(size_t(3), 0);
   int ntot = 1;
@@ -136,7 +137,7 @@ latticePoints(const typename Dimension::Vector& ri,
   }
   CHECK(ntot >= 0);
 
-  // Now build the result with the full set of indicies.
+  // Now build the result with the full set of indices.
   vector< vector<int> > result;
   result.reserve(ntot);
   int ix = imin[0];
@@ -180,39 +181,39 @@ latticePoints(const typename Dimension::Vector& ri,
 //------------------------------------------------------------------------------
 inline
 Dim<1>::Vector
-latticePosition(const vector<int>& indicies,
+latticePosition(const vector<int>& indices,
                 const Dim<1>::Vector& xmin,
                 const Dim<1>::Vector& xmax,
                 const Dim<1>::Vector& xstep) {
-  REQUIRE(indicies.size() == 1);
-  const Dim<1>::Vector result(xmin.x() + indicies[0]*xstep.x());
+  REQUIRE(indices.size() == 1);
+  const Dim<1>::Vector result(xmin.x() + indices[0]*xstep.x());
   REQUIRE(result >= xmin && result <= xmax);
   return result;
 }
 
 inline
 Dim<2>::Vector
-latticePosition(const vector<int>& indicies,
+latticePosition(const vector<int>& indices,
                 const Dim<2>::Vector& xmin,
                 const Dim<2>::Vector& xmax,
                 const Dim<2>::Vector& xstep) {
-  REQUIRE(indicies.size() == 2);
-  const Dim<2>::Vector result(xmin.x() + indicies[0]*xstep.x(),
-                              xmin.y() + indicies[1]*xstep.y());
+  REQUIRE(indices.size() == 2);
+  const Dim<2>::Vector result(xmin.x() + indices[0]*xstep.x(),
+                              xmin.y() + indices[1]*xstep.y());
   REQUIRE(result >= xmin && result <= xmax);
   return result;
 }
 
 inline
 Dim<3>::Vector
-latticePosition(const vector<int>& indicies,
+latticePosition(const vector<int>& indices,
                 const Dim<3>::Vector& xmin,
                 const Dim<3>::Vector& xmax,
                 const Dim<3>::Vector& xstep) {
-  REQUIRE(indicies.size() == 3);
-  const Dim<3>::Vector result(xmin.x() + indicies[0]*xstep.x(),
-                              xmin.y() + indicies[1]*xstep.y(),
-                              xmin.z() + indicies[2]*xstep.z());
+  REQUIRE(indices.size() == 3);
+  const Dim<3>::Vector result(xmin.x() + indices[0]*xstep.x(),
+                              xmin.y() + indices[1]*xstep.y(),
+                              xmin.z() + indices[2]*xstep.z());
   REQUIRE(result >= xmin && result <= xmax);
   return result;
 }
@@ -231,24 +232,24 @@ domainForLatticeIndex(const int i,
 }
 
 //------------------------------------------------------------------------------
-// Convert the tuple of indicies into the flat index for the lattice arrays.
+// Convert the tuple of indices into the flat index for the lattice arrays.
 //------------------------------------------------------------------------------
 inline
 int
-latticeIndex(const vector<int>& indicies,
+latticeIndex(const vector<int>& indices,
              const vector<int>& nsample) {
-  REQUIRE(indicies.size() == nsample.size());
+  REQUIRE(indices.size() == nsample.size());
   REQUIRE(nsample.size() == 1 ||
           nsample.size() == 2 ||
           nsample.size() == 3);
   if (nsample.size() == 1) {
-    return indicies[0];
+    return indices[0];
   } else if (nsample.size() == 2) {
-    return indicies[1]*nsample[0] + indicies[0];
+    return indices[1]*nsample[0] + indices[0];
   } else {
-    return (indicies[2]*nsample[1]*nsample[0] + 
-            indicies[1]*nsample[0] + 
-            indicies[0]);
+    return (indices[2]*nsample[1]*nsample[0] + 
+            indices[1]*nsample[0] + 
+            indices[0]);
   }
 }
 
@@ -367,7 +368,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
 
   // We need to exclude any nodes that come from the Distributed boundary condition.
 #ifdef USE_MPI
-  NestedGridDistributedBoundary<Dimension>& distributedBoundary = NestedGridDistributedBoundary<Dimension>::instance();
+  TreeDistributedBoundary<Dimension>& distributedBoundary = TreeDistributedBoundary<Dimension>::instance();
 #endif
 
   // Compute the total number of sample points.
@@ -523,7 +524,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
 
   // Figure out what we have to send to other processors.
   // In the process we transfer any of our local values we've accumulated to the final result.
-  vector< vector<int> > sendIndiciesBuffers(numProcs);
+  vector< vector<int> > sendIndicesBuffers(numProcs);
   vector< vector<char> > sendValuesBuffers(numProcs);
   for (typename LocalStorage::const_iterator itr = localResult.begin();
        itr != localResult.end();
@@ -582,9 +583,9 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
     } else {
 
       // We have to send this data to another processor, so pack it up.
-      CHECK(jdomain < sendIndiciesBuffers.size());
+      CHECK(jdomain < sendIndicesBuffers.size());
       CHECK(jdomain < sendValuesBuffers.size());
-      sendIndiciesBuffers[jdomain].push_back(jlocal);
+      sendIndicesBuffers[jdomain].push_back(jlocal);
 
       // Scalar fields.
       {
@@ -629,22 +630,28 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
   }
 
 #ifdef USE_MPI
-  vector<MPI_Request> sendRequests(3*(numProcs - 1));
+  vector<MPI_Request> sendRequests;
+  sendRequests.reserve(3*(numProcs - 1));
   if (numProcs > 1) {
     // Send everyone all the information we have for them.
     vector<int> numSends(numProcs);
     for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
       if (sendProc != procID) {
-        const int bufIndex = sendProc > procID ? sendProc - 1 : sendProc;
-        numSends[sendProc] = sendIndiciesBuffers[sendProc].size();
+        numSends[sendProc] = sendIndicesBuffers[sendProc].size();
         CHECK(sendValuesBuffers[sendProc].size() == numSends[sendProc]*sizeOfElement);
-        MPI_Isend(&numSends[sendProc], 1, MPI_INT, sendProc, 1, Communicator::communicator(), &sendRequests[bufIndex]);
-        MPI_Isend(&(*sendIndiciesBuffers[sendProc].begin()), numSends[sendProc], MPI_INT, sendProc, 2, Communicator::communicator(), &sendRequests[(numProcs - 1) + bufIndex]);
-        MPI_Isend(&(*sendValuesBuffers[sendProc].begin()), numSends[sendProc]*sizeOfElement, MPI_CHAR, sendProc, 3, Communicator::communicator(), &sendRequests[2*(numProcs - 1) + bufIndex]);
+        sendRequests.push_back(MPI_Request());
+        MPI_Isend(&numSends[sendProc], 1, MPI_INT, sendProc, 1, Communicator::communicator(), &sendRequests.back());
+        if (numSends[sendProc] > 0) {
+          sendRequests.push_back(MPI_Request());
+          MPI_Isend(&(*sendIndicesBuffers[sendProc].begin()), numSends[sendProc], MPI_INT, sendProc, 2, Communicator::communicator(), &sendRequests.back());
+          sendRequests.push_back(MPI_Request());
+          MPI_Isend(&(*sendValuesBuffers[sendProc].begin()), numSends[sendProc]*sizeOfElement, MPI_CHAR, sendProc, 3, Communicator::communicator(), &sendRequests.back());
+        }
       }
     }
+    CHECK(sendRequests.size() <= 3*(numProcs - 1));
 
-    // Post receives to see how many indicies other processors are sending to us.
+    // Post receives to see how many indices other processors are sending to us.
     vector<int> numReceiveNodes(size_t(numProcs), 0);
     vector<MPI_Request> recvRequests0(numProcs - 1);
     for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
@@ -655,31 +662,34 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
     }
 
     // Wait until we have the sizes from everyone.
-    {
+    if (not recvRequests0.empty()) {
       vector<MPI_Status> recvStatus(recvRequests0.size());
       MPI_Waitall(recvRequests0.size(), &(*recvRequests0.begin()), &(*recvStatus.begin()));
     }
 
     // Size up the receive buffers.
-    vector<vector<int>  > recvIndiciesBuffers(numProcs);
-    vector<vector<char> > recvValuesBuffers(numProcs);
+    vector<vector<int>> recvIndicesBuffers(numProcs);
+    vector<vector<char>> recvValuesBuffers(numProcs);
     for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
-      recvIndiciesBuffers[recvProc].resize(numReceiveNodes[recvProc]);
+      recvIndicesBuffers[recvProc].resize(numReceiveNodes[recvProc]);
       recvValuesBuffers[recvProc].resize(numReceiveNodes[recvProc]*sizeOfElement);
     }
 
     // Post receives for the nodal data.
-    vector<MPI_Request> recvRequests1(2*(numProcs - 1));
+    vector<MPI_Request> recvRequests1;
+    recvRequests1.reserve(2*(numProcs - 1));
     for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
-      if (recvProc != procID) {
-        const int bufIndex = recvProc > procID ? recvProc - 1 : recvProc;
-        MPI_Irecv(&(*recvIndiciesBuffers[recvProc].begin()), numReceiveNodes[recvProc], MPI_INT, recvProc, 2, Communicator::communicator(), &recvRequests1[bufIndex]);
-        MPI_Irecv(&(*recvValuesBuffers[recvProc].begin()), numReceiveNodes[recvProc]*sizeOfElement, MPI_CHAR, recvProc, 3, Communicator::communicator(), &recvRequests1[numProcs - 1 + bufIndex]);
+      if (recvProc != procID and numReceiveNodes[recvProc] > 0) {
+        recvRequests1.push_back(MPI_Request());
+        MPI_Irecv(&(*recvIndicesBuffers[recvProc].begin()), numReceiveNodes[recvProc], MPI_INT, recvProc, 2, Communicator::communicator(), &recvRequests1.back());
+        recvRequests1.push_back(MPI_Request());
+        MPI_Irecv(&(*recvValuesBuffers[recvProc].begin()), numReceiveNodes[recvProc]*sizeOfElement, MPI_CHAR, recvProc, 3, Communicator::communicator(), &recvRequests1.back());
       }
     }
+    CHECK(recvRequests1.size() <= 2*(numProcs - 1));
 
     // Wait until we have the full receive data.
-    {
+    if (not recvRequests1.empty()) {
       vector<MPI_Status> recvStatus(recvRequests1.size());
       MPI_Waitall(recvRequests1.size(), &(*recvRequests1.begin()), &(*recvStatus.begin()));
     }
@@ -691,7 +701,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
         CHECK(buffer.size() % sizeOfElement == 0);
         vector<char>::const_iterator bufItr = buffer.begin();
         for (int i = 0; i != numReceiveNodes[recvProc]; ++i) {
-          const int jlocal = recvIndiciesBuffers[recvProc][i];
+          const int jlocal = recvIndicesBuffers[recvProc][i];
           CHECK(jlocal >= 0 and jlocal < nlocalsizing);
 
           // Scalar Fields.
@@ -745,6 +755,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
         CHECK(bufItr == buffer.end());
       }
     }
+    MPI_Barrier(Communicator::communicator());
   }
 #endif
 
@@ -786,10 +797,11 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
 
 #ifdef USE_MPI
   // Wait until all our sends are completed.
-  if (numProcs > 1) {
+  if (numProcs > 1 and not sendRequests.empty()) {
     vector<MPI_Status> sendStatus(sendRequests.size());
     MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
   }
+  MPI_Barrier(Communicator::communicator());
 #endif
 
   // That's it.

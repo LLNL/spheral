@@ -210,6 +210,13 @@ bool pointInPolygon(const Dim<3>::Vector& p,
     fymax = std::max(fymax, vertices[i].y());
     fzmax = std::max(fzmax, vertices[i].z());
   }
+  const auto fuzz = 1.0e-5*std::max(fxmax - fxmin, std::max(fymax - fymin, fzmax - fzmin));
+  fxmin -= fuzz;
+  fymin -= fuzz;
+  fzmin -= fuzz;
+  fxmax += fuzz;
+  fymax += fuzz;
+  fzmax += fuzz;
   if (px >= fxmin and px <= fxmax and
       py >= fymin and py <= fymax and
       pz >= fzmin and pz <= fzmax) {
@@ -307,6 +314,13 @@ bool pointInPolygon(const Dim<3>::Vector& p,
     fymax = std::max(fymax, vertices[i].y());
     fzmax = std::max(fzmax, vertices[i].z());
   }
+  const auto fuzz = std::max(1.0e-5, tol)*std::max(fxmax - fxmin, std::max(fymax - fymin, fzmax - fzmin));
+  fxmin -= fuzz;
+  fymin -= fuzz;
+  fzmin -= fuzz;
+  fxmax += fuzz;
+  fymax += fuzz;
+  fzmax += fuzz;
   if (px >= fxmin and px <= fxmax and
       py >= fymin and py <= fymax and
       pz >= fzmin and pz <= fzmax) {
@@ -335,7 +349,7 @@ bool pointInPolygon(const Dim<3>::Vector& p,
       }
 
     // y plane -- use (z,x) coordinates.
-    } else if (std::abs(normal.y()) > 0.5*nmax) {
+    } else if (std::abs(normal.y()) > 0.9*nmax) {
       // vector<BGPoint> points;
       // for (i = 0; i != npts; ++i) points.push_back(BGPoint(vertices[ipoints[i]].z(), vertices[ipoints[i]].x()));
       // points.push_back(points[0]);

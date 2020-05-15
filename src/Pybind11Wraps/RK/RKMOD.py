@@ -9,14 +9,22 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
+from RKFieldNames import *
+from RKCoefficients import *
 from RKCorrections import *
 from RKUtilities import *
+from ReproducingKernelMethods import *
+from ReproducingKernel import *
 
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-PYB11includes += ['"RK/RKCorrections.hh"',
+PYB11includes += ['"RK/RKCoefficients.hh"',
+                  '"RK/RKCorrections.hh"',
                   '"RK/RKUtilities.hh"',
+                  '"RK/RKFieldNames.hh"',
+                  '"RK/ReproducingKernelMethods.hh"',
+                  '"RK/ReproducingKernel.hh"',
                   '"RK/computeRKVolumes.hh"',
                   '"RK/computeVoronoiVolume.hh"',
                   '"RK/computeOccupancyVolume.hh"',
@@ -25,9 +33,12 @@ PYB11includes += ['"RK/RKCorrections.hh"',
                   '"RK/computeHVolumes.hh"',
                   '"RK/computeOccupancyVolume.hh"',
                   '"RK/interpolateRK.hh"',
+                  '"RK/gradientRK.hh"',
+                  '"RK/hessianRK.hh"',
                   '"FileIO/FileIO.hh"',
                   '"Boundary/Boundary.hh"',
-                  '"SPH/NodeCoupling.hh"']
+                  '"Utilities/NodeCoupling.hh"',
+                  '<sstream>']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -77,51 +88,6 @@ RKVolumeType = PYB11enum(("RKMassOverDensity", "RKSumVolume", "RKVoronoiVolume",
 # Methods
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
-def RKKernel(W = "const TableKernel<%(Dimension)s>&",
-             x = "const typename %(Dimension)s::Vector&",
-             H = "const typename %(Dimension)s::SymTensor&",
-             corrections = "const std::vector<double>&",
-             order = "const RKOrder"):
-    "Compute the corrected kernel value."
-    return "typename %(Dimension)s::Scalar"
-
-#-------------------------------------------------------------------------------
-@PYB11template("Dimension")
-def RKGradient(W = "const TableKernel<%(Dimension)s>&",
-               x = "const typename %(Dimension)s::Vector&",
-               H = "const typename %(Dimension)s::SymTensor&",
-               corrections = "const std::vector<double>&",
-               order = "const RKOrder"):
-    "Compute the corrected kernel gradient."
-    return "typename %(Dimension)s::Vector"
-
-#-------------------------------------------------------------------------------
-@PYB11template("Dimension")
-@PYB11implementation("""[](const TableKernel<%(Dimension)s>& W,
-                           const typename %(Dimension)s::Vector& x,
-                           const typename %(Dimension)s::SymTensor& H,
-                           const std::vector<double>& corrections,
-                           const RKOrder order) {
-                               typename %(Dimension)s::Scalar WRK, gradWSPH;
-                               typename %(Dimension)s::Vector gradWRK;
-                               RKKernelAndGradient(WRK, gradWSPH, gradWRK,                            
-                                                   W,
-                                                   x,
-                                                   H,
-                                                   corrections,
-                                                   order);
-                               return py::make_tuple(WRK, gradWSPH, gradWRK);
-                           }""")
-def RKKernelAndGradient(W = "const TableKernel<%(Dimension)s>&",
-                        x = "const typename %(Dimension)s::Vector&",
-                        H = "const typename %(Dimension)s::SymTensor&",
-                        corrections = "const std::vector<double>&",
-                        order = "const RKOrder"):
-    "Compute the corrected kernel, SPH gradient magnitude, and corrected gradient."
-    return "py::tuple"
-
-#-------------------------------------------------------------------------------
-@PYB11template("Dimension")
 def computeRKVolumes(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
                      W = "const TableKernel<%(Dimension)s>&",
                      position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
@@ -129,6 +95,8 @@ def computeRKVolumes(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
                      massDensity = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                      H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
                      damage = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
+                     facetedBoundaries = "const std::vector<typename %(Dimension)s::FacetedVolume>&",
+                     facetedHoles = "const std::vector<std::vector<typename %(Dimension)s::FacetedVolume>>&",
                      boundaryConditions = "const std::vector<Boundary<%(Dimension)s>*>&",
                      volumeType = "const RKVolumeType",
                      surfacePoint = "FieldList<%(Dimension)s, int>&",
@@ -199,15 +167,55 @@ def computeHVolumes(nPerh = "const typename %(Dimension)s::Scalar",
     return "void"
 
 #-------------------------------------------------------------------------------
+@PYB11template("Dimension", "DataType")
+@PYB11implementation("""[](const FieldList<%(Dimension)s, %(DataType)s>& fieldList,
+                           const FieldList<%(Dimension)s, %(Dimension)s::Vector>& position,
+                           const FieldList<%(Dimension)s, %(Dimension)s::Scalar>& weight,
+                           const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>& H,
+                           const ConnectivityMap<%(Dimension)s>& connectivityMap,
+                           const ReproducingKernel<%(Dimension)s>& WR,
+                           const FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>& corrections,
+                           const NodeCoupling& nodeCoupling) {
+                               std::vector<boost::variant<FieldList<%(Dimension)s, %(Dimension)s::Scalar>,
+                                                          FieldList<%(Dimension)s, %(Dimension)s::Vector>,
+                                                          FieldList<%(Dimension)s, %(Dimension)s::Tensor>,
+                                                          FieldList<%(Dimension)s, %(Dimension)s::SymTensor>,
+                                                          FieldList<%(Dimension)s, %(Dimension)s::ThirdRankTensor>>> fieldLists;
+                               fieldLists.emplace_back(fieldList);
+                               auto flvec = interpolateRK(fieldLists,
+                                                          position,
+                                                          weight,
+                                                          H,
+                                                          connectivityMap,
+                                                          WR,
+                                                          corrections,
+                                                          nodeCoupling);
+                               CHECK(flvec.size() == 1);
+                               FieldList<%(Dimension)s, %(DataType)s> result(boost::get<FieldList<%(Dimension)s, %(DataType)s>>(flvec[0]));
+                               result.copyFields();
+                               return result;
+                           }""")
+@PYB11cppname("interpolateRK")
+def interpolateRK1(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
+                   position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+                   weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
+                   H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
+                   connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
+                   WR = "const ReproducingKernel<%(Dimension)s>&",
+                   corrections = "const FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&",
+                   nodeCoupling = ("const NodeCoupling&", "NodeCoupling()")):
+    "Compute the RK interpolation at each point for a single FieldList."
+    return "FieldList<%(Dimension)s, %(DataType)s>"
+
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11implementation("""[](const py::list& pyFieldLists,
                            const FieldList<%(Dimension)s, %(Dimension)s::Vector>& position,
                            const FieldList<%(Dimension)s, %(Dimension)s::Scalar>& weight,
                            const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>& H,
                            const ConnectivityMap<%(Dimension)s>& connectivityMap,
-                           const TableKernel<%(Dimension)s>& W,
-                           const RKOrder correctionOrder,
-                           const FieldList<%(Dimension)s, std::vector<double>>& corrections,
+                           const ReproducingKernel<%(Dimension)s>& WR,
+                           const FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>& corrections,
                            const NodeCoupling& nodeCoupling) {
                                std::vector<boost::variant<FieldList<%(Dimension)s, %(Dimension)s::Scalar>,
                                                           FieldList<%(Dimension)s, %(Dimension)s::Vector>,
@@ -247,8 +255,7 @@ def computeHVolumes(nPerh = "const typename %(Dimension)s::Scalar",
                                                                weight,
                                                                H,
                                                                connectivityMap,
-                                                               W,
-                                                               correctionOrder,
+                                                               WR,
                                                                corrections,
                                                                nodeCoupling);
                                py::list result;
@@ -260,36 +267,85 @@ def interpolateRK(fieldLists = "py::list&",
                   weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                   H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
                   connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
-                  W = "const TableKernel<%(Dimension)s>&",
-                  correctionOrder = "const RKOrder",
-                  corrections = "const FieldList<%(Dimension)s, std::vector<double>>&",
+                  WR = "const ReproducingKernel<%(Dimension)s>&",
+                  corrections = "const FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&",
                   nodeCoupling = ("const NodeCoupling&", "NodeCoupling()")):
-    "Compute the RK interpolation at each point."
+    "Compute the RK interpolation at each point for a list of FieldLists."
     return "py::list"
+
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension", "DataType")
+def gradientRK(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
+               position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+               weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
+               H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
+               connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
+               WR = "const ReproducingKernel<%(Dimension)s>&",
+               corrections = "const FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&",
+               nodeCoupling = ("const NodeCoupling&", "NodeCoupling()")):
+    "Compute the RK gradient at each point for a FieldList."
+    return "FieldList<%(Dimension)s, typename MathTraits<%(Dimension)s, %(DataType)s>::GradientType>"
+
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension", "DataType")
+def hessianRK(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
+              position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+              weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
+              H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
+              connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
+              WR = "const ReproducingKernel<%(Dimension)s>&",
+              corrections = "const FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&",
+              nodeCoupling = ("const NodeCoupling&", "NodeCoupling()")):
+    "Compute the RK hessian at each point for a FieldList."
+    return "FieldList<%(Dimension)s, typename MathTraits<%(Dimension)s, %(DataType)s>::HessianType>"
 
 #-------------------------------------------------------------------------------
 # Instantiate our types
 #-------------------------------------------------------------------------------
 for ndim in dims:
     exec('''
-RKKernel%(ndim)id = PYB11TemplateFunction(RKKernel, template_parameters="%(Dimension)s", pyname="RKKernel")
-RKGradient%(ndim)id = PYB11TemplateFunction(RKGradient, template_parameters="%(Dimension)s", pyname="RKGradient")
-RKKernelAndGradient%(ndim)id = PYB11TemplateFunction(RKKernelAndGradient, template_parameters="%(Dimension)s", pyname="RKKernelAndGradient")
+RKCorrections%(ndim)id = PYB11TemplateClass(RKCorrections, template_parameters="%(Dimension)s")
+ReproducingKernelMethods%(ndim)id = PYB11TemplateClass(ReproducingKernelMethods, template_parameters="%(Dimension)s")
+ReproducingKernel%(ndim)id = PYB11TemplateClass(ReproducingKernel, template_parameters="%(Dimension)s")
+RKCoefficients%(ndim)id = PYB11TemplateClass(RKCoefficients, template_parameters="%(Dimension)s")
+
+interpolateRK%(ndim)id = PYB11TemplateFunction(interpolateRK, template_parameters="Dim<%(ndim)i>", pyname="interpolateRK")
 computeRKVolumes%(ndim)id = PYB11TemplateFunction(computeRKVolumes, template_parameters="%(Dimension)s")
 computeRKSumVolume%(ndim)id = PYB11TemplateFunction(computeRKSumVolume, template_parameters="%(Dimension)s")
 computeOccupancyVolume%(ndim)id = PYB11TemplateFunction(computeOccupancyVolume, template_parameters="%(Dimension)s")
 computeVoronoiVolume%(ndim)id = PYB11TemplateFunction(computeVoronoiVolume, template_parameters="%(Dimension)s", pyname="computeVoronoiVolume")
 computeHullVolumes%(ndim)id = PYB11TemplateFunction(computeHullVolumes, template_parameters="%(Dimension)s")
 computeHVolumes%(ndim)id = PYB11TemplateFunction(computeHVolumes, template_parameters="%(Dimension)s")
-interpolateRK%(ndim)id = PYB11TemplateFunction(interpolateRK, template_parameters="Dim<%(ndim)i>", pyname="interpolateRK")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
-    # RKCorrections and RKUtilities
-    for num, correctionOrder in zip((0, 1, 2, 3, 4, 5, 6, 7),
-                                    ("ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder", "QuarticOrder", "QuinticOrder", "SexticOrder", "SepticOrder")):
+    # RK interpolation
+    for element in ("Dim<%i>::Scalar" % ndim,
+                    "Dim<%i>::Vector" % ndim,
+                    "Dim<%i>::Tensor" % ndim,
+                    "Dim<%i>::SymTensor" % ndim,
+                    "Dim<%i>::ThirdRankTensor" % ndim):
+        exec('''
+interpolateRK%(label)s = PYB11TemplateFunction(interpolateRK1, template_parameters=("%(Dimension)s", "%(element)s"), pyname="interpolateRK")
+''' % {"ndim"      : ndim,
+       "Dimension" : "Dim<" + str(ndim) + ">",
+       "element"   : element,
+       "label"     : PYB11mangle(element)})
+
+    # RK gradient
+    for element in ("Dim<%i>::Scalar" % ndim,
+                    "Dim<%i>::Vector" % ndim):
+        exec('''
+gradientRK%(label)s = PYB11TemplateFunction(gradientRK, template_parameters=("%(Dimension)s", "%(element)s"), pyname="gradientRK")
+hessianRK%(label)s = PYB11TemplateFunction(hessianRK, template_parameters=("%(Dimension)s", "%(element)s"), pyname="hessianRK")
+''' % {"ndim"      : ndim,
+       "Dimension" : "Dim<" + str(ndim) + ">",
+       "element"   : element,
+       "label"     : PYB11mangle(element)})
+
+    # RKUtilities
+    for num, correctionOrder in enumerate(("ZerothOrder", "LinearOrder", "QuadraticOrder", "CubicOrder", "QuarticOrder", "QuinticOrder", "SexticOrder", "SepticOrder")):
         exec(''' 
-RKCorrections%(ndim)sd%(num)s = PYB11TemplateClass(RKCorrections, template_parameters=("%(Dimension)s", "RKOrder::%(correctionOrder)s"))
 RKUtilities%(ndim)sd%(num)s = PYB11TemplateClass(RKUtilities, template_parameters=("%(Dimension)s", "RKOrder::%(correctionOrder)s"))
 ''' % {"ndim"            : ndim,
        "Dimension"       : "Dim<" + str(ndim) + ">",

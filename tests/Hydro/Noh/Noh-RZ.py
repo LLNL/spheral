@@ -265,15 +265,13 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 if crksph:
     hydro = CRKSPHRZ(dataBase = db,
-                     W = WT,
                      filter = filter,
                      cfl = cfl,
                      useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                      compatibleEnergyEvolution = compatibleEnergy,
                      evolveTotalEnergy = evolveTotalEnergy,
                      XSPH = XSPH,
-                     correctionOrder = correctionOrder,
-                     volumeType = volumeType,
+                     order = correctionOrder,
                      densityUpdate = densityUpdate,
                      HUpdate = HUpdate)
 else:
@@ -292,8 +290,6 @@ else:
                   epsTensile = epsilonTensile,
                   nTensile = nTensile)
 output("hydro")
-output("hydro.kernel")
-output("hydro.PiKernel")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
@@ -384,6 +380,7 @@ output("integrator.verbose")
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
@@ -486,7 +483,7 @@ if graphics:
     plots.append((posPlot, "Noh-%s-positions.png" % problem))
 
     if crksph:
-        volPlot = plotFieldList(hydro.volume,
+        volPlot = plotFieldList(control.RKCorrections.volume,
                                 xFunction = "%s.y",
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)

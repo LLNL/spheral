@@ -336,6 +336,11 @@ if test $MPIENABLED = "no"; then
   MPICXXFLAGS=
 fi
 
+# On Mac with Xcode we need to change some link options
+if test $OSNAME = "Darwin"; then
+  LDFLAGS+=" -stdlib=libc++ -mmacosx-version-min=10.9"
+fi
+
 ## On 64 bit Darwin we have to diddle the python configure 
 #if test $OSNAME = "Darwin"; then
 #   PYTHONCONFFLAGS="--enable-framework=$prefix DESTDIR=$prefix"

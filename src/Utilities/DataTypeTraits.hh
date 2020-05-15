@@ -11,10 +11,13 @@
 #include <vector>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include "Geometry/Dimension.hh"
 #include "Geometry/polyclipper.hh"
 #include "RegisterMPIDataTypes.hh"
 #include "Utilities/DomainNode.hh"
+#include "RK/RKCorrectionParams.hh"
+#include "RK/RKCoefficients.hh"
 
 #ifdef USE_MPI
 extern "C" {
@@ -194,6 +197,15 @@ struct DataTypeTraits<std::pair<Value1, Value2> > {
 };
 
 //------------------------------------------------------------------------------
+template<typename Value1, typename Value2, typename Hash>
+struct DataTypeTraits<std::unordered_map<Value1, Value2, Hash> > {
+  typedef std::pair<Value1, Value2> ElementType;
+  static bool fixedSize() { return false; }
+  static int numElements(const std::unordered_map<Value1, Value2, Hash>& x) { return x.size(); }
+  static std::unordered_map<Value1, Value2, Hash> zero() { return std::unordered_map<Value1, Value2, Hash>(); }
+};
+
+//------------------------------------------------------------------------------
 template<>
 struct DataTypeTraits<Dim<1>::Vector> {
   typedef double ElementType;
@@ -273,7 +285,9 @@ struct DataTypeTraits<Dim<1>::FifthRankTensor> {
 
 template<>
 struct DataTypeTraits<Dim<1>::FacetedVolume> {
+  typedef double ElementType;
   static bool fixedSize() { return false; }
+  static int numElements(const Dim<1>::FacetedVolume) { return 0; }
   static Dim<1>::FacetedVolume zero() { return Dim<1>::FacetedVolume(); }
 };
 
@@ -346,7 +360,9 @@ struct DataTypeTraits<Dim<2>::FifthRankTensor> {
 
 template<>
 struct DataTypeTraits<Dim<2>::FacetedVolume> {
+  typedef double ElementType;
   static bool fixedSize() { return false; }
+  static int numElements(const Dim<2>::FacetedVolume) { return 0; }
   static Dim<2>::FacetedVolume zero() { return Dim<2>::FacetedVolume(); }
 };
 
@@ -419,7 +435,9 @@ struct DataTypeTraits<Dim<3>::FifthRankTensor> {
 
 template<>
 struct DataTypeTraits<Dim<3>::FacetedVolume> {
+  typedef double ElementType;
   static bool fixedSize() { return false; }
+  static int numElements(const Dim<3>::FacetedVolume) { return 0; }
   static Dim<3>::FacetedVolume zero() { return Dim<3>::FacetedVolume(); }
 };
 
@@ -443,12 +461,47 @@ struct DataTypeTraits<PolyClipper::Vertex3d> {
 };
 
 //------------------------------------------------------------------------------
+template<>
+struct DataTypeTraits<PolyClipper::Plane2d> {
+  typedef double ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const PolyClipper::Plane2d& x) { return 6; }
+  static PolyClipper::Plane2d zero() { return PolyClipper::Plane2d(); }
+};
+
+template<>
+struct DataTypeTraits<PolyClipper::Plane3d> {
+  typedef double ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const PolyClipper::Plane3d& x) { return 8; }
+  static PolyClipper::Plane3d zero() { return PolyClipper::Plane3d(); }
+};
+
+//------------------------------------------------------------------------------
 template<int ndim>
 struct DataTypeTraits<DomainNode<Dim<ndim>>> {
   typedef double ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const DomainNode<Dim<ndim>>& x) { return DomainNode<Dim<2>>::packSize(); }
+  static int numElements(const DomainNode<Dim<ndim>>& x) { return DomainNode<Dim<ndim>>::packSize(); }
   static DomainNode<Dim<ndim>> zero() { return DomainNode<Dim<ndim>>({0, 0, 0, 0, 0, 0.0, Dim<ndim>::Vector::zero}); }
+};
+
+//------------------------------------------------------------------------------
+template<>
+struct DataTypeTraits<RKOrder> {
+  typedef int ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const RKOrder& x) { return 1; }
+  static RKOrder zero() { return RKOrder::ZerothOrder; }
+};
+
+//------------------------------------------------------------------------------
+template<int ndim>
+struct DataTypeTraits<RKCoefficients<Dim<ndim>>> {
+  typedef double ElementType;
+  static bool fixedSize() { return false; }
+  static int numElements(const RKCoefficients<Dim<ndim>>& x) { return x.size() + 1; }
+  static RKCoefficients<Dim<ndim>> zero() { return RKCoefficients<Dim<ndim>>(); }
 };
 
 }

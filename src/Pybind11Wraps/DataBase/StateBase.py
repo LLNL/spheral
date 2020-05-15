@@ -193,6 +193,7 @@ class StateBase:
     facetedVolumeField = PYB11TemplateMethod(field, "FacetedVolume")
     vector_of_CellFaceFlagField = PYB11TemplateMethod(field, "std::vector<CellFaceFlag>")
     vector_of_doubleField = PYB11TemplateMethod(field, "std::vector<double>")
+    RKCoefficientsField = PYB11TemplateMethod(field, "RKCoefficients<%(Dimension)s>")
 
     intFields = PYB11TemplateMethod(fields, "int")
     scalarFields = PYB11TemplateMethod(fields, "double")
@@ -205,6 +206,7 @@ class StateBase:
     facetedVolumeFields = PYB11TemplateMethod(fields, "FacetedVolume")
     vector_of_CellFaceFlagFields = PYB11TemplateMethod(fields, "std::vector<CellFaceFlag>")
     vector_of_doubleFields = PYB11TemplateMethod(fields, "std::vector<double>")
+    RKCoefficientsFields = PYB11TemplateMethod(fields, "RKCoefficients<%(Dimension)s>")
 
     allIntFields = PYB11TemplateMethod(allFields, "int")
     allScalarFields = PYB11TemplateMethod(allFields, "double")
@@ -217,6 +219,7 @@ class StateBase:
     allFacetedVolumeFields = PYB11TemplateMethod(allFields, "FacetedVolume")
     allVector_of_CellFaceFlagFields = PYB11TemplateMethod(allFields, "std::vector<CellFaceFlag>")
     allVector_of_doubleFields = PYB11TemplateMethod(allFields, "std::vector<double>")
+    allRKCoefficientsFields = PYB11TemplateMethod(allFields, "RKCoefficients<%(Dimension)s>")
 
     #...........................................................................
     # enrollAny/getAny
@@ -238,3 +241,16 @@ class StateBase:
     enrollVectorVector = PYB11TemplateMethod(enrollAny, "std::vector<Vector>", pyname="enrollAny")
     getVectorVector = PYB11TemplateMethod(getAny, "std::vector<Vector>", pyname="getAny")
 
+    #...........................................................................
+    # assignFields
+    @PYB11template("Value")
+    def assignFields(self,
+                     rhs = "const StateBase<%(Dimension)s>&",
+                     name = "const std::string"):
+        "Assign just the fields with the given name to those in another State object."
+        return "void"
+
+    assignFieldsScalar = PYB11TemplateMethod(assignFields, "double", pyname="assignFields")
+    assignFieldsVector = PYB11TemplateMethod(assignFields, "Vector", pyname="assignFields")
+    assignFieldsTensor = PYB11TemplateMethod(assignFields, "Tensor", pyname="assignFields")
+    assignFieldsSymTensor = PYB11TemplateMethod(assignFields, "SymTensor", pyname="assignFields")

@@ -140,6 +140,10 @@ public:
   // Set the Fields equal to those in another State object.
   void assign(const StateBase<Dimension>& rhs);
 
+  // Assign just the fields with the given name to those in another State object.
+  template<typename Value>
+  void assignFields(const StateBase<Dimension>& rhs, const std::string name);
+
   // Force the StateBase to create new internally owned copies of all state.
   virtual void copyState();
 

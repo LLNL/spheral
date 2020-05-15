@@ -219,34 +219,6 @@ innerProduct%(A)s%(B)s%(ndim)id = PYB11TemplateFunction(innerProduct,
        "RT" : IPRT[(A, B)],
        "ndim" : ndim})
              
-#-------------------------------------------------------------------------------
-# Outer product (with a double)
-#-------------------------------------------------------------------------------
-@PYB11template("ValueType")
-def outerProductScalar(A = "const double&",
-                       B = "const %(ValueType)s&"):
-    "Outer product with a scalar."
-    return "%(ValueType)s"
-
-@PYB11template("ValueType")
-def outerProductScalarR(A = "const %(ValueType)s&",
-                        B = "const double&"):
-    "Outer product with a scalar."
-    return "%(ValueType)s"
-
-for VT in ("Vector", "Tensor", "SymTensor", "ThirdRankTensor", "FourthRankTensor", "FifthRankTensor"):
-    for ndim in (1, 2, 3):
-        exec("""
-outerProduct%(VT)sScalar%(ndim)id = PYB11TemplateFunction(outerProductScalar,
-                                                          template_parameters = "Dim<%(ndim)i>::%(VT)s",
-                                                          pyname = "outerProduct",
-                                                          cppname = "outerProduct<Dim<%(ndim)i>::%(VT)s>")
-outerProductScalar%(VT)s%(ndim)id = PYB11TemplateFunction(outerProductScalarR,
-                                                          template_parameters = "Dim<%(ndim)i>::%(VT)s",
-                                                          pyname = "outerProduct",
-                                                          cppname = "outerProduct<Dim<%(ndim)i>::%(VT)s>")
-""" % {"VT" : VT,
-       "ndim" : ndim})
 
 #-------------------------------------------------------------------------------
 # General outer products
@@ -258,7 +230,22 @@ def outerProduct(A = "const %(AType)s&",
     return "%(ReturnType)s"
 
 # Map outer product types to result
-OPRT = {("Vector", "Vector")           : "Tensor",
+OPRT = {("Scalar", "Scalar")           : "Scalar",
+        ("Scalar", "Vector")           : "Vector",
+        ("Scalar", "Tensor")           : "Tensor",
+        ("Scalar", "SymTensor")        : "SymTensor",
+        ("Scalar", "ThirdRankTensor")  : "ThirdRankTensor",
+        ("Scalar", "FourthRankTensor") : "FourthRankTensor",
+        ("Scalar", "FifthRankTensor")  : "FifthRankTensor",
+
+        ("Vector",           "Scalar") : "Vector",
+        ("Tensor",           "Scalar") : "Tensor",
+        ("SymTensor",        "Scalar") : "SymTensor",
+        ("ThirdRankTensor",  "Scalar") : "ThirdRankTensor",
+        ("FourthRankTensor", "Scalar") : "FourthRankTensor",
+        ("FifthRankTensor",  "Scalar") : "FifthRankTensor",
+
+        ("Vector", "Vector")           : "Tensor",
         ("Vector", "Tensor")           : "ThirdRankTensor",
         ("Vector", "SymTensor")        : "ThirdRankTensor",
         ("Vector", "ThirdRankTensor")  : "FourthRankTensor",

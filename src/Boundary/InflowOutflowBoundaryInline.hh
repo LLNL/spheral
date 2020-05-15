@@ -1,3 +1,5 @@
+#include "Boundary/ConstantBoundaryUtilities.hh"
+
 #include <typeinfo>
 
 namespace Spheral {
@@ -54,20 +56,18 @@ numInflowNodes(const NodeList<Dimension>& nodeList) const {
 template<typename Dimension>
 template<typename DataType>
 inline
-std::vector<DataType>&
+std::vector<DataType>
 InflowOutflowBoundary<Dimension>::
 storedValues(const KeyType key, const DataType& dummy) {
-  auto& storage = storageForType(dummy);
-  if (storage.find(key) == storage.end()) {
-    VERIFY2(false, "InflowOutflowBoundary ERROR: attempt to extract stored value for " << key << ", which is not stored.");
-  }
-  return storage[key];
+  const auto itr = mBufferedValues.find(key);
+  VERIFY2(itr != mBufferedValues.end(), "InflowOutflowBoundary ERROR: attempt to extract stored value for " << key << ", which was not found.");
+  return extractBufferedValues<DataType>(itr->second);
 }
 
 template<typename Dimension>
 template<typename DataType>
 inline
-std::vector<DataType>&
+std::vector<DataType>
 InflowOutflowBoundary<Dimension>::
 storedValues(const Field<Dimension, DataType>& field) {
   const auto key = StateBase<Dimension>::key(field);
@@ -82,9 +82,43 @@ template<typename DataType>
 inline
 void
 InflowOutflowBoundary<Dimension>::
+setStoredValues(const KeyType key, const std::vector<DataType>& values) {
+  auto itr = mBufferedValues.find(key);
+  VERIFY2(itr != mBufferedValues.end(), "InflowOutflowBoundary ERROR: attempt to set stored value for " << key << ", which was not found.");
+  auto currentVals = this->storedValues(key, DataType());
+  const auto n = currentVals.size();
+  VERIFY2(values.size() == n, "InflowOutflowBoundary ERROR: attempt to set stored value for " << key << " with vector of wrong size");
+  auto& buffer = itr->second;
+  buffer.clear();
+  for (auto i = 0; i < n; ++i) packElement(values[i], buffer);
+}
+
+template<typename Dimension>
+template<typename DataType>
+inline
+void
+InflowOutflowBoundary<Dimension>::
+setStoredValues(const Field<Dimension, DataType>& field, const std::vector<DataType>& values) {
+  const auto key = StateBase<Dimension>::key(field);
+  this->setStoredValues<DataType>(key, values);
+}
+
+//------------------------------------------------------------------------------
+// Set the stored template field values for ghost points (constant value).
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+void
+InflowOutflowBoundary<Dimension>::
 setStoredValues(const KeyType key, const DataType& value) {
-  auto& vals = storedValues(key, value);
-  for (auto& x: vals) x = value;
+  auto itr = mBufferedValues.find(key);
+  VERIFY2(itr != mBufferedValues.end(), "InflowOutflowBoundary ERROR: attempt to extract stored value for " << key << ", which was not found.");
+  auto currentVals = this->storedValues(key, DataType());
+  const auto n = currentVals.size();
+  auto& buffer = itr->second;
+  buffer.clear();
+  for (auto i = 0; i < n; ++i) packElement(value, buffer);
 }
 
 template<typename Dimension>
@@ -93,8 +127,8 @@ inline
 void
 InflowOutflowBoundary<Dimension>::
 setStoredValues(const Field<Dimension, DataType>& field, const DataType& value) {
-  auto& vals = storedValues(field);
-  for (auto& x: vals) x = value;
+  const auto key = StateBase<Dimension>::key(field);
+  this->setStoredValues<DataType>(key, value);
 }
 
 }

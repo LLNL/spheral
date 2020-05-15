@@ -91,6 +91,7 @@ namespace Spheral {
 template<typename Dimension>
 SPHHydroBase<Dimension>::
 SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+             DataBase<Dimension>& dataBase,
              ArtificialViscosity<Dimension>& Q,
              const TableKernel<Dimension>& W,
              const TableKernel<Dimension>& WPi,
@@ -109,7 +110,9 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              const double nTensile,
              const Vector& xmin,
              const Vector& xmax):
-  GenericHydro<Dimension>(W, WPi, Q, cfl, useVelocityMagnitudeForDt),
+  GenericHydro<Dimension>(Q, cfl, useVelocityMagnitudeForDt),
+  mKernel(W),
+  mPiKernel(WPi),
   mSmoothingScaleMethod(smoothingScaleMethod),
   mDensityUpdate(densityUpdate),
   mHEvolution(HUpdate),
@@ -153,24 +156,7 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mLocalM(FieldStorageType::CopyFields),
   mPairAccelerations(),
   mRestart(registerWithRestart(*this)) {
-}
 
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-SPHHydroBase<Dimension>::
-~SPHHydroBase() {
-}
-
-//------------------------------------------------------------------------------
-// On problem start up, we need to initialize our internal data.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-SPHHydroBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
-  TIME_SPHinitializeStartup.start();
   // Create storage for our internal state.
   mTimeStepMask = dataBase.newFluidFieldList(int(0), HydroFieldNames::timeStepMask);
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
@@ -199,7 +185,25 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mPairAccelerations.clear();
   mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
   mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection);
+}
 
+//------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
+template<typename Dimension>
+SPHHydroBase<Dimension>::
+~SPHHydroBase() {
+}
+
+//------------------------------------------------------------------------------
+// On problem start up, we need to initialize our internal data.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SPHHydroBase<Dimension>::
+initializeProblemStartup(DataBase<Dimension>& dataBase) {
+
+  TIME_SPHinitializeStartup.start();
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
@@ -450,55 +454,82 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
-  if (densityUpdate() == MassDensityType::RigorousSumDensity or
-      densityUpdate() == MassDensityType::CorrectedSumDensity) {
-    const auto& connectivityMap = dataBase.connectivityMap();
-    const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-    const auto mass = state.fields(HydroFieldNames::mass, 0.0);
-    const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    computeSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
-    if (densityUpdate() == MassDensityType::CorrectedSumDensity) {
-      for (auto boundaryItr = this->boundaryBegin();
-           boundaryItr < this->boundaryEnd();
-           ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-      for (auto boundaryItr = this->boundaryBegin(); 
-           boundaryItr < this->boundaryEnd();
-           ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-      correctSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
-    }
-  } else if (densityUpdate() == MassDensityType::SumDensity) {
-    auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    const auto massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
-                                              HydroFieldNames::massDensity, 0.0);
-    massDensity.assignFields(massDensitySum);
-  } else if (densityUpdate() == MassDensityType::HybridSumDensity) {
-    auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    const auto massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
-                                              HydroFieldNames::massDensity, 0.0);
-    const auto normalization = state.fields(HydroFieldNames::normalization, 0.0);
-    const auto numNodeLists = normalization.size();
-    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-      const auto n = normalization[nodeListi]->numInternalElements();
-      for (auto i = 0; i < n; ++i) {
-        if (normalization(nodeListi, i) > 0.95) massDensity(nodeListi, i) = massDensitySum(nodeListi, i);
+  switch(densityUpdate()) {
+
+  case MassDensityType::RigorousSumDensity:
+  case MassDensityType::CorrectedSumDensity:
+    {
+      const auto& connectivityMap = dataBase.connectivityMap();
+      const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+      const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+      const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+      auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+      computeSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      if (densityUpdate() == MassDensityType::CorrectedSumDensity) {
+        correctSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
+        for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+        for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
       }
     }
-  } else if (densityUpdate() == MassDensityType::VoronoiCellDensity) {
-    this->updateVolume(state, false);
-    const auto mass = state.fields(HydroFieldNames::mass, 0.0);
-    const auto volume = state.fields(HydroFieldNames::volume, 0.0);
-    auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    massDensity = mass / volume;
-  } else if (densityUpdate() == MassDensityType::SumVoronoiCellDensity) {
-    this->updateVolume(state, true);
-    const auto& connectivityMap = dataBase.connectivityMap();
-    const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-    const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-    const auto  volume = state.fields(HydroFieldNames::volume, 0.0);
-    const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    computeSumVoronoiCellMassDensity(connectivityMap, this->kernel(), position, mass, volume, H, massDensity);
+    break;
+
+  case MassDensityType::SumDensity:
+    {
+      auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+      const auto massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+                                                HydroFieldNames::massDensity, 0.0);
+      massDensity.assignFields(massDensitySum);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+    }
+    break;
+
+  case MassDensityType::HybridSumDensity:
+    {
+      auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+      const auto massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+                                                HydroFieldNames::massDensity, 0.0);
+      const auto normalization = state.fields(HydroFieldNames::normalization, 0.0);
+      const auto numNodeLists = normalization.size();
+      for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+        const auto n = normalization[nodeListi]->numInternalElements();
+        for (auto i = 0; i < n; ++i) {
+          if (normalization(nodeListi, i) > 0.95) massDensity(nodeListi, i) = massDensitySum(nodeListi, i);
+        }
+      }
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+    }
+    break;
+
+  case MassDensityType::VoronoiCellDensity:
+    {
+      this->updateVolume(state, false);
+      const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+      const auto volume = state.fields(HydroFieldNames::volume, 0.0);
+      auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+      massDensity = mass / volume;
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+    }
+    break;
+
+  case MassDensityType::SumVoronoiCellDensity:
+    {
+      this->updateVolume(state, true);
+      const auto& connectivityMap = dataBase.connectivityMap();
+      const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+      const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+      const auto  volume = state.fields(HydroFieldNames::volume, 0.0);
+      const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+      auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+      computeSumVoronoiCellMassDensity(connectivityMap, this->kernel(), position, mass, volume, H, massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+    }
+    break;
   }
 
   // // This form looks for points that are too close based on specific volume.

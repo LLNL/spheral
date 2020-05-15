@@ -348,14 +348,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\CRKSPH\centerOfMass.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHCorrectionsInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHCorrectionsInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHEvaluationInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHEvaluationInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHIntegralInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHIntegralInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHMomentsInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHMomentsInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensityInst.cc.2.cc" />
@@ -367,10 +363,6 @@
     <ClCompile Include="..\..\src\CRKSPH\detectSurfaceInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\interpolateCRKSPHInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\interpolateCRKSPHInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseRZ.cc" />
@@ -378,14 +370,6 @@
     <ClCompile Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrectionsInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHCorrectionsInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHEvaluationInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
@@ -399,14 +383,6 @@
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
          </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHMomentsInst.cc.py">
-      <Command>
-           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-        </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
@@ -450,22 +426,6 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\interpolateCRKSPHInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInst.cc.py">
       <Command>
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
@@ -485,10 +445,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\CRKSPH\centerOfMass.hh" />
-    <ClInclude Include="..\..\src\CRKSPH\computeCRKSPHCorrections.hh" />
     <ClInclude Include="..\..\src\CRKSPH\computeCRKSPHEvaluation.hh" />
     <ClInclude Include="..\..\src\CRKSPH\computeCRKSPHIntegral.hh" />
-    <ClInclude Include="..\..\src\CRKSPH\computeCRKSPHMoments.hh" />
     <ClInclude Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensity.hh" />
     <ClInclude Include="..\..\src\CRKSPH\computeHullSumMassDensity.hh" />
     <ClInclude Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensity.hh" />
@@ -496,13 +454,9 @@
     <ClInclude Include="..\..\src\CRKSPH\CRKSPHHydroBase.hh" />
     <ClInclude Include="..\..\src\CRKSPH\CRKSPHHydroBaseInline.hh" />
     <ClInclude Include="..\..\src\CRKSPH\CRKSPHHydroBaseRZ.hh" />
-    <ClInclude Include="..\..\src\CRKSPH\CRKSPHUtilities.hh" />
-    <ClInclude Include="..\..\src\CRKSPH\CRKSPHUtilitiesInline.hh" />
     <ClInclude Include="..\..\src\CRKSPH\CRKSPHVariant.hh" />
     <ClInclude Include="..\..\src\CRKSPH\detectSurface.hh" />
     <ClInclude Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopology.hh" />
-    <ClInclude Include="..\..\src\CRKSPH\gradientCRKSPH.hh" />
-    <ClInclude Include="..\..\src\CRKSPH\interpolateCRKSPH.hh" />
     <ClInclude Include="..\..\src\CRKSPH\SolidCRKSPHHydroBase.hh" />
     <ClInclude Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInline.hh" />
     <ClInclude Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseRZ.hh" />

@@ -11,7 +11,7 @@
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/boundingBox.hh"
 #include "Utilities/comparisons.hh"
-#include "Utilities/lineSegmentIntersections.hh"
+#include "Utilities/pointInPolygon.hh"
 #include "Utilities/PairComparisons.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolyhedron.hh"
@@ -19,12 +19,15 @@
 
 #include <vector>
 #include <map>
+#include <algorithm>
 using std::vector;
 using std::map;
 using std::pair;
 using std::make_pair;
 using std::min;
 using std::max;
+using std::cerr;
+using std::endl;
 
 extern "C" {
 #include "libqhull/qhull_a.h"
@@ -343,7 +346,6 @@ GeomPolyhedron::
 contains(const GeomPolyhedron::Vector& point,
          const bool countBoundary,
          const double tol) const {
-  if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
   if ((point - mCentroid).magnitude2() < mRinterior2 - tol) return true;
   if (mConvex) {
     return this->convexContains(point, countBoundary, tol);
@@ -511,15 +513,15 @@ intersect(const std::pair<Vector, Vector>& rhs) const {
 }
 
 //------------------------------------------------------------------------------
-// Find the Facets and points intersecting a line segment (s0, s1).
+// Test if we intersect a line segment (interior counts as intersection).
 //------------------------------------------------------------------------------
-void
+bool
 GeomPolyhedron::
-intersect(const Vector& s0, const Vector& s1,
-          std::vector<unsigned>& facetIDs,
-          std::vector<Vector>& intersections) const {
-  facetIDs.clear();
-  intersections.clear();
+intersect(const Vector& s0, const Vector& s1) const {
+  if (this->contains(s0) or this->contains(s1)) return true;
+
+  const auto shat = (s1 - s0).unitVector();
+  const auto q01 = (s1 - s0).magnitude();
 
   // Check each facet of the polyhedron.
   Vector inter;
@@ -527,20 +529,61 @@ intersect(const Vector& s0, const Vector& s1,
   for (auto k = 0; k < nf; ++k) {
     const auto& facet = mFacets[k];
     const auto& ipoints = facet.ipoints();
-    std::vector<Vector> points;
-    for (const auto i: ipoints) points.push_back(facet.point(i));
-    const auto code = segmentPlanarSectionIntersection(s0, s1, points, inter);
-    CHECK(code != 'd');
+    CHECK(ipoints.size() >= 3);
+    const auto& fhat = facet.normal();
 
-    if (code == '1') {
-      // Simple intersection with the facet
-      facetIDs.push_back(k);
-      intersections.push_back(inter);
+    // First does the line segment intersect the facet plane?
+    const auto shat_dot_fhat = shat.dot(fhat);
+    if (abs(shat_dot_fhat) > 1.0e-10) {           // Check for segment parallel to plane
+      const auto q = (mVertices[ipoints[0]] - s0).dot(fhat)/shat_dot_fhat;
+      if (q >= 0.0 and q <= q01) {                // Does the line segment intersect the plane
+        return true;
+      }
+    }
+  }
 
-    } else if (code == 'p') {
-      // The segment is coplanar with the facet.
-      facetIDs.push_back(k);
-      intersections.push_back(inter);
+  return false;
+}
+
+//------------------------------------------------------------------------------
+// Find the Facets and points intersecting a line segment (s0, s1).
+//------------------------------------------------------------------------------
+void
+GeomPolyhedron::
+intersections(const Vector& s0, const Vector& s1,
+              std::vector<unsigned>& facetIDs,
+              std::vector<Vector>& intersections) const {
+  facetIDs.clear();
+  intersections.clear();
+
+  const auto shat = (s1 - s0).unitVector();
+  const auto q01 = (s1 - s0).magnitude();
+
+  // Preserve the distance along the line segment for sorting.
+  vector<double> qvals;
+
+  // Check each facet of the polyhedron.
+  Vector inter;
+  const auto nf = mFacets.size();
+  for (auto k = 0; k < nf; ++k) {
+    const auto& facet = mFacets[k];
+    const auto& ipoints = facet.ipoints();
+    CHECK(ipoints.size() >= 3);
+    const auto& fhat = facet.normal();
+
+    // First does the line segment intersect the facet plane?
+    const auto shat_dot_fhat = shat.dot(fhat);
+    if (abs(shat_dot_fhat) > 1.0e-10) {           // Check for segment parallel to plane
+      const auto q = (mVertices[ipoints[0]] - s0).dot(fhat)/shat_dot_fhat;
+      if (q >= 0.0 and q <= q01) {                // Does the line segment intersect the plane
+        const auto p = s0 + q*shat;               // point along line in plane
+        if (pointInPolygon(p, mVertices, ipoints, fhat, false, 1.0e-10)) {
+          auto qitr = qvals.insert(std::upper_bound(qvals.begin(), qvals.end(), q), q);
+          auto qpos = std::distance(qvals.begin(), qitr);
+          facetIDs.insert(facetIDs.begin() + qpos, k);
+          intersections.insert(intersections.begin() + qpos, p);
+        }
+      }
     }
   }
 }
@@ -889,6 +932,51 @@ facetSubVolume(const unsigned facetID) const {
   const auto  n = ipoints.size();
   for (auto i = 0; i < n; ++i) points.push_back(facet.point(i));
   return GeomPolyhedron(points);
+}
+
+//------------------------------------------------------------------------------
+// Decompose the polyhedron into tetrahedra.
+//------------------------------------------------------------------------------
+void
+GeomPolyhedron::
+decompose(std::vector<GeomPolyhedron>& subcells) const {
+  const auto originalCentroid = this->centroid();
+  const auto numFacets = mFacets.size();
+  subcells.clear();
+  subcells.reserve(numFacets);
+  std::vector<std::array<Vector, 3>> subfacets;
+  const std::vector<std::vector<unsigned>> indices = {{0, 1, 2}, {0, 3, 1},
+                                                      {1, 3, 2}, {0, 2, 3}};
+  for (auto f = 0; f < numFacets; ++f) {
+    const auto& facet = mFacets[f];
+    // We don't want to split the facet if we can help it
+    if (facet.ipoints().size() == 3) {
+      subfacets = {{facet.point(0), facet.point(1), facet.point(2)}};
+    }
+    else {
+      facet.decompose(subfacets);
+    }
+    
+    for (auto& subfacet : subfacets) {
+      CHECK(subfacet.size() == 3);
+      std::vector<Vector> points = {subfacet[0], subfacet[1],
+                                    subfacet[2], originalCentroid};
+      subcells.emplace_back(points, indices);
+    }
+  }
+
+  BEGIN_CONTRACT_SCOPE
+  {
+    const auto originalVolume = this->volume();
+    auto volumesum = 0.;
+    for (auto& subcell : subcells) {
+      const auto subvolume = subcell.volume();
+      CHECK(0 < subvolume and subvolume < originalVolume);
+      volumesum += subcell.volume();
+    }
+    CHECK(fuzzyEqual(volumesum, originalVolume));
+  }
+  END_CONTRACT_SCOPE
 }
 
 //------------------------------------------------------------------------------

@@ -33,8 +33,6 @@ public:
   virtual ~RigidBoundary();
 
   // Apply the boundary condition to the ghost values of given Field.
-  virtual void applyGhostBoundary(Field<Dimension, int>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override;
@@ -44,8 +42,6 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Apply the boundary condition to the violation node values in the given Field.
-  virtual void enforceBoundary(Field<Dimension, int>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const override;
   virtual void enforceBoundary(Field<Dimension, Vector>& field) const override;
   virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override;
@@ -58,6 +54,10 @@ public:
   // Methods required for restarting.
   virtual std::string label() const override { return "RigidBoundary"; }
   //****************************************************************************
+
+  // Prevent the Boundary virtual methods from being hidden
+  using Boundary<Dimension>::applyGhostBoundary;
+  using Boundary<Dimension>::enforceBoundary;
 };
 
 }

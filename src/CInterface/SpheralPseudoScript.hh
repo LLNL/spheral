@@ -56,6 +56,7 @@ public:
                          const bool     totalEnergy,
                          const bool     vGradCorrection,
                          const bool     hGradCorrection,
+                         const int      densityUpdate,
                          const bool     sumMassDensity,
                          const bool     useVelocityDt,
                          const bool     ScalarQ,
@@ -64,7 +65,8 @@ public:
                          const int      piKernelType,
                          const int      gradKernelType,
                          const int      nbspline,
-                         const int      crkorder,
+                         const int      rkorder,
+                         const int      rkvolume,
                          const int      damage,
                          const unsigned nmats,
                          const double   CFL,
@@ -77,28 +79,10 @@ public:
                          const Vector&  xmin,
                          const Vector&  xmax);
 
-  // initializeStep -- should be called once at the beginning of a cycle.
-  static double initializeStep(const unsigned* nintpermat,
-                               const unsigned* npermat,
-                               const double*   mass,
-                               const double*   massDensity,
-                               const double**  position,
-                               const double*   specificThermalEnergy,
-                               const double**  velocity,
-                               const double**  Hfield,
-                               const double*   pressure,
-                               const double**  deviatoricStress,
-                               const double*   deviatoricStressTT,
-                               const double*   soundSpeed,
-                               const double*   bulkModulus,
-                               const double*   shearModulus,
-                               const double*   yieldStrength,
-                               const double*   plasticStrain,
-                               const double*   scalarDamage,
-                               const int*      particleType);
-
-  // updateState -- updates values of state fields without resizing.
-  static void updateState(const double*  mass,
+  // updateState -- updates Spheral's values of state fields.
+  static void updateState(const unsigned* nintpermat,
+                          const unsigned* npermat,
+                          const double*  mass,
                           const double*  massDensity,
                           const double** positionx,
                           const double*  specificThermalEnergy,
@@ -106,7 +90,6 @@ public:
                           const double** Hfield,
                           const double*  pressure,
                           const double** deviatoricStress,
-                          const double*  deviatoricStressTT,
                           const double*  soundSpeed,
                           const double*  bulkModulus,
                           const double*  shearModulus,
@@ -114,6 +97,15 @@ public:
                           const double*  plasticStrain,
                           const double*  scalarDamage,
                           const int*     particleType);
+
+  // initializeBoundariesAndPhysics
+  // Called once at problem startup, but after:
+  //   - initialize
+  //   - updateState with initial state conditions
+  static void initializeBoundariesAndPhysics();
+
+  // initializeStep -- should be called once at the beginning of a cycle.
+  static double initializeStep();
 
   // evaluateDerivatives -- computes the fluid time derivatives.
   static void evaluateDerivatives(double*  massDensitySum,
@@ -125,7 +117,6 @@ public:
                                   double** DHfieldDt,
                                   double** HfieldIdeal,
                                   double** DdeviatoricStressDt,
-                                  double*  DdeviatoricStressDtTT,
                                   double*  qpressure,
                                   double*  qwork);
 
@@ -163,7 +154,9 @@ public:
                              int*           ncells,
                              double**       coords,
                              int**          facetonodes,
-                             int**          celltofaces);
+                             int**          nodecounts,
+                             int**          celltofaces,
+                             int**          facecounts);
 
   static void fillVolume(const int*     nnodes,
                          const int*     nfaces,
@@ -213,34 +206,39 @@ private:
   // Damage flag
   bool mDamage;
 
+  // CRK flag
+  bool mCRK;
+
   // Flag as to whether we're doing the DistributedBoundary or not.
   int mDistributedBoundary;
 
   // The material data.
   std::shared_ptr<PhysicalConstants> mUnitsPtr;
-  std::shared_ptr<SolidEquationOfState<Dimension> > mEOSptr;
-  std::shared_ptr<StrengthModel<Dimension> > mStrengthModelPtr;
+  std::shared_ptr<SolidEquationOfState<Dimension>> mEOSptr;
+  std::shared_ptr<StrengthModel<Dimension>> mStrengthModelPtr;
 
   // The NodeList data.
-  std::vector<std::shared_ptr<Neighbor<Dimension> > > mNeighbors;
-  std::vector<std::shared_ptr<SolidNodeList<Dimension> > > mNodeLists;
+  std::vector<std::shared_ptr<Neighbor<Dimension>> > mNeighbors;
+  std::vector<std::shared_ptr<SolidNodeList<Dimension>> > mNodeLists;
 
   // Hydro bits.
-  std::shared_ptr<TableKernel<Dimension> > mKernelPtr;
-  std::shared_ptr<TableKernel<Dimension> > mPiKernelPtr;
-  std::shared_ptr<TableKernel<Dimension> > mGradKernelPtr;
-  std::shared_ptr<SmoothingScaleBase<Dimension> > mSmoothingScaleMethodPtr;
-  std::shared_ptr<ArtificialViscosity<Dimension> > mQptr;
-  std::shared_ptr<Physics<Dimension> > mHydroPtr;
+  std::shared_ptr<TableKernel<Dimension>> mKernelPtr;
+  std::shared_ptr<TableKernel<Dimension>> mPiKernelPtr;
+  std::shared_ptr<TableKernel<Dimension>> mGradKernelPtr;
+  std::shared_ptr<SmoothingScaleBase<Dimension>> mSmoothingScaleMethodPtr;
+  std::shared_ptr<ArtificialViscosity<Dimension>> mQptr;
+  std::shared_ptr<Physics<Dimension>> mRKptr;
+  std::shared_ptr<Physics<Dimension>> mHydroPtr;
 
   // Integrator and state.
-  std::shared_ptr<CheapSynchronousRK2<Dimension> > mIntegratorPtr;
-  std::shared_ptr<DataBase<Dimension> > mDataBasePtr;
+  std::shared_ptr<CheapSynchronousRK2<Dimension>> mIntegratorPtr;
+  std::shared_ptr<DataBase<Dimension>> mDataBasePtr;
   std::shared_ptr<State<Dimension>> mStatePtr;
   std::shared_ptr<StateDerivatives<Dimension>> mDerivsPtr;
 
-  // A boundary to hold the host code values.
-  std::vector<std::shared_ptr<Boundary<Dimension> > > mHostCodeBoundaries;
+  // A container to hold the host code values.
+  std::vector<std::shared_ptr<Boundary<Dimension>>> mHostCodeBoundaries;
+  bool mLockBoundaries;                // Flag to prevent adding new boundaries
 
   // No public constructors, destructor, or assignment.
   SpheralPseudoScript();

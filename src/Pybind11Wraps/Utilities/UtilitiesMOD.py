@@ -46,7 +46,10 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/computeShepardsInterpolation.hh"',
                   '"Utilities/clipFacetedVolume.hh"',
                   '"Utilities/Timer.hh"',
-                  '"Utilities/DomainNode.hh"']
+                  '"Utilities/DomainNode.hh"',
+                  '"Utilities/NodeCoupling.hh"',
+                  '"Utilities/DamagedNodeCoupling.hh"',
+                  '"Utilities/DamagedNodeCouplingWithFrags.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -60,6 +63,7 @@ from SpheralFunctor import *
 from KeyTraits import *
 from Timer import *
 from DomainNode import *
+from NodeCoupling import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
@@ -233,6 +237,9 @@ def computeShepardsInterpolation(fieldList = "const FieldList<%(Dimension)s, %(D
 # Instantiate stuff for the dimensions Spheral is building
 for ndim in dims:
     exec('''
+DamagedNodeCoupling%(ndim)id = PYB11TemplateClass(DamagedNodeCoupling, template_parameters="%(Dimension)s")
+DamagedNodeCouplingWithFrags%(ndim)id = PYB11TemplateClass(DamagedNodeCouplingWithFrags, template_parameters="%(Dimension)s")
+
 # Functors
 VectorScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "double"))
 VectorVectorFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "%(Vector)s"))

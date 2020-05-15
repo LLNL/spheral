@@ -2,9 +2,9 @@
 // SortAndDivideRedistributeNodes -- (Re)domain decompose the nodes by using the
 // information encoded in the SortAndDivideNeighbor algorithm.
 //----------------------------------------------------------------------------//
-#include "SortAndDivideRedistributeNodes3d.hh"
+#include "Distributed/SortAndDivideRedistributeNodes3d.hh"
+#include "Distributed/TreeDistributedBoundary.hh"
 #include "Utilities/DomainNode.hh"
-#include "BoundingVolumeDistributedBoundary.hh"
 #include "Boundary/Boundary.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -74,7 +74,7 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
   // boundary for local use.
   // Note that if boundary conditions were passed in, we assume that the Distributed
   // boundary is already in there.
-  BoundingVolumeDistributedBoundary<Dimension>& bound = BoundingVolumeDistributedBoundary<Dimension>::instance();
+  TreeDistributedBoundary<Dimension>& bound = TreeDistributedBoundary<Dimension>::instance();
   if (boundaries.size() == 0) boundaries.push_back(&bound);
 
   // Use the boundaries to create the ghost nodes.  We need this to compute the

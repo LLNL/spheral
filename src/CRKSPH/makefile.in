@@ -13,11 +13,7 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 INSTSRCTARGETS = \
 	$(srcdir)/computeCRKSPHSumMassDensityInst.cc.py \
 	$(srcdir)/computeSolidCRKSPHSumMassDensityInst.cc.py \
-	$(srcdir)/computeCRKSPHMomentsInst.cc.py \
-	$(srcdir)/computeCRKSPHCorrectionsInst.cc.py \
 	$(srcdir)/CRKSPHHydroBaseInst.cc.py \
-	$(srcdir)/interpolateCRKSPHInst.cc.py \
-	$(srcdir)/gradientCRKSPHInst.cc.py \
 	$(srcdir)/detectSurfaceInst.cc.py \
 	$(srcdir)/SolidCRKSPHHydroBaseInst.cc.py \
 	$(srcdir)/editMultimaterialSurfaceTopologyInst.cc.py \

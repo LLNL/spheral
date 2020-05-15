@@ -79,6 +79,7 @@ void
 Neighbor<Dimension>::kernelExtent(double kernelExtent) {
   CHECK(kernelExtent > 0.0);
   mKernelExtent = kernelExtent;
+  this->reinitialize();
 }
 
 //------------------------------------------------------------------------------

@@ -10,27 +10,35 @@
 
 namespace Spheral {
 
-// Fill a bounding volume.
+// Fill an outer bounding volume (specify x number of points).
 std::vector<Dim<3>::Vector>
 fillFacetedVolume(const Dim<3>::FacetedVolume& outerBoundary,
                   const unsigned n1d,
                   const unsigned domain,
                   const unsigned numDomains);
 
-// Fill a bounding volume where dx is user-defined.
+// Fill an outer bounding volume (dx specified).
 std::vector<Dim<3>::Vector>
 fillFacetedVolume2(const Dim<3>::FacetedVolume& outerBoundary,
-                   const double   dx,
+                   const double dx,
                    const unsigned domain,
                    const unsigned numDomains);
 
-// Fill between inner and outer bounding volumes.
+// Fill between an inner and outer boundary (specify x number of points).
 std::vector<Dim<3>::Vector>
-fillFacetedVolume(const Dim<3>::FacetedVolume& innerBoundary,
-                  const Dim<3>::FacetedVolume& outerBoundary,
-                  const unsigned n1d,
-                  const unsigned domain,
-                  const unsigned numDomains);
+fillFacetedVolume3(const Dim<3>::FacetedVolume& innerBoundary,
+                   const Dim<3>::FacetedVolume& outerBoundary,
+                   const unsigned n1d,
+                   const unsigned domain,
+                   const unsigned numDomains);
+
+// Fill between an inner and outer boundary (dx specified).
+std::vector<Dim<3>::Vector>
+fillFacetedVolume10(const Dim<3>::FacetedVolume& innerBoundary,
+                    const Dim<3>::FacetedVolume& outerBoundary,
+                    const double dx,
+                    const unsigned domain,
+                    const unsigned numDomains);
 
 }
 

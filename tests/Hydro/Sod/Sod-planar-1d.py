@@ -122,7 +122,9 @@ assert not(boolReduceViscosity and boolCullenViscosity)
 if svph:
     hydroname = "SVPH"
 elif crksph:
-    hydroname = "CRKSPH"
+    hydroname = os.path.join("CRKSPH",
+                             str(volumeType),
+                             str(correctionOrder))
 elif psph:
     hydroname = "PSPH"
 else:
@@ -135,7 +137,6 @@ dataDir = os.path.join(dataDirBase,
                        hydroname,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
-                       "correctionOrder=%s" % correctionOrder,
                        "Cullen=%s" % boolCullenViscosity,
                        "Condc=%s" % HopkinsConductivity,
                        "filter=%f" % filter,
@@ -288,17 +289,14 @@ if svph:
                  xmax = Vector( 100.0))
 elif crksph:
     hydro = CRKSPH(dataBase = db,
-                   W = WT, 
+                   order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
-                   correctionOrder = correctionOrder,
-                   volumeType = volumeType,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
-                   HUpdate = HUpdate,
-                   limitMultimaterialTopology = limitMultimaterialTopology)
+                   HUpdate = HUpdate)
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
@@ -422,7 +420,9 @@ output("integrator.rigorousBoundaries")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-control = SpheralController(integrator, WT,
+control = SpheralController(integrator,
+                            kernel = WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
@@ -580,22 +580,13 @@ if graphics:
              (APlot, "Sod-planar-entropy.png")]
     
     if crksph:
-        volPlot = plotFieldList(hydro.volume, 
+        volPlot = plotFieldList(control.RKCorrections.volume, 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
-        aplot = plotFieldList(hydro.A,
-                              winTitle = "A",
-                              colorNodeLists = False)
-        bplot = plotFieldList(hydro.B,
-                              yFunction = "%s.x",
-                              winTitle = "B",
-                              colorNodeLists = False)
-        splot = plotFieldList(hydro.surfacePoint,
+        splot = plotFieldList(control.RKCorrections.surfacePoint,
                               winTitle = "surface point",
                               colorNodeLists = False)
         plots += [(volPlot, "Sod-planar-vol.png"),
-                   (aplot, "Sod-planar-ACRK.png"),
-                   (bplot, "Sod-planar-BCRK.png"),
                    (splot, "Sod-planar-surfacePoint.png")]
     
     viscPlot = plotFieldList(hydro.maxViscousPressure,

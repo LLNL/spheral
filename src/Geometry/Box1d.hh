@@ -14,6 +14,8 @@
 
 #include <vector>
 
+#include "GeomFacet1d.hh"
+
 template<int nDim> class GeomVector;
 
 namespace Spheral {
@@ -22,6 +24,7 @@ class Box1d {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef GeomVector<1> Vector;
+  typedef GeomFacet1d Facet;
 
   //----------------------------------------------------------------------------
   // Constructors, assignment, destructor.
@@ -49,6 +52,9 @@ public:
   bool convexIntersect(const Box1d& rhs) const;
   bool intersect(const std::pair<Vector, Vector>& rhs) const;  // Another way of representing a box.
 
+  // Test if we intersect a line segment (interior counts as intersection).
+  bool intersect(const Vector& s0, const Vector& s1) const;
+
   // Access the attributes.
   Vector& center();
   const Vector& center() const;
@@ -64,6 +70,7 @@ public:
   Vector centroid() const { return mCenter; }
 
   const std::vector<Vector>& vertices() const;
+  const std::vector<Facet>& facets() const;
   std::vector<std::vector<unsigned> > facetVertices() const;
 
   // Useful facet properties.
@@ -78,6 +85,9 @@ public:
 
   // Compute the volume.
   double volume() const;
+
+  // For compatibility with polygon and polyhedron
+  void decompose(std::vector<Box1d>& subcells) const;
 
   // Shift by a Vector delta.
   Box1d& operator+=(const Vector& rhs);
@@ -101,6 +111,7 @@ private:
   Vector mCenter;
   double mExtent;
   std::vector<Vector> mVertices;
+  mutable std::vector<Facet> mFacets; // for now, just create this when we need it
 };
 
 }

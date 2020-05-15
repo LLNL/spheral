@@ -352,7 +352,6 @@
     <ClCompile Include="..\..\src\ArtificialViscosity\ArtificialViscosityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityRZ.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityRZ.cc" />

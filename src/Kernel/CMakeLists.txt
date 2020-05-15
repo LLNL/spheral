@@ -1,10 +1,23 @@
+include_directories(.)
 set(Kernel_inst
+    BSplineKernel
+    W4SplineKernel
     GaussianKernel
-    NBSplineKernel
+    SuperGaussianKernel
     PiGaussianKernel
-    TableKernelAle
-    VolumeIntegrationFunctionsAle
-   )
+    HatKernel
+    SincKernel
+    NSincPolynomialKernel
+    NBSplineKernel
+    QuarticSplineKernel
+    QuinticSplineKernel
+    TableKernel
+    VolumeIntegrationFunctions
+    WendlandC2Kernel
+    WendlandC4Kernel
+    WendlandC6Kernel
+    ExpInvKernel
+    )
 
 
 set(Kernel_sources )
@@ -26,11 +39,7 @@ set(Kernel_headers
     VolumeIntegrationFunctions.hh
     )
 
-blt_add_library(NAME        Spheral_Kernel
-                SOURCES     ${Kernel_sources}
-                HEADERS     ${Kernel_headers}
-                DEPENDS_ON  ${spheral_depends}
-                )
+spheral_add_cxx_library(Kernel)
 
 install(TARGETS              Spheral_Kernel
         EXPORT               ${PROJECT_NAME}-targets
@@ -41,3 +50,6 @@ install(TARGETS              Spheral_Kernel
 install(FILES       ${Kernel_headers}
         DESTINATION include/Kernel
         )
+
+list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Kernel)
+set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

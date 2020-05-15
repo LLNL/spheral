@@ -7,18 +7,14 @@
 // Created by JMO, Fri May 13 10:50:36 PDT 2016
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "CRKSPHHydroBase.hh"
-#include "CRKSPHUtilities.hh"
-#include "volumeSpacing.hh"
-#include "RK/computeRKSumVolume.hh"
-#include "computeCRKSPHMoments.hh"
-#include "computeCRKSPHCorrections.hh"
-#include "computeCRKSPHSumMassDensity.hh"
-#include "gradientCRKSPH.hh"
+#include "RK/ReproducingKernel.hh"
+#include "RK/RKFieldNames.hh"
+#include "CRKSPH/CRKSPHHydroBase.hh"
+#include "CRKSPH/computeCRKSPHSumMassDensity.hh"
 #include "Physics/GenericHydro.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
+#include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "Strength/RZPlasticStrainPolicy.hh"
@@ -41,10 +37,10 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
-#include "SPH/DamagedNodeCouplingWithFrags.hh"
+#include "Utilities/DamagedNodeCouplingWithFrags.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 
-#include "SolidCRKSPHHydroBaseRZ.hh"
+#include "CRKSPH/SolidCRKSPHHydroBaseRZ.hh"
 
 #include <limits.h>
 #include <float.h>
@@ -110,9 +106,9 @@ tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
 //------------------------------------------------------------------------------
 SolidCRKSPHHydroBaseRZ::
 SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                       DataBase<Dimension>& dataBase,
                        ArtificialViscosity<Dimension>& Q,
-                       const TableKernel<Dimension>& W,
-                       const TableKernel<Dimension>& WPi,
+                       const RKOrder order,
                        const double filter,
                        const double cfl,
                        const bool useVelocityMagnitudeForDt,
@@ -121,17 +117,14 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                        const bool XSPH,
                        const MassDensityType densityUpdate,
                        const HEvolutionType HUpdate,
-                       const RKOrder correctionOrder,
-                       const RKVolumeType volumeType,
                        const double epsTensile,
                        const double nTensile,
-                       const bool limitMultimaterialTopology,
                        const bool damageRelieveRubble,
                        const bool negativePressureInDamage):
   SolidCRKSPHHydroBase<Dimension>(smoothingScaleMethod, 
+                                  dataBase,
                                   Q,
-                                  W,
-                                  WPi,
+                                  order,
                                   filter,
                                   cfl,
                                   useVelocityMagnitudeForDt,
@@ -140,11 +133,8 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                                   XSPH,
                                   densityUpdate,
                                   HUpdate,
-                                  correctionOrder,
-                                  volumeType,
                                   epsTensile,
                                   nTensile,
-                                  limitMultimaterialTopology,
                                   damageRelieveRubble,
                                   negativePressureInDamage) {
 }
@@ -173,7 +163,11 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
     const unsigned n = mass[nodeListi]->numElements();
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+#ifdef WIN32
+      if (circi > 0.0) mass(nodeListi, i) /= circi;
+#else
       mass(nodeListi, i) /= circi;
+#endif
     }
   }
 
@@ -185,7 +179,11 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
     const unsigned n = mass[nodeListi]->numElements();
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+#ifdef WIN32
+      if (circi > 0.0) mass(nodeListi, i) *= circi;
+#else
       mass(nodeListi, i) *= circi;
+#endif
     }
   }
 }
@@ -195,8 +193,8 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
 //------------------------------------------------------------------------------
 void
 SolidCRKSPHHydroBaseRZ::
-registerState(DataBase<Dim<2> >& dataBase,
-              State<Dim<2> >& state) {
+registerState(DataBase<Dim<2>>& dataBase,
+              State<Dim<2>>& state) {
 
   typedef State<Dimension>::PolicyPointer PolicyPointer;
 
@@ -205,7 +203,7 @@ registerState(DataBase<Dim<2> >& dataBase,
 
   // Reregister the deviatoric stress and plastic strain policies to the RZ specialized versions
   // that account for the theta-theta component of the stress.
-  FieldList<Dimension, Scalar> ps = state.fields(SolidFieldNames::plasticStrain, 0.0);
+  auto ps = state.fields(SolidFieldNames::plasticStrain, 0.0);
   PolicyPointer plasticStrainPolicy(new RZPlasticStrainPolicy());
   state.enroll(ps, plasticStrainPolicy);
 
@@ -217,8 +215,8 @@ registerState(DataBase<Dim<2> >& dataBase,
   // Are we using the compatible energy evolution scheme?
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
-    FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
+    auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+    PolicyPointer thermalEnergyPolicy(new RZNonSymmetricSpecificThermalEnergyPolicy(dataBase));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
 
     // Get the policy for the position, and add the specific energy as a dependency.
@@ -244,7 +242,11 @@ preStepInitialize(const DataBase<Dim<2>>& dataBase,
     const unsigned n = mass[nodeListi]->numElements();
     for (unsigned i = 0; i != n; ++i) {
       const auto circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+#ifdef WIN32
+      if (circi > 0.0) mass(nodeListi, i) /= circi;
+#else
       mass(nodeListi, i) /= circi;
+#endif
     }
   }
 
@@ -257,7 +259,11 @@ preStepInitialize(const DataBase<Dim<2>>& dataBase,
     for (unsigned i = 0; i != n; ++i) {
       const auto& xi = pos(nodeListi, i);
       const auto circi = 2.0*M_PI*abs(xi.y());
+#ifdef WIN32
+      if (circi > 0.0) mass(nodeListi, i) *= circi;
+#else
       mass(nodeListi, i) *= circi;
+#endif
     }
   }
 }
@@ -269,25 +275,24 @@ void
 SolidCRKSPHHydroBaseRZ::
 evaluateDerivatives(const Dim<2>::Scalar time,
                     const Dim<2>::Scalar dt,
-                    const DataBase<Dim<2> >& dataBase,
-                    const State<Dim<2> >& state,
-                    StateDerivatives<Dim<2> >& derivatives) const {
+                    const DataBase<Dim<2>>& dataBase,
+                    const State<Dim<2>>& state,
+                    StateDerivatives<Dim<2>>& derivatives) const {
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
 
   // The kernels and such.
-  const auto& W = this->kernel();
-  const auto& WQ = this->PiKernel();
-  const auto& smoothingScaleMethod = this->smoothingScaleMethod();
+  const auto  order = this->correctionOrder();
+  const auto& WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(order));
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;
-  const auto compatibleEnergy = this->compatibleEnergyEvolution();
-  const auto XSPH = this->XSPH();
-  const auto epsTensile = this->epsilonTensile();
-  const auto order = this->correctionOrder();
-  const auto damageRelieveRubble = this->damageRelieveRubble();
+  const auto  compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto  evolveTotalEnergy = this->evolveTotalEnergy();
+  const auto  XSPH = this->XSPH();
+  const auto  damageRelieveRubble = this->damageRelieveRubble();
+  const auto& smoothingScaleMethod = this->smoothingScaleMethod();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -313,12 +318,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const auto gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  const auto A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
-  const auto B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-  const auto C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
-  const auto gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
-  const auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-  const auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  const auto corrections = state.fields(RKFieldNames::rkCorrections(order), RKCoefficients<Dimension>());
   const auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -334,15 +334,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   CHECK(gradDamage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
-  CHECK(A.size() == numNodeLists);
-  CHECK(B.size() == numNodeLists);
-  CHECK(C.size() == numNodeLists or order != RKOrder::QuadraticOrder);
-  CHECK(gradA.size() == numNodeLists);
-  CHECK(gradB.size() == numNodeLists);
-  CHECK(gradC.size() == numNodeLists or order != RKOrder::QuadraticOrder);
+  CHECK(corrections.size() == numNodeLists);
   CHECK(surfacePoint.size() == numNodeLists);
 
-  const auto& Hfield0 = this->Hfield0();
+  // const auto& Hfield0 = this->Hfield0();
 
   // Derivative FieldLists.
   auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
@@ -388,17 +383,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   {
     // Thread private scratch variables
     int i, j, nodeListi, nodeListj;
-    Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
+    Scalar Wi, gWi, Wj, gWj;
     Tensor QPiij, QPiji;
-    Scalar Ai, Aj;
-    Vector gradAi, gradAj, forceij, forceji;
-    Vector Bi = Vector::zero, Bj = Vector::zero;
-    Tensor Ci = Tensor::zero, Cj = Tensor::zero;
-    Tensor gradBi = Tensor::zero, gradBj = Tensor::zero;
-    ThirdRankTensor gradCi = ThirdRankTensor::zero, gradCj = ThirdRankTensor::zero;
     Scalar Pposi, Pnegi, Pposj, Pnegj;
-    Vector gradWi, gradWj, gradW0i, gradW0j, gradWSPHi, gradWSPHj;
-    Vector deltagrad;
+    Vector gradWi, gradWj, gradWSPHi, gradWSPHj;
+    Vector deltagrad, forceij, forceji;
     SymTensor sigmai, sigmaj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
@@ -435,21 +424,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto  ci = soundSpeed(nodeListi, i);
       const auto  Si = S(nodeListi, i);
       const auto  pTypei = pTypes(nodeListi, i);
-      Ai = A(nodeListi, i);
-      gradAi = gradA(nodeListi, i);
-      if (order != RKOrder::ZerothOrder) {
-        Bi = B(nodeListi, i);
-        gradBi = gradB(nodeListi, i);
-      }
-      if (order == RKOrder::QuadraticOrder) {
-        Ci = C(nodeListi, i);
-        gradCi = gradC(nodeListi, i);
-      }
-      const auto Hdeti = Hi.Determinant();
-      const auto weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
+      const auto& correctionsi = corrections(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      const auto  weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
-      CHECK(Ai > 0.0);
       CHECK(Hdeti > 0.0);
       CHECK(weighti > 0.0);
 
@@ -478,16 +457,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto& Hj = H(nodeListj, j);
       const auto  cj = soundSpeed(nodeListj, j);
       const auto  pTypej = pTypes(nodeListj, j);
-      Aj = A(nodeListj, j);
-      gradAj = gradA(nodeListj, j);
-      if (order != RKOrder::ZerothOrder) {
-        Bj = B(nodeListj, j);
-        gradBj = gradB(nodeListj, j);
-      }
-      if (order == RKOrder::QuadraticOrder) {
-        Cj = C(nodeListj, j);
-        gradCj = gradC(nodeListj, j);
-      }
+      const auto& correctionsj = corrections(nodeListj, j);
       const auto& Sj = S(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
       const auto  weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
@@ -511,29 +481,21 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto xij = posi - posj;
       const auto etai = Hi*xij;
       const auto etaj = Hj*xij;
-      const auto etaMagi = etai.magnitude();
-      const auto etaMagj = etaj.magnitude();
-      CHECK(etaMagi >= 0.0);
-      CHECK(etaMagj >= 0.0);
       const auto vij = vi - vj;
 
       // Flag if at least one particle is free (0).
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
       // Symmetrized kernel weight and gradient.
-      CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, CRKSPHHydroBase<Dimension>::correctionOrder(),  xij,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi);
-      CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, CRKSPHHydroBase<Dimension>::correctionOrder(), -xij, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj);
+      std::tie(Wj, gradWj, gWj) = WR.evaluateKernelAndGradients( xij, Hj, correctionsi);  // Hj because we compute RK using scatter formalism
+      std::tie(Wi, gradWi, gWi) = WR.evaluateKernelAndGradients(-xij, Hi, correctionsj);
       deltagrad = gradWj - gradWi;
-      const auto gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
-      const auto gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
+      const auto gradWSPHi = (Hi*etai.unitVector())*gWi;
+      const auto gradWSPHj = (Hj*etaj.unitVector())*gWj;
 
       // Find the damaged pair weighting scaling.
       const auto fij = coupling(nodeListi, i, nodeListj, j);
       CHECK(fij >= 0.0 and fij <= 1.0);
-
-      // // Find the effective weights of i->j and j->i.
-      // // const auto wi = 2.0*weighti*weightj/(weighti + weightj);
-      // const auto wij = 0.5*(weighti + weightj);
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -566,10 +528,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       DvDxj += weighti*vij.dyad(gradWi);
       localDvDxi -= fij*weightj*vij.dyad(gradWj);
       localDvDxj += fij*weighti*vij.dyad(gradWi);
-
-      // // Mass density gradient.
-      // gradRhoi += weightj*(rhoj - rhoi)*gradWj;
-      // gradRhoj += weighti*(rhoi - rhoj)*gradWi;
 
       // We treat positive and negative pressures distinctly, so split 'em up.
       Pposi = max(0.0, Pi),
@@ -725,7 +683,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                                                        posi,
                                                        weightedNeighborSumi,
                                                        massSecondMomenti,
-                                                       W,
+                                                       WR.kernel(),
                                                        hmin,
                                                        hmax,
                                                        hminratio,
@@ -764,8 +722,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 //------------------------------------------------------------------------------
 void
 SolidCRKSPHHydroBaseRZ::
-applyGhostBoundaries(State<Dim<2> >& state,
-                     StateDerivatives<Dim<2> >& derivs) {
+applyGhostBoundaries(State<Dim<2>>& state,
+                     StateDerivatives<Dim<2>>& derivs) {
 
   // Convert the mass to mass/length before BCs are applied.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -776,12 +734,16 @@ applyGhostBoundaries(State<Dim<2> >& state,
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
       CHECK(circi > 0.0);
+#ifdef WIN32
+      if (circi > 0.0) mass(nodeListi, i) /= circi;
+#else
       mass(nodeListi, i) /= circi;
+#endif
     }
   }
 
   // Apply ordinary BCs.
-  SolidCRKSPHHydroBase<Dim<2> >::applyGhostBoundaries(state, derivs);
+  SolidCRKSPHHydroBase<Dim<2>>::applyGhostBoundaries(state, derivs);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
@@ -792,7 +754,11 @@ applyGhostBoundaries(State<Dim<2> >& state,
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
       CHECK(circi > 0.0);
+#ifdef WIN32
+      if (circi > 0.0) mass(nodeListi, i) *= circi;
+#else
       mass(nodeListi, i) *= circi;
+#endif
     }
   }
 }
@@ -802,8 +768,8 @@ applyGhostBoundaries(State<Dim<2> >& state,
 //------------------------------------------------------------------------------
 void
 SolidCRKSPHHydroBaseRZ::
-enforceBoundaries(State<Dim<2> >& state,
-                  StateDerivatives<Dim<2> >& derivs) {
+enforceBoundaries(State<Dim<2>>& state,
+                  StateDerivatives<Dim<2>>& derivs) {
 
   // Convert the mass to mass/length before BCs are applied.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -814,12 +780,16 @@ enforceBoundaries(State<Dim<2> >& state,
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
       CHECK(circi > 0.0);
+#ifdef WIN32
+      if (circi > 0.0) mass(nodeListi, i) /= circi;
+#else
       mass(nodeListi, i) /= circi;
+#endif
     }
   }
 
   // Apply ordinary BCs.
-  SolidCRKSPHHydroBase<Dim<2> >::enforceBoundaries(state, derivs);
+  SolidCRKSPHHydroBase<Dim<2>>::enforceBoundaries(state, derivs);
 
   // Scale back to mass.
   // We also ensure no point approaches the z-axis too closely.
@@ -830,7 +800,11 @@ enforceBoundaries(State<Dim<2> >& state,
     for (unsigned i = 0; i != n; ++i) {
       Vector& posi = pos(nodeListi, i);
       const Scalar circi = 2.0*M_PI*abs(posi.y());
+#ifdef WIN32
+      if (circi > 0.0) mass(nodeListi, i) *= circi;
+#else
       mass(nodeListi, i) *= circi;
+#endif
     }
   }
 }

@@ -36,6 +36,8 @@ using std::min;
 using std::max;
 using std::abs;
 using std::ostream_iterator;
+using std::cerr;
+using std::endl;
 
 // Declare the timers.
 extern Timer TIME_PC3d_convertto;
@@ -289,7 +291,7 @@ polyhedron2string(const Polyhedron& poly) {
 // Convert Spheral::GeomPolyhedron -> PolyClipper::Polyhedron.
 //------------------------------------------------------------------------------
 void convertToPolyhedron(Polyhedron& polyhedron,
-                      const Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron) {
+                         const Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron) {
   TIME_PC3d_convertto.start();
 
   const auto& vertPositions = Spheral_polyhedron.vertices();
@@ -525,6 +527,14 @@ void clipPolyhedron(Polyhedron& polyhedron,
               CHECK(polyhedron.size() == inew + 1);
               polyhedron[inew].neighbors = vector<int>({jn, i});
               polyhedron[inew].clips.insert(plane.ID);
+
+              // Patch up clip info -- gotta scan for common elements in the neighbors of the clipped guy.
+              std::set<int> common_clips;
+              std::set_intersection(polyhedron[i].clips.begin(), polyhedron[i].clips.end(),
+                                    polyhedron[jn].clips.begin(), polyhedron[jn].clips.end(),
+                                    std::inserter(common_clips, common_clips.begin()));
+              polyhedron[inew].clips.insert(common_clips.begin(), common_clips.end());
+
               nitr = find(polyhedron[jn].neighbors.begin(), polyhedron[jn].neighbors.end(), i);
               CHECK(nitr != polyhedron[jn].neighbors.end());
               *nitr = inew;
@@ -695,8 +705,8 @@ void collapseDegenerates(Polyhedron& polyhedron,
         auto idone = false;
         while (not idone) {
           idone = true;
-          for (auto jitr = polyhedron[i].neighbors.begin(); jitr < polyhedron[i].neighbors.end(); ++jitr) {
-            const auto j = *jitr;
+          for (auto jneigh = 0; jneigh < polyhedron[i].neighbors.size(); ++jneigh) {
+            const auto j = polyhedron[i].neighbors[jneigh];
             CHECK(polyhedron[j].ID >= 0);
             if ((polyhedron[i].position - polyhedron[j].position).magnitude2() < tol2) {
               // cerr << " --> collapasing " << j << " to " << i;
@@ -706,6 +716,7 @@ void collapseDegenerates(Polyhedron& polyhedron,
               polyhedron[i].clips.insert(polyhedron[j].clips.begin(), polyhedron[j].clips.end());
 
               // Merge the neighbors of j->i.
+              auto jitr = polyhedron[i].neighbors.begin() + jneigh;
               auto kitr = find(polyhedron[j].neighbors.begin(), polyhedron[j].neighbors.end(), i);
               CHECK(kitr != polyhedron[j].neighbors.end());
               jitr = polyhedron[i].neighbors.insert(jitr, polyhedron[j].neighbors.begin(), kitr);
@@ -730,11 +741,14 @@ void collapseDegenerates(Polyhedron& polyhedron,
 
               // Make all the neighbors of j point back at i instead of j.
               for (auto k: polyhedron[j].neighbors) {
-                auto itr = find(polyhedron[k].neighbors.begin(), polyhedron[k].neighbors.end(), j);
-                CHECK(itr != polyhedron[j].neighbors.end());
-                *itr = i;
+                 // i is a neighbor to j, and j has already been removed from list
+                 // also, i can not be a neighbor to itself
+                 if (k != i) {
+                    auto itr = find(polyhedron[k].neighbors.begin(), polyhedron[k].neighbors.end(), j);
+                    // CHECK(itr != polyhedron[k].neighbors.end());
+                    if (itr != polyhedron[k].neighbors.end()) *itr = i;
+                 }
               }
-              // break;   // break out of the loop over the neighbors of i and start again
             }
           }
         }

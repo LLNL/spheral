@@ -40,6 +40,40 @@ extern "C" {
   for each of these materials, the mass array would be a single C array of
   doubles layed out in memory like:
   [m(1,1), m(1,2), ..., m(1,n1), m(2,0), ..., m(2,n2), ..., m(3,0), ..., m(3,n3)]
+
+  Using Spheral C involves a couple of different stages:
+
+  1. Initialization at startup
+  SpheralC calls should be performed once at the beginning of a simulation in
+  the order:
+
+    spheral_add_boundary(...)
+      optionally called any number of times to establish boundaries
+
+    spheral_initialize(...)
+      sets various option run time options and switches
+      - note, boundaries cannot be added after this call
+
+    spheral_update_state(...)
+      set the initial particle values 
+
+    spheral_initialize_boundaries_and_physics(...)
+      one-time initializations after intial particle data is provided
+
+  2. Call order each physics steps
+  After the above one-time program startup methods have been called, the
+  time derivatives for the state variables can be queried at any step with the
+  following sequence of calls:
+
+    spheral_update_state(...)
+      set the input particle state for this step
+
+    spheral_initialize_step(...)
+      performs physics and boundary preparation
+      - also returns a vote for an appropriate time step
+
+    spheral_evaluate_derivatives(...)
+      computes the time derivatives per free particle
   ----------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------------
@@ -71,6 +105,9 @@ SPHERALDLL_API   void spheral_set_communicator(MPI_Comm* comm);
     totalEnergy           : flag for using the total energy derivative (0=false/1=true)
     vGradCorrection       : flag to select linear velocity gradient correction (0=false/1=true)
     hGradCorrection       : flag to select the gradh corection term (0=false/1=true)
+    densityUpdate         : flag to select mass density definition (0=SumDensity, 1=RigorousSumDensity, 2=HybridSumDensity,
+                                                                    3=IntegrateDensity, 4=VoronoiCellDensity, 5=SumVoronoiCellDensity,
+                                                                    6=CorrectedSumDensity)
     sumMassDensity        : sum mass density over all NodeLists (0=false/1=true)
     useVelocityDt         : use the velocity magnitude to control time step (0=false/1=true)
     ScalarQ               : flag selecting scalar or tensor viscosity (0=false/1=true)
@@ -79,7 +116,8 @@ SPHERALDLL_API   void spheral_set_communicator(MPI_Comm* comm);
     piKernelType          : select the artificial viscosity interpolation kernel (0=BSpline, 1=Gaussian, 2=PiGaussian)
     gradKernelType        : select the velocity gradient interpolation kernel (0=BSpline, 1=Gaussian, 2=PiGaussian)
     nbspline              : order of kernel (if using B splines)
-    crkorder              : order of CRK correction
+    rkorder               : order of CRK correction
+    rkvolume              : RK volume definition (0=MassOverDensity, 1=SumVolume, 2=VoronoiVolume, 3=HullVolume, 4=HVolume)
     damage                : flag to feed back damage to Spheral
     nmats                 : number of materials (NodeLists) to build
     CFL                   : CFL timestep multiplier
@@ -98,7 +136,7 @@ SPHERALDLL_API   void spheral_set_communicator(MPI_Comm* comm);
   ----------------------------------------------------------------------------*/
 SPHERALDLL_API 
   void spheral_initialize(const int      ndims,
-			  const int      axisym,
+                          const int      axisym,
                           const int      CRK,
                           const int      ASPH,
                           const int      XSPH,
@@ -106,6 +144,7 @@ SPHERALDLL_API
                           const int      totalEnergy,
                           const int      vGradCorrection,
                           const int      hGradCorrection,
+                          const int      densityUpdate,
                           const int      sumMassDensity,
                           const int      useVelocityDt,
                           const int      ScalarQ,
@@ -114,7 +153,8 @@ SPHERALDLL_API
                           const int      piKernelType,
                           const int      gradKernelType,
                           const int      nbspline,
-                          const int      crkorder,
+                          const int      rkorder,
+                          const int      rkvolume,
                           const int      damage,
                           const unsigned nmats,
                           const double   CFL,
@@ -128,13 +168,13 @@ SPHERALDLL_API
                           const double*  xmaxcoords);
 
 /*------------------------------------------------------------------------------
-  spheral_initialize_step
+  spheral_update_state
 
-  This method should be called at the beginning of a time step to establish the 
-  set of meshless point data that Spheral will be looking at.
+  Updates Spheral's versions of the fluid state variables
 
-  Returns: a vote for the timestep given the specified state data.
+  Returns:  void
   Arguments:
+    ndims                       : number of dimensions
     nintpermat                  : number of internal nodes per material (NodeList)
     npermat                     : total number nodes per material (NodeList)
     mass                        : mass per node
@@ -149,65 +189,62 @@ SPHERALDLL_API
     deviatoricStress_{xx,xy,xz, : Components of the deviatoric stress per node.
                          yy,yz,
                             zz}
-    deviatoricStressTT          : Theta-Theta component of the deviatoric stress
-                                  in RZ symmetry.  Can be NULL for other geometries.
-                      
     soundSpeed                  : sound speed per node
     bulkModulus                 : bulkModulus per node
     shearModulus                : shearModulus per node
     yieldStrength               : yield strength per node
     plasticStrain               : plastic strain per node
     scalarDamage                : scalar damage per node
+    particleType                : flag for active (1) or inactive (0) points
   ----------------------------------------------------------------------------*/
 SPHERALDLL_API 
-  double spheral_initialize_step(const int       ndims,
-                                 const unsigned* nintpermat,
-                                 const unsigned* npermat,
-                                 const double*   mass,
-                                 const double*   massDensity,
-                                 const double**  position,
-                                 const double*   specificThermalEnergy,
-                                 const double**  velocity,
-                                 const double**  Hfield,
-                                 const double*   pressure,
-                                 const double**  deviatoricStress,
-                                 const double*   deviatoricStressTT,
-                                 const double*   soundSpeed,
-                                 const double*   bulkModulus,
-                                 const double*   shearModulus,
-                                 const double*   yieldStrength,
-                                 const double*   plasticStrain,
-                                 const double*   scalarDamage,
-                                 const int*      particleType);
+  void spheral_update_state(const int       ndims,
+                            const unsigned* nintpermat,
+                            const unsigned* npermat,
+                            const double*   mass,
+                            const double*   massDensity,
+                            const double**  position,
+                            const double*   specificThermalEnergy,
+                            const double**  velocity,
+                            const double**  Hfield,
+                            const double*   pressure,
+                            const double**  deviatoricStress,
+                            const double*   soundSpeed,
+                            const double*   bulkModulus,
+                            const double*   shearModulus,
+                            const double*   yieldStrength,
+                            const double*   plasticStrain,
+                            const double*   scalarDamage,
+                            const int*      particleType);
 
 /*------------------------------------------------------------------------------
-  spheral_update_state
+  spheral_initialize_boundaries_and_physics
 
-  Updates the fluid state variables during a step if so desired.  This simply
-  replaces the state originally specified in spheral_initialize_step, if for
-  instance the host code is doing a multi-stage time integration step.
-
-  Returns:  void
-  Arguments:  same as the similarly named arguments in spheral_initialize_step
+  This method should be called once at the beginning of a calculation in the
+  sequence:
+  spheral_initialize(...)                    - setup initial switches and objects
+  spheral_update_state(...)                  - copy initial particle state fields
+  spheral_initialize_boundaries_and_physics  - this method
   ----------------------------------------------------------------------------*/
 SPHERALDLL_API 
-  void spheral_update_state(const int      ndims,
-			    const double*  mass,
-                            const double*  massDensity,
-                            const double** position,
-                            const double*  specificThermalEnergy,
-                            const double** velocity,
-                            const double** Hfield,
-                            const double*  pressure,
-                            const double** deviatoricStress,
-                            const double*  deviatoricStressTT,
-                            const double*  soundSpeed,
-                            const double*  bulkModulus,
-                            const double*  shearModulus,
-                            const double*  yieldStrength,
-                            const double*  plasticStrain,
-                            const double*  scalarDamage,
-                            const int*     particleType);
+  void spheral_initialize_boundaries_and_physics(const int ndims);
+
+/*------------------------------------------------------------------------------
+  spheral_initialize_step
+
+  This method should be called at the beginning of a time step to establish the 
+  set of meshless point data that Spheral will be looking at, but after
+  spheral_update_state.
+
+  The order of methods to be called for each derivative evaluation should be
+  spheral_update_state(...)
+  spheral_initialize_step(...)
+  spheral_evaluate_derivatives(...)
+
+  Returns: a vote for the timestep given the specified state data.
+  ----------------------------------------------------------------------------*/
+SPHERALDLL_API 
+  double spheral_initialize_step(const int       ndims);
 
 /*------------------------------------------------------------------------------
   spheral_evaluate_derivatives
@@ -234,13 +271,10 @@ SPHERALDLL_API
     DdeviatoricStressDt_{xx,xy,xz, : Components of the time derivative of the 
                             yy,yz,   deviatoric stress per node
                                zz}
-    DdeviatoricStressDtTT          : Theta-Theta component of the deviatoric stress
-                                     time derivative in RZ symmetry.
-                                     Can be NULL for other geometries.
   ----------------------------------------------------------------------------*/
 SPHERALDLL_API 
   void spheral_evaluate_derivatives(const int ndims,
-				    double*   massDensitySum,
+                                    double*   massDensitySum,
                                     double*   DmassDensityDt,
                                     double**  DvelocityDt,
                                     double**  DxDt,
@@ -249,7 +283,6 @@ SPHERALDLL_API
                                     double**  DHfieldDt,
                                     double**  HfieldIdeal,
                                     double**  DdeviatoricStressDt,
-                                    double*   DdeviatoricStressDtTT,
                                     double*   qpressure,
                                     double*   qwork);
 
@@ -305,7 +338,7 @@ void spheral_periodic_boundary(const int     ndims,
   ----------------------------------------------------------------------------*/
 SPHERALDLL_API 
   void spheral_iterate_Hfield(const int    ndims,
-			      double**     Hfield,
+                              double**     Hfield,
                               const int    maxIterations,
                               const double tolerance);
 
@@ -360,7 +393,9 @@ void spheral_polyhedral_mesh(const int      ndims,
                              int*           ncells,
                              double**       coords,
                              int**          facetonodes,
-                             int**          celltofaces);
+                             int**          nodecounts,
+                             int**          celltofaces,
+                             int**          facecounts);
 
 /*------------------------------------------------------------------------------
   spheral_fill_volume
@@ -438,7 +473,7 @@ SPHERALDLL_API
   ----------------------------------------------------------------------------*/
 SPHERALDLL_API 
   void spheral_get_connectivity(const int ndims,
-				int***    numNeighbors,
+                                int***    numNeighbors,
                                 int****   connectivity);
 
 /*------------------------------------------------------------------------------

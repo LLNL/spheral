@@ -112,4 +112,79 @@ closestPoint(const GeomFacet3d::Vector& p) const {
   return result;
 }
 
+//------------------------------------------------------------------------------
+// Return the points for the triangles that decompose this facet.
+//------------------------------------------------------------------------------
+void
+GeomFacet3d::
+decompose(std::vector<std::array<Vector, 3>>& subfacets) const {
+  const auto numPoints = mPoints.size();
+  // switch (numPoints) {
+  // We could specialize as below, but that would make the facets inconsistent.
+  // case 3:
+  //   // Return the input triangle
+  //   subfacets = {{point(0), point(1), point(2)}};
+  //   break;
+  // case 4:
+  //   // Split the quadrilateral into two triangles
+  //   subfacets = {{point(0), point(1), point(2)},
+  //                {point(0), point(2), point(3)}};
+  //   break;
+  // case 5:
+  //   // Split the pentagon into three triangles
+  //   subfacets = {{point(0), point(1), point(2)},
+  //                {point(0), point(2), point(4)},
+  //                {point(2), point(3), point(4)}};
+  //   break;
+  // case 6:
+  //   // Split the hexagon into four triangles
+  //   subfacets = {{point(0), point(1), point(2)},
+  //                {point(0), point(2), point(3)},
+  //                {point(0), point(3), point(5)},
+  //                {point(3), point(4), point(5)}};,
+  // default:
+  const auto centroid = this->position();
+  subfacets.resize(numPoints);
+  for (auto i = 0; i < numPoints; ++i) {
+    subfacets[i] = {point(i), point((i+1) % numPoints), centroid};
+  }
+  //   break;
+  // }
+  
+  BEGIN_CONTRACT_SCOPE
+  {
+    const auto originalArea = this->area();
+    auto areasum = 0.;
+    for (auto& subfacet : subfacets) {
+      const auto ab = subfacet[1] - subfacet[0];
+      const auto ac = subfacet[2] - subfacet[0];
+      const auto subnormal = ab.cross(ac); 
+      const auto subarea = 0.5 * subnormal.magnitude();
+      CHECK(0 < subarea and subarea < originalArea);
+      const auto subnormalUnit = subnormal.unitVector();
+      const auto normalUnit = mNormal.unitVector();
+      CHECK(fuzzyEqual(subnormalUnit(0), normalUnit(0)) &&
+            fuzzyEqual(subnormalUnit(1), normalUnit(1)) &&
+            fuzzyEqual(subnormalUnit(2), normalUnit(2)));
+      areasum += subarea;
+    }
+    CHECK(fuzzyEqual(areasum, originalArea));
+  }
+  END_CONTRACT_SCOPE
+}
+
+//------------------------------------------------------------------------------
+// Split into triangular sub-facets.
+//------------------------------------------------------------------------------
+std::vector<GeomFacet3d>
+GeomFacet3d::
+triangles() const {
+  std::vector<GeomFacet3d> result;
+  const auto nverts = mPoints.size();
+  for (auto k = 1; k < nverts - 1; ++k) {
+    result.emplace_back(*mVerticesPtr, std::vector<unsigned>({mPoints[0], mPoints[k], mPoints[k+1]}), mNormal);
+  }
+  return result;
+}
+
 }

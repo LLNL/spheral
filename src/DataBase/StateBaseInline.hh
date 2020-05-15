@@ -129,6 +129,21 @@ key(const FieldListBase<Dimension>& fieldList) {
 }
 
 //------------------------------------------------------------------------------
+// Assign the Fields matching the given name of this State object to be equal to
+// the values in another.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename Value>
+inline
+void
+StateBase<Dimension>::
+assignFields(const StateBase<Dimension>& rhs, const std::string name) {
+  auto lhsfields = this->fields(name, Value());
+  auto rhsfields = rhs.fields(name, Value());
+  lhsfields.assignFields(rhsfields);
+}
+
+//------------------------------------------------------------------------------
 // Internal methods to encode the convention for combining Field and NodeList
 // names into a single unique key.
 //------------------------------------------------------------------------------

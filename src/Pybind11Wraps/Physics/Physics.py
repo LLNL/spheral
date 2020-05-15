@@ -113,6 +113,18 @@ class Physics:
 
     @PYB11virtual
     @PYB11const
+    def requireReproducingKernels(self):
+        "Some physics algorithms require reproducing kernels."
+        return "std::set<RKOrder>"
+
+    @PYB11virtual
+    @PYB11const
+    def requireReproducingKernelHessian(self):
+        "Some physics algorithms require reproducing kernel spatial second derivatives."
+        return "bool"
+
+    @PYB11virtual
+    @PYB11const
     def extraEnergy(self):
         "Many physics packages will have their own representations of energy in the system (gravitational potential energy, radiative losses, etc.)"
         return "Scalar"

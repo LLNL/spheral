@@ -28,7 +28,7 @@
 #include "Hydro/VolumePolicy.hh"
 #include "Hydro/VoronoiMassDensityPolicy.hh"
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
-#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
+#include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
@@ -75,6 +75,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 SPHHydroBaseRZ::
 SPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
+               DataBase<Dimension>& dataBase,
                ArtificialViscosity<Dim<2> >& Q,
                const TableKernel<Dim<2> >& W,
                const TableKernel<Dim<2> >& WPi,
@@ -94,6 +95,7 @@ SPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                const Vector& xmin,
                const Vector& xmax):
   SPHHydroBase<Dim<2> >(smoothingScaleMethod,
+                        dataBase,
                         Q,
                         W,
                         WPi,
@@ -148,7 +150,7 @@ registerState(DataBase<Dim<2> >& dataBase,
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
+    PolicyPointer thermalEnergyPolicy(new RZNonSymmetricSpecificThermalEnergyPolicy(dataBase));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
 
     // Get the policy for the position, and add the specific energy as a dependency.
@@ -696,7 +698,7 @@ enforceBoundaries(State<Dim<2> >& state,
   FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
   const unsigned numNodeLists = mass.numFields();
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const unsigned n = mass[nodeListi]->numInternalElements();
+    const unsigned n = mass[nodeListi]->numElements();
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
       CHECK(circi > 0.0);
@@ -711,7 +713,7 @@ enforceBoundaries(State<Dim<2> >& state,
   // We also ensure no point approaches the z-axis too closely.
   FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const unsigned n = mass[nodeListi]->numInternalElements();
+    const unsigned n = mass[nodeListi]->numElements();
     const Scalar nPerh = mass[nodeListi]->nodeList().nodesPerSmoothingScale();
     for (unsigned i = 0; i != n; ++i) {
       Vector& posi = pos(nodeListi, i);

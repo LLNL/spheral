@@ -10,6 +10,7 @@ SPHHydroFactoryString = """
 class %(classname)s%(dim)s(SPHHydroBase%(dim)s):
 
     def __init__(self,
+                 dataBase,
                  Q,
                  W,
                  WPi = None,
@@ -33,6 +34,7 @@ class %(classname)s%(dim)s(SPHHydroBase%(dim)s):
             WPi = W
         SPHHydroBase%(dim)s.__init__(self,
                                      self._smoothingScaleMethod,
+                                     dataBase,
                                      Q,
                                      W,
                                      WPi,
@@ -61,6 +63,7 @@ SolidSPHHydroFactoryString = """
 class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
 
     def __init__(self,
+                 dataBase,
                  Q,
                  W,
                  WPi = None,
@@ -89,6 +92,7 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
             WGrad = W
         SolidSPHHydroBase%(dim)s.__init__(self,
                                           self._smoothingScaleMethod,
+                                          dataBase,
                                           Q,
                                           W,
                                           WPi,
@@ -120,6 +124,7 @@ SPHHydroRZFactoryString = """
 class %(classname)s(SPHHydroBaseRZ):
 
     def __init__(self,
+                 dataBase,
                  Q,
                  W,
                  WPi = None,
@@ -144,6 +149,7 @@ class %(classname)s(SPHHydroBaseRZ):
             WPi = W
         SPHHydroBaseRZ.__init__(self,
                                 self._smoothingScaleMethod,
+                                dataBase,
                                 Q,
                                 W,
                                 WPi,
@@ -174,6 +180,7 @@ SPHHydroGSRZFactoryString = """
 class %(classname)s(SPHHydroBaseGSRZ):
 
     def __init__(self,
+                 dataBase,
                  Q,
                  W,
                  WPi = None,
@@ -198,6 +205,7 @@ class %(classname)s(SPHHydroBaseGSRZ):
             WPi = W
         SPHHydroBaseGSRZ.__init__(self,
                                   self._smoothingScaleMethod,
+                                  dataBase,
                                   Q,
                                   W,
                                   WPi,
@@ -228,6 +236,7 @@ SolidSPHHydroRZFactoryString = """
 class %(classname)s(SolidSPHHydroBaseRZ):
 
     def __init__(self,
+                 dataBase,
                  Q,
                  W,
                  WPi = None,
@@ -257,6 +266,7 @@ class %(classname)s(SolidSPHHydroBaseRZ):
             WGrad = W
         SolidSPHHydroBaseRZ.__init__(self,
                                      self._smoothingScaleMethod,
+                                     dataBase,
                                      Q,
                                      W,
                                      WPi,
@@ -386,8 +396,8 @@ def SPH(dataBase,
 
     # Artificial viscosity.
     if not Q:
-        Cl = 1.0*(W.kernelExtent/2.0)
-        Cq = 1.0*(W.kernelExtent/2.0)**2
+        Cl = 1.0*(dataBase.maxKernelExtent/2.0)
+        Cq = 1.0*(dataBase.maxKernelExtent/2.0)**2
         Q = eval("MonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
     # Build the constructor arguments
@@ -395,6 +405,7 @@ def SPH(dataBase,
     xmax = (ndim,) + xmax
     kwargs = {"W" : W,
               "WPi" : WPi,
+              "dataBase" : dataBase,
               "Q" : Q,
               "filter" : filter,
               "cfl" : cfl,

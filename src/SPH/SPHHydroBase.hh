@@ -36,6 +36,7 @@ public:
 
   // Constructors.
   SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+               DataBase<Dimension>& dataBase,
                ArtificialViscosity<Dimension>& Q,
                const TableKernel<Dimension>& W,
                const TableKernel<Dimension>& WPi,
@@ -170,6 +171,10 @@ public:
   void xmin(const Vector& x);
   void xmax(const Vector& x);
 
+  // Access the stored interpolation kernels.
+  const TableKernel<Dimension>& kernel() const;
+  const TableKernel<Dimension>& PiKernel() const;
+
   // The object defining how we evolve smoothing scales.
   const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
 
@@ -212,6 +217,10 @@ public:
 
 protected:
   //---------------------------  Protected Interface ---------------------------//
+  // The interpolation kernels.
+  const TableKernel<Dimension>& mKernel;
+  const TableKernel<Dimension>& mPiKernel;
+
   // The method defining how we evolve smoothing scales.
   const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
 

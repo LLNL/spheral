@@ -97,11 +97,12 @@ q = MonaghanGingoldViscosity(0.0, 0.0)
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = SPHHydro(W = WT, 
-                 Q = q,
-                 cfl = cfl,
-                 densityUpdate = densityUpdate,
-                 HUpdate = HEvolution)
+hydro = SPH(dataBase = db,
+            W = WT, 
+            Q = q,
+            cfl = cfl,
+            densityUpdate = densityUpdate,
+            HUpdate = HEvolution)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -134,7 +135,7 @@ def checkRho(steps, t, dt):
     #print "Rho range : [%16.12e, %16.12e]" % (rhoMin, rhoMax)
     if abs(rhoMin/rhoMax - 1.0) > tol:
         if graphics == "gnu":
-            from SpheralGnuPlotUtilities import *
+            from SpheralGnuPlotUtilities import plotState
             state = State(db, integrator.physicsPackages())
             rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state, plotGhosts=True)
         pos = nodes1.positions()

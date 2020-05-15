@@ -4,7 +4,7 @@
 // Created by JMO, Fri Jul 30 11:07:33 PDT 2010
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "DamagedNodeCouplingWithFrags.hh"
+#include "Utilities/DamagedNodeCouplingWithFrags.hh"
 #include "SPH/SPHHydroBase.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -99,6 +99,7 @@ tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
 template<typename Dimension>
 SolidSPHHydroBase<Dimension>::
 SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                  DataBase<Dimension>& dataBase,
                   ArtificialViscosity<Dimension>& Q,
                   const TableKernel<Dimension>& W,
                   const TableKernel<Dimension>& WPi,
@@ -121,6 +122,7 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                   const Vector& xmin,
                   const Vector& xmax):
   SPHHydroBase<Dimension>(smoothingScaleMethod, 
+                          dataBase,
                           Q,
                           W,
                           WPi,
@@ -148,6 +150,14 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mYieldStrength(FieldStorageType::CopyFields),
   mPlasticStrain0(FieldStorageType::CopyFields),
   mHfield0(FieldStorageType::CopyFields) {
+
+  // Create storage for the state we're holding.
+  mDdeviatoricStressDt = dataBase.newSolidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
+  mBulkModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::bulkModulus);
+  mShearModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::shearModulus);
+  mYieldStrength = dataBase.newSolidFieldList(0.0, SolidFieldNames::yieldStrength);
+  mPlasticStrain0 = dataBase.newSolidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
+  mHfield0 = dataBase.newSolidFieldList(SymTensor::zero, HydroFieldNames::H + "0");
 }
 
 //------------------------------------------------------------------------------
@@ -168,14 +178,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // Call the ancestor.
   SPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
-
-  // Create storage for the state we're holding.
-  mDdeviatoricStressDt = dataBase.newSolidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
-  mBulkModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::bulkModulus);
-  mShearModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::shearModulus);
-  mYieldStrength = dataBase.newSolidFieldList(0.0, SolidFieldNames::yieldStrength);
-  mPlasticStrain0 = dataBase.newSolidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
-  mHfield0 = dataBase.newSolidFieldList(SymTensor::zero, HydroFieldNames::H + "0");
 
   // Set the moduli.
   auto nodeListi = 0;

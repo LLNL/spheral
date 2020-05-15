@@ -1130,7 +1130,11 @@ void
 Field<Dimension, DataType>::setNodeList(const NodeList<Dimension>& nodeList) {
   unsigned oldSize = this->size();
   this->setFieldBaseNodeList(nodeList);
+#ifdef WIN32
+  mDataArray.resize(nodeList.numNodes()+1);
+#else
   mDataArray.resize(nodeList.numNodes());
+#endif
   if (this->size() > oldSize) {
     for (int i = oldSize; i < this->size(); ++i) {
       (*this)(i) = DataTypeTraits<DataType>::zero();
@@ -1149,7 +1153,11 @@ void
 Field<Dimension, DataType>::resizeField(unsigned size) {
   REQUIRE(size == this->nodeList().numNodes());
   unsigned oldSize = this->size();
+#ifdef WIN32
+  mDataArray.resize(size+1);
+#else
   mDataArray.resize(size);
+#endif
   if (oldSize < size) {
     std::fill(mDataArray.begin() + oldSize,
               mDataArray.end(),
@@ -1234,7 +1242,11 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
   }
 
   // Resize the field data.
+#ifdef WIN32
+  mDataArray.resize(newSize+1);
+#else
   mDataArray.resize(newSize);
+#endif
 
   // Fill in any new internal values.
   if (newSize > currentSize) {
@@ -1272,8 +1284,13 @@ Field<Dimension, DataType>::resizeFieldGhost(const unsigned size) {
   REQUIRE(newSize == this->nodeList().numNodes());
 
   // Resize the field data.
+#ifdef WIN32
+  mDataArray.resize(newSize+1);
+  CHECK(this->size() == (newSize+1));
+#else
   mDataArray.resize(newSize);
-  CHECK(this->size() == newSize);
+  CHECK(this->size() == (newSize));
+#endif
 
   // Fill in any new ghost values.
   if (newSize > currentSize) {
@@ -1283,6 +1300,70 @@ Field<Dimension, DataType>::resizeFieldGhost(const unsigned size) {
   }
 
   mValid = true;
+}
+
+//------------------------------------------------------------------------------
+// Copy values between sets of indices.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+void
+Field<Dimension, DataType>::
+copyElements(const std::vector<int>& fromIndices,
+             const std::vector<int>& toIndices) {
+  REQUIRE(fromIndices.size() == toIndices.size());
+  REQUIRE(std::all_of(fromIndices.begin(), fromIndices.end(),
+                      [&](const int i) { return i >= 0 and i < this->size(); }));
+  REQUIRE(std::all_of(toIndices.begin(), toIndices.end(),
+                      [&](const int i) { return i >= 0 and i < this->size(); }));
+  const auto ni = fromIndices.size();
+  for (auto k = 0; k < ni; ++k) (*this)(toIndices[k]) = (*this)(fromIndices[k]);
+}
+
+//------------------------------------------------------------------------------
+// fixedSizeDataType
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+bool
+Field<Dimension, DataType>::
+fixedSizeDataType() const {
+  return DataTypeTraits<DataType>::fixedSize();
+}
+
+//------------------------------------------------------------------------------
+// numValsInDataType
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+int
+Field<Dimension, DataType>::
+numValsInDataType() const {
+  return DataTypeTraits<DataType>::numElements(DataType());
+}
+
+//------------------------------------------------------------------------------
+// sizeofDataType
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+int
+Field<Dimension, DataType>::
+sizeofDataType() const {
+  return sizeof(DataTypeTraits<DataType>::zero());
+}
+
+//------------------------------------------------------------------------------
+// computeCommBufferSize
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+int
+Field<Dimension, DataType>::
+computeCommBufferSize(const std::vector<int>& packIndices,
+                      const int sendProc,
+                      const int recvProc) const {
+  return computeBufferSize(*this, packIndices, sendProc, recvProc);
 }
 
 //------------------------------------------------------------------------------
