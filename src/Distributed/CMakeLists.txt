@@ -47,15 +47,5 @@ set(Distributed_headers
 
 spheral_add_cxx_library(Distributed)
 
-install(TARGETS              Spheral_Distributed
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Distributed_headers}
-        DESTINATION include/Distributed
-        )
-
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Distributed)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

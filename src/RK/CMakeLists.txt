@@ -50,15 +50,5 @@ set(RK_headers
 
 spheral_add_cxx_library(RK)
 
-install(TARGETS              Spheral_RK
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${RK_headers}
-        DESTINATION include/RK
-        )
-
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_RK)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

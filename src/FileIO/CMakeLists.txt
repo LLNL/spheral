@@ -23,19 +23,9 @@ set(FileIO_python_targets
 
 spheral_add_cxx_library(FileIO)
 
-install(TARGETS              Spheral_FileIO
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${FileIO_headers}
-        DESTINATION include/FileIO
-        )
-      
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${FileIO_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 

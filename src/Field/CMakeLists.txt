@@ -46,15 +46,5 @@ set(Field_headers
 
 spheral_add_cxx_library(Field)
 
-install(TARGETS              Spheral_Field
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Field_headers}
-        DESTINATION include/Field
-        )
-
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Field)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)
