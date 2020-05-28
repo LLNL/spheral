@@ -120,19 +120,9 @@ set(Utilities_python_targets
 
 spheral_add_cxx_library(Utilities)
 
-install(TARGETS              Spheral_Utilities
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Utilities_headers}
-        DESTINATION include/Utilities
-        )
-
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${Utilities_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 

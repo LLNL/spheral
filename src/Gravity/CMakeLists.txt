@@ -21,15 +21,5 @@ set(Gravity_headers
 
 spheral_add_cxx_library(Gravity)
 
-install(TARGETS             Spheral_Gravity
-        EXPORT              ${PROJECT_NAME}-targets
-        DESTINATION         lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Gravity_headers}
-        DESTINATION include/Gravity
-        )
-
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Gravity)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

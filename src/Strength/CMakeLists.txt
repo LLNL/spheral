@@ -38,15 +38,5 @@ set(Strength_headers
 
 spheral_add_cxx_library(Strength)
 
-install(TARGETS              Spheral_Strength
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Strength_headers}
-        DESTINATION include/Strength
-        )
-
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Strength)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

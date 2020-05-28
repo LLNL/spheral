@@ -45,19 +45,9 @@ set(SVPH_python_targets
 
 spheral_add_cxx_library(SVPH)
 
-install(TARGETS              Spheral_SVPH
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${SVPH_headers}
-        DESTINATION include/SVPH
-        )
-
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${SVPH_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 

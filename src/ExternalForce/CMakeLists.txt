@@ -29,15 +29,5 @@ set(ExternalForce_includes
 
 spheral_add_cxx_library(ExternalForce)
 
-install(TARGETS             Spheral_ExternalForce
-        EXPORT              ${PROJECT_NAME}-targets
-        DESTINATION         lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${ExternalForce_headers}
-        DESTINATION include/ExternalForce
-        )
-
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_ExternalForce)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)
