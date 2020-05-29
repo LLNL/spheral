@@ -35,7 +35,8 @@ set(pip-modules
 # own install process these will be installed last 
 # as their own dedicated targets
 set(pip-custom-modules
-    gnuplot)
+    gnuplot
+    ats)
 
 # pip modules need to depend on the pip-setup-modules 
 # being installed before the others

@@ -25,7 +25,6 @@ set(maneos_BUILD ON CACHE BOOL "Option to build ANEOS")
 set(pybind11_BUILD ON CACHE BOOL "Option to build pybind11")
 set(python_BUILD ON CACHE BOOL "Option to build python")
 set(pip_BUILD ON CACHE BOOL "Option to build pip")
-set(ats_BUILD ON CACHE BOOL "Option to build ats")
 
 # These libs are always needed
 Spheral_Handle_TPL(boost spheral_depends)
