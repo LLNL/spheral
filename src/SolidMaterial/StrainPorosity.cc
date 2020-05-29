@@ -263,7 +263,11 @@ template<typename Dimension>
 void
 StrainPorosity<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
-  file.read(mAlpha0, pathName + "/alpha0");
+  if (file.pathExists(pathName + "/alpha0")) {
+    file.read(mAlpha0, pathName + "/alpha0");
+  } else {
+    if (Process::getRank() == 0) cerr << "StrainPorosity WARNING: using backwards compatible restoreState without alpha0 path.\n";
+  }
   file.read(mAlpha, pathName + "/alpha");
   file.read(mDalphaDt, pathName + "/DalphaDt");
   file.read(mStrain, pathName + "/strain");
