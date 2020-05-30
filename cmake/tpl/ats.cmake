@@ -1,6 +1,6 @@
 set(ATS_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
 set(ATS_DIST ats-5.2.tar.gz)
-set(ATS_URL https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/ats/${ATS_DIST})
+set(ATS_URL "https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/ats/${ATS_DIST}")
 set(ATS_HASH )
 set(ATS_CACHE ${CACHE_DIR}/${ATS_DIST})
 
@@ -24,7 +24,7 @@ add_custom_target(${lib_name}-unpack
 
 add_custom_target(${lib_name}
   COMMAND ${PYTHON_EXE} setup.py install > ats-install.log
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ats
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ats-5.2
   COMMENT "Installing ats"
   DEPENDS python-install pip-modules ${lib_name}-unpack
 )
