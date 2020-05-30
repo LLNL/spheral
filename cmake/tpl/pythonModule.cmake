@@ -26,6 +26,7 @@ set(pip-modules
     h5py
     sphinx
     sphinx_rtd_theme
+    twine
     cython
     sobol
     scipy
