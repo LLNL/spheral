@@ -6,12 +6,6 @@ set(ATS_CACHE ${CACHE_DIR}/${ATS_DIST})
 
 set(ATS_DOWNLOAD_CMD "wget ${ATS_URL} --no-check-certificate -O ${CACHE_DIR}/${ATS_DIST}")
 
-message("===== ${ATS_PREFIX}")
-message("===== ${ATS_DIST}")
-message("===== ${ATS_URL}")
-message("===== ${ATS_CACHE}")
-message("===== ${ATS_DOWNLOAD_CMD}")
-
 if(EXISTS ${ATS_CACHE})
   set(ATS_DOWNLOAD_CMD sleep 1)
 endif()
