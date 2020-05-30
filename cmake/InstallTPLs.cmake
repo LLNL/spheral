@@ -21,6 +21,7 @@ set(polytope_BUILD ON CACHE BOOL "Option to build polytope")
 set(hdf5_BUILD ON CACHE BOOL "Option to build hdf5")
 set(silo_BUILD ON CACHE BOOL "Option to build silo")
 set(maneos_BUILD ON CACHE BOOL "Option to build ANEOS")
+set(opensubdiv_BUILD ON CACHE BOOL "Option to build Opensubdiv")
 
 set(pybind11_BUILD ON CACHE BOOL "Option to build pybind11")
 set(python_BUILD ON CACHE BOOL "Option to build python")
@@ -33,6 +34,7 @@ Spheral_Handle_TPL(qhull spheral_depends)
 Spheral_Handle_TPL(hdf5 spheral_depends)
 Spheral_Handle_TPL(silo spheral_depends)
 Spheral_Handle_TPL(maneos spheral_depends)
+Spheral_Handle_TPL(opensubdiv spheral_depends)
 
 # Only needed when building the python interface of spheral
 if(NOT ENABLE_CXXONLY)
