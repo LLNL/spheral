@@ -4,7 +4,7 @@ set(ATS_URL "https://storage.googleapis.com/google-code-archive-downloads/v2/cod
 set(ATS_HASH )
 set(ATS_CACHE ${CACHE_DIR}/${ATS_DIST})
 
-set(ATS_DOWNLOAD_CMD "wget ${ATS_URL} --no-check-certificate -O ${CACHE_DIR}/${ATS_DIST}")
+set(ATS_DOWNLOAD_CMD wget ${ATS_URL} --no-check-certificate -O ${CACHE_DIR}/${ATS_DIST})
 
 if(EXISTS ${ATS_CACHE})
   set(ATS_DOWNLOAD_CMD sleep 1)
