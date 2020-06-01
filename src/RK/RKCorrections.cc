@@ -306,6 +306,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     (*boundItr)->applyFieldListGhostBoundary(volume);
     if (mVolumeType == RKVolumeType::RKVoronoiVolume) {
       (*boundItr)->applyFieldListGhostBoundary(cells);
+      (*boundItr)->applyFieldListGhostBoundary(cellFaceFlags);
       (*boundItr)->applyFieldListGhostBoundary(surfacePoint);
       (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
     }
