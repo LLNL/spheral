@@ -1,9 +1,10 @@
 set(PYTHON_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
-set(PYTHON_CACHE "${CACHE_DIR}/Python-2.7.15.tgz")
+set(PYTHON_VERSION "2.7.18")
+set(PYTHON_CACHE "${CACHE_DIR}/Python-${PYTHON_VERSION}.tgz")
 set(PYTHON_SRC_DIR ${PYTHON_PREFIX}/src/python)
 set(PYTHON_INSTALL_DIR ${${lib_name}_DIR})
 set(PYTHON_EXE ${PYTHON_INSTALL_DIR}/bin/python)
-set(PYTHON_URL "http://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz")
+set(PYTHON_URL "http://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz")
 set(PYTHON_SITE_PACKAGE_DIR ${PYTHON_INSTALL_DIR}/lib/python2.7/site-packages)
 
 set(${lib_name}_INCLUDES $<BUILD_INTERFACE:${PYTHON_INSTALL_DIR}/include/python2.7/>)
