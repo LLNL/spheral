@@ -3,7 +3,7 @@ set(MANEOS_DIST "M-ANEOS-v1.0.tar.gz")
 set(MANEOS_CACHE "${CACHE_DIR}/${MANEOS_DIST}")
 set(MANEOS_URL "https://github.com/isale-code/M-ANEOS/releases/download/v1.0beta/${MANEOS_DIST}")
 set(MANEOS_SRC_DIR "${MANEOS_PREFIX}/src/maneos/src")
-set(MANEOS_DEST_DIR "${SPHERAL_INSTALL_DIR}/maneos/lib")
+set(MANEOS_DEST_DIR "${${lib_name}_DIR}/lib")
 
 #set(${lib_name}_INCLUDES maneos.h)
 set(${lib_name}_libs libaneos.a)
