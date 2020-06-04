@@ -10,8 +10,11 @@ include(ExternalProject)
 ################################
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -w")
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
+
+if (NOT CMAKE_MODULE_PATH)
+  set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+endif()
 
 ################################
 # Configure and Include blt
