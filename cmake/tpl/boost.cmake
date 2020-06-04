@@ -1,5 +1,7 @@
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   set(TOOLSET "gcc")
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
+  set(TOOLSET "intel-linux")
 else()
   set(TOOLSET ${CMAKE_CXX_COMPILER_ID})
 endif()
