@@ -99,8 +99,8 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
             ha = nNodePerh * ri*dtheta
 
             for j in xrange(ntheta):
-                theta0 = j*dtheta
-                theta1 = (j + 1)*dtheta
+                theta0 = thetamin + j*dtheta
+                theta1 = thetamin + (j + 1)*dtheta
                 pos0 = perturbFunc(Vector2d(r0*cos(theta0), r0*sin(theta0)))
                 pos1 = perturbFunc(Vector2d(r1*cos(theta0), r1*sin(theta0)))
                 pos2 = perturbFunc(Vector2d(r1*cos(theta1), r1*sin(theta1)))
