@@ -163,9 +163,9 @@ decompose(std::vector<std::array<Vector, 3>>& subfacets) const {
       CHECK(0 < subarea and subarea < originalArea);
       const auto subnormalUnit = subnormal.unitVector();
       const auto normalUnit = mNormal.unitVector();
-      CHECK(fuzzyEqual(subnormalUnit(0), normalUnit(0)) &&
-            fuzzyEqual(subnormalUnit(1), normalUnit(1)) &&
-            fuzzyEqual(subnormalUnit(2), normalUnit(2)));
+      CHECK(fuzzyEqual(subnormalUnit(0), normalUnit(0), 1.e-12) &&
+            fuzzyEqual(subnormalUnit(1), normalUnit(1), 1.e-12) &&
+            fuzzyEqual(subnormalUnit(2), normalUnit(2), 1.e-12));
       areasum += subarea;
     }
     CHECK(fuzzyEqual(areasum, originalArea));
