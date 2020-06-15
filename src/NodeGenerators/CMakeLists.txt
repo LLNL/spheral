@@ -54,23 +54,14 @@ set(NodeGenerators_python_targets
     MultiScaleMedialGenerator.py
     RecursivePrimitiveRefinementGenerator.py
     SEAGenerator.py
+    FacetedVolumeRejecters.py
     )
 
 spheral_add_cxx_library(NodeGenerators)
 
-install(TARGETS              Spheral_NodeGenerators
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${NodeGenerators_headers}
-        DESTINATION include/NodeGenerators
-        )
-
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${NodeGenerators_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_NodeGenerators)

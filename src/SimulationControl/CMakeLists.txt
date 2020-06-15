@@ -1,17 +1,17 @@
 execute_process(
-  COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/../.git rev-parse --abbrev-ref HEAD
+  COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/.git rev-parse --abbrev-ref HEAD
   OUTPUT_VARIABLE abbref
   OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
 execute_process(
-  COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/../.git rev-parse --short HEAD
+  COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/.git rev-parse --short HEAD
   OUTPUT_VARIABLE short
   OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
 execute_process(
-  COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/../.git log --oneline
+  COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/.git log --oneline
   COMMAND wc -l
   OUTPUT_VARIABLE oneline
   OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -20,8 +20,8 @@ execute_process(
 set(SPHERAL_VERSION_LIST ${abbref} ${short} ${oneline})
 string(REPLACE ";" " " spheralversion "${SPHERAL_VERSION_LIST}")
 configure_file(
-  Spheral.py
-  ${CMAKE_INSTALL_PREFIX}/Spheral.py)
+  ${CMAKE_CURRENT_SOURCE_DIR}/Spheral.py
+  ${CMAKE_CURRENT_BINARY_DIR}/Spheral.py)
 
 set(_dims 1)
 if(ENABLE_2D)
@@ -33,8 +33,8 @@ endif()
 
 string(REPLACE ";" " " DIMS "${_dims}")
 configure_file(
-  spheralDimensions.py.in
-  ${CMAKE_SOURCE_DIR}/SimulationControl/spheralDimensions.py)
+  ${CMAKE_CURRENT_SOURCE_DIR}/spheralDimensions.py.in
+  ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py)
 
 
 set(SimulationControl_python_targets
@@ -72,9 +72,10 @@ set(SimulationControl_python_targets
     resampleNodeList.py
     overlayNodeList.py
     writeSiloQuadMesh.py
-    spheralDimensions.py
+    ${CMAKE_CURRENT_BINARY_DIR}/Spheral.py
+    ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py
     )
 
 install(FILES       ${SimulationControl_python_targets}
-        DESTINATION .
+        DESTINATION Spheral
         )

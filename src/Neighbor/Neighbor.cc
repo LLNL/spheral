@@ -197,12 +197,13 @@ void
 Neighbor<Dimension>::
 setMasterList(int nodeID,
               std::vector<int>& masterList,
-              std::vector<int>& coarseNeighbors) const {
+              std::vector<int>& coarseNeighbors,
+              const bool ghostConnectivity) const {
   CHECK(valid());
   CHECK(nodeID >= 0 and nodeID < nodeList().numInternalNodes());
   const auto& positions = nodeList().positions();
   const auto& Hfield = nodeList().Hfield();
-  this->setMasterList(positions(nodeID), Hfield(nodeID), masterList, coarseNeighbors);
+  this->setMasterList(positions(nodeID), Hfield(nodeID), masterList, coarseNeighbors, ghostConnectivity);
 }
 
 //------------------------------------------------------------------------------
