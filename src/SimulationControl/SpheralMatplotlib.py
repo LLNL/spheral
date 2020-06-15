@@ -176,7 +176,8 @@ def plotFieldList(fieldList,
                   lineTitle = "",
                   xlabel = None,
                   ylabel = None,
-                  filterFunc = None):
+                  filterFunc = None,
+                  semilogy = False):
 
     # Do we need to make a new window?
     if plot is None:
@@ -227,12 +228,20 @@ def plotFieldList(fieldList,
             for fieldID in xrange(len(globalNumNodes)):
                 n = globalNumNodes[fieldID]
                 if n:
-                    plot.plot(globalX[cumulativeNumNodes:cumulativeNumNodes + n],
-                              globalY[cumulativeNumNodes:cumulativeNumNodes + n],
-                              plotStyle, ms=markerSize, label = "%s: %s" % (lineTitle, fieldList[i].nodeList().name))
+                    if semilogy:
+                        plot.semilogy(globalX[cumulativeNumNodes:cumulativeNumNodes + n],
+                                      globalY[cumulativeNumNodes:cumulativeNumNodes + n],
+                                      plotStyle, ms=markerSize, label = "%s: %s" % (lineTitle, fieldList[i].nodeList().name))
+                    else:
+                        plot.plot(globalX[cumulativeNumNodes:cumulativeNumNodes + n],
+                                  globalY[cumulativeNumNodes:cumulativeNumNodes + n],
+                                  plotStyle, ms=markerSize, label = "%s: %s" % (lineTitle, fieldList[i].nodeList().name))
                     cumulativeNumNodes += n
         else:
-            plot.plot(globalX, globalY, plotStyle, ms=markerSize, label = lineTitle)
+            if semilogy:
+                plot.semilogy(globalX, globalY, plotStyle, ms=markerSize, label = lineTitle)
+            else:
+                plot.plot(globalX, globalY, plotStyle, ms=markerSize, label = lineTitle)
         plot.axes.legend()
 
         # Set the ranges.

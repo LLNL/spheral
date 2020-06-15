@@ -1,5 +1,5 @@
 # Initialize commonly used paths during TPL installs
-set(CACHE_DIR ${PROJECT_SOURCE_DIR}/src/tpl/cache)
+set(CACHE_DIR ${CMAKE_BINARY_DIR}/tpl/cache)
 set(PATCH_DIR ${PROJECT_SOURCE_DIR}/src/tpl/patch)
 set(TPL_CMAKE_DIR ${CMAKE_MODULE_PATH}/tpl)
 

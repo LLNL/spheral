@@ -47,18 +47,18 @@ function(spheral_add_cxx_library package_name)
 
   # Install Spheral C++ target and set it as an exportable CMake target
   install(TARGETS             Spheral_${package_name}
-          DESTINATION         Spheral/lib
+          DESTINATION         lib
           EXPORT              ${PROJECT_NAME}-targets
           )
 
   # Install the headers
   install(FILES       ${${package_name}_headers}
-          DESTINATION Spheral/include/${package_name}
+          DESTINATION include/${package_name}
           )
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   set_target_properties(Spheral_${package_name} PROPERTIES
-                        INSTALL_RPATH           ${CMAKE_INSTALL_PREFIX}/Spheral/lib
+                        INSTALL_RPATH           ${CMAKE_INSTALL_PREFIX}/lib
                         )
 endfunction()
 
@@ -108,7 +108,7 @@ function(spheral_add_pybind11_library package_name)
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   set_target_properties(${MODULE_NAME} PROPERTIES
-                        INSTALL_RPATH  ${CMAKE_INSTALL_PREFIX}/Spheral/lib
+                        INSTALL_RPATH  ${CMAKE_INSTALL_PREFIX}/lib
                         )
 
 endfunction()
