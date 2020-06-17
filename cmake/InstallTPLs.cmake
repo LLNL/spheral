@@ -33,11 +33,11 @@ Spheral_Handle_TPL(eigen spheral_depends)
 Spheral_Handle_TPL(qhull spheral_depends)
 Spheral_Handle_TPL(hdf5 spheral_depends)
 Spheral_Handle_TPL(silo spheral_depends)
-Spheral_Handle_TPL(maneos spheral_depends)
-Spheral_Handle_TPL(opensubdiv spheral_depends)
 
 # Only needed when building the python interface of spheral
 if(NOT ENABLE_CXXONLY)
+  Spheral_Handle_TPL(maneos spheral_depends)
+  Spheral_Handle_TPL(opensubdiv spheral_depends)
   Spheral_Handle_TPL(python spheral_depends)
   Spheral_Handle_TPL(pip spheral_py_depends)
   include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/tpl/pythonModule.cmake)
