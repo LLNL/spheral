@@ -35,7 +35,7 @@ function(instantiate _inst_var _source_var)
 
         # Generate the C++ file
         add_custom_command(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${_inst_file}
-                           COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/src/helpers/InstantiationGenerator.py ${_inst_py} ${_inst_file} ${_dim}
+                           COMMAND ${PYTHON_EXECUTABLE} ${SPHERAL_ROOT_DIR}/src/helpers/InstantiationGenerator.py ${_inst_py} ${_inst_file} ${_dim}
                            BYPRODUCTS ${_inst_file}
                            COMMENT "Generating instantiation ${_inst_file}..."
                            )
