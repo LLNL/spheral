@@ -47,31 +47,50 @@ class CircleCurve:
         t = t - 3.14159 - 3.14159/4.0
         return Vector2d(cos(t),sin(t))*self.radius
 
-def latticeDistribution(nx,ny, rho0,
-                            xmin,
-                            xmax,
-                            nNodePerh = 2.01):
-        
-    assert rho0 > 0
+def latticeDistribution3d(nx, ny, nz, rhofunc,
+                        xmin,
+                        xmax,
+                        nNodePerh = 2.01):
+
+    assert nx > 0
+    assert ny > 0
+    assert nz > 0
 
     dx = (xmax[0] - xmin[0])/nx
     dy = (xmax[1] - xmin[1])/ny
+    dz = (xmax[2] - xmin[2])/nz
 
-    m0 = dx*dy*rho0
+    n = nx*ny*nz
+    volume = ((xmax[0] - xmin[0])*
+                (xmax[1] - xmin[1])*
+                (xmax[2] - xmin[2]))
+
+    hx = 1.0/(nNodePerh*dx)
+    hy = 1.0/(nNodePerh*dy)
+    hz = 1.0/(nNodePerh*dz)
+    #H0 = SymTensor3d(hx, 0.0, 0.0,
+                       # 0.0, hy, 0.0,
+                       # 0.0, 0.0, hz)
 
     x = []
     y = []
+    z = []
     m = []
+    H = []
 
-    for j in range(ny):
-        for i in range(nx):
-            xx = xmin[0] + (i + 0.5)*dx
-            yy = xmin[1] + (j + 0.5)*dy
-            x.append(xx)
-            y.append(yy)
-            m.append(m0)
-    
-    return x, y, m
+    for i in range(nx):
+        for j in range(ny):
+            for k in range(nz):
+                xx = xmin[0] + (i + 0.5)*dx
+                yy = xmin[1] + (j + 0.5)*dy
+                zz = xmin[2] + (k + 0.5)*dz
+                x.append(xx)
+                y.append(yy)
+                z.append(zz)
+                m.append(dx*dy*dz * rhofunc(Vector3d(xx, yy, zz)))
+                H.append(0)
+
+    return x, y, z, m, H
 
 def profileMethod(rad,maxrad):
     ri = rad/maxrad
@@ -91,23 +110,26 @@ def latticeCylindrcalGenerator3d(nx,ny,nz,
     y = []
     z = []
     m = []
+    H = []
 
     centroid = vectorfromtuple(centroid)
     maxd = max((vectorfromtuple((xmax[0],xmax[1]))-centroid).magnitude(),(centroid-vectorfromtuple((xmin[0],xmin[1]))).magnitude())
 
     # first fill the regular lattice positions  ------------------------
-    '''
     nr = int(nx*0.5)
-    xl,yl,ml = latticeDistribution(nx,ny,rho0,xmin,xmax,nNodePerh)
+    xl,yl,zl,ml,Hl, = latticeDistribution3d(nx=nx,ny=ny,nz=nz,rhofunc=constantDensity(rho0),xmin=xmin,xmax=xmax,nNodePerh=nNodePerh)
 
     for i in range(len(xl)):
         xx = xl[i]
         yy = yl[i]
+        zz = zl[i]
+        hh = Hl[i]
         if abs(xx-centroid[0])>rmax or abs(yy-centroid[1])>rmax:
             x.append(xx)
             y.append(yy)
-            z.append(0)
-    '''
+            z.append(zz)
+            H.append(hh)
+
 
     # now fill the transfinite positions  -------------------------------
     xxmin0 = max(centroid[0]-rmax,xmin[0])
@@ -167,7 +189,7 @@ def latticeCylindrcalGenerator3d(nx,ny,nz,
     
     return x,y,z,m
 
-x,y,z,m = latticeCylindrcalGenerator3d(nx=20,ny=20,nz=20,centroid=(0.5,0.5),refineMethod=profileMethod,rmax=0.8)
+x,y,z,m = latticeCylindrcalGenerator3d(nx=12,ny=12,nz=12,centroid=(0.5,0.5),refineMethod=profileMethod,rmax=0.8)
 print("Created %d particles"%len(x))
 
 import matplotlib.pyplot as plt
