@@ -9,7 +9,7 @@ set(SPHERAL_PYTHON_DEPENDS )
 
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
-set(_packages 
+list(APPEND _packages 
   ArtificialViscosity
   ArtificialConduction
   Boundary
@@ -56,7 +56,13 @@ if(NOT ENABLE_MPI)
 endif()
 
 foreach(_package ${_packages})
-   add_subdirectory(${_package})
+  message("${_package}") 
+  add_subdirectory(${_package})
+endforeach()
+
+foreach(e_package ${extra_packages})
+  message("${e_package}")
+  add_subdirectory(${extra_packages_DIR}/${e_package} ${CMAKE_CURRENT_BINARY_DIR}/${e_package})
 endforeach()
 
 install(EXPORT ${PROJECT_NAME}-targets DESTINATION Spheral/lib/cmake)
