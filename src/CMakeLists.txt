@@ -60,6 +60,7 @@ foreach(_package ${_packages})
   add_subdirectory(${_package})
 endforeach()
 
+include_directories(${extra_packages_DIR})
 foreach(e_package ${extra_packages})
   message("${e_package}")
   add_subdirectory(${extra_packages_DIR}/${e_package} ${CMAKE_CURRENT_BINARY_DIR}/${e_package})
