@@ -344,7 +344,7 @@ void moments(double& zerothMoment, Spheral::Dim<2>::Vector& firstMoment,
       vprev = vnext;
     }
     CHECK(zerothMoment != 0.0);
-    firstMoment = firstMoment/(3.0*zerothMoment) + polygon[vfirst].position/3.0;
+    firstMoment = firstMoment/(3.0*zerothMoment) + polygon[vfirst].position;
     zerothMoment *= 0.5;
   }
   TIME_PC2d_moments.stop();
