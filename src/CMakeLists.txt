@@ -5,7 +5,6 @@ include(${CMAKE_MODULE_PATH}/spheral/InstantiateCXX.cmake)
 include(${CMAKE_MODULE_PATH}/spheral/SpheralAddLibs.cmake)
 
 include_directories(.)
-set(SPHERAL_PYTHON_DEPENDS )
 
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
@@ -56,14 +55,13 @@ if(NOT ENABLE_MPI)
 endif()
 
 foreach(_package ${_packages})
-  message("${_package}") 
   add_subdirectory(${_package})
 endforeach()
 
 include_directories(${extra_packages_DIR})
 foreach(e_package ${extra_packages})
-  message("${e_package}")
   add_subdirectory(${extra_packages_DIR}/${e_package} ${CMAKE_CURRENT_BINARY_DIR}/${e_package})
 endforeach()
 
 install(EXPORT ${PROJECT_NAME}-targets DESTINATION Spheral/lib/cmake)
+set(SPHERAL_PYTHON_DEPENDS ${SPHERAL_PYTHON_DEPENDS} PARENT_SCOPE)
