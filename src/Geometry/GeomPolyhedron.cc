@@ -577,7 +577,7 @@ intersections(const Vector& s0, const Vector& s1,
       const auto q = (mVertices[ipoints[0]] - s0).dot(fhat)/shat_dot_fhat;
       if (q >= 0.0 and q <= q01) {                // Does the line segment intersect the plane
         const auto p = s0 + q*shat;               // point along line in plane
-        if (pointInPolygon(p, mVertices, ipoints, fhat, false, 1.0e-10)) {
+        if (pointInPolygon(p, mVertices, ipoints, fhat, true, 1.0e-10)) {
           auto qitr = qvals.insert(std::upper_bound(qvals.begin(), qvals.end(), q), q);
           auto qpos = std::distance(qvals.begin(), qitr);
           facetIDs.insert(facetIDs.begin() + qpos, k);
