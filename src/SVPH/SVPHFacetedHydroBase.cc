@@ -1013,7 +1013,7 @@ dt(const DataBase<Dimension>& dataBase,
 //               << "  dtcsq = " << lastNodeScale/(lastCsq + FLT_MIN) << endl
 //                << "  dtdivV = " << 1.0/(fabs(lastDivVelocity) + FLT_MIN) << endl
 //                << "  shearVelocity = " << lastShearVelocity << endl
-               << std::ends;
+               << std::endl;
 
   // Now build the result.
   TimeStepType result(this->cfl()*minDt, reasonStream.str());

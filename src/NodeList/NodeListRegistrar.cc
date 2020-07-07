@@ -112,7 +112,7 @@ registerNodeList(NodeList<Dimension>& nodeList) {
     for (std::vector<std::string>::const_iterator itr = currentNames.begin();
          itr != currentNames.end();
          ++itr) msg << "  " << *itr;
-    msg << std::endl << std::ends;
+    msg << std::endl << std::endl;
     VERIFY2(false, msg.str());
   }
 
@@ -149,7 +149,7 @@ registerNodeList(FluidNodeList<Dimension>& nodeList) {
     for (std::vector<std::string>::const_iterator itr = currentNames.begin();
          itr != currentNames.end();
          ++itr) msg << "  " << *itr;
-    msg << std::endl << std::ends;
+    msg << std::endl << std::endl;
     VERIFY2(false, msg.str());
   }
 

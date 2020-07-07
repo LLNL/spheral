@@ -487,7 +487,7 @@ dt(const DataBase<Dimension>& dataBase,
   if (mTimeStepChoice == GravityTimeStepType::AccelerationRatio) {
     const double dt = mftimestep * mDtMinAcc;
     std::stringstream reasonStream;
-    reasonStream << "TreeGravity: f*sqrt(L/a) = " << dt << std::ends;
+    reasonStream << "TreeGravity: f*sqrt(L/a) = " << dt << std::endl;
     return TimeStepType(dt, reasonStream.str());
 
   } else {
@@ -509,7 +509,7 @@ dt(const DataBase<Dimension>& dataBase,
                  << ")) = " << dt 
                  << " selected for node " << mimax 
                  << " in NodeList " << position[mNodeListMax]->nodeList().name()
-                 << std::ends;
+                 << std::endl;
     return TimeStepType(dt, reasonStream.str());
   }
 }
