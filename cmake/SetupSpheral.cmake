@@ -14,7 +14,6 @@ endif()
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
->>>>>>> master
 ################################
 # Configure and Include blt
 ################################
