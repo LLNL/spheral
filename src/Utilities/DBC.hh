@@ -108,7 +108,7 @@ inline bool nearlyEqual(const T& x,
       std::stringstream s_SS;                           \
       s_SS << kind << ": " << msg << std::endl;         \
       s_SS << "...at line " << __LINE__ <<              \
-         " of file " << __FILE__ << "." << std::ends;   \
+         " of file " << __FILE__ << "." << std::endl;   \
       ::Spheral::Process::haltAll(s_SS.str().c_str());  \
    }                                                    \
    ::Spheral::dbc::assertionUnLock();                   \
@@ -162,7 +162,7 @@ inline bool nearlyEqual(const T& x,
       std::stringstream s; \
       s << "Verification failed: " << msg << std::endl; \
       s << "...at line " << __LINE__ << \
-         " of file " << __FILE__ << "." << std::ends;\
+         " of file " << __FILE__ << "." << std::endl;\
       ::Spheral::dbc::VERIFYError reason(s.str());\
       throw reason;\
    }

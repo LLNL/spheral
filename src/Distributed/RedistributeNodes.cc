@@ -840,7 +840,7 @@ gatherDomainDistributionStatistics(const FieldList<Dimension, typename Dimension
          << "    (min, max, avg) work per domain : ("
          << globalMinWork << ", "
          << globalMaxWork << ", "
-         << globalAvgWork << ")" << std::ends;
+         << globalAvgWork << ")" << std::endl;
   return result.str();
 }
 

@@ -143,11 +143,11 @@ mComplainAboutKey(const Key& key) const {
               << key 
               << " is not in SafeIndexMap "
               << this
-              << std::ends;
+              << std::endl;
   } catch (...) {
     complaint << "SafeIndexMap ERROR: requested Key value is not in SafeIndexMap "
               << this
-              << std::ends;
+              << std::endl;
   }
   throw SafeIndexMapKeyError(complaint.str());
 }

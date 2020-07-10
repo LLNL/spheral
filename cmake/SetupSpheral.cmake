@@ -1,7 +1,5 @@
 include(ExternalProject)
 
-message("${SPHERAL_ROOT_DIR}")
-
 ################################
 # Configure CMake
 ################################
@@ -13,6 +11,10 @@ if (NOT CMAKE_MODULE_PATH)
   set(CMAKE_MODULE_PATH "${SPHERAL_ROOT_DIR}/cmake")
 endif()
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_EXPORT_COMPILE_COMMANDS On)
+
+>>>>>>> master
 ################################
 # Configure and Include blt
 ################################
@@ -71,9 +73,7 @@ else()
   set(CMAKE_INSTALL_PREFIX ${PYTHON_SITE_PACKAGE_DIR})
 endif()
 
-
 include(${SPHERAL_ROOT_DIR}/cmake/CMakeDefinitions.cmake)
-
 
 ################################
 # Set full rpath information by default
