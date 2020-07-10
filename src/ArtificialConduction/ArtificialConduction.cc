@@ -364,7 +364,7 @@ dt(const DataBase<Dimension>& dataBase,
     << "  vsig = " << lastVsig << std::endl
     << "  rho = " << lastRho << std::endl
     << "  eps = " << lastEps << std::endl
-    << std::ends;
+    << std::endl;
     
     // Now build the result.
     TimeStepType result(minDt, reasonStream.str());

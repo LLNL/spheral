@@ -41,7 +41,7 @@ testFieldListIndexing(IteratorType beginIterator,
               << itr.fieldID() << " "
               << itr.nodeID() << " : "
               << fieldList(itr) << " != "
-              << (*fieldList[itr.fieldID()])[itr.nodeID()] << std::ends;
+              << (*fieldList[itr.fieldID()])[itr.nodeID()] << std::endl;
       return message.str();
     }
 
@@ -75,7 +75,7 @@ testFieldListIndexing(IteratorType beginIterator,
 //               << itr.fieldID() << " "
 //               << itr.nodeID() << " : "
 //               << fieldList.coarseCache(itr) << " != "
-//               << (*fieldList[itr.fieldID()])[itr.nodeID()] << std::ends;
+//               << (*fieldList[itr.fieldID()])[itr.nodeID()] << std::endl;
 //       return message.str();
 //     }
 
@@ -109,7 +109,7 @@ testFieldListIndexing(IteratorType beginIterator,
 //               << itr.fieldID() << " "
 //               << itr.nodeID() << " : "
 //               << fieldList.refineCache(itr) << " != "
-//               << (*fieldList[itr.fieldID()])[itr.nodeID()] << std::ends;
+//               << (*fieldList[itr.fieldID()])[itr.nodeID()] << std::endl;
 //       return message.str();
 //     }
 

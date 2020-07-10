@@ -66,7 +66,7 @@ template<typename Vector>
 std::string
 vec_to_string(const Vector& vec) {
   std::ostringstream oss;
-  oss << vec << std::ends;
+  oss << vec << std::endl;
   return oss.str();
 }
 
