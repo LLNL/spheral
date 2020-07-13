@@ -63,7 +63,7 @@ spheral_add_cxx_library(SolidMaterial)
 
 if(NOT ENABLE_CXXONLY)
   install(FILES       ${SolidMaterial_python_targets}
-          DESTINATION .
+          DESTINATION Spheral
           )
 endif()
 
