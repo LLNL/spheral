@@ -11,7 +11,6 @@ if (NOT CMAKE_MODULE_PATH)
   set(CMAKE_MODULE_PATH "${SPHERAL_ROOT_DIR}/cmake")
 endif()
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 ################################
