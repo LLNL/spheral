@@ -66,6 +66,9 @@ inline bool nearlyEqual(const T& x,
 
 #endif // DBC_FUNCTIONS_HH
 
+//----------- Define Unused Variable Silencer
+#define SPHERAL_UNUSED(X) (void)(X)
+
 //----------------------------------------------------------------------------
 //                         Clear any existing DBC compile flags.
 //----------------------------------------------------------------------------
