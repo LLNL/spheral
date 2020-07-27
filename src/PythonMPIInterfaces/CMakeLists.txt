@@ -9,6 +9,6 @@ else()
 endif()
 
 install(FILES       ${PythonMPIInterfaces_python_targets}
-        DESTINATION .
+        DESTINATION Spheral
         RENAME      mpi.py
         )

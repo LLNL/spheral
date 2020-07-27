@@ -74,7 +74,8 @@ class Neighbor:
     def setMasterList0(self,
                        nodeID = "int",
                        masterList = "std::vector<int>&",
-                       coarseNeighbors = "std::vector<int>&"):
+                       coarseNeighbors = "std::vector<int>&",
+                       ghostConnectivity = ("const bool", "false")):
         "Fill the given arrays with (master, coarse) neighbor info for the given node"
         return "void"
 

@@ -174,7 +174,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
   // Iterate over the Connectivity (NodeList).
   for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
     const auto ioff = mOffsets[iNodeList];
-    const auto numNodes = ((domainDecompIndependent or mBuildGhostConnectivity) ? 
+    const auto numNodes = ((domainDecompIndependent or mBuildGhostConnectivity or mBuildOverlapConnectivity) ? 
                            mNodeLists[iNodeList]->numNodes() :
                            mNodeLists[iNodeList]->numInternalNodes());
 
@@ -809,7 +809,7 @@ computeConnectivity() {
     const auto etaMax = mNodeLists[iiNodeList]->neighbor().kernelExtent();
 
     // Iterate over the nodes in this NodeList, and look for any that are not done yet.
-    const auto nii = (false ?
+    const auto nii = (ghostConnectivity ?
                       mNodeLists[iiNodeList]->numNodes() :
                       mNodeLists[iiNodeList]->numInternalNodes());
     for (auto ii = 0; ii < nii; ++ii) {
@@ -824,7 +824,8 @@ computeConnectivity() {
                                                     mNodeLists.end(),
                                                     etaMax,
                                                     masterLists,
-                                                    coarseNeighbors);
+                                                    coarseNeighbors,
+                                                    ghostConnectivity);
 
         // Iterate over the full of NodeLists again to work on the master nodes.
         for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
@@ -835,13 +836,14 @@ computeConnectivity() {
 #pragma omp for schedule(dynamic)
             for (auto k = 0; k < nmaster; ++k) {
               const auto i = masterLists[iNodeList][k];
-              CHECK2(flagNodeDone(iNodeList, i) == 0, "(" << iNodeList << " " << i << ") (" << iNodeList << " " << i << ")");
+              CHECK2(flagNodeDone(iNodeList, i) == 0, "(" << iNodeList << " " << i << ")");
 
               // Get the state for this node.
               const auto& ri = position(iNodeList, i);
               const auto& Hi = H(iNodeList, i);
               auto&       worki = mNodeLists[iNodeList]->work();
-              CHECK(mOffsets[iNodeList] + i < mConnectivity.size());
+              CHECK2(mOffsets[iNodeList] + i < mConnectivity.size(),
+                     iNodeList << " " << i << " " << mOffsets[iNodeList] << " " << mConnectivity.size());
               const auto start = Timing::currentTime();
 
               // Get the neighbor set we're building for this node.
@@ -912,37 +914,37 @@ computeConnectivity() {
     }
   }
 
-  // If necessary add ghost->internal connectivity.
-  if (ghostConnectivity) {
-    for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
-      for (auto i = 0; i < mNodeLists[iNodeList]->numInternalNodes(); ++i) {
-        const auto& neighborsi = mConnectivity[mOffsets[iNodeList] + i];
-        CHECK(neighborsi.size() == numNodeLists);
-        for (auto jNodeList = 0; jNodeList < numNodeLists; ++jNodeList) {
-          const auto firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
-          for (auto jItr = neighborsi[jNodeList].begin(); jItr < neighborsi[jNodeList].end(); ++jItr) {
-            const auto j = *jItr;
-            if (j >= firstGhostNodej) {
-              auto& neighborsj = mConnectivity[mOffsets[jNodeList] + j];
-              CHECK(neighborsj.size() == numNodeLists);
-              neighborsj[iNodeList].push_back(i);
-              // mNodePairList.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
-            }
-          }
-        }
-      }
-    }
+  // // If necessary add ghost->internal connectivity.
+  // if (ghostConnectivity) {
+  //   for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
+  //     for (auto i = 0; i < mNodeLists[iNodeList]->numInternalNodes(); ++i) {
+  //       const auto& neighborsi = mConnectivity[mOffsets[iNodeList] + i];
+  //       CHECK(neighborsi.size() == numNodeLists);
+  //       for (auto jNodeList = 0; jNodeList < numNodeLists; ++jNodeList) {
+  //         const auto firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
+  //         for (auto jItr = neighborsi[jNodeList].begin(); jItr < neighborsi[jNodeList].end(); ++jItr) {
+  //           const auto j = *jItr;
+  //           if (j >= firstGhostNodej) {
+  //             auto& neighborsj = mConnectivity[mOffsets[jNodeList] + j];
+  //             CHECK(neighborsj.size() == numNodeLists);
+  //             neighborsj[iNodeList].push_back(i);
+  //             // mNodePairList.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
 
-    // Flag ghost nodes as done if at least one neighbor was found
-    for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
-      for (auto i = mNodeLists[iNodeList]->numInternalNodes(); i < mNodeLists[iNodeList]->numNodes(); ++i) {
-        const auto& neighborsi = mConnectivity[mOffsets[iNodeList] + i];
-        if (neighborsi.size() > 0) {
-          flagNodeDone(iNodeList, i) = 1;
-        }
-      }
-    }
-  }
+  //   // Flag ghost nodes as done if at least one neighbor was found
+  //   for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
+  //     for (auto i = mNodeLists[iNodeList]->numInternalNodes(); i < mNodeLists[iNodeList]->numNodes(); ++i) {
+  //       const auto& neighborsi = mConnectivity[mOffsets[iNodeList] + i];
+  //       if (neighborsi.size() > 0) {
+  //         flagNodeDone(iNodeList, i) = 1;
+  //       }
+  //     }
+  //   }
+  // }
 
   // In the domain decompostion independent case, we need to sort the neighbors for ghost
   // nodes as well.

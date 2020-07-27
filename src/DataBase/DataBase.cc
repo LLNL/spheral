@@ -778,13 +778,15 @@ DataBase<Dimension>::
 setMasterNodeLists(const typename Dimension::Vector& position,
                    const typename Dimension::SymTensor& H,
                    std::vector<std::vector<int>>& masterLists,
-                   std::vector<std::vector<int>>& coarseNeighbors) const {
+                   std::vector<std::vector<int>>& coarseNeighbors,
+                   const bool computeGhostConnectivity) const {
   Neighbor<Dimension>::setMasterNeighborGroup(position, H,
                                               nodeListBegin(),
                                               nodeListEnd(),
                                               maxKernelExtent(),
                                               masterLists,
-                                              coarseNeighbors);
+                                              coarseNeighbors,
+                                              computeGhostConnectivity);
 }
 
 //------------------------------------------------------------------------------
@@ -796,13 +798,15 @@ DataBase<Dimension>::
 setMasterFluidNodeLists(const typename Dimension::Vector& position,
                         const typename Dimension::SymTensor& H,
                         std::vector<std::vector<int>>& masterLists,
-                        std::vector<std::vector<int>>& coarseNeighbors) const {
+                        std::vector<std::vector<int>>& coarseNeighbors,
+                        const bool computeGhostConnectivity) const {
   Neighbor<Dimension>::setMasterNeighborGroup(position, H,
                                               fluidNodeListBegin(),
                                               fluidNodeListEnd(),
                                               maxKernelExtent(),
                                               masterLists,
-                                              coarseNeighbors);
+                                              coarseNeighbors,
+                                              computeGhostConnectivity);
 }
 
 //------------------------------------------------------------------------------

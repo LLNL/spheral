@@ -47,14 +47,20 @@ public:
   // ********** Descendent Neighbor types must provide these methods. **********
   // Set or refine the neighbor lists for the given position and smoothing 
   // scale.
+  virtual void setMasterList(int nodeID,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors,
+                             const bool ghostConnectivity = false) const override;
   virtual void setMasterList(const Vector& position,
                              const Scalar& H,
                              std::vector<int>& masterList,
-                             std::vector<int>& coarseNeighbors) const override;
+                             std::vector<int>& coarseNeighbors,
+                             const bool ghostConnectivity = false) const override;
   virtual void setMasterList(const Vector& position,
                              const SymTensor& H,
                              std::vector<int>& masterList,
-                             std::vector<int>& coarseNeighbors) const override;
+                             std::vector<int>& coarseNeighbors,
+                             const bool ghostConnectivity = false) const override;
 
   virtual void setRefineNeighborList(const Vector& position,
                                      const Scalar& H,
@@ -68,7 +74,8 @@ public:
   // Set Neighbors for the given position.
   virtual void setMasterList(const Vector& position,
                              std::vector<int>& masterList,
-                             std::vector<int>& coarseNeighbors) const override;
+                             std::vector<int>& coarseNeighbors,
+                             const bool ghostConnectivity = false) const override;
   virtual void setRefineNeighborList(const Vector& position,
                                      const std::vector<int>& coarseNeighbors,
                                      std::vector<int>& refineNeighbors) const override;
@@ -119,7 +126,8 @@ public:
   void setTreeMasterList(const LevelKey levelID,
                          const CellKey cellID,
                          std::vector<int>& masterList,
-                         std::vector<int>& coarseNeighbors) const;
+                         std::vector<int>& coarseNeighbors,
+                         const bool ghostConnectivity) const;
 
   // Expose hidden Neighbor methods
   using Neighbor<Dimension>::setMasterList;
@@ -193,7 +201,8 @@ private:
   void setTreeMasterList(const Vector& position,
                          const double& h,
                          std::vector<int>& masterList,
-                         std::vector<int>& coarseNeighbors) const;
+                         std::vector<int>& coarseNeighbors,
+                         const bool ghostConnectivity) const;
 
   // Actual method for setting the refine list.
   void setTreeRefineNeighborList(const Vector& position,

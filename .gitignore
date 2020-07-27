@@ -31,8 +31,7 @@ src/build
 src/BUILD/**
 src/build/**
 dumps-*
-tpl
-tpl/**
+*cache*
 python
 
 # These are files automatically generated in our configure process.

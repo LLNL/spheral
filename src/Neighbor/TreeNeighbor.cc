@@ -177,6 +177,24 @@ TreeNeighbor<Dimension>::
 }
 
 //------------------------------------------------------------------------------
+// Set the master list of nodes based on a particular node index.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+TreeNeighbor<Dimension>::
+setMasterList(int nodeID,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors,
+              const bool ghostConnectivity) const {
+  CHECK(valid());
+  const auto& nodeList = this->nodeList();
+  CHECK(nodeID >= 0 and nodeID < nodeList.numInternalNodes());
+  const auto& positions = nodeList.positions();
+  const auto& Hfield = nodeList.Hfield();
+  this->setMasterList(positions(nodeID), Hfield(nodeID), masterList, coarseNeighbors, ghostConnectivity);
+}
+
+//------------------------------------------------------------------------------
 // Set the master list using either a scalar or tensor H.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -185,10 +203,11 @@ TreeNeighbor<Dimension>::
 setMasterList(const Vector& position,
               const Scalar& H,
               std::vector<int>& masterList,
-              std::vector<int>& coarseNeighbors) const {
+              std::vector<int>& coarseNeighbors,
+              const bool ghostConnectivity) const {
   REQUIRE(H > 0.0);
   const Scalar h = 1.0/H;
-  this->setTreeMasterList(position, h, masterList, coarseNeighbors);
+  this->setTreeMasterList(position, h, masterList, coarseNeighbors, ghostConnectivity);
 }
 
 template<typename Dimension>
@@ -197,12 +216,13 @@ TreeNeighbor<Dimension>::
 setMasterList(const Vector& position,
               const SymTensor& H,
               std::vector<int>& masterList,
-              std::vector<int>& coarseNeighbors) const {
+              std::vector<int>& coarseNeighbors,
+              const bool ghostConnectivity) const {
   REQUIRE(H.Determinant() > 0.0);
   const Vector hinvValues = H.eigenValues();
   CHECK(hinvValues.minElement() > 0.0);
   const Scalar h = 1.0/hinvValues.minElement();
-  this->setTreeMasterList(position, h, masterList, coarseNeighbors);
+  this->setTreeMasterList(position, h, masterList, coarseNeighbors, ghostConnectivity);
 }
 
 template<typename Dimension>
@@ -210,8 +230,9 @@ void
 TreeNeighbor<Dimension>::
 setMasterList(const Vector& position,
               std::vector<int>& masterList,
-              std::vector<int>& coarseNeighbors) const {
-  this->setTreeMasterList(position, 1.0e-30*mBoxLength, masterList, coarseNeighbors);
+              std::vector<int>& coarseNeighbors,
+              const bool ghostConnectivity) const {
+  this->setTreeMasterList(position, 1.0e-30*mBoxLength, masterList, coarseNeighbors, ghostConnectivity);
 }
 
 //------------------------------------------------------------------------------
@@ -782,7 +803,8 @@ TreeNeighbor<Dimension>::
 setTreeMasterList(const typename TreeNeighbor<Dimension>::LevelKey levelID,
                   const typename TreeNeighbor<Dimension>::CellKey cellID,
                   std::vector<int>& masterList,
-                  std::vector<int>& coarseNeighbors) const {
+                  std::vector<int>& coarseNeighbors,
+                  const bool ghostConnectivity) const {
   REQUIRE(levelID >= 0 and levelID < num1dbits);
 
   // Get the per dimension cell indices.
@@ -808,13 +830,15 @@ setTreeMasterList(const typename TreeNeighbor<Dimension>::LevelKey levelID,
   }
 
   // Remove all ghost nodes from the master list.
-  const unsigned firstGhostNode = this->nodeList().firstGhostNode();
   sort(masterList.begin(), masterList.end());
-  masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
+  if (not ghostConnectivity) {
+    const auto firstGhostNode = this->nodeList().firstGhostNode();
+    masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
+  }
 
   // Post conditions.
   ENSURE2(coarseNeighbors.size() >= masterList.size(), coarseNeighbors.size() << " " << masterList.size());
-  ENSURE(masterList.size() == 0 or *max_element(masterList.begin(), masterList.end()) < firstGhostNode);
+  // ENSURE(masterList.size() == 0 or *max_element(masterList.begin(), masterList.end()) < firstGhostNode);
 }
 
 //------------------------------------------------------------------------------
@@ -951,7 +975,8 @@ TreeNeighbor<Dimension>::
 setTreeMasterList(const typename Dimension::Vector& position,
                   const double& h,
                   std::vector<int>& masterList,
-                  std::vector<int>& coarseNeighbors) const {
+                  std::vector<int>& coarseNeighbors,
+                  const bool ghostConnectivity) const {
 
   // Set the working master grid level and cell.
   CellKey masterKey, ix_master, iy_master, iz_master;
@@ -960,7 +985,7 @@ setTreeMasterList(const typename Dimension::Vector& position,
   CHECK(masterLevel >= 0 and masterLevel < num1dbits);
 
   // We can just use the method based on IDs at this point.
-  this->setTreeMasterList(masterLevel, masterKey, masterList, coarseNeighbors);
+  this->setTreeMasterList(masterLevel, masterKey, masterList, coarseNeighbors, ghostConnectivity);
 }
 
 //------------------------------------------------------------------------------
