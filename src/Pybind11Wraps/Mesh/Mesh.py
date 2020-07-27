@@ -21,12 +21,12 @@ class Mesh:
 
     #...........................................................................
     # Static attributes
-    UNSETID = PYB11readonly(static=True)
-    minFacesPerZone = PYB11readonly(static=True)
-    minEdgesPerZone = PYB11readonly(static=True)
-    minNodesPerZone = PYB11readonly(static=True)
-    minEdgesPerFace = PYB11readonly(static=True)
-    minNodesPerFace = PYB11readonly(static=True)
+    UNSETID = PYB11readonly(static=True, returnpolicy="copy")
+    minFacesPerZone = PYB11readonly(static=True, returnpolicy="copy")
+    minEdgesPerZone = PYB11readonly(static=True, returnpolicy="copy")
+    minNodesPerZone = PYB11readonly(static=True, returnpolicy="copy")
+    minEdgesPerFace = PYB11readonly(static=True, returnpolicy="copy")
+    minNodesPerFace = PYB11readonly(static=True, returnpolicy="copy")
 
     #...........................................................................
     # Constructors
