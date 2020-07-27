@@ -64,8 +64,8 @@ class pair:
     # def __repr__(self):
     #     return
 
-    first = PYB11readonly(doc="first value")
-    second = PYB11readonly(doc="second value")
+    first = PYB11readonly(doc="first value", returnpolicy="copy")
+    second = PYB11readonly(doc="second value", returnpolicy="copy")
 
 # std::pair
 pair_double_string = PYB11TemplateClass(pair, template_parameters=("double", "std::string"))
