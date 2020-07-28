@@ -31,11 +31,11 @@ template<>
 void
 computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
                      const FieldList<Dim<1>, Dim<1>::SymTensor>& H,
-                     const ConnectivityMap<Dim<1> >& connectivityMap,
+                     const ConnectivityMap<Dim<1> >&,
                      const FieldList<Dim<1>, Dim<1>::SymTensor>& damage,
                      const std::vector<Dim<1>::FacetedVolume>& facetedBoundaries,
                      const std::vector<std::vector<Dim<1>::FacetedVolume> >& holes,
-                     const std::vector<Boundary<Dim<1>>*>& boundaries,
+                     const std::vector<Boundary<Dim<1>>*>&,
                      const FieldList<Dim<1>, Dim<1>::Scalar>& weight,
                      FieldList<Dim<1>, int>& surfacePoint,
                      FieldList<Dim<1>, Dim<1>::Scalar>& vol,
@@ -52,13 +52,11 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
 
   typedef Dim<1>::Scalar Scalar;
   typedef Dim<1>::Vector Vector;
-  typedef Dim<1>::SymTensor SymTensor;
   typedef Dim<1>::FacetedVolume FacetedVolume;
 
   const auto numGens = position.numNodes();
   const auto numNodeLists = position.size();
   const auto haveFacetedBoundaries = facetedBoundaries.size() == numNodeLists;
-  const auto haveBoundaries = not boundaries.empty();
   const auto haveWeights = weight.size() == numNodeLists;
   const auto haveDamage = damage.size() == numNodeLists;
   const auto returnSurface = surfacePoint.size() == numNodeLists;
@@ -82,29 +80,31 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
   typedef pair<double, pair<unsigned, unsigned> > PointCoord;
   vector<PointCoord> coords;
   coords.reserve(numGens);
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto n = position[nodeListi]->numElements();
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
       coords.push_back(make_pair(position(nodeListi, i).x(), make_pair(nodeListi, i)));
     }
   }
   sort(coords.begin(), coords.end(), ComparePairsByFirstElement<PointCoord>());
 
+#pragma omp parallel
+  {
   // Prepare some scratch variables.
   unsigned nodeListj1 = 0, nodeListj2 = 0, j1 = 0, j2 = 0;
-  Scalar rin, Hi, H1, H2, x1, x2, xi, etamax, b, xm1, xm2, thpt, weighti, weightj, wij, xmin, xmax,
-    xbound0 = -std::numeric_limits<Scalar>::max(),
-    xbound1 =  std::numeric_limits<Scalar>::max();
+  Scalar rin, Hi, H1, H2, x1, x2, xi, etamax, weighti, weightj, wij, xmin, xmax;
+  Scalar xbound0 = -std::numeric_limits<Scalar>::max();
+  Scalar xbound1 =  std::numeric_limits<Scalar>::max();
 
   // Now walk our sorted point and set the volumes and surface flags.
   const auto& nodeListPtrs = position.nodeListPtrs();
   const auto ntot = coords.size();
-#pragma omp parallel for                                                \
-  firstprivate(nodeListj1, nodeListj2, j1, j2,                          \
-               rin, Hi, H1, H2, x1, x2, xi,\
-               etamax, b, xm1, xm2, thpt, weighti, weightj, wij,        \
-               xbound0, xbound1)
-  for (auto k = 0; k < ntot; ++k) {
+#pragma omp for
+//  firstprivate(nodeListj1, nodeListj2, j1, j2,
+//               rin, Hi, H1, H2, x1, x2, xi,
+//               etamax, weighti, weightj, wij,
+//               xbound0, xbound1)
+  for (auto k = 0u; k < ntot; ++k) {
     const auto nodeListi = coords[k].second.first;
     const auto i = coords[k].second.second;
     if (i < nodeListPtrs[nodeListi]->firstGhostNode()) {
@@ -245,6 +245,11 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
     //      << endl;
 
   }
+
+  SPHERAL_UNUSED(H1);
+  SPHERAL_UNUSED(H2);
+  
+  } // End of omp parallel region.
     
 //   // Flag any points that overlap other NodeLists as multi-material.
 //   if (returnSurface) {

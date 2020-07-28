@@ -1,6 +1,7 @@
 #include "computeRKSumVolume.hh"
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "Geometry/Dimension.hh"
 
 using std::vector;
 using std::min;
@@ -14,19 +15,19 @@ namespace Spheral {
 // Function to compute the per dimension volume multiplier.
 //------------------------------------------------------------------------------
 namespace {
-template<typename Dimension> double volumeElement();
 
-template<> double volumeElement<Dim<1> >() {
+constexpr double volumeElement(const Dim<1>&) {
   return 2.0;
 }
   
-template<> double volumeElement<Dim<2> >() {
+constexpr double volumeElement(const Dim<2>&) {
   return M_PI;
 }
   
-template<> double volumeElement<Dim<3> >() {
+constexpr double volumeElement(const Dim<3>&) {
   return 4.0/3.0*M_PI;
 }
+
 }
 
 //------------------------------------------------------------------------------
@@ -37,7 +38,7 @@ void
 computeRKSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
                    const TableKernel<Dimension>& W,
                    const FieldList<Dimension, typename Dimension::Vector>& position,
-                   const FieldList<Dimension, typename Dimension::Scalar>& mass,
+                   const FieldList<Dimension, typename Dimension::Scalar>& /*mass*/,
                    const FieldList<Dimension, typename Dimension::SymTensor>& H,
                    FieldList<Dimension, typename Dimension::Scalar>& vol) {
 
@@ -46,16 +47,8 @@ computeRKSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
 
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef typename Dimension::FourthRankTensor FourthRankTensor;
-  typedef typename Dimension::FifthRankTensor FifthRankTensor;
-
   // Get the maximum allowed volume in eta space.
-  const auto etaVolMax = Dimension::pownu(0.5*W.kernelExtent()) * volumeElement<Dimension>();
+  const auto etaVolMax = Dimension::pownu(0.5*W.kernelExtent()) * volumeElement(Dimension());
 
   // Zero it out.
   vol = 0.0;
@@ -75,7 +68,7 @@ computeRKSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
     auto vol_thread = vol.threadCopy();
 
 #pragma omp for
-    for (auto k = 0; k < npairs; ++k) {
+    for (auto k = 0u; k < npairs; ++k) {
       i = pairs[k].i_node;
       j = pairs[k].j_node;
       nodeListi = pairs[k].i_list;
@@ -110,11 +103,11 @@ computeRKSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
   }
 
   // The self contribution.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto ni = vol[nodeListi]->numInternalElements();
 
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
   

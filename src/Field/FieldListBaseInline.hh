@@ -19,7 +19,7 @@ FieldListBase():
 template<typename Dimension>
 inline
 FieldListBase<Dimension>::
-FieldListBase(const FieldListBase<Dimension>& fieldListBase):
+FieldListBase(const FieldListBase<Dimension>& /*fieldListBase*/):
   mNewCoarseNodes(true),
   mNewRefineNodes(true) {
 }

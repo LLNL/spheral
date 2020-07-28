@@ -39,9 +39,9 @@ RKCorrections(const std::set<RKOrder> orders,
   mNeedHessian(needHessian),
   mWR(),
   mVolume(FieldStorageType::CopyFields),
-  mCorrections(),
   mSurfaceArea(FieldStorageType::CopyFields),
   mNormal(FieldStorageType::CopyFields),
+  mCorrections(),
   mSurfacePoint(FieldStorageType::CopyFields),
   mEtaVoidPoints(FieldStorageType::CopyFields),
   mCells(FieldStorageType::CopyFields),
@@ -186,8 +186,8 @@ registerState(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 RKCorrections<Dimension>::
-registerDerivatives(DataBase<Dimension>& dataBase,
-                    StateDerivatives<Dimension>& derivs) {
+registerDerivatives(DataBase<Dimension>& /*dataBase*/,
+                    StateDerivatives<Dimension>& /*derivs*/) {
 }
 
 //------------------------------------------------------------------------------
@@ -198,6 +198,7 @@ void
 RKCorrections<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
+  SPHERAL_UNUSED(derivs);
   // Get state variables
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -233,6 +234,7 @@ void
 RKCorrections<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
+  SPHERAL_UNUSED(derivs);
   // Get state variables
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -261,10 +263,10 @@ enforceBoundaries(State<Dimension>& state,
 template<typename Dimension>
 typename RKCorrections<Dimension>::TimeStepType
 RKCorrections<Dimension>::
-dt(const DataBase<Dimension>& dataBase, 
-   const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const Scalar currentTime) const {
+dt(const DataBase<Dimension>& /*dataBase*/, 
+   const State<Dimension>& /*state*/,
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const Scalar /*currentTime*/) const {
   return std::make_pair(std::numeric_limits<double>::max(), std::string("RKCorrections: no vote"));
 }
 
@@ -277,6 +279,7 @@ RKCorrections<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
+  SPHERAL_UNUSED(derivs);
   // Get data
   const auto& W = mWR.begin()->second.kernel();
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -327,6 +330,9 @@ initialize(const typename Dimension::Scalar time,
            const DataBase<Dimension>& dataBase,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
+  SPHERAL_UNUSED(time);
+  SPHERAL_UNUSED(dt);
+  SPHERAL_UNUSED(derivs);
   // Get data
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
@@ -368,11 +374,11 @@ initialize(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 RKCorrections<Dimension>::
-evaluateDerivatives(const Scalar time,
-                    const Scalar dt,
-                    const DataBase<Dimension>& dataBase,
-                    const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivatives) const {
+evaluateDerivatives(const Scalar /*time*/,
+                    const Scalar /*dt*/,
+                    const DataBase<Dimension>& /*dataBase*/,
+                    const State<Dimension>& /*state*/,
+                    StateDerivatives<Dimension>& /*derivatives*/) const {
 }
 
 //------------------------------------------------------------------------------
@@ -381,11 +387,11 @@ evaluateDerivatives(const Scalar time,
 template<typename Dimension>
 void
 RKCorrections<Dimension>::
-finalize(const Scalar time, 
-         const Scalar dt,
-         DataBase<Dimension>& dataBase, 
-         State<Dimension>& state,
-         StateDerivatives<Dimension>& derivs) {
+finalize(const Scalar /*time*/, 
+         const Scalar /*dt*/,
+         DataBase<Dimension>& /*dataBase*/, 
+         State<Dimension>& /*state*/,
+         StateDerivatives<Dimension>& /*derivs*/) {
 }
 
 //------------------------------------------------------------------------------
@@ -397,7 +403,7 @@ RKCorrections<Dimension>::
 addFacetedBoundary(const FacetedVolume& cell,
                    const std::vector<FacetedVolume>& holes) {
   const auto numExisting = mFacetedBoundaries.size();
-  for (auto i = 0; i < numExisting; ++i) {
+  for (auto i = 0u; i < numExisting; ++i) {
     if (cell == mFacetedBoundaries[i] and holes == mFacetedHoles[i]) {
       std::cerr << "tried to add same faceted boundary twice" << std::endl;
       return;

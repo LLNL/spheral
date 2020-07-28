@@ -642,7 +642,7 @@ operator/=(const Field<Dimension, typename Dimension::Scalar>& rhs) {
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   const unsigned n = this->numElements();
-  for (int i = 0; i < n; ++i) {
+  for (auto i = 0u; i < n; ++i) {
     (*this)(i) *= safeInvVar(rhs(i), 1.0e-60);
   }
   return *this;

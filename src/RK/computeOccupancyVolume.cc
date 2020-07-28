@@ -15,7 +15,7 @@ template<typename Dimension>
 void
 computeOccupancyVolume(const ConnectivityMap<Dimension>& connectivityMap,
                        const TableKernel<Dimension>& W,
-                       const FieldList<Dimension, typename Dimension::Vector>& position,
+                       const FieldList<Dimension, typename Dimension::Vector>&,
                        const FieldList<Dimension, typename Dimension::SymTensor>& H,
                        FieldList<Dimension, typename Dimension::Scalar>& vol) {
 
@@ -42,7 +42,7 @@ computeOccupancyVolume(const ConnectivityMap<Dimension>& connectivityMap,
     auto vol_thread = vol.threadCopy();
 
 #pragma omp for
-    for (auto k = 0; k < npairs; ++k) {
+    for (auto k = 0u; k < npairs; ++k) {
       i = pairs[k].i_node;
       j = pairs[k].j_node;
       nodeListi = pairs[k].i_list;
@@ -59,10 +59,10 @@ computeOccupancyVolume(const ConnectivityMap<Dimension>& connectivityMap,
   }   // OMP parallel
 
   // Finish the volume
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto ni = vol[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       vol(nodeListi, i) = volFactor/(Hdeti*vol(nodeListi, i));

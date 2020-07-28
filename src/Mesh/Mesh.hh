@@ -241,7 +241,7 @@ private:
 };
 
 // Declare 1D specializations.
-template<> inline void Mesh<Dim<1> >::cleanEdges(const double edgeTol) {}
+template<> inline void Mesh<Dim<1> >::cleanEdges(const double /*edgeTol*/) {}
 
 }
 

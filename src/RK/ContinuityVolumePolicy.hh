@@ -11,6 +11,7 @@
 #include <string>
 
 #include "DataBase/IncrementFieldList.hh"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
@@ -42,6 +43,9 @@ private:
   //--------------------------- Private Interface ---------------------------//
   ContinuityVolumePolicy(const ContinuityVolumePolicy& rhs);
   ContinuityVolumePolicy& operator=(const ContinuityVolumePolicy& rhs);
+  double Hvolume(const Dim<1>::SymTensor& H);
+  double Hvolume(const Dim<2>::SymTensor& H);
+  double Hvolume(const Dim<3>::SymTensor& H);
 };
 
 }

@@ -138,7 +138,7 @@ public:
   
   inline long int Count() {return 0;}
   
-  static void TimerSummary(const int bert, const int ernie) {
+  static void TimerSummary(const int, const int) {
     TimerSummary(); // backwards compatibilty...
   }
 

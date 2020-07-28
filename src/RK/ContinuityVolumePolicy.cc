@@ -17,24 +17,6 @@
 namespace Spheral {
 
 
-namespace {
-//------------------------------------------------------------------------------
-// Compute the dimension dependent volume of the H tensor.
-//------------------------------------------------------------------------------
-double Hvolume(const Dim<1>::SymTensor& H) {
-  return 2.0/H.xx();
-}
-
-double Hvolume(const Dim<2>::SymTensor& H) {
-  return M_PI/H.Determinant();
-}
-
-double Hvolume(const Dim<3>::SymTensor& H) {
-  return 4.0*M_PI/(3.0*H.Determinant());
-}
-
-}
-
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
@@ -63,8 +45,8 @@ update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
        const double multiplier,
-       const double t,
-       const double dt) {
+       const double /*t*/,
+       const double /*dt*/) {
 
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
@@ -104,6 +86,30 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
   } else {
     return true;
   }
+}
+
+//------------------------------------------------------------------------------
+// Compute the dimension dependent volume of the H tensor.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+ContinuityVolumePolicy<Dimension>::
+Hvolume(const Dim<1>::SymTensor& H){
+  return 2.0/H.xx();
+}
+
+template<typename Dimension>
+double
+ContinuityVolumePolicy<Dimension>::
+Hvolume(const Dim<2>::SymTensor& H){
+  return M_PI/H.Determinant();
+}
+
+template<typename Dimension>
+double
+ContinuityVolumePolicy<Dimension>::
+Hvolume(const Dim<3>::SymTensor& H){
+  return 4.0*M_PI/(3.0*H.Determinant());
 }
 
 }
