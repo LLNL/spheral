@@ -8,10 +8,10 @@ class Vector:
     "Spheral Geometric Vector class"
 
     # Static attributes
-    nDimensions = PYB11readonly(static=True, doc="Number of dimensions")
-    numElements = PYB11readonly(static=True, doc="Number of elements stored in the type")
-    zero = PYB11readonly(static=True, doc="The zero value equivalent")
-    one = PYB11readonly(static=True, doc="The unit value equivalent")
+    nDimensions = PYB11readonly(static=True, returnpolicy="copy", doc="Number of dimensions")
+    numElements = PYB11readonly(static=True, returnpolicy="copy", doc="Number of elements stored in the type")
+    zero = PYB11readonly(static=True, returnpolicy="copy", doc="The zero value equivalent")
+    one = PYB11readonly(static=True, returnpolicy="copy", doc="The unit value equivalent")
 
     # Constructors
     def pyinit0(self):
