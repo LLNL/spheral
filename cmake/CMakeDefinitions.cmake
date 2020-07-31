@@ -8,6 +8,12 @@ else()
     add_definitions("-DDEBUG=0")
 endif()
 
+if (CMAKE_DBC STREQUAL "All")
+    add_definitions("-DDBC_COMPILE_ALL")
+elseif (CMAKE_DBC STREQUAL "Pre")
+    add_definitions("-DDBC_COMPILE_PRE")
+endif()
+
 if (ENABLE_BOUNDCHECKING)
   add_definitions(-D_GLIBCXX_DEBUG=1)
 endif()
