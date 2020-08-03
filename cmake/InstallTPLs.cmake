@@ -6,7 +6,7 @@
 set_directory_properties(PROPERTIES CLEAN_NO_CUSTOM 1)
 
 # Initialize TPL options
-include(spheral/SpheralHandleTPL)
+include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleTPL.cmake)
 
 # If set to Off NONE of the TPLs will be built and installed
 # it is expected that the user provide locations for each one
@@ -40,9 +40,13 @@ if(NOT ENABLE_CXXONLY)
   Spheral_Handle_TPL(opensubdiv spheral_depends)
   Spheral_Handle_TPL(python spheral_depends)
   Spheral_Handle_TPL(pip spheral_py_depends)
-  include(tpl/pythonModule)
+  include(${SPHERAL_ROOT_DIR}/cmake/tpl/pythonModule.cmake)
 
   Spheral_Handle_TPL(pybind11 spheral_depends)
 endif()
 
 Spheral_Handle_TPL(polytope spheral_depends)
+
+if (EXISTS ${EXTERNAL_SPHERAL_TPL_CMAKE})
+  include(${EXTERNAL_SPHERAL_TPL_CMAKE})
+endif()
