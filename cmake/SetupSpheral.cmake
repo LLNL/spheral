@@ -55,11 +55,19 @@ if(ENABLE_OPENMP)
   list(APPEND spheral_blt_depends openmp)
 endif()
 
-
 ################################
 # Install / Locate third party libraries
 ################################
 set(SPHERAL_INSTALL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Spheral libs.")
+if (CMAKE_INSTALL_PREFIX)
+  if (NOT SPHERAL_INSTALL_DIR STREQUAL "")
+    message(WARNING "Only specify one of SPHERAL_INSTALL_DIR and CMAKE_INSTALL_PREFIX: setting values to ${SPHERAL_INSTALL_DIR}")
+    set(CMAKE_INSTALL_PREFIX ${SPHERAL_INSTALL_DIR})
+  else()
+    set(SPHERAL_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+  endif()
+endif()
+
 include(${SPHERAL_ROOT_DIR}/cmake/InstallTPLs.cmake)
 
 if(ENABLE_CXXONLY)
