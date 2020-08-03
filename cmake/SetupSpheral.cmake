@@ -5,7 +5,12 @@ include(ExternalProject)
 ################################
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -w")
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_EXPORT_COMPILE_COMMANDS On)
+
+if (NOT CMAKE_MODULE_PATH)
+  set(CMAKE_MODULE_PATH "${SPHERAL_ROOT_DIR}/cmake")
+endif()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 ################################
@@ -15,7 +20,7 @@ set(ENABLE_MPI ON CACHE BOOL "")
 set(ENABLE_OPENMP ON CACHE BOOL "")
 
 if(NOT SPHERAL_BLT_DIR) 
-  set (SPHERAL_BLT_REL_DIR "${PROJECT_SOURCE_DIR}/cmake/blt" CACHE PATH "")
+  set (SPHERAL_BLT_REL_DIR "${SPHERAL_ROOT_DIR}/cmake/blt" CACHE PATH "")
   get_filename_component(SPHERAL_BLT_DIR "${SPHERAL_BLT_REL_DIR}" ABSOLUTE)
 endif()
 
@@ -50,12 +55,20 @@ if(ENABLE_OPENMP)
   list(APPEND spheral_blt_depends openmp)
 endif()
 
-
 ################################
 # Install / Locate third party libraries
 ################################
 set(SPHERAL_INSTALL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Spheral libs.")
-include(cmake/InstallTPLs.cmake)
+if (CMAKE_INSTALL_PREFIX)
+  if (NOT SPHERAL_INSTALL_DIR STREQUAL "")
+    message(WARNING "Only specify one of SPHERAL_INSTALL_DIR and CMAKE_INSTALL_PREFIX: setting values to ${SPHERAL_INSTALL_DIR}")
+    set(CMAKE_INSTALL_PREFIX ${SPHERAL_INSTALL_DIR})
+  else()
+    set(SPHERAL_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+  endif()
+endif()
+
+include(${SPHERAL_ROOT_DIR}/cmake/InstallTPLs.cmake)
 
 if(ENABLE_CXXONLY)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/Spheral)
@@ -66,9 +79,7 @@ else()
   set(CMAKE_INSTALL_PREFIX ${PYTHON_SITE_PACKAGE_DIR})
 endif()
 
-
-include(cmake/CMakeDefinitions.cmake)
-
+include(${SPHERAL_ROOT_DIR}/cmake/CMakeDefinitions.cmake)
 
 ################################
 # Set full rpath information by default
@@ -86,4 +97,4 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}")
 # which point to directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-add_subdirectory(src)
+add_subdirectory(${SPHERAL_ROOT_DIR}/src)
