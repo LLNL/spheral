@@ -611,7 +611,7 @@ computeBufferSize(const Field<Dimension, std::vector<DataType> >& field,
   REQUIRE(rank == sendProc || rank == recvProc);
 
   // The send proc can compute the necessary size.
-  int bufSize;
+  int bufSize = 0;
   if (rank == sendProc) {
     for (std::vector<int>::const_iterator itr = packIndices.begin();
          itr != packIndices.end();
