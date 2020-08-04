@@ -22,44 +22,45 @@ macro(PYB11_GENERATE_BINDINGS PYB11_MODULE_NAME)
 
   # List directories in which spheral .py files can be found.
   set(PYTHON_ENV 
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/${PYB11_MODULE_NAME}:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/polytope:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Distributed:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/OpenMP:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/CXXTypes:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Geometry:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/PolyClipper:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Silo:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/DataOutput:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/NodeList:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Field:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/FieldList:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Kernel:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Neighbor:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Material:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/FileIO:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/DataBase:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Boundary:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Physics:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Hydro:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/ExternalForce:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Gravity:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Integrator:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Utilities:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/NodeGenerators:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/FieldOperations:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/SPH:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/RK:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/CRKSPH:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/ArtificialViscosity:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/SVPH:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Mesh:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Damage:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/SolidMaterial:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/Strength:"
-      "${PROJECT_SOURCE_DIR}/src/Pybind11Wraps/ArtificialConduction:"
-      "${PROJECT_SOURCE_DIR}/src/SimulationControl")
+      ${EXTRA_PYB11_SPHERAL_ENV_VARS}
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/${PYB11_MODULE_NAME}:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/polytope:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Distributed:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/OpenMP:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/CXXTypes:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Geometry:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/PolyClipper:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Silo:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/DataOutput:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/NodeList:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Field:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/FieldList:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Kernel:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Neighbor:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Material:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/FileIO:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/DataBase:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Boundary:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Physics:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Hydro:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/ExternalForce:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Gravity:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Integrator:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Utilities:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/NodeGenerators:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/FieldOperations:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/SPH:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/RK:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/CRKSPH:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/ArtificialViscosity:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/SVPH:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Mesh:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Damage:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/SolidMaterial:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Strength:"
+      "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/ArtificialConduction:"
+      "${SPHERAL_ROOT_DIR}/src/SimulationControl")
 
   # Format list into a one line shell friendly format
   STRING(REPLACE ";" "<->" PYTHON_ENV_STR ${PYTHON_ENV})
@@ -72,7 +73,7 @@ macro(PYB11_GENERATE_BINDINGS PYB11_MODULE_NAME)
     if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/${PYB11_MODULE_NAME}_stamp.cmake")
       # Generate stamp files at config time
       execute_process(COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
-                      ${PYTHON_EXE} ${PROJECT_SOURCE_DIR}/src/helpers/moduleCheck.py 
+                      ${PYTHON_EXE} ${SPHERAL_ROOT_DIR}/src/helpers/moduleCheck.py 
                       ${PYB11_MODULE_NAME}
                       ${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_SOURCE}
                       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -87,7 +88,7 @@ macro(PYB11_GENERATE_BINDINGS PYB11_MODULE_NAME)
   # will trigger a rebuild of the target pyb11 module
   add_custom_target(${PYB11_MODULE_NAME}_stamp ALL
                     COMMAND env PYTHONPATH=\"${PYTHON_ENV_STR}\"
-                    ${PYTHON_EXE} ${PROJECT_SOURCE_DIR}/src/helpers/moduleCheck.py
+                    ${PYTHON_EXE} ${SPHERAL_ROOT_DIR}/src/helpers/moduleCheck.py
                     ${PYB11_MODULE_NAME}
                     ${CMAKE_CURRENT_SOURCE_DIR}/${PYB11_SOURCE}
                     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
