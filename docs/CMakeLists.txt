@@ -1,4 +1,4 @@
-find_package(Sphinx)
+#find_package(Sphinx)
 message("-- Sphinx ${SPHINX_EXECUTABLE}")
  
 if(NOT SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
@@ -31,5 +31,6 @@ if(NOT SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
     -d "${SPHINX_CACHE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${SPHINX_HTML_DIR}"
+    DEPENDS ${spheral_py_depends} 
     COMMENT "Building HTML documentation with Sphinx")
 endif()

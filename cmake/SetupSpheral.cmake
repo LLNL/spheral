@@ -79,8 +79,15 @@ if (CMAKE_INSTALL_PREFIX)
     set(CMAKE_INSTALL_PREFIX ${SPHERAL_INSTALL_DIR})
   else()
     set(SPHERAL_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+    message("-- setting SPHERAL_INSTALL_DIR ${SPHERAL_INSTALL_DIR}")
   endif()
 endif()
+
+if (NOT SPHINX_EXECUTABLE)
+  set(SPHINX_FOUND true)
+  set(SPHINX_EXECUTABLE "${SPHERAL_INSTALL_DIR}/python/bin/sphinx-build" CACHE STRING "Path to sphinx documentation generator")
+endif()
+message("-- Sphinx documentation executable ${SPHINX_EXECUTABLE}")
 
 include(${SPHERAL_ROOT_DIR}/cmake/InstallTPLs.cmake)
 
@@ -120,3 +127,5 @@ add_subdirectory(${SPHERAL_ROOT_DIR}/src)
 # Add the documentation
 #-------------------------------------------------------------------------------
 add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
+
+message("** ENABLE_SPHINX ${ENABLE_SPHINX}")
