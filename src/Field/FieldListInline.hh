@@ -1168,11 +1168,11 @@ FieldList<Dimension, DataType>::operator+=(const FieldList<Dimension, DataType>&
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
-  for (unsigned i = 0; i != numFields(); ++i) 
+  for (auto i = 0u; i != numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
-  for (unsigned i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     CHECK2((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr(), (*this)[i]->nodeListPtr()->name() << " != " << rhs[i]->nodeListPtr()->name());
     *((*this)[i]) += *(rhs[i]);
   }
@@ -1811,9 +1811,9 @@ threadReduce() const {
   REQUIRE(threadMasterPtr->size() == this->size());
   if (omp_get_num_threads() > 1) {
     const auto numNL = this->size();
-    for (unsigned k = 0; k < numNL; ++k) {
+    for (auto k = 0u; k < numNL; ++k) {
       const auto n = mFieldPtrs[k]->numInternalElements();
-      for (unsigned i = 0; i < n; ++i) {
+      for (auto i = 0u; i < n; ++i) {
 
         switch (reductionType) {
 

@@ -1166,7 +1166,7 @@ inline
 void
 Field<Dimension, DataType>::deleteElement(int nodeID) {
   const unsigned originalSize = this->size();
-  SPHERAL_UNUSED(originalSize);
+  CONTRACT_VAR(originalSize);
   REQUIRE(nodeID >= 0 && nodeID < originalSize);
   mDataArray.erase(mDataArray.begin() + nodeID);
   ENSURE(mDataArray.size() == originalSize - 1);
@@ -1226,7 +1226,7 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
   // If there is ghost data, we must preserve it.
   std::vector<DataType,DataAllocator<DataType>> oldGhostValues(numGhostNodes);
   if (numGhostNodes > 0) {
-    for (unsigned i = 0; i != numGhostNodes; ++i) {
+    for (auto i = 0u; i != numGhostNodes; ++i) {
       const int j = oldFirstGhostNode + i;
       CHECK(i >= 0 && i < numGhostNodes);
       CHECK(j >= 0 && j < this->size());
@@ -1247,7 +1247,7 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
 
   // Fill the ghost data back in.
   if (numGhostNodes > 0) {
-    for (unsigned i = 0; i != numGhostNodes; ++i) {
+    for (auto i = 0u; i != numGhostNodes; ++i) {
       const int j = this->nodeList().firstGhostNode() + i;
       CHECK(i >= 0 && i < oldGhostValues.size());
       CHECK(j >= 0 && j < this->size());
@@ -1301,7 +1301,7 @@ copyElements(const std::vector<int>& fromIndices,
   REQUIRE(std::all_of(toIndices.begin(), toIndices.end(),
                       [&](const int i) { return i >= 0 and i < this->size(); }));
   const auto ni = fromIndices.size();
-  for (auto k = 0; k < (int)ni; ++k) (*this)(toIndices[k]) = (*this)(fromIndices[k]);
+  for (auto k = 0u; k < ni; ++k) (*this)(toIndices[k]) = (*this)(fromIndices[k]);
 }
 
 //------------------------------------------------------------------------------

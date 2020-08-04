@@ -198,7 +198,7 @@ void
 RKCorrections<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
-  SPHERAL_UNUSED(derivs);
+  CONTRACT_VAR(derivs);
   // Get state variables
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -234,7 +234,7 @@ void
 RKCorrections<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
-  SPHERAL_UNUSED(derivs);
+  CONTRACT_VAR(derivs);
   // Get state variables
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -279,7 +279,7 @@ RKCorrections<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
-  SPHERAL_UNUSED(derivs);
+  CONTRACT_VAR(derivs);
   // Get data
   const auto& W = mWR.begin()->second.kernel();
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -330,9 +330,9 @@ initialize(const typename Dimension::Scalar time,
            const DataBase<Dimension>& dataBase,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
-  SPHERAL_UNUSED(time);
-  SPHERAL_UNUSED(dt);
-  SPHERAL_UNUSED(derivs);
+  CONTRACT_VAR(time);
+  CONTRACT_VAR(dt);
+  CONTRACT_VAR(derivs);
   // Get data
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);

@@ -56,8 +56,8 @@ update(const KeyType& key,
        const double t,
        const double dt) {
 
-  SPHERAL_UNUSED(t);
-  SPHERAL_UNUSED(dt);
+  CONTRACT_VAR(t);
+  CONTRACT_VAR(dt);
 
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);

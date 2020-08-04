@@ -246,8 +246,8 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
 
   }
 
-  SPHERAL_UNUSED(H1);
-  SPHERAL_UNUSED(H2);
+  CONTRACT_VAR(H1);
+  CONTRACT_VAR(H2);
   
   } // End of omp parallel region.
     

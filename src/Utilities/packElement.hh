@@ -289,7 +289,7 @@ void
 unpackElement(DataType& value, 
               std::vector<char>::const_iterator& itr,
               const std::vector<char>::const_iterator& endPackedVector) {
-  SPHERAL_UNUSED(endPackedVector);
+  CONTRACT_VAR(endPackedVector);
   const int packSize = sizeof(typename DataTypeTraits<DataType>::ElementType);
   for (typename DataType::iterator valueItr = value.begin();
        valueItr != value.end();
@@ -310,7 +310,7 @@ void
 unpackElement<int>(int& value,
                    std::vector<char>::const_iterator& itr,
                    const std::vector<char>::const_iterator& endPackedVector) {
-  SPHERAL_UNUSED(endPackedVector);
+  CONTRACT_VAR(endPackedVector);
   const int packSize = sizeof(int);
   char* data = reinterpret_cast<char*>(&value);
   for (int i = 0; i != packSize; ++i, ++itr) {
@@ -377,7 +377,7 @@ void
 unpackElement<uint32_t>(uint32_t& value,
                              std::vector<char>::const_iterator& itr,
                              const std::vector<char>::const_iterator& endPackedVector) {
-  SPHERAL_UNUSED(endPackedVector);
+  CONTRACT_VAR(endPackedVector);
   const int packSize = sizeof(uint32_t);
   char* data = reinterpret_cast<char*>(&value);
   for (int i = 0; i != packSize; ++i, ++itr) {
@@ -394,7 +394,7 @@ void
 unpackElement<uint64_t>(uint64_t& value,
                                   std::vector<char>::const_iterator& itr,
                                   const std::vector<char>::const_iterator& endPackedVector) {
-  SPHERAL_UNUSED(endPackedVector);
+  CONTRACT_VAR(endPackedVector);
   const int packSize = sizeof(uint64_t);
   char* data = reinterpret_cast<char*>(&value);
   for (int i = 0; i != packSize; ++i, ++itr) {
@@ -411,7 +411,7 @@ void
 unpackElement<float>(float& value,
                      std::vector<char>::const_iterator& itr,
                      const std::vector<char>::const_iterator& endPackedVector) {
-  SPHERAL_UNUSED(endPackedVector);
+  CONTRACT_VAR(endPackedVector);
   const int packSize = sizeof(float);
   char* data = reinterpret_cast<char*>(&value);
   for (int i = 0; i != packSize; ++i, ++itr) {
@@ -428,7 +428,7 @@ void
 unpackElement<double>(double& value,
                       std::vector<char>::const_iterator& itr,
                       const std::vector<char>::const_iterator& endPackedVector) {
-  SPHERAL_UNUSED(endPackedVector);
+  CONTRACT_VAR(endPackedVector);
   const int packSize = sizeof(double);
   char* data = reinterpret_cast<char*>(&value);
   for (int i = 0; i != packSize; ++i, ++itr) {
@@ -606,7 +606,7 @@ computeBufferSize(const Field<Dimension, std::vector<DataType> >& field,
 #ifdef USE_MPI
   MPI_Comm_rank(Communicator::communicator(), &rank);
 #else
-  SPHERAL_UNUSED(recvProc);
+  CONTRACT_VAR(recvProc);
 #endif
   REQUIRE(rank == sendProc || rank == recvProc);
 

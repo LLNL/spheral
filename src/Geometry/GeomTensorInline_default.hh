@@ -2258,7 +2258,7 @@ inline
 void
 GeomTensor<1>::
 rotationalTransform(const GeomTensor<1>& R) {
-  SPHERAL_UNUSED(R);
+  CONTRACT_VAR(R);
   REQUIRE(fuzzyEqual(std::abs(R.Determinant()), 1.0, 1.0e-8));
 }
 
