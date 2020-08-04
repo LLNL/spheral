@@ -14,6 +14,7 @@ include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleTPL.cmake)
 set(BUILD_TPL ON CACHE BOOL "Define if any TPLs will be built or not.")
 
 # Default build flags for each TPL
+set(zlib_BUILD ON CACHE BOOL "Option to build zlib")
 set(boost_BUILD ON CACHE BOOL "Option to build boost")
 set(eigen_BUILD ON CACHE BOOL "Option to build eigen")
 set(qhull_BUILD ON CACHE BOOL "Option to build qhull")
@@ -28,6 +29,7 @@ set(python_BUILD ON CACHE BOOL "Option to build python")
 set(pip_BUILD ON CACHE BOOL "Option to build pip")
 
 # These libs are always needed
+Spheral_Handle_TPL(zlib spheral_depends)
 Spheral_Handle_TPL(boost spheral_depends)
 Spheral_Handle_TPL(eigen spheral_depends)
 Spheral_Handle_TPL(qhull spheral_depends)
