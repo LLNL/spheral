@@ -213,14 +213,14 @@ InflowOutflowBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>
         // Patch up the ghost and control node indices.
         vector<int> newGhostNodes, newControlNodes;
         auto newGhostIndex = myNewFirstGhostNode;
-        for (auto k = 0; k < boundaryNodes.ghostNodes.size(); ++k) {
+        for (auto k = 0u; k < boundaryNodes.ghostNodes.size(); ++k) {
           CHECK(flags(boundaryNodes.ghostNodes[k]) == 1);
           newGhostNodes.push_back(newGhostIndex);
           old2newIndexMap(nodeListi, boundaryNodes.ghostNodes[k]) = newGhostIndex;
           ++newGhostIndex;
         }
 
-        for (auto k = 0; k < boundaryNodes.controlNodes.size(); ++k) {
+        for (auto k = 0u; k < boundaryNodes.controlNodes.size(); ++k) {
           if (flags(boundaryNodes.controlNodes[k]) == 1) {
             newControlNodes.push_back(old2newIndexMap(nodeListi, boundaryNodes.controlNodes[k]));
           }
@@ -260,7 +260,7 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool /*final*/)
 
     // Remove any ghost nodes from other BCs.
     const auto firstGhostNode = nodeList.firstGhostNode();
-    nodeIDs.erase(std::remove_if(nodeIDs.begin(), nodeIDs.end(), [&](const int& x) { return x >= firstGhostNode; }), nodeIDs.end());
+    nodeIDs.erase(std::remove_if(nodeIDs.begin(), nodeIDs.end(), [&](const unsigned int& x) { return x >= firstGhostNode; }), nodeIDs.end());
 
     // cerr << "Node IDs: ";
     // std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
@@ -278,7 +278,7 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool /*final*/)
     auto& posbuf = positr->second;
     auto posvals = extractBufferedValues<Vector>(posbuf);
     const GeomPlane<Dimension> exitPlane(mPlane.point(), -nhat);
-    for (auto k = 0; k < ni; ++k) {
+    for (auto k = 0u; k < ni; ++k) {
       const auto i = nodeIDs[k];
       posvals[k] = mapPositionThroughPlanes(pos[i], mPlane, mPlane);
       // cerr << "  Ghost position: " << i << " @ " << posvals[k] << endl;
@@ -401,7 +401,7 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar /*time*/,
 
       // Build the map of ghost IDs --> new internal IDs
       vector<int> fromIDs(numNew), toIDs(numNew);
-      for (auto k = 0; k < numNew; ++k) {
+      for (auto k = 0u; k < numNew; ++k) {
         fromIDs[k] = gNodes[0] + insideNodes[k] + numNew;
         toIDs[k] = firstID + k;
       }
@@ -417,7 +417,7 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar /*time*/,
     // Look for any internal points that have exited through the plane.
     vector<int> outsideNodes;
     const auto ni = nodeList.numInternalNodes();
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
       if (mPlane.compare(pos[i]) == 1) outsideNodes.push_back(i);
     }
 

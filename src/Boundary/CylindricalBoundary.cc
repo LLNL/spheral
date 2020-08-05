@@ -80,7 +80,7 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
   vector<Vector> ghostPositions;
 
   // Iterate over the internal nodes.
-  for (int i = 0; i != nodeList.numNodes(); ++i) {
+  for (auto i = 0u; i != nodeList.numNodes(); ++i) {
 
     // The state of the node.
     const double ri = positions(i).y();
@@ -506,7 +506,7 @@ setViolationNodes(NodeList<Dim<3> >& nodeList) {
   vector<int>& vNodes = boundaryNodes.violationNodes;
   vNodes = vector<int>();
   vNodes.reserve(nodeList.numInternalNodes());
-  for (int nodeID = 0; nodeID != nodeList.numInternalNodes(); ++nodeID) 
+  for (auto nodeID = 0u; nodeID != nodeList.numInternalNodes(); ++nodeID) 
     vNodes.push_back(nodeID);
   CHECK(vNodes.size() == nodeList.numInternalNodes());
 

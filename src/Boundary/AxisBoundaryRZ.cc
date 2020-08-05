@@ -58,7 +58,7 @@ AxisBoundaryRZ::setViolationNodes(NodeList<Dimension>& nodeList) {
   const Vector runit(0.0, 1.0);
   const Field<Dimension, Vector>& positions = nodeList.positions();
   const Field<Dimension, SymTensor>& H = nodeList.Hfield();
-  for (int nodeID = 0; nodeID < nodeList.numInternalNodes(); ++nodeID) {
+  for (auto nodeID = 0u; nodeID < nodeList.numInternalNodes(); ++nodeID) {
     const double Hri = (H(nodeID)*runit).y();
     const double etari = Hri*positions(nodeID).y();
     if (etari <= mEtaMin) vNodes.push_back(nodeID);

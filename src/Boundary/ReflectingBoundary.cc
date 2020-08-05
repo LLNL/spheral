@@ -60,7 +60,7 @@ reflectFacetedVolume(const ReflectingBoundary<Dim<3>>& bc,
   const auto& plane = bc.enterPlane();
   auto verts = poly.vertices();
   const auto n = verts.size();
-  for (auto i = 0; i < n; ++i) verts[i] = bc.mapPosition(verts[i], plane, plane);
+  for (auto i = 0u; i < n; ++i) verts[i] = bc.mapPosition(verts[i], plane, plane);
   auto facets = poly.facetVertices();
   for (auto& facet: facets) reverse(facet.begin(), facet.end());
   return Dim<3>::FacetedVolume(verts, facets);

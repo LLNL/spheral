@@ -119,7 +119,7 @@ Boundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>& flagSet,
         // Patch up the ghost and control node indices.
         vector<int> newGhostNodes, newControlNodes;
         auto newGhostIndex = myNewFirstGhostNode;
-        for (auto k = 0; k < boundaryNodes.ghostNodes.size(); ++k) {
+        for (size_t k = 0; k < boundaryNodes.ghostNodes.size(); ++k) {
           if (flags(boundaryNodes.ghostNodes[k]) == 1) {
             newGhostNodes.push_back(newGhostIndex);
             old2newIndexMap(nodeListi, boundaryNodes.ghostNodes[k]) = newGhostIndex;

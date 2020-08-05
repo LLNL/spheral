@@ -171,7 +171,7 @@ PlanarBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
   // Loop over all the internal nodes in the NodeList, and put any that are 
   // below the enter plane in the list of nodes in violation.
   const Field<Dimension, Vector>& positions = nodeList.positions();
-  for (int nodeID = 0; nodeID < nodeList.numInternalNodes(); ++nodeID) {
+  for (auto nodeID = 0u; nodeID < nodeList.numInternalNodes(); ++nodeID) {
     if (positions(nodeID) < mEnterPlane) vNodes.push_back(nodeID);
   }
 
@@ -284,7 +284,7 @@ PlanarBoundary<Dimension>::setGhostNodeIndices(NodeList<Dimension>& nodeList) {
 
   // Fill in the pointers to the ghost nodes.
   ghostNodes.resize(controlNodes.size());
-  for (int i = 0; i < controlNodes.size(); ++i) {
+  for (auto i = 0u; i < controlNodes.size(); ++i) {
     CHECK(i >= 0 and i < controlNodes.size());
     CHECK(i >= 0 and i < ghostNodes.size());
     ghostNodes[i] = firstNewGhostNode + i;

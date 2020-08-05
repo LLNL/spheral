@@ -81,7 +81,7 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
   const double phicrit = 0.25*M_PI/(nPerh*kernelExtent);
 
   // Iterate over the internal nodes.
-  for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
+  for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
 
     // Have we computed the set of ghost nodes for this node yet?
     if (ghostPositions(i).size() == 0) {
@@ -201,7 +201,7 @@ updateGhostNodes(NodeList<Dim<3> >& nodeList) {
   CHECK(controlNodes.size() == ghostNodes.size());
   vector<int>::const_iterator controlItr = controlNodes.begin();
   vector<int>::const_iterator ghostItr = ghostNodes.begin();
-  for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
+  for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
     const double ri = position(i).magnitude();
     CHECK(ghostPositions(i).size() > 0);
     for (vector<Vector>::iterator ghostPositionItr = ghostPositions(i).begin();
@@ -503,7 +503,7 @@ setViolationNodes(NodeList<Dim<3> >& nodeList) {
   vector<int>& vNodes = boundaryNodes.violationNodes;
   vNodes = vector<int>();
   vNodes.reserve(nodeList.numInternalNodes());
-  for (int nodeID = 0; nodeID != nodeList.numInternalNodes(); ++nodeID) 
+  for (auto nodeID = 0u; nodeID != nodeList.numInternalNodes(); ++nodeID) 
     vNodes.push_back(nodeID);
   CHECK(vNodes.size() == nodeList.numInternalNodes());
 

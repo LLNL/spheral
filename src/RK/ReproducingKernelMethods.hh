@@ -39,7 +39,7 @@ public:
   // Access the internal state
   RKOrder order() const;
   int gradCorrectionsSize() const;
-  int hessCorrectionsSize() const;
+  unsigned int hessCorrectionsSize() const;
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
