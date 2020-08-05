@@ -141,6 +141,9 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
   If building with the Gnu compilers enable STL bound checking by passing -D_GLIBCXX_DEBUG=1 to the compiler. 
   Note, this is a very expensive option at runtime!
 
+``ENABLE_DOCS`` (On, *Off*)
+  Choose whether or not to build this documentation.
+
 ``SPHINX_EXECUTABLE``
   Specify where the Sphinx executable is that should be used to build documentation.  If not given, assumes the Spheral built Sphinx will be used.
 

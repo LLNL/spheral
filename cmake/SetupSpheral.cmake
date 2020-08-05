@@ -70,6 +70,11 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 #-------------------------------------------------------------------------------
+# Should we build sphinx documentation
+#-------------------------------------------------------------------------------
+set(ENABLE_DOCS OFF CACHE BOOL "enable sphinx Spheral documentation")
+
+#-------------------------------------------------------------------------------
 # Install / Locate third party libraries
 #-------------------------------------------------------------------------------
 set(SPHERAL_INSTALL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Spheral libs.")
