@@ -3,7 +3,7 @@ message("-- Sphinx ${SPHINX_EXECUTABLE}")
  
 if(NOT SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
   if(NOT DEFINED SPHINX_THEME)
-    set(SPHINX_THEME default)
+    set(SPHINX_THEME sphinx_rtd_theme)
   endif()
 
   if(NOT DEFINED SPHINX_THEME_DIR)
