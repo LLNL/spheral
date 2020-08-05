@@ -92,6 +92,7 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
   const vector<int>& cNodes = this->controlNodes(nodeList);
   const vector<int>& gNodes = this->ghostNodes(nodeList);
   const unsigned nvoid = gNodes.size();
+  CONTRACT_VAR(cNodes);
   CHECK(cNodes.size() == nvoid);
   
   if (nvoid > 0) {

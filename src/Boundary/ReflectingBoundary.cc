@@ -48,7 +48,6 @@ reflectFacetedVolume(const ReflectingBoundary<Dim<2>>& bc,
   const auto& plane = bc.enterPlane();
   const auto& verts0 = poly.vertices();
   const auto& facets = poly.facetVertices();
-  const auto n = verts0.size();
   vector<Vector> verts1;
   for (auto vitr = verts0.rbegin(); vitr < verts0.rend(); ++vitr) verts1.push_back(bc.mapPosition(*vitr, plane, plane));
   return Dim<2>::FacetedVolume(verts1, facets);
@@ -334,7 +333,6 @@ applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) c
   CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
   auto controlItr = this->controlBegin(nodeList);
   auto ghostItr = this->ghostBegin(nodeList);
-  const auto& op = this->reflectOperator();
   for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
     CHECK(ghostItr < this->ghostEnd(nodeList));
     CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());

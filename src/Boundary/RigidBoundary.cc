@@ -58,7 +58,6 @@ applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
   if (field.name() == HydroFieldNames::velocity) {
     ReflectingBoundary<Dimension>::applyGhostBoundary(field);
   } else {
-    const auto& nodeList = field.nodeList();
     Boundary<Dimension>::applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field));
   }
 }

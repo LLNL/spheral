@@ -140,9 +140,6 @@ setGhostNodes(NodeList<Dimension>& nodeList,
   // Add this NodeList, creating space for control & ghost nodes.
   this->addNodeList(nodeList);
 
-  // Get the Neighbor object associated with the node list.
-  Neighbor<Dimension>& neighbor = nodeList.neighbor();
-
   // Set the list of control nodes.
   BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
   vector<int>& controlNodes = boundaryNodes.controlNodes;

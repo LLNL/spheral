@@ -147,6 +147,9 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
       const int j = *ghostItr;
       const double ri = positions(i).y();
       const double zi = positions(i).x();
+      CONTRACT_VAR(j);
+      CONTRACT_VAR(ri);
+      CONTRACT_VAR(zi);
       CHECK(fuzzyEqual(positions(j).x(), zi));
       CHECK(fuzzyEqual(sqrt(FastMath::square(positions(j).y()) + FastMath::square(positions(j).z())), ri));
     }
@@ -211,6 +214,9 @@ updateGhostNodes(NodeList<Dim<3> >& nodeList) {
       const int j = *ghostItr;
       const double ri = positions(i).y();
       const double zi = positions(i).x();
+      CONTRACT_VAR(j);
+      CONTRACT_VAR(ri);
+      CONTRACT_VAR(zi);
       CHECK(fuzzyEqual(positions(j).x(), zi));
       CHECK(fuzzyEqual(sqrt(FastMath::square(positions(j).y()) + FastMath::square(positions(j).z())), ri));
     }
@@ -625,6 +631,7 @@ angularSpacing(const double ri,
   // Choose a minimum effective radius such based on whether we see more than
   // 1/4*Pi around the circumference of the ring.
   const double rmin = kernelExtent*hzi/(0.125*M_PI);
+  CONTRACT_VAR(rmin);
   CHECK(rmin > 0.0);
   const double reff = ri; // max(rmin, ri);
 

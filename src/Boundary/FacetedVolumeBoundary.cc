@@ -591,7 +591,6 @@ FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& node
 
   // Loop over these nodes, and reset their positions to valid values.
   auto&       pos = nodeList.positions();
-  auto&       H = nodeList.Hfield();
   const auto& vel = nodeList.velocity();
   vector<unsigned> potentialFacets;
   vector<Vector> intersections;
