@@ -284,11 +284,11 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 CullenDehnenViscosity<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
-                    const DataBase<Dimension>& dataBase,
-                    const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivs) const {
+evaluateDerivatives(const typename Dimension::Scalar /*time*/,
+                    const typename Dimension::Scalar /*dt*/,
+                    const DataBase<Dimension>& /*dataBase*/,
+                    const State<Dimension>& /*state*/,
+                    StateDerivatives<Dimension>& /*derivs*/) const {
 }
 
 //------------------------------------------------------------------------------
@@ -297,15 +297,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 CullenDehnenViscosity<Dimension>::
-finalizeDerivatives(const Scalar time,
+finalizeDerivatives(const Scalar /*time*/,
                     const Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
-
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef typename Dimension::FourthRankTensor FourthRankTensor;
-  typedef typename Dimension::FifthRankTensor FifthRankTensor;
 
   // The kernels
   const TableKernel<Dimension>& W = this->kernel();
@@ -359,7 +355,7 @@ finalizeDerivatives(const Scalar time,
   FieldList<Dimension, Scalar> R = dataBase.newFluidFieldList(0.0, "Cullen R limiter");
   FieldList<Dimension, Scalar> vsig = dataBase.newFluidFieldList(0.0, "Cullen signal velocity");
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const int firstGhostNodei = DvDx[nodeListi]->nodeList().firstGhostNode();
+    //const int firstGhostNodei = DvDx[nodeListi]->nodeList().firstGhostNode();
 
     // Iterate over the nodes in this node list.
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
@@ -491,9 +487,9 @@ finalizeDerivatives(const Scalar time,
 template<typename Dimension>
 void
 CullenDehnenViscosity<Dimension>::
-finalize(const typename Dimension::Scalar time,
-         const typename Dimension::Scalar dt,
-         DataBase<Dimension>& dataBase,
+finalize(const typename Dimension::Scalar /*time*/,
+         const typename Dimension::Scalar /*dt*/,
+         DataBase<Dimension>& /*dataBase*/,
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
   FieldList<Dimension, Vector> prevDvDt = state.fields("mPrevDvDt", Vector::zero);
@@ -597,10 +593,10 @@ enforceBoundaries(State<Dimension>& state,
 template<typename Dimension>
 typename CullenDehnenViscosity<Dimension>::TimeStepType
 CullenDehnenViscosity<Dimension>::
-dt(const DataBase<Dimension>& dataBase,
-   const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const Scalar currentTime) const {
+dt(const DataBase<Dimension>& /*dataBase*/,
+   const State<Dimension>& /*state*/,
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const Scalar /*currentTime*/) const {
     return TimeStepType(1.0e100, "Rate of viscosity change -- NO VOTE.");
 }
 

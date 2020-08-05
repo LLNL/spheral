@@ -186,7 +186,7 @@ public:
   void boundingBox(Vector& xmin, Vector& xmax) const;
 
   // Encapsulate the ones complement for signed (oriented) IDs.
-  static int positiveID(const int id);
+  static unsigned int positiveID(const int id);
 
   // Perform basic mesh validity checks.
   virtual std::string valid() const;

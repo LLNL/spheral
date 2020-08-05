@@ -509,10 +509,10 @@ storeNodeListOffsets(NodeListIterator begin,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+unsigned int
 Mesh<Dimension>::
 positiveID(const int id) {
-  return id < 0 ? ~id : id;
+  return id < 0 ? (unsigned)~id : (unsigned)id;
 }
 
 }

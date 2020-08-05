@@ -41,12 +41,12 @@ MorrisMonaghanReducingViscosity(ArtificialViscosity<Dimension>& q,
                                 const Scalar aMin,
                                 const Scalar aMax):
   Physics<Dimension>(),
-  mDrvAlphaDtQ(FieldStorageType::CopyFields),
-  mDrvAlphaDtL(FieldStorageType::CopyFields),
   mnhQ(nhQ),
   mnhL(nhL),
   maMin(aMin),
   maMax(aMax),
+  mDrvAlphaDtQ(FieldStorageType::CopyFields),
+  mDrvAlphaDtL(FieldStorageType::CopyFields),
   myq(q),
   mRestart(registerWithRestart(*this)) {
 }
@@ -144,7 +144,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 template<typename Dimension>
 void
 MorrisMonaghanReducingViscosity<Dimension>::
-registerState(DataBase<Dimension>& dataBase,
+registerState(DataBase<Dimension>& /*dataBase*/,
               State<Dimension>& state) {
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
   PolicyPointer reducingViscosityMultiplierPolicy(new IncrementBoundedFieldList<Dimension, Scalar>(maMin,maMax));
@@ -160,7 +160,7 @@ registerState(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 MorrisMonaghanReducingViscosity<Dimension>::
-registerDerivatives(DataBase<Dimension>& dataBase,
+registerDerivatives(DataBase<Dimension>& /*dataBase*/,
                     StateDerivatives<Dimension>& derivs) {
   derivs.enroll(mDrvAlphaDtQ);
   derivs.enroll(mDrvAlphaDtL);
@@ -172,9 +172,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 MorrisMonaghanReducingViscosity<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
-                    const DataBase<Dimension>& dataBase,
+evaluateDerivatives(const typename Dimension::Scalar /*time*/,
+                    const typename Dimension::Scalar /*dt*/,
+                    const DataBase<Dimension>& /*dataBase*/,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
   // Get Qtys for Derivs
@@ -256,10 +256,10 @@ restoreState(const FileIO& file, const string& pathName) {
 template<typename Dimension>
 typename MorrisMonaghanReducingViscosity<Dimension>::TimeStepType
 MorrisMonaghanReducingViscosity<Dimension>::
-dt(const DataBase<Dimension>& dataBase,
-   const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const Scalar currentTime) const {
+dt(const DataBase<Dimension>& /*dataBase*/,
+   const State<Dimension>& /*state*/,
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const Scalar /*currentTime*/) const {
   return TimeStepType(1.0e100, "Rate of viscosity change -- NO VOTE.");
 }
     

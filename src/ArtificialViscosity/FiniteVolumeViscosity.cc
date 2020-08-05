@@ -62,13 +62,13 @@ FiniteVolumeViscosity<Dimension>::
 Piij(const unsigned nodeListi, const unsigned i, 
      const unsigned nodeListj, const unsigned j,
      const Vector& xi,
-     const Vector& etai,
+     const Vector& /*etai*/,
      const Vector& vi,
      const Scalar rhoi,
      const Scalar csi,
      const SymTensor& Hi,
      const Vector& xj,
-     const Vector& etaj,
+     const Vector& /*etaj*/,
      const Vector& vj,
      const Scalar rhoj,
      const Scalar csj,
@@ -76,7 +76,7 @@ Piij(const unsigned nodeListi, const unsigned i,
 
   double Cl = this->mClinear;
   double Cq = this->mCquadratic;
-  const double eps2 = this->mEpsilon2;
+  //const double eps2 = this->mEpsilon2;
 
   // Grab the FieldLists scaling the coefficients.
   // These incorporate things like the Balsara shearing switch or Morris & Monaghan time evolved
@@ -135,7 +135,7 @@ initialize(const DataBase<Dimension>& dataBase,
   // Make a finite-volume estimate of the local (to each Voronoi cell) velocity
   // gradient.
   unsigned nodeListj, j;
-  Scalar Vi, Vj;
+  Scalar Vi;
   const Mesh<Dimension>& mesh = state.mesh();
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const unsigned numNodeLists = velocity.numFields();

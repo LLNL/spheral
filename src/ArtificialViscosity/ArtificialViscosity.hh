@@ -65,8 +65,8 @@ public:
                           const StateDerivatives<Dimension>& derivs,
                           ConstBoundaryIterator boundaryBegin,
                           ConstBoundaryIterator boundaryEnd,
-                          const Scalar time,
-                          const Scalar dt,
+                          const Scalar /*time*/,
+                          const Scalar /*dt*/,
                           const TableKernel<Dimension>& W);
 
   // Require all descendents to return the artificial viscous Pi = P/rho^2 as a tensor.
@@ -129,12 +129,12 @@ public:
   void epsilon2(Scalar epsilon2);
 
   // Method to return the limiter magnitude for the given node.
-  Tensor calculateLimiter(const Vector& vi,
-                          const Vector& vj,
-                          const Scalar ci,
-                          const Scalar cj,
-                          const Scalar hi,
-                          const Scalar hj,
+  Tensor calculateLimiter(const Vector& /*vi*/,
+                          const Vector& /*vj*/,
+                          const Scalar  ci,
+                          const Scalar  /*cj*/,
+                          const Scalar  hi,
+                          const Scalar  /*hj*/,
                           const int nodeListID,
                           const int nodeID) const;
 
@@ -212,7 +212,7 @@ protected:
   // Protected methods.
   virtual void calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
                                          const State<Dimension>& state,
-                                         const StateDerivatives<Dimension>& derivs,
+                                         const StateDerivatives<Dimension>& /*derivs*/,
                                          const TableKernel<Dimension>& W,
                                          ConstBoundaryIterator boundaryBegin,
                                          ConstBoundaryIterator boundaryEnd);

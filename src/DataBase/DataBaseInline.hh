@@ -17,7 +17,7 @@ DataBase<Dimension>::numNodeLists() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+unsigned int
 DataBase<Dimension>::numFluidNodeLists() const {
   return mFluidNodeListPtrs.size();
 }

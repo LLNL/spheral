@@ -62,13 +62,13 @@ Piij(const unsigned nodeListi, const unsigned i,
      const Vector& vi,
      const Scalar rhoi,
      const Scalar csi,
-     const SymTensor& Hi,
+     const SymTensor& /*Hi*/,
      const Vector& xj,
      const Vector& etaj,
      const Vector& vj,
      const Scalar rhoj,
      const Scalar csj,
-     const SymTensor& Hj) const {
+     const SymTensor& /*Hj*/) const {
 
   // If the nodes are not closing, then skip the rest and the Q is zero.
   const Vector xij = xi - xj;
