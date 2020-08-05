@@ -128,6 +128,7 @@ connectivityForNode(const NodeList<Dimension>* nodeListPtr,
                     const int nodeID) const {
   const bool ghostValid = (mBuildGhostConnectivity or
                            NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
+  CONTRACT_VAR(ghostValid);
   REQUIRE(nodeID >= 0 and 
           (nodeID < nodeListPtr->numInternalNodes()) or
           (ghostValid and nodeID < nodeListPtr->numNodes()));
@@ -149,6 +150,7 @@ connectivityForNode(const int nodeListID,
                     const int nodeID) const {
   const bool ghostValid = (mBuildGhostConnectivity or
                            NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
+  CONTRACT_VAR(ghostValid);
   REQUIRE(nodeListID >= 0 and nodeListID < mConnectivity.size());
   REQUIRE(nodeID >= 0 and 
           (nodeID < mNodeLists[nodeListID]->numInternalNodes()) or

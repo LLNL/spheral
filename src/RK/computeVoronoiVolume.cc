@@ -107,9 +107,9 @@ ClippingType<Dim<2>> {
   static std::vector<Vector> createEtaVoidPoints(const Vector& etaVoidAvg,
                                                  const int nvoid,
                                                  const double rin,
-                                                 const SymTensor& Hi,
+                                                 const SymTensor& /*Hi*/,
                                                  const SymTensor& Hinvi,
-                                                 const PolyVolume& celli) {
+                                                 const PolyVolume& /*celli*/) {
     std::vector<Vector> result;
     const auto nverts = 18;
     const auto thetaVoidAvg = atan2(etaVoidAvg.y(), etaVoidAvg.x());
@@ -214,11 +214,11 @@ ClippingType<Dim<3>> {
   }
 
   // In 3D we simply use any unclipped original vertices as void generators
-  static std::vector<Vector> createEtaVoidPoints(const Vector& etaVoidAvg,
-                                                 const int nvoid,
+  static std::vector<Vector> createEtaVoidPoints(const Vector& /*etaVoidAvg*/,
+                                                 const int /*nvoid*/,
                                                  const double rin,
                                                  const SymTensor& Hi,
-                                                 const SymTensor& Hinvi,
+                                                 const SymTensor& /*Hinvi*/,
                                                  const PolyVolume& celli) {
     std::vector<Vector> result;
     for (const auto& vert: celli) {
@@ -255,7 +255,7 @@ std::vector<CellFaceFlag> extractFaceFlags(const GeomPolygon& cell,
   const auto& facets = cell.facets();
   const auto  nfacets = facets.size();
   std::vector<CellFaceFlag> result;
-  for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
+  for (auto ifacet = 0u; ifacet < nfacets; ++ifacet) {
     const auto& facet = facets[ifacet];
     const auto& clips1 = vertexClips[facet.ipoint1()];
     const auto& clips2 = vertexClips[facet.ipoint2()];
@@ -277,15 +277,15 @@ std::vector<CellFaceFlag> extractFaceFlags(const GeomPolygon& cell,
       // CHECK(common_clips.size() == 1);  // Could be degenerate...
       const auto iclip = common_clips[0];  // Choose the first clip if there's more than one
       if (iclip < 0) {                                // Boundary clip (faceted boundary or void point)
-        result.push_back(CellFaceFlag({ifacet, -1, -1}));
+        result.push_back(CellFaceFlag({(int)ifacet, -1, -1}));
       } else {                                        // Neighbor clip, iclip is the pair index in pairs
         CHECK(iclip < pairs.size());
         CHECK((pairs[iclip].i_list == nodeListi and pairs[iclip].i_node == i) or
               (pairs[iclip].j_list == nodeListi and pairs[iclip].j_node == i));
         if (pairs[iclip].i_list == nodeListi and pairs[iclip].i_node == i) {
-          if (pairs[iclip].j_list != nodeListi) result.push_back(CellFaceFlag({ifacet, pairs[iclip].j_list, pairs[iclip].j_node}));
+          if (pairs[iclip].j_list != nodeListi) result.push_back(CellFaceFlag({(int)ifacet, pairs[iclip].j_list, pairs[iclip].j_node}));
         } else {
-          if (pairs[iclip].i_list != nodeListi) result.push_back(CellFaceFlag({ifacet, pairs[iclip].i_list, pairs[iclip].i_node}));
+          if (pairs[iclip].i_list != nodeListi) result.push_back(CellFaceFlag({(int)ifacet, pairs[iclip].i_list, pairs[iclip].i_node}));
         }
       }
     }
@@ -303,12 +303,12 @@ std::vector<CellFaceFlag> extractFaceFlags(const GeomPolyhedron& cell,
   const auto& facets = cell.facets();
   const auto  nfacets = facets.size();
   std::vector<CellFaceFlag> result;
-  for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
+  for (auto ifacet = 0u; ifacet < nfacets; ++ifacet) {
     const auto& facet = facets[ifacet];
     const auto& ipoints = facet.ipoints();
     const auto  npoints = ipoints.size();
     auto common_clips = vertexClips[ipoints[0]];
-    auto k = 1;
+    auto k = 1u;
     while (not common_clips.empty() and k < npoints) {
       std::set<int> new_clips;
       std::set_intersection(common_clips.begin(), common_clips.end(),
@@ -321,15 +321,15 @@ std::vector<CellFaceFlag> extractFaceFlags(const GeomPolyhedron& cell,
       // CHECK(common_clips.size() == 1);        // Could be degnerate...
       const auto iclip = *common_clips.begin();  // Choose the first clip if there's more than one
       if (iclip < 0) {                                // Boundary clip (faceted boundary or void point)
-        result.push_back(CellFaceFlag({ifacet, -1, -1}));
+        result.push_back(CellFaceFlag({(int)ifacet, -1, -1}));
       } else {                                        // Neighbor clip, iclip is the pair index in pairs
         CHECK(iclip < pairs.size());
         CHECK((pairs[iclip].i_list == nodeListi and pairs[iclip].i_node == i) or
               (pairs[iclip].j_list == nodeListi and pairs[iclip].j_node == i));
         if (pairs[iclip].i_list == nodeListi and pairs[iclip].i_node == i) {
-          if (pairs[iclip].j_list != nodeListi) result.push_back(CellFaceFlag({ifacet, pairs[iclip].j_list, pairs[iclip].j_node}));
+          if (pairs[iclip].j_list != nodeListi) result.push_back(CellFaceFlag({(int)ifacet, pairs[iclip].j_list, pairs[iclip].j_node}));
         } else {
-          if (pairs[iclip].i_list != nodeListi) result.push_back(CellFaceFlag({ifacet, pairs[iclip].i_list, pairs[iclip].i_node}));
+          if (pairs[iclip].i_list != nodeListi) result.push_back(CellFaceFlag({(int)ifacet, pairs[iclip].i_list, pairs[iclip].i_node}));
         }
       }
     }
@@ -367,10 +367,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
   REQUIRE(deltaMedian.size() == position.size());
   REQUIRE(holes.size() == facetedBoundaries.size());
 
-  typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::FacetedVolume FacetedVolume;
   typedef typename ClippingType<Dimension>::Plane Plane;
   typedef typename ClippingType<Dimension>::PolyVolume PolyVolume;
 
@@ -378,7 +375,6 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
   const auto numNodeLists = position.size();
   const auto numGensGlobal = allReduce(numGens, MPI_SUM, Communicator::communicator());
   const auto haveFacetedBoundaries = facetedBoundaries.size() == numNodeLists;
-  const auto haveBoundaries = not boundaries.empty();
   const auto haveWeights = weight.size() == numNodeLists;
   const auto haveDamage = false;  // damage.size() == numNodeLists;   // Suspending the idea of forcing surface based on damage
   const auto returnSurface = surfacePoint.size() == numNodeLists;
@@ -408,7 +404,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
     FieldList<Dimension, vector<Plane>> pairPlanes(FieldStorageType::CopyFields);
     FieldList<Dimension, vector<Plane>> voidPlanes(FieldStorageType::CopyFields);
     FieldList<Dimension, int> cumNumVoidPoints(FieldStorageType::CopyFields);
-    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
       polycells.appendNewField("polycells", vol[nodeListi]->nodeList(), cell0);
       pairPlanes.appendNewField("pair planes", vol[nodeListi]->nodeList(), vector<Plane>());
       voidPlanes.appendNewField("void planes", vol[nodeListi]->nodeList(), vector<Plane>());
@@ -425,10 +421,10 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       //==========================================================================
       // First pass: clip by any faceted boundaries/holes.
       // cerr << "FIRST pass after polyhedral boundary clipping" << endl;
-      for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+      for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
         const auto ni = position[nodeListi]->numInternalElements();
 #pragma omp for
-        for (auto i = 0; i < ni; ++i) {
+        for (auto i = 0u; i < ni; ++i) {
 
           // Initialize the per point polygon by scaling by its H extent
           const auto& ri = position(nodeListi, i);
@@ -446,7 +442,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
             const auto& facets = facetedBoundaries[nodeListi].facets();
             const auto nfacets = facets.size();
             CHECK(facetedBoundaries[nodeListi].contains(ri, false));
-            for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
+            for (auto ifacet = 0u; ifacet < nfacets; ++ifacet) {
               const auto& facet = facets[ifacet];
               const auto p = facet.closestPoint(ri);
               auto rji = p - ri;
@@ -468,7 +464,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
               CHECK(not hole.contains(ri, false));
               const auto& facets = hole.facets();
               const auto  nfacets = facets.size();
-              for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
+              for (auto ifacet = 0u; ifacet < nfacets; ++ifacet) {
                 const auto& facet = facets[ifacet];
                 const auto p = facet.closestPoint(ri);
                 auto rji = p - ri;
@@ -515,7 +511,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       auto pairPlanes_thread = pairPlanes.threadCopy();
 
 #pragma omp for
-      for (auto kk = 0; kk < npairs; ++kk) {
+      for (auto kk = 0u; kk < npairs; ++kk) {
         i = pairs[kk].i_node;
         j = pairs[kk].j_node;
         nodeListi = pairs[kk].i_list;
@@ -558,10 +554,10 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       auto etaVoidPoints_thread = etaVoidPoints.threadCopy();
       auto cumNumVoidPoints_thread = cumNumVoidPoints.threadCopy();
       PolyVolume celli;
-      for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+      for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
         const auto ni = position[nodeListi]->numInternalElements();
 // #pragma omp parallel for
-        for (auto i = 0; i < ni; ++i) {
+        for (auto i = 0u; i < ni; ++i) {
           const auto& Hi = H(nodeListi, i);
           const auto  Hinvi = Hi.Inverse();
           auto        pairPlanesi = pairPlanes(nodeListi, i);  // Deliberately make a copy
@@ -630,9 +626,9 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
     // Compute the actual cumulative number of void points.
     {
       auto tot = 0;
-      for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+      for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
         const auto n = vol[nodeListi]->numInternalElements();
-        for (auto i = 0; i < n; ++i) {
+        for (auto i = 0u; i < n; ++i) {
           tot += cumNumVoidPoints(nodeListi, i);
           cumNumVoidPoints(nodeListi, i) = tot;
         }
@@ -657,7 +653,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       int i, j, nodeListi, nodeListj;
       auto voidPlanes_thread = voidPlanes.threadCopy();
 #pragma omp for
-      for (auto kk = 0; kk < npairs; ++kk) {
+      for (auto kk = 0u; kk < npairs; ++kk) {
         i = pairs[kk].i_node;
         j = pairs[kk].j_node;
         nodeListi = pairs[kk].i_list;
@@ -679,14 +675,14 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         auto&       voidPlanesj = voidPlanes_thread(nodeListj, j);
         const auto  joff = ivoidoff - cumNumVoidPoints(nodeListj, j);
 
-        for (auto k = 0; k < etaVoidPointsj.size(); ++k) {
+        for (auto k = 0u; k < etaVoidPointsj.size(); ++k) {
           const auto& etaVoid = etaVoidPointsj[k];
           const auto rji = Hinvj*etaVoid + 0.5*(rj - ri);
           const auto nhat = -rji.unitVector();
           voidPlanesi.push_back(Plane(rji, nhat, ~k + joff));
         }
 
-        for (auto k = 0; k < etaVoidPointsi.size(); ++k) {
+        for (auto k = 0u; k < etaVoidPointsi.size(); ++k) {
           const auto& etaVoid = etaVoidPointsi[k];
           const auto rij = Hinvi*etaVoid + 0.5*(ri - rj);
           const auto nhat = -rij.unitVector();
@@ -703,10 +699,10 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
 
       // Now we can do the void clipping, compute the final volumes, and finalize
       // surface detection.
-      for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
         const auto n = vol[nodeListi]->numInternalElements();
 #pragma omp parallel for
-        for (auto i = 0; i < n; ++i) {
+        for (auto i = 0u; i < n; ++i) {
           const auto& ri = position(nodeListi, i);
           const auto& Hi = H(nodeListi, i);
           const auto  Hinvi = Hi.Inverse();
@@ -715,7 +711,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           auto        voidPlanesi = voidPlanes(nodeListi, i);  // Deliberate copy for thread safety
 
           // Add our own void points to the set.
-          for (auto k = 0; k < etaVoidPointsi.size(); ++k) {
+          for (auto k = 0u; k < etaVoidPointsi.size(); ++k) {
             const auto& etaVoid = etaVoidPointsi[k];
             const auto rji = Hinvi*etaVoid;
             const auto nhat = -rji.unitVector();

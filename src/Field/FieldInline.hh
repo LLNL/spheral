@@ -184,7 +184,7 @@ Field<Dimension, DataType>::operator=(const FieldBase<Dimension>& rhs) {
       FieldBase<Dimension>::operator=(rhs);
       mDataArray = rhsPtr->mDataArray;
       mValid = rhsPtr->mValid;
-    } catch (std::bad_cast) {
+    } catch (const std::bad_cast &) {
       VERIFY2(false, "Attempt to assign a field to an incompatible field type.");
     }
   }
@@ -253,7 +253,7 @@ Field<Dimension, DataType>::operator==(const FieldBase<Dimension>& rhs) const {
     const Field<Dimension, DataType>* rhsPtr = dynamic_cast<const Field<Dimension, DataType>*>(&rhs);
     if (rhsPtr == 0) return false;
     return CrappyFieldCompareMethod<DataType>::compare(mDataArray, rhsPtr->mDataArray);
-  } catch (std::bad_cast) {
+  } catch (const std::bad_cast &) {
     return false;
   }
 }
@@ -642,7 +642,7 @@ operator/=(const Field<Dimension, typename Dimension::Scalar>& rhs) {
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   const unsigned n = this->numElements();
-  for (int i = 0; i < n; ++i) {
+  for (auto i = 0u; i < n; ++i) {
     (*this)(i) *= safeInvVar(rhs(i), 1.0e-60);
   }
   return *this;
@@ -1132,7 +1132,7 @@ Field<Dimension, DataType>::setNodeList(const NodeList<Dimension>& nodeList) {
   this->setFieldBaseNodeList(nodeList);
   mDataArray.resize(nodeList.numNodes());
   if (this->size() > oldSize) {
-    for (int i = oldSize; i < this->size(); ++i) {
+    for (unsigned i = oldSize; i < this->size(); ++i) {
       (*this)(i) = DataTypeTraits<DataType>::zero();
     }
   }
@@ -1166,6 +1166,7 @@ inline
 void
 Field<Dimension, DataType>::deleteElement(int nodeID) {
   const unsigned originalSize = this->size();
+  CONTRACT_VAR(originalSize);
   REQUIRE(nodeID >= 0 && nodeID < originalSize);
   mDataArray.erase(mDataArray.begin() + nodeID);
   ENSURE(mDataArray.size() == originalSize - 1);
@@ -1225,7 +1226,7 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
   // If there is ghost data, we must preserve it.
   std::vector<DataType,DataAllocator<DataType>> oldGhostValues(numGhostNodes);
   if (numGhostNodes > 0) {
-    for (int i = 0; i != numGhostNodes; ++i) {
+    for (auto i = 0u; i != numGhostNodes; ++i) {
       const int j = oldFirstGhostNode + i;
       CHECK(i >= 0 && i < numGhostNodes);
       CHECK(j >= 0 && j < this->size());
@@ -1246,7 +1247,7 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
 
   // Fill the ghost data back in.
   if (numGhostNodes > 0) {
-    for (int i = 0; i != numGhostNodes; ++i) {
+    for (auto i = 0u; i != numGhostNodes; ++i) {
       const int j = this->nodeList().firstGhostNode() + i;
       CHECK(i >= 0 && i < oldGhostValues.size());
       CHECK(j >= 0 && j < this->size());
@@ -1300,7 +1301,7 @@ copyElements(const std::vector<int>& fromIndices,
   REQUIRE(std::all_of(toIndices.begin(), toIndices.end(),
                       [&](const int i) { return i >= 0 and i < this->size(); }));
   const auto ni = fromIndices.size();
-  for (auto k = 0; k < ni; ++k) (*this)(toIndices[k]) = (*this)(fromIndices[k]);
+  for (auto k = 0u; k < ni; ++k) (*this)(toIndices[k]) = (*this)(fromIndices[k]);
 }
 
 //------------------------------------------------------------------------------

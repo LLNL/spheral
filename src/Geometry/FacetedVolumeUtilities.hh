@@ -48,7 +48,7 @@ computeAncillaryGeometry(const PolyType& poly,
       vertexFacetConnectivity[vi].push_back(fi);
     }
   }
-  for (auto i = 0; i < nverts; ++i) {
+  for (auto i = 0u; i < nverts; ++i) {
     std::sort(vertexFacetConnectivity[i].begin(), vertexFacetConnectivity[i].end());
     vertexFacetConnectivity[i].erase(std::unique(vertexFacetConnectivity[i].begin(), vertexFacetConnectivity[i].end()), vertexFacetConnectivity[i].end());
   }
@@ -62,7 +62,7 @@ computeAncillaryGeometry(const PolyType& poly,
         std::copy(vertexFacets.begin(), vertexFacets.end(), std::back_inserter(facetFacetConnectivity[fi]));
       }
     }
-    for (auto i = 0; i < nfacets; ++i) {
+    for (auto i = 0u; i < nfacets; ++i) {
       std::sort(facetFacetConnectivity[i].begin(), facetFacetConnectivity[i].end());
       facetFacetConnectivity[i].erase(std::unique(facetFacetConnectivity[i].begin(), facetFacetConnectivity[i].end()), facetFacetConnectivity[i].end());
       CHECK(find(facetFacetConnectivity[i].begin(), facetFacetConnectivity[i].end(), i) != facetFacetConnectivity[i].end());
@@ -74,7 +74,7 @@ computeAncillaryGeometry(const PolyType& poly,
 
   // Find the normals to the surface at each vertex.
   vertexUnitNormals = vector<Vector>(nverts);
-  for (auto i = 0; i < nverts; ++i) {
+  for (auto i = 0u; i < nverts; ++i) {
     for (const auto fi: vertexFacetConnectivity[i]) {
       vertexUnitNormals[i] += facets[fi].normal()*safeInvVar(facets[fi].area());
     }
