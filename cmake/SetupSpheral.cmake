@@ -127,5 +127,3 @@ add_subdirectory(${SPHERAL_ROOT_DIR}/src)
 # Add the documentation
 #-------------------------------------------------------------------------------
 add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
-
-message("** ENABLE_SPHINX ${ENABLE_SPHINX}")
