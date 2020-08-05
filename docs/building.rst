@@ -95,21 +95,21 @@ OpenMP and MPI support is handled through BLT.  Use the option flags ``-DENABLE_
 CMake variables
 --------------------
 
-In this section we list the CMake variables that can be tweaked for a Spheral build.  Where appropriate the options are listed, with the default value in bold.
+In this section we list the CMake variables that can be tweaked for a Spheral build.  Where appropriate the options are listed, with the default value in *italics*.
 
-``CMAKE_BUILD_TYPE``   (Debug, **Release**, RelWithDebInfo, MinSizeRel)
+``CMAKE_BUILD_TYPE``   (Debug, *Release*, RelWithDebInfo, MinSizeRel)
   Choose the type of build -- for more information see the `Cmake documentation <https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html>`_.
 
 ``CMAKE_INSTALL_PREFIX``
   The top-level path for installing Spheral include files, libraries, and any Python modules or documentation.  This is synonymous with and replaces the older ``SPHERAL_INSTALL_DIR``.
 
-``ENABLE_CXXONLY`` (On, **Off**)
+``ENABLE_CXXONLY`` (On, *Off*)
   Do not build python wrappers for Spheral.
 
-``ENABLE_STATIC_CXXONLY`` (On, **Off**)
+``ENABLE_STATIC_CXXONLY`` (On, *Off*)
   Do not build python wrappers for Spheral. Build static library files for Spheral.
 
-``BUILD_TPLS`` (**On**, Off)
+``BUILD_TPLS`` (*On*, Off)
   Option to install TPLs or not during configuration stage.
 
 ``<TPL-Name-Here>_DIR``
@@ -119,32 +119,32 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
   URL or local path to zip/tar file of TPL to download and install.
   Defaults to CMake defined URL/cache,  see cmake/InstallLibraries.cmake
 
-``<TPL-Name-Here>_BUILD`` (**On**, Off)
+``<TPL-Name-Here>_BUILD`` (*On*, Off)
   Tell the build system to build or not to build the given TPL. A ``<TPL>_DIR`` must be provided, otherwise it will search a default directory.
 
-``ENABLE_OPENMP`` (**On**, Off)
+``ENABLE_OPENMP`` (*On*, Off)
   Support for OpenMP.
 
-``ENABLE_MPI`` (**On**, Off)
+``ENABLE_MPI`` (*On*, Off)
   Support for MPI.
 
-``ENABLE_2D`` (**On**, Off)
+``ENABLE_2D`` (*On*, Off)
   Build Spheral with 2D support.
 
-``ENABLE_3D`` (**On**, Off)
+``ENABLE_3D`` (*On*, Off)
   Build Spheral with 3D support.
 
-``ENABLE_TIMER`` (**On**, Off)
+``ENABLE_TIMER`` (*On*, Off)
   Enable timer information from Spheral.
 
-``ENABLE_BOUNDCHECKING`` (On, **Off**)
+``ENABLE_BOUNDCHECKING`` (On, *Off*)
   If building with the Gnu compilers enable STL bound checking by passing -D_GLIBCXX_DEBUG=1 to the compiler. 
   Note, this is a very expensive option at runtime!
 
 ``SPHINX_EXECUTABLE``
   Specify where the Sphinx executable is that should be used to build documentation.  If not given, assumes the Spheral built Sphinx will be used.
 
-``SPHINX_THEME`` (**default**)
+``SPHINX_THEME`` (*sphinx_rtd_theme*)
   Give the Sphinx theme to use when generating documentation.  Default based on read the docs theme.
 
 ``SPHINX_THEME_DIR``
