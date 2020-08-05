@@ -50,8 +50,8 @@ struct Plane2d {
 //------------------------------------------------------------------------------
 struct Plane3d {
   typedef Spheral::Dim<3>::Vector Vector;
-  Vector normal;                     // Unit normal
   double dist;                       // Signed distance to the origin
+  Vector normal;                     // Unit normal
   int ID;                            // ID for the plane, used to label vertices
   Plane3d()                                                  : dist(0.0), normal(1,0,0), ID(std::numeric_limits<int>::min()) {}
   Plane3d(const double d, const Vector& nhat)                : dist(d), normal(nhat), ID(std::numeric_limits<int>::min()) {}

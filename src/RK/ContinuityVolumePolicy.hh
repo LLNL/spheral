@@ -11,6 +11,7 @@
 #include <string>
 
 #include "DataBase/IncrementFieldList.hh"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 

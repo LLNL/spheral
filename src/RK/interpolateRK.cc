@@ -104,7 +104,7 @@ struct IncrementElement: public boost::static_visitor<> {
 
   template<typename A, typename B>
   inline
-  void operator()(A& x, const B& y) const { VERIFY(false); }
+  void operator()(A&, const B&) const { VERIFY(false); }
 
   template<typename FieldListType>
   inline
@@ -136,7 +136,7 @@ struct IncrementFieldList: public boost::static_visitor<> {
 
   template<typename A, typename B>
   inline
-  void operator()(A& x, const B& y) const { VERIFY(false); }
+  void operator()(A&, const B&) const { VERIFY(false); }
 
   template<typename FieldListType>
   inline
@@ -175,11 +175,7 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
 
   TIME_interpolateRK.start();
 
-  typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
   typedef vector<variant<FieldList<Dimension, typename Dimension::Scalar>,
                          FieldList<Dimension, typename Dimension::Vector>,
                          FieldList<Dimension, typename Dimension::Tensor>,
@@ -223,7 +219,7 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
     int i, j, nodeListi, nodeListj;
 
 #pragma omp for
-    for (auto kk = 0; kk < npairs; ++kk) {
+    for (auto kk = 0u; kk < npairs; ++kk) {
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
       nodeListi = pairs[kk].i_list;
@@ -253,7 +249,7 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
         const auto Wi = WR.evaluateKernel(-rij, Hi, correctionsj);
 
         // Increment the pair-wise values.
-        for (auto k = 0; k < numFieldLists; ++k) {
+        for (auto k = 0u; k < numFieldLists; ++k) {
           boost::apply_visitor(IncrementElement(nodeListi, i, nodeListj, j, wj*Wj), localResult[k], fieldLists[k]);
           boost::apply_visitor(IncrementElement(nodeListj, j, nodeListi, i, wi*Wi), localResult[k], fieldLists[k]);
         }
@@ -263,17 +259,17 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
     // Merge the local to global result
 #pragma omp critical
     {
-      for (auto k = 0; k < numFieldLists; ++k) {
+      for (auto k = 0u; k < numFieldLists; ++k) {
         boost::apply_visitor(IncrementFieldList(), result[k], localResult[k]);
       }
     }
   }
 
   // Add the self contribution.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto n = position[nodeListi]->nodeList().numInternalNodes();
 #pragma omp parallel for
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
 
       // Get the state for node i.
       const auto& Hi = H(nodeListi, i);
@@ -281,7 +277,7 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
       const auto  Wj = WR.evaluateKernel(Vector::zero, Hi, correctionsi);
 
       // Add the self-contribution to each FieldList.
-      for (auto k = 0; k < numFieldLists; ++k) {
+      for (auto k = 0u; k < numFieldLists; ++k) {
         boost::apply_visitor(IncrementElement(nodeListi, i, nodeListi, i, weight(nodeListi, i)*Wj), result[k], fieldLists[k]);
       }
     }

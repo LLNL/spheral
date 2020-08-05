@@ -18,6 +18,8 @@ inline
 GeomSymmetricTensor<1>::size_type
 GeomSymmetricTensor<1>::elementIndex(const GeomSymmetricTensor<1>::size_type row,
                                      const GeomSymmetricTensor<1>::size_type column) const {
+  CONTRACT_VAR(row);
+  CONTRACT_VAR(column);
   REQUIRE(row < 1);
   REQUIRE(column < 1);
   return 0;
@@ -78,6 +80,7 @@ GeomSymmetricTensor(const double a11, const double a12,
                     const double a21, const double a22):
   GeomSymmetricTensorBase<2>(a11, a12,
                                   a22) {
+  CONTRACT_VAR(a21);
   REQUIRE(a12 == a21);
 }
 
@@ -90,6 +93,9 @@ GeomSymmetricTensor(const double a11, const double a12, const double a13,
   GeomSymmetricTensorBase<3>(a11, a12, a13,
                                   a22, a23,
                                        a33) {
+  CONTRACT_VAR(a21);
+  CONTRACT_VAR(a31);
+  CONTRACT_VAR(a32);
   REQUIRE(a12 == a21);
   REQUIRE(a13 == a31);
   REQUIRE(a23 == a32);
@@ -495,22 +501,22 @@ GeomSymmetricTensor<nDim>::zz(double val) {
 
 //------------------------------------------------------------------------------
 // 1D dummy elements
-template<> inline void GeomSymmetricTensor<1>::xy(const double val) {}
-template<> inline void GeomSymmetricTensor<1>::xz(const double val) {}
-template<> inline void GeomSymmetricTensor<1>::yx(const double val) {}
-template<> inline void GeomSymmetricTensor<1>::yy(const double val) {}
-template<> inline void GeomSymmetricTensor<1>::yz(const double val) {}
-template<> inline void GeomSymmetricTensor<1>::zx(const double val) {}
-template<> inline void GeomSymmetricTensor<1>::zy(const double val) {}
-template<> inline void GeomSymmetricTensor<1>::zz(const double val) {}
+template<> inline void GeomSymmetricTensor<1>::xy(const double /*val*/) {}
+template<> inline void GeomSymmetricTensor<1>::xz(const double /*val*/) {}
+template<> inline void GeomSymmetricTensor<1>::yx(const double /*val*/) {}
+template<> inline void GeomSymmetricTensor<1>::yy(const double /*val*/) {}
+template<> inline void GeomSymmetricTensor<1>::yz(const double /*val*/) {}
+template<> inline void GeomSymmetricTensor<1>::zx(const double /*val*/) {}
+template<> inline void GeomSymmetricTensor<1>::zy(const double /*val*/) {}
+template<> inline void GeomSymmetricTensor<1>::zz(const double /*val*/) {}
 
 //------------------------------------------------------------------------------
 // 2D dummy elements
-template<> inline void GeomSymmetricTensor<2>::xz(const double val) {}
-template<> inline void GeomSymmetricTensor<2>::yz(const double val) {}
-template<> inline void GeomSymmetricTensor<2>::zx(const double val) {}
-template<> inline void GeomSymmetricTensor<2>::zy(const double val) {}
-template<> inline void GeomSymmetricTensor<2>::zz(const double val) {}
+template<> inline void GeomSymmetricTensor<2>::xz(const double /*val*/) {}
+template<> inline void GeomSymmetricTensor<2>::yz(const double /*val*/) {}
+template<> inline void GeomSymmetricTensor<2>::zx(const double /*val*/) {}
+template<> inline void GeomSymmetricTensor<2>::zy(const double /*val*/) {}
+template<> inline void GeomSymmetricTensor<2>::zz(const double /*val*/) {}
 
 //------------------------------------------------------------------------------
 // Access the individual rows of the GeomSymmetricTensor.
@@ -2035,6 +2041,7 @@ inline
 void
 GeomSymmetricTensor<1>::
 rotationalTransform(const GeomTensor<1>& R) {
+  CONTRACT_VAR(R);
   REQUIRE2(fuzzyEqual(std::abs(R.Determinant()), 1.0, 1.0e-5), R);
 }
 
@@ -2379,10 +2386,7 @@ inline
 Spheral::GeomSymmetricTensor<nDim>
 min(const double minValue, const Spheral::GeomSymmetricTensor<nDim>& tensor) {
 
-  typedef Spheral::GeomVector<nDim> Vector;
-  typedef Spheral::GeomTensor<nDim> Tensor;
   typedef Spheral::GeomSymmetricTensor<nDim> SymTensor;
-
 
   // Get the eigen values and eigen vectors.
   Spheral::EigenStruct<nDim> eigen = tensor.eigenVectors();
@@ -2415,8 +2419,6 @@ inline
 Spheral::GeomSymmetricTensor<nDim>
 max(const double maxValue, const Spheral::GeomSymmetricTensor<nDim>& tensor) {
 
-  typedef Spheral::GeomVector<nDim> Vector;
-  typedef Spheral::GeomTensor<nDim> Tensor;
   typedef Spheral::GeomSymmetricTensor<nDim> SymTensor;
 
   // Get the eigen values and eigen vectors.

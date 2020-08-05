@@ -13,7 +13,7 @@ template<typename Value>
 Field<Dimension, Value>&
 StateBase<Dimension>::
 field(const typename StateBase<Dimension>::KeyType& key, 
-      const Value& dummy) const {
+      const Value&) const {
   try {
     return dynamic_cast<Field<Dimension, Value>&>(this->getAny<FieldBase<Dimension>>(key));
   } catch (...) {
@@ -29,7 +29,7 @@ template<typename Value>
 inline
 std::vector<Field<Dimension, Value>*>
 StateBase<Dimension>::
-allFields(const Value& dummy) const {
+allFields(const Value&) const {
   std::vector<Field<Dimension, Value>*> result;
   KeyType fieldName, nodeListName;
   for (auto itr = mStorage.begin();
@@ -90,7 +90,7 @@ getAny(const typename StateBase<Dimension>::KeyType& key) const {
   try {
     Value& result = *boost::any_cast<Value*>(mStorage.find(key)->second);
     return result;
-  } catch (boost::bad_any_cast) {
+  } catch (const boost::bad_any_cast&) {
     VERIFY2(false, "StateBase::getAny ERROR: unable to extract Value for " << key << "\n");
   }
 }
@@ -101,7 +101,7 @@ template<typename Value>
 Value&
 StateBase<Dimension>::
 getAny(const typename StateBase<Dimension>::KeyType& key,
-       const Value& dummy) const {
+       const Value&) const {
   return this->getAny<Value>(key);
 }
 

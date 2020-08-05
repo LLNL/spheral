@@ -56,6 +56,9 @@ update(const KeyType& key,
        const double t,
        const double dt) {
 
+  CONTRACT_VAR(t);
+  CONTRACT_VAR(dt);
+
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::volume and 
@@ -69,9 +72,9 @@ update(const KeyType& key,
 
   // Loop over the internal values of the field.
   const auto numNodeLists = volume.size();
-  for (auto k = 0; k != numNodeLists; ++k) {
+  for (auto k = 0u; k != numNodeLists; ++k) {
     const auto n = volume[k]->numInternalElements();
-    for (auto i = 0; i != n; ++i) {
+    for (auto i = 0u; i != n; ++i) {
       const auto circi = 2.0*M_PI*abs(pos(k,i).y());
       CHECK(circi > 0.0);
       const auto volMin = 0.5*mass(k,i)*safeInvVar(circi*rho(k,i));

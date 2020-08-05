@@ -63,21 +63,21 @@ nth_root(double x) {
 // Quake 3 method for computing a fast 1/sqrt.
 // Assumes IEEE floats!
 //------------------------------------------------------------------------------
-inline
-float Quake3InvSqrtf(float x) {
-  const float xhalf = 0.5f * x;
-  int i = *(int*)(&x);
-  i = 0x5f3759df - (i >> 1);
-  x = *(float*)(&i);
-  x = x*(1.5f - xhalf*x*x);
-  x = x*(1.5f - xhalf*x*x);
-  return x;
-}
-
-inline
-float Quake3Sqrtf(float x) {
-  return x*Quake3InvSqrtf(x);
-}
+//inline
+//float Quake3InvSqrtf(float x) {
+//  const float xhalf = 0.5f * x;
+//  int i = *(int*)(&x);
+//  i = 0x5f3759df - (i >> 1);
+//  x = *(float*)(&i);
+//  x = x*(1.5f - xhalf*x*x);
+//  x = x*(1.5f - xhalf*x*x);
+//  return x;
+//}
+//
+//inline
+//float Quake3Sqrtf(float x) {
+//  return x*Quake3InvSqrtf(x);
+//}
 
 //------------------------------------------------------------------------------
 // A iterative sqrt estimate.  This appears to start with a very similar trick

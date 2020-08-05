@@ -16,8 +16,8 @@ namespace Spheral {
 template<>
 inline
 GeomVector<1>::GeomVector(const double x,
-                          const double y,
-                          const double z):
+                          const double /*y*/,
+                          const double /*z*/):
   GeomVectorBase<1>(x) {
 }
 
@@ -25,7 +25,7 @@ template<>
 inline
 GeomVector<2>::GeomVector(const double x,
                           const double y,
-                          const double z):
+                          const double /*z*/):
   GeomVectorBase<2>(x, y) {
 }
 
@@ -286,7 +286,7 @@ GeomVector<nDim>::y(const double val) {
 template<>
 inline
 void
-GeomVector<1>::y(const double val) {
+GeomVector<1>::y(const double /*val*/) {
 }
 
 //------------------------------------------------------------------------------
@@ -303,13 +303,13 @@ GeomVector<nDim>::z(const double val) {
 template<>
 inline
 void
-GeomVector<1>::z(const double val) {
+GeomVector<1>::z(const double /*val*/) {
 }
 
 template<>
 inline
 void
-GeomVector<2>::z(const double val) {
+GeomVector<2>::z(const double /*val*/) {
 }
 
 //------------------------------------------------------------------------------
@@ -915,7 +915,7 @@ GeomVector<2>::cross(const GeomVector<2>& vec) const {
 template<>
 inline
 GeomVector<3>
-GeomVector<1>::cross(const GeomVector<1>& vec) const {
+GeomVector<1>::cross(const GeomVector<1>&) const {
   return GeomVector<3>(0.0, 0.0, 0.0);
 }
 

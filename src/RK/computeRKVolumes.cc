@@ -41,7 +41,6 @@ computeRKVolumes(const ConnectivityMap<Dimension>& connectivityMap,
                  FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags,
                  FieldList<Dimension, typename Dimension::Scalar>& volume) {
   typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::FacetedVolume FacetedVolume;
   
   switch(volumeType) {
   case RKVolumeType::RKMassOverDensity:

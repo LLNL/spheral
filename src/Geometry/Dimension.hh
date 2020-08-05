@@ -53,8 +53,8 @@ public:
 
   static double rootnu(const double& x) { return x; }
   static double pownu(const double& x) { return x; }
-  static double pownu1(const double& x) { return 1.0; }
-  static double pownu12(const double& x) { return 1.0; }
+  static double pownu1(const double& /*x*/) { return 1.0; }
+  static double pownu12(const double& /*x*/) { return 1.0; }
 };
 
 template<>

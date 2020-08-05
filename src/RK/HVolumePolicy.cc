@@ -24,8 +24,8 @@ namespace Spheral {
 template<typename Dimension>
 HVolumePolicy<Dimension>::
 HVolumePolicy(const Scalar kernelExtent):
-  mKernelExtent(kernelExtent),
-  ReplaceFieldList<Dimension, typename Dimension::Scalar>(HydroFieldNames::H) {
+  ReplaceFieldList<Dimension, typename Dimension::Scalar>(HydroFieldNames::H),
+  mKernelExtent(kernelExtent) {
 }
 
 //------------------------------------------------------------------------------
@@ -44,10 +44,10 @@ void
 HVolumePolicy<Dimension>::
 update(const KeyType& key,
        State<Dimension>& state,
-       StateDerivatives<Dimension>& derivs,
-       const double multiplier,
-       const double t,
-       const double dt) {
+       StateDerivatives<Dimension>& /*derivs*/,
+       const double /*multiplier*/,
+       const double /*t*/,
+       const double /*dt*/) {
 
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
