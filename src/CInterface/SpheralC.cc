@@ -441,7 +441,8 @@ void spheral_polyhedral_mesh(const int      ndims,
                              int**          facetonodes,
                              int**          nodecounts,
                              int**          celltofaces,
-                             int**          facecounts) {
+                             int**          facecounts,
+                             int**          faceflags) {
   switch (ndims) {
   case 3:
     Spheral::SpheralPseudoScript<Spheral::Dim<3>>::polyhedralMesh(nnodes,
@@ -451,7 +452,8 @@ void spheral_polyhedral_mesh(const int      ndims,
                                                                   facetonodes,
                                                                   nodecounts,
                                                                   celltofaces,
-                                                                  facecounts);
+                                                                  facecounts,
+                                                                  faceflags);
     break;
 
   case 2:
@@ -462,7 +464,8 @@ void spheral_polyhedral_mesh(const int      ndims,
                                                                   facetonodes,
                                                                   nodecounts,
                                                                   celltofaces,
-                                                                  facecounts);
+                                                                  facecounts,
+                                                                  faceflags);
     break;
 
   default:

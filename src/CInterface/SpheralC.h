@@ -395,7 +395,8 @@ void spheral_polyhedral_mesh(const int      ndims,
                              int**          facetonodes,
                              int**          nodecounts,
                              int**          celltofaces,
-                             int**          facecounts);
+                             int**          facecounts,
+                             int**          faceflags);
 
 /*------------------------------------------------------------------------------
   spheral_fill_volume

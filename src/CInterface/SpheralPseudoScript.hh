@@ -156,7 +156,8 @@ public:
                              int**          facetonodes,
                              int**          nodecounts,
                              int**          celltofaces,
-                             int**          facecounts);
+                             int**          facecounts,
+                             int**          faceflags);
 
   static void fillVolume(const int*     nnodes,
                          const int*     nfaces,
