@@ -172,7 +172,7 @@ updateViolationNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
-enforceBoundary(FieldBase<Dimension>& field) const {
+enforceBoundary(FieldBase<Dimension>&) const {
   // resetValues(field, this->nodeIndices(), mIntValues);
 }
 

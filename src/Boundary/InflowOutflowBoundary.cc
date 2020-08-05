@@ -179,7 +179,7 @@ setViolationNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 InflowOutflowBoundary<Dimension>::
-updateViolationNodes(NodeList<Dimension>& nodeList) {
+updateViolationNodes(NodeList<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------
@@ -241,7 +241,7 @@ InflowOutflowBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool final) {
+InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool /*final*/) {
 
   // Clear any existing data.
   mBufferedValues.clear();
@@ -322,11 +322,11 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool final) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowOutflowBoundary<Dimension>::evaluateDerivatives(const Scalar time,
-                                                      const Scalar dt,
-                                                      const DataBase<Dimension>& dataBase,
-                                                      const State<Dimension>& state,
-                                                      StateDerivatives<Dimension>& derivatives) const {
+InflowOutflowBoundary<Dimension>::evaluateDerivatives(const Scalar /*time*/,
+                                                      const Scalar /*dt*/,
+                                                      const DataBase<Dimension>& /*dataBase*/,
+                                                      const State<Dimension>& /*state*/,
+                                                      StateDerivatives<Dimension>& /*derivatives*/) const {
 }
 
 //------------------------------------------------------------------------------
@@ -334,10 +334,10 @@ InflowOutflowBoundary<Dimension>::evaluateDerivatives(const Scalar time,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename InflowOutflowBoundary<Dimension>::TimeStepType
-InflowOutflowBoundary<Dimension>::dt(const DataBase<Dimension>& dataBase, 
-                                     const State<Dimension>& state,
-                                     const StateDerivatives<Dimension>& derivs,
-                                     const Scalar currentTime) const {
+InflowOutflowBoundary<Dimension>::dt(const DataBase<Dimension>&, 
+                                     const State<Dimension>&,
+                                     const StateDerivatives<Dimension>&,
+                                     const Scalar /*currentTime*/) const {
   return TimeStepType(mDT, "InflowOutflowBoundary velocity constraint");
 }
 
@@ -346,8 +346,8 @@ InflowOutflowBoundary<Dimension>::dt(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowOutflowBoundary<Dimension>::registerState(DataBase<Dimension>& dataBase,
-                                                State<Dimension>& state) {
+InflowOutflowBoundary<Dimension>::registerState(DataBase<Dimension>&,
+                                                State<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------
@@ -355,8 +355,8 @@ InflowOutflowBoundary<Dimension>::registerState(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowOutflowBoundary<Dimension>::registerDerivatives(DataBase<Dimension>& dataBase,
-                                                      StateDerivatives<Dimension>& derivs) {
+InflowOutflowBoundary<Dimension>::registerDerivatives(DataBase<Dimension>&,
+                                                      StateDerivatives<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------
@@ -366,11 +366,11 @@ InflowOutflowBoundary<Dimension>::registerDerivatives(DataBase<Dimension>& dataB
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowOutflowBoundary<Dimension>::finalize(const Scalar time, 
-                                           const Scalar dt,
+InflowOutflowBoundary<Dimension>::finalize(const Scalar /*time*/, 
+                                           const Scalar /*dt*/,
                                            DataBase<Dimension>& dataBase, 
-                                           State<Dimension>& state,
-                                           StateDerivatives<Dimension>& derivatives) {
+                                           State<Dimension>& /*state*/,
+                                           StateDerivatives<Dimension>& /*derivatives*/) {
 
   // First check every NodeList for any inflow or outflow nodes.
   bool altered = false;

@@ -147,7 +147,7 @@ Boundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>& flagSet,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Boundary<Dimension>::reset(const DataBase<Dimension>& dataBase) {
+Boundary<Dimension>::reset(const DataBase<Dimension>&) {
   // Clear our own internal data.
   mBoundaryNodes.clear();
 }

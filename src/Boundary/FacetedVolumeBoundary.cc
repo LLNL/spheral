@@ -131,9 +131,9 @@ nodesTouchingFacet(const NodeList<Dim<2>>& nodes,
 //..............................................................................
 // Polyhedron
 std::vector<int>
-nodesTouchingFacet(const NodeList<Dim<3>>& nodes,
-                   const GeomFacet3d& facet,
-                   const bool interiorBoundary) {
+nodesTouchingFacet(const NodeList<Dim<3>>&,
+                   const GeomFacet3d&,
+                   const bool /*interiorBoundary*/) {
   std::vector<int> result;
   return result;
 }
@@ -646,14 +646,14 @@ FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& node
 template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
-enforceBoundary(Field<Dimension, int>& field) const {
+enforceBoundary(Field<Dimension, int>&) const {
 }
 
 // Specialization for scalar fields.  A no-op.
 template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
+enforceBoundary(Field<Dimension, typename Dimension::Scalar>&) const {
 }
 
 // Specialization for vector fields.  Apply the reflection operator.
@@ -708,7 +708,7 @@ enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) co
 template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>&) const {
   // Punt on FacetedVolumes for now.
 }
 

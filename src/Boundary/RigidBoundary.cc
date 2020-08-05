@@ -128,42 +128,42 @@ enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
 template<typename Dimension>
 void
 RigidBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
+enforceBoundary(Field<Dimension, typename Dimension::Tensor>&) const {
 }
 
 // Specialization for tensor fields.  No-op.
 template<typename Dimension>
 void
 RigidBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
+enforceBoundary(Field<Dimension, typename Dimension::SymTensor>&) const {
 }
 
 // Specialization for third rank tensor fields.  No-op.
 template<typename Dimension>
 void
 RigidBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>&) const {
 }
 
 // Specialization for fourth rank tensor fields.  No-op.
 template<typename Dimension>
 void
 RigidBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>& field) const {
+enforceBoundary(Field<Dimension, typename Dimension::FourthRankTensor>&) const {
 }
 
 // Specialization for fifth rank tensor fields.  No-op.
 template<typename Dimension>
 void
 RigidBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) const {
+enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>&) const {
 }
 
 // Specialization for FacetedVolume fields.  No-op.
 template<typename Dimension>
 void
 RigidBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>&) const {
 }
 
 }

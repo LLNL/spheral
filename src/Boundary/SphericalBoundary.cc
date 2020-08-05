@@ -546,13 +546,13 @@ updateViolationNodes(NodeList<Dim<3> >& nodeList) {
 // Specialization for int fields, no-op.
 void
 SphericalBoundary::
-enforceBoundary(Field<Dim<3> , int>& field) const {
+enforceBoundary(Field<Dim<3> , int>&) const {
 }
 
 // Specialization for scalar fields, no-op.
 void
 SphericalBoundary::
-enforceBoundary(Field<Dim<3> , Dim<3>::Scalar>& field) const {
+enforceBoundary(Field<Dim<3> , Dim<3>::Scalar>&) const {
 }
 
 // Specialization for Vector fields, force radial along the x-axis.
@@ -613,25 +613,25 @@ enforceBoundary(Field<Dim<3>, Dim<3>::SymTensor>& field) const {
 // Specialization for ThirdRankTensor fields.  Duh?
 void
 SphericalBoundary::
-enforceBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field) const {
+enforceBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>&) const {
 }
 
 // Specialization for FourthRankTensor fields.  Duh?
 void
 SphericalBoundary::
-enforceBoundary(Field<Dim<3>, Dim<3>::FourthRankTensor>& field) const {
+enforceBoundary(Field<Dim<3>, Dim<3>::FourthRankTensor>&) const {
 }
 
 // Specialization for FifthRankTensor fields.  Duh?
 void
 SphericalBoundary::
-enforceBoundary(Field<Dim<3>, Dim<3>::FifthRankTensor>& field) const {
+enforceBoundary(Field<Dim<3>, Dim<3>::FifthRankTensor>&) const {
 }
 
 // Specialization for FacetedVolume fields.  Duh?
 void
 SphericalBoundary::
-enforceBoundary(Field<Dim<3>, Dim<3>::FacetedVolume>& field) const {
+enforceBoundary(Field<Dim<3>, Dim<3>::FacetedVolume>&) const {
 }
 
 //------------------------------------------------------------------------------

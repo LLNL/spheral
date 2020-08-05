@@ -279,7 +279,7 @@ setViolationNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
-updateViolationNodes(NodeList<Dimension>& nodeList) {
+updateViolationNodes(NodeList<Dimension>&) {
 }
 
 }
