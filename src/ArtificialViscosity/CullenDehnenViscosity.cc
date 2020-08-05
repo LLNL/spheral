@@ -393,7 +393,9 @@ finalizeDerivatives(const Scalar time,
           const int firstGhostNodej = DvDx[nodeListj]->nodeList().firstGhostNode();
 
           // Loop over the neighbors.
+#if defined __INTEL_COMPILER
 #pragma vector always
+#endif
           for (vector<int>::const_iterator jItr = connectivity.begin();
                jItr != connectivity.end();
                ++jItr) {
