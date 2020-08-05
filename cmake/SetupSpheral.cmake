@@ -83,12 +83,6 @@ if (CMAKE_INSTALL_PREFIX)
   endif()
 endif()
 
-if (NOT SPHINX_EXECUTABLE)
-  set(SPHINX_FOUND true)
-  set(SPHINX_EXECUTABLE "${SPHERAL_INSTALL_DIR}/python/bin/sphinx-build" CACHE STRING "Path to sphinx documentation generator")
-endif()
-message("-- Sphinx documentation executable ${SPHINX_EXECUTABLE}")
-
 include(${SPHERAL_ROOT_DIR}/cmake/InstallTPLs.cmake)
 
 if(ENABLE_CXXONLY)

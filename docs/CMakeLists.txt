@@ -1,4 +1,7 @@
 #find_package(Sphinx)
+set(SPHINX_FOUND true)
+set(SPHINX_EXECUTABLE "${SPHERAL_INSTALL_DIR}/python/bin/sphinx-build")
+#set(SPHINX_EXECUTABLE "${SPHERAL_INSTALL_DIR}/python/bin/sphinx-build" CACHE STRING "Path to sphinx documentation generator")
 message("-- Sphinx ${SPHINX_EXECUTABLE}")
  
 if(NOT SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
@@ -31,6 +34,6 @@ if(NOT SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
     -d "${SPHINX_CACHE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${SPHINX_HTML_DIR}"
-    DEPENDS ${spheral_py_depends} 
+    DEPENDS ${spheral_py_depends} pip-modules
     COMMENT "Building HTML documentation with Sphinx")
 endif()
