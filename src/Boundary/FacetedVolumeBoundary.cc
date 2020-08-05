@@ -77,7 +77,6 @@ std::vector<GeomPlane<Dim<3>>>
 facetGhostPlanes(const GeomPolyhedron& poly,
                  const GeomFacet3d& facet,
                  const bool interiorBoundary) {
-  typedef Dim<3>::Vector Vector;
   typedef GeomPlane<Dim<3>> Plane;
   std::vector<Plane> result;
   const auto& centroid = poly.centroid();

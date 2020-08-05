@@ -32,7 +32,7 @@ namespace {
 // Reflect a faceted volume
 //------------------------------------------------------------------------------
 Dim<1>::FacetedVolume 
-reflectFacetedVolume(const ReflectingBoundary<Dim<1>>& bc,
+static inline reflectFacetedVolume(const ReflectingBoundary<Dim<1>>& bc,
                      const Dim<1>::FacetedVolume& poly) {
   const auto& plane = bc.enterPlane();
   return Dim<1>::FacetedVolume(bc.mapPosition(poly.center(),
@@ -42,7 +42,7 @@ reflectFacetedVolume(const ReflectingBoundary<Dim<1>>& bc,
 }
 
 Dim<2>::FacetedVolume 
-reflectFacetedVolume(const ReflectingBoundary<Dim<2>>& bc,
+static inline reflectFacetedVolume(const ReflectingBoundary<Dim<2>>& bc,
                      const Dim<2>::FacetedVolume& poly) {
   typedef Dim<2>::Vector Vector;
   const auto& plane = bc.enterPlane();
@@ -54,9 +54,8 @@ reflectFacetedVolume(const ReflectingBoundary<Dim<2>>& bc,
 }
 
 Dim<3>::FacetedVolume 
-reflectFacetedVolume(const ReflectingBoundary<Dim<3>>& bc,
+static inline reflectFacetedVolume(const ReflectingBoundary<Dim<3>>& bc,
                      const Dim<3>::FacetedVolume& poly) {
-  typedef Dim<3>::Vector Vector;
   const auto& plane = bc.enterPlane();
   auto verts = poly.vertices();
   const auto n = verts.size();
@@ -837,8 +836,8 @@ enforceBoundary(vector<typename Dimension::FifthRankTensor>& faceField,
 template<typename Dimension>
 void
 ReflectingBoundary<Dimension>::
-swapFaceValues(Field<Dimension, vector<Scalar> >& field,
-               const Mesh<Dimension>& mesh) const {
+swapFaceValues(Field<Dimension, vector<Scalar> >&,
+               const Mesh<Dimension>&) const {
 }
 
 // Specialization for vector<Vector> fields.

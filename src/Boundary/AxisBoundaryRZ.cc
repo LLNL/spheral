@@ -108,7 +108,7 @@ AxisBoundaryRZ::updateViolationNodes(NodeList<Dim<2> >& nodeList) {
 //------------------------------------------------------------------------------
 // Get/set etamin
 //------------------------------------------------------------------------------
-const double AxisBoundaryRZ::etamin() const {
+double AxisBoundaryRZ::etamin() {
   return mEtaMin;
 }
 

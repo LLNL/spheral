@@ -43,7 +43,6 @@ inline
 void
 clipBoxWithPlane(const GeomPlane<Dim<2> >& plane,
                  Dim<2>::Vector& point) {
-  typedef Dim<2>::Vector Vector;
   if (plane.compare(point) == 1) {
     if (fuzzyEqual(std::abs(plane.normal().x()), 1.0)) {
       point.x(plane.point().x());
@@ -59,7 +58,6 @@ inline
 void
 clipBoxWithPlane(const GeomPlane<Dim<3> >& plane,
                  Dim<3>::Vector& point) {
-  typedef Dim<3>::Vector Vector;
   if (plane.compare(point) == 1) {
     if (fuzzyEqual(std::abs(plane.normal().x()), 1.0)) {
       point.x(plane.point().x());
@@ -364,7 +362,6 @@ facesOnPlane(const Mesh<Dimension>& mesh,
              const Scalar tol) const {
 
   typedef typename Mesh<Dimension>::Face Face;
-  typedef typename Mesh<Dimension>::Node Node;
 
   vector<unsigned> result;
 
