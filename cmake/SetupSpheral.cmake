@@ -14,13 +14,13 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 #-------------------------------------------------------------------------------
-# Optionally suppress unused variable warnings
+# Optionally suppress compiler warnings
 #-------------------------------------------------------------------------------
-option(ENABLE_UNUSED_VARS_WARNINGS "show unused variables warnings" OFF)
-if (NOT ENABLE_UNUSED_VARS_WARNINGS)
+option(ENABLE_WARNINGS "show compiler warnings" OFF)
+if (NOT ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
 endif()
-message("-- Unused variable warnings ${ENABLE_UNUSED_VARS_WARNINGS}")
+message("-- compiler warnings ${ENABLE_WARNINGS}")
 
 #-------------------------------------------------------------------------------
 # Configure and Include blt
