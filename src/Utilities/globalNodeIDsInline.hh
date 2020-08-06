@@ -81,7 +81,6 @@ inline
 Field<Dimension, int>
 globalNodeIDs(const NodeList<Dimension>& nodeList) {
 
-  typedef typename Dimension::Vector Vector;
   typedef typename KeyTraits::Key Key;
 
   // Get the local domain ID and number of processors.
@@ -102,8 +101,8 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
   }
 
   // Reduce the list of node info to processor 0.
-  int numGlobalNodes = numLocalNodes;
 #ifdef USE_MPI
+  int numGlobalNodes = numLocalNodes;
   if (procID == 0) {
 
     // Process 0 receives and builds the global info.
@@ -163,9 +162,9 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
 
   // Now we can assign consecutive global IDs based on the sorted list.
   std::vector< std::vector<int> > globalIDs(numProcs);
-  for (int i = 0; i != nodeInfo.size(); ++i) {
+  for (auto i = 0u; i != nodeInfo.size(); ++i) {
     const int recvProc = std::get<2>(nodeInfo[i]);
-    const int localID = std::get<1>(nodeInfo[i]);
+    const unsigned int localID = std::get<1>(nodeInfo[i]);
     CHECK(recvProc < globalIDs.size());
     if (localID + 1 > globalIDs[recvProc].size()) globalIDs[recvProc].resize(localID + 1);
     globalIDs[recvProc][localID] = i;

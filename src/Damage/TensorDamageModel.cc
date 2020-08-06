@@ -96,7 +96,6 @@ evaluateDerivatives(const Scalar time,
   const double tiny = 1.0e-15;
 
   // The base class determines the scalar magnitude of the damage evolution.
-  typedef typename State<Dimension>::KeyType Key;
   const auto* nodeListPtr = &(this->nodeList());
   auto&       DDDt = derivs.field(state.buildFieldKey(TensorDamagePolicy<Dimension>::prefix() + SolidFieldNames::scalarDamage, nodeListPtr->name()), 0.0);
   this->computeScalarDDDt(dataBase,
@@ -117,14 +116,14 @@ evaluateDerivatives(const Scalar time,
 
   // Get the kernel.
   const auto& W = this->kernel();
-  const auto etaMax2 = W.kernelExtent() * W.kernelExtent();
+  //const auto etaMax2 = W.kernelExtent() * W.kernelExtent();
 
   // The neighbor connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto  nodeListi = distance(nodeLists.begin(), find(nodeLists.begin(), nodeLists.end(), nodeListPtr));
   CHECK(nodeListi < nodeLists.size());
-  const auto firstGhostNodei = nodeListPtr->firstGhostNode();
+  //const auto firstGhostNodei = nodeListPtr->firstGhostNode();
 
   // Prepare to account for damage statistics.
   Field<Dimension, Scalar> normalization("normalization", *nodeListPtr, 0.0);
@@ -136,7 +135,7 @@ evaluateDerivatives(const Scalar time,
     const auto i = connectivityMap.ithNode(nodeListi, k);
 
     // State for node i.
-    const auto& mi = mass(i);
+    //const auto& mi = mass(i);
     const auto& ri = position(i);
     const auto& rhoi = rho(i);
     const auto& Hi = H(i);
@@ -227,10 +226,10 @@ evaluateDerivatives(const Scalar time,
 template<typename Dimension>
 typename TensorDamageModel<Dimension>::TimeStepType
 TensorDamageModel<Dimension>::
-dt(const DataBase<Dimension>& dataBase, 
-   const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const Scalar currentTime) const {
+dt(const DataBase<Dimension>& /*dataBase*/, 
+   const State<Dimension>& /*state*/,
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const Scalar /*currentTime*/) const {
 
   // // Look at how quickly we're trying to change the damage.
   // double dt = DBL_MAX;
@@ -287,8 +286,8 @@ registerState(DataBase<Dimension>& dataBase,
   Key maskKey = state.buildFieldKey(HydroFieldNames::timeStepMask, this->nodeList().name());
   Field<Dimension, int>& mask = state.field(maskKey, 0);
   const Field<Dimension, SymTensor>& damage = this->nodeList().damage();
-  for (int i = 0; i != this->nodeList().numInternalNodes(); ++i) {
-    if (damage(i).Trace() > mCriticalDamageThreshold) mask(i) = 0;
+  for (auto i = 0u; i != this->nodeList().numInternalNodes(); ++i) {
+    if (damage(i).Trace() > (int)mCriticalDamageThreshold) mask(i) = 0;
   }
 
   // // Damage some of the state variables.
@@ -319,7 +318,7 @@ registerState(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 TensorDamageModel<Dimension>::
-registerDerivatives(DataBase<Dimension>& dataBase,
+registerDerivatives(DataBase<Dimension>& /*dataBase*/,
                     StateDerivatives<Dimension>& derivs) {
   derivs.enroll(mDdamageDt);
   derivs.enroll(mNewEffectiveDamage);
@@ -333,7 +332,7 @@ template<typename Dimension>
 void
 TensorDamageModel<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
-                     StateDerivatives<Dimension>& derivs) {
+                     StateDerivatives<Dimension>& /*derivs*/) {
 
   // Grab this models damage field from the state.
   typedef typename State<Dimension>::KeyType Key;
@@ -365,7 +364,7 @@ template<typename Dimension>
 void
 TensorDamageModel<Dimension>::
 enforceBoundaries(State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs) {
+                  StateDerivatives<Dimension>& /*derivs*/) {
 
   // Grab this models damage field from the state.
   typedef typename State<Dimension>::KeyType Key;
