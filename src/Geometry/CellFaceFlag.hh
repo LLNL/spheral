@@ -38,7 +38,7 @@ template<>
 struct DataTypeTraits<CellFaceFlag> {
   typedef int ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const CellFaceFlag& x) { return 3; }
+  static int numElements(const CellFaceFlag&) { return 3; }
   static CellFaceFlag zero() { return CellFaceFlag({-1, -1, -1}); }
 };
 

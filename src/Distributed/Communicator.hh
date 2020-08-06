@@ -27,7 +27,7 @@ public:
   static void communicator(MPI_Comm& comm) { instancePtr()->mCommunicator = comm; }
 #else
   static int communicator() { return 0; }
-  static void communicator(int& comm) {}
+  static void communicator(int&) {}
 #endif
 
 private:

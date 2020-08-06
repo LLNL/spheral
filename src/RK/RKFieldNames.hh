@@ -18,7 +18,7 @@ struct RKFieldNames {
   static const std::string reproducingKernelBase;
   static const std::string rkCorrections(const RKOrder order);
   static const std::string reproducingKernel(const RKOrder order);
-  static const RKOrder     correctionOrder(const std::string& x);   // Extract the correction order from the encoding in the correction name
+  static RKOrder correctionOrder(const std::string& x);   // Extract the correction order from the encoding in the correction name
 };
 
 }

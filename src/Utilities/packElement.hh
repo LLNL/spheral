@@ -289,6 +289,7 @@ void
 unpackElement(DataType& value, 
               std::vector<char>::const_iterator& itr,
               const std::vector<char>::const_iterator& endPackedVector) {
+  CONTRACT_VAR(endPackedVector);
   const int packSize = sizeof(typename DataTypeTraits<DataType>::ElementType);
   for (typename DataType::iterator valueItr = value.begin();
        valueItr != value.end();
@@ -309,6 +310,7 @@ void
 unpackElement<int>(int& value,
                    std::vector<char>::const_iterator& itr,
                    const std::vector<char>::const_iterator& endPackedVector) {
+  CONTRACT_VAR(endPackedVector);
   const int packSize = sizeof(int);
   char* data = reinterpret_cast<char*>(&value);
   for (int i = 0; i != packSize; ++i, ++itr) {
@@ -375,6 +377,7 @@ void
 unpackElement<uint32_t>(uint32_t& value,
                              std::vector<char>::const_iterator& itr,
                              const std::vector<char>::const_iterator& endPackedVector) {
+  CONTRACT_VAR(endPackedVector);
   const int packSize = sizeof(uint32_t);
   char* data = reinterpret_cast<char*>(&value);
   for (int i = 0; i != packSize; ++i, ++itr) {
@@ -391,6 +394,7 @@ void
 unpackElement<uint64_t>(uint64_t& value,
                                   std::vector<char>::const_iterator& itr,
                                   const std::vector<char>::const_iterator& endPackedVector) {
+  CONTRACT_VAR(endPackedVector);
   const int packSize = sizeof(uint64_t);
   char* data = reinterpret_cast<char*>(&value);
   for (int i = 0; i != packSize; ++i, ++itr) {
@@ -407,6 +411,7 @@ void
 unpackElement<float>(float& value,
                      std::vector<char>::const_iterator& itr,
                      const std::vector<char>::const_iterator& endPackedVector) {
+  CONTRACT_VAR(endPackedVector);
   const int packSize = sizeof(float);
   char* data = reinterpret_cast<char*>(&value);
   for (int i = 0; i != packSize; ++i, ++itr) {
@@ -423,6 +428,7 @@ void
 unpackElement<double>(double& value,
                       std::vector<char>::const_iterator& itr,
                       const std::vector<char>::const_iterator& endPackedVector) {
+  CONTRACT_VAR(endPackedVector);
   const int packSize = sizeof(double);
   char* data = reinterpret_cast<char*>(&value);
   for (int i = 0; i != packSize; ++i, ++itr) {
@@ -484,7 +490,7 @@ unpackElement(std::vector<DataType>& value,
               const std::vector<char>::const_iterator& endPackedVector) {
 
   // Read the size of the vector.
-  unsigned size;
+  unsigned int size;
   unpackElement(size, itr, endPackedVector);
   CHECK2(size <= std::distance(itr, endPackedVector),
          "Crazy buffer size:  " << size << " " << std::distance(itr, endPackedVector));
@@ -492,7 +498,7 @@ unpackElement(std::vector<DataType>& value,
   // Now iterate over the number of elements we will unpack, and push them onto
   // the value.
   value.clear();
-  for (int i = 0; i != size; ++i) {
+  for (unsigned int i = 0; i != size; ++i) {
     DataType element;
     unpackElement(element, itr, endPackedVector);
     value.push_back(element);
@@ -573,10 +579,10 @@ unpackElement(RKCoefficients<Dimension>& value,
 template<typename Dimension, typename DataType>
 inline
 int
-computeBufferSize(const Field<Dimension, DataType>& field,
+computeBufferSize(const Field<Dimension, DataType>& /*field*/,
                   const std::vector<int>& packIndices,
-                  const int sendProc,
-                  const int recvProc) {
+                  const int /*sendProc*/,
+                  const int /*recvProc*/) {
   return (packIndices.size() * 
           DataTypeTraits<DataType>::numElements(DataType()) * 
           sizeof(typename DataTypeTraits<DataType>::ElementType));
@@ -599,11 +605,13 @@ computeBufferSize(const Field<Dimension, std::vector<DataType> >& field,
   int rank = 0;
 #ifdef USE_MPI
   MPI_Comm_rank(Communicator::communicator(), &rank);
+#else
+  CONTRACT_VAR(recvProc);
 #endif
   REQUIRE(rank == sendProc || rank == recvProc);
 
   // The send proc can compute the necessary size.
-  int bufSize;
+  int bufSize = 0;
   if (rank == sendProc) {
     for (std::vector<int>::const_iterator itr = packIndices.begin();
          itr != packIndices.end();
