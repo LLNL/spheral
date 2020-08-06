@@ -283,7 +283,6 @@ TableKernel<Dimension>::parabolicInterp(const double etaMagnitude,
   REQUIRE(a.size() == mNumPoints);
   REQUIRE(b.size() == mNumPoints);
   REQUIRE(c.size() == mNumPoints);
-  const double etai = std::min(etaMagnitude, this->mKernelExtent);
   const int i0 = std::min(mNumPoints - 3, lowerBound(etaMagnitude));
   const int i1 = i0 + 1;
   CHECK(i1 >= 1 and i1 <= mNumPoints - 2);

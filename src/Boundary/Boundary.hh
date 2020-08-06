@@ -95,7 +95,7 @@ public:
   //****************************************************************************
   // Apply the boundary condition to the violation node values in the given Field.
   // Catch all method for Fields, assumes noop
-  virtual void enforceBoundary(FieldBase<Dimension>& fieldBase) const                    {};
+  virtual void enforceBoundary(FieldBase<Dimension>& ) const {};
 
   // Specific Field ValueTypes -- default to just calling base method
   virtual void enforceBoundary(Field<Dimension, int>& field) const                       { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
@@ -150,7 +150,7 @@ public:
 
   // Some boundaries need to know when a problem is starting up and all the physics
   // packages have been initialized.
-  virtual void initializeProblemStartup(const bool final)                        {};
+  virtual void initializeProblemStartup(const bool)                              {};
 
   // Provide an optional hook that is to be called when all ghost boundaries are
   // to have been set.

@@ -4,7 +4,7 @@ include(ExternalProject)
 # Configure CMake
 #-------------------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -w")
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS}")
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 if (NOT CMAKE_MODULE_PATH)

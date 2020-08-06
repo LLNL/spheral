@@ -21,8 +21,8 @@ public:
   
 
   // The coupling operator.
-  virtual double operator()(const unsigned nodeListi, const unsigned i,
-                            const unsigned nodeListj, const unsigned j) const {
+  virtual double operator()(const unsigned /*nodeListi*/, const unsigned /*i*/,
+                            const unsigned /*nodeListj*/, const unsigned /*j*/) const {
     return 1.0;
   }
 };
@@ -35,8 +35,8 @@ public:
   virtual ~PerNodeListNodeCoupling() {}
 
   // The coupling operator.
-  virtual double operator()(const unsigned nodeListi, const unsigned i,
-                            const unsigned nodeListj, const unsigned j) const {
+  virtual double operator()(const unsigned nodeListi, const unsigned /*i*/,
+                            const unsigned nodeListj, const unsigned /*j*/) const {
     return (nodeListi == nodeListj ? 1.0 : 0.0);
   }
 };
