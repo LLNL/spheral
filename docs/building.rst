@@ -1,3 +1,5 @@
+.. include:: <isoamsa.txt>
+
 ###############################################
 Obtaining, building, and installing Spheral
 ###############################################
@@ -136,6 +138,28 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 
 ``ENABLE_TIMER`` (*On*, Off)
   Enable timer information from Spheral.
+
+``DBC_MODE`` (None, All, Pre)
+  Set the compile time design by contract (DBC) mode for Spheral.  Design by contract statements are very useful developer tools, whereby the developer can insert tests in the code as they write it.  These statements are both useful for tracking down bugs with fine-grained testing throughout the code, as well as useful documentation in the code about what sort of conditions are expected to hold.
+
+  +------+---------------------------------------------------------------------------------+
+  | None | Design by contract not enforced                                                 |
+  +------+---------------------------------------------------------------------------------+
+  | All  | All design by contract (``REQUIRE``, ``ENSURE``, ``CHECK``) statements active   |
+  +------+---------------------------------------------------------------------------------+
+  | Pre  | Only prerequisites (``REQUIRE``) statements active                              |
+  +------+---------------------------------------------------------------------------------+
+
+  Note the default depends on the ``CMAKE_BUILD_TYPE``:
+
+  ``CMAKE_BUILD_TYPE=Debug`` |xrArr| default ``DBC_MODE`` is ``All``
+
+  In all other cases the default is ``None``.
+
+  It is worth noting ``DBC_MODE=All`` is quite expensive at run time (of order 4x more), so this is not intended to be active for a release/production compilation of Spheral.
+
+``ENABLE_WARNINGS`` (On, *Off*)
+  Enable compiler warnings.
 
 ``ENABLE_BOUNDCHECKING`` (On, *Off*)
   If building with the Gnu compilers enable STL bound checking by passing -D_GLIBCXX_DEBUG=1 to the compiler. 
