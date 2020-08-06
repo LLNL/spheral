@@ -14,6 +14,15 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 #-------------------------------------------------------------------------------
+# Optionally suppress unused variable warnings
+#-------------------------------------------------------------------------------
+option(ENABLE_UNUSED_VARS_WARNINGS "show unused variables warnings" OFF)
+if (NOT ENABLE_UNUSED_VARS_WARNINGS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+endif()
+message("-- Unused variable warnings ${ENABLE_UNUSED_VARS_WARNINGS}")
+
+#-------------------------------------------------------------------------------
 # Configure and Include blt
 #-------------------------------------------------------------------------------
 set(ENABLE_MPI ON CACHE BOOL "")
