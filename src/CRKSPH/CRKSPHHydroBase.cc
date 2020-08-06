@@ -64,25 +64,6 @@ using std::abs;
 
 namespace Spheral {
 
-namespace {
-
-double fluxlimiterVL(const double x) {
-  // if (x > 0.0) {
-  //   return min(1.0, x);                           // minmod
-  // } else {
-  //   return 0.0;
-  // }
-
-  // if (x > 0.0) {
-  //   return 2.0/(1.0 + x)*2.0*x/(1.0 + x);                       // van Leer
-  // } else {
-  //   return 0.0;
-  // }
-  return (x + abs(x))/(1.0 + abs(x));                       // van Leer
-}
-
-}
-
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
@@ -311,7 +292,6 @@ CRKSPHHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
 
-  typedef typename StateDerivatives<Dimension>::KeyType Key;
   const string DxDtName = IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position;
   const string DvDtName = HydroFieldNames::hydroAcceleration;
 
@@ -364,7 +344,7 @@ void
 CRKSPHHydroBase<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs) {
+                  StateDerivatives<Dimension>& /*derivs*/) {
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
@@ -419,10 +399,10 @@ initialize(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 CRKSPHHydroBase<Dimension>::
-finalizeDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
-                    const DataBase<Dimension>& dataBase,
-                    const State<Dimension>& state,
+finalizeDerivatives(const typename Dimension::Scalar /*time*/,
+                    const typename Dimension::Scalar /*dt*/,
+                    const DataBase<Dimension>& /*dataBase*/,
+                    const State<Dimension>& /*state*/,
                     StateDerivatives<Dimension>& derivs) const {
 
   // If we're using the compatible energy discretization, we need to enforce
@@ -445,7 +425,7 @@ template<typename Dimension>
 void
 CRKSPHHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
-                     StateDerivatives<Dimension>& derivs) {
+                     StateDerivatives<Dimension>& /*derivs*/) {
 
   // Apply boundary conditions to the basic fluid state Fields.
   // volume, mass, and massDensity handled by RKCorrections
@@ -477,7 +457,7 @@ template<typename Dimension>
 void
 CRKSPHHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs) {
+                  StateDerivatives<Dimension>& /*derivs*/) {
 
   // Enforce boundary conditions on the fluid state Fields.
   // volume, mass, and massDensity handled by RKCorrections

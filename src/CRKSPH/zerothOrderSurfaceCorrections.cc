@@ -19,7 +19,6 @@ zerothOrderSurfaceCorrections(FieldList<Dimension, typename Dimension::Scalar>& 
                               const FieldList<Dimension, typename Dimension::Vector>& gradm0,
                               const FieldList<Dimension, int>& surfacePoint) {
 
-  typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
@@ -33,11 +32,11 @@ zerothOrderSurfaceCorrections(FieldList<Dimension, typename Dimension::Scalar>& 
   REQUIRE(m0.numFields() == numNodeLists);
   REQUIRE(gradm0.numFields() == numNodeLists);
 
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto n = surfacePoint[nodeListi]->numInternalElements();
 
 #pragma omp parallel for
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
       if (surfacePoint(nodeListi, i) != 0) {
         CHECK(m0(nodeListi, i) != 0.0);
         A(nodeListi, i) = 1.0/m0(nodeListi, i);
