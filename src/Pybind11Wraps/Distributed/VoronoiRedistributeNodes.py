@@ -28,7 +28,7 @@ computational domain."""
                dummy = "const double",
                workBalance = ("const bool", "false"),
                balanceGenerators = ("const bool", "true"),
-               tolerance = ("const double", "1.0e-2"),
+               tolerance = ("const double", "1.0e-4"),
                maxIterations = ("const unsigned", "200")):
         "Constructor"
 
