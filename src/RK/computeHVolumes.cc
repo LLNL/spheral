@@ -50,10 +50,10 @@ computeHVolumes(const typename Dimension::Scalar nPerh,
   REQUIRE(nPerh > 0.0);
   REQUIRE(H.size() == numNodeLists);
 
-  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
     const unsigned n = volume[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
       volume(nodeListi, i) = Hvol(H(nodeListi, i), nPerh);
     }
   }

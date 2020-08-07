@@ -344,7 +344,7 @@ dt(const DataBase<Dimension>& dataBase,
   reasonStream << "velocity: " << mOldMaxVelocity
                << ", acceleration: " << mOldMaxAcceleration
                << "dt = f*v/a: " << deltat
-               << std::ends;
+               << std::endl;
   return TimeStepType(deltat, reasonStream.str());
 }
 

@@ -116,7 +116,7 @@ dt(const DataBase<Dimension>& dataBase,
   std::stringstream reasonStream;
   reasonStream << "mindt = " << mindt << " | "
                << "rsoft = " << minr << " " 
-               << "minv = " << minv << std::ends;
+               << "minv = " << minv << std::endl;
 
   return TimeStepType(mindt, reasonStream.str());
 }

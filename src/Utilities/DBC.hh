@@ -66,6 +66,11 @@ inline bool nearlyEqual(const T& x,
 
 #endif // DBC_FUNCTIONS_HH
 
+//----------- Define Unused Variable Silencer
+#define CONTRACT_VAR(X) (void)(X)
+#define SPHERAL_SUPPRESS_UNUSED_FUNC(X) \
+   double dummy_tmp_##X = ((double)(X) & 0)
+
 //----------------------------------------------------------------------------
 //                         Clear any existing DBC compile flags.
 //----------------------------------------------------------------------------
@@ -108,7 +113,7 @@ inline bool nearlyEqual(const T& x,
       std::stringstream s_SS;                           \
       s_SS << kind << ": " << msg << std::endl;         \
       s_SS << "...at line " << __LINE__ <<              \
-         " of file " << __FILE__ << "." << std::ends;   \
+         " of file " << __FILE__ << "." << std::endl;   \
       ::Spheral::Process::haltAll(s_SS.str().c_str());  \
    }                                                    \
    ::Spheral::dbc::assertionUnLock();                   \
@@ -162,7 +167,7 @@ inline bool nearlyEqual(const T& x,
       std::stringstream s; \
       s << "Verification failed: " << msg << std::endl; \
       s << "...at line " << __LINE__ << \
-         " of file " << __FILE__ << "." << std::ends;\
+         " of file " << __FILE__ << "." << std::endl;\
       ::Spheral::dbc::VERIFYError reason(s.str());\
       throw reason;\
    }

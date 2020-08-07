@@ -473,22 +473,22 @@ GeomTensor<nDim>::zz(double val) {
 
 //------------------------------------------------------------------------------
 // 1D dummy elements
-template<> inline void GeomTensor<1>::xy(const double val) {}
-template<> inline void GeomTensor<1>::xz(const double val) {}
-template<> inline void GeomTensor<1>::yx(const double val) {}
-template<> inline void GeomTensor<1>::yy(const double val) {}
-template<> inline void GeomTensor<1>::yz(const double val) {}
-template<> inline void GeomTensor<1>::zx(const double val) {}
-template<> inline void GeomTensor<1>::zy(const double val) {}
-template<> inline void GeomTensor<1>::zz(const double val) {}
+template<> inline void GeomTensor<1>::xy(const double /*val*/) {}
+template<> inline void GeomTensor<1>::xz(const double /*val*/) {}
+template<> inline void GeomTensor<1>::yx(const double /*val*/) {}
+template<> inline void GeomTensor<1>::yy(const double /*val*/) {}
+template<> inline void GeomTensor<1>::yz(const double /*val*/) {}
+template<> inline void GeomTensor<1>::zx(const double /*val*/) {}
+template<> inline void GeomTensor<1>::zy(const double /*val*/) {}
+template<> inline void GeomTensor<1>::zz(const double /*val*/) {}
 
 //------------------------------------------------------------------------------
 // 2D dummy elements
-template<> inline void GeomTensor<2>::xz(const double val) {}
-template<> inline void GeomTensor<2>::yz(const double val) {}
-template<> inline void GeomTensor<2>::zx(const double val) {}
-template<> inline void GeomTensor<2>::zy(const double val) {}
-template<> inline void GeomTensor<2>::zz(const double val) {}
+template<> inline void GeomTensor<2>::xz(const double /*val*/) {}
+template<> inline void GeomTensor<2>::yz(const double /*val*/) {}
+template<> inline void GeomTensor<2>::zx(const double /*val*/) {}
+template<> inline void GeomTensor<2>::zy(const double /*val*/) {}
+template<> inline void GeomTensor<2>::zz(const double /*val*/) {}
 
 //------------------------------------------------------------------------------
 // Access the individual rows of the GeomTensor.
@@ -2258,6 +2258,7 @@ inline
 void
 GeomTensor<1>::
 rotationalTransform(const GeomTensor<1>& R) {
+  CONTRACT_VAR(R);
   REQUIRE(fuzzyEqual(std::abs(R.Determinant()), 1.0, 1.0e-8));
 }
 

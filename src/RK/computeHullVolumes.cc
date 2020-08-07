@@ -35,9 +35,7 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(kernelExtent > 0.0);
 
-  typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
   FieldList<Dimension, vector<Vector>> etaInv(FieldStorageType::CopyFields);
@@ -58,7 +56,7 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
 
     // Collect the half-way positions of all neighbors
 #pragma omp for
-    for (auto k = 0; k < npairs; ++k) {
+    for (auto k = 0u; k < npairs; ++k) {
       i = pairs[k].i_node;
       j = pairs[k].j_node;
       nodeListi = pairs[k].i_list;
@@ -67,12 +65,10 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
-      const auto  Hdeti = Hi.Determinant();
 
       // State for j
       const auto& rj = position(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
-      const auto  Hdetj = Hj.Determinant();
 
       const auto  rji = 0.5*(rj - ri);
       const auto  etai =  Hi*rji;
@@ -98,10 +94,10 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
   }   // OMP parallel
 
     // Now we can do each node independently.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto ni = position[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
       const auto& Hi = H(nodeListi, i);
