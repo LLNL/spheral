@@ -110,6 +110,22 @@ class Boundary:
     @PYB11virtual
     @PYB11const
     def applyGhostBoundary10(self,
+                            field = "Field<%(Dimension)s, std::vector<Scalar>>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+    
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary11(self,
+                            field = "Field<%(Dimension)s, std::vector<Vector>>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+    
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundary12(self,
                              field = "Field<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"):
         "Apply the boundary condition to the ghost node values in the given Field."
         return "void"
@@ -199,6 +215,22 @@ class Boundary:
     @PYB11virtual
     @PYB11const
     def enforceBoundary10(self,
+                         field = "Field<%(Dimension)s, std::vector<Scalar>>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+    
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary11(self,
+                         field = "Field<%(Dimension)s, std::vector<Vector>>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+    
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundary12(self,
                           field = "Field<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"):
         "Apply the boundary condition to the violation node values in the given Field."
         return "void"
@@ -365,6 +397,8 @@ class Boundary:
                  ("ThirdRankTensor", "ThirdRankTensor"),
                  ("FourthRankTensor", "FourthRankTensor"),
                  ("FifthRankTensor", "FifthRankTensor"),
+                 ("std::vector<Scalar>", "StdVectorScalar"),
+                 ("std::vector<Vector>", "StdVectorVector"),
                  ("RKCoefficients<%(Dimension)s>", "RKCoefficients")):
         exec('''
 aflgb%(L)s = PYB11TemplateMethod(applyFieldListGhostBoundary, template_parameters="%(T)s", pyname="applyFieldListGhostBoundary")
