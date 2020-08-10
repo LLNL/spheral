@@ -60,6 +60,7 @@ GeomPlane<Dim<2> >::GeomPlane(const vector<Dim<2>::Vector>& points):
   mPoint(std::accumulate(points.begin(), points.end(), Dim<2>::Vector::zero)/std::max(size_t(1), points.size())),
   mNormal() {
   const unsigned n = points.size();
+  CONTRACT_VAR(n);
   REQUIRE2(n >= 2, "GeomPlane(points) ERROR: need at least 2 points.");
   double xy = 0.0, xx = 0.0;
   for (const auto& v: points) {
@@ -77,6 +78,7 @@ GeomPlane<Dim<3> >::GeomPlane(const vector<Dim<3>::Vector>& points):
   mPoint(std::accumulate(points.begin(), points.end(), Dim<3>::Vector::zero)/std::max(size_t(1), points.size())),
   mNormal() {
   const unsigned n = points.size();
+  CONTRACT_VAR(n);
   REQUIRE2(n >= 3, "GeomPlane(points) ERROR: need at least 3 points.");
   // Calc full 3x3 covariance matrix, excluding symmetries:
   SymTensor A;
@@ -235,7 +237,7 @@ minimumDistance(const typename Dimension::Vector& point) const {
 template<>
 Dim<1>::Vector
 GeomPlane<Dim<1> >::
-closestPointOnPlane(const Dim<1>::Vector& point) const {
+closestPointOnPlane(const Dim<1>::Vector&) const {
   return mPoint;
 }
 
