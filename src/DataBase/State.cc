@@ -211,7 +211,6 @@ update(StateDerivatives<Dimension>& derivs,
         const PolicyPointer policyPtr = mPolicyMap[fieldKey][key];
 
         // Check if all the dependencies for this state have been satisfied yet.
-        bool readyToUpdate = true;
         vector<KeyType> unmetDependencies;
         set_intersection(fieldsToBeCompleted.begin(), fieldsToBeCompleted.end(),
                          policyPtr->dependencies().begin(), policyPtr->dependencies().end(),

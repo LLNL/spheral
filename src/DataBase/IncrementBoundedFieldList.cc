@@ -127,8 +127,8 @@ update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
        const double multiplier,
-       const double t,
-       const double dt) {
+       const double /*t*/,
+       const double /*dt*/) {
 
   // Get the field name portion of the key.
   KeyType fieldKey, nodeListKey;

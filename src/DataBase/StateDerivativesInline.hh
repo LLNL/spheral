@@ -11,7 +11,6 @@ nodePairCalculated(const NodeIteratorBase<Dimension>& node1,
                    const NodeIteratorBase<Dimension>& node2) const {
   if (node1.ghostNode() or node2.ghostNode()) return false;
   typename CalculatedPairType::const_iterator itr1 = mCalculatedNodePairs.find(node1);
-  typename CalculatedPairType::const_iterator itr2 = mCalculatedNodePairs.find(node2);
   CHECK((itr1 == mCalculatedNodePairs.end() && itr1 == mCalculatedNodePairs.end()) or
         (itr1 != mCalculatedNodePairs.end() && itr1 != mCalculatedNodePairs.end()));
   if (itr1 == mCalculatedNodePairs.end()) {
