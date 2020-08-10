@@ -126,11 +126,15 @@ for shadowedthing in ("TillotsonEquationOfState",
 # EasyProfilerStart()
 
 # ------------------------------------------------------------------------------
-# Output some useful Spheral configuration info to stdout.
+# Output some useful Spheral configuration info to stdout
 # ------------------------------------------------------------------------------
 print "/------------------------------------------------------------------------------\\"
-print "|  %-76s|" % "Spheral version: @spheralversion@"
+import Spheral_banner
 print "|  %-76s|" % ("  number of MPI tasks       : " + str(mpi.procs))
 print "|  %-76s|" % ("  number of threads per rank: " + str(omp_get_num_threads()))
 print "\\------------------------------------------------------------------------------/"
+
+# ------------------------------------------------------------------------------
+# Set the prompt just to clear to folks they now have Spheral
+# ------------------------------------------------------------------------------
 sys.ps1 = "Spheral> "
