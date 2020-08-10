@@ -7,14 +7,13 @@ template<typename Dimension>
 void
 incrementPairWiseDelta(typename Dimension::Vector& result,
                        typename Dimension::Vector& normalization,
-		       const double& weight,
-		       const double& fij,
-		       const typename Dimension::Vector& rij,
-		       const typename Dimension::SymTensor& Hi) {
+                       const double& weight,
+                       const double& fij,
+                       const typename Dimension::Vector& rij,
+                       const typename Dimension::SymTensor& Hi) {
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
 
   const Scalar frach = (0.01/Hi.Trace())/Dimension::nDim;
   const Vector rjiUnit = -rij.unitVector();
@@ -47,14 +46,13 @@ template<typename Dimension>
 void
 incrementPairWiseDelta(typename Dimension::Tensor& result,
                        typename Dimension::Tensor& normalization,
-		       const double& weight,
-		       const typename Dimension::Vector& fij,
-		       const typename Dimension::Vector& rij,
-		       const typename Dimension::SymTensor& Hi) {
+                       const double& weight,
+                       const typename Dimension::Vector& fij,
+                       const typename Dimension::Vector& rij,
+                       const typename Dimension::SymTensor& Hi) {
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
 
   const Scalar frach = (0.01/Hi.Trace())/Dimension::nDim;
   const Vector rjiUnit = -rij.unitVector();

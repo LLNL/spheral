@@ -59,9 +59,9 @@ incrementCellValues(vector<Value>& values,
   const size_t nx = size_t(extent.x()/xstep);
   const int ipx = max(0, min(int(nsample[0]) - 1, int((xi.x() - xmin.x())/xstep)));
   const double Hdeti = Hi.Determinant();
-  for (int idx = -nx; idx != nx + 1; ++idx) {
+  for (int idx = -nx; idx != (int)nx + 1; ++idx) {
     const int ix = ipx + idx;
-    if (ix > 0 and ix < nsample[0]) {
+    if (ix > 0 and ix < (int)nsample[0]) {
       const double etaMag = (Hi*Vector(idx*xstep)).magnitude();
       const unsigned icell = ix;
       CHECK(icell >= 0 and icell < nsample[0]);
@@ -91,15 +91,16 @@ incrementCellValues(vector<Value>& values,
   const int ipx = max(0, min(int(nsample[0]) - 1, int((xi.x() - xmin.x())/xstep)));
   const int ipy = max(0, min(int(nsample[1]) - 1, int((xi.y() - xmin.y())/ystep)));
   const double Hdeti = Hi.Determinant();
-  for (int idy = -ny; idy != ny + 1; ++idy) {
+  for (int idy = -ny; idy != (int)ny + 1; ++idy) {
     const int iy = ipy + idy;
-    if (iy >= 0 and iy < nsample[1]) {
+    if (iy >= 0 and iy < (int)nsample[1]) {
       const unsigned iyoff = iy*nsample[0];
-      for (int idx = -nx; idx != nx + 1; ++idx) {
+      for (int idx = -nx; idx != (int)nx + 1; ++idx) {
         const int ix = ipx + idx;
-        if (ix >= 0 and ix < nsample[0]) {
+        if (auto >= 0u and ix < (int)nsample[0]) {
           const double etaMag = (Hi*Vector(idx*xstep, idy*ystep)).magnitude();
           const unsigned icell = ix + iyoff;
+          CONTRACT_VAR(ncells);
           CHECK(icell >= 0 and icell < ncells);
           values[icell] += value*W(etaMag, Hdeti)*Hdeti;
         }
@@ -132,19 +133,20 @@ incrementCellValues(vector<Value>& values,
   const int ipy = max(0, min(int(nsample[1]) - 1, int((xi.y() - xmin.y())/ystep)));
   const int ipz = max(0, min(int(nsample[2]) - 1, int((xi.z() - xmin.z())/zstep)));
   const double Hdeti = Hi.Determinant();
-  for (int idz = -nz; idz != nz + 1; ++idz) {
+  for (int idz = -nz; idz != (int)nz + 1; ++idz) {
     const int iz = ipz + idz;
-    if (iz >= 0 and iz < nsample[2]) {
+    if (iz >= 0 and iz < (int)nsample[2]) {
       const unsigned izoff = iz*nsample[0]*nsample[1];
-      for (int idy = -ny; idy != ny + 1; ++idy) {
+      for (int idy = -ny; idy != (int)ny + 1; ++idy) {
         const int iy = ipy + idy;
-        if (iy >= 0 and iy < nsample[1]) {
+        if (iy >= 0 and iy < (int)nsample[1]) {
           const unsigned iyoff = iy*nsample[0];
-          for (int idx = -nx; idx != nx + 1; ++idx) {
+          for (int idx = -nx; idx != (int)nx + 1; ++idx) {
             const int ix = ipx + idx;
-            if (ix > 0 and ix < nsample[0]) {
+            if (ix > 0 and ix < (int)nsample[0]) {
               const double etaMag = (Hi*Vector(idx*xstep, idy*ystep)).magnitude();
               const unsigned icell = ix + iyoff + izoff;
+              CONTRACT_VAR(ncells);
               CHECK(icell >= 0 and icell < ncells);
               values[icell] += value*W(etaMag, Hdeti)*Hdeti;
             }
@@ -172,8 +174,9 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
   typedef typename Dimension::Vector Vector;
 
   // Get the parallel geometry.
-  const unsigned procID = Process::getRank();
+  //const unsigned procID = Process::getRank();
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
+  CONTRACT_VAR(numProcs);
   CHECK(numProcs >= 1);
 
   // We need to exclude any nodes that come from the Distributed boundary condition.
@@ -258,12 +261,10 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
   // Preconditions.
   REQUIRE(nsample.size() == Dimension::nDim);
 
-  // Some convenient typedefs.
-  typedef typename Dimension::Vector Vector;
-
   // Get the parallel geometry.
-  const unsigned procID = Process::getRank();
+  //const unsigned procID = Process::getRank();
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
+  CONTRACT_VAR(numProcs);
   CHECK(numProcs >= 1);
 
   // We need to exclude any nodes that come from the Distributed boundary condition.

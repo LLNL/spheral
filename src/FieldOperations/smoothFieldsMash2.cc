@@ -32,14 +32,13 @@ FieldList<Dimension, DataType>
 smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
                   const FieldList<Dimension, typename Dimension::Vector>& position,
                   const FieldList<Dimension, typename Dimension::Scalar>& weight,
-                  const FieldList<Dimension, typename Dimension::Scalar>& weightDensity,
+                  const FieldList<Dimension, typename Dimension::Scalar>& /*weightDensity*/,
                   const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
                   const TableKernel<Dimension>& kernel) {
 
   // Some convenient typedefs.
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
   // Return FieldList.
@@ -84,9 +83,9 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
-        const Scalar& weighti = weight(masterItr);
-        const Scalar& densityi = weightDensity(masterItr);
-        const DataType& fieldi = fieldList(masterItr);
+        //const Scalar& weighti = weight(masterItr);
+        //const Scalar& densityi = weightDensity(masterItr);
+        //const DataType& fieldi = fieldList(masterItr);
 
         // First identify the fitting parameters for a linear model (w_j = a + b eta_j).
         Scalar totalWeight = 0.0;
@@ -98,7 +97,7 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
           const Vector& rj = position(neighborItr);
           const SymTensor& Hj = Hfield(neighborItr);
           const Scalar& weightj = weight(neighborItr);
-          const Scalar& densityj = weightDensity(neighborItr);
+          //const Scalar& densityj = weightDensity(neighborItr);
 
           const Vector rij = ri - rj;
           const Vector etai = Hi*rij;
@@ -240,8 +239,8 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
-        const Scalar& weighti = weight(masterItr);
-        const DataType& fieldi = fieldList(masterItr);
+        //const Scalar& weighti = weight(masterItr);
+        //const DataType& fieldi = fieldList(masterItr);
 
         Scalar totalWeight = 0.0;
 

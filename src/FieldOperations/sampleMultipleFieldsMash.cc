@@ -57,7 +57,7 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
     REQUIRE(fieldList.numFields() == position.numFields());
     REQUIRE(fieldList.numFields() == weight.numFields());
     REQUIRE(fieldList.numFields() == Hfield.numFields());
-    for (int i = 0; i < fieldList.numFields(); ++i) {
+    for (auto i = 0u; i < fieldList.numFields(); ++i) {
       REQUIRE(fieldList[i]->nodeListPtr() == position[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == weight[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == Hfield[i]->nodeListPtr());
@@ -71,7 +71,7 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
     REQUIRE(fieldList.numFields() == position.numFields());
     REQUIRE(fieldList.numFields() == weight.numFields());
     REQUIRE(fieldList.numFields() == Hfield.numFields());
-    for (int i = 0; i < fieldList.numFields(); ++i) {
+    for (auto i = 0u; i < fieldList.numFields(); ++i) {
       REQUIRE(fieldList[i]->nodeListPtr() == position[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == weight[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == Hfield[i]->nodeListPtr());
@@ -85,7 +85,7 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
     REQUIRE(fieldList.numFields() == position.numFields());
     REQUIRE(fieldList.numFields() == weight.numFields());
     REQUIRE(fieldList.numFields() == Hfield.numFields());
-    for (int i = 0; i < fieldList.numFields(); ++i) {
+    for (auto i = 0u; i < fieldList.numFields(); ++i) {
       REQUIRE(fieldList[i]->nodeListPtr() == position[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == weight[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == Hfield[i]->nodeListPtr());
@@ -99,7 +99,7 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
     REQUIRE(fieldList.numFields() == position.numFields());
     REQUIRE(fieldList.numFields() == weight.numFields());
     REQUIRE(fieldList.numFields() == Hfield.numFields());
-    for (int i = 0; i < fieldList.numFields(); ++i) {
+    for (auto i = 0u; i < fieldList.numFields(); ++i) {
       REQUIRE(fieldList[i]->nodeListPtr() == position[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == weight[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == Hfield[i]->nodeListPtr());
@@ -107,7 +107,7 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
   }
   REQUIRE(samplePositions.numFields() == sampleWeight.numFields());
   REQUIRE(samplePositions.numFields() == sampleHfield.numFields());
-  for (int i = 0; i < samplePositions.numFields(); ++i) {
+  for (auto i = 0u; i < samplePositions.numFields(); ++i) {
     REQUIRE(samplePositions[i]->nodeListPtr() == sampleWeight[i]->nodeListPtr());
     REQUIRE(samplePositions[i]->nodeListPtr() == sampleHfield[i]->nodeListPtr());
   }
@@ -241,22 +241,22 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
 
           // Loop over all the result FieldLists, and increment their values 
           // for this pair interaction.
-          for (int i = 0; i < resultSet.ScalarFieldLists.size(); ++i) {
+          for (auto i = 0u; i < resultSet.ScalarFieldLists.size(); ++i) {
             FieldList<Dimension, Scalar>& result = resultSet.ScalarFieldLists[i];
             const FieldList<Dimension, Scalar>& fieldList = fieldListSet.ScalarFieldLists[i];
             result(masterItr) += fieldList(neighborItr)*localWeight;
           }
-          for (int i = 0; i < resultSet.VectorFieldLists.size(); ++i) {
+          for (auto i = 0u; i < resultSet.VectorFieldLists.size(); ++i) {
             FieldList<Dimension, Vector>& result = resultSet.VectorFieldLists[i];
             const FieldList<Dimension, Vector>& fieldList = fieldListSet.VectorFieldLists[i];
             result(masterItr) += fieldList(neighborItr)*localWeight;
           }
-          for (int i = 0; i < resultSet.TensorFieldLists.size(); ++i) {
+          for (auto i = 0u; i < resultSet.TensorFieldLists.size(); ++i) {
             FieldList<Dimension, Tensor>& result = resultSet.TensorFieldLists[i];
             const FieldList<Dimension, Tensor>& fieldList = fieldListSet.TensorFieldLists[i];
             result(masterItr) += fieldList(neighborItr)*localWeight;
           }
-          for (int i = 0; i < resultSet.SymTensorFieldLists.size(); ++i) {
+          for (auto i = 0u; i < resultSet.SymTensorFieldLists.size(); ++i) {
             FieldList<Dimension, SymTensor>& result = resultSet.SymTensorFieldLists[i];
             const FieldList<Dimension, SymTensor>& fieldList = fieldListSet.SymTensorFieldLists[i];
             result(masterItr) += fieldList(neighborItr)*localWeight;
@@ -265,7 +265,7 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
 
         // Normalize the local estimates.
         CHECK(normalization > 0.0);
-        for (int i = 0; i < resultSet.ScalarFieldLists.size(); ++i) {
+        for (auto i = 0u; i < resultSet.ScalarFieldLists.size(); ++i) {
           FieldList<Dimension, Scalar>& result = resultSet.ScalarFieldLists[i];
           result(masterItr) /= normalization;
         }

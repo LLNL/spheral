@@ -63,7 +63,7 @@ string setdir(DBfile* filePtr, const string& ipathName) {
       // Check if this directory already exists or not.
       DBtoc* toc = DBGetToc(filePtr);
       bool exists = false;
-      size_t j = 0;
+      int j = 0;
       while (not exists and j != toc->ndir) {
         exists = (dirName == string(toc->dir_names[j]));
         ++j;
