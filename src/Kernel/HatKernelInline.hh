@@ -99,7 +99,7 @@ HatKernel<Dimension>::gradValue(double etaMagnitude, double Hdet) const {
 template<typename Dimension>
 inline
 double
-HatKernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) const {
+HatKernel<Dimension>::grad2Value(double /*etaMagnitude*/, double /*Hdet*/) const {
   return 0.0;
 }
 

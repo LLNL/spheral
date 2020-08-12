@@ -46,7 +46,6 @@ sumKernelValues(const TableKernel<Dim<2> >& W,
                 const double deta) {
   REQUIRE(deta > 0);
   typedef Dim<2>::Vector Vector;
-  typedef Dim<2>::SymTensor SymTensor;
   double result = 0.0;
   double etay = 0.0;
   while (etay < W.kernelExtent()) {
@@ -71,7 +70,6 @@ sumKernelValues(const TableKernel<Dim<3> >& W,
                 const double deta) {
   REQUIRE(deta > 0);
   typedef Dim<3>::Vector Vector;
-  typedef Dim<3>::SymTensor SymTensor;
   double result = 0.0;
   double etaz = 0.0;
   while (etaz < W.kernelExtent()) {
@@ -560,15 +558,15 @@ TableKernel<Dimension>::
 valid() const {
   return (Kernel<Dimension, TableKernel<Dimension> >::valid() and
           mNumPoints > 0 and
-          mAkernel.size() == mNumPoints and
-          mBkernel.size() == mNumPoints and
-          mCkernel.size() == mNumPoints and
-          mAgrad.size() == mNumPoints and
-          mBgrad.size() == mNumPoints and
-          mCgrad.size() == mNumPoints and
-          mAgrad2.size() == mNumPoints and
-          mBgrad2.size() == mNumPoints and
-          mCgrad2.size() == mNumPoints and
+          (int)mAkernel.size() == mNumPoints and
+          (int)mBkernel.size() == mNumPoints and
+          (int)mCkernel.size() == mNumPoints and
+          (int)mAgrad.size() == mNumPoints and
+          (int)mBgrad.size() == mNumPoints and
+          (int)mCgrad.size() == mNumPoints and
+          (int)mAgrad2.size() == mNumPoints and
+          (int)mBgrad2.size() == mNumPoints and
+          (int)mCgrad2.size() == mNumPoints and
           mStepSize > 0.0);
 }
 
