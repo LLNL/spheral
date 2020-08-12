@@ -20,18 +20,11 @@ set(Material_headers
     PhysicalConstantsInline.hh
     )
 
-set(Material_python_targets
-  MaterialUnits.py
+spheral_install_python_files(MaterialUnits.py
   MaterialEquationsOfState.py
   )
 
 spheral_add_cxx_library(Material)
-
-if(NOT ENABLE_CXXONLY)
-  install(FILES       ${Material_python_targets}
-          DESTINATION Spheral
-          )
-endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Material)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

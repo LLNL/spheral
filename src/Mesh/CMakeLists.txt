@@ -48,9 +48,10 @@ set(Mesh_headers
     generateMesh.hh
     )
 
-set(Mesh_python_targets
+spheral_install_python_files(
   generateMesh.py
-  siloMeshDump.py)
+  siloMeshDump.py
+  )
 
 spheral_add_cxx_library(Mesh)
 

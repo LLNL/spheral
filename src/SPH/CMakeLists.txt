@@ -46,20 +46,14 @@ set(SPH_headers
     correctSPHSumMassDensity.hh
     )
 
-set(SPH_python_targets
-    SPHHydros.py
-    PSPHHydros.py
-    SPHUtilities.py
-    FacetedSurfaceASPHHydro.py
-    )
+spheral_install_python_files(
+  SPHHydros.py
+  PSPHHydros.py
+  SPHUtilities.py
+  FacetedSurfaceASPHHydro.py
+  )
 
 spheral_add_cxx_library(SPH)
-
-if(NOT ENABLE_CXXONLY)
-  install(FILES       ${SPH_python_targets}
-          DESTINATION Spheral
-          )
-endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_SPH)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)
