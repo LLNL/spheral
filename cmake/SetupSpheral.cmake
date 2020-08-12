@@ -135,3 +135,15 @@ add_subdirectory(${SPHERAL_ROOT_DIR}/src)
 # Add the documentation
 #-------------------------------------------------------------------------------
 add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
+
+#-------------------------------------------------------------------------------
+# Install symlink for spheral->python
+#-------------------------------------------------------------------------------
+INSTALL(CODE "execute_process( \
+  COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_INSTALL_PREFIX}/python/bin/python ${CMAKE_INSTALL_PREFIX}/spheral)")
+
+#-------------------------------------------------------------------------------
+# Pre-compile our installed python to byte-code
+#-------------------------------------------------------------------------------
+INSTALL(CODE "execute_process( \
+  COMMAND ${CMAKE_INSTALL_PREFIX}/python/bin/python -m compileall ${CMAKE_INSTALL_PREFIX}/python/lib/python2.7/site-packages/Spheral)")
