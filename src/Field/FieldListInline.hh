@@ -1878,7 +1878,7 @@ operator*(const DataType& lhs,
           const FieldList<Dimension, OtherDataType>& rhs) {
   FieldList<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType> result;
   result.copyFields();
-  for (int i = 0; i < rhs.numFields(); ++i) {
+  for (auto i = 0u; i < rhs.numFields(); ++i) {
     result.appendField(lhs * (*(rhs[i])));
   }
   return result;

@@ -1474,7 +1474,7 @@ operator*(const DataType& lhs,
   CHECK(rhs.valid());
   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
     result("product", const_cast<Field<Dimension, OtherDataType>&>(rhs).nodeList());
-  for (int i = 0; i < result.numElements(); ++i) {
+  for (auto i = 0u; i < result.numElements(); ++i) {
     result(i) = lhs * rhs(i);
   }
   return result;
