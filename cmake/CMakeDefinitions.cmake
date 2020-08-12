@@ -1,21 +1,21 @@
 #-----------------------------------------------------------------------------------
-# Defeinitions to be added as compile flags for spheral 
+# Definitions to be added as compile flags for spheral 
 #-----------------------------------------------------------------------------------
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   message("-- building Debug")
   add_definitions("-DDEBUG=1")
-  if (NOT CMAKE_DBC)
-    set(CMAKE_DBC "All")
+  if (NOT DBC_MODE)
+    set(DBC_MODE "All")
   endif()
 else()
   add_definitions("-DDEBUG=0")
 endif()
 
-if (CMAKE_DBC STREQUAL "All")
+if (DBC_MODE STREQUAL "All")
   message("-- DBC (design by contract) set to All")
   add_definitions("-DDBC_COMPILE_ALL")
-elseif (CMAKE_DBC STREQUAL "Pre")
+elseif (DBC_MODE STREQUAL "Pre")
   message("-- DBC (design by contract) set to Pre")
   add_definitions("-DDBC_COMPILE_PRE")
 else()

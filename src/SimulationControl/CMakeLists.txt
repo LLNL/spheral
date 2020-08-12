@@ -20,8 +20,8 @@ execute_process(
 set(SPHERAL_VERSION_LIST ${abbref} ${short} ${oneline})
 string(REPLACE ";" " " spheralversion "${SPHERAL_VERSION_LIST}")
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/Spheral.py
-  ${CMAKE_CURRENT_BINARY_DIR}/Spheral.py)
+  ${CMAKE_CURRENT_SOURCE_DIR}/Spheral_banner.py
+  ${CMAKE_CURRENT_BINARY_DIR}/Spheral_banner.py)
 
 set(_dims 1)
 if(ENABLE_2D)
@@ -38,6 +38,7 @@ configure_file(
 
 
 set(SimulationControl_python_targets
+    Spheral.py
     Spheral1d.py
     Spheral2d.py
     Spheral3d.py
@@ -72,7 +73,7 @@ set(SimulationControl_python_targets
     resampleNodeList.py
     overlayNodeList.py
     writeSiloQuadMesh.py
-    ${CMAKE_CURRENT_BINARY_DIR}/Spheral.py
+    ${CMAKE_CURRENT_BINARY_DIR}/Spheral_banner.py
     ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py
     )
 
