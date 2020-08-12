@@ -20,7 +20,8 @@ set(Material_headers
     PhysicalConstantsInline.hh
     )
 
-spheral_install_python_files(MaterialUnits.py
+spheral_install_python_files(
+  MaterialUnits.py
   MaterialEquationsOfState.py
   )
 

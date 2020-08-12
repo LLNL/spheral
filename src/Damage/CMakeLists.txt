@@ -44,7 +44,8 @@ set(Damage_headers
     YoungsModulusPolicy.hh
     )
 
-spheral_install_python_files(identifyFragments.py
+spheral_install_python_files(
+  identifyFragments.py
   WeibullDamage.py
   GradyKippTensorDamage.py
   JohnsonCookDamageFactories.py

@@ -55,11 +55,5 @@ spheral_install_python_files(
 
 spheral_add_cxx_library(Mesh)
 
-if(NOT ENABLE_CXXONLY)
-  install(FILES       ${Mesh_python_targets}
-          DESTINATION Spheral
-          )
-endif()
-
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Mesh)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

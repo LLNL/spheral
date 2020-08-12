@@ -16,7 +16,8 @@ set(FileIO_headers
     HDF5Types.hh
     )
 
-spheral_install_python_files(GzipFileIO.py
+spheral_install_python_files(
+  GzipFileIO.py
   PlyFileIO.py
   )
 
