@@ -134,4 +134,4 @@ add_subdirectory(${SPHERAL_ROOT_DIR}/src)
 #-------------------------------------------------------------------------------
 # Add the documentation
 #-------------------------------------------------------------------------------
-add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
+#add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
