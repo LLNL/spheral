@@ -48,10 +48,10 @@ void
 PositionPolicy<Dimension>::
 update(const KeyType& key,
        State<Dimension>& state,
-       StateDerivatives<Dimension>& derivs,
+       StateDerivatives<Dimension>& /*derivs*/,
        const double multiplier,
-       const double t,
-       const double dt) {
+       const double /*t*/,
+       const double /*dt*/) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::position and 
@@ -64,9 +64,9 @@ update(const KeyType& key,
   // const auto dvel = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
 
   // Walk the fields.
-  for (auto i = 0; i != numFields; ++i) {
+  for (auto i = 0u; i != numFields; ++i) {
     const auto n = r[i]->numInternalElements();
-    for (auto j = 0; j < n; ++j) {
+    for (auto j = 0u; j < n; ++j) {
       r(i,j) += multiplier*vel(i,j);
       // r(i,j) += multiplier*(vel(i,j) + 0.5*multiplier*dvel(i,j));
     }
