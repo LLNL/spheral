@@ -25,6 +25,7 @@ PhysicalConstants(const double unitLm,
   UnitEnergyJ(FastMath::square(unitTsec/unitLm) / unitMkg),
   ProtonMass(mpMKS/unitMkg),
   ElectronMass(meMKS/unitMkg),
+  ElectronCharge(qeMKS / unitCcou) {
   GGravity(GMKS/(unitLm/unitMkg*FastMath::square(unitLm/unitTsec))),
   cLight(cMKS/(unitLm/unitTsec)),
   kBoltzmann(kBMKS*unitTeK/(unitMkg*FastMath::square(unitLm/unitTsec))),
@@ -33,7 +34,6 @@ PhysicalConstants(const double unitLm,
   UnitMassDensity(unitMkg/unitLm/unitLm/unitLm),
   Sigma(StefanBoltzmannMKS*unitTeK*unitTeK*unitTeK*unitTeK/unitMkg*unitTsec*unitTsec*unitTsec),
   BlackBody(4*StefanBoltzmannMKS*unitTeK*unitTeK*unitTeK*unitTeK/cMKS*unitTsec*unitTsec*unitLm/unitMkg),
-  ElectronCharge(qeMKS / unitCcou) {
 }
 
 //------------------------------------------------------------------------------

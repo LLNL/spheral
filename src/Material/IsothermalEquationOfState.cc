@@ -60,8 +60,8 @@ template<typename Dimension>
 void
 IsothermalEquationOfState<Dimension>::
 setTemperature(Field<Dimension, Scalar>& temperature,
-               const Field<Dimension, Scalar>& massDensity,
-               const Field<Dimension, Scalar>& specificThermalEnergy) const {
+               const Field<Dimension, Scalar>& /*massDensity*/,
+               const Field<Dimension, Scalar>& /*specificThermalEnergy*/) const {
   REQUIRE(valid());
   temperature = 0.0;
 }
@@ -73,8 +73,8 @@ template<typename Dimension>
 void
 IsothermalEquationOfState<Dimension>::
 setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
-                         const Field<Dimension, Scalar>& massDensity,
-                         const Field<Dimension, Scalar>& temperature) const {
+                         const Field<Dimension, Scalar>& /*massDensity*/,
+                         const Field<Dimension, Scalar>& /*temperature*/) const {
   REQUIRE(valid());
   specificThermalEnergy = 0.0;
 }
@@ -86,8 +86,8 @@ template<typename Dimension>
 void
 IsothermalEquationOfState<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
-                const Field<Dimension, Scalar>& massDensity,
-                const Field<Dimension, Scalar>& temperature) const {
+                const Field<Dimension, Scalar>& /*massDensity*/,
+                const Field<Dimension, Scalar>& /*temperature*/) const {
   REQUIRE(valid());
   specificHeat = 0.0;
 }
@@ -99,8 +99,8 @@ template<typename Dimension>
 void
 IsothermalEquationOfState<Dimension>::
 setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
-              const Field<Dimension, Scalar>& massDensity,
-              const Field<Dimension, Scalar>& specificThermalEnergy) const {
+              const Field<Dimension, Scalar>& /*massDensity*/,
+              const Field<Dimension, Scalar>& /*specificThermalEnergy*/) const {
   REQUIRE(valid());
   soundSpeed = mCs;
 }
@@ -112,8 +112,8 @@ template<typename Dimension>
 void
 IsothermalEquationOfState<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
-	      const Field<Dimension, Scalar>& massDensity,
-	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
+              const Field<Dimension, Scalar>& /*massDensity*/,
+              const Field<Dimension, Scalar>& /*specificThermalEnergy*/) const {
   REQUIRE(valid());
   gamma = 1.0;
 }
@@ -154,8 +154,8 @@ setEntropy(Field<Dimension, Scalar>& entropy,
 template<typename Dimension>
 typename Dimension::Scalar
 IsothermalEquationOfState<Dimension>::
-pressure(const Scalar massDensity,
-         const Scalar specificThermalEnergy) const {
+pressure(const Scalar /*massDensity*/,
+         const Scalar /*specificThermalEnergy*/) const {
   REQUIRE(valid());
   return this->applyPressureLimits(mK*massDensity - mExternalPressure);
 }
@@ -166,8 +166,8 @@ pressure(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 IsothermalEquationOfState<Dimension>::
-temperature(const Scalar massDensity,
-            const Scalar specificThermalEnergy) const {
+temperature(const Scalar /*massDensity*/,
+            const Scalar /*specificThermalEnergy*/) const {
   REQUIRE(valid());
   return 0.0;
 }
@@ -178,8 +178,8 @@ temperature(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 IsothermalEquationOfState<Dimension>::
-specificThermalEnergy(const Scalar massDensity,
-                      const Scalar temperature) const {
+specificThermalEnergy(const Scalar /*massDensity*/,
+                      const Scalar /*temperature*/) const {
   REQUIRE(valid());
   return 0.0;
 }
@@ -190,8 +190,8 @@ specificThermalEnergy(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 IsothermalEquationOfState<Dimension>::
-specificHeat(const Scalar massDensity,
-             const Scalar temperature) const {
+specificHeat(const Scalar /*massDensity*/,
+             const Scalar /*temperature*/) const {
   REQUIRE(valid());
   return 0.0;
 }
@@ -202,8 +202,8 @@ specificHeat(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 IsothermalEquationOfState<Dimension>::
-soundSpeed(const Scalar massDensity,
-           const Scalar specificThermalEnergy) const {
+soundSpeed(const Scalar /*massDensity*/,
+           const Scalar /*specificThermalEnergy*/) const {
   REQUIRE(valid());
   return mCs;
 }
@@ -214,8 +214,8 @@ soundSpeed(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 IsothermalEquationOfState<Dimension>::
-gamma(const Scalar massDensity,
-      const Scalar specificThermalEnergy) const {
+gamma(const Scalar /*massDensity*/,
+      const Scalar /*specificThermalEnergy*/) const {
   return 1.0;
 }
 
