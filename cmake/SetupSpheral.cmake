@@ -127,6 +127,24 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 #-------------------------------------------------------------------------------
+# Install symlink for spheral->python
+#-------------------------------------------------------------------------------
+if (NOT ENABLE_CXXONLY)
+  install(CODE "execute_process( \
+    COMMAND ${CMAKE_COMMAND} -E create_symlink python/bin/python spheral 
+    WORKING_DIRECTORY ${SPHERAL_INSTALL_DIR})")
+endif()
+
+#-------------------------------------------------------------------------------
+# Pre-compile our installed python to byte-code
+#-------------------------------------------------------------------------------
+if (NOT ENABLE_CXXONLY)
+  install(CODE "execute_process( \
+    COMMAND ${SPHERAL_INSTALL_DIR}/python/bin/python -m compileall Spheral \
+    WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX})")
+endif()
+
+#-------------------------------------------------------------------------------
 # Prepare to build the src
 #-------------------------------------------------------------------------------
 add_subdirectory(${SPHERAL_ROOT_DIR}/src)
@@ -135,15 +153,3 @@ add_subdirectory(${SPHERAL_ROOT_DIR}/src)
 # Add the documentation
 #-------------------------------------------------------------------------------
 add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
-
-#-------------------------------------------------------------------------------
-# Install symlink for spheral->python
-#-------------------------------------------------------------------------------
-INSTALL(CODE "execute_process( \
-  COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_INSTALL_PREFIX}/python/bin/python ${CMAKE_INSTALL_PREFIX}/spheral)")
-
-#-------------------------------------------------------------------------------
-# Pre-compile our installed python to byte-code
-#-------------------------------------------------------------------------------
-INSTALL(CODE "execute_process( \
-  COMMAND ${CMAKE_INSTALL_PREFIX}/python/bin/python -m compileall ${CMAKE_INSTALL_PREFIX}/python/lib/python2.7/site-packages/Spheral)")
