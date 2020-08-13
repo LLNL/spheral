@@ -131,7 +131,7 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 #-------------------------------------------------------------------------------
 if (NOT ENABLE_CXXONLY)
   install(CODE "execute_process( \
-    COMMAND ${CMAKE_COMMAND} -E create_symlink python/bin/python spheral \
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${PYTHON_EXE} spheral \
     WORKING_DIRECTORY ${SPHERAL_INSTALL_DIR})")
 endif()
 
