@@ -47,17 +47,9 @@ set(CRKSPH_headers
     zerothOrderSurfaceCorrections.hh
     )
 
-set(CRKSPH_python_targets
-  CRKSPHHydros.py
-  )
-
 spheral_add_cxx_library(CRKSPH)
-
-if(NOT ENABLE_CXXONLY)
-  install(FILES       ${CRKSPH_python_targets}
-    DESTINATION Spheral
-          )
-endif()
     
+spheral_install_python_files(CRKSPHHydros.py)
+
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_CRKSPH)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)
