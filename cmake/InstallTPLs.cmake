@@ -29,16 +29,12 @@ set(python_BUILD ON CACHE BOOL "Option to build python")
 set(pip_BUILD ON CACHE BOOL "Option to build pip")
 
 # These libs are always needed
+Spheral_Handle_TPL(zlib spheral_depends)
 Spheral_Handle_TPL(boost spheral_depends)
 Spheral_Handle_TPL(eigen spheral_depends)
 Spheral_Handle_TPL(qhull spheral_depends)
 Spheral_Handle_TPL(hdf5 spheral_depends)
 Spheral_Handle_TPL(silo spheral_depends)
-
-# Only needed when not building MPI, MPI links it's own zlib.
-if(NOT ENABLE_MPI)
-  Spheral_Handle_TPL(zlib spheral_depends)
-endif()
 
 # Only needed when building the python interface of spheral
 if(NOT ENABLE_CXXONLY)
