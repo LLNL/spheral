@@ -34,4 +34,4 @@ endif()
 
 install(
   FILES ${MANEOS_SRC_DIR}/libaneos.a
-  TYPE LIB)
+  DESTINATION ${MANEOS_DEST_DIR})
