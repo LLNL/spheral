@@ -232,6 +232,7 @@ globalNodeIDs(const NodeListIterator& begin,
   for (NodeListIterator itr = begin; itr != end; ++itr) {
     result.appendField(Field<Dimension, int>("global IDs", **itr));
   }
+  CONTRACT_VAR(numNodeLists);
   CHECK(result.numFields() == numNodeLists);
 
 #ifdef USE_MPI
@@ -304,7 +305,7 @@ globalNodeIDs(const NodeListIterator& begin,
     const NodeList<Dimension>& nodeList = **nodeListItr;
     Field<Dimension, int>& globalIDs = **result.fieldForNodeList(nodeList);
     globalIDs = globalNodeIDs(nodeList);
-    for (int i = 0; i != globalIDs.numElements(); ++i) globalIDs(i) += numCumulativeNodes;
+    for (auto i = 0u; i != globalIDs.numElements(); ++i) globalIDs(i) += numCumulativeNodes;
     numCumulativeNodes += globalIDs.numElements();
   }
 
