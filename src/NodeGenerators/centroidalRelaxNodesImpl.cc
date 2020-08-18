@@ -44,11 +44,6 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
                          FieldList<Dimension, typename Dimension::FacetedVolume>& cells) {
 
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef typename Dimension::FourthRankTensor FourthRankTensor;
-  typedef typename Dimension::FifthRankTensor FifthRankTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
   // Read some state.
@@ -88,7 +83,7 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
   // iterateIdealH(db, boundaries, W, ASPHSmoothingScale<Dimension>(), 5);
 
   // Iterate until we converge or max out.
-  auto iter = 0;
+  auto iter = 0u;
   auto avgdelta = 2.0*avgFracTol;
   auto maxdelta = 2.0*maxFracTol;
   while (iter < maxIterations and (avgdelta > avgFracTol or maxdelta > maxFracTol)) {
@@ -170,7 +165,6 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
     maxdelta = 0.0;
     for (unsigned nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = rhof[nodeListi]->numInternalElements();
-      const auto hmax = rhof[nodeListi]->nodeListPtr()->hmax();
       for (auto i = 0U; i != n; ++i) {
         auto delta = centroidFrac * deltaCentroid(nodeListi, i);
         if (useBounds) {

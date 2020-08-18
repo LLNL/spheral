@@ -35,8 +35,6 @@ readSiloPolyMesh(const std::string& fileName,
                  std::vector<Dim<3>::SymTensor>& H) {
 
   typedef Dim<3>::Vector Vector;
-  typedef Dim<3>::Tensor Tensor;
-  typedef Dim<3>::SymTensor SymTensor;
 
   // Read the mesh from the silo file.
   VERIFY2(DBInqFile(fileName.c_str()) > 0, "Error: " << fileName << " does not appear to be a valid silo file.");

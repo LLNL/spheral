@@ -1276,7 +1276,7 @@ template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::operator*=(const Scalar& rhs) {
-  for (int i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     *((*this)[i]) *= rhs;
   }
   return *this;

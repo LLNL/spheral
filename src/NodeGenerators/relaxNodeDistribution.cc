@@ -31,9 +31,9 @@ template<typename Dimension>
 void
 relaxNodeDistribution(DataBase<Dimension>& dataBase,
                       const typename Dimension::FacetedVolume& boundary,
-                      const std::vector<Boundary<Dimension>*>& boundaries,
-                      const TableKernel<Dimension>& W,
-                      const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                      const std::vector<Boundary<Dimension>*>& /*boundaries*/,
+                      const TableKernel<Dimension>& /*W*/,
+                      const SmoothingScaleBase<Dimension>& /*smoothingScaleMethod*/,
                       const WeightingFunctor<Dimension>& weightingFunctor,
                       const WeightingFunctor<Dimension>& massDensityFunctor,
                       const double targetMass,
@@ -44,9 +44,7 @@ relaxNodeDistribution(DataBase<Dimension>& dataBase,
   typedef typename MeshType::Zone Zone;
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::FacetedVolume FacetedVolume;
 
   // Grab the state.
   FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
