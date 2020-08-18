@@ -177,6 +177,9 @@ Mesh<Dim<2> >::
 reconstructInternal(const vector<Dim<2>::Vector>& generators,
                     const Dim<2>::Vector& xmin,
                     const Dim<2>::Vector& xmax) {
+  CONTRACT_VAR(generators);
+  CONTRACT_VAR(xmin);
+  CONTRACT_VAR(xmax);
 
 #ifndef NOPOLYTOPE
   // Some useful typedefs.
@@ -279,6 +282,8 @@ void
 Mesh<Dim<2> >::
 reconstructInternal(const vector<Dim<2>::Vector>& generators,
                     const Dim<2>::FacetedVolume& boundary) {
+  CONTRACT_VAR(generators);
+  CONTRACT_VAR(boundary);
 #ifndef NOPOLYTOPE
 
   // Some useful typedefs.
@@ -419,7 +424,7 @@ boundingSurface() const {
 
   // Look for the faces that bound the mesh.  We build up the global
   // vertex indices, and the associated positions.
-  int id1, id2;
+  int id2;
   unsigned i, j, iglobal, jglobal;
   map<unsigned, Vector> globalVertexPositions;
   vector<vector<unsigned> > facetIndices;
@@ -427,7 +432,7 @@ boundingSurface() const {
     CHECK(face.mNodeIDs.size() == 2);
     i = face.mNodeIDs[0];
     j = face.mNodeIDs[1];
-    id1 = face.zone1ID();
+    //id1 = face.zone1ID();
     id2 = face.zone2ID();
     if (positiveID(id2) == UNSETID and
         (sharedNodes.find(i) == sharedNodes.end() or
@@ -514,6 +519,7 @@ boundingSurface() const {
   BEGIN_CONTRACT_SCOPE
   {
     for (const vector<unsigned>& indices: facetIndices) {
+      CONTRACT_VAR(indices);
       ENSURE(indices.size() == 2);
       ENSURE(*max_element(indices.begin(), indices.end()) < vertices.size());
     }
@@ -544,6 +550,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
       for (const vector<unsigned>& faceNodes: cellFaces) {
         REQUIRE(faceNodes.size() >= minNodesPerFace);
         for (unsigned inode: faceNodes) {
+          CONTRACT_VAR(inode);
           REQUIRE(inode < mNodePositions.size());
         }
       }

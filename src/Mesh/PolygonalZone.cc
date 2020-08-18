@@ -62,6 +62,7 @@ Zone(const Mesh<Dim<2> >& mesh,
     REQUIRE(mFaceIDs.size() > 2);
     for (const int i: mFaceIDs) {
       int j = (i < 0 ? ~i : i);
+      CONTRACT_VAR(j);
       REQUIRE(j < mMeshPtr->mFaces.size());
       REQUIRE(mMeshPtr->mFaces[j].mEdgeIDs.size() == 1);
       REQUIRE(mMeshPtr->mFaces[j].mEdgeIDs[0] == j);
@@ -76,9 +77,8 @@ Zone(const Mesh<Dim<2> >& mesh,
   // We need the nodes sorted counter-clockwise around the zone.  The faces
   // are already sorted, so we can leverage that info.  Note we are using the
   // fact that faces and edges are degenerate here.
-  const unsigned numEdges = mEdgeIDs.size();
   int i;
-  unsigned j, n1, n2;
+  unsigned n1, n2;
   for (const int faceID: mFaceIDs) {
     i = (faceID < 0 ? ~faceID : faceID);
     n1 = mMeshPtr->mEdges[i].node1ID();
@@ -93,7 +93,7 @@ Zone(const Mesh<Dim<2> >& mesh,
     ENSURE2(mNodeIDs.size() == mFaceIDs.size(), mID << " " << mNodeIDs.size() << " " << mFaceIDs.size());
     ENSURE2(mEdgeIDs.size() == mFaceIDs.size(), mID << " " << mEdgeIDs.size() << " " << mFaceIDs.size());
     ENSURE2(mFaceIDs.size() > 2, mID << " " << mFaceIDs.size());
-    for (i = 0; i != mFaceIDs.size(); ++i) {
+    for (i = 0; i != (int)mFaceIDs.size(); ++i) {
       ENSURE2(mNodeIDs[i] < mMeshPtr->mNodes.size(), mID << " " << mNodeIDs[i] << " " <<  mMeshPtr->mNodes.size());
       ENSURE2(mEdgeIDs[i] < mMeshPtr->mEdges.size(), mID << " " << mEdgeIDs[i] << " " <<  mMeshPtr->mEdges.size());
       ENSURE2(Mesh<Dim<2> >::positiveID(mFaceIDs[i]) < mMeshPtr->mFaces.size(),
@@ -139,6 +139,8 @@ Zone(const Mesh<Dim<2> >& mesh,
               << mMeshPtr->mEdges[mEdgeIDs[i + 1]].position());
       int id1 = Mesh<Dim<2> >::positiveID(mFaceIDs[i]),
           id2 = Mesh<Dim<2> >::positiveID(mFaceIDs[i + 1]);
+      2ONTRACT_VAR(id1);
+      CONTRACT_VAR(id2);
       ENSURE2(faceComparator(id1, id2),
               faceComparator(id1, id2) << " "
               << mMeshPtr->mFaces[Mesh<Dim<2> >::positiveID(mFaceIDs[0])].position() << " "

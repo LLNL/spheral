@@ -52,6 +52,9 @@ Mesh<Dim<3> >::
 reconstructInternal(const vector<Dim<3>::Vector>& generators,
                     const Dim<3>::Vector& xmin,
                     const Dim<3>::Vector& xmax) {
+  CONTRACT_VAR(generators);
+  CONTRACT_VAR(xmin);
+  CONTRACT_VAR(xmax);
 #ifndef NOPOLYTOPE
 
   // Some useful typedefs.
@@ -212,8 +215,8 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
 template<>
 void
 Mesh<Dim<3> >::
-reconstructInternal(const vector<Dim<3>::Vector>& generators,
-                    const Dim<3>::FacetedVolume& boundary) {
+reconstructInternal(const vector<Dim<3>::Vector>& /*generators*/,
+                    const Dim<3>::FacetedVolume& /*boundary*/) {
   VERIFY2(false, "PolyhedralMesh ERROR: tessellations with arbitrary polyhedral boundaries not supported.");
 }
 
@@ -244,7 +247,7 @@ boundingSurface() const {
   vector<vector<unsigned> > facetIndices;
   for (const Face& face: mFaces) {
     const vector<unsigned>& nodeIDs = face.nodeIDs();
-    useFace = (face.zone1ID() == UNSETID or face.zone2ID() == UNSETID);
+    useFace = (face.zone1ID() == (int)UNSETID or face.zone2ID() == (int)UNSETID);
     i = 0;
     while (useFace and i != nodeIDs.size()) {
       useFace = (sharedNodes.find(nodeIDs[i]) == sharedNodes.end());
@@ -343,6 +346,7 @@ boundingSurface() const {
   BEGIN_CONTRACT_SCOPE
   {
     for (const vector<unsigned>& indices: facetIndices) {
+      CONTRACT_VAR(indices);
       ENSURE(indices.size() >= 3);
       ENSURE(*max_element(indices.begin(), indices.end()) < vertices.size());
     }
@@ -374,6 +378,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
       for (const vector<unsigned>& faceNodes: cellFaces) {
         REQUIRE(faceNodes.size() >= minNodesPerFace);
         for (const unsigned inode: faceNodes) {
+          CONTRACT_VAR(inode);
           REQUIRE(inode < mNodePositions.size());
         }
       }
