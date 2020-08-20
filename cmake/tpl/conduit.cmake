@@ -20,7 +20,11 @@ if(${lib_name}_BUILD)
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                -DCMAKE_C_FLAGS=-fPIC
                -DENABLE_TESTS=Off
+               -DHDF5_DIR=${HDF5_INSTALL_DIR}
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
+
+    DEPENDS hdf5
+
     LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
     LOG_CONFIGURE ${OUT_PROTOCOL_EP}
     LOG_BUILD ${OUT_PROTOCOL_EP}
@@ -28,3 +32,4 @@ if(${lib_name}_BUILD)
   )
 
 endif()
+set(CONDUIT_INSTALL_DIR ${${lib_name}_DIR} PARENT_SCOPE)
