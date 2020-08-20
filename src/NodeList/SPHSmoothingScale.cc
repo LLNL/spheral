@@ -27,25 +27,25 @@ namespace {
 //------------------------------------------------------------------------------
 // Convert a given number of neighbors to the equivalent 1D "radius" in nodes.
 //------------------------------------------------------------------------------
-template<typename Dimension> double equivalentRadius(const double n);
+template<typename Dimension> static inline double equivalentRadius(const double n);
 
 // 1D
 template<>
-double
+static inline double
 equivalentRadius<Dim<1> >(const double n) {
   return 0.5*n;
 }
 
 // 2D
 template<>
-double
+static inline double
 equivalentRadius<Dim<2> >(const double n) {
   return std::sqrt(n/M_PI);
 }
 
 // 3D
 template<>
-double
+static inline double
 equivalentRadius<Dim<3> >(const double n) {
   return Dim<3>::rootnu(3.0*n/(4.0*M_PI));
 }
@@ -96,12 +96,12 @@ template<typename Dimension>
 typename Dimension::SymTensor
 SPHSmoothingScale<Dimension>::
 smoothingScaleDerivative(const SymTensor& H,
-                         const Vector& pos,
+                         const Vector& /*pos*/,
                          const Tensor& DvDx,
-                         const Scalar hmin,
-                         const Scalar hmax,
-                         const Scalar hminratio,
-                         const Scalar nPerh) const {
+                         const Scalar /*hmin*/,
+                         const Scalar /*hmax*/,
+                         const Scalar /*hminratio*/,
+                         const Scalar /*nPerh*/) const {
   return -H/(Dimension::nDim)*DvDx.Trace();
 }
 
@@ -112,17 +112,17 @@ template<typename Dimension>
 typename Dimension::SymTensor
 SPHSmoothingScale<Dimension>::
 idealSmoothingScale(const SymTensor& H,
-                    const Vector& pos,
+                    const Vector& /*pos*/,
                     const Scalar zerothMoment,
-                    const SymTensor& secondMoment,
+                    const SymTensor& /*secondMoment*/,
                     const TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
-                    const Scalar hminratio,
+                    const Scalar /*hminratio*/,
                     const Scalar nPerh,
-                    const ConnectivityMap<Dimension>& connectivityMap,
-                    const unsigned nodeListi,
-                    const unsigned i) const {
+                    const ConnectivityMap<Dimension>& /*connectivityMap*/,
+                    const unsigned /*nodeListi*/,
+                    const unsigned /*i*/) const {
 
   // Pre-conditions.
   // REQUIRE2(fuzzyEqual(H.Trace(), Dimension::nDim*H.xx(), 1.0e-5), H << " : " << H.Trace() << " " << Dimension::nDim*H.xx());
@@ -226,12 +226,12 @@ newSmoothingScale(const SymTensor& H,
 template<typename Dimension>
 typename Dimension::SymTensor
 SPHSmoothingScale<Dimension>::
-idealSmoothingScale(const SymTensor& H,
-                    const Mesh<Dimension>& mesh,
+idealSmoothingScale(const SymTensor& /*H*/,
+                    const Mesh<Dimension>& /*mesh*/,
                     const typename Mesh<Dimension>::Zone& zone,
                     const Scalar hmin,
                     const Scalar hmax,
-                    const Scalar hminratio,
+                    const Scalar /*hminratio*/,
                     const Scalar nPerh) const {
   const Scalar vol = zone.volume();
   CHECK(vol > 0.0);
