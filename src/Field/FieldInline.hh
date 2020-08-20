@@ -1445,7 +1445,7 @@ operator*(const Field<Dimension, DataType>& lhs,
   CHECK(lhs.nodeList().numNodes() == rhs.nodeList().numNodes());
   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
     result("product", const_cast<Field<Dimension, DataType>&>(lhs).nodeList());
-  for (int i = 0; i < result.numElements(); ++i) {
+  for (auto i = 0u; i < result.numElements(); ++i) {
     result(i) = lhs(i) * rhs(i);
   }
   return result;

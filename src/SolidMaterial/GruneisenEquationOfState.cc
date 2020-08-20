@@ -75,7 +75,7 @@ setPressure(Field<Dimension, Scalar>& Pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (int i = 0; i != Pressure.size(); ++i) {
+  for (auto i = 0u; i != Pressure.size(); ++i) {
     Pressure(i) = this->pressure(massDensity(i),specificThermalEnergy(i));
   }
 }
@@ -90,7 +90,7 @@ setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (int i = 0; i != temperature.size(); ++i) {
+  for (auto i = 0u; i != temperature.size(); ++i) {
     temperature(i) = this->temperature(massDensity(i),specificThermalEnergy(i));
   }
 }
@@ -105,7 +105,7 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
   CHECK(valid());
-  for (int i = 0; i != specificThermalEnergy.size(); ++i) {
+  for (auto i = 0u; i != specificThermalEnergy.size(); ++i) {
     specificThermalEnergy(i) = this->specificThermalEnergy(massDensity(i), temperature(i));
   }
 }
@@ -117,8 +117,8 @@ template<typename Dimension>
 void
 GruneisenEquationOfState<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
-                const Field<Dimension, Scalar>& massDensity,
-                const Field<Dimension, Scalar>& temperature) const {
+                const Field<Dimension, Scalar>& /*massDensity*/,
+                const Field<Dimension, Scalar>& /*temperature*/) const {
   CHECK(valid());
   specificHeat = mCv;
 }
@@ -133,7 +133,7 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (int i = 0; i != soundSpeed.size(); ++i) {
+  for (auto i = 0u; i != soundSpeed.size(); ++i) {
     soundSpeed(i) = this->soundSpeed(massDensity(i),specificThermalEnergy(i));
   }
 }
@@ -148,7 +148,7 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (int i = 0; i != gamma.size(); ++i) {
+  for (auto i = 0u; i != gamma.size(); ++i) {
     gamma(i) = this->gamma(massDensity(i),specificThermalEnergy(i));
   }
 }
@@ -163,7 +163,7 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (int i = 0; i != bulkModulus.size(); ++i) {
+  for (auto i = 0u; i != bulkModulus.size(); ++i) {
     bulkModulus(i) = this->bulkModulus(massDensity(i),specificThermalEnergy(i));
   }
 }
@@ -260,8 +260,8 @@ specificThermalEnergy(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 GruneisenEquationOfState<Dimension>::
-specificHeat(const Scalar massDensity,
-             const Scalar temperature) const {
+specificHeat(const Scalar /*massDensity*/,
+             const Scalar /*temperature*/) const {
   CHECK(valid());
   return mCv;
 }
@@ -285,7 +285,7 @@ soundSpeed(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 GruneisenEquationOfState<Dimension>::gamma(const Scalar massDensity,
-                                           const Scalar specificThermalEnergy) const {
+                                           const Scalar /*specificThermalEnergy*/) const {
   const double xmu = this->boundedEta(massDensity) - 1.;
   CHECK(xmu!=-1.);
   return (mgamma0 + mb*xmu) / (1. + xmu);
