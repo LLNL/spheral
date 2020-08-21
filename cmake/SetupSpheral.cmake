@@ -45,10 +45,13 @@ include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
 # Include standard build system logic and options / definitions
 #-------------------------------------------------------------------------------
 set(ENABLE_CXXONLY OFF CACHE BOOL "enable C++ only build without python bindings")
+set(ENABLE_1D ON CACHE BOOL "enable 1d")
 set(ENABLE_2D ON CACHE BOOL "enable 2d")
 set(ENABLE_3D ON CACHE BOOL "enable 3d")
 set(ENABLE_INSTANTIATIONS ON CACHE BOOL "enable instantiations")
 set(ENABLE_TIMER OFF CACHE BOOL "enable timer")
+set(ENABLE_ANEOS ON CACHE BOOL "enable the ANEOS equation of state package")
+set(ENABLE_HELMHOLTZ ON CACHE BOOL "enable the Helmholtz equation of state package")
 
 option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
 if(ENABLE_STATIC_CXXONLY)
