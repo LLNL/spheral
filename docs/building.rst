@@ -130,11 +130,20 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 ``ENABLE_MPI`` (*On*, Off)
   Support for MPI.
 
+``ENABLE_1D`` (*On*, Off)
+  Build Spheral with 1D support.
+
 ``ENABLE_2D`` (*On*, Off)
   Build Spheral with 2D support.
 
 ``ENABLE_3D`` (*On*, Off)
   Build Spheral with 3D support.
+
+``ENABLE_ANEOS`` (*On*, Off)
+  Install the ANEOS (Analytics Equation of State) package along with the Spheral interface to it.  This is a legacy equation of state frequently used for geophysical materials.  See descriptions in the `iSALE <https://github.com/isale-code/M-ANEOS>`_ documentation.
+
+``ENABLE_HELMHOLTZ`` (*On*, Off)
+  Compile the included Helmholtz equation of state, typically used in astrophysical calculations. See a discussion `here <http://cococubed.asu.edu/code_pages/eos.shtml>`_.
 
 ``ENABLE_TIMER`` (*On*, Off)
   Enable timer information from Spheral.
