@@ -130,7 +130,6 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mTimeStepMask(FieldStorageType::CopyFields),
   mPressure(FieldStorageType::CopyFields),
   mSoundSpeed(FieldStorageType::CopyFields),
-  mVolume(FieldStorageType::CopyFields),
   mOmegaGradh(FieldStorageType::CopyFields),
   mSpecificThermalEnergy0(FieldStorageType::CopyFields),
   mEntropy(FieldStorageType::CopyFields),
@@ -154,6 +153,7 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mInternalDvDx(FieldStorageType::CopyFields),
   mM(FieldStorageType::CopyFields),
   mLocalM(FieldStorageType::CopyFields),
+  mVolume(FieldStorageType::CopyFields),
   mPairAccelerations(),
   mRestart(registerWithRestart(*this)) {
 
@@ -457,6 +457,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   switch(densityUpdate()) {
 
   case MassDensityType::RigorousSumDensity:
+  case MassDensityType::IntegrateDensity:
   case MassDensityType::CorrectedSumDensity:
     {
       const auto& connectivityMap = dataBase.connectivityMap();
@@ -493,9 +494,9 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                                                 HydroFieldNames::massDensity, 0.0);
       const auto normalization = state.fields(HydroFieldNames::normalization, 0.0);
       const auto numNodeLists = normalization.size();
-      for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+      for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
         const auto n = normalization[nodeListi]->numInternalElements();
-        for (auto i = 0; i < n; ++i) {
+        for (auto i = 0u; i < n; ++i) {
           if (normalization(nodeListi, i) > 0.95) massDensity(nodeListi, i) = massDensitySum(nodeListi, i);
         }
       }
@@ -627,7 +628,7 @@ initialize(const typename Dimension::Scalar time,
   TIME_SPHinitialize.start();
 
   // Initialize the grad h corrrections if needed.
-  const TableKernel<Dimension>& W = this->kernel();
+  const TableKernel<Dimension>& /*W*/ = this->kernel();
   const TableKernel<Dimension>& WPi = this->PiKernel();
 
   if (mGradhCorrection) {
@@ -662,10 +663,10 @@ initialize(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 SPHHydroBase<Dimension>::
-finalizeDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
-                    const DataBase<Dimension>& dataBase,
-                    const State<Dimension>& state,
+finalizeDerivatives(const typename Dimension::Scalar /*time*/,
+                    const typename Dimension::Scalar /*dt*/,
+                    const DataBase<Dimension>& /*dataBase*/,
+                    const State<Dimension>& /*state*/,
                     StateDerivatives<Dimension>& derivs) const {
   TIME_SPHfinalizeDerivs.start();
 
@@ -694,7 +695,7 @@ template<typename Dimension>
 void
 SPHHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
-                     StateDerivatives<Dimension>& derivs) {
+                     StateDerivatives<Dimension>& /*derivs*/) {
   TIME_SPHghostBounds.start();
 
   // Apply boundary conditions to the basic fluid state Fields.
@@ -744,7 +745,7 @@ template<typename Dimension>
 void
 SPHHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs) {
+                  StateDerivatives<Dimension>& /*derivs*/) {
   TIME_SPHenforceBounds.start();
 
   // Enforce boundary conditions on the fluid state Fields.

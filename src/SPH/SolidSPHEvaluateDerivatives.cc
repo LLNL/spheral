@@ -6,7 +6,7 @@ namespace Spheral {
 template<typename Dimension>
 void
 SolidSPHHydroBase<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
+evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
@@ -153,7 +153,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto DSDt_thread = DSDt.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto kk = 0; kk < npairs; ++kk) {
+    for (auto kk = 0u; kk < npairs; ++kk) {
       const auto start = Timing::currentTime();
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
@@ -165,16 +165,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto  rhoi = massDensity(nodeListi, i);
-      const auto  epsi = specificThermalEnergy(nodeListi, i);
+      //const auto  epsi = specificThermalEnergy(nodeListi, i);
       const auto  Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  ci = soundSpeed(nodeListi, i);
       const auto  omegai = omega(nodeListi, i);
       const auto& Si = S(nodeListi, i);
-      const auto  mui = mu(nodeListi, i);
+      //const auto  mui = mu(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  safeOmegai = safeInv(omegai, tiny);
-      const auto  fragIDi = fragIDs(nodeListi, i);
+      //const auto  fragIDi = fragIDs(nodeListi, i);
       const auto  pTypei = pTypes(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
@@ -201,7 +201,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto mj = mass(nodeListj, j);
       const auto vj = velocity(nodeListj, j);
       const auto rhoj = massDensity(nodeListj, j);
-      const auto epsj = specificThermalEnergy(nodeListj, j);
+      //const auto epsj = specificThermalEnergy(nodeListj, j);
       const auto Pj = pressure(nodeListj, j);
       const auto Hj = H(nodeListj, j);
       const auto cj = soundSpeed(nodeListj, j);
@@ -209,7 +209,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto Sj = S(nodeListj, j);
       const auto Hdetj = Hj.Determinant();
       const auto safeOmegaj = safeInv(omegaj, tiny);
-      const auto fragIDj = fragIDs(nodeListj, j);
+      //const auto fragIDj = fragIDs(nodeListj, j);
       const auto pTypej = pTypes(nodeListj, j);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
@@ -385,12 +385,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
 
   // Finish up the derivatives for each point.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
     const auto  hmax = nodeList.hmax();
     const auto  hminratio = nodeList.hminratio();
-    const auto  maxNumNeighbors = nodeList.maxNumNeighbors();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
     // Check if we can identify a reference density.
@@ -404,7 +403,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
