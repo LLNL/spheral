@@ -8,7 +8,7 @@ set(MANEOS_DEST_DIR "${${lib_name}_DIR}/lib")
 #set(${lib_name}_INCLUDES maneos.h)
 set(${lib_name}_libs libaneos.a)
 
-if(${lib_name}_BUILD)
+if(ENABLE_ANEOS)
 
   if (EXISTS ${MANEOS_CACHE})
     set(MANEOS_URL ${MANEOS_CACHE})
@@ -30,8 +30,9 @@ if(${lib_name}_BUILD)
     LOG_INSTALL ${OUT_PROTOCOL_EP}
   )
 
+  install(
+    FILES ${MANEOS_SRC_DIR}/libaneos.a
+    DESTINATION ${MANEOS_DEST_DIR})
+
 endif()
 
-install(
-  FILES ${MANEOS_SRC_DIR}/libaneos.a
-  DESTINATION ${MANEOS_DEST_DIR})
