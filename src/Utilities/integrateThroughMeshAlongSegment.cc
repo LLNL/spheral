@@ -137,6 +137,7 @@ findIntersections(const Dim<2>::Vector& xmin,
     const Vector meshSeg1(xseg,  1.0e10);
     Vector intersect1, intersect2;
     const char test = segmentSegmentIntersection(s0, s1, meshSeg0, meshSeg1, intersect1, intersect2);
+    CONTRACT_VAR(test);
     CHECK(test != '0');
     result.push_back(intersect1);
   }
@@ -146,6 +147,7 @@ findIntersections(const Dim<2>::Vector& xmin,
     const Vector meshSeg1( 1.0e10, yseg);
     Vector intersect1, intersect2;
     const char test = segmentSegmentIntersection(s0, s1, meshSeg0, meshSeg1, intersect1, intersect2);
+    CONTRACT_VAR(test);
     CHECK(test != '0');
     result.push_back(intersect1);
   }
@@ -158,6 +160,7 @@ findIntersections(const Dim<2>::Vector& xmin,
     for (vector<Vector>::const_iterator itr = result.begin();
 	 itr != result.end();
 	 ++itr) {
+      CONTRACT_VAR(segLen);
       ENSURE((*itr - s0).dot(shat) >= 0.0);
       ENSURE(fuzzyEqual(abs((*itr - s0).dot(shat)), (*itr - s0).magnitude(), 1.0e-10));
       ENSURE((*itr - s0).dot(shat)*safeInv(segLen) <= (1.0 + 1.0e-8));
@@ -208,6 +211,7 @@ findIntersections(const Dim<3>::Vector& xmin,
     const Vector meshPlane2(xplane, 1.0, 1.0);
     Vector intersect;
     const char test = segmentPlaneIntersection(s0, s1, meshPlane0, meshPlane1, meshPlane2, intersect);
+    CONTRACT_VAR(test);
     CHECK(test != '0');
     result.push_back(intersect);
   }
@@ -218,6 +222,7 @@ findIntersections(const Dim<3>::Vector& xmin,
     const Vector meshPlane2(1.0, yplane, 1.0);
     Vector intersect;
     const char test = segmentPlaneIntersection(s0, s1, meshPlane0, meshPlane1, meshPlane2, intersect);
+    CONTRACT_VAR(test);
     CHECK(test != '0');
     result.push_back(intersect);
   }
@@ -228,6 +233,7 @@ findIntersections(const Dim<3>::Vector& xmin,
     const Vector meshPlane2(1.0, 1.0, zplane);
     Vector intersect;
     const char test = segmentPlaneIntersection(s0, s1, meshPlane0, meshPlane1, meshPlane2, intersect);
+    CONTRACT_VAR(test);
     CHECK(test != '0');
     result.push_back(intersect);
   }
@@ -240,6 +246,7 @@ findIntersections(const Dim<3>::Vector& xmin,
     for (vector<Vector>::const_iterator itr = result.begin();
 	 itr != result.end();
 	 ++itr) {
+      CONTRACT_VAR(segLen);
       ENSURE((*itr - s0).dot(shat) >= 0.0);
       ENSURE(fuzzyEqual(abs((*itr - s0).dot(shat)), (*itr - s0).magnitude(), 1.0e-10));
       ENSURE((*itr - s0).dot(shat)*safeInv(segLen) <= 1.0);

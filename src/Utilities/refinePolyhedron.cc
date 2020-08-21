@@ -87,6 +87,8 @@ private:
 
 GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
                                 const unsigned numLevels) {
+  CONTRACT_VAR(poly0);
+  CONTRACT_VAR(numLevels);
 
 #ifndef HAVE_OPENSUBDIV
   VERIFY2(false, "ERROR: attempt to call refinePolyhedron, but OpenSubdiv has not been compiled into Spheral.");
