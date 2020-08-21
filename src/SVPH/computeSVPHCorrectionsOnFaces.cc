@@ -37,16 +37,14 @@ computeSVPHCorrectionsOnFaces(const Mesh<Dimension>& mesh,
                               const FieldList<Dimension, typename Dimension::Scalar>& volume,
                               const FieldList<Dimension, typename Dimension::Vector>& position,
                               const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                              const BoundaryIterator& boundaryBegin,
-                              const BoundaryIterator& boundaryEnd,
+                              const BoundaryIterator& /*boundaryBegin*/,
+                              const BoundaryIterator& /*boundaryEnd*/,
                               vector<typename Dimension::Scalar>& A,
                               vector<typename Dimension::Vector>& B) {
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
   typedef typename Mesh<Dimension>::Face Face;
 
   // Pre-conditions.

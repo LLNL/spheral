@@ -28,6 +28,7 @@ namespace Spheral {
 namespace {
 
 // 1D
+static inline
 Dim<1>::Vector
 delta_grad(const Dim<1>::Vector& xij,
            const Dim<1>::Vector& Bi,
@@ -38,6 +39,7 @@ delta_grad(const Dim<1>::Vector& xij,
 }
 
 // 2D
+static inline
 Dim<2>::Vector
 delta_grad(const Dim<2>::Vector& xij,
            const Dim<2>::Vector& Bi,
@@ -49,12 +51,13 @@ delta_grad(const Dim<2>::Vector& xij,
 }
 
 // 3D
+static inline
 Dim<3>::Vector
-delta_grad(const Dim<3>::Vector& xij,
-           const Dim<3>::Vector& Bi,
-           const Dim<3>::Tensor& gradBi,
-           const Dim<3>::Scalar& Wj,
-           const Dim<3>::Vector& gradWj) {
+delta_grad(const Dim<3>::Vector& /*xij*/,
+           const Dim<3>::Vector& /*Bi*/,
+           const Dim<3>::Tensor& /*gradBi*/,
+           const Dim<3>::Scalar& /*Wj*/,
+           const Dim<3>::Vector& /*gradWj*/) {
   return Dim<3>::Vector();
 }
 
@@ -103,9 +106,9 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
   if (firstOrderConsistent) {
 
     // Copy the cell volumes to the FieldList.
-    for (int nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
       const NodeList<Dimension>& nodeList = fieldList[nodeListi]->nodeList();
-      for (int i = 0; i != nodeList.numNodes(); ++i) {
+      for (auto i = 0u; i != nodeList.numNodes(); ++i) {
         volume(nodeListi, i) = mesh.zone(nodeListi, i).volume();
       }
     }
@@ -123,8 +126,7 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
 
   // Walk the NodeLists to build our answer.
   const Scalar W0 = W.kernelValue(0.0, 1.0);
-  for (int nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const NodeList<Dimension>& nodeList = fieldList[nodeListi]->nodeList();
+  for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
 
     // Iterate over the nodes in this node list.
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
@@ -144,7 +146,7 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
 
       // Walk the neighbors for this node.
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-      for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+      for (auto nodeListj = 0u; nodeListj != numNodeLists; ++nodeListj) {
         const vector<int>& connectivity = fullConnectivity[nodeListj];
         for (vector<int>::const_iterator jItr = connectivity.begin();
              jItr != connectivity.end();
