@@ -14,7 +14,7 @@ If you forget to use the ``--recursive`` argument or if you checkout from a diff
 
 ::
 
-  git submodule update --init
+  git submodule update --init --recursive
 
 Basic Build
 -----------
