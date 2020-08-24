@@ -22,6 +22,7 @@ set(polytope_BUILD ON CACHE BOOL "Option to build polytope")
 set(hdf5_BUILD ON CACHE BOOL "Option to build hdf5")
 set(silo_BUILD ON CACHE BOOL "Option to build silo")
 set(opensubdiv_BUILD ON CACHE BOOL "Option to build Opensubdiv")
+set(maneos_BUILD ON CACHE BOOL "Option to build ANEOS third party lib")
 
 set(pybind11_BUILD ON CACHE BOOL "Option to build pybind11")
 set(python_BUILD ON CACHE BOOL "Option to build python")
