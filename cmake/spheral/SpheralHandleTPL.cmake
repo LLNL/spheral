@@ -117,6 +117,7 @@ function(Spheral_Handle_TPL lib_name dep_list)
   blt_register_library(NAME blt_${lib_name}
                        INCLUDES ${${lib_name}_INCLUDES}
                        LIBRARIES ${${lib_name}_LIBRARIES}
+                       TREAT_INCLUDES_AS_SYSTEM On
                        )
 
   # Add the blt target to a list of libs that can be depended on
