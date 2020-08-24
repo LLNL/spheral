@@ -16,18 +16,12 @@ set(FileIO_headers
     HDF5Types.hh
     )
 
-set(FileIO_python_targets
+spheral_install_python_files(
   GzipFileIO.py
   PlyFileIO.py
   )
 
 spheral_add_cxx_library(FileIO)
-
-if(NOT ENABLE_CXXONLY)
-  install(FILES       ${FileIO_python_targets}
-          DESTINATION Spheral
-          )
-endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_FileIO)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

@@ -116,17 +116,9 @@ set(Utilities_headers
     timingUtilities.hh
     )
 
-set(Utilities_python_targets
-    fitspline.py
-    )
+spheral_install_python_files(fitspline.py)
 
 spheral_add_cxx_library(Utilities)
-
-if(NOT ENABLE_CXXONLY)
-  install(FILES       ${Utilities_python_targets}
-          DESTINATION Spheral
-          )
-endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Utilities)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)
