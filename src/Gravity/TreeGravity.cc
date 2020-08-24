@@ -544,7 +544,6 @@ dumpTree(const bool globalTree) const {
   std::stringstream ss;
   CellKey ix, iy, iz;
 #ifdef USE_MPI
-  CellKey key; 
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
 #endif
@@ -622,7 +621,6 @@ TreeGravity<Dimension>::
 dumpTreeStatistics(const bool globalTree) const {
   std::stringstream ss;
 #ifdef USE_MPI
-  CellKey key;
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
 #endif

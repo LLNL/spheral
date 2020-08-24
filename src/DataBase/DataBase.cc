@@ -1705,8 +1705,8 @@ globalSamplingBoundingVolume(typename Dimension::Vector& centroid,
       const FieldList<Dimension, Vector> extent = this->globalNodeExtent();
       FieldList<Dimension, SymTensor> Hinv = this->newGlobalFieldList(SymTensor::zero, "H inverse");
       this->globalHinverse(Hinv);
-      for (int nodeList = 0; nodeList != positions.numFields(); ++nodeList) {
-	for (int i = 0; i != mNodeListPtrs[nodeList]->numInternalNodes(); ++i) {
+      for (auto nodeList = 0u; nodeList != positions.numFields(); ++nodeList) {
+	for (auto i = 0u; i != mNodeListPtrs[nodeList]->numInternalNodes(); ++i) {
 	  const Vector& xi = positions(nodeList, i);
 	  const Vector dr = xi - centroid;
 	  const Vector drUnit = dr.unitVector();

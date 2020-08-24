@@ -780,7 +780,7 @@ generateDomainInfo() {
   {
     vector<char> localBuffer;
     packElement(domainHulls[rank], localBuffer);
-    for (int sendProc = 0; sendProc != numDomains; ++sendProc) {
+    for (auto sendProc = 0u; sendProc != numDomains; ++sendProc) {
       unsigned bufSize = localBuffer.size();
       MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
       vector<char> buffer = localBuffer;
@@ -1012,7 +1012,7 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
 #ifdef USE_MPI
   // Parallel procs.
   const unsigned numDomains = Process::getTotalNumberOfProcesses();
-  const unsigned rank = Process::getRank();
+  //const unsigned rank = Process::getRank();
 
   if (numDomains > 1) {
     const unsigned numNeighborDomains = mNeighborDomains.size();

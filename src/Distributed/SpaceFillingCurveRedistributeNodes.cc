@@ -61,7 +61,7 @@ struct SortNodesByHashedIndex {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 SpaceFillingCurveRedistributeNodes<Dimension>::
-SpaceFillingCurveRedistributeNodes(double dummy,
+SpaceFillingCurveRedistributeNodes(double,
                                    const double minNodesPerDomainFraction,
                                    const double maxNodesPerDomainFraction,
                                    const bool workBalance,
@@ -191,7 +191,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
       work.push_back(sortedIndices.front().second.work);
       {
         int j = 0;
-        for (int i = 1; i < sortedIndices.size(); ++i) {
+        for (auto i = 1u; i < sortedIndices.size(); ++i) {
           CHECK(sortedIndices[i].first >= sortedIndices[i-1].first);
           if (sortedIndices[i].first == uniqueIndices[j]) {
             ++count[j];
@@ -269,6 +269,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
       CHECK(nodeDistribution.back().domainID >= 0 and
             nodeDistribution.back().domainID < numProcs);
     }
+    CONTRACT_VAR(numLocalNodes);
     CHECK(nodeDistribution.size() == numLocalNodes);
 
     // Redistribute nodes between domains.
@@ -280,10 +281,10 @@ redistributeNodes(DataBase<Dimension>& dataBase,
       const auto n = nodeListPtr->numInternalNodes();
       const auto& keys = **indices.fieldForNodeList(*nodeListPtr);
       vector<pair<Key, int>> orderedkeys(n);
-      for (auto i = 0; i < n; ++i) orderedkeys[i] = make_pair(keys(i), i);
+      for (auto i = 0u; i < n; ++i) orderedkeys[i] = make_pair(keys(i), i);
       sort(orderedkeys.begin(), orderedkeys.end(), SortNodesByHashedIndex<int>());  // [](const pair<Key, int>& lhs, const pair<Key, int>& rhs) { return lhs.first < rhs.first; });
       vector<int> ordering(n);
-      for (auto i = 0; i < n; ++i) ordering[orderedkeys[i].second] = i;
+      for (auto i = 0u; i < n; ++i) ordering[orderedkeys[i].second] = i;
       nodeListPtr->reorderNodes(ordering);
       nodeListPtr->neighbor().updateNodes();
     }
@@ -555,7 +556,7 @@ findNextIndex(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension
   // The next value on this processor.
   Key result = maxIndex;
   if (indices.size() > 0) {
-    if (inext < indices.size() and indices[inext] > index) result = indices[inext];
+    if (inext < (int)indices.size() and indices[inext] > index) result = indices[inext];
     //   cerr << "  Local result: " << result << endl;
 
     //   cerr << "Global result: " << result << endl;

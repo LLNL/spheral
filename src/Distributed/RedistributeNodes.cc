@@ -127,7 +127,7 @@ currentDomainDecomposition(const DataBase<Dimension>& dataBase,
     // Loop over the nodes in the NodeList, and add their info to the 
     // result.
     result.reserve(result.size() + nodeList.numInternalNodes());
-    for (int localID = 0; localID != nodeList.numInternalNodes(); ++localID) {
+    for (auto localID = 0u; localID != nodeList.numInternalNodes(); ++localID) {
       result.push_back(DomainNode<Dimension>());
       result.back().localNodeID = localID;
       result.back().uniqueLocalNodeID = localID + offset;
@@ -361,7 +361,6 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
   for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
     if (totalNumRecvNodes[recvProc] > 0) {
       fieldBuffers.push_back(list< list< vector<char> > >());
-      list< list< vector<char> > >& nodeListBufs = fieldBuffers.back();
       CHECK(outerBufSizeItr != recvBufferSizes.end());
       CHECK(outerBufSizeItr->size() <= numNodeLists);
       list< vector<int> >::const_iterator bufSizeItr = outerBufSizeItr->begin();
@@ -683,7 +682,7 @@ template<typename Dimension>
 FieldList<Dimension, typename Dimension::Scalar>
 RedistributeNodes<Dimension>::
 workPerNode(const DataBase<Dimension>& dataBase,
-            const double Hextent) const {
+            const double /*Hextent*/) const {
 
   // Prepare the result.
   FieldList<Dimension, Scalar> result = dataBase.newGlobalFieldList(Scalar(), "work per node");
@@ -696,9 +695,9 @@ workPerNode(const DataBase<Dimension>& dataBase,
     dataBase.updateConnectivityMap(false, false);
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
     const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
-    for (int iNodeList = 0; iNodeList != nodeLists.size(); ++iNodeList) {
+    for (auto iNodeList = 0u; iNodeList != nodeLists.size(); ++iNodeList) {
       const NodeList<Dimension>* nodeListPtr = nodeLists[iNodeList];
-      for (int i = 0; i != nodeListPtr->numInternalNodes(); ++i) {
+      for (auto i = 0u; i != nodeListPtr->numInternalNodes(); ++i) {
         result(iNodeList, i) = connectivityMap.numNeighborsForNode(nodeListPtr, i);
       }
     }
@@ -716,14 +715,14 @@ workPerNode(const DataBase<Dimension>& dataBase,
   if (globalMax == 0.0) {
     result = 1.0;
   } else {
-    for (int iNodeList = 0; iNodeList != result.size(); ++iNodeList) {
+    for (auto iNodeList = 0u; iNodeList != result.size(); ++iNodeList) {
       Field<Dimension, Scalar>& worki = *(result[iNodeList]);
       if (worki.max() == 0.0) {
         worki = globalMax;
       } else {
         if (worki.min() == 0.0) {
           double localMin = std::numeric_limits<double>::max();
-          for (int i = 0; i != worki.numInternalElements(); ++i) {
+          for (auto i = 0u; i != worki.numInternalElements(); ++i) {
             if (worki(i) > 0.0) localMin = std::min(localMin, worki(i));
           }
           double globalMin;

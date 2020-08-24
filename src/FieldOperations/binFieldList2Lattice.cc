@@ -231,7 +231,7 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
   CHECK(bufSize == allReduce(bufSize, MPI_MAX, Communicator::communicator()));
 
   // Sum up everyone's contribution.
-  for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
+  for (auto sendProc = 0u; sendProc != numProcs; ++sendProc) {
     vector<char> buffer(localBuffer);
     MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
     vector<Value> localResult;
@@ -322,7 +322,7 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
   END_CONTRACT_SCOPE
 
   // Sum up everyone's contribution.
-  for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
+  for (auto sendProc = 0u; sendProc != numProcs; ++sendProc) {
     vector<char> buffer(localBuffer);
     MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
     vector<Value> localResult;

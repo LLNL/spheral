@@ -451,7 +451,7 @@ boundingSurface() const {
 #ifdef USE_MPI
   // In the parallel case we have to construct the total surface and distribute
   // it to everyone.
-  const unsigned rank = Process::getRank();
+  //const unsigned rank = Process::getRank();
   const unsigned numDomains = Process::getTotalNumberOfProcesses();
   if (numDomains > 1) {
     unsigned bufSize, nfacets;

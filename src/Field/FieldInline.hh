@@ -1357,7 +1357,7 @@ template<typename Dimension, typename DataType>
 inline
 std::string
 Field<Dimension, DataType>::
-string(const int precision) const {
+string(const int /*precision*/) const {
   const int n = numInternalElements();
   std::vector<int> indices;
   indices.reserve(n);

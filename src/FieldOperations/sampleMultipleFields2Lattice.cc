@@ -688,7 +688,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
         // Scalar Fields.
         {
           Scalar element;
-          for (int k = 0; k != numScalarFieldLists; ++k) {
+          for (auto k = 0u; k != numScalarFieldLists; ++k) {
             CHECK(k < scalarValues.size() and jlocal < scalarValues[k].size());
             unpackElement(element, bufItr, buffer.end());
             scalarValues[k][jlocal] += element;
@@ -698,7 +698,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
         // Vector Fields.
         {
           Vector element;
-          for (int k = 0; k != numVectorFieldLists; ++k) {
+          for (auto k = 0u; k != numVectorFieldLists; ++k) {
             CHECK(k < vectorValues.size() and jlocal < vectorValues[k].size());
             unpackElement(element, bufItr, buffer.end());
             vectorValues[k][jlocal] += element;
@@ -708,7 +708,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
         // Tensor Fields.
         {
           Tensor element;
-          for (int k = 0; k != numTensorFieldLists; ++k) {
+          for (auto k = 0u; k != numTensorFieldLists; ++k) {
             CHECK(k < tensorValues.size() and jlocal < tensorValues[k].size());
             unpackElement(element, bufItr, buffer.end());
             tensorValues[k][jlocal] += element;
@@ -718,7 +718,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
         // SymTensor Fields.
         {
           SymTensor element;
-          for (int k = 0; k != numSymTensorFieldLists; ++k) {
+          for (auto k = 0u; k != numSymTensorFieldLists; ++k) {
             CHECK(k < symTensorValues.size() and jlocal < symTensorValues[k].size());
             unpackElement(element, bufItr, buffer.end());
             symTensorValues[k][jlocal] += element;

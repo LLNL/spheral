@@ -124,9 +124,6 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
   int numProcs = this->numDomains();
   CHECK(procID < numProcs);
 
-  const int numNodeLists = dataBase.numNodeLists();
-  const double kernelExtent = dataBase.maxKernelExtent();
-
   // Compute the local bounding volumes.
   typedef typename Dimension::ConvexHull ConvexHull;
   vector<ConvexHull> domainNodeBoundingVolume(numProcs), domainSampleBoundingVolume(numProcs);

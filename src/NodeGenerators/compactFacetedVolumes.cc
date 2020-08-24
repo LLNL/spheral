@@ -313,7 +313,7 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
   const size_t rank = Process::getRank();
   const size_t nprocs = Process::getTotalNumberOfProcesses();
   // Global broadcast of the new geometry.
-  for (int iproc = 0; iproc != nprocs; ++iproc) {
+  for (auto iproc = 0u; iproc != nprocs; ++iproc) {
     int jmin = imin, jmax = imax;
     MPI_Bcast(&jmin, 1, MPI_INT, iproc, Communicator::communicator());
     MPI_Bcast(&jmax, 1, MPI_INT, iproc, Communicator::communicator());
