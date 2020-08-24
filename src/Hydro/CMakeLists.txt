@@ -18,8 +18,11 @@ set(Hydro_inst
 
 set(Hydro_sources
     HydroFieldNames.cc
-    RZNonSymmetricSpecificThermalEnergyPolicy.cc
     )
+
+if (ENABLE_2D)
+  list(APPEND Hydro_sources RZNonSymmetricSpecificThermalEnergyPolicy.cc)
+endif()
 
 instantiate(Hydro_inst Hydro_sources)
 
