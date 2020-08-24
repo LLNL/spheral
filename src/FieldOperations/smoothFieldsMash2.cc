@@ -32,7 +32,7 @@ FieldList<Dimension, DataType>
 smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
                   const FieldList<Dimension, typename Dimension::Vector>& position,
                   const FieldList<Dimension, typename Dimension::Scalar>& weight,
-                  const FieldList<Dimension, typename Dimension::Scalar>& /*weightDensity*/,
+                  const FieldList<Dimension, typename Dimension::Scalar>& weightDensity,
                   const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
                   const TableKernel<Dimension>& kernel) {
 
@@ -84,7 +84,7 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
         //const Scalar& weighti = weight(masterItr);
-        //const Scalar& densityi = weightDensity(masterItr);
+        const Scalar& densityi = weightDensity(masterItr);
         //const DataType& fieldi = fieldList(masterItr);
 
         // First identify the fitting parameters for a linear model (w_j = a + b eta_j).

@@ -46,9 +46,6 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
   typedef typename FacetedVolume::Facet Facet;
   typedef GeomPlane<Dimension> Plane;
 
-  // Parallel info
-  const int myproc = Process::getRank();
-  const int nprocs = Process::getTotalNumberOfProcesses();
 
   // Preconditions.
   VERIFY2(scalarDonorFields.size() == scalarAcceptorFields.size(), "overlayRemapFields ERROR: number of acceptor scalar fields does not match number of donors.");
@@ -165,6 +162,9 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
   // const Field<Dimension, Vector>& posA = acceptorNodeListPtr->positions();
 
 #ifdef USE_MPI
+  // Parallel info
+  const int myproc = Process::getRank();
+  const int nprocs = Process::getTotalNumberOfProcesses();
   //..........................................................................
   // Parallel version
   // Pack up and broadcast our donor volumes to everyone else.

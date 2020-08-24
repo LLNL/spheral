@@ -154,7 +154,7 @@ setEntropy(Field<Dimension, Scalar>& entropy,
 template<typename Dimension>
 typename Dimension::Scalar
 IsothermalEquationOfState<Dimension>::
-pressure(const Scalar /*massDensity*/,
+pressure(const Scalar massDensity,
          const Scalar /*specificThermalEnergy*/) const {
   REQUIRE(valid());
   return this->applyPressureLimits(mK*massDensity - mExternalPressure);

@@ -628,7 +628,7 @@ initialize(const typename Dimension::Scalar time,
   TIME_SPHinitialize.start();
 
   // Initialize the grad h corrrections if needed.
-  const TableKernel<Dimension>& /*W*/ = this->kernel();
+  //const TableKernel<Dimension>& W = this->kernel();
   const TableKernel<Dimension>& WPi = this->PiKernel();
 
   if (mGradhCorrection) {

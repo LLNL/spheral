@@ -97,7 +97,7 @@ incrementCellValues(vector<Value>& values,
       const unsigned iyoff = iy*nsample[0];
       for (int idx = -nx; idx != (int)nx + 1; ++idx) {
         const int ix = ipx + idx;
-        if (auto >= 0u and ix < (int)nsample[0]) {
+        if (ix >= 0 and ix < (int)nsample[0]) {
           const double etaMag = (Hi*Vector(idx*xstep, idy*ystep)).magnitude();
           const unsigned icell = ix + iyoff;
           CONTRACT_VAR(ncells);

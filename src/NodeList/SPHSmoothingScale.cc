@@ -27,25 +27,25 @@ namespace {
 //------------------------------------------------------------------------------
 // Convert a given number of neighbors to the equivalent 1D "radius" in nodes.
 //------------------------------------------------------------------------------
-template<typename Dimension> static inline double equivalentRadius(const double n);
+template<typename Dimension> inline double equivalentRadius(const double n);
 
 // 1D
 template<>
-static inline double
+inline double
 equivalentRadius<Dim<1> >(const double n) {
   return 0.5*n;
 }
 
 // 2D
 template<>
-static inline double
+inline double
 equivalentRadius<Dim<2> >(const double n) {
   return std::sqrt(n/M_PI);
 }
 
 // 3D
 template<>
-static inline double
+inline double
 equivalentRadius<Dim<3> >(const double n) {
   return Dim<3>::rootnu(3.0*n/(4.0*M_PI));
 }

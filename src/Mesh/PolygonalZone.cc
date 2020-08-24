@@ -139,7 +139,7 @@ Zone(const Mesh<Dim<2> >& mesh,
               << mMeshPtr->mEdges[mEdgeIDs[i + 1]].position());
       int id1 = Mesh<Dim<2> >::positiveID(mFaceIDs[i]),
           id2 = Mesh<Dim<2> >::positiveID(mFaceIDs[i + 1]);
-      2ONTRACT_VAR(id1);
+      CONTRACT_VAR(id1);
       CONTRACT_VAR(id2);
       ENSURE2(faceComparator(id1, id2),
               faceComparator(id1, id2) << " "
