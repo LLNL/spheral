@@ -22,7 +22,7 @@ set(polytope_BUILD ON CACHE BOOL "Option to build polytope")
 set(hdf5_BUILD ON CACHE BOOL "Option to build hdf5")
 set(silo_BUILD ON CACHE BOOL "Option to build silo")
 set(opensubdiv_BUILD ON CACHE BOOL "Option to build Opensubdiv")
-set(maneos_BUILD ON CACHE BOOL "Option to build ANEOS third party lib")
+set(aneos_BUILD ON CACHE BOOL "Option to build ANEOS third party lib")
 
 set(pybind11_BUILD ON CACHE BOOL "Option to build pybind11")
 set(python_BUILD ON CACHE BOOL "Option to build python")
@@ -38,7 +38,7 @@ Spheral_Handle_TPL(silo spheral_depends)
 
 # ANEOS only needed if we're supporting it
 if (ENABLE_ANEOS)
-  Spheral_Handle_TPL(maneos spheral_depends)
+  Spheral_Handle_TPL(aneos spheral_depends)
 endif()
 
 # Only needed when building the python interface of spheral
