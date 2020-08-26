@@ -1,8 +1,8 @@
 include(ExternalProject)
 
-################################
+#-------------------------------------------------------------------------------
 # Configure CMake
-################################
+#-------------------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS}")
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
@@ -13,9 +13,18 @@ endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
-################################
+#-------------------------------------------------------------------------------
+# Optionally suppress compiler warnings
+#-------------------------------------------------------------------------------
+option(ENABLE_WARNINGS "show compiler warnings" OFF)
+if (NOT ENABLE_WARNINGS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+endif()
+message("-- compiler warnings ${ENABLE_WARNINGS}")
+
+#-------------------------------------------------------------------------------
 # Configure and Include blt
-################################
+#-------------------------------------------------------------------------------
 set(ENABLE_MPI ON CACHE BOOL "")
 set(ENABLE_OPENMP ON CACHE BOOL "")
 
@@ -32,9 +41,9 @@ endif()
 
 include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
 
-################################
+#-------------------------------------------------------------------------------
 # Include standard build system logic and options / definitions
-################################
+#-------------------------------------------------------------------------------
 set(ENABLE_CXXONLY OFF CACHE BOOL "enable C++ only build without python bindings")
 set(ENABLE_2D ON CACHE BOOL "enable 2d")
 set(ENABLE_3D ON CACHE BOOL "enable 3d")
@@ -55,9 +64,9 @@ if(ENABLE_OPENMP)
   list(APPEND spheral_blt_depends openmp)
 endif()
 
-#################################
+#-------------------------------------------------------------------------------#
 # Set a default build type if none was specified
-#################################
+#-------------------------------------------------------------------------------#
 set(default_build_type "Release")
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -69,9 +78,14 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-################################
+#-------------------------------------------------------------------------------
+# Should we build sphinx documentation
+#-------------------------------------------------------------------------------
+set(ENABLE_DOCS OFF CACHE BOOL "enable sphinx Spheral documentation")
+
+#-------------------------------------------------------------------------------
 # Install / Locate third party libraries
-################################
+#-------------------------------------------------------------------------------
 set(SPHERAL_INSTALL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Spheral libs.")
 if (CMAKE_INSTALL_PREFIX)
   if (NOT SPHERAL_INSTALL_DIR STREQUAL "")
@@ -79,6 +93,7 @@ if (CMAKE_INSTALL_PREFIX)
     set(CMAKE_INSTALL_PREFIX ${SPHERAL_INSTALL_DIR})
   else()
     set(SPHERAL_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+    message("-- setting SPHERAL_INSTALL_DIR ${SPHERAL_INSTALL_DIR}")
   endif()
 endif()
 
@@ -95,9 +110,9 @@ endif()
 
 include(${SPHERAL_ROOT_DIR}/cmake/CMakeDefinitions.cmake)
 
-################################
+#-------------------------------------------------------------------------------
 # Set full rpath information by default
-################################
+#-------------------------------------------------------------------------------
 # use, i.e. don't skip the full RPATH for the build tree
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
 
@@ -111,4 +126,21 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}")
 # which point to directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+#-------------------------------------------------------------------------------
+# Install symlink for spheral->python
+#-------------------------------------------------------------------------------
+if (NOT ENABLE_CXXONLY)
+  install(CODE "execute_process( \
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${PYTHON_EXE} spheral \
+    WORKING_DIRECTORY ${SPHERAL_INSTALL_DIR})")
+endif()
+
+#-------------------------------------------------------------------------------
+# Prepare to build the src
+#-------------------------------------------------------------------------------
 add_subdirectory(${SPHERAL_ROOT_DIR}/src)
+
+#-------------------------------------------------------------------------------
+# Add the documentation
+#-------------------------------------------------------------------------------
+add_subdirectory(${SPHERAL_ROOT_DIR}/docs)

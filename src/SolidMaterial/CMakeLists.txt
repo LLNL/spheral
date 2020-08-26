@@ -50,22 +50,16 @@ set(SolidMaterial_headers
     TillotsonEquationOfStateInline.hh
     )
 
-set(SolidMaterial_python_targets
-    MaterialPropertiesLib.py
-    SolidMaterialUnits.py
-    SolidMaterialEquationsOfState.py
-    ShadowTillotsonEquationOfState.py
-    ShadowConstantStrength.py
-    )
+spheral_install_python_files(
+  MaterialPropertiesLib.py
+  SolidMaterialUnits.py
+  SolidMaterialEquationsOfState.py
+  ShadowTillotsonEquationOfState.py
+  ShadowConstantStrength.py
+  )
 
 
 spheral_add_cxx_library(SolidMaterial)
-
-if(NOT ENABLE_CXXONLY)
-  install(FILES       ${SolidMaterial_python_targets}
-          DESTINATION Spheral
-          )
-endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_SolidMaterial)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)
