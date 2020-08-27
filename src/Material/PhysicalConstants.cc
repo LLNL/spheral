@@ -33,7 +33,7 @@ PhysicalConstants(const double unitLm,
   KelvinsToEnergyPerMole(unitMkg*FastMath::square(unitLm/unitTsec)/(kBMKS*unitTeK)*NAvogadro),
   UnitMassDensity(unitMkg/unitLm/unitLm/unitLm),
   Sigma(StefanBoltzmannMKS*unitTeK*unitTeK*unitTeK*unitTeK/unitMkg*unitTsec*unitTsec*unitTsec),
-  BlackBody(4*StefanBoltzmannMKS*unitTeK*unitTeK*unitTeK*unitTeK/cMKS*unitTsec*unitTsec*unitLm/unitMkg){
+  BlackBody(4*StefanBoltzmannMKS*unitTeK*unitTeK*unitTeK*unitTeK/cMKS*unitTsec*unitTsec*unitLm/unitMkg) {
 }
 
 //------------------------------------------------------------------------------

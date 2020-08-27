@@ -457,7 +457,6 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   switch(densityUpdate()) {
 
   case MassDensityType::RigorousSumDensity:
-  case MassDensityType::IntegrateDensity:
   case MassDensityType::CorrectedSumDensity:
     {
       const auto& connectivityMap = dataBase.connectivityMap();
