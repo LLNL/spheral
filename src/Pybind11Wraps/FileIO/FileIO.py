@@ -119,7 +119,7 @@ class FileIO:
 
     #...........................................................................
     # Methods
-    for ndim in xrange(1,4):   # all three always required
+    for ndim in dims:
         for ttype in ("Scalar",
                       "Vector",
                       "Tensor",
@@ -205,7 +205,11 @@ def readintFV%(ndim)i(self,
                             pathName = "const std::string"):
     "Read Field<Dim<%(ndim)i, vector<int>>"
     return "void"
+''' % {"ndim" : ndim})
 
+    #...........................................................................
+    for ndim in xrange(1,4):  # These dimensional methods are always supported
+        exec('''
 @PYB11pycppname("write")
 @PYB11noconvert
 def writePlane%(ndim)i(self,

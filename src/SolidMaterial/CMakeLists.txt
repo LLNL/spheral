@@ -17,10 +17,7 @@ set(SolidMaterial_inst
 
 set(SolidMaterial_sources )
 
-instantiate(SolidMaterial_inst SolidMaterial_sources)
-
 set(SolidMaterial_headers
-    ANEOS.hh
     CollinsStrength.hh
     ConstantStrength.hh
     Geodyn.hh
@@ -58,6 +55,17 @@ spheral_install_python_files(
   ShadowConstantStrength.py
   )
 
+# ANEOS
+if (ENABLE_ANEOS)
+  message("-- ANEOS enabled")
+  list(APPEND SolidMaterial_inst      ANEOS)
+  list(APPEND SolidMaterial_headers   ANEOS.hh)
+  list(APPEND SolidMaterial_sources   ANEOS_initialize.f)
+else()
+  message("-- ANEOS disabled")
+endif()
+
+instantiate(SolidMaterial_inst SolidMaterial_sources)
 
 spheral_add_cxx_library(SolidMaterial)
 
