@@ -37,10 +37,15 @@ if(${lib_name}_BUILD)
     PREFIX ${PYTHON_PREFIX}
     URL ${PYTHON_URL} 
     DOWNLOAD_DIR ${CACHE_DIR}
-    CONFIGURE_COMMAND env CC=${PYTHON_C_COMPILER} CXX=${PYTHON_CXX_COMPILER} ${PYTHON_SRC_DIR}/configure
-                      --with-cxx-main='${PYTHON_CXX_COMPILER}'
-                      --disable-ipv6
-                      --prefix=${PYTHON_INSTALL_DIR}
+    CONFIGURE_COMMAND env CC=${PYTHON_C_COMPILER}
+                          CXX=${PYTHON_CXX_COMPILER}
+                          CFLAGS=-I${ZLIB_INSTALL_DIR}/include
+                          LDFLAGS=-L${ZLIB_INSTALL_DIR}/lib
+                          LIBS=-lz
+                      ${PYTHON_SRC_DIR}/configure
+                          --with-cxx-main='${PYTHON_CXX_COMPILER}'
+                          --disable-ipv6
+                          --prefix=${PYTHON_INSTALL_DIR}
     BUILD_COMMAND make 
     INSTALL_COMMAND make install
     DEPENDS zlib
