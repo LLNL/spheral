@@ -12,6 +12,7 @@
 #define __Spheral_Field_hh__
 
 #include "FieldBase.hh"
+#include "axom/sidre.hpp"
 
 #include <string>
 #include <vector>
@@ -233,6 +234,10 @@ public:
   std::vector<DataType> internalValues() const;
   std::vector<DataType> ghostValues() const;
   std::vector<DataType> allValues() const;
+
+  // Functions to help with the construction of the Sidre datastore.
+  axom::sidre::DataType getAxomType() const;
+
 
 private:
   //--------------------------- Private Interface ---------------------------//

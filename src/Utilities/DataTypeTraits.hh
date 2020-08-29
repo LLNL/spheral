@@ -18,6 +18,7 @@
 #include "Utilities/DomainNode.hh"
 #include "RK/RKCorrectionParams.hh"
 #include "RK/RKCoefficients.hh"
+#include "axom/sidre.hpp"
 
 #ifdef USE_MPI
 extern "C" {
@@ -51,6 +52,7 @@ struct DataTypeTraits<char> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_CHAR; }
 #endif
+  //static axom::sidre::TypeID axomType() { return axom::sidre::; }
 };
 
 //------------------------------------------------------------------------------
@@ -63,6 +65,7 @@ struct DataTypeTraits<int> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_INT; }
 #endif
+  static axom::sidre::TypeID axomType() { return axom::sidre::INT_ID; }
 };
 
 // //------------------------------------------------------------------------------
@@ -91,6 +94,7 @@ struct DataTypeTraits<uint32_t> {
   static MPI_Datatype MpiDataType() { return MPI_UNSIGNED; }
 #endif
 #endif
+  static axom::sidre::TypeID axomType() { return axom::sidre::UINT32_ID; }
 };
 
 //------------------------------------------------------------------------------
@@ -107,6 +111,7 @@ struct DataTypeTraits<uint64_t> {
   static MPI_Datatype MpiDataType() { return MPI_UNSIGNED_LONG_LONG; }
 #endif
 #endif
+  static axom::sidre::TypeID axomType() { return axom::sidre::UINT64_ID; }
 };
 
 //------------------------------------------------------------------------------
@@ -119,6 +124,7 @@ struct DataTypeTraits<float> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_FLOAT; }
 #endif
+  static axom::sidre::TypeID axomType() { return axom::sidre::FLOAT_ID; }
 };
 
 //------------------------------------------------------------------------------
@@ -131,6 +137,7 @@ struct DataTypeTraits<double> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_DOUBLE; }
 #endif
+  static axom::sidre::TypeID axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 //------------------------------------------------------------------------------
