@@ -189,11 +189,11 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 WSL2/Ubuntu notes
 -----------------
 
-When building on any system a few basic utilities are assumed to be installed.  It's impossible to cover all the possible build environments, but one common case is an Ubuntu based Linux install, in this case on WSL2 for Windows 10.  In our experience we need to at least install the following packages beyond the base system default (using ``apt install``)::
+When building on any system a few basic utilities are assumed to be installed.  It's impossible to cover all the possible build environments, but one common case is an Ubuntu based Linux install, in this case on WSL2 for Windows 10.  In our experience we need to at least install the following packages beyond the base system default (in this example installed using ``apt install``)::
 
-  cmake g++ gfortran zlib1g-dev libssl-dev libbz2-dev libreadline-dev
+  sudo apt install cmake g++ gfortran zlib1g-dev libssl-dev libbz2-dev libreadline-dev
 
-These are largely required for a full featured Python installation.
+Most of these requirements are for building a full-featured Python installation.  If you also want to build the MPI parallel enabled version of Spheral you need an MPI implementation such as OpenMPI or MPICH -- OpenMPI for instance can be installed by adding the Ubuntu package ``openmpi-bin`` to the above list.
 
 The build process also requires a fair amount of memory available (in particular for a few of the Python binding modules), so we recommend having at least 32GB of swap space available.  On WSL2 this is accomplished by creating a `.wslconfig` file in your Windows home directory containing at least the following::
 
