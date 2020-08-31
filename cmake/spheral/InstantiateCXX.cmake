@@ -14,7 +14,10 @@ function(instantiate _inst_var _source_var)
   set(_tmp_source)
 
   # Create our list of dimension to instantiate
-  set(_dims 1)
+  set(_dims )
+  if(ENABLE_1D)
+     list(APPEND _dims 1)
+  endif()
   if(ENABLE_2D)
      list(APPEND _dims 2)
   endif()

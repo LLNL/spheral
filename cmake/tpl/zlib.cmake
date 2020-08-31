@@ -29,3 +29,4 @@ if(${lib_name}_BUILD)
 
 endif()
 
+set(ZLIB_INSTALL_DIR ${${lib_name}_DIR} PARENT_SCOPE)
