@@ -185,3 +185,18 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 
 ``SPHINX_THEME_DIR``
   Where to look for Sphinx themes.
+
+WSL2/Ubuntu notes
+-----------------
+
+When building on any system a few basic utilities are assumed to be installed.  It's impossible to cover all the possible build environments, but one common case is an Ubuntu based Linux install, in this case on WSL2 for Windows 10.  In our experience we need to at least install the following packages beyond the base system default (using ``apt install``)::
+
+  cmake g++ gfortran zlib1g-dev libssl-dev libbz2-dev libreadline-dev
+
+These are largely required for a full featured Python installation.
+
+The build process also requires a fair amount of memory available (in particular for a few of the Python binding modules), so we recommend having at least 32GB of swap space available.  On WSL2 this is accomplished by creating a `.wslconfig` file in your Windows home directory containing at least the following::
+
+  [wls2]
+  swap=32GB
+
