@@ -14,7 +14,6 @@ class ArtificialViscosity:
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
 """
 
     #...........................................................................
@@ -86,7 +85,7 @@ class ArtificialViscosity:
                                  doc="Correction multiplier for the quadratic term")
     shearCorrection = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "shearCorrection",
                                     doc="Correction multiplier for Balsara shear suppression")
-    sigma = PYB11property("const FieldList<%(Dimension)s, Vector>&", "sigma",
+    sigma = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "sigma",
                           doc="Access the internally computed estimate of sigma: sig^ab = partial v^a / partial x^b")
     gradDivVelocity = PYB11property("const FieldList<%(Dimension)s, Vector>&", "gradDivVelocity",
                                     doc="Access the internally computed estimate of the velocity gradient and grad div velocity")
