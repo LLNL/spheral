@@ -15,10 +15,6 @@ class CRKSPHHydroBase(GenericHydro):
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
-    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
-    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
-    typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
@@ -145,7 +141,7 @@ mass density, velocity, and specific thermal energy."""
                                       doc="Flag controlling if we evolve total or specific energy.")
     XSPH = PYB11property("bool", "XSPH", "XSPH",
                          doc="Flag to determine if we're using the XSPH algorithm.")
-    smoothingScaleMethod = PYB11property("SmoothingScaleBase<%(Dimension)s>&", "smoothingScaleMethod", returnpolicy="reference_internal",
+    smoothingScaleMethod = PYB11property("const SmoothingScaleBase<%(Dimension)s>&", "smoothingScaleMethod", returnpolicy="reference_internal",
                                          doc="The object defining how we evolve smoothing scales.")
     filter = PYB11property("double", "filter", "filter",
                            doc="Fraction of centroidal filtering to apply.")
