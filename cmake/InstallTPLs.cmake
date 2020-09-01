@@ -21,8 +21,8 @@ set(qhull_BUILD ON CACHE BOOL "Option to build qhull")
 set(polytope_BUILD ON CACHE BOOL "Option to build polytope")
 set(hdf5_BUILD ON CACHE BOOL "Option to build hdf5")
 set(silo_BUILD ON CACHE BOOL "Option to build silo")
-set(maneos_BUILD ON CACHE BOOL "Option to build ANEOS")
 set(opensubdiv_BUILD ON CACHE BOOL "Option to build Opensubdiv")
+set(aneos_BUILD ON CACHE BOOL "Option to build ANEOS third party lib")
 set(conduit_BUILD ON CACHE BOOL "Option to build Conduit")
 set(axom_BUILD ON CACHE BOOL "Option to build Axom")
 
@@ -40,14 +40,17 @@ Spheral_Handle_TPL(silo spheral_depends)
 Spheral_Handle_TPL(conduit spheral_depends)
 Spheral_Handle_TPL(axom spheral_depends)
 
+# ANEOS only needed if we're supporting it
+if (ENABLE_ANEOS)
+  Spheral_Handle_TPL(aneos spheral_depends)
+endif()
+
 # Only needed when building the python interface of spheral
 if(NOT ENABLE_CXXONLY)
-  Spheral_Handle_TPL(maneos spheral_depends)
   Spheral_Handle_TPL(opensubdiv spheral_depends)
   Spheral_Handle_TPL(python spheral_depends)
   Spheral_Handle_TPL(pip spheral_py_depends)
   include(${SPHERAL_ROOT_DIR}/cmake/tpl/pythonModule.cmake)
-
   Spheral_Handle_TPL(pybind11 spheral_depends)
 endif()
 
