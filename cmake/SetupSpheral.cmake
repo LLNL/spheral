@@ -18,7 +18,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 #-------------------------------------------------------------------------------
 option(ENABLE_WARNINGS "show compiler warnings" OFF)
 if (NOT ENABLE_WARNINGS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif()
 message("-- compiler warnings ${ENABLE_WARNINGS}")
 
@@ -143,4 +143,6 @@ add_subdirectory(${SPHERAL_ROOT_DIR}/src)
 #-------------------------------------------------------------------------------
 # Add the documentation
 #-------------------------------------------------------------------------------
-add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
+if (NOT ENABLE_CXXONLY)
+  add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
+endif()

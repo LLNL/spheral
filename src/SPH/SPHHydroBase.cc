@@ -530,6 +530,8 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
     }
     break;
+  default:
+    break;
   }
 
   // // This form looks for points that are too close based on specific volume.

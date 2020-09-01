@@ -221,8 +221,7 @@ convexHull_2d(const std::vector<RealType>& points,
   CHECK(points.size() % 2 == 0);
   const unsigned n = points.size() / 2;
   vector<vector<int> > plc;
-  size_t i, j;
-  int k, t;
+  int i, j, k, t;
   
   // If there's only one or two points, we're done: that's the whole hull
   if (n == 1 or n == 2) {
@@ -234,14 +233,14 @@ convexHull_2d(const std::vector<RealType>& points,
   
   // Start by finding a point distinct from point 0.
   j = 1;
-  while (j != n and geometry::distance<2, RealType>(&points[0], &points[2*j]) < dx) ++j;
-  if (j == n - 1) {
+  while (j != (int)n and geometry::distance<2, RealType>(&points[0], &points[2*j]) < dx) ++j;
+  if (j == (int)n - 1) {
     // There are only 2 distinct positions!
     plc.resize(1, std::vector<int>(2));
     plc[0][0] = 0;
     plc[0][1] = j;
     return plc;
-  } else if (j == n) {
+  } else if (j == (int)n) {
     // Good god, there are no distinct points!
     plc.resize(1, std::vector<int>(2));
     plc[0][0] = 0;
@@ -253,7 +252,7 @@ convexHull_2d(const std::vector<RealType>& points,
   bool collinear = true;
   CHECK(n > 2);
   i = 2;
-  while (collinear and i != n) {
+  while (collinear and i != (int)n) {
     collinear = geometry::collinear<2,RealType>(&points[0], &points[2*j], &points[2*i], dx);
     ++i;
   }
@@ -264,7 +263,7 @@ convexHull_2d(const std::vector<RealType>& points,
   const RealType& xmin = low[0];
   const RealType& ymin = low[1];
   std::set<std::pair<PointHash, unsigned>, FuzzyPoint2LessThan<CoordHash> > uniquePoints;
-  for (i = 0u; i != n; ++i) {
+  for (i = 0; i != (int)n; ++i) {
     uniquePoints.insert(std::make_pair(PointHash(CoordHash((points[2*i]     - xmin)/dx + 0.5),
                                                  CoordHash((points[2*i + 1] - ymin)/dx + 0.5)),
                                        i));
@@ -284,7 +283,7 @@ convexHull_2d(const std::vector<RealType>& points,
     std::vector<int> result(2*nunique);
     
     // Build the lower hull.
-    for (i = 0u, k = 0; i < nunique; i++) {
+    for (i = 0, k = 0; i < (int)nunique; i++) {
       while (k >= 2 and
              zcross_sign(sortedPoints[result[k - 2]].first, sortedPoints[result[k - 1]].first, sortedPoints[i].first) <= 0) k--;
       result[k++] = i;
@@ -307,7 +306,7 @@ convexHull_2d(const std::vector<RealType>& points,
     CHECK(result.front() == result.back());
     
     // Translate our sorted information to a PLC based on the input point ordering and we're done.
-    for (i = 0; (int)i != k - 1; ++i) {
+    for (i = 0; i != k - 1; ++i) {
       j = (i + 1) % k;
       plc.push_back(std::vector<int>());
       plc.back().push_back(sortedPoints[result[i]].second);
@@ -383,8 +382,8 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     // polytope's convex hull method sorts the vertices in counter-clockwise here.
     // Start with the vertices.
     mVertices.reserve(numVertices);
-    unsigned i, j;
-    for (j = 0u; j != numVertices; ++j) {
+    int i, j;
+    for (j = 0; j != (int)numVertices; ++j) {
       CHECK(plc[j].size() == 2);
       i = plc[j][0];
       CHECK(i >= 0 and i < points.size());
@@ -393,7 +392,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
 
     // Now the facets.
     mFacets.reserve(numVertices);
-    for (i = 0u; i != numVertices; ++i) {
+    for (i = 0; i != (int)numVertices; ++i) {
       j = (i + 1) % numVertices;
       mFacets.push_back(Facet(mVertices, i, j));
     }
@@ -669,7 +668,7 @@ intersect(const Vector& s0, const Vector& s1) const {
   // Check each segment of the polygon
   Vector inter1, inter2;
   const auto n = mVertices.size();
-  for (auto i = 0u; i < n; ++i) {
+  for (auto i = 0; i < (int)n; ++i) {
     const auto& e0 = mVertices[i];
     const auto& e1 = mVertices[(i + 1) % n];
     const auto code = segmentSegmentIntersection(s0, s1, e0, e1, inter1, inter2);
@@ -694,7 +693,7 @@ intersections(const Vector& s0, const Vector& s1,
   // Check each segment of the polygon.
   Vector inter1, inter2;
   const auto n = mVertices.size();
-  for (auto i = 0u; i < n; ++i) {
+  for (auto i = 0; i < (int)n; ++i) {
     const auto& e0 = mVertices[i];
     const auto& e1 = mVertices[(i + 1) % n];
     const auto code = segmentSegmentIntersection(s0, s1, e0, e1, inter1, inter2);
