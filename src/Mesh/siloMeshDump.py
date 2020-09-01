@@ -779,15 +779,15 @@ def writeDefvars(db, fieldwad):
             types.append(vtype)
             opts.append(optlistDef)
 
-    # HACK: put back when vardef mapping is working
-    # Similaly map all variables from the MMESH -> MPointMesh.
+    # Map all scalar variables from the MMESH -> MPointMesh.
     hideOptlist = silo.DBoptlist()
     assert hideOptlist.addOption(silo.DBOPT_HIDE_FROM_GUI, 0) == 0
     for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
-        names.append("POINTS/" + name)
-        defs.append('recenter(conn_cmfe(<[0]id:CELLS/%s>,<MPointMESH>))' % name)
-        types.append(vtype)
-        opts.append(hideOptlist)
+        if desc == None:
+            names.append("POINTS/" + name)
+            defs.append('recenter(conn_cmfe(<[0]id:CELLS/%s>,<MPointMESH>))' % name)
+            types.append(vtype)
+            opts.append(hideOptlist)
 
     if len(names) > 0:
         assert silo.DBPutDefvars(db, "VARDEFS", names, types, defs, opts) == 0
