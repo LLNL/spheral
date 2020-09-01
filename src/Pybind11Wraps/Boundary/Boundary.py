@@ -358,19 +358,19 @@ class Boundary:
 
     @PYB11returnpolicy("reference_internal")
     @PYB11const
-    def controlNodes(self, nodeList="NodeList<%(Dimension)s>&"):
+    def controlNodes(self, nodeList="const NodeList<%(Dimension)s>&"):
         "Control nodes for a given NodeList"
         return "const std::vector<int>&"
 
     @PYB11returnpolicy("reference_internal")
     @PYB11const
-    def ghostNodes(self, nodeList="NodeList<%(Dimension)s>&"):
+    def ghostNodes(self, nodeList="const NodeList<%(Dimension)s>&"):
         "Ghost nodes for a given NodeList"
         return "const std::vector<int>&"
 
     @PYB11returnpolicy("reference_internal")
     @PYB11const
-    def violationNodes(self, nodeList="NodeList<%(Dimension)s>&"):
+    def violationNodes(self, nodeList="const NodeList<%(Dimension)s>&"):
         "Violation nodes for a given NodeList"
         return "const std::vector<int>&"
 

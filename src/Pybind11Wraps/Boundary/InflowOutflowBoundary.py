@@ -23,7 +23,6 @@ as they cross the specified boundary plane."""
     typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
     typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
     typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
-    typedef GeomPlane<%(Dimension)s> Plane;
 """
 
     #...........................................................................

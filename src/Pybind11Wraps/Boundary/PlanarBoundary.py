@@ -18,7 +18,6 @@ class PlanarBoundary(Boundary):
     typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
     typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
     typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
-    typedef typename Boundary<%(Dimension)s>::BoundaryNodes BoundaryNodes;
     typedef GeomPlane<%(Dimension)s> Plane;
 """
 
