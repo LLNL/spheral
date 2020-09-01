@@ -774,15 +774,18 @@ def writeDefvars(db, fieldwad):
             opts.append(optlistDef)
 
     # Map all variables from the MMESH -> MPointMesh.
+    showOptlist = silo.DBoptlist()
     hideOptlist = silo.DBoptlist()
-    assert hideOptlist.addOption(silo.DBOPT_HIDE_FROM_GUI, 0) == 0
+    assert showOptlist.addOption(silo.DBOPT_HIDE_FROM_GUI, 0) == 0
+    assert hideOptlist.addOption(silo.DBOPT_HIDE_FROM_GUI, 1) == 0
     for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
         if desc == None:
             # This is a simple scalar type
             names.append("POINTS/" + name)
             defs.append('recenter(conn_cmfe(<[0]id:CELLS/%s>,<MPointMESH>))' % name)
             types.append(vtype)
-            opts.append(hideOptlist)
+            #types.append(silo.DB_POINTVAR)
+            opts.append(showOptlist)
 
         else:
             # This is a compound type (has components like {x,y,z}
