@@ -772,22 +772,34 @@ def writeDefvars(db, fieldwad):
             defs.append(desc)
             types.append(vtype)
             opts.append(optlistDef)
-    
-            # Make a point version as well.
+
+    # Map all variables from the MMESH -> MPointMesh.
+    hideOptlist = silo.DBoptlist()
+    assert hideOptlist.addOption(silo.DBOPT_HIDE_FROM_GUI, 0) == 0
+    for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+        if desc == None:
+            # This is a simple scalar type
+            names.append("POINTS/" + name)
+            defs.append('recenter(conn_cmfe(<[0]id:CELLS/%s>,<MPointMESH>))' % name)
+            types.append(vtype)
+            opts.append(hideOptlist)
+
+        else:
+            # This is a compound type (has components like {x,y,z}
+            assert optlistDef != None
+            assert len(subvars) > 1
             names.append("POINTS/" + name)
             defs.append(desc.replace("CELLS", "POINTS"))
             types.append(vtype)
             opts.append(optlistDef)
 
-    # Map all scalar variables from the MMESH -> MPointMesh.
-    hideOptlist = silo.DBoptlist()
-    assert hideOptlist.addOption(silo.DBOPT_HIDE_FROM_GUI, 0) == 0
-    for name, desc, vtype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
-        if desc == None:
-            names.append("POINTS/" + name)
-            defs.append('recenter(conn_cmfe(<[0]id:CELLS/%s>,<MPointMESH>))' % name)
-            types.append(vtype)
-            opts.append(hideOptlist)
+            # Now recenter the scalar components of this compound type
+            for subvar in subvars:
+                subname = subvar[0]
+                names.append("POINTS/" + subname)
+                defs.append('recenter(conn_cmfe(<[0]id:CELLS/%s>,<MPointMESH>))' % subname)
+                types.append(silo.DB_VARTYPE_SCALAR)
+                opts.append(hideOptlist)
 
     if len(names) > 0:
         assert silo.DBPutDefvars(db, "VARDEFS", names, types, defs, opts) == 0
