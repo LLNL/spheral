@@ -8,13 +8,6 @@ from StateBase import *
 class StateDerivatives(StateBase):
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename StateBase<%(Dimension)s>::KeyType KeyType;
-    typedef typename StateBase<%(Dimension)s>::FieldName FieldName;
-    typedef typename StateBase<%(Dimension)s>::MeshPtr MeshPtr;
     typedef typename StateDerivatives<%(Dimension)s>::PackageList PackageList;
 """
 
