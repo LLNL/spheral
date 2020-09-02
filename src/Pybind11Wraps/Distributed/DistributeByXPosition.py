@@ -10,11 +10,6 @@ class DistributeByXPosition(RedistributeNodes):
 in x coordinate.  Really only useful in 1-D, as a test."""
 
     PYB11typedefs = """
-    typedef typename KeyTraits::Key Key;
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
 """
 
     #...........................................................................

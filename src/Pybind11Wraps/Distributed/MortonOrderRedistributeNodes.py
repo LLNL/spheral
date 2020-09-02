@@ -16,10 +16,6 @@ Warren & Salmon (1995), Computer Physics Communications, 87, 266-290."""
 
     PYB11typedefs = """
     typedef typename KeyTraits::Key Key;
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
 """
 
     #...........................................................................
