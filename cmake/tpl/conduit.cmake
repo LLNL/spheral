@@ -23,7 +23,7 @@ if(${lib_name}_BUILD)
                -DHDF5_DIR=${HDF5_INSTALL_DIR}
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
 
-    DEPENDS hdf5
+    DEPENDS ${hdf5_build_dep}
 
     LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
     LOG_CONFIGURE ${OUT_PROTOCOL_EP}
