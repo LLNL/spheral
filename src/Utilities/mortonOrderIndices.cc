@@ -114,7 +114,6 @@ FieldList<Dimension, KeyTraits::Key>
 mortonOrderIndices(const FieldList<Dimension, typename Dimension::Vector>& positions) {
 
   typedef typename KeyTraits::Key Key;
-  typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
 
   // Prepare the result.
@@ -163,7 +162,6 @@ mortonOrderIndices(const DataBase<Dimension>& dataBase,
                     const FieldList<Dimension, int>& mask) {
 
   typedef typename KeyTraits::Key Key;
-  typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
 
   // Prepare the result.

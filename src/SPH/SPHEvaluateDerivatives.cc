@@ -6,8 +6,8 @@ namespace Spheral {
 template<typename Dimension>
 void
 SPHHydroBase<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
+evaluateDerivatives(const typename Dimension::Scalar /*time*/,
+                    const typename Dimension::Scalar /*dt*/,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
@@ -23,7 +23,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& WQ = this->PiKernel();
 
   // A few useful constants we'll use in the following loop.
-  typedef typename Timing::Time Time;
   const double tiny = 1.0e-30;
   const Scalar W0 = W(0.0, 1.0);
 
@@ -132,7 +131,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto kk = 0; kk < npairs; ++kk) {
+    for (auto kk = 0u; kk < npairs; ++kk) {
       const auto start = Timing::currentTime();
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
@@ -331,17 +330,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Finish up the derivatives for each point.
   TIME_SPHevalDerivs_final.start();
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
     const auto  hmax = nodeList.hmax();
     const auto  hminratio = nodeList.hminratio();
-    const auto  maxNumNeighbors = nodeList.maxNumNeighbors();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);

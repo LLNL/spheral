@@ -36,7 +36,7 @@ FieldList<Dimension, typename Dimension::Vector>
 gradDivVectorFieldListMash
 (const FieldList<Dimension, typename Dimension::Vector>& fieldList,
  const FieldList<Dimension, typename Dimension::Vector>& position,
- const FieldList<Dimension, typename Dimension::Scalar>& weight,
+ const FieldList<Dimension, typename Dimension::Scalar>& /*weight*/,
  const FieldList<Dimension, typename Dimension::Scalar>& mass,
  const FieldList<Dimension, typename Dimension::Scalar>& rho,
  const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
@@ -92,6 +92,8 @@ gradDivVectorFieldListMash
         const Scalar& mi = mass(masterItr);
         const Scalar& rhoi = rho(masterItr);
         const Vector& fieldi = fieldList(masterItr);
+        CONTRACT_VAR(mi);
+        CONTRACT_VAR(rhoi);
         CHECK(Hi.Determinant() > 0.0);
         CHECK(mi > 0.0);
         CHECK(rhoi > 0.0);
@@ -116,6 +118,7 @@ gradDivVectorFieldListMash
             const Scalar& mj = mass(neighborItr);
             const Scalar& rhoj = rho(neighborItr);
             const Vector& fieldj = fieldList(neighborItr);
+            CONTRACT_VAR(rhoj);
             CHECK(Hj.Determinant() > 0.0);
             CHECK(mj > 0.0);
             CHECK(rhoj > 0.0);

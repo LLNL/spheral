@@ -30,6 +30,7 @@ namespace Spheral {
 namespace {
 
 // 1D
+static inline
 Dim<1>::ThirdRankTensor
 gradxij2(const Dim<1>::Vector& xij) {
   Dim<1>::ThirdRankTensor result;
@@ -38,6 +39,7 @@ gradxij2(const Dim<1>::Vector& xij) {
 }
 
 // 2D
+static inline
 Dim<2>::ThirdRankTensor
 gradxij2(const Dim<2>::Vector& xij) {
   Dim<2>::ThirdRankTensor result;
@@ -53,8 +55,9 @@ gradxij2(const Dim<2>::Vector& xij) {
 }
 
 // 3D
+static inline
 Dim<3>::ThirdRankTensor
-gradxij2(const Dim<3>::Vector& xij) {
+gradxij2(const Dim<3>::Vector& /*xij*/) {
   Dim<3>::ThirdRankTensor result;
   // result(0,0,0) = 2.0*xij(0);
   // result(0,0,1) =     xij(1);
@@ -93,6 +96,7 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   const size_t numNodeLists = volume.size();
   const NodeList<Dimension>& nodeList = A.nodeList();
   const int firstGhostNodei = nodeList.firstGhostNode();
+  CONTRACT_VAR(numNodeLists);
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(volume.haveNodeList(nodeList));
@@ -157,7 +161,7 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       const Vector etai = Hi*rij;
       const Vector etaj = Hj*rij;
       const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-      const Scalar& Wi = WWi.first;
+      //const Scalar& Wi = WWi.first;
       const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
       const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
       const Scalar& Wj = WWj.first;

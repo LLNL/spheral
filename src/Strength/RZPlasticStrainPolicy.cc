@@ -72,8 +72,8 @@ RZPlasticStrainPolicy::
 update(const KeyType& key,
        State<Dim<2> >& state,
        StateDerivatives<Dim<2> >& derivs,
-       const double multiplier,
-       const double t,
+       const double /*multiplier*/,
+       const double /*t*/,
        const double dt) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);

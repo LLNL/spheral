@@ -198,7 +198,7 @@ RestartRegistrar::
 restoreState(const FileIO& file) const {
   const vector<string> labels = this->uniqueLabels();
   CHECK(labels.size() == mRestartHandles.size());
-  for (auto i = 0; i != labels.size(); ++i) {
+  for (auto i = 0u; i != labels.size(); ++i) {
 
     // We do a bit of chicanery here for backwards-comparability with the Pybindgen version of Spheral.
     auto label = labels[i];

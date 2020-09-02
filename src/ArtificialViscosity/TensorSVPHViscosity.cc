@@ -39,10 +39,10 @@ template<typename Dimension>
 TensorSVPHViscosity<Dimension>::
 TensorSVPHViscosity(Scalar Clinear, Scalar Cquadratic, Scalar fslice):
   ArtificialViscosity<Dimension>(Clinear, Cquadratic),
+  mfslice(fslice),
   mDvDx(),
   mShearCorrection(),
-  mQface(),
-  mfslice(fslice) {
+  mQface(){
 }
 
 //------------------------------------------------------------------------------
@@ -61,14 +61,13 @@ void
 TensorSVPHViscosity<Dimension>::
 initialize(const DataBase<Dimension>& dataBase,
            const State<Dimension>& state,
-           const StateDerivatives<Dimension>& derivs,
-           ConstBoundaryIterator boundaryBegin,
-           ConstBoundaryIterator boundaryEnd,
-	   const typename Dimension::Scalar time,
-	   const typename Dimension::Scalar dt,
+           const StateDerivatives<Dimension>& /*derivs*/,
+           ConstBoundaryIterator /*boundaryBegin*/,
+           ConstBoundaryIterator /*boundaryEnd*/,
+           const typename Dimension::Scalar /*time*/,
+           const typename Dimension::Scalar /*dt*/,
            const TableKernel<Dimension>& W) {
 
-  typedef typename Mesh<Dimension>::Zone Zone;
   typedef typename Mesh<Dimension>::Face Face;
 
   // The set of NodeLists.
@@ -215,20 +214,20 @@ template<typename Dimension>
 pair<typename Dimension::Tensor,
      typename Dimension::Tensor>
 TensorSVPHViscosity<Dimension>::
-Piij(const unsigned nodeListi, const unsigned i, 
-     const unsigned nodeListj, const unsigned j,
-     const Vector& xi,
-     const Vector& etai,
-     const Vector& vi,
-     const Scalar rhoi,
-     const Scalar csi,
-     const SymTensor& Hi,
-     const Vector& xj,
-     const Vector& etaj,
-     const Vector& vj,
-     const Scalar rhoj,
-     const Scalar csj,
-     const SymTensor& Hj) const {
+Piij(const unsigned /*nodeListi*/, const unsigned /*i*/, 
+     const unsigned /*nodeListj*/, const unsigned /*j*/,
+     const Vector& /*xi*/,
+     const Vector& /*etai*/,
+     const Vector& /*vi*/,
+     const Scalar /*rhoi*/,
+     const Scalar /*csi*/,
+     const SymTensor& /*Hi*/,
+     const Vector& /*xj*/,
+     const Vector& /*etaj*/,
+     const Vector& /*vj*/,
+     const Scalar /*rhoj*/,
+     const Scalar /*csj*/,
+     const SymTensor& /*Hj*/) const {
   VERIFY2(false, "TensorSVPHViscosity::Piij incorrectly called.");
 }
 

@@ -178,7 +178,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   // correction factor to the mass density.
   if (densityUpdate() == MassDensityType::RigorousSumDensity or
       densityUpdate() == MassDensityType::CorrectedSumDensity) {
-    const TableKernel<Dimension>& W = this->kernel();
+    //const TableKernel<Dimension>& W = this->kernel();
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -188,9 +188,9 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       const unsigned n = massDensity[nodeListi]->numElements();
       for (unsigned i = 0; i != n; ++i) {
         const Vector& xi = position(nodeListi, i);
-        const SymTensor& Hi = H(nodeListi, i);
-        const Scalar zetai = abs((Hi*xi).y());
-        const Scalar fi = W.f1(zetai);
+        //const SymTensor& Hi = H(nodeListi, i);
+        //const Scalar zetai = abs((Hi*xi).y());
+        //const Scalar fi = W.f1(zetai);
         const Scalar circi = 2.0*M_PI*abs(xi.y());
         mass(nodeListi, i) *= circi;
         // massDensity(nodeListi, i) *= fi;
@@ -205,8 +205,8 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 void
 SPHHydroBaseGSRZ::
-evaluateDerivatives(const Dim<2>::Scalar time,
-                    const Dim<2>::Scalar dt,
+evaluateDerivatives(const Dim<2>::Scalar /*time*/,
+                    const Dim<2>::Scalar /*dt*/,
                     const DataBase<Dim<2> >& dataBase,
                     const State<Dim<2> >& state,
                     StateDerivatives<Dim<2> >& derivatives) const {
@@ -296,7 +296,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
     for (DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
          itr != dataBase.fluidNodeListEnd();
          ++itr, ++nodeListi) {
-      for (int i = 0; i != (*itr)->numInternalNodes(); ++i) {
+      for (auto i = 0u; i != (*itr)->numInternalNodes(); ++i) {
         pairAccelerations(nodeListi, i).reserve(connectivityMap.numNeighborsForNode(*itr, i));
       }
     }
@@ -312,11 +312,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
     const Scalar hmin = nodeList.hmin();
     const Scalar hmax = nodeList.hmax();
     const Scalar hminratio = nodeList.hminratio();
-    const int maxNumNeighbors = nodeList.maxNumNeighbors();
     const Scalar nPerh = nodeList.nodesPerSmoothingScale();
-
-    // The scale for the tensile correction.
-    const Scalar WnPerh = W(1.0/nPerh, 1.0);
 
     // Get the work field for this NodeList.
     Field<Dimension, Scalar>& workFieldi = nodeList.work();
@@ -353,7 +349,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Vector& vi = velocity(nodeListi, i);
       const Scalar vri = vi.y();
       const Scalar vzi = vi.x();
-      const Scalar epsi = specificThermalEnergy(nodeListi, i);
       const Scalar Pi = f1i*pressure(nodeListi, i);
       const Scalar ci = f1i*soundSpeed(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
@@ -396,7 +391,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
           const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
 
           // Loop over the neighbors.
+#if defined __INTEL_COMPILER
 #pragma vector always
+#endif
           for (vector<int>::const_iterator jItr = connectivity.begin();
                jItr != connectivity.end();
                ++jItr) {
@@ -421,7 +418,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               gradf1j *= hrInvj;
               gradf2j *= hrInvj;
               const Scalar circj = 2.0*M_PI*rj;
-              const Scalar circInvj = safeInvVar(circj);
               const Scalar rhoj = f1j*massDensity(nodeListj, j);
               const Scalar rhoRZj = rhoj*circj;
 
@@ -430,7 +426,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const Vector& vj = velocity(nodeListj, j);
               const Scalar vrj = vj.y();
               const Scalar vzj = vj.x();
-              const Scalar epsj = specificThermalEnergy(nodeListj, j);
               const Scalar Pj = f1j*pressure(nodeListj, j);
               const Scalar cj = f1j*soundSpeed(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
@@ -439,8 +434,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
               Scalar& rhoSumj = rhoSum(nodeListj, j);
               Scalar& normj = normalization(nodeListj, j);
-              Vector& DxDtj = DxDt(nodeListj, j);
-              Scalar& DrhoDtj = DrhoDt(nodeListj, j);
               Vector& DvDtj = DvDt(nodeListj, j);
               Scalar& DepsDtj = DepsDt(nodeListj, j);
               Tensor& DvDxj = DvDx(nodeListj, j);
@@ -568,6 +561,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
         }
       }
       const size_t numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
+      CONTRACT_VAR(firstGhostNodei);
       CHECK(not mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == numNeighborsi));
@@ -659,12 +653,14 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       worki += Timing::difference(start, Timing::currentTime());
 
       // Now add the pairwise time for each neighbor we computed here.
-      for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+      for (auto nodeListj = 0u; nodeListj != numNodeLists; ++nodeListj) {
         const vector<int>& connectivity = fullConnectivity[nodeListj];
         if (connectivity.size() > 0) {
           const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
           Field<Dimension, Scalar>& workFieldj = nodeLists[nodeListj]->work();
+#if defined __INTEL_COMPILER
 #pragma vector always
+#endif
           for (vector<int>::const_iterator jItr = connectivity.begin();
                jItr != connectivity.end();
                ++jItr) {

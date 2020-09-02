@@ -163,7 +163,7 @@ flattenOccupiedGridCells(const DataBase<Dimension>& dataBase,
        ++nodeListItr) {
     const NestedGridNeighbor<Dimension>& neighbor = getNestedGridNeighbor(*nodeListItr);
     const vector< vector< GridCellIndex<Dimension> > >& occupiedGridCells = neighbor.occupiedGridCells();
-    for (int gridLevel = 0; gridLevel != occupiedGridCells.size(); ++gridLevel) {
+    for (auto gridLevel = 0u; gridLevel != occupiedGridCells.size(); ++gridLevel) {
       CHECK(gridLevel < numGridLevels);
       numGridCells[gridLevel] += occupiedGridCells[gridLevel].size();
     }
@@ -185,7 +185,7 @@ flattenOccupiedGridCells(const DataBase<Dimension>& dataBase,
 
     // Insert these grid cell indices into the (possibly redundant) set of occupied grid cells.
     CHECK(occupiedGridCells.size() <= numGridLevels);
-    for (int gridLevel = 0; gridLevel != occupiedGridCells.size(); ++gridLevel) {
+    for (auto gridLevel = 0u; gridLevel != occupiedGridCells.size(); ++gridLevel) {
       CHECK(gridLevel < gridCells.size());
       CHECK(gridCells[gridLevel].capacity() >= gridCells[gridLevel].size() + occupiedGridCells[gridLevel].size());
       for (typename vector< GridCellIndex<Dimension> >::const_iterator gridCellItr = occupiedGridCells[gridLevel].begin();
@@ -215,7 +215,7 @@ packGridCellIndices(const vector< vector< GridCellIndex<Dimension> > >& gridCell
 		     vector<int>& packedGridCellIndices) const {
 
   int packedIndex = 0;
-  for (int gridLevel = 0; gridLevel != gridCellSet.size(); ++gridLevel) {
+  for (auto gridLevel = 0u; gridLevel != gridCellSet.size(); ++gridLevel) {
     for (typename vector< GridCellIndex<Dimension> >::const_iterator gridCellItr = gridCellSet[gridLevel].begin();
 	 gridCellItr != gridCellSet[gridLevel].end();
 	 ++gridCellItr) {
@@ -373,6 +373,7 @@ setAllGhostNodes(DataBase<Dimension>& dataBase) {
   // This processor's ID.
   int procID = this->domainID();
   int numProcs = this->numDomains();
+  CONTRACT_VAR(numProcs);
   CHECK(procID < numProcs);
 
   // Clear out the existing communication map for the given database.
@@ -556,7 +557,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
             const Field<Dimension, Vector>& extents = neighbor.nodeExtentField();
 	    const Field<Dimension, SymTensor>& Hinv = *Hinverse[nodeListi];
             vector<int> indicesToKill;
-            for (int k = 0; k != sendNodes.size(); ++k) {
+            for (auto k = 0u; k != sendNodes.size(); ++k) {
               const int i = sendNodes[k];
               const Vector& xi = positions(i);
               const Vector& extenti = extents(i);

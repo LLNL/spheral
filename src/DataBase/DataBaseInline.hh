@@ -7,7 +7,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+unsigned int
 DataBase<Dimension>::numNodeLists() const {
   return mNodeListPtrs.size();
 }
@@ -17,7 +17,7 @@ DataBase<Dimension>::numNodeLists() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+unsigned int
 DataBase<Dimension>::numFluidNodeLists() const {
   return mFluidNodeListPtrs.size();
 }

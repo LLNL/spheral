@@ -19,15 +19,10 @@ bool pointOnPolyhedron(const Dim<3>::Vector& p,
                        const Dim<3>::FacetedVolume& polyhedron,
                        const double tol) {
   typedef Dim<3>::Vector Vector;
-  typedef Dim<3>::Tensor Tensor;
   typedef Dim<3>::FacetedVolume::Facet Facet;
 
   const std::vector<Vector>& vertices = polyhedron.vertices();
   const std::vector<Facet>& facets = polyhedron.facets();
-
-  const double px = p.x();
-  const double py = p.y();
-  const double pz = p.z();
 
   // Walk the facets and check each one until we either 
   // find one we're on or we're done.

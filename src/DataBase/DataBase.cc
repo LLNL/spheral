@@ -479,7 +479,7 @@ reinitializeNeighbors() const {
     const auto  etaMax = neighbor.kernelExtent();
     maxExtent = std::max(maxExtent, etaMax);
     ntot += n;
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
       const auto& xi = positions(i);
       xmin = elementWiseMin(xmin, xi);
       xmax = elementWiseMax(xmax, xi);
@@ -1518,7 +1518,7 @@ DataBase<Dimension>::numNeighbors() const {
        ++nodeListItr) {
     const FluidNodeList<Dimension>& nodes = **nodeListItr;
     Field<Dimension, int>& count = **(result.fieldForNodeList(nodes));
-    for (int i = 0; i != nodes.numInternalNodes(); ++i) {
+    for (auto i = 0u; i != nodes.numInternalNodes(); ++i) {
       count(i) = 0;
       const vector< vector<int> >& connectivity = mConnectivityMapPtr->connectivityForNode(&nodes, i);
       for (typename vector< vector<int> >::const_iterator itr = connectivity.begin();
@@ -1618,8 +1618,8 @@ localSamplingBoundingVolume(typename Dimension::Vector& centroid,
   size_t count = 0;
   const FieldList<Dimension, Vector> positions = this->globalPosition();
   const FieldList<Dimension, Vector> extent = this->globalNodeExtent();
-  for (int nodeList = 0; nodeList != positions.numFields(); ++nodeList) {
-    for (int i = 0; i != mNodeListPtrs[nodeList]->numInternalNodes(); ++i) {
+  for (auto nodeList = 0u; nodeList != positions.numFields(); ++nodeList) {
+    for (auto i = 0u; i != mNodeListPtrs[nodeList]->numInternalNodes(); ++i) {
       const Vector& xi = positions(nodeList, i);
       const Vector& extenti = extent(nodeList, i);
       const Vector xmini = xi - extenti;
@@ -1635,15 +1635,14 @@ localSamplingBoundingVolume(typename Dimension::Vector& centroid,
 
   // Normalize the centroid.
   if (count > 0) centroid /= count;
-  const double kernelExtent = maxKernelExtent();
 
   // Find the maximal radial extent from the centroid.
   radiusNodes = 0.0;
   radiusSample = 0.0;
   FieldList<Dimension, SymTensor> Hinv = newGlobalFieldList(SymTensor::zero);
   this->globalHinverse(Hinv);
-  for (int nodeList = 0; nodeList != positions.numFields(); ++nodeList) {
-    for (int i = 0; i != mNodeListPtrs[nodeList]->numInternalNodes(); ++i) {
+  for (auto nodeList = 0u; nodeList != positions.numFields(); ++nodeList) {
+    for (auto i = 0u; i != mNodeListPtrs[nodeList]->numInternalNodes(); ++i) {
       const Vector& xi = positions(nodeList, i);
       const Vector dr = xi - centroid;
       const double drMag = dr.magnitude();
@@ -1706,8 +1705,8 @@ globalSamplingBoundingVolume(typename Dimension::Vector& centroid,
       const FieldList<Dimension, Vector> extent = this->globalNodeExtent();
       FieldList<Dimension, SymTensor> Hinv = this->newGlobalFieldList(SymTensor::zero, "H inverse");
       this->globalHinverse(Hinv);
-      for (int nodeList = 0; nodeList != positions.numFields(); ++nodeList) {
-	for (int i = 0; i != mNodeListPtrs[nodeList]->numInternalNodes(); ++i) {
+      for (auto nodeList = 0u; nodeList != positions.numFields(); ++nodeList) {
+	for (auto i = 0u; i != mNodeListPtrs[nodeList]->numInternalNodes(); ++i) {
 	  const Vector& xi = positions(nodeList, i);
 	  const Vector dr = xi - centroid;
 	  const Vector drUnit = dr.unitVector();
@@ -1755,7 +1754,7 @@ localSamplingBoundingBoxes(vector<typename Dimension::Vector>& xminima,
   FieldList<Dimension, int> flags = this->newGlobalFieldList(0, "flags");
   for (int nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = positions[nodeListi]->nodeList();
-    for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
+    for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
       if (flags(nodeListi, i) == 0) {
         const Vector& xi = positions(nodeListi, i);
         const Vector& extenti = extent(nodeListi, i);
@@ -1782,7 +1781,7 @@ localSamplingBoundingBoxes(vector<typename Dimension::Vector>& xminima,
 
         // Compare this batches min/max extents with the results so far.
         CHECK(xminima.size() == xmaxima.size());
-        int k = 0;
+        unsigned int k = 0;
         bool matched = false;
         while (k != xminima.size() and not matched) {
           if (testBoxIntersection(xminGroup, xmaxGroup, xminima[k], xmaxima[k])) {

@@ -44,7 +44,7 @@ Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
 
   // Now the planes.
   vector<PolyClipper::Plane2d> planes2d(nplanes);
-  for (auto i = 0; i < nplanes; ++i) {
+  for (auto i = 0u; i < nplanes; ++i) {
     const Vector& nhat = planes[i].normal();
     const Vector& p = planes[i].point();
     planes2d[i].normal = nhat;
@@ -87,7 +87,7 @@ Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
 
   // Now the planes.
   vector<PolyClipper::Plane3d> planes3d(nplanes);
-  for (auto i = 0; i < nplanes; ++i) {
+  for (auto i = 0u; i < nplanes; ++i) {
     const Vector& nhat = planes[i].normal();
     const Vector& p = planes[i].point();
     planes3d[i].normal = nhat;
@@ -118,7 +118,6 @@ double clippedVolume(const Dim<2>::FacetedVolume& poly,
                      const std::vector<GeomPlane<Dim<2> > >& planes) {
 
   typedef Dim<2>::Vector Vector;
-  typedef Dim<2>::FacetedVolume FacetedVolume;
 
   // Is there anything to do?
   const unsigned nplanes = planes.size();
@@ -130,7 +129,7 @@ double clippedVolume(const Dim<2>::FacetedVolume& poly,
 
   // Now the planes.
   vector<PolyClipper::Plane2d> planes2d(nplanes);
-  for (auto i = 0; i < nplanes; ++i) {
+  for (auto i = 0u; i < nplanes; ++i) {
     const Vector& nhat = planes[i].normal();
     const Vector& p = planes[i].point();
     planes2d[i].normal = nhat;
@@ -157,7 +156,6 @@ double clippedVolume(const Dim<3>::FacetedVolume& poly,
                      const std::vector<GeomPlane<Dim<3> > >& planes) {
 
   typedef Dim<3>::Vector Vector;
-  typedef Dim<3>::FacetedVolume FacetedVolume;
 
   // Is there anything to do?
   const unsigned nplanes = planes.size();
@@ -169,7 +167,7 @@ double clippedVolume(const Dim<3>::FacetedVolume& poly,
 
   // Now the planes.
   vector<PolyClipper::Plane3d> planes3d(nplanes);
-  for (auto i = 0; i < nplanes; ++i) {
+  for (auto i = 0u; i < nplanes; ++i) {
     const Vector& nhat = planes[i].normal();
     const Vector& p = planes[i].point();
     planes3d[i].normal = nhat;

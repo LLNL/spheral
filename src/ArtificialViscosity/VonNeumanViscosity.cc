@@ -60,11 +60,6 @@ initialize(const DataBase<Dimension>& dataBase,
            const typename Dimension::Scalar dt,
            const TableKernel<Dimension>& W) {
 
-  typedef typename ArtificialViscosity<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef typename Dimension::FourthRankTensor FourthRankTensor;
-  typedef typename Dimension::FifthRankTensor FifthRankTensor;
-
   // Let the base class do it's thing.
   ArtificialViscosity<Dimension>::initialize(dataBase, state, derivs, boundaryBegin, boundaryEnd, time, dt, W);
   const auto order = this->QcorrectionOrder();
@@ -105,9 +100,9 @@ initialize(const DataBase<Dimension>& dataBase,
   const auto Cl = this->Cl();
   const auto Cq = this->Cq();
   const auto numNodeLists = dataBase.numFluidNodeLists();
-  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
     const auto n = velocityGradient[nodeListi]->numInternalElements();
-    for (auto i = 0; i != n; ++i) {
+    for (auto i = 0u; i != n; ++i) {
       const auto mui = min(0.0, velocityGradient(nodeListi, i).Trace());
       const auto l = 1.0/(H(nodeListi, i).eigenValues().maxElement());
       mViscousEnergy(nodeListi, i) = (-Cl*soundSpeed(nodeListi, i) + Cq*l*mui)*l*mui;
@@ -128,18 +123,18 @@ std::pair<typename Dimension::Tensor, typename Dimension::Tensor>
 VonNeumanViscosity<Dimension>::
 Piij(const unsigned nodeListi, const unsigned i, 
      const unsigned nodeListj, const unsigned j,
-     const typename Dimension::Vector& xi,
-     const typename Dimension::Vector& etai,
-     const typename Dimension::Vector& vi,
+     const typename Dimension::Vector& /*xi*/,
+     const typename Dimension::Vector& /*etai*/,
+     const typename Dimension::Vector& /*vi*/,
      const typename Dimension::Scalar rhoi,
-     const typename Dimension::Scalar csi,
-     const typename Dimension::SymTensor& Hi,
-     const typename Dimension::Vector& xj,
-     const typename Dimension::Vector& etaj,
-     const typename Dimension::Vector& vj,
+     const typename Dimension::Scalar /*csi*/,
+     const typename Dimension::SymTensor& /*Hi*/,
+     const typename Dimension::Vector& /*xj*/,
+     const typename Dimension::Vector& /*etaj*/,
+     const typename Dimension::Vector& /*vj*/,
      const typename Dimension::Scalar rhoj,
-     const typename Dimension::Scalar csj,
-     const typename Dimension::SymTensor& Hj) const {
+     const typename Dimension::Scalar /*csj*/,
+     const typename Dimension::SymTensor& /*Hj*/) const {
 
   REQUIRE(rhoi > 0.0);
 

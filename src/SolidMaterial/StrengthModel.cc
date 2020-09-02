@@ -31,9 +31,9 @@ template<typename Dimension>
 void
 StrengthModel<Dimension>::
 soundSpeed(Field<Dimension, Scalar>& soundSpeed,
-           const Field<Dimension, Scalar>& density,
-           const Field<Dimension, Scalar>& specificThermalEnergy,
-           const Field<Dimension, Scalar>& pressure,
+           const Field<Dimension, Scalar>& /*density*/,
+           const Field<Dimension, Scalar>& /*specificThermalEnergy*/,
+           const Field<Dimension, Scalar>& /*pressure*/,
            const Field<Dimension, Scalar>& fluidSoundSpeed) const {
   soundSpeed = fluidSoundSpeed;
 }
@@ -44,9 +44,9 @@ soundSpeed(Field<Dimension, Scalar>& soundSpeed,
 template<typename Dimension>
 void
 StrengthModel<Dimension>::
-bulkModulus(Field<Dimension, Scalar>& bulkModulus,
-            const Field<Dimension, Scalar>& density,
-            const Field<Dimension, Scalar>& specificThermalEnergy) const {
+bulkModulus(Field<Dimension, Scalar>& /*bulkModulus*/,
+            const Field<Dimension, Scalar>& /*density*/,
+            const Field<Dimension, Scalar>& /*specificThermalEnergy*/) const {
   VERIFY2(false,
           "StrengthModel::bulkModulus called");
 }
@@ -58,8 +58,8 @@ template<typename Dimension>
 void
 StrengthModel<Dimension>::
 meltSpecificEnergy(Field<Dimension, Scalar>& meltSpecificEnergy,
-                   const Field<Dimension, Scalar>& density,
-                   const Field<Dimension, Scalar>& specficThermalEnergy) const {
+                   const Field<Dimension, Scalar>& /*density*/,
+                   const Field<Dimension, Scalar>& /*specficThermalEnergy*/) const {
   meltSpecificEnergy = 0.0;
 }
 
@@ -70,8 +70,8 @@ template<typename Dimension>
 void
 StrengthModel<Dimension>::
 coldSpecificEnergy(Field<Dimension, Scalar>& coldSpecificEnergy,
-                   const Field<Dimension, Scalar>& density,
-                   const Field<Dimension, Scalar>& specficThermalEnergy) const {
+                   const Field<Dimension, Scalar>& /*density*/,
+                   const Field<Dimension, Scalar>& /*specficThermalEnergy*/) const {
   coldSpecificEnergy = 0.0;
 }
 

@@ -38,7 +38,6 @@ divergenceMash(const FieldList<Dimension, DataType>& fieldList,
   // Typedef's to ease typing/understandability.
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename MathTraits<Dimension, DataType>::DivergenceType DivergenceType;
 
@@ -78,7 +77,7 @@ divergenceMash(const FieldList<Dimension, DataType>& fieldList,
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
-        const Scalar& weighti = weight(masterItr);
+        //const Scalar& weighti = weight(masterItr);
         const DataType& fieldi = fieldList(masterItr);
 
         Scalar normalization = 0.0;

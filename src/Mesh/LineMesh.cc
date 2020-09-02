@@ -58,9 +58,6 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
   // Is there anything to do?
   if (allReduce(unsigned(localGenerators.size()), MPI_SUM, Communicator::communicator()) == 0) return;
 
-  // Parallel info.
-  const unsigned rank = Process::getRank();
-  const unsigned numDomains = Process::getTotalNumberOfProcesses();
 
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
@@ -77,6 +74,9 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
   // Get the full set of generators we need.
   vector<Vector> generators = localGenerators;
 #ifdef USE_MPI
+  // Parallel info.
+  const unsigned rank = Process::getRank();
+  const unsigned numDomains = Process::getTotalNumberOfProcesses();
   // We need the parallel sets of generators.
   {  
     // Create the set of hashed local generators.
@@ -302,6 +302,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
   BEGIN_CONTRACT_SCOPE
   {
     for (const vector<vector<unsigned> >& cellFaces: newCells) {
+      CONTRACT_VAR(cellFaces);
       REQUIRE(cellFaces.size() == 2);
       REQUIRE(cellFaces[0].size() == 1 and cellFaces[0][0] < mNodePositions.size());
       REQUIRE(cellFaces[1].size() == 1 and cellFaces[1][0] < mNodePositions.size());

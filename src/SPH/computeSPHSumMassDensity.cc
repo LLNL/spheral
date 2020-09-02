@@ -19,7 +19,7 @@ template<typename Dimension>
 void
 computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                          const TableKernel<Dimension>& W,
-                         const bool sumOverAllNodeLists,
+                         const bool /*sumOverAllNodeLists*/,
                          const FieldList<Dimension, typename Dimension::Vector>& position,
                          const FieldList<Dimension, typename Dimension::Scalar>& mass,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
@@ -31,10 +31,6 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(mass.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
 
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
 
   // Some useful variables.
   const auto W0 = W.kernelValue(0.0, 1.0);
@@ -44,10 +40,10 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   const auto  npairs = pairs.size();
 
   // First the self contribution.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto n = massDensity[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
       const auto  mi = mass(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
@@ -62,7 +58,7 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
     auto massDensity_thread = massDensity.threadCopy();
 
 #pragma omp for
-    for (auto k = 0; k < npairs; ++k) {
+    for (auto k = 0u; k < npairs; ++k) {
       i = pairs[k].i_node;
       j = pairs[k].j_node;
       nodeListi = pairs[k].i_list;

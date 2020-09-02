@@ -338,7 +338,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 //         if (connectivity.size() > 0) {
 
 //           // Loop over the neighbors.
+// #if defined __INTEL_COMPILER
 // #pragma vector always
+// #endif
 //           for (auto jItr = connectivity.begin();
 //                jItr != connectivity.end();
 //                ++jItr) {

@@ -48,8 +48,8 @@ update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
        const double multiplier,
-       const double t,
-       const double dt) {
+       const double /*t*/,
+       const double /*dt*/) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == SolidFieldNames::tensorDamage);
@@ -67,7 +67,7 @@ update(const KeyType& key,
   // Iterate over the internal nodes.
   const auto ni = stateField.numInternalElements();
 #pragma omp parallel for
-  for (auto i = 0; i < ni; ++i) {
+  for (auto i = 0u; i < ni; ++i) {
 
     // Update the damage.  We take advantage of the fact this is a scalar update here.
     auto Di = stateField(i).xx();

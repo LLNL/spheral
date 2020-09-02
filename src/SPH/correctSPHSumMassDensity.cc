@@ -25,7 +25,7 @@ template<typename Dimension>
 void
 correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                          const TableKernel<Dimension>& W,
-                         const bool sumOverAllNodeLists,
+                         const bool /*sumOverAllNodeLists*/,
                          const FieldList<Dimension, typename Dimension::Vector>& position,
                          const FieldList<Dimension, typename Dimension::Scalar>& mass,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
@@ -38,9 +38,6 @@ correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(H.size() == numNodeLists);
 
   typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
 
   // Some useful variables.
   const auto W0 = W.kernelValue(0.0, 1.0);
@@ -51,13 +48,13 @@ correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 
   // Prepare the kernel sum correction field.
   FieldList<Dimension, Scalar> sumUnity(FieldStorageType::CopyFields);
-  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
     sumUnity.appendNewField("SPH sum unity check", massDensity[nodeListi]->nodeList(), 0.0);
 
     // Initialize the self-contribution.
     const auto n = massDensity[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
       const auto  mi = mass(nodeListi, i);
       const auto  rhoi = massDensity(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
@@ -73,7 +70,7 @@ correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
     auto sumUnity_thread = sumUnity.threadCopy();
 
 #pragma omp for
-    for (auto k = 0; k < npairs; ++k) {
+    for (auto k = 0u; k < npairs; ++k) {
       i = pairs[k].i_node;
       j = pairs[k].j_node;
       nodeListi = pairs[k].i_list;

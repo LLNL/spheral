@@ -41,9 +41,9 @@ LinearAcceleration<Dimension>::
 template<typename Dimension>
 void
 LinearAcceleration<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
-                    const DataBase<Dimension>& dataBase,
+evaluateDerivatives(const typename Dimension::Scalar /*time*/,
+                    const typename Dimension::Scalar /*dt*/,
+                    const DataBase<Dimension>& /*dataBase*/,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
 
@@ -68,10 +68,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 template<typename Dimension>
 typename LinearAcceleration<Dimension>::TimeStepType
 LinearAcceleration<Dimension>::
-dt(const DataBase<Dimension>& dataBase, 
-   const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const typename Dimension::Scalar currentTime) const {
+dt(const DataBase<Dimension>& /*dataBase*/, 
+   const State<Dimension>& /*state*/,
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const typename Dimension::Scalar /*currentTime*/) const {
 
   return TimeStepType(FLT_MAX, "No vote.");
 }

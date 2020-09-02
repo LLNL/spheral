@@ -33,8 +33,6 @@ resetValues(FieldBase<Dimension>& field,
             const std::vector<int>& nodeIDs,
             const std::map<std::string, std::vector<char>>& values,
             const bool dieOnMissingField) {
-  const auto& nodeList = field.nodeList();
-
   // Find this Field in the set of stored values.
   const auto key = StateBase<Dimension>::key(field);
   auto itr = values.find(key);

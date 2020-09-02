@@ -157,7 +157,7 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
 
   // Iterate over the x domain indicies.
   int assignDomainID = 0;
-  for (int ix = 0; ix != domainsPerStep.size(); ++ix) {
+  for (auto ix = 0u; ix != domainsPerStep.size(); ++ix) {
 
     // Pop off the set of nodes for the y-z slab in this step.
     const vector<int>& numYZChunks = domainsPerStep[ix];
@@ -181,7 +181,7 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
     this->sortByPositions(yzchunkNodes, 1);
 
     // Iterate over the number of y domains we're assigning for this slab of work.
-    for (int iy = 0; iy != numYZChunks.size(); ++iy) {
+    for (auto iy = 0u; iy != numYZChunks.size(); ++iy) {
 
       // Pop off a chunk of nodes we'll divvy up in the z direction.
       const int numZChunks = numYZChunks[iy];

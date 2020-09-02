@@ -36,10 +36,6 @@ computeShepardsInterpolation(const FieldList<Dimension, DataType>& fieldList,
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef typename Dimension::FourthRankTensor FourthRankTensor;
-  typedef typename Dimension::FifthRankTensor FifthRankTensor;
 
   // Some scratch variables.
   size_t nodeListi, nodeListj;

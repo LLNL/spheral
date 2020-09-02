@@ -49,12 +49,12 @@ IncrementCullenMultipliers<Dimension>::
 template<typename Dimension>
 void
 IncrementCullenMultipliers<Dimension>::
-update(const KeyType& key,
+update(const KeyType&,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
        const double multiplier,
-       const double t,
-       const double dt) {
+       const double /*t*/,
+       const double /*dt*/) {
 
   // Get the state we're advancing and the needed derivatives.
   FieldList<Dimension, Scalar> rvQ = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);

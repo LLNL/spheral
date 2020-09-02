@@ -48,8 +48,8 @@ findCellVertices(const Dim<1>::Vector& xmin,
                  const double& boxLength,
                  const uint32_t& ilevel,
                  const uint64_t& ix,
-                 const uint64_t& iy,
-                 const uint64_t& iz) {
+                 const uint64_t& /*iy*/,
+                 const uint64_t& /*iz*/) {
   typedef Dim<1>::Vector Vector;
   const double cellSize = boxLength/(1U << ilevel);
   vector<Vector> result;
@@ -66,7 +66,7 @@ findCellVertices(const Dim<2>::Vector& xmin,
                  const uint32_t& ilevel,
                  const uint64_t& ix,
                  const uint64_t& iy,
-                 const uint64_t& iz) {
+                 const uint64_t& /*iz*/) {
   typedef Dim<2>::Vector Vector;
   const double cellSize = boxLength/(1U << ilevel);
   vector<Vector> result;
@@ -385,7 +385,7 @@ updateNodes() {
     }
 
     // Sort each Cell's info.
-    for (auto klevel = 0; klevel < tree_local.size(); ++klevel) {
+    for (auto klevel = 0u; klevel < tree_local.size(); ++klevel) {
       for (auto& keycellt: tree_local[klevel]) {
         auto& cellt = keycellt.second;
         std::sort(cellt.daughters.begin(), cellt.daughters.end());
@@ -397,7 +397,7 @@ updateNodes() {
 #pragma omp critical
     {
       mTree.resize(std::max(mTree.size(), tree_local.size()));
-      for (auto klevel = 0; klevel < tree_local.size(); ++klevel) {
+      for (auto klevel = 0u; klevel < tree_local.size(); ++klevel) {
         for (const auto& keycellt: tree_local[klevel]) {
           const auto key = keycellt.first;
           const auto& cellt = keycellt.second;
@@ -448,7 +448,7 @@ updateNodes() {
 template<typename Dimension>
 void 
 TreeNeighbor<Dimension>::
-updateNodes(const vector<int>& ndoeIDs) {
+updateNodes(const vector<int>& /*ndoeIDs*/) {
   this->updateNodes();  // Punt and just rebuild everything.
 }
 
@@ -505,9 +505,7 @@ TreeNeighbor<Dimension>::
 dumpTree(const Tree& tree,
          const bool globalTree) const {
   std::stringstream ss;
-  CellKey key, ix, iy, iz;
-  const unsigned numProcs = Process::getTotalNumberOfProcesses();
-  const unsigned rank = Process::getRank();
+  CellKey ix, iy, iz;
   unsigned nlevels = tree.size();
   if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
 
@@ -527,6 +525,8 @@ dumpTree(const Tree& tree,
       }
     }
 #ifdef USE_MPI
+    const unsigned numProcs = Process::getTotalNumberOfProcesses();
+    const unsigned rank = Process::getRank();
     if (globalTree) {
       for (unsigned sendProc = 0; sendProc != numProcs; ++sendProc) {
         unsigned bufSize = localBuffer.size();
@@ -588,9 +588,6 @@ TreeNeighbor<Dimension>::
 dumpTreeStatistics(const Tree& tree,
                    const bool globalTree) const {
   std::stringstream ss;
-  CellKey key, ix, iy, iz;
-  const unsigned numProcs = Process::getTotalNumberOfProcesses();
-  const unsigned rank = Process::getRank();
   unsigned nlevels = tree.size();
   if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
 
@@ -610,6 +607,8 @@ dumpTreeStatistics(const Tree& tree,
       }
     }
 #ifdef USE_MPI
+    const unsigned numProcs = Process::getTotalNumberOfProcesses();
+    const unsigned rank = Process::getRank();
     if (globalTree) {
       for (unsigned sendProc = 0; sendProc != numProcs; ++sendProc) {
         unsigned bufSize = localBuffer.size();
@@ -726,7 +725,7 @@ deserialize(vector<char>::const_iterator& bufItr,
   unpackElement(mGridLevelConst0, bufItr, endItr);
   unpackElement(mXmin, bufItr, endItr);
   unpackElement(mXmax, bufItr, endItr);
-  unsigned nlevels, ncells;
+  unsigned nlevels;
   CellKey key;
   Cell cell;
   unpackElement(nlevels, bufItr, endItr);
@@ -768,7 +767,7 @@ TreeNeighbor<Dimension>::
 occupiedCells() const {
   const auto numLevels = mTree.size();
   vector<vector<CellKey>> result(numLevels);
-  for (auto ilevel = 0; ilevel < numLevels; ++ilevel) {
+  for (auto ilevel = 0u; ilevel < numLevels; ++ilevel) {
     for (const auto& keyCell: mTree[ilevel]) {
       if (not keyCell.second.members.empty()) result[ilevel].push_back(keyCell.first);
     }
@@ -892,7 +891,7 @@ addNodeToTree(const typename Dimension::Vector& xi,
   const LevelKey homeLevel = this->gridLevel(Hi);
 
   LevelKey ilevel = 0;
-  CellKey key, parentKey, otherKey, ix, iy, iz;
+  CellKey key, parentKey, ix, iy, iz;
   typename TreeLevel::iterator itr;
 
   // First walk the tree for all levels above our native level.
@@ -935,7 +934,7 @@ TreeNeighbor<Dimension>::
 constructDaughterPtrs(typename TreeNeighbor<Dimension>::Tree& tree) const {
   const auto nlevels = tree.size();
   const auto n = nlevels > 0 ? nlevels - 1 : nlevels;
-  for (auto ilevel = 0; ilevel < n; ++ilevel) {
+  for (auto ilevel = 0u; ilevel < n; ++ilevel) {
     const auto ilevel1 = ilevel + 1;
     for (auto& keyCellPair: tree[ilevel]) {
       auto& cell = keyCellPair.second;
@@ -976,8 +975,8 @@ setTreeMasterList(const typename Dimension::Vector& position,
 template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
-setTreeRefineNeighborList(const typename Dimension::Vector& position,
-                          const typename Dimension::SymTensor& H,
+setTreeRefineNeighborList(const typename Dimension::Vector& /*position*/,
+                          const typename Dimension::SymTensor& /*H*/,
                           const std::vector<int>& coarseNeighbors,
                           std::vector<int>& refineNeighbors) const {
 
@@ -1099,9 +1098,7 @@ distanceToCell(const typename TreeNeighbor<Dimension>::LevelKey& ilevel,
   this->extractCellIndices(key, ix, iy, iz);
   const vector<Vector> cellVertices = findCellVertices(mXmin, mBoxLength, 
                                                        ilevel, ix, iy, iz);
-  const unsigned n = cellVertices.size();
-  CHECK(n == (1U << Dimension::nDim));
-  unsigned i;
+  CHECK(cellVertices.size() == (1U << Dimension::nDim));
   double dist, minDist = plane.signedDistance(cellVertices[0]);
   for (unsigned i = 1; i < cellVertices.size(); ++i) {
     dist = plane.signedDistance(cellVertices[i]);
@@ -1189,7 +1186,7 @@ void
 TreeNeighbor<Dimension>::
 reinitialize(const typename Dimension::Vector& xmin,
              const typename Dimension::Vector& xmax,
-             const Scalar htarget) {
+             const Scalar /*htarget*/) {
   const auto etaMax = this->kernelExtent();
   mXmin = xmin;
   mXmax = xmax;
