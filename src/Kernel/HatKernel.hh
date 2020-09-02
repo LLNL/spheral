@@ -38,7 +38,7 @@ public:
   double gradValue(double etaMagnitude, double Hdet) const;
 
   // Return the second derivative for a given normalized distance or position.
-  double grad2Value(double etaMagnitude, double Hdet) const;
+  double grad2Value(double /*etaMagnitude*/, double /*Hdet*/) const;
 
   // The x and y kernel intercepts.
   double W0() const;

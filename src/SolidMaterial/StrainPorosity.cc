@@ -113,7 +113,7 @@ StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,
           "ERROR : kappa required to be in range kappa = [0.0, 1.0]");
   const auto n = nodeList.numInternalNodes();
 #pragma omp parallel for
-  for (auto i = 0; i < n; ++i) {
+  for (auto i = 0u; i < n; ++i) {
     mc0[i] = c0[i];
     mAlpha0[i] = 1.0/(1.0 - phi0[i]);
     mAlpha[i] = 1.0/(1.0 - phi0[i]);
@@ -140,9 +140,9 @@ StrainPorosity<Dimension>::
 template<typename Dimension>
 void
 StrainPorosity<Dimension>::
-evaluateDerivatives(const Scalar time,
-                    const Scalar dt,
-                    const DataBase<Dimension>& dataBase,
+evaluateDerivatives(const Scalar /*time*/,
+                    const Scalar /*dt*/,
+                    const DataBase<Dimension>& /*dataBase*/,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
 
@@ -197,10 +197,10 @@ evaluateDerivatives(const Scalar time,
 template<typename Dimension>
 typename StrainPorosity<Dimension>::TimeStepType
 StrainPorosity<Dimension>::
-dt(const DataBase<Dimension>& dataBase, 
-   const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const Scalar currentTime) const {
+dt(const DataBase<Dimension>& /*dataBase*/, 
+   const State<Dimension>& /*state*/,
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const Scalar /*currentTime*/) const {
   return TimeStepType(1.0e100, "Rate of porosity change -- NO VOTE.");
 }
 
@@ -210,7 +210,7 @@ dt(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 StrainPorosity<Dimension>::
-registerState(DataBase<Dimension>& dataBase,
+registerState(DataBase<Dimension>& /*dataBase*/,
               State<Dimension>& state) {
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
   PolicyPointer strainPolicy(new IncrementState<Dimension, Scalar>());
@@ -225,7 +225,7 @@ registerState(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 StrainPorosity<Dimension>::
-registerDerivatives(DataBase<Dimension>& dataBase,
+registerDerivatives(DataBase<Dimension>& /*dataBase*/,
                     StateDerivatives<Dimension>& derivs) {
   derivs.enroll(mDstrainDt);
   derivs.enroll(mDalphaDt);
@@ -237,7 +237,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 StrainPorosity<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
+initializeProblemStartup(DataBase<Dimension>& /*dataBase*/) {
   // Initialize the distention field.
   mAlpha = mAlpha0;
 }

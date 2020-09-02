@@ -80,7 +80,7 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
   vector<Vector> ghostPositions;
 
   // Iterate over the internal nodes.
-  for (int i = 0; i != nodeList.numNodes(); ++i) {
+  for (auto i = 0u; i != nodeList.numNodes(); ++i) {
 
     // The state of the node.
     const double ri = positions(i).y();
@@ -147,6 +147,9 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
       const int j = *ghostItr;
       const double ri = positions(i).y();
       const double zi = positions(i).x();
+      CONTRACT_VAR(j);
+      CONTRACT_VAR(ri);
+      CONTRACT_VAR(zi);
       CHECK(fuzzyEqual(positions(j).x(), zi));
       CHECK(fuzzyEqual(sqrt(FastMath::square(positions(j).y()) + FastMath::square(positions(j).z())), ri));
     }
@@ -211,6 +214,9 @@ updateGhostNodes(NodeList<Dim<3> >& nodeList) {
       const int j = *ghostItr;
       const double ri = positions(i).y();
       const double zi = positions(i).x();
+      CONTRACT_VAR(j);
+      CONTRACT_VAR(ri);
+      CONTRACT_VAR(zi);
       CHECK(fuzzyEqual(positions(j).x(), zi));
       CHECK(fuzzyEqual(sqrt(FastMath::square(positions(j).y()) + FastMath::square(positions(j).z())), ri));
     }
@@ -500,7 +506,7 @@ setViolationNodes(NodeList<Dim<3> >& nodeList) {
   vector<int>& vNodes = boundaryNodes.violationNodes;
   vNodes = vector<int>();
   vNodes.reserve(nodeList.numInternalNodes());
-  for (int nodeID = 0; nodeID != nodeList.numInternalNodes(); ++nodeID) 
+  for (auto nodeID = 0u; nodeID != nodeList.numInternalNodes(); ++nodeID) 
     vNodes.push_back(nodeID);
   CHECK(vNodes.size() == nodeList.numInternalNodes());
 
@@ -625,6 +631,7 @@ angularSpacing(const double ri,
   // Choose a minimum effective radius such based on whether we see more than
   // 1/4*Pi around the circumference of the ring.
   const double rmin = kernelExtent*hzi/(0.125*M_PI);
+  CONTRACT_VAR(rmin);
   CHECK(rmin > 0.0);
   const double reff = ri; // max(rmin, ri);
 

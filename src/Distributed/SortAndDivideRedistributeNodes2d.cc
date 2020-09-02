@@ -161,7 +161,7 @@ redistributeNodes(DataBase<Dim<2> >& dataBase,
 
   // Iterate over the x domain indicies.
   int assignDomainID = 0;
-  for (int ix = 0; ix != domainsPerStep.size(); ++ix) {
+  for (auto ix = 0u; ix != domainsPerStep.size(); ++ix) {
 
     // Pop off the set of nodes we'll divvy up in the y direction in this step.
     const int numYChunks = domainsPerStep[ix];

@@ -71,7 +71,7 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 ConstantVelocityBoundary<Dimension>::
-updateGhostNodes(NodeList<Dimension>& nodeList) {
+updateGhostNodes(NodeList<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 ConstantVelocityBoundary<Dimension>::
-applyGhostBoundary(FieldBase<Dimension>& field) const {
+applyGhostBoundary(FieldBase<Dimension>&) const {
 }
 
 //------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ setViolationNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 ConstantVelocityBoundary<Dimension>::
-updateViolationNodes(NodeList<Dimension>& nodeList) {
+updateViolationNodes(NodeList<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------

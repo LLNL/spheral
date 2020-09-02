@@ -56,7 +56,7 @@ struct TreeDimensionTraits<Dim<2> > {
   static Vector cellCenter(const Vector& xmin,
                            const unsigned ix, 
                            const unsigned iy, 
-                           const unsigned iz,
+                           const unsigned /*iz*/,
                            const double cellsize) {
     return Vector(xmin.x() + (ix + 0.5)*cellsize, 
                   xmin.y() + (iy + 0.5)*cellsize);
@@ -148,8 +148,8 @@ registerState(DataBase<Dimension >& dataBase,
 template<typename Dimension>
 void 
 TreeGravity<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
+evaluateDerivatives(const typename Dimension::Scalar /*time*/,
+                    const typename Dimension::Scalar /*dt*/,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension >& state,
                     StateDerivatives<Dimension >& derivs) const {
@@ -359,11 +359,11 @@ initializeProblemStartup(DataBase<Dimension>& db) {
 template<typename Dimension>
 void 
 TreeGravity<Dimension>::
-initialize(const Scalar time,
-           const Scalar dt,
+initialize(const Scalar /*time*/,
+           const Scalar /*dt*/,
            const DataBase<Dimension>& db,
            State<Dimension>& state,
-           StateDerivatives<Dimension>& derivs) {
+           StateDerivatives<Dimension>& /*derivs*/) {
 
   // For now we're not going to be clever about trying to patch an existing tree,
   // but instead we'll build it from scratch every time.
@@ -453,10 +453,10 @@ initialize(const Scalar time,
     // Make a final pass over the cells and fill in the distance between the 
     // center of mass and the geometric center.
     CellKey ckey, ix, iy, iz;
-    double cellsize, cellvol;
+    double cellsize;
     for (unsigned ilevel = 0; ilevel != mTree.size(); ++ilevel) {
       cellsize = mBoxLength/(1U << ilevel);
-      cellvol = Dimension::pownu(cellsize);
+      //double cellvol = Dimension::pownu(cellsize);
       for (typename TreeLevel::iterator itr = mTree[ilevel].begin();
            itr != mTree[ilevel].end();
            ++itr) {
@@ -478,10 +478,10 @@ initialize(const Scalar time,
 template<typename Dimension>
 typename TreeGravity<Dimension>::TimeStepType
 TreeGravity<Dimension>::
-dt(const DataBase<Dimension>& dataBase, 
+dt(const DataBase<Dimension>& /*dataBase*/, 
    const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const Scalar currentTime) const {
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const Scalar /*currentTime*/) const {
 
   // A standard N-body approach -- just take the ratio of softening length/acceleration.
   if (mTimeStepChoice == GravityTimeStepType::AccelerationRatio) {
@@ -542,9 +542,11 @@ std::string
 TreeGravity<Dimension>::
 dumpTree(const bool globalTree) const {
   std::stringstream ss;
-  CellKey key, ix, iy, iz;
+  CellKey ix, iy, iz;
+#ifdef USE_MPI
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
+#endif
   unsigned nlevels = mTree.size();
   if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
 
@@ -618,9 +620,10 @@ std::string
 TreeGravity<Dimension>::
 dumpTreeStatistics(const bool globalTree) const {
   std::stringstream ss;
-  CellKey key, ix, iy, iz;
+#ifdef USE_MPI
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
+#endif
   unsigned nlevels = mTree.size();
   if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
 
@@ -822,7 +825,7 @@ applyTreeForces(const Tree& tree,
                 TreeGravity<Dimension>::CompletedCellSet& cellsCompleted) const {
 
   const unsigned numNodeLists = mass.numFields();
-  const unsigned numNodes = mass.numInternalNodes();
+  //const unsigned numNodes = mass.numInternalNodes();
   const double boxLength2 = mBoxLength*mBoxLength;
   const double softLength2 = mSofteningLength*mSofteningLength;
 
@@ -831,7 +834,7 @@ applyTreeForces(const Tree& tree,
 
   // Declare variables we're going to need in the loop once.  May help with optimization?
   unsigned nodeListi, i, j, k, ilevel, nremaining;
-  double mi, mj, cellsize2, rji2;
+  double mj, cellsize2, rji2;
   Vector xji, nhat;
   vector<Cell*> remainingCells, newDaughters;
   NodeID inode;
@@ -847,7 +850,7 @@ applyTreeForces(const Tree& tree,
       for (i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
 
         // State of node i.
-        mi = mass(nodeListi, i);
+        //mi = mass(nodeListi, i);
         const Vector& xi = position(nodeListi, i);
         Vector& DvDti = DvDt(nodeListi, i);
         Scalar& phii = potential(nodeListi, i);
@@ -993,7 +996,7 @@ TreeGravity<Dimension>::
 deserialize(TreeGravity<Dimension>::Tree& tree,
             vector<char>::const_iterator& bufItr,
             const vector<char>::const_iterator& endItr) const {
-  unsigned nlevels, ncells;
+  unsigned nlevels;
   CellKey key;
   Cell cell;
   unpackElement(nlevels, bufItr, endItr);

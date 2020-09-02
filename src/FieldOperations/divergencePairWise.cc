@@ -34,8 +34,8 @@ divergencePairWise
 (const FieldList<Dimension, DataType>& fieldList,
  const FieldList<Dimension, typename Dimension::Vector>& position,
  const FieldList<Dimension, typename Dimension::Scalar>& weight,
- const FieldList<Dimension, typename Dimension::Scalar>& mass,
- const FieldList<Dimension, typename Dimension::Scalar>& rho,
+ const FieldList<Dimension, typename Dimension::Scalar>& /*mass*/,
+ const FieldList<Dimension, typename Dimension::Scalar>& /*rho*/,
  const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
  const TableKernel<Dimension>& kernel) {
 
@@ -44,7 +44,6 @@ divergencePairWise
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename MathTraits<Dimension, DataType>::GradientType GradientType;
   typedef typename MathTraits<Dimension, DataType>::DivergenceType DivergenceType;
 
   // Return FieldList.
@@ -84,8 +83,8 @@ divergencePairWise
         // State for node i.
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
-        const Scalar& rhoi = rho(masterItr);
-        const Scalar& weighti = weight(masterItr);
+        //const Scalar& rhoi = rho(masterItr);
+        //const Scalar& weighti = weight(masterItr);
         const DataType& fieldi = fieldList(masterItr);
 
         // Loop over the refined neighbors.
@@ -98,7 +97,7 @@ divergencePairWise
 
             const Vector& rj = position(neighborItr);
             const SymTensor& Hj = Hfield(neighborItr);
-            const Scalar& mj = mass(neighborItr);
+            //const Scalar& mj = mass(neighborItr);
             const Scalar& weightj = weight(neighborItr);
             const DataType& fieldj = fieldList(neighborItr);
 

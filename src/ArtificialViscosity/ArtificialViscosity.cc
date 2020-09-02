@@ -98,8 +98,8 @@ initialize(const DataBase<Dimension>& dataBase,
            const StateDerivatives<Dimension>& derivs,
            typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
            typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-           const typename Dimension::Scalar time,
-           const typename Dimension::Scalar dt,
+           const typename Dimension::Scalar /*time*/,
+           const typename Dimension::Scalar /*dt*/,
            const TableKernel<Dimension>& W) {
 
   // If needed, calculate grad v and grad div v.
@@ -130,10 +130,10 @@ initialize(const DataBase<Dimension>& dataBase,
     // Calculate the shear Q suppression term for all internal fluid nodes.
     const auto& connectivityMap = dataBase.connectivityMap();
     const auto  numNodeLists = connectivityMap.nodeLists().size();
-    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
       const auto ni = mShearCorrection[nodeListi]->numInternalElements();
 #pragma omp parallel for
-      for (auto i = 0; i < ni; ++i) {
+      for (auto i = 0u; i < ni; ++i) {
         const auto div = fabs(DvDx(nodeListi, i).Trace());
         const auto curl = curlVelocityMagnitude(DvDx(nodeListi, i));
         const auto hmaxinverse = Dimension::rootnu(H(nodeListi, i).Determinant());
@@ -238,7 +238,7 @@ void
 ArtificialViscosity<Dimension>::
 calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
-                          const StateDerivatives<Dimension>& derivs,
+                          const StateDerivatives<Dimension>& /*derivs*/,
                           const TableKernel<Dimension>& W,
                           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
                           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd) {
@@ -267,7 +267,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
 
   // Grab the connectivity map from the DataBase.
   const auto& connectivityMap = dataBase.connectivityMap();
-  const auto& nodeLists = connectivityMap.nodeLists();
+  //const auto& nodeLists = connectivityMap.nodeLists();
   const auto  numNodeLists = dataBase.numFluidNodeLists();
   CHECK(nodeLists.size() == numNodeLists);
 
@@ -289,7 +289,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
     auto gdvNormalization_thread = gdvNormalization.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto kk = 0; kk < npairs; ++kk) {
+    for (auto kk = 0u; kk < npairs; ++kk) {
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
       nodeListi = pairs[kk].i_list;
@@ -389,10 +389,10 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
   } // OpenMP parallel region
 
   // Finish up the derivatives for each point.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto ni = mSigma[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
 
       // The derivatives for i.
       auto& sigmai = mSigma(nodeListi, i);

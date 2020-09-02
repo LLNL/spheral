@@ -23,7 +23,7 @@ class AxisBoundaryRZ(Boundary):
     #...........................................................................
     # Constructors
     def pyinit(self,
-               etamin = "const double"):
+               etamin = "double"):
         "Construct with the DataBase"
 
     #...........................................................................
@@ -44,7 +44,7 @@ class AxisBoundaryRZ(Boundary):
 
     #...........................................................................
     # Properties
-    etamin = PYB11property("const double", "etamin", "etamin", doc="The fuzz value for approaching the axis")
+    etamin = PYB11property("double", "etamin", "etamin", doc="The fuzz value for approaching the axis")
 
 #-------------------------------------------------------------------------------
 # Inject methods

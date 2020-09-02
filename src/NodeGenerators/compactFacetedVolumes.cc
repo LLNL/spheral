@@ -43,8 +43,6 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
   if (allReduce(flagmax, MPI_MAX, Communicator::communicator()) != 2) return 0;
 
   // Carve up the shapes range in parallel.
-  const size_t rank = Process::getRank();
-  const size_t nprocs = Process::getTotalNumberOfProcesses();
   // const size_t ndomain0 = nshapes/nprocs;
   // const size_t remainder = nshapes % nprocs;
   // CHECK(remainder < nprocs);
@@ -135,9 +133,9 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
           neighbor.setRefineNeighborList(i, coarseNeighbors, refineNeighbors);
           for (auto jitr = refineNeighbors.begin(); jitr != refineNeighbors.end(); ++jitr) {
             const auto j = *jitr;
-            if (j != i) {
+            if (j != (int)i) {
               if ((flags[j] == 1 and bi.intersect(shapes[j])) or
-                  (j > i and flags[j] >= 2 and bi.intersect(shapes[j] + centers[j]))) {
+                  (j > (int)i and flags[j] >= 2 and bi.intersect(shapes[j] + centers[j]))) {
                 const double Vi = shapes[i].volume();
                 const double Vj = shapes[j].volume();
                 const double ri = Dimension::rootnu(Vi/M_PI);
@@ -206,7 +204,7 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
           neighbor.setRefineNeighborList(i, coarseNeighbors, refineNeighbors);
           for (auto jitr = refineNeighbors.begin(); jitr != refineNeighbors.end(); ++jitr) {
             const auto j = *jitr;
-            if (j != i) {
+            if (j != (int)i) {
               if (flags[j] >= 1) {
                 FacetedVolume shapej;
                 if (flags[j] == 1) {
@@ -312,8 +310,10 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
   }
 
 #ifdef USE_MPI
+  const size_t rank = Process::getRank();
+  const size_t nprocs = Process::getTotalNumberOfProcesses();
   // Global broadcast of the new geometry.
-  for (int iproc = 0; iproc != nprocs; ++iproc) {
+  for (auto iproc = 0u; iproc != nprocs; ++iproc) {
     int jmin = imin, jmax = imax;
     MPI_Bcast(&jmin, 1, MPI_INT, iproc, Communicator::communicator());
     MPI_Bcast(&jmax, 1, MPI_INT, iproc, Communicator::communicator());

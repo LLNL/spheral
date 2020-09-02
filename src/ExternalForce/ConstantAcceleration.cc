@@ -69,10 +69,10 @@ ConstantAcceleration<Dimension>::
 template<typename Dimension>
 void
 ConstantAcceleration<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
-                    const DataBase<Dimension>& dataBase,
-                    const State<Dimension>& state,
+evaluateDerivatives(const typename Dimension::Scalar /*time*/,
+                    const typename Dimension::Scalar /*dt*/,
+                    const DataBase<Dimension>& /*dataBase*/,
+                    const State<Dimension>& /*state*/,
                     StateDerivatives<Dimension>& derivs) const {
 
   // Get the acceleration state we'll be modifying.
@@ -95,10 +95,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 template<typename Dimension>
 typename ConstantAcceleration<Dimension>::TimeStepType
 ConstantAcceleration<Dimension>::
-dt(const DataBase<Dimension>& dataBase, 
-   const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const typename Dimension::Scalar currentTime) const {
+dt(const DataBase<Dimension>& /*dataBase*/, 
+   const State<Dimension>& /*state*/,
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const typename Dimension::Scalar /*currentTime*/) const {
 
   return TimeStepType(FLT_MAX, "No vote.");
 }

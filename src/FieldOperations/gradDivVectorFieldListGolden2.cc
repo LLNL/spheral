@@ -37,7 +37,7 @@ FieldList<Dimension, typename Dimension::Vector>
 gradDivVectorFieldListGolden2
 (const FieldList<Dimension, typename Dimension::Vector>& fieldList,
  const FieldList<Dimension, typename Dimension::Vector>& position,
- const FieldList<Dimension, typename Dimension::Scalar>& weight,
+ const FieldList<Dimension, typename Dimension::Scalar>& /*weight*/,
  const FieldList<Dimension, typename Dimension::Scalar>& mass,
  const FieldList<Dimension, typename Dimension::Scalar>& rho,
  const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
@@ -85,7 +85,7 @@ gradDivVectorFieldListGolden2
         // State for node i.
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
-        const Scalar& mi = mass(masterItr);
+        //const Scalar& mi = mass(masterItr);
         const Scalar& rhoi = rho(masterItr);
         const Vector& fieldi = fieldList(masterItr);
 
@@ -100,7 +100,7 @@ gradDivVectorFieldListGolden2
 
             const Vector& rj = position(neighborItr);
             const SymTensor& Hj = Hfield(neighborItr);
-            const Scalar& weightj = weight(neighborItr);
+            //const Scalar& weightj = weight(neighborItr);
             const Scalar& mj = mass(neighborItr);
             const Scalar& rhoj = rho(neighborItr);
             const Vector& fieldj = fieldList(neighborItr);

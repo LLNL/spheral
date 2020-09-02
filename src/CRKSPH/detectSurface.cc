@@ -48,15 +48,12 @@ detectSurface(const ConnectivityMap<Dimension>& connectivityMap,
         
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
         
-  const Scalar nPerh = m0.nodeListPtrs()[0]->nodesPerSmoothingScale();
   const Scalar cosSweepAngle = cos(sweepAngle);
         
   // Walk the FluidNodeLists.
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const NodeList<Dimension>& nodeList = m0[nodeListi]->nodeList();
             
     // Iterate over nodes in nodeListi
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);

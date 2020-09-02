@@ -159,7 +159,7 @@ extractFaces(const Polyhedron& poly) {
   // Walk each vertex in the polyhedron.
   set<Edge> edgesWalked;
   const auto nverts = poly.size();
-  for (auto i = 0; i < nverts; ++i) {
+  for (auto i = 0u; i < nverts; ++i) {
     const auto& v = poly[i];
     if (v.comp >= 0) {
 
@@ -183,7 +183,7 @@ extractFaces(const Polyhedron& poly) {
 
           // Follow around the face represented by this edge until we get back
           // to our starting vertex.
-          while (vnext != vstart) {
+          while ((int)vnext != vstart) {
             // cerr << " " << vnext;
             face.push_back(vnext);
             CHECK2(edgesWalked.find(make_pair(vprev, vnext)) == edgesWalked.end(), polyhedron2string(poly));
@@ -211,8 +211,9 @@ extractFaces(const Polyhedron& poly) {
   BEGIN_CONTRACT_SCOPE
   {
     // Every pair should have been walked twice, once in each direction.
-    for (auto i = 0; i < nverts; ++i) {
+    for (auto i = 0u; i < nverts; ++i) {
       for (const auto ni: poly[i].neighbors) {
+        CONTRACT_VAR(ni);
         CHECK(edgesWalked.find(make_pair(i, ni)) != edgesWalked.end());
         CHECK(edgesWalked.find(make_pair(ni, i)) != edgesWalked.end());
       }
@@ -238,7 +239,7 @@ initializePolyhedron(Polyhedron& poly,
           "PolyClipper::initializePolyhedron ERROR: positions and neighbors should be same size.");
 
   poly.resize(n);
-  for (auto i = 0; i < n; ++i) {
+  for (auto i = 0u; i < n; ++i) {
     VERIFY2(neighbors[i].size() >= 3,
             "PolyClipper::initializePolyhedron ERROR: each vertex should have a minimum of three neighbors.");
     poly[i].position = positions[i];
@@ -254,7 +255,7 @@ polyhedron2string(const Polyhedron& poly) {
 
   std::ostringstream s;
   const auto nverts = poly.size();
-  for (auto i = 0; i < nverts; ++i) {
+  for (auto i = 0u; i < nverts; ++i) {
     s << i << " ID=" << poly[i].ID << " comp=" << poly[i].comp << " @ " << poly[i].position
       << " neighbors=[";
     copy(poly[i].neighbors.begin(), poly[i].neighbors.end(), ostream_iterator<int>(s, " "));
@@ -297,11 +298,10 @@ void convertToPolyhedron(Polyhedron& polyhedron,
   const auto& vertPositions = Spheral_polyhedron.vertices();
   const auto& facets = Spheral_polyhedron.facets();
   const auto  nverts = vertPositions.size();
-  const auto  nfacets = facets.size();
 
   // Build the PolyClipper Vertex3d's, but without connectivity yet.
   polyhedron.resize(nverts);
-  for (auto k = 0; k < nverts; ++k) {
+  for (auto k = 0u; k < nverts; ++k) {
     polyhedron[k] = Vertex3d(vertPositions[k], 1);
   }
 
@@ -320,12 +320,12 @@ void convertToPolyhedron(Polyhedron& polyhedron,
   }
 
   // Now we can build vertex->vertex connectivity.
-  for (auto k = 0; k < nverts; ++k) {
+  for (auto k = 0u; k < nverts; ++k) {
 
     // Sort the edges associated with this vertex.
     const auto n = vertexPairs[k].size();
     CHECK(n >= 3);
-    for (auto i = 0; i < n - 1; ++i) {
+    for (auto i = 0u; i < n - 1; ++i) {
       auto j = i + 1;
       while (j < n and vertexPairs[k][i].second != vertexPairs[k][j].first) ++j;
       CHECK(j < n);
@@ -333,7 +333,7 @@ void convertToPolyhedron(Polyhedron& polyhedron,
     }
 
     // Now that they're in order, create the neighbors.
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
       polyhedron[k].neighbors.push_back(vertexPairs[k][i].first);
     }
     CHECK(polyhedron[k].neighbors.size() == vertexPairs[k].size());
@@ -382,7 +382,7 @@ vector<set<int>> convertFromPolyhedron(Spheral::Dim<3>::FacetedVolume& Spheral_p
 
     // Extract the faces as integer vertex index loops.
     vector<vector<unsigned>> facets(faces.size());
-    for (auto k = 0; k < faces.size(); ++k) {
+    for (auto k = 0u; k < faces.size(); ++k) {
       facets[k].resize(faces[k].size());
       transform(faces[k].begin(), faces[k].end(), facets[k].begin(),
                 [&](const int k) { return polyhedron[k].ID; });
@@ -423,7 +423,7 @@ void moments(double& zerothMoment, Spheral::Dim<3>::Vector& firstMoment,
       const auto nverts = face.size();
       CHECK(nverts >= 3);
       const auto& v0 = polyhedron[face[0]].position;
-      for (auto i = 1; i < nverts - 1; ++i) {
+      for (auto i = 1u; i < nverts - 1; ++i) {
         const auto& v1 = polyhedron[face[i]].position;
         const auto& v2 = polyhedron[face[i+1]].position;
         dV = v0.dot(v1.cross(v2));
@@ -446,7 +446,6 @@ void clipPolyhedron(Polyhedron& polyhedron,
 
   // Pre-declare variables.  Normally I prefer local declaration, but this
   // seems to slightly help performance.
-  bool above, below;
   int nverts0, nverts, nneigh, i, j, k, jn, inew, iprev, inext, itmp;
   vector<int>::iterator nitr;
 
@@ -467,7 +466,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
 
   // Loop over the planes.
   TIME_PC3d_planes.start();
-  auto kplane = 0;
+  size_t kplane = 0;
   const auto nplanes = planes.size();
   while (kplane < nplanes and not polyhedron.empty()) {
     const auto& plane = planes[kplane++];
@@ -662,10 +661,10 @@ void clipPolyhedron(Polyhedron& polyhedron,
       }
 
       // Renumber the neighbor links.
-      for (i = 0; i < nverts; ++i) {
+      for (i = 0; i < (int)nverts; ++i) {
         if (polyhedron[i].comp >= 0) {
           CHECK(polyhedron[i].neighbors.size() >= 3);
-          for (j = 0; j < polyhedron[i].neighbors.size(); ++j) {
+          for (j = 0; j < (int)polyhedron[i].neighbors.size(); ++j) {
             polyhedron[i].neighbors[j] = polyhedron[polyhedron[i].neighbors[j]].ID;
           }
         }
@@ -693,20 +692,20 @@ void collapseDegenerates(Polyhedron& polyhedron,
   if (n > 0) {
 
     // Set the initial ID's the vertices.
-    for (auto i = 0; i < n; ++i) polyhedron[i].ID = i;
+    for (auto i = 0u; i < n; ++i) polyhedron[i].ID = i;
 
     // cerr << "Initial: " << endl << polyhedron2string(polyhedron) << endl;
 
     // Walk the polyhedron removing degenerate edges until we make a sweep without
     // removing any.  Don't worry about ordering of the neighbors yet.
     auto active = false;
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
       if (polyhedron[i].ID >= 0) {
         auto idone = false;
         while (not idone) {
           idone = true;
-          for (auto jneigh = 0; jneigh < polyhedron[i].neighbors.size(); ++jneigh) {
-            const auto j = polyhedron[i].neighbors[jneigh];
+          for (auto jneigh = 0u; jneigh < polyhedron[i].neighbors.size(); ++jneigh) {
+            const unsigned j = polyhedron[i].neighbors[jneigh];
             CHECK(polyhedron[j].ID >= 0);
             if ((polyhedron[i].position - polyhedron[j].position).magnitude2() < tol2) {
               // cerr << " --> collapasing " << j << " to " << i;
@@ -724,7 +723,7 @@ void collapseDegenerates(Polyhedron& polyhedron,
 
               // Make sure i & j are removed from the neighbor set of i.
               polyhedron[i].neighbors.erase(remove_if(polyhedron[i].neighbors.begin(), polyhedron[i].neighbors.end(),
-                                                      [&](const int val) { return val == i or val == j; }), 
+                                                      [&](const unsigned val) { return val == i or val == j; }), 
                                             polyhedron[i].neighbors.end());
 
               // Remove any adjacent repeats.
@@ -740,7 +739,7 @@ void collapseDegenerates(Polyhedron& polyhedron,
               // }
 
               // Make all the neighbors of j point back at i instead of j.
-              for (auto k: polyhedron[j].neighbors) {
+              for (unsigned k: polyhedron[j].neighbors) {
                  // i is a neighbor to j, and j has already been removed from list
                  // also, i can not be a neighbor to itself
                  if (k != i) {
@@ -761,7 +760,7 @@ void collapseDegenerates(Polyhedron& polyhedron,
 
       // Renumber the nodes assuming we're going to clear out the degenerates.
       auto offset = 0;
-      for (auto i = 0; i < n; ++i) {
+      for (auto i = 0u; i < n; ++i) {
         if (polyhedron[i].ID == -1) {
           --offset;
         } else {
@@ -793,9 +792,12 @@ void collapseDegenerates(Polyhedron& polyhedron,
   BEGIN_CONTRACT_SCOPE
   {
     const auto n = polyhedron.size();
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
       ENSURE(polyhedron[i].ID == i);
-      for (auto j: polyhedron[i].neighbors) ENSURE(j >= 0 and j < n);
+      for (auto j: polyhedron[i].neighbors){
+        CONTRACT_VAR(j);
+        ENSURE(j >= 0 and j < n);
+      }
     }
   }
   END_CONTRACT_SCOPE
@@ -815,11 +817,11 @@ vector<vector<int>> splitIntoTetrahedra(const Polyhedron& poly,
   // Check if we're convex.
   const auto n0 = poly.size();
   bool convex = true;
-  auto i = 0;
+  size_t i = 0;
   while (convex and i < n0) {
     const auto nv = poly[i].neighbors.size();
     CHECK(nv >= 3);
-    auto j = 0;
+    size_t j = 0;
     while (convex and j < nv - 2) {
       const auto& v0 = poly[i].position;
       const auto& v1 = poly[poly[i].neighbors[j  ]].position;
@@ -848,7 +850,7 @@ vector<vector<int>> splitIntoTetrahedra(const Polyhedron& poly,
       if (find(face.begin(), face.end(), 0) == face.end()) {
         const auto nf = face.size();
         CHECK(nf >= 3);
-        for (auto i = 2; i < nf; ++i) {
+        for (auto i = 2u; i < nf; ++i) {
           const auto& v1 = poly[face[0  ]].position;
           const auto& v2 = poly[face[i-1]].position;
           const auto& v3 = poly[face[i  ]].position;

@@ -91,8 +91,8 @@ update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
        const double multiplier,
-       const double t,
-       const double dt) {
+       const double /*t*/,
+       const double /*dt*/) {
 
   // Find the matching derivative field from the StateDerivatives.
   KeyType incrementKey = prefix() + key;

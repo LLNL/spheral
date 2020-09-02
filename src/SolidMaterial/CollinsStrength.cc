@@ -68,10 +68,10 @@ void
 CollinsStrength<Dimension>::
 yieldStrength(Field<Dimension, Scalar>& yieldStrength,
               const Field<Dimension, Scalar>& density,
-              const Field<Dimension, Scalar>& specificThermalEnergy,
+              const Field<Dimension, Scalar>& /*specificThermalEnergy*/,
               const Field<Dimension, Scalar>& pressure,
-              const Field<Dimension, Scalar>& plasticStrain,
-              const Field<Dimension, Scalar>& plasticStrainRate) const {
+              const Field<Dimension, Scalar>& /*plasticStrain*/,
+              const Field<Dimension, Scalar>& /*plasticStrainRate*/) const {
   const unsigned n = density.numInternalElements();
   const Scalar YdiffInv = safeInvVar(mYm - mY0);
   for (unsigned i = 0; i != n; ++i) {

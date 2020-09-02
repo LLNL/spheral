@@ -13,7 +13,6 @@ std::pair<typename Dimension::Vector, typename Dimension::Vector>
 boundingBox(const typename Dimension::Vector& xi,
             const typename Dimension::SymTensor& Hi,
             const typename Dimension::Scalar& kernelExtent) {
-  typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   const Vector extent = Neighbor<Dimension>::HExtent(Hi, kernelExtent);
   return std::make_pair(xi - extent, xi + extent);

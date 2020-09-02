@@ -121,7 +121,7 @@ setMasterNeighborGroup(const typename Dimension::Vector& position,
     const auto& positions = nodeList.positions();
     const auto& extents = neighbor.nodeExtentField();
     const auto nmaster = masterLists[nodeListi].size();
-    for (auto imaster = 0; imaster < nmaster; ++imaster) {
+    for (auto imaster = 0u; imaster < nmaster; ++imaster) {
       const auto  i = masterLists[nodeListi][imaster];
       const auto& ri = positions(i);
       const auto  minExtenti = ri - extents(i);

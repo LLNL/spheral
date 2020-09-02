@@ -281,7 +281,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 SolidCRKSPHHydroBase<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
+evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
@@ -295,7 +295,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(order));
 
   // A few useful constants we'll use in the following loop.
-  const double tiny = 1.0e-30;
+  //const double tiny = 1.0e-30;
   const auto  compatibleEnergy = this->compatibleEnergyEvolution();
   const auto  evolveTotalEnergy = this->evolveTotalEnergy();
   const auto  XSPH = this->XSPH();
@@ -409,7 +409,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto kk = 0; kk < npairs; ++kk) {
+    for (auto kk = 0u; kk < npairs; ++kk) {
       const auto start = Timing::currentTime();
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
@@ -421,7 +421,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto  rhoi = massDensity(nodeListi, i);
-      const auto  epsi = specificThermalEnergy(nodeListi, i);
+      //const auto  epsi = specificThermalEnergy(nodeListi, i);
       const auto  Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  ci = soundSpeed(nodeListi, i);
@@ -430,6 +430,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& correctionsi = corrections(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
+      CONTRACT_VAR(Hdeti);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -451,7 +452,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto  mj = mass(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
       const auto  rhoj = massDensity(nodeListj, j);
-      const auto  epsj = specificThermalEnergy(nodeListj, j);
+      //const auto  epsj = specificThermalEnergy(nodeListj, j);
       const auto  Pj = pressure(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto  cj = soundSpeed(nodeListj, j);
@@ -460,6 +461,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& correctionsj = corrections(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
       const auto  weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
+      CONTRACT_VAR(Hdetj);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
@@ -590,7 +592,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }   // OMP parallel
 
   // Finish up the derivatives for each point.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
     const auto  hmax = nodeList.hmax();
@@ -601,6 +603,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto rho0 = 0.0;
     try {
       rho0 = dynamic_cast<const SolidEquationOfState<Dimension>&>(dynamic_cast<const SolidNodeList<Dimension>&>(nodeList).equationOfState()).referenceDensity();
+      CONTRACT_VAR(rho0);
       // cerr << "Setting reference density to " << rho0 << endl;
     } catch(...) {
       // cerr << "BLAGO!" << endl;
@@ -608,7 +611,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);

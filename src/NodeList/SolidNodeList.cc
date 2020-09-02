@@ -101,7 +101,6 @@ SolidNodeList<Dimension>::
 bulkModulus(Field<Dimension, typename Dimension::Scalar>& field) const {
   const Field<Dimension, Scalar>& rho = this->massDensity();
   const Field<Dimension, Scalar>& u = this->specificThermalEnergy();
-  const EquationOfState<Dimension>& eos = this->equationOfState();
   this->equationOfState().setBulkModulus(field, rho, u);
 }
 
@@ -130,7 +129,6 @@ yieldStrength(Field<Dimension, typename Dimension::Scalar>& field) const {
   const Field<Dimension, Scalar>& u = this->specificThermalEnergy();
   Field<Dimension, Scalar> P(HydroFieldNames::pressure, *this);
   this->pressure(P);
-  const Field<Dimension, SymTensor>& D = this->effectiveDamage();
   mStrength.yieldStrength(field, rho, u, P, mPlasticStrain, mPlasticStrainRate);
 }
 

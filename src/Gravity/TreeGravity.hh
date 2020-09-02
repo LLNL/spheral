@@ -58,27 +58,27 @@ public:
 
   //! This is the derivative method that all BodyForce classes must provide.
   virtual 
-  void evaluateDerivatives(const Scalar time,
-                           const Scalar dt,
+  void evaluateDerivatives(const Scalar /*time*/,
+                           const Scalar /*dt*/,
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const;
 
   //! Vote on the timestep.  This uses a velocity-limiting rule.
-  virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
+  virtual TimeStepType dt(const DataBase<Dimension>& /*dataBase*/, 
                           const State<Dimension>& state,
-                          const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const;
+                          const StateDerivatives<Dimension>& /*derivs*/,
+                          const Scalar /*currentTime*/) const;
 
   //! Initializations on problem start up.
   virtual void initializeProblemStartup(DataBase<Dimension>& db);
 
   //! Initialize before we start a derivative evaluation.
-  virtual void initialize(const Scalar time,
-                          const Scalar dt,
+  virtual void initialize(const Scalar /*time*/,
+                          const Scalar /*dt*/,
                           const DataBase<Dimension>& dataBase,
                           State<Dimension>& state,
-                          StateDerivatives<Dimension>& derivs);
+                          StateDerivatives<Dimension>& /*derivs*/);
                        
   //! This package opts out of building connectivity.
   virtual bool requireConnectivity() const { return false; }

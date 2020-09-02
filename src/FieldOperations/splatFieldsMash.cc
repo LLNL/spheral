@@ -43,21 +43,20 @@ splatFieldsMash(const FieldList<Dimension, DataType>& fieldList,
   // Some convenient typedefs.
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
   // Pre-conditions.
   CHECK(fieldList.numFields() == position.numFields());
   CHECK(fieldList.numFields() == weight.numFields());
   CHECK(fieldList.numFields() == Hfield.numFields());
-  for (int i = 0; i < fieldList.numFields(); ++i) {
+  for (auto i = 0u; i < fieldList.numFields(); ++i) {
     CHECK(fieldList[i]->nodeListPtr() == position[i]->nodeListPtr());
     CHECK(fieldList[i]->nodeListPtr() == weight[i]->nodeListPtr());
     CHECK(fieldList[i]->nodeListPtr() == Hfield[i]->nodeListPtr());
   }
   CHECK(samplePositions.numFields() == sampleWeight.numFields());
   CHECK(samplePositions.numFields() == sampleHfield.numFields());
-  for (int i = 0; i < samplePositions.numFields(); ++i) {
+  for (auto i = 0u; i < samplePositions.numFields(); ++i) {
     CHECK(samplePositions[i]->nodeListPtr() == sampleWeight[i]->nodeListPtr());
     CHECK(samplePositions[i]->nodeListPtr() == sampleHfield[i]->nodeListPtr());
   }

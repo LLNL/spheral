@@ -33,7 +33,7 @@ using std::max;
 //------------------------------------------------------------------------------
 template<typename Dimension, unsigned moment> struct nthMomentKernel;
 template<typename Dimension> struct nthMomentKernel<Dimension, 0U> {
-  typename Dimension::Scalar operator()(const typename Dimension::Vector& eta) { return 1.0; }
+  typename Dimension::Scalar operator()(const typename Dimension::Vector& /*eta*/) { return 1.0; }
 };
 template<typename Dimension> struct nthMomentKernel<Dimension, 1U> {
   typename Dimension::Vector operator()(const typename Dimension::Vector& eta) { return eta; }
@@ -52,7 +52,6 @@ nthNodalMoment(const NodeListIterator nodeListBegin,
                const TableKernel<Dimension>& W,
                const bool renormalize) {
 
-  typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename MomentTraits<Dimension, moment>::Moment Moment;
@@ -121,7 +120,6 @@ zerothAndFirstNodalMoments(const NodeListIterator nodeListBegin,
   VERIFY(zerothMoment.numFields() == 0);
   VERIFY(firstMoment.numFields() == 0);
 
-  typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
 

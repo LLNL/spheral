@@ -28,6 +28,8 @@ void
 incrementGridCell(GridCellIndex<Dim<1> >& gridCell,
                   const GridCellIndex<Dim<1> >& gridCellMin,
                   const GridCellIndex<Dim<1> >& gridCellMax) {
+  CONTRACT_VAR(gridCellMin);
+  CONTRACT_VAR(gridCellMax);
   REQUIRE(gridCellMax.xIndex() >= gridCellMin.xIndex());
   REQUIRE(gridCell >= gridCellMin && gridCell <= gridCellMax);
   gridCell.xIndex(gridCell.xIndex() + 1);

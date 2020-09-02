@@ -146,4 +146,6 @@ add_subdirectory(${SPHERAL_ROOT_DIR}/src)
 #-------------------------------------------------------------------------------
 # Add the documentation
 #-------------------------------------------------------------------------------
-add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
+if (NOT ENABLE_CXXONLY)
+  add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
+endif()

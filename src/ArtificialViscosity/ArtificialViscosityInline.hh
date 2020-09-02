@@ -150,7 +150,7 @@ template<>
 inline
 Dim<1>::Scalar
 ArtificialViscosity< Dim<1> >::
-curlVelocityMagnitude(const Dim<1>::Tensor& DvDx) const {
+curlVelocityMagnitude(const Dim<1>::Tensor& /*DvDx*/) const {
   return 0.0;
 }
 
@@ -289,12 +289,12 @@ template<typename Dimension>
 inline
 typename Dimension::Tensor
 ArtificialViscosity<Dimension>::
-calculateLimiter(const Vector& vi,
-                 const Vector& vj,
-                 const Scalar ci,
-                 const Scalar cj,
-                 const Scalar hi,
-                 const Scalar hj,
+calculateLimiter(const Vector& /*vi*/,
+                 const Vector& /*vj*/,
+                 const Scalar  ci,
+                 const Scalar  /*cj*/,
+                 const Scalar  hi,
+                 const Scalar  /*hj*/,
                  const int nodeListID,
                  const int nodeID) const {
 
@@ -466,7 +466,7 @@ template<>
 inline
 Dim<1>::Scalar
 ArtificialViscosity< Dim<1> >::
-computeDelCrossVMagnitude(const Dim<1>::Tensor& sigma) const {
+computeDelCrossVMagnitude(const Dim<1>::Tensor& /*sigma*/) const {
   return 0.0;
 }
 
@@ -495,7 +495,7 @@ template<>
 inline
 Dim<1>::Vector
 ArtificialViscosity<Dim<1> >::
-sigmaWeighting(const Dim<1>::Vector& r) const {
+sigmaWeighting(const Dim<1>::Vector&) const {
   return Dim<1>::Vector(1.0);
 }
 

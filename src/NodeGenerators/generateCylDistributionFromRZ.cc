@@ -47,11 +47,11 @@ generateCylDistributionFromRZ(vector<double>& x,
   // Pre-conditions.
   const int n = x.size();
   const int nextra = extraFields.size();
-  VERIFY(y.size() == n and
-         z.size() == n and
-         m.size() == n and
-         H.size() == n);
-  for (int i = 0; i != nextra; ++i) VERIFY(extraFields[i].size() == n);
+  VERIFY((int)y.size() == n and
+         (int)z.size() == n and
+         (int)m.size() == n and
+         (int)H.size() == n);
+  for (auto i = 0; i != nextra; ++i) VERIFY((int)extraFields[i].size() == n);
   VERIFY(count(z.begin(), z.end(), 0.0) == n);
   VERIFY(nNodePerh > 0.0);
   VERIFY(kernelExtent > 0.0);
@@ -135,13 +135,13 @@ generateCylDistributionFromRZ(vector<double>& x,
   }
 
   // Post-conditions.
-  VERIFY(x.size() == ndomain and
-         y.size() == ndomain and
-         z.size() == ndomain and
-         m.size() == ndomain and
-         globalIDs.size() == ndomain and
-         H.size() == ndomain);
-  for (int ikey = 0; ikey != nextra; ++ikey) VERIFY(extraFields[ikey].size() == ndomain);
+  VERIFY((int)x.size() == ndomain and
+         (int)y.size() == ndomain and
+         (int)z.size() == ndomain and
+         (int)m.size() == ndomain and
+         (int)globalIDs.size() == ndomain and
+         (int)H.size() == ndomain);
+  for (int ikey = 0; ikey != nextra; ++ikey) VERIFY((int)extraFields[ikey].size() == ndomain);
 #ifdef USE_MPI
   {
     int nlocal = x.size();
