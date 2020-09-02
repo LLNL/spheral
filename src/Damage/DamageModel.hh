@@ -45,6 +45,7 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
   typedef Field<Dimension, std::vector<double> > FlawStorageType;
@@ -82,6 +83,12 @@ public:
                        const DataBase<Dimension>& dataBase, 
                        State<Dimension>& state,
                        StateDerivatives<Dimension>& derivatives) override;
+
+  virtual
+  TimeStepType dt(const DataBase<Dimension>& dataBase, 
+                  const State<Dimension>& state,
+                  const StateDerivatives<Dimension>& derivs,
+                  const Scalar currentTime) const = 0;
   //...........................................................................
 
   // Optional method to cull the set of flaws to the single weakest one on
