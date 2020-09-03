@@ -41,7 +41,7 @@ class Tensor:
         "Construct with element values."
 
     # Sequence methods
-    @PYB11implementation("[](const Dim<%(ndim)s>::Tensor& self) { return Dim<%(ndim)s>::Tensor::numElements; }")
+    @PYB11implementation("[](const Dim<%(ndim)s>::Tensor&) { return Dim<%(ndim)s>::Tensor::numElements; }")
     def __len__(self):
         "The size (number of elements) of the Tensor."
 

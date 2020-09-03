@@ -12,7 +12,6 @@ assumption is that this is a Facet of a GeomPolyhedron and that polyhedron
 owns the set of vertex positions."""
 
     PYB11typedefs = """
-    typedef GeomFacet3d Facet3d;
     typedef GeomFacet3d::Vector Vector;
 """
 

@@ -77,7 +77,7 @@ class FifthRankTensor:
         return "void"
 
     @PYB11const
-    def doubledot(self, rhs="const Dim<%(ndim)s>::FifthRankTensor"):
+    def doubledot(self, rhs="const RankNTensor<%(ndim)s, 5, GeomFifthRankTensor<%(ndim)s>>& rhs"):
         return "double"
 
     @PYB11const

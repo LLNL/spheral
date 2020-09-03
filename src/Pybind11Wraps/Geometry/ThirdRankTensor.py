@@ -26,7 +26,7 @@ class ThirdRankTensor:
         "Construct setting the element values to a constant value."
 
     # Sequence methods
-    @PYB11implementation("[](const Dim<%(ndim)s>::ThirdRankTensor& self) { return Dim<%(ndim)s>::ThirdRankTensor::numElements; }")
+    @PYB11implementation("[](const Dim<%(ndim)s>::ThirdRankTensor&) { return Dim<%(ndim)s>::ThirdRankTensor::numElements; }")
     def __len__(self):
         "The size (number of elements) of the ThirdRankTensor."
 
@@ -71,7 +71,7 @@ class ThirdRankTensor:
         return "void"
 
     @PYB11const
-    def doubledot(self, rhs="const Dim<%(ndim)s>::ThirdRankTensor"):
+    def doubledot(self, rhs="const RankNTensor<%(ndim)s, 3, GeomThirdRankTensor<%(ndim)s>>& rhs"):
         return "double"
 
     @PYB11const

@@ -74,7 +74,7 @@ class FourthRankTensor:
         return "void"
 
     @PYB11const
-    def doubledot(self, rhs="const Dim<%(ndim)s>::FourthRankTensor"):
+    def doubledot(self, rhs="const RankNTensor<%(ndim)s, 4, GeomFourthRankTensor<%(ndim)s>>& rhs"):
         return "double"
 
     @PYB11const

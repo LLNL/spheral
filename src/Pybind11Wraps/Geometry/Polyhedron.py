@@ -174,7 +174,7 @@ indices that define the facets, and outward normals at the facets."""
     #...........................................................................
     # Properties
     centroid = PYB11property("Vector")
-    vertices = PYB11property("std::vector<Vector>&", returnpolicy="reference_internal")
+    vertices = PYB11property("const std::vector<Vector>&", returnpolicy="reference_internal")
     facets = PYB11property("const std::vector<Facet>&", returnpolicy="reference_internal")
     facetVertices = PYB11property("std::vector<std::vector<unsigned> >",
                                   doc="Spit out a vector<vector<unsigned> > that encodes the facets.")
