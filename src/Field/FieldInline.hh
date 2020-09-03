@@ -674,7 +674,7 @@ operator/=(const Scalar& rhs) {
   REQUIRE(valid());
   REQUIRE(rhs != 0.0);
   const unsigned n = this->numElements();
-  for (int i = 0; i < n; ++i) {
+  for (int i = 0; i < (int)n; ++i) {
     (*this)(i) /= rhs;
   }
   return *this;
@@ -775,7 +775,7 @@ operator==(const Field<Dimension, DataType>& rhs) const {
   if (n != rhs.size()) return false;
   auto result = true;
   auto i = 0;
-  while (i < n and result) {
+  while (i < (int)n and result) {
     result = (*this)(i) == rhs(i);
   }
   return result;
