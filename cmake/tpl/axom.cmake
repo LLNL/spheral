@@ -38,7 +38,7 @@ if(${lib_name}_BUILD)
 
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
 
-    DEPENDS hdf5 conduit
+    DEPENDS ${hdf5_build_dep} ${conduit_build_dep}
 
     LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
     LOG_CONFIGURE ${OUT_PROTOCOL_EP}

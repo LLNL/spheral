@@ -72,6 +72,8 @@ function(Spheral_Handle_TPL lib_name dep_list)
       set(${lib_name}_BUILD Off)
     endif()
 
+    set(${lib_name}_build_dep)
+
   # We are building the TPL ...
   else()
 
@@ -85,6 +87,8 @@ function(Spheral_Handle_TPL lib_name dep_list)
     else()
       message("${lib_name}_DIR set. Installing ${lib_name} to : ${${lib_name}_DIR}")
     endif()
+
+    set(${lib_name}_build_dep ${lib_name})
   endif()
 
   # Default this flag for the TPL to be added as a BLT lib, 
@@ -130,6 +134,7 @@ function(Spheral_Handle_TPL lib_name dep_list)
 
   set(${dep_list} ${${dep_list}} PARENT_SCOPE)
   set(spheral_blt_depends ${spheral_blt_depends} PARENT_SCOPE)
+  set(${lib_name}_build_dep ${${lib_name}_build_dep} PARENT_SCOPE)
 
   message("")
 

@@ -48,7 +48,7 @@ if(${lib_name}_BUILD)
                           --prefix=${PYTHON_INSTALL_DIR}
     BUILD_COMMAND make 
     INSTALL_COMMAND make install
-    DEPENDS zlib
+    DEPENDS ${zlib_build_dep}
 
     LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
     LOG_CONFIGURE ${OUT_PROTOCOL_EP}
