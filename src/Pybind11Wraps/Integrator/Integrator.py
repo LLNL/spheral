@@ -12,10 +12,6 @@ class Integrator:
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
 """
 
     #...........................................................................
@@ -174,7 +170,7 @@ into compliance."""
     lastDt = PYB11property("Scalar", "lastDt", "lastDt", doc="Last timestep used")
     dtGrowth = PYB11property("Scalar", "dtGrowth", "dtGrowth", doc="Maximum allowed fractional time step growth")
     dtCheckFrac = PYB11property("Scalar", "dtCheckFrac", "dtCheckFrac", doc="The fraction of the timestep we consider when checking for stable behavior")
-    dataBase = PYB11property("DataBase<%(Dimension)s>&", "dataBase", returnpolicy="reference_internal", doc="The DataBase of NodeLists")
+    dataBase = PYB11property("const DataBase<%(Dimension)s>&", "dataBase", returnpolicy="reference_internal", doc="The DataBase of NodeLists")
     #physicsPackages = PYB11property("const std::vector<Physics<%(Dimension)s>*>&", returnpolicy="reference_internal", doc="The set of physics packages")
     rigorousBoundaries = PYB11property("bool", "rigorousBoundaries", "rigorousBoundaries", doc="Toggle if ghost nodes should be recomputed every derivative estimate")
     updateBoundaryFrequency = PYB11property("int", "updateBoundaryFrequency", "updateBoundaryFrequency", doc="Optionally update the boundary ghost nodes only on this frequency of cycles")
