@@ -38,8 +38,8 @@ namespace Spheral {
 template<typename Dimension>
 TensorCRKSPHViscosity<Dimension>::
 TensorCRKSPHViscosity(Scalar Clinear, Scalar Cquadratic):
-  mGradVel(FieldStorageType::CopyFields),
-  TensorMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic) {
+  TensorMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic),
+  mGradVel(FieldStorageType::CopyFields){
 }
 
 //------------------------------------------------------------------------------
@@ -65,13 +65,13 @@ Piij(const unsigned nodeListi, const unsigned i,
      const Vector& vi,
      const Scalar rhoi,
      const Scalar csi,
-     const SymTensor& Hi,
+     const SymTensor& /*Hi*/,
      const Vector& xj,
      const Vector& etaj,
      const Vector& vj,
      const Scalar rhoj,
      const Scalar csj,
-     const SymTensor& Hj) const {
+     const SymTensor& /*Hj*/) const {
 
   // Estimate the velocity difference.
   Vector vij = vi - vj;
@@ -98,7 +98,7 @@ Piij(const unsigned nodeListi, const unsigned i,
     double Cl = this->mClinear;
     double Cq = this->mCquadratic;
     const double eps2 = this->mEpsilon2;
-    const bool balsara = this->mBalsaraShearCorrection;
+    //const bool balsara = this->mBalsaraShearCorrection;
     const bool limiter = this->mLimiterSwitch;
 
     // Grab the FieldLists scaling the coefficients.
@@ -169,8 +169,8 @@ void
 TensorCRKSPHViscosity<Dimension>::
 calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
-                          const StateDerivatives<Dimension>& derivs,
-                          const TableKernel<Dimension>& W,
+                          const StateDerivatives<Dimension>& /*derivs*/,
+                          const TableKernel<Dimension>& /*W*/,
                           typename TensorCRKSPHViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
                           typename TensorCRKSPHViscosity<Dimension>::ConstBoundaryIterator boundaryEnd) {
 
@@ -198,7 +198,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
 
   // Compute sigma and build the velocity divergence.
   auto divVel = dataBase.newFluidFieldList(0.0, "velocity divergence");
-  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
     for (auto iItr = connectivityMap.begin(nodeListi); iItr < connectivityMap.end(nodeListi); ++iItr) {
       const auto i = *iItr;
       auto& sigmai = sigma(nodeListi, i);

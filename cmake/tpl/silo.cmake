@@ -27,7 +27,7 @@ if(${lib_name}_BUILD)
                       --enable-browser=yes
     BUILD_COMMAND make 
     INSTALL_COMMAND make install
-    DEPENDS hdf5
+    DEPENDS ${hdf5_build_dep}
 
     LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
     LOG_CONFIGURE ${OUT_PROTOCOL_EP}

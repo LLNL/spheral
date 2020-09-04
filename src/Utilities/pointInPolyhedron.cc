@@ -36,9 +36,6 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
                        const bool countBoundary,
                        const double tol) {
   typedef Dim<3>::Vector Vector;
-  typedef Dim<3>::Tensor Tensor;
-  typedef Dim<3>::FacetedVolume Polyhedron;
-  typedef Polyhedron::Facet Facet;
   typedef Dim<2>::Vector Vector2d;
 
   const Vector rayhat(0, 0, 1);    // Project straight up in z.
@@ -46,7 +43,6 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
   const auto& vertices = polyhedron.vertices();
   const auto& facets = polyhedron.facets();
   const auto  nfacets = facets.size();
-  const auto pz = p.z();
   const Vector2d pxy(p.x(), p.y()),
                  pzx(p.z(), p.x()),
                  pyz(p.y(), p.z());
@@ -66,7 +62,7 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
   {
     int numxy_thread = 0;
 #pragma omp for
-    for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
+    for (auto ifacet = 0u; ifacet < nfacets; ++ifacet) {
       const auto& facet = facets[ifacet];
       const auto& ipts = facet.ipoints();
       const auto  npts = ipts.size();

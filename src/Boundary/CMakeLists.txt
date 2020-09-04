@@ -31,7 +31,6 @@ if(ENABLE_3D)
       CylindricalBoundary.cc  
       SphericalBoundary.cc
       ConstantZVelocityBoundaryInst.cc
-      AxisBoundaryRZ.cc
       )
 endif()
 

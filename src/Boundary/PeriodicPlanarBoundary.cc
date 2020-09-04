@@ -24,7 +24,6 @@ struct MapFacetedVolume {
     const auto& exitPlane = bc.exitPlane();
     const auto& verts0 = poly.vertices();
     const auto& facets = poly.facetVertices();
-    const auto n = verts0.size();
     vector<Vector> verts1;
     for (auto& vert: verts0) verts1.push_back(bc.mapPosition(vert, enterPlane, exitPlane));
     return FacetedVolume(verts1, facets);

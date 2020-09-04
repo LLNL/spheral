@@ -40,8 +40,8 @@ gradDivVectorFieldListPairWise
 (const FieldList<Dimension, typename Dimension::Vector>& fieldList,
  const FieldList<Dimension, typename Dimension::Vector>& position,
  const FieldList<Dimension, typename Dimension::Scalar>& weight,
- const FieldList<Dimension, typename Dimension::Scalar>& mass,
- const FieldList<Dimension, typename Dimension::Scalar>& rho,
+ const FieldList<Dimension, typename Dimension::Scalar>& /*mass*/,
+ const FieldList<Dimension, typename Dimension::Scalar>& /*rho*/,
  const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
  const TableKernel<Dimension>& kernel) {
 
@@ -87,9 +87,9 @@ gradDivVectorFieldListPairWise
         // State for node i.
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
-        const Scalar& weighti = weight(masterItr);
-        const Scalar& mi = mass(masterItr);
-        const Scalar& rhoi = rho(masterItr);
+        //const Scalar& weighti = weight(masterItr);
+        //const Scalar& mi = mass(masterItr);
+        //const Scalar& rhoi = rho(masterItr);
         const Vector& fieldi = fieldList(masterItr);
 
         // Loop over the refined neighbors.
@@ -103,8 +103,8 @@ gradDivVectorFieldListPairWise
             const Vector& rj = position(neighborItr);
             const SymTensor& Hj = Hfield(neighborItr);
             const Scalar& weightj = weight(neighborItr);
-            const Scalar& mj = mass(neighborItr);
-            const Scalar& rhoj = rho(neighborItr);
+            //const Scalar& mj = mass(neighborItr);
+            //const Scalar& rhoj = rho(neighborItr);
             const Vector& fieldj = fieldList(neighborItr);
 
             const Vector rij = ri - rj;

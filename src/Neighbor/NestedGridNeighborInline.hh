@@ -257,7 +257,7 @@ endOfLinkList() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const int
+int
 NestedGridNeighbor<Dimension>::
 gridCellInfluenceRadius() const {
   return mGridCellInfluenceRadius;
@@ -329,7 +329,7 @@ template<typename Dimension>
 inline
 void
 NestedGridNeighbor<Dimension>::
-origin(const typename Dimension::Vector& origin) {
+origin(const typename Dimension::Vector& /*origin*/) {
   std::cerr << "Warning: we have determined that there is currently a bug with defining the" << std::endl
             << "         origin to be anythign other than zero." << std::endl;
 //   mGridOrigin = origin;
@@ -343,7 +343,7 @@ origin(const typename Dimension::Vector& origin) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const double
+double
 NestedGridNeighbor<Dimension>::topGridSize() const {
   if (mMaxGridLevels > 0) {
     return 1.0/(mGridCellSizeInv[0] + FLT_MIN);

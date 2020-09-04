@@ -71,8 +71,8 @@ public:
   virtual void enforceBoundary(std::vector<FifthRankTensor>& faceField, const Mesh<Dimension>& mesh) const override;
 
   // Fill in faces on this boundary with effective opposite face values.
-  virtual void swapFaceValues(Field<Dimension, std::vector<Scalar> >& field,
-                              const Mesh<Dimension>& mesh) const override;
+  virtual void swapFaceValues(Field<Dimension, std::vector<Scalar> >& /*field*/,
+                              const Mesh<Dimension>& /*mesh*/) const override;
   virtual void swapFaceValues(Field<Dimension, std::vector<Vector> >& field,
                               const Mesh<Dimension>& mesh) const override;
 

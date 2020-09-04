@@ -67,7 +67,7 @@ template<typename Dimension>
 void
 DistributeByXPosition<Dimension>::
 redistributeNodes(DataBase<Dimension>& dataBase,
-                  vector<Boundary<Dimension>*> boundaries) {
+                  vector<Boundary<Dimension>*> /*boundaries*/) {
 
   // We're going to do this in a really dumb way (it's only a test for 1-D
   // anyway.)  Have all processors sort their own nodes positions by x,
@@ -160,8 +160,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     // Now build the new domain distribution.
     int dID = 0;
     int lastStep = 0;
-    for (int i = 0; i < globalDistribution.size(); ++i) {
-      if (i == lastStep + numNodesPerDomain[dID]) {
+    for (auto i = 0u; i < globalDistribution.size(); ++i) {
+      if ((int)i == lastStep + numNodesPerDomain[dID]) {
         lastStep = lastStep + numNodesPerDomain[dID];
         dID++;
       }

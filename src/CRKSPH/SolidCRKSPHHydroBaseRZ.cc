@@ -273,7 +273,7 @@ preStepInitialize(const DataBase<Dim<2>>& dataBase,
 //------------------------------------------------------------------------------
 void
 SolidCRKSPHHydroBaseRZ::
-evaluateDerivatives(const Dim<2>::Scalar time,
+evaluateDerivatives(const Dim<2>::Scalar /*time*/,
                     const Dim<2>::Scalar dt,
                     const DataBase<Dim<2>>& dataBase,
                     const State<Dim<2>>& state,
@@ -287,9 +287,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const auto& WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(order));
 
   // A few useful constants we'll use in the following loop.
-  const double tiny = 1.0e-30;
+  //const double tiny = 1.0e-30;
   const auto  compatibleEnergy = this->compatibleEnergyEvolution();
-  const auto  evolveTotalEnergy = this->evolveTotalEnergy();
   const auto  XSPH = this->XSPH();
   const auto  damageRelieveRubble = this->damageRelieveRubble();
   const auto& smoothingScaleMethod = this->smoothingScaleMethod();
@@ -403,7 +402,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
     auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto kk = 0; kk < npairs; ++kk) {
+    for (auto kk = 0u; kk < npairs; ++kk) {
       const auto start = Timing::currentTime();
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
@@ -418,7 +417,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto  mRZi = mi/circi;
       const auto& vi = velocity(nodeListi, i);
       const auto  rhoi = massDensity(nodeListi, i);
-      const auto  epsi = specificThermalEnergy(nodeListi, i);
+      //const auto  epsi = specificThermalEnergy(nodeListi, i);
       const auto  Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  ci = soundSpeed(nodeListi, i);
@@ -427,12 +426,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto& correctionsi = corrections(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
+      CONTRACT_VAR(Hdeti);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
       CHECK(weighti > 0.0);
 
-      auto& DrhoDti = DrhoDt(nodeListi, i);
+      //auto& DrhoDti = DrhoDt(nodeListi, i);
       auto& DvDti = DvDt(nodeListi, i);
       auto& DepsDti = DepsDt(nodeListi, i);
       auto& DvDxi = DvDx(nodeListi, i);
@@ -452,7 +452,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto  mRZj = mj/circj;
       const auto& vj = velocity(nodeListj, j);
       const auto  rhoj = massDensity(nodeListj, j);
-      const auto  epsj = specificThermalEnergy(nodeListj, j);
+      //const auto  epsj = specificThermalEnergy(nodeListj, j);
       const auto  Pj = pressure(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto  cj = soundSpeed(nodeListj, j);
@@ -461,6 +461,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto& Sj = S(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
       const auto  weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
+      CONTRACT_VAR(Hdetj);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
@@ -588,7 +589,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
   // Finish up the derivatives for each point.
   auto offset = 2*npairs;
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
     const auto  hmax = nodeList.hmax();
@@ -606,20 +607,20 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
       const auto& posi = position(nodeListi, i);
       const auto  ri = abs(posi.y());
-      const auto  circi = 2.0*M_PI*ri;
+      //const auto  circi = 2.0*M_PI*ri;
       const auto  mi = mass(nodeListi, i);
-      const auto  mRZi = mi/circi;
+      //const auto  mRZi = mi/circi;
       const auto& vi = velocity(nodeListi, i);
       const auto  rhoi = massDensity(nodeListi, i);
-      const auto  epsi = specificThermalEnergy(nodeListi, i);
+      //const auto  epsi = specificThermalEnergy(nodeListi, i);
       const auto  Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
-      const auto  ci = soundSpeed(nodeListi, i);
+      //const auto  ci = soundSpeed(nodeListi, i);
       const auto  Si = S(nodeListi, i);
       const auto  STTi = -Si.Trace();
       const auto  mui = mu(nodeListi, i);
@@ -796,7 +797,7 @@ enforceBoundaries(State<Dim<2>>& state,
   FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const unsigned n = mass[nodeListi]->numInternalElements();
-    const Scalar nPerh = mass[nodeListi]->nodeList().nodesPerSmoothingScale();
+    //const Scalar nPerh = mass[nodeListi]->nodeList().nodesPerSmoothingScale();
     for (unsigned i = 0; i != n; ++i) {
       Vector& posi = pos(nodeListi, i);
       const Scalar circi = 2.0*M_PI*abs(posi.y());

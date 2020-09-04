@@ -35,7 +35,7 @@ FieldList<Dimension, typename Dimension::Vector>
 gradDivVectorFieldListGolden
 (const FieldList<Dimension, typename Dimension::Vector>& fieldList,
  const FieldList<Dimension, typename Dimension::Vector>& position,
- const FieldList<Dimension, typename Dimension::Scalar>& weight,
+ const FieldList<Dimension, typename Dimension::Scalar>& /*weight*/,
  const FieldList<Dimension, typename Dimension::Scalar>& mass,
  const FieldList<Dimension, typename Dimension::Scalar>& rho,
  const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
@@ -88,8 +88,9 @@ gradDivVectorFieldListGolden
         const SymTensor& Hi = Hfield(masterItr);
         const Scalar& mi = mass(masterItr);
         const Scalar& rhoi = rho(masterItr);
-        const Scalar& weighti = weight(masterItr);
+        //const Scalar& weighti = weight(masterItr);
         const Vector& fieldi = fieldList(masterItr);
+        CONTRACT_VAR(mi);
         CHECK(Hi.Determinant() > 0.0);
         CHECK(mi > 0.0);
         CHECK(rhoi > 0.0);
@@ -111,7 +112,7 @@ gradDivVectorFieldListGolden
             const SymTensor& Hj = Hfield(neighborItr);
             const Scalar& mj = mass(neighborItr);
             const Scalar& rhoj = rho(neighborItr);
-            const Scalar& weightj = weight(neighborItr);
+            //const Scalar& weightj = weight(neighborItr);
             const Vector& fieldj = fieldList(neighborItr);
             CHECK(Hj.Determinant() > 0.0);
             CHECK(mj > 0.0);

@@ -86,8 +86,6 @@ public:
     
 private:
     //--------------------------- Private Interface ---------------------------//
-    // The restart registration.
-    RestartRegistrationType mRestart;
         
     MorrisMonaghanReducingViscosity();
     MorrisMonaghanReducingViscosity(const MorrisMonaghanReducingViscosity&);
@@ -97,6 +95,9 @@ private:
     FieldList<Dimension, Scalar> mDrvAlphaDtQ;
     FieldList<Dimension, Scalar> mDrvAlphaDtL;
     ArtificialViscosity<Dimension>& myq;
+
+    // The restart registration.
+    RestartRegistrationType mRestart;
 };
     
 }

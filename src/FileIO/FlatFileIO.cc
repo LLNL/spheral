@@ -869,7 +869,7 @@ FlatFileIO::findPathName(const string pathName) const {
   while (!mFilePtr->eof() && currentPath != pathName) {
     currentPath = "";
     char thpt = '0';
-    int i = 0;
+    size_t i = 0;
     while (!mFilePtr->eof() && thpt != '\n' && i < pathName.size()) {
       mFilePtr->get(thpt);
       currentPath += thpt;

@@ -30,7 +30,7 @@ template<typename Dimension, typename DataType>
 FieldList<Dimension, typename MathTraits<Dimension, DataType>::GradientType>
 gradient(const FieldList<Dimension, DataType>& fieldList,
          const FieldList<Dimension, typename Dimension::Vector>& position,
-         const FieldList<Dimension, typename Dimension::Scalar>& weight,
+         const FieldList<Dimension, typename Dimension::Scalar>& /*weight*/,
          const FieldList<Dimension, typename Dimension::Scalar>& mass,
          const FieldList<Dimension, typename Dimension::Scalar>& rho,
          const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
@@ -39,7 +39,6 @@ gradient(const FieldList<Dimension, DataType>& fieldList,
   // Typedef's to ease typing/understandability.
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename MathTraits<Dimension, DataType>::GradientType GradientType;
 
@@ -158,6 +157,7 @@ monotonicLimiter(const typename Dimension::Scalar& dF,
                  const typename Dimension::Scalar& dFproj,
                  const typename Dimension::Vector& nhat,
                  const double fuzz = 1.0e-15) {
+  CONTRACT_VAR(nhat);
   REQUIRE(fuzz > 0.0);
   REQUIRE(fuzzyEqual(nhat.magnitude2(), 1.0));
   const double dFproj2 = dFproj*dFproj;
@@ -194,7 +194,6 @@ limiter(const FieldList<Dimension, DataType>& fieldList,
   // Typedef's to ease typing/understandability.
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename MathTraits<Dimension, DataType>::GradientType GradientType;
 
@@ -256,7 +255,7 @@ limiter(const FieldList<Dimension, DataType>& fieldList,
 
             // State for node j.
             const Vector& rj = position(neighborItr);
-            const SymTensor& Hj = Hfield(neighborItr);
+            //const SymTensor& Hj = Hfield(neighborItr);
             const DataType& fieldj = fieldList(neighborItr);
 
             // Compute the pair-wise limiting needed.

@@ -90,8 +90,6 @@ step(typename Dimension::Scalar maxTime,
      State<Dimension>& state,
      StateDerivatives<Dimension>& derivs) {
 
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-
   // Get the current time and data base.
   auto  t = this->currentTime();
   auto& db = this->accessDataBase();

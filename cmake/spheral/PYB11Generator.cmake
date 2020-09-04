@@ -60,7 +60,7 @@ macro(PYB11_GENERATE_BINDINGS PYB11_MODULE_NAME)
       "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/SolidMaterial:"
       "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Strength:"
       "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/ArtificialConduction:"
-      "${SPHERAL_ROOT_DIR}/src/SimulationControl")
+      "${CMAKE_BINARY_DIR}/src/SimulationControl")
 
   # Format list into a one line shell friendly format
   STRING(REPLACE ";" "<->" PYTHON_ENV_STR ${PYTHON_ENV})

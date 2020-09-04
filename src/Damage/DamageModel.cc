@@ -79,10 +79,10 @@ DamageModel<Dimension>::
 template<typename Dimension>
 void
 DamageModel<Dimension>::
-computeScalarDDDt(const DataBase<Dimension>& dataBase,
+computeScalarDDDt(const DataBase<Dimension>& /*dataBase*/,
                   const State<Dimension>& state,
-                  const Scalar time,
-                  const Scalar dt,
+                  const Scalar /*time*/,
+                  const Scalar /*dt*/,
                   Field<Dimension, Scalar>& DDDt) const {
 
   // Pre-conditions.
@@ -101,7 +101,7 @@ computeScalarDDDt(const DataBase<Dimension>& dataBase,
   // Iterate over the internal nodes.
   const auto ni = mNodeList.numInternalNodes();
 #pragma omp parallel for
-  for (int i = 0; i < ni; ++i) {
+  for (auto i = 0u; i < ni; ++i) {
     if (mExcludeNode(i) == 1) {
 
       DDDt(i) = 0.0;
@@ -158,7 +158,7 @@ void
 DamageModel<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs) {
+                  StateDerivatives<Dimension>& /*derivs*/) {
 
   // If we're just using the "FullSpectrum" of flaws, we don't reduce the 
   // flaws for each node to a single value at all.  In that case there's no
@@ -176,7 +176,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     // Iterate over the nodes and compute our effective flaws!
     const auto ni = mNodeList.numInternalNodes();
 #pragma omp parallel for
-    for (int i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
       const auto& flawsi = mFlaws(i);
       if (flawsi.size() > 0) {
 
@@ -213,11 +213,13 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       const auto& nodeLists = connectivityMap.nodeLists();
       const auto  numNodeLists = nodeLists.size();
       const auto  nodeListi = distance(nodeLists.begin(), find(nodeLists.begin(), nodeLists.end(), &mNodeList));
+      CONTRACT_VAR(nodeListi);
+      CONTRACT_VAR(numNodeLists);
       CHECK(nodeListi < numNodeLists);
 
       // Invert the flaws again, and remove the number of flaws normalization.
 #pragma omp parallel for
-      for (auto i = 0; i < ni; ++i) {
+      for (auto i = 0u; i < ni; ++i) {
         effectiveFlaws(i) = mFlaws(i).size()/effectiveFlaws(i);
       }
 
@@ -230,7 +232,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 
       // Go over everybody again.
 #pragma omp parallel for
-      for (int i = 0; i < ni; ++i) {
+      for (auto i = 0u; i < ni; ++i) {
 
         // The self-contribution.
         const auto& ri = positions(i);
@@ -264,11 +266,11 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void 
 DamageModel<Dimension>::
-postStateUpdate(const Scalar time, 
-                const Scalar dt,
-                const DataBase<Dimension>& dataBase, 
-                State<Dimension>& state,
-                StateDerivatives<Dimension>& derivatives) {
+postStateUpdate(const Scalar /*time*/, 
+                const Scalar /*dt*/,
+                const DataBase<Dimension>& /*dataBase*/, 
+                State<Dimension>& /*state*/,
+                StateDerivatives<Dimension>& /*derivatives*/) {
 
 //   typedef typename SymTensor::EigenStructType EigenStruct;
 
@@ -351,7 +353,7 @@ void
 DamageModel<Dimension>::
 cullToWeakestFlaws() {
 #pragma omp parallel for
-  for (auto i = 0; i < mNodeList.numInternalNodes(); ++i) {
+  for (auto i = 0u; i < mNodeList.numInternalNodes(); ++i) {
     auto& flaws = mFlaws[i];
     if (flaws.size() > 0) {
       const auto maxVal = *max_element(flaws.begin(), flaws.end());
@@ -368,7 +370,7 @@ vector<int>
 DamageModel<Dimension>::
 excludeNodes() const {
   vector<int> result;
-  for (int i = 0; i != mNodeList.numInternalNodes(); ++i) {
+  for (auto i = 0u; i != mNodeList.numInternalNodes(); ++i) {
     if (mExcludeNode(i) == 1.0) result.push_back(i);
   }
   return result;
@@ -395,7 +397,7 @@ Field<Dimension, typename Dimension::Scalar>
 DamageModel<Dimension>::
 sumActivationEnergiesPerNode() const {
   Field<Dimension, Scalar> result("Sum activation energies", mNodeList);
-  for (int i = 0; i != mNodeList.numInternalNodes(); ++i) {
+  for (auto i = 0u; i != mNodeList.numInternalNodes(); ++i) {
     const vector<double>& flaws = mFlaws(i);
     for (vector<double>::const_iterator flawItr = flaws.begin();
          flawItr != flaws.end();
@@ -414,7 +416,7 @@ Field<Dimension, typename Dimension::Scalar>
 DamageModel<Dimension>::
 numFlawsPerNode() const {
   Field<Dimension, Scalar> result("num flaws", mNodeList);
-  for (int i = 0; i != mNodeList.numInternalNodes(); ++i) {
+  for (auto i = 0u; i != mNodeList.numInternalNodes(); ++i) {
     result(i) = flawsForNode(i).size();
   }
   return result;

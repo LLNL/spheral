@@ -20,7 +20,6 @@ set(pip-setup-modules
 set(pip-modules
     numpy-stl
     PYB11Generator
-    mpi4py
     matplotlib
     decorator
     h5py
@@ -31,6 +30,11 @@ set(pip-modules
     sobol
     scipy
     pipreqs)
+
+# Only needed when we're allowing MPI parallelism
+if (ENABLE_MPI)
+  list(APPEND pip-modules mpi4py)
+endif()
 
 # Custom python modules to install that need their
 # own install process these will be installed last 

@@ -45,10 +45,10 @@ void
 YoungsModulusPolicy<Dimension>::
 update(const KeyType& key,
        State<Dimension>& state,
-       StateDerivatives<Dimension>& derivs,
-       const double multiplier,
-       const double t,
-       const double dt) {
+       StateDerivatives<Dimension>& /*derivs*/,
+       const double /*multiplier*/,
+       const double /*t*/,
+       const double /*dt*/) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == SolidFieldNames::YoungsModulus);
@@ -63,7 +63,7 @@ update(const KeyType& key,
   const Field<Dimension, Scalar>& mu = state.field(muKey, 0.0);
 
   // Now set Youngs modulus.
-  for (int i = 0; i != stateField.numInternalElements(); ++i) {
+  for (auto i = 0u; i != stateField.numInternalElements(); ++i) {
     const double thpt = 9.0*std::abs(K(i)*mu(i));
     const double ack = 3.0*std::abs(K(i)) + std::abs(mu(i)) + 1.0e-50*std::max(1.0, thpt);
     CHECK(ack > 0.0);

@@ -107,10 +107,7 @@ Hdifference(const typename Dimension::SymTensor& H1,
   REQUIRE(fuzzyEqual(H1.Determinant(), 1.0, 1.0e-5));
   REQUIRE(fuzzyEqual(H2.Determinant(), 1.0, 1.0e-5));
 
-  typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename SymTensor::EigenStructType EigenStruct;
 
   const Tensor K = H1.Inverse() * H2 - Tensor::one;
   const double result = 1.0 - min(1.0, K.doubledot(K));
@@ -124,7 +121,7 @@ Hdifference(const typename Dimension::SymTensor& H1,
 //------------------------------------------------------------------------------
 inline
 Dim<1>::SymTensor
-computeHinvFromA(const Dim<1>::Tensor& A) {
+computeHinvFromA(const Dim<1>::Tensor&) {
   return Dim<1>::SymTensor::one;
 }
 
@@ -132,7 +129,6 @@ inline
 Dim<2>::SymTensor
 computeHinvFromA(const Dim<2>::Tensor& A) {
   REQUIRE(fuzzyEqual(A.Determinant(), 1.0, 1.0e-8));
-  typedef Dim<2>::Tensor Tensor;
   typedef Dim<2>::SymTensor SymTensor;
   const double A11 = A.xx();
   const double A12 = A.xy();
@@ -148,7 +144,7 @@ computeHinvFromA(const Dim<2>::Tensor& A) {
 
 inline
 Dim<3>::SymTensor
-computeHinvFromA(const Dim<3>::Tensor& A) {
+computeHinvFromA(const Dim<3>::Tensor&) {
   return Dim<3>::SymTensor::one;
 }
 
@@ -200,12 +196,12 @@ template<>
 Dim<1>::SymTensor
 ASPHSmoothingScale<Dim<1> >::
 smoothingScaleDerivative(const Dim<1>::SymTensor& H,
-                         const Dim<1>::Vector& pos,
+                         const Dim<1>::Vector& /*pos*/,
                          const Dim<1>::Tensor& DvDx,
-                         const Dim<1>::Scalar hmin,
-                         const Dim<1>::Scalar hmax,
-                         const Dim<1>::Scalar hminratio,
-                         const Dim<1>::Scalar nPerh) const {
+                         const Dim<1>::Scalar /*hmin*/,
+                         const Dim<1>::Scalar /*hmax*/,
+                         const Dim<1>::Scalar /*hminratio*/,
+                         const Dim<1>::Scalar /*nPerh*/) const {
   return -H*DvDx.Trace();
 }
 #endif
@@ -216,12 +212,12 @@ template<>
 Dim<2>::SymTensor
 ASPHSmoothingScale<Dim<2> >::
 smoothingScaleDerivative(const Dim<2>::SymTensor& H,
-                         const Dim<2>::Vector& pos,
+                         const Dim<2>::Vector& /*pos*/,
                          const Dim<2>::Tensor& DvDx,
-                         const Dim<2>::Scalar hmin,
-                         const Dim<2>::Scalar hmax,
-                         const Dim<2>::Scalar hminratio,
-                         const Dim<2>::Scalar nPerh) const {
+                         const Dim<2>::Scalar /*hmin*/,
+                         const Dim<2>::Scalar /*hmax*/,
+                         const Dim<2>::Scalar /*hminratio*/,
+                         const Dim<2>::Scalar /*nPerh*/) const {
   REQUIRE(H.Trace() > 0.0);
   const Scalar thetaDot = 
     (H.xx()*DvDx.xy() - H.yy()*DvDx.yx() - H.yx()*(DvDx.xx() - DvDx.yy()))/
@@ -240,12 +236,12 @@ template<>
 Dim<3>::SymTensor
 ASPHSmoothingScale<Dim<3> >::
 smoothingScaleDerivative(const Dim<3>::SymTensor& H,
-                         const Dim<3>::Vector& pos,
+                         const Dim<3>::Vector& /*pos*/,
                          const Dim<3>::Tensor& DvDx,
-                         const Dim<3>::Scalar hmin,
-                         const Dim<3>::Scalar hmax,
-                         const Dim<3>::Scalar hminratio,
-                         const Dim<3>::Scalar nPerh) const {
+                         const Dim<3>::Scalar /*hmin*/,
+                         const Dim<3>::Scalar /*hmax*/,
+                         const Dim<3>::Scalar /*hminratio*/,
+                         const Dim<3>::Scalar /*nPerh*/) const {
   REQUIRE(H.Trace() > 0.0);
   const double AA = H.xx()*DvDx.xy() - H.xy()*(DvDx.xx() - DvDx.yy()) + 
     H.xz()*DvDx.zy() - H.yy()*DvDx.yx() - H.yz()*DvDx.zx();
@@ -281,17 +277,17 @@ template<typename Dimension>
 typename Dimension::SymTensor
 ASPHSmoothingScale<Dimension>::
 idealSmoothingScale(const SymTensor& H,
-                    const Vector& pos,
+                    const Vector& /*pos*/,
                     const Scalar zerothMoment,
                     const SymTensor& secondMoment,
                     const TableKernel<Dimension>& W,
-                    const Scalar hmin,
-                    const Scalar hmax,
+                    const Scalar /*hmin*/,
+                    const Scalar /*hmax*/,
                     const Scalar hminratio,
                     const Scalar nPerh,
-                    const ConnectivityMap<Dimension>& connectivityMap,
-                    const unsigned nodeListi,
-                    const unsigned i) const {
+                    const ConnectivityMap<Dimension>& /*connectivityMap*/,
+                    const unsigned /*nodeListi*/,
+                    const unsigned /*i*/) const {
 
   // Pre-conditions.
   REQUIRE(H.Determinant() > 0.0);
@@ -362,6 +358,7 @@ idealSmoothingScale(const SymTensor& H,
     } else {
       psi = SymTensor::one;
     }
+    CONTRACT_VAR(tolerance);
     CHECK(fuzzyEqual(psi.Determinant(), 1.0, tolerance));
 
     // Enforce limits on psi, which helps some with stability.
@@ -415,7 +412,6 @@ newSmoothingScale(const SymTensor& H,
                   const unsigned nodeListi,
                   const unsigned i) const {
 
-  const double tiny = 1.0e-50;
   const double tolerance = 1.0e-5;
 
   // Get the ideal H vote.
@@ -434,6 +430,7 @@ newSmoothingScale(const SymTensor& H,
 
   const double Hidealscale = Dimension::rootnu(Hideal.Determinant());
   const SymTensor Hidealhatinv = Hideal.Inverse() * Hidealscale;
+  CONTRACT_VAR(tolerance);
   CHECK(fuzzyEqual(Hidealhatinv.Determinant(), 1.0, tolerance));
 
   // Compute a weighting factor measuring how different the target H is from the old.
@@ -459,6 +456,7 @@ newSmoothingScale(const SymTensor& H,
   SymTensor H1hatinv = (wH1*wH0*wH1).Symmetric();
   CHECK(H1hatinv.Determinant() > 0.0);
   H1hatinv /= Dimension::rootnu(H1hatinv.Determinant());
+  CONTRACT_VAR(tolerance);
   CHECK(fuzzyEqual(H1hatinv.Determinant(), 1.0, tolerance));
 
   // Scale the answer to recover the determinant.
@@ -495,7 +493,7 @@ newSmoothingScale(const SymTensor& H,
 template<typename Dimension>
 typename Dimension::SymTensor
 ASPHSmoothingScale<Dimension>::
-idealSmoothingScale(const SymTensor& H,
+idealSmoothingScale(const SymTensor& /*H*/,
                     const Mesh<Dimension>& mesh,
                     const typename Mesh<Dimension>::Zone& zone,
                     const Scalar hmin,
@@ -503,12 +501,10 @@ idealSmoothingScale(const SymTensor& H,
                     const Scalar hminratio,
                     const Scalar nPerh) const {
 
-  typedef typename Mesh<Dimension>::Zone Zone;
-  typedef typename Mesh<Dimension>::Node Node;
-
   const vector<unsigned>& nodeIDs = zone.nodeIDs();
   const Scalar vol = zone.volume();
   const Vector zc = zone.position();
+  CONTRACT_VAR(vol);
   CHECK(vol > 0.0);
 
   // Measure the second moment of the zone shape.

@@ -31,7 +31,7 @@ template<typename Dimension, typename DataType>
 FieldList<Dimension, typename MathTraits<Dimension, DataType>::DivergenceType>
 divergence(const FieldList<Dimension, DataType>& fieldList,
            const FieldList<Dimension, typename Dimension::Vector>& position,
-           const FieldList<Dimension, typename Dimension::Scalar>& weight,
+           const FieldList<Dimension, typename Dimension::Scalar>& /*weight*/,
            const FieldList<Dimension, typename Dimension::Scalar>& mass,
            const FieldList<Dimension, typename Dimension::Scalar>& rho,
            const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
@@ -40,7 +40,6 @@ divergence(const FieldList<Dimension, DataType>& fieldList,
   // Typedef's to ease typing/understandability.
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename MathTraits<Dimension, DataType>::DivergenceType DivergenceType;
 

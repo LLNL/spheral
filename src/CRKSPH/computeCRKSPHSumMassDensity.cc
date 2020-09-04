@@ -33,11 +33,6 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef typename Dimension::FourthRankTensor FourthRankTensor;
-  typedef typename Dimension::FifthRankTensor FifthRankTensor;
 
   // Initialize stuff to sum
   massDensity = 0.0;
@@ -67,7 +62,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
     auto vol1_thread = vol1.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto k = 0; k < npairs; ++k) {
+    for (auto k = 0u; k < npairs; ++k) {
       i = pairs[k].i_node;
       j = pairs[k].j_node;
       nodeListi = pairs[k].i_list;
@@ -85,7 +80,6 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
         const auto& rj = position(nodeListj, j);
         const auto  mj = mass(nodeListj, j);
         const auto  Vj = vol(nodeListj, j);
-        const auto  rhoj = massDensity(nodeListj, j);
         const auto& Hj = H(nodeListj, j);
         const auto  Hdetj = Hj.Determinant();
 
@@ -112,14 +106,14 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   }   // OMP parallel
   
   // The self contribution.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[nodeListi]->nodeList());
     const auto ni = nodeList.numInternalNodes();
     const auto rhoMin = nodeList.rhoMin();
     const auto rhoMax = nodeList.rhoMax();
 
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
       const auto  mi = mass(nodeListi, i);

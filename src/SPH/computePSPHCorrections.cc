@@ -50,7 +50,6 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
   // Zero out the result.
@@ -90,7 +89,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     auto gradNbar_thread = gradNbar.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto k = 0; k < npairs; ++k) {
+    for (auto k = 0u; k < npairs; ++k) {
       i = pairs[k].i_node;
       j = pairs[k].j_node;
       nodeListi = pairs[k].i_list;
@@ -150,10 +149,10 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   }   // OMP parallel
 
   // Finish with the self contributions.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto n = mass[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
 
       // Get the state for node i.
       const SymTensor& Hi = H(nodeListi, i);

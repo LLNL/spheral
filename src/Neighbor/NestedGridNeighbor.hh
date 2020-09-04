@@ -37,7 +37,7 @@ public:
                      const NeighborSearchType searchType,
                      const int numGridLevels, 
                      const double topGridCellSize,
-                     const Vector origin,
+                     const Vector /*origin*/,
                      const double kernelExtent,
 		     const int gridCellInfluenceRadius);
   virtual ~NestedGridNeighbor();
@@ -126,14 +126,14 @@ public:
 
   // Origin of the gridcell coordinates.
   const Vector& origin() const;
-  void origin(const Vector& origin);
+  void origin(const Vector& /*origin*/);
 
   // The top level grid size.
-  const double topGridSize() const;
+  double topGridSize() const;
   void topGridSize(const double gridSize);
 
   // The radius in gridcells a node can touch on it's home grid level.
-  const int gridCellInfluenceRadius() const;
+  int gridCellInfluenceRadius() const;
   void gridCellInfluenceRadius(const int x);
 
   // Find the head node for the link list of a grid cell (if it exists).
@@ -189,7 +189,7 @@ public:
                            const int gridLevel,
                            std::vector<int>& masterList,
                            std::vector<int>& coarseNeighbors,
-                           const bool ghostConnectivity) const;
+                           const bool /*ghostConnectivity*/) const;
 
   // Find the nodes that affect the given grid cell.
   std::vector<int> findNestedNeighbors(const GC& gridCell,

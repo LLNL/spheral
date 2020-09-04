@@ -81,7 +81,7 @@ setPressure(Field<Dimension, Scalar>& Pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
   REQUIRE(valid());
-  for (int i = 0; i != Pressure.size(); ++i) {
+  for (auto i = 0u; i != Pressure.size(); ++i) {
     Pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -96,7 +96,7 @@ setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   REQUIRE(valid());
-  for (int i = 0; i != temperature.size(); ++i) {
+  for (auto i = 0u; i != temperature.size(); ++i) {
     temperature(i) = this->temperature(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -111,7 +111,7 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
   REQUIRE(valid());
-  for (int i = 0; i != specificThermalEnergy.size(); ++i) {
+  for (auto i = 0u; i != specificThermalEnergy.size(); ++i) {
     specificThermalEnergy(i) = this->specificThermalEnergy(massDensity(i), temperature(i));
   }
 }
@@ -123,8 +123,8 @@ template<typename Dimension>
 void
 LinearPolynomialEquationOfState<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
-                const Field<Dimension, Scalar>& massDensity,
-                const Field<Dimension, Scalar>& temperature) const {
+                const Field<Dimension, Scalar>& /*massDensity*/,
+                const Field<Dimension, Scalar>& /*temperature*/) const {
   REQUIRE(valid());
   specificHeat = mCv;
 }
@@ -139,7 +139,7 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
   REQUIRE(valid());
-  for (int i = 0; i != soundSpeed.size(); ++i) {
+  for (auto i = 0u; i != soundSpeed.size(); ++i) {
     soundSpeed(i) = this->soundSpeed(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -151,8 +151,8 @@ template<typename Dimension>
 void
 LinearPolynomialEquationOfState<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
-	      const Field<Dimension, Scalar>& massDensity,
-	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
+	      const Field<Dimension, Scalar>& /*massDensity*/,
+	      const Field<Dimension, Scalar>& /*specificThermalEnergy*/) const {
   REQUIRE(valid());
   gamma = mGamma;
 }
@@ -168,7 +168,7 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   REQUIRE(valid());
-  for (int i = 0; i != bulkModulus.size(); ++i) {
+  for (auto i = 0u; i != bulkModulus.size(); ++i) {
     bulkModulus(i)=this->bulkModulus(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -212,7 +212,7 @@ pressure(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 LinearPolynomialEquationOfState<Dimension>::
-temperature(const Scalar massDensity,
+temperature(const Scalar /*massDensity*/,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
   return specificThermalEnergy/mCv + 300;
@@ -224,7 +224,7 @@ temperature(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 LinearPolynomialEquationOfState<Dimension>::
-specificThermalEnergy(const Scalar massDensity,
+specificThermalEnergy(const Scalar /*massDensity*/,
                       const Scalar temperature) const {
   REQUIRE(valid());
   return (temperature - 300.0)*mCv;
@@ -236,8 +236,8 @@ specificThermalEnergy(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 LinearPolynomialEquationOfState<Dimension>::
-specificHeat(const Scalar massDensity,
-             const Scalar temperature) const {
+specificHeat(const Scalar /*massDensity*/,
+             const Scalar /*temperature*/) const {
   REQUIRE(valid());
   return mCv;
 }
@@ -262,8 +262,8 @@ soundSpeed(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 LinearPolynomialEquationOfState<Dimension>::
-gamma(const Scalar massDensity,
-      const Scalar specificThermalEnergy) const {
+gamma(const Scalar /*massDensity*/,
+      const Scalar /*specificThermalEnergy*/) const {
   return mGamma;
 }
 

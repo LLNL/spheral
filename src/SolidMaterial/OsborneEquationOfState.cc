@@ -83,7 +83,7 @@ setPressure(Field<Dimension, Scalar>& pressure,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
   const double rho0 = this->referenceDensity();
-  for (int i = 0; i != pressure.size(); ++i) {
+  for (auto i = 0u; i != pressure.size(); ++i) {
     const double eta = this->boundedEta(massDensity(i));
     const double mu = eta - 1.0;
     const double E = rho0*specificThermalEnergy(i);
@@ -103,9 +103,9 @@ setPressure(Field<Dimension, Scalar>& pressure,
 template<typename Dimension>
 void
 OsborneEquationOfState<Dimension>::
-setTemperature(Field<Dimension, Scalar>& temperature,
-               const Field<Dimension, Scalar>& massDensity,
-               const Field<Dimension, Scalar>& specificThermalEnergy) const {
+setTemperature(Field<Dimension, Scalar>& /*temperature*/,
+               const Field<Dimension, Scalar>& /*massDensity*/,
+               const Field<Dimension, Scalar>& /*specificThermalEnergy*/) const {
   VERIFY2(false, "temperature unimplemented for the Osborne equation of state.");
 }
 
@@ -115,9 +115,9 @@ setTemperature(Field<Dimension, Scalar>& temperature,
 template<typename Dimension>
 void
 OsborneEquationOfState<Dimension>::
-setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
-                         const Field<Dimension, Scalar>& massDensity,
-                         const Field<Dimension, Scalar>& temperature) const {
+setSpecificThermalEnergy(Field<Dimension, Scalar>& /*specificThermalEnergy*/,
+                         const Field<Dimension, Scalar>& /*massDensity*/,
+                         const Field<Dimension, Scalar>& /*temperature*/) const {
   VERIFY2(false, "specific thermal energy unimplemented for the Osborne equation of state.");
 }
 
@@ -128,8 +128,8 @@ template<typename Dimension>
 void
 OsborneEquationOfState<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
-                const Field<Dimension, Scalar>& massDensity,
-                const Field<Dimension, Scalar>& temperature) const {
+                const Field<Dimension, Scalar>& /*massDensity*/,
+                const Field<Dimension, Scalar>& /*temperature*/) const {
   CHECK(valid());
   specificHeat = mCv;
 }
@@ -144,7 +144,7 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (int i = 0; i != soundSpeed.size(); ++i) {
+  for (auto i = 0u; i != soundSpeed.size(); ++i) {
     const double dPdrhoi = DPDrho(massDensity(i), specificThermalEnergy(i));
     CHECK(dPdrhoi >= 0.0);
     soundSpeed(i) = sqrt(dPdrhoi);
@@ -159,9 +159,9 @@ void
 OsborneEquationOfState<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
-	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
+	      const Field<Dimension, Scalar>& /*specificThermalEnergy*/) const {
   CHECK(mCv > 0.0);
-  for (int i = 0; i != gamma.size(); ++i) {
+  for (auto i = 0u; i != gamma.size(); ++i) {
     const double eta = this->boundedEta(massDensity(i)),
                  rho0 = this->referenceDensity(),
                  rho = rho0*eta,
@@ -180,7 +180,7 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (int i = 0; i != bulkModulus.size(); ++i) {
+  for (auto i = 0u; i != bulkModulus.size(); ++i) {
     bulkModulus(i) = massDensity(i) * DPDrho(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -218,7 +218,7 @@ double
 OsborneEquationOfState<Dimension>::
 DPDrho(const double massDensity,
        const double specificThermalEnergy) const {
-  const double tiny = 1.0e-20;
+  //const double tiny = 1.0e-20;
   const double eta = this->boundedEta(massDensity);
   const double mu = eta - 1.0;
   const double rho0 = this->referenceDensity();

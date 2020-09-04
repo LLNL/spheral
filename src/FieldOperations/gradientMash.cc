@@ -37,7 +37,6 @@ gradientMash(const FieldList<Dimension, DataType>& fieldList,
   // Typedef's to ease typing/understandability.
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename MathTraits<Dimension, DataType>::GradientType GradientType;
 
@@ -167,7 +166,6 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
   // Typedef's to ease typing/understandability.
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename MathTraits<Dimension, DataType>::GradientType GradientType;
 
@@ -216,9 +214,9 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
-        const Scalar& weighti = weight(masterItr);
+        //const Scalar& weighti = weight(masterItr);
         const Scalar& densityi = weightDensity(masterItr);
-        const DataType& fieldi = fieldList(masterItr);
+        //const DataType& fieldi = fieldList(masterItr);
 
         // First identify the fitting parameters for a linear model (w_j = a + b eta_j).
         Scalar totalWeight = 0.0;
@@ -230,7 +228,7 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
           const Vector& rj = position(neighborItr);
           const SymTensor& Hj = Hfield(neighborItr);
           const Scalar& weightj = weight(neighborItr);
-          const Scalar& densityj = weightDensity(neighborItr);
+          //const Scalar& densityj = weightDensity(neighborItr);
 
           const Vector rij = ri - rj;
           const Vector etai = Hi*rij;
@@ -319,7 +317,7 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
-        const Scalar& weighti = weight(masterItr);
+        //const Scalar& weighti = weight(masterItr);
 
         // First calculate the smoothed estimate of Fi.
         Scalar normalization = 0.0;
@@ -421,9 +419,9 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
-        const Scalar& weighti = weight(masterItr);
-//         const DataType& Fi = fieldList(masterItr);
-        const DataType& Fi = smoothFieldList(masterItr);
+        //const Scalar& weighti = weight(masterItr);
+        //const DataType& Fi = fieldList(masterItr);
+        //const DataType& Fi = smoothFieldList(masterItr);
 
         Scalar normalization = 0.0;
         for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin(refineNeighbors);

@@ -67,8 +67,8 @@ update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
        const double multiplier,
-       const double t,
-       const double dt) {
+       const double /*t*/,
+       const double /*dt*/) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == SolidFieldNames::effectiveStrainTensor);
@@ -112,7 +112,7 @@ update(const KeyType& key,
   // Iterate over the internal nodes.
   const auto ni = stateField.numInternalElements();
 #pragma omp parallel for
-  for (int i = 0; i < ni; ++i) {
+  for (auto i = 0u; i < ni; ++i) {
 
     // Begin the big bonanza of options!
 

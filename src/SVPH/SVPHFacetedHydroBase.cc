@@ -103,7 +103,6 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mPressure(FieldStorageType::CopyFields),
   mCellPressure(FieldStorageType::CopyFields),
   mSoundSpeed(FieldStorageType::CopyFields),
-  mVolume(FieldStorageType::CopyFields),
   mSpecificThermalEnergy0(FieldStorageType::CopyFields),
   mHideal(FieldStorageType::CopyFields),
   mMaxViscousPressure(FieldStorageType::CopyFields),
@@ -118,6 +117,7 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDHDt(FieldStorageType::CopyFields),
   mDvDx(FieldStorageType::CopyFields),
   mInternalDvDx(FieldStorageType::CopyFields),
+  mVolume(FieldStorageType::CopyFields),
   mFaceForce(FieldStorageType::CopyFields),
   mRestart(registerWithRestart(*this)) {
   // Delegate range checking to our assignment methods.
@@ -235,8 +235,6 @@ registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-  typedef typename Mesh<Dimension>::Zone Zone;
-  typedef typename Mesh<Dimension>::Face Face;
 
   // Create the local storage for time step mask, pressure, sound speed, and position weight.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
@@ -467,7 +465,7 @@ initialize(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 SVPHFacetedHydroBase<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
+evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
@@ -482,10 +480,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
-
-  // A few useful constants we'll use in the following loop.
-  typedef typename Timing::Time Time;
-  const Scalar W0 = W(0.0, 1.0);
 
   // The set of NodeLists.
   const vector<const NodeList<Dimension>*> nodeLists(dataBase.fluidNodeListBegin(),
@@ -616,10 +610,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       
         // Get the state for node j
         const Vector& rj = position(nodeListj, j);
-        const Vector& vj = velocity(nodeListj, j);
-        const Scalar& rhoj = massDensity(nodeListj, j);
         const Scalar& Pj = pressure(nodeListj, j);
-        const Scalar& cj = soundSpeed(nodeListj, j);
         const SymTensor& Hj = H(nodeListj, j);
         const Scalar& Vj = volume(nodeListj, j);
         Hdetj = Hj.Determinant();
@@ -674,7 +665,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           const Vector& rj = position(nodeListj, j);
           const Vector& vj = velocity(nodeListj, j);
           const Scalar& rhoj = massDensity(nodeListj, j);
-          const Scalar& Pj = pressure(nodeListj, j);
           const Scalar& cj = soundSpeed(nodeListj, j);
           const SymTensor& Hj = H(nodeListj, j);
           const Scalar& Vj = volume(nodeListj, j);
@@ -722,11 +712,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Start our big loop over all FluidNodeLists.
   for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = *nodeLists[nodeListi];
-    const int firstGhostNodei = nodeList.firstGhostNode();
     const Scalar hmin = nodeList.hmin();
     const Scalar hmax = nodeList.hmax();
     const Scalar hminratio = nodeList.hminratio();
-    const int maxNumNeighbors = nodeList.maxNumNeighbors();
     const Scalar nPerh = nodeList.nodesPerSmoothingScale();
 
     // Iterate over the internal nodes in this NodeList.
@@ -741,17 +729,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar& mi = mass(nodeListi, i);
       const Vector& vi = velocity(nodeListi, i);
       const Scalar& rhoi = massDensity(nodeListi, i);
-      const Scalar& epsi = specificThermalEnergy(nodeListi, i);
       const Scalar& Pi = pressure(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
-      const Scalar& ci = soundSpeed(nodeListi, i);
       const Scalar& Vi = volume(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Vi > 0.0);
 
-      Scalar& rhoSumi = rhoSum(nodeListi, i);
       Vector& DxDti = DxDt(nodeListi, i);
       Scalar& DrhoDti = DrhoDt(nodeListi, i);
       Vector& DvDti = DvDt(nodeListi, i);
@@ -761,9 +745,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       SymTensor& DHDti = DHDt(nodeListi, i);
       SymTensor& Hideali = Hideal(nodeListi, i);
       Scalar& maxViscousPressurei = maxViscousPressure(nodeListi, i);
-      Vector& XSVPHDeltaVi = XSVPHDeltaV(nodeListi, i);
-      Scalar& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
-      SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
       vector<Vector>& faceForcei = faceForce(nodeListi, i);
 
       // Walk the faces and measure the primary fluid derivatives.
@@ -874,7 +855,7 @@ SVPHFacetedHydroBase<Dimension>::
 dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
-   typename Dimension::Scalar currentTime) const {
+   typename Dimension::Scalar /*currentTime*/) const {
 
   // Get some useful fluid variables from the DataBase.
   const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, Scalar());
@@ -894,9 +875,11 @@ dt(const DataBase<Dimension>& dataBase,
 
   // Set up some history variables to track what set's our minimum Dt.
   Scalar lastMinDt = minDt;
-  int lastNodeID;
+  int lastNodeID = 0;
   string lastNodeListName, reason;
-  Scalar lastNodeScale, lastCs, lastRho, lastEps, lastDivVelocity, lastShearVelocity;
+  Scalar lastNodeScale = 0;
+  Scalar lastCs = 0;
+  Scalar lastRho, lastEps, lastDivVelocity;
   Vector lastVelocity, lastAcc;
 
   // Loop over every fluid node.
@@ -906,6 +889,7 @@ dt(const DataBase<Dimension>& dataBase,
        ++nodeListItr, ++nodeListi) {
     const FluidNodeList<Dimension>& fluidNodeList = **nodeListItr;
     const Scalar kernelExtent = fluidNodeList.neighbor().kernelExtent();
+    CONTRACT_VAR(kernelExtent);
     CHECK(kernelExtent > 0.0);
 
     const unsigned n = fluidNodeList.numInternalNodes();
@@ -1027,11 +1011,11 @@ dt(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 SVPHFacetedHydroBase<Dimension>::
-finalizeDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
-                    const DataBase<Dimension>& dataBase,
-                    const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivs) const {
+finalizeDerivatives(const typename Dimension::Scalar /*time*/,
+                    const typename Dimension::Scalar /*dt*/,
+                    const DataBase<Dimension>& /*dataBase*/,
+                    const State<Dimension>& /*state*/,
+                    StateDerivatives<Dimension>& /*derivs*/) const {
 
   // If we're using the compatible energy discretization, we need to enforce
   // boundary conditions on the accelerations.

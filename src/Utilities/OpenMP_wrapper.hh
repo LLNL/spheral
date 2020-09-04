@@ -115,9 +115,9 @@ threadReduceFieldLists(typename SpheralThreads<Dimension>::FieldListStack& stack
       if (omp_get_num_threads() > 1) {
         const auto& nodeListPtrs = boost::apply_visitor(typename SpheralThreads<Dimension>::ExtractNodeLists(), stack[0]);
         const auto  numNodeLists = nodeListPtrs.size();
-        for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+        for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
           const auto ni = nodeListPtrs[nodeListi]->numInternalNodes();
-          for (auto i = 0; i < ni; ++i) {
+          for (auto i = 0u; i < ni; ++i) {
             for (auto& flv: stack) {
               boost::apply_visitor(typename SpheralThreads<Dimension>::ReduceElement(nodeListi, i), flv);
             }

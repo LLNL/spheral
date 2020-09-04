@@ -328,7 +328,7 @@ void
 NodeList<Dimension>::
 Hinverse(Field<Dimension, typename Dimension::SymTensor>& field) const {
   REQUIRE(field.nodeListPtr() == this);
-  for (int i = 0; i < numInternalNodes(); ++i) field(i) = mH(i).Inverse();
+  for (auto i = 0u; i < numInternalNodes(); ++i) field(i) = mH(i).Inverse();
   field.name("H inverse");
 }
 
@@ -398,7 +398,7 @@ template<typename Dimension>
 NodeType
 NodeList<Dimension>::nodeType(int i) const {
   CHECK(i >=0 && i < numNodes());
-  if (i < firstGhostNode()) {
+  if (i < (int)firstGhostNode()) {
     return NodeType::InternalNode;
   } else {
     return NodeType::GhostNode;
@@ -461,13 +461,14 @@ deleteNodes(const vector<int>& nodeIDs) {
     vector<int>::iterator uniqueEnd = unique(uniqueIDs.begin(), uniqueIDs.end());
     uniqueIDs.erase(uniqueEnd, uniqueIDs.end());
     CHECK(uniqueIDs.size() <= numNodes());
-    if (uniqueIDs.size() > 0) 
+    if (uniqueIDs.size() > 0) {
       CHECK(uniqueIDs[0] >= 0 && uniqueIDs.back() < this->numNodes());
+    }
 
     // Determine how many internal, ghost, and total nodes we should end with.
     vector<int>::iterator ghostDeleteItr = uniqueIDs.begin();
     while (ghostDeleteItr < uniqueIDs.end() &&
-           *ghostDeleteItr < mFirstGhostNode) ++ghostDeleteItr;
+           *ghostDeleteItr < (int)mFirstGhostNode) ++ghostDeleteItr;
     CHECK(ghostDeleteItr >= uniqueIDs.begin() && ghostDeleteItr <= uniqueIDs.end());
     const int numInternalNodesRemoved = distance(uniqueIDs.begin(), ghostDeleteItr);
     CHECK(numInternalNodesRemoved <= numInternalNodes());
@@ -512,8 +513,9 @@ packNodeFieldValues(const vector<int>& nodeIDs) const {
   vector<int>::iterator uniqueEnd = unique(uniqueIDs.begin(), uniqueIDs.end());
   uniqueIDs.erase(uniqueEnd, uniqueIDs.end());
   CHECK(uniqueIDs.size() <= numNodes());
-  if (uniqueIDs.size() > 0) 
+  if (uniqueIDs.size() > 0) {
     CHECK(uniqueIDs[0] >= 0 && uniqueIDs.back() <= this->numNodes());
+  }
 
   // Iterate over all the Fields defined on this NodeList, and append it's packed 
   // field values to the stack.
