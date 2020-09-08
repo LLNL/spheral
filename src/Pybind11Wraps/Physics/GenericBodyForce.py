@@ -11,9 +11,6 @@ class GenericBodyForce(Physics):
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
     typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 
@@ -38,6 +35,14 @@ class GenericBodyForce(Physics):
         "Default state derivative registration for an acceleration source"
         return "void"
 
+    @PYB11pure_virtual
+    @PYB11const
+    def dt(dataBase = "const DataBase<%(Dimension)s>&", 
+           state = "const State<%(Dimension)s>&",
+           derivs = "const StateDerivatives<%(Dimension)s>&",
+           currentTime = "const Scalar"):
+        "Vote on a time step."
+        return "TimeStepType"
     #...........................................................................
     # Attributes
     DxDt = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DxDt", doc="Time derivative for position")
