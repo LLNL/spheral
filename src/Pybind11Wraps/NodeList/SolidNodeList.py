@@ -14,12 +14,10 @@ class SolidNodeList(FluidNodeList):
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef Field<%(Dimension)s, int> IntField;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
     typedef Field<%(Dimension)s, Vector> VectorField;
-    typedef Field<%(Dimension)s, Tensor> TensorField;
     typedef Field<%(Dimension)s, SymTensor> SymTensorField;
 """
 
