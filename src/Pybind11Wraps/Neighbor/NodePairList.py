@@ -57,7 +57,7 @@ class NodePairList:
 
   def size(self):
     "Returns the number of Node Pairs in the lsit"
-    return "unsigned int"
+    return "size_t"
 
   @PYB11implementation("[](const NodePairList& self) { return self.size(); }")
   def __len__(self):

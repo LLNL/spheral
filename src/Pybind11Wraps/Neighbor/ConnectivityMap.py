@@ -7,10 +7,6 @@ from PYB11Generator import *
 class ConnectivityMap:
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef NodeList<%(Dimension)s> NodeListType;
 """
 
@@ -149,7 +145,7 @@ member of a pair (maintaining symmetry)."""
     # Properties
     buildGhostConnectivity = PYB11property(doc="Are we building connectivity for ghost nodes?")
     buildOverlapConnectivity = PYB11property(doc="Are we building connectivity for nodes that overlap?")
-    nodeLists = PYB11property("const std::vector<NodeListType*>&", "nodeLists",
+    nodeLists = PYB11property("const std::vector<const NodeListType*>&", "nodeLists",
                               returnpolicy="reference",
                               doc="The set of NodeLists we have connectivity for")
     nodePairList = PYB11property(returnpolicy="reference",
