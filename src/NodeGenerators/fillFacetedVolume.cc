@@ -1,5 +1,9 @@
+#include <cstdlib>
+
 #include "fillFacetedVolume.hh"
 #include "Utilities/rotationMatrix.hh"
+#include "Utilities/allReduce.hh"
+#include "Distributed/Communicator.hh"
 
 using std::vector;
 using std::string;
@@ -236,6 +240,23 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary0,
 #pragma omp critical
     {
       result.insert(result.end(), result_thread.begin(), result_thread.end());
+    }
+  }
+
+  // If we didn't find anything, fall back to sampling on the surface.
+  if (allReduce(result.size(), MPI_SUM, Communicator::communicator()) == 0U) {
+    if (Process::getRank() == 0) {
+      cerr << "Falling back to surface points..." << endl;
+      const auto nexpect = std::max(1, std::min(int(verts.size()), int(outerBoundary.volume()/(dx*dx*dx) + 0.5)));
+      std::vector<unsigned> iresult(verts.size());
+      for (auto i = 0U; i < verts.size(); ++i) iresult[i] = i;
+      while (iresult.size() > nexpect) {
+        auto ireject = rand() % iresult.size();
+        iresult.erase(iresult.begin() + ireject);
+      }
+
+      auto& verts0 = outerBoundary0.vertices();
+      for (auto i: iresult) result.push_back(verts0[i]);
     }
   }
 
