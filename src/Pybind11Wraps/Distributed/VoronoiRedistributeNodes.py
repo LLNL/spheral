@@ -16,7 +16,10 @@ draw the Voronoi tessellation about, each cell of which then represents a
 computational domain."""
 
     PYB11typedefs = """
+    typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
 """
 
     #...........................................................................

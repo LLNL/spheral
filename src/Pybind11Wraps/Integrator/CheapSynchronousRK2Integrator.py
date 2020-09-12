@@ -17,6 +17,10 @@ sacrificing some accuracy vs. the the true RK2 algorithm."""
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
 """
 
     #...........................................................................

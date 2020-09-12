@@ -13,6 +13,7 @@ class FieldList(FieldListBase):
     typedef Field<%(Dimension)s, %(Value)s> FieldType;
     typedef NodeList<%(Dimension)s> NodeListType;
     typedef %(Dimension)s::Vector Vector;
+    typedef %(Dimension)s::SymTensor SymTensor;
 """
 
     def pyinit(self):

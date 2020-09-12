@@ -14,6 +14,7 @@ class ArithmeticFieldList(FieldListBase):
     typedef NodeList<%(Dimension)s> NodeListType;
     typedef %(Dimension)s::Scalar Scalar;
     typedef %(Dimension)s::Vector Vector;
+    typedef %(Dimension)s::SymTensor SymTensor;
 """
 
     # @PYB11const

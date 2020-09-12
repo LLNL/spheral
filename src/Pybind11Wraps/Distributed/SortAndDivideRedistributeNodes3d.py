@@ -11,6 +11,11 @@ class SortAndDivideRedistributeNodes3d(SortAndDivideRedistributeNodes):
 divide algorithm for domain decomposition."""
 
     PYB11typedefs = """
+    typedef typename KeyTraits::Key Key;
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
 """
 
     #...........................................................................

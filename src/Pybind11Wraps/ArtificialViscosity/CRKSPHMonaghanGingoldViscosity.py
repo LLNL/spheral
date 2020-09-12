@@ -13,6 +13,7 @@ class CRKSPHMonaghanGingoldViscosity(MonaghanGingoldViscosity):
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
 """
 
     #...........................................................................

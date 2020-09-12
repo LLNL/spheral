@@ -13,7 +13,10 @@ class Mesh:
     PYB11typedefs = """
   typedef typename %(Dimension)s::Vector Vector;
   typedef typename %(Dimension)s::SymTensor SymTensor;
+  typedef typename %(Dimension)s::ConvexHull ConvexHull;
   typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
+  typedef uint64_t KeyElement;
+  typedef std::tuple<KeyElement, KeyElement, KeyElement> Key;
 """
 
     #...........................................................................
@@ -254,6 +257,7 @@ on the surface of the local mesh!"""
 
         PYB11typedefs = """
   typedef typename %(Dimension)s::Vector Vector;
+  typedef typename %(Dimension)s::SymTensor SymTensor;
 """
 
         def pyinit(self,
@@ -274,6 +278,7 @@ on the surface of the local mesh!"""
 
         PYB11typedefs = """
   typedef typename %(Dimension)s::Vector Vector;
+  typedef typename %(Dimension)s::SymTensor SymTensor;
 """
 
         def pyinit(self,
@@ -299,6 +304,7 @@ on the surface of the local mesh!"""
 
         PYB11typedefs = """
   typedef typename %(Dimension)s::Vector Vector;
+  typedef typename %(Dimension)s::SymTensor SymTensor;
 """
 
         def pyinit(self,
@@ -343,6 +349,7 @@ on the surface of the local mesh!"""
 
         PYB11typedefs = """
   typedef typename %(Dimension)s::Vector Vector;
+  typedef typename %(Dimension)s::SymTensor SymTensor;
 """
 
         def pyinit(self,

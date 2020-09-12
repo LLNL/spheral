@@ -14,6 +14,8 @@ not fill out the complete physics package interface."""
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 
     typedef Field<%(Dimension)s, std::vector<double> > FlawStorageType;

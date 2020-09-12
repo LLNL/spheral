@@ -12,6 +12,7 @@ class JohnsonCookDamage(Physics):
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """

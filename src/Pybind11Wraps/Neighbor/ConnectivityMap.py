@@ -7,6 +7,10 @@ from PYB11Generator import *
 class ConnectivityMap:
 
     PYB11typedefs = """
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef NodeList<%(Dimension)s> NodeListType;
 """
 

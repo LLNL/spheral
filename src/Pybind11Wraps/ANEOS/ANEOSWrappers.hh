@@ -42,6 +42,7 @@ inline
 std::vector<std::vector<double> >
 ANEOS_STEvals(const ANEOS<Dimension>& eos) {
   typedef typename boost::multi_array<double, 2> array_type;
+  typedef typename array_type::array_view<1>::type slice_type;
   typedef typename array_type::const_array_view<1>::type const_slice_type;
   typedef boost::multi_array_types::index_range range;
 

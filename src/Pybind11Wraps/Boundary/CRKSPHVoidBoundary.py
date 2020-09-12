@@ -18,6 +18,7 @@ class CRKSPHVoidBoundary(Boundary):
     typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
     typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
     typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
+    typedef GeomPlane<%(Dimension)s> Plane;
 """
 
     #...........................................................................

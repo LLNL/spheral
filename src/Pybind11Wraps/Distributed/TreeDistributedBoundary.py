@@ -20,6 +20,10 @@ condition for use with TreeNeighbor based NodeLists."""
     typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
     typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
     typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
+
+    typedef typename DistributedBoundary<%(Dimension)s>::DomainBoundaryNodes DomainBoundaryNodes;
+    typedef std::map<int, DomainBoundaryNodes> DomainBoundaryNodeMap;
+    typedef std::map<NodeList<%(Dimension)s>*, DomainBoundaryNodeMap> NodeListDomainBoundaryNodeMap;
 """
 
     # The instance attribute.  We expose this as a property of the class.

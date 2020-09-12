@@ -13,6 +13,11 @@ class CRKSPHHydroBaseRZ(CRKSPHHydroBase):
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
+    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
     typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
 

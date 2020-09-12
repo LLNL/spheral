@@ -13,8 +13,10 @@ class TreeNeighbor(Neighbor):
     typedef typename TreeNeighbor<%(Dimension)s>::CellKey CellKey;
     typedef typename %(Dimension)s::Scalar Scalar;
     typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef NodeList<%(Dimension)s> NodeListType;
+    typedef GridCellIndex<%(Dimension)s> GridCellIndexType;
     typedef GeomPlane<%(Dimension)s> Plane;
 """
 
