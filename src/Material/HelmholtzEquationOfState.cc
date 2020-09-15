@@ -381,7 +381,7 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 
 /* ACCESSORS */
 template<typename Dimension>
-const bool
+bool
 HelmholtzEquationOfState<Dimension>::
 getUpdateStatus() const {
   return needUpdate;
