@@ -40,6 +40,7 @@ struct DataTypeTraits<bool> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_C_BOOL; }
 #endif
+  static axom::sidre::TypeID axomType() { return axom::sidre::CHAR8_STR_ID; }
 };
 
 //------------------------------------------------------------------------------
@@ -52,7 +53,7 @@ struct DataTypeTraits<char> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_CHAR; }
 #endif
-  //static axom::sidre::TypeID axomType() { return axom::sidre::; }
+  static axom::sidre::TypeID axomType() { return axom::sidre::CHAR8_STR_ID; }
 };
 
 //------------------------------------------------------------------------------

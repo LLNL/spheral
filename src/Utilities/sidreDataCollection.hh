@@ -1,4 +1,5 @@
-#pragma once
+#ifndef sidreDataCollection_HH
+#define sidreDataCollection_HH
 
 #include "axom/sidre.hpp"
 #include "Field/Field.hh"
@@ -10,8 +11,10 @@ public:
     ~SidreDataCollection();
 
     template<typename Dimension, typename DataType>
-    axom::sidre::View *alloc_view(const std::string &view_name, 
+    /* axom::sidre::View * */ void alloc_view(const std::string &view_name, 
                                   const Spheral::Field<Dimension, DataType> &field);
 private:
     axom::sidre::DataStore *m_datastore_ptr;
 };
+
+#endif

@@ -5,7 +5,11 @@ set(CONDUIT_CACHE "${CACHE_DIR}/${CONDUIT_DIST}")
 
 list(APPEND ${lib_name}_INCLUDES $<BUILD_INTERFACE:${${lib_name}_DIR}/include/${lib_name}>)
 
-set(${lib_name}_libs )
+set(${lib_name}_libs 
+    libconduit.so
+    libconduit_blueprint.so
+    libconduit_relay.so
+   )
 
 if(${lib_name}_BUILD)
 
@@ -17,7 +21,8 @@ if(${lib_name}_BUILD)
     PREFIX ${CONDUIT_PREFIX}
     URL ${CONDUIT_URL}
     DOWNLOAD_DIR ${CACHE_DIR}
-    CMAKE_ARGS ../conduit/src/ -DCMAKE_BUILD_TYPE=Release
+    CMAKE_ARGS ../conduit/src/ 
+               -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                -DCMAKE_C_FLAGS=-fPIC
