@@ -19,22 +19,6 @@ class RKUtilities:
         "Constructor"
         
     @PYB11static
-    def getPolynomials(self, x = "const Vector&", p = "std::array<double, 1>&"):
-        "Get polynomial vector"
-        return "void"
-
-    @PYB11static
-    def getGradPolynomials(self,
-                           x = "const Vector&"):
-        "Get gradient polynomial vector"
-        return "std::vector<double>"
-
-    @PYB11static
-    def getHessPolynomials(self, x = "const Vector&"):
-        "Get hessian polynomial vector"
-        return "std::vector<double>"
-    
-    @PYB11static
     def evaluateBaseKernel(self,
                            kernel = "const TableKernel<%(Dimension)s>&",
                            x = "const Vector&",
