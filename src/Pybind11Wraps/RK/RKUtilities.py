@@ -12,21 +12,23 @@ class RKUtilities:
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename Eigen::SparseMatrix<double> TransformationMatrix;
 """
 
     def pyinit(self):
         "Constructor"
         
     @PYB11static
-    def getPolynomials(self,
-                       x = "const Vector&"):
+    def getPolynomials(self, x = "const Vector&", p = "std::array<double, 1>&"):
         "Get polynomial vector"
-        return "std::vector<double>"
+        return "void"
+
     @PYB11static
     def getGradPolynomials(self,
                            x = "const Vector&"):
         "Get gradient polynomial vector"
         return "std::vector<double>"
+
     @PYB11static
     def getHessPolynomials(self, x = "const Vector&"):
         "Get hessian polynomial vector"
@@ -107,7 +109,7 @@ class RKUtilities:
     
     @PYB11static
     def applyTransformation(self,
-                            T = "const Tensor&",
+                            T = "const TransformationMatrix&",
                             corrections = "RKCoefficients<%(Dimension)s>&"):
         "Apply a transformation to the corrections"
         return "void"

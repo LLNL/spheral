@@ -112,7 +112,7 @@ class RKCorrections(Physics):
     def WR(self,
            order = "const RKOrder"):
         "Look up the ReproducingKernel for the given order"
-        return "ReproducingKernel<%(Dimension)s>&"
+        return "const ReproducingKernel<%(Dimension)s>&"
 
     @PYB11const
     @PYB11returnpolicy("reference_internal")
@@ -120,7 +120,7 @@ class RKCorrections(Physics):
     def corrections(self,
                     order = "const RKOrder"):
         "Look up the corrections for the given order"
-        return "FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"
+        return "const FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"
 
     #...........................................................................
     # Properties
