@@ -67,6 +67,9 @@ endif()
 
 instantiate(SolidMaterial_inst SolidMaterial_sources)
 
+# Ignore -W-maybe-uninitialized warnings thrown from bisectSearch for possibly uninitialized iterators from boost multi-array.
+set_source_files_properties(ANEOSInst1d.cc ANEOSInst2d.cc ANEOSInst3d.cc PROPERTIES COMPILE_FLAGS -Wno-maybe-uninitialized)
+
 spheral_add_cxx_library(SolidMaterial)
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_SolidMaterial)
