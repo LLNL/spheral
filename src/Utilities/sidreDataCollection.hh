@@ -4,6 +4,9 @@
 #include "axom/sidre.hpp"
 #include "Field/Field.hh"
 
+namespace Spheral
+{
+
 class SidreDataCollection
 {
 public:
@@ -16,5 +19,9 @@ public:
 private:
     axom::sidre::DataStore *m_datastore_ptr;
 };
+
+}
+
+#include "Utilities/sidreDataCollectionInline.hh"
 
 #endif
