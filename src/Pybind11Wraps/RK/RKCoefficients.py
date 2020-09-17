@@ -44,7 +44,7 @@ class RKCoefficients:
     @PYB11cppname("size")
     @PYB11const
     def __len__(self):
-        return "unsigned"
+        return "size_t"
 
     @PYB11cppname("operator[]")
     @PYB11returnpolicy("reference_internal")

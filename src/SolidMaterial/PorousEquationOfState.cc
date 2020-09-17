@@ -139,7 +139,7 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
   
   // Now apply the porosity modifier.
   const auto n = soundSpeed.numInternalElements();
-  for (auto i = 0; i != n; ++i) {
+  for (auto i = 0u; i != n; ++i) {
     const auto alpha0i = (*mAlpha0Ptr)(i);
     const auto alphai = (*mAlphaPtr)(i);
     const auto c0i = (*mC0Ptr)(i);

@@ -159,7 +159,7 @@ mass density, velocity, and specific thermal energy."""
                          doc="Optionally we can provide a bounding box for use generating the mesh.")
     smoothingScaleMethod = PYB11property("const SmoothingScaleBase<%(Dimension)s>&", "smoothingScaleMethod",
                                          doc="The object defining how we evolve smoothing scales.")
-    mesh = PYB11property("Mesh<%(Dimension)s>&", "mesh",
+    mesh = PYB11property("const Mesh<%(Dimension)s>&", "mesh",
                          doc="The tessellation")
 
 

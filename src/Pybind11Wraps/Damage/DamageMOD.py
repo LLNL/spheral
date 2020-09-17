@@ -79,7 +79,9 @@ value per node chosen based on the volume of the node."""
 @PYB11template("Dimension")
 def computeFragmentField(nodeList = "const NodeList<%(Dimension)s>&",
                          linkRadius = "const double",
+                         density = "const Field<%(Dimension)s, double>&",
                          damage = "const Field<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
+                         densityThreshold = "const double",
                          damageThreshold = "const double",
                          assignDustToFragments = "const bool"):
     """Flag the nodes commonly connected within the given H radius as distinct

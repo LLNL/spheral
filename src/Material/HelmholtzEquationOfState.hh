@@ -69,37 +69,37 @@ public:
                           const Field<Dimension, Scalar>& specificThermalEnergy) const;
           
   // Some of the following methods are disabled
-  virtual Scalar pressure(const Scalar massDensity,
-                          const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
+  virtual Scalar pressure(const Scalar /*massDensity*/,
+                          const Scalar /*specificThermalEnergy*/) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
           
-  virtual Scalar temperature(const Scalar massDensity,
-                             const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
+  virtual Scalar temperature(const Scalar /*massDensity*/,
+                             const Scalar /*specificThermalEnergy*/) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
           
-  virtual Scalar specificThermalEnergy(const Scalar massDensity,
-                                       const Scalar temperature) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
+  virtual Scalar specificThermalEnergy(const Scalar /*massDensity*/,
+                                       const Scalar /*temperature*/) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
           
-  virtual Scalar specificHeat(const Scalar massDensity,
-                              const Scalar temperature) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
+  virtual Scalar specificHeat(const Scalar /*massDensity*/,
+                              const Scalar /*temperature*/) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
           
-  virtual Scalar soundSpeed(const Scalar massDensity,
-                            const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
+  virtual Scalar soundSpeed(const Scalar /*massDensity*/,
+                            const Scalar /*specificThermalEnergy*/) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
           
   // Get the effective gamma (ratio of specific heats) for this eos.
-  virtual Scalar gamma(const Scalar massDensity,
-                       const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
+  virtual Scalar gamma(const Scalar /*massDensity*/,
+                       const Scalar /*specificThermalEnergy*/) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
           
   // Get the bulk modulus.
-  virtual Scalar bulkModulus(const Scalar massDensity,
-                             const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
+  virtual Scalar bulkModulus(const Scalar /*massDensity*/,
+                             const Scalar /*specificThermalEnergy*/) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
           
-  virtual Scalar entropy(const Scalar massDensity,
-                         const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
+  virtual Scalar entropy(const Scalar /*massDensity*/,
+                         const Scalar /*specificThermalEnergy*/) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
 
           
   const Field<Dimension, Scalar>& abar() const;
   const Field<Dimension, Scalar>& zbar() const;
                       
-  const bool getUpdateStatus() const;
+  bool getUpdateStatus() const;
   void setUpdateStatus(bool bSet);
           
   virtual bool valid() const;

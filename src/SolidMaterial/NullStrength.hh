@@ -51,9 +51,9 @@ inline
 void
 NullStrength<Dimension>::
 shearModulus(Field<Dimension, Scalar>& shearModulus,
-             const Field<Dimension, Scalar>& density,
-             const Field<Dimension, Scalar>& specificThermalEnergy,
-             const Field<Dimension, Scalar>& pressure) const {
+             const Field<Dimension, Scalar>& /*density*/,
+             const Field<Dimension, Scalar>& /*specificThermalEnergy*/,
+             const Field<Dimension, Scalar>& /*pressure*/) const {
   shearModulus = 0.0;
 }
 
@@ -65,11 +65,11 @@ inline
 void
 NullStrength<Dimension>::
 yieldStrength(Field<Dimension, Scalar>& yieldStrength,
-              const Field<Dimension, Scalar>& density,
-              const Field<Dimension, Scalar>& specificThermalEnergy,
-              const Field<Dimension, Scalar>& pressure,
-              const Field<Dimension, Scalar>& plasticStrain,
-              const Field<Dimension, Scalar>& plasticStrainRate) const {
+              const Field<Dimension, Scalar>& /*density*/,
+              const Field<Dimension, Scalar>& /*specificThermalEnergy*/,
+              const Field<Dimension, Scalar>& /*pressure*/,
+              const Field<Dimension, Scalar>& /*plasticStrain*/,
+              const Field<Dimension, Scalar>& /*plasticStrainRate*/) const {
   yieldStrength = 0.0;
 }
 

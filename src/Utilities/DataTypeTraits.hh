@@ -188,7 +188,7 @@ template<typename Value>
 struct DataTypeTraits<std::tuple<Value, Value, Value, Value, Value> > {
   typedef std::tuple<Value, Value, Value, Value, Value> ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const std::tuple<Value, Value, Value, Value, Value>& x) { return 5; }
+  static int numElements(const std::tuple<Value, Value, Value, Value, Value>&) { return 5; }
   static std::tuple<Value, Value, Value, Value, Value> zero() { return std::make_tuple(Value(), Value(), Value(), Value(), Value()); }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }
@@ -200,7 +200,7 @@ template<typename Value1, typename Value2>
 struct DataTypeTraits<std::pair<Value1, Value2> > {
   typedef std::pair<Value1, Value2> ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const std::pair<Value1, Value2>& x) { return 2; }
+  static int numElements(const std::pair<Value1, Value2>&) { return 2; }
   static std::pair<Value1, Value2> zero() { return std::make_pair(Value1(), Value2()); }
 };
 

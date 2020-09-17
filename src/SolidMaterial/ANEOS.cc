@@ -133,7 +133,6 @@ ANEOS(const int materialNumber,
   // Build our lookup table to find eps(rho, T).
   const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1);
   const double dT = (mTmax - mTmin)/(mNumTvals - 1);
-  int KPAi;
   double Ti, rhoi, Pi, Si, CVi, DPDTi, DPDRi, csi;
   CHECK(drho > 0.0);
   CHECK(dT > 0.0);
@@ -165,7 +164,7 @@ ANEOS<Dimension>::
 setPressure(Field<Dimension, Scalar>& Pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != Pressure.size(); ++i) {
+  for (int i = 0; i != (int)Pressure.size(); ++i) {
     Pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -179,7 +178,7 @@ ANEOS<Dimension>::
 setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != temperature.size(); ++i) {
+  for (int i = 0; i != (int)temperature.size(); ++i) {
     temperature(i) = this->temperature(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -193,7 +192,7 @@ ANEOS<Dimension>::
 setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
-  for (int i = 0; i != specificThermalEnergy.size(); ++i) {
+  for (int i = 0; i != (int)specificThermalEnergy.size(); ++i) {
     specificThermalEnergy(i) = this->specificThermalEnergy(massDensity(i), temperature(i));
   }
 }
@@ -207,7 +206,7 @@ ANEOS<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                 const Field<Dimension, Scalar>& massDensity,
                 const Field<Dimension, Scalar>& temperature) const {
-  for (int i = 0; i != specificHeat.size(); ++i) {
+  for (int i = 0; i != (int)specificHeat.size(); ++i) {
     specificHeat(i) = this->specificHeat(massDensity(i), temperature(i));
   }
 }
@@ -221,7 +220,7 @@ ANEOS<Dimension>::
 setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != soundSpeed.size(); ++i) {
+  for (int i = 0; i != (int)soundSpeed.size(); ++i) {
     soundSpeed(i) = this->soundSpeed(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -258,7 +257,7 @@ ANEOS<Dimension>::
 setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != bulkModulus.size(); ++i) {
+  for (int i = 0; i != (int)bulkModulus.size(); ++i) {
     bulkModulus(i)=this->bulkModulus(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -272,7 +271,7 @@ ANEOS<Dimension>::
 setEntropy(Field<Dimension, Scalar>& entropy,
            const Field<Dimension, Scalar>& massDensity,
            const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != entropy.size(); ++i) {
+  for (int i = 0; i != (int)entropy.size(); ++i) {
     entropy(i)=this->entropy(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -285,7 +284,6 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
-  int KPAi;
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
@@ -341,7 +339,6 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
-  int KPAi;
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = temperature / mTconv;
@@ -358,7 +355,6 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
-  int KPAi;
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = temperature / mTconv;
@@ -375,7 +371,6 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
-  int KPAi;
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
@@ -407,7 +402,6 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
-  int KPAi;
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
@@ -424,7 +418,6 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 entropy(const Scalar massDensity,
         const Scalar specificThermalEnergy) const {
-  int KPAi;
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;

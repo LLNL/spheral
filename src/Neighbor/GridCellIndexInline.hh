@@ -28,6 +28,8 @@ void
 incrementGridCell(GridCellIndex<Dim<1> >& gridCell,
                   const GridCellIndex<Dim<1> >& gridCellMin,
                   const GridCellIndex<Dim<1> >& gridCellMax) {
+  CONTRACT_VAR(gridCellMin);
+  CONTRACT_VAR(gridCellMax);
   REQUIRE(gridCellMax.xIndex() >= gridCellMin.xIndex());
   REQUIRE(gridCell >= gridCellMin && gridCell <= gridCellMax);
   gridCell.xIndex(gridCell.xIndex() + 1);
@@ -112,21 +114,21 @@ GridCellIndex<Dimension>::GridCellIndex():
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-GridCellIndex<Dimension>::GridCellIndex(int xIndex):
+GridCellIndex<Dimension>::GridCellIndex(int /*xIndex*/):
   GridCellIndexBase<Dimension>() {
   VERIFY(false);
 }
 
 template<typename Dimension>
 inline
-GridCellIndex<Dimension>::GridCellIndex(int xIndex, int yIndex):
+GridCellIndex<Dimension>::GridCellIndex(int /*xIndex*/, int /*yIndex*/):
   GridCellIndexBase<Dimension>() {
   VERIFY(false);
 }
 
 template<typename Dimension>
 inline
-GridCellIndex<Dimension>::GridCellIndex(int xIndex, int yIndex, int zIndex):
+GridCellIndex<Dimension>::GridCellIndex(int /*xIndex*/, int /*yIndex*/, int /*zIndex*/):
   GridCellIndexBase<Dimension>() {
   VERIFY(false);
 }
@@ -274,24 +276,24 @@ GridCellIndex<Dim<3> >::zIndex(int zIndex) {
 template<typename Dimension>
 inline
 void
-GridCellIndex<Dimension>::setIndices(int xIndex) {
+GridCellIndex<Dimension>::setIndices(int /*xIndex*/) {
   VERIFY(false);
 }
 
 template<typename Dimension>
 inline
 void
-GridCellIndex<Dimension>::setIndices(int xIndex,
-                                      int yIndex) {
+GridCellIndex<Dimension>::setIndices(int /*xIndex*/,
+                                     int /*yIndex*/) {
   VERIFY(false);
 }
 
 template<typename Dimension>
 inline
 void
-GridCellIndex<Dimension>::setIndices(int xIndex,
-                                      int yIndex,
-                                      int zIndex) {
+GridCellIndex<Dimension>::setIndices(int /*xIndex*/,
+                                     int /*yIndex*/,
+                                     int /*zIndex*/) {
   VERIFY(false);
 }
 

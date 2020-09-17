@@ -108,8 +108,8 @@ GeomSymmetricTensor(const double a11, const double a12, const double a13,
 template<int nDim>
 inline
 GeomSymmetricTensor<nDim>::
-GeomSymmetricTensor(const double a11, const double a12,
-                    const double a21, const double a22):
+GeomSymmetricTensor(const double /*a11*/, const double /*a12*/,
+                    const double /*a21*/, const double /*a22*/):
   GeomSymmetricTensorBase<nDim>(0.0) {
   VERIFY2(false, "GeomSymmetricTensor(a11, a12, a21, a22): wrong number of dimensions.");
 }
@@ -117,9 +117,9 @@ GeomSymmetricTensor(const double a11, const double a12,
 template<int nDim>
 inline
 GeomSymmetricTensor<nDim>::
-GeomSymmetricTensor(const double a11, const double a12, const double a13,
-                    const double a21, const double a22, const double a23,
-                    const double a31, const double a32, const double a33):
+GeomSymmetricTensor(const double /*a11*/, const double /*a12*/, const double /*a13*/,
+                    const double /*a21*/, const double /*a22*/, const double /*a23*/,
+                    const double /*a31*/, const double /*a32*/, const double /*a33*/):
   GeomSymmetricTensorBase<nDim>(0.0) {
   VERIFY2(false, "GeomSymmetricTensor(a11, a12, a13, a21, a22, a23, a31, a32, a33): wrong number of dimensions.");
 }
@@ -2274,7 +2274,6 @@ GeomSymmetricTensor<nDim>::
 cuberoot() const {
   const typename GeomSymmetricTensor<nDim>::EigenStructType eigen = this->eigenVectors();
   GeomSymmetricTensor<nDim> result;
-  const double onethird = 1.0/3.0;
   for (int i = 0; i != nDim; ++i) result(i,i) = FastMath::CubeRootHalley2(eigen.eigenValues(i));
   result.rotationalTransform(eigen.eigenVectors);
   return result;

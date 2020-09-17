@@ -88,7 +88,7 @@ operator<<(std::ostream& os, const RKCoefficients<Dimension>& x) {
   os << "[";
   if (not x.empty()) {
     const auto n1 = x.size() - 1;
-    for (auto i = 0; i < n1; ++i) os << x[i] << " ";
+    for (auto i = 0u; i < n1; ++i) os << x[i] << " ";
     os << x.back();
   }
   os << "]";

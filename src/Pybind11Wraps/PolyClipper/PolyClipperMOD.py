@@ -130,9 +130,9 @@ def initializePolygon(poly = "Polygon&",
     return "void"
 
 @PYB11namespace("PolyClipper")
-def polygon2string(poly = "Polygon&"):
+def polygon2string(poly = "const Polygon&"):
     "Return a formatted string representation for a PolyClipper::Polygon."
-    return "std::string"
+    return "const std::string"
 
 @PYB11namespace("PolyClipper")
 def convertToPolygon(polygon = "Polygon&",
@@ -190,9 +190,9 @@ def initializePolyhedron(poly = "Polyhedron&",
     return "void"
 
 @PYB11namespace("PolyClipper")
-def polyhedron2string(poly = "Polyhedron&"):
+def polyhedron2string(poly = "const Polyhedron&"):
     "Return a formatted string representation for a PolyClipper::Polyhedron."
-    return "std::string"
+    return "const std::string"
 
 @PYB11namespace("PolyClipper")
 def convertToPolyhedron(polyhedron = "Polyhedron&",

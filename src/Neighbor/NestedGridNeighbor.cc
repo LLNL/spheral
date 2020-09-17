@@ -44,7 +44,7 @@ NestedGridNeighbor(NodeList<Dimension>& aNodeList,
                    const NeighborSearchType aSearchType,
                    const int numGridLevels,
                    const double topGridCellSize,
-                   const typename Dimension::Vector origin,
+                   const typename Dimension::Vector /*origin*/,
                    const double kernelExtent,
 		   const int gridCellInfluenceRadius):
   Neighbor<Dimension>(aNodeList, aSearchType, kernelExtent),
@@ -236,6 +236,7 @@ setNestedMasterList(const GridCellIndex<Dimension>& gridCell,
                     std::vector<int>& coarseNeighbors,
                     const bool ghostConnectivity) const {
 
+  CONTRACT_VAR(ghostConnectivity);
   REQUIRE(valid());
   REQUIRE(gridLevel >= 0 and gridLevel < mMaxGridLevels);
   REQUIRE2(ghostConnectivity == false,
@@ -266,9 +267,6 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
 
   REQUIRE(valid());
   REQUIRE(enterPlane.parallel(exitPlane));
-
-  // Make references to the two neighbor lists we'll be building for convenience.
-  const auto& nodePositions = this->nodeList().positions();
 
   // Clear out the master and coarse neighbor lists.
   masterList.clear();
@@ -563,7 +561,7 @@ numGridLevels(const int numGridLevels) {
 
       // Build the vector of gridcell sizes.
       mGridCellSizeInv.resize(mMaxGridLevels);
-      for (unsigned i = 0; i != numGridLevels; ++i) {
+      for (auto i = 0; i != numGridLevels; ++i) {
         mGridCellSizeInv[i] = double(intpow2(i))/topGridCellSize;
       }
 
@@ -584,7 +582,7 @@ NestedGridNeighbor<Dimension>::topGridSize(const double topGridSize) {
   REQUIRE(mMaxGridLevels > 0);
 
   // Build the vector of gridcell sizes.
-  for (unsigned i = 0; i != mMaxGridLevels; ++i) {
+  for (auto i = 0; i != mMaxGridLevels; ++i) {
     mGridCellSizeInv[i] = double(intpow2(i))/topGridSize;
   }
 
@@ -662,7 +660,7 @@ occupiedGridCellsInRange(vector< GridCellIndex<Dimension> >& gridCells,
 
   // Determine whether it's less work to check every grid cell in the range,
   // or to scan every occupied cell on this level.
-  if (occupiedGridCells(gridLevelID).size() < numCellsInRange) {
+  if ((int)occupiedGridCells(gridLevelID).size() < numCellsInRange) {
 
     // Loop over the occupied grid cells on the given grid level.
     typename vector<GC>::const_iterator begin = occupiedGridCells(gridLevelID).begin();
@@ -762,13 +760,13 @@ NestedGridNeighbor<Dimension>::valid() const {
     return false;
   }
 
-  if (mGridCellSizeInv.size() != mMaxGridLevels) {
+  if ((int)mGridCellSizeInv.size() != mMaxGridLevels) {
     cerr << "NestedGridNeighbor::valid: invalid mMaxGridLevels  "
          << mMaxGridLevels << endl;
     return false;
   }
 
-  if (mGridLevelOccupied.size() != mMaxGridLevels) {
+  if ((int)mGridLevelOccupied.size() != mMaxGridLevels) {
     cerr << "NestedGridNeighbor::valid: invalid mGridLevelOccupied "
          << mGridLevelOccupied.size() << endl;
     return false;
@@ -790,7 +788,7 @@ NestedGridNeighbor<Dimension>::valid() const {
         }
       }
     }
-    for (int i = 0; i != nodes.numInternalNodes(); ++i) {
+    for (auto i = 0u; i != nodes.numInternalNodes(); ++i) {
       if (count(i) != 1) {
         cerr << "NestedGridNeighbor::valid : incorrect count of assignment to gridcell for node "
              << i << " " 
@@ -904,8 +902,8 @@ NestedGridNeighbor<Dimension>::readyToAssignNodes() const {
   if (mMaxGridLevels == 0) return false;
   return (this->kernelExtent() > 0.0 and
           fuzzyEqual(mGridLevelConst0, log(topGridSize()*mGridCellInfluenceRadius)*ln2inverse) and
-          topGridSize() > 0.0 and
-          mGridLevelOccupied.size() == numGridLevels());
+          topGridSize() > 0u and
+          (int)mGridLevelOccupied.size() == numGridLevels());
 }
 
 //------------------------------------------------------------------------------
@@ -1071,7 +1069,7 @@ updateNodes(const vector<int>& nodeIDs) {
 
   // Force the node extents to be calculated.
   this->setNodeExtents(nodeIDs);
-  for (int nodeID = 0; nodeID < this->nodeList().numNodes(); ++nodeID) {
+  for (auto nodeID = 0u; nodeID < this->nodeList().numNodes(); ++nodeID) {
     CHECK(fuzzyLessThanOrEqual(this->nodeExtentField()(nodeID).maxElement(),
                                 topGridSize()));
   }

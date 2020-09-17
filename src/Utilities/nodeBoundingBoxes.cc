@@ -27,7 +27,7 @@ nodeBoundingBoxes(const NodeList<Dimension>& nodes) {
   const Field<Dimension, Vector>& positions = nodes.positions();
   const Field<Dimension, SymTensor>& Hfield = nodes.Hfield();
   const Scalar kernelExtent = nodes.neighbor().kernelExtent();
-  for (int i = 0; i != nodes.numNodes(); ++i) {
+  for (auto i = 0u; i != nodes.numNodes(); ++i) {
     result(i) = boundingBox<Dimension>(positions(i), Hfield(i), kernelExtent);
   }
   return result;
@@ -48,7 +48,6 @@ nodeBoundingBoxes(const DataBase<Dimension>& dataBase) {
   FieldList<Dimension, Box> result = dataBase.newGlobalFieldList(Box(), "Bounding boxes");
   const FieldList<Dimension, Vector> positions = dataBase.globalPosition();
   const FieldList<Dimension, SymTensor> Hfield = dataBase.globalHfield();
-  const Scalar kernelExtent = dataBase.maxKernelExtent();
   int nodeListi = 0;
   for (typename DataBase<Dimension>::ConstNodeListIterator itr = dataBase.nodeListBegin();
        itr != dataBase.nodeListEnd();

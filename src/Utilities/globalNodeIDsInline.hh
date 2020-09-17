@@ -81,7 +81,6 @@ inline
 Field<Dimension, int>
 globalNodeIDs(const NodeList<Dimension>& nodeList) {
 
-  typedef typename Dimension::Vector Vector;
   typedef typename KeyTraits::Key Key;
 
   // Get the local domain ID and number of processors.
@@ -102,8 +101,8 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
   }
 
   // Reduce the list of node info to processor 0.
-  int numGlobalNodes = numLocalNodes;
 #ifdef USE_MPI
+  int numGlobalNodes = numLocalNodes;
   if (procID == 0) {
 
     // Process 0 receives and builds the global info.
@@ -163,9 +162,9 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
 
   // Now we can assign consecutive global IDs based on the sorted list.
   std::vector< std::vector<int> > globalIDs(numProcs);
-  for (int i = 0; i != nodeInfo.size(); ++i) {
+  for (auto i = 0u; i != nodeInfo.size(); ++i) {
     const int recvProc = std::get<2>(nodeInfo[i]);
-    const int localID = std::get<1>(nodeInfo[i]);
+    const unsigned int localID = std::get<1>(nodeInfo[i]);
     CHECK(recvProc < globalIDs.size());
     if (localID + 1 > globalIDs[recvProc].size()) globalIDs[recvProc].resize(localID + 1);
     globalIDs[recvProc][localID] = i;
@@ -233,6 +232,7 @@ globalNodeIDs(const NodeListIterator& begin,
   for (NodeListIterator itr = begin; itr != end; ++itr) {
     result.appendField(Field<Dimension, int>("global IDs", **itr));
   }
+  CONTRACT_VAR(numNodeLists);
   CHECK(result.numFields() == numNodeLists);
 
 #ifdef USE_MPI
@@ -263,8 +263,9 @@ globalNodeIDs(const NodeListIterator& begin,
     Field<Dimension, int>& globalIDs = **result.fieldForNodeList(nodeList);
 
     // Construct the set of global IDs for this NodeList on this domain.
+    CONTRACT_VAR(endID);
     CHECK(endID - beginID >= nodeList.numInternalNodes());
-    for (int i = 0; i != nodeList.numInternalNodes(); ++i) globalIDs(i) = beginID + i;
+    for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) globalIDs(i) = beginID + i;
     beginID += nodeList.numInternalNodes();
   }
   CHECK(beginID == endID);
@@ -288,9 +289,12 @@ globalNodeIDs(const NodeListIterator& begin,
           int id;
           if (procID == checkProc) id = (**fieldItr)(i);
           MPI_Bcast(&id, 1, MPI_INT, checkProc, Communicator::communicator());
+          CONTRACT_VAR(nGlobal);
           ENSURE(i >= 0 && i < nGlobal);
-          if (procID != checkProc)
+          if (procID != checkProc){
+            CONTRACT_VAR(fieldEnd);
             ENSURE(find(fieldBegin, fieldEnd, id) == fieldEnd);
+          }
         }
       }
     }
@@ -305,7 +309,7 @@ globalNodeIDs(const NodeListIterator& begin,
     const NodeList<Dimension>& nodeList = **nodeListItr;
     Field<Dimension, int>& globalIDs = **result.fieldForNodeList(nodeList);
     globalIDs = globalNodeIDs(nodeList);
-    for (int i = 0; i != globalIDs.numElements(); ++i) globalIDs(i) += numCumulativeNodes;
+    for (auto i = 0u; i != globalIDs.numElements(); ++i) globalIDs(i) += numCumulativeNodes;
     numCumulativeNodes += globalIDs.numElements();
   }
 

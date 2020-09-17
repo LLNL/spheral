@@ -38,6 +38,14 @@ class GenericBodyForce(Physics):
         "Default state derivative registration for an acceleration source"
         return "void"
 
+    @PYB11pure_virtual
+    @PYB11const
+    def dt(dataBase = "const DataBase<%(Dimension)s>&", 
+           state = "const State<%(Dimension)s>&",
+           derivs = "const StateDerivatives<%(Dimension)s>&",
+           currentTime = "const Scalar"):
+        "Vote on a time step."
+        return "TimeStepType"
     #...........................................................................
     # Attributes
     DxDt = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DxDt", doc="Time derivative for position")

@@ -72,15 +72,15 @@ public:
                                   const Field<Dimension, Scalar>& specficThermalEnergy) const override;
 
   // Forbid the non-Field calls.
-  virtual double shearModulus(const double density,
-                              const double specificThermalEnergy,
-                              const double pressure) const override { VERIFY2(false, "PorousStrengthModel forbids non-Field shearModulus"); return 0.0; }
+  virtual double shearModulus(const double /*density*/,
+                              const double /*specificThermalEnergy*/,
+                              const double /*pressure*/) const override { VERIFY2(false, "PorousStrengthModel forbids non-Field shearModulus"); return 0.0; }
 
-  virtual double yieldStrength(const double density,
-                               const double specificThermalEnergy,
-                               const double pressure,
-                               const double plasticStrain,
-                               const double plasticStrainRate) const override { VERIFY2(false, "PorousStrengthModel forbids non-Field yieldStrength"); return 0.0; }
+  virtual double yieldStrength(const double /*density*/,
+                               const double /*specificThermalEnergy*/,
+                               const double /*pressure*/,
+                               const double /*plasticStrain*/,
+                               const double /*plasticStrainRate*/) const override { VERIFY2(false, "PorousStrengthModel forbids non-Field yieldStrength"); return 0.0; }
 
   // Access the material parameters.
   const StrengthModel<Dimension>& solidStrength() const;

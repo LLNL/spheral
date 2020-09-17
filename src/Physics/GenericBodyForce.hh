@@ -23,11 +23,20 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
+  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
+
   // Constructors.
   GenericBodyForce();
 
   // Destructor.
   virtual ~GenericBodyForce();
+
+  // We require all Physics packages to provide a method returning their vote
+  // for the next time step.
+  virtual TimeStepType dt(const DataBase<Dimension>& /*dataBase*/,
+                          const State<Dimension>& /*state*/,
+                          const StateDerivatives<Dimension>& /*derivs*/,
+                          const Scalar /*currentTime*/) const = 0;
 
   // Provide default methods for creating and registering an acceleration source.
   virtual void registerState(DataBase<Dimension>& dataBase,

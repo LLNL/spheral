@@ -7,7 +7,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+unsigned int
 DataBase<Dimension>::numNodeLists() const {
   return mNodeListPtrs.size();
 }
@@ -17,7 +17,7 @@ DataBase<Dimension>::numNodeLists() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+unsigned int
 DataBase<Dimension>::numFluidNodeLists() const {
   return mFluidNodeListPtrs.size();
 }
@@ -418,7 +418,7 @@ resizeSolidFieldList(FieldList<Dimension, DataType>& fieldList,
   VERIFY((fieldList.storageType() == FieldStorageType::CopyFields));
 
   // First check if it's necessary to resize the FieldList.
-  bool reinitialize = fieldList.numFields() != numSolidNodeLists();
+  bool reinitialize = (int)fieldList.numFields() != numSolidNodeLists();
   ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
   typename FieldList<Dimension, DataType>::const_iterator itr = fieldList.begin();
   while (!reinitialize && 

@@ -38,7 +38,6 @@ smoothFieldsMash(const FieldList<Dimension, DataType>& fieldList,
   // Some convenient typedefs.
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
   // Return FieldList.
@@ -81,8 +80,8 @@ smoothFieldsMash(const FieldList<Dimension, DataType>& fieldList,
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
-        const Scalar& weighti = weight(masterItr);
-        const DataType& fieldi = fieldList(masterItr);
+        //const Scalar& weighti = weight(masterItr);
+        //const DataType& fieldi = fieldList(masterItr);
 
         Scalar totalWeight = 0.0;
 

@@ -46,10 +46,10 @@ void
 SVPHCorrectionsPolicy<Dimension>::
 update(const KeyType& key,
        State<Dimension>& state,
-       StateDerivatives<Dimension>& derivs,
-       const double multiplier,
-       const double t,
-       const double dt) {
+       StateDerivatives<Dimension>& /*derivs*/,
+       const double /*multiplier*/,
+       const double /*t*/,
+       const double /*dt*/) {
 
   const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);

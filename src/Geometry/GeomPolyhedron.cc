@@ -115,7 +115,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
 //                                  use NULL to skip qh_produce_output() */
 //     FILE *errfile= stderr;    /* error messages from qhull code */
 //     FILE *errfile= fopen("/dev/null", "w");    /* error messages from qhull code */
-    int exitcode;             /* 0 if no error from qhull */
+    //int exitcode;             /* 0 if no error from qhull */
     facetT *facet;            /* set by FORALLfacets */
     int curlong, totlong;     /* memory remaining after qh_memfreeshort */
     sprintf(flags, "qhull s"); // Tcv");
@@ -222,8 +222,11 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     BEGIN_CONTRACT_SCOPE
     {
       // All normals should be outward facing.
-      for (const auto& facet: mFacets) ENSURE2(((facet.position() - mCentroid).dot(facet.normal()) >= 0.0),
-                                               "Inward normal? " << (facet.position() - mCentroid).dot(facet.normal()) << " " << facet.position() << " " << mCentroid << " " << facet.normal());
+      for (const auto& facet: mFacets) { 
+        CONTRACT_VAR(facet);
+        ENSURE2(((facet.position() - mCentroid).dot(facet.normal()) >= 0.0),
+               "Inward normal? " << (facet.position() - mCentroid).dot(facet.normal()) << " " << facet.position() << " " << mCentroid << " " << facet.normal());
+      }
 
       // We had better be convex if built from a convex hull.
       ENSURE(convex());
@@ -526,7 +529,7 @@ intersect(const Vector& s0, const Vector& s1) const {
   // Check each facet of the polyhedron.
   Vector inter;
   const auto nf = mFacets.size();
-  for (auto k = 0; k < nf; ++k) {
+  for (auto k = 0u; k < nf; ++k) {
     const auto& facet = mFacets[k];
     const auto& ipoints = facet.ipoints();
     CHECK(ipoints.size() >= 3);
@@ -565,7 +568,7 @@ intersections(const Vector& s0, const Vector& s1,
   // Check each facet of the polyhedron.
   Vector inter;
   const auto nf = mFacets.size();
-  for (auto k = 0; k < nf; ++k) {
+  for (auto k = 0u; k < nf; ++k) {
     const auto& facet = mFacets[k];
     const auto& ipoints = facet.ipoints();
     CHECK(ipoints.size() >= 3);
@@ -600,7 +603,7 @@ centroid() const {
     const auto& ipoints = facet.ipoints();
     const auto& v0 = mVertices[ipoints[0]];
     const auto  nverts = ipoints.size();
-    for (auto i = 1; i < nverts - 1; ++i) {
+    for (auto i = 1u; i < nverts - 1; ++i) {
       const auto& v1 = mVertices[ipoints[i]];
       const auto& v2 = mVertices[ipoints[i+1]];
       dV = v0.dot(v1.cross(v2));
@@ -841,7 +844,7 @@ GeomPolyhedron::
 operator==(const GeomPolyhedron& rhs) const {
   bool result = (mVertices == rhs.mVertices and
                  mFacets.size() == rhs.mFacets.size());
-  int i = 0;
+  size_t i = 0;
   while (result and i != mFacets.size()) {
     result = (mFacets[i] == rhs.mFacets[i]);
     ++i;
@@ -930,7 +933,7 @@ facetSubVolume(const unsigned facetID) const {
   std::vector<Vector> points = {this->centroid()};
   const auto& ipoints = facet.ipoints();
   const auto  n = ipoints.size();
-  for (auto i = 0; i < n; ++i) points.push_back(facet.point(i));
+  for (auto i = 0u; i < n; ++i) points.push_back(facet.point(i));
   return GeomPolyhedron(points);
 }
 
@@ -947,7 +950,7 @@ decompose(std::vector<GeomPolyhedron>& subcells) const {
   std::vector<std::array<Vector, 3>> subfacets;
   const std::vector<std::vector<unsigned>> indices = {{0, 1, 2}, {0, 3, 1},
                                                       {1, 3, 2}, {0, 2, 3}};
-  for (auto f = 0; f < numFacets; ++f) {
+  for (auto f = 0u; f < numFacets; ++f) {
     const auto& facet = mFacets[f];
     // We don't want to split the facet if we can help it
     if (facet.ipoints().size() == 3) {
@@ -971,6 +974,8 @@ decompose(std::vector<GeomPolyhedron>& subcells) const {
     auto volumesum = 0.;
     for (auto& subcell : subcells) {
       const auto subvolume = subcell.volume();
+      CONTRACT_VAR(subvolume);
+      CONTRACT_VAR(originalVolume);
       CHECK(0 < subvolume and subvolume < originalVolume);
       volumesum += subcell.volume();
     }
@@ -984,7 +989,6 @@ decompose(std::vector<GeomPolyhedron>& subcells) const {
 //------------------------------------------------------------------------------
 std::ostream& operator<<(std::ostream& os, const GeomPolyhedron& polyhedron) {
   typedef GeomPolyhedron::Vector Vector;
-  typedef GeomPolyhedron::Facet Facet;
   const vector<Vector>& vertices = polyhedron.vertices();
   const vector<vector<unsigned> >& facetIndices = polyhedron.facetVertices();
   os << "Polyhedron( vertices[\n";

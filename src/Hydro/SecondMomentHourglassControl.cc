@@ -34,12 +34,12 @@ namespace Spheral {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-pairwiseAntihourglassing(const typename Dimension::Scalar& rji,
-                         const typename Dimension::Scalar& Wi,
-                         const typename Dimension::Scalar& Wj,
-                         const typename Dimension::Scalar& gradWi,
-                         const typename Dimension::Scalar& gradWj,
-                         const double dt2) {
+pairwiseAntihourglassing(const typename Dimension::Scalar& /*rji*/,
+                         const typename Dimension::Scalar& /*Wi*/,
+                         const typename Dimension::Scalar& /*Wj*/,
+                         const typename Dimension::Scalar& /*gradWi*/,
+                         const typename Dimension::Scalar& /*gradWj*/,
+                         const double /*dt2*/) {
   VERIFY(false);
   return 0.0;
 }
@@ -53,6 +53,7 @@ pairwiseAntihourglassing<Dim<1> >(const Dim<1>::Scalar& rji,
                                   const Dim<1>::Scalar& gradWi,
                                   const Dim<1>::Scalar& gradWj,
                                   const double dt2) {
+  CONTRACT_VAR(rji);
   REQUIRE(rji >= 0.0);
   REQUIRE(Wi + Wj >= 0.0);
   REQUIRE(dt2 >= 0.0);
@@ -108,13 +109,13 @@ SecondMomentHourglassControl<Dimension>::
 template<typename Dimension>
 void
 SecondMomentHourglassControl<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
+evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
 
-  const double tiny = 1.0e-30;
+  //const double tiny = 1.0e-30;
   const double dt2 = dt*dt;
 
   // Get the state fields.
@@ -141,27 +142,27 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
 
   // Iterate over the NodeLists.
-  for (int iNodeList = 0; iNodeList != nodeLists.size(); ++iNodeList) {
+  for (auto iNodeList = 0u; iNodeList != nodeLists.size(); ++iNodeList) {
     const FluidNodeList<Dimension>* nodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(nodeLists[iNodeList]);
     CHECK(nodeListPtr != 0);
     const Field<Dimension, Vector>& r = **position.fieldForNodeList(*nodeListPtr);
-    const Field<Dimension, Vector>& v = **velocity.fieldForNodeList(*nodeListPtr);
+    //const Field<Dimension, Vector>& v = **velocity.fieldForNodeList(*nodeListPtr);
     const Field<Dimension, SymTensor>& H = **Hfield.fieldForNodeList(*nodeListPtr);
-    const Field<Dimension, SymTensor>& psi = **massSecondMoment.fieldForNodeList(*nodeListPtr);
+    //const Field<Dimension, SymTensor>& psi = **massSecondMoment.fieldForNodeList(*nodeListPtr);
     Field<Dimension, Vector>& accel = **DvDt.fieldForNodeList(*nodeListPtr);
-    Field<Dimension, Scalar>& work = **DepsDt.fieldForNodeList(*nodeListPtr);
+    //Field<Dimension, Scalar>& work = **DepsDt.fieldForNodeList(*nodeListPtr);
 
     // The diagnostic acceleration.
     Field<Dimension, Vector>& diagnostic = **mAcceleration.fieldForNodeList(*nodeListPtr);
 
     // Iterate over the nodes in this NodeList.
-    for (int i = 0; i != nodeListPtr->numInternalNodes(); ++i) {
+    for (auto i = 0u; i != nodeListPtr->numInternalNodes(); ++i) {
 
       // State for node i.
       const Vector& ri = r(i);
-      const Vector& vi = v(i);
+      //const Vector& vi = v(i);
       const SymTensor& Hi = H(i);
-      const SymTensor& psii = psi(i);
+      //const SymTensor& psii = psi(i);
       const Scalar Hdeti = Hi.Determinant();
 
       // Find the neighbors for this node.
@@ -174,13 +175,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
            jItr != neighbors.end();
            ++jItr) {
         const int j = *jItr;
-        if (i != j) {
+        if ((int)i != j) {
 
           // State for node j.
           const Vector& rj = r(j);
-          const Vector& vj = v(j);
+          //const Vector& vj = v(j);
           const SymTensor& Hj = H(j);
-          const SymTensor& psij = psi(j);
+          //const SymTensor& psij = psi(j);
           const Scalar Hdetj = Hj.Determinant();
 
           // Compute the acceleration from this pair.
@@ -224,7 +225,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Vector DvDti = min(mMaxAccelerationFactor*(accel(i).magnitude()), hg.magnitude()) * hg.unitVector();
 //       const double fac = min(1.0, mMaxAccelerationFactor*vi.magnitude() / (0.5*hg.magnitude()*dt + tiny));
 //       const Vector DvDti = fac*hg;
-      const Scalar worki = -(vi.dot(DvDti));
+      //const Scalar worki = -(vi.dot(DvDti));
 //       if (worki > 0.0) {
         diagnostic(i) += DvDti;
         accel(i) += DvDti;
@@ -242,10 +243,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 template<typename Dimension>
 typename SecondMomentHourglassControl<Dimension>::TimeStepType
 SecondMomentHourglassControl<Dimension>::
-dt(const DataBase<Dimension>& dataBase, 
-   const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const typename Dimension::Scalar currentTime) const {
+dt(const DataBase<Dimension>&, 
+   const State<Dimension>&,
+   const StateDerivatives<Dimension>&,
+   const typename Dimension::Scalar) const {
   return TimeStepType(FLT_MAX, "No vote.");
 }
 
@@ -255,8 +256,8 @@ dt(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 SecondMomentHourglassControl<Dimension>::
-registerState(DataBase<Dimension>& dataBase,
-              State<Dimension>& state) {
+registerState(DataBase<Dimension>&,
+              State<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------
@@ -265,8 +266,8 @@ registerState(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 SecondMomentHourglassControl<Dimension>::
-registerDerivatives(DataBase<Dimension>& dataBase,
-                    StateDerivatives<Dimension>& derivs) {
+registerDerivatives(DataBase<Dimension>&,
+                    StateDerivatives<Dimension>&) {
 }
 
 }

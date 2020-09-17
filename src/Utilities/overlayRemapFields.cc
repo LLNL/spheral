@@ -46,9 +46,6 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
   typedef typename FacetedVolume::Facet Facet;
   typedef GeomPlane<Dimension> Plane;
 
-  // Parallel info
-  const int myproc = Process::getRank();
-  const int nprocs = Process::getTotalNumberOfProcesses();
 
   // Preconditions.
   VERIFY2(scalarDonorFields.size() == scalarAcceptorFields.size(), "overlayRemapFields ERROR: number of acceptor scalar fields does not match number of donors.");
@@ -98,7 +95,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     acceptorNodeListPtr = field->nodeListPtr();
     *field = SymTensor::zero;
   }
-  const unsigned nD = donorNodeListPtr->numInternalNodes(), nA = acceptorNodeListPtr->numInternalNodes();
+  const unsigned nD = donorNodeListPtr->numInternalNodes();
   Neighbor<Dimension>& neighborD = donorNodeListPtr->neighbor();
   Neighbor<Dimension>& neighborA = acceptorNodeListPtr->neighbor();
 
@@ -165,14 +162,17 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
   // const Field<Dimension, Vector>& posA = acceptorNodeListPtr->positions();
 
 #ifdef USE_MPI
+  // Parallel info
+  const int myproc = Process::getRank();
+  const int nprocs = Process::getTotalNumberOfProcesses();
   //..........................................................................
   // Parallel version
   // Pack up and broadcast our donor volumes to everyone else.
   vector<char> localPackedDonorCells;
   packElement(nD, localPackedDonorCells);
-  for (auto i = 0; i != nD; ++i) packElement(localDonorCells(i), localPackedDonorCells);
-  for (auto i = 0; i != nD; ++i) packElement(posD(i), localPackedDonorCells);
-  for (auto i = 0; i != nD; ++i) packElement(HD(i), localPackedDonorCells);
+  for (auto i = 0u; i != nD; ++i) packElement(localDonorCells(i), localPackedDonorCells);
+  for (auto i = 0u; i != nD; ++i) packElement(posD(i), localPackedDonorCells);
+  for (auto i = 0u; i != nD; ++i) packElement(HD(i), localPackedDonorCells);
   unsigned nlocalpack = localPackedDonorCells.size();
 
   // Prepare buffers for asynchronous sends.
@@ -186,7 +186,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
   vector<vector<vector<unsigned>>> intersectAcceptorIndices(nprocs);      // index of acceptor node [domain][donorID][acceptorID]
   vector<vector<vector<double>>>  intersectVols(nprocs);                  // volume of intersection [domain][donorID][acceptorID]
   list<vector<char>> sendBuffers;
-  for (unsigned iproc = 0; iproc != nprocs; ++iproc) {
+  for (int iproc = 0; iproc != nprocs; ++iproc) {
     if (myproc == 0) cerr << "Intersecting domain " << iproc << " of " << nprocs << "..." << endl;
 
     // Get the other processes donor info.
@@ -201,9 +201,9 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     vector<FacetedVolume> donorCells(donorN);
     vector<Vector> donorPos(donorN);
     vector<SymTensor> donorH(donorN);
-    for (auto i = 0; i != donorN; ++i) unpackElement(donorCells[i], bufItr, buffer.end());
-    for (auto i = 0; i != donorN; ++i) unpackElement(donorPos[i], bufItr, buffer.end());
-    for (auto i = 0; i != donorN; ++i) unpackElement(donorH[i], bufItr, buffer.end());
+    for (auto i = 0u; i != donorN; ++i) unpackElement(donorCells[i], bufItr, buffer.end());
+    for (auto i = 0u; i != donorN; ++i) unpackElement(donorPos[i], bufItr, buffer.end());
+    for (auto i = 0u; i != donorN; ++i) unpackElement(donorH[i], bufItr, buffer.end());
     CHECK(bufItr == buffer.end());
 
     for (unsigned i = 0; i != donorN; ++i) {
@@ -239,7 +239,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
       CHECK(intersectVols[iproc].size() == n);
       sendBuffers.push_back(vector<char>());
       packElement(intersectDonorIndices[iproc], sendBuffers.back());
-      for (auto i = 0; i != n; ++i) packElement(accumulate(intersectVols[iproc][i].begin(), intersectVols[iproc][i].end(), 0.0), sendBuffers.back());
+      for (auto i = 0u; i != n; ++i) packElement(accumulate(intersectVols[iproc][i].begin(), intersectVols[iproc][i].end(), 0.0), sendBuffers.back());
       sendBufsizes.push_back(sendBuffers.back().size());
       sendRequests.push_back(MPI_Request());
       MPI_Isend(&sendBufsizes.back(), 1, MPI_UNSIGNED, iproc, 20, Communicator::communicator(), &sendRequests.back());
@@ -255,7 +255,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
   // We accumulate the total intersected volume for each donor node to the voltot field.
   vector<vector<unsigned>> donorNodeIDs(nprocs);
   Field<Dimension, Scalar> voltot("intersected volume totals", *donorNodeListPtr);
-  for (unsigned iproc = 0; iproc != nprocs; ++iproc) {
+  for (int iproc = 0; iproc != nprocs; ++iproc) {
     unsigned bufsize;
     MPI_Status recvStatus;
     MPI_Recv(&bufsize, 1, MPI_UNSIGNED, iproc, 20, Communicator::communicator(), &recvStatus);
@@ -268,7 +268,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
       const unsigned n = donorNodeIDs[iproc].size();
       CHECK(n <= nD);
       double voli;
-      for (auto i = 0; i != n; ++i) {
+      for (auto i = 0u; i != n; ++i) {
         unpackElement(voli, bufItr, buffer.end());
         voltot(donorNodeIDs[iproc][i]) += voli;
       }
@@ -279,7 +279,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
 
   // Now we know the total volume intersected for each of our donor nodes, and which domains need that donor info.
   // Send the donor information to each domain.
-  for (unsigned iproc = 0; iproc != nprocs; ++iproc) {
+  for (auto iproc = 0; iproc != nprocs; ++iproc) {
     const unsigned n = donorNodeIDs[iproc].size();
     if (n > 0) {
       sendBuffers.push_back(vector<char>());
@@ -304,7 +304,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
   vector<Tensor> tensorDonorValues(nTensorFields);
   vector<SymTensor> symTensorDonorValues(nSymTensorFields);
 
-  for (unsigned iproc = 0; iproc != nprocs; ++iproc) {
+  for (auto iproc = 0; iproc != nprocs; ++iproc) {
     const unsigned ndonors = intersectDonorIndices[iproc].size();
     if (ndonors > 0) {
       unsigned bufsize;

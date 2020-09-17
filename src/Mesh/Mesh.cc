@@ -153,15 +153,15 @@ Mesh(const vector<Vector>& nodePositions,
 
   // Invert the zoneFace structure.
   vector<vector<int> > faceZones(faceEdges.size());
-  for (int izone = 0; izone != zoneFaces.size(); ++izone) {
+  for (auto izone = 0u; izone != zoneFaces.size(); ++izone) {
     const vector<int>& zf = zoneFaces[izone];
     for (unsigned j = 0; j != zf.size(); ++j) {
       if (zf[j] < 0) {
         const int k = ~zf[j];
-        VERIFY(k < faceZones.size());
+        VERIFY(k < (int)faceZones.size());
         faceZones[k].push_back(~izone);
       } else {
-        VERIFY(zf[j] < faceZones.size());
+        VERIFY(zf[j] < (int)faceZones.size());
         faceZones[zf[j]].push_back(izone);
       }
     }
@@ -514,7 +514,6 @@ cleanEdges(const double edgeTol) {
 
     // Flag the edges we want to remove.  This implies we are also coalescing 
     // nodes.
-    const unsigned nNodes = mNodes.size();
     vector<unsigned> edgeMask(mEdges.size(), 1);
     vector<unsigned> nodeMask(mNodes.size(), 1);
     vector<unsigned> nodeMap(mNodes.size());
@@ -781,7 +780,7 @@ generateDomainInfo() {
   {
     vector<char> localBuffer;
     packElement(domainHulls[rank], localBuffer);
-    for (int sendProc = 0; sendProc != numDomains; ++sendProc) {
+    for (auto sendProc = 0u; sendProc != numDomains; ++sendProc) {
       unsigned bufSize = localBuffer.size();
       MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
       vector<char> buffer = localBuffer;
@@ -1004,13 +1003,16 @@ Mesh<Dimension>::
 generateParallelRind(vector<typename Dimension::Vector>& generators,
                      vector<typename Dimension::SymTensor>& Hs) {
 
+  CONTRACT_VAR(generators);
+  CONTRACT_VAR(Hs);
+
   REQUIRE(generators.size() == this->numZones());
   REQUIRE(Hs.size() == this->numZones());
 
 #ifdef USE_MPI
   // Parallel procs.
   const unsigned numDomains = Process::getTotalNumberOfProcesses();
-  const unsigned rank = Process::getRank();
+  //const unsigned rank = Process::getRank();
 
   if (numDomains > 1) {
     const unsigned numNeighborDomains = mNeighborDomains.size();
@@ -1192,24 +1194,20 @@ vector<unsigned>
 Mesh<Dimension>::
 globalMeshNodeIDs() const {
   const unsigned numDomains = Process::getTotalNumberOfProcesses();
-  const unsigned rank = Process::getRank();
   const unsigned nlocal = this->numNodes();
-  unsigned nown;
-  
   // Pre-conditions.
-  VERIFY2(numDomains == 1 or
-          mNeighborDomains.size() > 0 and mSharedNodes.size() == mNeighborDomains.size(),
+  VERIFY2((numDomains == 1) or
+          (mNeighborDomains.size() > 0 and mSharedNodes.size() == mNeighborDomains.size()),
           "You must call Mesh::generateDomainInfo before calling Mesh::globalMeshNodeIDs: "
           << numDomains << " " << mNeighborDomains.size() << " " << mSharedNodes.size());
 
   // If we're serial this is easy!
   vector<unsigned> result(nlocal, UNSETID);
-  if (numDomains == 1) {
-    for (unsigned i = 0; i != nlocal; ++i) result[i] = i;
-    nown = nlocal;
-
-  } else {
 #ifdef USE_MPI
+  if (numDomains != 1) {
+    unsigned nown;
+    const unsigned rank = Process::getRank();
+  
     // The parallel case.  Start by having everyone figure out how many nodes
     // they own.
     const unsigned numNeighborDomains = mSharedNodes.size();
@@ -1366,9 +1364,9 @@ globalMeshNodeIDs() const {
 //       }
 //     }
 //     END_CONTRACT_SCOPE
+  }
 #endif
 
-  }
 
   // Post-conditions.
   ENSURE(result.size() == nlocal);
@@ -1387,8 +1385,6 @@ template<typename Dimension>
 vector<unsigned> 
 Mesh<Dimension>::
 globalMeshFaceIDs(const vector<unsigned>& globalNodeIDs) const {
-  const unsigned numDomains = Process::getTotalNumberOfProcesses();
-  const unsigned rank = Process::getRank();
 
   // Now hash the faceIDs based on the global nodes. 
   vector<unsigned> result;
@@ -1399,7 +1395,7 @@ globalMeshFaceIDs(const vector<unsigned>& globalNodeIDs) const {
     globals.reserve(locals.size());
     for (const unsigned i: locals) globals.push_back(globalNodeIDs[i]);
     sort(globals.begin(), globals.end());
-    size_t seed;
+    size_t seed = 0;
     for (const unsigned i: globals) boost::hash_combine(seed, i);
     result.push_back(seed);
   }
@@ -1601,9 +1597,11 @@ string
 Mesh<Dimension>::
 validDomainInfo(const typename Dimension::Vector& xmin,
                 const typename Dimension::Vector& xmax,
-                const bool checkUniqueSendProc) const {
+                const bool /*checkUniqueSendProc*/) const {
   string result = "";
 
+  CONTRACT_VAR(xmin);
+  CONTRACT_VAR(xmax);
 #ifdef USE_MPI
   const unsigned rank = Process::getRank();
   const unsigned numDomains = Process::getTotalNumberOfProcesses();

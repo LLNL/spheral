@@ -331,8 +331,6 @@ exchangeTuples(const std::vector<std::tuple<T, T, T> >& localKeys,
   typedef std::tuple<T, T, T> Key;
   using std::vector;
 
-  const unsigned rank = Process::getRank();
-
   // Pack up our local keys.
   std::vector<char> localPacked;
   packElement(localKeys, localPacked);

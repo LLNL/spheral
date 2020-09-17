@@ -59,13 +59,8 @@ computeGenerators(NodeListIterator nodeListBegin,
 
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ConvexHull ConvexHull;
-  typedef typename Mesh<Dimension>::Zone Zone;
-  typedef typename Mesh<Dimension>::Key Key;
 
   // Parallel geometry.
-  const unsigned rank = Process::getRank();
-  const unsigned numDomains = Process::getTotalNumberOfProcesses();
   const unsigned numNodeLists = distance(nodeListBegin, nodeListEnd);
 
   // Flatten the local positions and Hs.
@@ -140,6 +135,7 @@ computeGenerators(NodeListIterator nodeListBegin,
   //   }
   // }
 
+  CONTRACT_VAR(numNodeLists);
   CHECK(localPositions.size() == nlocal);
   CHECK(localHs.size() == nlocal);
   CHECK(offsets.size() == numNodeLists + 1);

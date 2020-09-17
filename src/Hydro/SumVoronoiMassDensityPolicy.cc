@@ -65,10 +65,10 @@ void
 SumVoronoiMassDensityPolicy<Dimension>::
 update(const KeyType& key,
        State<Dimension>& state,
-       StateDerivatives<Dimension>& derivs,
-       const double multiplier,
-       const double t,
-       const double dt) {
+       StateDerivatives<Dimension>& /*derivs*/,
+       const double /*multiplier*/,
+       const double /*t*/,
+       const double /*dt*/) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::massDensity and 
@@ -117,7 +117,7 @@ update(const KeyType& key,
     auto volEff_thread = volEff.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto k = 0; k < npairs; ++k) {
+    for (auto k = 0u; k < npairs; ++k) {
       i = pairs[k].i_node;
       j = pairs[k].j_node;
       nodeListi = pairs[k].i_list;
@@ -157,10 +157,10 @@ update(const KeyType& key,
   }
 
   // Finalize the density for node i.
-  for (auto nodeListi = 0; nodeListi < numFields; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numFields; ++nodeListi) {
     const auto ni = mass[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
       const auto& Vi = volume(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
@@ -181,8 +181,8 @@ updateAsIncrement(const KeyType& key,
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs,
                   const double multiplier,
-                  const double t,
-                  const double dt) {
+                  const double /*t*/,
+                  const double /*dt*/) {
 
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);

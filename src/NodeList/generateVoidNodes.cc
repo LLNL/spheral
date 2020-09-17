@@ -34,9 +34,9 @@ using std::max;
 //------------------------------------------------------------------------------
 inline
 Dim<1>::Vector
-closestPointOnFace(const Mesh<Dim<1> >& mesh,
+closestPointOnFace(const Mesh<Dim<1> >& /*mesh*/,
                    const Mesh<Dim<1> >::Face& face,
-                   const Dim<1>::Vector ri) {
+                   const Dim<1>::Vector /*ri*/) {
   return face.position();
 }
 
@@ -69,14 +69,13 @@ template<typename Dimension>
 void generateVoidNodes(const vector<typename Dimension::Vector>& generators,
                        const vector<typename Dimension::SymTensor>& Hs,
                        const Mesh<Dimension>& mesh,
-                       const typename Dimension::Vector& xmin,
-                       const typename Dimension::Vector& xmax,
+                       const typename Dimension::Vector& /*xmin*/,
+                       const typename Dimension::Vector& /*xmax*/,
                        const unsigned numInternal,
                        const double nPerh,
                        const double threshold,
                        NodeList<Dimension>& voidNodes) {
 
-  typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ConvexHull ConvexHull;

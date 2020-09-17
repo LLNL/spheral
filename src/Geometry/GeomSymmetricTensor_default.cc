@@ -181,6 +181,9 @@ GeomSymmetricTensor<3>::eigenVectors() const {
   const double lambda1 = result.eigenValues.x();
   const double lambda2 = result.eigenValues.y();
   const double lambda3 = result.eigenValues.z();
+  CONTRACT_VAR(lambda1);
+  CONTRACT_VAR(lambda2);
+  CONTRACT_VAR(lambda3);
   const Vector v1 = result.eigenVectors.getColumn(0);
   const Vector v2 = result.eigenVectors.getColumn(1);
   const Vector v3 = result.eigenVectors.getColumn(2);
@@ -193,6 +196,7 @@ GeomSymmetricTensor<3>::eigenVectors() const {
           fuzzyEqual(v3.magnitude2(), 1.0, tolerance),
           v1 << " " << v2 << " " << v3);
   const double tol = tolerance*max(1.0, this->maxAbsElement());
+  CONTRACT_VAR(tol);
   ENSURE2(fuzzyEqual((SymTensor(xx() - lambda1, xy(), xz(),
                                 yx(), yy() - lambda1, yz(),
                                 zx(), zy(), zz() - lambda1)*v1).maxAbsElement(), 0.0, tol),

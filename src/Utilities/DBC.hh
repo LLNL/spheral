@@ -145,8 +145,8 @@ inline bool nearlyEqual(const T& x,
 #define BEGIN_CONTRACT_SCOPE {
 #define END_CONTRACT_SCOPE }
 #else
-#define BEGIN_CONTRACT_SCOPE if (false) { while(false)
-#define END_CONTRACT_SCOPE } while(false);
+#define BEGIN_CONTRACT_SCOPE if (false) { 
+#define END_CONTRACT_SCOPE } 
 #endif
 
 //----------- Define one-argument forms

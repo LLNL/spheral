@@ -81,9 +81,9 @@ JohnsonCookDamage<Dimension>::
 template<typename Dimension>
 void
 JohnsonCookDamage<Dimension>::
-evaluateDerivatives(const Scalar time,
-                    const Scalar dt,
-                    const DataBase<Dimension>& dataBase,
+evaluateDerivatives(const Scalar /*time*/,
+                    const Scalar /*dt*/,
+                    const DataBase<Dimension>& /*dataBase*/,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
 
@@ -99,10 +99,10 @@ evaluateDerivatives(const Scalar time,
 template<typename Dimension>
 typename JohnsonCookDamage<Dimension>::TimeStepType
 JohnsonCookDamage<Dimension>::
-dt(const DataBase<Dimension>& dataBase, 
-   const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const Scalar currentTime) const {
+dt(const DataBase<Dimension>& /*dataBase*/, 
+   const State<Dimension>& /*state*/,
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const Scalar /*currentTime*/) const {
   return TimeStepType(1.0e100, "Rate of damage change -- NO VOTE.");
 }
 
@@ -112,7 +112,7 @@ dt(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 JohnsonCookDamage<Dimension>::
-registerState(DataBase<Dimension>& dataBase,
+registerState(DataBase<Dimension>& /*dataBase*/,
               State<Dimension>& state) {
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
@@ -146,7 +146,7 @@ registerState(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 JohnsonCookDamage<Dimension>::
-registerDerivatives(DataBase<Dimension>& dataBase,
+registerDerivatives(DataBase<Dimension>& /*dataBase*/,
                     StateDerivatives<Dimension>& derivs) {
   derivs.enroll(mNewEffectiveDamage);
 }
@@ -158,7 +158,7 @@ template<typename Dimension>
 void
 JohnsonCookDamage<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
-                     StateDerivatives<Dimension>& derivs) {
+                     StateDerivatives<Dimension>& /*derivs*/) {
 
   // Grab this models damage field from the state.
   typedef typename State<Dimension>::KeyType Key;
@@ -186,7 +186,7 @@ template<typename Dimension>
 void
 JohnsonCookDamage<Dimension>::
 enforceBoundaries(State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs) {
+                  StateDerivatives<Dimension>& /*derivs*/) {
 
   // Grab this models damage field from the state.
   typedef typename State<Dimension>::KeyType Key;
@@ -199,7 +199,6 @@ enforceBoundaries(State<Dimension>& state,
   CHECK(state.registered(gradDKey));
   auto& D = state.field(DKey, SymTensor::zero);
   auto& Deff = state.field(DeffKey, SymTensor::zero);
-  auto& gradD = state.field(gradDKey, Vector::zero);
 
   // Enforce!
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 

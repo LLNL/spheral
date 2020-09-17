@@ -114,8 +114,8 @@ update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
        const double multiplier,
-       const double t,
-       const double dt) {
+       const double /*t*/,
+       const double /*dt*/) {
 
   // Get the field name portion of the key.
   KeyType fieldKey, nodeListKey;
@@ -147,9 +147,9 @@ update(const KeyType& key,
   for (const auto& key: incrementKeys) {
     const auto df = derivs.fields(key, Value());
     CHECK(df.size() == f.size());
-    for (auto k = 0; k != numNodeLists; ++k) {
+    for (auto k = 0u; k != numNodeLists; ++k) {
       const auto n = f[k]->numInternalElements();
-      for (auto i = 0; i != n; ++i) {
+      for (auto i = 0u; i != n; ++i) {
         f(k, i) += multiplier*(df(k, i));
       }
     }

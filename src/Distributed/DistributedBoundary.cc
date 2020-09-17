@@ -153,7 +153,7 @@ communicatedProcs(vector<int>& sendProcs,
   }
 
   // Fill in the result.
-  for (int k = 0; k != numProcs; ++k) {
+  for (auto k = 0u; k != numProcs; ++k) {
     if (sendFlags[k] == 1) sendProcs.push_back(k);
     if (recvFlags[k] == 1) recvProcs.push_back(k);
   }
@@ -575,7 +575,6 @@ beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const {
   // type we're exchanging.
   VERIFY2(field.fixedSizeDataType(), "Assuming we're communicating fixed size types!");
   const int numElementsInType = field.numValsInDataType();
-  const int sizeofElement = field.sizeofDataType();
   const NodeList<Dimension>* nodeListPtr = field.nodeListPtr();
 
   // Grab the number of domains and processor ID.
@@ -640,6 +639,7 @@ beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const {
             typename DomainBoundaryNodeMap::const_iterator itr = domBoundNodeMap.find(checkProc);
             REQUIRE(itr != domBoundNodeMap.end());
             const DomainBoundaryNodes& boundNodes = itr->second;
+            CONTRACT_VAR(boundNodes);
             REQUIRE(boundNodes.sendNodes.size() == numRecvNodes);
             REQUIRE(boundNodes.receiveNodes.size() == numSendNodes);
           }
@@ -820,6 +820,7 @@ beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const {
             typename DomainBoundaryNodeMap::const_iterator itr = domBoundNodeMap.find(checkProc);
             REQUIRE(itr != domBoundNodeMap.end());
             const DomainBoundaryNodes& boundNodes = itr->second;
+            CONTRACT_VAR(boundNodes);
             REQUIRE(boundNodes.sendNodes.size() == numRecvNodes);
             REQUIRE(boundNodes.receiveNodes.size() == numSendNodes);
           }
@@ -965,7 +966,7 @@ beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const {
 template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
-setGhostNodes(NodeList<Dimension>& nodeList) {
+setGhostNodes(NodeList<Dimension>&) {
   VERIFY(0);
 }
 
@@ -992,13 +993,13 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
-setViolationNodes(NodeList<Dimension>& nodeList) {
+setViolationNodes(NodeList<Dimension>&) {
 }
 
 template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
-updateViolationNodes(NodeList<Dimension>& nodeList) {
+updateViolationNodes(NodeList<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------
@@ -1035,6 +1036,7 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
 
   typedef NodeListRegistrar<Dimension> Registrar;
   Registrar& registrar = Registrar::instance();
+  CONTRACT_VAR(registrar);
   REQUIRE(numNodesRemoved.size() == registrar.numNodeLists());
 
   const vector<int> numNodesRemovedPreviously(numNodesRemoved);
@@ -1178,7 +1180,6 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
       for (typename DomainBoundaryNodeMap::iterator innerItr = domainBoundaryNodes.begin();
            innerItr != domainBoundaryNodes.end();
            ++innerItr) {
-        const int neighborDomain = innerItr->first;
         DomainBoundaryNodes& domainNodes = innerItr->second;
 
         // If there are nodes we're sending to this domain, then we should have some flags
@@ -1194,6 +1195,7 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
             vector<int> newSendNodes;
             for (size_t k = 0; k != domainNodes.sendNodes.size(); ++k) {
               if (flags[k] == 1) {
+                CONTRACT_VAR(myFirstGhostNode);
                 CHECK(old2newIndexMap(nodeListOff, domainNodes.sendNodes[k]) < myFirstGhostNode);
                 newSendNodes.push_back(old2newIndexMap(nodeListOff, domainNodes.sendNodes[k]));
               }
@@ -1274,8 +1276,6 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
   BEGIN_CONTRACT_SCOPE
   {
     // Make sure everyone has the same number of exchange fields.
-    const int nProcs = numDomains();
-    const int procID = domainID();
     int nFields = mExchangeFields.size();
     MPI_Bcast(&nFields, 1, MPI_INT, 0, Communicator::communicator());
     REQUIRE(nFields == mExchangeFields.size())
@@ -1399,7 +1399,6 @@ setControlAndGhostNodes() {
       for (typename DomainBoundaryNodeMap::const_iterator domItr = domBoundaryNodeMap.begin();
            domItr != domBoundaryNodeMap.end();
            ++domItr) {
-        int neighborDomainID = domItr->first;
         const typename DistributedBoundary<Dimension>::DomainBoundaryNodes& domainNodes = domItr->second;
 
         // Add the send nodes for this domain to the control node list.

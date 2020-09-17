@@ -127,20 +127,20 @@ public:
 
   //****************************************************************************
   // Apply the boundary condition to face centered fields on a tessellation.
-  virtual void enforceBoundary(std::vector<int>& faceField, const Mesh<Dimension>& mesh) const              { VERIFY2(false, "Not implemented"); }
-  virtual void enforceBoundary(std::vector<Scalar>& faceField, const Mesh<Dimension>& mesh) const           { VERIFY2(false, "Not implemented"); }
-  virtual void enforceBoundary(std::vector<Vector>& faceField, const Mesh<Dimension>& mesh) const           { VERIFY2(false, "Not implemented"); }
-  virtual void enforceBoundary(std::vector<Tensor>& faceField, const Mesh<Dimension>& mesh) const           { VERIFY2(false, "Not implemented"); }
-  virtual void enforceBoundary(std::vector<SymTensor>& faceField, const Mesh<Dimension>& mesh) const        { VERIFY2(false, "Not implemented"); }
-  virtual void enforceBoundary(std::vector<ThirdRankTensor>& faceField, const Mesh<Dimension>& mesh) const  { VERIFY2(false, "Not implemented"); }
-  virtual void enforceBoundary(std::vector<FourthRankTensor>& faceField, const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
-  virtual void enforceBoundary(std::vector<FifthRankTensor>& faceField, const Mesh<Dimension>& mesh) const  { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<int>&              /*faceField*/, const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<Scalar>&           /*faceField*/, const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<Vector>&           /*faceField*/, const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<Tensor>&           /*faceField*/, const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<SymTensor>&        /*faceField*/, const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<ThirdRankTensor>&  /*faceField*/, const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<FourthRankTensor>& /*faceField*/, const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<FifthRankTensor>&  /*faceField*/, const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
 
   // Fill in faces on this boundary with effective opposite face values.
-  virtual void swapFaceValues(Field<Dimension, std::vector<Scalar> >& field,
-                              const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
-  virtual void swapFaceValues(Field<Dimension, std::vector<Vector> >& field,
-                              const Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void swapFaceValues(Field<Dimension, std::vector<Scalar> >& /*field*/,
+                              const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
+  virtual void swapFaceValues(Field<Dimension, std::vector<Vector> >& /*field*/,
+                              const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
 
   //****************************************************************************
   // Use a set of flags to cull out inactive ghost nodes.
@@ -164,7 +164,7 @@ public:
 
   // Optionally the boundary can clip an input box range.
   // Defaults to no-op.
-  virtual void clip(Vector& xmin, Vector& xmax) const                            {};
+  virtual void clip(Vector& /*xmin*/, Vector& /*xmax*/) const                            {};
 
   // Optionally opt-out of ghost node culling.
   virtual bool allowGhostCulling() const                                         { return true; }

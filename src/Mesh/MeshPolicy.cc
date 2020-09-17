@@ -91,10 +91,11 @@ void
 MeshPolicy<Dimension>::
 update(const KeyType& key,
        State<Dimension>& state,
-       StateDerivatives<Dimension>& derivs,
-       const double multiplier,
-       const double t,
-       const double dt) {
+       StateDerivatives<Dimension>& /*derivs*/,
+       const double /*multiplier*/,
+       const double /*t*/,
+       const double /*dt*/) {
+  CONTRACT_VAR(key);
   REQUIRE(key == HydroFieldNames::mesh);
 
   // Get the state.

@@ -63,7 +63,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
     REQUIRE(fieldList.numFields() == position.numFields());
     REQUIRE(fieldList.numFields() == weight.numFields());
     REQUIRE(fieldList.numFields() == Hfield.numFields());
-    for (int i = 0; i < fieldList.numFields(); ++i) {
+    for (auto i = 0u; i < fieldList.numFields(); ++i) {
       REQUIRE(fieldList[i]->nodeListPtr() == position[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == weight[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == Hfield[i]->nodeListPtr());
@@ -77,7 +77,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
     REQUIRE(fieldList.numFields() == position.numFields());
     REQUIRE(fieldList.numFields() == weight.numFields());
     REQUIRE(fieldList.numFields() == Hfield.numFields());
-    for (int i = 0; i < fieldList.numFields(); ++i) {
+    for (auto i = 0u; i < fieldList.numFields(); ++i) {
       REQUIRE(fieldList[i]->nodeListPtr() == position[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == weight[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == Hfield[i]->nodeListPtr());
@@ -91,7 +91,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
     REQUIRE(fieldList.numFields() == position.numFields());
     REQUIRE(fieldList.numFields() == weight.numFields());
     REQUIRE(fieldList.numFields() == Hfield.numFields());
-    for (int i = 0; i < fieldList.numFields(); ++i) {
+    for (auto i = 0u; i < fieldList.numFields(); ++i) {
       REQUIRE(fieldList[i]->nodeListPtr() == position[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == weight[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == Hfield[i]->nodeListPtr());
@@ -105,7 +105,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
     REQUIRE(fieldList.numFields() == position.numFields());
     REQUIRE(fieldList.numFields() == weight.numFields());
     REQUIRE(fieldList.numFields() == Hfield.numFields());
-    for (int i = 0; i < fieldList.numFields(); ++i) {
+    for (auto i = 0u; i < fieldList.numFields(); ++i) {
       REQUIRE(fieldList[i]->nodeListPtr() == position[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == weight[i]->nodeListPtr());
       REQUIRE(fieldList[i]->nodeListPtr() == Hfield[i]->nodeListPtr());
@@ -113,7 +113,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
   }
   REQUIRE(samplePositions.numFields() == sampleWeight.numFields());
   REQUIRE(samplePositions.numFields() == sampleHfield.numFields());
-  for (int i = 0; i < samplePositions.numFields(); ++i) {
+  for (auto i = 0u; i < samplePositions.numFields(); ++i) {
     REQUIRE(samplePositions[i]->nodeListPtr() == sampleWeight[i]->nodeListPtr());
     REQUIRE(samplePositions[i]->nodeListPtr() == sampleHfield[i]->nodeListPtr());
   }
@@ -346,22 +346,22 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
       // Loop over all the FieldLists we're sampling from, and add their contributions
       // to their correspoding result FieldList.
       const Scalar localWeight = weightij*Wij*normalization(nodeItr);
-      for (int i = 0; i < fieldListSet.ScalarFieldLists.size(); ++i) {
+      for (auto i = 0u; i < fieldListSet.ScalarFieldLists.size(); ++i) {
         const FieldList<Dimension, Scalar>& fieldList = fieldListSet.ScalarFieldLists[i];
         FieldList<Dimension, Scalar>& result = resultSet.ScalarFieldLists[i];
         result(neighborItr) += fieldList(nodeItr)*localWeight;
       }
-      for (int i = 0; i < fieldListSet.VectorFieldLists.size(); ++i) {
+      for (auto i = 0u; i < fieldListSet.VectorFieldLists.size(); ++i) {
         const FieldList<Dimension, Vector>& fieldList = fieldListSet.VectorFieldLists[i];
         FieldList<Dimension, Vector>& result = resultSet.VectorFieldLists[i];
         result(neighborItr) += fieldList(nodeItr)*localWeight;
       }
-      for (int i = 0; i < fieldListSet.TensorFieldLists.size(); ++i) {
+      for (auto i = 0u; i < fieldListSet.TensorFieldLists.size(); ++i) {
         const FieldList<Dimension, Tensor>& fieldList = fieldListSet.TensorFieldLists[i];
         FieldList<Dimension, Tensor>& result = resultSet.TensorFieldLists[i];
         result(neighborItr) += fieldList(nodeItr)*localWeight;
       }
-      for (int i = 0; i < fieldListSet.SymTensorFieldLists.size(); ++i) {
+      for (auto i = 0u; i < fieldListSet.SymTensorFieldLists.size(); ++i) {
         const FieldList<Dimension, SymTensor>& fieldList = fieldListSet.SymTensorFieldLists[i];
         FieldList<Dimension, SymTensor>& result = resultSet.SymTensorFieldLists[i];
         result(neighborItr) += fieldList(nodeItr)*localWeight;

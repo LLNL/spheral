@@ -32,15 +32,11 @@ numberDensity(const DataBase<Dimension>& dataBase,
               const TableKernel<Dimension>& W) {
 
   typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
 
   // Get the state.
   const auto  position = dataBase.globalPosition();
   const auto  H = dataBase.globalHfield();
   const auto& cm = dataBase.connectivityMap();
-  const auto& nodeLists = cm.nodeLists();
   const auto  numNodeLists = dataBase.numNodeLists();
 
   // Prepare the result.
@@ -54,10 +50,10 @@ numberDensity(const DataBase<Dimension>& dataBase,
   const auto  npairs = pairs.size();
 
   // First the self contribution.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto n = result[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       result(nodeListi, i) += Hdeti*W0;
@@ -71,7 +67,7 @@ numberDensity(const DataBase<Dimension>& dataBase,
     auto result_thread = result.threadCopy();
 
 #pragma omp for
-    for (auto k = 0; k < npairs; ++k) {
+    for (auto k = 0u; k < npairs; ++k) {
       i = pairs[k].i_node;
       j = pairs[k].j_node;
       nodeListi = pairs[k].i_list;

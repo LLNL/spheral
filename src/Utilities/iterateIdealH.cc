@@ -37,10 +37,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
-
-  // Get the local rank.
-  const auto rank = Process::getRank();
 
   // Start the timing.
   const auto t0 = clock();
@@ -108,14 +104,14 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     // flagNodeDone = 0;
 
     // Remove any old ghost node information from the NodeLists.
-    for (auto k = 0; k < numNodeLists; ++k) {
+    for (auto k = 0u; k < numNodeLists; ++k) {
       auto nodeListPtr = *(dataBase.fluidNodeListBegin() + k);
       nodeListPtr->numGhostNodes(0);
       nodeListPtr->neighbor().updateNodes();
     }
 
     // Enforce boundary conditions.
-    for (auto k = 0; k < boundaries.size(); ++k) {
+    for (auto k = 0u; k < boundaries.size(); ++k) {
       auto boundaryPtr = *(boundaries.begin() + k);
       boundaryPtr->setAllGhostNodes(dataBase);
       boundaryPtr->applyFieldListGhostBoundary(m);
@@ -148,12 +144,12 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       auto secondMoment_thread = secondMoment.threadCopy(threadStack);
 
       int i, j, nodeListi, nodeListj;
-      Scalar fweightij, ri, rj, mRZi, mRZj, Wi, gWi, Wj, gWj;
+      Scalar ri, rj, mRZi, mRZj, Wi, gWi, Wj, gWj;
       Vector xij, etai, etaj, gradWi, gradWj;
       SymTensor thpt;
 
 #pragma omp for
-      for (auto k = 0; k < npairs; ++k) {
+      for (auto k = 0u; k < npairs; ++k) {
         i = pairs[k].i_node;
         j = pairs[k].j_node;
         nodeListi = pairs[k].i_list;
@@ -210,7 +206,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     }  // OMP parallel
 
     // Finish the moments and measure the new H.
-    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
       const auto nodeListPtr = *(dataBase.fluidNodeListBegin() + nodeListi);
       const auto ni = nodeListPtr->numInternalNodes();
       const auto hmin = nodeListPtr->hmin();
@@ -219,7 +215,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       const auto nPerh = nodeListPtr->nodesPerSmoothingScale();
 
 #pragma omp parallel for
-      for (auto i = 0; i < ni; ++i) {
+      for (auto i = 0u; i < ni; ++i) {
         if (flagNodeDone(nodeListi, i) == 0) {
           zerothMoment(nodeListi, i) = Dimension::rootnu(zerothMoment(nodeListi, i));
           H1(nodeListi, i) = smoothingScaleMethod.newSmoothingScale(H(nodeListi, i),
@@ -278,7 +274,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
          nodeListItr != dataBase.fluidNodeListEnd(); 
          ++nodeListItr, ++k) {
       CHECK(k < nperh0.size());
-      const double nperh = nperh0[k];
+      //const double nperh = nperh0[k];
 //       Field<Dimension, SymTensor>& Hfield = **(H.fieldForNodeList(**nodeListItr));
 //       Hfield *= Dimension::rootnu(nPerhForIteration/nperh);
       (*nodeListItr)->nodesPerSmoothingScale(nperh0[k]);

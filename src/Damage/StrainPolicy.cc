@@ -58,10 +58,10 @@ void
 StrainPolicy<Dimension>::
 update(const KeyType& key,
        State<Dimension>& state,
-       StateDerivatives<Dimension>& derivs,
-       const double multiplier,
-       const double t,
-       const double dt) {
+       StateDerivatives<Dimension>& /*derivs*/,
+       const double /*multiplier*/,
+       const double /*t*/,
+       const double /*dt*/) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == SolidFieldNames::strain);
@@ -82,7 +82,7 @@ update(const KeyType& key,
   const Field<Dimension, SymTensor>& S = state.field(stressKey, SymTensor::zero);
 
   // Iterate over the internal nodes.
-  for (int i = 0; i != stateField.numInternalElements(); ++i) {
+  for (auto i = 0u; i != stateField.numInternalElements(); ++i) {
 
     // Compute the maximum tensile stress.
 //     Scalar Pi = P(i);

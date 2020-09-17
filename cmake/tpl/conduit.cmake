@@ -17,6 +17,9 @@ if(${lib_name}_BUILD)
     set(CONDUIT_URL ${CONDUIT_CACHE})
   endif()
 
+  set(cflags "-fPIC -I${ZLIB_INSTALL_DIR}/include")
+  set(ldflags "-L${ZLIB_INSTALL_DIR}/lib -lz")
+
   ExternalProject_add(${lib_name}
     PREFIX ${CONDUIT_PREFIX}
     URL ${CONDUIT_URL}
@@ -25,12 +28,13 @@ if(${lib_name}_BUILD)
                -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-               -DCMAKE_C_FLAGS=-fPIC
+               -DCMAKE_C_FLAGS=${cflags}
+               -DCMAKE_EXE_LINKER_FLAGS=${ldflags}
                -DENABLE_TESTS=Off
                -DHDF5_DIR=${HDF5_INSTALL_DIR}
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
 
-    DEPENDS hdf5
+    DEPENDS ${hdf5_build_dep} ${zlib_build_dep}
 
     LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
     LOG_CONFIGURE ${OUT_PROTOCOL_EP}

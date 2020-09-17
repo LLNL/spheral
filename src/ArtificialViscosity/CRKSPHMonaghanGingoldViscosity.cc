@@ -36,21 +36,21 @@ namespace {
 //------------------------------------------------------------------------------
 // limiter for velocity projection.
 //------------------------------------------------------------------------------
-double limiterBJ(const double x) {
-  if (x > 0.0) {
-    return min(1.0, 4.0/(x + 1.0)*min(1.0, x));  // Barth-Jesperson
-  } else {
-    return 0.0;
-  }
-}
-
-double limiterMC(const double x) {
-  if (x > 0.0) {
-    return 2.0/(1.0 + x)*min(2.0*x, min(0.5*(1.0 + x), 2.0));   // monotonized central
-  } else {
-    return 0.0;
-  }
-}
+//double limiterBJ(const double x) {
+//  if (x > 0.0) {
+//    return min(1.0, 4.0/(x + 1.0)*min(1.0, x));  // Barth-Jesperson
+//  } else {
+//    return 0.0;
+//  }
+//}
+//
+//double limiterMC(const double x) {
+//  if (x > 0.0) {
+//    return 2.0/(1.0 + x)*min(2.0*x, min(0.5*(1.0 + x), 2.0));   // monotonized central
+//  } else {
+//    return 0.0;
+//  }
+//}
 
 double limiterVL(const double x) {
   if (x > 0.0) {
@@ -60,21 +60,21 @@ double limiterVL(const double x) {
   }
 }
 
-double limiterMM(const double x) {
-  if (x > 0.0) {
-    return 2.0/(1.0 + x)*min(1.0, x);                           // minmod
-  } else {
-    return 0.0;
-  }
-}
-
-double limiterSB(const double x) {
-  if (x > 0.0) {
-    return 2.0/(1.0 + x)*max(min(2.0*x, 1.0), min(x, 2.0));    // superbee
-  } else {
-    return 0.0;
-  }
-}
+//double limiterMM(const double x) {
+//  if (x > 0.0) {
+//    return 2.0/(1.0 + x)*min(1.0, x);                           // minmod
+//  } else {
+//    return 0.0;
+//  }
+//}
+//
+//double limiterSB(const double x) {
+//  if (x > 0.0) {
+//    return 2.0/(1.0 + x)*max(min(2.0*x, 1.0), min(x, 2.0));    // superbee
+//  } else {
+//    return 0.0;
+//  }
+//}
 
 // template<typename Vector, typename Tensor>
 // double limiterConservative(const Vector& vi, const Vector& vj,
@@ -93,12 +93,12 @@ double limiterSB(const double x) {
 //   return min(1.0, min(abs(vjimag*safeInv(dimag)), abs(vjimag*safeInv(djmag))));
 // }
 
-double limiterConservative(const double vji, const double deltavi, const double deltavj) {
-  if (deltavi*deltavj <= 0.0 or
-      deltavi*vji <= 0.0 or
-      deltavj*vji <= 0.0) return 0.0;
-  return min(1.0, min(abs(vji*safeInv(deltavi)), abs(vji*safeInv(deltavj))));
-}
+//double limiterConservative(const double vji, const double deltavi, const double deltavj) {
+//  if (deltavi*deltavj <= 0.0 or
+//      deltavi*vji <= 0.0 or
+//      deltavj*vji <= 0.0) return 0.0;
+//  return min(1.0, min(abs(vji*safeInv(deltavi)), abs(vji*safeInv(deltavj))));
+//}
 
 }
 

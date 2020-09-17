@@ -75,9 +75,9 @@ JohnsonCookFailureStrainPolicy<Dimension>::
 update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
-       const double multiplier,
-       const double t,
-       const double dt) {
+       const double /*multiplier*/,
+       const double /*t*/,
+       const double /*dt*/) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == SolidFieldNames::flaws);
@@ -104,7 +104,7 @@ update(const KeyType& key,
   // Iterate over the internal nodes.
   const auto n = efail.numInternalElements();
 #pragma omp parallel for
-  for (auto i = 0; i < n; ++i) {
+  for (auto i = 0u; i < n; ++i) {
     const auto sigmaVM = sqrt(1.5*S(i).doubledot(S(i)));
     CHECK(sigmaVM >= 0.0);
     const auto Pi = min(0.0, P(i));                        // Only use negative pressure

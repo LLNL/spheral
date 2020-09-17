@@ -53,7 +53,7 @@ gradCorrectionsSize() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+unsigned int
 ReproducingKernelMethods<Dimension>::
 hessCorrectionsSize() const {
   return mHessCorrectionsSize;

@@ -16,21 +16,21 @@ void copy2polytope(const FieldList<Dimension, typename Dimension::FacetedVolume>
   mesh.clear();
 
   const auto numNodeLists = cells.size();
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto n = cells[nodeListi]->numInternalElements();
     const auto noldcells = mesh.cells.size();
     mesh.cells.resize(noldcells + n);
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
       const auto& celli = cells(nodeListi, i);
       const auto& verts = celli.vertices();
       const auto& facets = celli.facets();
       const auto  noldnodes = mesh.nodes.size()/nDim;
       const auto  noldfaces = mesh.faces.size();
       mesh.faces.resize(noldfaces + facets.size());
-      for (auto j = 0; j < verts.size(); ++j) {
+      for (auto j = 0u; j < verts.size(); ++j) {
         for (auto k = 0; k < nDim; ++k) mesh.nodes.push_back(verts[j][k]);
       }
-      for (auto j = 0; j < facets.size(); ++j) {
+      for (auto j = 0u; j < facets.size(); ++j) {
         mesh.cells[noldcells + i].push_back(noldfaces + j);
         const auto& ipoints = facets[j].ipoints();
         for (auto k: ipoints) {

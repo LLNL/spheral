@@ -48,11 +48,11 @@ public:
   // Constructors.
   GeomSymmetricTensor();
   explicit GeomSymmetricTensor(const double a11);
-  GeomSymmetricTensor(const double a11, const double a12,
-                      const double a21, const double a22);
-  GeomSymmetricTensor(const double a11, const double a12, const double a13,
-                      const double a21, const double a22, const double a23,
-                      const double a31, const double a32, const double a33);
+  GeomSymmetricTensor(const double /*a11*/, const double /*a12*/,
+                      const double /*a21*/, const double /*a22*/);
+  GeomSymmetricTensor(const double /*a11*/, const double /*a12*/, const double /*a13*/,
+                      const double /*a21*/, const double /*a22*/, const double /*a23*/,
+                      const double /*a31*/, const double /*a32*/, const double /*a33*/);
   GeomSymmetricTensor(const GeomSymmetricTensor& ten);
   explicit GeomSymmetricTensor(const GeomTensor<nDim>& ten);
   template<typename Derived> GeomSymmetricTensor(const Eigen::MatrixBase<Derived>& ten);

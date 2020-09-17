@@ -51,7 +51,7 @@ bisectRoot(const Function& functor,
   double f = functor(rootSafe);
 
   // Iterate until we either converge or achieve the desired accuracy.
-  int iter = 0;
+  unsigned iter = 0;
   while (iter < maxIterations) {
     ++iter;
     dxold = dx;

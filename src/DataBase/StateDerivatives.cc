@@ -140,6 +140,7 @@ calculatedNodePairsSymmetric() const {
          (nodeJItr != neighbors.end()) && result;
          ++nodeJItr) {
       typename CalculatedPairType::const_iterator itr2 = mCalculatedNodePairs.find(*nodeJItr);
+      CONTRACT_VAR(itr2);
       CHECK(itr2 != mCalculatedNodePairs.end());
       const vector<NodeIteratorBase<Dimension> > neighborsJ = itr->second;
       result = result && (find(neighborsJ.begin(), neighborsJ.end(), nodeI) != neighborsJ.end());
@@ -166,12 +167,12 @@ Zero() {
       auto ptr = boost::any_cast<FieldBase<Dimension>*>(itr->second);
       ptr->Zero();
 
-    } catch (boost::bad_any_cast) {
+    } catch (const boost::bad_any_cast&) {
       try {
         auto ptr = boost::any_cast<vector<Vector>*>(itr->second);
         ptr->clear();
 
-      } catch (boost::bad_any_cast) {
+      } catch (const boost::bad_any_cast&) {
         VERIFY2(false, "StateDerivatives::Zero ERROR: unknown type for key " << itr->first << "\n");
       }
     }
