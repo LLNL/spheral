@@ -93,9 +93,9 @@ inline
 void
 ConstantStrength<Dimension>::
 shearModulus(Field<Dimension, Scalar>& shearModulus,
-             const Field<Dimension, Scalar>& density,
-             const Field<Dimension, Scalar>& specificThermalEnergy,
-             const Field<Dimension, Scalar>& pressure) const {
+             const Field<Dimension, Scalar>& /*density*/,
+             const Field<Dimension, Scalar>& /*specificThermalEnergy*/,
+             const Field<Dimension, Scalar>& /*pressure*/) const {
   shearModulus = mShearModulus0;
 }
 
@@ -108,10 +108,10 @@ void
 ConstantStrength<Dimension>::
 yieldStrength(Field<Dimension, Scalar>& yieldStrength,
               const Field<Dimension, Scalar>& density,
-              const Field<Dimension, Scalar>& specificThermalEnergy,
-              const Field<Dimension, Scalar>& pressure,
-              const Field<Dimension, Scalar>& plasticStrain,
-              const Field<Dimension, Scalar>& plasticStrainRate) const {
+              const Field<Dimension, Scalar>& /*specificThermalEnergy*/,
+              const Field<Dimension, Scalar>& /*pressure*/,
+              const Field<Dimension, Scalar>& /*plasticStrain*/,
+              const Field<Dimension, Scalar>& /*plasticStrainRate*/) const {
   if (mEOSptr != 0 and
       density/(mEOSptr->referenceDensity()) < mEOSptr->etamin()) {
     yieldStrength = 0.0;

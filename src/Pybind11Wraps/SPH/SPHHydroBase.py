@@ -179,7 +179,7 @@ boundary conditions."""
     DHDt =                         PYB11property("const FieldList<%(Dimension)s, SymTensor>&","DHDt",                 returnpolicy="reference_internal")
     DvDx =                         PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "DvDx",                 returnpolicy="reference_internal")
     internalDvDx =                 PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "internalDvDx",         returnpolicy="reference_internal")
-    pairAccelerations =            PYB11property("const FieldList<%(Dimension)s, std::vector<Vector> >&", "pairAccelerations", returnpolicy="reference_internal")
+    pairAccelerations =            PYB11property("const std::vector<Vector>&", "pairAccelerations", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods

@@ -423,7 +423,7 @@ FieldList<Dimension, DataType>::deleteField(const Field<Dimension, DataType>& fi
     }
     CHECK(fieldItr != mFieldCache.end());
     mFieldCache.erase(fieldItr);
-
+    [[fallthrough]];
   case FieldStorageType::ReferenceFields:
     mFieldPtrs.erase(fieldPtrItr);
     mFieldBasePtrs.erase(mFieldBasePtrs.begin() + delta);
@@ -1194,7 +1194,7 @@ FieldList<Dimension, DataType>::operator-=(const FieldList<Dimension, DataType>&
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
-  for (int i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     CHECK2((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr(), (*this)[i]->nodeListPtr()->name() << " != " << rhs[i]->nodeListPtr()->name());
     *((*this)[i]) -= *(rhs[i]);
   }
@@ -1234,7 +1234,7 @@ template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::operator+=(const DataType& rhs) {
-  for (int i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     *((*this)[i]) += rhs;
   }
   return *this;
@@ -1247,7 +1247,7 @@ template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::operator-=(const DataType& rhs) {
-  for (int i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     *((*this)[i]) -= rhs;
   }
   return *this;
@@ -1262,7 +1262,7 @@ FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::
 operator*=(const FieldList<Dimension, typename Dimension::Scalar>& rhs) {
   REQUIRE(this->numFields() == rhs.numFields());
-  for (int i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     CHECK2((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr(), (*this)[i]->nodeListPtr()->name() << " != " << rhs[i]->nodeListPtr()->name());
     *((*this)[i]) *= *(rhs[i]);
   }
@@ -1335,7 +1335,7 @@ inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::operator/=(const typename Dimension::Scalar& rhs) {
   REQUIRE(rhs != 0.0);
-  for (int i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     *((*this)[i]) /= rhs;
   }
   return *this;
@@ -1434,7 +1434,7 @@ operator==(const FieldList<Dimension, DataType>& rhs) const {
 
   bool result = true;
   int i = 0;
-  while (result && i != numFields()) {
+  while (result && i != (int)numFields()) {
     result = result && (*(mFieldPtrs[i]) == *(rhs[i]));
     ++i;
   }
@@ -1535,7 +1535,7 @@ operator==(const DataType& rhs) const {
 
   bool result = true;
   int i = 0;
-  while (result && i != numFields()) {
+  while (result && i != (int)numFields()) {
     result = result && (*(mFieldPtrs[i]) == rhs);
     ++i;
   }
@@ -1564,7 +1564,7 @@ operator>(const DataType& rhs) const {
 
   bool result = true;
   int i = 0;
-  while (result && i != numFields()) {
+  while (result && i != (int)numFields()) {
     result = result && (*(mFieldPtrs[i]) > rhs);
     ++i;
   }
@@ -1582,7 +1582,7 @@ operator<(const DataType& rhs) const {
 
   bool result = true;
   int i = 0;
-  while (result && i != numFields()) {
+  while (result && i != (int)numFields()) {
     result = result && (*(mFieldPtrs[i]) < rhs);
     ++i;
   }
