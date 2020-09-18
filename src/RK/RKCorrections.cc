@@ -394,7 +394,7 @@ finalize(const Scalar time,
          DataBase<Dimension>& dataBase, 
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
-  if (updateInFinalize) {
+  if (mUpdateInFinalize) {
     // // We probably don't need new volumes
     // preStepInitialize(dataBase, state, derivs);
     
