@@ -387,11 +387,16 @@ evaluateDerivatives(const Scalar /*time*/,
 template<typename Dimension>
 void
 RKCorrections<Dimension>::
-finalize(const Scalar /*time*/, 
-         const Scalar /*dt*/,
-         DataBase<Dimension>& /*dataBase*/, 
-         State<Dimension>& /*state*/,
-         StateDerivatives<Dimension>& /*derivs*/) {
+finalize(const Scalar time, 
+         const Scalar dt,
+         DataBase<Dimension>& dataBase, 
+         State<Dimension>& state,
+         StateDerivatives<Dimension>& derivs) {
+  // Calculate new volumes
+  preStepInitialize(dataBase, state, derivs);
+
+  // Calculate new corrections
+  initialize(time, dt, dataBase, state, derivs);
 }
 
 //------------------------------------------------------------------------------
