@@ -15,12 +15,13 @@ template<typename Dimension>
 void
 computeOccupancyVolume(const ConnectivityMap<Dimension>& connectivityMap,
                        const TableKernel<Dimension>& W,
-                       const FieldList<Dimension, typename Dimension::Vector>&,
+                       const FieldList<Dimension, typename Dimension::Vector>& position,
                        const FieldList<Dimension, typename Dimension::SymTensor>& H,
                        FieldList<Dimension, typename Dimension::Scalar>& vol) {
 
   // Pre-conditions.
   const auto numNodeLists = vol.size();
+  CONTRACT_VAR(position);
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
 
