@@ -562,12 +562,12 @@ valid() const {
             return false;
           }
 
-          // When enforcing domain independence the ith node may be a ghost, but all of it's neighbors should
-          // be internal.
-          if (domainDecompIndependent and (i >= firstGhostNodei) and (maxNeighbor > firstGhostNodej)) {
-            cerr << "ConnectivityMap::valid: Failed test that all neighbors of a ghost node should be internal." << endl;
-            return false;
-          }
+          // // When enforcing domain independence the ith node may be a ghost, but all of it's neighbors should
+          // // be internal.
+          // if (domainDecompIndependent and (i >= firstGhostNodei) and (maxNeighbor > firstGhostNodej)) {
+          //   cerr << "ConnectivityMap::valid: Failed test that all neighbors of a ghost node should be internal." << endl;
+          //   return false;
+          // }
 
           for (auto k = 1u; k < neighbors.size(); ++k) {
             if (domainDecompIndependent) {
